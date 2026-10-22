@@ -944,6 +944,24 @@ function firstUnread(): number | null {
   return rooms.value.find((room) => room.chatId === chatId)?.firstUnread ?? null;
 }
 
+// The room list carries the reader's own read mark, and the room opens at the first message it
+// leaves unread; the list is waited for before that place is chosen, so a lazy read does not open the
+// room at its end as though everything were read.
+async function roomsSettled(): Promise<void> {
+  if (roomsStatus.value !== "pending") {
+    return;
+  }
+
+  await new Promise<void>((settle) => {
+    const stop = watch(roomsStatus, (state) => {
+      if (state !== "pending") {
+        stop();
+        settle();
+      }
+    });
+  });
+}
+
 // The first unread message where it stands out of view with the feed at the room's end; null where
 // the room opens at its end.
 function firstUnreadOutOfView(): number | null {
@@ -2127,6 +2145,7 @@ onMounted(async () => {
   // Where the room opens is settled before it is first drawn (docs/web.md, 「Room screen」): a room
   // opening at a message reads the stretch around it first, and only a room opening at its end reads
   // its end. A message that cannot be read around opens the room at its end.
+  await roomsSettled();
   const asked = messageOfQuery(route.query.at);
   const at = asked ?? firstUnread();
   // The opening position is set while the scroll container is unseen, so neither the rows nor the

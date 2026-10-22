@@ -181,6 +181,6 @@ describe("a page of a room", () => {
   test("past a message, and where a day begins", async () => {
     expect((await readMessagesAfter(-7, 4, 20)).messages.map((one) => one.messageId)).toEqual([5]);
     expect(await readDayStart(-7, 1_790_000_000)).toEqual({ messageId: 2 });
-    expect(readJudgementPage()).toEqual({ judgements: [], hasMore: false });
+    expect(await readJudgementPage(-7, null, 20)).toEqual({ judgements: [], hasMore: false });
   });
 });

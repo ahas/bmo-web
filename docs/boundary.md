@@ -267,6 +267,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `AGENCY_ADDRESS`, `AGENCY_TOKEN` | the agency |
 | console | `JOB_ADDRESS`, `JOB_TOKEN` | bmo-job |
 | console | `RECEIVER_ADDRESS`, `RECEIVER_TOKEN` | the receiver |
+| console | `GATE_ADDRESS`, `GATE_TOKEN` | the gate, for the verdicts a room's messages were judged by |
 | console | `BRAIN_ADDRESS`, `BRAIN_TOKEN` | the brain |
 | console | `ARTIFACT_ADDRESS`, `ARTIFACT_TOKEN` | bmo-artifact |
 | console | `MAIL_ADDRESS`, `MAIL_TOKEN` | bmo-mail |
@@ -291,12 +292,12 @@ What the console needs and no unit serves stands empty in the console until a un
 for it, and no file or table of that unit is read meanwhile.
 
 - **What a room's page does not carry.** The receiver's pages carry a message's words, its sender, its round and
-  its files' names. The judgements beside a page are the gate's, which serves the console none, so a room shows no
-  verdict and the openings that ride on them stand unread; what a round cost and what its turn did are the
-  agency's turn records, read by no route, so an answer wears no figures and no actions; a line's voice briefing
-  and its reading are the voice unit's, so no line carries the briefing chip. The metadata a message arrived with is
-  read only for a message that carries files, since a custom emoji, a sticker and a video's shape each stand on
-  one of its files.
+  its files' names, and nothing else a bubble's chip line wears. The console reads those from the units that hold
+  them: a page's verdicts from the gate's `GET /judgements`, and what the round behind a message cost and called
+  from the agency's `GET /runs` and its log lines — the answer line's usage and every line naming a tool. The
+  openings that ride on a verdict, a line's voice briefing and its reading are served by no unit yet, so they stand
+  unread and no line carries the briefing chip. The metadata a message arrived with is read only for a message
+  that carries files, since a custom emoji, a sticker and a video's shape each stand on one of its files.
 - **What a room's agents ran and spent there.** The receiver's figures hand each agent's runs, last run and tokens
   as null, since the agency answers none of them by room, so the session sheet stands each as "—".
 - **A link's preview.** Reading a page for its title, description and picture is no unit's to serve the console, so

@@ -2,6 +2,8 @@ import { PAGING, roomLabel } from "#shared/config";
 import { isSystemNotice } from "#shared/text-marks";
 import { wording } from "#shared/wording";
 
+import { figuresOf } from "./runfigures";
+import { judgementsOf } from "./gate";
 import { ownerChat } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
@@ -202,7 +204,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
     return held;
   };
 
-  return await Promise.all(
+  const built: ArchivedMessage[] = await Promise.all(
     received.map(async (message) => {
       const agent = agents.get(senderKey(message)) === true;
       const media = await mediaOf(chatId, message);
@@ -229,10 +231,41 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
       };
     })
   );
+
+  // What a round cost and what it did stands on the round's last message (docs/web.md, the room screen's
+  // meta line): the runs behind the page's rounds are read once each, and a run the agency no longer holds
+  // leaves the message as it stood.
+  const last = new Map<string, number>();
+
+  built.forEach((message, index) => {
+    if (message.round != null && message.agent === true) last.set(message.round, index);
+  });
+
+  await Promise.all(
+    [...last].map(async ([round, index]) => {
+      const figures = await figuresOf(round).catch(() => null);
+
+      if (figures !== null && built[index] !== undefined) {
+        built[index]!.spend = figures.spend;
+        built[index]!.actions = figures.actions;
+      }
+    })
+  );
+
+  return built;
 }
 
 async function pageOf(chatId: number, page: { items: ReceiverMessage[]; more: boolean }): Promise<MessagePage> {
-  return { messages: await messagesOf(chatId, page.items.map(receivedOf)), judgements: [], hasMore: page.more };
+  const messages = await messagesOf(chatId, page.items.map(receivedOf));
+  const wanted = new Set(messages.map((message) => message.messageId));
+
+  return {
+    messages,
+    judgements: (await judgementsOf(chatId, null, PAGING.maxSize)).judgements.filter(
+      (judgement) => judgement.messageId !== null && wanted.has(judgement.messageId)
+    ),
+    hasMore: page.more
+  };
 }
 
 /** One page of a room, oldest first, ending just before `before` when it is given. */
@@ -283,7 +316,7 @@ export async function readDayStart(chatId: number, from: number): Promise<{ mess
   return messageId === null ? null : { messageId };
 }
 
-/** A room's judgements newest first. They are the gate's, which serves the console none yet. */
-export function readJudgementPage(): JudgementPage {
-  return { judgements: [], hasMore: false };
+/** A room's judgements newest first, the page before `before` where it is given: the gate's own (docs/boundary.md, 「Gaps the console meets」). */
+export async function readJudgementPage(chatId: number, before: number | null, limit: number): Promise<JudgementPage> {
+  return await judgementsOf(chatId, before, limit);
 }

@@ -184,6 +184,7 @@
                  stands one step from the next (docs/web.md, 「The conversation's measures」), so the mark
                  and the lines between runs keep their own room round them. -->
             <div
+              v-if="chipsShown"
               :class="[
                 'sticky z-10 mt-8 mb-7 self-center not-first:mt-12 transition-[top]',
                 choosingMotion,
@@ -925,6 +926,9 @@ const itemKeys = computed<string[]>(() => items.value.map((item) => item.key));
 // room's unread count in the sidebar (docs/web.md, 「Sidebar」). Nothing is marked until the room has
 // taken its opening place, so the end it passes on the way to the first unread message is not read.
 const opened = ref(false);
+// The day marks stand over the rows they head; they are drawn once the room has taken its opening
+// place, so a mark is never the first thing painted over an empty view.
+const chipsShown = ref(false);
 
 // The room's first content keeps sizing itself as its pictures arrive; until it has settled the feed
 // is pinned to its end at once, so the opening view is never seen gliding down from the top.
@@ -1163,21 +1167,6 @@ function onEscape(event: KeyboardEvent): void {
 
   event.preventDefault();
   cancelReply();
-}
-
-// The pictures standing in the opening view are decoded before the feed is revealed, so a day's mark
-// and the rows it heads are painted by one frame rather than the mark alone first.
-async function settlePictures(): Promise<void> {
-  const shown = [...(feedRef.value?.$el?.querySelectorAll("img") ?? [])].filter((picture) => {
-    const box = picture.getBoundingClientRect();
-
-    return box.bottom > 0 && box.top < window.innerHeight;
-  }) as HTMLImageElement[];
-
-  await Promise.race([
-    Promise.all(shown.map((picture) => picture.decode().catch(() => undefined))),
-    new Promise((settle) => setTimeout(settle, 600))
-  ]);
 }
 
 // The room's end. A feed standing back in the room reads its end first.
@@ -2160,8 +2149,10 @@ onMounted(async () => {
 
   opened.value = true;
   await nextTick();
-  await settlePictures();
   hidden(false);
+  requestAnimationFrame(() => {
+    chipsShown.value = true;
+  });
   setTimeout(() => {
     settling = false;
   }, 2000);

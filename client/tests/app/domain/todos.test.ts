@@ -282,6 +282,11 @@ describe("where an item stands", () => {
     expect(todoState(item(9, { approved: false, running: true }))).toBe("pending");
   });
 
+  test("an item the job service holds is held from its state, with no report beside it", () => {
+    expect(todoState(item(6, { status: "held" }))).toBe("held");
+    expect(todoState(item(6, { status: "held", holdPending: true }))).toBe("stopping");
+  });
+
   test("an item nobody has taken reads as waiting, whatever word the table happens to hold", () => {
     expect(stateLabel(wording, item(1))).toBe(wording("todo.label.state_waiting"));
     expect(stateLabel(wording, item(1, { status: "left" }))).toBe(wording("todo.label.state_waiting"));

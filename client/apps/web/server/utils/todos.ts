@@ -140,7 +140,9 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     holding: null,
     waiting: null,
     deployWaits: false,
-    holdPending: item.state === "held",
+    // The job service holds an item by its state, and a lease it had on the item has already ended
+    // where the state says held, so none is still on its way there.
+    holdPending: false,
     orderActive: false,
     seconds: null,
     spans: [],

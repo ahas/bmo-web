@@ -10,7 +10,7 @@ export interface PagingLimits {
   maxSize: number;
 }
 
-export const PAGING: PagingLimits = { defaultSize: 100, maxSize: 500 };
+export const PAGING: PagingLimits = { defaultSize: 30, maxSize: 500 };
 
 // How often a screen reads again on its own. The live stream carries the news as it happens;
 // this clock is what a screen falls back to for as long as the stream is down.

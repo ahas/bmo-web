@@ -92,7 +92,7 @@ standIn("RECEIVER", (one) => {
     return answer({ items: ids.map((id) => ({ id, name: id === PERSON ? "Person A" : null })), more: false });
   }
   if (path === `/rooms/${ROOM}/messages/1`) {
-    return answer({ id: 1, room: ROOM, senderId: PERSON, senderName: "Person A", sentAt: 100, text: "hello", imagePath: null, replyToMessageId: null, answerSeconds: null, round: null, album: null, via: null, files: [] });
+    return answer({ id: 1, room: ROOM, senderId: PERSON, senderName: "Person A", sentAt: 100_000, text: "hello", imagePath: null, replyToMessageId: null, answerSeconds: null, round: null, album: null, via: null, files: [] });
   }
   if (path === `/rooms/${ROOM}/messages/99`) return answer({ code: "not-found", error: "no such message" }, 404);
 

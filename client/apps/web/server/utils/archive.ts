@@ -50,7 +50,7 @@ function receivedOf(message: ReceiverMessage): ReceivedMessage {
     messageId: message.id,
     senderId: message.senderId,
     senderName: message.senderName,
-    sentAt: message.sentAt,
+    sentAt: seconds(message.sentAt),
     text: message.text,
     imagePath: message.imagePath,
     replyToMessageId: message.replyToMessageId,
@@ -63,6 +63,10 @@ function receivedOf(message: ReceiverMessage): ReceivedMessage {
 }
 
 const ATTACHED: readonly MessageAttachment["kind"][] = ["audio", "video", "document", "sticker"];
+
+// The receiver states its times in epoch milliseconds; a shape the screen draws states them in the unix
+// seconds `bmo-ui` reads, as every other unit adapter here does.
+const seconds = (ms: number): number => Math.floor(ms / 1000);
 
 // Every room the receiver shows, the pinned ones first in the owner's order: one page, as its route answers.
 async function everyRoom(): Promise<ReceiverRoom[]> {
@@ -77,7 +81,7 @@ export async function listRooms(): Promise<RoomSummary[]> {
     chatId: room.id,
     title: roomLabel(room.id, room.title, owner),
     messageCount: room.messageCount,
-    lastMessageAt: room.lastMessageAt,
+    lastMessageAt: room.lastMessageAt === null ? null : seconds(room.lastMessageAt),
     pinned: room.pinned,
     ...(room.companions.length > 0 ? { madeForCompanions: true as const, companions: room.companions } : {})
   }));

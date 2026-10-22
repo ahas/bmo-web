@@ -47,7 +47,7 @@ const receiver = Bun.serve({
     }
     if (url.pathname === "/rooms/-7/messages/9/picture") return new Response(PHOTO, { headers: { "content-type": "image/jpeg" } });
     if (url.pathname === "/rooms/-7/pictures") {
-      return Response.json({ items: [{ id: 9, album: null, senderName: "person-a", sentAt: 10, text: "a picture", file: { name: "p.jpg", bytes: 5, type: "image/jpeg" } }], more: false, before: 2, total: 3 });
+      return Response.json({ items: [{ id: 9, album: null, senderName: "person-a", sentAt: 10_000, text: "a picture", file: { name: "p.jpg", bytes: 5, type: "image/jpeg" } }], more: false, before: 2, total: 3 });
     }
     if (url.pathname === "/rooms/-7/window") return Response.json({ openForMs: 161_000, closesAt: 1_790_000_161 });
     if (url.pathname === "/rooms/-7/figures") {

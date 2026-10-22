@@ -15,7 +15,7 @@ const message = (id: number, over: Record<string, unknown> = {}) => ({
   room: -7,
   senderId: 11,
   senderName: "person-a",
-  sentAt: 1_790_000_000 + id,
+  sentAt: 1_790_000_000_000 + id,
   text: `words ${id}`,
   imagePath: null,
   replyToMessageId: null,
@@ -90,8 +90,8 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms") {
     return answer({
       items: [
-        room(5, { messageCount: 3, lastMessageAt: 100, pinned: true }),
-        room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200, companions: ["companion-a"] })
+        room(5, { messageCount: 3, lastMessageAt: 100_000, pinned: true }),
+        room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200_000, companions: ["companion-a"] })
       ],
       more: false
     });

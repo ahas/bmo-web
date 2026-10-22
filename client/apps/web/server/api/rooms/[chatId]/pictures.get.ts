@@ -33,7 +33,7 @@ export default defineEventHandler(async (event): Promise<RoomPicturePage> => {
       messageId: picture.id,
       album: picture.album,
       senderName: picture.senderName,
-      sentAt: picture.sentAt,
+      sentAt: Math.floor(picture.sentAt / 1000),
       text: picture.text,
       file: picture.file === null ? null : { name: picture.file.name ?? "", bytes: picture.file.bytes, type: picture.file.type ?? "" }
     })),

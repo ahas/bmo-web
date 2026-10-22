@@ -184,7 +184,6 @@
                  stands one step from the next (docs/web.md, 「The conversation's measures」), so the mark
                  and the lines between runs keep their own room round them. -->
             <div
-              v-if="chipsShown"
               :class="[
                 'sticky z-10 mt-8 mb-7 self-center not-first:mt-12 transition-[top]',
                 choosingMotion,
@@ -926,13 +925,6 @@ const itemKeys = computed<string[]>(() => items.value.map((item) => item.key));
 // room's unread count in the sidebar (docs/web.md, 「Sidebar」). Nothing is marked until the room has
 // taken its opening place, so the end it passes on the way to the first unread message is not read.
 const opened = ref(false);
-// The day marks stand over the rows they head; they are drawn once the room has taken its opening
-// place, so a mark is never the first thing painted over an empty view.
-const chipsShown = ref(false);
-
-// The room's first content keeps sizing itself as its pictures arrive; until it has settled the feed
-// is pinned to its end at once, so the opening view is never seen gliding down from the top.
-let settling = true;
 
 useReadMarks({
   chatId,
@@ -2102,7 +2094,7 @@ onMounted(async () => {
     bottom = followBottom(element, content, {
       away: () => roomFeed.newer.value,
       ...readsFromFirstLine(scroller),
-      smooth: () => !settling,
+      smooth: true,
       onAway: (away) => {
         awayFromEnd.value = away;
       },
@@ -2150,12 +2142,6 @@ onMounted(async () => {
   opened.value = true;
   await nextTick();
   hidden(false);
-  requestAnimationFrame(() => {
-    chipsShown.value = true;
-  });
-  setTimeout(() => {
-    settling = false;
-  }, 2000);
   letGoOfAsked();
 
   if (administrator.value) {

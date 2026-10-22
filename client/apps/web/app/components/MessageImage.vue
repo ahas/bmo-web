@@ -56,7 +56,7 @@ function remember(seen: PictureShape): void {
 
 const imageClass = computed<string>(() => {
   if (props.flush) {
-    return props.tile ? "size-full object-cover" : "max-h-96 w-full object-cover";
+    return props.tile ? "size-full object-cover" : "h-64 w-full object-cover";
   }
 
   return props.tile ? "aspect-square w-full rounded-lg border border-default object-cover" : "max-h-64 w-auto max-w-full rounded-lg border border-default";

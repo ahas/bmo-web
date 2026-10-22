@@ -925,6 +925,9 @@ const itemKeys = computed<string[]>(() => items.value.map((item) => item.key));
 // room's unread count in the sidebar (docs/web.md, 「Sidebar」). Nothing is marked until the room has
 // taken its opening place, so the end it passes on the way to the first unread message is not read.
 const opened = ref(false);
+// The opening view is never animated: the end is pinned at once until the reader first touches the
+// page, and only then do arriving rows glide as they otherwise would.
+let opening = true;
 
 useReadMarks({
   chatId,
@@ -2094,7 +2097,7 @@ onMounted(async () => {
     bottom = followBottom(element, content, {
       away: () => roomFeed.newer.value,
       ...readsFromFirstLine(scroller),
-      smooth: true,
+      smooth: () => !opening,
       onAway: (away) => {
         awayFromEnd.value = away;
       },
@@ -2103,6 +2106,14 @@ onMounted(async () => {
     });
     releaseFullscreen = keepPlace(element, fullscreenPlace);
     element.addEventListener("scroll", onScroll, { passive: true });
+
+    const settled = (): void => {
+      opening = false;
+    };
+
+    for (const kind of ["pointerdown", "wheel", "touchstart", "keydown"]) {
+      element.addEventListener(kind, settled, { once: true, passive: true });
+    }
   }
 
   // Whose room this is comes from the bot, and the queue's panel and the header's way into it

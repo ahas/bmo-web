@@ -103,9 +103,11 @@ function reportsOf(reports: readonly Report[]): { report: string | null; heldRea
 }
 
 function listOf(item: Item): "queue" | "pending" | "held" | "done" {
-  if (item.state === "draft") return "pending";
-  if (item.state === "held") return "held";
   if (item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null) return "done";
+  if (item.state === "held") return "held";
+  // An item the owner has not approved waits on him wherever it was filed, as the row's own state says
+  // (`todoState`): its filing is open, but it is in no queue until his approval puts it there.
+  if (item.approvals.length === 0) return "pending";
 
   return "queue";
 }

@@ -43,7 +43,7 @@ function item(id: number, over: Partial<Item> = {}): Item {
     assigneeName: null,
     requesterName: "owner",
     labels: {},
-    approvals: [],
+    approvals: [{ actorName: "owner", at: 1_790_000_000_000 }],
     createdAt: 1_790_000_000_000,
     changedAt: 1_790_000_000_000,
     endedAt: null,
@@ -100,23 +100,25 @@ describe("the lists each item stands in", () => {
   test("the queue, what waits on approval, what is set aside, what is merged and what is finished", async () => {
     stand([
       item(1),
-      item(2, { state: "draft" }),
+      item(2, { state: "draft", approvals: [] }),
       item(3, { state: "done" }),
       item(4, { state: "merged", mergedInto: 1 }),
       item(5, { state: "dropped", endedAt: 1_790_000_060_000 }),
-      item(6, { state: "held" })
+      item(6, { state: "held" }),
+      // An item filed open but not approved by the owner waits on him like a draft one.
+      item(7, { state: "open", approvals: [] })
     ]);
 
     const board = await readTodoBoard();
 
     expect(ids(board.queue)).toEqual([1]);
-    expect(ids(board.pending)).toEqual([2]);
+    expect(ids(board.pending)).toEqual([2, 7]);
     expect(ids(board.held)).toEqual([6]);
     // An item merged into another is finished, and the fixed item carries no list of its own for merging ones.
     expect(ids(board.merged)).toEqual([]);
     expect(ids(board.done)).toEqual([5, 4, 3]);
     expect(board.doneTotal).toBe(3);
-    expect(board.standing).toEqual({ queue: 1, running: 0, pending: 1, held: 1, merged: 0 });
+    expect(board.standing).toEqual({ queue: 1, running: 0, pending: 2, held: 1, merged: 0 });
   });
 
   test("a leased item stands in the queue and reads as running; a held one stands among the holds", async () => {

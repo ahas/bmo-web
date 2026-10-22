@@ -26,8 +26,9 @@ export interface FollowOptions {
   // scroll down, a glide of the follower's arriving there: everything standing has been read, and
   // however it grows afterwards readFrom answers none of it.
   readThrough?: () => void;
-  // Moves made for new content glide; a reader who asked for less movement is moved at once.
-  smooth?: boolean;
+  // Moves made for new content glide; a reader who asked for less movement is moved at once. A
+  // function answers per move, for a feed whose first content is still sizing itself.
+  smooth?: boolean | (() => boolean);
   // Told whenever the reader comes to stand away from the end or back at it: away is short of the end
   // and not on the way there by a glide of the follower's own, so a glide carrying the reader down
   // never reads as the reader standing back.
@@ -250,7 +251,9 @@ export function followBottom(viewport: HTMLElement, content: HTMLElement, option
       return;
     }
 
-    if (glide && options.smooth === true && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const smooth = typeof options.smooth === "function" ? options.smooth() : options.smooth;
+
+    if (glide && smooth === true && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
       // The glide's own scroll events only ever move the way it goes, so they never read as the reader
       // leaving (readPosition).
       gliding = Math.min(top, viewport.scrollHeight - viewport.clientHeight);

@@ -926,6 +926,10 @@ const itemKeys = computed<string[]>(() => items.value.map((item) => item.key));
 // taken its opening place, so the end it passes on the way to the first unread message is not read.
 const opened = ref(false);
 
+// The room's first content keeps sizing itself as its pictures arrive; until it has settled the feed
+// is pinned to its end at once, so the opening view is never seen gliding down from the top.
+let settling = true;
+
 useReadMarks({
   chatId,
   viewport: scroller,
@@ -2094,7 +2098,7 @@ onMounted(async () => {
     bottom = followBottom(element, content, {
       away: () => roomFeed.newer.value,
       ...readsFromFirstLine(scroller),
-      smooth: true,
+      smooth: () => !settling,
       onAway: (away) => {
         awayFromEnd.value = away;
       },
@@ -2142,6 +2146,9 @@ onMounted(async () => {
   }
 
   opened.value = true;
+  setTimeout(() => {
+    settling = false;
+  }, 2000);
   letGoOfAsked();
 
   if (administrator.value) {

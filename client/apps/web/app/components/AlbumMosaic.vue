@@ -3,7 +3,7 @@
        that fill its width, each at the height its pictures fill it at, or one large picture with the
        rest stacked beside it, a hairline of the bubble's own ground between cells and every picture
        cut to its cell. Each opens the room's viewer on itself, which walks on to the others. -->
-  <div v-if="layout.kind === 'side'" data-album class="flex gap-px" :style="{ aspectRatio: layout.aspect }">
+  <div v-if="layout.kind === 'side'" data-album class="flex h-64 gap-px">
     <div class="min-w-0 basis-0 overflow-hidden" :style="{ flexGrow: layout.main }">
       <MessageImage v-bind="cell(0)" tile flush />
     </div>
@@ -14,8 +14,8 @@
     </div>
   </div>
 
-  <div v-else data-album class="flex flex-col gap-px">
-    <div v-for="(row, line) in layout.rows" :key="line" class="flex gap-px" :style="{ aspectRatio: row.aspect }">
+  <div v-else data-album class="flex h-64 flex-col gap-px">
+    <div v-for="(row, line) in layout.rows" :key="line" class="flex min-h-0 flex-1 gap-px">
       <div
         v-for="at in row.pictures"
         :key="props.pictures[at]!.src"

@@ -1165,6 +1165,21 @@ function onEscape(event: KeyboardEvent): void {
   cancelReply();
 }
 
+// The pictures standing in the opening view are decoded before the feed is revealed, so a day's mark
+// and the rows it heads are painted by one frame rather than the mark alone first.
+async function settlePictures(): Promise<void> {
+  const shown = [...(feedRef.value?.$el?.querySelectorAll("img") ?? [])].filter((picture) => {
+    const box = picture.getBoundingClientRect();
+
+    return box.bottom > 0 && box.top < window.innerHeight;
+  }) as HTMLImageElement[];
+
+  await Promise.race([
+    Promise.all(shown.map((picture) => picture.decode().catch(() => undefined))),
+    new Promise((settle) => setTimeout(settle, 600))
+  ]);
+}
+
 // The room's end. A feed standing back in the room reads its end first.
 async function scrollToBottom(): Promise<void> {
   if (roomFeed.newer.value) {
@@ -2135,17 +2150,18 @@ onMounted(async () => {
   if (at !== null) {
     hidden(true);
     placed = await openAt(at, asked !== null);
-    hidden(false);
   }
 
   if (!placed) {
     await roomFeed.load();
     hidden(true);
     await scrollToBottom();
-    hidden(false);
   }
 
   opened.value = true;
+  await nextTick();
+  await settlePictures();
+  hidden(false);
   setTimeout(() => {
     settling = false;
   }, 2000);

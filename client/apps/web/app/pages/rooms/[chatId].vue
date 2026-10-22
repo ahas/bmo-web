@@ -2118,10 +2118,27 @@ onMounted(async () => {
   // its end. A message that cannot be read around opens the room at its end.
   const asked = messageOfQuery(route.query.at);
   const at = asked ?? firstUnread();
+  // The opening position is set while the scroll container is unseen, so neither the rows nor the
+  // bar's own thumb is seen moving from the top to the place the room opens at.
+  const hidden = (on: boolean): void => {
+    if (element !== null) {
+      element.style.visibility = on ? "hidden" : "";
+    }
+  };
 
-  if (at === null || !(await openAt(at, asked !== null))) {
+  let placed = false;
+
+  if (at !== null) {
+    hidden(true);
+    placed = await openAt(at, asked !== null);
+    hidden(false);
+  }
+
+  if (!placed) {
     await roomFeed.load();
+    hidden(true);
     await scrollToBottom();
+    hidden(false);
   }
 
   opened.value = true;

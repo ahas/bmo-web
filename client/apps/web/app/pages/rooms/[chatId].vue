@@ -170,6 +170,7 @@
         <UChatMessages
           :should-scroll-to-bottom="false"
           :auto-scroll="false"
+          :class="{ invisible: !opened }"
           :ui="{ root: 'px-0 gap-0' }"
         >
           <!-- Each day, as its senders' runs. Each turn still running is a row of its speaker's

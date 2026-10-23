@@ -10,6 +10,8 @@ import type { Translate } from "#shared/wording";
 // screen」). The tab stands in the address, so a shared link opens the same section.
 export const AGENT_TABS = [
   { value: "general", label: "agents.label.tab_general", icon: "i-material-symbols-tune" },
+  { value: "supply", label: "agents.label.tab_supply", icon: "i-material-symbols-swap-vert" },
+  { value: "agents", label: "agents.label.tab_agents", icon: "i-material-symbols-smart-toy-outline" },
   { value: "workers", label: "agents.label.tab_workers", icon: "i-material-symbols-construction" },
   { value: "tiers", label: "agents.label.tab_tiers", icon: "i-material-symbols-stacks-outline" },
   { value: "routes", label: "agents.label.tab_routes", icon: "i-material-symbols-alt-route" },

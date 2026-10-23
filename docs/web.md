@@ -2215,10 +2215,11 @@ Two ways, split because the running places differ.
   account, each gate's road, wait and Laya mode, the common spawning pool and the searchers. The list is the archive's `agents` table, and everything this
   screen edits is written through the bot — the console does not write the bot's tables directly. The
   table itself is read raw as `agents` on the DB screen.
-- **A section to a tab.** The tabs are 일반, 워커, 모델, 실행 경로, 게이트, 대화 상대 and 서쳐. The tab stands in
+- **A section to a tab.** The tabs are 일반, 공급, 에이전트, 워커, 모델, 실행 경로, 게이트, 대화 상대 and 서쳐. The tab stands in
   the address (`?tab=`), so a shared link opens the same section and moving between tabs is a step of the
   history. The tab row stands under the title bar and carries, at its right end, the open section's own
-  action (일반's, 워커's and 대화 상대's 추가 — 일반's a menu of Claude 계정, 등록 모델 and 모델 파일, since that tab adds all three), the settings search and the one button that reads every section again, which
+  action (일반's, 공급's, 워커's and 대화 상대's 추가 — 일반's a 기본 프롬프트, 공급's a menu of Claude 계정, 등록
+  모델 and 모델 파일, since that tab adds all three), the settings search and the one button that reads every section again, which
   spins while it reads. The title bar keeps only what every page carries, and no section repeats its tab's
   name as a title of its own.
 - **The settings search** looks over every section at once: section names, agent and work-key names
@@ -2281,6 +2282,19 @@ Two ways, split because the running places differ.
   this switch on, and neither is a Claude account turned off or resting — each account's prefixes are
   warmed on their own. Search and browse requests are outside the order, but that runner's Claude keepalive
   follows the off too (the agency's `docs/cache-fallback.md`).
+- **기본 프롬프트.** Under 캐시 유지, every base prompt the archive keeps (the agency's `docs/base-prompts.md`), one
+  row each: its label and name, its length in characters, the agents that choose it by their
+  labels, or 쓰는 에이전트 없음, and when and by whom it was last saved. 추가 in the tab row opens a
+  modal for a new one — the name, the label and the text, pasted whole; a row's more-menu opens the
+  same modal on that prompt to read and change it (its name fixed), and 삭제, asked first in the
+  message pill. The text area grows with its text
+  and the modal's body scrolls; under it stand the value names a prompt may carry
+  (`{{cwd}}` and the rest). Saving a text that agents choose asks first in the modal, naming the
+  agents whose sessions start afresh, with 취소 and 저장. A save or a removal the bot refuses keeps
+  the modal open, or the list as it was, with the bot's reason.
+
+#### 공급
+
 - **활성 공급자 및 우선순위.** Every provider — Claude Code, Codex, OpenRouter and 등록 모델 — in the
   order every automatic walk follows, one row each: a drag handle in a column of its own, the place in
   the order, a status mark, the name, the reason the provider cannot answer on this machine now (the
@@ -2316,17 +2330,7 @@ Two ways, split because the running places differ.
   engine and the entry and saying the registration answers nothing until the engine is up again — and 삭제, asked first, a removal the bot
   refuses showing its reason under the list. The box holds every field of an entry, the name fixed once
   made, each default with 기본 for empty.
-- **기본 프롬프트.** Under 모델 파일, every base prompt the archive keeps (the agency's `docs/base-prompts.md`), one
-  row each: its label and name, its length in characters, the agents that choose it by their
-  labels, or 쓰는 에이전트 없음, and when and by whom it was last saved. 추가 in the tab row opens a
-  modal for a new one — the name, the label and the text, pasted whole; a row's more-menu opens the
-  same modal on that prompt to read and change it (its name fixed), and 삭제, asked first in the
-  message pill. The text area grows with its text
-  and the modal's body scrolls; under it stand the value names a prompt may carry
-  (`{{cwd}}` and the rest). Saving a text that agents choose asks first in the modal, naming the
-  agents whose sessions start afresh, with 취소 and 저장. A save or a removal the bot refuses keeps
-  the modal open, or the list as it was, with the bot's reason.
-- **Claude 계정.** Under the provider order, the Claude accounts in the order the Claude Code entry walks
+- **Claude 계정.** Under 모델 파일, the Claude accounts in the order the Claude Code entry walks
   them, one row each: a drag handle in a column of its own, the place in the order, a mark saying whether
   that login is standing, near its end or gone — a login near its end also carrying how long is left, and
   one that has ended carrying 로그인 필요 — the name the owner gave it, where its credential is reached —
@@ -2346,9 +2350,12 @@ Two ways, split because the running places differ.
   by the bot. **No cell, no box and no answer the bot gives this screen carries a token, a cookie or
   anything out of a credential file** — the path is the whole of what is shown, and what the screen learns
   about a login is only whether it stands and when it ends.
+
+#### 에이전트
+
 - **에이전트별 캐시 유지 · 롤.** One table: every agent in its group — the chat agent, workers, gates,
-  runners — one row each with its mark, its name and key, what last answered on it and what its role gives,
-  its role as a choice, and its own keepalive switch. No other list on the tab repeats the agents for their
+  runners — one row each with its mark, its name and key, what last answered on it, its role and what the
+  role gives, and its own keepalive switch. No other list on the tab repeats the agents for their
   role or their warming. Pressing the name opens that agent's own screen.
   - **The switch reads what the cache warmer holds** (the cache warmer's `docs/api.md`): on where one of the
     agent's warming targets, under whichever consumer registered it, warms now — the switch the owner threw
@@ -2356,12 +2363,10 @@ Two ways, split because the running places differ.
     no target of, so an agent nobody turned on reads off. Throwing it throws the agent's subject under every
     consumer that holds a target for it. A row with its switch down carries 멈춤; while the whole round is off every row
     still on carries 전체 멈춤, and the switch is then the setting to use when the round comes back on.
-  - **The role** is a choice of every role the bot declares, by label (the agency's `docs/agent-roles.md`),
-    and under the name stands what it gives, the bundles by their own short Korean names, or 기능 묶음
-    없음; on a phone the choice and the switch stand on a line of their own under the name. A choice is
-    saved as it is picked, through the bot, and a refused save puts the bot's reason under the table and
-    the row back as it was. Which roles there are and what each gives is the bot's word, so while the bot
-    is not answering a row shows the role the archive holds and nothing can be picked.
+  - **The role** is read, not chosen: an agent's role is set when it is registered (the agency's
+    `docs/agent-roles.md`). The row names it by the label the bot declares for it and, beside it, what it
+    gives, the bundles by their own short Korean names, or 기능 묶음 없음; a role the bot no longer declares,
+    or any while the bot is not answering, stands as the role's own name.
 - **The gates stand in the parts of the gate order** (the gate unit's documents) — 프리게이트, 포스트게이트 and
   턴 밖, each under its own heading and in the turn's order within it, as on 게이트. A gate that runs in
   both 프리게이트 and 포스트게이트 stands in each, and its two switches are one setting.

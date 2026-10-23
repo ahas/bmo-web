@@ -93,17 +93,33 @@ export const GROUP_ORDER: readonly AgentGroupKey[] = ["designated", "gate", "run
 // `title` is the key of what the section is called, and `waiting` is how many placeholder cards
 // stand under a title while the settings are being read, which is what that section ordinarily
 // holds.
-export const GENERAL_SECTIONS: readonly { id: string; title: string; waiting: number }[] = [
-  { id: "keepalive", title: "agents.title.section_keepalive", waiting: 1 },
-  { id: "providers", title: "agents.title.section_providers", waiting: 4 },
-  { id: "registry", title: "agents.title.registry", waiting: 2 },
-  { id: "catalogue", title: "agents.title.catalogue", waiting: 2 },
-  { id: "base-prompts", title: "agents.title.base_prompts", waiting: 1 },
-  { id: "agents", title: "agents.title.section_agents", waiting: 3 },
-  { id: "reasoning", title: "agents.title.section_reasoning", waiting: 3 },
-  { id: "agent-gates", title: "agents.title.section_agent_gates", waiting: 3 },
-  { id: "sessions", title: "agents.title.section_sessions", waiting: 3 }
+// The tabs the agency's own settings stand on, beside the tables of their own: the general settings, the supply
+// (the providers, the registered models, the model files and the Claude accounts) and the agent table.
+export const GENERAL_TABS = ["general", "supply", "agents"] as const;
+
+export type GeneralTab = (typeof GENERAL_TABS)[number];
+
+export function isGeneralTab(value: unknown): value is GeneralTab {
+  return GENERAL_TABS.some((tab) => tab === value);
+}
+
+export const GENERAL_SECTIONS: readonly { id: string; title: string; waiting: number; tab: GeneralTab }[] = [
+  { id: "keepalive", title: "agents.title.section_keepalive", waiting: 1, tab: "general" },
+  { id: "base-prompts", title: "agents.title.base_prompts", waiting: 1, tab: "general" },
+  { id: "providers", title: "agents.title.section_providers", waiting: 4, tab: "supply" },
+  { id: "registry", title: "agents.title.registry", waiting: 2, tab: "supply" },
+  { id: "catalogue", title: "agents.title.catalogue", waiting: 2, tab: "supply" },
+  { id: "accounts", title: "agents.title.accounts", waiting: 2, tab: "supply" },
+  { id: "agents", title: "agents.title.section_agents", waiting: 3, tab: "agents" },
+  { id: "reasoning", title: "agents.title.section_reasoning", waiting: 3, tab: "agents" },
+  { id: "agent-gates", title: "agents.title.section_agent_gates", waiting: 3, tab: "agents" },
+  { id: "sessions", title: "agents.title.section_sessions", waiting: 3, tab: "agents" }
 ];
+
+/** The tab a section of the agency's settings stands on; an agent's own row stands on the agent table. */
+export function generalTabOf(id: string): GeneralTab {
+  return GENERAL_SECTIONS.find((section) => section.id === id)?.tab ?? (id.startsWith("agent-") ? "agents" : "general");
+}
 
 // What a change on the general tab has the page read again.
 export type GeneralPart = "agents" | "fallback" | "keepalive" | "registry";

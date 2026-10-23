@@ -1402,7 +1402,6 @@ agents:
     node_checkout_remove_of: "{node} 체크아웃 삭제"
     pause_keepalive_of: "{name} 다음 Job까지 캐시 유지 끄기"
     provider_of: "{name} 공급자"
-    role_of: "{name} 롤"
     search_depth: 검색 깊이
     session_reset_of: "{name} 세션 초기화"
     settings_sections: 설정 섹션
@@ -1435,7 +1434,6 @@ agents:
     bad_launch_agent: 실행할 에이전트가 올바르지 않습니다.
     bad_laya_fallback: Laya 대체 LLM은 공급자 이름이나 끔이어야 합니다.
     bad_laya_mode: "Laya 모드는 {modes} 가운데 하나여야 합니다."
-    bad_role: 롤 이름이 올바르지 않습니다.
     bad_run_mode: 실행 모드는 자동 또는 공급자 하나여야 합니다.
     bad_tau: τ는 0에서 1 사이의 숫자여야 합니다.
     bad_thinking: 생각은 켬·끔 값이어야 합니다.
@@ -1734,11 +1732,13 @@ agents:
     switch_on: 켬
     system_prompt: 시스템 프롬프트
     system_prompt_sent: 보낼 시스템 프롬프트
+    tab_agents: 에이전트
     tab_companions: 대화 상대
     tab_gates: 게이트
     tab_general: 일반
     tab_research: 서쳐
     tab_routes: 실행 경로
+    tab_supply: 공급
     tab_tiers: 모델
     tab_workers: 워커
     think_off: 생각 끔

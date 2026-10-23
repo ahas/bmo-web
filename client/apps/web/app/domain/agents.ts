@@ -6,7 +6,7 @@ import { isLaunchAgent, WORKER_AGENT } from "#shared/config";
 import type { LaunchAgent } from "#shared/config";
 import { GATE_PART_LABELS, gateOrderKeys, gatePlacements } from "./gate-order";
 
-import type { AgentSummary, GatePartView, RoomSummary } from "#shared/types";
+import type { AgentSummary, GatePartView, RoomSummary, TurnSpeaker } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
 // Who the agents are is the archive's answer, not this app's. The catalogue — which agents
@@ -147,9 +147,14 @@ const held = shallowRef<readonly AgentSummary[]>([]);
 // (the gate unit's docs/gates.md). Empty until the list arrives, and a list of gates then stands as the archive gave it.
 const heldGateOrder = shallowRef<readonly GatePartView[]>([]);
 
-export function holdCatalogue(agents: readonly AgentSummary[], gateOrder: readonly GatePartView[] = []): void {
+// The registration name of the receiver's default answerer, which the list carries beside its agents; null until
+// the list has arrived, or where the receiver did not say.
+const heldAnswerer = shallowRef<string | null>(null);
+
+export function holdCatalogue(agents: readonly AgentSummary[], gateOrder: readonly GatePartView[] = [], defaultAnswerer: string | null = null): void {
   held.value = agents;
   heldGateOrder.value = gateOrder;
+  heldAnswerer.value = defaultAnswerer;
 }
 
 export function catalogueAgents(): readonly AgentSummary[] {
@@ -231,10 +236,20 @@ function sharedAnswerer(catalogue: readonly AgentSummary[]): AgentSummary | unde
   return catalogue.find((agent) => agent.defaultAnswerer && agent.chatId === null && chatIdOf(agent.name) === null);
 }
 
-// The registration name of the default answerer, the agent a turn is the chat agent's under: the catalogue's session
-// answering every room, and before the list has arrived the chat agent the deployment's settings name.
+// The registration name of the default answerer, the agent a turn is the chat agent's under: the receiver's, as the
+// list carries it, the catalogue's session answering every room where the list names none, and before the list has
+// arrived the chat agent the deployment's settings name.
 export function defaultAnswererName(catalogue: readonly AgentSummary[] = held.value): string {
-  return sharedAnswerer(catalogue)?.name ?? chatAgent().name;
+  return heldAnswerer.value ?? sharedAnswerer(catalogue)?.name ?? chatAgent().name;
+}
+
+// The companion a turn or one of its events names, or undefined where it is the chat agent's. The receiver names the
+// speaker of every turn by the answering agent's registration name: the default answerer's is the chat agent's, any
+// other a companion's, and a turn that names none — its speaker absent or null — is the chat agent's (docs/web.md,
+// 「The name is the one answering on that row」). It is read as a turn is shown, so the default answerer's name
+// arriving after the turn began moves the turn to its own row.
+export function companionOf(speaker: TurnSpeaker | null | undefined, answerer: string = defaultAnswererName()): TurnSpeaker | undefined {
+  return speaker === undefined || speaker === null || speaker.name === answerer ? undefined : speaker;
 }
 
 // What an agent named by its registration is called on a row, with no translator to hand: the catalogue's label,

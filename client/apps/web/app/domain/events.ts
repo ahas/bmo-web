@@ -1,6 +1,6 @@
 import { EVENT_FIRST_RETRY_MS, EVENT_RETRY_MS, RESTART_GRACE_MS, STREAM_KEEPALIVE_MS, STREAM_SILENCE_MS } from "#shared/config";
 import { TURN_ENDED } from "#shared/types";
-import { defaultAnswererName } from "./agents";
+import { companionOf } from "./agents";
 import { askWhetherLoginEnded } from "./login-end";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { appUrl } from "./urls";
@@ -18,8 +18,9 @@ export interface RunState {
   // What the turn last said of itself: which phase it is in and what its stream has counted.
   // Null until the first word of it arrives, which is where every run begins.
   progress: RunProgress | null;
-  // Who is answering, where it is a companion. Absent for the chat agent's turn.
-  speaker?: Companion;
+  // Who is answering, as the receiver named the turn; absent where it named nobody. Whether it is the chat agent's
+  // or a companion's is read off it as the turn is shown (`companionOf`).
+  speaker?: TurnSpeaker;
   // The question the turn's draft process is on, as its start told it: absent until the first question starts, and
   // again once the process has ended.
   draft?: DraftStep;
@@ -789,20 +790,12 @@ const DRAFT_OUTCOMES: Record<string, string> = {
   "ceiling-skip": "room.status.outcome_draft_ceiling_skip",
   "ceiling-message": "room.status.outcome_draft_ceiling_message"
 };
-// The companion a turn or one of its events names, or undefined where it is the chat agent's. The receiver names
-// the speaker of every turn by the answering agent's registration name: the default answerer's is the chat agent's,
-// any other a companion's, and an event that names none — its speaker absent or null — is the chat agent's
-// (docs/web.md, 「The name is the one answering on that row」).
-export function companionOf(speaker: TurnSpeaker | null | undefined, answerer: string = defaultAnswererName()): Companion | undefined {
-  return speaker === undefined || speaker === null || speaker.name === answerer ? undefined : speaker;
-}
+export { companionOf };
 
-// Which turn of a room a run is: the chat agent's, or a companion's by its speaker's name. A room two agents answer
-// holds a turn of each at once, and each begins, moves and ends by this key alone.
+// Which turn of a room a run is: its speaker's name, which every event of the turn carries. A room two agents answer
+// holds a turn of each at once, and each begins, moves and ends by this key alone; whose the name is plays no part.
 export function runKey(speaker: TurnSpeaker | null | undefined): string {
-  const companion = companionOf(speaker);
-
-  return companion === undefined ? "bmo" : `speaker:${companion.name}`;
+  return speaker === undefined || speaker === null ? "" : `speaker:${speaker.name}`;
 }
 
 // The turns this room's picture holds right now, one to a speaker. A round that hands over to the
@@ -869,7 +862,7 @@ function picturedTurns(rooms: ReadonlyMap<number, RunState[]>, turns: ChatTurn[]
     // says it does not, so a screen opened mid-wait shows the wait as one that watched it begin.
     const progress = pictureProgress(turn, was?.progress ?? null);
     const messageId = turn.messageId === undefined ? was?.messageId ?? null : turn.messageId;
-    const speaker = companionOf(turn.speaker);
+    const speaker = turn.speaker ?? undefined;
     const state: RunState = was === undefined
       ? { messageId, startedAt: turn.since, received, progress, ...(speaker === undefined ? {} : { speaker }) }
       : { ...was, messageId, received, progress };
@@ -899,7 +892,7 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
   const was = held.find((run) => runKey(run.speaker) === key);
 
   if (event.type === "run-started") {
-    const speaker = companionOf(event.speaker);
+    const speaker = event.speaker ?? undefined;
 
     return withRoom(rooms, event.chatId, putTurn(held, {
       messageId: event.messageId,
@@ -1192,7 +1185,7 @@ export function useBmoTurns(): Readonly<Ref<ReadonlyMap<number, RunState>>> {
     const own = new Map<number, RunState>();
 
     for (const [chatId, runs] of record.value) {
-      const run = runs.find((held) => held.speaker === undefined);
+      const run = runs.find((held) => companionOf(held.speaker) === undefined);
 
       if (run !== undefined) {
         own.set(chatId, run);

@@ -19,10 +19,10 @@ export function useAgentCatalogue(): AgentCatalogue {
     key: "agents",
     lazy: true,
     server: false,
-    default: () => ({ reachable: false, agents: [], roles: [], gateOrder: [] })
+    default: () => ({ reachable: false, agents: [], roles: [], gateOrder: [], defaultAnswerer: null })
   });
 
-  watch(data, (list) => holdCatalogue(list?.agents ?? [], list?.gateOrder ?? []), { immediate: true });
+  watch(data, (list) => holdCatalogue(list?.agents ?? [], list?.gateOrder ?? [], list?.defaultAnswerer ?? null), { immediate: true });
 
   return { initial: useInitialRead(status), failed: computed(() => status.value === "error"), agents: data as Ref<AgentList>, refresh: async () => void (await refresh()) };
 }

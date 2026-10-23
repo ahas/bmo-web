@@ -382,7 +382,7 @@ import { POLL_INTERVAL_MS } from "#shared/config";
 import { controlLine, useControlStatus } from "~/domain/control";
 import { messageOfQuery } from "#shared/paths";
 import { screenKey } from "~/domain/route-key";
-import { agentLabel, roomTitle } from "~/domain/agents";
+import { agentLabel, companionOf, roomTitle } from "~/domain/agents";
 import { attachmentBody } from "~/domain/attachments";
 import { avatarFor, useAvatars } from "~/domain/avatars";
 import { followBottom } from "~/domain/bottom";
@@ -637,7 +637,7 @@ const { runs, outcome } = useRoomRun(chatId, {
   onJudgement: (judgement: Judgement) => roomFeed.addLiveJudgement(judgement),
   onSettled: () => settle(),
   // A turn that sent its answer stands its row until that answer is in the feed, found as its row finds it.
-  answered: (run: RunState) => turnAnswer(run, (run.speaker ?? botSpeaker(roomFeed.messages.value)).id, roomFeed.messages.value) !== undefined,
+  answered: (run: RunState) => turnAnswer(run, (companionOf(run.speaker) ?? botSpeaker(roomFeed.messages.value)).id, roomFeed.messages.value) !== undefined,
   onLive: (picture: LiveSnapshot) => {
     live.value = picture.runs ?? [];
     queued.value = picture.queued ?? [];
@@ -823,9 +823,11 @@ const botFace = computed(() => botAvatar(roomFeed.messages.value, avatars.value)
 // no turn.
 const turnRows = computed<FeedItem[]>(() =>
   [...runs.value, ...listeningRuns(runs.value, listeningWindow.value)].map((run) => {
-    if (run.speaker === undefined) return runItem(run, botSpeaker(roomFeed.messages.value), botFace.value);
+    const companion = companionOf(run.speaker);
 
-    const shown = { id: run.speaker.id, name: agentLabel(t, run.speaker.name) };
+    if (companion === undefined) return runItem(run, botSpeaker(roomFeed.messages.value), botFace.value);
+
+    const shown = { id: companion.id, name: agentLabel(t, companion.name) };
 
     return runItem(run, shown, avatarFor(avatars.value, "person", shown.id, shown.name));
   })

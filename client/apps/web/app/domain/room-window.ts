@@ -1,5 +1,6 @@
 import { POLL_INTERVAL_MS } from "#shared/config";
 import { TURN_ENDED } from "#shared/types";
+import { companionOf } from "./agents";
 import { SKIPPED_OUTCOME, useLiveRefresh } from "./events";
 
 import type { BotEventType, RoomWindow } from "#shared/types";
@@ -34,7 +35,7 @@ export interface OpenWindow {
 // row, holding no turn (docs/web.md, 「The listening row」). It is keyed as its turn's row is, so a turn beginning
 // changes this row's line rather than putting another row in its place.
 export function listeningRuns(runs: readonly RunState[], open: OpenWindow | null): RunState[] {
-  if (open === null || runs.some((run) => run.speaker === undefined)) {
+  if (open === null || runs.some((run) => companionOf(run.speaker) === undefined)) {
     return [];
   }
 

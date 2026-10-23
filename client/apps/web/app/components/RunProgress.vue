@@ -36,6 +36,7 @@
 </template>
 
 <script setup lang="ts">
+import { companionOf } from "~/domain/agents";
 import { phaseLook, receivedLine, turnName } from "~/domain/working";
 
 import type { RunState } from "~/domain/events";
@@ -48,9 +49,9 @@ const props = defineProps<Props>();
 
 const { t } = useI18n();
 // The line names whoever this row is the turn of, which is the name the answer will stand under.
-const name = computed(() => turnName(t, props.run.speaker));
+const name = computed(() => turnName(t, companionOf(props.run.speaker)));
 // The chat agent's turn runs the draft process, whose question under way the line names; a companion's runs none.
-const look = computed(() => phaseLook(t, name.value, props.run.progress, props.run.speaker === undefined ? props.run.draft ?? null : null));
+const look = computed(() => phaseLook(t, name.value, props.run.progress, companionOf(props.run.speaker) === undefined ? props.run.draft ?? null : null));
 const received = computed(() => receivedLine(props.run.received));
 // The item whose Job holds the engine this turn waits on, which the line names on hover.
 const waitingItem = computed(() => (props.run.progress?.phase === "waiting" ? props.run.progress.waitingFor?.todoId ?? null : null));

@@ -4264,11 +4264,12 @@ Four bounds keep it from growing forever.
     names the companion and the chat agent's row names the chat agent, and a room both answer at once stands both rows, each with its
     own name. The receiver names the speaker on every event of a turn and on the turn its picture holds, by the
     answering agent's registration name (the receiver's `docs/api.md`, 「Events and the live board」). A speaker
-    whose name is the default answerer's — the catalogue's row for the session answering every room, or the
-    deployment's chat agent before the catalogue has arrived — is the chat agent, and its row is the one its
-    listening row stands as; a speaker of any other name is a companion. Every event of a turn reaches the row
-    whose speaker bears the same name, its sending and its draft rows among them, and an event carrying no
-    speaker is the chat agent's. The name on the row is the agent's label in the `agents` table, never the
+    whose name is the receiver's default answerer's — which the agent list carries beside its agents, read from
+    the owner's room's answerers, the deployment's chat agent standing for it before the list has arrived — is the
+    chat agent, and its row is the one its listening row stands as; a speaker of any other name is a companion. Every
+    event of a turn reaches the turn whose speaker bears the same name, its sending and its draft rows among them,
+    and which of the two a turn is, is read as it is shown, so a name arriving after the turn began moves the turn
+    to its own row. A turn whose speaker is absent or null is the chat agent's. The name on the row is the agent's label in the `agents` table, never the
     registration name the event carries: a companion's from its own row, the chat agent's from the row of the
     session answering every room, and only before the catalogue has arrived does a row fall back — the chat
     agent's to the language pack's word for it, a companion's to its registration name. The particle after the name, 가 or

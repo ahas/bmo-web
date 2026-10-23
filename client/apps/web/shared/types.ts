@@ -1414,6 +1414,9 @@ export interface AgentList {
   // before the first read has come back.
   // The gate order is the gate unit's, which is not split yet; null while no unit answers it.
   gateOrder: GatePartView[] | null;
+  // The registration name of the receiver's default answerer, whose turns are the chat agent's; null where the
+  // receiver did not say.
+  defaultAnswerer: string | null;
 }
 
 // The kinds of line an agent's log holds, in the words the writer stores. A `context` line is

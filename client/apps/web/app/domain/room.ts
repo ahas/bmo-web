@@ -1,7 +1,7 @@
 import { markWords, MEDIA_MARKS, VOICE_MARK } from "#shared/text-marks";
 import { PAGING, POLL_INTERVAL_MS } from "#shared/config";
 import { chatAgent } from "#shared/agent-names";
-import { agentRowName, bmoLabel } from "./agents";
+import { agentRowName, bmoLabel, companionOf } from "./agents";
 import { avatarFor, hueOf } from "./avatars";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { runKey } from "./events";
@@ -1128,8 +1128,9 @@ export function botAvatar(messages: readonly ArchivedMessage[], avatars: AvatarI
 // moving, which is the whole reason the turn is handed over as a row at all.
 export function runItem(run: RunState, speaker: Speaker, avatar: AvatarProps): FeedItem {
   return {
-    // One running row to a speaker: the chat agent's and a companion's can stand in the same room at once.
-    key: `turn:${runKey(run.speaker)}`,
+    // One running row to a speaker: the chat agent's and a companion's can stand in the same room at once. The chat
+    // agent's row is one key whether it holds a turn or only listens, so a turn beginning changes the row in place.
+    key: `turn:${companionOf(run.speaker) === undefined ? "bmo" : runKey(run.speaker)}`,
     messageId: 0,
     senderId: speaker.id,
     senderName: speaker.name,

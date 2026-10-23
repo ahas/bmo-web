@@ -1,5 +1,6 @@
 import type { Judgement, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
 import { chatAgent } from "#shared/agent-names";
+import { companionOf } from "./agents";
 
 import type { Translate } from "#shared/wording";
 
@@ -338,7 +339,7 @@ export function judgedNow(
   }
 
   for (const turn of turns) {
-    if (turn.speaker === undefined && turn.messageId !== null) {
+    if (companionOf(turn.speaker) === undefined && turn.messageId !== null) {
       judging(turn.messageId, turn.startedAt);
     }
   }

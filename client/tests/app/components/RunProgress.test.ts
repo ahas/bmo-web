@@ -107,6 +107,6 @@ describe("the draft step on the line", () => {
   test("is handed the question the turn is on where the turn is the chat agent's, and none where it is a companion's", async () => {
     const shipped = await Bun.file(new URL("../../../apps/web/app/components/RunProgress.vue", import.meta.url)).text();
 
-    expect(shipped).toContain("phaseLook(t, name.value, props.run.progress, props.run.speaker === undefined ? props.run.draft ?? null : null)");
+    expect(shipped).toContain("phaseLook(t, name.value, props.run.progress, companionOf(props.run.speaker) === undefined ? props.run.draft ?? null : null)");
   });
 });

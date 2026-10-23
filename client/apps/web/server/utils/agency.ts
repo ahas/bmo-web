@@ -119,8 +119,17 @@ function workerSummary(worker: Worker): AgentSummary {
     contextTokens: null,
     keepaliveStopped: false,
     keepalivePausedAt: null,
-    node: worker.nodeName
+    node: worker.nodeName,
+    ...prefixDocumentsOf(worker)
   };
+}
+
+// The documents a worker's session prefix carries, as the agency's worker answers them (the agency's `docs/api.md`,
+// 「workers」); a worker answered without them names none.
+function prefixDocumentsOf(worker: Worker & { prefixDocuments?: unknown }): { prefixDocuments?: string[] } {
+  const named = worker.prefixDocuments;
+
+  return Array.isArray(named) ? { prefixDocuments: named.filter((path): path is string => typeof path === "string") } : {};
 }
 
 /** Every agent and worker as the agent list stands them. */

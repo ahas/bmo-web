@@ -17,9 +17,18 @@ interface WorkerBody {
   supportCount?: unknown;
   supportKeepalive?: unknown;
   pinnedProvider?: unknown;
+  prefixDocuments?: unknown;
 }
 
 const text = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
+
+// The documents a worker's session prefix carries, in order, as the form sends them: each path trimmed and an empty
+// one dropped. Absent where the form sends none, so a change that does not touch them leaves them as they stand.
+function prefixDocuments(value: unknown): { prefixDocuments?: string[] } {
+  if (!Array.isArray(value)) return {};
+
+  return { prefixDocuments: value.flatMap((path) => (typeof path === "string" && path.trim() !== "" ? [path.trim()] : [])) };
+}
 
 // Adding, changing and removing a job worker. The workers are the agency's to keep (the agency's `docs/api.md`,
 // 「workers」), so this asks it rather than writing a row of its own, and what each field may hold is the agency's to
@@ -40,11 +49,20 @@ export default defineEventHandler(async (event): Promise<WorkerChanged> => {
   }
 
   if (action === "add") {
-    const added: WorkerAdd = { name, label: text(body?.label) ?? null, cwd: text(body?.path) ?? null, icon: null, role: null, nodeName: null };
+    const added: WorkerAdd & { prefixDocuments?: string[] } = {
+      name,
+      label: text(body?.label) ?? null,
+      cwd: text(body?.path) ?? null,
+      icon: null,
+      role: null,
+      nodeName: null,
+      ...prefixDocuments(body?.prefixDocuments)
+    };
 
     await agencyCall(agency().POST("/workers", { body: added }));
   } else if (action === "update") {
-    const change: WorkerChange = {
+    const change: WorkerChange & { prefixDocuments?: string[] } = {
+      ...prefixDocuments(body?.prefixDocuments),
       sampling: null,
       nodeName: null,
       node: null,

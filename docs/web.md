@@ -2499,8 +2499,9 @@ Two ways, split because the running places differ.
 - **Job workers.** A table of the workers — name and key, the checkout path, what an automatic job of
   theirs starts on and how many runs they made — with a more-menu at the right of each row (편집, 로그,
   and 지우기 for a worker that is not the built-in one). The name cell edits the worker's label and the
-  path cell its path, in place; the built-in worker's path is not pressed. 편집 opens the worker's
-  dialog with the label, the path, the preamble, the dev-server command, the 공급자 choice, the 샘플링
+  path cell its path, in place; the built-in worker's path is not pressed. Under a worker's path stand the
+  documents its session prefix carries, in their order, where it names any. 편집 opens the worker's
+  dialog with the label, the path, the 프리픽스 문서 list, the preamble, the dev-server command, the 공급자 choice, the 샘플링
   block of a worker pinned to a registered model, the 기본 프롬프트 choice, 추가지원 워커
   수 and 캐시 유지 수 (the agency's `docs/worker-slots.md`), the 노드 체크아웃 list, the 강등 복원 switch and the 주기적
   캐시 유지 switch; 추가 in the tab row opens the same dialog for a new one.
@@ -2514,6 +2515,12 @@ Two ways, split because the running places differ.
   job on another model is chosen where that job is launched. The
   built-in worker runs this repository and cannot be deleted or moved — its path is rewritten on every
   start — but its label, preamble and dev-server command can change.
+- **프리픽스 문서** lists the documents the worker's session prefix carries, in the order the prefix takes them
+  (the agency's `docs/api.md`, 「workers」): each a path relative to the worker's checkout or absolute under the
+  umbrella, which the field says in one sentence under it. Each stands on a line of its own with buttons moving it
+  up and down and taking it away; a path field and an add button under them put one at the end. The list is
+  held with the rest of the form and sent whole at its one save, on a new worker as on one being edited; an
+  empty list is none. A support worker's follows its base, so its dialog holds none.
 - **Support workers** stand in the same list under their base, each marked 추가지원. Their label and path
   cells do not edit, their menu has no delete, and their dialog holds only the 강등 복원 switch: what they
   are called, where they work and how many there are follow the base's two numbers

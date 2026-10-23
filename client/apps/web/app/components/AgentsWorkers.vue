@@ -53,6 +53,11 @@
           <span data-overflow-cell class="block max-w-full overflow-x-auto whitespace-nowrap [scrollbar-width:thin]">
             <SearchText class="font-mono text-muted" :text="row.original.cwd ?? '—'" :query="props.query" />
           </span>
+          <!-- The documents its session prefix carries, in their order, under the path they are read against. -->
+          <span v-if="(row.original.prefixDocuments ?? []).length > 0" data-prefix-documents class="flex min-w-0 items-baseline gap-1.5 text-xs text-dimmed">
+            <span class="shrink-0">{{ $t("agents.label.prefix_documents") }}</span>
+            <SearchText class="truncate font-mono" :text="(row.original.prefixDocuments ?? []).join(' · ')" :query="props.query" />
+          </span>
         </SettingsInputCell>
       </template>
 

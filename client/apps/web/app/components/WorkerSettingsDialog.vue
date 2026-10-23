@@ -28,6 +28,31 @@
         <UInput v-model="editPath" class="w-full font-mono" :placeholder="adding ? $t('agents.placeholder.cwd_auto') : '~/repos/…'" :aria-label="$t('agents.label.column_cwd')" />
       </UFormField>
 
+      <!-- The documents the worker's session prefix carries, in the order it takes them (the agency's docs/api.md,
+           「workers」). Held with the rest until the one save; a support worker's follow its base. -->
+      <UFormField v-if="editSupportOf === ''" :label="$t('agents.label.prefix_documents')" name="prefixDocuments" :help="$t('agents.label.prefix_documents_help')">
+        <div class="flex flex-col gap-2">
+          <div v-for="(path, at) in editPrefixDocuments" :key="`${at}:${path}`" data-prefix-document class="flex items-center gap-1">
+            <span class="min-w-0 flex-1 truncate font-mono text-sm">{{ path }}</span>
+            <UTooltip :text="$t('agents.aria.prefix_document_up', { path })">
+              <UButton icon="i-material-symbols-arrow-upward" color="neutral" variant="ghost" :disabled="at === 0" :aria-label="$t('agents.aria.prefix_document_up', { path })" @click="movePrefix(at, -1)" />
+            </UTooltip>
+            <UTooltip :text="$t('agents.aria.prefix_document_down', { path })">
+              <UButton icon="i-material-symbols-arrow-downward" color="neutral" variant="ghost" :disabled="at === editPrefixDocuments.length - 1" :aria-label="$t('agents.aria.prefix_document_down', { path })" @click="movePrefix(at, 1)" />
+            </UTooltip>
+            <UTooltip :text="$t('agents.aria.prefix_document_remove', { path })">
+              <UButton icon="i-material-symbols-close" color="neutral" variant="ghost" :aria-label="$t('agents.aria.prefix_document_remove', { path })" @click="dropPrefix(at)" />
+            </UTooltip>
+          </div>
+          <div class="flex items-center gap-2">
+            <UInput v-model="addingPrefix" class="min-w-0 flex-1 font-mono" placeholder="docs/…" :aria-label="$t('agents.aria.prefix_document_path')" @keydown.enter.prevent="addPrefix" />
+            <UTooltip :text="$t('agents.action.prefix_document_add')">
+              <UButton icon="i-material-symbols-add" color="neutral" variant="ghost" :disabled="addingPrefix.trim() === ''" :aria-label="$t('agents.action.prefix_document_add')" @click="addPrefix" />
+            </UTooltip>
+          </div>
+        </div>
+      </UFormField>
+
       <template v-if="!adding && editSupportOf === ''">
         <UFormField :label="$t('agents.label.preamble')" name="preamble" :help="$t('agents.label.preamble_help')">
           <GrowingTextarea v-model="editPreamble" :rows="4" :aria-label="$t('agents.label.preamble')" />
@@ -175,6 +200,32 @@ const editSupportCount = ref(0);
 const editSupportKeepalive = ref(0);
 const editPin = ref<string>(AUTO_PIN);
 const editBase = ref<string>(BASE_NONE);
+const editPrefixDocuments = ref<string[]>([]);
+const addingPrefix = ref("");
+
+// A path put at the end of the prefix's documents, one moved a place up or down, and one taken away.
+function addPrefix(): void {
+  const path = addingPrefix.value.trim();
+
+  if (path === "") return;
+
+  editPrefixDocuments.value = [...editPrefixDocuments.value, path];
+  addingPrefix.value = "";
+}
+
+function movePrefix(at: number, by: -1 | 1): void {
+  const to = at + by;
+  const list = [...editPrefixDocuments.value];
+
+  if (to < 0 || to >= list.length) return;
+
+  [list[at], list[to]] = [list[to]!, list[at]!];
+  editPrefixDocuments.value = list;
+}
+
+function dropPrefix(at: number): void {
+  editPrefixDocuments.value = editPrefixDocuments.value.filter((_, index) => index !== at);
+}
 
 // Where the worker's jobs run and its checkouts on the nodes (the agency's docs/work-nodes.md). This machine is a
 // value no node's name can be, since a node's name takes no @.
@@ -318,6 +369,7 @@ function fields(): Record<string, unknown> {
     base: editBase.value,
     node: editNode.value,
     nodeCheckouts: editNodeCheckouts.value.map((checkout) => `${checkout.node}:${checkout.path}`),
+    prefixDocuments: editPrefixDocuments.value,
     sampling: samplingSent.value
   };
 }
@@ -344,6 +396,8 @@ function load(worker: AgentSummary | null): void {
   editBase.value = worker === null ? BASE_NONE : choiceValue(basePrompts.value, worker.name);
   editNode.value = worker?.node ?? HERE;
   editNodeCheckouts.value = worker === null ? [] : heldCheckouts(worker.name);
+  editPrefixDocuments.value = [...(worker?.prefixDocuments ?? [])];
+  addingPrefix.value = "";
   addingNode.value = undefined;
   addingPath.value = "";
   formFailed.value = "";
@@ -404,8 +458,10 @@ async function save(): Promise<void> {
   if (!dirty.value) return;
 
   const name = editName.value.trim();
+  // The prefix's documents go whole where they differ from what the dialog opened with, and not at all otherwise.
+  const prefix = JSON.stringify(editPrefixDocuments.value) === JSON.stringify(opened.value.prefixDocuments) ? {} : { prefixDocuments: editPrefixDocuments.value };
   const body = adding.value
-    ? { action: "add", name, label: editLabel.value.trim() === "" ? name : editLabel.value.trim(), path: editPath.value.trim() }
+    ? { action: "add", name, label: editLabel.value.trim() === "" ? name : editLabel.value.trim(), path: editPath.value.trim(), ...prefix }
     : editSupportOf.value !== ""
       ? { action: "update", name, downgradeHeal: editDowngradeHeal.value }
       : {
@@ -420,7 +476,8 @@ async function save(): Promise<void> {
         keepaliveStopped: !editKeepalive.value,
         supportCount: editSupportCount.value,
         supportKeepalive: editSupportKeepalive.value,
-        pinnedProvider: editPin.value
+        pinnedProvider: editPin.value,
+        ...prefix
       };
 
   saving.value = true;

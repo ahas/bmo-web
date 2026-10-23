@@ -1445,6 +1445,7 @@ agents:
     move_up: 위로
     newer_lines: 다음 줄 더 보기
     node_checkout_add: 노드 체크아웃 추가
+    prefix_document_add: 프리픽스 문서 추가
     older_lines: 이전 줄 더 보기
     open_item: 항목 보기
     pause_until_job: 다음 Job까지 끄기
@@ -1485,6 +1486,10 @@ agents:
     node_checkout_node: 체크아웃 노드
     node_checkout_path: 체크아웃 경로
     node_checkout_remove_of: "{node} 체크아웃 삭제"
+    prefix_document_down: "{path} 아래로"
+    prefix_document_path: 프리픽스 문서 경로
+    prefix_document_remove: "{path} 빼기"
+    prefix_document_up: "{path} 위로"
     pause_keepalive_of: "{name} 다음 Job까지 캐시 유지 끄기"
     provider_of: "{name} 공급자"
     search_depth: 검색 깊이
@@ -1774,6 +1779,8 @@ agents:
     no_room: 방 없음
     no_route: 실행 경로 없음
     node_checkouts: 노드 체크아웃
+    prefix_documents: 프리픽스 문서
+    prefix_documents_help: 워커 체크아웃 기준 상대 경로이거나 umbrella 아래 절대 경로입니다. 세션 프리픽스가 이 순서대로 읽습니다.
     node_checkouts_help: 노드마다 하나 · 경로는 그 노드 기준
     not_checkout: git 아님
     note: 메모

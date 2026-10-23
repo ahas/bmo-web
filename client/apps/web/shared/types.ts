@@ -1230,6 +1230,9 @@ export interface AgentSummary {
   // every other kind, and absent when the list came from an archive that has not got the columns.
   preamble?: string | null;
   devCommand?: string | null;
+  // The documents a worker's session prefix carries, in the order it takes them, each a path relative to the
+  // worker's checkout or absolute under the umbrella. Absent for every other kind, and where the agency names none.
+  prefixDocuments?: string[];
   // Whether the bot writes this row on every start. A built-in agent is part of the machine; one
   // the owner added is theirs to change and to remove.
   builtin: boolean;

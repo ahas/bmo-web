@@ -1,5 +1,5 @@
 <template>
-  <!-- An agent of any kind registered through the agency (docs/web.md, 「Agent management screen」, 에이전트 추가):
+  <!-- An agent of any kind registered through the agency (docs/web.md, 「Agent management screen」):
        its key, label, kind and role, and the fields its kind takes. The agency judges each field and a refusal
        stands under the field it names. -->
   <SettingsDialog v-model:open="open" :title="$t('agents.title.agent_add')" :dirty="dirty">

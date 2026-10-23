@@ -32,7 +32,7 @@
         "@xterm/xterm": "5.5.0",
         "bmo-artifact-client": "file:../../vendor/bmo-artifact-client-0.1.0-rev.4.tgz",
         "bmo-brain-client": "file:../../vendor/bmo-brain-client-0.1.0-rev.3.tgz",
-        "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.1.tgz",
+        "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.2.tgz",
         "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.5.tgz",
         "bmo-mail-client": "file:../../vendor/bmo-mail-client-0.1.0-rev.1.tgz",
         "bmo-remote-client": "file:../../vendor/bmo-remote-client-0.1.0-rev.3.tgz",
@@ -982,7 +982,7 @@
 
     "bmo-brain-client": ["bmo-brain-client@../../vendor/bmo-brain-client-0.1.0-rev.3.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-Z2Yq09my6nRNahM36NUIXzygzsHZcNOAgrHnWCD/FlKfg0KefyY73C9L1VayQVNOdaz7XQR1sJ6cg/Pl0ydkvA=="],
 
-    "bmo-drive-client": ["bmo-drive-client@../../vendor/bmo-drive-client-0.1.0-rev.1.tgz", { "dependencies": { "@nuxt/ui": "^4.11.2", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.2", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-QFnlmbfL61UEeRm3QwzOL8MJmOw276GuckGd4jShD4b4B1uHAbR2zeS03XBJK7RbWhPATrDkRELn0rFo+ZWB9Q=="],
+    "bmo-drive-client": ["bmo-drive-client@../../vendor/bmo-drive-client-0.1.0-rev.2.tgz", { "dependencies": { "@nuxt/ui": "^4.11.2", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.3", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-WDE7O7NaPoFcdvt9ixGYZCPwDw6d2u29SCoBWFq85Tzy2jA+Gpji3/dB3gWmfSJp0xs0ecWRv0IzKfe6v517MQ=="],
 
     "bmo-job-client": ["bmo-job-client@../../vendor/bmo-job-client-0.1.0-rev.5.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-OPwAh7OB1cUFFPcSB8zFSL5lJCxbi0vXmJOpwb86pSyF6ogFl4XMP4AKcFosZ7vkPndI0J+fjqPZVb0VZzU/OQ=="],
 

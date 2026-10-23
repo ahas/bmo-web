@@ -1648,16 +1648,17 @@ archive and this week's tokens remain. That is all that can actually be known th
 
 ### Live status screen
 
-- **herdr 기록** shows the most recent structured herdr execution records, each with provider, work line
+- **The Herdr tab** shows the most recent structured herdr execution records, each with provider, work line
   and recorded transport outcome and a mark for that outcome. An unfinished record is labelled as requiring
   live-state confirmation rather than presented as proof of a live model. Transport exit is not a successful
-  model answer. Older archives without this table show an empty list; the console never creates the bot's
-  table.
+  model answer. Older archives without this table show an empty list, its one line centred in the tab's body
+  (「Where a list stands empty」); the console never creates the bot's table. Herdr is written with its capital
+  wherever a person reads it.
 
 - The place to skim at a glance what the gates, runners, editors and job workers are doing now. A board standing
   result states, not a place to read logs — what is running, what it was, how long it took, how it ended, is all.
   Logs are on the agent screen.
-- **A section to a tab.** The six sections — co-worker pool, gate, runner, editor, job worker, herdr records —
+- **A section to a tab.** The six sections — co-worker pool, gate, runner, editor, job worker, Herdr —
   stand as the component library's tabs on the console's own tab row, under the title bar and in that order,
   and one of them stands at a time. Per group what is running now stands first, recent records below, and a
   group with nothing running says only what is missing, since the tab over it already names the group.

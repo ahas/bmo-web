@@ -114,7 +114,7 @@ describe("the groups the live board watches", () => {
 describe("the board's sections", () => {
   test("stand as one tab each: the pool, every group of runs, then the transport records", () => {
     expect(LIVE_TABS.map((tab) => tab.value)).toEqual(["pool", "gate", "runner", "editor", "worker", "executions"]);
-    expect(LIVE_TABS.map((tab) => wording(tab.label))).toEqual([wording("live.label.tab_pool"), KO.line_118, wording("agents.label.group_runner"), wording("agents.label.group_recollector"), KO.line_118_2, "herdr"]);
+    expect(LIVE_TABS.map((tab) => wording(tab.label))).toEqual([wording("live.label.tab_pool"), KO.line_118, wording("agents.label.group_runner"), wording("agents.label.group_recollector"), KO.line_118_2, "Herdr"]);
     // Every tab wears a mark, since the row is read at a glance and on a phone.
     expect(LIVE_TABS.every((tab) => tab.icon.startsWith("i-material-symbols-"))).toBe(true);
   });

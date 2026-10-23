@@ -53,19 +53,20 @@
 
     <template #body>
       <ReadFailure :failure="readFailure" :message="loadError" :reading="reading" @retry="load()" />
-      <div v-if="loaded || !loadError" class="flex flex-col gap-8">
+      <div v-if="loaded || !loadError" class="flex grow flex-col gap-8">
         <!-- Every section is drawn and one of them shows. So the pool goes on reading while another
              tab stands, and a tab opened again is full rather than starting over. -->
         <section v-show="tab === 'pool'" :aria-label="$t('live.label.tab_pool')">
           <CoworkerPoolBoard :now="now * 1000" :rooms="rooms" />
         </section>
 
-        <section v-show="tab === 'executions'" class="flex flex-col gap-3" :aria-label="$t('live.aria.herdr_log')">
+        <section v-show="tab === 'executions'" class="flex grow flex-col gap-3" :aria-label="$t('live.aria.herdr_log')">
           <ContentSkeleton v-if="!loaded" :rows="4" listClass="flex flex-col gap-2" :label="$t('live.status.log_loading')">
             <LiveRunSkeleton />
           </ContentSkeleton>
 
-          <p v-else-if="(status.executions ?? []).length === 0" class="text-sm text-muted">{{ $t("common.label.no_record") }}</p>
+          <!-- The records are all the tab holds, so an empty list's line stands in the middle of it. -->
+          <BodyLine v-else-if="(status.executions ?? []).length === 0">{{ $t("common.label.no_record") }}</BodyLine>
 
           <ul v-else class="flex flex-col gap-2">
             <li v-for="execution in status.executions" :key="execution.id" class="flex gap-3 rounded-lg border border-default px-4 py-3 text-sm break-words">

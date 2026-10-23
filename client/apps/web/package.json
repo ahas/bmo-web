@@ -23,7 +23,7 @@
     "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.1.tgz",
     "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.5.tgz",
     "bmo-mail-client": "file:../../vendor/bmo-mail-client-0.1.0-rev.1.tgz",
-    "bmo-remote-client": "file:../../vendor/bmo-remote-client-0.1.0-rev.2.tgz",
+    "bmo-remote-client": "file:../../vendor/bmo-remote-client-0.1.0-rev.3.tgz",
     "bmo-review-client": "file:../../vendor/bmo-review-client-0.1.0-rev.1.tgz",
     "dayjs": "^1.11.23",
     "dompurify": "3.4.8",

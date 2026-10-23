@@ -35,7 +35,7 @@
         "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.1.tgz",
         "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.5.tgz",
         "bmo-mail-client": "file:../../vendor/bmo-mail-client-0.1.0-rev.1.tgz",
-        "bmo-remote-client": "file:../../vendor/bmo-remote-client-0.1.0-rev.2.tgz",
+        "bmo-remote-client": "file:../../vendor/bmo-remote-client-0.1.0-rev.3.tgz",
         "bmo-review-client": "file:../../vendor/bmo-review-client-0.1.0-rev.1.tgz",
         "dayjs": "^1.11.23",
         "dompurify": "3.4.8",
@@ -989,7 +989,7 @@
 
     "bmo-markup": ["bmo-text@./vendor/bmo-text-0.1.0-rev.5.tgz", {}, "sha512-f5TUTrKVAk3c9/i9NPdRRm4apjRx4zOdLoDvD9wAQ0Ej9AczyeFScwgnggKNklxSzje7f4KGZMc0Xoua4Aa7MA=="],
 
-    "bmo-remote-client": ["bmo-remote-client@../../vendor/bmo-remote-client-0.1.0-rev.2.tgz", { "dependencies": { "@devolutions/iron-remote-desktop": "0.11.0", "@devolutions/iron-remote-desktop-rdp": "file:./vendor/iron-remote-desktop-rdp", "@nuxt/ui": "^4.11.2", "@xterm/xterm": "5.5.0", "get-east-asian-width": "^1.7.0", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.2", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-uuIn2hf6GCmGMeIBKLk4GhT1srN5DtMFLkwT8dAtthi3AriA7aMXWADIYGoQU4PwsT8VW4m00V9jDJI+HOWIXg=="],
+    "bmo-remote-client": ["bmo-remote-client@../../vendor/bmo-remote-client-0.1.0-rev.3.tgz", { "dependencies": { "@devolutions/iron-remote-desktop": "0.11.0", "@devolutions/iron-remote-desktop-rdp": "file:./vendor/iron-remote-desktop-rdp", "@nuxt/ui": "^4.11.2", "@xterm/xterm": "5.5.0", "get-east-asian-width": "^1.7.0", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.3", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-OJ9SlvqyZGceYEiEnKiVSSmqduDYY42w8EN2PYWcz18xaDclhYRk+zAaaRMRXRJ9/QHrJ11Ku6p5fbnAMWOFew=="],
 
     "bmo-review-client": ["bmo-review-client@../../vendor/bmo-review-client-0.1.0-rev.1.tgz", { "dependencies": { "@nuxt/ui": "^4.11.2", "monaco-editor": "^0.56.0", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.2", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-8Es7fAZdVysy31sHKWXPOsDXGKmrMHEkhyWnOpS99rtif4r+kO/m/8ToGsuJ6YUrvCeiJDcoc/vz5tsJyzc5HQ=="],
 

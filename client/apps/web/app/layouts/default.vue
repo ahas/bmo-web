@@ -137,6 +137,7 @@ import { useBotEvents } from "~/domain/events";
 import { jumpGroups, screenGroup } from "~/domain/jump";
 import { SCREEN_FRAME, useNarrow, useVisibleScreen } from "bmo-ui/app/domain/screen";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
+import { useConsoleScreens } from "~/domain/console-screens";
 import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
 
 import type { LiveRun, StatusView } from "#shared/types";
@@ -175,9 +176,9 @@ onMounted(() => nextTick(openAskedTodo));
 // Whether the sidebar stands folded. The menu's rows are built from it: a folded row is its icon
 // alone, and a mark it carries is drawn over that icon rather than given a cell of its own.
 const sidebarFolded = ref(false);
-// The screens a console bundle declares take their own name and icon; the console's own screens and the
-// placeholders of units not yet split stand as they are (bmo-ui's `docs/console-bundles.md`).
-const screens = screensWithBundles(useAppConfig().consoleBundles ?? []);
+// The screens units bring take their manifest's own name and icon; the console's own screens and the
+// placeholders of units not yet split stand as they are (docs/web.md, 「Screens a unit brings」).
+const screens = screensWithBundles(useConsoleScreens().value);
 const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens));
 
 // The picture every session in this sidebar wears.

@@ -10,26 +10,27 @@ It is an app to read what the deployment keeps in a browser, speak on the web to
 its gate agents, and see what each of the deployment's agents is doing right now in that agent's own
 internal log as it is. The screen is shaped like a common AI chat app: a sidebar of rooms and agents on the
 left, a conversation or log in the middle, an input box below. The app is `client/apps/web`, running on Bun
-alone over Nuxt and Nuxt UI, extending the bmo-ui layer and the bmo-artifact console plugin bundle.
+alone over Nuxt and Nuxt UI, extending the bmo-ui layer; the screens a unit brings of its own are loaded while the
+console runs, from the manifest that unit answers (「Screens a unit brings」).
 
 - **What a screen shows is its unit's.** Where this document says **the bot**, it means the units behind the
   console's server that hold what a screen shows — the receiver, the agency, bmo-job and the brain — each
   reached through its own routes (`docs/boundary.md`, 「Calls the console makes」); **the archive** is the
   store of the unit that owns what is shown, and **the control API** is those routes. The console's own data
   is the server's (`docs/accounts.md`, 「The tables」).
-- **A screen of a unit not yet split stands as a placeholder.** The mail, files, code review, remote access,
-  code graph and gate screens, and the voice briefing, belong to units whose own
-  repositories are not yet split: their navigation entries and routes stand, and each page says, through the
-  language pack, that the feature is not available in this console (`docs/boundary.md`, 「Screens of units not
-  yet split」). The layout holds no briefing player. Where this document names one of them, it names the
-  screen as that unit carries it.
+- **A screen of a unit that brings none stands as a placeholder.** The code graph, the gates and the voice
+  briefing belong to units that answer no console manifest naming their screen: their navigation entries and
+  routes stand, and each page says, through the language pack, that the feature is not available in this console
+  (`docs/boundary.md`, 「Screens of units not yet split」). A manifest that names a screen at a placeholder's
+  address puts the unit's own screen in its place. The layout holds no briefing player. Where this document names
+  one of them, it names the screen as that unit carries it.
   - **A placeholder stands as a screen does:** the screen's own name and icon in its title bar, and under it
     the one sentence that the feature is not available in this console, centred in the body in the quiet
     colour. Its sidebar entry lights on its address and on the addresses below it where the unit's screen had
     pages of its own, and the console search finds it as it finds any screen.
-- **The archive screen and the share page are the bmo-artifact bundle's** (bmo-artifact's `docs/layout.md`),
-  which this app extends and whose calls it relays. That bundle's share page stands at `/archive/share/` and is
-  the one path outside the login (「Access」).
+- **The mail, files, archive, code review, remote access and gate screens are their units' own,** each a console
+  bundle loaded from its unit's manifest, whose calls this app relays (「Screens a unit brings」). A bundle's
+  share page, below its screen path at `share/`, is the one path outside the login (「Access」).
 
 ## Layout fundamentals
 
@@ -352,11 +353,12 @@ nothing.
 - **Whether the one signed in is the administrator is read off the session the browser already
   holds.** A sign-in on the service writes it into the seal; a seal that does not name it is a console
   login or one written before the model, and both are the administrator's, as the routes read them.
-- **Each screen says whether a member may open it.** A member opens home, the settings and the rooms
-  they may read; asking for any other address takes them home.
-- **A member's console stands in a shell of its own.** Its sidebar is the console's mark, their rooms and
-  the user menu: no screen list, agents, nodes or search, no queue panel, question bar or briefing
-  player, and nothing in it reports which room the tab shows. Its sidebar hears the bot's stream for
+- **Each screen says whether a member may open it.** A member opens home, the settings, the rooms they may
+  read and the screens units bring whose manifest's role is `member` — and, where the manifest asks for the
+  owner key, only when their login has a user; asking for any other address takes them home.
+- **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the screens units
+  bring that they may open, their rooms and the user menu: none of the console's own screens, agents, nodes or
+  search, no queue panel, question bar or briefing player, and nothing in it reports which room the tab shows. Its sidebar hears the bot's stream for
   one thing, a message landing in one of their rooms, which moves the room's unread count and place
   (「Sidebar」).
 - **A member's home is their rooms,** one line each with its name, message count and last message
@@ -468,7 +470,12 @@ answers again (the room screen's **대기**).
 
 One kind of path stands outside the login: a console bundle's share page, below its screen path at
 `share/<token>`. A link opens one document or file to whoever holds it, with no account and no session.
-The page and the one read of its token through the relay are the only paths that answer without one.
+The page, its bundle's module, stylesheet and words, and the one read of its token through the relay are the
+only paths that answer without one.
+
+- **The module and the stylesheet are the service's to give.** They are relayed with no session, no owner key
+  and no role, and a service that guards them by role refuses, so its share page does not open to someone
+  signed out (`docs/boundary.md`, 「Gaps the console meets」).
 
 - **The link is the whole key.** Its address carries a token and nothing besides, and the relayed read
   of it is `shares/<token>`, which the service answers for a live token alone.
@@ -1084,14 +1091,16 @@ edit to that file alone.
     phone, the drawer. The palette is a layer: the back gesture closes it. It carries no theme group — the
     screen mode is the user menu's.
   - The screens and their tabs are one list in the code, read by both the sidebar and the search, so a screen
-    added to one is in the other. A screen a console bundle declares takes that bundle's own name and icon,
-    merged into the list from the declaration (bmo-ui's `docs/console-bundles.md`).
+    added to one is in the other. A screen a unit brings takes its manifest's own title and icon, merged into
+    the list from the manifests the reader may open (「Screens a unit brings」); one whose address no screen of
+    the list holds stands after them.
 
 Four groups.
 
 - **Live status** — always one at the top. Below it stand **mail**, **cache siren**, **DB**, **파일**,
   **아티팩트**, **document viewer**, **code graph**, **code review**, **agent management**, **monitor** and
-  **remote** together. A screen of a unit not yet split stands under its own name and icon as a placeholder.
+  **remote** together. A screen a unit brings stands only while that unit answers its manifest; a screen of a unit
+  that brings none stands under its own name and icon as a placeholder.
   This group does not fold — it is a flat list of screens with no branch to fold, and the fold the sidebar
   remembers is only the agent group's below.
 - **Rooms** — the rooms stand in the order the receiver's room list gives them, the pinned first. A room with no name comes up as a chat
@@ -5461,7 +5470,7 @@ dialog open at 계정.
   receives it, and the path that rings it; the 알림 section and the delivery filter read the list of kinds and
   nothing else, so a kind added later changes no file but its own and that list. The two kinds of the bot's stream
   are rung by the plugin that listens to it; a bundle's notice kind is rung by the plugin that reads the stream
-  the bundle declares, in the bundle's own words. That stream is read for nobody signed in, so it carries the
+  of a unit whose manifest names the kind, in the bundle's own words. That stream is read for nobody signed in, so it carries the
   platform administrator's owner key, in the administrator's role: the user the account service names its
   administrator, its id as a decimal number (`docs/boundary.md`, 「Calls the console makes」).
 - **A device receives a kind unless it was turned off there.** What a device stores is what it refused, so a kind added
@@ -5528,6 +5537,42 @@ dialog open at 계정.
   machine so it is not put in the repository. Without keys the console says on the spot it cannot send notifications and the
   rest runs as usual. Making new keys invalidates every subscription made with the old, and each device must reattach.
 
+## Screens a unit brings
+
+A unit with screens of its own serves them as a console bundle and describes the bundle in a manifest, both by
+bmo-ui's console plugin contract (bmo-ui's `docs/console-bundles.md`). The console attaches each bundle by its
+manifest while it runs: no unit's screen is built into it, and nothing here names one.
+
+- **The units asked are every unit the settings name.** The server asks each unit whose `<NAME>_ADDRESS` is set
+  for `GET /console-manifest`, with that unit's token and no owner key or role, when it starts and once a minute
+  after. A unit that answers anything but a 200, that nothing answers, or that takes longer than five seconds
+  brings no screen, and nothing says so on a screen. A manifest that does not read through bmo-ui's
+  `consoleManifest`, or whose words do not answer, brings none either, and the server's log names the fault.
+  Two manifests sharing a name, a screen path or a service name both bring none.
+- **The service is relayed under the name its manifest gives,** at the address and with the token of the unit
+  that answered it: the paths under its `apiPrefix`, its module and its stylesheet, and nothing else of it. Its
+  event stream and its socket are relayed where the manifest asks for them, and the notices it names under
+  `pushKinds` are rung (「Notifications」).
+- **A reader is handed the screens their role opens.** The console's `GET /api/console-bundles` answers the
+  bundles whose manifest's role the signed-in reader's role allows, leaving out one that asks for the owner key
+  where the login has no user: each with its name, title and icon, its screen path, the relay addresses of its
+  module and its stylesheet, and its words. A page drawn on the server reads the same list, so the sidebar
+  names every screen on its first frame, and the words are merged into the console's pack under the bundle's
+  namespace as the list is read.
+- **A screen's module is loaded the first time its path is opened.** The browser reads the module through the
+  relay and, before it runs, points every import of `vue`, `vue-router`, `vue-i18n`, `nuxt/app` and of
+  `@nuxt/ui`'s and bmo-ui's own paths at the console's own copy, so a bundle draws with the console's components
+  and runs inside the console's app. A file of the bundle the module imports is read the same way, one imported
+  only when it is reached at the moment it is reached. The module's routes then stand under the console's frame
+  — in place of a console page that stood at the same address, a placeholder — and its stylesheet is linked
+  once, in a cascade layer of its own above the console's base and below its components and utilities, so a
+  class both style reads as the console's and a bundle's copy of a utility never undoes the frame around it. A loaded module stays for the life of the tab; a manifest naming a new one reaches the next tab.
+- **A bundle's page is drawn in the browser.** The server holds no bundle's module, so an address under a
+  bundle's screen path is answered with the app's shell, and the browser draws the page once the module is in.
+- **A share page reads only its own bundle.** Asked with no session for an address under a screen path's
+  `share/`, the list answers that one bundle's screen path, module, stylesheet and words, and nothing else of any
+  manifest (「Access」).
+
 ## How the units are talked to
 
 - **The console's own server is the only caller.** Each unit's address and token are on the server side alone,
@@ -5537,11 +5582,11 @@ dialog open at 계정.
   owner's words and the live board; the brain for memories and fragments; each console bundle for its own
   screen, its share page and its notices; the cache siren and the cache warmer for their screens.
 - **A bundle's screen reaches its service through one relay.** The bundle calls the console's relay base, the
-  service's name and the path the service's own API writes; the console hands it on to the address the
-  service's setting names with the service's token and the owner key and role of the person signed in — their
+  service's name and the path the service's own API writes; the console hands it on to the address of the
+  unit that answered the bundle's manifest with the service's token and the owner key and role of the person signed in — their
   user's id on the account service and whether they are the administrator or a member, set in place of any the
-  browser sent — and hands the answer back as it came. A socket the bundle
-  declares stands at the same path and is relayed the same way: each frame is handed on as it came, and the
+  browser sent — and hands the answer back as it came. A socket the manifest
+  asks for stands at the same path and is relayed the same way: each frame is handed on as it came, and the
   close code ends both sides. Nothing here
   re-exposes a unit's API under a name of its own, so a route a service changes reaches its screen with no
   change in this console (bmo-ui's `docs/console-bundles.md`).

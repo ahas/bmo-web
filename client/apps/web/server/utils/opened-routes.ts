@@ -26,6 +26,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "PUT", path: /^\/api\/account\/palette$/, scope: "user" },
   { method: "GET", path: /^\/api\/account\/theme$/, scope: "user" },
   { method: "PUT", path: /^\/api\/account\/theme$/, scope: "user" },
+  // The screens units bring that the reader may open, read by the role they hold.
+  { method: "GET", path: /^\/api\/console-bundles$/, scope: "user" },
 
   { method: "GET", path: /^\/api\/tab-states\/[^/]+$/, scope: "user" },
   { method: "PUT", path: /^\/api\/tab-states\/[^/]+$/, scope: "user" },

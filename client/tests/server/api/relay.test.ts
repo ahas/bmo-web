@@ -1,5 +1,8 @@
 import { afterAll, describe, expect, test } from "bun:test";
 
+import { consoleManifest } from "bmo-ui/shared/console-manifest";
+
+import { attachBundles } from "../../../apps/web/server/utils/console-manifests";
 import { routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
@@ -9,8 +12,6 @@ import type { RouteEvent } from "../../support/nitro";
 // segment, still escaped, and a space or a letter outside ASCII reaches the service escaped once, never twice.
 
 const globals = globalThis as unknown as Record<string, unknown>;
-
-globals.useAppConfig = () => ({ consoleBundles: [{ serviceName: "relayed" }, { serviceName: "keyed" }] });
 
 // Who is signed in, which a test may take away: the support's signed-in administrator, user 1, by default.
 let session: { user?: { id: number; name: string } } = { user: { id: 1, name: "tester" } };
@@ -105,5 +106,69 @@ describe("the relay's owner key and role", () => {
 
     expect(heard.at(-1)).toBeNull();
     expect(roles.at(-1)).toBeNull();
+  });
+});
+
+// A service a manifest names: relayed at the unit that answered it, only under its API prefix and for its module and
+// stylesheet, the two of which a share page reads with no session, and to a reader the manifest's role allows.
+describe("the relay of a service a manifest names", () => {
+  const heard: string[] = [];
+  const served = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch(request) {
+      heard.push(new URL(request.url).pathname);
+
+      return Response.json({ ok: true });
+    }
+  });
+  const named = (name: string, role: "member" | "administrator") => ({
+    manifest: consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/console/bundle.js", stylesheet: "/console/bundle.css", words: "/console/words", apiPrefix: "/screen", role }),
+    unit: { address: `http://127.0.0.1:${served.port}`, token: null },
+    words: {}
+  });
+
+  attachBundles([named("screened", "member"), named("guarded", "administrator")]);
+  afterAll(() => {
+    attachBundles([]);
+    void served.stop(true);
+  });
+
+  const call = (path: string) => handler({ params: { path }, node: {} } as RouteEvent).then((response) => response.status, (error: { statusCode?: number }) => error.statusCode);
+
+  test("hands on a path under the API prefix to the unit that answered the manifest", async () => {
+    expect(await call("screened/screen/items")).toBe(200);
+    expect(heard.at(-1)).toBe("/screen/items");
+  });
+
+  test("hands on the module and the stylesheet outside the prefix, and nothing else", async () => {
+    expect(await call("screened/console/bundle.js")).toBe(200);
+    expect(await call("screened/console/bundle.css")).toBe(200);
+    expect(await call("screened/console/words")).toBe(404);
+    expect(await call("screened/elsewhere")).toBe(404);
+  });
+
+  test("hands the module on with no session, and nothing else of the service", async () => {
+    session = {};
+
+    try {
+      expect(await call("screened/console/bundle.js")).toBe(200);
+      expect(await call("screened/screen/items")).toBe(401);
+    } finally {
+      session = { user: { id: 1, name: "tester" } };
+    }
+  });
+
+  test("is absent to a reader the manifest's role does not open it to", async () => {
+    const administrator = globals.signedInUser;
+
+    globals.signedInUser = async () => ({ id: 2, name: "member-a", administrator: false });
+
+    try {
+      expect(await call("guarded/screen/items")).toBe(404);
+      expect(await call("screened/screen/items")).toBe(200);
+    } finally {
+      globals.signedInUser = administrator;
+    }
   });
 });

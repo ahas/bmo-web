@@ -2,17 +2,20 @@ import { createParser } from "eventsource-parser";
 
 import { ring } from "../utils/push";
 import { ringsFromThisServer } from "../utils/pushnews";
+import { onBundlesRead } from "../utils/console-manifests";
 import { OWNER_KEY_HEADER, OWNER_ROLE_HEADER, administratorKey } from "../utils/owner-key";
-import { unitAt, unitHeaders } from "../utils/units";
+import { unitHeaders } from "../utils/units";
 
+import type { AttachedBundle } from "../utils/console-manifests";
 import type { PushPayload } from "#shared/types";
-import type { ConsoleBundleView } from "#shared/console-bundles";
+import type { ConsoleManifest } from "bmo-ui/shared/console-manifest";
 
 // A console bundle's notices (bmo-ui's `docs/console-bundles.md`, 「Notices」): the console reads the
-// stream a bundle declares, and every event whose kind the bundle names under `pushKinds` rings the
-// owner's devices in the bundle's own words, under the notice kind that carries the bundle's name.
-// No unit's address, path or word is written here: the declaration names the service and the kinds,
-// and the bundle's pack names the words.
+// stream of a unit whose manifest asks for it, and every event whose kind the manifest names under
+// `pushKinds` rings the owner's devices in the bundle's own words, under the notice kind that carries the
+// bundle's name. No unit's address, path or word is written here: the manifest names the service and the
+// kinds, and the bundle's words name the words. A stream is followed while its manifest stands as it was
+// read, and let go when the manifest goes or changes.
 
 // How long to wait before opening a stream again after it dropped, and the ceiling that wait grows to.
 const RETRY_MS = 5_000;
@@ -62,7 +65,7 @@ function noticeWord(words: Words, name: string, kind: string, role: "title" | "b
   return held;
 }
 
-function noticeOf(bundle: ConsoleBundleView, kind: string, data: Fields, words: Words): PushPayload {
+function noticeOf(bundle: ConsoleManifest, kind: string, data: Fields, words: Words): PushPayload {
   return {
     kind: bundle.name as PushPayload["kind"],
     title: filled(noticeWord(words, bundle.name, kind, "title"), data) || bundle.title,
@@ -72,11 +75,12 @@ function noticeOf(bundle: ConsoleBundleView, kind: string, data: Fields, words: 
   };
 }
 
-async function follow(bundle: ConsoleBundleView, words: Words, stopping: () => boolean): Promise<void> {
-  const unit = unitAt(bundle.serviceName.replaceAll("-", "_").toUpperCase());
+async function follow(attached: AttachedBundle, words: Words, letGo: AbortSignal, closing: () => boolean): Promise<void> {
+  const stopping = () => closing() || letGo.aborted;
+  const { manifest: bundle, unit } = attached;
   const kinds = new Set(bundle.pushKinds);
 
-  if (unit === null || kinds.size === 0) return;
+  if (kinds.size === 0) return;
 
   let attempts = 0;
 
@@ -88,7 +92,8 @@ async function follow(bundle: ConsoleBundleView, words: Words, stopping: () => b
       // administrator's role.
       const owner = await administratorKey();
       const response = await fetch(`${unit.address}/events`, {
-        headers: { ...unitHeaders(unit), ...(owner === null ? {} : { [OWNER_KEY_HEADER]: owner }), [OWNER_ROLE_HEADER]: "administrator", accept: "text/event-stream" }
+        headers: { ...unitHeaders(unit), ...(owner === null ? {} : { [OWNER_KEY_HEADER]: owner }), [OWNER_ROLE_HEADER]: "administrator", accept: "text/event-stream" },
+        signal: letGo
       });
 
       if (!response.ok || response.body === null) throw new Error(String(response.status));
@@ -128,6 +133,8 @@ async function follow(bundle: ConsoleBundleView, words: Words, stopping: () => b
         }
       }
     } catch (error) {
+      if (stopping()) break;
+
       console.error(`push: could not read ${bundle.name}'s events:`, error);
     }
 
@@ -144,22 +151,42 @@ export default defineNitroPlugin((nitro) => {
     return;
   }
 
-  const config = useRuntimeConfig();
-  const bundles = (config.consoleBundles ?? []) as ConsoleBundleView[];
-  const packs = config.consoleBundleWords as unknown as Record<string, Words>;
-  let stopping = false;
+  // Each stream followed, by the manifest it was read under, with the switch that lets it go.
+  const followed = new Map<string, AbortController>();
+  let closing = false;
+
+  const follows = (bundles: readonly AttachedBundle[]) => {
+    const standing = new Set<string>();
+
+    for (const bundle of bundles) {
+      const words = bundle.words.ko as Words | undefined;
+
+      if (!bundle.manifest.events || bundle.manifest.pushKinds.length === 0 || words === undefined) continue;
+
+      const key = `${bundle.unit.address} ${JSON.stringify(bundle.manifest)}`;
+
+      standing.add(key);
+
+      if (followed.has(key)) continue;
+
+      const held = new AbortController();
+
+      followed.set(key, held);
+      void follow(bundle, words, held.signal, () => closing);
+    }
+
+    for (const [key, held] of followed) {
+      if (standing.has(key)) continue;
+
+      held.abort();
+      followed.delete(key);
+    }
+  };
+
+  const stopHearing = onBundlesRead(follows);
 
   nitro.hooks.hook("close", () => {
-    stopping = true;
+    closing = true;
+    stopHearing();
   });
-
-  for (const bundle of bundles) {
-    if (!bundle.events || bundle.pushKinds.length === 0) continue;
-
-    const words = packs[bundle.name]?.ko as Words | undefined;
-
-    if (words === undefined) continue;
-
-    void follow(bundle, words, () => stopping);
-  }
 });

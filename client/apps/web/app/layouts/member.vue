@@ -27,6 +27,8 @@
       </template>
 
       <template #default="{ collapsed }">
+        <UNavigationMenu v-if="screenEntries.length > 0" :items="namedWhenFolded(screenEntries, collapsed)" :collapsed="collapsed" tooltip orientation="vertical" />
+
         <ContentSkeleton v-if="roomsInitial" :rows="3" listClass="flex flex-col" :label="$t('screens.status.rooms_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
             <SkeletonBar class="size-5 shrink-0 rounded-sm" />
@@ -54,14 +56,15 @@ import { consoleName } from "#shared/agent-names";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { SCREEN_FRAME, useVisibleScreen } from "bmo-ui/app/domain/screen";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
-import { namedWhenFolded, roomItems } from "~/domain/screens";
+import { useConsoleScreens } from "~/domain/console-screens";
+import { broughtScreens, namedWhenFolded, roomItems, screenItems } from "~/domain/screens";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AvatarIndex } from "~/domain/avatars";
 
-// A member's shell (docs/web.md, 「Access」): the rooms they may read and their own menu, and
-// nothing that reads a route opened to the administrator alone. It frames the screen as the
-// administrator's shell does, so a member's page stands the same way.
+// A member's shell (docs/web.md, 「Access」): the screens units bring that they may open, the rooms they
+// may read and their own menu, and nothing that reads a route opened to the administrator alone. It
+// frames the screen as the administrator's shell does, so a member's page stands the same way.
 const shell = SCREEN_FRAME;
 
 useVisibleScreen();
@@ -81,4 +84,8 @@ const reading = useRoomReading();
 const pictures: AvatarIndex = new Map();
 
 const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.value, pictures, route.path, sidebarFolded.value, reading.value));
+
+// The screens units bring whose manifest opens to a member, as the console's list hands them to this reader.
+const screens = broughtScreens(useConsoleScreens().value);
+const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens));
 </script>

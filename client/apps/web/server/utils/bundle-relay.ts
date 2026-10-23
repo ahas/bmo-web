@@ -1,11 +1,12 @@
 import { defineWebSocket, unsealSession } from "h3";
 
 import { signedInOf } from "./accounts";
+import { attachedService, readerMay, readerOf, relayedPath } from "./console-manifests";
 import { ownerHeaders } from "./owner-key";
-import { unitAt, unitHeaders } from "./units";
+import { unitHeaders } from "./units";
 
 import type { SignedIn } from "./accounts";
-import type { ConsoleBundleView } from "#shared/console-bundles";
+import type { AttachedBundle } from "./console-manifests";
 
 // The relay of a unit's own paths (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」; `docs/boundary.md`,
 // 「Calls the console makes」): a call under the relay base, the service's name and the path the service's own API
@@ -54,13 +55,17 @@ function browserClose(code: number | undefined): number | undefined {
 async function signedIn(request: { headers: Headers }): Promise<SignedIn | null> {
   const config = useRuntimeConfig();
   const name = config.session?.name ?? "nuxt-session";
-  const cookies = new Map(
-    (request.headers.get("cookie") ?? "")
-      .split(";")
-      .map((part) => part.trim().split("="))
-      .filter((pair) => pair.length === 2)
-      .map(([key, value]) => [key!, value!] as const)
-  );
+  // The cookie is read as the session layer reads it on every other request: split at its first equals sign, and
+  // the first of two by the same name — the one of the longer path, as the browser sends them — taken.
+  const cookies = new Map<string, string>();
+
+  for (const part of (request.headers.get("cookie") ?? "").split(";")) {
+    const at = part.indexOf("=");
+    const key = part.slice(0, at).trim();
+
+    if (at > 0 && !cookies.has(key)) cookies.set(key, part.slice(at + 1).trim());
+  }
+
   const sealed = cookies.get(name);
 
   if (sealed === undefined || sealed === "") return null;
@@ -76,8 +81,8 @@ async function signedIn(request: { headers: Headers }): Promise<SignedIn | null>
 }
 
 // The bundle a socket's path names under the relay base, with the rest of the path and the query, or null where no
-// bundle declares a socket for that service.
-function socketOf(url: string): { bundle: ConsoleBundleView; rest: string; search: string } | null {
+// manifest asks for a socket to that service, or the path stands outside its API prefix.
+function socketOf(url: string): { bundle: AttachedBundle; rest: string; search: string } | null {
   const config = useRuntimeConfig();
   const asked = new URL(url, "http://console.invalid");
   const base = `${config.app.baseURL.replace(/\/+$/, "")}/api/`;
@@ -86,10 +91,10 @@ function socketOf(url: string): { bundle: ConsoleBundleView; rest: string; searc
 
   const parts = asked.pathname.slice(base.length).split("/").filter((part) => part !== "");
   const service = parts.shift() ?? "";
-  const bundles = (config.consoleBundles ?? []) as ConsoleBundleView[];
-  const bundle = bundles.find((one) => one.serviceName === service);
+  const bundle = attachedService(service);
+  const rest = parts.map(relayedSegment).join("/");
 
-  return bundle === undefined || !bundle.websocket ? null : { bundle, rest: parts.map(relayedSegment).join("/"), search: asked.search };
+  return bundle === null || !bundle.manifest.websocket || !relayedPath(bundle.manifest, `/${rest}`) ? null : { bundle, rest, search: asked.search };
 }
 
 /** The socket hooks of the relay: the service's socket opened at the path the browser's names, and every frame and
@@ -107,19 +112,13 @@ export const socketRelay = defineWebSocket({
 
     const signed = await signedIn(peer.request);
 
-    if (signed === null) {
+    if (signed === null || !readerMay(readerOf(signed), asked.bundle.manifest)) {
       peer.close(1008, "unauthorized");
 
       return;
     }
 
-    const unit = unitAt(asked.bundle.serviceName.replaceAll("-", "_").toUpperCase());
-
-    if (unit === null) {
-      peer.close(1011, "the service is not reachable");
-
-      return;
-    }
+    const unit = asked.bundle.unit;
 
     const target = new URL(`${unit.address}/${asked.rest}${asked.search}`);
     target.protocol = target.protocol === "https:" ? "wss:" : "ws:";

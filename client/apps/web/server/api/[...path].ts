@@ -7,6 +7,7 @@ import { wording } from "#shared/wording";
 import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
 
 import { relayedSegment, socketRelay } from "../utils/bundle-relay";
+import { attachedService, bundleFile, readerMay, readerOf, relayedPath } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
 import { unitAt } from "../utils/units";
 
@@ -19,10 +20,15 @@ import { unitAt } from "../utils/units";
 // bytes and the headers a browser reads of them — go as they came, so a bundle reads its service's own
 // shapes and refusals.
 //
+// A service a manifest names is relayed at the address of the unit that answered it, and only for the paths under
+// its API prefix, its module and its stylesheet, to a reader its manifest's role and owner key allow (docs/web.md,
+// 「Screens a unit brings」). A unit the console calls directly, which answers no manifest, is relayed at the
+// address its setting names.
+//
 // A share link is the one road with no session behind it: a reader holding the token opens the bundle's
 // share page, and the one read that page makes of the token — `shares/<token>` — is relayed without a
-// session. Nothing else is: a service whose share page needs more than the token's own resource is a
-// contract gap between that bundle and its console.
+// session, as are the bundle's module and stylesheet the page is drawn by. Nothing else is: a service whose
+// share page needs more than the token's own resource is a contract gap between that bundle and its console.
 //
 // A socket a bundle declares stands at the same path, and the route carries the relay's socket hooks for it
 // (`utils/bundle-relay.ts`).
@@ -68,24 +74,28 @@ async function relayed(event: H3Event): Promise<Response> {
   const path = (getRouterParam(event, "path") ?? "").split("/").filter((part) => part !== "");
   const service = path.shift() ?? "";
   const rest = path.map(relayedSegment).join("/");
-  const declarations = (useAppConfig().consoleBundles ?? []) as { serviceName: string }[];
-  const declared = declarations.find((bundle) => bundle.serviceName === service);
-  const unit = unitAt(service.replaceAll("-", "_").toUpperCase());
+  const attached = attachedService(service);
+  const unit = attached?.unit ?? unitAt(service.replaceAll("-", "_").toUpperCase());
 
-  // A name neither a bundle declares nor a setting names is this console's own absence, not a unit's. A unit the
-  // console calls directly — the agency, bmo-job, the receiver, the brain — stands beside the bundles, and its own
-  // paths are handed on as they are.
-  if (declared === undefined && unit === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  // A name neither a manifest nor a setting names is this console's own absence, not a unit's. A unit the console
+  // calls directly — the agency, bmo-job, the receiver, the brain — stands beside the bundles, and its own paths are
+  // handed on as they are. A path of a bundle's service outside what its manifest lets through is absent as well.
+  if (unit === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  if (attached !== null && !relayedPath(attached.manifest, `/${rest}`)) throw createError({ statusCode: 404, statusMessage: "Not Found" });
 
   const method = getMethod(event).toUpperCase();
   const reading = method === "GET" || method === "HEAD";
   const session = await getUserSession(event);
+  const unsigned = reading && (SHARE_READ.test(rest) || (attached !== null && bundleFile(attached.manifest, `/${rest}`)));
 
-  if (session.user === undefined && !(reading && SHARE_READ.test(rest))) {
+  if (session.user === undefined && !unsigned) {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
   }
 
-  if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
+  // A screen a reader may not open is one that does not stand for them, and so is its service.
+  if (session.user !== undefined && attached !== null && !readerMay(readerOf(await signedInUser(event)), attached.manifest)) {
+    throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  }
 
   const headers: Record<string, string> = {};
 

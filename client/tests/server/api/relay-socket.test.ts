@@ -1,7 +1,10 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { dirname } from "node:path";
 
+import { consoleManifest } from "bmo-ui/shared/console-manifest";
 import { createApp, createRouter, defineEventHandler, sealSession } from "h3";
+
+import { attachBundles } from "../../../apps/web/server/utils/console-manifests";
 
 import type { Server, WebSocketHandler } from "bun";
 
@@ -17,14 +20,7 @@ const TOKEN = "relayed-token";
 const globals = globalThis as unknown as Record<string, unknown>;
 
 globals.defineNitroPlugin = (plugin: unknown) => plugin;
-globals.useRuntimeConfig = () => ({
-  app: { baseURL: BASE },
-  session: SESSION,
-  consoleBundles: [
-    { serviceName: "relayed", websocket: true },
-    { serviceName: "plain", websocket: false }
-  ]
-});
+globals.useRuntimeConfig = () => ({ app: { baseURL: BASE }, session: SESSION });
 
 interface UnitSocket {
   path: string;
@@ -65,6 +61,19 @@ const unit = Bun.serve<UnitSocket, never>({
 process.env.RELAYED_ADDRESS = `http://127.0.0.1:${unit.port}`;
 process.env.RELAYED_TOKEN = TOKEN;
 process.env.PLAIN_ADDRESS = `http://127.0.0.1:${unit.port}`;
+
+// The manifests the units answered: a member's screen with a socket, one with none, and an administrator's.
+function manifestOf(name: string, websocket: boolean, role: "member" | "administrator") {
+  return consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/bundle.js", words: "/words", role, websocket });
+}
+
+const standing = { address: `http://127.0.0.1:${unit.port}`, token: TOKEN };
+
+attachBundles([
+  { manifest: manifestOf("relayed", true, "member"), unit: standing, words: {} },
+  { manifest: manifestOf("plain", false, "member"), unit: standing, words: {} },
+  { manifest: manifestOf("guarded", true, "administrator"), unit: standing, words: {} }
+]);
 
 // The socket adapter the server is served with, as h3 carries it.
 interface Adapter {
@@ -166,13 +175,29 @@ describe("a bundle's socket through the console", () => {
     expect(unitHeard.closed.at(-1)).toBe(4000);
   });
 
+  test("reads the first of two session cookies, as the session layer does", async () => {
+    const { socket, heard } = opened("relayed/sessions/six", `${SESSION.name}=${encodeURIComponent(signedIn)}; other=a=b; ${SESSION.name}=`);
+
+    await until(() => heard.length > 0);
+
+    expect(heard[0]).toBe("hello /sessions/six");
+
+    socket.close();
+  });
+
   test("closes a socket with no session behind it", async () => {
     const { closed } = opened("relayed/sessions/three", null);
 
     expect(await closed).toEqual({ code: 1008, reason: "unauthorized" });
   });
 
-  test("closes a socket on a service no bundle declares one for", async () => {
+  test("closes a socket on a screen the reader's role does not open", async () => {
+    const { closed } = opened("guarded/sessions/five");
+
+    expect(await closed).toEqual({ code: 1008, reason: "unauthorized" });
+  });
+
+  test("closes a socket on a service no manifest asks one for", async () => {
     const { closed } = opened("plain/sessions/four");
 
     expect(await closed).toEqual({ code: 1008, reason: "no such relay" });

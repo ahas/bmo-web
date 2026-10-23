@@ -2,10 +2,10 @@ import { expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { isScreenActive, namedWhenFolded, SCREENS, screenItems, screensWithBundles, tabAddress } from "../../../apps/web/app/domain/screens";
+import { broughtScreens, isScreenActive, namedWhenFolded, SCREENS, screenItems, screensWithBundles, tabAddress } from "../../../apps/web/app/domain/screens";
 
 import type { Screen } from "../../../apps/web/app/domain/screens";
-import type { ConsoleBundleView } from "../../../apps/web/shared/console-bundles";
+import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 
 // The console's own screens, the flat group at the top of the sidebar (docs/web.md, 「Sidebar」): each named
 // from the pack, lit on its own address and, where it is nested, on the pages below it.
@@ -20,26 +20,48 @@ test("the screens this console carries stand whole and the units not yet split a
   expect(SCREENS.filter((screen) => screen.placeholder === true).map((screen) => screen.to)).toEqual(["/graph", "/gates", "/briefing"]);
 });
 
-test("a bundle's screen takes the bundle's own name and icon, and stands where the console lists it", () => {
-  const mail = {
-    name: "mail",
-    title: "mail.title.screen",
-    icon: "i-material-symbols-mail-outline",
-    screenPath: "/mail",
-    serviceName: "mail",
-    languagePack: "i18n/locales",
-    events: true,
-    websocket: false,
-    pushKinds: ["message.created"]
-  } satisfies ConsoleBundleView;
+// A screen a unit brings, as the console's list hands it to the browser.
+function brought(screenPath: string, name: string): ConsoleScreen {
+  return {
+    name,
+    title: `${name}.title.screen`,
+    icon: "i-material-symbols-circle",
+    screenPath,
+    role: "member",
+    module: `/base/api/${name}/bundle.js`,
+    stylesheet: null,
+    words: {}
+  };
+}
 
-  const screens = screensWithBundles([mail]);
+test("a unit's screen takes its manifest's own name and icon, and stands where the console lists it", () => {
+  const all = ["/mail", "/files", "/archive", "/code", "/remote"].map((path) => brought(path, path.slice(1)));
+  const screens = screensWithBundles(all);
   const screen = screens.find((entry) => entry.to === "/mail")!;
 
   expect(screen.label).toBe("mail.title.screen");
-  expect(screen.icon).toBe("i-material-symbols-mail-outline");
+  expect(screen.icon).toBe("i-material-symbols-circle");
   expect(screen.placeholder).toBeUndefined();
   expect(screens.map((entry) => entry.to)).toEqual(SCREENS.map((entry) => entry.to));
+});
+
+test("a screen a unit brings stands only while a manifest names it, and one the list lacks stands after it", () => {
+  const screens = screensWithBundles([brought("/mail", "mail"), brought("/elsewhere", "elsewhere")]);
+
+  expect(screens.some((entry) => entry.to === "/files")).toBe(false);
+  expect(screens.some((entry) => entry.to === "/mail")).toBe(true);
+  expect(screens.at(-1)!.to).toBe("/elsewhere");
+});
+
+test("a manifest at a placeholder's address puts its screen in the placeholder's place", () => {
+  const screen = screensWithBundles([brought("/gates", "gates")]).find((entry) => entry.to === "/gates")!;
+
+  expect(screen.placeholder).toBeUndefined();
+  expect(screen.label).toBe("gates.title.screen");
+});
+
+test("a member's shell lists the screens units bring alone", () => {
+  expect(broughtScreens([brought("/mail", "mail")]).map((entry) => entry.to)).toEqual(["/mail"]);
 });
 
 test("a nested screen is lit on its own address and on the pages below it, and nowhere else", () => {

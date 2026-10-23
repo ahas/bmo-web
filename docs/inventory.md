@@ -9,8 +9,8 @@ document #301, settles which unit owns what.
 Phase 1 carries behaviour unchanged. The console's screens stay this repository's where their unit has
 split without a plugin bundle of its own (the agency, bmo-job, the receiver, the brain, the cache siren
 and the cache warmer); they call that unit's HTTP API instead of its code, its tables or the old control
-port. The archive screen comes from bmo-artifact's plugin bundle. A screen of a unit not yet split is a
-placeholder until that unit's own item carries it.
+port. The screens of a unit that ships a console bundle are loaded from that unit's manifest while the console
+runs. A screen of a unit not yet split is a placeholder until that unit's own manifest names it.
 
 ## The console client: 1,238 files
 
@@ -54,20 +54,16 @@ Stands here as its own place in the Bun workspace under `client/`, re-cut for `a
 
 | Old member | Stands here as |
 |---|---|
-| `package.json` | `client/package.json`, the workspace (`apps/*`, `packages/*`) with the patch, the tests' own packages and bmo-ui; `client/apps/web/package.json`, the console, depending on `@web/accounts` from the workspace and on the console bundles from their packs under `client/vendor/`, without the old workspace's `@bmo/*` packages or the libraries of screens not carried |
-| `nuxt.config.ts` | `client/apps/web/nuxt.config.ts`, extending the console bundles and bmo-ui, stating `bmoUi`'s zone, locale, date locale and relay base, with the server pack's reader pointed at `server/lang/` and the bundles' declarations read by `modules/console-bundles.ts`. What bmo-ui's layer now brings (the screen mode, the viewport, the first-frame ground, the semantic colours) and what served screens not carried are gone; a dev server's extra hosts are a setting |
+| `package.json` | `client/package.json`, the workspace (`apps/*`, `packages/*`) with the patch, the tests' own packages and bmo-ui; `client/apps/web/package.json`, the console, depending on `@web/accounts` from the workspace and on the units' clients from their packs under `client/vendor/`, without the old workspace's `@bmo/*` packages or the libraries of screens not carried |
+| `nuxt.config.ts` | `client/apps/web/nuxt.config.ts`, extending bmo-ui, stating `bmoUi`'s zone, locale, date locale and relay base, with the server pack's reader pointed at `server/lang/` and the libraries a console bundle shares with the console listed by `modules/console-shared.ts`. What bmo-ui's layer now brings (the screen mode, the viewport, the first-frame ground, the semantic colours) and what served screens not carried are gone; a dev server's extra hosts are a setting |
 | `tsconfig.json`, `.env.example` | `client/apps/web/` of the same names; the sample names every unit's address and token |
 | `.gitignore` | `client/.gitignore` |
 | `bunfig.toml` | `client/bunfig.toml`, holding the tests under `client/tests/`; its preloads were the old test kit's and the old bot's, none of which comes |
 | `patches/reka-ui@2.10.4.patch` | `client/patches/`, the same patch bmo-ui and the bmo-artifact bundle carry, applied in the workspace's lockfile, which holds the packages it shares with bmo-ui at bmo-ui's own versions |
 
 The packs under `client/vendor/` are made with `bun pm pack` in a scratch export (`git archive`) of each
-repository's committed tree, never in its checkout: bmo-ui at revision 0.1.0-rev.6, the console
-bundles bmo-artifact-client, bmo-mail-client, bmo-review-client, bmo-drive-client and bmo-remote-client, each at
-its current revision, and bmo-text at 0.1.0-rev.5, which the mail bundle imports as `bmo-markup`; the
-workspace's `overrides` points that name at the pack. Two of the bundles reach their own files by a host alias,
-and one's `$fetch` type does not narrow in a host's typecheck, so their vendored copies correct the two paths
-and the cast; the gaps they stand for are written in `docs/boundary.md`.
+repository's committed tree, never in its checkout: bmo-ui at revision 0.1.0-rev.7 and the clients of the
+units the console calls. No console bundle is vendored: each is loaded from its unit while the console runs.
 
 ### The console shell (210 files)
 
@@ -149,9 +145,9 @@ The places in the shell that name a later group's file are cut here, and that gr
   the console's own document viewer uses.
 - **The placeholders (build-8):** the graph, monitor, cards, gates and briefing entries stand again as
   placeholders (below, 「Screens of the units that ship no console bundle」); the mail, files, code and remote
-  entries stand as their units' console bundles bring them. The briefing player and the stream's
-  briefing-stop words are not carried. The mail notices' push kind is rung by the plugin that reads the mail
-  bundle's declared stream, in the bundle's words.
+  entries stand as their units' manifests bring them. The briefing player and the stream's
+  briefing-stop words are not carried. The mail notices' push kind is rung by the plugin that reads the stream
+  of a unit whose manifest names the kind, in the bundle's words.
 
 ### The agency screens (169 files)
 

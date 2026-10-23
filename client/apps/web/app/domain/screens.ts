@@ -8,7 +8,7 @@ import { unreadLabel, unreadShown } from "./room-list";
 
 import type { AvatarIndex } from "./avatars";
 import type { RoomReading } from "./room-list";
-import type { ConsoleBundleView } from "#shared/console-bundles";
+import type { ConsoleScreen } from "#shared/console-bundles";
 import type { ListedRoom } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { NavigationMenuItem } from "@nuxt/ui";
@@ -24,6 +24,9 @@ export interface Screen {
   // Whether the screen's unit is not yet split, so its page is the placeholder saying the feature is not
   // available in this console (docs/boundary.md, 「Screens of units not yet split」).
   placeholder?: true;
+  // Whether the screen is one a unit brings, which stands only while the unit's manifest names a screen at its
+  // address (docs/web.md, 「Screens a unit brings」).
+  brought?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
   // The mark the screen's entry carries while something on it wants looking at, read from what the
@@ -58,23 +61,23 @@ export interface ScreenTab {
 
 // The screens that stand in this console now, in the order the sidebar shows them. A screen's group
 // puts its entry here as it brings the screen; a unit not yet split stands as its placeholder's entry.
-// A screen a bundle declares takes the bundle's own name and icon (`screensWithBundles`).
+// A screen a unit brings takes its manifest's own name and icon (`screensWithBundles`).
 export const SCREENS: readonly Screen[] = [
   // The live status screen stands on its own above the rest. A section of it is a tab kept in the address, so the
   // console search lands on the section rather than on the screen.
   { label: "screens.label.live", to: "/live", icon: "i-material-symbols-monitor-heart-outline", nested: false, tabs: LIVE_TABS },
   // The mailboxes, bmo-mail's bundle. Its screen had places below its address, so they light it too.
-  { label: "screens.label.mail", to: "/mail", icon: "i-material-symbols-mail-outline", nested: true },
+  { label: "screens.label.mail", to: "/mail", icon: "i-material-symbols-mail-outline", nested: true, brought: true },
   // The cache siren: what the agents' requests did to the provider's prompt cache, as the siren on this machine sees
   // it. It stands under the live board because it is the other thing worth glancing at while something runs.
   { label: "screens.label.siren", to: "/siren", icon: "i-material-symbols-e911-emergency-outline", nested: false },
   // The console's own database, read as tables and rows.
   { label: "screens.label.db", to: "/db", icon: "i-material-symbols-database-outline", nested: false },
   // A machine's drives walked as files, bmo-drive's bundle.
-  { label: "screens.label.files", to: "/files", icon: "i-material-symbols-folder-open-outline", nested: false },
+  { label: "screens.label.files", to: "/files", icon: "i-material-symbols-folder-open-outline", nested: false, brought: true },
   // The Archive: the documents kept for reading, each with its attachments. Its pages are the
   // bmo-artifact bundle's, and its pages below the address light it.
-  { label: "screens.label.archive", to: "/archive", icon: "i-material-symbols-archive-outline", nested: true },
+  { label: "screens.label.archive", to: "/archive", icon: "i-material-symbols-archive-outline", nested: true, brought: true },
   // The documents the agents read and the deployment's operating documents, read as documents. It stands beside
   // the Archive because both are kept for reading.
   { label: "screens.label.documents", to: "/documents", icon: "i-material-symbols-library-books-outline", nested: false },
@@ -85,7 +88,7 @@ export const SCREENS: readonly Screen[] = [
   // A checkout's code as its graph, bmo-graph's.
   { label: "screens.label.graph", to: "/graph", icon: "i-material-symbols-hub-outline", nested: false, placeholder: true },
   // A checkout read at a commit with reviews pinned to its lines, bmo-review's bundle.
-  { label: "screens.label.code", to: "/code", icon: "i-material-symbols-rate-review-outline", nested: false },
+  { label: "screens.label.code", to: "/code", icon: "i-material-symbols-rate-review-outline", nested: false, brought: true },
   // The catalogue as a screen: who the agents are, and the job workers the owner adds and removes. Its pages below
   // its address are the agents' own, so they do not light it.
   { label: "screens.label.agents", to: "/agents", icon: "i-material-symbols-list-alt-outline", nested: false, tabs: AGENT_TABS },
@@ -98,34 +101,39 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.briefing", to: "/briefing", icon: "i-material-symbols-record-voice-over-outline", nested: false, placeholder: true },
   // A machine's terminals and desktop, bmo-remote's bundle. It stands last because it reaches the machine
   // rather than reading anything kept; its full-screen pages stand below its address.
-  { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true }
+  { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true, brought: true }
 ];
 
 /**
- * The screens with every console bundle's screen in its place: a bundle's declaration gives the
- * screen the name it is called by, the icon beside it and its pages below it, so the console carries
- * no bundle's words or marks of its own (bmo-ui's `docs/console-bundles.md`). A bundle whose screen
- * stands nowhere in the list is added after it.
+ * The screens with every screen a unit brings in its place: its manifest gives the screen the name it
+ * is called by, the icon beside it and its pages below it, so the console carries no bundle's words or
+ * marks of its own (bmo-ui's `docs/console-bundles.md`). A screen a unit brings that no manifest names
+ * now does not stand, and a bundle whose screen stands nowhere in the list is added after it.
  */
-export function screensWithBundles(bundles: readonly ConsoleBundleView[]): Screen[] {
+export function screensWithBundles(bundles: readonly ConsoleScreen[], screens: readonly Screen[] = SCREENS): Screen[] {
   const declared = new Map(bundles.map((bundle) => [bundle.screenPath, bundle]));
-  const screens = SCREENS.map((screen): Screen => {
+  const standing = screens.flatMap((screen): Screen[] => {
     const bundle = declared.get(screen.to);
 
-    if (bundle === undefined) return screen;
+    if (bundle === undefined) return screen.brought ? [] : [screen];
 
     const { placeholder: _placeholder, ...rest } = screen;
 
-    return { ...rest, label: bundle.title, icon: bundle.icon, nested: true };
+    return [{ ...rest, label: bundle.title, icon: bundle.icon, nested: true, brought: true }];
   });
 
   for (const bundle of bundles) {
-    if (SCREENS.some((screen) => screen.to === bundle.screenPath)) continue;
+    if (screens.some((screen) => screen.to === bundle.screenPath)) continue;
 
-    screens.push({ label: bundle.title, to: bundle.screenPath, icon: bundle.icon, nested: true });
+    standing.push({ label: bundle.title, to: bundle.screenPath, icon: bundle.icon, nested: true, brought: true });
   }
 
-  return screens;
+  return standing;
+}
+
+/** The screens units bring alone, as a member's shell lists them. */
+export function broughtScreens(bundles: readonly ConsoleScreen[]): Screen[] {
+  return screensWithBundles(bundles).filter((screen) => screen.brought === true);
 }
 
 export function isScreenActive(screen: Screen, path: string): boolean {

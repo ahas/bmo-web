@@ -26,13 +26,11 @@ const yamlData = {
 const baseURL = process.env.BMO_WEB_BASE_URL || "/bmo/";
 
 export default defineNuxtConfig({
-  // Every unit's console bundle, each a layer the console extends, and bmo-ui under them all as the
-  // base every screen stands on. What a bundle brings is read from its declaration alone
-  // (`modules/console-bundles.ts`); bmo-ui's `docs/console-bundles.md` is the contract.
-  extends: ["bmo-artifact-client", "bmo-mail-client", "bmo-review-client", "bmo-drive-client", "bmo-remote-client", "bmo-ui"],
-  // The bundles are read before the i18n module gathers the packs, since each bundle's words are
-  // registered with that module.
-  modules: ["./modules/console-bundles", "nuxt-auth-utils", "@nuxtjs/i18n"],
+  // bmo-ui, the base every screen stands on. The screens a unit brings are loaded from its manifest while
+  // the console runs, on the libraries `modules/console-shared.ts` lists (docs/web.md, 「Screens a unit
+  // brings」); bmo-ui's `docs/console-bundles.md` is the contract.
+  extends: ["bmo-ui"],
+  modules: ["./modules/console-shared", "nuxt-auth-utils", "@nuxtjs/i18n"],
   // The console's own styles, stated after the layers' (the conversation's measures and colours, its
   // documents and its interface faces); what bmo-ui's stylesheet carries is the layer's.
   css: ["~/assets/css/main.css"],
@@ -87,12 +85,11 @@ export default defineNuxtConfig({
   // A dev server answers only the hosts it is told of: those `BMO_WEB_DEV_HOSTS` names, comma-separated.
   vite: {
     server: { allowedHosts: (process.env.BMO_WEB_DEV_HOSTS ?? "").split(",").filter((host) => host !== "") },
-    // The development server pre-bundles only what its scan of the console's own files finds. The layers'
-    // modules stand inside node_modules, where the scan does not go, and two of them ship libraries as
-    // CommonJS: bmo-ui's time module imports dayjs and its plugins, and bmo-remote-client's terminal
-    // imports xterm. Served unbundled, the browser finds no default export in dayjs and no Terminal in
-    // xterm, and the app does not start. So they are named here.
-    optimizeDeps: { include: ["dayjs", "dayjs/plugin/utc", "dayjs/plugin/timezone", "@xterm/xterm"] },
+    // The development server pre-bundles only what its scan of the console's own files finds. The layer's
+    // modules stand inside node_modules, where the scan does not go, and bmo-ui's time module imports dayjs
+    // and its plugins, which ship as CommonJS. Served unbundled, the browser finds no default export in
+    // dayjs, and the app does not start. So they are named here.
+    optimizeDeps: { include: ["dayjs", "dayjs/plugin/utc", "dayjs/plugin/timezone"] },
     plugins: [yamlData],
     build: {
       // Rolldown's notice of how much of a build its plugins took is off. Most of a Nuxt build is plugin
@@ -106,7 +103,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     // A console bundle whose screen opens a socket has it relayed like any other call: the console
-    // hands the upgrade on to the service the bundle declares (bmo-ui's `docs/console-bundles.md`).
+    // hands the upgrade on to the service the manifest names (bmo-ui's `docs/console-bundles.md`).
     experimental: { websocket: true },
     // A deployment builds a release of its own beside the one being served and only then moves onto it,
     // because nitro splits the build by route and a running server reads a route's chunk off disk the

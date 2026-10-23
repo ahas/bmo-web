@@ -1,7 +1,17 @@
-import type { ConsoleBundle } from "bmo-ui/shared/console-bundle";
+import type { ConsoleRole, ConsoleWords } from "bmo-ui/shared/console-manifest";
 
-// What a console bundle declares, as the console reads it (bmo-ui's `docs/console-bundles.md`): the
-// screen's path, name and icon, the service its screens call, whether its stream and its sockets are
-// relayed, and the event kinds a notice is raised for. The declaration is the bundle's; the console
-// attaches it by this alone (`modules/console-bundles.ts`).
-export type ConsoleBundleView = ConsoleBundle;
+// A console bundle as a browser is handed it (docs/web.md, 「Screens a unit brings」): what the sidebar names it by,
+// where its screen stands, the role it opens to, the relay addresses its module and its stylesheet are read at, and
+// its words. The manifest is the unit's; the console hands on what a screen and the sidebar read of it.
+export interface ConsoleScreen {
+  name: string;
+  // The key of the screen's name in the bundle's words.
+  title: string;
+  icon: string;
+  screenPath: string;
+  role: ConsoleRole;
+  // The relay addresses, under the console's base path.
+  module: string;
+  stylesheet: string | null;
+  words: ConsoleWords;
+}

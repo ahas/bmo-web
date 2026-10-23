@@ -4,9 +4,10 @@ This repository is the web console, `bmo-web`. Its server, `server/`, is the acc
 users, the senders linked to them, the grants they hold and the account model they stand in, served over HTTP
 to the console and to every unit that asks who may do what; and the language packs, the one place a sentence a
 person reads is kept, with the route that renders a unit's fixed line. Its client, `client/`, is the Nuxt
-console, a Bun workspace: the shell a person signs in to and the screens of the units that ship no plugin
-bundle of their own, each calling that unit's HTTP API. The archive screen comes from bmo-artifact's plugin
-bundle; a screen of a unit not yet split is a placeholder.
+console, a Bun workspace: the shell a person signs in to and the screens of the units that ship no console
+bundle of their own, each calling that unit's HTTP API. A unit that ships a console bundle answers a manifest the
+console reads while it runs, and its screens are loaded from the unit itself; a screen of a unit that ships none
+is a placeholder.
 
 ## Rules
 
@@ -19,9 +20,7 @@ bundle; a screen of a unit not yet split is a placeholder.
   make it wrong or incomplete repairs it first, stating what is true now, and the code is then written to
   match. `docs/boundary.md` states every route this repository serves, every call it makes on another unit
   and every code it answers with; `docs/inventory.md` states where each member of the old repository stands.
-- **No `bmo-*` dependency but the base libraries** `bmo-chat`, `bmo-chat-client` and `bmo-ui`, the console
-  bundles the console extends (`bmo-artifact-client`, `bmo-mail-client`, `bmo-review-client`, `bmo-drive-client`
-  and `bmo-remote-client`), the published clients of the units the console calls (`@agency/client`,
+- **No `bmo-*` dependency but the base libraries** `bmo-chat`, `bmo-chat-client` and `bmo-ui`, the published clients of the units the console calls (`@agency/client`,
   `bmo-job-client`, `@bmo/receiver-client` and `bmo-brain-client`), and the repository's own crates
   `bmo-web-server` and `bmo-web-client`. Each of those clients is installed as the vendored tarball under
   `client/vendor/`. Another unit is reached over HTTP at the address a setting names; its code, its tables and

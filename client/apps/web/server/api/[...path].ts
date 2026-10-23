@@ -49,7 +49,8 @@ const ANSWERED_HEADERS = [
   "etag",
   "last-modified",
   "accept-ranges",
-  "content-range"
+  "content-range",
+  "retry-after"
 ];
 
 // How long a service has to begin answering; the bytes themselves, a file or a stream, may take longer.

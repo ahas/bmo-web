@@ -268,6 +268,7 @@ describe("the relay of a route a manifest relays", () => {
 
       heard.push(`${request.method} ${path}`);
       if (path === "/slow" || path === "/readings") await Bun.sleep(150);
+      if (path === "/busy") return Response.json({ code: "busy" }, { status: 503, headers: { "retry-after": "5" } });
 
       return Response.json({ ok: true });
     }
@@ -288,7 +289,8 @@ describe("the relay of a route a manifest relays", () => {
       named("stranger"),
       named("reader", [], [
         { method: "POST", path: "/readings" },
-        { method: "POST", path: "/slow" }
+        { method: "POST", path: "/slow" },
+        { method: "POST", path: "/busy" }
       ])
     ]);
   });
@@ -314,6 +316,13 @@ describe("the relay of a route a manifest relays", () => {
   test("hands it on from a page whose manifest names the service, and refuses another bundle's page", async () => {
     expect(await call("reader/readings", "POST", "https://console.example.test/caller")).toBe(200);
     expect(await call("reader/readings", "POST", "https://console.example.test/stranger")).toBe(403);
+  });
+
+  test("hands a busy answer on with the wait the service names", async () => {
+    const response = (await handler({ params: { path: "reader/busy" }, method: "POST", headers: {}, node: {} } as RouteEvent)) as Response;
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("retry-after")).toBe("5");
   });
 
   test("waits for the translator's route as long as the setting says, and every other call thirty seconds", async () => {

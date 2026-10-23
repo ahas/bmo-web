@@ -4,7 +4,7 @@
 # Why a companion's settings were not saved, as the owner is told it: an {agent} that is no companion,
 # a generation setting given wrong or by a {name} that is none, a reference switch, an own piece by a {name} that may not be used (beside the built-in {pieces}) or with a text
 # outside its {most} characters, pieces outside the {offered} ones, twice or none, a persona longer than
-# {most}, a registration or a recollectors' model with no address, and a thinking switch given wrong.
+# {most}, a registration with no address, and a thinking switch given wrong.
 refusals:
   not_companion: "대화 상대가 아닙니다: {agent}"
   generation_pairs: "생성 파라미터는 이름과 값의 짝이어야 합니다."
@@ -18,27 +18,24 @@ refusals:
   pieces_none: "시스템 프롬프트에는 조각이 하나 이상 있어야 합니다."
   persona: "페르소나는 {most}자 이내의 글이어야 합니다."
   registration: "주소가 있는 등록 모델을 고릅니다."
-  recollector_model: "리콜렉터 모델은 기본이거나 주소가 있는 등록 모델이어야 합니다."
   thinking: "생각은 켬, 끔 또는 기본이어야 합니다."
   # Why a room's session of a companion is reset once its generation settings are saved.
   reset_reason: "생성 파라미터 저장"
 
 # A companion's settings as the companion script prints them to the owner, line by line: its {label}
-# and {agent}, its {model} and the {file} its engine serves, its recollectors' model, base prompt, pieces,
+# and {agent}, its {model} and the {file} its engine serves, its base prompt, pieces,
 # reference switch, thinking and each generation setting, each
 # own piece by {name} with its {text}, its persona of {count} characters, the system prompt it sends
 # ({count} characters, its {hash}), each room's session by its {room}, {generation} and when its system
 # prompt changed ({at}), and each change by {at}, {by}, {field}, {before} and {after}.
 view:
-  usage: "usage: bmo companion settings <에이전트> [--db <아카이브>]\n       [--reference on|off] [--pieces <조각,…>|default] [--persona-stdin | --persona-default]\n       [--own-piece <이름> --piece-stdin] [--drop-piece <이름>] [--model <등록 모델>]\n       [--recollector-model <등록 모델>|default]\n       [--thinking on|off|default] [--<생성 파라미터> <수>|on|off|default …]\n       생성 파라미터: {settings}"
+  usage: "usage: bmo companion settings <에이전트> [--db <아카이브>]\n       [--reference on|off] [--pieces <조각,…>|default] [--persona-stdin | --persona-default]\n       [--own-piece <이름> --piece-stdin] [--drop-piece <이름>] [--model <등록 모델>]\n       [--thinking on|off|default] [--<생성 파라미터> <수>|on|off|default …]\n       생성 파라미터: {settings}"
   on: "켬"
   off: "끔"
   default: "기본"
   head: "{label} ({agent})"
   model: "  모델 {model}{serving}"
   serving: " · 엔진이 서빙 중인 파일 {file}"
-  recollector_model: "  리콜렉터 모델 {model}"
-  recollector_default: "기본 (각 리콜렉터의 실행 경로)"
   base_prompt: "  기본 프롬프트 {prompt}"
   no_base_prompt: "없음"
   pieces: "  시스템 프롬프트 조각 {pieces}"

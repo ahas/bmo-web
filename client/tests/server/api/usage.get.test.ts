@@ -43,8 +43,8 @@ describe("the usage view", () => {
     empty = false;
 
     expect((await asked(handler, {})).answer).toEqual({
-      active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null },
-      accounts: [{ id: "a", name: "Account A", provider: "claude-code", label: "claude-code", inUse: false, session: null, week: null }],
+      active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null, balance: null },
+      accounts: [{ id: "a", name: "Account A", provider: "claude-code", label: "claude-code", inUse: false, session: null, week: null, balance: null }],
       agents: [],
       contexts: []
     });

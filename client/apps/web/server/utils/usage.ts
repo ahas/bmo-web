@@ -1,5 +1,5 @@
 import type { components } from "@agency/client/schema";
-import type { AccountUsage, ActiveUsage, AgentContext, AgentTokenUsage, HeadlineWindow, UsageView } from "#shared/types";
+import type { AccountUsage, ActiveUsage, AgentContext, AgentTokenUsage, HeadlineWindow, UsageBalance, UsageView } from "#shared/types";
 
 type Schemas = components["schemas"];
 
@@ -40,6 +40,16 @@ export function headlineOf(value: unknown): HeadlineWindow | null {
     durationMinutes: count(window.durationMinutes),
     limitName: text(window.limitName)
   };
+}
+
+/** A balance as the agency answers it, or none where it states no amount and currency. */
+export function balanceOf(value: unknown): UsageBalance | null {
+  const balance = held(value);
+  const amount = typeof balance?.amount === "number" && Number.isFinite(balance.amount) ? balance.amount : null;
+  const currency = text(balance?.currency);
+  const seenAt = count(balance?.seenAt);
+
+  return amount === null || currency === null || seenAt === null ? null : { amount, currency, seenAt };
 }
 
 function windowAt(name: string, minutes: number, utilization: number | null, resetsAt: number | null): HeadlineWindow | null {
@@ -108,7 +118,8 @@ export function activeUsage(answer: unknown): ActiveUsage | null {
     accountName: account === null ? null : (text(active.accountName) ?? accountNames(fallback).get(account) ?? account),
     logins: count(active.accounts) ?? 0,
     session: headlineOf(active.session),
-    week: headlineOf(active.week)
+    week: headlineOf(active.week),
+    balance: balanceOf(active.balance)
   };
 }
 
@@ -123,7 +134,11 @@ export function accountUsages(answer: unknown, accounts: readonly Schemas["Accou
 
   return accounts.map((account) => {
     const inUse = active !== null && active.provider === account.provider && active.account === account.id;
-    const [session, week] = accountWindows(account.window);
+    // An account's own windows as the agency answers them, or read off the usage it last reported where it names
+    // none of its own.
+    const [reported, reportedWeek] = accountWindows(account.window);
+    const session = headlineOf((account as { session?: unknown }).session) ?? reported;
+    const week = headlineOf((account as { week?: unknown }).week) ?? reportedWeek;
 
     return {
       id: account.id,
@@ -132,7 +147,8 @@ export function accountUsages(answer: unknown, accounts: readonly Schemas["Accou
       label: labels.get(account.provider) ?? account.provider,
       inUse,
       session: session ?? (inUse ? active.session : null),
-      week: week ?? (inUse ? active.week : null)
+      week: week ?? (inUse ? active.week : null),
+      balance: balanceOf((account as { balance?: unknown }).balance)
     };
   });
 }

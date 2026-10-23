@@ -140,8 +140,11 @@
         <!-- A read that failed says so above what was read before, which stays: the clock rereads, and a
              failure among its reads is not an empty screen. Before anything was read the band is all
              there is, never a placeholder that does not end. -->
-        <ReadFailure :failure="readFailure" :message="loadError" :reading="loading" @retry="load()" />
-        <BodyLine v-if="loaded && !watch.reachable">{{ $t(SIREN_UNREACHABLE) }}</BodyLine>
+        <ReadFailure v-if="loaded" :failure="readFailure" :message="loadError" :reading="loading" @retry="load()" />
+        <!-- A first read that failed is the whole body, so its sentence stands in the body's middle; the clock asks
+             again on its own. -->
+        <BodyLine v-if="!loaded && loadError !== ''">{{ loadError }}</BodyLine>
+        <BodyLine v-else-if="loaded && !watch.reachable">{{ $t(SIREN_UNREACHABLE) }}</BodyLine>
 
         <template v-else-if="loaded || loadError === ''">
           <!-- What the watch is seeing right now: how much new token has gone out in the last
@@ -448,7 +451,9 @@ const atFoot = useFootInView(foot, loading, { rootMargin: "200px" });
 
 const { adding } = useNextPages({
   atFoot,
-  more: () => watch.value.hasMore,
+  // A read that failed asks for no further page: the foot's placeholder would come and go with every
+  // tick of the clock until the watch answered again.
+  more: () => watch.value.hasMore && loadError.value === "",
   busy: () => loading.value,
   next: async () => {
     limit.value = Math.min(limit.value + SIREN_PAGE_SIZE, SIREN_MAX);

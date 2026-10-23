@@ -37,10 +37,12 @@
             </template>
             <span class="text-muted">·</span>
           </template>
-          <!-- A provider with no login and no window has no limit to show, so it stands as its name and one dash
-               rather than as two windows it does not have. -->
+          <!-- A provider with no login and no window has no limit to show, so it stands as its name and what it has
+               left in money where the agency reads a balance, and one dash where it reads none, rather than as two
+               windows it does not have. -->
           <template v-if="limitless(usage.active)">
-            <span class="text-muted"><span class="text-sm text-muted">{{ $t("usage.title.remaining") }}</span> —</span>
+            <span v-if="usage.active?.balance" class="tabular-nums text-muted"><span class="text-sm text-muted">{{ $t("usage.label.balance") }}</span> {{ moneyText(usage.active.balance) }}</span>
+            <span v-else class="text-muted"><span class="text-sm text-muted">{{ $t("usage.title.remaining") }}</span> —</span>
           </template>
           <template v-else>
             <span :class="toneClass(shareTone(liveWindow(session, now)))">
@@ -105,8 +107,17 @@
               </span>
             </div>
 
-            <!-- An account whose windows the agency states none of says so, and no figure stands in their place. -->
-            <p v-if="group.windows.length === 0" class="text-sm text-dimmed">{{ $t("usage.status.no_info") }}</p>
+            <!-- What a provider paid by the request or an endpoint account has left in money, and how long ago it was
+                 read. -->
+            <div v-if="group.balance !== null" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+              <span class="min-w-0 flex-1 basis-24 break-words text-dimmed">{{ $t("usage.label.balance") }}</span>
+              <span class="tabular-nums text-muted">{{ moneyText(group.balance) }}</span>
+              <span class="ms-auto text-sm tabular-nums text-dimmed">{{ $t("usage.label.balance_seen", { wait: elapsedText($t, Math.max(0, now - group.balance.seenAt)) }) }}</span>
+            </div>
+
+            <!-- An account whose windows and balance the agency states none of says so, and no figure stands in their
+                 place. -->
+            <p v-if="group.windows.length === 0 && group.balance === null" class="text-sm text-dimmed">{{ $t("usage.status.no_info") }}</p>
           </div>
 
           <p v-if="groups.length === 0" class="text-sm text-dimmed">{{ $t("usage.status.no_accounts") }}</p>
@@ -119,6 +130,7 @@
 <script setup lang="ts">
 import { useInitialRead, useLastRead } from "bmo-ui/app/domain/loading";
 import { failureText } from "bmo-ui/app/domain/errors";
+import { elapsedText } from "bmo-ui/app/domain/time";
 import { useReadFailure } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { usePolling } from "~/domain/polling";
@@ -129,6 +141,7 @@ import {
   limitless,
   liveWindow,
   loudestTone,
+  moneyText,
   resetClock,
   resetDay,
   resetText,

@@ -122,8 +122,6 @@ pub struct View {
   pub head: String,
   pub model: String,
   pub serving: String,
-  pub recollector_model: String,
-  pub recollector_default: String,
   pub base_prompt: String,
   pub no_base_prompt: String,
   pub pieces: String,
@@ -154,7 +152,6 @@ pub struct Refusals {
   pub pieces_none: String,
   pub persona: String,
   pub registration: String,
-  pub recollector_model: String,
   pub thinking: String,
   pub reset_reason: String,
 }

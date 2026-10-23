@@ -862,8 +862,9 @@ edit to that file alone.
   would be a figure about nobody, and the bar never borrows another login's figure for the slot.
 - **A figure the agency does not state stands as a dash.** A window of the slot that the agency names
   no reading for reads 「—」; a slot on a provider that holds no login and reports no window — a provider
-  paid by the request — stands as its name and 「남은 사용량 —」, since there is no limit to show; and
-  where the agency names no slot at all, the bar shows dashes. No figure is guessed or carried over from
+  paid by the request — stands as its name and what it has left in money, 「잔액 US$25.60」, where the agency
+  reads a balance for it, and as its name and 「남은 사용량 —」 where it reads none, since there is no limit to
+  show; and where the agency names no slot at all, the bar shows dashes. No figure is guessed or carried over from
   another slot.
 - **There is one axis.** Standing a token count beside the percent would have that count read as a
   percent too, so no tokens stand in the title bar or in its panel.
@@ -878,7 +879,9 @@ edit to that file alone.
   holding that account's own session and weekly windows as the share remaining, each with how long is left
   until it resets; the account the chat runs on now is marked 「사용 중」. Where the chat runs on a provider
   that holds no login, that slot stands first as a group of its own, marked the same way, with whatever
-  windows it reports. An account whose windows the agency states none of says so in one line rather than
+  windows it reports. A slot or an account the agency reads a balance for — a provider paid by the request, an
+  endpoint account — carries it as a row of its own: 「잔액」, the amount in its currency, and how long ago it was
+  read. An account whose windows and balance the agency states none of says so in one line rather than
   standing a figure, and with no account registered and no slot named the panel says there is no
   account. No tally of tokens by model, gate or user and no list of saved sessions stands in it.
 - **The panel keeps to the window and scrolls inside it,** since what stands past the bottom of a panel

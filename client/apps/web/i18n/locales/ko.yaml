@@ -2145,6 +2145,8 @@ usage:
     window_session: 세션
     window_weekly: 주간
     window_weekly_overage: 주간+초과
+    balance: 잔액
+    balance_seen: "{wait} 전"
   status:
     loading: 사용량 불러오는 중…
     no_accounts: 등록된 계정 없음

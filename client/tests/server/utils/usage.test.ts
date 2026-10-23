@@ -59,12 +59,20 @@ describe("the slot the chat runs on", () => {
       accountName: "Account A",
       logins: 2,
       session: { name: "five_hour", utilization: 0.3, resetsAt: 1_800_000_000, durationMinutes: 300, limitName: null },
-      week: { name: "seven_day", utilization: 0.6, resetsAt: 1_800_000_000, durationMinutes: 10_080, limitName: null }
+      week: { name: "seven_day", utilization: 0.6, resetsAt: 1_800_000_000, durationMinutes: 10_080, limitName: null },
+      balance: null
     });
   });
 
   test("on a provider with no login it names no login and states no window", () => {
     expect(activeUsage(fallback(onOther))).toMatchObject({ provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null });
+  });
+
+  test("on a provider paid by the request it carries the balance the agency read, and none it cannot read", () => {
+    const paid = { ...onOther, balance: { amount: 25.6, currency: "USD", seenAt: 1_800_000_000 } };
+
+    expect(activeUsage(fallback(paid))?.balance).toEqual({ amount: 25.6, currency: "USD", seenAt: 1_800_000_000 });
+    expect(activeUsage(fallback({ ...onOther, balance: { amount: "lots" } }))?.balance).toBeNull();
   });
 
   test("is none where the answer names none, or names it in no shape it can be read in", () => {

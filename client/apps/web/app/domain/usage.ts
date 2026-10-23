@@ -1,7 +1,7 @@
 import { COUNT_LOCALE } from "./numbers";
 import { agentProviderNames } from "#shared/types";
 
-import type { ActiveUsage, AgentMode, AgentTokenUsage, HeadlineWindow, TokenSplit, UsageTally, UsageView } from "#shared/types";
+import type { ActiveUsage, AgentMode, AgentTokenUsage, HeadlineWindow, TokenSplit, UsageBalance, UsageTally, UsageView } from "#shared/types";
 import type { BarColor } from "bmo-ui/app/domain/bars";
 import type { Translate } from "#shared/wording";
 
@@ -126,6 +126,7 @@ export interface UsageGroup {
   name: string | null;
   inUse: boolean;
   windows: HeadlineWindow[];
+  balance: UsageBalance | null;
 }
 
 function windowsOf(slot: { session: HeadlineWindow | null; week: HeadlineWindow | null }): HeadlineWindow[] {
@@ -139,7 +140,7 @@ export function usageGroups(view: UsageView): UsageGroup[] {
   const slot: UsageGroup[] =
     active === null || active.account !== null
       ? []
-      : [{ id: `slot:${active.provider}`, provider: active.provider, label: active.label, name: null, inUse: true, windows: windowsOf(active) }];
+      : [{ id: `slot:${active.provider}`, provider: active.provider, label: active.label, name: null, inUse: true, windows: windowsOf(active), balance: active.balance }];
 
   return [
     ...slot,
@@ -149,7 +150,8 @@ export function usageGroups(view: UsageView): UsageGroup[] {
       label: account.label,
       name: account.name,
       inUse: account.inUse,
-      windows: windowsOf(account)
+      windows: windowsOf(account),
+      balance: account.balance
     }))
   ];
 }
@@ -176,6 +178,16 @@ export function titleWindows(active: ActiveUsage | null): [HeadlineWindow | null
 
 // Whether the slot is on a provider with no limit to show: no login and no window. Its title is its name and the
 // one dash, rather than two windows the provider does not have.
+/** A balance in its own currency, written as the locale writes money. */
+export function moneyText(balance: UsageBalance): string {
+  try {
+    return new Intl.NumberFormat(COUNT_LOCALE, { style: "currency", currency: balance.currency }).format(balance.amount);
+  } catch {
+    // A currency the runtime does not know stands as its code after the amount.
+    return `${new Intl.NumberFormat(COUNT_LOCALE, { maximumFractionDigits: 2 }).format(balance.amount)} ${balance.currency}`;
+  }
+}
+
 export function limitless(active: ActiveUsage | null): boolean {
   return active !== null && active.account === null && active.session === null && active.week === null;
 }

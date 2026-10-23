@@ -1319,6 +1319,16 @@ export interface ActiveUsage {
   logins: number;
   session: HeadlineWindow | null;
   week: HeadlineWindow | null;
+  // What a provider paid by the request has left, where the agency reads one.
+  balance: UsageBalance | null;
+}
+
+// What an account or a provider has left in money, as its balance reader last read it: the amount, its currency
+// and when it was read, in epoch seconds.
+export interface UsageBalance {
+  amount: number;
+  currency: string;
+  seenAt: number;
 }
 
 // One registered account and what it has left: its own session and weekly windows and no other account's, null
@@ -1331,6 +1341,7 @@ export interface AccountUsage {
   inUse: boolean;
   session: HeadlineWindow | null;
   week: HeadlineWindow | null;
+  balance: UsageBalance | null;
 }
 
 export interface UsageView {

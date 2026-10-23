@@ -2,29 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import {
-  agentUsage,
-  figureText,
-  kindFigures,
-  knownMode,
-  limitless,
-  liveWindow,
-  loudestTone,
-  resetClock,
-  resetDay,
-  resetText,
-  shareText,
-  shareTone,
-  titleAccountLabel,
-  titleWindows,
-  tokenText,
-  totalText,
-  unsplitText,
-  untilText,
-  usageBar,
-  usageGroups,
-  windowLabel
-} from "../../../apps/web/app/domain/usage";
+import { agentUsage, figureText, kindFigures, knownMode, limitless, liveWindow, loudestTone, resetClock, resetDay, resetText, shareText, shareTone, titleAccountLabel, titleWindows, tokenText, totalText, unsplitText, untilText, usageBar, usageGroups, windowLabel, moneyText } from "../../../apps/web/app/domain/usage";
 
 import type { AccountUsage, ActiveUsage, AgentTokenUsage, HeadlineWindow, UsageView } from "../../../apps/web/shared/types";
 import type { UsageBar, UsageSegment } from "../../../apps/web/app/domain/usage";
@@ -351,11 +329,11 @@ describe("the panel's groups", () => {
   const week: HeadlineWindow = { ...session, name: "seven_day", utilization: 0.4 };
 
   function account(id: string, over: Partial<AccountUsage> = {}): AccountUsage {
-    return { id, name: `Account ${id}`, provider: "claude-code", label: "Claude Code", inUse: false, session: null, week: null, ...over };
+    return { id, name: `Account ${id}`, provider: "claude-code", label: "Claude Code", inUse: false, session: null, week: null, balance: null, ...over };
   }
 
   function active(over: Partial<ActiveUsage> = {}): ActiveUsage {
-    return { provider: "claude-code", label: "Claude Code", account: "a", accountName: "Account a", logins: 2, session, week, ...over };
+    return { provider: "claude-code", label: "Claude Code", account: "a", accountName: "Account a", logins: 2, session, week, balance: null, ...over };
   }
 
   function view(over: Partial<UsageView> = {}): UsageView {
@@ -435,7 +413,7 @@ describe("whose window the title bar shows", () => {
   const second = { name: "five_hour", utilization: 0.9, resetsAt: 1_788_570_000, durationMinutes: null, limitName: null };
 
   function active(over: Partial<ActiveUsage> = {}): ActiveUsage {
-    return { provider: "claude-code", label: "Claude Code", account: "default", accountName: "Account A", logins: 2, session, week: null, ...over };
+    return { provider: "claude-code", label: "Claude Code", account: "default", accountName: "Account A", logins: 2, session, week: null, balance: null, ...over };
   }
 
   test("the figures are the slot's, not the first of the order", () => {
@@ -463,5 +441,21 @@ describe("whose window the title bar shows", () => {
     expect(titleAccountLabel(null)).toBeNull();
     expect(titleWindows(null)).toEqual([null, null]);
     expect(limitless(null)).toBe(false);
+  });
+});
+
+// What a provider paid by the request or an endpoint account has left in money stands in its own currency, and the
+// panel carries it beside the windows, or alone where there are none.
+describe("a balance", () => {
+  test("is written in its own currency", () => {
+    expect(moneyText({ amount: 25.6, currency: "USD", seenAt: 0 })).toContain("25.60");
+    expect(moneyText({ amount: 3, currency: "NOT-A-CODE", seenAt: 0 })).toBe("3 NOT-A-CODE");
+  });
+
+  test("stands in the slot's group of the panel", () => {
+    const balance = { amount: 1, currency: "USD", seenAt: 0 };
+    const groups = usageGroups({ active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null, balance }, accounts: [], agents: [], contexts: [] });
+
+    expect(groups[0]?.balance).toEqual(balance);
   });
 });

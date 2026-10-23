@@ -2022,8 +2022,10 @@ Two ways, split because the running places differ.
   mark, as in the code review. They stand as a per-branch folding tree, a branch per root: the checkouts the
   deployment names, in its order, then the roots other units keep — person book (common), person book (room-only),
   room rules, knowledge, rulebooks, personas, agent instructions, system prompts — each marked 읽을 수 없음 with a
-  tooltip saying why, and holding nothing, since neither unit serves its documents whole
-  (`docs/documents-viewer.md`, 「The roots kept by other units」). The search box above the list searches document name, title and body
+  tooltip saying where it belongs and that it is not served here — the brain's library on the brain's own screen,
+  not yet served, and the agency's documents behind a route the agency does not serve yet — and holding nothing,
+  since neither unit serves its documents whole (`docs/documents-viewer.md`, 「The roots kept by other units」).
+  With no checkout named, the list holds those unread roots alone and no document opens. The search box above the list searches document name, title and body
   text. While searching, the tree unfolds only the matched documents and their ancestors, and if matched in
   the body the line's context stands in one line. Pressing a matched line opens the document at that line.
   The search box takes the section's padding; the tree and the found lines below it reach the section's

@@ -60,9 +60,9 @@ describe("the page", () => {
     expect(pane).toContain("documents.message.translation_unavailable");
   });
 
-  test("stands a root another unit keeps as unread", () => {
+  test("stands a root another unit keeps as unread, named by where it belongs", () => {
     expect(tree).toContain("documents.label.root_unread");
-    expect(tree).toContain("documents.message.root_unread");
+    expect(tree).toContain(':text="(item as DocumentTreeItem).unread"');
   });
 
   test("does not offer the split on a narrow screen", () => {

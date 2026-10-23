@@ -285,7 +285,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `KEEPALIVE_CONSUMER` | the consumer the agency registers its targets under at the cache warmer; with none, an agent's own keepalive switch is not offered and the round's still is |
 | console | `TELEGRAM_ADDRESS`, `TELEGRAM_TOKEN` | the Telegram service |
 | console | `DEPLOY_ROOTS` | the deploy roots whose progress records the title bar reads, separated by `:`, each a unit's deploy root holding its `deploy-progress.json`; with none, no run stands |
-| console | `DOCUMENT_ROOTS` | the document viewer's roots: a JSON list, each root's `key`, its `label` and the absolute top of its `checkout` (`docs/documents-viewer.md`, 「The roots a deployment names」); with none, the viewer lists only the roots other units keep, unread |
+| console | `DOCUMENT_ROOTS` | the document viewer's roots: a JSON list, each root's `key`, its `label` and the absolute top of its `checkout`, in the order the list stands them (`docs/documents-viewer.md`, 「The roots a deployment names」); a key one of the roots other units keep already holds names no root. With none, the viewer lists only those roots, unread, and opens no document |
 | console | `WEB_DATA_DIR` | the console's own data folder, inside no checkout |
 | console | `NUXT_SESSION_PASSWORD` | the key the console seals its session cookie with |
 

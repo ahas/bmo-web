@@ -69,7 +69,7 @@
           >
             <SearchText :text="(item as DocumentTreeItem).label" :query="found" />
           </HintTip>
-          <UTooltip v-if="(item as DocumentTreeItem).unread" :text="$t('documents.message.root_unread')">
+          <UTooltip v-if="(item as DocumentTreeItem).unread !== undefined" :text="(item as DocumentTreeItem).unread">
             <span class="shrink-0 text-xs text-muted">{{ $t("documents.label.root_unread") }}</span>
           </UTooltip>
           <UTooltip v-if="isDown(item as DocumentTreeItem)" :text="$t('documents.aria.pulled_fragments')">

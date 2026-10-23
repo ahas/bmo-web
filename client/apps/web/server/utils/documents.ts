@@ -59,17 +59,17 @@ export function checkoutRoot(key: string, label: string, checkout: string): Docu
 
 // The roots other units keep: the brain's library and the agency's documents, read through a route their unit
 // serves for whole documents, which neither serves yet (`docs/documents-viewer.md`, 「The roots kept by other
-// units」).
+// units」). Each says where it belongs, the sentence its unread mark is named by.
 const UNREAD_ROOTS: readonly DocumentRootView[] = [
-  { key: "people", label: "documents.label.root_people", writer: "documents.label.writer_people" },
-  { key: "room-people", label: "documents.label.root_room_people", writer: "documents.label.writer_people" },
-  { key: "room-rules", label: "documents.label.root_room_rules", writer: "documents.label.writer_digest" },
-  { key: "knowledge", label: "documents.label.root_knowledge", writer: "documents.label.writer_knowledge" },
-  { key: "rules", label: "documents.label.root_rules", writer: "documents.label.writer_person" },
-  { key: "persona", label: "documents.label.root_persona", writer: "documents.label.writer_person" },
-  { key: "agents", label: "documents.label.root_agents", writer: "documents.label.writer_person" },
-  { key: "prompts", label: "documents.label.root_system_prompts", writer: "documents.label.writer_deploy" }
-].map((root) => ({ key: root.key, label: wording(root.label), writer: wording(root.writer), available: false }));
+  { key: "people", label: "documents.label.root_people", writer: "documents.label.writer_people", unread: "documents.message.root_unread_brain" },
+  { key: "room-people", label: "documents.label.root_room_people", writer: "documents.label.writer_people", unread: "documents.message.root_unread_brain" },
+  { key: "room-rules", label: "documents.label.root_room_rules", writer: "documents.label.writer_digest", unread: "documents.message.root_unread_brain" },
+  { key: "knowledge", label: "documents.label.root_knowledge", writer: "documents.label.writer_knowledge", unread: "documents.message.root_unread_brain" },
+  { key: "rules", label: "documents.label.root_rules", writer: "documents.label.writer_person", unread: "documents.message.root_unread_agency" },
+  { key: "persona", label: "documents.label.root_persona", writer: "documents.label.writer_person", unread: "documents.message.root_unread_agency" },
+  { key: "agents", label: "documents.label.root_agents", writer: "documents.label.writer_person", unread: "documents.message.root_unread_agency" },
+  { key: "prompts", label: "documents.label.root_system_prompts", writer: "documents.label.writer_deploy", unread: "documents.message.root_unread_agency" }
+].map((root) => ({ key: root.key, label: wording(root.label), writer: wording(root.writer), available: false, unread: wording(root.unread) }));
 
 interface NamedRoot {
   key?: unknown;
@@ -112,7 +112,7 @@ export function documentRoots(environment: Record<string, string | undefined> = 
 
 /** The roots as the list shows them: the ones read, then the ones other units keep, unread. */
 export function documentRootViews(roots: readonly DocumentRoot[]): DocumentRootView[] {
-  return [...roots.map((root) => ({ key: root.key, label: root.label, writer: root.writer, available: true })), ...UNREAD_ROOTS];
+  return [...roots.map((root) => ({ key: root.key, label: root.label, writer: root.writer, available: true, unread: null })), ...UNREAD_ROOTS];
 }
 
 export function findDocumentRoot(key: unknown, roots: readonly DocumentRoot[]): DocumentRoot | null {

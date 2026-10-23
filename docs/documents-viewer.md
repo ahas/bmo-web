@@ -39,8 +39,13 @@
 
 The library of the brain (person books, room rules, knowledge) and the agency's documents (rulebooks, personas,
 agent instructions and the system prompts it assembles) are their units' own. The viewer reads them only through
-a route their unit serves for whole documents, and neither unit serves one yet; until it does, these roots
-stand in the list as unavailable and are read from nowhere. Neither unit's folders are read from their paths.
+a route their unit serves for whole documents, and neither unit serves one; these roots stand in the list
+unread and are read from nowhere. Neither unit's folders are read from their paths.
+
+- **Each such root says where it belongs.** Its declaration carries, beside its label and its writer, the sentence
+  its unread mark is named by: the brain's library is read on the brain's own screen, which no bundle serves the
+  console yet, and the agency's documents wait on a route the agency serves for them. The sentence is the root's
+  own, so a root added here brings its own and nothing else changes.
 
 ### Why the writer is shown
 

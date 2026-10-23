@@ -220,8 +220,9 @@ export interface DocumentTreeItem extends TreeItem {
   children?: DocumentTreeItem[];
   document?: DocumentEntry;
   matches?: DocumentMatch[];
-  // A root another unit keeps and serves no route for, which stands in the list read from nowhere.
-  unread?: true;
+  // A root another unit keeps and serves no route for, which stands in the list read from nowhere: the sentence
+  // saying where it belongs, which its unread mark is named by.
+  unread?: string;
 }
 
 // The name a leaf is shown by: the document's title, which reads more easily than its file name.
@@ -267,7 +268,7 @@ export function documentTree(list: DocumentList, matches: readonly DocumentMatch
     if (!root.available) {
       // A root read from nowhere has nothing for a search to find.
       if (matches === null) {
-        tree.push({ value: `root:${root.key}`, label: root.label, icon: folderIcon(root.key, false), unread: true });
+        tree.push({ value: `root:${root.key}`, label: root.label, icon: folderIcon(root.key, false), unread: root.unread ?? "" });
       }
 
       continue;

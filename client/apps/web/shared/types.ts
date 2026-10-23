@@ -2153,6 +2153,9 @@ export interface DocumentRootView {
   label: string;
   writer: string;
   available: boolean;
+  // Where a root read from nowhere belongs and why it is not read here, the sentence its unread mark is named by;
+  // null for a root that is read.
+  unread: string | null;
 }
 
 // What a document's group is: a person's common book, or one room's books and rules.

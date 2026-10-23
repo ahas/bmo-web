@@ -31,10 +31,10 @@ const entry = (root: string, path: string, group: DocumentEntry["group"] = null,
 
 const list: DocumentList = {
   roots: [
-    { key: "people", label: "People", writer: "Editor", available: true },
-    { key: "rules", label: "Rulebooks", writer: "Person", available: true },
-    { key: "prompts", label: "Prompts", writer: "Deployment", available: true },
-    { key: "library", label: "Library", writer: "Digest", available: false }
+    { key: "people", label: "People", writer: "Editor", available: true, unread: null },
+    { key: "rules", label: "Rulebooks", writer: "Person", available: true, unread: null },
+    { key: "prompts", label: "Prompts", writer: "Deployment", available: true, unread: null },
+    { key: "library", label: "Library", writer: "Digest", available: false, unread: "Read on the library's own screen." }
   ],
   documents: [
     entry("people", "42/sheet.md", { key: "42", kind: "person", name: "Owner" }, "Owner (42) — Sheet"),
@@ -77,7 +77,7 @@ describe("the list's tree", () => {
     const tree = documentTree(list, null);
 
     expect(tree.map((item) => item.label)).toEqual(["People", "Rulebooks", "Prompts", "Library"]);
-    expect(tree[3]).toMatchObject({ value: "root:library", unread: true });
+    expect(tree[3]).toMatchObject({ value: "root:library", unread: "Read on the library's own screen." });
     expect(tree[3]!.children).toBeUndefined();
     expect(tree[0]!.children!.map((item) => item.label)).toEqual(["Owner", "7"]);
     expect(tree[0]!.children![0]!.children!.map((item) => item.label)).toEqual(["Sheet", "Humor"]);

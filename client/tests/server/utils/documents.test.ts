@@ -90,8 +90,8 @@ describe("the roots a deployment names", () => {
     const views = documentRootViews(roots);
 
     expect(views.slice(0, 2)).toEqual([
-      { key: "first", label: "First", writer: wording("documents.label.writer_person"), available: true },
-      { key: "second", label: "Second", writer: wording("documents.label.writer_person"), available: true }
+      { key: "first", label: "First", writer: wording("documents.label.writer_person"), available: true, unread: null },
+      { key: "second", label: "Second", writer: wording("documents.label.writer_person"), available: true, unread: null }
     ]);
     expect(views.slice(2).map((one) => [one.key, one.available])).toEqual([
       ["people", false],
@@ -104,6 +104,18 @@ describe("the roots a deployment names", () => {
       ["prompts", false]
     ]);
     expect(views.find((one) => one.key === "knowledge")?.label).toBe(wording("documents.label.root_knowledge"));
+  });
+
+  test("name for each unread root where it belongs: the brain's library its own screen, the agency's documents its route", () => {
+    const why = new Map(documentRootViews([]).map((one) => [one.key, one.unread]));
+
+    for (const key of ["people", "room-people", "room-rules", "knowledge"]) {
+      expect(why.get(key)).toBe(wording("documents.message.root_unread_brain"));
+    }
+
+    for (const key of ["rules", "persona", "agents", "prompts"]) {
+      expect(why.get(key)).toBe(wording("documents.message.root_unread_agency"));
+    }
   });
 });
 

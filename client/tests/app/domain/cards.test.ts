@@ -5,7 +5,7 @@ import { board, detailText, memoryBar, mibText, otherWord, palette, sections, wa
 import type { CardsState, CardUnit } from "../../../apps/web/shared/cards";
 
 // The host's settings bmo-ui reads a figure's thousands mark by.
-(globalThis as unknown as Record<string, unknown>).useAppConfig = () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } });
+Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } }) });
 
 const t = (key: string, values?: Record<string, unknown>) => `${key}${values ? JSON.stringify(values) : ""}`;
 

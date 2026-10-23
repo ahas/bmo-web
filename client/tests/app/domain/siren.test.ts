@@ -33,7 +33,7 @@ import KO from "../../fixtures/app/domain/siren.test.ko.json";
 
 // The console's times are shown in the zone its app config names; a test standing outside Nuxt answers
 // with the same one the console is built with.
-(globalThis as unknown as Record<string, unknown>).useAppConfig = () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } });
+Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } }) });
 
 // The chat agent as the deployment names it, which the owner's own room is called by.
 const OWNER_ROOM_TITLE = "Agent A";

@@ -11,7 +11,7 @@ import type { RouteEvent } from "../../support/nitro";
 // The relay hands a service's own path on as the bundle wrote it: a segment carrying an escaped slash stays one
 // segment, still escaped, and a space or a letter outside ASCII reaches the service escaped once, never twice.
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 
 // Who is signed in, which a test may take away: the support's signed-in administrator, user 1, by default.
 let session: { user?: { id: number; name: string } } = { user: { id: 1, name: "tester" } };
@@ -58,7 +58,7 @@ describe("the relay's path", () => {
 describe("the relay's owner key and role", () => {
   const heard: (string | null)[] = [];
   const roles: (string | null)[] = [];
-  const globals = globalThis as unknown as Record<string, unknown>;
+  const globals: Record<string, unknown> = globalThis;
   const keyed = Bun.serve({
     hostname: "127.0.0.1",
     port: 0,

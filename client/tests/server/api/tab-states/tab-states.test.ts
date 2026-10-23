@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { useWebSql } from "../../../../apps/web/server/utils/db";
 import { isTabScreen, readTabState, saveTabState, TAB_STATE_MAX_BYTES } from "../../../../apps/web/server/utils/tab-states";
+import { standInHandler } from "../../../support/route-handler";
 import { scratchWebDatabase } from "../../../support/web-database";
 
 await scratchWebDatabase();
@@ -15,7 +16,7 @@ interface FakeEvent {
 }
 
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 let user: string | null = "tester";
 
 globals.defineEventHandler = (handler: unknown) => handler;
@@ -42,10 +43,8 @@ globals.readTabState = readTabState;
 globals.saveTabState = saveTabState;
 globals.TAB_STATE_MAX_BYTES = TAB_STATE_MAX_BYTES;
 
-type Handler<T> = (event: FakeEvent) => Promise<T>;
-
-const read = (await import("../../../../apps/web/server/api/tab-states/[screen].get")).default as unknown as Handler<{ state: unknown }>;
-const write = (await import("../../../../apps/web/server/api/tab-states/[screen].put")).default as unknown as Handler<{ saved: true }>;
+const read = standInHandler((await import("../../../../apps/web/server/api/tab-states/[screen].get")).default);
+const write = standInHandler((await import("../../../../apps/web/server/api/tab-states/[screen].put")).default);
 
 
 describe("a screen's kept tabs", () => {

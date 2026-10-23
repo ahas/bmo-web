@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { REMEMBER_LOGIN_SECONDS } from "../../../../apps/web/shared/config";
+import { standInHandler } from "../../../support/route-handler";
 
 // What the login and the account change do with the life of the session, with the Nuxt
 // auto-imports supplied by hand. What they are held to: the switch decides the life and is off
@@ -16,7 +17,7 @@ interface Written {
   life: { maxAge?: number; cookie?: { expires: Date } } | undefined;
 }
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 
 let written: Written | null = null;
 let standing: Record<string, unknown> = { user: { name: "owner" }, loggedInAt: 1, remember: false };
@@ -44,10 +45,8 @@ const { sessionLife, sessionRemembers } = await import("../../../../apps/web/ser
 globals.sessionLife = sessionLife;
 globals.sessionRemembers = sessionRemembers;
 
-type Handler = (event: FakeEvent) => Promise<unknown>;
-
-const login = (await import("../../../../apps/web/server/api/auth/login.post")).default as unknown as Handler;
-const account = (await import("../../../../apps/web/server/api/account.post")).default as unknown as Handler;
+const login = standInHandler((await import("../../../../apps/web/server/api/auth/login.post")).default);
+const account = standInHandler((await import("../../../../apps/web/server/api/account.post")).default);
 
 beforeEach(() => {
   written = null;

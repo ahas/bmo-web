@@ -262,12 +262,13 @@ describe("where a row of the board leads", () => {
     });
 
     test("a row an older bot published, with no item on it at all, wears no number either", () => {
-      const stale = { ...job } as Record<string, unknown>;
+      const stale: Partial<JobRecord> = { ...job };
 
       delete stale.todoId;
       delete stale.attempt;
 
-      expect(jobRows(wording, [stale as unknown as JobRecord], [], rooms)[0]?.note).toBe("Opus 5");
+      // An older bot's row lacks fields the record now holds required, which is what is being read here.
+      expect(jobRows(wording, [stale as JobRecord], [], rooms)[0]?.note).toBe("Opus 5");
     });
 
     test("a run nobody filed an item for wears no number", () => {

@@ -181,7 +181,11 @@ describe.skipIf(!ready)("a conversation read from its first line in Chromium", (
       expect(await rowTop(page, 2)).toBeCloseTo(40, 0);
       await page.locator("#viewport").evaluate(e => { e.scrollTop -= 300; });
       await frames(page);
-      await page.evaluate(() => (window as unknown as { follower: { catchUp(): void } }).follower.catchUp());
+      await page.evaluate(() => {
+        const scope: Window & { follower?: { catchUp(): void } } = window;
+
+        scope.follower!.catchUp();
+      });
       expect((await metrics(page)).gap).toBeLessThanOrEqual(1);
       await say(page, 700, true);
       await glided(page);
@@ -203,12 +207,16 @@ describe.skipIf(!ready)("a conversation read from its first line in Chromium", (
     await chat(async page => {
       await page.locator("#viewport").evaluate(e => {
         const tops: number[] = [];
-        (window as unknown as { tops: number[] }).tops = tops;
+        Object.assign(window, { tops });
         e.addEventListener("scroll", () => tops.push(e.scrollTop));
       });
       await say(page, 300);
       await glided(page);
-      const tops = await page.evaluate(() => (window as unknown as { tops: number[] }).tops);
+      const tops = await page.evaluate(() => {
+        const scope: Window & { tops?: number[] } = window;
+
+        return scope.tops!;
+      });
       expect(new Set(tops).size).toBeGreaterThan(2);
       expect((await metrics(page)).gap).toBeLessThanOrEqual(1);
       await page.emulateMedia({ reducedMotion: "reduce" });
@@ -305,7 +313,9 @@ describe.skipIf(!ready)("room bottom following in Chromium", () => {
       await page.evaluate(() => {
         document.getElementById("viewport")!.scrollTop -= 60;
         document.getElementById("content")!.style.paddingBottom = "600px";
-        (window as unknown as { follower: { follow(): void } }).follower.follow();
+        const scope: Window & { follower?: { follow(): void } } = window;
+
+        scope.follower!.follow();
       });
       await frames(page);
       expect((await metrics(page)).top).toBe(before.top - 60);
@@ -337,7 +347,11 @@ describe.skipIf(!ready)("room bottom following in Chromium", () => {
       expect((await metrics(page)).top).toBe(reading.top);
       await page.locator("#viewport").evaluate(e => { e.scrollTop = e.scrollHeight; });
       await frames(page);
-      await page.evaluate(() => (window as unknown as { follower: { stop(): void } }).follower.stop());
+      await page.evaluate(() => {
+        const scope: Window & { follower?: { stop(): void } } = window;
+
+        scope.follower!.stop();
+      });
       const before = await metrics(page);
       await grow(page);
       expect((await metrics(page)).top).toBe(before.top);
@@ -531,7 +545,11 @@ describe.skipIf(!ready)("scroll anchoring and the way down in Chromium", () => {
             e.append(row);
           }
         });
-        await page.evaluate(() => (window as unknown as { follower: { jump: () => void } }).follower.jump());
+        await page.evaluate(() => {
+          const scope: Window & { follower?: { jump: () => void } } = window;
+
+          scope.follower!.jump();
+        });
         await frames(page);
         expect((await metrics(page)).gap).toBeLessThanOrEqual(1);
         for (const [row, height] of [[1, 300], [3, 700], [2, 160]] as const) {
@@ -569,11 +587,19 @@ describe.skipIf(!ready)("scroll anchoring and the way down in Chromium", () => {
       await glided(page);
       await say(page, 200);
       await glided(page);
-      expect(await page.evaluate(() => (window as unknown as { told?: boolean[] }).told ?? [])).not.toContain(true);
+      expect(await page.evaluate(() => {
+        const scope: Window & { told?: boolean[] } = window;
+
+        return scope.told ?? [];
+      })).not.toContain(true);
       await page.locator("#viewport").evaluate(e => { e.scrollTop -= 200; });
       await frames(page);
       await frames(page);
-      expect((await page.evaluate(() => (window as unknown as { told: boolean[] }).told)).at(-1)).toBe(true);
+      expect((await page.evaluate(() => {
+        const scope: Window & { told?: boolean[] } = window;
+
+        return scope.told!;
+      })).at(-1)).toBe(true);
     });
   }, 20_000);
 });

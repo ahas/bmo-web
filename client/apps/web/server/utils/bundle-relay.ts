@@ -27,15 +27,25 @@ export function relayedSegment(raw: string): string {
 
 type Frame = string | ArrayBuffer | Uint8Array;
 
-interface Held {
+// What the relay holds for a browser's socket, kept in the socket's context under its own key.
+class Held {
   upstream?: WebSocket;
   // What the browser sent before the service's socket stood open, handed on in order once it does.
   waiting?: Frame[];
 }
 
-// bun adds a `headers` option to the WebSocket constructor; the DOM type does not name it.
-interface SocketOptions {
-  headers?: Record<string, string>;
+const HELD = "relay";
+
+function heldOf(peer: { context: Record<string, unknown> }): Held {
+  const held = peer.context[HELD];
+
+  if (held instanceof Held) return held;
+
+  const made = new Held();
+
+  peer.context[HELD] = made;
+
+  return made;
 }
 
 const OPEN = 1;
@@ -101,7 +111,7 @@ function socketOf(url: string): { bundle: AttachedBundle; rest: string; search: 
  * the close handed on either way. */
 export const socketRelay = defineWebSocket({
   async open(peer) {
-    const held = peer.context as unknown as Held;
+    const held = heldOf(peer);
     const asked = socketOf(peer.request.url);
 
     if (asked === null) {
@@ -123,7 +133,8 @@ export const socketRelay = defineWebSocket({
     const target = new URL(`${unit.address}/${asked.rest}${asked.search}`);
     target.protocol = target.protocol === "https:" ? "wss:" : "ws:";
 
-    const Socket = WebSocket as unknown as new (url: URL, options: SocketOptions) => WebSocket;
+    // bun's WebSocket takes a `headers` option, but the checker reads the web platform's constructor, which takes protocols.
+    const Socket = WebSocket as new (url: URL, options: string | string[] | Bun.WebSocketOptions) => WebSocket;
     const socket = new Socket(target, { headers: { ...unitHeaders(unit), ...ownerHeaders(signed) } });
     socket.binaryType = "arraybuffer";
     held.upstream = socket;
@@ -142,7 +153,7 @@ export const socketRelay = defineWebSocket({
   },
 
   message(peer, message) {
-    const held = peer.context as unknown as Held;
+    const held = heldOf(peer);
     const frame = message.rawData as Frame;
 
     if (held.upstream?.readyState === OPEN) held.upstream.send(frame);
@@ -150,7 +161,7 @@ export const socketRelay = defineWebSocket({
   },
 
   close(peer, details) {
-    const socket = (peer.context as unknown as Held).upstream;
+    const socket = heldOf(peer).upstream;
     const code = browserClose(details.code);
 
     if (socket === undefined || socket.readyState > OPEN) return;

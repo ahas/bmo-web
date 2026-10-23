@@ -168,7 +168,11 @@ describe.skipIf(!origin || !touchReady())("the room's input box while it is writ
 
         // Typed into before the page has taken over, the words would be dropped as it does.
         await page.goto(`${origin}/rooms/${owner}`, { waitUntil: "load" });
-        await page.waitForFunction(() => (document.querySelector("#__nuxt") as unknown as { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } })?.__vue_app__?.$nuxt?.isHydrating === false);
+        await page.waitForFunction(() => {
+          const root: (Element & { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } }) | null = document.querySelector("#__nuxt");
+
+          return root?.__vue_app__?.$nuxt?.isHydrating === false;
+        });
         await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
 
         const box = page.locator("textarea:visible").last();

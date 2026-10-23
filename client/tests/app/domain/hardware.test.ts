@@ -4,7 +4,27 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import { againstText, capacityText, celsiusText, cpuLimitOf, driveSizeText, fillCriteria, fillHeat, fillText, fillWidest, gigabytesValue, gpuShortName, keepLive, LIVE_CHART_SECONDS, liveKeeping, loadText, machineName, mhzFigure, mhzText, monitorMachines, percentText, rangeLivePoints, rpmText, spanPollMs, spanUrl, storageKindWord, temperatureCriteria, temperatureHeat, uptimeText, vramText, vramWidest, wattsFigure, wattsText } from "../../../apps/web/app/domain/hardware";
 
-import type { HardwareView, MachineHardware, MonitorNode } from "../../../apps/web/shared/types";
+import type { CpuView, HardwareView, MachineHardware, MemoryView, MonitorNode } from "../../../apps/web/shared/types";
+
+// A reading with every figure missing but the ones a test gives.
+function hardwareView(cpu: Partial<CpuView>, memory: Partial<MemoryView> = {}): HardwareView {
+  return {
+    host: null,
+    kernel: null,
+    os: null,
+    hostOs: null,
+    wsl: false,
+    sensorLibrary: null,
+    uptimeSeconds: null,
+    load: null,
+    cpu: { model: null, threadCount: 0, usage: null, celsius: null, limitCelsius: null, mhz: null, peakMhz: null, watts: null, chip: null, sensors: [], ...cpu },
+    memory: { usedKb: null, totalKb: null, share: null, swapUsedKb: null, swapTotalKb: null, swapShare: null, ...memory },
+    gpus: [],
+    storage: [],
+    board: { sensors: [], fans: [] },
+    services: { running: null, failed: null },
+  };
+}
 
 function node(name: string, kind: MonitorNode["kind"], thisMachine = false): MonitorNode {
   return { name, label: name.toUpperCase(), kind, thisMachine };
@@ -107,7 +127,7 @@ describe("colour steps", () => {
   });
 
   test("a machine's CPU limit set stands over its chip's, and either is said with where it came from", () => {
-    const view = { cpu: { limitCelsius: 100 } } as unknown as HardwareView;
+    const view = hardwareView({ limitCelsius: 100 });
     const reading = (cpuLimit: number | null, hardware: HardwareView | null = view): MachineHardware => ({ name: "local", label: "host-a", kind: "local", hardware, failure: null, readAt: 1, tracking: true, cpuLimit });
 
     expect(cpuLimitOf(reading(95))).toEqual({ celsius: 95, source: "set" });
@@ -125,7 +145,7 @@ describe("colour steps", () => {
 });
 
 describe("keepLive", () => {
-  const view = { cpu: { usage: 0.5, celsius: 60, watts: null, mhz: null }, memory: { usedKb: 1024 * 1024 }, gpus: [], storage: [], board: { fans: [] } } as unknown as HardwareView;
+  const view = hardwareView({ usage: 0.5, celsius: 60, watts: null, mhz: null }, { usedKb: 1024 * 1024 });
   const answer = (readAt: number, hardware: HardwareView | null = view): MachineHardware => ({ name: "local", label: "host-a", kind: "local", hardware, failure: hardware === null ? "refused" : null, readAt, tracking: true, cpuLimit: null });
 
   test("keeps each reading once under the record's names, lets the window's tail go, and moves on through a failure", () => {

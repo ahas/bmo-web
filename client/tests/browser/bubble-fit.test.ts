@@ -105,7 +105,9 @@ async function laid(html: string): Promise<{ before: Laid; after: Laid }> {
     };
     const before = read();
 
-    (window as unknown as { fit: { fitBubbles: (bubbles: HTMLElement[]) => void } }).fit.fitBubbles([bubble]);
+    const scope: Window & { fit?: { fitBubbles: (bubbles: HTMLElement[]) => void } } = window;
+
+    scope.fit!.fitBubbles([bubble]);
 
     return { before, after: read() };
   }, html);

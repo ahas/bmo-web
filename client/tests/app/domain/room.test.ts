@@ -976,7 +976,19 @@ describe("a sender's run", () => {
 
 // The row a turn stands in gives its place to the answer by whichever read brings it first.
 describe("a running row handing its place over", () => {
-  const writing = { phase: "writing", tool: null } as unknown as NonNullable<RunState["progress"]>;
+  const writing: NonNullable<RunState["progress"]> = {
+    phase: "writing",
+    tool: null,
+    thinkingTokens: null,
+    contextTokens: null,
+    cacheReadTokens: null,
+    requestId: null,
+    spent: null,
+    writtenTokens: null,
+    actions: [],
+    droppedActions: 0,
+    droppedContext: 0
+  };
   const run: RunState = { messageId: 1, startedAt: 1_788_000_010, received: null, progress: writing };
   const turn = runItem(run, { id: 87, name: "agent-a" }, { alt: "agent-a" });
   const answer = { ...archived(2, KO.line_921, "agent-a"), sentAt: 1_788_000_020, agent: true };

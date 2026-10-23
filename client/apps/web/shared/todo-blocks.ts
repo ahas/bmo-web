@@ -68,7 +68,7 @@ export function instructionSegments(instruction: string): InstructionSegment[] {
       continue;
     }
 
-    const [whole, label, source, fence] = matched as unknown as [string, string, string, string];
+    const [whole, label = "", source = "", fence = ""] = matched;
     const bodyStart = at + whole.length;
     let close = instruction.indexOf(`\n${fence}`, bodyStart - 1);
 

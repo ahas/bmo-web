@@ -12,7 +12,7 @@ import KO from "../../fixtures/app/domain/work-translation.test.ko.json";
 // never lands on this one.
 
 // The framework's own, which a test of the module alone does not bring with it.
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 
 globals.ref = ref;
 globals.computed = computed;

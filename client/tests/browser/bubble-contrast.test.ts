@@ -128,7 +128,9 @@ async function measured(theme: "light" | "dark", mint?: string, look: Look = DEF
     Object.fromEntries([...document.querySelectorAll("[data-read]")].map((element) => {
       const name = element.getAttribute("data-read")!;
 
-      return [name, (window as unknown as Measured).measure.contrast(`[data-read="${name}"]`)[0]!.ratio];
+      const scope: Window & Partial<Measured> = window;
+
+      return [name, scope.measure!.contrast(`[data-read="${name}"]`)[0]!.ratio];
     }))
   );
 }

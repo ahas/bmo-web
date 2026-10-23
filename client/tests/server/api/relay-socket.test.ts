@@ -17,7 +17,7 @@ const BASE = "/console/";
 const SESSION = { name: "nuxt-session", password: "relay-socket-test-password-0123456789" };
 const TOKEN = "relayed-token";
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 
 globals.defineNitroPlugin = (plugin: unknown) => plugin;
 globals.useRuntimeConfig = () => ({ app: { baseURL: BASE }, session: SESSION });
@@ -84,7 +84,7 @@ interface Adapter {
 const adapterOf = (await import(Bun.resolveSync("crossws/adapters/bun", dirname(Bun.resolveSync("h3", import.meta.dir))))).default as (options: unknown) => Adapter;
 
 const route = (await import("../../../apps/web/server/api/[...path]")).default;
-const plugin = (await import("../../../apps/web/server/plugins/sockets")).default as unknown as (nitro: unknown) => void;
+const { standSocketLookup } = await import("../../../apps/web/server/plugins/sockets");
 
 const app = createApp();
 const router = createRouter();
@@ -93,7 +93,7 @@ const router = createRouter();
 app.use(BASE, defineEventHandler(() => undefined));
 router.use("/api/**", route);
 app.use(BASE, router.handler);
-plugin({ h3App: app, router });
+standSocketLookup({ h3App: app, router });
 
 const adapter = adapterOf(app.websocket);
 const console_ = Bun.serve({
@@ -121,7 +121,8 @@ const signedIn = await sealSession(
 // A browser's socket on the console at `path`, with what it heard and how it closed.
 // The browser's own `Owner-Key` is one it cannot choose, so every socket here sends one the console must replace.
 function opened(path: string, cookie: string | null = `${SESSION.name}=${encodeURIComponent(signedIn)}`) {
-  const SocketWith = WebSocket as unknown as new (url: string, options: { headers: Record<string, string> }) => WebSocket;
+  // bun's WebSocket takes a `headers` option, but the checker reads the web platform's constructor, which takes protocols.
+  const SocketWith = WebSocket as new (url: string, options: string | string[] | Bun.WebSocketOptions) => WebSocket;
   const headers: Record<string, string> = { "owner-key": "browser-chosen", "owner-role": "administrator", ...(cookie === null ? {} : { cookie }) };
   const socket = new SocketWith(`ws://127.0.0.1:${console_.port}${BASE}api/${path}`, { headers });
   const heard: string[] = [];

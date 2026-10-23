@@ -303,7 +303,8 @@ function rgba(colour: string): [number, number, number, number] | null {
   pad.clearRect(0, 0, 1, 1);
   pad.fillRect(0, 0, 1, 1);
 
-  const [r, g, b, a] = pad.getImageData(0, 0, 1, 1).data as unknown as [number, number, number, number];
+  // One pixel's four channels, which the image always holds.
+  const [r = 0, g = 0, b = 0, a = 0] = pad.getImageData(0, 0, 1, 1).data;
 
   return [r, g, b, a / 255];
 }
@@ -521,7 +522,7 @@ export function viewport(): Record<string, number> {
 export function install(): string[] {
   const api = { find, gaps, edges, middles, styles, clipping, contrast, pictures, sharedIds, watch, drift, viewport };
 
-  (globalThis as unknown as { measure: typeof api }).measure = api;
+  Object.assign(globalThis, { measure: api });
 
   return Object.keys(api);
 }

@@ -5,6 +5,7 @@ import { keepaliveRound, switchAgentKeepalive, withKeepalive } from "../../../ap
 import type { AgentSummary } from "../../../apps/web/shared/types";
 
 const held = globalThis.fetch;
+const globals: Record<string, unknown> = globalThis;
 
 // The warmer is reached at the address the setting names; every call is answered here instead.
 process.env.CACHE_WARMER_ADDRESS = "http://warmer.test";
@@ -162,7 +163,7 @@ describe("each agent's keepalive", () => {
 
   test("leaves every switch down where the warmer does not answer", async () => {
     asked.length = 0;
-    globalThis.fetch = (() => Promise.reject(new TypeError("connection refused"))) as unknown as typeof fetch;
+    globals.fetch = () => Promise.reject(new TypeError("connection refused"));
 
     const [row] = await withKeepalive([agent("worker")], "agency");
 

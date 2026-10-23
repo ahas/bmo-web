@@ -47,7 +47,7 @@ process.env.WEB_SERVER_ADDRESS = service.address;
 process.env.WEB_SERVER_TOKEN = service.token;
 process.env.RECEIVER_ADDRESS = `http://127.0.0.1:${receiver.port}`;
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 let session: Record<string, unknown> = {};
 
 globals.requireUserSession = async () => session;

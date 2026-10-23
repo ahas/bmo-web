@@ -4,6 +4,7 @@ import { SIREN_MAX, SIREN_PAGE_SIZE } from "../../../apps/web/shared/config";
 import { readSiren, sirenAgentOf } from "../../../apps/web/server/utils/siren";
 
 const held = globalThis.fetch;
+const globals: Record<string, unknown> = globalThis;
 
 // The siren is reached at the address the setting names; every call is answered here instead.
 process.env.CACHE_SIREN_ADDRESS = "http://siren.test";
@@ -189,13 +190,13 @@ describe("what the siren's sums become", () => {
   });
 
   test("a siren that is not there leaves the screen readable and empty", async () => {
-    globalThis.fetch = (() => Promise.reject(new Error("ECONNREFUSED"))) as unknown as typeof fetch;
+    globals.fetch = () => Promise.reject(new Error("ECONNREFUSED"));
 
     expect(await readSiren(SIREN_PAGE_SIZE, NOW)).toMatchObject({ reachable: false, events: [], sirenCount: 0, sessions30m: 0 });
   });
 
   test("and so does one that answers with an error", async () => {
-    globalThis.fetch = (() => Promise.resolve(new Response("nope", { status: 500 }))) as unknown as typeof fetch;
+    globals.fetch = () => Promise.resolve(new Response("nope", { status: 500 }));
 
     expect((await readSiren(SIREN_PAGE_SIZE, NOW)).reachable).toBe(false);
   });
@@ -298,7 +299,7 @@ describe("how far back the feed is read", () => {
   });
 
   test("a siren that does not answer has nothing more to give", async () => {
-    globalThis.fetch = (() => Promise.reject(new Error("not there"))) as unknown as typeof fetch;
+    globals.fetch = () => Promise.reject(new Error("not there"));
 
     const watch = await readSiren(SIREN_PAGE_SIZE, NOW);
 

@@ -39,8 +39,9 @@ describe.skipIf(!existsSync(chromium.executablePath()))("what reaches the page",
       entry,
       `import { renderMarkdown } from ${JSON.stringify(new URL("../../apps/web/app/domain/markdown.ts", import.meta.url).pathname)};\n` +
         `import { wording } from ${JSON.stringify(new URL("../../apps/web/shared/wording.ts", import.meta.url).pathname)};\n` +
-        "(window as unknown as { renderMarkdown: (text: string, kind: string) => string }).renderMarkdown =\n" +
-        "  (text, kind) => renderMarkdown(wording, text, kind as Parameters<typeof renderMarkdown>[2]);\n"
+        "Object.assign(window, {\n" +
+        "  renderMarkdown: (text: string, kind: string) => renderMarkdown(wording, text, kind as Parameters<typeof renderMarkdown>[2])\n" +
+        "});\n"
     );
 
     const built = await Bun.build({ entrypoints: [entry], target: "browser", format: "iife" });
@@ -63,10 +64,10 @@ describe.skipIf(!existsSync(chromium.executablePath()))("what reaches the page",
     return page.evaluate(
       ([text, reading]) => {
         const out = document.getElementById("out")!;
-        const scope = window as unknown as { renderMarkdown: (text: string, kind: string) => string; ran?: boolean };
+        const scope: Window & { renderMarkdown?: (text: string, kind: string) => string; ran?: boolean } = window;
 
         scope.ran = false;
-        out.innerHTML = scope.renderMarkdown(text, reading);
+        out.innerHTML = scope.renderMarkdown!(text, reading);
 
         const links = [...out.querySelectorAll("a")];
 
@@ -106,9 +107,9 @@ describe.skipIf(!existsSync(chromium.executablePath()))("what reaches the page",
   test("keeps a book's source lines and heading marks through the cleaning", async () => {
     const marks = await page.evaluate((text) => {
       const out = document.getElementById("out")!;
-      const scope = window as unknown as { renderMarkdown: (text: string, kind: string) => string };
+      const scope: Window & { renderMarkdown?: (text: string, kind: string) => string } = window;
 
-      out.innerHTML = scope.renderMarkdown(text, "book");
+      out.innerHTML = scope.renderMarkdown!(text, "book");
 
       return [...out.children].map((element) => `${element.getAttribute("data-line")} ${element.getAttribute("data-heading")}`);
     }, KO.line_110);
@@ -119,9 +120,9 @@ describe.skipIf(!existsSync(chromium.executablePath()))("what reaches the page",
   test("keeps the column count a table's box is laid out by through the cleaning", async () => {
     const columns = await page.evaluate((text) => {
       const out = document.getElementById("out")!;
-      const scope = window as unknown as { renderMarkdown: (text: string, kind: string) => string };
+      const scope: Window & { renderMarkdown?: (text: string, kind: string) => string } = window;
 
-      out.innerHTML = scope.renderMarkdown(text, "words");
+      out.innerHTML = scope.renderMarkdown!(text, "words");
 
       return (out.querySelector(".markdown-table") as HTMLElement | null)?.style.getPropertyValue("--columns").trim() ?? null;
     }, KO.line_123);
@@ -132,9 +133,9 @@ describe.skipIf(!existsSync(chromium.executablePath()))("what reaches the page",
   test("keeps a fenced block's copy button and its two marks through the cleaning", async () => {
     const button = await page.evaluate(() => {
       const out = document.getElementById("out")!;
-      const scope = window as unknown as { renderMarkdown: (text: string, kind: string) => string };
+      const scope: Window & { renderMarkdown?: (text: string, kind: string) => string } = window;
 
-      out.innerHTML = scope.renderMarkdown("```\nbun install\n```", "words");
+      out.innerHTML = scope.renderMarkdown!("```\nbun install\n```", "words");
 
       const found = out.querySelector(".markdown-code > button[data-copy]");
 

@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { DEFAULT_THEME, THEMES } from "bmo-ui/shared/themes";
 import { useWebSql } from "../../../../apps/web/server/utils/db";
 import { readTheme, saveTheme } from "../../../../apps/web/server/utils/themes";
+import { standInHandler } from "../../../support/route-handler";
 import { scratchWebDatabase } from "../../../support/web-database";
 
 // The theme each account reads the console in (docs/web.md, 「Themes」): kept per account, read back by
@@ -14,7 +15,7 @@ interface FakeEvent {
   body: unknown;
 }
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 let user: string | null = "tester";
 
 globals.defineEventHandler = (handler: unknown) => handler;
@@ -31,10 +32,8 @@ globals.useWebSql = useWebSql;
 globals.readTheme = readTheme;
 globals.saveTheme = saveTheme;
 
-type Handler<T> = (event: FakeEvent) => Promise<T>;
-
-const read = (await import("../../../../apps/web/server/api/account/theme.get")).default as unknown as Handler<{ theme: string }>;
-const write = (await import("../../../../apps/web/server/api/account/theme.put")).default as unknown as Handler<{ theme: string }>;
+const read = standInHandler((await import("../../../../apps/web/server/api/account/theme.get")).default);
+const write = standInHandler((await import("../../../../apps/web/server/api/account/theme.put")).default);
 
 describe("an account's theme", () => {
   test("is the default until chosen, then what the account chose, and no other account's", async () => {

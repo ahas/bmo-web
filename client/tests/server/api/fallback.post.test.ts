@@ -8,16 +8,10 @@ import { answer, standIn } from "../../support/units";
 // The agency remains the sole writer and validator; these checks hold the web boundary to stable work keys and
 // the two independent provider choices, each change arriving at the agency's `/fallback` as it was asked.
 
-interface Sent {
-  method?: string;
-  path: string;
-  body: Record<string, unknown>;
-}
-
 const agency = standIn("AGENCY", (call) =>
   call.body?.key === "unknown" ? answer({ code: "bad-request", error: "unknown fallback key: unknown" }, 400) : answer({ ok: true })
 );
-const sent: Sent[] = agency.asked as unknown as Sent[];
+const sent = agency.asked;
 const handler = await routeOf<{ ok: true }>("../../apps/web/server/api/fallback.post");
 
 async function post(body: unknown): Promise<{ status: number; message: string }> {
@@ -34,7 +28,7 @@ describe("switching route modes", () => {
       expect(await post({ action: "set-route-mode", key: "agent-a", mode })).toMatchObject({ status: 200 });
     }
 
-    expect(sent.map(({ body }) => body.mode)).toEqual(["auto", "claude-code", "codex", "openrouter", "registered"]);
+    expect(sent.map(({ body }) => body?.mode)).toEqual(["auto", "claude-code", "codex", "openrouter", "registered"]);
     sent.length = 0;
 
     for (const mode of ["on", "AUTO", "local", "", 1, undefined]) {
@@ -134,7 +128,7 @@ test("passes switches, entry orders and the local model's options through unchan
   expect(sent.at(-1)?.body).toMatchObject({ action: "set-provider-enabled", provider: "claude-code", enabled: false });
   const order = ["claude-code", "codex", "openrouter", "registered"].map(name => ({ name, enabled: name !== "claude-code" }));
   expect((await post({ action: "set-provider-order", order })).status).toBe(200);
-  expect(sent.at(-1)?.body.order).toEqual(order);
+  expect(sent.at(-1)?.body?.order).toEqual(order);
   expect((await post({ action: "set-provider-enabled", provider: "codex", enabled: "false" })).status).toBe(400);
   expect((await post({ action: "set-local-model", key: "agent-a", model: "model-a", thinking: true, answerTokens: 2048 })).status).toBe(200);
   expect(sent.at(-1)?.body).toMatchObject({ action: "set-local-model", key: "agent-a" });
@@ -192,7 +186,7 @@ test("carries the account list's own changes, and a path is all it takes of a cr
   const order = [{ id: ACCOUNT_ID, enabled: true }, { id: "default", enabled: false }];
 
   expect((await post({ action: "set-account-order", order })).status).toBe(200);
-  expect(sent.at(-1)?.body.order).toEqual(order);
+  expect(sent.at(-1)?.body?.order).toEqual(order);
   expect((await post({ action: "set-account-order", order: [ACCOUNT_ID, "default"] })).status).toBe(200);
 
   expect((await post({ action: "remove-account", account: ACCOUNT_ID })).status).toBe(200);

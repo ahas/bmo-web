@@ -52,7 +52,8 @@ interface Line {
 // What a fresh page's store gives back for a room, the files read back to their words.
 async function loaded(chatId: number): Promise<Line[]> {
   return page.evaluate(async (chatId) => {
-    const store = (window as unknown as { kept: { outboxStore: (preview: (file: File) => null) => { load: (id: number) => Promise<unknown[]> } } }).kept.outboxStore(() => null);
+    const scope: Window & { kept?: { outboxStore: (preview: (file: File) => null) => { load: (id: number) => Promise<unknown[]> } } } = window;
+    const store = scope.kept!.outboxStore(() => null);
     const items = (await store.load(chatId)) as { key: string; sendKey: string; text: string; state: string; messageId: number | null; file: { key: string; file: File } | null }[];
 
     return Promise.all(
@@ -72,7 +73,8 @@ async function loaded(chatId: number): Promise<Line[]> {
 async function saved(chatId: number, steps: { key: string; state: string; messageId: number | null; withFile?: boolean }[][]): Promise<void> {
   await page.evaluate(
     async ({ chatId, steps, words }) => {
-      const store = (window as unknown as { kept: { outboxStore: () => { save: (id: number, items: unknown[]) => Promise<void> } } }).kept.outboxStore();
+      const scope: Window & { kept?: { outboxStore: () => { save: (id: number, items: unknown[]) => Promise<void> } } } = window;
+      const store = scope.kept!.outboxStore();
 
       for (const step of steps) {
         await store.save(
@@ -127,7 +129,8 @@ describe.skipIf(!ready)("the lines a room keeps in the browser", () => {
     await opened();
     await saved(-7, [[{ key: "mine", state: "sending", messageId: null }]]);
     await page.evaluate(async () => {
-      const store = (window as unknown as { kept: { outboxStore: () => { save: (id: number, items: unknown[]) => Promise<void> } } }).kept.outboxStore();
+      const scope: Window & { kept?: { outboxStore: () => { save: (id: number, items: unknown[]) => Promise<void> } } } = window;
+      const store = scope.kept!.outboxStore();
 
       await store.save(-7, []);
     });

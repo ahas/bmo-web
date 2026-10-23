@@ -73,7 +73,8 @@ async function layouts(): Promise<number> {
 // The bubble risen from the input box, a quarter of a second long, its meta line read every frame.
 async function fly(): Promise<Flown> {
   return page.evaluate(async () => {
-    const flight = (window as unknown as { flight: { riseOutOf: (...args: unknown[]) => Promise<void> } }).flight;
+    const scope: Window & { flight?: { riseOutOf: (...args: unknown[]) => Promise<void> } } = window;
+    const flight = scope.flight!;
     const bubble = document.querySelector<HTMLElement>("[data-bubble]")!;
     const words = document.querySelector("textarea")!.getBoundingClientRect();
     const at = (meta: Element, box: Element) => ({

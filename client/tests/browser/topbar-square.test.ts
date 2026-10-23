@@ -86,7 +86,11 @@ async function open(viewport: (typeof WIDTHS)[number], scheme: (typeof SCHEMES)[
 // bounded while to land and the bar is read as it then stands.
 async function visit(page: Page, path: string): Promise<void> {
   await page.goto(`${origin}${path}`, { waitUntil: "load" });
-  await page.waitForFunction(() => (document.querySelector("#__nuxt") as unknown as { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } })?.__vue_app__?.$nuxt?.isHydrating === false);
+  await page.waitForFunction(() => {
+    const root: (Element & { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } }) | null = document.querySelector("#__nuxt");
+
+    return root?.__vue_app__?.$nuxt?.isHydrating === false;
+  });
   await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
 }
 
@@ -200,15 +204,16 @@ describe.skipIf(!origin || !touchReady())("the deployment's popover", () => {
 
         await mark.waitFor();
         await page.evaluate(() => {
-          const kept = window as unknown as { __shifts: number[] };
+          const shifts: number[] = [];
 
-          kept.__shifts = [];
+          Object.assign(window, { __shifts: shifts });
+
           const started = performance.now();
           const look = (): void => {
             for (const item of document.querySelectorAll("[data-reka-popper-content-wrapper] li")) {
               const moved = new DOMMatrixReadOnly(getComputedStyle(item).transform === "none" ? undefined : getComputedStyle(item).transform);
 
-              kept.__shifts.push(Math.abs(moved.m41) + Math.abs(moved.m42));
+              shifts.push(Math.abs(moved.m41) + Math.abs(moved.m42));
             }
 
             if (performance.now() - started < 1_200) requestAnimationFrame(look);
@@ -219,7 +224,11 @@ describe.skipIf(!origin || !touchReady())("the deployment's popover", () => {
         await mark.click();
         await page.waitForTimeout(1_500);
 
-        const shifts = await page.evaluate(() => (window as unknown as { __shifts: number[] }).__shifts);
+        const shifts = await page.evaluate(() => {
+          const kept: Window & { __shifts?: number[] } = window;
+
+          return kept.__shifts!;
+        });
 
         expect(shifts.length).toBeGreaterThan(0);
         expect(Math.max(...shifts)).toBeLessThan(1);

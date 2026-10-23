@@ -12,11 +12,22 @@ import KO from "../fixtures/app/forms.test.ko.json";
 
 const here = new URL(".", import.meta.url).pathname;
 
+// What is read of the compiler's nodes. An expression the compiler has joined from parts carries no content of its
+// own, and its parts may be bare strings; a parsed template holds neither, so a part that is not a node is passed over.
+interface Expression {
+  type: number;
+  content?: string;
+}
+
 interface Node {
   type: number;
   tag?: string;
-  props?: { type: number; name: string; arg?: { content?: string }; exp?: { content?: string }; value?: { content?: string } }[];
-  children?: Node[];
+  props?: { type: number; name: string; arg?: Expression; exp?: Expression; value?: { content?: string } }[];
+  children?: readonly (Node | string | symbol)[];
+}
+
+function childrenOf(node: Node): Node[] {
+  return (node.children ?? []).filter((child): child is Node => typeof child === "object");
 }
 
 interface Template {
@@ -31,7 +42,7 @@ const SAVE = "common.action.save";
 function templateOf(path: string, text: string): Template[] {
   const { descriptor } = parse(text, { filename: path });
 
-  return descriptor.template?.ast ? [{ path, root: descriptor.template.ast as unknown as Node }] : [];
+  return descriptor.template?.ast ? [{ path, root: descriptor.template.ast }] : [];
 }
 
 async function templates(): Promise<Template[]> {
@@ -61,7 +72,7 @@ function slotOf(node: Node): string | null {
 
 function elements(node: Node, into: Node[] = []): Node[] {
   if (node.type === ELEMENT) into.push(node);
-  for (const child of node.children ?? []) elements(child, into);
+  for (const child of childrenOf(node)) elements(child, into);
 
   return into;
 }
@@ -83,7 +94,7 @@ function unguarded(files: readonly Template[]): string[] {
 
       if (saves.length === 0) continue;
 
-      const footer = (dialog.children ?? []).find((one) => slotOf(one) === "footer");
+      const footer = childrenOf(dialog).find((one) => slotOf(one) === "footer");
       const dirty = propText(dialog, "dirty");
 
       if (footer === undefined || elements(footer).filter(isSave).length !== saves.length) wrong.push(`${file.path}${KO.line_88}`);

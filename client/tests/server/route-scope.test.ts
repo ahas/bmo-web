@@ -4,6 +4,7 @@ import { join, relative } from "node:path";
 
 import { openedRoute, openedRoutes } from "../../apps/web/server/utils/opened-routes";
 import { carriesSession } from "../../apps/web/server/utils/session-cookie";
+import { standInHandler } from "../support/route-handler";
 
 // Every route of the console, as a user other than the platform administrator meets it
 // (docs/web.md, 「Access」): a route not opened to them answers as if nothing stood
@@ -49,7 +50,7 @@ const moduleRoutes: Route[] = [
 
 const routes = [...routeFiles(apiRoot).map(routeOf), ...moduleRoutes];
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 let session: Record<string, unknown> = {};
 
 globals.defineEventHandler = (handler: unknown) => handler;
@@ -60,9 +61,7 @@ globals.createError = (error: { statusCode: number; statusMessage: string }) => 
 globals.openedRoute = openedRoute;
 globals.carriesSession = carriesSession;
 
-type Middleware = (event: { path: string; method: string; context: Record<string, unknown> }) => Promise<void>;
-
-const scope = (await import("../../apps/web/server/middleware/route-scope")).default as unknown as Middleware;
+const scope = standInHandler((await import("../../apps/web/server/middleware/route-scope")).default);
 
 async function answer(route: Route): Promise<number> {
   try {

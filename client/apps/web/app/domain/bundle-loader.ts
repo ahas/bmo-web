@@ -18,8 +18,6 @@ type Namespace = Record<string, unknown>;
 // through the one shape every loader keeps.
 const shared = sharedTable as Readonly<Record<string, () => Promise<Namespace>>>;
 
-const holder = globalThis as unknown as Record<symbol, unknown>;
-
 // Each shared library's namespace once loaded, the module made for it, and each bundle file's module.
 const namespaces = new Map<string, Namespace>();
 const shims = new Map<string, string>();
@@ -104,8 +102,8 @@ async function imported(base: string, specifier: string): Promise<unknown> {
 }
 
 function standLoader(): void {
-  holder[Symbol.for(SHARED_KEY)] = namespaces;
-  holder[Symbol.for(IMPORT_KEY)] = imported;
+  Reflect.set(globalThis, Symbol.for(SHARED_KEY), namespaces);
+  Reflect.set(globalThis, Symbol.for(IMPORT_KEY), imported);
 }
 
 const stylesheets = new Set<string>();

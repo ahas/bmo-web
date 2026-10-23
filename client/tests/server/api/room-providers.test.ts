@@ -12,7 +12,7 @@ import type { RoomProvidersView } from "../../../apps/web/shared/types";
 // the whole list; both are the administrator's alone, and a refusal of the receiver's is said by the pack's sentence
 // for its code. Nothing here reads which provider a key names, so the keys are neutral.
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 
 const listed = [{ key: "provider-a", label: "Provider A" }, { key: "provider-b", label: "Provider B" }];
 let on: string[] = ["provider-a"];

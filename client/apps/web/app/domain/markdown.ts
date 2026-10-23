@@ -6,7 +6,7 @@ import { addressAsWritten, isWebAddress } from "../../shared/web-address";
 import { isDiagram } from "bmo-ui/app/domain/diagram";
 
 import type { Translate } from "../../shared/wording";
-import type { RendererThis, Token, TokenizerAndRendererExtension, TokenizerObject, Tokens } from "marked";
+import type { Token, TokenizerAndRendererExtension, TokenizerObject, Tokens } from "marked";
 
 // Markdown written to be read, turned into the HTML that stands for it. Every place the console
 // shows such a text builds it here — the code panel's documents and the archive's words alike —
@@ -121,7 +121,12 @@ const tildes: TokenizerObject = {
 
     const run = /^~+/.exec(src);
 
-    return run === null ? false : ({ type: "text", raw: run[0], text: run[0] } as unknown as Tokens.Del);
+    if (run === null) return false;
+
+    const characters: Tokens.Generic = { type: "text", raw: run[0], text: run[0] };
+
+    // marked takes whatever token a tokenizer answers with, though its types hold this one to a strike.
+    return characters as Tokens.Del;
   }
 };
 
@@ -129,8 +134,8 @@ const tildes: TokenizerObject = {
 // than the column it stands in — which is what keeps its columns readable on a narrow screen — while
 // the page itself never moves sideways. The box carries how many columns the table has, since how
 // wide a table may be laid out goes by that; the width itself is the stylesheet's.
-function scrollingTable(this: RendererThis, token: Tokens.Table): string {
-  const table = Renderer.prototype.table.call(this as unknown as Renderer, token);
+function scrollingTable(this: Renderer, token: Tokens.Table): string {
+  const table = Renderer.prototype.table.call(this, token);
 
   return `<div class="markdown-table" style="--columns: ${token.header.length}">${table}</div>`;
 }
@@ -176,12 +181,12 @@ function zoomTools(): string {
   return `<div class="markdown-diagram-tools">${buttons.join("")}</div>`;
 }
 
-function copyableCode(this: RendererThis, token: Tokens.Code): string {
+function copyableCode(this: Renderer, token: Tokens.Code): string {
   if (isDiagram(token.lang)) {
     return `<div class="markdown-diagram" data-diagram><pre><code>${escapeHtml(token.text)}</code></pre>${zoomTools()}</div>\n`;
   }
 
-  const block = Renderer.prototype.code.call(this as unknown as Renderer, token).trimEnd();
+  const block = Renderer.prototype.code.call(this, token).trimEnd();
   const language = escapeHtml(fenceWord(token.lang));
   const named = language === "" ? "" : ` data-language="${language}"`;
   const head = language === "" ? "" : `<div class="markdown-code-head"><span class="markdown-code-language">${language}</span></div>`;

@@ -71,7 +71,11 @@ async function visit(page: Page, path: string): Promise<void> {
 }
 
 async function shared(page: Page): Promise<SharedId[]> {
-  return await page.evaluate(() => (globalThis as unknown as { measure: { sharedIds: () => SharedId[] } }).measure.sharedIds());
+  return await page.evaluate(() => {
+    const scope: typeof globalThis & { measure?: { sharedIds: () => SharedId[] } } = globalThis;
+
+    return scope.measure!.sharedIds();
+  });
 }
 
 // Where the sidebar leads, as the addresses under the console's base path: every screen of its

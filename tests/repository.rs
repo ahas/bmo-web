@@ -286,6 +286,37 @@ fn no_code_or_test_holds_korean_and_the_ledger_stays_empty() {
   assert_eq!(ledger, serde_json::json!({}), "the Korean ledger allows no file any Korean");
 }
 
+/// Whether a line asserts a value through `unknown` into another type.
+fn asserts_through_unknown(line: &str) -> bool {
+  line
+    .split_whitespace()
+    .collect::<Vec<_>>()
+    .windows(3)
+    .any(|words| words == ["as", "unknown", "as"])
+}
+
+#[test]
+fn no_console_file_asserts_through_unknown() {
+  let found: Vec<String> = tracked_texts()
+    .into_iter()
+    .filter(|(path, _)| {
+      path.starts_with("client/")
+        && !path.starts_with("client/vendor/")
+        && [".ts", ".tsx", ".vue", ".js", ".mjs"].iter().any(|end| path.ends_with(end))
+    })
+    .flat_map(|(path, text)| {
+      text
+        .lines()
+        .enumerate()
+        .filter(|(_, line)| asserts_through_unknown(line))
+        .map(|(number, _)| format!("{path}:{}", number + 1))
+        .collect::<Vec<_>>()
+    })
+    .collect();
+
+  assert!(found.is_empty(), "console files asserting through unknown: {found:#?}");
+}
+
 #[test]
 fn no_directory_is_named_after_its_parent() {
   let found: BTreeSet<String> = tracked()

@@ -19,8 +19,6 @@ import { ko } from "@nuxt/ui/locale";
 import { TOOLTIP_PROVIDER } from "bmo-ui/app/domain/tooltip";
 import { consoleName } from "#shared/agent-names";
 
-import type { Messages } from "@nuxt/ui";
-
 const { t } = useI18n();
 const { loggedIn } = useUserSession();
 
@@ -31,7 +29,7 @@ const locale = extendLocale(ko, {
   messages: {
     dashboardSidebar: { title: t("app.label.sidebar"), description: t("app.label.sidebar_description") },
     dashboardSidebarCollapse: { collapse: t("common.action.collapse"), expand: t("common.action.expand") }
-  } as unknown as Messages
+  }
 });
 
 // The interface's faces are asked for with the page rather than once the stylesheet has been read

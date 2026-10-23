@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { DEFAULT_PALETTE, PALETTES } from "bmo-ui/shared/palettes";
 import { useWebSql } from "../../../../apps/web/server/utils/db";
 import { readPalette, savePalette } from "../../../../apps/web/server/utils/palettes";
+import { standInHandler } from "../../../support/route-handler";
 import { scratchWebDatabase } from "../../../support/web-database";
 
 // The palette each account reads the console in (docs/web.md, 「Palettes」): kept per account, read back
@@ -14,7 +15,7 @@ interface FakeEvent {
   body: unknown;
 }
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 let user: string | null = "tester";
 
 globals.defineEventHandler = (handler: unknown) => handler;
@@ -31,10 +32,8 @@ globals.useWebSql = useWebSql;
 globals.readPalette = readPalette;
 globals.savePalette = savePalette;
 
-type Handler<T> = (event: FakeEvent) => Promise<T>;
-
-const read = (await import("../../../../apps/web/server/api/account/palette.get")).default as unknown as Handler<{ palette: string }>;
-const write = (await import("../../../../apps/web/server/api/account/palette.put")).default as unknown as Handler<{ palette: string }>;
+const read = standInHandler((await import("../../../../apps/web/server/api/account/palette.get")).default);
+const write = standInHandler((await import("../../../../apps/web/server/api/account/palette.put")).default);
 
 describe("an account's palette", () => {
   test("is the default until chosen, then what the account chose, and no other account's", async () => {

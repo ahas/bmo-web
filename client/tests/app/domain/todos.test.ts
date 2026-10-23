@@ -76,7 +76,7 @@ const WORKER = "worker-b";
 
 // The app configuration bmo-ui reads its zone and locales from, as the console sets it, which a test of the
 // module alone does not bring with it.
-(globalThis as unknown as Record<string, unknown>).useAppConfig = () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } });
+Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } }) });
 
 function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
   return {

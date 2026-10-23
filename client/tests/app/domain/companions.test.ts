@@ -5,7 +5,7 @@ import { anyRunning, catalogueSave, emptyCatalogueForm, sourceText } from "../..
 import { companionChange, companionDraft, draftDiffers, generationBounds, generationChange, generationDraft, generationUse, movedPiece, orderRows, pieceOrder, sentPieces } from "../../../apps/web/app/domain/companions";
 import { sessionClears, sessionDetail } from "../../../apps/web/app/domain/sessions";
 
-import type { CompanionView } from "../../../apps/web/shared/agency";
+import type { CompanionView, ModelUseView } from "../../../apps/web/shared/agency";
 import KO from "../../fixtures/app/domain/companions.test.ko.json";
 
 // A companion's settings and the model catalogue as the console reads them (the agency's docs/companions.md,
@@ -91,15 +91,26 @@ describe("the generation settings", () => {
 });
 
 describe("the form a block holds", () => {
-  const view = {
+  const view: CompanionView = {
+    agent: "tester-chat",
+    label: "tester-chat",
+    icon: null,
+    builtin: false,
     registration: "tester-model",
+    registrations: [],
+    entries: [],
     serving: "file-a",
     modelUse: null,
-    thinking: null,
-    pieces,
     settings,
     generationSettings: [{ name: "temperature", min: 0, max: 2 }, { name: "top_k", min: 0, max: 1_000, whole: true }],
-  } as unknown as CompanionView;
+    thinking: null,
+    pieces,
+    personaFile: "",
+    basePrompt: null,
+    basePrompts: [],
+    system: { text: "", characters: 0, hash: "" },
+    sessions: [],
+  };
   const saved = companionDraft(view, "-");
 
   test("holds no change until a field differs, a box typed back to its saved number included", () => {
@@ -129,7 +140,8 @@ describe("the form a block holds", () => {
   });
 
   test("an engine file being put on reads as the saved one", () => {
-    const running = { ...view, modelUse: { state: "running", entry: "file-b" } } as unknown as CompanionView;
+    const modelUse: ModelUseView = { id: 1, entry: "file-b", engine: "engine-a", chosenBy: "tester", startedAt: 1, endedAt: null, state: "running", step: null, reason: null, log: null, logTail: [] };
+    const running: CompanionView = { ...view, modelUse };
 
     expect(companionDraft(running, "-").entry).toBe("file-b");
   });

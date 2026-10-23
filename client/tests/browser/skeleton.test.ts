@@ -396,8 +396,8 @@ async function openRecorded(width: number): Promise<Page> {
   const cookie = login.headers.get('set-cookie')!.split(';')[0]!;
   await page.context().addCookies([{ name: cookie.slice(0, cookie.indexOf('=')), value: cookie.slice(cookie.indexOf('=') + 1), url: origin! }]);
   await page.addInitScript(() => {
-    const w = window as unknown as { __frames: { hydrated: boolean; bars: number; regions: string[] }[] };
-    w.__frames = [];
+    const seen: { hydrated: boolean; bars: number; regions: string[] }[] = [];
+    Object.assign(window, { __frames: seen });
     let last = '';
     const onScreen = (e: Element) => {
       const box = e.getBoundingClientRect();
@@ -411,7 +411,7 @@ async function openRecorded(width: number): Promise<Page> {
       const regions = [...document.querySelectorAll('[role="status"][aria-busy="true"]')].filter(onScreen)
         .map(e => `${e.getAttribute('aria-label')}|${e.querySelectorAll('.animate-pulse').length}|${Math.round(e.getBoundingClientRect().height)}`).sort();
       const key = `${hydrated}${bars}${regions.join()}`;
-      if (key !== last) { last = key; w.__frames.push({ hydrated, bars, regions }); }
+      if (key !== last) { last = key; seen.push({ hydrated, bars, regions }); }
     };
     new MutationObserver(snap).observe(document, { subtree: true, childList: true, attributes: true });
     const tick = () => { snap(); requestAnimationFrame(tick); };

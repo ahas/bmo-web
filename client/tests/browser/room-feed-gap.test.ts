@@ -185,12 +185,16 @@ async function visit(page: Page): Promise<void> {
   const listed = page.waitForResponse(/\/api\/rooms$/);
 
   await page.goto(`${origin}/`, { waitUntil: "load" });
-  await page.waitForFunction(() => (document.querySelector("#__nuxt") as unknown as { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } })?.__vue_app__?.$nuxt?.isHydrating === false);
+  await page.waitForFunction(() => {
+    const root: (Element & { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } }) | null = document.querySelector("#__nuxt");
+
+    return root?.__vue_app__?.$nuxt?.isHydrating === false;
+  });
   await listed;
   await page.evaluate(async (path) => {
-    const app = (document.querySelector("#__nuxt") as unknown as { __vue_app__: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }).__vue_app__;
+    const root: (Element & { __vue_app__?: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }) | null = document.querySelector("#__nuxt");
 
-    await app.config.globalProperties.$router.push(path);
+    await root!.__vue_app__!.config.globalProperties.$router.push(path);
   }, `/rooms/${CHAT}`);
 }
 

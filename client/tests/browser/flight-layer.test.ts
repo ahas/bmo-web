@@ -42,7 +42,8 @@ beforeAll(async () => {
   await page.evaluate(() => {
     const bubble = document.querySelector<HTMLElement>("[data-bubble]")!;
     const whole = { left: 0, top: 0, width: innerWidth, height: innerHeight };
-    const flight = (window as unknown as { flight: { settleInto: (...args: unknown[]) => Promise<void> } }).flight;
+    const scope: Window & { flight?: { settleInto: (...args: unknown[]) => Promise<void> } } = window;
+    const flight = scope.flight!;
 
     void flight.settleInto(bubble, whole, { duration: 1e7, ease: [0, 0, 1, 1] });
   });

@@ -10,7 +10,7 @@ import type { DraftProcessesView, DraftProcessView, DraftQuestionView, DraftRow 
 // set, and one round's rows read for the room's draft chip (the receiver's `docs/drafting.md`, 「The routes」). A
 // refusal of the receiver's is said by the pack's sentence for its code on these routes.
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 
 globals.requireReadableRoom = async () => undefined;
 globals.readableRooms = async () => "all";

@@ -10,11 +10,18 @@ import { parse } from "vue/compiler-sfc";
 
 const app = new URL("../../apps/web/app/", import.meta.url).pathname;
 
+// What is read of the compiler's nodes. An expression the compiler has joined from parts carries no content of its
+// own, and its parts may be bare strings; a parsed template holds neither, so a part that is not a node is passed over.
+interface Expression {
+  type: number;
+  content?: string;
+}
+
 interface Node {
   type: number;
   tag?: string;
-  props?: { type: number; name: string; arg?: { content?: string }; exp?: { content?: string } }[];
-  children?: Node[];
+  props?: { type: number; name: string; arg?: Expression; exp?: Expression }[];
+  children?: readonly (Node | string | symbol)[];
 }
 
 const ELEMENT = 1;
@@ -28,7 +35,7 @@ async function templates(pattern: string): Promise<{ path: string; root: Node }[
   for await (const path of new Glob(pattern).scan({ cwd: app })) {
     const { descriptor } = parse(await Bun.file(app + path).text(), { filename: path });
 
-    if (descriptor.template?.ast) found.push({ path, root: descriptor.template.ast as unknown as Node });
+    if (descriptor.template?.ast) found.push({ path, root: descriptor.template.ast });
   }
 
   return found;
@@ -48,7 +55,7 @@ function walk(node: Node, inOverlay: boolean, visit: (node: Node, inOverlay: boo
   const here = inOverlay || (node.type === ELEMENT && OVERLAY.test(node.tag ?? ""));
 
   if (node.type === ELEMENT) visit(node, here);
-  for (const child of node.children ?? []) walk(child, here, visit);
+  for (const child of node.children ?? []) if (typeof child === "object") walk(child, here, visit);
 }
 
 describe("focus on arrival", () => {

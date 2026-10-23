@@ -12,7 +12,7 @@ import type { DeployStep } from "../../../apps/web/shared/deploy-progress";
 
 // The app configuration bmo-ui reads its zone and locales from, as the console sets it, which a test of the module
 // alone does not bring with it.
-(globalThis as unknown as Record<string, unknown>).useAppConfig = () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } });
+Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } }) });
 
 const RELEASE = "build-a";
 const NOW = 1_800_000_000_000;

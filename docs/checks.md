@@ -71,6 +71,10 @@ They read every file git tracks or would track, the new ones it does not ignore 
 - **Layout.** No directory is named after its parent, the root holds no manifest but Cargo's workspace and its
   lockfile, and no test stands inside a `src/` folder or anywhere but a `tests/` folder: no Rust test module in a
   crate's source, and no `.test.` or `.spec.` file beside the code it tests.
+- **Assertions.** No console file, its code or its tests, asserts a value through `unknown` into another type
+  (`as unknown as`). A value takes its type from a type guard, a narrowing function, a generic parameter, an
+  annotation or `satisfies`; where a library's typing leaves no other way, from a single `as` with a line saying why.
+  The third-party packs under `client/vendor/` are passed over.
 - **Personal data.** No tracked file holds a mail address outside the reserved example domains, a person's home
   path, a telephone number, a token or a private network address. A neutral form is not a finding: a mailbox at
   `example.com`, `example.net` or `example.org`, a home path naming `user` or an agent such as `agent-a`, and a

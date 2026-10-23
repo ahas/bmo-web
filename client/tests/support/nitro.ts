@@ -16,7 +16,7 @@ export interface RouteEvent {
   rawBody?: string;
 }
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 
 globals.defineEventHandler = (handler: unknown) => handler;
 globals.createError = createError;

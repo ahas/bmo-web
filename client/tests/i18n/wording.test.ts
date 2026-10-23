@@ -138,19 +138,31 @@ function scanScript(path: string, source: string, code: string, base: number, sc
 }
 
 // What a component's template holds: its text, its attributes, and the expressions in its
-// interpolations and directives, which are TypeScript and read as such.
+// interpolations and directives, which are TypeScript and read as such. An expression the compiler
+// has joined from parts carries no text of its own, and its parts may be bare strings; a parsed
+// template holds neither, so what is not text or a node is passed over.
+interface TemplateExpression {
+  type: number;
+  content?: unknown;
+  loc: { start: { offset: number } };
+}
+
 interface TemplateNode {
   type: number;
-  content?: string | { content?: string; loc?: { start: { offset: number } } };
+  content?: unknown;
   loc: { start: { offset: number } };
-  props?: { type: number; value?: { content: string; loc: { start: { offset: number } } }; exp?: { content: string; loc: { start: { offset: number } } } }[];
-  children?: TemplateNode[];
+  props?: { type: number; value?: { content: string; loc: { start: { offset: number } } }; exp?: TemplateExpression }[];
+  children?: readonly (TemplateNode | string | symbol)[];
 }
 
 const TEXT = 2;
 const INTERPOLATION = 5;
 const ATTRIBUTE = 6;
 const DIRECTIVE = 7;
+
+function isExpression(content: unknown): content is TemplateExpression {
+  return typeof content === "object" && content !== null && "loc" in content;
+}
 
 function scanTemplate(path: string, source: string, node: TemplateNode, scan: Scan): void {
   if (node.type === TEXT && typeof node.content === "string" && HANGUL.test(node.content)) {
@@ -159,8 +171,8 @@ function scanTemplate(path: string, source: string, node: TemplateNode, scan: Sc
     scan.words.push({ path, line: lineAt(source, node.loc.start.offset + inside), text: node.content.trim() });
   }
 
-  if (node.type === INTERPOLATION && typeof node.content === "object" && node.content.loc !== undefined) {
-    scanScript(path, source, node.content.content ?? "", node.content.loc.start.offset, scan);
+  if (node.type === INTERPOLATION && isExpression(node.content)) {
+    scanScript(path, source, typeof node.content.content === "string" ? node.content.content : "", node.content.loc.start.offset, scan);
   }
 
   for (const prop of node.props ?? []) {
@@ -170,13 +182,13 @@ function scanTemplate(path: string, source: string, node: TemplateNode, scan: Sc
       scan.words.push({ path, line: lineAt(source, prop.value.loc.start.offset + inside), text: prop.value.content });
     }
 
-    if (prop.type === DIRECTIVE && prop.exp !== undefined) {
+    if (prop.type === DIRECTIVE && prop.exp !== undefined && typeof prop.exp.content === "string") {
       scanScript(path, source, prop.exp.content, prop.exp.loc.start.offset, scan);
     }
   }
 
   for (const child of node.children ?? []) {
-    scanTemplate(path, source, child, scan);
+    if (typeof child === "object") scanTemplate(path, source, child, scan);
   }
 }
 
@@ -207,7 +219,7 @@ async function scanSources(): Promise<{ paths: string[]; scan: Scan; lines: Map<
       const { descriptor } = parse(source, { filename: path });
 
       if (descriptor.template?.ast !== undefined) {
-        scanTemplate(path, source, descriptor.template.ast as unknown as TemplateNode, scan);
+        scanTemplate(path, source, descriptor.template.ast, scan);
       }
 
       for (const block of [descriptor.script, descriptor.scriptSetup]) {

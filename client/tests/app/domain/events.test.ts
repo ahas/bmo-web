@@ -777,13 +777,14 @@ function holdingStream(body: (held: WatchedStream) => void): void {
   const realClearTimeout = globalThis.clearTimeout;
   const realSetInterval = globalThis.setInterval;
   const realClearInterval = globalThis.clearInterval;
+  const globals: Record<string, unknown> = globalThis;
   const waits: number[] = [];
   const pending = new Map<number, { ms: number; handler: () => void }>();
   const running = new Map<number, () => void>();
   let nextHandle = 1;
   let state: BotStream | null = null;
 
-  globalThis.setTimeout = ((handler: () => void, ms: number) => {
+  globals.setTimeout = (handler: () => void, ms: number) => {
     const handle = nextHandle;
 
     nextHandle += 1;
@@ -791,21 +792,21 @@ function holdingStream(body: (held: WatchedStream) => void): void {
     pending.set(handle, { ms, handler });
 
     return handle;
-  }) as unknown as typeof globalThis.setTimeout;
-  globalThis.clearTimeout = ((handle: number) => {
+  };
+  globals.clearTimeout = (handle: number) => {
     pending.delete(handle);
-  }) as unknown as typeof globalThis.clearTimeout;
-  globalThis.setInterval = ((handler: () => void) => {
+  };
+  globals.setInterval = (handler: () => void) => {
     const handle = nextHandle;
 
     nextHandle += 1;
     running.set(handle, handler);
 
     return handle;
-  }) as unknown as typeof globalThis.setInterval;
-  globalThis.clearInterval = ((handle: number) => {
+  };
+  globals.clearInterval = (handle: number) => {
     running.delete(handle);
-  }) as unknown as typeof globalThis.clearInterval;
+  };
 
   const runLast = (match: (ms: number) => boolean): void => {
     const found = [...pending.entries()].filter(([, wait]) => match(wait.ms)).at(-1);

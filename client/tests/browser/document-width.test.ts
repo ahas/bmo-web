@@ -59,8 +59,9 @@ describe.skipIf(!ready)("a document at a phone's width", () => {
         `import { wording } from ${JSON.stringify(join(app, "shared/wording.ts"))};\n` +
         `import { drawDiagrams } from ${JSON.stringify(diagram)};\n` +
         "const out = document.getElementById(\"out\")!;\n" +
-        "out.innerHTML = renderMarkdown(wording, (window as unknown as { source: string }).source, \"book\");\n" +
-        "(window as unknown as { drawn: Promise<void> }).drawn = drawDiagrams(out, false);\n"
+        "const scope: Window & { source?: string } = window;\n" +
+        "out.innerHTML = renderMarkdown(wording, scope.source!, \"book\");\n" +
+        "Object.assign(window, { drawn: drawDiagrams(out, false) });\n"
     );
 
     const built = await Bun.build({ entrypoints: [entry], target: "browser", format: "esm" });
@@ -81,11 +82,15 @@ describe.skipIf(!ready)("a document at a phone's width", () => {
         '<div id="pane"><div id="out" class="markdown markdown--book" style="max-width: 48rem; margin-inline: auto"></div></div>'
     );
     await page.evaluate((source) => {
-      (window as unknown as { source: string }).source = source;
+      Object.assign(window, { source });
     }, DOCUMENT);
     await page.addScriptTag({ type: "module", content: await built.outputs[0]!.text() });
     await page.waitForFunction(() => "drawn" in window);
-    await page.evaluate(async () => (window as unknown as { drawn: Promise<void> }).drawn);
+    await page.evaluate(async () => {
+      const scope: Window & { drawn?: Promise<void> } = window;
+
+      await scope.drawn;
+    });
   }, BROWSER_HOOK_MS);
 
   afterAll(async () => {

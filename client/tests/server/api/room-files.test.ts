@@ -72,7 +72,7 @@ afterAll(() => {
   delete process.env.RECEIVER_TOKEN;
 });
 
-const globals = globalThis as unknown as Record<string, unknown>;
+const globals: Record<string, unknown> = globalThis;
 
 globals.requireReadableRoom = async () => undefined;
 globals.useAppConfig = () => ({ bmoUi: { zone: "Asia/Seoul" } });

@@ -4148,6 +4148,25 @@ Four bounds keep it from growing forever.
 - **A refused pin is said by the pack's sentence for the receiver's code,** as a notice, and the list stands as
   it was.
 
+#### 채팅 서비스
+
+- **Every room's top bar menu carries 채팅 서비스 for the owner alone,** after 고정. Which providers a room is on
+  is one setting of its registration, which the receiver keeps (its `docs/receiver.md`, 「A room's chat
+  providers」), so nobody else signed in sees it, and the console's server refuses its routes for anyone but the
+  administrator.
+- **It opens a dialog listing every provider the receiver names,** in the receiver's order, each a row with its
+  name — the receiver's own label for it — and a switch that stands on where the room is on it. A room whose list
+  was never set shows the providers it stands on now, and a line saying so.
+- **A switch saves the whole list at once:** turned on, the provider is added at the list's end; turned off, it
+  is taken out. A room is on one provider at least, so the last switch on cannot be turned off. While the list is
+  written every switch waits; a refused write is said in the dialog by the pack's sentence for the receiver's code,
+  and the switches stand as the receiver last answered.
+- **The rule the dialog states:** a room on the room's record alone — the receiver's own road, which this console
+  reads — reaches no messenger, and what is said there stands in the archive and the console; turning a messenger
+  on starts carrying every message kept from then on to it, and turning it off stops that. The rule is the
+  receiver's and turns on the list alone: the console names no provider apart from the others, in its code or in
+  what it sends.
+
 #### 방 등록 삭제
 
 - **Every room's top bar menu carries 방 등록 삭제 for the owner alone,** last, in a group of its own.

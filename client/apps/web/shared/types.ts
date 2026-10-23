@@ -2506,6 +2506,15 @@ export interface RoomRemovalPreview {
   copies: RoomRemovalCopy[];
 }
 
+// A room's chat providers as its dialog reads them (docs/web.md, the room screen's chat providers): every provider
+// the receiver names, by its key and its own label, the keys the room is on in order, and whether that list was set
+// or is the one the receiver reads off where the room stands.
+export interface RoomProvidersView {
+  providers: { key: string; label: string }[];
+  on: string[];
+  chosen: boolean;
+}
+
 // The pinned order as it stands once a room was pinned or let go: the room numbers, first to last.
 export interface PinnedRooms {
   rooms: number[];

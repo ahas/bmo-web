@@ -6,6 +6,7 @@ import { wording } from "#shared/wording";
 import { unitAt } from "./units";
 import { answered } from "./unit-answer";
 
+import type { RoomProvidersView } from "#shared/types";
 import type { components, paths } from "@bmo/receiver-client/schema";
 import type { UnitAnswerCall } from "./unit-answer";
 
@@ -95,4 +96,19 @@ export async function receiverCall<T, E extends { code?: string; error?: string;
   call: UnitAnswerCall = {}
 ): Promise<T> {
   return await answered(asked, { ...call, codes: RECEIVER_CODES });
+}
+
+/** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */
+export async function roomProviders(roomId: number): Promise<RoomProvidersView> {
+  const asking = receiver();
+  const [listed, room] = await Promise.all([
+    receiverCall(asking.GET("/providers")),
+    receiverCall(asking.GET("/rooms/{roomId}/providers", { params: { path: { roomId } } }))
+  ]);
+
+  return {
+    providers: listed.items.map((provider) => ({ key: provider.key, label: provider.label })),
+    on: room.providers,
+    chosen: room.chosen
+  };
 }

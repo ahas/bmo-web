@@ -71,6 +71,7 @@
                    the top bar」). -->
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
               <RoomCompanionTools v-if="companionsHere.length > 0" ref="companionTools" :chat-id="chatId" />
+              <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
               <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
             </template>
 
@@ -706,7 +707,10 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     // screen's pin).
     ...(administrator.value ? [pinned.value
       ? { label: t("room.action.unpin"), icon: "i-material-symbols-keep-off-outline", onSelect: () => void pin(false) }
-      : { label: t("room.action.pin"), icon: "i-material-symbols-keep-outline", onSelect: () => void pin(true) }] : [])
+      : { label: t("room.action.pin"), icon: "i-material-symbols-keep-outline", onSelect: () => void pin(true) }] : []),
+    // Which providers the room is on is a setting of its registration, the administrator's (docs/web.md, the room
+    // screen's chat providers).
+    ...(administrator.value ? [{ label: t("room.action.providers"), icon: "i-material-symbols-hub-outline", onSelect: () => { providersOpen.value = true; } }] : [])
   ],
   ...(companionsHere.value.length === 0 ? [] : [companionItems()]),
   // Removing the room's registration stands last, in a group of its own (docs/web.md, the room
@@ -726,6 +730,7 @@ async function pin(on: boolean): Promise<void> {
   }
 }
 
+const providersOpen = ref(false);
 const removalOpen = ref(false);
 // The room's registration was removed while this screen's own removal dialog stood open.
 const removed = ref(false);

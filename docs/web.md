@@ -957,8 +957,13 @@ edit to that file alone.
 - **While a deployment runs, every screen's title bar says so.** A mark stands at the head of the bar's
   right end, before the queue button and the usage figures, from the moment a deployment begins until
   a short while after it ends, and nothing stands there otherwise. It reads the testbed's progress
-  record (the testbed's `docs/deploy.md`, 「What a deployment says of itself as it runs」) at the path
-  `DEPLOY_PROGRESS_FILE` names; a console that names none stands no run.
+  record (the testbed's `docs/deploy.md`, 「What a deployment says of itself as it runs」) of every unit
+  whose deploy root `DEPLOY_ROOTS` lists, `deploy-progress.json` under each, so a deployment of any unit
+  shows; a console that lists none stands no run.
+  - **Which run stands.** A run under way stands before any that has ended, the one begun last where
+    several run at once; with none under way, the one that ended last. For the administrator the run is
+    named by its unit, the deploy root's own folder name, at the head of what the mark says after its
+    state: 「배포 중 · bmo-web · 빌드 · 2:14」; a member hears only that a run is under way (「Access」).
   - Wide, it is a spinning mark, 「배포 중」, the stage and the time since the deployment began,
     ticking each second in tabular figures. At phone width it is the spinning mark alone, its words
     in its tooltip.
@@ -990,7 +995,8 @@ edit to that file alone.
     the limit, said as what happens then — 「02:37까지 끝나지 않으면 대기를 해제합니다.」 — and the 해제
     button, which lets the hold go. A hold standing with no run behind it is shown the same way.
 - **The end stands for two minutes, then goes:** 「배포 완료」, 「배포 실패 · 롤백」, 「배포 실패」,
-  「배포 안 함」, or 「배포 중단됨」 for a run whose process went without ending its record. The record says why a
+  「배포 안 함」, or 「배포 중단됨」 for a run whose process went without ending its record, each with the
+  run's unit after it. The record says why a
   run put nothing live in the testbed's own English sentence and with no code, so the mark says the outcome
   alone. Its
   popover is the same as the run's, with the outcome at its head.

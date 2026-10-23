@@ -7,5 +7,5 @@ export default defineEventHandler(async (event): Promise<DeployView> => {
   const signed = await signedInUser(event);
   const hold = signed.administrator ? await readDeployHoldRow() : null;
 
-  return deployViewFor(readDeployReading(), hold, useRuntimeConfig().app.buildId, signed.administrator);
+  return deployViewFor(shownReading(readDeployReadings()), hold, useRuntimeConfig().app.buildId, signed.administrator);
 });

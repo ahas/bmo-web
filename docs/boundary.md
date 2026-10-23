@@ -220,7 +220,7 @@ unit carries. A browser call to one of them reaches its fixed path through the r
 | the cache siren (`docs/api.md`) | the cache siren screen: the sums it keeps by session, its siren count, its settings, and the newest events it holds | `GET /stats`, `GET /settings`, `GET /events?limit=` (read as a page, with `Accept: application/json`) |
 | the cache warmer (`docs/api.md`) | the keepalive view: the round, each agent's switch, pause and last warming, an agent being the subject of its name under the consumer `KEEPALIVE_CONSUMER` names | `GET /round`, `PATCH /round`, `GET /targets?consumerName=`, `GET /consumers/{consumer}/subjects`, `PATCH /consumers/{consumer}/subjects/{subject}` |
 | the Telegram service (`docs/api.md`) | the pictures kept for rooms and people, listed page by page, and one such picture | `GET /avatars`, `GET /rooms/{roomId}/avatar`, `GET /people/{personId}/avatar` |
-| the testbed (`docs/deploy.md`) | the deployment in the title bar | the progress record, `deploy-progress.json`, read at the path `DEPLOY_PROGRESS_FILE` names, in the shape the testbed writes it; the testbed writes it and a reader needs only the file and the run's process; the last lines of the deploy unit the record names, read from the machine's user journal with `journalctl` |
+| the testbed (`docs/deploy.md`) | the deployment in the title bar | the progress record, `deploy-progress.json`, read under each deploy root `DEPLOY_ROOTS` lists, in the shape the testbed writes it; the testbed writes it and a reader needs only the file and the run's process; the last lines of the deploy unit the record names, read from the machine's user journal with `journalctl` |
 
 - **The console's own tables** are read and written in the server's database directly, through the database
   `WEB_DATABASE_URL` names (`docs/accounts.md`, 「The tables」); no other unit's table is. The DB screen reads the
@@ -283,7 +283,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `CACHE_WARMER_ADDRESS`, `CACHE_WARMER_TOKEN` | the cache warmer, which takes its bearer on every route, health included |
 | console | `KEEPALIVE_CONSUMER` | the consumer the agency registers its targets under at the cache warmer; with none, an agent's own keepalive switch is not offered and the round's still is |
 | console | `TELEGRAM_ADDRESS`, `TELEGRAM_TOKEN` | the Telegram service |
-| console | `DEPLOY_PROGRESS_FILE` | the testbed's progress record |
+| console | `DEPLOY_ROOTS` | the deploy roots whose progress records the title bar reads, separated by `:`, each a unit's deploy root holding its `deploy-progress.json`; with none, no run stands |
 | console | `DOCUMENT_ROOTS` | the document viewer's roots: a JSON list, each root's `key`, its `label` and the absolute top of its `checkout` (`docs/documents-viewer.md`, 「The roots a deployment names」); with none, the viewer lists only the roots other units keep, unread |
 | console | `WEB_DATA_DIR` | the console's own data folder, inside no checkout |
 | console | `NUXT_SESSION_PASSWORD` | the key the console seals its session cookie with |

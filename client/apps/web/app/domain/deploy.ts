@@ -168,20 +168,25 @@ export function stageRows(run: DeployRunView, now: number): StageRow[] {
   return keyed([...passed, ...ahead], (row) => row.stage);
 }
 
+// What the mark says after the run's state: the unit whose run it is, where the reader is told it, then the rest.
+function runDetail(run: DeployRunView, ...rest: string[]): string {
+  return [run.unitName ?? "", ...rest].filter((part) => part !== "").join(" · ");
+}
+
 function endedMark(t: Translate, run: DeployRunView): DeployMark {
   if (run.phase === "cut") {
-    return { kind: "ended", tone: "error", icon: "i-material-symbols-link-off", spin: false, label: t("deploy.status.cut"), detail: stageLabel(t, currentStage(run)) };
+    return { kind: "ended", tone: "error", icon: "i-material-symbols-link-off", spin: false, label: t("deploy.status.cut"), detail: runDetail(run, stageLabel(t, currentStage(run))) };
   }
 
   switch (run.outcome) {
     case "live":
-      return { kind: "ended", tone: "success", icon: "i-material-symbols-check-circle-outline", spin: false, label: t("deploy.status.live"), detail: "" };
+      return { kind: "ended", tone: "success", icon: "i-material-symbols-check-circle-outline", spin: false, label: t("deploy.status.live"), detail: runDetail(run) };
     case "rolled-back":
-      return { kind: "ended", tone: "error", icon: "i-material-symbols-undo", spin: false, label: t("deploy.status.rolled_back"), detail: "" };
+      return { kind: "ended", tone: "error", icon: "i-material-symbols-undo", spin: false, label: t("deploy.status.rolled_back"), detail: runDetail(run) };
     case "stopped":
-      return { kind: "ended", tone: "warning", icon: "i-material-symbols-do-not-disturb-on-outline", spin: false, label: t("deploy.status.stopped"), detail: "" };
+      return { kind: "ended", tone: "warning", icon: "i-material-symbols-do-not-disturb-on-outline", spin: false, label: t("deploy.status.stopped"), detail: runDetail(run) };
     default:
-      return { kind: "ended", tone: "error", icon: "i-material-symbols-error-outline", spin: false, label: t("deploy.status.failed"), detail: stageLabel(t, currentStage(run)) };
+      return { kind: "ended", tone: "error", icon: "i-material-symbols-error-outline", spin: false, label: t("deploy.status.failed"), detail: runDetail(run, stageLabel(t, currentStage(run))) };
   }
 }
 
@@ -231,7 +236,7 @@ export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease:
     const elapsed = spanClock(t, (now - run.startedAt) / 1000);
 
     return view.detailed
-      ? { kind: "running", tone: "primary", icon: "i-material-symbols-progress-activity", spin: true, label: t("deploy.status.running"), detail: `${stageLabel(t, currentStage(run))} · ${elapsed}` }
+      ? { kind: "running", tone: "primary", icon: "i-material-symbols-progress-activity", spin: true, label: t("deploy.status.running"), detail: runDetail(run, stageLabel(t, currentStage(run)), elapsed) }
       : { kind: "running", tone: "primary", icon: "i-material-symbols-progress-activity", spin: true, label: t("deploy.status.updating"), detail: elapsed };
   }
 

@@ -1,9 +1,9 @@
 import { publishConsoleEvent } from "../utils/console-events";
-import { processAlive, readDeployReading } from "../utils/deploy";
+import { processAlive, readDeployReadings } from "../utils/deploy";
 
-// The console's word that the deployment moved (docs/web.md, 「Deployment in the title bar」). The progress record
-// is looked at every second — its last write, and whether the run that began it still runs — and every open tab's
-// stream is told `deploy` when either changed; the tab reads the deployment again itself, so the word carries
+// The console's word that a deployment moved (docs/web.md, 「Deployment in the title bar」). Every listed unit's
+// progress record is looked at every second — its last write, and whether the run that began it still runs — and
+// every open tab's stream is told `deploy` when any changed; the tab reads the deployment again itself, so the word carries
 // nothing. Nothing here goes through a unit, so the word goes on while the units restart under the deployment.
 const LOOK_MS = 1_000;
 
@@ -11,8 +11,9 @@ export default defineNitroPlugin((nitro) => {
   let seen: string | null = null;
 
   const look = (): void => {
-    const { record, writtenAt } = readDeployReading();
-    const now = record === null ? "none" : `${writtenAt}:${record.ending === null && processAlive(record.pid)}`;
+    const now = readDeployReadings()
+      .map(({ unitName, record, writtenAt }) => (record === null ? `${unitName}:none` : `${unitName}:${writtenAt}:${record.ending === null && processAlive(record.pid)}`))
+      .join("|");
 
     if (seen !== null && now !== seen) publishConsoleEvent("deploy", {});
 

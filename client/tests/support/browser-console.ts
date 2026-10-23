@@ -361,7 +361,7 @@ try {
     NUXT_PUBLIC_CHAT_AGENT_NAME: "agent-a",
     NUXT_PUBLIC_CHAT_AGENT_LABEL: "Agent A",
     KEEPALIVE_CONSUMER: "console",
-    DEPLOY_PROGRESS_FILE: join(scratch, "deploy-progress.json"),
+    DEPLOY_ROOTS: scratch,
     // A build folder of its own inside the checkout, so a typecheck beside it leaves what it serves alone and its
     // generated modules still resolve the console's packages.
     BMO_WEB_BUILD_DIR: ".nuxt-browser-tests",

@@ -355,7 +355,7 @@ How the ops screens stand here:
 - **The cache siren screen** reads the siren's `GET /stats` and `GET /events` at `CACHE_SIREN_ADDRESS`. The sessions
   each agent held and the moves of a cache prefix stood in the old archive and are the agency's now, served by no
   route, so a request is named only by the siren's row or a runner's directory and carries no cause.
-- **The deployment mark** reads the testbed's progress record at `DEPLOY_PROGRESS_FILE`, in the shape the testbed
+- **The deployment mark** reads the testbed's progress record of every deploy root `DEPLOY_ROOTS` lists, in the shape the testbed
   writes it (`shared/deploy-progress.ts`, written new for the record's stages, steps and ending), and the deployment's
   hold from bmo-job's `GET /queue/holds`. The old record's items and its reasons' codes are not the testbed's, so a
   run's popover lists no items and a stopped run says its outcome alone.

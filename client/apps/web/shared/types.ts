@@ -2814,6 +2814,8 @@ export interface DbRowDetail {
 // progress record. A run whose process went without ending its record is cut off, and its end is the record's
 // last write.
 export interface DeployRunView {
+  /** The unit whose run it is, by its deploy root's folder name; none for a reader not told it. */
+  unitName: string | null;
   phase: "running" | "ended" | "cut";
   startedAt: number;
   endedAt: number | null;

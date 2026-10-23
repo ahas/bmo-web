@@ -21,6 +21,7 @@ const CLOCK = wording("common.label.minutes_seconds", { m: "12", s: "34" });
 
 function run(over: Partial<DeployRunView> = {}): DeployRunView {
   return {
+    unitName: null,
     phase: "running",
     startedAt: NOW - 754_000,
     endedAt: null,
@@ -48,6 +49,12 @@ describe("the deployment mark", () => {
   test("names the stage and the time since the run began, and only that it updates to a member", () => {
     expect(deployMarkOf(wording, view({ run: run() }), RELEASE, NOW)).toMatchObject({ kind: "running", spin: true, label: wording("deploy.status.running"), detail: `${wording("deploy.label.stage_build")} · ${CLOCK}` });
     expect(deployMarkOf(wording, view({ run: run({ stages: [] }), detailed: false }), RELEASE, NOW)).toMatchObject({ kind: "running", label: wording("deploy.status.updating"), detail: CLOCK });
+  });
+
+  test("names the unit whose run it is ahead of the rest, under way and ended alike", () => {
+    expect(deployMarkOf(wording, view({ run: run({ unitName: "unit-a" }) }), RELEASE, NOW)?.detail).toBe(`unit-a · ${wording("deploy.label.stage_build")} · ${CLOCK}`);
+    expect(deployMarkOf(wording, view({ run: run({ unitName: "unit-a", phase: "ended", outcome: "live", endedAt: NOW - 1_000 }) }), RELEASE, NOW)?.detail).toBe("unit-a");
+    expect(deployMarkOf(wording, view({ run: run({ unitName: "unit-a", phase: "cut", endedAt: NOW - 1_000 }) }), RELEASE, NOW)?.detail).toBe(`unit-a · ${wording("deploy.label.stage_build")}`);
   });
 
   test("a hold with no run under way stands as the hold, named by the items it goes up after, and a run under way stands before it", () => {

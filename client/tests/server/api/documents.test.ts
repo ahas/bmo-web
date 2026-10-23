@@ -7,11 +7,13 @@ import { scratchDir } from "../../support/scratch";
 import { answer, standIn } from "../../support/units";
 import { scratchWebDatabase } from "../../support/web-database";
 
-import type { DocumentFragmentView, DocumentList, DocumentSeekResult, DocumentTalk, DocumentView } from "../../../apps/web/shared/types";
+import type { DocumentFragmentView, DocumentList, DocumentSeekResult, DocumentTalk, DocumentTranslation, DocumentView } from "../../../apps/web/shared/types";
 
 // The document viewer's routes over a checkout of the test's own, a stood-in brain for the fragments and a
 // stood-in receiver for the talk. What is pinned here is that the list holds the checkout's documents and stands
-// the other units' roots unread, that a question is answered from the text, that a translation is unavailable,
+// the other units' roots unread, that a question is answered from the text, that a translation is the stood-in
+// translator's — the parts it kept, each failed part's sentence, and the parts handed to it — and unavailable where no
+// translator is named,
 // that the fragment switch writes the brain's row, and that a turn of the talk writes the owner's words at once,
 // the chat agent's answer when the receiver's talk comes back, and why it came back with nothing where it did.
 
@@ -52,6 +54,20 @@ function fragmentOf(state: string): Record<string, unknown> {
     libraryName: null
   };
 }
+
+// The translator: the first part of every version it is asked of kept as failed, with the sentence it said.
+const translator = standIn("GATE", (one) => {
+  const path = one.path.split("?")[0]!;
+
+  if (path === "/documents/translations/parts") {
+    return answer({ items: [{ part: 0, text: null, failed: true, failure: "The answer dropped a heading." }], more: false });
+  }
+
+  if (path === "/documents/translations/state") return answer({ pending: 0, failure: null });
+  if (path === "/documents/translations" && one.method === "POST") return answer({ taken: (one.body?.wanted as unknown[]).length }, 202);
+
+  return answer({ code: "no-route", error: "Not served here." }, 404);
+});
 
 const brain = standIn("BRAIN", (one) => {
   const path = one.path.split("?")[0]!;
@@ -124,7 +140,7 @@ describe("the list", () => {
     ]);
     expect(read.roots[0]).toMatchObject({ key: "first", label: "First", available: true });
     expect(read.roots.slice(1).every((root) => !root.available)).toBe(true);
-    expect(read.translation).toBe(false);
+    expect(read.translation).toBe(true);
   });
 });
 
@@ -141,9 +157,42 @@ describe("a document", () => {
     expect(await asked(seek, { body: { question: " " } })).toMatchObject({ status: 400, message: wording("documents.error.seek_empty") });
   });
 
-  test("has no translation, the translator being served by no route", async () => {
-    expect(await asked(translation, { query: deploy })).toMatchObject({ status: 503, message: wording("documents.error.translation_unavailable") });
-    expect(await asked(translate, { body: deploy })).toMatchObject({ status: 503 });
+  test("is read in translation as the translator keeps it, a failed part with the sentence it said", async () => {
+    const read = (await translation({ query: deploy })) as DocumentTranslation;
+
+    expect(read.version).toMatch(/^[0-9a-f]{64}$/);
+    expect(read.parts[0]).toMatchObject({ part: 0, text: null, failed: true, failure: "The answer dropped a heading." });
+    expect(read.parts.slice(1).every((part) => !part.failed && part.failure === null && part.text === null)).toBe(true);
+    expect(read).toMatchObject({ pending: 0, failure: null });
+
+    const asking = translator.asked.findLast((one) => one.path.startsWith("/documents/translations/parts"))!.path;
+
+    expect(asking).toContain("document=first%2Fdocs%2Fdeploy.md");
+  });
+
+  test("hands the translator the parts it keeps none of, and the failed ones too where asked again", async () => {
+    const parts = ((await translation({ query: deploy })) as DocumentTranslation).parts.length;
+    const first = (await translate({ body: deploy })) as { taken: number };
+    const again = (await translate({ body: { ...deploy, retry: true } })) as { taken: number };
+    const handed = translator.asked.filter((one) => one.method === "POST").map((one) => (one.body?.wanted as { part: number }[]).map((part) => part.part));
+
+    expect(first.taken).toBe(parts - 1);
+    expect(again.taken).toBe(parts);
+    expect(handed.at(-1)).toContain(0);
+  });
+
+  test("has no translation where no translator is named", async () => {
+    const named = process.env.GATE_ADDRESS;
+
+    delete process.env.GATE_ADDRESS;
+
+    try {
+      expect(await asked(translation, { query: deploy })).toMatchObject({ status: 503, message: wording("documents.error.translation_unavailable") });
+      expect(await asked(translate, { body: deploy })).toMatchObject({ status: 503 });
+      expect((await list({})).translation).toBe(false);
+    } finally {
+      process.env.GATE_ADDRESS = named;
+    }
   });
 
   test("that is a fragment is switched on the brain's row, and one that is none has no switch", async () => {

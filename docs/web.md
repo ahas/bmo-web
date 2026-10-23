@@ -2065,13 +2065,15 @@ Two ways, split because the running places differ.
   the whole document. It stands at the side on a wide screen and rises from the bottom on a phone, and back
   closes it.
 - **Translation.** The translation toggle — named by the target language on a wide screen, 번역 on a phone — stands
-  dimmed while no unit serves the viewer a translation, with a tooltip saying so, and an address asking for the
-  translated reading opens the original. Where a translator is served, it shows
+  dimmed while the console names no translator (`docs/documents-viewer.md`, 「Asking to be taken somewhere, and
+  reading a translation」), with a tooltip saying so, and an address asking for the translated reading opens the
+  original. Where a translator is served, it shows
   the text carried into the language that is not the original's. The carried parts are kept per version of the
   document, so a version already carried stands at once with no request and without the translator, and a document
   changed on disk is a new version and is carried again. Otherwise the carried parts fill in one by one with a
   waiting mark on the original above the not-yet ones, and the toolbar counts them as `n/m p%`. Parts that could
-  not be carried are counted as 번역 실패 in a band above the body with a re-request button, and if the translator
+  not be carried are counted as 번역 실패 in a band above the body with a re-request button, and beside the count
+  stands what the translator said of them — each different sentence once, in its own words — and if the translator
   did not answer, its reason, its road and a re-request button stand there. In the translation view too the contents,
   two-box sync, search and passage-asking all work. Asking with a passage chosen in the translation carries
   that the passage is a translation.

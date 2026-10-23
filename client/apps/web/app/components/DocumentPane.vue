@@ -135,6 +135,9 @@
           </div>
           <div v-if="failedParts > 0" role="status" class="flex flex-wrap items-center gap-2 text-warning">
             <span class="tabular-nums">{{ $t("documents.status.translation_failed_parts", { n: countText(failedParts) }) }}</span>
+            <!-- What the translator said of the parts it could not carry, each different sentence once, in its own
+                 words. -->
+            <span v-for="said in failureSentences" :key="said" class="min-w-0 break-words text-muted">{{ said }}</span>
             <UButton class="ms-auto" size="sm" color="neutral" variant="subtle" :label="$t('documents.action.retry_translation')" :loading="props.asking" @click="emit('translate', true)" />
           </div>
         </template>
@@ -308,6 +311,7 @@ const trouble = computed(
 
 const waitingParts = computed(() => (props.translation?.parts ?? []).filter((part) => part.text === null && !part.failed).length);
 const failedParts = computed(() => (props.translation?.parts ?? []).filter((part) => part.failed).length);
+const failureSentences = computed(() => [...new Set((props.translation?.parts ?? []).flatMap((part) => (part.failed && part.failure !== null && part.failure !== "" ? [part.failure] : [])))]);
 
 const failureLine = computed(() => translationFailureLine(props.translation?.failure));
 

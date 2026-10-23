@@ -48,6 +48,12 @@ describe("the page", () => {
     expect(pane).toContain('icon="i-material-symbols-progress-activity"');
   });
 
+  test("says beside the failed parts' count what the translator said of them, each sentence once", () => {
+    expect(pane).toContain('v-for="said in failureSentences"');
+    expect(pane).toContain("new Set(");
+    expect(pane).toContain("part.failure");
+  });
+
   test("offers the translation only where a translator is served, and says why it is not", () => {
     expect(page).toContain('route.query.lang === "translated" && list.value?.translation === true');
     expect(pane).toContain(':disabled="!props.translatable"');

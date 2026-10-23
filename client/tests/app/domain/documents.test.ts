@@ -221,9 +221,9 @@ describe("the heading being read", () => {
 describe("a translation still arriving", () => {
   test("shows the parts done, the originals of the rest, and knows which lines are which", () => {
     const composed = composeTranslation([
-      { part: 0, source: KO.line_223, text: "# One\n\nText", failed: false },
-      { part: 1, source: KO.line_224, text: null, failed: false },
-      { part: 2, source: KO.line_225, text: null, failed: true }
+      { part: 0, source: KO.line_223, text: "# One\n\nText", failed: false, failure: null },
+      { part: 1, source: KO.line_224, text: null, failed: false, failure: null },
+      { part: 2, source: KO.line_225, text: null, failed: true, failure: null }
     ]);
 
     expect(composed.text).toBe(KO.line_228);

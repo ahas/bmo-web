@@ -194,9 +194,18 @@ document is shown beside it, since the row is the original there and the file tr
 ## Asking to be taken somewhere, and reading a translation
 
 The seek gate, which takes a question to the place in the documents that answers it, and the translator, which
-renders a document into the other language, are the gate unit's. That unit is not yet split, so the viewer's
-question box searches the documents' text alone, and its translation toggle stands as unavailable (`docs/boundary.md`,
-「Screens of units not yet split」).
+renders a document into the other language, are the gate unit's. The viewer's question box searches the documents'
+text alone, since the console does not call the seek gate (`docs/boundary.md`, 「Screens of units not yet split」).
+The translator is called (`docs/boundary.md`, 「Calls the console makes」):
+
+- **A document's version is cut into parts** by the console, each of a size the translator takes, and the version
+  the parts are kept under is the document's own version and that size hashed together, so parts cut at another
+  size are never read against these.
+- **The parts with no translation are handed to the translator,** and with a re-request the failed ones too; it
+  keeps each part as it comes back, or as failed with a sentence saying what its last answer lost.
+- **The view reads every part it has kept for the version,** and where it stands on the rest — how many it still
+  holds and why it last failed, if it did. Its event that a document's translation moved reaches every open tab
+  as the console's own word, and the viewer reads the translation again.
 
 - **Asked of one document,** a question goes to the section holding most of its words, the heading that opens
   it, or the document's top where the lines before its first heading hold most.

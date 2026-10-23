@@ -51,7 +51,7 @@ function standing(parts: Array<string | null>, extra: Partial<WorkTextTranslatio
     version: "a".repeat(64),
     language: "en",
     target: "ko",
-    parts: parts.map((text, part) => ({ part, source: "Trace the screens", text, failed: false })),
+    parts: parts.map((text, part) => ({ part, source: "Trace the screens", text, failed: false, failure: null })),
     pending: 0,
     failure: null,
     ...extra

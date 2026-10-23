@@ -2276,12 +2276,14 @@ export interface DeployHoldReleased {
 export type DocumentLanguage = "ko" | "en";
 
 // One part of a document as its translation stands: the original text of the part, and the
-// translation where there is one, or the mark that it could not be translated.
+// translation where there is one, or the mark that it could not be translated with the translator's
+// sentence saying why, where it said one.
 export interface DocumentTranslationPart {
   part: number;
   source: string;
   text: string | null;
   failed: boolean;
+  failure: string | null;
 }
 
 export interface DocumentTranslationFailure {

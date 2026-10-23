@@ -123,9 +123,10 @@ async function unreadAfter(chatId: number, mark: Mark, own: ReadonlySet<number>)
 export async function unreadCounts(signed: SignedIn, own: readonly number[], rooms: readonly RoomLast[], now: number): Promise<Map<number, Unread>> {
   const marks = await marksOf(signed);
   const ours = new Set(own);
-  const counts = new Map<number, Unread>();
 
-  for (const { chatId, lastMessageAt } of rooms) {
+  // The rooms are read side by side, each with at most one read of the receiver: its newest message where the
+  // account first meets it, or what stands past its place where its last word is newer than that place.
+  const read = await Promise.all(rooms.map(async ({ chatId, lastMessageAt }): Promise<[number, Unread]> => {
     let mark = marks.get(chatId);
 
     if (mark === undefined) {
@@ -135,16 +136,18 @@ export async function unreadCounts(signed: SignedIn, own: readonly number[], roo
       await writeMark(signed, chatId, mark, now);
     }
 
-    // A room whose last word is older than the place read to has nothing past it, and is not walked.
-    counts.set(
-      chatId,
-      lastMessageAt === null || lastMessageAt < mark.sentAt
-        ? { count: 0, first: null, from: placeOf(mark.sentAt) }
-        : await unreadAfter(chatId, mark, ours).catch(() => ({ count: 0, first: null, from: placeOf(mark.sentAt) }))
-    );
-  }
+    const held = mark;
 
-  return counts;
+    // A room whose last word is older than the place read to has nothing past it, and is not walked.
+    return [
+      chatId,
+      lastMessageAt === null || lastMessageAt < held.sentAt
+        ? { count: 0, first: null, from: placeOf(held.sentAt) }
+        : await unreadAfter(chatId, held, ours).catch(() => ({ count: 0, first: null, from: placeOf(held.sentAt) }))
+    ];
+  }));
+
+  return new Map(read);
 }
 
 /**

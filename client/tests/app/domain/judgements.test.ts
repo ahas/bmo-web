@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { instructionParts, judgedNow, judgementText, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
+import { endsJudging, instructionParts, judgedNow, judgementText, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
 
 import type { GateOfferRecord, Judgement, LiveRun, RoundOpening } from "../../../apps/web/shared/types";
 import { WORKER } from "../../support/ids";
@@ -44,6 +44,12 @@ describe("judgementText", () => {
     expect(verdictTone("failed-hold-release-by-bmo, job-failure-report")).toBe("neutral");
     expect(verdictTone("FAILED-HOLD-RELEASE-BY-AGENT")).toBe("neutral");
     expect(verdictTone("passage-notes")).toBe("neutral");
+    // What went out or came out clean passed; a send that failed failed; a skip or a defuse did neither.
+    expect(verdictTone("SENT")).toBe("success");
+    expect(verdictTone("CLEAN")).toBe("success");
+    expect(verdictTone("FAILED")).toBe("error");
+    expect(verdictTone("SKIP: no candidates")).toBe("neutral");
+    expect(verdictTone("DEFUSE")).toBe("neutral");
     expect(verdictTone(KO.line_46)).toBe("neutral");
   });
 });
@@ -114,6 +120,35 @@ describe("which messages are being judged", () => {
 
   test("a companion's turn and a turn whose start the screen did not see name none", () => {
     expect([...judgedNow(5, [], [], [{ messageId: 21, speaker: { id: 3, name: KO.line_115 } }, { messageId: null }])]).toEqual([]);
+  });
+
+  // A verdict that ends a stage's work is final: a message holding one written since its judging began is judged no
+  // longer, whatever the queue or the turns still say; one written before it, or a verdict that ends nothing, leaves
+  // it judged.
+  test("a final verdict written since the judging began ends it", () => {
+    const verdict = (messageId: number, verdict: string, createdAt: number): Judgement =>
+      ({ id: createdAt, chatId: 5, messageId, stage: "people-search", verdict, detail: null, createdAt }) as Judgement;
+    const queued = [{ chatId: 5, messageId: 31, since: 100 }, { chatId: 5, messageId: 32, since: 100 }, { chatId: 5, messageId: 33, since: 100 }];
+    const turns = [{ messageId: 34, startedAt: 100 }, { messageId: 35 }];
+    const held = new Map<number, Judgement[]>([
+      [31, [verdict(31, "SKIP: no candidates", 120)]],
+      [32, [verdict(32, "CLEAN", 90)]],
+      [33, [verdict(33, "room-founding, owner-habits", 130)]],
+      [34, [verdict(34, "SENT", 150)]],
+      [35, [verdict(35, "REPLY", 150)]]
+    ]);
+
+    expect([...judgedNow(5, [], queued, turns, held)]).toEqual([32, 33, 35]);
+  });
+
+  test("the words that end a stage's work stand whole", () => {
+    for (const word of ["SKIP", "SKIP: no candidates", "CLEAN", "DEFUSE: 2 spans", "REPLY", "SENT", "PASS", "FAIL", "FAILED"]) {
+      expect(endsJudging(word)).toBe(true);
+    }
+
+    for (const word of ["none", "room-founding", "SKIPPED-SOMETHING", "Clean words", ""]) {
+      expect(endsJudging(word)).toBe(false);
+    }
   });
 });
 

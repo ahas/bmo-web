@@ -7,7 +7,7 @@ import { wording } from "../../../apps/web/shared/wording";
 const OWNER_ROOM_TITLE = "Owner room";
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { GENERIC_TOOL_ICON } from "../../../apps/web/app/domain/log";
-import { actionLook, listeningLines, outcomeLine, phaseLook, receivedLine, roomRuns, runSummary, subjectOf, turnActions, turnName } from "../../../apps/web/app/domain/working";
+import { actionLook, listeningLines, windowClockLines, outcomeLine, phaseLook, receivedLine, roomRuns, runSummary, subjectOf, turnActions, turnName } from "../../../apps/web/app/domain/working";
 
 import type { AgentLogLine, AgentSummary, LiveRun, RoomSummary, RunProgress, TurnAction, WatchView } from "../../../apps/web/shared/types";
 import type { RoomRunLine } from "../../../apps/web/app/domain/working";
@@ -93,6 +93,17 @@ describe("what the room says the answering agent is doing", () => {
     expect(listeningLines(wording, "Bob", 161).state).toContain("Bob");
     expect(listeningLines(wording, "Bob", -2).left.figures.time).toEqual({ value: 0, text: "0:00" });
     expect(wording("room.status.listening_left", { time: "2:41" })).toContain("2:41");
+  });
+
+  // The top bar says the same window's time left while it is open: that the chat agent listens, and the time
+  // left as a timer reads it, never below nought.
+  test("the top bar's clock says who listens and how long is left", () => {
+    expect(windowClockLines(wording, "Bob", 161)).toEqual({
+      state: wording("room.status.agent_listening", { subject: subjectOf("Bob") }),
+      left: { keypath: "room.status.window_left", figures: { time: { value: 161, text: "2:41" } } }
+    });
+    expect(windowClockLines(wording, "Bob", -5).left.figures.time).toEqual({ value: 0, text: "0:00" });
+    expect(wording("room.status.window_left", { time: "2:41" })).toContain("2:41");
   });
 
   test("thinking, writing and working a tool read differently", () => {

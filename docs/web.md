@@ -185,6 +185,13 @@ alone over Nuxt and Nuxt UI, extending the bmo-ui layer and the bmo-artifact con
     tall one stands clear of the bars at the top and the foot alike.
   - Both are set once in the component configuration, never per sheet: a sheet written later stands
     clear without being told.
+  - The room's input bar stands at the foot of the shell, which stands by what is visible (above), so a
+    keyboard coming up or the address bar going re-places it with the shell rather than covering it.
+    While nothing overlays the window the bar adds the bottom inset under its own padding, so its box
+    stands above the gesture bar and its ground runs on under it; while a keyboard overlays the window
+    it adds none, since the keyboard stands where the gesture bar was. The room keeps the bar's height,
+    the inset with it, as its room at the foot, so the last message, the photo held at the foot and the
+    way down stand clear of the gesture bar too.
 - **What retreats when room is short is fixed.** A room's foot is a compressible column, and when
   compressed the question-card stack folds first — the stack grows only to 4/10 of the visible height and
   flows within itself above that. The input box retreats in no case. Even with a job asking several at
@@ -293,8 +300,8 @@ alone over Nuxt and Nuxt UI, extending the bmo-ui layer and the bmo-artifact con
   moving.
 - **A room opened or switched to stands at its opening place from its first frame** (「Room screen」).
   Its skeleton stands while it is fetched, and the conversation replaces it at once, already at its
-  end or at the message it opens at. It is never drawn at one place and then jumped or glided to
-  another.
+  end or at the message it opens at, with the day marks heading its rows. It is never drawn at one
+  place and then jumped or glided to another, and no day mark stands before the rows it heads.
 - **Which tool moves what.** A list is Vue's own `TransitionGroup`, through `MovingList`. A tab's
   panel is Vue's own `Transition` of one keyed element, through `TabSlide`. One element
   becoming another on the same page — a sent message flying from the input box to its place — is
@@ -2909,8 +2916,9 @@ Four bounds keep it from growing forever.
   where a day begins, are read from the receiver's console routes, and the owner's words and files go out through
   its sends (`docs/boundary.md`, 「Calls the console makes」). A message that carries files is read again for them
   and for the metadata it arrived with; a photo, a file's bytes, the room's pictures, its figures and the chat
-  agent's window come from the receiver's routes for each. What no unit serves the console stands empty — the
-  verdicts, a round's figures and actions, a line's voice briefing and a link's preview — and the sections below
+  agent's window come from the receiver's routes for each; the verdicts a message was judged by come from the
+  gate, and what a round spent and did from the agency. What no unit serves the console stands empty — what
+  opened a turn beside its verdicts, a line's voice briefing and a link's preview — and the sections below
   that draw them stand empty with them (`docs/boundary.md`, 「Gaps the console meets」).
 - Conversation piles up as a chat screen. The right is the owner's own side and nobody else's: what they
   themselves sent stands there, and every other voice — the chat agent, another person in a group, a notice — stands on
@@ -3138,13 +3146,22 @@ Four bounds keep it from growing forever.
   down to it. A room read to its end, one whose first unread message is already in view at its end,
   and one whose count the screen does not know yet open at the end. Nothing is marked read until the
   room has taken its opening place (「Sidebar」, 「Unread messages」).
-- **Where a room opens is settled before it is drawn** (「Motion」). A room opened at a message — its
-  first unread one, or one its address names — reads the stretch around that message as its first
-  read, the way a message far back is read, and never the end first; the end is read first only for
-  a room that opens there. The rows are then scrolled to the opening place in the same moment they
-  are laid out, so the room's skeleton gives way to the conversation already standing where it
-  opens, and nothing is seen scrolling. A message the stretch cannot be read around opens the room
-  at its end.
+- **Where a room opens is settled before it is drawn** (「Motion」). A room its address opens at a
+  message reads the stretch around that message as its first read, the way a message far back is
+  read, and never the end first. Any other room asks for its end at once, beside the room list that
+  carries the reader's read mark, and neither read waits for the other to begin; once both have
+  answered, the room opens at its first unread message within the end's page where that page holds
+  it, reads the stretch around it where the page does not — the end's answer is then let go without
+  being drawn — and opens at its end where nothing is unread. While the skeleton stands nothing of
+  either answer is drawn. The rows are laid out and scrolled to the opening place while the
+  conversation is unseen, and only then shown, so the room's skeleton gives way to the conversation
+  already standing where it opens, and nothing is seen scrolling. A message the stretch cannot be
+  read around opens the room at its end.
+  - **The first frame shown is the whole conversation.** The rows, the day marks heading them and
+    the words an answer wrote in markdown are shown in one frame: the day marks are drawn from the
+    same rows in the same update, never before them and never after them, and the markdown renderer
+    is in the browser before the rows are first laid out, so no answer is laid out as its plain text
+    first and again under the reader once the conversation stands.
 - **The room is one screen for as long as its room stays the same.** Only the room in the address
   makes it another screen. The rest of the address belongs to what stands around the room: an item
   opened or closed on the TODO panel (`?todo=`), whether from the panel, the deploy mark, a job's
@@ -3470,9 +3487,18 @@ Four bounds keep it from growing forever.
     - A companion's turn writes its verdict on its own answer, so the message it read is not being judged.
     - A reader who asked for less movement sees the mark stand still, dimmed to half its colour, for as long as
       it would beat.
+    - **A verdict that ends a stage's work is final.** A message holding a verdict written since its judging
+      began that opens with an ending word — `SKIP`, `CLEAN`, `DEFUSE`, `REPLY`, `SENT`, `PASS`, `FAIL` or
+      `FAILED` — is judged no longer, whatever the queue or the turns in the receiver's picture still say of it:
+      a round the gate ended at a skip takes no turn, and a picture still holding the message queued or its turn
+      going would otherwise beat the mark until something else moved it. The beat stands again only for judging
+      that begins after that verdict.
+    - The live runs of the gates are served by no unit (`docs/boundary.md`, 「Gaps the console meets」), so a
+      picture naming none leaves the beat to the queue and the turns.
   - **Once judging is over the mark takes the colour of the whole**: the bubble's green mark ink where at least
-    one verdict passed or answered and none failed (판정 통과), its red mark ink where any failed (판정 실패),
-    and the chip's own grey where none of them did either — a skip, a pick, a `none`, 함께 읽음 (판정). The two
+    one verdict passed, answered, went out or came out clean — `PASS`, `REPLY`, `SENT`, `CLEAN` — and none failed
+    (판정 통과), its red mark ink where any failed — `FAIL`, `FAILED` — (판정 실패), and the chip's own grey where
+    none of them did either — a skip, a defuse, a pick, a `none`, 함께 읽음 (판정). The two
     marks are the inks 「The conversation's measures」 gives a mark inside a bubble: the green vivid at its full
     strength, each reading at 3:1 or better on the bubble and on the open chip's wash, the owner's and everyone
     else's alike. The change of colour takes the quick length.
@@ -3514,10 +3540,26 @@ Four bounds keep it from growing forever.
     carries one verdict of its own, 함께 읽음, naming that last message. A message a turn read and passed over
     in its answer then never looks like one no turn read: a message with no verdict at all is one that woke
     nobody.
+  - **A verdict the gate holds under no message stands under the message its round answered with.** The gate
+    puts a round's verdicts under the answering message once the answer is sent (the gate's `docs/api.md`,
+    「Judgements」); a verdict the gate still holds under none, whose round names a message the page carries,
+    stands under that message as it would have. One that names no round, or a round no message of the page
+    answered, stands under nothing.
   - **A verdict stands only under a message it could have been about.** One recorded more than ten minutes
     before the message was sent was left by an earlier message that held the same number before the record
     lost it, and the message does not carry it. Ten minutes is wider than any run between judging an answer
     and sending it.
+  - **A page carries the verdicts of the time it covers.** Each page of the room — its end, a page further
+    back, the stretch around a message, a single message — reads the gate's verdicts of the room written from
+    ten minutes before its first message was sent, to an hour past its last message's sending for a page short of
+    the end — a turn's verdicts are written while it goes on, after the message it read — and to now for the end,
+    and keeps those that stand under one of its messages; a stretch with more verdicts than
+    one of the gate's pages holds is read page after page. A gate that does not answer leaves the page without
+    verdicts rather than unread, since the room is the receiver's. The gate states its times in epoch
+    milliseconds, and the console reads them as unix seconds, as it reads the receiver's.
+  - **Verdicts arrive with the room's reads.** No unit's stream says a verdict was written, so a message's
+    verdicts arrive with the read that follows a turn's ending and with every other read of the room; a
+    verdict a stream does announce stands until the read carrying it arrives.
 - **읽은 문서 · 툴 사용** — an agent's answer, the chat agent's or a companion's, carries what its own turn did as two chips, each a count: the documents
   put in front of the turn and the stretches of the room it read back, and the calls it made. A reference
   document that went as an already-loaded mark is not counted, since nothing of it was read on that turn;
@@ -3887,7 +3929,7 @@ Four bounds keep it from growing forever.
     where its own has none; a room it cannot tell stands as the owner's chat does.
   - **It is read from the archive.** The bot writes the ending down as a judgement of the stage `skipped` on the
     message the turn read, so a reload, another device or a page read back from the room's past stands the same
-    line; the live stream carries the same judgement, so the line stands the moment the turn ends.
+    line; the read that follows the turn's ending carries it, so the line stands as the turn's answer would.
   - **It is a faint centred line, not a message.** It wears the same muted look as the date mark and the passing
     reason, carries no photo and no bubble, and is not a row of the conversation: choosing, copying, replying and
     arrow movement do not reach it. Its judgement still rides on the message it stands under, so copying that
@@ -3964,6 +4006,14 @@ Four bounds keep it from growing forever.
     closes and never on a guess of the screen's. The countdown only reads that answer down between reads and
     never closes anything itself.
   - The owner's own chat stands no listening row: every message there reaches the chat agent with no window at all.
+- **The window's time left stands in the top bar.** While the chat agent's window in a group room is open, the
+  room's top bar carries how long it has left, beside the room's name and its menu, whether a turn is running or
+  the listening row stands, so how long the conversation still has is read without going to the room's end. It is
+  a listening mark and the time left as a timer reads it, counting down by the second in tabular figures that turn
+  as every changing number does, and its tooltip and the name a screen reader hears say that the chat agent
+  listens. It counts down from the same answer the listening row counts from and is read on the same occasions
+  (above); it goes once the time it counts reaches nought, and stands nowhere while the window is shut, so the
+  owner's own chat never carries it.
 - **그 턴이 한 일** — spread from the meta line, inside the bubble, stand the things the turn has done, oldest first, one line each, as
   two lists: the documents put in front of it and the stretch of the room it read back, and every tool it has
   called. They wear the same badges the agent's own log wears — 방 문맥, 기억, 인물북, 참조 문서, 룰, 지식,
@@ -5219,6 +5269,10 @@ dialog open at 계정.
   colours in the console's dark ground, the colour the page's own theme colour gives the chrome, so the splash an
   installed app opens on is the icon's mint shape on the console's ground, with no wash of mint around it. The icons
   carry 192 and 512, and a maskable version Android cuts to its own shape, which is the one the splash shows.
+- **An installed app is drawn edge to edge, under the phone's own bars.** What stands at the foot of a screen — a
+  sheet, a dialog, the room's input bar — keeps clear of the gesture bar, and what stands at the foot while the
+  keyboard is up stands above the keys, as 「Layout fundamentals」 says of what floats over the screen and of the
+  vertical.
 - **An installed app keeps the icon it was installed with until its browser takes the new one.** On Android, Chrome
   bakes the manifest's icons and colours into the app it installs. It looks at the manifest again as the app is
   opened, at most once a day, and on finding them changed asks for a rebuilt app only once every window of the app is

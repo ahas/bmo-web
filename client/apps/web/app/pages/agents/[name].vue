@@ -351,7 +351,7 @@ async function follow(): Promise<void> {
 // the one the bot's events carry.
 useBotEvents((event) => {
   if (event.type === "live" && event.live !== undefined) {
-    live.value = event.live.runs;
+    live.value = event.live.runs ?? [];
   }
 });
 

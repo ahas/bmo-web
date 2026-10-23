@@ -251,7 +251,7 @@ function runsOf(name: string): string {
 }
 
 useLivePicture((picture) => {
-  live.value = picture.runs;
+  live.value = picture.runs ?? [];
   // A bot that does not yet say what it is folding says nothing about it, and nothing is what the
   // rows then show.
   compacting.value = picture.compacting ?? [];

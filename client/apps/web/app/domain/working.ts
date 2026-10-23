@@ -123,6 +123,23 @@ export function listeningLines(t: Translate, name: string, secondsLeft: number):
   };
 }
 
+// What the room's top bar says of the window while it is open: that the chat agent listens, as its tooltip
+// and its name to a screen reader, and the time left as a timer reads it, which turns as it ticks down
+// (docs/web.md, 「The window's time left stands in the top bar」).
+export interface WindowClockLines {
+  state: string;
+  left: { keypath: string; figures: Record<string, { value: number; text: string }> };
+}
+
+export function windowClockLines(t: Translate, name: string, secondsLeft: number): WindowClockLines {
+  const left = Math.max(0, secondsLeft);
+
+  return {
+    state: t("room.status.agent_listening", { subject: subjectOf(name) }),
+    left: { keypath: "room.status.window_left", figures: { time: { value: left, text: timerClock(left) } } }
+  };
+}
+
 // Why a turn left no answer, naming the agent whose turn it was by the name its running row wore.
 export function outcomeLine(t: Translate, outcome: RoomOutcome): string {
   const name = turnName(t, outcome.speaker);

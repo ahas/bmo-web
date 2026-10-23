@@ -289,7 +289,7 @@ const searchGroups = computed(() => jumpGroups(t, jumpSources.value, searchTerm.
 
 const stream = useBotEvents((event) => {
   if (event.type === "live" && event.live !== undefined) {
-    live.value = event.live.runs;
+    live.value = event.live.runs ?? [];
   }
 });
 

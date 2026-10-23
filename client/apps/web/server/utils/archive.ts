@@ -3,13 +3,13 @@ import { isSystemNotice } from "#shared/text-marks";
 import { wording } from "#shared/wording";
 
 import { figuresOf } from "./runfigures";
-import { judgementsOf } from "./gate";
+import { judgementsOf, judgementsWithin } from "./gate";
 import { ownerChat } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
 import { within } from "./unit-answer";
 
-import type { ArchivedMessage, JudgementPage, MessageAttachment, MessagePage, ReplyQuote, RoomSummary, TelegramExpression } from "#shared/types";
+import type { ArchivedMessage, Judgement, JudgementPage, MessageAttachment, MessagePage, ReplyQuote, RoomSummary, TelegramExpression } from "#shared/types";
 import type { ReceiverMessage, ReceiverRoom } from "./receiver";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
@@ -255,17 +255,51 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   return built;
 }
 
-async function pageOf(chatId: number, page: { items: ReceiverMessage[]; more: boolean }): Promise<MessagePage> {
-  const messages = await messagesOf(chatId, page.items.map(receivedOf));
-  const wanted = new Set(messages.map((message) => message.messageId));
+// How far before a page's first message a judgement about it can have been written: one written earlier was left by
+// an earlier message that held the same number (docs/web.md, the room screen's verdicts).
+const JUDGED_BEFORE_SECONDS = 600;
+// How far past a page's last message its judgements are read, for a page short of the room's end: a turn's
+// verdicts stand under the last message it read and are written while the turn goes on.
+const JUDGED_AFTER_SECONDS = 3_600;
 
-  return {
-    messages,
-    judgements: (await judgementsOf(chatId, null, PAGING.maxSize)).judgements.filter(
-      (judgement) => judgement.messageId !== null && wanted.has(judgement.messageId)
-    ),
-    hasMore: page.more
-  };
+/** The judgements standing under a page's messages: each under the message the gate filed it under where it could
+ * have been about that message, or, filed under none, under the message its round answered with. */
+export function placedJudgements(messages: readonly ArchivedMessage[], judgements: readonly Judgement[]): Judgement[] {
+  const sent = new Map(messages.map((message) => [message.messageId, message.sentAt]));
+  // A round's answer can stand as a run of messages; its verdicts stand under the last of them.
+  const answered = new Map<string, number>();
+
+  for (const message of messages) {
+    if (message.round != null) answered.set(message.round, message.messageId);
+  }
+
+  return judgements.flatMap((judgement) => {
+    if (judgement.messageId !== null) {
+      const at = sent.get(judgement.messageId);
+
+      return at !== undefined && judgement.createdAt >= at - JUDGED_BEFORE_SECONDS ? [judgement] : [];
+    }
+
+    const answer = judgement.round == null ? undefined : answered.get(judgement.round);
+
+    return answer === undefined ? [] : [{ ...judgement, messageId: answer }];
+  });
+}
+
+// A page with the judgements standing under its messages, read for the stretch of time the page covers: from a
+// little before its first message to now for the room's end, and to a while past its last message otherwise. The
+// room is the receiver's, so a gate that does not answer leaves the page without verdicts rather than unread.
+async function pageOf(chatId: number, page: { items: ReceiverMessage[]; more: boolean }, end: boolean): Promise<MessagePage> {
+  const messages = await messagesOf(chatId, page.items.map(receivedOf));
+  const times = messages.map((message) => message.sentAt);
+  const judgements = times.length === 0
+    ? []
+    : await judgementsWithin(chatId, {
+        from: Math.min(...times) - JUDGED_BEFORE_SECONDS,
+        to: end ? null : Math.max(...times) + JUDGED_AFTER_SECONDS
+      }).catch(() => []);
+
+  return { messages, judgements: placedJudgements(messages, judgements), hasMore: page.more };
 }
 
 /** One page of a room, oldest first, ending just before `before` when it is given. */
@@ -280,7 +314,7 @@ export async function readMessagePage(chatId: number, before: number | null, lim
     })
   );
 
-  return await pageOf(chatId, page);
+  return await pageOf(chatId, page, before === null);
 }
 
 /** The messages of a room past a message the reader already holds, oldest first. */
@@ -292,7 +326,7 @@ export async function readMessagesAfter(chatId: number, after: number, limit: nu
     })
   );
 
-  return await pageOf(chatId, page);
+  return await pageOf(chatId, page, !page.more);
 }
 
 /** One message of a room by its own number, as a page of one, or an empty page where the screen stands none. */
@@ -304,7 +338,7 @@ export async function readOneMessage(chatId: number, messageId: number): Promise
     })
   );
 
-  return await pageOf(chatId, { items: [message], more: false });
+  return await pageOf(chatId, { items: [message], more: false }, false);
 }
 
 /** Where a day begins in a room: the first message a person said at or after a moment, or null. */

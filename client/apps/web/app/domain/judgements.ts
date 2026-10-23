@@ -52,16 +52,35 @@ export const STAGES: readonly StageMeta[] = [
 
 const STAGE_LABELS = new Map(STAGES.map((stage) => [stage.slug, stage.label]));
 
-// A verdict that passed or answered reads as success, one that failed as error, and
-// everything else — a skip, a wait, a format decision, a list of slugs — stays neutral. A gate
-// writes its marker in capitals as a word of its own, so only the marker standing whole — at the
-// end, or before a colon or a space — counts: a slug list opening "failed-…" or prose opening
-// "Fail …" is not a verdict mark.
+// A verdict that passed, answered, went out or came out clean reads as success, one that failed as
+// error, and everything else — a skip, a defuse, a wait, a format decision, a list of slugs — stays
+// neutral. A gate writes its marker in capitals as a word of its own, so only the marker standing
+// whole — at the end, or before a colon or a space — counts: a slug list opening "failed-…" or prose
+// opening "Fail …" is not a verdict mark.
 const VERDICT_TONES: readonly [string, VerdictTone][] = [
   ["PASS", "success"],
   ["REPLY", "success"],
-  ["FAIL", "error"]
+  ["SENT", "success"],
+  ["CLEAN", "success"],
+  ["FAIL", "error"],
+  ["FAILED", "error"]
 ];
+
+// The words a gate or a turn ends its work on (the gate's documents): a verdict opening with one of them
+// is final, and the message it stands under is judged no longer (docs/web.md, the room screen's verdicts).
+const ENDING_MARKERS: readonly string[] = ["SKIP", "CLEAN", "DEFUSE", "REPLY", "SENT", "PASS", "FAIL", "FAILED"];
+
+// Whether a verdict opens with this marker as a word of its own.
+function opensWith(verdict: string, marker: string): boolean {
+  const head = verdict.trim();
+
+  return head.startsWith(marker) && /^(?:$|[:\s])/.test(head.slice(marker.length));
+}
+
+// Whether a verdict ends what its stage was doing.
+export function endsJudging(verdict: string): boolean {
+  return ENDING_MARKERS.some((marker) => opensWith(verdict, marker));
+}
 
 // A stage the app does not know keeps its own name rather than disappearing.
 export function stageLabel(t: Translate, stage: string): string {
@@ -218,8 +237,7 @@ export function roadName(road: JudgementRoad): string {
 }
 
 export function verdictTone(verdict: string): VerdictTone {
-  const head = verdict.trim();
-  const match = VERDICT_TONES.find(([marker]) => head.startsWith(marker) && /^(?:$|[:\s])/.test(head.slice(marker.length)));
+  const match = VERDICT_TONES.find(([marker]) => opensWith(verdict, marker));
 
   return match?.[1] ?? "neutral";
 }
@@ -291,30 +309,47 @@ export function verdictState(judgements: readonly Judgement[], judging: boolean)
 // turn going in the room read last, from the turn's start until the room has read its answer, so
 // the gaps between its gates count too. A companion's turn writes its verdict on its own answer, so
 // the message it read is judged by none of it. A turn whose start the screen did not see names no
-// message, and is known by its gates alone (docs/web.md, 「Room screen」).
+// message, and is known by its gates alone (docs/web.md, 「Room screen」). A message already holding a
+// final verdict written since its judging began is judged no longer, whatever the picture still says of
+// it; a judging whose beginning is not known is ended by none.
 export function judgedNow(
   chatId: number,
   runs: readonly LiveRun[],
   queued: readonly QueuedMessage[],
-  turns: readonly { messageId: number | null; speaker?: TurnSpeaker }[]
+  turns: readonly { messageId: number | null; speaker?: TurnSpeaker; startedAt?: number }[],
+  judgements: ReadonlyMap<number, readonly Judgement[]> = new Map()
 ): Set<number> {
-  const judged = new Set<number>();
+  // Each message being judged, with the moment the earliest of what judges it began.
+  const since = new Map<number, number>();
+  const judging = (messageId: number, from: number | undefined): void => {
+    since.set(messageId, Math.min(since.get(messageId) ?? Infinity, from ?? Infinity));
+  };
 
   for (const run of runs) {
     if (run.kind === "gate" && run.chatId === chatId && run.messageId !== null) {
-      judged.add(run.messageId);
+      judging(run.messageId, run.startedAt);
     }
   }
 
   for (const message of queued) {
     if (message.chatId === chatId) {
-      judged.add(message.messageId);
+      judging(message.messageId, message.since);
     }
   }
 
   for (const turn of turns) {
     if (turn.speaker === undefined && turn.messageId !== null) {
-      judged.add(turn.messageId);
+      judging(turn.messageId, turn.startedAt);
+    }
+  }
+
+  const judged = new Set<number>();
+
+  for (const [messageId, from] of since) {
+    const ended = (judgements.get(messageId) ?? []).some((judgement) => judgement.createdAt >= from && endsJudging(judgement.verdict));
+
+    if (!ended) {
+      judged.add(messageId);
     }
   }
 

@@ -56,22 +56,56 @@ function asJudgement(row: GateJudgement): Judgement {
     stage: row.gateName,
     verdict: row.verdict,
     detail: row.detail,
-    createdAt: row.createdAt,
+    // The gate states its times in epoch milliseconds; the room screen draws unix seconds.
+    createdAt: Math.floor(row.createdAt / 1000),
     ms: row.ms,
     roads,
     round: row.round
   };
 }
 
-/** A room's judgements newest first, the page before `before` where it is given. */
-export async function judgementsOf(chatId: number, before: number | null, limit: number): Promise<JudgementPage> {
+// The stretch of time a read is narrowed to, in unix seconds; an end left null is open.
+export interface JudgementSpan {
+  from: number | null;
+  to: number | null;
+}
+
+const OPEN: JudgementSpan = { from: null, to: null };
+
+/** A room's judgements newest first, the page before `before` where it is given, written within `span`. */
+export async function judgementsOf(chatId: number, before: number | null, limit: number, span: JudgementSpan = OPEN): Promise<JudgementPage> {
   if (unitAt("GATE") === null) return { judgements: [], hasMore: false };
 
   const query = new URLSearchParams({ roomId: String(chatId), limit: String(Math.min(limit, PAGING.maxSize)) });
 
   if (before !== null) query.set("before", String(before));
+  if (span.from !== null) query.set("from", String(span.from * 1000));
+  if (span.to !== null) query.set("to", String(span.to * 1000));
 
   const page = await unitFetch<GatePage>("GATE", `/judgements?${query.toString()}`);
 
   return { judgements: page.items.map(asJudgement), hasMore: page.more === true };
+}
+
+// How many of the gate's pages one stretch is read through at most. A room's busiest day writes a few
+// thousand judgements; a stretch past this many pages keeps its newest.
+const SPAN_PAGES = 10;
+
+/** Every judgement of a room written within `span`, newest first, read page after page. */
+export async function judgementsWithin(chatId: number, span: JudgementSpan): Promise<Judgement[]> {
+  const held: Judgement[] = [];
+  let before: number | null = null;
+
+  for (let read = 0; read < SPAN_PAGES; read++) {
+    const page = await judgementsOf(chatId, before, PAGING.maxSize, span);
+    const last = page.judgements.at(-1);
+
+    held.push(...page.judgements);
+
+    if (!page.hasMore || last === undefined) break;
+
+    before = last.id;
+  }
+
+  return held;
 }

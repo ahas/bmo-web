@@ -66,6 +66,10 @@
                   <UButton icon="i-material-symbols-more-vert" color="neutral" variant="ghost" class="-ms-2" :aria-label="$t('common.action.more')" />
                 </UTooltip>
               </UDropdownMenu>
+              <!-- How long the chat agent's window here has left, for as long as it is open, whether a
+                   turn runs or the listening row stands (docs/web.md, 「The window's time left stands in
+                   the top bar」). -->
+              <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
               <RoomCompanionTools v-if="companionsHere.length > 0" ref="companionTools" :chat-id="chatId" />
               <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
             </template>
@@ -289,12 +293,16 @@
            question stack rather than the box they type in: the foot takes whatever the conversation
            above it does not need, and on a phone with the keyboard up that can be less than the
            cards would like. It is a bar along the panel's foot, its full width with its edge over it,
-           on the translucent ground the room's top bar wears, and the conversation runs on under it. -->
+           on the translucent ground the room's top bar wears, and the conversation runs on under it. It
+           stands at the foot of the shell, which stands by what is visible, so a keyboard re-places it
+           with the shell; while nothing overlays the window it keeps the phone's gesture bar's height
+           under its padding, so its box stands above that bar and its ground runs under it (docs/web.md,
+           「What floats over the screen keeps clear of the bars a phone lays over it」). -->
       <div
         v-if="administrator"
         ref="composerFoot"
-        class="absolute inset-x-0 bottom-0 z-20 flex max-h-[calc(100%-var(--room-head))] min-h-0 flex-col border-t border-default py-(--chat-bar-pad) pe-(--feed-gutter) backdrop-blur-md"
-        :class="dragging ? 'bg-elevated/75' : 'bg-default/75'"
+        class="absolute inset-x-0 bottom-0 z-20 flex max-h-[calc(100%-var(--room-head))] min-h-0 flex-col border-t border-default pt-(--chat-bar-pad) pe-(--feed-gutter) backdrop-blur-md"
+        :class="[dragging ? 'bg-elevated/75' : 'bg-default/75', overlaid ? 'pb-(--chat-bar-pad)' : 'pb-[calc(var(--chat-bar-pad)+var(--bmo-safe-bottom))]']"
       >
         <UContainer class="flex min-h-0 flex-col">
           <!-- What a job stopped to ask the owner, over the box they answer everything else in. It is
@@ -380,6 +388,8 @@ import { followBottom } from "~/domain/bottom";
 import { flightTiming, riseOutOf, settleInto } from "~/domain/flight";
 import { measurePicture, messagePicture, releaseStandIn, rememberShape, shapeOf, standIn } from "~/domain/picture-shapes";
 import { readsFromFirstLine } from "~/domain/first-line";
+import { loadMarkdownRenderer } from "~/domain/markdown-load";
+import { useOverlaid } from "~/domain/overlay";
 import { keepPlace } from "bmo-ui/app/domain/fullscreen";
 import { useReadMarks } from "~/domain/read-marks";
 import { useNewestReads } from "~/domain/room-list";
@@ -540,6 +550,10 @@ const composerFoot = useTemplateRef<HTMLElement>("composerFoot");
 const roomHead = useTemplateRef<HTMLElement>("roomHead");
 const roomNavbar = useTemplateRef<HTMLElement>("roomNavbar");
 
+// Whether a keyboard overlays the foot of the window, where the input bar keeps no room for the gesture
+// bar the keyboard stands over.
+const overlaid = useOverlaid();
+
 // What the bars floating over the conversation take of its top and foot, which the conversation
 // keeps as room at its top and foot and as the scroll padding a held row and the end keep clear of.
 const headHeight = ref(0);
@@ -619,13 +633,17 @@ const { runs, outcome } = useRoomRun(chatId, {
   onJudgement: (judgement: Judgement) => roomFeed.addLiveJudgement(judgement),
   onSettled: () => settle(),
   onLive: (picture: LiveSnapshot) => {
-    live.value = picture.runs;
+    live.value = picture.runs ?? [];
     queued.value = picture.queued ?? [];
   }
 });
 
-// Which messages of the room are being judged right now, which their verdict mark beats for.
-const judged = computed<Set<number>>(() => judgedNow(chatId, live.value, queued.value, runs.value));
+// The room's verdicts by the message they stand under.
+const judgementIndex = computed(() => judgementsByMessage(roomFeed.judgements.value));
+
+// Which messages of the room are being judged right now, which their verdict mark beats for: none that
+// already holds a final verdict written since its judging began.
+const judged = computed<Set<number>>(() => judgedNow(chatId, live.value, queued.value, runs.value, judgementIndex.value));
 
 // The room's own name, from the one list every screen takes a room's name from, and the
 // picture Telegram shows for it.
@@ -811,7 +829,7 @@ const archived = computed<FeedItem[]>((standing) =>
     standing,
     archivedRows(
       roomFeed.messages.value,
-      judgementsByMessage(roomFeed.judgements.value),
+      judgementIndex.value,
       imageUrl,
       avatars.value,
       // Which number the feed reads as the owner's own, and so which rows stand on the right. It is
@@ -975,6 +993,18 @@ function firstUnreadOutOfView(): number | null {
 
   // A row the end's page does not hold is further back than the end's view reaches.
   return row === null || row.getBoundingClientRect().top < element.getBoundingClientRect().top ? first : null;
+}
+
+// The room opened at its end with its first unread message in the same page: that message is brought
+// to the middle of the view where it stands out of view at the end, and the end is left.
+function standAtFirstUnread(): void {
+  const first = firstUnreadOutOfView();
+  const row = first === null ? null : rowOf(rowLine(first));
+
+  if (row !== null) {
+    scrollWithin(row, "center");
+    bottom?.release();
+  }
 }
 
 // An archived message that arrives takes the place of the row that was standing for it. The
@@ -2142,12 +2172,15 @@ onMounted(async () => {
     void readControl();
   }
 
-  // Where the room opens is settled before it is first drawn (docs/web.md, 「Room screen」): a room
-  // opening at a message reads the stretch around it first, and only a room opening at its end reads
-  // its end. A message that cannot be read around opens the room at its end.
-  await roomsSettled();
+  // Where the room opens is settled before it is first drawn (docs/web.md, 「Room screen」): a room its
+  // address opens at a message reads the stretch around it first. Any other room asks for its end at
+  // once, beside the room list that carries the reader's read mark, and opens at its first unread
+  // message in that page where the page holds it, around it where it does not, and at its end where
+  // nothing is unread. The markdown renderer is fetched beside them, so no row is laid out as plain
+  // text first. A message that cannot be read around opens the room at its end.
   const asked = messageOfQuery(route.query.at);
-  const at = asked ?? firstUnread();
+  const endRead = asked === null ? roomFeed.readEnd() : null;
+  const renderer = loadMarkdownRenderer();
   // The opening position is set while the scroll container is unseen, so neither the rows nor the
   // bar's own thumb is seen moving from the top to the place the room opens at.
   const hidden = (on: boolean): void => {
@@ -2158,15 +2191,28 @@ onMounted(async () => {
 
   let placed = false;
 
-  if (at !== null) {
+  if (endRead === null) {
+    await renderer;
     hidden(true);
-    placed = await openAt(at, asked !== null);
+    placed = asked !== null && (await openAt(asked, true));
+  } else {
+    const [end] = await Promise.all([endRead.catch(() => null), roomsSettled(), renderer]);
+    const first = firstUnread();
+
+    if (first !== null && end?.messages.some((message) => message.messageId === first) !== true) {
+      hidden(true);
+      placed = await openAt(first, false);
+    }
   }
 
   if (!placed) {
-    await roomFeed.load();
     hidden(true);
+    await roomFeed.load(endRead ?? undefined);
     await scrollToBottom();
+
+    if (asked === null) {
+      standAtFirstUnread();
+    }
   }
 
   opened.value = true;

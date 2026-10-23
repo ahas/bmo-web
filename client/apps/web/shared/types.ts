@@ -769,7 +769,9 @@ export interface QueuedMessage {
 
 export interface LiveSnapshot {
   at: number;
-  runs: LiveRun[];
+  // The runs going beside the chat. Absent from the receiver's picture, since no unit serves them
+  // (docs/boundary.md, 「Gaps the console meets」).
+  runs?: LiveRun[];
   compacting: ChatCompaction[];
   turns: ChatTurn[];
   // Absent from a bot that does not say.

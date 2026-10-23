@@ -527,7 +527,11 @@ export interface RoomFeed {
   loadingOlder: Ref<boolean>;
   loadingNewer: Ref<boolean>;
   failure: Ref<string | null>;
-  load: () => Promise<void>;
+  // The room's end, read fresh and put in the feed. A read of the end already under way is handed in
+  // rather than asked again, so the end can be asked for before the screen knows it will open there.
+  load: (read?: Promise<MessagePage>) => Promise<void>;
+  // The room's end asked for and not put in the feed: what `load` is handed once it is wanted.
+  readEnd: () => Promise<MessagePage>;
   loadOlder: () => Promise<number>;
   loadNewer: () => Promise<number>;
   // The feed replaced by the stretch of the room around one message: a page before it, the
@@ -683,16 +687,26 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     return await $fetch<MessagePage>(`/api/rooms/${chatId}/messages`, { query: { at: messageId } });
   }
 
+  // The room's end, asked for. Nothing is put in the feed until it is handed to load.
+  function readEnd(): Promise<MessagePage> {
+    const read = fetchPage(null);
+
+    // A read nobody hands to load is let go of quietly; one that is handed in still fails there.
+    read.catch(() => undefined);
+
+    return read;
+  }
+
   // The room's end, read fresh. A feed standing somewhere back in the room is let go of first, so
   // what arrives is not a page stuck on after a gap.
-  async function load(): Promise<void> {
+  async function load(read?: Promise<MessagePage>): Promise<void> {
     const mine = ++generation;
 
     loading.value = true;
     failure.value = null;
 
     try {
-      const page = await fetchPage(null);
+      const page = await (read ?? fetchPage(null));
 
       if (mine !== generation) {
         return;
@@ -931,6 +945,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     loadingNewer,
     failure,
     load,
+    readEnd,
     loadOlder,
     loadNewer,
     loadAround,

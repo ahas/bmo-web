@@ -493,7 +493,7 @@ useBotEvents((event) => {
     status.value = {
       ...status.value,
       reachable: true,
-      live: event.live.runs,
+      live: event.live.runs ?? [],
       liveAt: toUnixSeconds(event.live.at)
     };
   }

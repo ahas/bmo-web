@@ -835,6 +835,42 @@ describe("what the room screen does with each cause", () => {
   });
 });
 
+// Where a room opens is settled before it is drawn, and its end is asked for beside the room list rather than after
+// it; the markdown renderer is fetched beside both, so the first frame shown is the whole conversation (docs/web.md,
+// 「Where a room opens is settled before it is drawn」).
+describe("how the room screen opens", () => {
+  const opening = screen.slice(screen.indexOf("const endRead"), screen.indexOf("letGoOfAsked();", screen.indexOf("const endRead")));
+
+  test("the end is asked for before the room list is waited on, and the two are waited on together", () => {
+    expect(opening).toContain("roomFeed.readEnd()");
+    expect(opening.indexOf("roomFeed.readEnd()")).toBeLessThan(opening.indexOf("roomsSettled()"));
+    expect(opening).toContain("Promise.all([endRead.catch(() => null), roomsSettled(), renderer])");
+    expect(opening).toContain("roomFeed.load(endRead ?? undefined)");
+  });
+
+  test("the renderer is in before any read is put in the feed", () => {
+    expect(opening.indexOf("loadMarkdownRenderer()")).toBeLessThan(opening.indexOf("openAt("));
+    expect(opening.indexOf("renderer")).toBeLessThan(opening.indexOf("roomFeed.load("));
+  });
+
+  test("the rows are put in only while the conversation is unseen", () => {
+    expect(opening.indexOf("hidden(true)")).toBeLessThan(opening.indexOf("roomFeed.load("));
+    expect(opening.lastIndexOf("hidden(false)")).toBeGreaterThan(opening.indexOf("opened.value = true"));
+  });
+});
+
+// The input bar keeps clear of a phone's gesture bar while nothing overlays the window, and the top bar carries the
+// window's time left while it is open.
+describe("the room's bars", () => {
+  test("the input bar adds the bottom inset only while no keyboard overlays the window", () => {
+    expect(screen).toContain("overlaid ? 'pb-(--chat-bar-pad)' : 'pb-[calc(var(--chat-bar-pad)+var(--bmo-safe-bottom))]'");
+  });
+
+  test("the top bar stands the window's clock while the window is open", () => {
+    expect(screen).toContain('<RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />');
+  });
+});
+
 // One sender's messages one after another stand as one block beside one photo.
 describe("a sender's run", () => {
   const rows = (messages: ArchivedMessage[]) => buildDays(wording, messages, new Map(), imageUrl, avatars, [], owner).flatMap((day) => day.items);

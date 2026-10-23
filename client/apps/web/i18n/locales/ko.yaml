@@ -379,6 +379,7 @@ room:
     start_of_talk: 대화의 처음입니다.
     talk_loading: 대화 불러오는 중…
     waiting: 연결되면 보냄
+    window_left: "{time} 남음"
   error:
     actions_read_failed: 실행 기록을 불러오지 못했습니다.
     attachment_empty: "{name}: 빈 파일이라 첨부하지 않았습니다."

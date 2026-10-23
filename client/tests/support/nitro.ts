@@ -38,7 +38,6 @@ for (const module of [
   await import("../../apps/web/server/utils/unit-answer"),
   await import("../../apps/web/server/utils/agency"),
   await import("../../apps/web/server/utils/keepalive"),
-  await import("../../apps/web/server/utils/research"),
   await import("../../apps/web/server/utils/companions"),
   await import("../../apps/web/server/utils/agentlog"),
   await import("../../apps/web/server/utils/request"),

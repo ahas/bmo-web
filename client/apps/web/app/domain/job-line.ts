@@ -1,8 +1,8 @@
 import { POLL_INTERVAL_MS } from "#shared/config";
+import { spanClock } from "bmo-ui/app/domain/time";
 
 import { TURN_ENDED, useLiveRefresh } from "./events";
 import { countText } from "./numbers";
-import { durationText } from "./research";
 import { usePolling } from "./polling";
 import { uptimeClock } from "./status";
 import { tokenText, totalText } from "./usage";
@@ -17,6 +17,19 @@ import type { Ref } from "vue";
 
 // What a figure reads where nothing was measured.
 const NOTHING = "—";
+
+// How long a job took: seconds under a minute, minutes and seconds under an hour, a clock beyond.
+function durationText(t: Translate, ms: number): string {
+  if (!Number.isFinite(ms)) return NOTHING;
+  const seconds = Math.round(ms / 1000);
+
+  if (seconds < 60) return t("common.label.seconds", { n: seconds });
+  if (seconds >= 3600) return spanClock(t, seconds);
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+
+  return rest === 0 ? t("common.label.minutes", { m: minutes }) : t("common.label.minutes_seconds", { m: minutes, s: rest });
+}
 
 export interface JobModelLine {
   model: string;

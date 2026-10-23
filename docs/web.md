@@ -2213,7 +2213,7 @@ Two ways, split because the running places differ.
 - **The settings search** looks over every section at once: section names, agent and work-key names
   and keys, the names the owner calls an agent by, providers and their reasons, Claude accounts by the
   names they gave them and by the path each is reached by, registered model names and the models behind
-  them, tiers and the models they map to, co-worker limits, research profiles and engines. It uses the console's shared list
+  them, tiers and the models they map to, co-worker limits and the searchers' work keys. It uses the console's shared list
   search, so a hit on what a row shows is marked there and a hit only in what the row holds stands as
   one line under the result. Where the tab row has room the search is a box beside the tabs with its
   results under it; where it does not (a phone) it is a button opening the same search in a centred modal.
@@ -2234,8 +2234,8 @@ Two ways, split because the running places differ.
   is not one cell: adding a worker, a worker's whole settings, and asking once before a reset or a removal.
 - **A table that is the whole section fills it.** 실행 경로 and 게이트 are one table each: the table takes
   the section's whole height however few its rows, its header holds to the section's top while the rows
-  scroll, and its sideways scrollbar stands on the section's floor. 모델, with two tables, and 서쳐, with its
-  table above the engines, scroll as a page, and each table there takes only its own height.
+  scroll, and its sideways scrollbar stands on the section's floor. 모델, with its tables, and 서쳐, with its
+  table above the sentence of what it cannot show, scroll as a page, and each table there takes only its own height.
 - **The tab row never scrolls vertically**; tabs that do not fit scroll sideways.
 - **No introduction stands above a section.** What a setting does is its label and its place; the
   reasons behind the settings are in the documents named below, not on the screen.
@@ -2257,7 +2257,7 @@ Two ways, split because the running places differ.
 - **What stays on this screen only.** Nothing that belongs to more than one worker or gate is offered on
   their own screens: the 실행 경로 rows (`job-worker` is every worker's road at once, and a `role:` key is a
   co-worker role, not a worker), the shared model tiers, the co-worker limits, the provider order, the
-  Claude accounts, the 전체 캐시 유지 switch and the searchers' profiles each belong to the whole bot or to
+  Claude accounts, the 전체 캐시 유지 switch and the searchers' work keys each belong to the whole bot or to
   something other than one worker or gate.
 
 #### 일반
@@ -2495,21 +2495,16 @@ Two ways, split because the running places differ.
 - **A fold-ratio cell's box sets that one ratio:** a number box taking a whole percent from 1 to 100, saved with
   Enter or the check button. The change reaches the next turn that reads it; no running session is folded by
   the set itself, and a refused value stays in the box with the pack's sentence for the agency's code under it.
-- **The co-worker table** (코워커 한도) stands under the fold-ratio grid, with 처음 한도로 at the right of its head: a row per
-  co-worker tier — Reliable, Fine, Light and Simple — and a column per provider turned on that lends
-  co-workers; a turned-off provider and a single model have none (the agency's `docs/model-tiers.md`). The chat agent and Frontier have no row: they are the chat agent's own tier and the job worker's,
+- **The co-worker table** (코워커 한도) stands under the fold-ratio grid: a row per co-worker tier and a column per
+  provider, as the agency's pool lists its places (the agency's `docs/api.md`, 「pool, seat-requests, reservations
+  and roles」); a turned-off provider and a single model have none (the agency's `docs/model-tiers.md`). The chat agent and Frontier have no row: they are the chat agent's own tier and the job worker's,
   never a borrowed co-worker's, so they have no limit, and the builder's turns run as many at once as
   there are workers (the agency's `docs/model-tiers.md`). A cell shows the limit with a status mark (0 is 막힘) and,
-  under it, how many run, how many places are reserved and how many wait. It is a different question from
+  under it, how many places run, how many are held and how many wait. It is a different question from
   how many tasks a co-work's stage holds, which its plan alone sets.
-- **A limit cell's dropdown** holds a number box from 0 to 128 and, under it, the tier's starting value,
-  the roles on that tier, the running, reserved and waiting counts — yielding requests counted apart as
-  양보 (bmo-job's `docs/work-orders.md`) — and, where a reservation stands, its last ping and one line per
-  reservation: who set it, the role, of the count wanted the places held and still queued, and its last
-  ping. A request already waiting or running keeps the limit and model it was admitted with, and the counts
-  say so as 시작 때 한도 N and 시작 때 모델 M.
-- **처음 한도로** asks once in a dialog and then returns every limit to its starting value (Light and
-  Simple 12, Reliable and Fine 6) without removing a row.
+- **The table only reads.** The agency serves no route that changes a limit, so no cell is pressed and a sentence
+  under the table says so (`docs/boundary.md`, 「Gaps the console meets」). A first read that fails says so with a
+  reread; a later one that fails keeps what was read.
 - The counts are read again every few seconds while the tab stands. Which role is on which tier is chosen
   on the 실행 경로 tab as its `role:` key; a role is never switched on or off from the screen.
 
@@ -2639,33 +2634,18 @@ Two ways, split because the running places differ.
 
 #### 서쳐
 
-- **One table of the research profiles** — basic, thorough and exhaustive search and browse — a column to
-  a setting: the tier (and under it the model and effort it resolves to on the provider the run starts
-  on), the branch role, the branch count, the required request's wait limit, the fetch strategy, the host
-  gap, the engine gap and, for browse only, the total and wrap-up time; a search has no clock and says
-  제한 없음 there (bmo-artifact's `docs/research-runs.md`). A profile whose tier cannot run — its effort not accepted by
-  the resolved model, or no enabled provider carrying the line — carries an error mark and the reason.
-- **Each cell edits its own value.** The tier offers all six tiers and is saved as the key's tier
-  assignment; the model and the effort are never chosen here. The branch role offers the enabled roles
-  the pool lends out, and neither it nor the count is pressed on the basic search, which opens no
-  branches. Times are written in seconds and gaps in milliseconds. The more-menu at the right of a row
-  holds 처음 값으로, which asks once and then saves that profile's starting values.
-- The bot refuses an impossible combination — a wrap-up leaving less than 10 seconds of research, a clock
-  on a search, a browse without one, branches on the basic search, a branch role not enabled in the pool,
-  a strategy not fitting the key — and the reason stands under the field; the screen checks the same
-  first. A saved value is used from the next run; a running run keeps the copy it launched with.
-- **엔진 상태** stands under the table: engines per category of the search roster, 한국어 우선 on an
-  engine asked Korean questions first, and each engine's last state (healthy, answering unsoundly,
-  resting, unconfirmed) with, when resting, until when and the diagnosed cause, else the last
-  check time, elapsed time and result count. An engine that answered off the query reads as the
-  unsound one, and the reason beside it names how much of the query its answer carried. The rest
-  lengths per cause stand under it, and a longer `Retry-After` is kept. Which engines are
-  in the roster is the engines' own code to say, so this screen only reads it
-  (the explorer unit's documents).
-- **The co-worker and searcher reads are one.** While first reading, a placeholder stands; a failed first
-  read says so with a reread. A reread failing after one success keeps the last-read values, names the
-  time they were read and blocks saving until a reread succeeds — saving from an old value would
-  overwrite a newer one.
+- **The searchers' work keys, as rows of the road table.** A research is a session the agency starts on a
+  research work key, its model and tier read off that key's road and the tier table (the agency's `docs/api.md`,
+  「What the redesign took out」). The tab holds the keys on the agency's search and browse lines — a profile whose
+  line is one of them, and a tier-assigned key no profile declares that the agency puts on one by its name — each as
+  the 실행 경로 tab's row: its provider, its Claude account, its tier, the model its run now starts on and what last
+  answered on it. Each cell saves through the same road and tier assignment as there and meets the same refusals;
+  a read that fails is that table's, with its reread.
+- **Where the agency holds no research key,** one sentence says so in place of the table.
+- **What no unit serves stands as one sentence under it:** the branch role and count, the fetch strategy, the gaps,
+  the clocks and the search engines' state. A research's web settings travel on the tool session record the agency
+  issues (bmo-explorer's `docs/api.md`, 「What a placed tool reads of its record」), and no route hands them to the
+  console (`docs/boundary.md`, 「Gaps the console meets」).
 
 #### Around the tabs
 

@@ -321,22 +321,24 @@ describe("the model tab", () => {
     expect(scriptOf(page)).toContain('refreshNuxtData("fold-ratios")');
   });
 
-  test("holds the co-worker limits under it, on the providers the bot sends, with no chat agent or Frontier row and no role switch", () => {
+  test("holds the co-worker limits under it, read from the agency's pool on the providers it has places for, with no role switch and nothing saved", () => {
     const template = templateOf(limits);
 
     expect(template).toContain('>{{ $t("agents.title.coworker_limits") }}<');
     expect(template).toContain('v-for="name in providerColumns"');
-    expect(scriptOf(limits)).toContain("settings.value.pool.tiers.map((place) => place.provider)");
-    expect(template).toContain("<SettingsInputCell");
-    expect(template).toContain("action: 'set-pool-limit', provider: name, tier: row.original.tier, capacity:");
-    expect(template).toContain(`<SettingsDialog v-model:open="confirmingReset" :title="$t('agents.title.limits_reset')">`);
-    expect(template).toContain("pingText($t, placeOf(row.original.tier, name)!.lastPing)");
-    expect(template).toContain("reservationText($t, reservation)");
-    expect(scriptOf(limits)).toContain("settings.value?.pool.coworkerTiers");
-    expect(limits).not.toContain("set-role-enabled");
+    expect(scriptOf(limits)).toContain('useFetch<PoolBoard>("/api/agency/pool", { key: "coworker-pool"');
+    expect(scriptOf(limits)).toContain("board.value.buckets.map((bucket) => bucket.provider)");
+    // The agency serves no route that changes a limit, so the table reads and says so.
+    expect(template).toContain('$t("agents.message.limits_read_only")');
+    for (const gone of ["<SettingsInputCell", "<SettingsDialog", "set-pool-limit", "reset-pool-limits", "set-role-enabled"]) {
+      expect(limits).not.toContain(gone);
+    }
     for (const key of keysSaying(KO.line_305)) {
       expect(limits).not.toContain(key);
     }
+    // The settings search reads the same pool before the tab is opened, and rereads it with the rest.
+    expect(scriptOf(page)).toContain('useFetch<PoolBoard>("/api/agency/pool", { key: "coworker-pool"');
+    expect(scriptOf(page)).toContain("rereadPool()");
   });
 });
 

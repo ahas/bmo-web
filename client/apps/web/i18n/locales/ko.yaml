@@ -64,7 +64,6 @@ common:
     model: 모델
     name: 이름
     no_effort: effort 없음
-    no_reason: 사유 없음
     no_record: 기록 없음
     none: 없음
     off: 꺼짐
@@ -1374,7 +1373,6 @@ agents:
     persona_to_file: 파일 내용으로 되돌리기
     piece_add: 조각 추가
     previous_confirm: 이전 설정 확인, 선택한 등급 적용
-    reset: 되돌리기
     session_reset: 세션 초기화
     session_reset_short: 초기화
     settings: 설정
@@ -1472,6 +1470,7 @@ agents:
     label_needed: 이름표를 입력해 주세요.
     launch_empty: 작업 지시를 입력해 주세요.
     launch_failed: 실행하지 못했습니다.
+    limits_read_failed: 코워커 한도를 읽지 못했습니다.
     log_read_failed: 로그를 읽지 못했습니다. 잠시 뒤 다시 시도해 주세요.
     model_unlisted: 목록에 없는 모델입니다. 다시 선택해 주세요.
     models_load_failed: 모델 목록을 불러오지 못했습니다.
@@ -1549,7 +1548,6 @@ agents:
     credential: 자격 증명
     cut: 잘림
     cwd_help: 비우면 자동 생성 · git 아니면 협업 없음
-    default_value: 기본값
     default_with: "기본 ({value})"
     dev_server: 개발서버 명령
     dev_server_help: 한 줄 · 비우면 없음
@@ -1562,13 +1560,11 @@ agents:
     engine: 엔진
     engine_model: 엔진에 로드된 모델
     engine_model_unknown: 엔진의 모델을 알 수 없음
-    engine_of: "엔진 {name}"
     exec_node: 실행 노드
     exec_node_help: 선택하면 Job 전체가 그 노드에서 실행 · 경로도 그 노드 기준
     find_account: "Claude 계정 · {name}"
     find_account_order: Claude 계정 · 계정 순서
     find_agent_gates: 에이전트별 게이트 · 프리게이트 · 포스트게이트 · 무해화
-    find_engine: "엔진 · {name}"
     find_fallback: 활성 공급자 및 우선순위 · 폴백
     find_fold_ratio: "압축 기준 · {tier}"
     find_keepalive: "에이전트별 캐시 유지 · {name}"
@@ -1602,7 +1598,6 @@ agents:
     group_gate: 게이트
     group_runner: 러너
     group_worker: 저장소
-    in_use: 사용
     job_prompt: 프롬프트
     job_prompt_english: 영어본
     job_running: "실행 중 {time}"
@@ -1700,13 +1695,11 @@ agents:
     reference_send: 붙이기
     registry_healthy: 응답함
     registry_unhealthy: 응답 안 함
-    reserved: 예약
     reset_at: "{time}에 변경됨"
     restore: 강등 복원
     restore_help: 끄면 강등돼도 세션 유지
     result: 결과
     result_lines: "결과 {n}줄"
-    role: 역할
     role_bundles_none: 기능 묶음 없음
     role_key: "역할 · {role}"
     role_none: 롤 없음
@@ -1793,6 +1786,7 @@ agents:
       대화 상대가 답하던 방은 메시지와 문서까지 그대로 남습니다."
     companion_room_taken_back: "{room} 방을 다시 이어받았습니다."
     generation_resets: "방 세션 {n}개가 다음 턴부터 새로 시작됩니다."
+    limits_read_only: 한도를 바꾸는 경로는 에이전시가 내주지 않아 읽기만 합니다.
     log_of_agent: 이 에이전트의 로그
     log_of_watch: 이 워치의 대기 대상과 기록
     log_start: 로그의 처음입니다.
@@ -1845,14 +1839,12 @@ agents:
     no_sessions: 세션 없음
     no_tier_assignment: 등급 배정 없음
     older_loading: 이전 줄 불러오는 중…
-    refreshing_locked: 새로고침 중 · 저장 불가
     registry_loading: 등록 모델 불러오는 중
     routes_loading: 실행 경로 불러오는 중…
     run_gate: 판정 중
     run_runner: 검색 중
     run_worker: 작업 중
     running: 진행 중
-    save_locked: "저장 불가 · {reason}"
     sessions_loading: 세션 불러오는 중…
     settings_loading: 설정 불러오는 중…
     tier_applied: 등급 적용됨
@@ -1879,9 +1871,7 @@ agents:
     companion_add: 대화 상대 추가
     coworker_limits: 코워커 한도
     fold_ratios: 압축 기준
-    limits_reset: 기본 한도로
     previous_check: 이전 설정 확인 필요
-    read_at: "{time}에 읽은 값"
     registry: 등록 모델
     registry_add: 등록 모델 추가
     section_agent_gates: 에이전트별 게이트
@@ -2049,127 +2039,15 @@ live:
   title:
     recent_log: 최근 기록
 research:
-  action:
-    reset: 되돌리기
-    reset_to_default: 기본값으로
-  aria:
-    cooldowns: upstream 사유별 쿨다운 시간
-    engines_of: "{category} 엔진"
-    profile_field: "{profile} {field}"
-    profile_field_ms: "{profile} {field} (밀리초)"
-    profile_field_seconds: "{profile} {field} (초)"
-  error:
-    agency_failed: 에이전시에 닿지 못해 받아들여지지 않았습니다.
-    bad_capacity: 한도는 0부터 최대치까지의 정수입니다.
-    bad_key: 없는 조사 프로필입니다.
-    bad_pool_limit: 코워커를 빌려주지 않거나 켜지지 않은 제공자이거나, 코워커 티어가 아닙니다.
-    bad_role: 브랜치 역할 이름이 올바르지 않습니다.
-    bad_strategy: 이 실행에 맞지 않는 가져오기 전략입니다.
-    branchless: 이 조사는 브랜치를 열지 않습니다.
-    cap_no_clock: 이 실행은 시간 제한을 갖지 않습니다.
-    cap_out_of_range: 전체 시간은 {min}부터 {max}까지입니다.
-    children_out_of_range: 브랜치 수는 0부터 {max}까지의 정수입니다.
-    engine_interval_out_of_range: 엔진 간격은 0부터 {max}까지입니다.
-    host_interval_out_of_range: 호스트 간격은 0부터 {max}까지입니다.
-    invalid_profile: 프로필 값이 받아들여지지 않았습니다.
-    pool_capacity: 한도는 0부터 {max}까지의 정수입니다.
-    refused: 요청이 받아들여지지 않았습니다.
-    research_too_short: 정리 시간을 빼고도 조사 시간이 {min} 이상 남아야 합니다.
-    reserve_no_clock: 이 실행은 정리 시간을 갖지 않습니다.
-    reserve_too_short: 정리 시간은 {min} 이상이어야 합니다.
-    role_not_pooled: "{role}는 풀에 켜진 역할이 아닙니다."
-    settings_read: 풀과 서쳐 설정을 불러오지 못했습니다.
-    wait_out_of_range: 대기 한도는 0부터 {max}까지입니다.
   label:
-    branch_tier: 브랜치 등급
-    cannot_run: "실행 불가 · {error}"
-    category_general: 일반
-    category_images: 이미지
-    category_it: IT
-    category_news: 뉴스
-    default_capacity: "기본값 {n}"
-    engine_degraded: 응답 이상
-    engine_healthy: 정상
-    engine_last_check: "마지막 확인 {at}"
-    engine_never_checked: 아직 확인한 적 없음
-    engine_rest_over: 쿨다운 종료
-    engine_resting: "{until}까지 · upstream {reason}"
-    engine_results: "결과 {n}"
-    engine_suspended: 쿨다운 중
-    engine_unknown: 미확인
-    header_cap: 전체 시간
-    header_child_role: 브랜치 역할
-    header_engine_interval: 엔진 간격
-    header_host_interval: 호스트 간격
-    header_key: 실행
-    header_max_children: 브랜치 수
-    header_strategy: 가져오기
-    header_synthesis_reserve: 종합 시간
-    header_tier: 등급
-    header_wait_limit: 대기 한도
-    korean_first: 한국어 우선
-    last_ping: "마지막 핑 {at} · {outcome}"
-    model_effort: "{model} · {effort}"
-    model_unresolved: "모델을 확인할 수 없음: {error}"
-    no_assignment: 배정 없음
-    no_clock: 시간 제한 없음
-    no_limit: 제한 없음
-    no_model: 모델 없음
-    no_ping: 아직 핑 없음
-    owner_browse_run: "브라우즈 실행 {id}"
-    owner_native_cli: "native 호출 CLI (pid {pid})"
-    owner_search_run: "검색 실행 {id}"
-    owner_work_order: "협업 #{id}"
-    ping_answered: 캐시 유지됨
-    ping_busy: 작업 중이라 건너뜀
-    ping_failed: "실패: {reason}"
-    ping_refused: "캐시 유지 안 함: {reason}"
     profile_browse: 브라우즈
     profile_search_basic: 기본 검색
     profile_search_exhaustive: 초정밀 검색
     profile_search_thorough: 정밀 검색
-    reservation: "{owner} · {role} · 슬롯 {wanted}개 중 {held}개 확보"
-    reservation_queued: "{owner} · {role} · 슬롯 {wanted}개 중 {held}개 확보 · {waiting} 대기"
-    role_off_in_pool: "{role} (풀에서 꺼짐)"
-    room_usage: "({active}/{capacity} 사용, {waiting} 대기)"
-    strategy_browser_first: 항상 Chrome
-    strategy_direct_only: 직접 요청만
-    strategy_direct_then_browser: 직접 요청, 차단되면 Chrome
-    strategy_headless: headless Chrome
-    strategy_visible: 가상 화면의 Chrome
-    usage_blocked: 한도 0 · 차단됨
-    usage_limit: "한도 {n}"
-    usage_reserved: "{n} 예약"
-    usage_running: "{n} 실행 중"
-    usage_running_yielding: "{n} 실행 중 (양보 {yielding})"
-    usage_start_limit: "시작 시 한도 {list}"
-    usage_start_model: "시작 시 모델 {list}"
-    usage_waiting: "{n} 대기"
-    usage_waiting_yielding: "{n} 대기 (양보 {yielding})"
-    window: "조사 {research} 후 종합 {synthesis}"
   message:
-    demand_browse: "풀 슬롯이 없으면 지정 요청은 최대 {time} 기다립니다."
-    demand_no_children: 브랜치를 열지 않으므로 풀을 기다리지 않습니다.
-    demand_search: "선택 요청은 풀 슬롯이 없으면 기본 검색으로 실행됩니다. 지정 요청은 실행 전에 최대 {time} 기다립니다."
-    optional_browse: 지정 요청은 기다립니다.
-    optional_search: 지금은 선택 요청이 기본 검색으로 실행됩니다.
-    reset_confirm: 기본값으로 되돌려 저장할까요?
-    retry_after: Retry-After가 더 길면 그 시간만큼
-    room_free: "현재 {place} 슬롯 {free}개 비어 있음{usage}."
-    room_full: "현재 {place} 풀이 가득 참{usage}. {optional}"
-    room_no_capacity: "{tier} 한도가 0이라 차단돼 있습니다. {optional}"
-    room_role_off: "브랜치 역할이 풀에 켜져 있지 않습니다. {optional}"
-    room_unresolved: "브랜치 모델을 확인하지 못했습니다: {error}"
+    settings_unserved: 브랜치, 가져오기 전략, 간격과 시간, 엔진 상태는 에이전시가 내주지 않아 여기에 없습니다.
   status:
-    no_engines: 엔진 없음
-    refreshing_locked: 새로고침 중 · 저장 불가
-    save_locked: "저장 불가 · {reason}"
-    settings_loading: 조사 설정 불러오는 중…
-  title:
-    cooldowns: 쿨다운 시간
-    engines: 엔진 상태
-    read_at: "{time}에 읽은 값"
-    reset_named: "{name} 기본값으로"
+    no_keys: 에이전시에 서쳐의 작업 키가 없습니다.
 tool:
   label:
     bash: 셸

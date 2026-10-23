@@ -195,8 +195,7 @@ import { useListPlace } from "bmo-ui/app/domain/list-place";
 import { useReadFailure } from "~/domain/events";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { registrationName } from "~/domain/registry";
-import { PROFILE_LABELS, profileLabel } from "~/domain/research";
-import { useResearchSettings } from "~/domain/research-settings";
+import { PROFILE_LABELS, profileLabel, researchKeys } from "~/domain/research";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { modeLabel } from "~/domain/status";
@@ -205,7 +204,7 @@ import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
 import type { AgentSummary, FallbackView, KeepaliveView, RoomSummary } from "#shared/types";
 import type { GeneralPart } from "~/domain/agents";
-import type { FoldRatiosView, ModelPage, TierSettingsView } from "#shared/agency";
+import type { FoldRatiosView, ModelPage, PoolBoard, TierSettingsView } from "#shared/agency";
 
 const route = useRoute();
 const router = useRouter();
@@ -246,13 +245,6 @@ function setTab(next: string): void {
 const { agents, refresh: refreshAgents, initial: agentsInitial, failed: agentsFailed } = useAgentCatalogue();
 // The workers a companion's items may go to, offered when one is added.
 const companionWorkers = computed(() => agents.value.agents.filter((one) => one.kind === "worker" && one.supportOf == null));
-const { settings: research, reload: rereadResearch } = useResearchSettings(t);
-
-// The search looks over the co-worker limits and the searchers before either tab was opened.
-onMounted(() => {
-  if (research.value === null) void rereadResearch();
-});
-
 const { data: roomList } = useFetch<RoomSummary[]>("/api/rooms", { key: "rooms", lazy: true, server: false, default: () => [] });
 const rooms = computed<RoomSummary[]>(() => roomList.value ?? []);
 
@@ -262,6 +254,8 @@ const { data: tiers } = useFetch<TierSettingsView>("/api/model-tiers", { key: "m
 const { data: foldRatios } = useFetch<FoldRatiosView>("/api/fold-ratios", { key: "fold-ratios", lazy: true, server: false });
 // The registered models, read apart from the rest of the tab: its section waits on its own read.
 const { data: models, error: modelsError, refresh: rereadModels, status: modelsStatus } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
+// The co-worker pool, read here too so the search looks over the limits before their tab was opened.
+const { data: pool, refresh: rereadPool } = useFetch<PoolBoard>("/api/agency/pool", { key: "coworker-pool", lazy: true, server: false });
 
 const fallbackInitial = useInitialRead(fallbackStatus);
 const keepaliveInitial = useInitialRead(keepaliveStatus);
@@ -286,7 +280,7 @@ async function reread(): Promise<void> {
   rereading.value = true;
 
   try {
-    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), refreshNuxtData("model-tiers"), refreshNuxtData("fold-ratios"), rereadResearch(), rereadModels()]);
+    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), refreshNuxtData("model-tiers"), refreshNuxtData("fold-ratios"), rereadPool(), rereadModels()]);
   } finally {
     rereading.value = false;
   }
@@ -421,21 +415,17 @@ const entries = computed<SettingsEntry[]>(() => {
     });
   }
 
-  for (const place of research.value?.pool.tiers ?? []) {
+  for (const bucket of pool.value?.buckets ?? []) {
     list.push({
-      id: `pool-${place.tier}`,
+      id: `pool-${bucket.tier}`,
       tab: "tiers",
-      label: t("agents.label.find_pool_limit", { provider: modeLabel(t, place.provider), tier: place.tier }),
-      fields: [{ label: t("agents.label.tier"), text: t("agents.label.pool_limit_of", { tier: place.tier }), shown: true }, { label: t("agents.label.role"), text: place.roles.join(", "), shown: false }, { label: t("common.label.model"), text: place.model, shown: false }]
+      label: t("agents.label.find_pool_limit", { provider: modeLabel(t, bucket.provider), tier: bucket.tier }),
+      fields: [{ label: t("agents.label.tier"), text: t("agents.label.pool_limit_of", { tier: bucket.tier }), shown: true }]
     });
   }
 
-  for (const profile of research.value?.profiles ?? []) {
-    list.push({ id: `research-${profile.key}`, tab: "research", label: t("agents.label.find_searcher", { name: profileLabel(t, profile.key) }), fields: [{ label: t("common.label.name"), text: t("agents.label.searcher_of", { name: profileLabel(t, profile.key) }), shown: true }, { label: t("agents.label.key"), text: profile.key, shown: true }] });
-  }
-
-  for (const engine of research.value?.engines ?? []) {
-    list.push({ id: "engines", tab: "research", label: t("agents.label.find_engine", { name: engine.engine }), fields: [{ label: t("agents.label.engine"), text: t("agents.label.engine_of", { name: engine.engine }), shown: true }] });
+  for (const key of researchKeys(fallback.value?.profiles ?? [], tiers.value?.assignments ?? [])) {
+    list.push({ id: `route-${key}`, tab: "research", label: t("agents.label.find_searcher", { name: keyLabel(key) }), fields: [{ label: t("common.label.name"), text: t("agents.label.searcher_of", { name: keyLabel(key) }), shown: true }, { label: t("agents.label.key"), text: key, shown: true }] });
   }
 
   return list;

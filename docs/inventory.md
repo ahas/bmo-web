@@ -166,14 +166,12 @@ are added to it.
 
 How the agency screens stand here:
 
-- **They call the agency, bmo-job, the receiver, bmo-artifact and the cache warmer** (`docs/boundary.md`, 「Calls
-  the console makes」): `server/utils/agency.ts` the agency's routes with its codes, `server/utils/keepalive.ts`
-  the warmer's round and subjects, `server/utils/research.ts` bmo-artifact's research settings,
-  `server/utils/companions.ts` the receiver's companion add and remove, and the run stop bmo-job's `/run/stop`.
+- **They call the agency, bmo-job, the receiver and the cache warmer** (`docs/boundary.md`, 「Calls the console
+  makes」): `server/utils/agency.ts` the agency's routes with its codes, `server/utils/keepalive.ts` the warmer's
+  round and subjects, `server/utils/companions.ts` the receiver's companion add and remove, and the run stop bmo-job's `/run/stop`.
   The old control port's helper, `server/utils/control-change.ts`, is not carried: `server/utils/agency.ts`
   stands in its place.
-- **The shapes they read are written here:** `shared/agency.ts`, the agency's answers, and `shared/research.ts`,
-  bmo-artifact's research settings with the form's checks over the bounds that answer carries; the rest stand in
+- **The shapes they read are written here:** `shared/agency.ts`, the agency's answers; the rest stand in
   `shared/types.ts` beside the shell's, the node unit's and the gate unit's among them.
 - **Copied in from the old shared packages:** `shared/mcp-names.ts`, `app/domain/model-face.ts` and
   `app/domain/watch-name.ts`; and, out of modules of later groups the agency screens read,
@@ -199,8 +197,9 @@ Of these, not carried here:
 | `server/utils/turns.ts`, `server/utils/turns.test.ts` | not carried: they read a turn's roads and spend out of the old archive, which no unit serves |
 | `server/utils/job-line.ts`, `server/utils/job-line.test.ts` | not carried: they read a worker's job out of bmo-job's tables and the agency's transcripts; `server/utils/job-runs.ts` reads the job line, its prompt and the jobs that have just run through bmo-job's routes, held by `server/api/agent-job.get.test.ts` |
 | `server/utils/control-change.ts` | not carried: `server/utils/agency.ts` stands in its place |
+| `server/api/research-settings.get.ts`, `server/api/research-settings.post.ts`, `server/api/research-settings.post.test.ts`, `app/domain/research-settings.ts`, `app/components/EngineHealthList.vue` | not carried: they read and changed research settings no unit serves; the 서쳐 tab reads the searchers' work keys off the agency's roads and tiers, and the co-worker table reads the agency's pool (`docs/web.md`, 「서쳐」) |
 | `server/utils/agentlog.test.ts` | rewritten: the log is read through the agency's run log, so the test stands the agency in |
-| the agency route tests (`server/api/agents.get.test.ts`, `fallback.post.test.ts`, `keepalive.post.test.ts`, `research-settings.post.test.ts`, `run-stop.post.test.ts`) | rewritten onto stood-in units, each refusal said by the pack's sentence |
+| the agency route tests (`server/api/agents.get.test.ts`, `fallback.post.test.ts`, `keepalive.post.test.ts`, `run-stop.post.test.ts`) | rewritten onto stood-in units, each refusal said by the pack's sentence |
 | the cross-checks of `app/domain/spans.test.ts` and `app/domain/status.test.ts` against the old packages' sources | not carried: another unit's files are never read; the branch word and the endings are held to the data file and to a list of the test's own |
 
 The places in the agency screens that name a later group's file are cut here, and that group restores them:

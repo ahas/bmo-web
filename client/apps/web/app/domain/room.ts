@@ -1,4 +1,4 @@
-import { MEDIA_MARKS, VOICE_MARK } from "#shared/text-marks";
+import { markWords, MEDIA_MARKS, VOICE_MARK } from "#shared/text-marks";
 import { PAGING, POLL_INTERVAL_MS } from "#shared/config";
 import { chatAgent } from "#shared/agent-names";
 import { bmoLabel } from "./agents";
@@ -20,6 +20,7 @@ import type {
   TelegramExpression,
   TurnActionsRef
 } from "#shared/types";
+import type { DraftSummary } from "#shared/drafting";
 import type { AvatarProps } from "@nuxt/ui";
 import type { ComputedRef, Ref } from "vue";
 import type { AvatarIndex } from "./avatars";
@@ -280,6 +281,8 @@ export interface FeedItem {
   spend: RoundSpend | null;
   // Where what that turn did is kept, on that same message; null on every other row.
   actions: TurnActionsRef | null;
+  // How that round's draft process made the answer, on that same message; null on every other row.
+  drafts: DraftSummary | null;
   // The voice briefing that speaks this line, which stands on its chip line rather than as a row.
   briefing: MessageBriefing | null;
   // Null for everything the archive holds; set while a message of the owner's own is still on
@@ -329,20 +332,20 @@ export interface CarriedMedia {
 // with its name and length, for a kept sound, whose player shows it and its length and whose file line shows its
 // name. A sound's mark naming what the file line does not — a performer and a title — stays.
 const LENGTH = String.raw`(?: \d+:\d{2})?`;
-const VIDEO_MARK = new RegExp(`^\\[(?:${escaped(MEDIA_MARKS.videoNote)}|${escaped(MEDIA_MARKS.video)}|GIF)${LENGTH}\\]`);
+const VIDEO_MARK = new RegExp(`^\\[(?:${markWords(MEDIA_MARKS.videoNote)}|${markWords(MEDIA_MARKS.video)}|GIF)${LENGTH}\\]`);
 
 function mediaMarks(media: CarriedMedia): RegExp[] {
   const files = media.attachments
     .filter((attachment) => attachment.kind !== "sticker")
-    .map((attachment) => new RegExp(`^${escaped(`[${MEDIA_MARKS.file} ${attachment.name}]`)}`));
+    .map((attachment) => new RegExp(`^\\[${markWords(MEDIA_MARKS.file)} ${escaped(attachment.name)}\\]`));
   const sounds = media.attachments.filter((attachment) => attachment.kind === "audio");
   const played = [
     ...(media.attachments.some((attachment) => attachment.kind === "video") ? [VIDEO_MARK] : []),
-    ...(sounds.length > 0 ? [VOICE_MARK, new RegExp(`^\\[${escaped(MEDIA_MARKS.audio)}${LENGTH}\\]`)] : []),
-    ...sounds.map((sound) => new RegExp(`^\\[${escaped(MEDIA_MARKS.audio)} ${escaped(sound.name)}${LENGTH}\\]`))
+    ...(sounds.length > 0 ? [VOICE_MARK, new RegExp(`^\\[${markWords(MEDIA_MARKS.audio)}${LENGTH}\\]`)] : []),
+    ...sounds.map((sound) => new RegExp(`^\\[${markWords(MEDIA_MARKS.audio)} ${escaped(sound.name)}${LENGTH}\\]`))
   ];
 
-  return [...(media.pictured ? [new RegExp(`^\\[${escaped(MEDIA_MARKS.picture)}\\]`)] : []), ...files, ...played];
+  return [...(media.pictured ? [new RegExp(`^\\[${markWords(MEDIA_MARKS.picture)}\\]`)] : []), ...files, ...played];
 }
 
 function escaped(text: string): string {
@@ -608,21 +611,22 @@ function sharesRow(held: readonly { messageId: number }[], page: readonly { mess
   return page.some((message) => holding.has(message.messageId));
 }
 
-// A round's figure stands on the last message the round sent. An answer sent in parts arrives a part
-// at a time, and each part was the round's last when it was read, so every earlier part of a round
-// gives its figure up to the part after it.
+// A round's figure stands on the last message the round sent, and so does its draft process. An answer sent in
+// parts arrives a part at a time, and each part was the round's last when it was read, so every earlier part of a
+// round gives its figure up to the part after it.
 function lastSpends(messages: ArchivedMessage[]): ArchivedMessage[] {
+  const carries = (message: ArchivedMessage): boolean => message.spend != null || message.actions != null || message.drafts != null;
   const last = new Map<string, number>();
 
   messages.forEach((message, index) => {
-    if (message.round != null && (message.spend != null || message.actions != null)) {
+    if (message.round != null && carries(message)) {
       last.set(message.round, index);
     }
   });
 
   return messages.map((message, index) =>
-    message.round != null && last.get(message.round) !== index && (message.spend != null || message.actions != null)
-      ? { ...message, spend: null, actions: null }
+    message.round != null && last.get(message.round) !== index && carries(message)
+      ? { ...message, spend: null, actions: null, drafts: null }
       : message
   );
 }
@@ -1064,6 +1068,7 @@ function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): 
     judgements: [],
     spend: null,
     actions: null,
+    drafts: null,
     briefing: null,
     pending: { state: held.state, reason: held.reason, sent: held.messageId !== null },
     run: null,
@@ -1120,6 +1125,7 @@ export function runItem(run: RunState, speaker: Speaker, avatar: AvatarProps): F
     judgements: [],
     spend: null,
     actions: null,
+    drafts: null,
     briefing: null,
     pending: null,
     run,
@@ -1412,6 +1418,7 @@ function feedItemOf(
     judgements: judgements.get(message.messageId) ?? [],
     spend: message.spend ?? null,
     actions: message.actions ?? null,
+    drafts: message.drafts ?? null,
     briefing: message.briefing ?? null,
     pending: null,
     run: null,

@@ -2,6 +2,7 @@ import { PAGING, roomLabel } from "#shared/config";
 import { isSystemNotice } from "#shared/text-marks";
 import { wording } from "#shared/wording";
 
+import { draftSummaries } from "./drafting";
 import { figuresOf } from "./runfigures";
 import { judgementsOf, judgementsWithin } from "./gate";
 import { ownerChat } from "./owner";
@@ -233,7 +234,8 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         expressions: files.expressions,
         replyQuote: message.replyToMessageId === null ? null : await quote(message.replyToMessageId),
         spend: null,
-        actions: null
+        actions: null,
+        drafts: null
       };
     })
   );
@@ -247,16 +249,25 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
     if (message.round != null && message.agent === true) last.set(message.round, index);
   });
 
-  await Promise.all(
-    [...last].map(async ([round, index]) => {
-      const figures = await figuresOf(round).catch(() => null);
+  // How the round's draft process made its answer stands there too (docs/web.md, the room screen's draft chip): the
+  // page's rounds are read from the receiver's round log at once.
+  const [, drafts] = await Promise.all([
+    Promise.all(
+      [...last].map(async ([round, index]) => {
+        const figures = await figuresOf(round).catch(() => null);
 
-      if (figures !== null && built[index] !== undefined) {
-        built[index]!.spend = figures.spend;
-        built[index]!.actions = figures.actions;
-      }
-    })
-  );
+        if (figures !== null && built[index] !== undefined) {
+          built[index]!.spend = figures.spend;
+          built[index]!.actions = figures.actions;
+        }
+      })
+    ),
+    draftSummaries(chatId, [...last.keys()])
+  ]);
+
+  for (const [round, index] of last) {
+    if (built[index] !== undefined) built[index]!.drafts = drafts.get(round) ?? null;
+  }
 
   return built;
 }

@@ -49,7 +49,8 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 // The line names whoever this row is the turn of, which is the name the answer will stand under.
 const name = computed(() => turnName(t, props.run.speaker));
-const look = computed(() => phaseLook(t, name.value, props.run.progress));
+// The chat agent's turn runs the draft process, which the line steps through; a companion's runs none.
+const look = computed(() => phaseLook(t, name.value, props.run.progress, props.run.speaker === undefined ? props.run.draft ?? null : undefined));
 const received = computed(() => receivedLine(props.run.received));
 // The item whose Job holds the engine this turn waits on, which the line names on hover.
 const waitingItem = computed(() => (props.run.progress?.phase === "waiting" ? props.run.progress.waitingFor?.todoId ?? null : null));

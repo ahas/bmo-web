@@ -15,7 +15,8 @@ const trail = row.slice(row.indexOf("data-meta-trail"));
 
 describe("opening the row", () => {
   test("runs the one rule that says what stands open, rather than a rule of its own", () => {
-    expect(script).toContain("openedCards(props.judgements, expanded.value)");
+    expect(script).toContain("openedCards(verdicts.value, expanded.value)");
+    expect(script).toContain("splitDraftJudgements(props.judgements)");
   });
 
   test("is the chips' alone: nothing spread below folds on its own", () => {
@@ -24,7 +25,7 @@ describe("opening the row", () => {
     const controls = [...template.matchAll(/<button|<LineChip|<TokenChip/g)].map((found) => found.index ?? 0);
     const spread = template.indexOf('<template v-if="briefingOpen');
 
-    expect(controls).toHaveLength(6);
+    expect(controls).toHaveLength(7);
     expect(Math.max(...controls)).toBeLessThan(spread);
     expect(template.slice(spread)).not.toContain("<button");
   });
@@ -46,7 +47,7 @@ describe("the chips of the row", () => {
     expect(verdicts).toContain(':label="$t(markLook.label)"');
     expect(verdicts).not.toContain("v-for");
     expect(verdicts).not.toContain("countText");
-    expect(script).toContain("verdictChip(verdictState(props.judgements, props.judging))");
+    expect(script).toContain("verdictChip(verdictState(verdicts.value, props.judging))");
   });
 
   test("stand how full the session stood first, then in the order their own clock decides", () => {
@@ -55,7 +56,7 @@ describe("the chips of the row", () => {
     // turn wrote down arrives with the answer. A chip that arrives late standing first would push
     // every chip beside it sideways the moment it landed. The briefing that speaks the answer comes
     // after the answer has gone out, so it stands last.
-    const order = ["<ContextChip", "CHIP_ICONS.documents", "<TokenChip", "CHIP_ICONS.tools", "CHIP_ICONS.records", ':icon="briefingLook.icon"'].map((one) =>
+    const order = ["<ContextChip", "CHIP_ICONS.documents", "<TokenChip", "CHIP_ICONS.tools", "CHIP_ICONS.records", "CHIP_ICONS.drafts", ':icon="briefingLook.icon"'].map((one) =>
       lead.indexOf(one)
     );
 
@@ -108,7 +109,7 @@ describe("the chips of the row", () => {
   test("each stands exactly when its own thing is there, and the row when any of them is", () => {
     expect(template).toContain('<div v-if="shown || spreading" :class="frame">');
     expect(script).toContain("const shown = computed<boolean>(() => full.value || marked.value || props.clock);");
-    expect(script).toContain("const marked = computed<boolean>(() => props.judging || props.judgements.length > 0);");
+    expect(script).toContain("const marked = computed<boolean>(() => props.judging || verdicts.value.length > 0);");
     // How full the session stood stands only once the turn has ended and its round reported it.
     expect(row).toContain('<ContextChip v-if="context !== null" :ratio="context" />');
     expect(script).toContain("props.live === null ? (props.spend?.context ?? null) : null");
@@ -116,6 +117,7 @@ describe("the chips of the row", () => {
     expect(row).toContain('<LineChip v-if="counts.documents + counts.held > 0"');
     expect(row).toContain('<LineChip v-if="counts.tools > 0"');
     expect(row).toContain('<LineChip v-if="records.length > 0"');
+    expect(row).toContain('<LineChip v-if="drafted"');
     expect(trail).toMatch(/<LineChip\s+v-if="marked"/);
     expect(row).toMatch(/<LineChip\s+v-if="props\.briefing !== null"/);
   });
@@ -228,5 +230,34 @@ describe("what the chips spread", () => {
   test("stands at the bubble's own width, never at its longest word's", () => {
     expect(spread).toContain("basis-full");
     expect(spread).toContain("min-w-0");
+  });
+});
+
+// How the round's draft process made the answer (docs/web.md, the room screen's draft chip): a count on the answer's
+// last message, the summary and the round log's rows spread under it, read once from the room's own route.
+const draftRows = await Bun.file(new URL("../../../apps/web/app/components/DraftRows.vue", import.meta.url)).text();
+const rowsTemplate = draftRows.slice(0, draftRows.indexOf("<script"));
+
+describe("the draft chip", () => {
+
+  test("stands on a turn that has ended, where the page read the round's process or the gate wrote of it", () => {
+    expect(script).toContain("props.live === null && roundOfDrafts.value !== null && (props.drafts !== null || split.value.drafts.length > 0)");
+    expect(row).toContain('<LineChip v-if="drafted" :icon="CHIP_ICONS.drafts" :label="$t(CHIP_LABELS.drafts)" :open="draftsOpen" @toggle="openDrafts">');
+    expect(row).toContain('<RollingNumber :value="draftCount" />');
+  });
+
+  test("reads the round's rows the first time it opens and never again once they are in", () => {
+    expect(script).toContain("`/api/rooms/${props.chatId}/drafts`, { query: { round } }");
+    expect(script).toContain("if (!draftsOpen.value || round === null || draftRows.value !== null || loadingDrafts.value) return;");
+    expect(template).toContain('<DraftRows v-if="draftsOpen && drafted" :summary="draftLines" :rows="draftRows" :loading="loadingDrafts" :failure="draftsFailure" />');
+  });
+
+  test("spreads the summary, then each row's number, question, kind, outcome, length, change and time, and a question's answer folded", () => {
+    expect(rowsTemplate.indexOf("data-draft-summary")).toBeLessThan(rowsTemplate.indexOf("data-draft-rows"));
+
+    for (const fact of ["countText(row.number)", "row.question", "draftKindText($t, row.kind)", "draftOutcomeText($t, row.outcome, row.kind)", "room.label.draft_chars", "room.label.draft_changed", "countText(row.ms)"]) {
+      expect({ fact, stood: rowsTemplate.includes(fact) }).toEqual({ fact, stood: true });
+    }
+    expect(rowsTemplate).toMatch(/<UChatTool v-if="draftAnswerShown\(row\)" :text="\$t\('room\.label\.draft_answer'\)" chevron="leading">\s*<pre[^>]*whitespace-pre-wrap wrap-anywhere[^>]*>\{\{ row\.answer \}\}<\/pre>/);
   });
 });

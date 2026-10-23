@@ -19,11 +19,22 @@ export interface RunState {
   progress: RunProgress | null;
   // Who is answering, where the receiver named somebody other than the chat agent — a companion. Absent for the chat agent.
   speaker?: TurnSpeaker;
+  // The last row the turn's draft process wrote, while the process goes on: absent until the process writes its first
+  // row, and again once it has ended.
+  draft?: DraftStep;
   // Set on the state the chat agent's row holds while it only listens in a group room's open window: no turn
   // runs, so nothing was handed and nothing is in progress (docs/web.md, 「The listening row」). It
   // carries when that window closes, in unix seconds on this screen's clock, which the line counts
   // down to.
   listening?: { closesAt: number };
+}
+
+// A row of the round log as the running line reads it (the receiver's docs/drafting.md, 「The round log」).
+export interface DraftStep {
+  number: number;
+  question: string;
+  kind: string;
+  outcome: string;
 }
 
 export interface RoomRun {
@@ -762,6 +773,14 @@ const SILENT_OUTCOMES: Record<string, string> = {
   // person is still typing, so it said nothing and left the room to finish.
   waited: "room.status.outcome_waited"
 };
+// How a draft process that ended other than by sending or skipping is said once its turn has ended: a text the
+// checks withheld, and a ceiling that passed, whether what stood went out or nothing did. A plain skip is said as any
+// turn that held its peace.
+const DRAFT_OUTCOMES: Record<string, string> = {
+  withheld: "room.status.outcome_draft_withheld",
+  "ceiling-skip": "room.status.outcome_draft_ceiling_skip",
+  "ceiling-message": "room.status.outcome_draft_ceiling_message"
+};
 // Which turn of a room a run is: the chat agent's, or a companion's by its speaker. A room two agents answer
 // holds a turn of each at once, and each begins, moves and ends by this key alone.
 export function runKey(speaker: TurnSpeaker | undefined): string {
@@ -876,6 +895,22 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
     return was === undefined || event.progress === undefined ? rooms : withRoom(rooms, event.chatId, putTurn(held, { ...was, progress: event.progress }));
   }
 
+  // A turn of the draft process ended: the chat agent's turn is now on the next. The process's end leaves the line as
+  // any turn's again until the turn itself ends. A companion's round runs no process, so a row is the chat agent's.
+  if (event.type === "draft") {
+    if (was === undefined || typeof event.number !== "number") return rooms;
+
+    if (event.kind === "end") {
+      const { draft: _ended, ...rest } = was;
+
+      return was.draft === undefined ? rooms : withRoom(rooms, event.chatId, putTurn(held, rest));
+    }
+
+    const step: DraftStep = { number: event.number, question: event.question ?? "", kind: event.kind ?? "", outcome: event.outcome ?? "" };
+
+    return withRoom(rooms, event.chatId, putTurn(held, { ...was, draft: step }));
+  }
+
   // A turn ends four ways and nothing else closes one. The room's own archive and the queue move
   // while a run is still going, and neither of them is news about the run.
   if (TURN_ENDED.includes(event.type) && was !== undefined) {
@@ -897,6 +932,8 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
   const outcome = ref<RoomOutcome | null>(null);
 
   let fading: ReturnType<typeof setTimeout> | null = null;
+  // How the chat agent's draft process ended, where it is said when its turn ends.
+  let drafted: string | null = null;
 
   // A turn that has ended and whose answer the room is still reading. The block stands through it:
   // taking it away at the ending would leave the conversation short by the block's own height
@@ -928,7 +965,9 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
 
   function announce(event: BotEvent): void {
     const kept = event.type === "skipped" && event.messageId !== null;
-    const label = kept ? undefined : SILENT_OUTCOMES[event.type];
+    const label = (event.speaker === undefined ? drafted : null) ?? (kept ? undefined : SILENT_OUTCOMES[event.type]);
+
+    if (event.speaker === undefined) drafted = null;
 
     outcome.value = label === undefined ? null : { key: label, ...(event.speaker === undefined ? {} : { speaker: event.speaker }) };
 
@@ -959,10 +998,18 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
 
     const key = runKey(event.speaker);
 
+    if (event.type === "draft") {
+      if (event.kind === "end") drafted = DRAFT_OUTCOMES[event.outcome ?? ""] ?? null;
+
+      return;
+    }
+
     if (event.type === "run-started") {
       endings.set(key, (endings.get(key) ?? 0) + 1);
       unsettle(key);
       outcome.value = null;
+
+      if (event.speaker === undefined) drafted = null;
 
       return;
     }

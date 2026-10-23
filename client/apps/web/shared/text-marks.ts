@@ -5,13 +5,13 @@ import data from "../i18n/data/ko.yaml";
 
 interface TextMarks {
   marks: {
-    voice: string;
+    voice: string[];
     notice: string;
-    file: string;
-    picture: string;
-    video: string;
-    video_note: string;
-    audio: string;
+    file: string[];
+    picture: string[];
+    video: string[];
+    video_note: string[];
+    audio: string[];
     paste: string;
     characters: string;
   };
@@ -20,7 +20,8 @@ interface TextMarks {
 
 const MARKS = (data as TextMarks).marks;
 
-/** The words a message's text opens with for what it carried: a file, a picture, a video, a round video note, a sound. */
+/** The words a message's text opens with for what it carried — a file, a picture, a video, a round video note, a sound —
+ * each kind's every word. */
 export const MEDIA_MARKS = {
   file: MARKS.file,
   picture: MARKS.picture,
@@ -41,8 +42,13 @@ function escaped(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** A voice message's mark: the voice word in brackets, with the recording's length where one is known. */
-export const VOICE_MARK = new RegExp(`^\\[${escaped(MARKS.voice)}(?: \\d+:\\d{2})?\\]`);
+/** A pattern matching any of one mark's words. */
+export function markWords(words: readonly string[]): string {
+  return `(?:${words.map(escaped).join("|")})`;
+}
+
+/** A voice message's mark: a voice word in brackets, with the recording's length where one is known. */
+export const VOICE_MARK = new RegExp(`^\\[${markWords(MARKS.voice)}(?: \\d+:\\d{2})?\\]`);
 
 /** Whether a line is sent as the service rather than in an agent's voice: it opens with the notice mark. */
 export function isSystemNotice(text: string): boolean {

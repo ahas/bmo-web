@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { SKIPPED_OUTCOME } from "../../../apps/web/app/domain/events";
-import { groupRoom, listeningRuns, shownOutcome } from "../../../apps/web/app/domain/room-window";
+import { groupRoom, listeningRuns, shownOutcome, WINDOW_NEWS } from "../../../apps/web/app/domain/room-window";
 
 import type { RunState } from "../../../apps/web/app/domain/events";
 import { OWNER_ID as owner, ROOM_ID } from "../../support/ids";
@@ -42,5 +42,16 @@ describe("the passing word for a silent turn", () => {
     expect(shownOutcome(skipped, true)).toBeNull();
     expect(shownOutcome(skipped, false)).toBe(skipped);
     expect(shownOutcome(failed, true)).toBe(failed);
+  });
+});
+
+// The window is read again on each thing that may move it, its close among them: a window a conversation closes
+// early is told closed once, and a screen that read only its writes would count on to the end it last read
+// (docs/web.md, 「The listening row」).
+describe("what moves the window", () => {
+  test("is a message filed or queued, a turn beginning or ending, and the window written or closed", () => {
+    for (const type of ["message", "queued", "run-started", "sent", "skipped", "window", "window-closed"] as const) {
+      expect({ type, read: WINDOW_NEWS.includes(type) }).toEqual({ type, read: true });
+    }
   });
 });

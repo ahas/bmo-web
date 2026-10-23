@@ -95,12 +95,13 @@ export function receiver(): ReceiverClient {
   });
 }
 
-/** One call on the receiver, its refusals said in the pack's words. */
+/** One call on the receiver, its refusals said in the pack's words: the route's own sentences where the call names
+ * them, and every route's otherwise. */
 export async function receiverCall<T, E extends { code?: string; error?: string; field?: string }>(
   asked: Promise<{ data?: T; error?: E; response: Response }>,
   call: UnitAnswerCall = {}
 ): Promise<T> {
-  return await answered(asked, { ...call, codes: RECEIVER_CODES });
+  return await answered(asked, { ...call, codes: { ...RECEIVER_CODES, ...call.codes } });
 }
 
 /** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */

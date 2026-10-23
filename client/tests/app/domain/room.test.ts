@@ -632,6 +632,24 @@ describe("a message that is only what it carried", () => {
     expect(missing?.shownText).toBe(mark);
   });
 
+  // A chat service marks what a message carried in the words of its own policy, which are not the pack's language,
+  // and the archive keeps rows marked either way.
+  test("stands a picture marked in a chat service's own words as the picture alone, its caption under it", () => {
+    const alone = rowOf({ ...archived(6, "[Photo]"), imagePath: "/kept/6.jpg" });
+    const captioned = rowOf({ ...archived(7, "[Photo]\nlook at this"), imagePath: "/kept/7.jpg" });
+    const file = rowOf({ ...archived(8, "[File palette.html]"), attachments: [document] });
+    const sound = rowOf({ ...archived(9, "[Audio 0:12]"), attachments: [{ ...document, kind: "audio" as const, name: "a.mp3" }] });
+
+    expect(alone?.shownText).toBe("");
+    expect(alone?.imageUrl).not.toBeNull();
+    expect(alone === undefined ? null : copyItemOf(alone).text).toBe("[Photo]");
+    expect(captioned?.shownText).toBe("look at this");
+    expect(file?.shownText).toBe("");
+    expect(sound?.shownText).toBe("");
+    // A mark with nothing kept behind it stays, as the pack's own mark does.
+    expect(rowOf(archived(10, "[Photo]"))?.shownText).toBe("[Photo]");
+  });
+
   test("keeps the bubble where it has words, and where it carried nothing at all", () => {
     expect(rowOf({ ...archived(1, KO.line_629), attachments: [document] })?.look.variant).toBe("soft");
     expect(rowOf({ ...archived(2, KO.line_630), imagePath: "/kept/2.jpg" })?.look.variant).toBe("soft");

@@ -253,6 +253,7 @@
                         :judgements="props.item.judgements"
                         :spend="props.item.spend"
                         :actions-at="props.item.actions"
+                        :drafts="props.item.drafts"
                         :live="live"
                         :chat-id="props.chatId"
                         :message-id="props.item.messageId"

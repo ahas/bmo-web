@@ -7,9 +7,9 @@ import type { Ref } from "vue";
 import type { RoomOutcome, RunState } from "./events";
 
 // What can move a room's window: a call filed or queued opens it, a turn beginning takes it over and
-// a turn ending restarts or leaves it, and the bot tells each write of it as it makes it (docs/wake.md,
-// 「The names and the window」).
-const WINDOW_NEWS: readonly BotEventType[] = ["message", "queued", "run-started", ...TURN_ENDED, "window"];
+// a turn ending restarts or leaves it, and the bot tells each write of it as it makes it and each close of it,
+// by its time or early (docs/wake.md, 「The names and the window」).
+export const WINDOW_NEWS: readonly BotEventType[] = ["message", "queued", "run-started", ...TURN_ENDED, "window", "window-closed"];
 
 // Whether a room is a group in the bot's own split of rooms: every room but the owner's own chat. A
 // room the screen cannot yet tell stands as the owner's chat does, so nothing it would not show there flashes.

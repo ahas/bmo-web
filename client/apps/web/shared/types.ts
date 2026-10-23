@@ -4,6 +4,7 @@
 
 import type { FallbackRouteMode, PushKind } from "./config";
 import type { DeployEnding, DeployStage, DeployStep, DeployStepAhead, DeployStepUnderWay } from "./deploy-progress";
+import type { DraftSummary } from "./drafting";
 
 // bmo-job's shapes (bmo-job's `docs/api.md`).
 
@@ -306,6 +307,9 @@ export interface ArchivedMessage {
   album?: number | null;
   // What that round cost, on the last message the round sent and on no other.
   spend?: RoundSpend | null;
+  // How the round's draft process made its answer, on that same last message: a summary of the round's log,
+  // read with the page.
+  drafts?: DraftSummary | null;
   // Where what the turn did is kept, on that same last message: the room opens it from here and
   // the lines themselves are read out of the log when it does.
   actions?: TurnActionsRef | null;
@@ -808,6 +812,9 @@ export type BotEventType =
   | "live"
   // What the session's own turn is doing right now, as its stream says it.
   | "run-progress"
+  // A turn of the round's draft process ended, or the process did, as the receiver's round log wrote it
+  // (the receiver's docs/drafting.md, 「The round log」).
+  | "draft"
   // The TODO changed. What it holds now is read from the archive, so the event says only that.
   | "todo"
   | "work-order"
@@ -832,6 +839,9 @@ export type BotEventType =
   | "message"
   // A room's window was opened, moved on or shut. How long it has left is read from the archive.
   | "window"
+  // A room's window closed, by its time or early, as the receiver tells it once (the receiver's docs/wake.md, 「The
+  // names and the window」).
+  | "window-closed"
   // A node's state moved or the node list changed. What it holds is read from the archive.
   | "nodes"
   // The Laya server's health moved. What it holds is read from the archive.
@@ -887,8 +897,14 @@ interface BotEventFields {
   speaker?: TurnSpeaker;
   // A run-progress event alone: where the turn is and what its stream has counted so far.
   progress?: RunProgress;
-  // A sent event alone: the round the answer went out in, which every message of that answer names.
+  // A sent event and a draft event: the round the answer went out in, which every message of that answer names.
   round?: string;
+  // A draft event alone: the row of the round log it tells — its number in the process, its question's name, its
+  // kind and how it ended — never the answer itself.
+  number?: number;
+  question?: string;
+  kind?: string;
+  outcome?: string;
   // A briefing event alone.
   briefing?: BriefingNews;
 }

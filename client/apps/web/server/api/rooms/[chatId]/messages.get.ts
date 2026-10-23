@@ -23,7 +23,7 @@ export default defineEventHandler(async (event): Promise<MessagePage> => {
       ? await readMessagePage(chatId, readCursor(query.before), readLimit(query.limit))
       : await readMessagesAfter(chatId, after, readLimit(query.limit));
 
-  // A member reads the conversation; the verdicts recorded on it are the administrator's
-  // (docs/web.md, 「Access」).
-  return await readableRooms(event) === "all" ? page : { ...page, judgements: [] };
+  // A member reads the conversation; the verdicts recorded on it and how its answers were drafted are the
+  // administrator's (docs/web.md, 「Access」).
+  return await readableRooms(event) === "all" ? page : { ...page, messages: page.messages.map((message) => ({ ...message, drafts: null })), judgements: [] };
 });

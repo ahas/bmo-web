@@ -2551,6 +2551,36 @@ Two ways, split because the running places differ.
   reread; a later one that fails keeps what was read.
 - The counts are read again every few seconds while the tab stands. Which role is on which tier is chosen
   on the 실행 경로 tab as its `role:` key; a role is never switched on or off from the screen.
+- **The draft-process table** (드래프트 과정) stands under the co-worker table: what a round's answer is asked
+  before it goes out, as the receiver keeps it (the receiver's `docs/drafting.md`, 「The process table」). A row
+  per key of a provider, a tier and an agent, each a name or 전체 for any, in the order the receiver lists them —
+  the policy's rows, each replaced by the console's of the same key, then the console's own keys. A line under
+  the table's head says that a turn reads the most specific row that matches it, an agent's before a provider's
+  and a provider's before a tier's.
+  - **A row's cells:** 질문 순서, the questions of an ordinary turn in order; 짧은 턴 질문, those of a light turn;
+    짧은 턴 기준, how short the room's words must be for a light turn, in characters; 제한 시간, the time the whole
+    process may take, in seconds; 시간 초과 시, 보내기 or 보내지 않기; and where the row comes from, 콘솔 설정 or
+    기본값. A list with no question stands as 질문 없음.
+  - **Each cell sets that one value,** the row's other values sent with it as they stand, so a default row a
+    cell is changed on becomes the console's row of the same key. A list's dropdown is an ordered pick from the
+    catalogue's names: the questions chosen stand in order, each moved up or down or taken out, and a question
+    not yet chosen is added before `final`, which stands last in every list that holds a question and is taken
+    out only where it stands alone, emptying the list. 저장 sends the list. The two numbers take a whole number,
+    0 to 1,000 characters and 1 to 3,600 seconds, and 시간 초과 시 is a pick of its two.
+  - **추가** in the table's head opens a box of a provider (전체 or one the agency lists), a tier (전체 or one
+    of its ladder) and an agent (전체 or a registered agent); a key that already stands is not offered. The new
+    row starts from the values of the row that key matches now and is the console's at once.
+  - **A console's row carries 삭제 at its end,** asked first: the receiver takes the row away, and where the
+    policy holds a row of the same key that row stands again. A default row carries none.
+  - **A refused set** — a list naming a question the catalogue does not hold, a list not ending in `final`, a
+    number out of range — says the pack's sentence for the receiver's code under the box or in a notice, and
+    the row stands as the receiver holds it. Every change reaches the next round that reads the table.
+- **The questions** (드래프트 질문) stand under the process table: a row per question of the catalogue, its
+  name, its text in the language it was written in, and where it comes from, 콘솔 설정 or 기본값. Pressing a
+  text opens a box of it, at most 4,000 characters and never empty, saved with 저장. 추가 in its head opens a
+  box of a new name — a lowercase word of letters, digits and dashes — and its text; the new question is then
+  offered in every list's pick. A refusal is said by the pack's sentence for the receiver's code.
+- **Either table's read that fails** says so with a reread, as the fold-ratio grid's does.
 
 #### 실행 경로
 
@@ -3568,25 +3598,25 @@ Four bounds keep it from growing forever.
     picture and the mark and the picture stay read.
   - A tooltip of one of its parts comes up above it, clear of it, and nothing in it is picked up or dragged by a
     held finger.
-- **칩 줄** — how full the session stood, a verdict, what the turn did, what it spent, what it wrote down and the
-  voice briefing that speaks it stand as chips on the meta line, inside the bubble, and what a chip spreads stands inside the bubble under that
+- **칩 줄** — how full the session stood, a verdict, what the turn did, what it spent, what it wrote down, how its
+  answer was drafted and the voice briefing that speaks it stand as chips on the meta line, inside the bubble, and what a chip spreads stands inside the bubble under that
   line, at the bubble's own width, parted from it by the bubble's own step and never boxed a second time.
   Nothing spread is wider than the bubble, so the bubble's edge never cuts it: a long word, address or name
   wraps at that width, and a fenced code block or a table scrolls sideways inside its own box. A
   message carries no button of its own anywhere else; what is done to one message is in its menu. The room's top
   bar holds no verdict setting.
   - **Every chip is a mark with a figure or nothing** — no chip carries a word. What it is, is its tooltip and
-    the name a screen reader hears, with 축소 or 확장 after it: 컨텍스트, 읽은 문서, 사용 토큰, 툴 사용, 기록함, 판정, 보이스브리핑.
+    the name a screen reader hears, with 축소 or 확장 after it: 컨텍스트, 읽은 문서, 사용 토큰, 툴 사용, 기록함, 드래프트, 판정, 보이스브리핑.
     컨텍스트 spreads nothing, so it is heard by its name and figure alone, with neither word after it.
   - **칩의 한 모습** — they wear one look, one height and one padding, and every chip that spreads answers a
     pointer alike: a chip standing open carries a background of its own, and each state walks its own three
     colours — resting, under the pointer, pressed — so no press and no hover ever lands on the colour the chip
     already wears. 컨텍스트 is pressed for nothing, so it rests in the closed chip's colours and takes no
     hover or press colour; a tap or a resting pointer brings up its tooltip.
-  - **칩이 서는 차례** — 컨텍스트, 읽은 문서, 사용 토큰, 툴 사용, 기록함, 판정, 보이스브리핑. 컨텍스트 stands first, where the owner
+  - **칩이 서는 차례** — 컨텍스트, 읽은 문서, 사용 토큰, 툴 사용, 기록함, 드래프트, 판정, 보이스브리핑. 컨텍스트 stands first, where the owner
     placed it. After it, the order is what the turn's own clock decides rather than a taste: the documents
     handed to the turn and what it spends stand from its first second, a call joins them the moment it is
-    made, what the turn wrote down and the verdicts arrive with the answer, and the full reading is asked for
+    made, what the turn wrote down, how the answer was drafted and the verdicts arrive with the answer, and the full reading is asked for
     only once the answer is there to read. A chip that arrives late stands after those already there, so
     nothing standing is pushed sideways when it lands, and the reader's pointer is still over the chip it was
     over. 컨텍스트 alone is read once the turn has ended, so the running block carries none and the answer's
@@ -3748,6 +3778,27 @@ Four bounds keep it from growing forever.
     by the record its catalogue entry declares (the receiver's `docs/chat-mcp.md`). The records ride on the answer whole, so
     spreading them reads nothing more.
   - **It stands on the answer's last message**, and only where the round wrote something down.
+- **드래프트** — a chat agent answer carries how its round's draft process made it (the receiver's
+  `docs/drafting.md`): the chip is the count of the rounds the process asked — its questions, items and checks;
+  neither its end nor a row of the round's own turn, where the log holds one, is counted — and pressing it spreads
+  the process.
+  - **The spread opens with the summary:** the gate's `draft` verdicts of the round where the gate wrote any, one
+    line each as the gate wrote it (`ROUND <number> <name>: <outcome>`, `END: <outcome>`), and otherwise one line
+    of how the process ended — 메시지, 보내지 않음, 보류, 시간 초과 후 메시지 or 시간 초과 후 보내지 않음 — read off its
+    end row. The gate's `draft` verdicts stand here alone and are no card of the 판정 chip.
+  - **Under it, one line per row of the round log,** in the order written: the row's number, its question's
+    name, its kind (턴, 질문, 항목, 점검, 끝), how it ended (답함, 건너뜀, 실패, or the end's outcome), the answer's
+    length in characters, 바뀜 where the answer differs from the one before it, and how long it took in
+    milliseconds. A row of a kind the console does not know stands under the receiver's word for it. Under each
+    question row its answer — the notes that round wrote, or the message in the last — stands folded under 답변, as
+    it was written; pressing it spreads the text, which wraps at the bubble's width.
+  - **The rows are read the first time the chip is pressed,** from the receiver's round log by the message's
+    round (`GET /rounds/drafts`), with a skeleton of three lines while they come and a sentence where the read
+    fails; pressing again folds them and a later press reads nothing more. The count and whether the chip stands
+    come with the page itself, which reads the page's rounds once when it is read.
+  - **It stands on the answer's last message**, and only where the round's process left a row other than one of
+    the round's own turn, or the gate wrote a `draft` verdict of it. A companion's answer, a round that waited and a turn from before the
+    process was kept carry none.
 - **사용 토큰** — an agent's answer, the chat agent's or a companion's, carries what that answer wrote: the token mark and one figure (「What one answer spent
   stands as one figure」).
   - **What is counted is the round.** A round is everything the bot ran to produce that answer: the
@@ -4107,6 +4158,18 @@ Four bounds keep it from growing forever.
   Job holds says "〈이름〉가 같은 모델을 쓰는 #〈항목〉 Job이 끝나기를 기다리는 중" until the Job ends
   (the agency's `docs/companions.md`, 「The engine it shares」), read off the bot's picture as well as its events, so a screen
   opened in the middle of the wait shows it; the agents list's row says "Job 종료 대기 중".
+  - **The chat agent's line says which round of the draft process it is on** (the receiver's `docs/drafting.md`),
+    ahead of the state and parted from it by a dot: "라운드 1 · 〈이름〉가 생각하는 중" until the process writes a row, and
+    "라운드 〈n〉 · …" after it, n the number after the last row written; a row of the round's own turn, where the log
+    holds one, stands before the first round and leaves the line on 라운드 1. The receiver tells each row as its turn
+    ends, as a `draft` event naming its number, question and kind, so the line names the round under way by its
+    number alone: which question that round asks, how many rounds the process asks and which of them writes the
+    message stand in no event before the round ends (`docs/boundary.md`, 「Gaps the console meets」). The process's
+    end row brings the line back to the state alone. A
+    process that ended with its text withheld or past its ceiling says so in the passing word once the turn has
+    ended — "〈이름〉의 답이 점검을 통과하지 못해 보내지 않았습니다.", "〈이름〉가 시간 안에 답을 마치지 못해 보내지 않았습니다." or
+    "〈이름〉가 시간 안에 답을 마치지 못해 그때까지의 답을 보냈습니다." — and a skip says it as any silent turn does. A
+    companion's turn runs no process, and its line says the state alone.
   - **The name is the one answering on that row.** Each running row is one speaker's turn, so a companion's row
     names the companion and the chat agent's row names the chat agent, and a room both answer at once stands both rows, each with its
     own name. The name is the agent's label in the `agents` table — a companion's as the bot hands it with the
@@ -4139,8 +4202,8 @@ Four bounds keep it from growing forever.
     (the receiver's `docs/wake.md`, 「The names and the window」), read through its
     `GET /console/rooms/{chat}/window`. The room asks the console how long it has left when it
     opens, again on each thing in the room that may move it — a message filed or queued, a turn beginning or
-    ending, the window itself written — and once more as that time runs out, so the row goes when the window
-    closes and never on a guess of the screen's. The countdown only reads that answer down between reads and
+    ending, the window itself written or closed (`window-closed`), early or by its time — and once more as that
+    time runs out, so the row goes when the window closes and never on a guess of the screen's. The countdown only reads that answer down between reads and
     never closes anything itself.
   - The owner's own chat stands no listening row: every message there reaches the chat agent with no window at all.
 - **The window's time left stands in the top bar.** While the chat agent's window in a group room is open, the

@@ -11,7 +11,7 @@ import { watchOfRun, watchTitle } from "./watches";
 
 import type { AgentLogLine, LiveRun, RoomSummary, RunProgress, TurnAction, TurnReceived, TurnSpeaker, WatchView } from "#shared/types";
 import type { ComputedRef } from "vue";
-import type { RoomOutcome } from "./events";
+import type { DraftStep, RoomOutcome } from "./events";
 import type { ContextStateLook, KindLook, ToolChip } from "./log";
 import type { FigureLine } from "./numbers";
 import type { SpendChip } from "./turns";
@@ -72,8 +72,21 @@ export function turnName(t: Translate, speaker: TurnSpeaker | undefined): string
 }
 
 // The line says who is at it, by the name of the agent answering on that row: a room two agents
-// answer stands a row of each, and each row says its own.
-export function phaseLook(t: Translate, name: string, progress: RunProgress | null): WorkingLook {
+// answer stands a row of each, and each row says its own. The chat agent's turn says which round of its draft
+// process it is on before that (docs/web.md, the room screen's running line): the first until the process writes a row, then
+// the one after the last row written, a row of the round's own turn, where the log holds one, standing before the
+// first. `draft` is that last row, null before the first and undefined for a turn that runs no process.
+export function phaseLook(t: Translate, name: string, progress: RunProgress | null, draft?: DraftStep | null): WorkingLook {
+  const state = stateLook(t, name, progress);
+
+  if (draft === undefined) return state;
+
+  const step = t("room.status.draft_step_round", { n: countText(Math.max(1, (draft?.number ?? 0) + 1)) });
+
+  return { label: t("room.status.draft_step", { step, state: state.label }) };
+}
+
+function stateLook(t: Translate, name: string, progress: RunProgress | null): WorkingLook {
   const subject = subjectOf(name);
 
   if (progress === null || progress.phase === "thinking") {

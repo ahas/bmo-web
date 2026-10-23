@@ -3,17 +3,19 @@
 
 # The marks a message's text opens with where it stands for something other than words. A voice message's
 # text is its mark, with the recording's length where one is known, then the words it says; a line an agent sends
-# as the service rather than in its own voice opens with the notice mark and a space.
+# as the service rather than in its own voice opens with the notice mark and a space. A chat service writes a mark
+# in the words of its own policy, which are not this pack's language, and the archive keeps rows written in more
+# than one, so each mark that stands for what a message carried lists every word it is written with.
 marks:
-  voice: "음성"
+  voice: ["음성", "Voice"]
   notice: "[봇 알림]"
-  # What a message carried, as the receiver marks it at the head of its text: a kept file with its name, a kept
-  # picture, a kept video or round video note, and a kept sound with its name.
-  file: "파일"
-  picture: "사진"
-  video: "동영상"
-  video_note: "동영상 메모"
-  audio: "오디오"
+  # What a message carried, as it is marked at the head of its text: a kept file with its name, a kept picture, a
+  # kept video or round video note, and a kept sound with its name.
+  file: ["파일", "File"]
+  picture: ["사진", "Photo"]
+  video: ["동영상", "Video"]
+  video_note: ["동영상 메모", "Video note"]
+  audio: ["오디오", "Audio"]
   # A long paste held beside the console's box stands in the typed text as its mark, which is found there again by
   # what it says: the paste word, its number, and its length in characters with the character word after it.
   paste: "붙여넣기"

@@ -46,6 +46,12 @@
           <RollingNumber :value="records.length" />
         </LineChip>
 
+        <!-- How the round's draft process made the answer, which arrives with it: the count of the rounds it asked,
+             spreading the summary and the round log's rows, read the first time it opens. -->
+        <LineChip v-if="drafted" :icon="CHIP_ICONS.drafts" :label="$t(CHIP_LABELS.drafts)" :open="draftsOpen" @toggle="openDrafts">
+          <RollingNumber :value="draftCount" />
+        </LineChip>
+
         <!-- The line's full reading, where one stands. It comes after the answer has gone out, so it
              stands last. Its mark turns to the error colour where the reading could not be made;
              pressing it spreads the player, or says no reading was made where there is none to play. -->
@@ -133,6 +139,8 @@
 
       <TurnRecords v-if="recordsOpen" :records="records" class="w-full" />
 
+      <DraftRows v-if="draftsOpen && drafted" :summary="draftLines" :rows="draftRows" :loading="loadingDrafts" :failure="draftsFailure" />
+
       <AgentTurnFigures v-if="chip !== null && spendOpen" :lines="chip.lines" :boxed="false" class="w-full" />
 
       <!-- Each turn's cards stand under what opened it, said once for the turn whichever gates it
@@ -208,8 +216,10 @@ import { narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, stageLa
 import { turnActions } from "~/domain/working";
 import { formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
+import { draftAsked, draftRound, draftSummaryLines, splitDraftJudgements } from "~/domain/draft-process";
 
 import type { Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
+import type { DraftRow, DraftSummary } from "#shared/drafting";
 import type { BriefingChip, VerdictChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
 import type { LiveTurn } from "~/domain/working";
@@ -220,6 +230,8 @@ interface Props {
   spend?: RoundSpend | null;
   // Where what that turn did is kept, on the same message.
   actionsAt?: TurnActionsRef | null;
+  // How the round's draft process made the answer, on the same message.
+  drafts?: DraftSummary | null;
   // The turn still running, where this line belongs to one: what it has done so far and what it
   // has spent so far, both of which it carries itself rather than leaving in a record to read.
   live?: LiveTurn | null;
@@ -247,6 +259,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   spend: null,
   actionsAt: null,
+  drafts: null,
   live: null,
   chatId: 0,
   messageId: 0,
@@ -396,7 +409,43 @@ const chip = computed<SpendChip | null>(() =>
   props.live !== null ? props.live.chip : props.spend === null ? null : roundChip(t, props.spend)
 );
 
-const opened = computed<Judgement[]>(() => openedCards(props.judgements, expanded.value));
+// The gate's rows of the round's draft process stand on the draft chip as its summary, and every other verdict on
+// the verdict chip.
+const split = computed(() => splitDraftJudgements(props.judgements));
+const verdicts = computed<Judgement[]>(() => split.value.verdicts);
+
+const opened = computed<Judgement[]>(() => openedCards(verdicts.value, expanded.value));
+
+// The draft chip stands on a turn that has ended and whose round's process the page read or the gate wrote of.
+const draftsOpen = ref(false);
+const loadingDrafts = ref(false);
+const draftsFailure = ref<string | null>(null);
+const draftRows = ref<DraftRow[] | null>(null);
+const roundOfDrafts = computed<string | null>(() => draftRound(props.drafts, split.value.drafts));
+const drafted = computed<boolean>(() => props.live === null && roundOfDrafts.value !== null && (props.drafts !== null || split.value.drafts.length > 0));
+const draftCount = computed<number>(() => draftAsked(props.drafts, split.value.drafts));
+const draftLines = computed<string[]>(() => draftSummaryLines(t, props.drafts, split.value.drafts));
+
+// Opening reads the round's rows from the receiver's round log, once; a read that failed is asked again on the next
+// opening.
+async function openDrafts(): Promise<void> {
+  draftsOpen.value = !draftsOpen.value;
+
+  const round = roundOfDrafts.value;
+
+  if (!draftsOpen.value || round === null || draftRows.value !== null || loadingDrafts.value) return;
+
+  loadingDrafts.value = true;
+  draftsFailure.value = null;
+
+  try {
+    draftRows.value = (await $fetch<{ rows: DraftRow[] }>(`/api/rooms/${props.chatId}/drafts`, { query: { round } })).rows;
+  } catch (error) {
+    draftsFailure.value = failureText(error, t("room.error.drafts_read_failed"));
+  } finally {
+    loadingDrafts.value = false;
+  }
+}
 
 // The spread cards by the turn they belong to, each with what its narrowing says where it says
 // anything.
@@ -419,6 +468,7 @@ const chipped = computed<boolean>(
     chip.value !== null ||
     counts.value.tools > 0 ||
     records.value.length > 0 ||
+    drafted.value ||
     props.briefing !== null
 );
 
@@ -429,7 +479,7 @@ const full = computed<boolean>(() => chipped.value || slots.took !== undefined);
 
 // Whether the verdict mark stands: once the message is being judged, and from then on wherever it
 // has a verdict.
-const marked = computed<boolean>(() => props.judging || props.judgements.length > 0);
+const marked = computed<boolean>(() => props.judging || verdicts.value.length > 0);
 
 // Whether the line has anything to stand: a chip, the wait, the verdict mark, or the clock. A running
 // turn with none of them carries no line at all.
@@ -441,6 +491,7 @@ const spreading = computed<boolean>(
     (briefingOpen.value && props.briefing !== null) ||
     ACTION_KINDS.some((kind) => listOpen(kind)) ||
     recordsOpen.value ||
+    (draftsOpen.value && drafted.value) ||
     (chip.value !== null && spendOpen.value) ||
     turns.value.length > 0
 );
@@ -527,7 +578,7 @@ const lineLook = computed<string>(() => {
 // What the mark says of the message's verdicts as a whole, and how it says it. Its colour changes on
 // the quick length. A row read in with its mark stands it at once; a mark that comes later pops in
 // only where it comes with its verdicts settled, since one that comes beating has said it came.
-const markLook = computed<VerdictChip>(() => verdictChip(verdictState(props.judgements, props.judging)));
+const markLook = computed<VerdictChip>(() => verdictChip(verdictState(verdicts.value, props.judging)));
 const markStood = marked.value;
 const beaten = ref(props.judging);
 

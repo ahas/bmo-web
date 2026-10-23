@@ -166,6 +166,7 @@
           <AgentsTierTable :query="query" />
           <AgentsFoldRatios :query="query" />
           <AgentsCoworkerLimits :query="query" />
+          <AgentsDraftProcesses :query="query" />
         </template>
 
         <AgentsRouteTable v-else-if="tab === 'routes'" :query="query" />
@@ -192,6 +193,7 @@
 import { AGENT_TABS, emptyFallbackView, emptyKeepaliveView, isAgentTab, mappingText, routeModeText, searchSettings, settingsAnchor } from "~/domain/agent-settings";
 import { agentGroups, GENERAL_SECTIONS, generalTabOf, isGeneralTab, keepaliveMarkOf, NOT_CHECKOUT_LABEL } from "~/domain/agents";
 import { foldPercentText, foldRatioAt, foldSourceText } from "~/domain/fold-ratios";
+import { draftKeyId, draftKeyLabel, draftListText, draftSourceText } from "~/domain/draft-process";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useListPlace } from "bmo-ui/app/domain/list-place";
 import { useReadFailure } from "~/domain/events";
@@ -207,6 +209,7 @@ import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settin
 import type { AgentSummary, FallbackView, KeepaliveView, RoomSummary } from "#shared/types";
 import type { GeneralPart } from "~/domain/agents";
 import type { FoldRatiosView, ModelPage, PoolBoard, TierSettingsView } from "#shared/agency";
+import type { DraftProcessesView } from "#shared/drafting";
 
 const route = useRoute();
 const router = useRouter();
@@ -255,6 +258,8 @@ const { data: fallback, refresh: rereadFallback, status: fallbackStatus } = useF
 const { data: keepalive, refresh: rereadKeepalive, status: keepaliveStatus } = useFetch<KeepaliveView>("/api/keepalive", { key: "keepalive", lazy: true, server: false, default: emptyKeepaliveView });
 const { data: tiers } = useFetch<TierSettingsView>("/api/model-tiers", { key: "model-tiers", lazy: true, server: false });
 const { data: foldRatios } = useFetch<FoldRatiosView>("/api/fold-ratios", { key: "fold-ratios", lazy: true, server: false });
+// The draft process table and its questions, read here too so the search looks over them before their tab was opened.
+const { data: draftProcesses } = useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", lazy: true, server: false });
 // The registered models, read apart from the rest of the tab: its section waits on its own read.
 const { data: models, error: modelsError, refresh: rereadModels, status: modelsStatus } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
 // The co-worker pool, read here too so the search looks over the limits before their tab was opened.
@@ -401,6 +406,30 @@ const entries = computed<SettingsEntry[]>(() => {
     });
 
     list.push({ id: `fold-${tier}`, tab: "tiers", label: t("agents.label.find_fold_ratio", { tier }), fields: [{ label: t("agents.label.tier"), text: tier, shown: true }, ...cells] });
+  }
+
+  for (const row of draftProcesses.value?.rows ?? []) {
+    const key = draftKeyLabel(t, row);
+
+    list.push({
+      id: `draft-${draftKeyId(row)}`,
+      tab: "tiers",
+      label: t("agents.label.find_draft_process", { key }),
+      fields: [
+        { label: t("agents.label.draft_rounds"), text: draftListText(t, row.rounds), shown: true },
+        { label: t("agents.label.draft_light"), text: draftListText(t, row.light), shown: true },
+        { label: t("agents.label.draft_source"), text: draftSourceText(t, row.source), shown: true }
+      ]
+    });
+  }
+
+  for (const question of draftProcesses.value?.questions ?? []) {
+    list.push({
+      id: `draft-question-${question.name}`,
+      tab: "tiers",
+      label: t("agents.label.find_draft_question", { name: question.name }),
+      fields: [{ label: t("common.label.name"), text: question.name, shown: true }, { label: t("agents.label.draft_question_text"), text: question.text, shown: true }]
+    });
   }
 
   const gateKeys = new Set((fallback.value?.profiles ?? []).filter((one) => one.kind === "gate").map((one) => one.key));

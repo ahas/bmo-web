@@ -5,7 +5,7 @@
     "": {
       "name": "bmo-web-client",
       "dependencies": {
-        "bmo-ui": "file:./vendor/bmo-ui-0.1.0-rev.5.tgz",
+        "bmo-ui": "file:./vendor/bmo-ui-0.1.0-rev.6.tgz",
       },
       "devDependencies": {
         "@happy-dom/global-registrator": "20.14.5",
@@ -32,7 +32,7 @@
         "@xterm/xterm": "5.5.0",
         "bmo-artifact-client": "file:../../vendor/bmo-artifact-client-0.1.0-rev.4.tgz",
         "bmo-brain-client": "file:../../vendor/bmo-brain-client-0.1.0-rev.3.tgz",
-        "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.2.tgz",
+        "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.3.tgz",
         "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.5.tgz",
         "bmo-mail-client": "file:../../vendor/bmo-mail-client-0.1.0-rev.1.tgz",
         "bmo-remote-client": "file:../../vendor/bmo-remote-client-0.1.0-rev.3.tgz",
@@ -982,7 +982,7 @@
 
     "bmo-brain-client": ["bmo-brain-client@../../vendor/bmo-brain-client-0.1.0-rev.3.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-Z2Yq09my6nRNahM36NUIXzygzsHZcNOAgrHnWCD/FlKfg0KefyY73C9L1VayQVNOdaz7XQR1sJ6cg/Pl0ydkvA=="],
 
-    "bmo-drive-client": ["bmo-drive-client@../../vendor/bmo-drive-client-0.1.0-rev.2.tgz", { "dependencies": { "@nuxt/ui": "^4.11.2", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.3", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-WDE7O7NaPoFcdvt9ixGYZCPwDw6d2u29SCoBWFq85Tzy2jA+Gpji3/dB3gWmfSJp0xs0ecWRv0IzKfe6v517MQ=="],
+    "bmo-drive-client": ["bmo-drive-client@../../vendor/bmo-drive-client-0.1.0-rev.3.tgz", { "dependencies": { "@nuxt/ui": "^4.11.2", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.7", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-pUf6aZk4RhbmuEEykyjmipNb7yIqT5E5i36SSTL1KcEGCtgear6R9QxSolklHepcRrDaUg7r8Wng23bczqiLpA=="],
 
     "bmo-job-client": ["bmo-job-client@../../vendor/bmo-job-client-0.1.0-rev.5.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-OPwAh7OB1cUFFPcSB8zFSL5lJCxbi0vXmJOpwb86pSyF6ogFl4XMP4AKcFosZ7vkPndI0J+fjqPZVb0VZzU/OQ=="],
 
@@ -994,7 +994,7 @@
 
     "bmo-review-client": ["bmo-review-client@../../vendor/bmo-review-client-0.1.0-rev.1.tgz", { "dependencies": { "@nuxt/ui": "^4.11.2", "monaco-editor": "^0.56.0", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.2", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-8Es7fAZdVysy31sHKWXPOsDXGKmrMHEkhyWnOpS99rtif4r+kO/m/8ToGsuJ6YUrvCeiJDcoc/vz5tsJyzc5HQ=="],
 
-    "bmo-ui": ["bmo-ui@./vendor/bmo-ui-0.1.0-rev.5.tgz", { "dependencies": { "@iconify-json/material-icon-theme": "^1.2.72", "@iconify-json/material-symbols": "^1.2.93", "@modelcontextprotocol/sdk": "^1.32.1", "@nuxt/ui": "^4.11.2", "@tanstack/vue-table": "8.21.3", "dayjs": "^1.11.23", "mermaid": "12.0.0", "monaco-editor": "^0.56.0", "tailwindcss": "^4.1.16", "vue": "^3.5.24", "vue-router": "^5.2.0", "zod": "^4.6.7" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "bin": { "bmo-ui": "./bin/bmo-ui.ts" } }, "sha512-wPVKTqavOxRVnga7Xhn12EsNyu40wjPJC1iEkYebFcNTQ9NanhqfgrFzKMsilk6CEOfy9JdwggwK2a8hRz7avg=="],
+    "bmo-ui": ["bmo-ui@./vendor/bmo-ui-0.1.0-rev.6.tgz", { "dependencies": { "@iconify-json/material-icon-theme": "^1.2.72", "@iconify-json/material-symbols": "^1.2.93", "@modelcontextprotocol/sdk": "^1.32.1", "@nuxt/ui": "^4.11.2", "@tanstack/vue-table": "8.21.3", "dayjs": "^1.11.23", "mermaid": "12.0.0", "monaco-editor": "^0.56.0", "tailwindcss": "^4.1.16", "vue": "^3.5.24", "vue-router": "^5.2.0", "zod": "^4.6.7" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "bin": { "bmo-ui": "./bin/bmo-ui.ts" } }, "sha512-pL0GObxCnUbQHuqeR7posndCsckw77wxKM9voXmbwI9e9isLjX4ifDQXYeaAU/iOGbh+9FplmVEKwPh3+XH7Rw=="],
 
     "bmo-web": ["bmo-web@workspace:apps/web"],
 

@@ -20,7 +20,7 @@
     "@xterm/xterm": "5.5.0",
     "bmo-artifact-client": "file:../../vendor/bmo-artifact-client-0.1.0-rev.4.tgz",
     "bmo-brain-client": "file:../../vendor/bmo-brain-client-0.1.0-rev.3.tgz",
-    "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.2.tgz",
+    "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.3.tgz",
     "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.5.tgz",
     "bmo-mail-client": "file:../../vendor/bmo-mail-client-0.1.0-rev.1.tgz",
     "bmo-remote-client": "file:../../vendor/bmo-remote-client-0.1.0-rev.3.tgz",

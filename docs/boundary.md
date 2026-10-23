@@ -302,12 +302,11 @@ for it, and no file or table of that unit is read meanwhile.
 - **Which services take an owner key.** bmo-ui's bundle declaration has no field saying the service acts for an
   owner the caller names, so the console sets `Owner-Key` and `Owner-Role` on every call and socket it relays, to
   every unit; a unit that takes neither reads past the headers.
-- **A bundle's address without the base path.** bmo-ui's relay module answers a service's address as the relay
-  base, the service's name and the path, with no base path in front, so an address a bundle hands the browser as it
-  stands — a picture's or a link's address, a socket's — misses the base path the console is served under. The
-  calls a bundle makes through the app's own fetch take the base path on the way, and a bundle that hands a raw
-  address on puts the base path in front itself. The address belongs in bmo-ui's contract; the console adds nothing
-  to a bundle's address.
+- **A bundle that puts the base path in front of a relay address itself.** bmo-ui's relay module answers a
+  service's address under the base path the console is served under. The mail bundle at its vendored revision still
+  puts the base path in front of an address it hands the browser as it stands — its event stream, a part's content,
+  an avatar — so those addresses carry the base path twice and are not reached until the mail bundle drops that
+  step. The console adds nothing to a bundle's address.
 - **What a room's page does not carry.** The receiver's pages carry a message's words, its sender, its round and
   its files' names, and nothing else a bubble's chip line wears. The console reads those from the units that hold
   them: a page's verdicts from the gate's `GET /judgements`, read for the time the page covers, and what the round behind a message cost and called

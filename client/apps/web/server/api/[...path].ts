@@ -52,10 +52,22 @@ function queryOf(event: Parameters<typeof getQuery>[0]): string {
   return text === "" ? "" : `?${text}`;
 }
 
+// One segment as it came, escaped once: what the request escaped stays escaped and what it left bare is escaped
+// now, and a segment whose escapes do not read as text goes as it came.
+function segmentOf(raw: string): string {
+  try {
+    return encodeURIComponent(decodeURIComponent(raw));
+  } catch {
+    return raw;
+  }
+}
+
 export default defineEventHandler(async (event) => {
+  // The path is split where the request wrote a slash and nowhere else: a slash a segment carries escaped is that
+  // segment's own, and the segment is handed on still escaped, so the service reads the segment the bundle wrote.
   const path = (getRouterParam(event, "path") ?? "").split("/").filter((part) => part !== "");
   const service = path.shift() ?? "";
-  const rest = path.map(encodeURIComponent).join("/");
+  const rest = path.map(segmentOf).join("/");
   const declarations = (useAppConfig().consoleBundles ?? []) as { serviceName: string }[];
   const declared = declarations.find((bundle) => bundle.serviceName === service);
   const unit = unitAt(service.replaceAll("-", "_").toUpperCase());

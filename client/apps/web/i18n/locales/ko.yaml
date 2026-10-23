@@ -2054,7 +2054,6 @@ usage:
     reset_in: "{time} 초기화"
     reset_passed: 초기화 지남
     total: "총 {tokens}"
-    unmeasured: 미측정
     unsplit: "분리 전 {runs}건 {tokens}"
     until_days: "{d}일 후"
     until_days_hours: "{d}일 {h}시간 후"
@@ -2078,15 +2077,11 @@ usage:
     window_weekly_overage: 주간+초과
   status:
     loading: 사용량 불러오는 중…
-    no_info: 받은 정보 없음
-    no_saved_sessions: 저장된 세션 없음
-    no_usage_yet: 아직 받은 사용량 정보 없음
+    no_accounts: 등록된 계정 없음
+    no_info: 읽은 사용량 없음
   title:
     remaining: 남은 사용량
     remaining_of: "남은 사용량 · {name}"
-    saved_sessions: 저장된 세션
-    weekly_by_gate: 주간 게이트별
-    weekly_by_user: 주간 사용자별
 job:
   error:
     action_wrong: 이 경로가 받지 않는 동작입니다.

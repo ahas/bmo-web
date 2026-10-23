@@ -1,20 +1,12 @@
 import { COUNT_LOCALE } from "./numbers";
+import { agentProviderNames } from "#shared/types";
 
-import type {
-  AgentMode,
-  AgentTokenUsage,
-  FallbackView,
-  HeadlineWindow,
-  TokenSplit,
-  UsageTally,
-  UsageView,
-  UsageWindow
-} from "#shared/types";
+import type { ActiveUsage, AgentMode, AgentTokenUsage, HeadlineWindow, TokenSplit, UsageTally, UsageView } from "#shared/types";
 import type { BarColor } from "bmo-ui/app/domain/bars";
 import type { Translate } from "#shared/wording";
 
-// What the account's usage reads as on screen. The figures themselves are worked out by the bot
-// and read from the archive; this is only how they are named, coloured and shortened.
+// What the accounts' usage reads as on screen. The figures themselves are the agency's; this is only how they are
+// named, coloured and shortened, and which of them stand together.
 
 // The account names its own windows. These are the ones this console has words for; any other
 // window it reports stands under the name it came with rather than disappearing.
@@ -24,7 +16,7 @@ const WINDOW_LABELS: Record<string, string> = {
   seven_day_overage_included: "usage.label.window_weekly_overage",
 };
 
-function durationLabel(t: Translate, window: string | UsageWindow): string {
+function durationLabel(t: Translate, window: string | HeadlineWindow): string {
   const name = typeof window === "string" ? window : window.name;
   const known = WINDOW_LABELS[name];
 
@@ -49,7 +41,7 @@ function durationLabel(t: Translate, window: string | UsageWindow): string {
       : name;
 }
 
-export function windowLabel(t: Translate, window: string | UsageWindow): string {
+export function windowLabel(t: Translate, window: string | HeadlineWindow): string {
   const label = durationLabel(t, window);
   return typeof window !== "string" && window.limitName ? t("usage.label.window_limit", { limit: window.limitName, label }) : label;
 }
@@ -118,48 +110,48 @@ export function loudestTone(windows: readonly (HeadlineWindow | null)[]): UsageT
   return tones.includes("warning") ? "warning" : "muted";
 }
 
-// One window to show. Where an account is named it is that account's own row and no other's; with
-// none named it is the first row of that name, which the reader orders by the account order. Which
-// login a figure belongs to is the caller's to say: a window is one account's reading and no
-// other's, so a caller standing for what a run will meet names the account it asks about.
-export function windowOf(
-  view: UsageView,
-  name: string,
-  mode: AgentMode = "claude-code",
-  account?: string
-): UsageWindow | null {
-  return view.windows.find((window) =>
-    window.mode === mode && window.name === name && (account === undefined || window.account === account)
-  ) ?? null;
+// The provider a slot is on, where it is one this console has a name for; any other stands under the agency's
+// label for it.
+export function knownMode(provider: string): AgentMode | null {
+  return (agentProviderNames as readonly string[]).includes(provider) ? (provider as AgentMode) : null;
 }
 
-// One registered Claude account as the panel shows it: its name, whether runs go out on it now,
-// and its own windows. Every account has one whichever of them is serving, and one with no
-// reading yet has one too, holding nothing.
-export interface AccountUsageGroup {
+// One group of the panel: whose figures they are — the provider, and the account's name where the slot is one
+// account of several — whether the chat runs on it now, and its own windows, session first. A group with no
+// window stated holds none, and says so rather than standing a figure.
+export interface UsageGroup {
   id: string;
-  name: string;
+  provider: string;
+  label: string;
+  name: string | null;
   inUse: boolean;
-  windows: UsageWindow[];
+  windows: HeadlineWindow[];
 }
 
-// The Claude accounts in the order the road walks them, each with the windows its own login
-// reported. A window belongs to the account that reported it and to no other, so a group is made
-// by that account alone; a reading left by an account no longer registered belongs to no group.
-export function accountGroups(view: UsageView, fallback: FallbackView): AccountUsageGroup[] {
-  const serving = fallback.active.provider === "claude-code" ? fallback.active.account : null;
-
-  return fallback.accounts.map((account) => ({
-    id: account.id,
-    name: account.name,
-    inUse: account.id === serving,
-    windows: view.windows.filter((window) => window.mode === "claude-code" && window.account === account.id),
-  }));
+function windowsOf(slot: { session: HeadlineWindow | null; week: HeadlineWindow | null }): HeadlineWindow[] {
+  return [slot.session, slot.week].filter((window): window is HeadlineWindow => window !== null);
 }
 
-// The windows of every road that holds no Claude login, in the order the view lists them.
-export function providerWindows(view: UsageView): UsageWindow[] {
-  return view.windows.filter((window) => window.mode !== "claude-code");
+// Every registered account as a group of its own, in the agency's order, each with its own windows. Where the chat
+// runs on a provider that holds no login, that slot is a group of its own ahead of them, marked as the one in use.
+export function usageGroups(view: UsageView): UsageGroup[] {
+  const active = view.active;
+  const slot: UsageGroup[] =
+    active === null || active.account !== null
+      ? []
+      : [{ id: `slot:${active.provider}`, provider: active.provider, label: active.label, name: null, inUse: true, windows: windowsOf(active) }];
+
+  return [
+    ...slot,
+    ...view.accounts.map((account) => ({
+      id: account.id,
+      provider: account.provider,
+      label: account.label,
+      name: account.name,
+      inUse: account.inUse,
+      windows: windowsOf(account)
+    }))
+  ];
 }
 
 // A window's figure as it stands now: the window itself while its reset is still ahead, and nothing
@@ -169,23 +161,23 @@ export function liveWindow<T extends HeadlineWindow>(window: T | null | undefine
   return window === null || window === undefined ? null : window.resetsAt === null || window.resetsAt > now ? window : null;
 }
 
-// The title bar stands for the agent serving now, which is the bot's own answer: the provider the
-// road answers on and, where it holds logins, the one it walks to. The screen guesses neither.
-export function selectedUsageMode(fallback: FallbackView): AgentMode {
-  return fallback.active.provider;
+// What names the slot's login on the title bar, where the provider holds more than one to tell apart. With a single
+// login there is nothing to distinguish and the title says nothing about it, and a provider that holds none has no
+// login to name.
+export function titleAccountLabel(active: ActiveUsage | null): string | null {
+  return active === null || active.logins < 2 ? null : active.accountName;
 }
 
-// What names that login on the title bar, where the provider holds more than one to tell apart.
-// With a single login there is nothing to distinguish and the title says nothing about it, exactly
-// as the panel's own rows do, and a provider that holds none has no login to name.
-export function titleAccountLabel(fallback: FallbackView): string | null {
-  return fallback.active.accounts < 2 ? null : fallback.active.accountName;
+// The two figures the title bar shows: the slot's session and weekly windows, as the agency picked them out of the
+// provider's own vocabulary. A slot that reports none has none, and with no slot there is none.
+export function titleWindows(active: ActiveUsage | null): [HeadlineWindow | null, HeadlineWindow | null] {
+  return active === null ? [null, null] : [active.session, active.week];
 }
 
-// The two figures the title bar shows: the active slot's session and weekly windows, as the
-// provider itself picked them out of its own vocabulary. A provider that reports none has none.
-export function titleWindows(fallback: FallbackView): [HeadlineWindow | null, HeadlineWindow | null] {
-  return [fallback.active.session, fallback.active.week];
+// Whether the slot is on a provider with no limit to show: no login and no window. Its title is its name and the
+// one dash, rather than two windows the provider does not have.
+export function limitless(active: ActiveUsage | null): boolean {
+  return active !== null && active.account === null && active.session === null && active.week === null;
 }
 
 const MINUTE = 60;
@@ -406,5 +398,5 @@ export function unsplitText(t: Translate, tallies: readonly UsageTally[]): strin
 }
 
 export function emptyUsage(): UsageView {
-  return { windows: [], fiveHour: [], agents: [], users: [], sessions: [] };
+  return { active: null, accounts: [], agents: [], contexts: [] };
 }

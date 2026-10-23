@@ -849,35 +849,41 @@ edit to that file alone.
 
 ### Usage in the title bar
 
-- **On any screen, how full the account is stands at the right of the header.** Two of them — **session**
-  (a 5-hour window) and **weekly** (a 7-day window). Exactly the windows the archive holds for that
-  account — read on a clock from the account's own login and off the answers that login produced —
-  read yellow past 60% and red past 90%.
-- **They are the active agent's, and its login is named beside them.** A window belongs to the
-  login that reported it, so two logins report the same two windows about two different limits, and
-  figures with no login named are figures about nobody. The bar reads the bot's own `active` view —
-  the provider the chat's road answers on and, where that provider holds logins, the one it walks to
-  now (the agency's `docs/cache-fallback.md`); another key answering on the provider it was set to, such as a gate
-  on a registered model, does not move it — so the bar follows the runs rather than the head of the
-  list, and it changes when the road moves on. The screen picks no provider or login of its own. With one login
-  there is nothing to tell apart and the bar names none. Where the bot is not answering there is no
-  `active` view, and the bar shows dashes rather than any login's figures.
+- **On any screen, what the slot the chat runs on has left stands at the right of the header.** The slot is
+  named — its provider, and the login where the provider holds more than one — and beside it stand two
+  windows, **session** (a 5-hour window) and **weekly** (a 7-day window), each as the share remaining, read
+  yellow at 40% or under and red at 10% or under.
+- **The slot is the agency's answer, not the screen's pick.** The agency names the agent serving the chat now:
+  the provider its road answers on and, where that provider holds logins, the one it walks to now (the
+  agency's `docs/cache-fallback.md`), with that slot's own session and weekly windows. So the bar follows the
+  runs rather than the head of the account list, and it changes when the road moves on; another key
+  answering on the provider it was set to, such as a gate on a registered model, does not move it. The
+  provider stands under the label the agency gives it. With one login there is nothing to tell apart and
+  the bar names none. A window belongs to the login that reported it, so a figure with no login named
+  would be a figure about nobody, and the bar never borrows another login's figure for the slot.
+- **A figure the agency does not state stands as a dash.** A window of the slot that the agency names
+  no reading for reads 「—」; a slot on a provider that holds no login and reports no window — a provider
+  paid by the request — stands as its name and 「남은 사용량 —」, since there is no limit to show; and
+  where the agency names no slot at all, the bar shows dashes. No figure is guessed or carried over from
+  another slot.
 - **There is one axis.** Standing a token count beside the percent would have that count read as a
-  percent too, so no tokens stand in the title bar. The tokens a model the owner watches used stand as one of
-  the popover's per-model lines, which is where they belong. The account puts no model name on the windows
-  it reports, so there is no per-model limit, and what there is is only the value the bot counted for its
-  own runs. What is not there is not stood up as if it were.
+  percent too, so no tokens stand in the title bar or in its panel.
 - **At phone width the two fold into one meter icon.** Standing both percents would eat enough room to cut
   the room name off. The folding boundary is the width where this display used to hide its label (sm), not
   a newly made number. Even folded, what should be known is told — the icon stands in the loudest of the
-  two windows' colours, so if either is red the icon is red. Pressing that place opens the same thing
-  whether folded or not: every window the account reported, this week's per-model tokens, this week's
-  per-gate tokens, once the multi-user model is in force this week's tokens of each user's work on
-  the Claude accounts that are theirs, and **the context each session holds now**. Folded, the login the figures are of
-  is named in the mark's own tooltip, since there is nowhere else on the bar to say it.
-- **The panel keeps to the window and scrolls inside it.** It is taller than a laptop's screen
-  before the sessions are reached, and what stands past the bottom of a panel that does not scroll
-  is drawn where nothing can reach it.
+  two windows' colours, so if either is red the icon is red. Pressing that place opens the same panel
+  whether folded or not. Folded, the login the figures are of is named in the mark's own tooltip, since
+  there is nowhere else on the bar to say it.
+- **The panel is each account's remaining usage, and nothing else.** Every registered Claude account
+  stands as a group of its own, in the order the agency lists them and under the name the owner gave it,
+  holding that account's own session and weekly windows as the share remaining, each with how long is left
+  until it resets; the account the chat runs on now is marked 「사용 중」. Where the chat runs on a provider
+  that holds no login, that slot stands first as a group of its own, marked the same way, with whatever
+  windows it reports. An account whose windows the agency states none of says so in one line rather than
+  standing a figure, and with no account registered and no slot named the panel says there is no
+  account. No tally of tokens by model, gate or user and no list of saved sessions stands in it.
+- **The panel keeps to the window and scrolls inside it,** since what stands past the bottom of a panel
+  that does not scroll is drawn where nothing can reach it.
 - **It leads to the accounts.** The panel's own heading carries the way to the Claude 계정 list,
   where the logins, their order and their switches are — what the figures are read against, and the
   only place any of it is changed.
@@ -896,12 +902,12 @@ edit to that file alone.
   cache write are what each request carried in, and a continued session carries the whole of itself in
   again on every turn, so they say how long the session has grown rather than what the answer made; they
   stand only in the chip's spread. A round none of whose runs was measured reads one 「—」.
-  - Pressing the chip spreads one line per run, each with its four kinds as the bar a popover's row
-    stands as (below): 「읽기」, 「쓰기」, 「캐시읽기」, 「캐시쓰기」 named beside their figures.
+  - Pressing the chip spreads one line per run, each with its four kinds as one bar (below): 「읽기」,
+    「쓰기」, 「캐시읽기」, 「캐시쓰기」 named beside their figures.
   - No screen header and no room's session info carries a week's or an all-time total in this form.
     The question the chip answers is what one answer cost, and a stretch's total says nothing about any
     one answer.
-- **In the popover those four stand as one bar together.** The row's name and 「총 …」 stand on the top
+- **Where a row's four stand as one bar,** the row's name and 「총 …」 stand on the top
   line, below it one track crossing that row's total cut into four shares, and below that the four names
   lie horizontally in one line with their coloured dot and figure — folding onward if room is short. The
   width is each's share of that row's total, so what ate the row is read before the figures are summed by
@@ -918,7 +924,7 @@ edit to that file alone.
   nobody spots two near-identical pictures drifted apart.
 - **This bar stands only where several shares divide one thing.** That the track's length is the whole and
   a piece's width is that share is all this picture says, so standing it on a non-division makes the picture
-  say what a figure did not. So it stands in three places — a usage popover's row and a home-screen row's
+  say what a figure did not. So it stands in three places — a run's or a job model's row and a home-screen row's
   weekly tokens (four divide the total), a TODO item's time bar (spans divide the total time), a room-stats
   card's messages (people and each of the room's agents divide that room's messages). Where it does not stand is as clear. A
   limit's percent has one share, not a division; the siren's per-minute bars and room-stats' time-band bars
@@ -2564,18 +2570,13 @@ Two ways, split because the running places differ.
   is decided by the chosen model's context and that run's system prompt. Words sent to a room and
   attached to an upload take up to 100,000 characters, and what does not fit one Telegram message the
   bot splits (the room screen's **input box**).
-- **The title bar's limit follows the current run mode too.** While using Claude Code it shows the
-  session and weekly windows of the login an automatic run goes out on now — the first account of
-  the owner's order the road finds open — and while using Codex the primary and secondary windows the
-  Codex app-server gave via `account/rateLimits/read`. The expanded panel holds a group for every
-  registered Claude account, in the order the road walks them, each group headed by the account's
-  name and holding its own session and weekly figures and reset times, beside the Codex windows, so
-  before and after a switch can be compared and so what one account has left is read without asking
-  which one is answering now. The account an automatic run goes out on now is marked in its group
-  heading. An account with no reading yet still has its group, saying so. While OpenRouter answers, several upstreams cannot be
-  bound into one account window, so it writes 「한도 미제공」. The Codex window is read at bot start and
-  each background cycle after, saved to the archive with the mode, and the screen reads its latest
-  success like other usage.
+- **The title bar's limit follows the slot the chat runs on.** It shows the provider the chat's road answers on, the
+  login it walks to where that provider holds more than one, and that slot's own session and weekly windows as the agency
+  states them; the expanded panel holds a group for every registered Claude account, in the order the agency lists them,
+  each headed by the account's name and holding its own session and weekly figures and reset times, so what one account
+  has left is read without asking which one is answering now (「Usage in the title bar」). The slot the chat runs on is
+  marked in its group heading. An account with no reading still has its group, saying so, and a provider that reports no
+  window, such as one paid by the request, stands as its name with 「—」.
 - **A privileged Codex is YOLO and never-ask.** A room and job worker allowed all four tools in Claude
   Code, like the owner's private chat, run with `--dangerously-bypass-approvals-and-sandbox`. It is not
   the half setting of only `approval_policy=never` with a workspace-write bubblewrap, so local TODO,
@@ -5692,21 +5693,18 @@ journalctl --user -u <unit> -f
     since two logins keep their weeks on different days; the date and hour stand behind it.
   - A window whose reset time has passed is shown as reset, not as the percentage it held before the
     reset, until a new reading arrives.
-- The Codex account query and the screen's figure refresh cycle are one minute each. A successful account query replaces the
-  previous Codex window list whole so no window the provider removed stays. A failed query keeps the last value. Windows given to
-  the base account and to a separate model like Spark are told apart by name, and a weekly window is not shown as a session window
-  nor another model's session window taken as the base account window.
+- The screen reads the figures again once a minute. Which of a slot's windows is its session and which its week is the
+  agency's pick from the provider's own names, so a weekly window is never shown as a session window, nor another model's
+  window taken for the account's.
 - The model providers are the four Claude Code, Codex, OpenRouter and 등록 모델, and setting a key's run mode to one of them runs
   that key on that provider alone, whatever the accounts' auto-fallback would have done. A key set to
   Claude Code, or left automatic, also names the account it runs on: one account alone, or the account
   order walked from the top.
-- The remaining-usage popover opens within the window's width and height and a long list scrolls within. It tells apart account
-  windows — a group per registered Claude account holding that account's windows, the one in use marked, and the Codex windows beside them — usage totals and saved sessions. Sessions show one group per agent with the provider/model and context figures below. A
-  per-room gate's internal key no longer arises as a new session name. Unmeasured context shows as '미측정', and the saved-session list
-  is not the running-work list.
-- A failed read of the popover's figures, or of the account and rooms they are named by, keeps what was read last on the title
-  bar and in the popover, and the popover says the failure above them in the one error band (「How the bot is talked to」 says how a read
-  during a restart reads).
+- The remaining-usage popover opens within the window's width and height and a long list scrolls within. It holds the
+  remaining usage of each account alone — a group per registered Claude account holding that account's windows, and the
+  slot the chat runs on marked (「Usage in the title bar」) — and no tally of tokens and no list of sessions.
+- A failed read of the popover's figures keeps what was read last on the title bar and in the popover, and the popover says
+  the failure above them in the one error band (「How the bot is talked to」 says how a read during a restart reads).
 - The TODO detail's work order edits the intent, run instruction and builder model in the draft. If the draft's intent and
   instruction are still the item's own words, those two cells do not stand and only a line saying so and 「따로 작성」 stand — the same
   text already stands in the 지시 group right above, so standing them as cells makes two copies on one screen. Pressing 따로 적기 opens

@@ -3,17 +3,16 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 
 import {
-  accountGroups,
   agentUsage,
   figureText,
   kindFigures,
+  knownMode,
+  limitless,
   liveWindow,
   loudestTone,
-  providerWindows,
   resetClock,
   resetDay,
   resetText,
-  selectedUsageMode,
   shareText,
   shareTone,
   titleAccountLabel,
@@ -23,22 +22,20 @@ import {
   unsplitText,
   untilText,
   usageBar,
-  windowLabel,
-  windowOf
+  usageGroups,
+  windowLabel
 } from "../../../apps/web/app/domain/usage";
 
-import type { AgentTokenUsage, ClaudeAccountView, FallbackView, ModelUsage, UsageView, UsageWindow } from "../../../apps/web/shared/types";
+import type { AccountUsage, ActiveUsage, AgentTokenUsage, HeadlineWindow, UsageView } from "../../../apps/web/shared/types";
 import type { UsageBar, UsageSegment } from "../../../apps/web/app/domain/usage";
 import KO from "../../fixtures/app/domain/usage.test.ko.json";
 
-// One line of a tally as the archive answers it: the plain total, and the four kinds behind it.
-// The default carries a split; a caller that wants a line from before the split says so.
-function tally(over: Partial<ModelUsage> = {}): ModelUsage {
+// One line of a tally: the plain total, and the four kinds behind it. The default carries a split; a caller that
+// wants a line from before the split says so.
+function tally(over: Partial<AgentTokenUsage> = {}): AgentTokenUsage {
   return {
-    mode: "claude-code",
-    model: "claude-opus-5",
+    agent: "agent-a",
     tokens: 2_000_000,
-    cost: 3,
     runs: 12,
     inputTokens: 5_000,
     outputTokens: 45_000,
@@ -50,24 +47,10 @@ function tally(over: Partial<ModelUsage> = {}): ModelUsage {
   };
 }
 
-function view(windows: UsageWindow[]): UsageView {
-  return {
-    windows,
-    fiveHour: [],
-    agents: [],
-    users: [],
-    sessions: [],
-  };
-}
-
-const session: UsageWindow = {
+const session: HeadlineWindow = {
   name: "five_hour",
-  account: "default",
-  accountName: KO.line_69,
-  mode: "claude-code",
   utilization: 0.123,
   resetsAt: 1_788_570_000,
-  seenAt: 1,
   durationMinutes: null,
   limitName: null
 };
@@ -94,65 +77,15 @@ describe("what a window reads as", () => {
     expect(shareTone({ ...session, utilization: 0.95 })).toBe("error");
   });
 
-  test("the window a screen asks for, or nothing", () => {
-    expect(windowOf(view([session]), "five_hour")).toEqual(session);
-    expect(windowOf(view([session]), "seven_day")).toBeNull();
-  });
-
-  test("keeps providers apart even when they use the same local name", () => {
-    const codex = { ...session, mode: "codex" as const, utilization: 0.8 };
-
-    expect(windowOf(view([codex, session]), "five_hour")).toEqual(session);
-    expect(windowOf(view([codex, session]), "five_hour", "codex")).toEqual(codex);
-  });
-
-  test("follows the provider actually answering for the chat agent", () => {
-    const fallback = {
-      active: { provider: "openrouter" as const, account: null, accountName: "OpenRouter", accounts: 0, session: null, week: null },
-      codexPresent: true,
-      keyPresent: true,
-      services: [],
-      since: 1,
-      order: [],
-      orderIsDefault: true,
-      accounts: [],
-      profiles: [{
-        key: "agent-a",
-        label: KO.line_124,
-        kind: "bmo" as const,
-        line: "chat",
-        codexModel: "gpt-5.6-sol",
-        codexEffort: "high",
-        defaultCodexModel: "gpt-5.6-sol",
-        defaultCodexEffort: "high",
-        codexOverridden: false,
-        claudeModel: "claude-opus-5",
-        services: [{ provider: "registered" as const, model: "qwen3.8-27b", thinking: false, answerTokens: 2048 }],
-        noRoute: null,
-        openrouterModel: "openai/gpt-5.6",
-        routeMode: "auto" as const,
-        account: null,
-        setAt: 1,
-        offered: []
-      }]
-    };
-
-    expect(selectedUsageMode(fallback)).toBe("openrouter");
-    expect(selectedUsageMode({
-      ...fallback,
-      profiles: [{ ...fallback.profiles[0]!, routeMode: "auto" }]
-    })).toBe("openrouter");
-  });
 
   test("names each provider's own two windows in the words the title bar uses", () => {
-    const codexPrimary: UsageWindow = {
+    const codexPrimary: HeadlineWindow = {
       ...session,
       name: "codex:codex:primary",
-      mode: "codex",
       utilization: 0.71,
       durationMinutes: 300
     };
-    const codexSecondary: UsageWindow = {
+    const codexSecondary: HeadlineWindow = {
       ...codexPrimary,
       name: "codex:codex:secondary",
       utilization: 0.27,
@@ -227,7 +160,6 @@ describe("what one agent has cost", () => {
     {
       agent: "worker",
       tokens: 900_874_777,
-      cost: 573.54,
       runs: 77,
       inputTokens: 100_000,
       outputTokens: 800_000,
@@ -239,7 +171,6 @@ describe("what one agent has cost", () => {
     {
       agent: "content-judge",
       tokens: 3_156_122,
-      cost: 6.41,
       runs: 268,
       inputTokens: null,
       outputTokens: null,
@@ -409,84 +340,60 @@ test("remaining usage reaches zero when spent and does not confuse model-specifi
   expect(shareText({ ...session, utilization: 1 })).toBe("0%");
   expect(shareText({ ...session, utilization: 0 })).toBe("100%");
   expect(shareText({ ...session, utilization: 1.2 })).toBe("0%");
-  const weekly = { ...session, mode: "codex" as const, name: "codex:codex:primary", durationMinutes: 10080 };
+  const weekly = { ...session, name: "codex:codex:primary", durationMinutes: 10080 };
   const spark = { ...weekly, name: "codex:codex_bengalfox:primary", durationMinutes: 300, limitName: "GPT-5.3-Codex-Spark" };
   expect(windowLabel(wording, spark)).toBe(KO.line_425);
 });
 
-// Two logins report the same window names, each about its own limit, so a window is looked up by
-// the account it belongs to and never handed over for another's.
-describe("whose window a row is", () => {
-  const second: UsageWindow = { ...session, account: "second", accountName: KO.line_431, utilization: 0.9 };
+// Every registered account stands as a group of its own, in the agency's order, whichever of them the chat runs
+// on: each login keeps its own limit, and one account's figures are never read in place of another's.
+describe("the panel's groups", () => {
+  const week: HeadlineWindow = { ...session, name: "seven_day", utilization: 0.4 };
 
-  test("one account's row is never handed for another's, and no account named takes the first", () => {
-    const both = view([session, second]);
-
-    expect(windowOf(both, "five_hour", "claude-code", "default")?.utilization).toBe(0.123);
-    expect(windowOf(both, "five_hour", "claude-code", "second")?.utilization).toBe(0.9);
-    expect(windowOf(both, "five_hour", "claude-code", "nobody")).toBeNull();
-    // With none named it is the first row, which the reader hands over in the order the road
-    // walks the accounts: the login an automatic run goes out on.
-    expect(windowOf(both, "five_hour")?.account).toBe("default");
-  });
-
-});
-
-// Every registered Claude account stands as a group of its own, in the order the road walks them,
-// whichever of them runs go out on: each login keeps its own limit, and one account's figures are
-// never read in place of another's.
-describe("the panel's account groups", () => {
-  const accountA = "Account A";
-  const accountB = "Account B";
-  const second: UsageWindow = { ...session, account: "second", accountName: accountA, utilization: 0.9 };
-  const codex: UsageWindow = { ...session, name: "codex:codex:primary", account: "", accountName: null, mode: "codex" };
-
-  function account(id: string, name: string, place: number): ClaudeAccountView {
-    return { id, name, place, enabled: true, credentialKind: "directory", credentialPath: `/logins/${id}`, login: "standing", loginEndsAt: null, chosen: false, serving: false, restUntil: null };
+  function account(id: string, over: Partial<AccountUsage> = {}): AccountUsage {
+    return { id, name: `Account ${id}`, provider: "claude-code", label: "Claude Code", inUse: false, session: null, week: null, ...over };
   }
 
-  function fallback(active: Partial<FallbackView["active"]>, accounts: ClaudeAccountView[]): FallbackView {
-    return {
-      active: { provider: "claude-code", account: "default", accountName: accountB, accounts: accounts.length, session: null, week: null, ...active },
-      codexPresent: false,
-      keyPresent: false,
-      services: [],
-      since: null,
-      order: [],
-      orderIsDefault: true,
-      accounts,
-      profiles: [],
-    };
+  function active(over: Partial<ActiveUsage> = {}): ActiveUsage {
+    return { provider: "claude-code", label: "Claude Code", account: "a", accountName: "Account a", logins: 2, session, week, ...over };
   }
 
-  const accounts = [account("default", accountB, 1), account("second", accountA, 2)];
+  function view(over: Partial<UsageView> = {}): UsageView {
+    return { active: null, accounts: [], agents: [], contexts: [], ...over };
+  }
 
-  test("each account holds its own windows alone, in the order the road walks them", () => {
-    const groups = accountGroups(view([second, codex, session]), fallback({}, accounts));
+  test("each account holds its own windows alone, session first, in the agency's order", () => {
+    const groups = usageGroups(view({ active: active(), accounts: [account("a", { inUse: true, session, week }), account("b", { week })] }));
 
-    expect(groups.map((group) => [group.id, group.name, group.windows.map((window) => window.utilization)])).toEqual([
-      ["default", accountB, [0.123]],
-      ["second", accountA, [0.9]],
+    expect(groups.map((group) => [group.id, group.name, group.inUse, group.windows.map((window) => window.name)])).toEqual([
+      ["a", "Account a", true, ["five_hour", "seven_day"]],
+      ["b", "Account b", false, ["seven_day"]],
     ]);
   });
 
-  test("the account runs go out on now is the one marked, and only while Claude Code is serving", () => {
-    expect(accountGroups(view([]), fallback({ account: "second" }, accounts)).map((group) => group.inUse)).toEqual([false, true]);
-    expect(accountGroups(view([]), fallback({ provider: "codex", account: null }, accounts)).map((group) => group.inUse)).toEqual([false, false]);
+  test("an account with no window stated still has its group, holding nothing", () => {
+    expect(usageGroups(view({ accounts: [account("a")] }))[0]?.windows).toEqual([]);
   });
 
-  test("an account with no reading yet still has its group, holding nothing", () => {
-    expect(accountGroups(view([session]), fallback({}, accounts)).find((group) => group.id === "second")?.windows).toEqual([]);
+  test("a slot on a provider with no login stands ahead of the accounts, marked, and no account is", () => {
+    const slot = active({ provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null });
+    const groups = usageGroups(view({ active: slot, accounts: [account("a"), account("b")] }));
+
+    expect(groups.map((group) => [group.label, group.name, group.inUse])).toEqual([
+      ["Provider X", null, true],
+      ["Claude Code", "Account a", false],
+      ["Claude Code", "Account b", false],
+    ]);
+    expect(groups[0]?.windows).toEqual([]);
   });
 
-  test("a reading left by an account no longer registered belongs to no group", () => {
-    const gone: UsageWindow = { ...session, account: "gone", accountName: null };
-
-    expect(accountGroups(view([gone]), fallback({}, accounts)).flatMap((group) => group.windows)).toEqual([]);
+  test("nothing at all where the agency names no slot and lists no account", () => {
+    expect(usageGroups(view())).toEqual([]);
   });
 
-  test("the other roads' windows stand beside the groups, and no Claude window among them", () => {
-    expect(providerWindows(view([session, codex, second]))).toEqual([codex]);
+  test("a provider this console has a name for is known by it, and any other stands under the agency's label", () => {
+    expect(knownMode("claude-code")).toBe("claude-code");
+    expect(knownMode("provider-x")).toBeNull();
   });
 });
 
@@ -521,51 +428,40 @@ describe("the day a window starts over on", () => {
   });
 });
 
-// The title bar stands for what a run is about to meet, so it reads the slot the bot says is
-// serving now. The head of the account order is not that login whenever the road has passed it
-// over — a window at its ceiling, a login waiting for a person — and reading it there would stand
-// that login's red on the bar while every run answers on another.
+// The title bar stands for what a run is about to meet, so it reads the slot the agency says the chat runs on. The
+// head of the account order is not that login whenever the road has passed it over, and reading it there would
+// stand that login's red on the bar while every run answers on another.
 describe("whose window the title bar shows", () => {
   const second = { name: "five_hour", utilization: 0.9, resetsAt: 1_788_570_000, durationMinutes: null, limitName: null };
 
-  function fallback(active: Partial<FallbackView["active"]> = {}): FallbackView {
-    return {
-      active: { provider: "claude-code", account: "default", accountName: KO.line_544, accounts: 2, session, week: null, ...active },
-      codexPresent: false,
-      keyPresent: false,
-      services: [],
-      since: null,
-      order: [],
-      orderIsDefault: true,
-      accounts: [],
-      profiles: [],
-    };
+  function active(over: Partial<ActiveUsage> = {}): ActiveUsage {
+    return { provider: "claude-code", label: "Claude Code", account: "default", accountName: "Account A", logins: 2, session, week: null, ...over };
   }
 
-  test("the figures are the bot's active slot's, not the first of the order", () => {
-    expect(titleWindows(fallback())[0]?.utilization).toBe(0.123);
-    expect(titleWindows(fallback({ account: "second", accountName: KO.line_558, session: second }))[0]?.utilization).toBe(0.9);
+  test("the figures are the slot's, not the first of the order", () => {
+    expect(titleWindows(active())[0]?.utilization).toBe(0.123);
+    expect(titleWindows(active({ account: "second", accountName: "Account B", session: second }))[0]?.utilization).toBe(0.9);
   });
 
   test("the login is named on the bar, and only where there is more than one", () => {
-    expect(titleAccountLabel(fallback())).toBe(KO.line_562);
-    expect(titleAccountLabel(fallback({ account: "second", accountName: KO.line_563 }))).toBe(KO.line_563);
-    expect(titleAccountLabel(fallback({ accounts: 1 }))).toBeNull();
+    expect(titleAccountLabel(active())).toBe("Account A");
+    expect(titleAccountLabel(active({ logins: 1 }))).toBeNull();
   });
 
-  test("a provider holding no login of the agency's names none", () => {
-    const codex = fallback({ provider: "codex", account: null, accountName: "Codex", accounts: 0 });
+  test("a provider holding no login names none, and with no window it has no limit to show", () => {
+    const other = active({ provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null });
 
-    expect(selectedUsageMode(codex)).toBe("codex");
-    expect(titleAccountLabel(codex)).toBeNull();
+    expect(titleAccountLabel(other)).toBeNull();
+    expect(limitless(other)).toBe(true);
+    expect(limitless(active({ provider: "codex", account: null, accountName: null, logins: 0 }))).toBe(false);
+    expect(limitless(active({ session: null }))).toBe(false);
   });
 
-  // The bot's own answer is what names the slot, so a view read from a bot that is not answering
-  // shows dashes rather than guessing at the head of the list.
-  test("with no active view from the bot the bar shows no login's figures", () => {
-    const quiet = fallback({ account: null, accountName: "", accounts: 0, session: null, week: null });
-
-    expect(titleAccountLabel(quiet)).toBeNull();
-    expect(titleWindows(quiet)).toEqual([null, null]);
+  // The agency's own answer is what names the slot, so with none the bar shows dashes rather than guessing at the
+  // head of the list.
+  test("with no slot named the bar shows no login's figures", () => {
+    expect(titleAccountLabel(null)).toBeNull();
+    expect(titleWindows(null)).toEqual([null, null]);
+    expect(limitless(null)).toBe(false);
   });
 });

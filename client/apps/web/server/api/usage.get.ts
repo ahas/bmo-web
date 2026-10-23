@@ -1,10 +1,22 @@
+import { usageView } from "../utils/usage";
+
 import type { UsageView } from "#shared/types";
 
-// What the accounts are using and what each session is carrying: the usage windows, the tallies by model, by
-// agent and by user, and the sessions' context. No unit serves them yet, so the view stands empty and every
-// meter reads as having nothing to say (docs/boundary.md, 「Gaps the console meets」).
+// The week a worker's figures cover.
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+// What the accounts have left and what the workers spent (docs/web.md, 「Usage in the title bar」): the slot the chat
+// runs on and the accounts' names from the agency's fallback answer, each account's own window from its account
+// list, and each worker's week from its usage grouped by worker (docs/boundary.md, 「Gaps the console meets」).
 export default defineEventHandler(async (event): Promise<UsageView> => {
   await requireUserSession(event);
 
-  return { windows: [], fiveHour: [], agents: [], users: [], sessions: [] };
+  const after = Date.now() - WEEK_MS;
+  const [fallback, accounts, usage] = await Promise.all([
+    agencyCall(agency().GET("/fallback")),
+    agencyCall(agency().GET("/accounts")),
+    agencyCall(agency().GET("/usage", { params: { query: { groupBy: "agent", after } } }))
+  ]);
+
+  return usageView(fallback, accounts.items, usage);
 });

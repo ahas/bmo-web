@@ -48,7 +48,6 @@ function week(over: Partial<AgentTokenUsage> = {}): AgentTokenUsage {
   return {
     agent: "worker",
     tokens: 75_106_713,
-    cost: 40,
     runs: 12,
     inputTokens: 6_000,
     outputTokens: 94_000,

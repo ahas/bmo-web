@@ -1,7 +1,7 @@
 <template>
   <UPopover :content="{ align: 'end' }" :ui="{ content: 'w-96 max-w-[calc(100vw-1rem)] flex flex-col gap-3 p-3' }">
-    <!-- The selected mode's two limit windows, or an honest absence for OpenRouter, on every
-         title bar and nothing else. One axis: a percentage is what a window is, and a count of
+    <!-- The two limit windows of the slot the chat runs on, or one honest dash for a provider with
+         no limit, on every title bar and nothing else. One axis: a percentage is what a window is, and a count of
          tokens set beside one is read as though it were another percentage.
          A phone's bar has no room even for the two — the room's own name was being cut to fit
          them — so below that width they fold into the one mark that opens them, and the mark
@@ -25,16 +25,21 @@
 
         <SkeletonStatus v-if="usageInitial" class="hidden sm:block" :label="$t('usage.status.loading')"><SkeletonBar class="h-4 w-32" /></SkeletonStatus>
         <span v-else class="hidden sm:contents">
-          <span class="text-sm text-muted">{{ modeLabel($t, focusedMode) }}</span>
-          <!-- Which login the two figures are of, where the agency holds more than one to tell apart.
-               Two logins report the same windows, each about its own limit, so a figure with no
-               login named is a figure about nobody. -->
-          <template v-if="accountName !== null">
+          <!-- The slot the chat runs on, under its provider's name: the agency's answer, never the screen's pick. -->
+          <template v-if="usage.active !== null">
+            <span class="max-w-32 truncate text-sm text-muted">{{ slotName(usage.active) }}</span>
+            <!-- Which login the two figures are of, where the agency holds more than one to tell apart.
+                 Two logins report the same windows, each about its own limit, so a figure with no
+                 login named is a figure about nobody. -->
+            <template v-if="accountName !== null">
+              <span class="text-muted">·</span>
+              <span class="max-w-32 truncate text-sm text-muted">{{ accountName }}</span>
+            </template>
             <span class="text-muted">·</span>
-            <span class="max-w-32 truncate text-sm text-muted">{{ accountName }}</span>
           </template>
-          <span class="text-muted">·</span>
-          <template v-if="focusedMode === 'openrouter'">
+          <!-- A provider with no login and no window has no limit to show, so it stands as its name and one dash
+               rather than as two windows it does not have. -->
+          <template v-if="limitless(usage.active)">
             <span class="text-muted"><span class="text-sm text-muted">{{ $t("usage.title.remaining") }}</span> —</span>
           </template>
           <template v-else>
@@ -75,12 +80,12 @@
             />
           </div>
 
-          <!-- Every registered Claude account as a group of its own, in the order the road walks
-               them, whichever of them is serving: each login keeps its own limit, so each keeps
-               its own figures, and the one runs go out on now is marked. -->
-          <div v-for="group in claudeGroups" :key="group.id" class="flex flex-col gap-1">
+          <!-- Every registered account as a group of its own, in the agency's order, whichever of them is
+               serving: each login keeps its own limit, so each keeps its own figures, and the one the chat runs
+               on now is marked. A slot on a provider with no login stands ahead of them, marked the same way. -->
+          <div v-for="group in groups" :key="group.id" class="flex flex-col gap-1">
             <div class="flex min-w-0 items-center gap-2 text-sm">
-              <span class="min-w-0 truncate font-medium text-muted">{{ modeLabel($t, "claude-code") }} · {{ group.name }}</span>
+              <span class="min-w-0 truncate font-medium text-muted">{{ slotName(group) }}<template v-if="group.name !== null"> · {{ group.name }}</template></span>
               <UBadge v-if="group.inUse" size="sm" color="primary" variant="subtle" :label="$t('usage.label.in_use')" class="shrink-0" />
             </div>
 
@@ -100,81 +105,11 @@
               </span>
             </div>
 
+            <!-- An account whose windows the agency states none of says so, and no figure stands in their place. -->
             <p v-if="group.windows.length === 0" class="text-sm text-dimmed">{{ $t("usage.status.no_info") }}</p>
           </div>
 
-          <div v-for="window in otherWindows" :key="`${window.mode}:${window.name}`" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-            <span class="min-w-0 flex-1 basis-36 break-words text-dimmed">{{ modeLabel($t, window.mode) }} · {{ windowLabel($t, window) }}</span>
-            <span class="tabular-nums" :class="toneClass(shareTone(liveWindow(window, now)))">{{ shareText(liveWindow(window, now)) }}</span>
-            <span
-              v-if="resetText($t, window, now) !== ''"
-              class="ms-auto text-sm tabular-nums text-dimmed"
-              :title="resetClock($t, window)"
-            >
-              {{ resetText($t, window, now) }}
-            </span>
-          </div>
-
-          <p v-if="claudeGroups.length === 0 && otherWindows.length === 0" class="text-sm text-dimmed">{{ $t("usage.status.no_usage_yet") }}</p>
-        </div>
-
-        <!-- A row is its name with the whole of the traffic beside it, and under that the
-             picture of what the traffic divided into: one track cut into the four kinds, with the
-             parts named along the line below it. None of the four is hidden behind the total —
-             the total alone would be the cached prefix read again on every resumed turn as much
-             as anything else, and it answers how much went past rather than what was bought.
-             Under the rows, where any of them was written before the kinds were kept apart,
-             stands what that leaves unaccounted. -->
-        <div v-if="gates.length > 0" class="flex flex-col gap-2">
-          <p class="text-sm font-medium text-muted">{{ $t("usage.title.weekly_by_gate") }}</p>
-
-          <div v-for="gate in gates" :key="gate.agent" class="flex flex-col">
-            <div class="flex items-center gap-2 text-sm">
-              <span class="min-w-0 flex-1 truncate text-dimmed">{{ agentLabel($t, gate.agent) }}</span>
-              <span class="tabular-nums text-muted">{{ totalText($t, gate) }}</span>
-            </div>
-
-            <UsageSplit :tally="gate" class="mt-1" />
-          </div>
-
-          <p v-if="gatesUnsplit !== ''" class="text-sm text-dimmed">{{ gatesUnsplit }}</p>
-        </div>
-
-        <!-- What each user's work cost over the week, on the Claude accounts that are theirs; there are
-             rows only once the multi-user model is in force. -->
-        <div v-if="usage.users.length > 0" class="flex flex-col gap-2">
-          <p class="text-sm font-medium text-muted">{{ $t("usage.title.weekly_by_user") }}</p>
-
-          <div v-for="user in usage.users" :key="user.user" class="flex flex-col">
-            <div class="flex items-center gap-2 text-sm">
-              <span class="min-w-0 flex-1 truncate text-dimmed">{{ user.name }}</span>
-              <span class="tabular-nums text-muted">{{ totalText($t, user) }}</span>
-            </div>
-
-            <UsageSplit :tally="user" class="mt-1" />
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <p class="text-sm font-medium text-muted">{{ $t("usage.title.saved_sessions") }}</p>
-
-          <div v-for="group in sessionGroups" :key="group.name" class="flex min-w-0 flex-col gap-1 py-1">
-            <p class="break-words text-sm font-medium text-muted">{{ sessionLabel(group.sessions[0]!) }}</p>
-            <div
-              v-for="session in group.sessions"
-              :key="`${session.mode}:${session.model ?? ''}`"
-              class="flex min-w-0 items-start gap-2 text-sm"
-            >
-              <span class="min-w-0 flex-1 break-words text-dimmed">
-                {{ modeLabel($t, session.mode) }}<template v-if="session.model !== null"> · {{ modelLabel(session.model) }}</template>
-              </span>
-              <span class="shrink-0 tabular-nums text-muted">
-                {{ session.contextTokens === null ? $t("usage.label.unmeasured") : tokenText(session.contextTokens) }}
-              </span>
-            </div>
-          </div>
-
-          <p v-if="sessionGroups.length === 0" class="text-sm text-dimmed">{{ $t("usage.status.no_saved_sessions") }}</p>
+          <p v-if="groups.length === 0" class="text-sm text-dimmed">{{ $t("usage.status.no_accounts") }}</p>
         </div>
       </div>
     </template>
@@ -182,88 +117,64 @@
 </template>
 
 <script setup lang="ts">
-import { emptyFallbackView } from "~/domain/agent-settings";
 import { useInitialRead, useLastRead } from "bmo-ui/app/domain/loading";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useReadFailure } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";
-import { agentLabel, chatIdOf, roomTitle } from "~/domain/agents";
 import { usePolling } from "~/domain/polling";
-import { modeLabel, modelLabel } from "~/domain/status";
+import { modeLabel } from "~/domain/status";
 import {
-  accountGroups,
   emptyUsage,
-  USAGE_REFRESH_MS,
+  knownMode,
+  limitless,
   liveWindow,
   loudestTone,
-  providerWindows,
   resetClock,
   resetDay,
   resetText,
-  selectedUsageMode,
   shareText,
   shareTone,
   titleAccountLabel,
   titleWindows,
-  tokenText,
-  totalText,
-  unsplitText,
+  usageGroups,
+  USAGE_REFRESH_MS,
   windowLabel
 } from "~/domain/usage";
 
-import type { AgentTokenUsage, FallbackView, RoomSummary, SessionContext, UsageView } from "#shared/types";
+import type { FallbackView, UsageView } from "#shared/types";
 import type { UsageTone } from "~/domain/usage";
 
 const { t } = useI18n();
 const narrow = useNarrow();
 
-// The figures are the bot's, written down as it runs, so the same numbers stand on every screen
-// and every screen reads them from one place.
-const { data, refresh, status: usageStatus, error: usageFetchError } = useFetch<UsageView>("/api/usage", {
+// The figures are the agency's, so the same numbers stand on every screen and every screen reads them from one
+// place.
+const { data, refresh, status: usageStatus, error: usageError } = useFetch<UsageView>("/api/usage", {
   key: "usage",
   lazy: true,
   server: false,
   default: emptyUsage
 });
 
-// The same keyed fallback view powers the route chooser. Changing the chat agent's mode there therefore
-// changes this title immediately instead of waiting for a model turn to happen.
-const { data: fallbackRead, refresh: refreshFallback, status: fallbackStatus, error: fallbackError } = useFetch<FallbackView>("/api/fallback", {
-  key: "fallback",
-  lazy: true,
-  server: false,
-  // The one empty view every reader of this key shares; a default of its own would be refused as a
-  // second, incompatible set of options for the same key.
-  default: emptyFallbackView
-});
+// The route chooser reads the fallback under this key, and a change made there reads it again; the slot the chat
+// runs on may have moved with it, so the figures are read again at once rather than at the next minute.
+const { data: fallbackShared } = useNuxtData<FallbackView>("fallback");
 
-const { data: roomList, status: roomStatus, error: roomError, refresh: refreshRooms } = useFetch<RoomSummary[]>("/api/rooms", {
-  key: "rooms",
-  lazy: true,
-  server: false,
-  default: () => []
-});
+watch(fallbackShared, () => void refresh({ dedupe: "defer" }));
 
-const usagePending = useInitialRead(usageStatus);
-const fallbackPending = useInitialRead(fallbackStatus);
-const roomsPending = useInitialRead(roomStatus);
-const usageError = computed(() => usageFetchError.value ?? fallbackError.value ?? roomError.value);
-const usageInitial = computed(() => !usageError.value && (usagePending.value || fallbackPending.value || roomsPending.value));
+const usageInitial = useInitialRead(usageStatus);
 const usageLoaded = ref(usageStatus.value === "success");
 watch(usageStatus, value => { if (value === "success") usageLoaded.value = true; });
-const usageReading = computed(() => [usageStatus, fallbackStatus, roomStatus].some(status => status.value === "pending"));
+const usageReading = computed(() => usageStatus.value === "pending");
 const usageFailureText = computed(() => failureText(usageError.value, t("usage.error.read_failed")));
 
-// A failed read puts each fetch back to its empty default; what was read last stays on the screen
-// through it, so a figure is never taken down for a read that did not happen.
+// A failed read puts the fetch back to its empty default; what was read last stays on the screen through it, so a
+// figure is never taken down for a read that did not happen.
 const usageRead = useLastRead(data, usageStatus);
-const fallback = useLastRead(fallbackRead, fallbackStatus);
-const roomsRead = useLastRead(roomList, roomStatus);
 const usage = computed<UsageView>(() => usageRead.value ?? emptyUsage());
-const rooms = computed<RoomSummary[]>(() => roomsRead.value ?? []);
 
 function rereadAll(): void {
-  void Promise.all([refresh(), refreshFallback(), refreshRooms()]);
+  void refresh();
 }
 
 // Held where the title stands rather than in the popover, so the read the bot's return brings is
@@ -273,26 +184,14 @@ const usageFailure = useReadFailure({
   reading: () => usageReading.value,
   reread: rereadAll
 });
-const sessionGroups = computed(() => {
-  const groups = new Map<string, SessionContext[]>();
-  for (const session of usage.value.sessions) {
-    const rows = groups.get(session.name) ?? [];
-    rows.push(session);
-    groups.set(session.name, rows);
-  }
-  return [...groups].map(([name, sessions]) => ({ name, sessions }));
-});
 
-// The Claude accounts as groups of their own, and the windows of every other road beside them.
-const claudeGroups = computed(() => accountGroups(usage.value, fallback.value));
-const otherWindows = computed(() => providerWindows(usage.value));
+// Each account as a group of its own, and the slot the chat runs on where it is no account.
+const groups = computed(() => usageGroups(usage.value));
 
-// Whose figures these are is the bot's answer: the provider the road answers on and the login it
-// walks to now, not the head of the account order. A login the road has passed over is one nothing
-// goes out on, and its ceiling is no news about what the account has left.
-const focusedMode = computed(() => selectedUsageMode(fallback.value));
-const accountName = computed(() => titleAccountLabel(fallback.value));
-const focusedWindows = computed(() => titleWindows(fallback.value));
+// Whose figures the title's are is the agency's answer: the provider the road answers on and the login it walks to
+// now, not the head of the account order.
+const accountName = computed(() => titleAccountLabel(usage.value.active));
+const focusedWindows = computed(() => titleWindows(usage.value.active));
 const session = computed(() => focusedWindows.value[0]);
 const weekly = computed(() => focusedWindows.value[1]);
 
@@ -307,23 +206,14 @@ const now = ref(Math.floor(Date.now() / 1000));
 
 usePolling(() => {
   now.value = Math.floor(Date.now() / 1000);
-  void Promise.all([refresh({ dedupe: "defer" }), refreshFallback({ dedupe: "defer" })]);
+  void refresh({ dedupe: "defer" });
 }, USAGE_REFRESH_MS);
 
-// The gates alone, out of every agent's weekly tally: the work keys the agency's roads name as gates.
-const gateKeys = computed<ReadonlySet<string>>(() => new Set((fallbackRead.value?.profiles ?? []).filter((one) => one.kind === "gate").map((one) => one.key)));
-const gates = computed<AgentTokenUsage[]>(() => usage.value.agents.filter((agent) => gateKeys.value.has(agent.agent)));
+// A provider under this console's own name for it where it has one, and under the agency's label otherwise.
+function slotName(slot: { provider: string; label: string }): string {
+  const mode = knownMode(slot.provider);
 
-// What the list of rows leaves unaccounted, worked out once for the whole list rather than per
-// row: the rows written before the kinds were kept apart are the same omission whichever row they
-// sat on, and a note on every row would say it a dozen times.
-const gatesUnsplit = computed<string>(() => unsplitText(t, gates.value));
-
-
-function sessionLabel(session: SessionContext): string {
-  const chatId = chatIdOf(session.name);
-
-  return chatId === null ? agentLabel(t, session.name) : roomTitle(t, rooms.value, chatId);
+  return mode === null ? slot.label : modeLabel(t, mode);
 }
 
 function toneClass(tone: UsageTone): string {

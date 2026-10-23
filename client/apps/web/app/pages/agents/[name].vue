@@ -217,7 +217,7 @@ const row = computed(() => catalogue.value.agents.find((held) => held.name === n
 
 // What this agent's session is carrying, out of the same rows every other screen reads.
 const contextTokens = computed<number | null>(
-  () => (usage.value ?? emptyUsage()).sessions.find((session) => session.name === name)?.contextTokens ?? null
+  () => (usage.value ?? emptyUsage()).contexts.find((context) => context.agent === name)?.contextTokens ?? null
 );
 
 // This agent's figures, shaped the one way this console shapes them. What it is doing right now

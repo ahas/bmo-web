@@ -1245,22 +1245,6 @@ export interface AgentReasoningView {
   reaches: { thinking: boolean; levels: string[] } | null;
 }
 
-// One of a harness account's latest windows. Claude carries it on a run and Codex supplies it on
-// its account-reader clock; the share is 0 to 1, and the reset is when the window starts over.
-export interface UsageWindow {
-  name: string;
-  // The Claude account whose run reported it, and the name the owner gave that account. Two logins
-  // report the same window names, each about its own limit, so a row says whose reading it is. A
-  // road holding no login of the agency's carries neither.
-  account: string;
-  accountName: string | null;
-  mode: AgentMode;
-  utilization: number;
-  resetsAt: number | null;
-  seenAt: number;
-  durationMinutes: number | null;
-  limitName: string | null;
-}
 
 // One job of a worker's as the foot of its screen reads it, the way the CLI's own status line does:
 // which item it is, how long it went, how many tools it called and what each model it used spent.
@@ -1292,25 +1276,15 @@ export interface JobPrompt {
 // worked out from the kinds is never shown without saying what it leaves out.
 export interface UsageTally extends TokenSplit {
   tokens: number;
-  cost: number;
   runs: number;
   unsplitRuns: number;
   unsplitTokens: number;
 }
 
-// What one model has cost over a window, counted from the bot's own runs. The account names no
-// model in what it reports, so this is a tally rather than a limit.
-export interface ModelUsage extends UsageTally {
-  mode: AgentMode;
-  model: string;
-}
-
-export interface SessionContext {
-  name: string;
-  chatId: number | null;
-  mode: AgentMode;
-  model: string | null;
-  contextTokens: number | null;
+// What one agent's sessions carry now, as the agency counts it for the agent's jobs.
+export interface AgentContext {
+  agent: string;
+  contextTokens: number;
 }
 
 // What one agent has cost over a window, counted from the rows the bot writes as each of its
@@ -1320,22 +1294,40 @@ export interface AgentTokenUsage extends UsageTally {
   agent: string;
 }
 
-// What one user's work has cost over the week, on the Claude accounts that are theirs
-// (docs/web.md, 「Access」). Off the multi-user model no account names a user, so
-// there is no row.
-export interface UserTokenUsage extends UsageTally {
-  user: number;
+// The slot the chat runs on now, as the agency names it (docs/web.md, 「Usage in the title bar」): the provider its
+// road answers on, under the label the agency gives it, and the login it walks to where the provider holds logins,
+// with how many it holds, which is what says whether naming one tells anything apart. Its two windows are the
+// agency's headline pick of the slot's own; a window it states no reading for is null.
+export interface ActiveUsage {
+  provider: string;
+  label: string;
+  account: string | null;
+  accountName: string | null;
+  logins: number;
+  session: HeadlineWindow | null;
+  week: HeadlineWindow | null;
+}
+
+// One registered account and what it has left: its own session and weekly windows and no other account's, null
+// where the agency states none, and whether the chat runs on it now.
+export interface AccountUsage {
+  id: string;
   name: string;
+  provider: string;
+  label: string;
+  inUse: boolean;
+  session: HeadlineWindow | null;
+  week: HeadlineWindow | null;
 }
 
 export interface UsageView {
-  windows: UsageWindow[];
-  fiveHour: ModelUsage[];
-  // What each agent has cost over the week. The gates are in here with the rest: they keep no
-  // session and leave no transcript, so these rows are the only record of what they burn.
+  // Null where the agency names no slot.
+  active: ActiveUsage | null;
+  // In the order the agency lists them.
+  accounts: AccountUsage[];
+  // What each worker's jobs have spent over the week, only where the agency carries a figure.
   agents: AgentTokenUsage[];
-  users: UserTokenUsage[];
-  sessions: SessionContext[];
+  contexts: AgentContext[];
 }
 
 // Every answer that depends on the bot's control API says whether the bot answered at all,

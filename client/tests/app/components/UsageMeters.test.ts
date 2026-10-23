@@ -72,10 +72,17 @@ describe("what the wide bar carries", () => {
   // named is a figure about nobody.
   test("and the login those two figures belong to", () => {
     expect(wide).toContain("accountName");
-    // And the figures themselves are the bot's active slot's, read off its own answer rather than
-    // taken as the first row of the order.
-    expect(source).toContain("titleWindows(fallback.value)");
-    expect(source).toContain("titleAccountLabel(fallback.value)");
+    // And the figures themselves are the slot the agency says the chat runs on, read off its answer
+    // rather than taken as the first row of the order.
+    expect(source).toContain("titleWindows(usage.value.active)");
+    expect(source).toContain("titleAccountLabel(usage.value.active)");
+    expect(wide).toContain("slotName(usage.active)");
+  });
+
+  // A provider with no login and no window has no limit, so it stands as one dash rather than as two
+  // windows it does not have.
+  test("and one dash where the slot has no limit to show", () => {
+    expect(wide).toContain('v-if="limitless(usage.active)"');
   });
 
   test("and no figure of tokens beside them", () => {
@@ -95,33 +102,22 @@ describe("what the wide bar carries", () => {
 });
 
 describe("what the popover holds", () => {
-  test("everything the folded bar no longer says, and the windows by name", () => {
-    for (const heading of ["usage.title.remaining", "usage.title.weekly_by_gate", "usage.title.weekly_by_user", "usage.title.saved_sessions"]) {
-      expect(template).toContain(heading);
-    }
-
-    expect(template).toContain("modeLabel($t, window.mode)");
+  test("each account's remaining windows by name, and the one in use marked", () => {
+    expect(template).toContain("usage.title.remaining");
     expect(template).toContain("windowLabel($t, window)");
-    // Every Claude account as a group of its own, the one in use marked.
-    expect(template).toContain("v-for=\"group in claudeGroups\"");
+    expect(template).toContain('v-for="group in groups"');
+    expect(template).toContain("slotName(group)");
     expect(template).toContain(`:label="$t('usage.label.in_use')"`);
-    expect(template).toContain("focusedMode === 'openrouter'");
+    // An account the agency states no window for says so, and with none at all the panel says there is none.
+    expect(template).toContain('$t("usage.status.no_info")');
+    expect(template).toContain('$t("usage.status.no_accounts")');
   });
 
-  // Every row says what it burnt in the kinds it burnt it in, and the total stands with them
-  // rather than in front of them. A total alone is the same cached prefix read again on every
-  // resumed turn as much as anything else, and it answers a different question.
-  test("a gate's row and a user's row hand their kinds to the one thing that draws them", () => {
-    for (const row of ['<UsageSplit :tally="gate"', '<UsageSplit :tally="user"']) {
-      expect(template).toContain(row);
+  // The panel is what the accounts have left and nothing else: no tally of tokens and no list of sessions.
+  test("and no tally of tokens and no list of sessions", () => {
+    for (const absent of ["<UsageSplit", "totalText", "kindFigures(", "sessionGroups", "usage.title.weekly_by_gate", "usage.title.weekly_by_user", "usage.title.saved_sessions"]) {
+      expect({ absent, said: template.includes(absent) }).toEqual({ absent, said: false });
     }
-
-    // And nothing of the kinds is left standing here. The two lists show the same picture, and
-    // two blocks of markup drawing one picture is how the two stop matching.
-    expect(template).not.toContain("kindFigures(");
-
-    expect(template).toContain("totalText($t, gate)");
-    expect(template).toContain("totalText($t, user)");
   });
 
   // The room a popover has was worked out for it before it was drawn, and this console takes its
@@ -146,10 +142,6 @@ describe("what the popover holds", () => {
   test("and the way to the accounts the figures are of", () => {
     expect(template).toContain('to="/agents?tab=general"');
     expect(template).toContain(`:label="$t('usage.label.claude_accounts')"`);
-  });
-
-  test("and what the kinds do not cover stands under them", () => {
-    expect(template).toContain("{{ gatesUnsplit }}");
   });
 
   test("a window says how long is left of it, and keeps the hour behind that", () => {

@@ -1084,7 +1084,7 @@ edit to that file alone.
 Four groups.
 
 - **Live status** — always one at the top. Below it stand **mail**, **cache siren**, **DB**, **파일**,
-  **아카이브**, **document viewer**, **code graph**, **code review**, **agent management**, **monitor** and
+  **아티팩트**, **document viewer**, **code graph**, **code review**, **agent management**, **monitor** and
   **remote** together. A screen of a unit not yet split stands under its own name and icon as a placeholder.
   This group does not fold — it is a flat list of screens with no branch to fold, and the fold the sidebar
   remembers is only the agent group's below.
@@ -2001,7 +2001,7 @@ Two ways, split because the running places differ.
 - The place **The owner reads** the markdown documents the chat agent reads. What is read from where, how paths are fenced,
   and who runs the search, translation and passage talk are in `docs/documents-viewer.md`, and here the
   screen's shape is told. A document is the chat agent's insides, so the list, body, translation and talk all open only
-  behind login. In the sidebar it stands beside the 아카이브. This screen reads, and the one thing it writes
+  behind login. In the sidebar it stands beside the 아티팩트. This screen reads, and the one thing it writes
   is whether a reference fragment is offered.
 - **The list.** Documents stand by their titles, not their file names — inside a person's or a room's group the
   title's lead naming that person is dropped, since the group already says it; a document with no title stands by

@@ -55,13 +55,13 @@ export function statusGroups(t: Translate): readonly StatusGroup[] {
 
 // The keys, which stand whether the catalogue has arrived or not: they are this console's own
 // arrangement rather than anything the archive says.
-const LIVE_KEYS: readonly LiveRunKind[] = ["gate", "runner", "editor", "worker"];
+const LIVE_KEYS: readonly LiveRunKind[] = ["gate", "runner", "worker"];
 
 // The kind of run each group's agents run as, as the live picture reports it, and the group each kind
-// of run is told under: the recollectors' runs are reported as editors'. The designated agents are no
-// run of the board's; a room's turns are watched in that room.
-const LIVE_KIND_OF: Partial<Record<AgentGroupKey, LiveRunKind>> = { gate: "gate", runner: "runner", recollector: "editor", worker: "worker" };
-const GROUP_OF_LIVE: Record<LiveRunKind, AgentGroupKey> = { gate: "gate", runner: "runner", editor: "recollector", worker: "worker" };
+// of run is told under. The designated agents are no run of the board's; a room's turns are watched in that
+// room.
+const LIVE_KIND_OF: Partial<Record<AgentGroupKey, LiveRunKind>> = { gate: "gate", runner: "runner", worker: "worker" };
+const GROUP_OF_LIVE: Record<LiveRunKind, AgentGroupKey> = { gate: "gate", runner: "runner", worker: "worker" };
 
 // The mark each section's tab wears. A group of runs wears the mark of what that branch does, and
 // the two sections that are not a group of runs wear their own.
@@ -69,7 +69,6 @@ const LIVE_TAB_ICONS: Record<LiveTab, string> = {
   pool: "i-material-symbols-grid-view-outline",
   gate: groupIcon("gate"),
   runner: groupIcon("runner"),
-  editor: groupIcon(GROUP_OF_LIVE.editor),
   worker: groupIcon("worker"),
   executions: "i-material-symbols-receipt-long-outline"
 };
@@ -441,10 +440,8 @@ export function runRows(
         at: record.finishedAt ?? record.startedAt,
         note: record.depth === null ? null : depthLabel(t, record.depth),
         // A runner's log is kept under the name of the unit it ran in, so its row asks for that
-        // run by name. An editor works batch after batch inside one unit and its lines are kept
-        // under a name of their own, so its row asks by the second it began, the way a gate's
-        // does, and lands on the batch that second falls in.
-        to: kind === "editor" ? momentLink(record.agent, record.startedAt) : unitLink(record.agent, record.unit)
+        // run by name.
+        to: unitLink(record.agent, record.unit)
       }))
   );
 }

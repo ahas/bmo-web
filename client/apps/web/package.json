@@ -11,7 +11,7 @@
     "typecheck": "nuxi typecheck"
   },
   "dependencies": {
-    "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10.tgz",
+    "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-7140e51.tgz",
     "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.15.2.tgz",
     "@internationalized/date": "3.12.4",
     "@nuxt/ui": "^4.11.2",

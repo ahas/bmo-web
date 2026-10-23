@@ -94,11 +94,10 @@ test("a Claude model is read under the name its identifier gives, listed or not"
 });
 
 describe("the groups the live board watches", () => {
-  test("are the four that run, under the catalogue's own names", () => {
-    expect(statusGroups(wording).map((group) => group.key)).toEqual(["gate", "runner", "editor", "worker"]);
-    expect(statusGroups(wording).map((group) => group.label)).toEqual([KO.line_100, wording("agents.label.group_runner"), wording("agents.label.group_recollector"), KO.line_100_2]);
+  test("are the three that run, under the catalogue's own names", () => {
+    expect(statusGroups(wording).map((group) => group.key)).toEqual(["gate", "runner", "worker"]);
+    expect(statusGroups(wording).map((group) => group.label)).toEqual([KO.line_100, wording("agents.label.group_runner"), KO.line_100_2]);
     expect(statusGroups(wording)[1]?.agents.map((agent) => agent.label)).toEqual([KO.line_101, KO.line_101_2]);
-    expect(statusGroups(wording)[2]?.agents.map((agent) => agent.label)).toEqual([KO.line_102]);
   });
 
   test("carry a worker the owner added, since the catalogue is where they come from", () => {
@@ -113,14 +112,14 @@ describe("the groups the live board watches", () => {
 
 describe("the board's sections", () => {
   test("stand as one tab each: the pool, every group of runs, then the transport records", () => {
-    expect(LIVE_TABS.map((tab) => tab.value)).toEqual(["pool", "gate", "runner", "editor", "worker", "executions"]);
-    expect(LIVE_TABS.map((tab) => wording(tab.label))).toEqual([wording("live.label.tab_pool"), KO.line_118, wording("agents.label.group_runner"), wording("agents.label.group_recollector"), KO.line_118_2, "Herdr"]);
+    expect(LIVE_TABS.map((tab) => tab.value)).toEqual(["pool", "gate", "runner", "worker", "executions"]);
+    expect(LIVE_TABS.map((tab) => wording(tab.label))).toEqual([wording("live.label.tab_pool"), KO.line_118, wording("agents.label.group_runner"), KO.line_118_2, "Herdr"]);
     // Every tab wears a mark, since the row is read at a glance and on a phone.
     expect(LIVE_TABS.every((tab) => tab.icon.startsWith("i-material-symbols-"))).toBe(true);
   });
 
   test("name a group of runs by the catalogue's own name for that branch", () => {
-    for (const key of ["gate", "runner", "editor", "worker"] as const) {
+    for (const key of ["gate", "runner", "worker"] as const) {
       expect(liveTabLabel(wording, key)).toBe(statusGroups(wording).find((group) => group.key === key)!.label);
     }
   });
@@ -128,7 +127,8 @@ describe("the board's sections", () => {
   test("only these are read back from an address", () => {
     expect(isLiveTab("pool")).toBe(true);
     expect(isLiveTab("gate")).toBe(true);
-    expect(isLiveTab("editor")).toBe(true);
+    expect(isLiveTab("worker")).toBe(true);
+    expect(isLiveTab("editor")).toBe(false);
     expect(isLiveTab("executions")).toBe(true);
     expect(isLiveTab("all")).toBe(false);
     expect(isLiveTab("chat")).toBe(false);
@@ -202,20 +202,6 @@ describe("where a row of the board leads", () => {
 
   test("a finished runner run: its own agent's log, at the run the unit's name stands for", () => {
     expect(runRows(wording, [runner], [], rooms, "runner")[0]?.to).toBe("/agents/search?run=bmo-search-1788000000-7f3a");
-  });
-
-  test("a finished editor batch: its own agent's log, at the second that batch began", () => {
-    const batch: RunnerRecord = {
-      ...runner,
-      id: 6,
-      agent: "digest",
-      unit: "bmo-digest",
-      depth: null
-    };
-
-    // An editor works batch after batch inside one unit, so the unit's name would not pick out
-    // one of them; the second it began does.
-    expect(runRows(wording, [batch], [], rooms, "editor")[0]?.to).toBe("/agents/digest?at=1788000000");
   });
 
   // A job with no item is not numbered; it stands under the line its launcher wrote for why.
@@ -404,9 +390,8 @@ describe("which block a finished run stands in", () => {
     outcome: "done"
   };
 
-  test("the runners' block holds the runners and the editors' block holds the editors", () => {
+  test("the runners' block holds the runners alone", () => {
     expect(runRows(wording, [runner, batch], [], rooms, "runner").map((row) => row.agent)).toEqual([KO.line_409]);
-    expect(runRows(wording, [runner, batch], [], rooms, "editor").map((row) => row.agent)).toEqual([KO.line_410]);
   });
 
   test("an agent the catalogue says nothing about stands with the runners", () => {
@@ -415,7 +400,6 @@ describe("which block a finished run stands in", () => {
     // A run standing in a unit of its own under a name the catalogue does not hold is a runner,
     // which is where an unknown name reads.
     expect(runRows(wording, [batch], [], rooms, "runner").map((row) => row.agent)).toEqual(["digest"]);
-    expect(runRows(wording, [batch], [], rooms, "editor")).toEqual([]);
   });
 });
 

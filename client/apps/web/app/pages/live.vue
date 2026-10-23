@@ -439,7 +439,6 @@ const loose = computed<WatchView[]>(() => unheldWatches(watches.value, status.va
 const recent = computed<Record<string, RecentRow[]>>(() => ({
   gate: gateRows(t, status.value.gates, rooms.value),
   runner: runRows(t, status.value.runners, status.value.live, rooms.value, "runner"),
-  editor: runRows(t, status.value.runners, status.value.live, rooms.value, "editor"),
   worker: jobRows(t, status.value.jobs, status.value.live, rooms.value)
 }));
 

@@ -341,9 +341,6 @@ export interface CompanionSettings {
   // Its generation settings, each by the name the engine reads it under, with the number or the switch
   // it holds; a setting left out is the engine's own default.
   generation: Record<string, number | boolean>;
-  // The registration every recollector writing its memory runs on, or null where each runs on its own
-  // key's road (the agency's docs/agent-ownership.md, 「Which model a recollector runs on」).
-  recollectorModel: string | null;
   // When and by whom the row was last saved, null where nobody ever saved it.
   updatedAt: number | null;
   updatedBy: string | null;

@@ -21,7 +21,6 @@ export default defineEventHandler(async (event): Promise<CompanionView> => {
     pieces: body.pieces ?? null,
     persona: typeof body.persona === "string" ? body.persona : null,
     registration: typeof body.registration === "string" ? body.registration : null,
-    recollectorModel: typeof body.recollectorModel === "string" ? body.recollectorModel : null,
     generation: body.generation ?? null,
     thinking: typeof body.thinking === "boolean" ? body.thinking : null
   };

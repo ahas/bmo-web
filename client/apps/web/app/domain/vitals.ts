@@ -63,7 +63,6 @@ export interface VitalsInput {
 const RUN_WORDS: Record<LiveRunKind, string> = {
   gate: "agents.status.run_gate",
   runner: "agents.status.run_runner",
-  editor: "agents.status.run_editor",
   worker: "agents.status.run_worker"
 };
 

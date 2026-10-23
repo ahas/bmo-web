@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { anyRunning, catalogueSave, emptyCatalogueForm, sourceText } from "../../../apps/web/app/domain/catalogue-models";
-import { companionChange, companionDraft, draftDiffers, generationBounds, generationChange, generationDraft, generationUse, movedPiece, orderRows, pieceOrder, RECOLLECTOR_DEFAULT, recollectorChange, recollectorChoices, sentPieces } from "../../../apps/web/app/domain/companions";
+import { companionChange, companionDraft, draftDiffers, generationBounds, generationChange, generationDraft, generationUse, movedPiece, orderRows, pieceOrder, sentPieces } from "../../../apps/web/app/domain/companions";
 import { sessionClears, sessionDetail } from "../../../apps/web/app/domain/sessions";
 
 import type { CompanionView } from "../../../apps/web/shared/agency";
@@ -20,7 +20,6 @@ const settings: CompanionView["settings"] = {
   ownPieces: { trust: "a piece of its own" },
   persona: null,
   generation: { temperature: 0.7 },
-  recollectorModel: null,
   updatedAt: null,
   updatedBy: null,
 };
@@ -133,24 +132,6 @@ describe("the form a block holds", () => {
     const running = { ...view, modelUse: { state: "running", entry: "file-b" } } as unknown as CompanionView;
 
     expect(companionDraft(running, "-").entry).toBe("file-b");
-  });
-});
-
-describe("the recollectors' model", () => {
-  test(KO.line_139, () => {
-    const choices = recollectorChoices(t, { registrations: [{ name: "model-a-0-1", label: "Model A 0.1" }] });
-
-    expect(choices.map((one) => one.value)).toEqual([RECOLLECTOR_DEFAULT, "model-a-0-1"]);
-    expect(recollectorChange(RECOLLECTOR_DEFAULT)).toBeNull();
-    expect(recollectorChange("model-a-0-1")).toBe("model-a-0-1");
-  });
-
-  test(KO.line_147, () => {
-    const held = companionDraft({ registration: null, serving: null, modelUse: null, thinking: null, pieces, settings: { ...settings, recollectorModel: "model-a-0-1" }, generationSettings: [] } as unknown as CompanionView, "-");
-
-    expect(held.recollector).toBe("model-a-0-1");
-    expect(companionChange(held, held)).toEqual({});
-    expect(companionChange({ ...held, recollector: RECOLLECTOR_DEFAULT }, held)).toEqual({ recollectorModel: null });
   });
 });
 

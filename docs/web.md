@@ -1122,11 +1122,9 @@ Four groups.
     as is. The branch's name stands until the owner names it otherwise.
   - **Gates** — every gate, in the gate order (the gate unit's documents).
   - **Runners** — the searcher and the browser searcher.
-  - **리콜렉터** — the recollectors: the digest, the person-book writer and the session summariser
-    (the agency's `docs/agent-ownership.md`, 「The recollectors」).
   - **Job workers** — the worker. On screen this branch is labelled 저장소, the name the group goes by
     wherever it stands: the sidebar, the home page and the live status tab.
-- Gates, runners, recollectors and workers always stand whether or not the bot answers. An entry carries its name and
+- Gates, runners and workers always stand whether or not the bot answers. An entry carries its name and
   nothing that grows beside it, so the name is never crowded out. A currently running agent gets a spinning circle —
   so that seeing the list alone tells what is alive, it carries a turning mark, not a stopped dot.
 - **The branches each fold and unfold, and how each branch stood is remembered by that browser.** Not
@@ -1588,25 +1586,24 @@ queue's button and the usage meters — so the front door opens on the groups th
   the gate order is the gate unit's, which serves the console none (`docs/boundary.md`, 「Screens of units not yet
   split」).
 - **Runners** — the searcher and the browser searcher.
-- **Editors** — the digest and the person-book writer.
 - **Job workers** — each worker on this machine stands a line. As the agent doing the queue's work it stands in
   its own group. If a job runs on a worker, which item that job is a run of attaches under that worker's name,
   and a job launched with no item attaches the line its launcher wrote for why it was launched in the same
   place. A worker with no job running is written only as doing the
   queue's work.
 
-The gate, runner, editor and job worker groups are stood by reading that branch's rows from the catalogue as they are.
+The gate, runner and job worker groups are stood by reading that branch's rows from the catalogue as they are.
 So if the owner makes one more worker, that worker stands here at once under its own name. If a branch has nobody, no
 empty group is stood and the group itself does not stand.
 
-The room lines, gate lines, runner/editor lines and worker lines stand with **what that agent is doing now and
+The room lines, gate lines, runner lines and worker lines stand with **what that agent is doing now and
 four figures**. The four are uptime, model, context and this week's tokens. A value the machine records nowhere
 leaves that place blank — not stood as 0. 0 says measured-and-found-none, and a blank says there is nothing to
 measure, and the two differ.
 
 - **Model** — the bot records the model each agent last ran, so it is on every branch.
-- **Context** — a room's chat agent holds a session, so the size it held on last answering is written. Runners and
-  editors hold no session — they open and drop context per run — so this place is **the size held when the last
+- **Context** — a room's chat agent holds a session, so the size it held on last answering is written. Runners hold
+  no session — they open and drop context per run — so this place is **the size held when the last
   run ended**. Not the value held now but a reading of how much one run of that branch loads. A gate reports no
   size, so its place is blank, and a worker has nothing to write here and is blank too. An agent that has not
   run once since this value began being written is likewise.
@@ -1655,10 +1652,10 @@ archive and this week's tokens remain. That is all that can actually be known th
   (「Where a list stands empty」); the console never creates the bot's table. Herdr is written with its capital
   wherever a person reads it.
 
-- The place to skim at a glance what the gates, runners, editors and job workers are doing now. A board standing
+- The place to skim at a glance what the gates, runners and job workers are doing now. A board standing
   result states, not a place to read logs — what is running, what it was, how long it took, how it ended, is all.
   Logs are on the agent screen.
-- **A section to a tab.** The six sections — co-worker pool, gate, runner, editor, job worker, Herdr —
+- **A section to a tab.** The five sections — co-worker pool, gate, runner, job worker, Herdr —
   stand as the component library's tabs on the console's own tab row, under the title bar and in that order,
   and one of them stands at a time. Per group what is running now stands first, recent records below, and a
   group with nothing running says only what is missing, since the tab over it already names the group.
@@ -1670,11 +1667,10 @@ archive and this week's tokens remain. That is all that can actually be known th
   - **Every section is drawn whether it stands or not**, and the one standing is the one shown. So the pool
     goes on reading while another tab stands, and a tab opened again is full rather than starting over with a
     skeleton.
-  - On a phone the row has not the width for both a mark and a name on six tabs, so the marks are what gives
+  - On a phone the row has not the width for both a mark and a name on five tabs, so the marks are what gives
     way and the names stand alone; the row fits one line at a phone's width and never scrolls sideways.
   - **Gates** — every gate, in the gate order (the gate unit's documents).
   - **Runners** — the searcher and the browser searcher.
-  - **Editors** — the digest and the person-book writer.
   - **Job workers** — the worker.
 - The row under the tabs carries, on the right, the time the bot's picture was taken — or, in red, that the bot
   does not answer. It is a button: pressing it reads the picture again, and it spins while it does.
@@ -1708,10 +1704,9 @@ archive and this week's tokens remain. That is all that can actually be known th
      phone. A co-work branch opens its own log; a research branch opens its search or browse run's log; a
      native co-worker opens the log of the worker job that called it; a worker's tile opens that job's log.
      An idle tile opens nothing.
-- Runners and editors write execution records to the same table. So which group a record belongs to is read by
-  which branch the agent that ran that line is — the branch the catalogue answers, and a name the catalogue does
-  not know is read as a runner. Reading is per branch too, so an editor busy sorting one room's whole batch does
-  not push a search's record out of the list. The same reason as reading gates per gate.
+- Runners write execution records to a table of their own, and which group a record belongs to is read by which
+  branch the agent that ran that line is — the branch the catalogue answers, and a name the catalogue does not
+  know is read as a runner. Reading is per branch, as gates are read per gate.
 - A running line has the agent name, which room's work, who launched it, when it started, and how long it has
   gone. A gate is launched by nobody — it runs as part of answering — so a gate line has no launcher. The elapsed
   is redrawn every second. A run with a ceiling shows the ceiling and remaining time together, and when the
@@ -1724,7 +1719,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   same icon and 「응답 대기」. On a phone the chip takes the model chip's place.
 - **Every running line stands a 「중지」.** What a line is stopped by is the stop target the bot's picture gives
   it (the agency's `docs/agent-control.md`, 「Stopping」), so the button stands on every line that has one, on this board's
-  groups and on the agent screens alike: a chat turn and a gate by their execution, a runner, an editor and a
+  groups and on the agent screens alike: a chat turn and a gate by their execution, a runner and a
   job worker by their unit, and a busy co-worker tile by the parent it runs inside. Pressing asks
   「실행을 중지할까요?」 in place — the line's own question, never a screen over the screen — and on confirming
   the control API stops that target. A tile has not the width to hold the question, so the question
@@ -1776,9 +1771,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   where lines pile now. A recent-record line goes to the same screen at where that run started — not the log's
   start or end, but where that run wrote its first line.
 - The way to get there differs per branch. Runners and jobs each run in their own unit and the log piles under
-  that unit name, so a line names that name and picks that run exactly. An editor runs the batch several times in
-  one unit and the log piles per batch under its own name, so a unit name cannot pick one batch — so like a gate
-  it names the time that batch started and goes there. A gate has no unit and the number attached to the log
+  that unit name, so a line names that name and picks that run exactly. A gate has no unit and the number attached to the log
   restarts from 1 each time the bot starts, so it names the place found by the verdict time minus its duration,
   and the room that verdict attached to. One gate judges one room one at a time, so the two settle the run, and if
   there is no line of that room around there — already deleted or never kept — it shows the log's end.
@@ -1796,18 +1789,16 @@ Two ways, split because the running places differ.
 - **A gate is the bot's own run.** Its process runs in the gate's standing herdr pane, but the bot launches it and
   waits, so the bot's memory is the fact. If the bot dies the gate is stopped with it and the control API does not
   answer either, so the screen says the bot is gone. There is nowhere to disagree.
-- **A runner, editor and job worker run in a temporary systemd unit outside the bot.** So the record and the unit
+- **A runner and a job worker run in a temporary systemd unit outside the bot.** So the record and the unit
   are seen together. A run writes its row to the archive at start and closes it at end, and whether an unclosed
   row is still alive is **asked of the unit**. A run killed from outside has no chance to write its end, so the
   row stays open, so the record alone looks like it runs forever, and the unit alone cannot say which room's work
   started when. The record says what, the unit says yes/no.
 - An unclosed row with no unit is a run that died with no report. It disappears from what is running now and
-  remains in recent records as 「보고 없이 종료됨」. The bot closes a runner's and editor's row so, and closes a job's
+  remains in recent records as 「보고 없이 종료됨」. The bot closes a runner's row so, and closes a job's
   row when it next starts, telling that room the job ended.
-- An editor line is written by the unit name that run actually runs in. The same script is launched under several
-  names — the digest the schedule launches, the digest launched to sort one room now, the person-book writer
-  running per room. A run with no unit at all — run by hand — has no unit to ask, so it opens no row and only
-  writes what it wrote and what it carried on ending.
+- A run with no unit at all — run by hand — has no unit to ask, so it opens no row and only writes what it wrote
+  and what it carried on ending.
 - A case where a unit never came up does not reach here. The side launching a runner (the search, browser, voice
   launcher) opens the row first and asks for the unit, so if the ask fails there is no runner to close. There the
   launcher closes its own row as 「실행 오류」 — the place that knows what happened is there, and writing a
@@ -2228,7 +2219,7 @@ Two ways, split because the running places differ.
   by the bot. **No cell, no box and no answer the bot gives this screen carries a token, a cookie or
   anything out of a credential file** — the path is the whole of what is shown, and what the screen learns
   about a login is only whether it stands and when it ends.
-- **에이전트 활성 여부.** Every agent in its group — the chat agent, workers, gates, runners, editors — one row
+- **에이전트 활성 여부.** Every agent in its group — the chat agent, workers, gates, runners — one row
   each with its mark, its name and key, what last answered on it, and its own keepalive switch. A row
   with its switch down carries 멈춤; while the whole round is off every other row carries 전체 멈춤, and
   the switch is then the setting to use when the round comes back on. Pressing the name opens that
@@ -2485,9 +2476,6 @@ Two ways, split because the running places differ.
     catalogue holds entries for that registration, 엔진 모델, a list of them with the one its engine
     serves now marked 서빙 중. Another entry, once saved, starts the choice, whose progress stands under
     the list as the 일반 tab's 모델 파일 shows it (the agency's `docs/model-catalogue.md`).
-  - **리콜렉터 모델:** the registration its recollectors run on (the agency's `docs/companions.md`, 「Its
-    settings」), a list of 기본 — each recollector on its own key's road — and the registrations that
-    have an address. A save of it starts no room afresh.
   - **기본 프롬프트:** its base prompt (the agency's `docs/base-prompts.md`), a list of 없음 and every base prompt
     by its label.
   - **생성 파라미터:** the generation settings (the agency's `docs/companions.md`, 「Its generation settings」), one

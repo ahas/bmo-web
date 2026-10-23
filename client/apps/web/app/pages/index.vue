@@ -188,7 +188,7 @@ const turns = computed(() => new Map<number, ChatTurn>([...bmoTurns.value].map((
 // its own, under the name they gave it. The workers are in it for that reason above all — how many there are and
 // what each is called is the owner's to change, and a screen holding a worker of its own would show one of them
 // for all.
-const STANDING_KINDS: readonly AgentGroupKey[] = ["gate", "designated", "runner", "recollector", "worker"];
+const STANDING_KINDS: readonly AgentGroupKey[] = ["gate", "designated", "runner", "worker"];
 
 const standingGroups = computed<{ key: AgentGroupKey; agents: readonly AgentMeta[] }[]>(() =>
   // A kind stands once the figures under its names can stand with it, so it arrives whole.

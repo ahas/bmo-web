@@ -37,7 +37,6 @@ export function companionViewOf(companion: ListedCompanion): CompanionView {
       ownPieces: {},
       persona: null,
       generation: {},
-      recollectorModel: null,
       updatedAt: null,
       updatedBy: null
     },

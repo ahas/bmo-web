@@ -184,17 +184,7 @@ describe("what an agent is doing at this second", () => {
     ).toBeNull();
   });
 
-  test("an editor is putting the documents in order while its batch stands in the picture", () => {
-    expect(agentWork(wording, input({ name: "digest", live: [run("editor", "digest", -1001, 640)] }))).toEqual({
-      label: KO.line_189,
-      since: 640
-    });
-    expect(agentWork(wording, input({ name: "people-digest", live: [run("editor", "people-digest", -1001, 5)] }))?.label).toBe(
-      KO.line_193
-    );
-  });
-
-  test("an editor with no batch running shows nothing, as any other agent does", () => {
+  test("an agent with no run of its own going shows nothing, as any other agent does", () => {
     // A guessed state would be worse than none.
     expect(agentWork(wording, input({ name: "digest", live: [run("worker", "worker", 1, 5)] }))).toBeNull();
     expect(agentWork(wording, input({ name: "people-digest" }))).toBeNull();

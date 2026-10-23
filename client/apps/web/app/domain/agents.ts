@@ -19,21 +19,17 @@ import type { Translate } from "#shared/wording";
 
 // Which of the groups an agent stands in: the console's own arrangement of the kinds the archive
 // gives its rows (docs/web.md, 「Sidebar」). Every designated agent — the chat agent and each companion
-// — stands in one group, and the recollectors in another.
-export type AgentGroupKey = "designated" | "gate" | "runner" | "recollector" | "worker";
+// — stands in one group.
+export type AgentGroupKey = "designated" | "gate" | "runner" | "worker";
 
 // The group each kind of row stands in. A kind not named here stands with the workers, as a row the
-// console does not know is still somebody's to read. An archive settled before the recollector kind
-// names the digests editors, and they stand with the recollectors all the same; a companion an older
-// writer left under a kind of its own stands with the designated agents, as every companion of the kind
-// `chat` does.
+// console does not know is still somebody's to read. A companion an older writer left under a kind of its
+// own stands with the designated agents, as every companion of the kind `chat` does.
 const KIND_GROUPS: Readonly<Record<string, AgentGroupKey>> = {
   chat: "designated",
   companion: "designated",
   gate: "gate",
   runner: "runner",
-  recollector: "recollector",
-  editor: "recollector",
   worker: "worker"
 };
 
@@ -74,7 +70,6 @@ const GROUP_LABELS: Record<AgentGroupKey, string> = {
   designated: "agents.label.group_designated",
   gate: "agents.label.group_gate",
   runner: "agents.label.group_runner",
-  recollector: "agents.label.group_recollector",
   worker: "agents.label.group_worker"
 };
 
@@ -84,13 +79,12 @@ const GROUP_ICONS: Record<AgentGroupKey, string> = {
   designated: "i-material-symbols-forum-outline",
   gate: "i-material-symbols-balance",
   runner: "i-material-symbols-travel-explore",
-  recollector: "i-material-symbols-edit-note-outline",
   worker: "i-material-symbols-construction"
 };
 
 // The order the groups stand in, the designated agents first because they are the ones answering the
 // rooms.
-export const GROUP_ORDER: readonly AgentGroupKey[] = ["designated", "gate", "runner", "recollector", "worker"];
+export const GROUP_ORDER: readonly AgentGroupKey[] = ["designated", "gate", "runner", "worker"];
 
 // The sections the general settings screen stands, in the order they stand in. What each is called
 // is settled here rather than in the screen, because the screen stands the same titles before the

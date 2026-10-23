@@ -719,7 +719,7 @@ export interface LiveRun {
   stop?: StopTarget | null;
 }
 
-export type LiveRunKind = "gate" | "runner" | "editor" | "worker";
+export type LiveRunKind = "gate" | "runner" | "worker";
 
 // A chat whose context is being folded up. The fold opens no row and writes no ending, so the
 // bot's own picture is the only place it can be read while it is happening.

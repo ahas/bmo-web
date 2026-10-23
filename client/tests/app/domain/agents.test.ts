@@ -109,10 +109,10 @@ function live(agent: string, chatId: number | null): LiveRun {
 }
 
 describe("the catalogue the archive answers with", () => {
-  test("stands in its four groups whether the bot answers or not", () => {
+  test("stands in its three groups whether the bot answers or not, a kind it does not know with the workers", () => {
     const groups = agentGroups(wording, CATALOGUE, []);
 
-    expect(groups.map((group) => group.key)).toEqual(["gate", "runner", "recollector", "worker"]);
+    expect(groups.map((group) => group.key)).toEqual(["gate", "runner", "worker"]);
     expect(groups.flatMap((group) => group.agents.map((agent) => agent.name))).toEqual([
       "content-judge",
       "output-format",
@@ -143,8 +143,9 @@ describe("the catalogue the archive answers with", () => {
     );
     const workers = groups.find((group) => group.key === "worker");
 
-    expect(workers?.agents.map((agent) => agent.label)).toEqual([KO.line_145, KO.line_145_2]);
-    expect(workers?.agents[1]?.cwd).toBe("/srv/infra");
+    // The two of a kind the console does not know stand with the workers, ahead of them in the catalogue's order.
+    expect(workers?.agents.map((agent) => agent.label)).toEqual([KO.line_85, KO.line_86, KO.line_145, KO.line_145_2]);
+    expect(workers?.agents[3]?.cwd).toBe("/srv/infra");
   });
 
   test("a work order's run is read by where it stands, not by the unit name it runs under", () => {
@@ -232,15 +233,15 @@ describe("the designated agents", () => {
   test("are the chat agent and every companion, side by side, the chat agent first, whatever the companions are called", () => {
     const groups = agentGroups(
       wording,
-      [reported("third-companion", "companion", null, KO.line_234), reported("agent-a", "chat", null, KO.line_234_2), reported("companion-a", "companion", null, KO.line_234_3), reported("digest", "recollector", null)],
+      [reported("third-companion", "companion", null, KO.line_234), reported("agent-a", "chat", null, KO.line_234_2), reported("companion-a", "companion", null, KO.line_234_3), reported("digest", "editor", null)],
       rooms
     );
 
     expect(groups.map((group) => [group.key, group.agents.map((agent) => agent.name)])).toEqual([
       ["designated", ["agent-a", "third-companion", "companion-a"]],
-      ["recollector", ["digest"]]
+      ["worker", ["digest"]]
     ]);
-    expect(groups.map((group) => group.label)).toEqual([wording("agents.label.group_designated"), wording("agents.label.group_recollector")]);
+    expect(groups.map((group) => group.label)).toEqual([wording("agents.label.group_designated"), wording("agents.label.group_worker")]);
   });
 
   test("list their room sessions under the rooms' names in the order the rooms stand, each opening the agent's log at its last turn there", () => {
@@ -379,7 +380,7 @@ describe("what the console calls things", () => {
   });
 
   test("every other group and agent wears the name the owner uses", () => {
-    expect(agentGroups(wording, CATALOGUE, []).map((group) => group.label)).toEqual([KO.line_381, wording("agents.label.group_runner"), wording("agents.label.group_recollector"), KO.line_381_2]);
+    expect(agentGroups(wording, CATALOGUE, []).map((group) => group.label)).toEqual([KO.line_381, wording("agents.label.group_runner"), KO.line_381_2]);
     expect(agentLabel(wording, "search")).toBe(KO.line_382);
     expect(agentLabel(wording, "browse")).toBe(KO.line_383);
     expect(agentLabel(wording, "digest")).toBe(KO.line_384);
@@ -415,21 +416,21 @@ describe("what the console calls things", () => {
   });
 });
 
-// The home screen stands a whole kind together — the gates, the runners, the editors, the
-// worker — and what goes in each block is the catalogue's own rows for that kind.
+// The home screen stands a whole kind together — the gates, the runners, the workers — and what
+// goes in each block is the catalogue's own rows for that kind.
 describe("the agents of one kind, as a block of the home screen", () => {
   test("are the catalogue's rows for that kind, under the names the owner calls them", () => {
     expect(groupAgents(wording, CATALOGUE, "runner").map((agent) => agent.label)).toEqual([KO.line_421, KO.line_421_2]);
-    expect(groupAgents(wording, CATALOGUE, "recollector").map((agent) => agent.name)).toEqual(["digest", "people-digest"]);
+    expect(groupAgents(wording, CATALOGUE, "worker").map((agent) => agent.name)).toEqual(["digest", "people-digest", "worker"]);
   });
 
   test("a kind the catalogue has nobody for is an empty block, which the screen does not stand", () => {
-    expect(groupAgents(wording, CATALOGUE.filter((agent) => agent.kind !== "editor"), "recollector")).toEqual([]);
+    expect(groupAgents(wording, CATALOGUE.filter((agent) => agent.kind === "gate"), "worker")).toEqual([]);
     expect(groupAgents(wording, [], "runner")).toEqual([]);
   });
 
   test("what kind an agent is comes from the catalogue, and an unknown name from nowhere", () => {
-    expect(agentKind("digest")).toBe("recollector");
+    expect(agentKind("digest")).toBe("worker");
     expect(agentKind("browse")).toBe("runner");
     expect(agentKind(KO.line_433)).toBeNull();
   });

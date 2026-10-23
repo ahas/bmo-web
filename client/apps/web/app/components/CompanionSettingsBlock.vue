@@ -49,15 +49,6 @@
       <p v-if="refusalAt('registration') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("registration") }}</p>
     </div>
 
-    <!-- The recollector model: the registration every recollector writing its memory runs on, or the default. -->
-    <div class="flex flex-col gap-2">
-      <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.label.recollector_model") }}</h3>
-      <div class="grid gap-2 sm:grid-cols-2">
-        <USelect v-model="draft.recollector" :items="recollectorItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.recollector_model')" />
-      </div>
-      <p v-if="refusalAt('recollectorModel') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("recollectorModel") }}</p>
-    </div>
-
     <!-- The base prompt: the whole prompt its system prompt opens on, or none (the agency's docs/base-prompts.md). -->
     <div class="flex flex-col gap-2">
       <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.label.base_prompt") }}</h3>
@@ -216,7 +207,7 @@
 
 <script setup lang="ts">
 import { BASE_NONE, basePromptChoices, chosenPrompt } from "~/domain/base-prompts";
-import { companionChange, companionDraft, draftDiffers, movedPiece, orderRows, recollectorChoices } from "~/domain/companions";
+import { companionChange, companionDraft, draftDiffers, movedPiece, orderRows } from "~/domain/companions";
 import { useText } from "~/domain/catalogue-models";
 import { countText } from "~/domain/numbers";
 import { failureText } from "bmo-ui/app/domain/errors";
@@ -238,7 +229,6 @@ const { t } = useI18n();
 const view = computed(() => props.view);
 const running = computed(() => view.value.modelUse?.state === "running");
 const registrationItems = computed(() => view.value.registrations.map((one) => ({ label: one.label, value: one.name, description: one.name })));
-const recollectorItems = computed(() => recollectorChoices(t, view.value));
 const entryItems = computed(() => view.value.entries.map((one) => ({ label: one.label, value: one.name, description: one.file })));
 const baseItems = computed(() => basePromptChoices(t, view.value.basePrompts));
 const thinkingItems = computed(() => [

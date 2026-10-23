@@ -206,7 +206,7 @@ describe("what else is running for a room", () => {
   });
 
   test("each run falls in the one count the room's line keeps for its sort", () => {
-    const live = [run(), run({ id: 8, kind: "worker", agent: "worker", depth: null, todoId: 26 }), run({ id: 9, depth: null, unit: "bmo-watch-1" }), run({ id: 10, kind: "editor", agent: "digest", depth: null, unit: null })];
+    const live = [run(), run({ id: 8, kind: "worker", agent: "worker", depth: null, todoId: 26 }), run({ id: 9, depth: null, unit: "bmo-watch-1" }), run({ id: 10, agent: "digest", depth: null, unit: null })];
     const watch = { id: 3, unit: "bmo-watch-1", name: KO.line_200, note: "" } as WatchView;
 
     expect(roomRuns(wording, live, -1003, rooms, [watch]).map((line) => line.sort)).toEqual(["search", "job", "watch", "other"]);

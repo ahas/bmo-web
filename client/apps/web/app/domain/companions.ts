@@ -158,8 +158,6 @@ export interface CompanionDraft {
   order: PieceOrder[];
   own: Record<string, string>;
   persona: string | null;
-  // The recollectors' model as its list holds it, the default under its own mark.
-  recollector: string;
 }
 
 export type Thinking = "default" | "on" | "off";
@@ -181,7 +179,6 @@ export function companionDraft(view: CompanionView, base: string): CompanionDraf
     order: pieceOrder(view),
     own: { ...view.settings.ownPieces },
     persona: view.settings.persona,
-    recollector: view.settings.recollectorModel ?? RECOLLECTOR_DEFAULT,
   };
 }
 
@@ -215,23 +212,5 @@ export function companionChange(draft: CompanionDraft, saved: CompanionDraft): R
     ...(differs("persona") ? { persona: draft.persona } : {}),
     ...(differs("generation") ? { generation: generationChange(draft.generation, savedGeneration(saved.generation)) } : {}),
     ...(differs("thinking") ? { thinking: draft.thinking === "default" ? null : draft.thinking === "on" } : {}),
-    ...(differs("recollector") ? { recollectorModel: recollectorChange(draft.recollector) } : {}),
   };
-}
-
-// The recollectors' model as its list holds it (docs/web.md, 「Agent management screen」): the default, which leaves each
-// recollector on its own key's road, under a mark no registration's name can be, then every
-// registration with an address.
-export const RECOLLECTOR_DEFAULT = "-";
-
-export function recollectorChoices(t: Translate, view: Pick<CompanionView, "registrations">): { label: string; value: string; description?: string }[] {
-  return [
-    { label: t("agents.label.recollector_model_default"), value: RECOLLECTOR_DEFAULT },
-    ...view.registrations.map((one) => ({ label: one.label, value: one.name, description: one.name })),
-  ];
-}
-
-// A choice of the list as a save carries it: null for the default.
-export function recollectorChange(value: string): string | null {
-  return value === RECOLLECTOR_DEFAULT ? null : value;
 }

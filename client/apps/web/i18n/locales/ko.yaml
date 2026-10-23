@@ -1446,7 +1446,6 @@ agents:
     generation_of: "{generation}번째 세션"
     group_designated: 지정된 에이전트
     group_gate: 게이트
-    group_recollector: 리콜렉터
     group_runner: 러너
     group_worker: 저장소
     in_use: 사용
@@ -1542,8 +1541,6 @@ agents:
     reasoning_on: 켬
     reasoning_unsupported: 지원 안 함
     recent: "최근 {value}"
-    recollector_model: 리콜렉터 모델
-    recollector_model_default: 기본 (각 리콜렉터의 실행 경로)
     record_ends: 기록이 여기서 끊김
     reference: 참조 주입
     reference_send: 붙이기
@@ -1697,7 +1694,6 @@ agents:
     refreshing_locked: 새로고침 중 · 저장 불가
     registry_loading: 등록 모델 불러오는 중
     routes_loading: 실행 경로 불러오는 중…
-    run_editor: 정리 중
     run_gate: 판정 중
     run_runner: 검색 중
     run_worker: 작업 중

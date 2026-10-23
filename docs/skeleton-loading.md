@@ -33,6 +33,9 @@ bmo-ui layer's (bmo-ui's `docs/components.md`); this says how the console uses t
     rows.
   - The foot of a list asks for the next page only once it has been measured against the rows that landed, so a
     first page does not bring a second placeholder under itself before anyone scrolled.
+  - Next pages read one after another because the foot still stands in view once each has landed — a filter
+    that leaves few of a page's rows on the screen — are one wait: the foot's placeholder stands from the first of
+    them until the foot has left the view or nothing more is held, and does not go and come back between them.
 - **It is for the first fetch.** Content already on the screen stays on the screen while it is read again; a
   successful empty answer is content and its empty state stays too. What says a re-read is going is the spinner
   on the control that asked for it, with a notice read out to assistive technology and taking no room on the
@@ -95,6 +98,8 @@ bmo-ui layer's (bmo-ui's `docs/components.md`); this says how the console uses t
   hydration ends, and from then until the last placeholder goes, every frame holds only what stood in the frame
   before it — no place changes its pieces or its height, and none stands after any other has turned into
   content.
+- **What it holds the cache siren screen to,** at both widths: with a filter that leaves none of the rows read,
+  the foot's placeholder stands at most once while the further pages are read.
 - **What it holds the database screen to,** at both widths: each of its two placeholders keeps the dense table's
   own head and row heights, and its head shares the table's left edge.
 - **What it holds the units' line to:** the live screen's button and a room's box show the pack's loading words

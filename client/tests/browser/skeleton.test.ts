@@ -570,3 +570,50 @@ describe.skipIf(!origin || !touchReady())('the database screen keeps its dense t
     }, 60000);
   }
 });
+
+// The cache siren's list under a filter that leaves none of the rows read: its foot stays in view as each page
+// lands, so the further pages are read one after another, and they are one wait — the foot's placeholder stands
+// once and goes, never coming back between them.
+describe.skipIf(!origin || !touchReady())('the cache siren reads its further pages under one placeholder', () => {
+  const RING = 600;
+  const event = (seq: number) => ({
+    seq, atSeconds: Math.floor(Date.now() / 1000) - seq, project: 'project-a', session: 'session-a', agent: null, mode: 'claude-code',
+    model: 'model-a', kind: 'warm', level: 'info', note: '', cause: null, newTokens: 10, readTokens: 100
+  });
+
+  for (const width of [1440, 390]) {
+    test(`a filtered list at ${width}px`, async () => {
+      const page = await openRecorded(width);
+      try {
+        let asked = 0;
+        await page.addInitScript(() => {
+          try { localStorage.setItem('bmo-web.siren-filter', JSON.stringify({ agent: 'all', kind: 'compact', model: 'all' })); } catch {}
+        });
+        await page.route(`${origin}/api/siren?**`, async route => {
+          asked++;
+          const limit = Number(new URL(route.request().url()).searchParams.get('limit'));
+          await new Promise(resolve => setTimeout(resolve, 150));
+          await route.fulfill({ json: {
+            reachable: true, since: Date.now() - 600_000, newLastMinute: 10, perMinute: Array.from({ length: 10 }, () => 10), sessions30m: 1,
+            sirenCount: 0, cacheShare: 0.9, coldCount: 0, settings: { armed: true, ttlMs: 3_600_000, threshold: 100_000 },
+            events: Array.from({ length: Math.min(limit, RING) }, (_, at) => event(at + 1)), hasMore: limit < RING
+          } });
+        });
+        await page.goto(`${origin}/siren`, { waitUntil: 'domcontentloaded' });
+        const more = wording('siren.status.more_loading');
+        // The run ends once the whole ring is held, and the list says it reached the end.
+        await page.waitForFunction(() => document.querySelectorAll('[role=status][aria-busy=true]').length === 0 && (window as any).__frames.length > 0, undefined, { timeout: 30000 });
+        await page.getByText(wording('siren.status.no_matching'), { exact: true }).waitFor();
+        await page.waitForTimeout(1000);
+        await page.waitForFunction(() => document.querySelectorAll('[role=status][aria-busy=true]').length === 0);
+        const frames = await page.evaluate(() => (window as any).__frames as { regions: string[] }[]);
+        const standing = frames.map(frame => frame.regions.some(region => region.startsWith(`${more}|`)));
+        const stood = standing.filter((now, at) => now && !standing[at - 1]).length;
+
+        // More than one page was read past the first, and the placeholder stood for them once.
+        expect(asked).toBeGreaterThan(2);
+        expect(stood).toBe(1);
+      } finally { await page.context().close(); }
+    }, 60000);
+  }
+});

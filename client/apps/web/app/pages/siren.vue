@@ -137,10 +137,13 @@
 
     <template #body>
       <div :aria-busy="loading" class="flex grow flex-col gap-6">
-        <ReadFailure v-if="loadError" :failure="readFailure" :message="loadError" :reading="loading" @retry="load()" />
-        <BodyLine v-else-if="loaded && !watch.reachable">{{ $t(SIREN_UNREACHABLE) }}</BodyLine>
+        <!-- A read that failed says so above what was read before, which stays: the clock rereads, and a
+             failure among its reads is not an empty screen. Before anything was read the band is all
+             there is, never a placeholder that does not end. -->
+        <ReadFailure :failure="readFailure" :message="loadError" :reading="loading" @retry="load()" />
+        <BodyLine v-if="loaded && !watch.reachable">{{ $t(SIREN_UNREACHABLE) }}</BodyLine>
 
-        <template v-else>
+        <template v-else-if="loaded || loadError === ''">
           <!-- What the watch is seeing right now: how much new token has gone out in the last
                minute, how many sessions moved, and how many sirens it raised; then how much of the
                cache was reused and how many requests had to refill it. Where the screen is wide the
@@ -315,7 +318,6 @@
 <script setup lang="ts">
 import { NuxtLink } from "#components";
 import { useFootInView } from "bmo-ui/app/domain/foot";
-import { watch as observe } from "vue";
 
 import { SIREN_MAX, SIREN_PAGE_SIZE, SIREN_UNREACHABLE } from "#shared/config";
 import { failureText } from "bmo-ui/app/domain/errors";
@@ -325,6 +327,7 @@ import { usePolling } from "~/domain/polling";
 import { modeLabel, modelLabel } from "~/domain/status";
 import { useSirenFilters } from "~/domain/siren-settings";
 import { useNarrow } from "bmo-ui/app/domain/screen";
+import { useNextPages } from "~/domain/next-pages";
 import {
   SIREN_ALL,
   barHeight,
@@ -380,7 +383,7 @@ const limit = ref(SIREN_PAGE_SIZE);
 const loading = ref(false);
 let disposed = false;
 onScopeDispose(() => { disposed = true; });
-const loaded = ref(false), loadError = ref(""), adding = ref(false);
+const loaded = ref(false), loadError = ref("");
 const foot = useTemplateRef<HTMLElement>("foot");
 
 // The rooms are what a chat session's request is named by; every screen reads the same list.
@@ -437,25 +440,21 @@ async function load(): Promise<void> {
 
 const readFailure = useReadFailure({ failed: () => loadError.value !== "", reading: () => loading.value, reread: () => void load() });
 
-// One more page of the watch's ring, asked for by growing what is asked for. It never shrinks
-// what is held: the clock keeps reading at whatever the reader has scrolled to.
-async function loadMore(): Promise<void> {
-  if (loading.value || !watch.value.hasMore) {
-    return;
-  }
-
-  limit.value = Math.min(limit.value + SIREN_PAGE_SIZE, SIREN_MAX);
-  adding.value = true;
-  try { await load(); } finally { adding.value = false; }
-}
-
 // The foot of the list standing in view is what asks for more, a page ahead of the end so the
-// next one is already coming as the last rows are read.
+// next one is already coming as the last rows are read. One more page of the watch's ring is asked
+// for by growing what is asked for; it never shrinks what is held, so the clock keeps reading at
+// whatever the reader has scrolled to.
 const atFoot = useFootInView(foot, loading, { rootMargin: "200px" });
 
-observe([atFoot, loading, () => watch.value.hasMore], () => {
-  if (atFoot.value && !loading.value && watch.value.hasMore) {
-    void loadMore();
+const { adding } = useNextPages({
+  atFoot,
+  more: () => watch.value.hasMore,
+  busy: () => loading.value,
+  next: async () => {
+    limit.value = Math.min(limit.value + SIREN_PAGE_SIZE, SIREN_MAX);
+    await load();
+
+    return loadError.value === "";
   }
 });
 

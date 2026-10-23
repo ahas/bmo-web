@@ -136,9 +136,9 @@
     </template>
 
     <template #body>
-      <div :aria-busy="loading" class="flex flex-col gap-6">
+      <div :aria-busy="loading" class="flex grow flex-col gap-6">
         <ReadFailure v-if="loadError" :failure="readFailure" :message="loadError" :reading="loading" @retry="load()" />
-        <p v-else-if="loaded && !watch.reachable" class="text-sm text-muted">{{ $t(SIREN_UNREACHABLE) }}</p>
+        <BodyLine v-else-if="loaded && !watch.reachable">{{ $t(SIREN_UNREACHABLE) }}</BodyLine>
 
         <template v-else>
           <!-- What the watch is seeing right now: how much new token has gone out in the last

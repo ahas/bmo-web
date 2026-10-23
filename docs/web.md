@@ -1275,6 +1275,10 @@ Four groups.
   headings and counts around it, and a sentence there reads as if the screen were talking.
 - **What is not that line** keeps its sentence: a refusal the bot gave, a reason a thing cannot be read,
   a result the screen states — those are the screen answering, and they end in 니다 as they always did.
+- **A line that is the whole body stands in its middle.** Where the line is all a screen's body or a tab's
+  body holds — its one list standing empty, or the unit it reads not answering — it stands centred in that body
+  across and down, in the quiet colour, as a placeholder's sentence does. A line that stands among other
+  content — an empty list under figures that did land — stays where the list's first row would stand.
 
 ### Text written in markdown
 

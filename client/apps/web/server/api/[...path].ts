@@ -7,14 +7,14 @@ import { wording } from "#shared/wording";
 import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
 
 import { relayedSegment, socketRelay } from "../utils/bundle-relay";
-import { OWNER_KEY_HEADER, ownerKeyOf } from "../utils/owner-key";
+import { ownerHeaders } from "../utils/owner-key";
 import { unitAt } from "../utils/units";
 
 // One service's own paths, handed on whole (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」;
 // `docs/boundary.md`, 「Calls the console makes」): a console bundle's screens call their service at the
 // relay base, the service's name and the path the service's own API writes, and the console relays the
-// call to the address the service's setting names, with the service's token and the owner key of the person
-// signed in, behind its own sign-in.
+// call to the address the service's setting names, with the service's token and the owner key and role of the
+// person signed in, behind its own sign-in.
 // The method, the query, the body, the headers that say what is asked and the answer — its status, its
 // bytes and the headers a browser reads of them — go as they came, so a bundle reads its service's own
 // shapes and refusals.
@@ -97,10 +97,8 @@ async function relayed(event: H3Event): Promise<Response> {
 
   if (unit.token !== null) headers.authorization = `Bearer ${unit.token}`;
 
-  // The owner the unit acts for is the person signed in, never what the browser says it is.
-  const owner = session.user === undefined ? null : ownerKeyOf(await signedInUser(event));
-
-  if (owner !== null) headers[OWNER_KEY_HEADER] = owner;
+  // The owner the unit acts for, and the role they act in, are the person signed in, never what the browser says.
+  if (session.user !== undefined) Object.assign(headers, ownerHeaders(await signedInUser(event)));
 
   // The body goes as the bytes it came as, so a bundle's file upload is not read as text on the way.
   const body = reading ? undefined : await readRawBody(event);

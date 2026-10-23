@@ -48,14 +48,18 @@ describe("the relay's path", () => {
   });
 });
 
-// The owner a unit acts for: the console's to say, from the person signed in, whatever the browser sent.
-describe("the relay's owner key", () => {
+// The owner a unit acts for and the role they act in: the console's to say, from the person signed in, whatever the
+// browser sent.
+describe("the relay's owner key and role", () => {
   const heard: (string | null)[] = [];
+  const roles: (string | null)[] = [];
+  const globals = globalThis as unknown as Record<string, unknown>;
   const keyed = Bun.serve({
     hostname: "127.0.0.1",
     port: 0,
     fetch(request) {
       heard.push(request.headers.get("owner-key"));
+      roles.push(request.headers.get("owner-role"));
 
       return Response.json({ ok: true });
     }
@@ -67,11 +71,27 @@ describe("the relay's owner key", () => {
     delete process.env.KEYED_ADDRESS;
   });
 
-  test("is the signed-in login's user id, in place of the one the browser sent", async () => {
-    const response = await handler({ params: { path: "keyed/accounts" }, headers: { "owner-key": "browser-chosen" }, node: {} } as RouteEvent);
+  test("is the signed-in login's user id and role, in place of the ones the browser sent", async () => {
+    const response = await handler({ params: { path: "keyed/accounts" }, headers: { "owner-key": "browser-chosen", "owner-role": "administrator" }, node: {} } as RouteEvent);
 
     expect(response.status).toBe(200);
     expect(heard.at(-1)).toBe("1");
+    expect(roles.at(-1)).toBe("administrator");
+  });
+
+  test("names a member a member, whatever the browser says", async () => {
+    const administrator = globals.signedInUser;
+
+    globals.signedInUser = async () => ({ id: 2, name: "member-a", administrator: false });
+
+    try {
+      await handler({ params: { path: "keyed/accounts" }, headers: { "owner-role": "administrator" }, node: {} } as RouteEvent);
+    } finally {
+      globals.signedInUser = administrator;
+    }
+
+    expect(heard.at(-1)).toBe("2");
+    expect(roles.at(-1)).toBe("member");
   });
 
   test("is absent from a share read made with no session", async () => {
@@ -84,5 +104,6 @@ describe("the relay's owner key", () => {
     }
 
     expect(heard.at(-1)).toBeNull();
+    expect(roles.at(-1)).toBeNull();
   });
 });

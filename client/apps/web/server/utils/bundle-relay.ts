@@ -1,7 +1,7 @@
 import { defineWebSocket, unsealSession } from "h3";
 
 import { signedInOf } from "./accounts";
-import { OWNER_KEY_HEADER, ownerKeyOf } from "./owner-key";
+import { ownerHeaders } from "./owner-key";
 import { unitAt, unitHeaders } from "./units";
 
 import type { SignedIn } from "./accounts";
@@ -9,8 +9,8 @@ import type { ConsoleBundleView } from "#shared/console-bundles";
 
 // The relay of a unit's own paths (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」; `docs/boundary.md`,
 // 「Calls the console makes」): a call under the relay base, the service's name and the path the service's own API
-// writes is handed on to the address the service's setting names, with the service's token and the owner key of the
-// person signed in, behind the console's sign-in. A call goes through the catch-all route under the relay base; a
+// writes is handed on to the address the service's setting names, with the service's token and the owner key and
+// role of the person signed in, behind the console's sign-in. A call goes through the catch-all route under the relay base; a
 // socket a bundle declares stands at the same path and is relayed here, frame by frame, so the bundle's protocol is
 // the service's own.
 
@@ -125,8 +125,7 @@ export const socketRelay = defineWebSocket({
     target.protocol = target.protocol === "https:" ? "wss:" : "ws:";
 
     const Socket = WebSocket as unknown as new (url: URL, options: SocketOptions) => WebSocket;
-    const owner = ownerKeyOf(signed);
-    const socket = new Socket(target, { headers: { ...unitHeaders(unit), ...(owner === null ? {} : { [OWNER_KEY_HEADER]: owner }) } });
+    const socket = new Socket(target, { headers: { ...unitHeaders(unit), ...ownerHeaders(signed) } });
     socket.binaryType = "arraybuffer";
     held.upstream = socket;
 

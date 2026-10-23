@@ -2,7 +2,7 @@ import { createParser } from "eventsource-parser";
 
 import { ring } from "../utils/push";
 import { ringsFromThisServer } from "../utils/pushnews";
-import { OWNER_KEY_HEADER, administratorKey } from "../utils/owner-key";
+import { OWNER_KEY_HEADER, OWNER_ROLE_HEADER, administratorKey } from "../utils/owner-key";
 import { unitAt, unitHeaders } from "../utils/units";
 
 import type { PushPayload } from "#shared/types";
@@ -84,10 +84,11 @@ async function follow(bundle: ConsoleBundleView, words: Words, stopping: () => b
 
   while (!stopping()) {
     try {
-      // Nobody is signed in to this read, so it is the platform's: the administrator's owner key.
+      // Nobody is signed in to this read, so it is the platform's: the administrator's owner key, in the
+      // administrator's role.
       const owner = await administratorKey();
       const response = await fetch(`${unit.address}/events`, {
-        headers: { ...unitHeaders(unit), ...(owner === null ? {} : { [OWNER_KEY_HEADER]: owner }), accept: "text/event-stream" }
+        headers: { ...unitHeaders(unit), ...(owner === null ? {} : { [OWNER_KEY_HEADER]: owner }), [OWNER_ROLE_HEADER]: "administrator", accept: "text/event-stream" }
       });
 
       if (!response.ok || response.body === null) throw new Error(String(response.status));

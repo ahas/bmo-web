@@ -32,7 +32,7 @@ interface UnitSocket {
 
 // What the unit was asked and what it heard: the path and query each socket opened at, the token it came with,
 // the frames, and the code the console's side closed with.
-const unitHeard = { opened: [] as { path: string; authorization: string | null; owner: string | null }[], frames: [] as string[], closed: [] as number[] };
+const unitHeard = { opened: [] as { path: string; authorization: string | null; owner: string | null; role: string | null }[], frames: [] as string[], closed: [] as number[] };
 
 const unit = Bun.serve<UnitSocket, never>({
   hostname: "127.0.0.1",
@@ -40,7 +40,7 @@ const unit = Bun.serve<UnitSocket, never>({
   fetch(request, server) {
     const url = new URL(request.url);
 
-    unitHeard.opened.push({ path: `${url.pathname}${url.search}`, authorization: request.headers.get("authorization"), owner: request.headers.get("owner-key") });
+    unitHeard.opened.push({ path: `${url.pathname}${url.search}`, authorization: request.headers.get("authorization"), owner: request.headers.get("owner-key"), role: request.headers.get("owner-role") });
 
     return server.upgrade(request, { data: { path: url.pathname } }) ? undefined : new Response("no upgrade", { status: 400 });
   },
@@ -113,7 +113,7 @@ const signedIn = await sealSession(
 // The browser's own `Owner-Key` is one it cannot choose, so every socket here sends one the console must replace.
 function opened(path: string, cookie: string | null = `${SESSION.name}=${encodeURIComponent(signedIn)}`) {
   const SocketWith = WebSocket as unknown as new (url: string, options: { headers: Record<string, string> }) => WebSocket;
-  const headers: Record<string, string> = { "owner-key": "browser-chosen", ...(cookie === null ? {} : { cookie }) };
+  const headers: Record<string, string> = { "owner-key": "browser-chosen", "owner-role": "administrator", ...(cookie === null ? {} : { cookie }) };
   const socket = new SocketWith(`ws://127.0.0.1:${console_.port}${BASE}api/${path}`, { headers });
   const heard: string[] = [];
   const closed = new Promise<{ code: number; reason: string }>((resolve) => socket.addEventListener("close", (close) => resolve({ code: close.code, reason: close.reason })));
@@ -137,7 +137,7 @@ describe("a bundle's socket through the console", () => {
 
     await until(() => heard.includes("echo ping"));
 
-    expect(unitHeard.opened.at(-1)).toEqual({ path: "/terminals/term%20a/socket?cols=80", authorization: `Bearer ${TOKEN}`, owner: "7" });
+    expect(unitHeard.opened.at(-1)).toEqual({ path: "/terminals/term%20a/socket?cols=80", authorization: `Bearer ${TOKEN}`, owner: "7", role: "member" });
     expect(heard[0]).toBe("hello /terminals/term%20a/socket");
     expect(unitHeard.frames).toContain("ping");
 

@@ -10,8 +10,9 @@ function modesOf(room: unknown): string[] | null {
   return Array.isArray(modes) ? modes.filter((one): one is string => typeof one === "string") : null;
 }
 
-// A page of the rooms a chat service's account is in, as the service answers them through the receiver, for the
-// administrator choosing one to add; `after` and `limit` go as they came (the receiver's `docs/api.md`, 「Rooms」).
+// A page of the rooms a chat service's account is in, as the service answers them through the receiver, each with
+// whether the receiver already holds it, for the administrator choosing one to add; `after` and `limit` go as they
+// came (the receiver's `docs/api.md`, 「Rooms」).
 export default defineEventHandler(async (event): Promise<RoomAddPage> => {
   await requireAdministrator(event);
 
@@ -31,5 +32,5 @@ export default defineEventHandler(async (event): Promise<RoomAddPage> => {
     })
   );
 
-  return { items: page.items.map((room) => ({ id: room.id, title: room.title, kind: room.kind, mode: room.mode, modes: modesOf(room) })), more: page.more };
+  return { items: page.items.map((room) => ({ id: room.id, title: room.title, kind: room.kind, held: room.held ?? room.mode !== null, mode: room.mode, modes: modesOf(room) })), more: page.more };
 });

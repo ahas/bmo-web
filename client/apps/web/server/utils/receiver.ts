@@ -72,6 +72,10 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   "room-unknown": "room.error.room_add_unknown",
   "avatar-unsupported": "room.error.room_add_avatar",
   "room-added": "room.error.room_add_added",
+  "contacts-unlisted": "room.error.room_add_contacts_unlisted",
+  "chats-unstarted": "room.error.room_add_unstarted",
+  "contact-unknown": "room.error.room_add_contact_unknown",
+  "start-refused": "room.error.room_add_start_refused",
   // Removing a room.
   "seeded-room": "room.error.removal_seeded_room",
   infrastructure: "room.error.removal_infrastructure",

@@ -2440,10 +2440,15 @@ export interface RoomRemovalPreview {
 // or is the one the receiver reads off where the room stands.
 // A chat service a room may be added from, as the room-add dialog offers it: its key and label and the modes a
 // room on it may be added in (the receiver's `docs/api.md`, 「Rooms」).
+// A chat service a room may be added from: what it lists and starts, and the modes a room on it may take.
 export interface RoomAddService {
   key: string;
   label: string;
   modes: RoomAddMode[];
+  listsRooms: boolean;
+  listsContacts: boolean;
+  startsChats: boolean;
+  startsGroups: boolean;
 }
 
 export type RoomAddMode = "avatar" | "record-only";
@@ -2453,6 +2458,8 @@ export interface RoomAddCandidate {
   id: number;
   title: string | null;
   kind: string;
+  // Whether the receiver already holds the room, added or not.
+  held: boolean;
   mode: RoomAddMode | null;
   // The chat service's own modes for the room, where it states them; an avatar is offered only where they hold
   // `human-avatar`.
@@ -2461,6 +2468,22 @@ export interface RoomAddCandidate {
 
 export interface RoomAddPage {
   items: RoomAddCandidate[];
+  more: boolean;
+}
+
+// One contact of a chat service's account, with the one-to-one the account already has with it, whether the
+// receiver holds that room, and the mode it was added in.
+export interface RoomAddContact {
+  id: number;
+  name: string;
+  kind: string;
+  roomId: number | null;
+  held: boolean;
+  mode: RoomAddMode | null;
+}
+
+export interface RoomAddContactPage {
+  items: RoomAddContact[];
   more: boolean;
 }
 

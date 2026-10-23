@@ -395,9 +395,12 @@ room:
     talk_loading: 대화 불러오는 중…
     waiting: 연결되면 보냄
     window_left: "{time} 남음"
-    room_add_no_services: 방 목록을 알려 주는 채팅 서비스가 없습니다.
+    room_add_no_services: 방을 추가할 채팅 서비스가 없습니다.
     room_add_no_rooms: 이 계정에 방이 없습니다.
     room_add_loading: 방 목록을 불러오는 중
+    room_add_contacts_loading: 연락처를 불러오는 중
+    room_add_no_contacts: 이 계정에 연락처가 없습니다.
+    room_add_no_match: 찾는 이름이 없습니다.
   error:
     actions_read_failed: 실행 기록을 불러오지 못했습니다.
     attachment_empty: "{name}: 빈 파일이라 첨부하지 않았습니다."
@@ -457,6 +460,11 @@ room:
     room_add_added: 이미 추가한 방입니다.
     room_add_failed: 방을 추가하지 못했습니다.
     room_add_rooms_failed: 방 목록을 불러오지 못했습니다.
+    room_add_contacts_unlisted: 이 채팅 서비스는 연락처를 알려 주지 않습니다.
+    room_add_unstarted: 이 채팅 서비스는 이런 대화를 시작하지 않습니다.
+    room_add_contact_unknown: 채팅 서비스가 모르는 연락처입니다.
+    room_add_start_refused: 채팅 서비스가 대화를 시작하지 않았습니다.
+    room_add_contacts_failed: 연락처를 불러오지 못했습니다.
   action:
     attach_document: 파일
     attach_file: 파일 첨부
@@ -653,6 +661,15 @@ room:
     room_add_kind_group: 그룹
     room_add_added_as: "{mode}로 추가됨"
     room_add_untitled: "방 {id}"
+    room_add_tab_rooms: 기존 방
+    room_add_tab_contacts: 새 대화
+    room_add_search: 이름 검색
+    room_add_kind_person: 사람
+    room_add_kind_bot: 봇
+    room_add_held: 이미 있는 방
+    room_add_has_chat: 대화 있음
+    room_add_group_title: 그룹 이름
+    room_add_modes: "모드: {modes}"
   message:
     id_copied: 대화번호를 복사했습니다.
     message_ref: "방 {room} (chatId {chatId}) · 메시지 #{messageId}"
@@ -671,6 +688,10 @@ room:
     text_copied: 텍스트를 복사했습니다.
     room_add_mode_avatar: 방의 에이전트가 내 계정으로 답합니다.
     room_add_mode_record_only: 읽고 기록만 하며 답하지 않습니다.
+    room_add_nothing: 이 채팅 서비스는 방 목록도 연락처도 알려 주지 않아 여기서 추가할 수 없습니다.
+    room_add_no_start: 이 채팅 서비스는 새 대화를 시작하지 않습니다.
+    room_add_one_to_one: 이 연락처와 일대일 대화를 시작합니다.
+    room_add_group: "{n}명과 새 그룹을 만듭니다."
   title:
     companion_reset: "{name} 초기화"
     providers: 채팅 서비스

@@ -1114,14 +1114,29 @@ Four groups.
   conversation.
   - **추가 beside the group's name adds a room,** for the administrator, in a dialog of three choices made in
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
-    「Rooms」): a chat service whose `listsRooms` is true; a room among those its account is in, page by page,
-    each with its title or number and kind, one already added marked by its mode and not chosen again; and a
-    mode among the service's `roomModes` — 아바타, the room's agents answering under the owner's account, offered
-    only where the room's own modes, where the service states them, hold `human-avatar`; or 기록 전용, the room
-    read and recorded and never answered — each said under the choice, with a title that may be left empty. 추가
-    posts the three, and the room stands in the list at once. A refusal the receiver answers with a code is said
-    in the pack's sentence under the dialog: a service that lists no rooms, a room the service does not know, an
-    avatar mode the service does not hold active, a room already added, a service that did not answer.
+    「Rooms」):
+    - **A chat service:** every one the receiver names that takes a mode, each with the modes it states said
+      under the choice. One that neither lists its account's rooms (`listsRooms`) nor its contacts
+      (`listsContacts`) is still offered, and says in one sentence that nothing can be added from it here.
+    - **A room, in one of two tabs.** 기존 방, where the service lists its rooms, holds them page by page, each
+      with its title or number and kind; a room the receiver already holds is marked, by its mode where it was
+      added (and not chosen again) and as 이미 있는 방 where it was never added. 새 대화, where the service lists
+      its contacts, holds every contact with a search over their names, each marked 사람 or 봇 and, where the
+      account already has a one-to-one with it, marked as that room is. Choosing one contact starts a one-to-one
+      where the service starts one (`startsChats`); where it starts groups (`startsGroups`), several may be
+      chosen, and a group's name is then asked. A service that lists contacts but starts neither shows them and
+      says that it starts no conversation. A tab the service does not offer does not stand.
+    - **A mode** among the service's `roomModes` — 아바타, the room's agents answering under the owner's account,
+      offered only where the room's own modes, where the service states them, hold `human-avatar`; or 기록 전용,
+      the room read and recorded and never answered — each said under the choice, with a title that may be left
+      empty, which a group needs.
+    추가 posts the choices, the receiver asking the service to start a conversation first where one was chosen
+    from the contacts, and the room stands in the list at once. A refusal the receiver answers with a code is
+    said in the pack's sentence under the dialog: a service that lists no rooms or no contacts, a conversation of
+    a kind the service does not start, a contact it does not know, a start it refused, a room the service does
+    not know, an avatar mode the service does not hold active, a room already added, a service that did not
+    answer. The dialog keeps no unsaved-changes guard: it opens, lists, adds and closes, and closing it asks
+    nothing whatever was chosen.
   - **A room carries how many of its messages the reader has not read**, as a number at the line's end
     (「Unread messages」); folded to pictures, a room with any carries a dot on its picture's corner instead.
   - **A room moves to its new place rather than jumping there.** The rooms are a moving list

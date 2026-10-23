@@ -178,3 +178,54 @@ describe.skipIf(!origin || !touchReady())("the title bar's icon buttons", () => 
     }, 180_000);
   }
 });
+
+// The deployment's popover grows out of its mark as a whole: nothing inside it slides in from where the popover was
+// drawn before it was placed (docs/web.md, 「Floating things」), its stages and steps standing in place from the
+// first frame. Motion is left on, since it is the movement that is read.
+describe.skipIf(!origin || !touchReady())("the deployment's popover", () => {
+  for (const viewport of WIDTHS) {
+    test(`opens with its stages in place at ${viewport.width}px`, async () => {
+      const context = await browser!.newContext({ viewport: { width: viewport.width, height: viewport.height }, isMobile: viewport.phone, hasTouch: viewport.phone, serviceWorkers: "block" });
+      const at = cookie.indexOf("=");
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+      await context.route(/\/api\/deploy$/, (route) => route.fulfill({ json: { ...RUNNING, run: { ...RUNNING.run!, startedAt: Date.now() - 60_000, plan: ["check", "tree", "after"], stages: [{ stage: "check", at: Date.now() - 60_000 }, { stage: "tree", at: Date.now() - 20_000 }] } } }));
+
+      try {
+        const page = await context.newPage();
+
+        await visit(page, "/");
+
+        const mark = page.getByRole("button", { name: new RegExp(KO.line_141_2) }).first();
+
+        await mark.waitFor();
+        await page.evaluate(() => {
+          const kept = window as unknown as { __shifts: number[] };
+
+          kept.__shifts = [];
+          const started = performance.now();
+          const look = (): void => {
+            for (const item of document.querySelectorAll("[data-reka-popper-content-wrapper] li")) {
+              const moved = new DOMMatrixReadOnly(getComputedStyle(item).transform === "none" ? undefined : getComputedStyle(item).transform);
+
+              kept.__shifts.push(Math.abs(moved.m41) + Math.abs(moved.m42));
+            }
+
+            if (performance.now() - started < 1_200) requestAnimationFrame(look);
+          };
+
+          requestAnimationFrame(look);
+        });
+        await mark.click();
+        await page.waitForTimeout(1_500);
+
+        const shifts = await page.evaluate(() => (window as unknown as { __shifts: number[] }).__shifts);
+
+        expect(shifts.length).toBeGreaterThan(0);
+        expect(Math.max(...shifts)).toBeLessThan(1);
+      } finally {
+        await context.close();
+      }
+    }, 60_000);
+  }
+});

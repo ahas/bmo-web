@@ -5326,6 +5326,11 @@ dialog open at 계정.
   place. One watch over the page reads this for every dialog the library draws, so no screen says it. A sheet or a
   drawer slides in from its edge instead, and a popover, a menu or a tooltip already grows out of what it stands
   beside. A reader who asked for less movement sees a dialog only fade.
+- **What a popover holds stands in place as it opens.** It grows out of what it stands beside as a whole, and
+  nothing inside it moves on its own: a list in it moves its items only once the popover stands where it opens and
+  has finished growing, so no item slides in from where the popover was drawn before it was placed. A list that
+  changes while the popover stands moves as any list does (「Motion」). The deployment's popover in the title bar is
+  such a one, its stages and their steps a list.
 - **A dialog that fills the screen stands and goes at once.** The picture viewer and every other dialog drawn
   fullscreen neither grows nor fades: its final shape is the screen itself, and any size it passed through on the
   way would be a shape that fits nothing. The browser's own fullscreen — a video, the remote screen — is the

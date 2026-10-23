@@ -18,7 +18,7 @@
     </UTooltip>
 
     <template #content>
-      <div class="flex flex-col gap-3 text-sm">
+      <div ref="body" class="flex flex-col gap-3 text-sm">
         <p class="flex items-center gap-2 font-medium" :class="toneClass(mark.tone)">
           <UIcon :name="mark.icon" class="size-5 shrink-0" :class="mark.spin ? 'animate-spin' : ''" />
           <span class="tabular-nums">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
@@ -87,7 +87,9 @@
                so they line up with its words. -->
           <div v-if="rows.length > 0" class="flex flex-col gap-1">
             <p class="text-muted">{{ $t("deploy.label.stages") }}</p>
-            <MovingList tag="ol" class="flex flex-col gap-1">
+            <!-- The lists move their items only once the popover stands where it opens (docs/web.md, 「Floating
+                 things」); until then they are plain lists, so nothing slides in from where it was drawn first. -->
+            <component :is="settled ? MovingList : 'ol'" tag="ol" class="flex flex-col gap-1">
               <li v-for="row in rows" :key="row.key" class="flex flex-col gap-1">
                 <div class="flex items-center gap-2" :class="row.state === 'ahead' ? 'text-muted' : ''">
                   <UIcon :name="STATE_ICONS[row.state]" class="size-4 shrink-0" :class="[STATE_TONES[row.state], row.state === 'current' ? 'animate-spin' : '']" :aria-label="$t(STATE_WORDS[row.state])" role="img" />
@@ -97,7 +99,7 @@
                     <template v-else>{{ spanClock($t, row.seconds) }}</template>
                   </span>
                 </div>
-                <MovingList v-if="row.steps.length > 0" class="flex flex-col gap-1 pl-6">
+                <component :is="settled ? MovingList : 'ul'" v-if="row.steps.length > 0" class="flex flex-col gap-1 pl-6">
                   <li v-for="one in row.steps" :key="one.key" class="flex items-center gap-2" :class="one.code !== null ? 'text-error' : STEP_WORDS_TONES[one.state]">
                     <UIcon
                       :name="one.code !== null ? 'i-material-symbols-close' : STATE_ICONS[one.state]"
@@ -113,9 +115,9 @@
                       <template v-else>{{ spanClock($t, one.seconds) }}</template>
                     </span>
                   </li>
-                </MovingList>
+                </component>
               </li>
-            </MovingList>
+            </component>
           </div>
 
           <!-- The run's own log, its unit's journal, read again every few seconds while the run goes. -->
@@ -177,6 +179,28 @@ const shown = computed({
 
 onActivated(() => (standing.value = true));
 onDeactivated(() => (standing.value = false));
+
+// Whether the open popover stands where it opens and has finished growing, from which moment its lists move their
+// items (docs/web.md, 「Floating things」). The popover is drawn once before it is placed, then placed and grown; a
+// list moving its items through that would carry them in from where it was first drawn.
+const MovingList = resolveComponent("MovingList");
+const body = useTemplateRef<HTMLElement>("body");
+const settled = ref(false);
+
+watch(shown, async (now) => {
+  settled.value = false;
+
+  if (!now) return;
+
+  await nextTick();
+  await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+  const content = body.value?.parentElement ?? null;
+
+  await Promise.all((content?.getAnimations() ?? []).map((animation) => animation.finished.catch(() => undefined)));
+
+  if (shown.value) settled.value = true;
+});
 
 const todoOpen = useState<boolean>("todo-open", () => false);
 const island = useIsland(t);

@@ -1,5 +1,5 @@
 <template>
-  <UContainer ref="feed" class="flex-1 flex flex-col gap-3 py-4 sm:py-6">
+  <UContainer ref="feed" class="flex min-h-full flex-1 flex-col gap-3 py-4 sm:py-6">
     <UAlert v-if="log.failure.value" color="error" variant="subtle" :description="log.failure.value" />
 
     <div class="self-center">
@@ -15,32 +15,32 @@
       <p v-else-if="rows.length > 0" class="text-sm text-dimmed">{{ $t("agents.message.log_start") }}</p>
     </div>
 
-    <ContentSkeleton v-if="log.loading.value && rows.length === 0" :rows="6" listClass="flex flex-col gap-3" :label="$t('agents.status.log_loading')">
-      <AgentLogRowSkeleton />
+    <ContentSkeleton v-if="log.loading.value && rows.length === 0" :rows="3" listClass="flex flex-col gap-3" :label="$t('agents.status.log_loading')">
+      <ProgressStepSkeleton />
     </ContentSkeleton>
-    <p v-else-if="rows.length === 0 && !log.failure.value" class="text-center text-sm text-muted">{{ $t("agents.status.no_log") }}</p>
+    <!-- An empty log is the whole of the body, so its line stands in the middle of it. -->
+    <p v-else-if="rows.length === 0 && !log.failure.value" class="m-auto text-center text-sm text-muted">{{ $t("agents.status.no_log") }}</p>
 
     <ContentSkeleton v-if="log.loadingOlder.value" listClass="flex flex-col gap-3" :label="$t('agents.status.older_loading')">
-      <AgentLogRowSkeleton />
+      <ProgressStepSkeleton />
     </ContentSkeleton>
-    <ul class="flex flex-col gap-3">
-      <template v-for="row in rows" :key="row.key">
-        <!-- One agent's log is its runs laid end to end, and a line is drawn where one
-             run gives way to the next. -->
-        <li v-if="row.boundary" class="flex items-center gap-3 pt-4 text-sm text-dimmed">
-          <span class="h-px grow bg-accented" />
-          {{ $t("agents.label.run_boundary") }}
-          <span class="h-px grow bg-accented" />
-        </li>
 
-        <AgentLogRow :row="row" />
+    <!-- One agent's log is its runs, a step each on the console's one stepper: the head says how the
+         run went and when, and the body is the run's lines with what it spent under its end. -->
+    <ProgressStepper v-if="steps.length > 0" :steps="steps" :label="$t('agents.label.run_steps')">
+      <template #body="{ step }">
+        <ul class="flex flex-col gap-3">
+          <template v-for="row in step.rows" :key="row.key">
+            <AgentLogRow :row="row" />
 
-        <!-- A run ends with what it spent: for a turn of the chat agent's, the whole round it answered. -->
-        <li v-if="chipOf(row) !== null" class="list-none">
-          <RunSpend :chip="chipOf(row)!" />
-        </li>
+            <!-- A run ends with what it spent: for a turn of the chat agent's, the whole round it answered. -->
+            <li v-if="chipOf(row) !== null" class="list-none">
+              <RunSpend :chip="chipOf(row)!" />
+            </li>
+          </template>
+        </ul>
       </template>
-    </ul>
+    </ProgressStepper>
 
     <!-- The turns of the chat agent's going right now, each with what it has spent so far. -->
     <ul v-if="props.live.length > 0" class="flex flex-col gap-1">
@@ -52,7 +52,7 @@
     <!-- A screen that opened at one run's place has the rest of the log ahead of it, and
          follows new lines again once it has been read to the end. -->
     <ContentSkeleton v-if="following" listClass="flex flex-col gap-3" :label="$t('agents.status.newer_loading')">
-      <AgentLogRowSkeleton />
+      <ProgressStepSkeleton />
     </ContentSkeleton>
     <div v-if="log.newer.value" class="self-center">
       <UButton size="sm" color="neutral" variant="subtle" :label="$t('agents.action.newer_lines')" @click="followRequested" />
@@ -67,12 +67,13 @@
 // ancestor it was put inside and holds the reader's place in it.
 
 import { AGENT_LOG_POLL_MS } from "#shared/config";
-import { useAgentLog } from "~/domain/log";
+import { logRuns, openedRun, runStep, useAgentLog } from "~/domain/log";
 import { SCROLL_BOTTOM_THRESHOLD_PX, usePolling } from "~/domain/polling";
 import { liveChip, runEnds, useRunChips } from "~/domain/turns";
 
 import type { RunProgress } from "#shared/types";
 import type { LogPlace, LogRow } from "~/domain/log";
+import type { StepperStep } from "~/domain/stepper";
 import type { SpendChip } from "~/domain/turns";
 
 interface Props {
@@ -97,6 +98,18 @@ const log = useAgentLog(t, props.name);
 const stick = ref(true);
 
 const rows = computed(() => log.rows.value);
+
+// The runs on the page, each a step: the newest open, and the one the screen was opened at.
+const runs = computed(() => logRuns(rows.value));
+const steps = computed<(StepperStep & { rows: LogRow[] })[]>(() => {
+  const opened = openedRun(runs.value, props.place);
+  const newest = runs.value.at(-1)?.run;
+
+  return runs.value.map((run) => ({
+    ...runStep(t, run, { newest: run.run === newest, atEnd: !log.newer.value, opened: run.run === opened }),
+    rows: run.rows
+  }));
+});
 
 // What each run on the page spent, standing under the line it ended on.
 const chips = useRunChips(t, props.name, rows);

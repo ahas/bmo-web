@@ -1,4 +1,5 @@
 import { progressText } from "./numbers";
+import { stepLook } from "./stepper";
 import { runSeconds, taskRun, taskStartSeconds } from "#shared/work-time";
 import type { WorkRun } from "#shared/work-time";
 import { ranModel, ranModelText } from "#shared/ran-model";
@@ -16,14 +17,6 @@ export const taskLabel: Record<WorkTask["state"], string> = {
   done: "todo.label.task_done",
   failed: "todo.label.task_failed",
   skipped: "todo.label.task_skipped"
-};
-
-const taskIcon: Record<WorkTask["state"], string> = {
-  pending: "i-material-symbols-radio-button-unchecked",
-  running: "i-material-symbols-progress-activity",
-  done: "i-material-symbols-check-circle-outline-rounded",
-  failed: "i-material-symbols-cancel-outline-rounded",
-  skipped: "i-material-symbols-block"
 };
 
 // The name a plan gave one task. A task no plan named — a build task written as a bare
@@ -80,8 +73,10 @@ export function taskPlace(index: number, total: number): string {
   return total > 1 ? `${index} / ${total}` : "";
 }
 
+// A task wears the mark the progress stepper gives its state, so a task in the step dialog and the step
+// on the stepper read alike.
 export function taskStateIcon(state: WorkTask["state"] | undefined): string {
-  return state === undefined ? taskIcon.pending : taskIcon[state];
+  return stepLook(state ?? "pending").icon;
 }
 
 // The step verbs a task's dialog offers, by the task's state and the order's status alone. Which of

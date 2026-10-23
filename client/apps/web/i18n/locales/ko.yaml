@@ -1817,7 +1817,12 @@ agents:
     role_key: "역할 · {role}"
     role_none: 롤 없음
     room_sessions: 방 세션
-    run_boundary: 실행 경계
+    run_continued: 위에서 이어진 실행
+    run_done: 완료
+    run_failed: 실패
+    run_running: 진행 중
+    run_steps: 실행 목록
+    run_unended: 끝 줄 없음
     runs: "{n}회"
     sampling: 샘플링
     search_tab: 탭

@@ -1323,6 +1323,33 @@ Four groups.
   across and down, in the quiet colour. A line that stands among other
   content — an empty list under figures that did land — stays where the list's first row would stand.
 
+### The progress stepper
+
+- **Work that goes forward in steps reads as one vertical stepper wherever it stands:** a TODO item's work
+  order on the 상태 tab of its modal, an agent's log on the agent screen, and the same log in the dialog a room,
+  the live board or the TODO panel opens over it. One component draws all three, so a step looks, says its
+  state and folds the same way in each, and what differs is only what each place puts in a step.
+- **A step is one stage, round or turn** — a work order's step (「The list is the procedure」 under 「TODO
+  panel」), one run of an agent's log (「Agent screen」). Steps stand top to bottom in the order they began,
+  joined by a rail down their left, and the mark on the rail is the step's state.
+- **A step's head carries its state, its name and its time.** The mark is the state's icon in the state's
+  colour, and names the state in words for a reader who cannot see it; the name takes the width that is
+  left and ends in an ellipsis; the time stands at the right end in tabular figures; a chevron at the end
+  says whether the body is open. A second line under the name carries what the place has to say of the step
+  besides — a work order's models and how far a stage of several tasks has come.
+- **The body is folded, and pressing the head unfolds it in place,** at the motion a folding region takes.
+  Which steps stand open when they first appear is the place's to say — the step running now, the step a
+  screen was opened at, the newest run of a log. From then on only a reader's press folds or unfolds a step:
+  a step that ends while it is read stays open, and a step arriving folds none of the others. A folded body is
+  not drawn at all, so a long log's folded runs cost the screen nothing.
+- **The states and their marks are the stepper's, the words the place's:** waiting, an empty ring; running,
+  a spinning mark in the primary colour; done, a check in the success colour; failed, a cross in the error
+  colour; skipped, a struck circle in the dimmed colour; and, for a log's run that left no end line, a circle
+  of three dots in the quiet colour.
+- **Its placeholder is a run of step heads** — the rail's mark and one line — and stands on a stepper's first
+  read only, by the rules `docs/skeleton-loading.md` sets; a page of steps read later stands its own heads at
+  the end it lands at, and a re-read keeps the steps on the screen.
+
 ### Text written in markdown
 
 Body text a person or model writes in markdown stands as formatting, not asterisks and backticks — bold,
@@ -2939,9 +2966,19 @@ Two ways, split because the running places differ.
   results a branch called inside attach after the Claude workflow ended — because the Claude workflow's
   per-branch record is read then, and there was none in the stream before that. A branch has a ceiling on the
   lines it can put in the log, so a widely spread job does not push out its own log.
-- **A run's boundary** is drawn inside the log. One agent's log is one stream of the runs it has run so far
-  joined in time order, with a divider where a run changes. So watching a running run and scrolling straight
-  up brings out the run before.
+- **Each run is a step of the progress stepper** (「The progress stepper」). One agent's log is the runs it has
+  run so far, a step each, in the order they began; where two runs went side by side, each line stands under
+  its own run. So watching a running run and scrolling straight up brings out the run before, as a head to
+  press.
+  - **The head** names the run by the first line of its 시작 line, and a run whose start lies before the page
+    says that it goes on from lines above. Its state is running while it has no end line and is the newest run
+    of a log read to its end, failed where its end line says the run failed, done where it has any other end
+    line, and otherwise that no end line stands. Its time is the clock it began at and how long it went from
+    its first line to its last.
+  - **The body** is the run's lines as this section lays them out, and under its end line the token chip of what
+    it spent.
+  - **What stands open:** the newest run on the page, a run still going, and the run the screen was opened at.
+    Every other run stands folded until it is pressed, and a page of older lines read upward lands folded.
 - **The input box that speaks to a runner or a worker directly** is below. It stands on the searcher and
   browser searcher, and **each job worker's screen**. Which agent is a worker is what the archive answers, not
   a list the app holds — if the owner makes one more worker, names it and points it at its repository, this input
@@ -4691,8 +4728,8 @@ Four bounds keep it from growing forever.
     alike, and the right column opens on **상태**. The choice is made each time another item is opened, so an item
     that reaches its end while open keeps the tab being read.
   - The modal is a page of its own, so each action stands beside the section it acts on rather than in a common foot.
-- **The co-work step dialog** opens from a step of the co-worker list: a head of the step's two lines, a tab row of the
-  step's tasks where it has more than one, a tab row of 지시문 and 결과, one scroll for the body and a foot fixed under
+- **The co-work step dialog** opens from a task of a step's body in the co-worker list, at that task: a head of the
+  step's two lines, a tab row of the step's tasks where it has more than one, a tab row of 지시문 and 결과, one scroll for the body and a foot fixed under
   it.
   - A builder turn's result, which is JSON the bot reads, is laid out to read: a plan as its steps and their tasks —
     title, role, model and instruction — a list of things to build as its tasks, and any other JSON as its fields. The
@@ -4710,10 +4747,11 @@ Four bounds keep it from growing forever.
     verb asks for before it is sent stands at the end of the body, and the foot then holds 취소 and the verb's own button.
 - **Ending a work order.** The work order's own buttons — 중지 and **지시서 종료** — stand at the right. 지시서 종료 asks for
   the 종료 사유 and then **남은 작업 건너뛰고 종료**.
-- **The co-worker list** is one item of two lines per step. The first line holds the step's state icon and its co-worker
-  types, which keep their width, then its title, which takes the rest and slides where it does not fit. The second holds
-  the models, which take the free width the same way, then at the right end the progress as `n/m p%` for a step of more
-  than one task and the time it took, lined up down the list.
+- **The co-worker list** is the work order's steps on the progress stepper (「The progress stepper」), a head of two
+  lines per step. The first line holds the step's name and its co-worker types, which keep their width, then its
+  title, which takes the rest and ends in an ellipsis, and at the right end the time it took, lined up down the list.
+  The second holds the models, which take the free width and slide where they do not fit, then at the right end the
+  progress as `n/m p%` for a step of more than one task. The body lists the step's tasks, a line each.
 - **Boxes grow with their text.** On a phone no box in the modal has a ceiling, so the modal's own scroll is never caught
   by a box; on a wide screen a box stops at a ceiling and scrolls inside, and the talk's box always does, since the talk
   above it must stay in view.
@@ -6055,18 +6093,19 @@ journalctl --user -u <unit> -f
   earlier round of a reopened order. Steps stand in the order they ran; a step not yet started stands after
   them in the order the plan put it. A stage of several branches is one item, not one line per branch — a
   stage of three votes standing as three lines made the list too long to read.
-- **An item is two lines and a state mark.** The first is the step's state, its role and its name —
-  `완료 · screener · Screen the root-cause claims`. A stage's name is the stage title the plan gave it; a
+- **A step is a head of two lines beside its state mark** on the progress stepper. The first is the step's name,
+  its role and its title, and the mark beside it says its state — read whole, `완료 · screener · Screen the
+  root-cause claims`. A stage's name is the stage title the plan gave it; a
   single task's name is its own title, and a task with none takes its group's name. A stage mixing roles
   names every role in it. The step's state is running while any task in it runs, failed while any failed,
   waiting while none has started, skipped when every task was skipped, and done otherwise. The second line
   is the model each of its tasks ran on — every distinct one the step used, each with a fallback mark where
   the provider order fell to it and a changed mark where its runs went out on more than one, and in the step
   modal the requested model beside it where the two differ (bmo-job's `docs/work-orders.md`, 「The model a step ran on」)
-  — then, for a step of more than one task, how many of them are settled as a some/some, then how long the
-  step took. A first line wider than the row ends in an ellipsis and shows whole in the tooltip every
-  cut line carries (「Tooltips」); a second line wider than the row slides instead, since its models are
-  names and its marks stand at its end. The some/some stands one more space off the model, since a
+  — then, for a step of more than one task, how many of them are settled as a some/some. How long the step
+  took stands at the right end of the first line, where every stepper keeps its time. A first line wider than
+  the row ends in an ellipsis and shows whole in the tooltip every cut line carries (「Tooltips」); a second
+  line wider than the row slides instead, since its models are names and its marks stand at its end. The some/some stands one more space off the model, since a
   model ending in a digit followed by a place starting with one reads as one number.
 - **The time a step took, and the order's whole time, count only what was running.** A task's run opens
   where the task started and closes where the job that ran it finished — a task still going runs to now.
@@ -6079,8 +6118,11 @@ journalctl --user -u <unit> -f
   the archive no longer holds is left out rather than guessed at, and a step with no measurable run at all
   stands with no time beside it. Nothing new is recorded for any of this: a task keeps when it started, and
   its job row keeps when it finished.
-- **Pressing an item opens the step in a modal** — centred on a wide screen, rising from the bottom on a
-  narrow one. The head is the item's two lines. A step of more than one task has a tab per task above the
+- **Pressing a step's head unfolds its tasks in place,** and a running step stands unfolded when it first
+  appears. Each task is one line — its state mark, its role and title, its model line, and the time it took —
+  and the body holds no instruction and no result, so a long one never pushes the rest of the order down.
+- **Pressing a task opens the step in a modal at that task** — centred on a wide screen, rising from the
+  bottom on a narrow one. The head is the step's two lines. A step of more than one task has a tab per task above the
   body, each named by the task's short title with its state mark on the left; a single task has no such
   row. Under it the body splits into the instruction and the result, one tab each. The result tab holds the
   run number, the time the task took, the result, the failure and the skip reason, and says none for a task

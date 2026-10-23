@@ -65,8 +65,10 @@ describe("the tabs a step's tasks stand on", () => {
     expect(source).toContain("icon: taskStateIcon(one.state)");
   });
 
-  test("open on the first task, and keep the open one when the order is read again", () => {
-    expect(source).toContain('taskKey.value = props.step?.tasks[0]?.id ?? "";');
+  test("open on the task pressed, or the first, and keep the open one when the order is read again", () => {
+    expect(source).toContain('taskKey.value = props.taskId ?? props.step?.tasks[0]?.id ?? "";');
+    expect(source).toContain("watch(() => [props.step?.key, props.taskId], startTask);");
+    expect(source).toContain("watch(() => props.open, (open) => { if (open) startTask(); });");
     expect(source).toContain("props.step?.tasks.find((one) => one.id === taskKey.value)");
   });
 });

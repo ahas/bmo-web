@@ -179,6 +179,8 @@ interface Props {
   // The step being read, and null while nothing is open — the dialog outlives one item, so the
   // panel hands it whichever item was pressed.
   step: WorkStep | null;
+  // The task of that step the dialog opens at; the step's first where none is named.
+  taskId?: string | null;
   // When each task ended, by task id, as the order view carries it.
   ended: Record<string, number>;
   open: boolean;
@@ -188,7 +190,7 @@ interface Props {
 }
 
 const { t } = useI18n();
-const props = withDefaults(defineProps<Props>(), { step: null, ended: () => ({}), orderStatus: null });
+const props = withDefaults(defineProps<Props>(), { step: null, taskId: null, ended: () => ({}), orderStatus: null });
 
 const emit = defineEmits<{ "update:open": [open: boolean]; changed: [order: WorkOrderView] }>();
 
@@ -276,10 +278,14 @@ const tierItems = computed(() => [{ value: 'keep', label: t("todo.label.keep_tie
 const busy = ref(false);
 const refusal = ref("");
 
-// Another step opened in the same dialog starts on its first task.
-watch(() => props.step?.key, () => {
-  taskKey.value = props.step?.tasks[0]?.id ?? "";
-});
+// The dialog opens at the task it was pressed for, or the step's first; another step or task opened in
+// it starts there too.
+function startTask(): void {
+  taskKey.value = props.taskId ?? props.step?.tasks[0]?.id ?? "";
+}
+
+watch(() => [props.step?.key, props.taskId], startTask);
+watch(() => props.open, (open) => { if (open) startTask(); });
 
 // Another task opened in the same dialog starts with nothing half-asked and on its instruction,
 // which is what the reader pressed the item to see.

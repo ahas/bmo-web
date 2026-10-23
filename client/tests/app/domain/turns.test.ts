@@ -11,7 +11,7 @@ import KO from "../../fixtures/app/domain/turns.test.ko.json";
 function row(key: string, run: string, kind = "text", depth = 0): LogRow {
   const line = { id: Number(key), agent: "agent-a", run, chatId: -1, at: 1, kind, name: null, tool: null, parent: null, ref: null, state: null, truncated: false, text: "", patches: [], patchesMore: 0 } as AgentLogLine;
 
-  return { key, line, results: [], depth, boundary: false };
+  return { key, line, results: [], depth };
 }
 
 describe("where a run's chip stands", () => {

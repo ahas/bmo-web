@@ -2,10 +2,13 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { buildLog, GENERIC_TOOL_ICON, kindLook, lineLook, resultPreview, toolArguments, toolCall, toolChip } from "../../../apps/web/app/domain/log";
+import { buildLog, GENERIC_TOOL_ICON, kindLook, lineLook, logRuns, openedRun, resultPreview, runStep, toolArguments, toolCall, toolChip } from "../../../apps/web/app/domain/log";
 
 import type { AgentLogKind, AgentLogLine, AgentLogState } from "../../../apps/web/shared/types";
 import KO from "../../fixtures/app/domain/log.test.ko.json";
+
+// The host's zone, which a run's clock is read in.
+Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } }) });
 
 interface LineFields {
   id: number;
@@ -58,19 +61,87 @@ describe("buildLog", () => {
     expect(rows[2]?.key).toBe("4");
   });
 
-  test("a boundary is drawn where one run gives way to the next, never at the head of the page", () => {
-    const rows = buildLog([
-      line({ id: 1, kind: "text", run: "gate:1" }),
-      line({ id: 2, kind: "end", run: "gate:1" }),
-      line({ id: 3, kind: "start", run: "gate:2" }),
-      line({ id: 4, kind: "text", run: "gate:2" })
-    ]);
-
-    expect(rows.map((row) => row.boundary)).toEqual([false, false, true, false]);
-  });
-
   test("an empty log has no rows at all", () => {
     expect(buildLog([])).toEqual([]);
+  });
+});
+
+// Each run of a log is one step of the progress stepper (docs/web.md, 「Agent screen」).
+describe("a log's runs as steps", () => {
+  test("gather each run's lines by its name, in the order the runs began, side-by-side runs apart", () => {
+    const runs = logRuns(
+      buildLog([
+        line({ id: 1, kind: "start", run: "gate:1", text: "room-a\nmodel-a" }),
+        line({ id: 2, kind: "start", run: "gate:2" }),
+        line({ id: 3, kind: "text", run: "gate:1" }),
+        line({ id: 4, kind: "end", run: "gate:2" }),
+        line({ id: 5, kind: "end", run: "gate:1" })
+      ])
+    );
+
+    expect(runs.map((run) => run.run)).toEqual(["gate:1", "gate:2"]);
+    expect(runs[0]?.rows.map((row) => row.key)).toEqual(["1", "3", "5"]);
+    expect(runs[0]?.start?.id).toBe(1);
+    expect(runs[0]?.end?.id).toBe(5);
+    expect([runs[0]?.first, runs[0]?.last]).toEqual([101, 105]);
+  });
+
+  test("a run's state comes from its end line, and only the newest of a log read to its end runs", () => {
+    const [ended, failed, open] = logRuns(
+      buildLog([
+        line({ id: 1, kind: "start", run: "a" }),
+        line({ id: 2, kind: "end", run: "a" }),
+        line({ id: 3, kind: "start", run: "b" }),
+        line({ id: 4, kind: "end", run: "b", state: "failed" }),
+        line({ id: 5, kind: "start", run: "c" })
+      ])
+    );
+
+    expect(runStep(wording, ended!, { newest: false, atEnd: true, opened: false }).state).toBe("done");
+    expect(runStep(wording, failed!, { newest: false, atEnd: true, opened: false }).state).toBe("failed");
+    expect(runStep(wording, open!, { newest: true, atEnd: true, opened: false }).state).toBe("running");
+    expect(runStep(wording, open!, { newest: true, atEnd: false, opened: false }).state).toBe("unended");
+    expect(runStep(wording, open!, { newest: false, atEnd: true, opened: false }).state).toBe("unended");
+  });
+
+  test("a run is named by its start line's first line, or said to go on from above where the page cut its start", () => {
+    const [started, cut] = logRuns(
+      buildLog([
+        line({ id: 1, kind: "start", run: "a", text: "\nroom-a · model-a\ndepth" }),
+        line({ id: 2, kind: "text", run: "b" })
+      ])
+    );
+
+    expect(runStep(wording, started!, { newest: false, atEnd: true, opened: false }).title).toBe("room-a · model-a");
+    expect(runStep(wording, cut!, { newest: false, atEnd: true, opened: false }).title).toBe(wording("agents.label.run_continued"));
+  });
+
+  test("a run's time is the clock it began at and how long it went from its first line to its last", () => {
+    const [long, short] = logRuns(
+      buildLog([line({ id: 1, kind: "start", run: "a" }), line({ id: 2, kind: "start", run: "b" }), line({ id: 31, kind: "end", run: "a" })])
+    );
+
+    expect(runStep(wording, long!, { newest: false, atEnd: true, opened: false }).time).toBe(`09:01:41 · ${wording("common.label.seconds", { n: 30 })}`);
+    expect(runStep(wording, short!, { newest: true, atEnd: true, opened: false }).time).toBe("09:01:42");
+  });
+
+  test("the newest run, a running run and the run a screen opened at stand open; the rest fold", () => {
+    const [first, second] = logRuns(buildLog([line({ id: 1, kind: "end", run: "a" }), line({ id: 2, kind: "end", run: "b" })]));
+
+    expect(runStep(wording, first!, { newest: false, atEnd: true, opened: false }).open).toBe(false);
+    expect(runStep(wording, first!, { newest: false, atEnd: true, opened: true }).open).toBe(true);
+    expect(runStep(wording, second!, { newest: true, atEnd: true, opened: false }).open).toBe(true);
+  });
+
+  test("the run a screen opened at is the run it named, or the first that began at the second and room it named", () => {
+    const runs = logRuns(
+      buildLog([line({ id: 1, kind: "start", run: "a" }), line({ id: 5, kind: "start", run: "b" }), line({ id: 6, kind: "start", run: "c" })])
+    );
+
+    expect(openedRun(runs, null)).toBeNull();
+    expect(openedRun(runs, { run: "c" })).toBe("c");
+    expect(openedRun(runs, { at: 103 })).toBe("b");
+    expect(openedRun(runs, { at: 103, chat: 7 })).toBeNull();
   });
 });
 

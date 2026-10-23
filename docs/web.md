@@ -5420,7 +5420,9 @@ dialog open at 계정.
   screen, its share page and its notices; the cache siren and the cache warmer for their screens.
 - **A bundle's screen reaches its service through one relay.** The bundle calls the console's relay base, the
   service's name and the path the service's own API writes; the console hands it on to the address the
-  service's setting names with the service's token, and hands the answer back as it came. Nothing here
+  service's setting names with the service's token, and hands the answer back as it came. A socket the bundle
+  declares stands at the same path and is relayed the same way: each frame is handed on as it came, and the
+  close code ends both sides. Nothing here
   re-exposes a unit's API under a name of its own, so a route a service changes reaches its screen with no
   change in this console (bmo-ui's `docs/console-bundles.md`).
 - **The stream.** The receiver, bmo-job and the agency each publish a stream of events. The console's server holds

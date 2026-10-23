@@ -1,7 +1,12 @@
+import { defineEventHandler } from "h3";
+
+import type { H3Event } from "h3";
+
 import { wording } from "#shared/wording";
 
 import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
 
+import { relayedSegment, socketRelay } from "../utils/bundle-relay";
 import { unitAt } from "../utils/units";
 
 // One service's own paths, handed on whole (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」;
@@ -16,6 +21,9 @@ import { unitAt } from "../utils/units";
 // share page, and the one read that page makes of the token — `shares/<token>` — is relayed without a
 // session. Nothing else is: a service whose share page needs more than the token's own resource is a
 // contract gap between that bundle and its console.
+//
+// A socket a bundle declares stands at the same path, and the route carries the relay's socket hooks for it
+// (`utils/bundle-relay.ts`).
 
 /** The headers a request is handed on with, and an answer's headers a browser reads. */
 const ASKED_HEADERS = ["accept", "content-type", "range", "if-none-match", "if-modified-since", "last-event-id", "cache-control"];
@@ -52,22 +60,12 @@ function queryOf(event: Parameters<typeof getQuery>[0]): string {
   return text === "" ? "" : `?${text}`;
 }
 
-// One segment as it came, escaped once: what the request escaped stays escaped and what it left bare is escaped
-// now, and a segment whose escapes do not read as text goes as it came.
-function segmentOf(raw: string): string {
-  try {
-    return encodeURIComponent(decodeURIComponent(raw));
-  } catch {
-    return raw;
-  }
-}
-
-export default defineEventHandler(async (event) => {
+async function relayed(event: H3Event): Promise<Response> {
   // The path is split where the request wrote a slash and nowhere else: a slash a segment carries escaped is that
   // segment's own, and the segment is handed on still escaped, so the service reads the segment the bundle wrote.
   const path = (getRouterParam(event, "path") ?? "").split("/").filter((part) => part !== "");
   const service = path.shift() ?? "";
-  const rest = path.map(segmentOf).join("/");
+  const rest = path.map(relayedSegment).join("/");
   const declarations = (useAppConfig().consoleBundles ?? []) as { serviceName: string }[];
   const declared = declarations.find((bundle) => bundle.serviceName === service);
   const unit = unitAt(service.replaceAll("-", "_").toUpperCase());
@@ -126,4 +124,6 @@ export default defineEventHandler(async (event) => {
   }
 
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers: answered });
-});
+}
+
+export default defineEventHandler({ handler: relayed, websocket: socketRelay });

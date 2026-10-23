@@ -44,12 +44,12 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { consoleName } from "#shared/agent-names";
 import { returnPath } from "~/domain/login-end";
-import { useVisibleScreen } from "bmo-ui/app/domain/screen";
+import { useVisibleShell } from "~/domain/overlay";
 
 const { t } = useI18n();
 definePageMeta({ layout: false });
 
-useVisibleScreen();
+useVisibleShell();
 
 const { fetch: refreshSession } = useUserSession();
 const route = useRoute();

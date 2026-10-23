@@ -146,6 +146,16 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
     meta to take the keyboard's place off the page, and in a browser that does not listen these two values
     make the same place. The remote desktop's own keyboard is the one laid over the page instead
     (the remote unit's documents, 「The on-screen keyboard」).
+    - Whether something overlays is read against the height the shell takes on its own — `100dvh` as the
+      browser lays it out, or the window's own height where that is taller — never against the window's
+      height alone. A phone's browser can report its window and the visible part of it as one height while
+      the dynamic viewport still runs on under a bar the browser has laid over the page's foot, as Chrome on
+      Android's bottom bar over the gesture bar can be from a page's load until its first touch. Read against
+      the window alone, nothing would overlay, the shell would stand at `100dvh`, and its foot — the room's
+      input bar — would stand under that bar until the page is touched.
+    - The reading is taken as the screen is first drawn and on the frame after it, and again whenever the
+      visual viewport changes size or moves or the window changes size, so a browser settling its bars
+      after the first frame re-places the shell without waiting on a touch.
   - **The third: the document itself never scrolls.** Every scroll is a part's own. A screen that stands
     on no shell — a share link's page, the remote screens — stands on the one screen
     frame instead, which is pinned the way the shell is, by the same two values. Being pinned is what
@@ -181,8 +191,9 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
   - The room's input bar stands at the foot of the shell, which stands by what is visible (above), so a
     keyboard coming up or the address bar going re-places it with the shell rather than covering it.
     While nothing overlays the window the bar adds the bottom inset under its own padding, so its box
-    stands above the gesture bar and its ground runs on under it; while a keyboard overlays the window
-    it adds none, since the keyboard stands where the gesture bar was. The room keeps the bar's height,
+    stands above the gesture bar and its ground runs on under it; while a keyboard or the browser's own
+    bar overlays the window's foot it adds none, since that stands where the gesture bar was. Whether
+    anything overlays is the shell's own reading (above). The room keeps the bar's height,
     the inset with it, as its room at the foot, so the last message, the photo held at the foot and the
     way down stand clear of the gesture bar too.
 - **What retreats when room is short is fixed.** A room's foot is a compressible column, and when

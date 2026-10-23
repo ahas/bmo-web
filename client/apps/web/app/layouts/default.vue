@@ -137,7 +137,8 @@ import { avatarFor, useAvatars } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useBotEvents } from "~/domain/events";
 import { jumpGroups, screenGroup } from "~/domain/jump";
-import { SCREEN_FRAME, useNarrow, useVisibleScreen } from "bmo-ui/app/domain/screen";
+import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
+import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
@@ -156,7 +157,7 @@ const route = useRoute();
 // anything else that has to fit on the screen reads the same pair.
 const shell = SCREEN_FRAME;
 
-useVisibleScreen();
+useVisibleShell();
 
 const open = ref(false);
 const { t } = useI18n();

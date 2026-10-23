@@ -54,7 +54,8 @@
 import { MEMBER_HOME } from "~/domain/access";
 import { consoleName } from "#shared/agent-names";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
-import { SCREEN_FRAME, useVisibleScreen } from "bmo-ui/app/domain/screen";
+import { SCREEN_FRAME } from "bmo-ui/app/domain/screen";
+import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { broughtScreens, namedWhenFolded, roomItems, screenItems } from "~/domain/screens";
@@ -67,7 +68,7 @@ import type { AvatarIndex } from "~/domain/avatars";
 // frames the screen as the administrator's shell does, so a member's page stands the same way.
 const shell = SCREEN_FRAME;
 
-useVisibleScreen();
+useVisibleShell();
 
 const route = useRoute();
 const { t } = useI18n();

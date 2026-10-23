@@ -25,6 +25,7 @@ const TOKEN = "browser-console-token-0123456789";
 const ACCOUNTS: readonly [string, string][] = [
   ["agent-topbar", "fixture-password-1558"],
   ["bubble-wrap", "fixture-password-1477"],
+  ["composer-view", "fixture-password-2170"],
   ["console-ids", "fixture-password-789"],
   ["prompt-wrap", "fixture-password-1575"],
   ["room-feed", "fixture-password-1457"],

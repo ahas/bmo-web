@@ -317,11 +317,13 @@ for it, and no file or table of that unit is read meanwhile.
   that carries files, since a custom emoji, a sticker and a video's shape each stand on one of its files.
 - **What a room's agents ran and spent there.** The receiver's figures hand each agent's runs, last run and tokens
   as null, since the agency answers none of them by room, so the session sheet stands each as "—".
-- **Which round of a draft process is under way.** The receiver tells a row of a round's draft process as a
-  `draft` event once that round's turn has ended, naming its number, question and kind, and tells nothing as a
-  round begins: how many rounds the process asks, which question the round under way asks and whether it is the
-  one that writes the message stand in no event. The running line therefore names the round under way by its
-  number alone.
+- **Whose turn a running turn is.** The receiver hands a turn's speaker, on the picture's turns and on the turn's
+  events, as the number the answering agent's words stand under in the room and nothing more, for the chat agent
+  in a room where it holds a number as much as for a companion, and names no speaker on the chat agent's `sent`
+  and `draft` events. The console therefore reads a speaker carrying no name as the chat agent's, so the chat
+  agent's turn is one row with its listening row and its sending and draft rows reach it; a companion's turn
+  stands as the chat agent's until the receiver hands the companion's name with it, and a room both answer at
+  once stands one row for the two.
 - **A link's preview.** Reading a page for its title, description and picture is no unit's to serve the console, so
   a link in a message stands as a plain card naming where it goes.
 - **An order within one second.** The receiver walks a room's line by when each message was sent and the order it

@@ -1,9 +1,10 @@
 import { describe, expect, spyOn, test } from "bun:test";
-import { computed, createRenderer, defineComponent, onMounted, onScopeDispose, readonly, ref, shallowRef, watch } from "vue";
+import { computed, createRenderer, defineComponent, nextTick, onMounted, onScopeDispose, readonly, ref, shallowRef, watch } from "vue";
 
-import { retryDelay, shouldRefresh, TURN_ENDED, useBotEvents, useRoomRun } from "../../../apps/web/app/domain/events";
+import { ANSWER_WAIT_MS, companionOf, retryDelay, runKey, shouldRefresh, TURN_ENDED, useBotEvents, useRoomRun } from "../../../apps/web/app/domain/events";
+import { listeningRuns } from "../../../apps/web/app/domain/room-window";
 
-import type { BotEvent, BotEventType, ChatTurn, LiveSnapshot, RunProgress } from "../../../apps/web/shared/types";
+import type { BotEvent, BotEventType, ChatTurn, LiveSnapshot, RunProgress, TurnSpeaker } from "../../../apps/web/shared/types";
 import type { BotStream, RefreshCause, RefreshQuestion, RoomOutcome, RoomRun, RunState } from "../../../apps/web/app/domain/events";
 import KO from "../../fixtures/app/domain/events.test.ko.json";
 
@@ -179,7 +180,7 @@ interface Screen {
 // A screen watching one room, mounted and taken down again the way a page is. It is taken down
 // however the body ends: the stream is opened for the first screen that asks and closed when the
 // last of them goes, so a screen left standing would take the next test's stream away.
-function watching(chatId: number, body: (screen: Screen) => void | Promise<void>): void | Promise<void> {
+function watching(chatId: number, body: (screen: Screen) => void | Promise<void>, answered?: (run: RunState) => boolean): void | Promise<void> {
   let held: RoomRun | null = null;
   let settled = 0;
   let finish: (() => void) | null = null;
@@ -194,7 +195,8 @@ function watching(chatId: number, body: (screen: Screen) => void | Promise<void>
             return new Promise<void>((resolve) => {
               finish = resolve;
             });
-          }
+          },
+          ...(answered === undefined ? {} : { answered })
         });
 
         return () => null;
@@ -574,6 +576,169 @@ describe("the block a room shows while the chat agent is answering it", () => {
 
       expect(screen.run()).not.toBeNull();
     });
+  });
+});
+
+// The bot hands the chat agent's turn with the number its words stand under in the room and no name, and names no
+// speaker on its sending or its draft rows (docs/boundary.md, 「Gaps the console meets」). The row standing for that
+// turn is the chat agent's own, so its listening row never stands beside it, and it stands until the answer it sent
+// is in the feed rather than until the picture lets the turn go (docs/web.md, the room screen's section on what is
+// being done now).
+describe("the chat agent's turn as the bot tags it", () => {
+  const tagged: TurnSpeaker = { id: 8_000_000_001 };
+  const open = { since: 1_788_489_000, closesAt: 1_788_491_000 };
+
+  test("a speaker carrying no name is the chat agent's, and one carrying a name a companion's", () => {
+    const companion = { id: 11, name: "Companion" };
+
+    expect(companionOf(tagged)).toBeUndefined();
+    expect(runKey(tagged)).toBe(runKey(undefined));
+    expect(companionOf(companion)).toEqual(companion);
+    expect(runKey(companion)).not.toBe(runKey(undefined));
+  });
+
+  test("its turn stands as the chat agent's own row, and the listening row gives way to it", () => {
+    watching(-1003, (screen) => {
+      screen.write("live", picture([]));
+
+      expect(listeningRuns(screen.runs(), open)).toHaveLength(1);
+
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
+
+      expect(screen.runs().map((run) => run.speaker)).toEqual([undefined]);
+      expect(listeningRuns(screen.runs(), open)).toEqual([]);
+
+      // A screen arriving mid-turn reads the same turn off the picture, tagged the same way.
+      screen.write("live", picture([chatTurn({ speaker: tagged })]));
+
+      expect(screen.runs().map((run) => run.speaker)).toEqual([undefined]);
+      expect(listeningRuns(screen.runs(), open)).toEqual([]);
+
+      screen.write("live", picture([]));
+    });
+  });
+
+  test("its draft rows reach it, and a question told as it starts moves it nothing", () => {
+    watching(-1003, (screen) => {
+      screen.write("live", picture([]));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
+      screen.write("bot", botEvent({ type: "draft", number: 1, kind: "start", question: "intent" }));
+
+      expect(screen.run()?.draft).toBeUndefined();
+
+      screen.write("bot", botEvent({ type: "draft", number: 1, kind: "question", question: "intent", outcome: "answered" }));
+
+      expect(screen.run()?.draft?.number).toBe(1);
+
+      screen.write("live", picture([]));
+    });
+  });
+
+  test("a turn that sent stands past the ending's read until its answer is in the feed, and the listening row after", async () => {
+    const answer = ref(false);
+
+    await watching(-1003, async (screen) => {
+      screen.write("live", picture([]));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
+      screen.write("bot", botEvent({ type: "sent", messageId: 42, round: "round:a" }));
+      // The picture lets the turn go once it sent, well before the answer is read into the room.
+      screen.write("live", picture([]));
+
+      expect(screen.runs()).toHaveLength(1);
+
+      await screen.finishRead();
+
+      expect(screen.runs()).toHaveLength(1);
+      expect(listeningRuns(screen.runs(), open)).toEqual([]);
+
+      answer.value = true;
+
+      // The update the answer arrives in still holds the block, which the answer takes the place of there; the
+      // listening row comes in the next.
+      expect(screen.runs()).toHaveLength(1);
+
+      await nextTick();
+
+      expect(screen.runs()).toEqual([]);
+      expect(listeningRuns(screen.runs(), open)).toHaveLength(1);
+    }, () => answer.value);
+  });
+
+  test("a turn whose answer the feed holds already gives its place up without waiting on the read", async () => {
+    await watching(-1003, async (screen) => {
+      screen.write("live", picture([]));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
+      screen.write("bot", botEvent({ type: "sent", messageId: 42 }));
+      screen.write("live", picture([]));
+
+      await nextTick();
+
+      expect(screen.runs()).toEqual([]);
+
+      await screen.finishRead();
+
+      expect(screen.runs()).toEqual([]);
+    }, () => true);
+  });
+
+  test("a turn that failed gives its place up at the ending's read, waiting on no answer", async () => {
+    await watching(-1003, async (screen) => {
+      screen.write("live", picture([]));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
+      screen.write("bot", botEvent({ type: "run-failed", speaker: tagged }));
+      screen.write("live", picture([]));
+
+      expect(screen.runs()).toHaveLength(1);
+
+      await screen.finishRead();
+
+      expect(screen.runs()).toEqual([]);
+    }, () => false);
+  });
+
+  test("a turn whose answer never reaches the feed gives its place up a while after the read", async () => {
+    const clocks = spyOn(globalThis, "setTimeout");
+
+    try {
+      await watching(-1003, async (screen) => {
+        screen.write("live", picture([]));
+        screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
+        screen.write("bot", botEvent({ type: "sent", messageId: 42 }));
+        screen.write("live", picture([]));
+        await screen.finishRead();
+
+        expect(screen.runs()).toHaveLength(1);
+
+        const wait = clocks.mock.calls.find((call) => call[1] === ANSWER_WAIT_MS);
+
+        expect(wait).toBeDefined();
+
+        (wait?.[0] as () => void)();
+
+        expect(screen.runs()).toEqual([]);
+      }, () => false);
+    } finally {
+      clocks.mockRestore();
+    }
+  });
+
+  test("a turn beginning while the last one waits on its answer owns the block from that moment", async () => {
+    await watching(-1003, async (screen) => {
+      screen.write("live", picture([]));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
+      screen.write("bot", botEvent({ type: "sent", messageId: 42 }));
+      screen.write("live", picture([]));
+      await screen.finishRead();
+      screen.write("bot", botEvent({ type: "run-started", messageId: 43, speaker: tagged }));
+
+      expect(screen.runs().map((run) => run.messageId)).toEqual([43]);
+
+      screen.write("live", picture([]));
+      screen.write("bot", botEvent({ type: "run-failed" }));
+      await screen.finishRead();
+
+      expect(screen.runs()).toEqual([]);
+    }, () => false);
   });
 });
 

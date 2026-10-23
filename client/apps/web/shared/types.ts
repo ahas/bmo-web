@@ -749,11 +749,12 @@ export interface TurnReceived {
 // A chat answering a round right now. Like a fold it opens no row and writes no ending, so the
 // bot's own picture is the only place it can be read while it is going on — which is what lets a
 // screen that arrives in the middle of a turn, or comes back from a dropped stream, show it.
-// Who answers a turn, where it is not the chat agent: a companion, by the number its words stand under in the
-// room and its name. The chat agent's own turns name nobody.
+// Who answers a turn, as the bot hands it: the number the agent's words stand under in the room, and a companion's
+// name. The bot hands the number alone for any agent holding one in the room, the chat agent included, so only a
+// speaker carrying a name is read as a companion's (docs/boundary.md, 「Gaps the console meets」).
 export interface TurnSpeaker {
   id: number | null;
-  name: string;
+  name?: string;
 }
 
 export interface ChatTurn extends TurnReceived {
@@ -892,8 +893,8 @@ interface BotEventFields {
   live?: LiveSnapshot;
   // A run-started event alone: what the turn was handed, as it stood when the round opened.
   received?: TurnReceived;
-  // A run-started event and the ending of the same turn: who is answering, where it is not the chat agent, so
-  // the ending closes that speaker's turn and not another one going in the same room.
+  // A turn's events: who is answering, so a companion's ending closes that companion's turn and not another one
+  // going in the same room.
   speaker?: TurnSpeaker;
   // A run-progress event alone: where the turn is and what its stream has counted so far.
   progress?: RunProgress;

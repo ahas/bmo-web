@@ -17,8 +17,8 @@ export interface RunState {
   // What the turn last said of itself: which phase it is in and what its stream has counted.
   // Null until the first word of it arrives, which is where every run begins.
   progress: RunProgress | null;
-  // Who is answering, where the receiver named somebody other than the chat agent — a companion. Absent for the chat agent.
-  speaker?: TurnSpeaker;
+  // Who is answering, where it is a companion. Absent for the chat agent, whatever number the bot handed with the turn.
+  speaker?: Companion;
   // The last row the turn's draft process wrote, while the process goes on: absent until the process writes its first
   // row, and again once it has ended.
   draft?: DraftStep;
@@ -48,7 +48,12 @@ export interface RoomRun {
 // named a companion. Absent for the chat agent, as on the turn itself.
 export interface RoomOutcome {
   key: string;
-  speaker?: TurnSpeaker;
+  speaker?: Companion;
+}
+
+// A turn's speaker that is a companion: one the bot handed with its name.
+export interface Companion extends TurnSpeaker {
+  name: string;
 }
 
 export interface RoomRunHandlers {
@@ -57,6 +62,9 @@ export interface RoomRunHandlers {
   // The run ended, one way or another; whatever it produced is in the archive now. What it answers
   // with is the read that brings that in, and the block waits on it before giving its place up.
   onSettled: () => void | Promise<void>;
+  // Whether the answer a turn sent stands in the room's feed. A turn that ended by sending its answer stands its
+  // block until this holds, rather than only until the ending's read is in; without it, that read is the end.
+  answered?: (run: RunState) => boolean;
   // The whole picture of what is running anywhere, as the bot publishes it. It belongs to no
   // room, so it is handed over before the room's own filter — and it rides this stream rather
   // than a second one, since a browser holds only a handful of them open at once.
@@ -781,10 +789,21 @@ const DRAFT_OUTCOMES: Record<string, string> = {
   "ceiling-skip": "room.status.outcome_draft_ceiling_skip",
   "ceiling-message": "room.status.outcome_draft_ceiling_message"
 };
+// The companion a turn or one of its events names, or undefined where it is the chat agent's. The bot hands a
+// turn's speaker as the agent's number in the room alone for the chat agent too, and names no speaker on the
+// chat agent's `sent` and `draft`; only a speaker carrying a name is a companion's (docs/boundary.md, 「Gaps the
+// console meets」). Read any other way, the chat agent's turn would stand as a companion's beside its own
+// listening row, and its sending and its draft rounds would reach no turn.
+export function companionOf(speaker: TurnSpeaker | undefined): Companion | undefined {
+  return typeof speaker?.name === "string" && speaker.name !== "" ? (speaker as Companion) : undefined;
+}
+
 // Which turn of a room a run is: the chat agent's, or a companion's by its speaker. A room two agents answer
 // holds a turn of each at once, and each begins, moves and ends by this key alone.
 export function runKey(speaker: TurnSpeaker | undefined): string {
-  return speaker === undefined ? "bmo" : `speaker:${speaker.id ?? speaker.name}`;
+  const companion = companionOf(speaker);
+
+  return companion === undefined ? "bmo" : `speaker:${companion.id ?? companion.name}`;
 }
 
 // The turns this room's picture holds right now, one to a speaker. A round that hands over to the
@@ -851,8 +870,9 @@ function picturedTurns(rooms: ReadonlyMap<number, RunState[]>, turns: ChatTurn[]
     // says it does not, so a screen opened mid-wait shows the wait as one that watched it begin.
     const progress = pictureProgress(turn, was?.progress ?? null);
     const messageId = turn.messageId === undefined ? was?.messageId ?? null : turn.messageId;
+    const speaker = companionOf(turn.speaker);
     const state: RunState = was === undefined
-      ? { messageId, startedAt: turn.since, received, progress, ...(turn.speaker === undefined ? {} : { speaker: turn.speaker }) }
+      ? { messageId, startedAt: turn.since, received, progress, ...(speaker === undefined ? {} : { speaker }) }
       : { ...was, messageId, received, progress };
 
     next.set(turn.chatId, putTurn(next.get(turn.chatId) ?? [], state));
@@ -880,12 +900,14 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
   const was = held.find((run) => runKey(run.speaker) === key);
 
   if (event.type === "run-started") {
+    const speaker = companionOf(event.speaker);
+
     return withRoom(rooms, event.chatId, putTurn(held, {
       messageId: event.messageId,
       startedAt: toUnixSeconds(event.at),
       received: event.received ?? was?.received ?? null,
       progress: null,
-      ...(event.speaker === undefined ? {} : { speaker: event.speaker })
+      ...(speaker === undefined ? {} : { speaker })
     }));
   }
 
@@ -897,8 +919,9 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
 
   // A turn of the draft process ended: the chat agent's turn is now on the next. The process's end leaves the line as
   // any turn's again until the turn itself ends. A companion's round runs no process, so a row is the chat agent's.
+  // A question told as it starts is no row of the log, and the line steps by rows alone.
   if (event.type === "draft") {
-    if (was === undefined || typeof event.number !== "number") return rooms;
+    if (was === undefined || typeof event.number !== "number" || event.kind === "start") return rooms;
 
     if (event.kind === "end") {
       const { draft: _ended, ...rest } = was;
@@ -922,6 +945,10 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
 
 // How long the reason for a silent run stays on the screen.
 const OUTCOME_LIFETIME_MS = 20_000;
+// How long a turn that sent its answer stands its block past the ending's read while the answer is not yet in the
+// room's feed. The bot files the answer before it says the turn sent it, so that read brings it in the ordinary run
+// of things; this is only how long a read that failed, or an answer filed out of sight, holds the block.
+export const ANSWER_WAIT_MS = 15_000;
 
 // What one room is doing right now, read off the tab's record of every room's turns, so a screen
 // opened onto a room — coming back from another, as much as arriving mid-turn — stands the turns
@@ -943,6 +970,9 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
   // earlier read no longer has anything to clear. Both are kept per speaker.
   const endings = new Map<string, number>();
   const settling = ref<RunState[]>([]);
+  // The speakers whose turn sent its answer and whose block stands until that answer is in the room's feed, each
+  // with the clock that lets it go should the answer never come.
+  const awaiting = shallowRef<ReadonlyMap<string, ReturnType<typeof setTimeout> | null>>(new Map());
 
   // The turns going here, after the blocks still standing through their ending. A speaker whose
   // next turn has begun stands as that turn.
@@ -955,6 +985,41 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
 
   function unsettle(key: string): void {
     settling.value = settling.value.filter((run) => runKey(run.speaker) !== key);
+    stopAwaiting(key);
+  }
+
+  function stopAwaiting(key: string): void {
+    if (!awaiting.value.has(key)) return;
+
+    const clock = awaiting.value.get(key);
+
+    if (clock !== null && clock !== undefined) clearTimeout(clock);
+
+    const next = new Map(awaiting.value);
+
+    next.delete(key);
+    awaiting.value = next;
+  }
+
+  function holdFor(key: string, clock: ReturnType<typeof setTimeout> | null): void {
+    const before = awaiting.value.get(key);
+
+    if (before !== null && before !== undefined) clearTimeout(before);
+
+    awaiting.value = new Map(awaiting.value).set(key, clock);
+  }
+
+  // A block waiting on its answer gives its place up once the answer is in the feed, in the update after the one
+  // the answer arrived in: the answer has then already taken the block's place, so what stands after the block —
+  // the listening row — comes once the answer stands, never in the same update as it.
+  if (handlers.answered !== undefined) {
+    const answered = handlers.answered;
+
+    watch(
+      () => settling.value.filter((run) => awaiting.value.has(runKey(run.speaker)) && answered(run)).map((run) => runKey(run.speaker)),
+      (keys) => keys.forEach(unsettle),
+      { flush: "post" }
+    );
   }
 
   // What else is running anywhere, as the bot last pictured it, for a screen that was not standing
@@ -965,11 +1030,12 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
 
   function announce(event: BotEvent): void {
     const kept = event.type === "skipped" && event.messageId !== null;
-    const label = (event.speaker === undefined ? drafted : null) ?? (kept ? undefined : SILENT_OUTCOMES[event.type]);
+    const speaker = companionOf(event.speaker);
+    const label = (speaker === undefined ? drafted : null) ?? (kept ? undefined : SILENT_OUTCOMES[event.type]);
 
-    if (event.speaker === undefined) drafted = null;
+    if (speaker === undefined) drafted = null;
 
-    outcome.value = label === undefined ? null : { key: label, ...(event.speaker === undefined ? {} : { speaker: event.speaker }) };
+    outcome.value = label === undefined ? null : { key: label, ...(speaker === undefined ? {} : { speaker }) };
 
     if (fading !== null) {
       clearTimeout(fading);
@@ -1009,7 +1075,7 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
       unsettle(key);
       outcome.value = null;
 
-      if (event.speaker === undefined) drafted = null;
+      if (companionOf(event.speaker) === undefined) drafted = null;
 
       return;
     }
@@ -1046,13 +1112,31 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
       settling.value = [...settling.value.filter((run) => runKey(run.speaker) !== key), last];
     }
 
+    // A turn that sent its answer stands its block until that answer is in the feed, by whichever read brings it.
+    const answers = event.type === "sent" && last !== undefined && handlers.answered !== undefined;
+
+    if (answers) {
+      holdFor(key, null);
+    } else {
+      stopAwaiting(key);
+    }
+
     announce(event);
 
     // A read that failed is still a read that is over: the block has waited as long as there was
     // anything to wait for, and standing on because the archive would not answer would leave a
-    // turn that ended hours ago saying it was still going.
+    // turn that ended hours ago saying it was still going. A turn that sent waits a little longer for its
+    // answer, and no longer than that.
     void Promise.resolve(handlers.onSettled()).catch(() => undefined).finally(() => {
-      if (endings.get(key) !== ending) {
+      if (endings.get(key) !== ending || !settling.value.some((run) => runKey(run.speaker) === key)) {
+        return;
+      }
+
+      if (answers && last !== undefined && awaiting.value.has(key) && handlers.answered?.(last) !== true) {
+        holdFor(key, setTimeout(() => {
+          if (endings.get(key) === ending) unsettle(key);
+        }, ANSWER_WAIT_MS));
+
         return;
       }
 
@@ -1063,6 +1147,10 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
   onScopeDispose(() => {
     if (fading !== null) {
       clearTimeout(fading);
+    }
+
+    for (const clock of awaiting.value.values()) {
+      if (clock !== null) clearTimeout(clock);
     }
   });
 

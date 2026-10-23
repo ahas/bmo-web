@@ -1147,6 +1147,12 @@ function turnSaid(run: RunState): string {
   return JSON.stringify([run.received, run.progress?.phase ?? null, run.progress?.tool ?? null]);
 }
 
+// The answer a turn's row gives its place to: the newest agent message of the row's own speaker since the turn
+// began, or undefined while none is in the feed.
+export function turnAnswer(run: RunState, senderId: number | null, messages: readonly ArchivedMessage[]): ArchivedMessage | undefined {
+  return senderId === null ? undefined : messages.findLast((message) => message.agent === true && message.senderId === senderId && message.sentAt >= run.startedAt);
+}
+
 // Which running rows have handed their place over. A turn's answer reaches the feed by whichever
 // read brings it first — the news of the message, or the read the turn's ending makes — and the row
 // standing for the turn gives it its place in that same render, so the two never stand together
@@ -1163,7 +1169,7 @@ export function handOvers(rows: readonly FeedItem[], messages: readonly Archived
       continue;
     }
 
-    const answer = messages.findLast((message) => message.agent === true && message.senderId === row.senderId && message.sentAt >= run.startedAt);
+    const answer = turnAnswer(run, row.senderId, messages);
 
     if (answer === undefined) {
       continue;

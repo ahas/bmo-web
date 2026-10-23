@@ -257,31 +257,81 @@ export function landedKeys(
   messages: readonly ArchivedMessage[],
   speakerId: number | null
 ): string[] {
-  const landed = landings(items, messages, speakerId);
-  const sends = new Set(items.filter((held) => landed.has(held.key)).map((held) => held.sendKey));
-
-  return items
-    .filter((held) => landed.has(held.key) || (sends.has(held.sendKey) && held.state !== "failed" && !unanswered(held)))
-    .map((held) => held.key);
+  return [...caughtUp(items, messages, speakerId, false)];
 }
 
-// The archived message each row the archive has caught up with landed as, by its key.
-function landings(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null): Map<string, number> {
+// Which put-up messages the feed stands no longer because the archive already carries them: the ones it has caught up
+// with, and words whose send is still out but which the bot has already filed. The bot files the owner's words before
+// it carries them on to the room's other providers and only then answers the send, so the archive can carry them while
+// the send is still out (docs/web.md, the room screen's section on a message being sent). Such a row is known by its
+// words under the owner's name, filed no earlier than a moment before it was pressed and taken by no other row; it
+// stays on its way until its send answers, so the order sends go in and what becomes of one are untouched, and only its
+// standing in the feed is given up.
+export function echoedKeys(
+  items: readonly OutboxItem[],
+  messages: readonly ArchivedMessage[],
+  speakerId: number | null
+): Set<string> {
+  return caughtUp(items, messages, speakerId, true);
+}
+
+function caughtUp(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null, echoes: boolean): Set<string> {
+  const landed = landings(items, messages, speakerId, echoes);
+  const sends = new Set(items.filter((held) => landed.has(held.key)).map((held) => held.sendKey));
+
+  return new Set(
+    items
+      .filter((held) => landed.has(held.key) || (sends.has(held.sendKey) && held.state !== "failed" && !unanswered(held)))
+      .map((held) => held.key)
+  );
+}
+
+// How long before a send was pressed the archive may date the words the bot filed for it while the send is still
+// out. The bot dates them as it takes the send, after the press, so the slack is only the two clocks' difference,
+// and the same words said a moment earlier are not taken for them.
+const ECHO_SLACK_SECONDS = 3;
+
+// The archived message each row the archive has caught up with landed as, by its key: the rows the send numbered
+// first, then the rows found by what the archive carried, then — where echoes are asked for — the words of a send
+// still out, each taking only a message no row before it took.
+function landings(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null, echoes = false): Map<string, number> {
   const numbered = new Set(messages.map((message) => message.messageId));
   const taken = new Set<number>();
   const landed = new Map<string, number>();
+  const answered = items.filter((held) => held.state !== "failed" && !unanswered(held));
 
-  for (const held of items) {
-    if (held.state === "failed" || unanswered(held)) {
-      continue;
-    }
-
+  for (const held of answered) {
     if (held.messageId !== null && numbered.has(held.messageId)) {
+      taken.add(held.messageId);
       landed.set(held.key, held.messageId);
+    }
+  }
+
+  for (const held of answered) {
+    if (landed.has(held.key)) {
       continue;
     }
 
     const said = messages.find((message) => !taken.has(message.messageId) && matches(held, message, speakerId));
+
+    if (said !== undefined) {
+      taken.add(said.messageId);
+      landed.set(held.key, said.messageId);
+    }
+  }
+
+  if (!echoes || speakerId === null) {
+    return landed;
+  }
+
+  for (const held of items) {
+    if (!unanswered(held) || held.file !== null) {
+      continue;
+    }
+
+    const said = messages.find(
+      (message) => !taken.has(message.messageId) && message.sentAt >= held.startedAt - ECHO_SLACK_SECONDS && matches(held, message, speakerId)
+    );
 
     if (said !== undefined) {
       taken.add(said.messageId);

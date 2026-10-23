@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  echoedKeys,
   graceEndsAt,
   keyChecks,
   landedKeys,
@@ -184,6 +185,63 @@ describe("which rows the archive has caught up with", () => {
     const failed = withFailed(items, items[0]?.key ?? "", KO.line_183);
 
     expect(landedKeys(failed, [archived(42, KO.line_185, 100)], owner)).toEqual([]);
+  });
+});
+
+// The bot files the owner's words before it carries them on and answers the send only after, so the room's stream can
+// bring the archived message while the send is still out; the line standing for it gives way to it then rather than
+// standing beside it, and stays on its way until its send answers (docs/web.md, the room screen's section on a message
+// being sent).
+describe("which rows the feed stands no longer for the archive carrying their message", () => {
+  test("words whose send is still out, filed under the owner's name since they were pressed, give way without settling", () => {
+    const items = outboxOf("hello", [], 100);
+    const echo = [archived(-7, "hello", 101)];
+
+    expect([...echoedKeys(items, echo, owner)]).toEqual([items[0]?.key ?? ""]);
+    expect(landedKeys(items, echo, owner)).toEqual([]);
+    expect(settledKeys(items, echo, owner, 101)).toEqual([]);
+  });
+
+  test("a send waiting on the bot gives way the same, its earlier try having reached it", () => {
+    const items = outboxOf("hello", [], 100);
+    const waiting = withWaiting(items, [items[0]?.key ?? ""], 100);
+
+    expect([...echoedKeys(waiting, [archived(-7, "hello", 130)], owner)]).toEqual([items[0]?.key ?? ""]);
+  });
+
+  test("not the same words said a moment before the press, not another's, and not with no owner known", () => {
+    const items = outboxOf("hello", [], 100);
+
+    expect([...echoedKeys(items, [archived(-7, "hello", 96)], owner)]).toEqual([]);
+    expect([...echoedKeys(items, [archived(-7, "hello", 101, 999)], owner)]).toEqual([]);
+    expect([...echoedKeys(items, [archived(-7, "hello", 101)], null)]).toEqual([]);
+  });
+
+  test("one archived message stands for one row, the row its send numbered taking it first", () => {
+    const first = outboxOf("hello", [], 100);
+    const numbered = withSent(first, first[0]?.key ?? "", -7);
+    const again = outboxOf("hello", [], 101);
+    const items = [...numbered, ...again];
+
+    expect([...echoedKeys(items, [archived(-7, "hello", 101)], owner)]).toEqual([first[0]?.key ?? ""]);
+    expect([...echoedKeys(items, [archived(-7, "hello", 101), archived(-8, "hello", 102)], owner)]).toEqual(items.map((held) => held.key));
+  });
+
+  test("never a row that failed, and never a file whose send is still out", () => {
+    const words = outboxOf("hello", [], 100);
+    const failed = withFailed(words, words[0]?.key ?? "", "refused");
+    const file = outboxOf("hello", [picked("a.jpg")], 100);
+    const picture = { ...archived(-7, "hello", 101), imagePath: "data/images/-100/7.jpg" };
+
+    expect([...echoedKeys(failed, [archived(-7, "hello", 101)], owner)]).toEqual([]);
+    expect([...echoedKeys(file, [picture], owner)]).toEqual([]);
+  });
+
+  test("a row the archive has caught up with gives way as it always did", () => {
+    const items = outboxOf("hello", [], 100);
+    const sent = withSent(items, items[0]?.key ?? "", 42);
+
+    expect([...echoedKeys(sent, [{ ...archived(42, "other words", 101), senderId: 999 }], owner)]).toEqual([sent[0]?.key ?? ""]);
   });
 });
 

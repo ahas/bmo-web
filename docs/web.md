@@ -3969,7 +3969,12 @@ Four bounds keep it from growing forever.
   stands in the archive, so the mark's column is always there and a change of state changes only the mark and
   its tooltip — never a line under the bubble, the bubble's height or width, or where the time stands. When it
   actually goes up and that message is re-read from the archive, that line becomes an ordinary message. A stood line and an uploaded message never
-  both stand. If the message number the bot returned is in the archive, that message is that line, and since
+  both stand, not even while the send is still out: the bot files the owner's words before it carries them on to
+  the room's other providers and answers the send only after, so the archive can carry them first. Until the send
+  answers, the line is found by its words alone, standing under the owner's name, filed no earlier than a few
+  seconds before it was pressed and bound to no other line; it then stands down from the conversation for that
+  message but stays on its way, so the order sends go in and what becomes of the send are as they were, and the
+  number the send answers with settles it. If the message number the bot returned is in the archive, that message is that line, and since
   numbers are not the same per room — the owner's private chat has their account and the bot number it separately —
   if it is not found by number it is found by what the archive carried. Words are recognised as the same words
   standing up in place under the owner's name, a photo by the photo uploaded then. One uploaded message binds one
@@ -4093,7 +4098,13 @@ Four bounds keep it from growing forever.
     turn's ending makes. Whichever brings the answer first, the block hands its place to it in the same render,
     so the block and its answer never stand together and the conversation is never short by the block's height
     in between.
-    - Until then the ending is held: a turn that has ended stands its block until the ending's read is in.
+    - Until then the ending is held: a turn that ended by sending its answer stands its block until that answer
+      is in the feed, by the news of the message or by the ending's read. The bot files the answer before it
+      says the turn sent it, so the ending's read brings it in the ordinary run of things; where that read is in
+      and the answer is not, the block stands fifteen seconds more and then goes, so a read that failed never
+      leaves a finished turn saying it is still going.
+    - The block gives its place up in the update the answer arrives in, and what stands after the block — the
+      listening row — comes in the update after, so the answer is always there before it.
     - A turn that ended with no answer to read gives its place up at that read, to the line that says why
       (below).
     - A turn still running after its answer stands — an answer in parts, more work after the words — stands its
@@ -4162,9 +4173,9 @@ Four bounds keep it from growing forever.
     ahead of the state and parted from it by a dot: "라운드 1 · 〈이름〉가 생각하는 중" until the process writes a row, and
     "라운드 〈n〉 · …" after it, n the number after the last row written; a row of the round's own turn, where the log
     holds one, stands before the first round and leaves the line on 라운드 1. The receiver tells each row as its turn
-    ends, as a `draft` event naming its number, question and kind, so the line names the round under way by its
-    number alone: which question that round asks, how many rounds the process asks and which of them writes the
-    message stand in no event before the round ends (`docs/boundary.md`, 「Gaps the console meets」). The process's
+    ends, as a `draft` event naming its number, question and kind, and each question as it starts, as a `draft`
+    of kind `start` that is no row of the log (the receiver's `docs/drafting.md`, 「The round log」). The line steps
+    by the rows alone, so a question's start moves it nothing and the line names the round under way by its number. The process's
     end row brings the line back to the state alone. A
     process that ended with its text withheld or past its ceiling says so in the passing word once the turn has
     ended — "〈이름〉의 답이 점검을 통과하지 못해 보내지 않았습니다.", "〈이름〉가 시간 안에 답을 마치지 못해 보내지 않았습니다." or
@@ -4174,7 +4185,11 @@ Four bounds keep it from growing forever.
     names the companion and the chat agent's row names the chat agent, and a room both answer at once stands both rows, each with its
     own name. The name is the agent's label in the `agents` table — a companion's as the bot hands it with the
     turn, the chat agent's from the catalogue's row for the session answering every room — and only before the catalogue
-    has arrived does the chat agent's row fall back to the language pack's word for it. The particle after the name, 가 or
+    has arrived does the chat agent's row fall back to the language pack's word for it. A turn is a companion's only
+    where the bot hands it with the companion's name: the bot hands the chat agent's turns too with the number its
+    words stand under in the room, and names no speaker on the chat agent's sending or its draft rows, so a turn whose
+    speaker is a number alone is the chat agent's, and its row is the one its listening row stands as
+    (`docs/boundary.md`, 「Gaps the console meets」). The particle after the name, 가 or
     이, follows the name's last sound. The tool is named by the word a person calls it by — 셸, 읽기, 편집,
   웹 · web_search — and never by the name the CLI sends; a tool the vocabulary does not carry stands under the
   name it came with, which says more than 툴 alone. The line reads the tool's name and nothing else the call

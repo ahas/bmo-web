@@ -408,6 +408,7 @@ import { stepsLanded, useBackClose } from "bmo-ui/app/domain/layers";
 import { ROOM_PICTURES } from "~/domain/gallery";
 import { isBackEscape } from "bmo-ui/app/domain/overlays";
 import {
+  echoedKeys,
   graceEndsAt,
   keyChecks,
   landedPictures,
@@ -448,6 +449,7 @@ import {
   senderRuns,
   settledAnswers,
   skippedLine,
+  turnAnswer,
   useHandOver,
   useRoomFeed
 } from "~/domain/room";
@@ -477,6 +479,7 @@ import type {
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { ComposedMessage, PickedFile } from "~/domain/attachments";
 import type { AvatarIndex } from "~/domain/avatars";
+import type { RunState } from "~/domain/events";
 import type { LandedPicture, OutboxItem, SendOutcome } from "~/domain/outbox";
 import type { DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
 import type { Point, Rect } from "~/domain/flight";
@@ -633,6 +636,8 @@ const queued = ref<QueuedMessage[]>([]);
 const { runs, outcome } = useRoomRun(chatId, {
   onJudgement: (judgement: Judgement) => roomFeed.addLiveJudgement(judgement),
   onSettled: () => settle(),
+  // A turn that sent its answer stands its row until that answer is in the feed, found as its row finds it.
+  answered: (run: RunState) => turnAnswer(run, (run.speaker ?? botSpeaker(roomFeed.messages.value)).id, roomFeed.messages.value) !== undefined,
   onLive: (picture: LiveSnapshot) => {
     live.value = picture.runs ?? [];
     queued.value = picture.queued ?? [];
@@ -846,8 +851,14 @@ const archived = computed<FeedItem[]>((standing) =>
     )
   )
 );
-// The messages on their way, as the rows they stand as: the pictures of one press are one row.
-const pendingRows = computed<FeedItem[]>(() => pendingItems(outbox.value, speaker.value, avatars.value));
+// The messages on their way, as the rows they stand as: the pictures of one press are one row. A line whose message the
+// archive already carries stands no longer, even while its send is still out, so the archived message takes its place
+// rather than standing beside it (docs/web.md, the room screen's section on a message being sent).
+const pendingRows = computed<FeedItem[]>(() => {
+  const echoed = echoedKeys(outbox.value, roomFeed.messages.value, speaker.value.id);
+
+  return pendingItems(outbox.value.filter((held) => !echoed.has(held.key)), speaker.value, avatars.value);
+});
 // A line on its way stands at the foot, in the last day where its own is earlier (docs/web.md, 「The line's
 // day」).
 const days = computed<DayGroup[]>(() => atFoot(t, groupDays(t, archived.value), pendingRows.value));

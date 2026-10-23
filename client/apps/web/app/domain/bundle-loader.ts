@@ -1,4 +1,4 @@
-import { shared } from "#console-shared";
+import { shared as sharedTable } from "#console-shared";
 
 import { IMPORT_KEY, SHARED_KEY, bare, edited, editsOf, shimSource } from "./module-rewrite";
 
@@ -12,6 +12,11 @@ import type { ConsoleBundleModule } from "bmo-ui/shared/console-manifest";
 // a module of its own, made from the text as rewritten, so the browser's own loader does the rest.
 
 type Namespace = Record<string, unknown>;
+
+// The loader of the console's own copy of every path a bundle may import, by that path. A checker that reads the
+// generated table itself rather than its declaration sees each loader's own module type, so the table is read
+// through the one shape every loader keeps.
+const shared = sharedTable as Readonly<Record<string, () => Promise<Namespace>>>;
 
 const holder = globalThis as unknown as Record<symbol, unknown>;
 

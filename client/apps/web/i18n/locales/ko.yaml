@@ -354,8 +354,14 @@ room:
     checking: 보냈는지 확인하는 중
     draft_loading: 드래프트 기록 불러오는 중…
     draft_none: 남은 드래프트 기록 없음
-    draft_step: "{step} · {state}"
-    draft_step_round: "라운드 {n}"
+    draft_question_facts: 사실 확인
+    draft_question_fit: 규칙·말투 점검
+    draft_question_information: 정보 확인
+    draft_question_intent: 의도 파악
+    draft_question_promises: 약속 점검
+    draft_step: "{step} · {what}"
+    draft_step_round: "라운드 {n}/{count}"
+    draft_writing: 메시지 작성 중
     earlier_loading: 이전 대화를 불러오는 중…
     failed: 실패
     later_loading: 다음 대화를 불러오는 중…

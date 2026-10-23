@@ -618,17 +618,22 @@ describe("the chat agent's turn as the bot tags it", () => {
     });
   });
 
-  test("its draft rows reach it, and a question told as it starts moves it nothing", () => {
+  test("its draft process reaches it: a question's start puts it on that question and the end takes it off", () => {
     watching(-1003, (screen) => {
       screen.write("live", picture([]));
       screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
-      screen.write("bot", botEvent({ type: "draft", number: 1, kind: "start", question: "intent" }));
+      screen.write("bot", botEvent({ type: "draft", number: 1, count: 2, kind: "start", question: "intent" }));
 
-      expect(screen.run()?.draft).toBeUndefined();
+      expect(screen.run()?.draft).toEqual({ number: 1, count: 2, question: "intent" });
+      expect(listeningRuns(screen.runs(), open)).toEqual([]);
 
       screen.write("bot", botEvent({ type: "draft", number: 1, kind: "question", question: "intent", outcome: "answered" }));
 
       expect(screen.run()?.draft?.number).toBe(1);
+
+      screen.write("bot", botEvent({ type: "draft", number: 3, kind: "end", outcome: "message" }));
+
+      expect(screen.run()?.draft).toBeUndefined();
 
       screen.write("live", picture([]));
     });

@@ -906,6 +906,8 @@ interface BotEventFields {
   question?: string;
   kind?: string;
   outcome?: string;
+  // A draft event of kind `start` alone: how many questions the process asks, the one it tells being `number` of them.
+  count?: number;
   // A briefing event alone.
   briefing?: BriefingNews;
 }

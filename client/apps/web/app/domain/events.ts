@@ -19,8 +19,8 @@ export interface RunState {
   progress: RunProgress | null;
   // Who is answering, where it is a companion. Absent for the chat agent, whatever number the bot handed with the turn.
   speaker?: Companion;
-  // The last row the turn's draft process wrote, while the process goes on: absent until the process writes its first
-  // row, and again once it has ended.
+  // The question the turn's draft process is on, as its start told it: absent until the first question starts, and
+  // again once the process has ended.
   draft?: DraftStep;
   // Set on the state the chat agent's row holds while it only listens in a group room's open window: no turn
   // runs, so nothing was handed and nothing is in progress (docs/web.md, 「The listening row」). It
@@ -29,12 +29,13 @@ export interface RunState {
   listening?: { closesAt: number };
 }
 
-// A row of the round log as the running line reads it (the receiver's docs/drafting.md, 「The round log」).
+// A question of the draft process as the running line reads it, from the event that tells it starting (the
+// receiver's docs/drafting.md, 「The round log」): its place in the process from 1, how many questions the process
+// asks, and its name.
 export interface DraftStep {
   number: number;
+  count: number;
   question: string;
-  kind: string;
-  outcome: string;
 }
 
 export interface RoomRun {
@@ -917,11 +918,12 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
     return was === undefined || event.progress === undefined ? rooms : withRoom(rooms, event.chatId, putTurn(held, { ...was, progress: event.progress }));
   }
 
-  // A turn of the draft process ended: the chat agent's turn is now on the next. The process's end leaves the line as
-  // any turn's again until the turn itself ends. A companion's round runs no process, so a row is the chat agent's.
-  // A question told as it starts is no row of the log, and the line steps by rows alone.
+  // A question of the draft process starting: the chat agent's turn is now on it. The process's end leaves the line as
+  // any turn's again until the turn itself ends. The rows written as questions are answered move nothing, so a
+  // round that waits after its first question's start stands on it with no row to come. A companion's round runs no
+  // process, so a draft event is the chat agent's.
   if (event.type === "draft") {
-    if (was === undefined || typeof event.number !== "number" || event.kind === "start") return rooms;
+    if (was === undefined) return rooms;
 
     if (event.kind === "end") {
       const { draft: _ended, ...rest } = was;
@@ -929,7 +931,9 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
       return was.draft === undefined ? rooms : withRoom(rooms, event.chatId, putTurn(held, rest));
     }
 
-    const step: DraftStep = { number: event.number, question: event.question ?? "", kind: event.kind ?? "", outcome: event.outcome ?? "" };
+    if (event.kind !== "start" || typeof event.number !== "number" || typeof event.count !== "number") return rooms;
+
+    const step: DraftStep = { number: event.number, count: event.count, question: event.question ?? "" };
 
     return withRoom(rooms, event.chatId, putTurn(held, { ...was, draft: step }));
   }

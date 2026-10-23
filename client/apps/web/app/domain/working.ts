@@ -72,18 +72,34 @@ export function turnName(t: Translate, speaker: TurnSpeaker | undefined): string
 }
 
 // The line says who is at it, by the name of the agent answering on that row: a room two agents
-// answer stands a row of each, and each row says its own. The chat agent's turn says which round of its draft
-// process it is on before that (docs/web.md, the room screen's running line): the first until the process writes a row, then
-// the one after the last row written, a row of the round's own turn, where the log holds one, standing before the
-// first. `draft` is that last row, null before the first and undefined for a turn that runs no process.
-export function phaseLook(t: Translate, name: string, progress: RunProgress | null, draft?: DraftStep | null): WorkingLook {
-  const state = stateLook(t, name, progress);
+// answer stands a row of each, and each row says its own. While the chat agent's draft process is on a question, the
+// line says that question in place of the state (docs/web.md, the room screen's running line): its round out of how
+// many the process asks, and the question in the pack's words, or that the message is being written where it is the
+// last. `draft` is the question under way, null where none is.
+export function phaseLook(t: Translate, name: string, progress: RunProgress | null, draft: DraftStep | null = null): WorkingLook {
+  if (draft === null) return stateLook(t, name, progress);
 
-  if (draft === undefined) return state;
+  const step = t("room.status.draft_step_round", { n: countText(draft.number), count: countText(draft.count) });
+  const what = draft.number >= draft.count ? t("room.status.draft_writing") : draftQuestionFace(t, draft.question);
 
-  const step = t("room.status.draft_step_round", { n: countText(Math.max(1, (draft?.number ?? 0) + 1)) });
+  return { label: t("room.status.draft_step", { step, what }) };
+}
 
-  return { label: t("room.status.draft_step", { step, state: state.label }) };
+// The words the pack has for each question of the draft process's catalogue (the receiver's docs/drafting.md, 「The
+// questions」). A question the console adds under a name of its own stands under that name.
+const DRAFT_QUESTION_FACES: Record<string, string> = {
+  intent: "room.status.draft_question_intent",
+  information: "room.status.draft_question_information",
+  facts: "room.status.draft_question_facts",
+  promises: "room.status.draft_question_promises",
+  fit: "room.status.draft_question_fit",
+  final: "room.status.draft_writing"
+};
+
+export function draftQuestionFace(t: Translate, question: string): string {
+  const face = DRAFT_QUESTION_FACES[question];
+
+  return face === undefined ? question : t(face);
 }
 
 function stateLook(t: Translate, name: string, progress: RunProgress | null): WorkingLook {

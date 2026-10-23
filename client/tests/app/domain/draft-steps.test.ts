@@ -2,68 +2,99 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { stepRoomTurns } from "../../../apps/web/app/domain/events";
-import { phaseLook, subjectOf } from "../../../apps/web/app/domain/working";
+import { draftQuestionFace, phaseLook, subjectOf } from "../../../apps/web/app/domain/working";
 
 import type { RunState } from "../../../apps/web/app/domain/events";
 import type { BotEvent, RunProgress } from "../../../apps/web/shared/types";
 import { ROOM_ID } from "../../support/ids";
 
-// The chat agent's running line through its draft process (docs/web.md, the room screen's running line): the receiver's
-// `draft` events move the step the line names, and the process's end brings the line back to the state alone.
+// The chat agent's running line through its draft process (docs/web.md, the room screen's running line): each
+// question's start puts the line on that question, the rows written as questions are answered move nothing, and the
+// process's end brings the line back to the state alone.
 
 const thinking: RunProgress = { phase: "thinking", tool: null, thinkingTokens: null, contextTokens: null, cacheReadTokens: null, requestId: null, spent: null, writtenTokens: null, actions: [], droppedActions: 0, droppedContext: 0 };
 const turn: RunState = { messageId: 1, startedAt: 1_788_000_010, received: { messages: 1, instructions: 0 }, progress: thinking };
 const companion: RunState = { ...turn, speaker: { id: 4_218_992, name: "Carol" } };
 
-function draft(number: number, kind: string, question: string, outcome = "answered"): BotEvent {
-  return { id: 10 + number, at: 1_788_000_020, type: "draft", chatId: ROOM_ID, messageId: null, round: "round-1", number, question, kind, outcome };
+let lastId = 10;
+
+function started(number: number, count: number, question: string): BotEvent {
+  lastId += 1;
+
+  return { id: lastId, at: 1_788_000_020, type: "draft", chatId: ROOM_ID, messageId: null, round: "round-1", number, count, question, kind: "start" };
 }
 
-function step(rooms: ReadonlyMap<number, RunState[]>, event: BotEvent): ReadonlyMap<number, RunState[]> {
-  return stepRoomTurns(rooms, event);
+function row(number: number, kind: string, question: string, outcome = "answered"): BotEvent {
+  lastId += 1;
+
+  return { id: lastId, at: 1_788_000_020, type: "draft", chatId: ROOM_ID, messageId: null, round: "round-1", number, question, kind, outcome };
 }
 
 describe("the draft events on the room's turns", () => {
-  test("each row moves the chat agent's turn to the step after it, and the end takes the step away", () => {
+  test("each question's start puts the chat agent's turn on it, its row moves nothing, and the end takes the step away", () => {
     let rooms: ReadonlyMap<number, RunState[]> = new Map([[ROOM_ID, [turn]]]);
 
-    rooms = step(rooms, draft(0, "turn", "turn"));
-    expect(rooms.get(ROOM_ID)?.[0]?.draft).toEqual({ number: 0, question: "turn", kind: "turn", outcome: "answered" });
+    rooms = stepRoomTurns(rooms, started(1, 3, "intent"));
+    expect(rooms.get(ROOM_ID)?.[0]?.draft).toEqual({ number: 1, count: 3, question: "intent" });
 
-    rooms = step(rooms, draft(1, "question", "information"));
-    expect(rooms.get(ROOM_ID)?.[0]?.draft?.number).toBe(1);
+    const answered = stepRoomTurns(rooms, row(1, "question", "intent"));
+    expect(answered).toBe(rooms);
+
+    rooms = stepRoomTurns(rooms, started(2, 3, "facts"));
+    expect(rooms.get(ROOM_ID)?.[0]?.draft).toEqual({ number: 2, count: 3, question: "facts" });
     expect(rooms.get(ROOM_ID)?.[0]?.progress).toBe(thinking);
 
-    rooms = step(rooms, draft(2, "end", "", "message"));
+    rooms = stepRoomTurns(rooms, row(4, "end", "", "message"));
     expect(rooms.get(ROOM_ID)?.[0]).toEqual(turn);
+  });
+
+  // A round whose first answer is a wait tells its first question's start and writes no row (the receiver's
+  // docs/drafting.md); the line stands on that question until the turn ends, waiting on nothing.
+  test("a start with no row after it leaves the turn on that question", () => {
+    const rooms = stepRoomTurns(new Map([[ROOM_ID, [turn]]]), started(1, 4, "intent"));
+
+    expect(rooms.get(ROOM_ID)?.[0]?.draft).toEqual({ number: 1, count: 4, question: "intent" });
+    expect(stepRoomTurns(rooms, { id: 99, at: 1_788_000_030, type: "waited", chatId: ROOM_ID, messageId: 1 }).get(ROOM_ID)).toBeUndefined();
+  });
+
+  test("a start that names no count is no step the line can stand", () => {
+    const rooms: ReadonlyMap<number, RunState[]> = new Map([[ROOM_ID, [turn]]]);
+
+    const uncounted: BotEvent = { id: 98, at: 1_788_000_020, type: "draft", chatId: ROOM_ID, messageId: null, round: "round-1", number: 1, question: "intent", kind: "start" };
+
+    expect(stepRoomTurns(rooms, uncounted)).toBe(rooms);
   });
 
   test("a room with no turn of the chat agent's going is left as it was", () => {
     const rooms: ReadonlyMap<number, RunState[]> = new Map([[ROOM_ID, [companion]]]);
 
-    expect(step(rooms, draft(0, "turn", "turn"))).toBe(rooms);
-    expect(step(new Map(), draft(0, "turn", "turn")).size).toBe(0);
+    expect(stepRoomTurns(rooms, started(1, 3, "intent"))).toBe(rooms);
+    expect(stepRoomTurns(new Map(), started(1, 3, "intent")).size).toBe(0);
   });
 });
 
 describe("the running line", () => {
   const state = wording("room.status.agent_thinking", { subject: subjectOf("Bob") });
+  const line = (n: string, count: string, what: string) => wording("room.status.draft_step", { step: wording("room.status.draft_step_round", { n, count }), what });
 
-  const round = (n: string) => wording("room.status.draft_step", { step: wording("room.status.draft_step_round", { n }), state });
-
-  test("says the first round until the process writes a row, and after a row of the round's own turn", () => {
-    expect(phaseLook(wording, "Bob", thinking, null)).toEqual({ label: round("1") });
-    expect(phaseLook(wording, "Bob", thinking, { number: 0, question: "turn", kind: "turn", outcome: "answered" })).toEqual({ label: round("1") });
+  test("says the question under way, its round out of how many, in place of the state", () => {
+    expect(phaseLook(wording, "Bob", thinking, { number: 2, count: 5, question: "facts" })).toEqual({
+      label: line("2", "5", wording("room.status.draft_question_facts"))
+    });
   });
 
-  test("says the round after the last row written, ahead of the state", () => {
-    const label = phaseLook(wording, "Bob", thinking, { number: 1, question: "information", kind: "question", outcome: "answered" }).label;
-
-    expect(label).toBe(round("2"));
-    expect(label).toContain("2");
+  test("says the message is being written on the last question, whatever its name", () => {
+    expect(phaseLook(wording, "Bob", thinking, { number: 5, count: 5, question: "final" })).toEqual({ label: line("5", "5", wording("room.status.draft_writing")) });
+    expect(phaseLook(wording, "Bob", thinking, { number: 1, count: 1, question: "fit" })).toEqual({ label: line("1", "1", wording("room.status.draft_writing")) });
   });
 
-  test("says the state alone for a turn that runs no process", () => {
+  test("names a question the pack has no words for by its own name", () => {
+    expect(draftQuestionFace(wording, "tone")).toBe("tone");
+    expect(draftQuestionFace(wording, "intent")).toBe(wording("room.status.draft_question_intent"));
+  });
+
+  test("says the state alone before the first question starts and for a turn that runs no process", () => {
+    expect(phaseLook(wording, "Bob", thinking, null)).toEqual({ label: state });
     expect(phaseLook(wording, "Bob", thinking)).toEqual({ label: state });
   });
 });

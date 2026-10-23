@@ -101,12 +101,12 @@ describe("the row the running turn is handed to", () => {
   });
 });
 
-// The chat agent's line steps through its draft process, which a companion's runs none of (docs/web.md, the room
-// screen's running line).
+// The chat agent's line names the question its draft process is on, and a companion's runs no process (docs/web.md,
+// the room screen's running line).
 describe("the draft step on the line", () => {
-  test("is handed the turn's last draft row where the turn is the chat agent's, and nothing where it is a companion's", async () => {
+  test("is handed the question the turn is on where the turn is the chat agent's, and none where it is a companion's", async () => {
     const shipped = await Bun.file(new URL("../../../apps/web/app/components/RunProgress.vue", import.meta.url)).text();
 
-    expect(shipped).toContain("phaseLook(t, name.value, props.run.progress, props.run.speaker === undefined ? props.run.draft ?? null : undefined)");
+    expect(shipped).toContain("phaseLook(t, name.value, props.run.progress, props.run.speaker === undefined ? props.run.draft ?? null : null)");
   });
 });

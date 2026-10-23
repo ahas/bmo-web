@@ -4169,14 +4169,16 @@ Four bounds keep it from growing forever.
   Job holds says "〈이름〉가 같은 모델을 쓰는 #〈항목〉 Job이 끝나기를 기다리는 중" until the Job ends
   (the agency's `docs/companions.md`, 「The engine it shares」), read off the bot's picture as well as its events, so a screen
   opened in the middle of the wait shows it; the agents list's row says "Job 종료 대기 중".
-  - **The chat agent's line says which round of the draft process it is on** (the receiver's `docs/drafting.md`),
-    ahead of the state and parted from it by a dot: "라운드 1 · 〈이름〉가 생각하는 중" until the process writes a row, and
-    "라운드 〈n〉 · …" after it, n the number after the last row written; a row of the round's own turn, where the log
-    holds one, stands before the first round and leaves the line on 라운드 1. The receiver tells each row as its turn
-    ends, as a `draft` event naming its number, question and kind, and each question as it starts, as a `draft`
-    of kind `start` that is no row of the log (the receiver's `docs/drafting.md`, 「The round log」). The line steps
-    by the rows alone, so a question's start moves it nothing and the line names the round under way by its number. The process's
-    end row brings the line back to the state alone. A
+  - **The chat agent's line says which question of the draft process it is on** (the receiver's `docs/drafting.md`).
+    The receiver tells each question just before it goes out, as a `draft` event of kind `start` naming its place
+    in the process from 1, how many questions the process asks and the question's name, and from that event the
+    line stands as the round and the question in place of the state: "라운드 2/5 · 사실 확인", the question named in
+    the language pack's words for it and by its own name where the pack has none. The last question writes the
+    message, so its line says that instead: "라운드 5/5 · 메시지 작성 중". Until the first question's start — the
+    gates and the reference before it — the line says the state alone. The rows the process writes as each
+    question is answered move the line nothing, and no line waits on one: a round whose first answer is a wait
+    tells its first question's start and no row, and its line stands on that question until the turn ends. The
+    process's `end` row brings the line back to the state alone. A
     process that ended with its text withheld or past its ceiling says so in the passing word once the turn has
     ended — "〈이름〉의 답이 점검을 통과하지 못해 보내지 않았습니다.", "〈이름〉가 시간 안에 답을 마치지 못해 보내지 않았습니다." or
     "〈이름〉가 시간 안에 답을 마치지 못해 그때까지의 답을 보냈습니다." — and a skip says it as any silent turn does. A

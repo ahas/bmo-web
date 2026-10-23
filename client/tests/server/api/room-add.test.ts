@@ -19,7 +19,7 @@ const receiver = standIn("RECEIVER", (call) => {
   }
 
   if (call.path.startsWith("/providers/service-a/rooms")) {
-    return answer({ items: [{ id: 7, title: "room-a", kind: "group", privateTo: null, mode: null }, { id: 8, title: null, kind: "owner", privateTo: 3, mode: "avatar" }], more: true });
+    return answer({ items: [{ id: 7, title: "room-a", kind: "group", privateTo: null, mode: null }, { id: 8, title: null, kind: "owner", privateTo: 3, mode: "avatar", modes: ["human-reader"] }], more: true });
   }
 
   if (call.method === "POST" && call.path === "/rooms") {
@@ -43,7 +43,7 @@ describe("adding a room", () => {
   test("reads a page of a service's rooms past the one given", async () => {
     const read = await asked(page, { params: { key: "service-a" }, query: { after: "5", limit: "50" } });
 
-    expect(read.answer).toEqual({ items: [{ id: 7, title: "room-a", kind: "group", mode: null }, { id: 8, title: null, kind: "owner", mode: "avatar" }], more: true });
+    expect(read.answer).toEqual({ items: [{ id: 7, title: "room-a", kind: "group", mode: null, modes: null }, { id: 8, title: null, kind: "owner", mode: "avatar", modes: ["human-reader"] }], more: true });
     expect(receiver.asked.at(-1)?.path).toBe("/providers/service-a/rooms?after=5&limit=50");
   });
 

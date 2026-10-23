@@ -2,6 +2,14 @@ import { wording } from "#shared/wording";
 
 import type { RoomAddPage } from "#shared/types";
 
+// The modes the chat service says the room holds, where it says any: a room that names none takes whatever its service
+// offers. A room the service reads in the owner's account alone holds no avatar mode, so it is added read-only.
+function modesOf(room: unknown): string[] | null {
+  const modes = (room as { modes?: unknown } | null)?.modes;
+
+  return Array.isArray(modes) ? modes.filter((one): one is string => typeof one === "string") : null;
+}
+
 // A page of the rooms a chat service's account is in, as the service answers them through the receiver, for the
 // administrator choosing one to add; `after` and `limit` go as they came (the receiver's `docs/api.md`, 「Rooms」).
 export default defineEventHandler(async (event): Promise<RoomAddPage> => {
@@ -23,5 +31,5 @@ export default defineEventHandler(async (event): Promise<RoomAddPage> => {
     })
   );
 
-  return { items: page.items.map((room) => ({ id: room.id, title: room.title, kind: room.kind, mode: room.mode })), more: page.more };
+  return { items: page.items.map((room) => ({ id: room.id, title: room.title, kind: room.kind, mode: room.mode, modes: modesOf(room) })), more: page.more };
 });

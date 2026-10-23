@@ -25,8 +25,7 @@ const entry = (root: string, path: string, group: DocumentEntry["group"] = null,
   path,
   title,
   size: 1,
-  group,
-  fragment: null
+  group
 });
 
 const list: DocumentList = {
@@ -113,27 +112,7 @@ describe("the name a leaf is shown by", () => {
     path,
     title,
     size: 1,
-    group: grouped ? { key: "42", kind: "person" as const, name: "Owner" } : null,
-    fragment: null
-  });
-
-  const asFragment = (one: DocumentEntry, title: string): DocumentEntry => ({
-    ...one,
-    fragment: {
-      kind: "person-book",
-      kindLabel: "Person book",
-      agent: "agent-a",
-      chatId: null,
-      room: null,
-      owner: 42,
-      slug: "c42-x",
-      title,
-      keywords: [],
-      active: true,
-      lastHitAt: null,
-      hits: 0,
-      handAt: null
-    }
+    group: grouped ? { key: "42", kind: "person" as const, name: "Owner" } : null
   });
 
   test("is the title, without the lead a group already says", () => {
@@ -148,14 +127,6 @@ describe("the name a leaf is shown by", () => {
 
   test("falls back to the file name where there is no title", () => {
     expect(leafLabel(leaf("", "rules/answer-shape.md", false))).toBe("answer-shape");
-  });
-
-  test("a fragment stands by the title its index entry carries", () => {
-    expect(leafLabel(asFragment(leaf("owner (Owner, 10000001) — Address"), "Where they live and how they get about"))).toBe("Where they live and how they get about");
-  });
-
-  test("a fragment whose entry says nothing falls back to the document's own title", () => {
-    expect(leafLabel(asFragment(leaf("owner (Owner, 10000001) — Address"), "  "))).toBe("Address");
   });
 });
 

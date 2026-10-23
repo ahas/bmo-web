@@ -637,6 +637,8 @@ room:
     session_only: 아무것도 삭제하지 않습니다.
     session_started: 다음 턴부터 새 세션으로 시작합니다.
     text_copied: 텍스트를 복사했습니다.
+    room_add_mode_avatar: 방의 에이전트가 내 계정으로 답합니다.
+    room_add_mode_record_only: 읽고 기록만 하며 답하지 않습니다.
   title:
     companion_reset: "{name} 초기화"
     providers: 채팅 서비스
@@ -811,7 +813,6 @@ screens:
     agents: 에이전트 관리
     agents_group: "에이전트 · {name}"
     archive: 아카이브
-    briefing: 보이스브리핑
     chat_id: 채팅 번호
     code: 코드 리뷰
     db: DB
@@ -819,12 +820,10 @@ screens:
     files: 파일
     find_description: 화면, 방, 에이전트로 이동
     gates: 게이트
-    graph: 코드 그래프
     group_agents: 에이전트
     internal_name: 내부 이름
     live: 실시간 상태
     mail: 메일
-    memories: 기억
     monitor: 모니터
     remote: 원격
     search: 검색
@@ -838,8 +837,6 @@ screens:
     no_settings_found: 찾은 설정 없음
     restarting: 재시작 중
     rooms_loading: 방 목록 불러오는 중…
-  message:
-    not_available: 이 콘솔에서는 아직 쓸 수 없는 기능입니다.
   error:
     agents_failed: 에이전트 목록 조회 실패
     bad_screen_name: 화면 이름이 올바르지 않습니다.
@@ -2451,29 +2448,18 @@ deploy:
     updating_slow: 업데이트가 끝날 때까지 응답이 늦을 수 있습니다.
 documents:
   label:
-    fragment: 조각
-    fragment_active: 조각 활성
     from_translation: 번역에서
-    hand_set: 수동 지정
     hit_place: "{title} · {line}줄"
-    hits: 주입 횟수
     kind: 종류
     language_en: 영어
     language_ko: 한국어
-    last_hit: 마지막 주입
     other_candidates: 다른 후보
     root_agents: 에이전트 지시문
-    root_knowledge: 지식
-    root_people: 인물북 · 사람 공통
-    root_persona: 페르소나
-    root_room_people: 인물북 · 방 전용
-    root_room_rules: 방 규칙
     root_rules: 룰북
     root_system_prompts: 시스템 프롬프트
     root_unread: 읽을 수 없음
     scope_all: 모든 문서
     scope_this: 이 문서
-    slug: 슬러그
     translation: 번역
     translation_of: "{language} 번역"
     view_rendered: 렌더링
@@ -2481,9 +2467,6 @@ documents:
     view_split: 분할 보기
     writer: 작성자
     writer_deploy: 배포
-    writer_digest: 다이제스트
-    writer_knowledge: 다이제스트와 지식 분류기
-    writer_people: 인물북 편집기
     writer_person: 사람
   status:
     documents_found: "문서 {n}개"
@@ -2513,29 +2496,12 @@ documents:
     jump_quote: 인용 위치로 이동
     jump_quote_named: "인용 위치로 이동: {heading}"
     open_documents: 열린 문서
-    pulled_fragments: 꺼진 조각
     talk_log: 대화 기록
     toolbar: 문서 툴바
   error:
     editor_failed: 원본 편집기를 불러오지 못했습니다.
-    fragment_bad_merge: 합칠 조각이 지정되지 않았습니다.
-    fragment_bad_split: 나눌 조각 수가 모자랍니다.
-    fragment_body_stands: 본문 파일이 아직 있어 조각을 내릴 수 없습니다.
-    fragment_direction: 조각을 켤지 끌지 정해 주세요.
-    fragment_keywords: 키워드에 흔한 말이 들어 있습니다.
-    fragment_no_body: 본문 파일이 없는 조각입니다.
-    fragment_no_desk: 열려 있지 않은 조각 책상입니다.
-    fragment_no_names: 조각 책상이 검사에 쓰는 이름 없이 열렸습니다.
-    fragment_nothing_stands: 그 경로에는 파일도 행도 없습니다.
-    fragment_out_of_place: 조각을 쓸 수 없는 위치의 경로입니다.
-    fragment_repeats: 이미 있는 조각과 같은 내용입니다.
-    fragment_row_refused: 조각 행 검사에서 거절되었습니다.
-    fragment_title_shape: 조각 제목의 모양이 맞지 않습니다.
-    fragment_unnamed_slots: 날짜 구간에 칸 이름이 빠졌습니다.
     list_failed: 문서 목록을 읽지 못했습니다.
     no_such_document: 문서를 찾을 수 없습니다.
-    not_fragment: 참조 조각이 아닌 문서입니다.
-    part_failed: 조각을 바꾸지 못했습니다.
     question_too_long: "질문이 너무 깁니다. {n}자까지 입력할 수 있습니다."
     read_failed: 문서를 읽지 못했습니다.
     search_failed: 문서를 찾지 못했습니다.
@@ -2552,7 +2518,6 @@ documents:
   message:
     choose_document: 문서를 선택하세요.
     root_unread_agency: 에이전시의 문서입니다. 에이전시가 문서를 통째로 내주는 길을 아직 열지 않아 이 콘솔에서는 읽을 수 없습니다.
-    root_unread_brain: 브레인의 서고입니다. 브레인 화면에서 읽게 되며, 그 화면이 아직 없어 이 콘솔에서는 읽을 수 없습니다.
     translation_unavailable: 번역기가 아직 이 콘솔에 번역을 주지 않아 번역해서 읽을 수 없습니다.
     unanswered_limit: 사용 한도에 닿아 이번 말에는 답하지 못했습니다.
     unanswered_other: 이번 말에는 답을 받지 못했습니다.
@@ -2570,106 +2535,6 @@ briefing:
     not_made: 보이스브리핑을 만들지 못했습니다.
   status:
     making: 보이스브리핑을 만드는 중입니다.
-memories:
-  action:
-    retire: 보관
-  aria:
-    open_named: "{name} 자세히"
-    restore_named: "{name} 복원"
-    retire_named: "{name} 보관"
-    retire_reason_named: "{name} 보관 사유"
-  error:
-    action_missing: 할 일이 없습니다.
-    brain_bad_request: 브레인이 요청을 읽지 못했습니다.
-    brain_conflict: 행의 지금 상태와 맞지 않는 요청입니다.
-    brain_failed: 브레인이 답하다가 실패했습니다.
-    brain_library: "브레인이 직접 쓰는 종류는 맞출 수 없습니다: {kind}"
-    brain_no_route: 브레인에 없는 길입니다.
-    brain_not_found: 브레인에 그런 행이 없습니다.
-    brain_not_ready: 브레인이 아직 답할 준비가 되지 않았습니다.
-    brain_root: 브레인 루트를 가진 에이전트는 되돌릴 수 없습니다.
-    brain_unauthorized: 브레인이 콘솔의 토큰을 받아들이지 않았습니다.
-    change_failed: 기억을 바꾸지 못했습니다.
-    direction: 기억을 보관할지 복원할지 정해 주세요.
-    event_bad_item: "사건의 항목 번호가 맞지 않습니다: {given}"
-    event_takes_no_item: "{kind} 사건에는 항목을 붙일 수 없습니다."
-    event_unknown: "알 수 없는 사건입니다: {given}"
-    memory_refused: 브레인이 기억을 바꾸지 않았습니다.
-    no_agent: 에이전트가 지정되지 않았습니다.
-    no_brain: 브레인 폴더가 git 저장소가 아닙니다.
-    no_memory: "장기 기억을 두지 않는 에이전트입니다: {agent}"
-    no_owner: 소유자가 설정되지 않아 소유자의 방을 알 수 없습니다.
-    no_reminder: 리마인더가 지정되지 않았습니다.
-    no_room: 방이 지정되지 않았습니다.
-    no_watch: 워치가 지정되지 않았습니다.
-    not_answered: "에이전트가 답하지 않는 방입니다: {agent}"
-    not_owner: 소유자의 메시지가 아닙니다.
-    not_theirs: 이 방에서 건 워치가 아닙니다.
-    one_to_one: 1:1 방에는 인물북을 만들지 않습니다.
-    out_of_room: "이 방에서 볼 수 없는 문서입니다: {slugs}"
-    pick_memory: 기억을 선택해 주세요.
-    read_failed: 기억을 읽지 못했습니다.
-    reason_empty: 기억을 보관하는 사유를 입력해 주세요.
-    reminder_refused: 리마인더를 걸 수 없습니다.
-    row_already_down: 이미 보관한 기억입니다.
-    row_already_up: 이미 열려 있는 기억입니다.
-    row_missing: 바꾸는 사이에 기억이 사라졌습니다.
-    row_other_room: 바꾸는 사이에 기억이 다른 방으로 옮겨졌습니다.
-    situation_unfinished: 상황 기억은 완료할 수 없습니다. 대신 {slug} 기억을 보관하세요.
-    situation_unpaired: 상황 기억에 조건도 사건도 없습니다.
-    state_missing: 상태를 바꾸면서 지금 어디까지 왔는지 적지 않았습니다.
-    too_few_batches: "묶음이 모자랍니다: {needed}개가 필요한데 {given}개입니다."
-    usage: 읽을 수 없는 요청입니다.
-    watch_ended: 이미 끝난 워치입니다.
-    why_missing: 사유가 없습니다.
-  label:
-    action: 할 일
-    active: 활성
-    agent: 에이전트
-    all_agents: 에이전트 전체
-    all_kinds: 종류 전체
-    candidate: 후보
-    condition: 조건
-    created_at: 만든 시각
-    done_text: 완료된 기억
-    ended_at: 완료 시각
-    event: 사건
-    event_came: "{at} 수신"
-    global_reach: "전역 · {reach}"
-    hit_count: "{n}회"
-    hits: 적중
-    kind: 종류
-    message: 출처 메시지
-    message_named: "메시지 #{id}"
-    retire_reason: 보관 사유
-    retired_reason: 보관 사유
-    set_by: 만든 사람
-    state: 상태
-    state_all: "상태 전체 {n}"
-    state_done: "완료 {n}"
-    state_down: "보관 {n}"
-    state_filter: 상태
-    state_moved: "{at} 변경"
-    state_open: "열림 {n}"
-    todo: 연결 항목
-    todo_named: "#{id}"
-    watch: 워치
-    watch_active: 대기 중
-    watch_broken: 오류
-    watch_cancelled: 취소됨
-    watch_fired: 발동
-    watch_lapsed: 기한 지남
-    watch_named: "#{id} {name}"
-    watch_others: "외 {n}개"
-    whom: 대상
-    whom_person: "{room} · {person}"
-  status:
-    loading: 기억 불러오는 중
-    none: 기억이 아직 없습니다.
-    none_done: 완료된 기억이 없습니다.
-    none_down: 보관한 기억이 없습니다.
-    none_of_kind: "{kind} 기억이 없습니다."
-    none_open: 열린 기억이 없습니다.
 home:
   label:
     agents_description: 게이트, 러너, 에디터, Job 워커

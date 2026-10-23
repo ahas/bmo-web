@@ -14,20 +14,13 @@ alone over Nuxt and Nuxt UI, extending the bmo-ui layer; the screens a unit brin
 console runs, from the manifest that unit answers (「Screens a unit brings」).
 
 - **What a screen shows is its unit's.** Where this document says **the bot**, it means the units behind the
-  console's server that hold what a screen shows — the receiver, the agency, bmo-job and the brain — each
+  console's server that hold what a screen shows — the receiver, the agency and bmo-job — each
   reached through its own routes (`docs/boundary.md`, 「Calls the console makes」); **the archive** is the
   store of the unit that owns what is shown, and **the control API** is those routes. The console's own data
   is the server's (`docs/accounts.md`, 「The tables」).
-- **A screen of a unit that brings none stands as a placeholder.** The code graph, the gates and the voice
-  briefing belong to units that answer no console manifest naming their screen: their navigation entries and
-  routes stand, and each page says, through the language pack, that the feature is not available in this console
-  (`docs/boundary.md`, 「Screens of units not yet split」). A manifest that names a screen at a placeholder's
-  address puts the unit's own screen in its place. The layout holds no briefing player. Where this document names
-  one of them, it names the screen as that unit carries it.
-  - **A placeholder stands as a screen does:** the screen's own name and icon in its title bar, and under it
-    the one sentence that the feature is not available in this console, centred in the body in the quiet
-    colour. Its sidebar entry lights on its address and on the addresses below it where the unit's screen had
-    pages of its own, and the console search finds it as it finds any screen.
+- **No screen stands for a feature nothing serves.** A screen is the console's own, reading the units it calls,
+  or a unit's own, loaded from the manifest the unit answers; a unit that answers none brings no entry, no route
+  and no page.
 - **The mail, files, archive, code review, remote access and gate screens are their units' own,** each a console
   bundle loaded from its unit's manifest, whose calls this app relays (「Screens a unit brings」). A bundle's
   share page, below its screen path at `share/`, is the one path outside the login (「Access」).
@@ -46,11 +39,10 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
     text still stands 768 wide. A box drawn around an item — a message hovered, chosen or brought
     into view — keeps 12 pixels of room of its own on each side, outside the item's content, so the
     content keeps its full width and never touches the box's edge.
-  - **Only thirteen screens stand outside this width, read horizontally,** and all thirteen release the width in
+  - **Only twelve screens stand outside this width, read horizontally,** and all twelve release the width in
     their own panel: the DB screen reads a table by scanning across, the code graph, document viewer,
     code review and mail screen read splitter-divided parts side by side, one search reads its findings and their source
-    list side by side, agent management stands its settings tables edge to edge, the memories screen fills
-    the panel with its table of records, and the remote screen
+    list side by side, agent management stands its settings tables edge to edge, and the remote screen
     gives a terminal or a desktop the whole panel, and the three monitor screens — the monitor overview, this
     machine's monitor and each node's screen — and the card arbiter screen read tiles and charts of live figures across the panel. One search's findings and agent management's general
     tab still stand at the reading width inside their part. The login screen does not stand on a panel at
@@ -106,13 +98,13 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
   middle of the screen rather than at its foot. The DB screen stands its paging flush at the foot. The code
   graph, document viewer, code review, mail screen and one search are bodies split into splitter sections,
   and a section must fill to its end for its border to stand. Agent management's tables fill the section edge to
-  edge, and the memories table fills the panel with its sideways scrollbar at the foot. The remote screen's terminal and desktop fill the panel to its edges. There are no others but
-  those thirteen.
+  edge. The remote screen's terminal and desktop fill the panel to its edges. There are no others but
+  those twelve.
 - **A box put in the body is not shrunk.** A box told to shrink spills its content past its border, and
   the spilled content does not take the containing box's bottom gutter with it — the scroll just ends at
   the last line. It is a kind of misalignment that leaves no trace in any file, so shrinking itself is
-  not done. The exceptions are where what the box holds flows within itself: the DB screen's and the
-  memories screen's table boxes, agent management's sections, and the remote screen's terminal or desktop. There the box wrapping it shrinking to fit the
+  not done. The exceptions are where what the box holds flows within itself: the DB screen's table box,
+  agent management's sections, and the remote screen's terminal or desktop. There the box wrapping it shrinking to fit the
   panel is right, and the panel itself does not flow.
 - **A writing box stands at the width of the box holding it.** A multi-line writing box left on its own
   is an inline thing of about twenty characters, so inside a row of boxes the parent stretches it to
@@ -1097,10 +1089,13 @@ edit to that file alone.
 
 Four groups.
 
-- **Live status** — always one at the top. Below it stand **mail**, **cache siren**, **DB**, **파일**,
-  **아티팩트**, **document viewer**, **code graph**, **code review**, **agent management**, **monitor** and
-  **remote** together. A screen a unit brings stands only while that unit answers its manifest; a screen of a unit
-  that brings none stands under its own name and icon as a placeholder.
+- **Live status** — always one at the top. Below it stand, in this order, **mail**, **cache siren**, **DB**,
+  **파일**, **아티팩트**, **document viewer**, **code review**, **agent management**, **monitor**, **게이트** and
+  **remote**, and after them any other screen a unit brings, the brain's among them. Live status, cache siren, DB,
+  document viewer, agent management and monitor are the console's own and always stand; mail, 파일, 아티팩트, code
+  review, 게이트 and remote, and the screens after them, are the units' own and stand only while their unit answers
+  its manifest, under the manifest's own name and icon (「Screens a unit brings」). The monitor's second tab is the
+  card board; `/cards` leads there.
   This group does not fold — it is a flat list of screens with no branch to fold, and the fold the sidebar
   remembers is only the agent group's below.
 - **Rooms** — the rooms stand in the order the receiver's room list gives them, the pinned first. A room with no name comes up as a chat
@@ -1111,7 +1106,9 @@ Four groups.
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
     「Rooms」): a chat service whose `listsRooms` is true; a room among those its account is in, page by page,
     each with its title or number and kind, one already added marked by its mode and not chosen again; and a
-    mode among the service's `roomModes` — 아바타 or 기록 전용 — with a title that may be left empty. 추가
+    mode among the service's `roomModes` — 아바타, the room's agents answering under the owner's account, offered
+    only where the room's own modes, where the service states them, hold `human-avatar`; or 기록 전용, the room
+    read and recorded and never answered — each said under the choice, with a title that may be left empty. 추가
     posts the three, and the room stands in the list at once. A refusal the receiver answers with a code is said
     in the pack's sentence under the dialog: a service that lists no rooms, a room the service does not know, an
     avatar mode the service does not hold active, a room already added, a service that did not answer.
@@ -1298,7 +1295,7 @@ Four groups.
   a result the screen states — those are the screen answering, and they end in 니다 as they always did.
 - **A line that is the whole body stands in its middle.** Where the line is all a screen's body or a tab's
   body holds — its one list standing empty, or the unit it reads not answering — it stands centred in that body
-  across and down, in the quiet colour, as a placeholder's sentence does. A line that stands among other
+  across and down, in the quiet colour. A line that stands among other
   content — an empty list under figures that did land — stays where the list's first row would stand.
 
 ### Text written in markdown
@@ -2020,19 +2017,19 @@ Two ways, split because the running places differ.
 - The place **The owner reads** the markdown documents the chat agent reads. What is read from where, how paths are fenced,
   and who runs the search, translation and passage talk are in `docs/documents-viewer.md`, and here the
   screen's shape is told. A document is the chat agent's insides, so the list, body, translation and talk all open only
-  behind login. In the sidebar it stands beside the 아티팩트. This screen reads, and the one thing it writes
-  is whether a reference fragment is offered.
+  behind login. In the sidebar it stands beside the 아티팩트. This screen reads and writes nothing; the brain's
+  library, its memories and its fragments are the brain's own screen's, which the brain brings by its manifest
+  (「Screens a unit brings」).
 - **The list.** Documents stand by their titles, not their file names — inside a person's or a room's group the
   title's lead naming that person is dropped, since the group already says it; a document with no title stands by
   its file name, and the file name itself is in the properties. Documents of one branch that would read the same
   stand by their whole titles, which name the person or room the group left out, and where those are the same too,
   with their file names after them. Each document wears the file explorer's file mark and each branch its folder
   mark, as in the code review. They stand as a per-branch folding tree, a branch per root: the checkouts the
-  deployment names, in its order, then the roots other units keep — person book (common), person book (room-only),
-  room rules, knowledge, rulebooks, personas, agent instructions, system prompts — each marked 읽을 수 없음 with a
-  tooltip saying where it belongs and that it is not served here — the brain's library on the brain's own screen,
-  not yet served, and the agency's documents behind a route the agency does not serve yet — and holding nothing,
-  since neither unit serves its documents whole (`docs/documents-viewer.md`, 「The roots kept by other units」).
+  deployment names, in its order, then the agency's roots — rulebooks, agent instructions, system prompts — each marked 읽을 수 없음 with a
+  tooltip saying where it belongs and that it is not served here, the agency's documents standing behind a route
+  the agency does not serve yet, and holding nothing (`docs/documents-viewer.md`, 「The roots kept by other
+  units」).
   With no checkout named, the list holds those unread roots alone and no document opens. The search box above the list searches document name, title and body
   text. While searching, the tree unfolds only the matched documents and their ancestors, and if matched in
   the body the line's context stands in one line. Pressing a matched line opens the document at that line.
@@ -2040,29 +2037,17 @@ Two ways, split because the running places differ.
   edges, scroll on their own, and line their rows up with the search box's text. A name the list's width cuts
   short stands whole in a tooltip, and only one actually cut (「Tooltips」); since a tap opens the document, a
   finger rests on the name to read it.
-- **A fragment in the list.** A document that is a reference fragment stands by the title its index entry
-  carries rather than by its own first heading, since that is the line a gate picks it by. One that is not
-  offered stands dimmed with a compact mark at the end of its row, which names itself in a tooltip; one that
-  is offered carries no mark, and a document that is no fragment carries nothing either way. Nothing else of
-  the row stands in the list — a list that chooses what the body shows carries a title and a state and no
-  counter.
 - **An open document.** A document opened by list, search, link or address stands as a **document tab** on
   the tab bar above the document section (「Tab bar and toolbar」). A tab carries the file name and stands
   its title and path on hover, and is pressed to switch, closed and dragged. It has a count ceiling, past
   which the longest-unseen tab closes. The tab belongs to that visit, so it is empty when newly opened.
 - **The document's toolbar.** Under the tab bar stands one toolbar, and it stands with no document open too. On
   its left: the list's button — folding the list on a wide screen, opening it on a phone — then, with a document
-  open, the view switch (rendering, source, split), the translation toggle, the fragment toggle where the open
-  document is one, and, while a translation is coming in, its progress. On its right: 「〈이름〉에게 질문」, the chat agent's label filled in, reading
+  open, the view switch (rendering, source, split), the translation toggle, and, while a translation is coming in, its progress. On its right: 「〈이름〉에게 질문」, the chat agent's label filled in, reading
   again and the properties, and last the contents' fold on a wide screen. On a phone the actions and the contents fold into one vertical-dots menu, the view switch shows its
   icons alone, and the toolbar is one compact row.
-- **The fragment toggle.** Where the open document is a reference fragment, the toolbar carries a switch named
-  조각 that takes it out of what the gates are offered and puts it back. It spins while the brain writes the row,
-  and a refusal stands as a message. A document that is no fragment has no switch at all.
 - **One document.** Nothing stands above the body but the toolbar. Its path, branch, writer, size, original
-  language and translation language are in the properties (「Tab bar and toolbar」), and a fragment's properties
-  carry its kind, its room, its slug, when a turn last attached it, how many have, and — where a person set
-  its standing by hand — when they did. Source is a box showing the
+  language and translation language are in the properties (「Tab bar and toolbar」). Source is a box showing the
   markdown as written. The source box is a read-only Monaco showing markdown syntax colours, and the rendering box is drawn
   by the console's one renderer. Split has source left, rendering right, its width divided by a middle handle.
   The two boxes move together synced by line. The chosen view and width stay in this browser. A piece link
@@ -5607,7 +5592,7 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   and the browser calls only this app's paths (`docs/boundary.md`, 「Calls the console makes」). The server is
   reached for the session, the users and the grants; the agency for agents, sessions, runs and roads; bmo-job for
   the TODO queue, its work orders, its questions and its workers; the receiver for rooms, their messages, the
-  owner's words and the live board; the brain for memories and fragments; each console bundle for its own
+  owner's words and the live board; each console bundle for its own
   screen, its share page and its notices; the cache siren and the cache warmer for their screens.
 - **A bundle's screen reaches its service through one relay.** The bundle calls the console's relay base, the
   service's name and the path the service's own API writes; the console hands it on to the address of the
@@ -5700,7 +5685,8 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
 - **Everything else a screen shows is another unit's,** read through that unit's routes (`docs/boundary.md`): the
   agents, their log and their runs are the agency's; the TODO items, their talk, the questions, the jobs and the
   work orders are bmo-job's; the rooms, the messages, the judgements and the message files are the receiver's; the
-  memories and the fragments are the brain's; the documents and their share links are bmo-artifact's.
+  documents and their share links are bmo-artifact's. The brain's memories, library and fragments are the brain's
+  own screen's, which the brain brings by its manifest.
 - **The DB screen opens the server's own database alone,** read-only, through a connection opened read-only.
 
 ## Settings

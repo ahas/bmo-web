@@ -18,10 +18,5 @@ export default defineEventHandler(async (event): Promise<DocumentMatch[]> => {
     throw fail(400, wording("documents.error.search_too_long"));
   }
 
-  // A fragment stands in the list by the line its index entry carries, so the search looks in that line too and
-  // names what it found the way the list does.
-  const roots = documentRoots();
-  const shown = new Map([...await documentFragments(roots, listDocuments(roots))].map(([name, one]) => [name, one.title]));
-
-  return searchDocuments(roots, query, DOCUMENT_SEARCH_LIMIT, shown);
+  return searchDocuments(documentRoots(), query, DOCUMENT_SEARCH_LIMIT);
 });

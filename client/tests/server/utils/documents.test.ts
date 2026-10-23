@@ -79,7 +79,7 @@ describe("the roots a deployment names", () => {
           { key: "first", label: "Again", checkout: second },
           { key: "relative", label: "Relative", checkout: "docs" },
           { key: "Upper", label: "Upper", checkout: first },
-          { key: "knowledge", label: "Knowledge", checkout: first },
+          { key: "rules", label: "Rules", checkout: first },
           { key: "nameless", label: " ", checkout: first }
         ])
       }).map((one) => one.key)
@@ -94,26 +94,17 @@ describe("the roots a deployment names", () => {
       { key: "second", label: "Second", writer: wording("documents.label.writer_person"), available: true, unread: null }
     ]);
     expect(views.slice(2).map((one) => [one.key, one.available])).toEqual([
-      ["people", false],
-      ["room-people", false],
-      ["room-rules", false],
-      ["knowledge", false],
       ["rules", false],
-      ["persona", false],
       ["agents", false],
       ["prompts", false]
     ]);
-    expect(views.find((one) => one.key === "knowledge")?.label).toBe(wording("documents.label.root_knowledge"));
+    expect(views.find((one) => one.key === "rules")?.label).toBe(wording("documents.label.root_rules"));
   });
 
-  test("name for each unread root where it belongs: the brain's library its own screen, the agency's documents its route", () => {
+  test("name for each unread root where it belongs: the agency's documents its route", () => {
     const why = new Map(documentRootViews([]).map((one) => [one.key, one.unread]));
 
-    for (const key of ["people", "room-people", "room-rules", "knowledge"]) {
-      expect(why.get(key)).toBe(wording("documents.message.root_unread_brain"));
-    }
-
-    for (const key of ["rules", "persona", "agents", "prompts"]) {
+    for (const key of ["rules", "agents", "prompts"]) {
       expect(why.get(key)).toBe(wording("documents.message.root_unread_agency"));
     }
   });
@@ -188,7 +179,7 @@ describe("the path guard", () => {
   test("knows only the declared roots", () => {
     expect(findDocumentRoot("secrets", roots)).toBeNull();
     expect(findDocumentRoot(undefined, roots)).toBeNull();
-    expect(findDocumentRoot("knowledge", roots)).toBeNull();
+    expect(findDocumentRoot("rules", roots)).toBeNull();
   });
 });
 
@@ -210,12 +201,6 @@ describe("searching the documents", () => {
     expect(found[0]?.snippet).toContain("resting state too");
     expect(searchDocuments(roots, "deploy.md", 10)[0]).toMatchObject({ where: "name", root: "second" });
     expect(searchDocuments(roots, "web console", 10)[0]).toMatchObject({ where: "title" });
-  });
-
-  test("finds a document by the name the list shows it under, and names what it found the same way", () => {
-    const shown = new Map([["second/docs/deploy.md", "How a release goes out and comes back"]]);
-
-    expect(searchDocuments(roots, "comes back", 10, shown)[0]).toMatchObject({ where: "title", root: "second", title: "How a release goes out and comes back" });
   });
 
   test("never finds a word that only a file outside the list holds", () => {

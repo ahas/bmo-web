@@ -52,7 +52,7 @@
       </template>
 
       <!-- A title, and a state where the row has one. A list that chooses what the body shows
-           carries no counter beside its names; a fragment's counts are in its properties. A name
+           carries no counter beside its names. A name
            the panel's width cuts short reads whole in a tooltip; a tap opens the row, so a finger
            rests on it to read it. -->
       <template #item-label="{ item }">
@@ -62,18 +62,12 @@
             cut
             press
             class="min-w-0 flex-1 truncate text-start"
-            :class="[
-              (item as DocumentTreeItem).document === undefined ? 'font-medium' : '',
-              isDown(item as DocumentTreeItem) ? 'text-muted' : ''
-            ]"
+            :class="(item as DocumentTreeItem).document === undefined ? 'font-medium' : ''"
           >
             <SearchText :text="(item as DocumentTreeItem).label" :query="found" />
           </HintTip>
           <UTooltip v-if="(item as DocumentTreeItem).unread !== undefined" :text="(item as DocumentTreeItem).unread">
             <span class="shrink-0 text-xs text-muted">{{ $t("documents.label.root_unread") }}</span>
-          </UTooltip>
-          <UTooltip v-if="isDown(item as DocumentTreeItem)" :text="$t('documents.aria.pulled_fragments')">
-            <UIcon name="i-material-symbols-do-not-disturb-on-outline" role="img" :aria-label="$t('documents.aria.pulled_fragments')" class="size-4 shrink-0 text-muted" />
           </UTooltip>
         </span>
       </template>
@@ -132,12 +126,6 @@ const bodyMatches = computed(() => (matches.value ?? []).filter((match) => match
 const matchedDocuments = computed(() => new Set((matches.value ?? []).map((match) => documentKey(match.root, match.path))).size);
 
 const selectedValue = computed(() => (props.selected === null ? null : `doc:${documentKey(props.selected.root, props.selected.path)}`));
-
-// A reference fragment its gate is no longer offered. Nothing marks one that is offered, and a
-// document that is no fragment is not a fragment switched off (`docs/documents-viewer.md`).
-function isDown(item: DocumentTreeItem): boolean {
-  return item.document?.fragment?.active === false;
-}
 
 function findItem(items: readonly DocumentTreeItem[], value: string | null): DocumentTreeItem | undefined {
   for (const item of items) {

@@ -11,13 +11,13 @@ import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 // from the pack, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen standing in this console is listed, named from the pack", () => {
-  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/memories", "/graph", "/code", "/agents", "/monitor", "/gates", "/briefing", "/remote"]);
+  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/code", "/agents", "/monitor", "/gates", "/remote"]);
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
 });
 
-test("the screens this console carries stand whole and the units not yet split are placeholders", () => {
-  expect(SCREENS.filter((screen) => screen.placeholder !== true).map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/memories", "/code", "/agents", "/monitor", "/remote"]);
-  expect(SCREENS.filter((screen) => screen.placeholder === true).map((screen) => screen.to)).toEqual(["/graph", "/gates", "/briefing"]);
+test("the console's own screens stand always, and a screen a unit brings only while its manifest names it", () => {
+  expect(SCREENS.filter((screen) => screen.brought !== true).map((screen) => screen.to)).toEqual(["/live", "/siren", "/db", "/documents", "/agents", "/monitor"]);
+  expect(screensWithBundles([]).map((screen) => screen.to)).toEqual(["/live", "/siren", "/db", "/documents", "/agents", "/monitor"]);
 });
 
 // A screen a unit brings, as the console's list hands it to the browser.
@@ -35,13 +35,12 @@ function brought(screenPath: string, name: string): ConsoleScreen {
 }
 
 test("a unit's screen takes its manifest's own name and icon, and stands where the console lists it", () => {
-  const all = ["/mail", "/files", "/archive", "/code", "/remote"].map((path) => brought(path, path.slice(1)));
+  const all = ["/mail", "/files", "/archive", "/code", "/gates", "/remote"].map((path) => brought(path, path.slice(1)));
   const screens = screensWithBundles(all);
   const screen = screens.find((entry) => entry.to === "/mail")!;
 
   expect(screen.label).toBe("mail.title.screen");
   expect(screen.icon).toBe("i-material-symbols-circle");
-  expect(screen.placeholder).toBeUndefined();
   expect(screens.map((entry) => entry.to)).toEqual(SCREENS.map((entry) => entry.to));
 });
 
@@ -53,10 +52,9 @@ test("a screen a unit brings stands only while a manifest names it, and one the 
   expect(screens.at(-1)!.to).toBe("/elsewhere");
 });
 
-test("a manifest at a placeholder's address puts its screen in the placeholder's place", () => {
+test("a manifest at a screen's address names the screen by its own title", () => {
   const screen = screensWithBundles([brought("/gates", "gates")]).find((entry) => entry.to === "/gates")!;
 
-  expect(screen.placeholder).toBeUndefined();
   expect(screen.label).toBe("gates.title.screen");
 });
 

@@ -21,9 +21,6 @@ export interface Screen {
   icon: string;
   // Whether the screen's own pages under its address light it as well.
   nested: boolean;
-  // Whether the screen's unit is not yet split, so its page is the placeholder saying the feature is not
-  // available in this console (docs/boundary.md, 「Screens of units not yet split」).
-  placeholder?: true;
   // Whether the screen is one a unit brings, which stands only while the unit's manifest names a screen at its
   // address (docs/web.md, 「Screens a unit brings」).
   brought?: true;
@@ -60,8 +57,8 @@ export interface ScreenTab {
 }
 
 // The screens that stand in this console now, in the order the sidebar shows them. A screen's group
-// puts its entry here as it brings the screen; a unit not yet split stands as its placeholder's entry.
-// A screen a unit brings takes its manifest's own name and icon (`screensWithBundles`).
+// puts its entry here as it brings the screen. A screen a unit brings stands only while its manifest
+// names it, under the manifest's own name and icon (`screensWithBundles`).
 export const SCREENS: readonly Screen[] = [
   // The live status screen stands on its own above the rest. A section of it is a tab kept in the address, so the
   // console search lands on the section rather than on the screen.
@@ -81,12 +78,6 @@ export const SCREENS: readonly Screen[] = [
   // The documents the agents read and the deployment's operating documents, read as documents. It stands beside
   // the Archive because both are kept for reading.
   { label: "screens.label.documents", to: "/documents", icon: "i-material-symbols-library-books-outline", nested: false },
-  // Everything the agents are holding — a promise, a check, a follow-up and a "when ..., do ..." rule — read as a
-  // table rather than a document, with the switch that takes one down or puts it back. It stands after the two
-  // screens of what is kept for reading because it is the third of them and the only one read as rows.
-  { label: "screens.label.memories", to: "/memories", icon: "i-material-symbols-rule-folder-outline", nested: false },
-  // A checkout's code as its graph, bmo-graph's.
-  { label: "screens.label.graph", to: "/graph", icon: "i-material-symbols-hub-outline", nested: false, placeholder: true },
   // A checkout read at a commit with reviews pinned to its lines, bmo-review's bundle.
   { label: "screens.label.code", to: "/code", icon: "i-material-symbols-rate-review-outline", nested: false, brought: true },
   // The catalogue as a screen: who the agents are, and the job workers the owner adds and removes. Its pages below
@@ -95,10 +86,8 @@ export const SCREENS: readonly Screen[] = [
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS },
-  // The gates and their trials, bmo-gate's. Each gate's own page stood below its address.
-  { label: "screens.label.gates", to: "/gates", icon: "i-material-symbols-shield-outline", nested: true, placeholder: true },
-  // The voice briefing, bmo-voice's.
-  { label: "screens.label.briefing", to: "/briefing", icon: "i-material-symbols-record-voice-over-outline", nested: false, placeholder: true },
+  // The gates and their trials, the gate unit's screen. Each gate's own page stands below its address.
+  { label: "screens.label.gates", to: "/gates", icon: "i-material-symbols-shield-outline", nested: true, brought: true },
   // A machine's terminals and desktop, bmo-remote's bundle. It stands last because it reaches the machine
   // rather than reading anything kept; its full-screen pages stand below its address.
   { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true, brought: true }
@@ -117,9 +106,7 @@ export function screensWithBundles(bundles: readonly ConsoleScreen[], screens: r
 
     if (bundle === undefined) return screen.brought ? [] : [screen];
 
-    const { placeholder: _placeholder, ...rest } = screen;
-
-    return [{ ...rest, label: bundle.title, icon: bundle.icon, nested: true, brought: true }];
+    return [{ ...screen, label: bundle.title, icon: bundle.icon, nested: true, brought: true }];
   });
 
   for (const bundle of bundles) {

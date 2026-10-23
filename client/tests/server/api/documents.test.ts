@@ -7,14 +7,12 @@ import { scratchDir } from "../../support/scratch";
 import { answer, standIn } from "../../support/units";
 import { scratchWebDatabase } from "../../support/web-database";
 
-import type { DocumentFragmentView, DocumentList, DocumentSeekResult, DocumentTalk, DocumentTranslation, DocumentView } from "../../../apps/web/shared/types";
+import type { DocumentList, DocumentSeekResult, DocumentTalk, DocumentTranslation, DocumentView } from "../../../apps/web/shared/types";
 
-// The document viewer's routes over a checkout of the test's own, a stood-in brain for the fragments and a
-// stood-in receiver for the talk. What is pinned here is that the list holds the checkout's documents and stands
+// The document viewer's routes over a checkout of the test's own and a stood-in receiver for the talk. What is pinned here is that the list holds the checkout's documents and stands
 // the other units' roots unread, that a question is answered from the text, that a translation is the stood-in
 // translator's — the parts it kept, each failed part's sentence, and the parts handed to it — and unavailable where no
-// translator is named,
-// that the fragment switch writes the brain's row, and that a turn of the talk writes the owner's words at once,
+// translator is named, and that a turn of the talk writes the owner's words at once,
 // the chat agent's answer when the receiver's talk comes back, and why it came back with nothing where it did.
 
 await scratchWebDatabase();
@@ -33,28 +31,6 @@ afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 
 process.env.DOCUMENT_ROOTS = JSON.stringify([{ key: "first", label: "First", checkout }]);
 
-function fragmentOf(state: string): Record<string, unknown> {
-  return {
-    id: 1,
-    key: "readme",
-    kind: "system-document",
-    scope: null,
-    subjectKey: null,
-    title: "What the checkout is",
-    path: "README.md",
-    text: "",
-    state,
-    switchedOff: [],
-    labels: { agent: "agent-a", keywords: "", handAt: "300000" },
-    hitCount: 0,
-    lastHitAt: null,
-    createdAt: 0,
-    changedAt: 0,
-    version: "v1",
-    libraryName: null
-  };
-}
-
 // The translator: the first part of every version it is asked of kept as failed, with the sentence it said.
 const translator = standIn("GATE", (one) => {
   const path = one.path.split("?")[0]!;
@@ -67,20 +43,6 @@ const translator = standIn("GATE", (one) => {
   if (path === "/documents/translations" && one.method === "POST") return answer({ taken: (one.body?.wanted as unknown[]).length }, 202);
 
   return answer({ code: "no-route", error: "Not served here." }, 404);
-});
-
-const brain = standIn("BRAIN", (one) => {
-  const path = one.path.split("?")[0]!;
-
-  if (path === "/fragment-kinds") return answer({ items: [{ name: "system-document", description: "", fragmentCount: 1 }], more: false });
-  if (path === "/fragments") {
-    return answer({ items: [fragmentOf("active")], more: false });
-  }
-  if (one.method === "PATCH" && path === "/fragments/readme") {
-    return answer(fragmentOf(one.body?.state === "active" ? "active" : "off"));
-  }
-
-  return answer({ code: "no-route", error: "no route" }, 404);
 });
 
 // The receiver's talk, held until the test lets it answer, as a turn waits behind a running round.
@@ -104,7 +66,6 @@ const file = await routeOf<DocumentView>("../../apps/web/server/api/documents/fi
 const seek = await routeOf<DocumentSeekResult>("../../apps/web/server/api/documents/seek.post.ts");
 const translation = await routeOf<unknown>("../../apps/web/server/api/documents/translation.get.ts");
 const translate = await routeOf<unknown>("../../apps/web/server/api/documents/translation.post.ts");
-const fragment = await routeOf<DocumentFragmentView>("../../apps/web/server/api/documents/fragment.post.ts");
 const talk = await routeOf<DocumentTalk>("../../apps/web/server/api/documents/talk.get.ts");
 const say = await routeOf<{ ok: true }>("../../apps/web/server/api/documents/talk.post.ts");
 
@@ -131,12 +92,12 @@ async function settled(): Promise<DocumentTalk> {
 }
 
 describe("the list", () => {
-  test("holds the checkout's documents, its fragment by the brain's row, and the other units' roots unread", async () => {
+  test("holds the checkout's documents, and the other units' roots unread", async () => {
     const read = await list({});
 
-    expect(read.documents.map((entry) => [entry.root, entry.path, entry.fragment?.slug ?? null])).toEqual([
-      ["first", "docs/deploy.md", null],
-      ["first", "README.md", "readme"]
+    expect(read.documents.map((entry) => [entry.root, entry.path])).toEqual([
+      ["first", "docs/deploy.md"],
+      ["first", "README.md"]
     ]);
     expect(read.roots[0]).toMatchObject({ key: "first", label: "First", available: true });
     expect(read.roots.slice(1).every((root) => !root.available)).toBe(true);
@@ -193,14 +154,6 @@ describe("a document", () => {
     } finally {
       process.env.GATE_ADDRESS = named;
     }
-  });
-
-  test("that is a fragment is switched on the brain's row, and one that is none has no switch", async () => {
-    const written = await fragment({ body: { root: "first", path: "README.md", active: false } });
-
-    expect(brain.asked.findLast((one) => one.path === "/fragments/readme")).toMatchObject({ method: "PATCH", body: { state: "off" } });
-    expect(written).toMatchObject({ active: false, kindLabel: "system-document", handAt: 300 });
-    expect(await asked(fragment, { body: { ...deploy, active: false } })).toMatchObject({ status: 404, message: wording("documents.error.not_fragment") });
   });
 });
 

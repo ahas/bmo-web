@@ -141,11 +141,11 @@ The places in the shell that name a later group's file are cut here, and that gr
 - **The ops screens (build-13):** stand again — the home page at `/`, `/api/deploy`, the deployment mark on the
   rooms page, the cache-siren and database entries, and their kept choices, carved out of the old settings module as
   `app/domain/siren-settings.ts` and `app/domain/db-settings.ts`.
-- **The brain screens (build-12):** stand again — the documents and memories entries, and `DocumentToc.vue`, which
-  the console's own document viewer uses.
-- **The placeholders (build-8):** the graph, monitor, cards, gates and briefing entries stand again as
-  placeholders (below, 「Screens of the units that ship no console bundle」); the mail, files, code and remote
-  entries stand as their units' manifests bring them. The briefing player and the stream's
+- **The brain screens (build-12):** the documents entry and `DocumentToc.vue`, which the console's own document
+  viewer uses, stand again; the memories entry is the brain's own screen, which the brain brings by its manifest.
+- **The placeholders (build-8):** none stands: the graph and briefing entries are gone with their units' screens
+  (below, 「Screens of the units that ship no console bundle」), the monitor and its card board are the console's
+  own, and the mail, files, code, gates and remote entries stand as their units' manifests bring them. The briefing player and the stream's
   briefing-stop words are not carried. The mail notices' push kind is rung by the plugin that reads the stream
   of a unit whose manifest names the kind, in the bundle's words.
 
@@ -304,22 +304,23 @@ Of these, not carried here:
 
 ### The brain screens (39 files)
 
-Stands here as `client/apps/web/` at the same path, calling the brain over HTTP; a test under `client/tests/`. Carried by build-12 (brain screens).
+Stands here as `client/apps/web/` at the same path; a test under `client/tests/`. Carried by build-12 (brain screens),
+but for the memories screen, its components, its routes and the fragment reading, which the brain's own screen
+replaces: `app/components/Memory*.vue`, `app/domain/memories.ts`, `app/pages/memories.vue`,
+`server/api/memories.*.ts`, `server/utils/memories.ts`, `server/utils/document-fragments.ts` and their tests are
+not carried.
 
 `app/components/DocumentPane.vue`; `app/components/DocumentReader.vue`; `app/components/DocumentSeek.vue`; `app/components/DocumentSide.vue`; `app/components/DocumentTalk.vue`; `app/components/DocumentToc.vue`; `app/components/DocumentTree.vue`; `app/components/MemoryActiveSwitch.vue`; `app/components/MemoryCondition.vue`; `app/components/MemoryDetail.vue`; `app/components/MemoryWatch.vue`; `app/domain/documents.test.ts`; `app/domain/documents.ts`; `app/domain/memories.ts`; `app/pages/documents.test.ts`; `app/pages/documents.vue`; `app/pages/memories.test.ts`; `app/pages/memories.vue`; `server/api/documents/` (9 files); `server/api/memories.get.ts`; `server/api/memories.post.ts`; `server/utils/document-fragments.test.ts`; `server/utils/document-fragments.ts`; `server/utils/document-records.ts`; `server/utils/document-request.ts`; `server/utils/documents.test.ts`; `server/utils/documents.ts`; `server/utils/memories.test.ts`; `server/utils/memories.ts`; `shared/translation.test.ts`; `shared/translation.ts`.
 
 How the brain screens stand here:
 
-- **The memories screen calls the brain** (`docs/boundary.md`, 「Calls the console makes」) through
-  `server/utils/brain.ts`, written new, with the brain's codes, each said by the pack's sentence for it. A row is
-  read by what the agency calls its agent, by what the receiver calls its room and its people and by the message
-  the receiver keeps; the watch serving a row is served by no route and stands empty.
+- **The memories screen is the brain's own,** loaded from the brain's manifest (`docs/web.md`, 「Screens a unit
+  brings」); the console calls the brain for nothing else.
 - **The document viewer's roots are checkouts a setting names,** `DOCUMENT_ROOTS`: each one's `docs/` and the
-  upper-case markdown at its top. The brain's library and the agency's documents stand in the list unread, and
-  neither unit's folders are read. `server/utils/documents.ts` is rewritten on those roots; the seek indexes and
+  upper-case markdown at its top. The agency's documents stand in the list unread, and its folders are not read;
+  the brain's library is no root of the viewer's. `server/utils/documents.ts` is rewritten on those roots; the seek indexes and
   the seek gate's three steps are not carried, since the gate is the gate unit's, and a question is answered by the
-  documents' own text. A fragment is the brain's row, matched by the file its path names under a root, its kind
-  called by the brain's label for it.
+  documents' own text.
 - **The talk about a document** that `server/utils/document-records.ts` read stands as
   `server/utils/document-talk.ts`, on the console's own `document_talk` (「The tables」 below; build-18): the console
   writes the owner's words as they are sent, hands the turn to the receiver's `POST /talks` and writes the chat

@@ -229,16 +229,7 @@ export interface DocumentTreeItem extends TreeItem {
 // Inside a person's or a room's group the title's lead naming that person is already said by the
 // group above it, so only what follows the dash stands. A document with no title of its own is
 // named by its file. The file name itself is in the properties.
-//
-// A reference fragment stands by the title its index entry carries instead, since that is the line
-// a gate picks the piece by and the table is what says it (`docs/documents-viewer.md`).
 export function leafLabel(entry: DocumentEntry): string {
-  const entryTitle = entry.fragment?.title.trim() ?? "";
-
-  if (entryTitle !== "") {
-    return entryTitle;
-  }
-
   const title = entry.title.trim();
 
   if (title === "") {

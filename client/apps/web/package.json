@@ -12,12 +12,11 @@
   },
   "dependencies": {
     "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-559583c.tgz",
-    "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.15.2-2d074ff.tgz",
+    "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.15.2-9f93e89.tgz",
     "@internationalized/date": "3.12.4",
     "@nuxt/ui": "^4.11.2",
     "@nuxtjs/i18n": "^10.6.0",
     "@web/server-client": "workspace:*",
-    "bmo-brain-client": "file:../../vendor/bmo-brain-client-0.1.0-rev.3.tgz",
     "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.5.tgz",
     "dayjs": "^1.11.23",
     "dompurify": "3.4.8",

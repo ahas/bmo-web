@@ -24,12 +24,11 @@
       "version": "2.0.3",
       "dependencies": {
         "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-559583c.tgz",
-        "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.15.2-2d074ff.tgz",
+        "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.15.2-9f93e89.tgz",
         "@internationalized/date": "3.12.4",
         "@nuxt/ui": "^4.11.2",
         "@nuxtjs/i18n": "^10.6.0",
         "@web/server-client": "workspace:*",
-        "bmo-brain-client": "file:../../vendor/bmo-brain-client-0.1.0-rev.3.tgz",
         "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.5.tgz",
         "dayjs": "^1.11.23",
         "dompurify": "3.4.8",
@@ -135,7 +134,7 @@
 
     "@babel/types": ["@babel/types@7.29.8", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg=="],
 
-    "@bmo/receiver-client": ["@bmo/receiver-client@../../vendor/bmo-receiver-client-0.15.2-2d074ff.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-tIkZlRA+PM9rwriB/Hcov9Od24u++Km0rQHwZ2bLaCwJFYKJ0N3SPuwvQezS7BU5va3ZUSGdyKrXBO2UwkDjbQ=="],
+    "@bmo/receiver-client": ["@bmo/receiver-client@../../vendor/bmo-receiver-client-0.15.2-9f93e89.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-tIkZlRA+PM9rwriB/Hcov9Od24u++Km0rQHwZ2bLaCwJFYKJ0N3SPuwvQezS7BU5va3ZUSGdyKrXBO2UwkDjbQ=="],
 
     "@bomb.sh/tab": ["@bomb.sh/tab@0.0.19", "", { "peerDependencies": { "cac": "^6.7.14", "citty": "^0.1.6 || ^0.2.0", "commander": "^13.1.0 || ^14.0.0 || ^15.0.0" }, "optionalPeers": ["cac", "citty", "commander"], "bin": { "tab": "dist/bin/cli.mjs" } }, "sha512-dTRfo9Q9B+lbLG3JCu8a/AGQSfD2XXcFcnakQzVjSOX+VvR/s9zpsH8TlqV3iHqazniRn1Ypwd1hcRlXcu/4BA=="],
 
@@ -958,8 +957,6 @@
     "bindings": ["bindings@1.5.0", "", { "dependencies": { "file-uri-to-path": "1.0.0" } }, "sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ=="],
 
     "birpc": ["birpc@4.2.0", "", {}, "sha512-KxgKcZPfrtzJDDALHPguGpGJUrzdgpymyiQQgzFjWreHMOpWrnFNVREr5J48x2DBh8ZVioscrV1SBkDipGiX+Q=="],
-
-    "bmo-brain-client": ["bmo-brain-client@../../vendor/bmo-brain-client-0.1.0-rev.3.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-Z2Yq09my6nRNahM36NUIXzygzsHZcNOAgrHnWCD/FlKfg0KefyY73C9L1VayQVNOdaz7XQR1sJ6cg/Pl0ydkvA=="],
 
     "bmo-job-client": ["bmo-job-client@../../vendor/bmo-job-client-0.1.0-rev.5.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-OPwAh7OB1cUFFPcSB8zFSL5lJCxbi0vXmJOpwb86pSyF6ogFl4XMP4AKcFosZ7vkPndI0J+fjqPZVb0VZzU/OQ=="],
 

@@ -48,18 +48,6 @@
           </UTooltip>
         </div>
 
-        <!-- Where the open document is a piece a reference gate may attach, whether it is offered
-             at all is switched here (`docs/documents-viewer.md`). -->
-        <div v-if="props.fragment !== null" class="!px-3">
-          <USwitch
-            size="sm"
-            :model-value="props.fragment.active"
-            :label="fragmentLabel"
-            :loading="props.fragmentBusy"
-            @update:model-value="emit('fragment', $event)"
-          />
-        </div>
-
         <div v-if="translating" class="!px-1" role="status">
           <UTooltip :text="$t('documents.status.translating')">
             <UButton
@@ -170,11 +158,10 @@ import { bmoLabel } from "~/domain/agents";
 import { documentKey, languageName, READER_VIEWS } from "~/domain/documents";
 import { countText } from "~/domain/numbers";
 import { useWidth } from "bmo-ui/app/domain/screen";
-import { formatStamp } from "bmo-ui/app/domain/time";
 
 import type { ReaderView, ViewerHeading } from "~/domain/documents";
 import type { BarAction, BarProperty, BarTab } from "bmo-ui/app/domain/tabs";
-import type { DocumentFragmentView, DocumentTranslation, DocumentView } from "#shared/types";
+import type { DocumentTranslation, DocumentView } from "#shared/types";
 
 // The document part of the document viewer. The page holds the state — which document, which
 // language, which view — and this part shows it and says what was pressed.
@@ -192,10 +179,6 @@ interface Props {
   headings: readonly ViewerHeading[];
   view: ReaderView;
   narrow: boolean;
-  // The row behind the open document, where it is a reference fragment, and whether the brain is
-  // writing it right now.
-  fragment: DocumentFragmentView | null;
-  fragmentBusy: boolean;
   translated: boolean;
   // Whether a translator is served at all; where none is, the switch stands unavailable.
   translatable: boolean;
@@ -226,7 +209,6 @@ const emit = defineEmits<{
   retry: [];
   view: [view: ReaderView];
   language: [translated: boolean];
-  fragment: [active: boolean];
   translate: [retry: boolean];
   talk: [];
   active: [slug: string | null];
@@ -249,7 +231,6 @@ const views = computed(() => READER_VIEWS.filter((one) => !props.narrow || one.v
 
 // The translation is a state the document is read in, named by its language where there is room.
 const translationLabel = computed(() => (tight.value ? t("documents.label.translation") : t("documents.label.translation_of", { language: languageName(t, target.value) })));
-const fragmentLabel = computed(() => (tight.value ? t("documents.label.fragment") : t("documents.label.fragment_active")));
 
 // What can be done to the document standing, at the right end of the toolbar. On a phone the
 // contents are one of them.
@@ -269,27 +250,13 @@ const properties = computed<BarProperty[] | null>(() => {
     return null;
   }
 
-  const fragment = props.fragment;
-
   return [
     { label: t("common.label.path"), value: documentKey(document.root, document.path), mono: true },
     { label: t("documents.label.kind"), value: document.label },
     { label: t("documents.label.writer"), value: document.writer },
     { label: t("common.label.size"), value: fileSizeText(document.size) },
     { label: t("common.label.original"), value: languageName(t, document.language) },
-    ...(props.translated ? [{ label: t("documents.label.translation"), value: languageName(t, target.value) }] : []),
-    // What the fragment table says about this document. A document that is no fragment says
-    // nothing of it at all.
-    ...(fragment === null
-      ? []
-      : [
-          { label: t("documents.label.fragment"), value: fragment.kindLabel },
-          ...(fragment.room === null ? [] : [{ label: t("common.label.room"), value: fragment.room }]),
-          { label: t("documents.label.slug"), value: fragment.slug, mono: true },
-          { label: t("documents.label.hits"), value: countText(fragment.hits) },
-          { label: t("documents.label.last_hit"), value: fragment.lastHitAt === null ? t("common.label.none") : formatStamp(fragment.lastHitAt) },
-          ...(fragment.handAt === null ? [] : [{ label: t("documents.label.hand_set"), value: formatStamp(fragment.handAt) }])
-        ])
+    ...(props.translated ? [{ label: t("documents.label.translation"), value: languageName(t, target.value) }] : [])
   ];
 });
 

@@ -44,7 +44,7 @@
       </UFormField>
 
       <div v-if="roomId !== null" class="grid gap-4 sm:grid-cols-2">
-        <UFormField :label="$t('room.label.room_add_mode')" name="mode">
+        <UFormField :label="$t('room.label.room_add_mode')" name="mode" :help="mode === undefined ? undefined : modeHelp(mode)">
           <USelect v-model="mode" :items="modeItems" value-key="value" class="w-full" :aria-label="$t('room.label.room_add_mode')" />
         </UFormField>
         <UFormField :label="$t('room.label.room_add_title')" name="title">
@@ -90,8 +90,16 @@ const failed = ref("");
 const dirty = computed(() => serviceKey.value !== undefined);
 const service = computed(() => services.value?.find((one) => one.key === serviceKey.value) ?? null);
 const serviceItems = computed(() => (services.value ?? []).map((one) => ({ label: one.label, value: one.key })));
-const modeItems = computed(() => (service.value?.modes ?? []).map((one) => ({ label: modeLabel(one), value: one })));
-const chosenTitle = computed(() => rooms.value.find((room) => room.id === roomId.value)?.title ?? "");
+// The modes the service offers, an avatar only where the room itself holds the service's avatar mode.
+const chosenRoom = computed(() => rooms.value.find((room) => room.id === roomId.value) ?? null);
+const offeredModes = computed(() => (service.value?.modes ?? []).filter((one) => one !== "avatar" || chosenRoom.value?.modes == null || chosenRoom.value.modes.includes("human-avatar")));
+const modeItems = computed(() => offeredModes.value.map((one) => ({ label: modeLabel(one), value: one })));
+const chosenTitle = computed(() => chosenRoom.value?.title ?? "");
+
+// What a mode does to the room, said under the choice.
+function modeHelp(value: RoomAddMode): string {
+  return value === "avatar" ? t("room.message.room_add_mode_avatar") : t("room.message.room_add_mode_record_only");
+}
 
 function modeLabel(value: RoomAddMode): string {
   return value === "avatar" ? t("room.label.room_add_mode_avatar") : t("room.label.room_add_mode_record_only");
@@ -159,8 +167,8 @@ function choose(room: RoomAddCandidate): void {
   if (room.mode !== null) return;
 
   roomId.value = room.id;
-  // The mode a service offers alone is the one taken; with two, the choice is left to the reader.
-  mode.value = service.value?.modes.length === 1 ? service.value.modes[0] : mode.value;
+  // The mode offered alone is the one taken; with two, the choice is left to the reader.
+  mode.value = offeredModes.value.length === 1 ? offeredModes.value[0] : offeredModes.value.includes(mode.value as RoomAddMode) ? mode.value : undefined;
 }
 
 async function add(): Promise<void> {

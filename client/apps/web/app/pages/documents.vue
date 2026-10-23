@@ -27,8 +27,6 @@
           :headings="headings"
           :view="view"
           :narrow="narrow"
-          :fragment="fragment"
-          :fragment-busy="fragmentBusy"
           :translated="translated"
           :translatable="list?.translation === true"
           :translation="translation"
@@ -48,7 +46,6 @@
           @retry="loadDocument"
           @view="setView"
           @language="setLanguage"
-          @fragment="setFragmentStanding"
           @translate="askTranslation"
           @talk="talkOpen = true"
           @active="active = $event"
@@ -124,8 +121,6 @@
               :headings="headings"
               :view="view"
               :narrow="narrow"
-              :fragment="fragment"
-              :fragment-busy="fragmentBusy"
               :translated="translated"
               :translatable="list?.translation === true"
               :translation="translation"
@@ -145,7 +140,6 @@
               @retry="loadDocument"
               @view="setView"
               @language="setLanguage"
-              @fragment="setFragmentStanding"
               @translate="askTranslation"
               @talk="talkOpen = true"
               @active="active = $event"
@@ -203,7 +197,7 @@ import { fileTabLabel, lastSeen, mergeTabs, moveTab, openInTabs, pinTab } from "
 
 import type { KeptDocumentTabs, OpenDocument, ReaderView } from "~/domain/documents";
 import type { BarAction, BarTab } from "bmo-ui/app/domain/tabs";
-import type { DocumentFragmentView, DocumentList, DocumentSeekPick, DocumentTranslation, DocumentView } from "#shared/types";
+import type { DocumentList, DocumentSeekPick, DocumentTranslation, DocumentView } from "#shared/types";
 import type { SplitterItem } from "@nuxt/ui";
 
 // The document viewer (docs/web.md, 「Document viewer screen」; docs/documents-viewer.md). Which document is
@@ -240,8 +234,6 @@ const active = ref<string | null>(null);
 const talkOpen = ref(false);
 const quote = ref<{ text: string; heading: string | null; translated: boolean } | null>(null);
 const listOpen = ref(true);
-// Whether the brain is writing the open document's fragment row right now.
-const fragmentBusy = ref(false);
 // The documents open as tabs, in the order they stand, pinned or not. They are kept for the account
 // on the server, with the one standing.
 const openDocuments = ref<OpenDocument[]>([]);
@@ -324,55 +316,6 @@ const docTabs = computed<BarTab[]>(() => {
 // Where the reader goes once the text is drawn: a heading the address or a question named, a line a
 // search found, or the same heading of the other language.
 let pending: { slug: string } | { line: number } | { index: number } | null = null;
-
-// The row behind the open document, where it is a reference fragment. It is read off the list
-// rather than fetched again, so the switch stands the moment a document is chosen.
-const fragment = computed(() => {
-  const target = selected.value;
-
-  if (target === null) {
-    return null;
-  }
-
-  const key = documentKey(target.root, target.path);
-
-  return list.value?.documents.find((entry) => documentKey(entry.root, entry.path) === key)?.fragment ?? null;
-});
-
-/**
- * One fragment taken out of what its gate is offered, or offered again. The row comes back from
- * the write and is put straight onto the list entry, so nothing on the screen is taken down and
- * read again for one switch.
- */
-async function setFragmentStanding(active: boolean): Promise<void> {
-  const target = selected.value;
-  const standing = list.value;
-
-  if (target === null || standing === null) {
-    return;
-  }
-
-  const key = documentKey(target.root, target.path);
-  fragmentBusy.value = true;
-
-  try {
-    const written = await $fetch<DocumentFragmentView>("/api/documents/fragment", {
-      method: "POST",
-      body: { root: target.root, path: target.path, active }
-    });
-
-    list.value = {
-      ...standing,
-      documents: standing.documents.map((entry) =>
-        documentKey(entry.root, entry.path) === key ? { ...entry, fragment: written } : entry
-      )
-    };
-  } catch (error) {
-    island.fail(error, t("documents.error.part_failed"));
-  } finally {
-    fragmentBusy.value = false;
-  }
-}
 
 async function loadList(): Promise<void> {
   listLoading.value = true;

@@ -5,10 +5,10 @@
 - **Where people read the deployment's markdown:** the console's document viewer shows the documents a
   deployment names as its roots — its repositories' operating documents, and, through the units that keep them,
   the documents the agents read.
-- **What the owner does there:** reads documents, selects a passage and asks the chat agent about it, and
-  switches a reference fragment off and on.
-- **No editing here.** No document's text is written from this screen. When something needs changing, it is
-  filed as an item. The fragment switch is the one write, and it writes the brain's row rather than a document.
+- **What the owner does there:** reads documents, and selects a passage and asks the chat agent about it.
+- **No editing here.** Nothing is written from this screen. When something needs changing, it is filed as an
+  item. The brain's library, its memories and its fragments are read and switched on the brain's own screen,
+  which the brain brings by its manifest (`docs/web.md`, 「Screens a unit brings」).
 - **Where the rest is:** the screen's shape is in `docs/web.md`, 「Document viewer screen」. This document says
   what is read from where, and who does what.
 
@@ -37,20 +37,18 @@
 
 ### The roots kept by other units
 
-The library of the brain (person books, room rules, knowledge) and the agency's documents (rulebooks, personas,
-agent instructions and the system prompts it assembles) are their units' own. The viewer reads them only through
-a route their unit serves for whole documents, and neither unit serves one; these roots stand in the list
-unread and are read from nowhere. Neither unit's folders are read from their paths.
+The agency's documents (rulebooks, agent instructions and the system prompts it assembles) are the agency's own.
+The viewer reads them only through a route the agency serves for whole documents, and it serves none; these roots
+stand in the list unread and are read from nowhere. The agency's folders are not read from their paths. The
+brain's library is no root of the viewer's: it is read on the brain's own screen.
 
 - **Each such root says where it belongs.** Its declaration carries, beside its label and its writer, the sentence
-  its unread mark is named by: the brain's library is read on the brain's own screen, which no bundle serves the
-  console yet, and the agency's documents wait on a route the agency serves for them. The sentence is the root's
-  own, so a root added here brings its own and nothing else changes.
+  its unread mark is named by: the agency's documents wait on a route the agency serves for them. The sentence is
+  the root's own, so a root added here brings its own and nothing else changes.
 
 ### Why the writer is shown
 
-- **Some documents are not written by people:** a library's documents are rewritten by editors every batch, and
-  system prompts are what a deployment assembled.
+- **Some documents are not written by people:** system prompts are what a deployment assembled.
 - **The viewer names the writer** at the head of each document, to show that changing what was seen there means
   changing the writer, not the document.
 
@@ -87,30 +85,6 @@ unread and are read from nowhere. Neither unit's folders are read from their pat
 - **Secrets** — the `.env` family, keys and tokens — are not `.md`, so they appear in neither listing nor
   reading.
 - **Search** (text search) runs only inside documents the listing allows.
-
-## Reference fragments
-
-Some of the documents the viewer lists are pieces a reference gate may attach to a turn, and those are rows of
-the brain's fragments before they are files (the brain's `docs/fragments.md`). What the row says about such a
-document is shown beside it, since the row is the original there and the file tree says only that a file exists.
-
-- **Where the rows come from:** the brain's `GET /fragments`, every row with `down`, the word each kind is called
-  by from `GET /fragments/kinds`, and `POST /fragments/active` for the switch (`docs/boundary.md`).
-- **A document is matched to its row by where its body sits.** A row names its body as a path, and the viewer
-  resolves every document it lists to a real file; the document whose file the row's path names under the top of
-  a root the viewer reads is that fragment. Nothing turns on a root's name or a kind's name to make the match, and a row whose body
-  is under no root the viewer reads matches nothing and so is not listed.
-- **What comes from the row:** the fragment's kind, under the word the brain calls it by, or its own name where
-  the brain gives none; the room it belongs
-  to, or every room; the slug a gate answers under; the title the index entry carries, which is what the list
-  shows the document by; whether it is offered; when a turn last attached it and how many have.
-- **What still comes from the file:** the body, its version, its size and its language. Nothing of the text is
-  read out of the row.
-- **The standing is switched here.** The switch sends the fragment's kind and slug to the brain, which writes the
-  row and records that a person set it. A document that is no fragment has no switch.
-- **A document with no row is not a fragment and says nothing at all.** No mark, no properties of its own and no
-  switch.
-- **While the brain cannot be reached,** documents stand as documents and no fragment mark or switch is shown.
 
 ## Large documents
 
@@ -220,7 +194,7 @@ The translator is called (`docs/boundary.md`, 「Calls the console makes」):
 
 ## Where editing would attach
 
-- **Today the viewer writes nothing but a fragment's standing.** No document's text is written here.
+- **Today the viewer writes nothing.** No document's text is written here.
 - **If editing were added:**
   - Only to documents of roots people write.
   - As a write request giving the document name and the version received at read time.

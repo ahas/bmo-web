@@ -14,8 +14,8 @@ import type { DocumentEntry, DocumentMatch, DocumentRootView, DocumentSeekPick, 
 // never turn on a root's name.
 //
 // The roots read here are checkouts a setting names, `DOCUMENT_ROOTS`: a JSON list of roots, each its `key`, its
-// `label` and the top of its `checkout`. The roots the brain and the agency keep are their units' own and are read
-// through no route yet, so they stand in the list unread.
+// `label` and the top of its `checkout`. The roots the agency keeps are its own and are read through no route yet,
+// so they stand in the list unread.
 
 export interface DocumentRoot {
   key: string;
@@ -57,16 +57,11 @@ export function checkoutRoot(key: string, label: string, checkout: string): Docu
   };
 }
 
-// The roots other units keep: the brain's library and the agency's documents, read through a route their unit
-// serves for whole documents, which neither serves yet (`docs/documents-viewer.md`, 「The roots kept by other
-// units」). Each says where it belongs, the sentence its unread mark is named by.
+// The roots another unit keeps: the agency's documents, read through a route the agency serves for whole
+// documents, which it serves none of yet (`docs/documents-viewer.md`, 「The roots kept by other units」). Each says
+// where it belongs, the sentence its unread mark is named by.
 const UNREAD_ROOTS: readonly DocumentRootView[] = [
-  { key: "people", label: "documents.label.root_people", writer: "documents.label.writer_people", unread: "documents.message.root_unread_brain" },
-  { key: "room-people", label: "documents.label.root_room_people", writer: "documents.label.writer_people", unread: "documents.message.root_unread_brain" },
-  { key: "room-rules", label: "documents.label.root_room_rules", writer: "documents.label.writer_digest", unread: "documents.message.root_unread_brain" },
-  { key: "knowledge", label: "documents.label.root_knowledge", writer: "documents.label.writer_knowledge", unread: "documents.message.root_unread_brain" },
   { key: "rules", label: "documents.label.root_rules", writer: "documents.label.writer_person", unread: "documents.message.root_unread_agency" },
-  { key: "persona", label: "documents.label.root_persona", writer: "documents.label.writer_person", unread: "documents.message.root_unread_agency" },
   { key: "agents", label: "documents.label.root_agents", writer: "documents.label.writer_person", unread: "documents.message.root_unread_agency" },
   { key: "prompts", label: "documents.label.root_system_prompts", writer: "documents.label.writer_deploy", unread: "documents.message.root_unread_agency" }
 ].map((root) => ({ key: root.key, label: wording(root.label), writer: wording(root.writer), available: false, unread: wording(root.unread) }));
@@ -196,7 +191,7 @@ function titleOf(text: string, path: string): string {
   return markdownHeadings(text)[0]?.text ?? path.split("/").at(-1)!.replace(/\.md$/, "");
 }
 
-export interface Listed extends Omit<DocumentEntry, "group" | "fragment"> {
+export interface Listed extends Omit<DocumentEntry, "group"> {
   file: string;
 }
 
@@ -320,11 +315,7 @@ function snippetAround(line: string, at: number, length: number): string {
 export function searchDocuments(
   roots: readonly DocumentRoot[],
   query: string,
-  limit: number,
-  // The name the list shows a document by where that is not the document's own title — a reference fragment
-  // stands by the line its index entry carries. A search matches what is on the screen as well as what is behind
-  // it, so both are looked in and what comes back is the shown one.
-  shown: ReadonlyMap<string, string> = new Map()
+  limit: number
 ): DocumentMatch[] {
   const needle = query.trim().toLowerCase();
 
@@ -337,11 +328,11 @@ export function searchDocuments(
 
   for (const entry of listDocuments(roots)) {
     const name = `${entry.root}/${entry.path}`;
-    const title = shown.get(name) ?? entry.title;
+    const title = entry.title;
 
     if (name.toLowerCase().includes(needle)) {
       heads.push({ root: entry.root, path: entry.path, title, where: "name", line: null, snippet: null });
-    } else if (title.toLowerCase().includes(needle) || entry.title.toLowerCase().includes(needle)) {
+    } else if (title.toLowerCase().includes(needle)) {
       heads.push({ root: entry.root, path: entry.path, title, where: "title", line: null, snippet: null });
     }
 

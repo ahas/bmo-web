@@ -107,7 +107,8 @@ const MODEL_LABELS: Record<string, string> = {
 const MODE_NAMES: Partial<Record<AgentMode, string>> = {
   "claude-code": "Claude Code",
   codex: "Codex",
-  openrouter: "OpenRouter"
+  openrouter: "OpenRouter",
+  deepseek: "DeepSeek"
 };
 
 const MODE_KEYS: Partial<Record<AgentMode, string>> = {

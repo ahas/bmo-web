@@ -2281,9 +2281,6 @@ Two ways, split because the running places differ.
   this switch on, and neither is a Claude account turned off or resting — each account's prefixes are
   warmed on their own. Search and browse requests are outside the order, but that runner's Claude keepalive
   follows the off too (the agency's `docs/cache-fallback.md`).
-- **보이스브리핑.** The section says the settings cannot be read now and offers no switch: the receiver's
-  fixed API serves no route for the voice briefing's switch, and a line's reading is the voice unit's
-  (`docs/boundary.md`, 「Gaps the console meets」).
 - **활성 공급자 및 우선순위.** Every provider — Claude Code, Codex, OpenRouter and 등록 모델 — in the
   order every automatic walk follows, one row each: a drag handle in a column of its own, the place in
   the order, a status mark, the name, the reason the provider cannot answer on this machine now (the
@@ -2349,11 +2346,22 @@ Two ways, split because the running places differ.
   by the bot. **No cell, no box and no answer the bot gives this screen carries a token, a cookie or
   anything out of a credential file** — the path is the whole of what is shown, and what the screen learns
   about a login is only whether it stands and when it ends.
-- **에이전트 활성 여부.** Every agent in its group — the chat agent, workers, gates, runners — one row
-  each with its mark, its name and key, what last answered on it, and its own keepalive switch. A row
-  with its switch down carries 멈춤; while the whole round is off every other row carries 전체 멈춤, and
-  the switch is then the setting to use when the round comes back on. Pressing the name opens that
-  agent's own screen.
+- **에이전트별 캐시 유지 · 롤.** One table: every agent in its group — the chat agent, workers, gates,
+  runners — one row each with its mark, its name and key, what last answered on it and what its role gives,
+  its role as a choice, and its own keepalive switch. No other list on the tab repeats the agents for their
+  role or their warming. Pressing the name opens that agent's own screen.
+  - **The switch reads what the cache warmer holds** (the cache warmer's `docs/api.md`): on where one of the
+    agent's warming targets, under whichever consumer registered it, warms now — the switch the owner threw
+    on its subject, or the target's own default where none is thrown — and off for an agent the warmer holds
+    no target of, so an agent nobody turned on reads off. Throwing it throws the agent's subject under every
+    consumer that holds a target for it. A row with its switch down carries 멈춤; while the whole round is off every row
+    still on carries 전체 멈춤, and the switch is then the setting to use when the round comes back on.
+  - **The role** is a choice of every role the bot declares, by label (the agency's `docs/agent-roles.md`),
+    and under the name stands what it gives, the bundles by their own short Korean names, or 기능 묶음
+    없음; on a phone the choice and the switch stand on a line of their own under the name. A choice is
+    saved as it is picked, through the bot, and a refused save puts the bot's reason under the table and
+    the row back as it was. Which roles there are and what each gives is the bot's word, so while the bot
+    is not answering a row shows the role the archive holds and nothing can be picked.
 - **The gates stand in the parts of the gate order** (the gate unit's documents) — 프리게이트, 포스트게이트 and
   턴 밖, each under its own heading and in the turn's order within it, as on 게이트. A gate that runs in
   both 프리게이트 and 포스트게이트 stands in each, and its two switches are one setting.
@@ -2363,15 +2371,7 @@ Two ways, split because the running places differ.
   whole round off, or already turned off. On a phone a row's mark stands on the line under its name
   instead of beside it, so the name is never cut. The marks are searchable like the names
   (the agency's `docs/cache-fallback.md`).
-- **롤.** Under the agent list, every agent in the list's order, one row each: its mark, its name and key, and its role as a choice of every role the
-  bot declares, by label (the agency's `docs/agent-roles.md`). Under the choice stands what the role gives, the
-  bundles by their own short Korean names, or 기능 묶음 없음; on a phone the choice stands on a line
-  of its own under the name.
-  - A choice is saved as it is picked, through the bot, and a refused save puts the bot's reason
-    under the list and the row back as it was.
-  - Which roles there are and what each gives is the bot's word, so while the bot is not answering
-    the rows show the role the archive holds and nothing can be picked.
-- **생각·Effort.** Under 롤, the agents whose thinking and effort are their own
+- **생각·Effort.** Under the agents' table, the agents whose thinking and effort are their own
   (the agency's `docs/model-tiers.md`, 「An agent's own thinking and effort」) — the chat agent, each worker that is no support
   worker, the two editors and the two searchers — in the list's order, one row each: its mark, its
   name and key, the provider and model it begins on, and its 생각 and Effort choices, which stand on a
@@ -5037,8 +5037,8 @@ dialog open at 계정.
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방 and 알림. A member is shown 계정, 테마 and 대화방; 알림 is the
-    administrator's.
+  - The sections are 계정, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 테마 and 대화방; 알림
+    and 보이스브리핑 are the administrator's.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -5051,7 +5051,7 @@ dialog open at 계정.
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
 - **An address opens it at one section:** `?settings=` and a section's key — `account`, `theme`,
-  `palette`, `notifications` — on any address of the console opens the dialog at that
+  `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. The key is taken off the address as the dialog opens: what is open over a screen
   is not a place (「Floating things」), so the back gesture closes the dialog, or leaves the section on a
@@ -5100,6 +5100,12 @@ dialog open at 계정.
   says so with 알림 받기. Once it is, each kind is a row with its name, its note and a switch, taking
   effect as it is switched, and 테스트 발송 and 알림 끄기 stand under them. The account's other devices
   follow, each a row with when it subscribed and what it hears, and 알림 끄기 for that device.
+
+#### 보이스브리핑
+
+- The voice briefing's own settings: the section says they cannot be read now and offers no switch, since no
+  unit serves a route for the briefing's switch or a line's reading (`docs/boundary.md`, 「Gaps the console
+  meets」).
 
 ### Messages
 

@@ -64,7 +64,7 @@ export default defineEventHandler(async (event): Promise<RunStopped | RunStopAll
 
     await agencyCall(agency().PATCH("/runs/{runId}", {
       params: { path: { runId } },
-      body: { state: "stopped", outcome: "stopped", finishedAt: Date.now(), contextTokens: null, finished_at: null, context_tokens: null }
+      body: { state: "stopped", outcome: "stopped", finishedAt: Date.now(), contextTokens: null, messageId: null, finished_at: null, context_tokens: null }
     }));
   }
 

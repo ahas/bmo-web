@@ -95,13 +95,11 @@ export const GROUP_ORDER: readonly AgentGroupKey[] = ["designated", "gate", "run
 // holds.
 export const GENERAL_SECTIONS: readonly { id: string; title: string; waiting: number }[] = [
   { id: "keepalive", title: "agents.title.section_keepalive", waiting: 1 },
-  { id: "voice-briefing", title: "agents.title.section_voice_briefing", waiting: 1 },
   { id: "providers", title: "agents.title.section_providers", waiting: 4 },
   { id: "registry", title: "agents.title.registry", waiting: 2 },
   { id: "catalogue", title: "agents.title.catalogue", waiting: 2 },
   { id: "base-prompts", title: "agents.title.base_prompts", waiting: 1 },
   { id: "agents", title: "agents.title.section_agents", waiting: 3 },
-  { id: "roles", title: "agents.title.section_roles", waiting: 3 },
   { id: "reasoning", title: "agents.title.section_reasoning", waiting: 3 },
   { id: "agent-gates", title: "agents.title.section_agent_gates", waiting: 3 },
   { id: "sessions", title: "agents.title.section_sessions", waiting: 3 }

@@ -302,9 +302,8 @@ function keyLabel(key: string): string {
 const entries = computed<SettingsEntry[]>(() => {
   const list: SettingsEntry[] = [
     { id: "keepalive", tab: "general", label: t("agents.label.keepalive_all"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_keepalive_all"), shown: true }] },
-    { id: "voice-briefing", tab: "general", label: t("agents.title.section_voice_briefing"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_voice_briefing"), shown: true }] },
     { id: "providers", tab: "general", label: t("agents.title.section_providers"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_fallback"), shown: true }] },
-    { id: "roles", tab: "general", label: t("agents.title.section_roles"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_roles"), shown: true }] },
+    { id: "agents", tab: "general", label: t("agents.title.section_agents"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_roles"), shown: true }] },
     { id: "reasoning", tab: "general", label: t("agents.title.section_reasoning"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_reasoning"), shown: true }] },
     { id: "agent-gates", tab: "general", label: t("agents.title.section_agent_gates"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_agent_gates"), shown: true }] },
     { id: "sessions", tab: "general", label: t("agents.title.section_sessions"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_sessions"), shown: true }] }

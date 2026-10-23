@@ -8,7 +8,7 @@ import { answered } from "./unit-answer";
 
 import type { Agent as AgencyAgent, AgencyClient, FoldRatio, Provider, Session, Tier, Worker } from "@agency/client";
 import type { components } from "@agency/client/schema";
-import type { AgentSamplingView, BasePromptView, BasePromptsView, FoldRatiosView, FoldRatioView, GenerationSetting, GenerationValue, SessionView, TierProviderView, TierSettingsView } from "#shared/agency";
+import type { AgentSamplingView, BasePromptView, BasePromptsView, FoldRatiosView, FoldRatioView, GenerationSetting, GenerationValue, SessionView, TierMapping, TierProviderView, TierSettingsView } from "#shared/agency";
 import type { AgentSummary, RoleView } from "#shared/types";
 import type { UnitAnswerCall } from "./unit-answer";
 
@@ -157,8 +157,31 @@ export function sessionView(session: Session, label: string | null = null): Sess
   };
 }
 
-/** The tiers and providers as the tier screen reads them; a tier's mapping and a work key's assignment are the
- * agency's own shapes and stand empty here (docs/boundary.md, 「Gaps the console meets」). */
+/** One tier's mapping as the agency answers it: each provider's model, effort and answer ceiling, by the
+ * provider's name; a cell that does not read as one is left out. */
+export function tierMappingsOf(tier: Tier): TierMapping[] {
+  const cells = typeof tier.mapping === "object" && tier.mapping !== null ? (tier.mapping as Record<string, unknown>) : {};
+  const mappings: TierMapping[] = [];
+
+  for (const [provider, value] of Object.entries(cells)) {
+    const cell = typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+
+    if (cell === null || typeof cell.model !== "string" || cell.model === "") continue;
+
+    mappings.push({
+      provider: provider as TierMapping["provider"],
+      tier: tier.name,
+      model: cell.model,
+      effort: typeof cell.effort === "string" ? cell.effort : null,
+      answerTokens: typeof cell.answerTokens === "number" ? cell.answerTokens : null
+    });
+  }
+
+  return mappings;
+}
+
+/** The tiers, their mappings on each provider and the providers as the tier screen reads them; a work key's
+ * assignment is no part of the agency's answers and stands empty (docs/boundary.md, 「Gaps the console meets」). */
 export function tierSettingsOf(tiers: readonly Tier[], providers: readonly Provider[]): TierSettingsView {
   const views: TierProviderView[] = providers.map((provider) => ({
     provider: provider.name as TierProviderView["provider"],
@@ -168,7 +191,7 @@ export function tierSettingsOf(tiers: readonly Tier[], providers: readonly Provi
     enabled: provider.enabled
   }));
 
-  return { tiers: tiers.map((tier) => tier.name), providers: views, mappings: [], conflicts: [], assignments: [] };
+  return { tiers: tiers.map((tier) => tier.name), providers: views, mappings: tiers.flatMap(tierMappingsOf), conflicts: [], assignments: [] };
 }
 
 /** One provider's fold ratio at one tier as the fold-ratio grid reads it. */

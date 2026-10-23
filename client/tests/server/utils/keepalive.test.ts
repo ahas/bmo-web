@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 
-import { keepaliveRound, withKeepalive } from "../../../apps/web/server/utils/keepalive";
+import { keepaliveRound, switchAgentKeepalive, withKeepalive } from "../../../apps/web/server/utils/keepalive";
 
 import type { AgentSummary } from "../../../apps/web/shared/types";
 
@@ -70,24 +70,71 @@ describe("each agent's keepalive", () => {
     answering((url) =>
       url.includes("/subjects")
         ? { items: [{ id: 1, consumerName: "agency", name: "worker", on: false, pausedAt: 1_700_000_000_000, pausedUntil: 9_007_199_254_740_991, targetCount: 1 }], more: false }
-        : { items: [{ id: 1, consumerName: "agency", name: "chat-touch", subjectName: "worker", warmedAt: 1_700_000_100_000 }], more: false }
+        : { items: [{ id: 1, consumerName: "agency", name: "chat-touch", subjectName: "worker", on: false, warmedAt: 1_700_000_100_000 }], more: false }
     );
 
     const [row] = await withKeepalive([agent("worker")], "agency");
 
     expect(row).toMatchObject({ keepaliveStopped: true, keepalivePausedAt: 1_700_000_000, lastKeepaliveAt: 1_700_000_100 });
     expect(asked.map((call) => call.url)).toEqual([
-      "http://warmer.test/consumers/agency/subjects?limit=1000",
-      "http://warmer.test/targets?consumerName=agency&limit=1000"
+      "http://warmer.test/targets?limit=1000",
+      "http://warmer.test/consumers/agency/subjects?limit=1000"
     ]);
   });
 
-  test("leaves an agent whose switch is unset running", async () => {
-    answering((url) => (url.includes("/subjects") ? { items: [{ id: 1, consumerName: "agency", name: "worker", on: null, pausedAt: null, pausedUntil: null, targetCount: 0 }], more: false } : { items: [], more: false }));
+  test("reads an agent warming where one of its targets warms now, its switch unset or thrown on", async () => {
+    answering((url) =>
+      url.includes("/subjects")
+        ? { items: [{ id: 1, consumerName: "agency", name: "worker", on: null, pausedAt: null, pausedUntil: null, targetCount: 2 }], more: false }
+        : {
+            items: [
+              { id: 1, consumerName: "agency", name: "chat-touch", subjectName: "worker", on: false },
+              { id: 2, consumerName: "agency", name: "chat-cache", subjectName: "worker", on: true }
+            ],
+            more: false
+          }
+    );
 
     const [row] = await withKeepalive([agent("worker")], "agency");
 
     expect(row).toMatchObject({ keepaliveStopped: false, keepalivePausedAt: null, lastKeepaliveAt: 1_700_000_000 });
+  });
+
+  test("reads an agent whose targets warm by default no more, and one the warmer holds no target of, as not warming", async () => {
+    answering((url) =>
+      url.includes("/subjects")
+        ? { items: [{ id: 1, consumerName: "agency", name: "worker", on: null, pausedAt: null, pausedUntil: null, targetCount: 1 }], more: false }
+        : { items: [{ id: 1, consumerName: "agency", name: "chat-touch", subjectName: "worker", on: false }], more: false }
+    );
+
+    const rows = await withKeepalive([agent("worker"), agent("other")], "agency");
+
+    expect(rows.map((row) => row.keepaliveStopped)).toEqual([true, true]);
+  });
+
+  test("reads a target another consumer registered for the agent, and throws the switch under that consumer", async () => {
+    answering((url) =>
+      url.includes("/targets")
+        ? { items: [{ id: 1, consumerName: "consumer-b", name: "chat-touch", subjectName: "worker", on: true }], more: false }
+        : { items: [], more: false }
+    );
+
+    const [row] = await withKeepalive([agent("worker")], "agency");
+
+    expect(row?.keepaliveStopped).toBe(false);
+    expect(asked.map((call) => call.url)).toContain("http://warmer.test/consumers/consumer-b/subjects?limit=1000");
+
+    await switchAgentKeepalive("agency", "worker", true);
+
+    expect(asked.at(-1)).toEqual({ url: "http://warmer.test/consumers/consumer-b/subjects/worker", method: "PATCH", body: { on: false } });
+  });
+
+  test("throws the switch under the deployment's consumer for an agent no consumer holds a target for", async () => {
+    answering(() => ({ items: [], more: false }));
+
+    await switchAgentKeepalive("agency", "worker", false);
+
+    expect(asked.at(-1)).toEqual({ url: "http://warmer.test/consumers/agency/subjects/worker", method: "PATCH", body: { on: true } });
   });
 
   test("reads every page of a list the warmer keeps", async () => {

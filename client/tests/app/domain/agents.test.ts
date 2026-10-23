@@ -500,7 +500,7 @@ describe("the provider order under a drag", () => {
 
 describe("the sections of the general settings screen", () => {
   test("they stand in one order, and each is named in one place", () => {
-    expect(GENERAL_SECTIONS.map((section) => section.id)).toEqual(["keepalive", "voice-briefing", "providers", "registry", "catalogue", "base-prompts", "agents", "roles", "reasoning", "agent-gates", "sessions"]);
+    expect(GENERAL_SECTIONS.map((section) => section.id)).toEqual(["keepalive", "providers", "registry", "catalogue", "base-prompts", "agents", "reasoning", "agent-gates", "sessions"]);
     expect(GENERAL_SECTIONS.every((section) => section.waiting > 0)).toBe(true);
     expect(generalSectionTitle(wording, "keepalive")).toBe(wording(GENERAL_SECTIONS[0]!.title));
     expect(generalSectionTitle(wording, "nothing of the kind")).toBe("");

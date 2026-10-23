@@ -25,14 +25,6 @@
       </div>
     </section>
 
-    <!-- The voice briefing is the voice unit's, and the receiver's fixed API serves no route for its
-         switch, so the section says the settings cannot be read and offers none. -->
-    <section :id="settingsAnchor('voice-briefing')" class="flex flex-col gap-3" aria-labelledby="voice-briefing-title">
-      <h2 id="voice-briefing-title" class="text-lg font-semibold text-highlighted">{{ generalSectionTitle($t, "voice-briefing") }}</h2>
-
-      <p class="text-sm text-muted">{{ $t("agents.status.voice_briefing_unavailable") }}</p>
-    </section>
-
     <!-- The owner's one provider order, which every key's walk follows. A row is carried by its
          handle alone, by the mouse and the finger the same way, and the order is saved the moment
          it is dropped; a provider this machine cannot use keeps its place and says why. -->
@@ -116,8 +108,8 @@
     <!-- The Claude Code entry's own list of logins, beside the order above it. -->
     <AgentsAccounts ref="accountsRef" :accounts="props.fallback.accounts" :reread="() => props.reread('fallback')" :query="props.query" />
 
-    <!-- Every agent with its own warming switch. The switch's position is the owner's word for that
-         agent alone; while the whole round is off, a row nobody stopped says so. -->
+    <!-- Every agent in one table with its role and its own warming switch. The switch reads what the cache
+         warmer holds for that agent alone; while the whole round is off, a row still on says so. -->
     <section :id="settingsAnchor('agents')" class="flex flex-col gap-3" aria-labelledby="agents-title">
       <h2 id="agents-title" class="text-lg font-semibold text-highlighted">{{ generalSectionTitle($t, "agents") }}</h2>
 
@@ -131,7 +123,7 @@
             <h4 v-if="block.label !== ''" class="text-sm text-muted">{{ block.label }}</h4>
 
             <ul class="flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default">
-              <li v-for="agent in block.agents" :id="anchoredIn(group, block, agent.name) ? settingsAnchor(`agent-${agent.name}`) : undefined" :key="agent.name" class="flex min-h-12 items-center gap-3 px-4 py-2">
+              <li v-for="agent in block.agents" :id="anchoredIn(group, block, agent.name) ? settingsAnchor(`agent-${agent.name}`) : undefined" :key="agent.name" class="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2">
                 <UIcon :name="agent.icon" class="size-5 shrink-0 text-muted" />
                 <NuxtLink :to="`/agents/${encodeURIComponent(agent.name)}`" class="flex min-w-0 flex-1 flex-col rounded-sm transition-colors hover:text-primary active:text-primary/80">
                   <span class="flex min-w-0 items-center gap-2">
@@ -141,29 +133,44 @@
                   <!-- On a phone the warming mark stands on this line, so the name beside it is never cut. -->
                   <SearchText v-if="keepaliveMark(agent.name) !== ''" class="truncate text-sm text-warning sm:hidden" :text="keepaliveMark(agent.name)" :query="props.query" />
                   <SearchText v-if="recentOf(agent.name) !== ''" class="truncate text-sm text-muted" :text="$t('agents.label.recent', { value: recentOf(agent.name) })" :query="props.query" />
+                  <SearchText class="truncate text-sm text-muted" :text="givesText(agentOf(agent.name)?.role ?? null)" :query="props.query" />
                   <SearchHit :match="hiddenMatch(agent.name)" :query="props.query" />
                 </NuxtLink>
                 <UBadge v-if="keepaliveMark(agent.name) !== ''" color="neutral" variant="subtle" size="sm" class="max-sm:hidden" :label="keepaliveMark(agent.name)" />
-                <!-- A worker's warming turned off now, until its next job wakes it; nothing turns it back on. -->
-                <UTooltip v-if="isWorker(agent.name)" :text="$t('agents.action.pause_until_job')">
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    icon="i-material-symbols-mode-off-on"
-                    :aria-label="$t('agents.aria.pause_keepalive_of', { name: agent.name })"
-                    :loading="busy === `pause:${agent.name}`"
-                    :disabled="busy !== '' || !pausable(agent.name)"
-                    @click="pauseWorker(agent.name)"
+                <!-- On a phone the role and the switches stand on a line of their own under the name. -->
+                <div class="flex shrink-0 items-center gap-3 max-sm:w-full max-sm:min-w-0 max-sm:ps-8">
+                  <AgentRoleSelect
+                    class="max-sm:flex-1"
+                    :agent="agent.name"
+                    :label="agent.label"
+                    :role="agentOf(agent.name)?.role ?? null"
+                    :roles="props.agents.roles"
+                    :reread="() => props.reread('agents')"
+                    :disabled="busy !== ''"
+                    @busy="busy = $event ? `role:${agent.name}` : ''"
+                    @failed="failed = $event"
                   />
-                </UTooltip>
-                <USwitch
-                  :model-value="!stoppedOf(agent.name)"
-                  :aria-label="$t('agents.aria.keepalive_of', { name: agent.name })"
-                  :loading="busy === `keepalive:${agent.name}`"
-                  :disabled="busy !== ''"
-                  @update:model-value="switchAgent(agent.name, !($event as boolean))"
-                />
+                  <!-- A worker's warming turned off now, until its next job wakes it; nothing turns it back on. -->
+                  <UTooltip v-if="isWorker(agent.name)" :text="$t('agents.action.pause_until_job')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      size="sm"
+                      icon="i-material-symbols-mode-off-on"
+                      :aria-label="$t('agents.aria.pause_keepalive_of', { name: agent.name })"
+                      :loading="busy === `pause:${agent.name}`"
+                      :disabled="busy !== '' || !pausable(agent.name)"
+                      @click="pauseWorker(agent.name)"
+                    />
+                  </UTooltip>
+                  <USwitch
+                    :model-value="!stoppedOf(agent.name)"
+                    :aria-label="$t('agents.aria.keepalive_of', { name: agent.name })"
+                    :loading="busy === `keepalive:${agent.name}`"
+                    :disabled="busy !== ''"
+                    @update:model-value="switchAgent(agent.name, !($event as boolean))"
+                  />
+                </div>
               </li>
             </ul>
           </div>
@@ -172,9 +179,6 @@
 
       <p v-if="failed !== ''" role="alert" class="text-sm text-error">{{ failed }}</p>
     </section>
-
-    <!-- Each agent's role, in the order the list above stands in. -->
-    <AgentsRoles :agents="listedAgents" :roles="props.agents.roles" :reread="() => props.reread('agents')" :query="props.query" />
 
     <!-- Each agent's own thinking and effort, in the order the list above stands in. -->
     <AgentsReasoning :agents="reasoningAgents" :reread="() => props.reread('agents')" :query="props.query" />
@@ -255,6 +259,18 @@ function stoppedOf(name: string): boolean {
 
 function agentOf(name: string): AgentSummary | undefined {
   return props.agents.agents.find((agent) => agent.name === name);
+}
+
+// What the role an agent holds gives, the bundles by their short names; while the bot is not answering, the
+// role's own name alone.
+function givesText(held: string | null): string {
+  if (held === null) return t("agents.label.role_none");
+
+  const role = props.agents.roles.find((one) => one.name === held);
+
+  if (role === undefined) return held;
+
+  return role.bundles.length === 0 ? t("agents.label.role_bundles_none") : role.bundles.map((bundle) => bundle.label).join(" · ");
 }
 
 function keepaliveMark(name: string): string {

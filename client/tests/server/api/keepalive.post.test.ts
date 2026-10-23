@@ -11,9 +11,19 @@ import { answer, standIn } from "../../support/units";
 
 process.env.KEEPALIVE_CONSUMER = "agency";
 
+// No consumer registers a target for the agents here, so a subject is switched under the deployment's own.
 const warmer = standIn("CACHE_WARMER", (call) =>
-  answer(call.path === "/round" ? { intervalMs: 60_000, nextAt: 0, running: call.body?.running ?? true } : { id: 1, consumerName: "agency", name: "worker-b", on: null, pausedAt: null, pausedUntil: null, targetCount: 0 })
+  answer(
+    call.path === "/round"
+      ? { intervalMs: 60_000, nextAt: 0, running: call.body?.running ?? true }
+      : call.path.startsWith("/targets")
+        ? { items: [], more: false }
+        : { id: 1, consumerName: "agency", name: "worker-b", on: null, pausedAt: null, pausedUntil: null, targetCount: 0 }
+  )
 );
+
+// What the route changed at the warmer, past the reads it made to find where.
+const changed = () => warmer.asked.filter((call) => call.method !== "GET");
 const handler = await routeOf<{ ok: true }>("../../apps/web/server/api/keepalive.post");
 
 describe("stopping the keepalive", () => {
@@ -21,10 +31,10 @@ describe("stopping the keepalive", () => {
     warmer.asked.length = 0;
 
     expect(await asked(handler, { body: { stopped: true } })).toMatchObject({ status: 200 });
-    expect(warmer.asked[0]).toEqual({ method: "PATCH", path: "/round", body: { running: false } });
+    expect(changed()[0]).toEqual({ method: "PATCH", path: "/round", body: { running: false } });
 
     expect(await asked(handler, { body: { agent: "chat:-1001", stopped: false } })).toMatchObject({ status: 200 });
-    expect(warmer.asked[1]).toEqual({ method: "PATCH", path: "/consumers/agency/subjects/chat%3A-1001", body: { on: true } });
+    expect(changed()[1]).toEqual({ method: "PATCH", path: "/consumers/agency/subjects/chat%3A-1001", body: { on: true } });
   });
 
   test("refuses a request that switches nothing, and a name no agent could have", async () => {
@@ -42,7 +52,7 @@ describe("turning a worker's keepalive off until its next job", () => {
     warmer.asked.length = 0;
 
     expect(await asked(handler, { body: { agent: "worker-b", pause: true, stopped: true } })).toMatchObject({ status: 200 });
-    expect(warmer.asked).toEqual([{ method: "PATCH", path: "/consumers/agency/subjects/worker-b", body: { pausedUntil: Number.MAX_SAFE_INTEGER } }]);
+    expect(changed()).toEqual([{ method: "PATCH", path: "/consumers/agency/subjects/worker-b", body: { pausedUntil: Number.MAX_SAFE_INTEGER } }]);
   });
 
   test("refuses a pause that names no worker", async () => {

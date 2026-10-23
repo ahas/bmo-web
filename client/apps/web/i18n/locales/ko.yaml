@@ -1353,9 +1353,12 @@ settings:
     settings: 설정
   label:
     account: 계정
+    briefing: 보이스브리핑
     notifications: 알림
     palette: 대화방
     theme: 테마
+  status:
+    briefing_unavailable: 보이스브리핑 설정을 지금 읽을 수 없습니다.
   action:
     back: 뒤로
 agents:
@@ -1577,7 +1580,6 @@ agents:
     find_searcher: "서쳐 · {name}"
     find_sessions: 세션 · 세션 초기화 · 워커 세션 · 방 세션
     find_tier: "모델 · {tier}"
-    find_voice_briefing: 보이스브리핑 · 음성 · 알림 턴
     fold_percent: "{percent} %"
     fold_ratios_help: 세션이 모델 컨텍스트 창을 이 비율만큼 채우면, 그 턴이 끝난 뒤 세션을 압축합니다.
     fold_source_default: 일반 기본값
@@ -1859,7 +1861,6 @@ agents:
     use_running: "진행 중 · {step}"
     use_starting: 시작하는 중
     vitals_loading: 에이전트 수치 불러오는 중…
-    voice_briefing_unavailable: 보이스브리핑 설정을 지금 읽을 수 없습니다.
   title:
     account_add: Claude 계정 추가
     accounts: Claude 계정
@@ -1875,13 +1876,11 @@ agents:
     registry: 등록 모델
     registry_add: 등록 모델 추가
     section_agent_gates: 에이전트별 게이트
-    section_agents: 에이전트별 캐시 유지
+    section_agents: 에이전트별 캐시 유지 · 롤
     section_keepalive: 캐시 유지
     section_providers: 활성 공급자 및 우선순위
     section_reasoning: 생각·Effort
-    section_roles: 롤
     section_sessions: 세션
-    section_voice_briefing: 보이스브리핑
     tiers: 모델 등급
     worker_add: 워커 추가
 gates:

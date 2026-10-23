@@ -219,7 +219,7 @@ unit carries. A browser call to one of them reaches its fixed path through the r
 | the node service (`docs/api.md`) | the monitor screen's 기기 tab: the node list, each machine with its latest reading, its live tracking and CPU limit set, and its recorded readings, live and over a span | `GET /nodes` (page after page), `GET /machines/{machineName}`, `PATCH /machines/{machineName}` (`tracking`, `cpuLimit`), `GET /machines/{machineName}/readings?after=&spanMs=&limit=` |
 | the card master (bmo-arbiter's `docs/api.md`, 「What the master serves」) | the monitor screen's 서비스 tab: the whole picture of every node's cards, and the picture again whenever it changes | `GET /cluster`, `GET /events?kinds=cluster.changed` |
 | the cache siren (`docs/api.md`) | the cache siren screen: the sums it keeps by session, its siren count, its settings, and the newest events it holds | `GET /stats`, `GET /settings`, `GET /events?limit=` (read as a page, with `Accept: application/json`) |
-| the cache warmer (`docs/api.md`) | the keepalive view: the round, each agent's switch, pause and last warming, an agent being the subject of its name under the consumer `KEEPALIVE_CONSUMER` names | `GET /round`, `PATCH /round`, `GET /targets?consumerName=`, `GET /consumers/{consumer}/subjects`, `PATCH /consumers/{consumer}/subjects/{subject}` |
+| the cache warmer (`docs/api.md`) | the keepalive view: the round, each agent's switch, pause and last warming, an agent being the subject of its name under every consumer that registers a target for it — on where one of those targets warms now — and under the consumer `KEEPALIVE_CONSUMER` names where none does | `GET /round`, `PATCH /round`, `GET /targets`, `GET /targets?subjectName=`, `GET /consumers/{consumer}/subjects`, `PATCH /consumers/{consumer}/subjects/{subject}` |
 | the Telegram service (`docs/api.md`) | the pictures kept for rooms and people, listed page by page, and one such picture | `GET /avatars`, `GET /rooms/{roomId}/avatar`, `GET /people/{personId}/avatar` |
 | the testbed (`docs/deploy.md`) | the deployment in the title bar | the progress record, `deploy-progress.json`, read under each deploy root `DEPLOY_ROOTS` lists, in the shape the testbed writes it; the testbed writes it and a reader needs only the file and the run's process; the last lines of the deploy unit the record names, read from the machine's user journal with `journalctl` |
 
@@ -282,7 +282,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `NODE_ADDRESS`, `NODE_TOKEN` | the node service |
 | console | `ARBITER_ADDRESS`, `ARBITER_TOKEN` | the card master; it takes a token only where its own settings name one |
 | console | `CACHE_WARMER_ADDRESS`, `CACHE_WARMER_TOKEN` | the cache warmer, which takes its bearer on every route, health included |
-| console | `KEEPALIVE_CONSUMER` | the consumer the agency registers its targets under at the cache warmer; with none, an agent's own keepalive switch is not offered and the round's still is |
+| console | `KEEPALIVE_CONSUMER` | the consumer an agent's switch is thrown under at the cache warmer where no consumer registers a target for it; with none, an agent's own keepalive switch is not offered and the round's still is |
 | console | `TELEGRAM_ADDRESS`, `TELEGRAM_TOKEN` | the Telegram service |
 | console | `DEPLOY_ROOTS` | the deploy roots whose progress records the title bar reads, separated by `:`, each a unit's deploy root holding its `deploy-progress.json`; with none, no run stands |
 | console | `DOCUMENT_ROOTS` | the document viewer's roots: a JSON list, each root's `key`, its `label` and the absolute top of its `checkout`, in the order the list stands them (`docs/documents-viewer.md`, 「The roots a deployment names」); a key one of the roots other units keep already holds names no root. With none, the viewer lists only those roots, unread, and opens no document |
@@ -384,18 +384,14 @@ for it, and no file or table of that unit is read meanwhile.
   worker, not a free runner; they send a turn into a session but start none from a screen's words; and they stop a
   job by its own state or a run by its own close, so the board names an item's job and a run's number. A launch and
   a word to a worker stand unavailable.
-- **The voice briefing's switches.** The receiver's fixed API serves no route for the briefing's switch or a
-  line's reading, so the switch and the reading stand unavailable.
+- **The voice briefing's switches.** No unit serves a route for the briefing's switch or a line's reading — the
+  voice unit serves its engine alone — so the settings' 보이스브리핑 section and a line's reading stand
+  unavailable.
 - **A provider's own catalogue.** No fixed route reads the models a provider publishes, so the Codex and OpenRouter
   choosers and a tier's model chooser stand with none.
-- **A tier's mapping and a work key's assignment.** The agency lists the tiers and the providers, and takes a
-  tier's change; the mapping it resolves and each work key's assignment are no part of an answer, so the tier
-  screen stands with the tier and provider names alone.
-- **The fallback's providers and accounts.** The agency's published schema types `GET /fallback` as the roads and
-  whether the fallback is answering, while its `docs/api.md` names the Claude accounts in the same answer and it
-  carries the slot the chat runs on beside them. The usage view reads that slot and the accounts' names and order from
-  it, each checked for its shape and taken as absent where it is not there; the fallback screen's provider order,
-  account list and stand-in picture stand empty.
+- **A work key's tier.** The agency answers each tier's mapping on every provider and each work key's road, and
+  takes a tier's change; which tier a work key stands at is no part of an answer, so the tier screen's
+  assignments stand empty.
 - **A memory's own fields.** The brain's fixed API keeps one generic row — its scope, kind, text, state, labels and
   conditions — and the console's agent, room, event, action and message are the labels a caller wrote. A row whose
   caller wrote none of them stands by its defaults, and no watch is served for one.

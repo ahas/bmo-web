@@ -7,7 +7,7 @@ import { wording } from "#shared/wording";
 import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
 
 import { relayedSegment, socketRelay } from "../utils/bundle-relay";
-import { attachedService, bundleFile, readerMay, readerOf, relayedPath } from "../utils/console-manifests";
+import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedPath } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
 import { unitAt } from "../utils/units";
 
@@ -24,6 +24,10 @@ import { unitAt } from "../utils/units";
 // its API prefix, its module and its stylesheet, to a reader its manifest's role and owner key allow (docs/web.md,
 // 「Screens a unit brings」). A unit the console calls directly, which answers no manifest, is relayed at the
 // address its setting names.
+//
+// A bundle's page reaches another service a manifest names only where its own manifest names that service under
+// `calls`, on that service's own terms; the page is the address the browser sends as the call's referrer. Any other
+// bundle's page is refused, but for a read of that service's own files, which a screen opened from it loads.
 //
 // A share link is the one road with no session behind it: a reader holding the token opens the bundle's
 // share page, and the one read that page makes of the token — `shares/<token>` — is relayed without a
@@ -95,6 +99,11 @@ async function relayed(event: H3Event): Promise<Response> {
   // A screen a reader may not open is one that does not stand for them, and so is its service.
   if (session.user !== undefined && attached !== null && !readerMay(readerOf(await signedInUser(event)), attached.manifest)) {
     throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  }
+
+  // A bundle's page calling a service its manifest does not name is refused, whatever the reader may open.
+  if (attached !== null && !pageReaches(bundleOfPage(useRuntimeConfig().app.baseURL, getRequestHeader(event, "referer")), attached, method, `/${rest}`)) {
+    throw createError({ statusCode: 403, statusMessage: "Forbidden" });
   }
 
   const headers: Record<string, string> = {};

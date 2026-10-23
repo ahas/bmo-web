@@ -5,7 +5,7 @@
     "": {
       "name": "bmo-web-client",
       "dependencies": {
-        "bmo-ui": "file:./vendor/bmo-ui-0.1.0-rev.8.tgz",
+        "bmo-ui": "file:./vendor/bmo-ui-0.1.0-rev.9.tgz",
       },
       "devDependencies": {
         "@happy-dom/global-registrator": "20.14.5",
@@ -960,7 +960,7 @@
 
     "bmo-job-client": ["bmo-job-client@../../vendor/bmo-job-client-0.1.0-rev.5.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-OPwAh7OB1cUFFPcSB8zFSL5lJCxbi0vXmJOpwb86pSyF6ogFl4XMP4AKcFosZ7vkPndI0J+fjqPZVb0VZzU/OQ=="],
 
-    "bmo-ui": ["bmo-ui@./vendor/bmo-ui-0.1.0-rev.8.tgz", { "dependencies": { "@iconify-json/material-icon-theme": "^1.2.72", "@iconify-json/material-symbols": "^1.2.93", "@modelcontextprotocol/sdk": "^1.32.1", "@nuxt/ui": "^4.11.2", "@tanstack/vue-table": "8.21.3", "dayjs": "^1.11.23", "mermaid": "12.0.0", "monaco-editor": "^0.56.0", "tailwindcss": "^4.1.16", "vue": "^3.5.24", "vue-router": "^5.2.0", "zod": "^4.6.7" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "bin": { "bmo-ui": "./bin/bmo-ui.ts" } }, "sha512-9hI9KfzPye5OD82B5LbJG0ulOOXwucg4nm8j2X5FOLrThYCAEWU8OM9zSbdsvAmeFiIdKG+LxCSQqbxMYS1wLw=="],
+    "bmo-ui": ["bmo-ui@./vendor/bmo-ui-0.1.0-rev.9.tgz", { "dependencies": { "@iconify-json/material-icon-theme": "^1.2.72", "@iconify-json/material-symbols": "^1.2.93", "@modelcontextprotocol/sdk": "^1.32.1", "@nuxt/ui": "^4.11.2", "@tanstack/vue-table": "8.21.3", "dayjs": "^1.11.23", "mermaid": "12.0.0", "monaco-editor": "^0.56.0", "tailwindcss": "^4.1.16", "vue": "^3.5.24", "vue-router": "^5.2.0", "zod": "^4.6.7" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "bin": { "bmo-ui": "./bin/bmo-ui.ts" } }, "sha512-Jl38/fk4mDwCfhOXwxFLSJcjIHBZAA3FB8k6hkdh1X+CQLP4rg9aWvYqrTM7Si/HdRUTJu/x8w2b2Vz3mE+gfg=="],
 
     "bmo-web": ["bmo-web@workspace:apps/web"],
 

@@ -1,4 +1,4 @@
-import { CONSOLE_MANIFEST_ROUTE, consoleManifest, roleAllows } from "bmo-ui/shared/console-manifest";
+import { CONSOLE_MANIFEST_ROUTE, consoleManifest, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 import { unitHeaders } from "./units";
@@ -181,6 +181,47 @@ export function relayedPath(manifest: ConsoleManifest, path: string): boolean {
   const prefix = manifest.apiPrefix.replace(/\/+$/, "");
 
   return prefix === "" || path === prefix || path.startsWith(`${prefix}/`);
+}
+
+/** The bundle whose screen path a page address stands under, read from the console's base path, or null where none. */
+export function bundleOfPage(baseURL: string, page: string | undefined): AttachedBundle | null {
+  if (page === undefined || page === "") return null;
+
+  let path: string;
+
+  try {
+    path = new URL(page, "http://console.invalid").pathname;
+  } catch {
+    return null;
+  }
+
+  const base = baseURL.replace(/\/+$/, "");
+
+  if (base !== "") {
+    if (path !== base && !path.startsWith(`${base}/`)) return null;
+
+    path = path.slice(base.length) || "/";
+  }
+
+  return attached.find(({ manifest }) => path === manifest.screenPath || path.startsWith(`${manifest.screenPath}/`)) ?? null;
+}
+
+/** Whether a read is of a bundle's own files: its module, its stylesheet, or a file beside its module. */
+export function bundleFiles(manifest: ConsoleManifest, path: string): boolean {
+  const folder = manifest.bundle.slice(0, manifest.bundle.lastIndexOf("/") + 1);
+
+  return bundleFile(manifest, path) || (folder !== "/" && path.startsWith(folder) && !path.slice(folder.length).includes("/"));
+}
+
+/**
+ * Whether a call from a page reaches a service a manifest names (docs/web.md, 「Screens a unit brings」): a page that
+ * is no bundle's screen, the service's own bundle's page, and a page whose manifest names the service under `calls`
+ * reach it; any other bundle's page reaches only a read of the service's own files.
+ */
+export function pageReaches(page: AttachedBundle | null, called: AttachedBundle, method: string, path: string): boolean {
+  if (page === null || screensCall(page.manifest, called.manifest.serviceName)) return true;
+
+  return (method === "GET" || method === "HEAD") && bundleFiles(called.manifest, path);
 }
 
 /** Whether a path is a bundle's module or stylesheet, which the relay hands on to a reader not signed in as well. */

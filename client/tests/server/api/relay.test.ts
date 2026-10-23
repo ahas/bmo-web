@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
 import { consoleManifest } from "bmo-ui/shared/console-manifest";
 
@@ -17,6 +17,10 @@ const globals = globalThis as unknown as Record<string, unknown>;
 let session: { user?: { id: number; name: string } } = { user: { id: 1, name: "tester" } };
 
 globals.getUserSession = async () => session;
+// The console served at the root unless a test says otherwise.
+globals.useRuntimeConfig = () => ({ app: { baseURL: "/" } });
+// No bundle stands but those a test attaches, whatever a file run before this one left attached.
+attachBundles([]);
 
 const unit = standIn("RELAYED", () => answer({ ok: true }));
 const handler = await routeOf<Response>("../../apps/web/server/api/[...path]");
@@ -128,7 +132,7 @@ describe("the relay of a service a manifest names", () => {
     words: {}
   });
 
-  attachBundles([named("screened", "member"), named("guarded", "administrator")]);
+  beforeAll(() => attachBundles([named("screened", "member"), named("guarded", "administrator")]));
   afterAll(() => {
     attachBundles([]);
     void served.stop(true);
@@ -167,6 +171,83 @@ describe("the relay of a service a manifest names", () => {
     try {
       expect(await call("guarded/screen/items")).toBe(404);
       expect(await call("screened/screen/items")).toBe(200);
+    } finally {
+      globals.signedInUser = administrator;
+    }
+  });
+});
+
+// A bundle's page reaches another service a manifest names only where its own manifest names it under `calls`, on that
+// service's own terms; the page is the referrer the browser sends (docs/web.md, 「Screens a unit brings」).
+describe("the relay of a call from a bundle's page", () => {
+  const heard: string[] = [];
+  const served = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch(request) {
+      heard.push(new URL(request.url).pathname);
+
+      return Response.json({ ok: true });
+    }
+  });
+  const named = (name: string, role: "member" | "administrator", calls: string[] = []) => ({
+    manifest: consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/console/bundle/module-a.js", stylesheet: "/console/bundle/style-a.css", words: "/console/words", apiPrefix: "/console", role, calls }),
+    unit: { address: `http://127.0.0.1:${served.port}`, token: null },
+    words: {}
+  });
+  const runtime = globals.useRuntimeConfig;
+
+  beforeAll(() => {
+    globals.useRuntimeConfig = () => ({ app: { baseURL: "/web/" } });
+    attachBundles([named("caller", "administrator", ["callee"]), named("stranger", "administrator"), named("callee", "administrator")]);
+  });
+  afterAll(() => {
+    attachBundles([]);
+    globals.useRuntimeConfig = runtime;
+    void served.stop(true);
+  });
+
+  const call = (path: string, referer?: string, method = "POST") =>
+    handler({ params: { path }, method, headers: referer === undefined ? {} : { referer }, node: {} } as RouteEvent).then(
+      (response) => response.status,
+      (error: { statusCode?: number }) => error.statusCode
+    );
+
+  test("is relayed from a page whose manifest names the service, under that service's own prefix", async () => {
+    expect(await call("callee/console/translations", "https://console.example.test/web/caller/books?tab=2")).toBe(200);
+    expect(heard.at(-1)).toBe("/console/translations");
+    expect(await call("callee/translations", "https://console.example.test/web/caller")).toBe(404);
+  });
+
+  test("is refused from a bundle's page whose manifest does not name the service", async () => {
+    expect(await call("callee/console/translations", "https://console.example.test/web/stranger")).toBe(403);
+    expect(await call("caller/console/items", "https://console.example.test/web/callee/one")).toBe(403);
+  });
+
+  test("is relayed from the service's own page, from a page that is no bundle's and with no referrer", async () => {
+    expect(await call("callee/console/translations", "https://console.example.test/web/callee")).toBe(200);
+    expect(await call("callee/console/translations", "https://console.example.test/web/rooms/4")).toBe(200);
+    expect(await call("callee/console/translations", "https://console.example.test/stranger")).toBe(200);
+    expect(await call("callee/console/translations")).toBe(200);
+  });
+
+  test("lets another bundle's page read the service's module, stylesheet and the files beside its module", async () => {
+    const page = "https://console.example.test/web/stranger";
+
+    expect(await call("callee/console/bundle/module-a.js", page, "GET")).toBe(200);
+    expect(await call("callee/console/bundle/style-a.css", page, "GET")).toBe(200);
+    expect(await call("callee/console/bundle/chunk-b.js", page, "GET")).toBe(200);
+    expect(await call("callee/console/bundle/chunk-b.js", page, "POST")).toBe(403);
+    expect(await call("callee/console/items", page, "GET")).toBe(403);
+  });
+
+  test("leaves a reader the called service's own role refuses absent, whatever the page names", async () => {
+    const administrator = globals.signedInUser;
+
+    globals.signedInUser = async () => ({ id: 2, name: "member-a", administrator: false });
+
+    try {
+      expect(await call("callee/console/translations", "https://console.example.test/web/caller")).toBe(404);
     } finally {
       globals.signedInUser = administrator;
     }

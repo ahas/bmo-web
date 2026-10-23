@@ -163,9 +163,10 @@ function senderKey(message: ReceivedMessage): string {
 }
 
 // The message a reply answers, as the reply shows it; one the receiver does not hand over stands with nothing.
-async function replyQuoteOf(chatId: number, messageId: number): Promise<ReplyQuote> {
+async function replyQuoteOf(chatId: number, messageId: number, held?: { message: ReceivedMessage; media: ReturnType<typeof mediaOf> }): Promise<ReplyQuote> {
   try {
-    const answered = receivedOf(await receiverCall(
+    // A message the page itself holds is quoted from the page, its files from the read the page already made.
+    const answered = held?.message ?? receivedOf(await receiverCall(
       receiver().GET("/rooms/{roomId}/messages/{messageId}", {
         params: { path: { roomId: chatId, messageId } },
         signal: within(5_000)
@@ -178,7 +179,7 @@ async function replyQuoteOf(chatId: number, messageId: number): Promise<ReplyQuo
         senderName: answered.senderName,
         text: answered.text,
         pictured: answered.imagePath !== null,
-        attachment: (await mediaOf(chatId, answered)).attachments[0] ?? null
+        attachment: (await (held?.media ?? mediaOf(chatId, answered))).attachments[0] ?? null
       };
     }
   } catch {
@@ -191,13 +192,18 @@ async function replyQuoteOf(chatId: number, messageId: number): Promise<ReplyQuo
 // A page of the receiver's read into the messages the screen draws.
 async function messagesOf(chatId: number, received: readonly ReceivedMessage[]): Promise<ArchivedMessage[]> {
   const agents = await agentSenders(chatId, received);
+  // Each message's files are read once, and a reply to a message the page holds quotes it from the page.
+  const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message)]));
+  const onPage = new Map(received.map((message) => [message.messageId, message]));
   // Several replies of a page often answer one message; what it said and carried is read once.
   const quoted = new Map<number, Promise<ReplyQuote>>();
   const quote = (messageId: number): Promise<ReplyQuote> => {
     let held = quoted.get(messageId);
 
     if (held === undefined) {
-      held = replyQuoteOf(chatId, messageId);
+      const page = onPage.get(messageId);
+
+      held = replyQuoteOf(chatId, messageId, page === undefined ? undefined : { message: page, media: media.get(messageId)! });
       quoted.set(messageId, held);
     }
 
@@ -207,7 +213,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const built: ArchivedMessage[] = await Promise.all(
     received.map(async (message) => {
       const agent = agents.get(senderKey(message)) === true;
-      const media = await mediaOf(chatId, message);
+      const files = await media.get(message.messageId)!;
 
       return {
         chatId: message.chatId,
@@ -223,8 +229,8 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         album: message.album,
         agent,
         notice: agent && isSystemNotice(message.text),
-        attachments: media.attachments,
-        expressions: media.expressions,
+        attachments: files.attachments,
+        expressions: files.expressions,
         replyQuote: message.replyToMessageId === null ? null : await quote(message.replyToMessageId),
         spend: null,
         actions: null

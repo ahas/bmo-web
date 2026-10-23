@@ -382,6 +382,9 @@ room:
     talk_loading: 대화 불러오는 중…
     waiting: 연결되면 보냄
     window_left: "{time} 남음"
+    room_add_no_services: 방 목록을 알려 주는 채팅 서비스가 없습니다.
+    room_add_no_rooms: 이 계정에 방이 없습니다.
+    room_add_loading: 방 목록을 불러오는 중
   error:
     actions_read_failed: 실행 기록을 불러오지 못했습니다.
     attachment_empty: "{name}: 빈 파일이라 첨부하지 않았습니다."
@@ -433,6 +436,13 @@ room:
     session_failed: 세션 정보를 불러오지 못했습니다.
     unpin_failed: 방의 고정을 해제하지 못했습니다.
     words_only: 이 방은 글만 받습니다.
+    room_add_refused: 추가할 방이 올바르지 않습니다.
+    room_add_unlisted: 이 채팅 서비스는 방 목록을 알려 주지 않습니다.
+    room_add_unknown: 채팅 서비스가 모르는 방입니다.
+    room_add_avatar: 이 채팅 서비스에서는 아바타 모드를 쓸 수 없습니다.
+    room_add_added: 이미 추가한 방입니다.
+    room_add_failed: 방을 추가하지 못했습니다.
+    room_add_rooms_failed: 방 목록을 불러오지 못했습니다.
   action:
     attach_document: 파일
     attach_file: 파일 첨부
@@ -457,6 +467,7 @@ room:
     show_in_message: 메시지에서 보기
     to_latest: 최신 메시지로
     unpin: 고정 해제
+    room_add_more: 더 보기
   label:
     answer_took: "{time} 소요"
     avatar_of: "{name} 프로필 사진"
@@ -600,6 +611,16 @@ room:
     unknown_message: 기록에 없는 메시지
     unreceivable: 받을 수 없음
     voice_message: 음성 메시지
+    room_add_service: 채팅 서비스
+    room_add_room: 방
+    room_add_mode: 모드
+    room_add_title: 제목
+    room_add_mode_avatar: 아바타
+    room_add_mode_record_only: 기록 전용
+    room_add_kind_owner: 개인
+    room_add_kind_group: 그룹
+    room_add_added_as: "{mode}로 추가됨"
+    room_add_untitled: "방 {id}"
   message:
     id_copied: 대화번호를 복사했습니다.
     message_ref: "방 {room} (chatId {chatId}) · 메시지 #{messageId}"
@@ -621,6 +642,7 @@ room:
     providers: 채팅 서비스
     remove_registration: 방 등록 삭제
     session_info: 세션 정보
+    room_add: 방 추가
   aria:
     avatar_enlarge: "{name} 프로필 사진 크게 보기"
     go_to_quote: "{name}의 메시지로 이동"
@@ -1499,6 +1521,8 @@ agents:
     word_empty: 메시지를 입력해 주세요.
     word_unavailable: 워커에게 말을 전하는 길이 아직 없습니다.
     worker_name_empty: 워커 이름을 입력해 주세요.
+    agent_add_refused: 에이전트를 등록하지 못했습니다.
+    agent_name_taken: 이미 있는 키입니다.
   label:
     account_chosen: 선택한 계정
     account_kind_directory: 설정 디렉터리
@@ -1777,6 +1801,15 @@ agents:
     use_top_p: 누적 확률 상위만 후보로
     weekly: 주간
     worker_label: 이름표
+    agent_kind: 종류
+    agent_kind_chat: 대화
+    agent_kind_worker: 워커
+    agent_kind_runner: 러너
+    agent_kind_gate: 게이트
+    agent_role: 롤
+    agent_role_default: 기본
+    agent_cwd: 폴더
+    agent_node: 노드
   message:
     account_delete_confirm: 계정을 삭제할까요?
     base_prompt_delete_confirm: 기본 프롬프트를 삭제할까요?
@@ -1861,6 +1894,10 @@ agents:
     use_running: "진행 중 · {step}"
     use_starting: 시작하는 중
     vitals_loading: 에이전트 수치 불러오는 중…
+    agent_added_made: "{name}을 등록하고 브레인을 만들었습니다."
+    agent_added_kept: "{name}을 등록했습니다. 있던 브레인을 그대로 씁니다."
+    agent_added_none: "{name}을 등록했습니다."
+    agent_added_failed: "{name}을 등록했지만 브레인을 만들지 못했습니다."
   title:
     account_add: Claude 계정 추가
     accounts: Claude 계정
@@ -1883,6 +1920,7 @@ agents:
     section_sessions: 세션
     tiers: 모델 등급
     worker_add: 워커 추가
+    agent_add: 에이전트 추가
 gates:
   label:
     classifier: 참조 분류기

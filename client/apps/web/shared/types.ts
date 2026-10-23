@@ -1347,6 +1347,13 @@ export interface UsageView {
 // so the view can go read-only instead of showing an error, and — where it did not — whether it
 // took the call and was too busy to answer in time rather than being gone (`slow`).
 // One role an agent may hold, with the bundles it gives, as the bot declares them.
+// An agent the agency registered: its key, and what became of its brain — made, kept where one already stood,
+// none where it is given none, or failed (the agency's `docs/api.md`, 「agents」).
+export interface AgentRegistered {
+  name: string;
+  brain: "made" | "kept" | "none" | "failed";
+}
+
 export interface RoleView {
   name: string;
   label: string;
@@ -2521,6 +2528,34 @@ export interface RoomRemovalPreview {
 // A room's chat providers as its dialog reads them (docs/web.md, the room screen's chat providers): every provider
 // the receiver names, by its key and its own label, the keys the room is on in order, and whether that list was set
 // or is the one the receiver reads off where the room stands.
+// A chat service a room may be added from, as the room-add dialog offers it: its key and label and the modes a
+// room on it may be added in (the receiver's `docs/api.md`, 「Rooms」).
+export interface RoomAddService {
+  key: string;
+  label: string;
+  modes: RoomAddMode[];
+}
+
+export type RoomAddMode = "avatar" | "record-only";
+
+// One room of a chat service's account, with the mode it was added in, or null where it was never added.
+export interface RoomAddCandidate {
+  id: number;
+  title: string | null;
+  kind: string;
+  mode: RoomAddMode | null;
+}
+
+export interface RoomAddPage {
+  items: RoomAddCandidate[];
+  more: boolean;
+}
+
+export interface RoomAdded {
+  chatId: number;
+  title: string | null;
+}
+
 export interface RoomProvidersView {
   providers: { key: string; label: string }[];
   on: string[];

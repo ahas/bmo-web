@@ -84,7 +84,8 @@ describe("the screen's sections", () => {
     expect(templateOf(page)).toContain('v-else-if="tab === \'workers\'"');
     expect(templateOf(page)).toContain('workersRef?.openAdd()');
     expect(scriptOf(workers)).toContain("defineExpose({ openAdd })");
-    expect(scriptOf(general)).toContain("defineExpose({ openAddAccount, openAddRegistration, openAddCatalogue, openAddBasePrompt })");
+    expect(scriptOf(page)).toContain("generalRef.value?.openAddAgent()");
+    expect(scriptOf(general)).toContain("defineExpose({ openAddAccount, openAddRegistration, openAddCatalogue, openAddBasePrompt, openAddAgent })");
     expect(scriptOf(accounts)).toContain("defineExpose({ openAdd })");
   });
 });

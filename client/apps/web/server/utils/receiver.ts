@@ -67,6 +67,11 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   "reply-missing": "room.error.reply_missing",
   "words-only": "room.error.words_only",
   "none-sent": "room.error.none_sent",
+  // Adding a room from a chat service's account.
+  "rooms-unlisted": "room.error.room_add_unlisted",
+  "room-unknown": "room.error.room_add_unknown",
+  "avatar-unsupported": "room.error.room_add_avatar",
+  "room-added": "room.error.room_add_added",
   // Removing a room.
   "seeded-room": "room.error.removal_seeded_room",
   infrastructure: "room.error.removal_infrastructure",

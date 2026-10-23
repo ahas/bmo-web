@@ -5,7 +5,13 @@
      row of the moving list, and the rooms stand together under one navigation landmark. -->
 <template>
   <nav :aria-label="heading" class="flex flex-col">
-    <UNavigationMenu as="div" :items="[{ label: heading, type: 'label' }]" :collapsed="collapsed" orientation="vertical" />
+    <div class="flex items-center">
+      <UNavigationMenu as="div" class="min-w-0 flex-1" :items="[{ label: heading, type: 'label' }]" :collapsed="collapsed" orientation="vertical" />
+      <!-- 추가 beside the heading, where the reader may add a room. -->
+      <UTooltip v-if="addable && !collapsed" :text="$t('room.title.room_add')">
+        <UButton class="me-1 shrink-0" size="xs" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('room.title.room_add')" @click="emit('add')" />
+      </UTooltip>
+    </div>
     <MovingList v-if="rooms.length > 0" tag="div" class="flex flex-col">
       <div v-for="room in rooms" :key="String(room.to)">
         <UNavigationMenu as="div" :items="[room]" :collapsed="collapsed" tooltip orientation="vertical">
@@ -24,11 +30,18 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui";
 
-defineProps<{
-  // One entry per room, each with its own address.
-  rooms: NavigationMenuItem[];
-  collapsed: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    // One entry per room, each with its own address.
+    rooms: NavigationMenuItem[];
+    collapsed: boolean;
+    // Whether the reader may add a room, which puts 추가 beside the heading.
+    addable?: boolean;
+  }>(),
+  { addable: false }
+);
+
+const emit = defineEmits<{ add: [] }>();
 
 const { t } = useI18n();
 const heading = computed(() => t("common.label.room"));

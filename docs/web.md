@@ -1107,6 +1107,14 @@ Four groups.
   number. A room the console made itself — one made for companions — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
   conversation.
+  - **추가 beside the group's name adds a room,** for the administrator, in a dialog of three choices made in
+    turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
+    「Rooms」): a chat service whose `listsRooms` is true; a room among those its account is in, page by page,
+    each with its title or number and kind, one already added marked by its mode and not chosen again; and a
+    mode among the service's `roomModes` — 아바타 or 기록 전용 — with a title that may be left empty. 추가
+    posts the three, and the room stands in the list at once. A refusal the receiver answers with a code is said
+    in the pack's sentence under the dialog: a service that lists no rooms, a room the service does not know, an
+    avatar mode the service does not hold active, a room already added, a service that did not answer.
   - **A room carries how many of its messages the reader has not read**, as a number at the line's end
     (「Unread messages」); folded to pictures, a room with any carries a dot on its picture's corner instead.
   - **A room moves to its new place rather than jumping there.** The rooms are a moving list
@@ -2218,8 +2226,8 @@ Two ways, split because the running places differ.
 - **A section to a tab.** The tabs are 일반, 공급, 에이전트, 워커, 모델, 실행 경로, 게이트, 대화 상대 and 서쳐. The tab stands in
   the address (`?tab=`), so a shared link opens the same section and moving between tabs is a step of the
   history. The tab row stands under the title bar and carries, at its right end, the open section's own
-  action (일반's, 공급's, 워커's and 대화 상대's 추가 — 일반's a 기본 프롬프트, 공급's a menu of Claude 계정, 등록
-  모델 and 모델 파일, since that tab adds all three), the settings search and the one button that reads every section again, which
+  action (일반's, 공급's, 에이전트's, 워커's and 대화 상대's 추가 — 일반's a 기본 프롬프트, 공급's a menu of Claude
+  계정, 등록 모델 and 모델 파일, since that tab adds all three, 에이전트's an agent), the settings search and the one button that reads every section again, which
   spins while it reads. The title bar keeps only what every page carries, and no section repeats its tab's
   name as a title of its own.
 - **The settings search** looks over every section at once: section names, agent and work-key names
@@ -2367,6 +2375,13 @@ Two ways, split because the running places differ.
     `docs/agent-roles.md`). The row names it by the label the bot declares for it and, beside it, what it
     gives, the bundles by their own short Korean names, or 기능 묶음 없음; a role the bot no longer declares,
     or any while the bot is not answering, stands as the role's own name.
+- **에이전트 추가.** 추가 in the tab row opens a form registering an agent of any kind through the agency's
+  `POST /agents` (its `docs/api.md`, 「agents」): its key and label, its kind — 대화, 워커, 러너 or 게이트 — its role
+  among those the bot declares, the kind's own where none is chosen, and for a 대화 agent the model
+  it is pinned to and the worker its items go to, for a 워커 its folder. It is owned by the login that adds it,
+  its user on the account service as `ownerAccount`. A refusal naming a field stands under that field, a name
+  already taken under the key; the brain the agency made, kept or could not make is said in a notice. The agent
+  stands in the table at once.
 - **The gates stand in the parts of the gate order** (the gate unit's documents) — 프리게이트, 포스트게이트 and
   턴 밖, each under its own heading and in the turn's order within it, as on 게이트. A gate that runs in
   both 프리게이트 and 포스트게이트 stands in each, and its two switches are one setting.

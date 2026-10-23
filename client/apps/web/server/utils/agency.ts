@@ -14,7 +14,6 @@ import type { UnitAnswerCall } from "./unit-answer";
 
 type Schemas = components["schemas"];
 type PromptDocument = Schemas["PromptDocument"];
-type Role = Schemas["Role"];
 
 // The agency's fixed API as its published package states it (the agency's `docs/api.md`, 「The control port」):
 // JSON in camelCase, a page for a list, and a refusal answered with the status's kebab-case code and an English
@@ -29,7 +28,8 @@ const AGENCY_CODES: Readonly<Record<string, string>> = {
   "unprocessable-entity": "agents.error.agency_unprocessable",
   "service-unavailable": "agents.error.agency_unavailable",
   "internal-server-error": "agents.error.agency_failed",
-  "bad-gateway": "agents.error.agency_failed"
+  "bad-gateway": "agents.error.agency_failed",
+  "name-taken": "agents.error.agent_name_taken"
 };
 
 // A listing the agency reads from a provider's own catalogue takes as long as that provider answers.
@@ -129,8 +129,28 @@ export function agentSummaries(agents: readonly AgencyAgent[], workers: readonly
 }
 
 /** A role as the agent list names it; the agency keeps no label or bundle list for one. */
-export function roleView(role: Role): RoleView {
-  return { name: role.name, label: role.name, bundles: [] };
+/** The roles an agent may hold as the agents' answer carries them, each with its label and the bundles it gives; a
+ * member that does not read as one is left out. */
+export function agentRolesOf(answer: unknown): RoleView[] {
+  const roles = (answer as { roles?: unknown } | null)?.roles;
+
+  if (!Array.isArray(roles)) return [];
+
+  return roles.flatMap((role): RoleView[] => {
+    const held = role as { name?: unknown; label?: unknown; bundles?: unknown };
+
+    if (typeof held?.name !== "string") return [];
+
+    const bundles = Array.isArray(held.bundles)
+      ? held.bundles.flatMap((bundle) => {
+          const one = bundle as { name?: unknown; label?: unknown };
+
+          return typeof one?.name === "string" ? [{ name: one.name, label: typeof one.label === "string" ? one.label : one.name }] : [];
+        })
+      : [];
+
+    return [{ name: held.name, label: typeof held.label === "string" ? held.label : held.name, bundles }];
+  });
 }
 
 /** A worker's sampling, as the worker's own screen reads it; the agency's document holds it as the worker gives it. */

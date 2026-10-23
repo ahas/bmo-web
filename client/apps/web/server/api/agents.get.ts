@@ -1,23 +1,22 @@
 import type { AgentList } from "#shared/types";
 
-// The catalogue of agents as the agency answers it: its agents and its workers, and the roles an agent may hold,
-// with each agent's keepalive as the cache warmer holds it laid over its row. An agency that does not answer
+// The catalogue of agents as the agency answers it: its agents and its workers, and the roles an agent may hold as
+// the agents' answer carries them beside the agents — each with its label and the bundles it gives — with each agent's keepalive as the cache warmer holds it laid over its row. An agency that does not answer
 // leaves the list empty and says so. The gate order is the gate unit's, which is not split yet, so none stands
 // beside the list (docs/boundary.md, 「Screens of units not yet split」).
 export default defineEventHandler(async (event): Promise<AgentList> => {
   await requireUserSession(event);
 
   try {
-    const [agents, workers, roles] = await Promise.all([
+    const [agents, workers] = await Promise.all([
       agencyCall(agency().GET("/agents")),
-      agencyCall(agency().GET("/workers")),
-      agencyCall(agency().GET("/roles"))
+      agencyCall(agency().GET("/workers"))
     ]);
 
     return {
       reachable: true,
       agents: await withKeepalive(agentSummaries(agents.items, workers.items), keepaliveConsumer()),
-      roles: roles.items.map(roleView),
+      roles: agentRolesOf(agents),
       gateOrder: null
     };
   } catch (error) {

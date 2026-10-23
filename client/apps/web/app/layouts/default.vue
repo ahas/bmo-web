@@ -46,7 +46,7 @@
           </div>
         </ContentSkeleton>
         <p v-if="roomsError" class="text-sm text-error">{{ $t("screens.error.rooms_failed") }}</p>
-        <SidebarRooms :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" />
+        <SidebarRooms :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" addable @add="roomAdding = true" />
         <ContentSkeleton v-if="agentsInitial" :rows="3" listClass="flex flex-col" :label="$t('screens.status.agents_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
             <SkeletonBar class="size-5 shrink-0 rounded-sm" />
@@ -123,6 +123,8 @@
         <TodoPanel place="drawer" @close="todoOpen = false" />
       </template>
     </UDrawer>
+
+    <RoomAddDialog v-model:open="roomAdding" @added="roomAdded" />
   </UDashboardGroup>
 </template>
 
@@ -140,7 +142,7 @@ import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
 
-import type { LiveRun, StatusView } from "#shared/types";
+import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AgentGroup, AgentMeta, AgentSession } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
@@ -190,6 +192,14 @@ const { agents, initial: agentsInitial, failed: agentsFailed } = useAgentCatalog
 // The rooms, each with how many of its messages the reader has not read, read again whenever a message lands in one
 // of them (docs/web.md, 「Sidebar」). A room's session is titled and ranked by the same list.
 const { data: rooms, status: roomsStatus, error: roomsError } = useRoomList();
+
+// A room added from a chat service's account stands in the list at once, and the console goes to it.
+const roomAdding = ref(false);
+
+async function roomAdded(added: RoomAdded): Promise<void> {
+  await refreshNuxtData("rooms");
+  await navigateTo(`/rooms/${added.chatId}`);
+}
 const reading = useRoomReading();
 const roomsInitial = useInitialRead(roomsStatus);
 const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.value, avatars.value, route.path, sidebarFolded.value, reading.value));

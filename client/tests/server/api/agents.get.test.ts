@@ -6,7 +6,7 @@ import { answer, standIn } from "../../support/units";
 import type { AgentList } from "../../../apps/web/shared/types";
 
 // The catalogue as the agency answers it, its agents and workers with each one's keepalive as the cache warmer
-// holds it laid over its row. An agency that does not answer leaves the list empty and says so. The gate order is
+// holds it laid over its row, and the roles an agent may hold as the agents' answer carries them. An agency that does not answer leaves the list empty and says so. The gate order is
 // the gate unit's, which is not split, so none stands beside the list.
 
 process.env.KEEPALIVE_CONSUMER = "agency";
@@ -17,7 +17,11 @@ standIn("AGENCY", (call) => {
   if (!agencyAnswers) return answer({ code: "service-unavailable", error: "the store is not open" }, 503);
 
   if (call.path.startsWith("/agents")) {
-    return answer({ items: [{ name: "agent-a", label: "Agent A", role: "builder", gates: null, reasoning: null, voice: null, resetAt: null, standInAvailable: false }], more: false });
+    return answer({
+      items: [{ name: "agent-a", label: "Agent A", role: "builder", gates: null, reasoning: null, voice: null, resetAt: null, standInAvailable: false }],
+      more: false,
+      roles: [{ name: "builder", label: "Builder", bundles: [{ name: "graph.read", label: "Graph" }] }, { label: "no name" }]
+    });
   }
 
   if (call.path.startsWith("/workers")) return answer({ items: [], more: false });
@@ -39,7 +43,7 @@ describe("the agent list", () => {
     expect((await asked(handler, {})).answer).toMatchObject({
       reachable: true,
       agents: [{ name: "agent-a", kind: "chat", label: "Agent A", role: "builder", keepaliveStopped: true, keepalivePausedAt: 7, lastKeepaliveAt: 5 }],
-      roles: [{ name: "builder", label: "builder", bundles: [] }],
+      roles: [{ name: "builder", label: "Builder", bundles: [{ name: "graph.read", label: "Graph" }] }],
       gateOrder: null
     });
   });

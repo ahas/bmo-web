@@ -222,7 +222,7 @@ const FULL_TABLE_TABS: readonly AgentTab[] = ["routes", "gates"];
 
 const workersRef = useTemplateRef<{ openAdd: () => void }>("workersRef");
 const companionsRef = useTemplateRef<{ openAdd: () => void }>("companionsRef");
-const generalRef = useTemplateRef<{ openAddAccount: () => void; openAddRegistration: () => void; openAddCatalogue: () => void; openAddBasePrompt: () => void }>("generalRef");
+const generalRef = useTemplateRef<{ openAddAccount: () => void; openAddRegistration: () => void; openAddCatalogue: () => void; openAddBasePrompt: () => void; openAddAgent: () => void }>("generalRef");
 // The sections that wait in their own list's rows rather than a card's.
 const LIST_SECTIONS = ["registry", "catalogue", "base-prompts"];
 
@@ -230,7 +230,8 @@ const generalAddItems = computed(() => [
   { tab: "supply", label: t("agents.title.accounts"), icon: "i-material-symbols-person-add-outline", onSelect: () => generalRef.value?.openAddAccount() },
   { tab: "supply", label: t("agents.title.registry"), icon: "i-material-symbols-model-training", onSelect: () => generalRef.value?.openAddRegistration() },
   { tab: "supply", label: t("agents.title.catalogue"), icon: "i-material-symbols-deployed-code-outline", onSelect: () => generalRef.value?.openAddCatalogue() },
-  { tab: "general", label: t("agents.title.base_prompts"), icon: "i-material-symbols-article-outline", onSelect: () => generalRef.value?.openAddBasePrompt() }
+  { tab: "general", label: t("agents.title.base_prompts"), icon: "i-material-symbols-article-outline", onSelect: () => generalRef.value?.openAddBasePrompt() },
+  { tab: "agents", label: t("agents.title.agent_add"), icon: "i-material-symbols-person-add-outline", onSelect: () => generalRef.value?.openAddAgent() }
 ].filter((item) => item.tab === tab.value).map(({ tab: _tab, ...item }) => item));
 
 const tab = computed<AgentTab>(() => (isAgentTab(route.query.tab) ? route.query.tab : "general"));

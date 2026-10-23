@@ -111,6 +111,8 @@
       <AgentsAccounts ref="accountsRef" :accounts="props.fallback.accounts" :reread="() => props.reread('fallback')" :query="props.query" />
     </template>
     <template v-if="props.part === 'agents'">
+      <AgentAddDialog v-model:open="agentAdding" :roles="props.agents.roles" :providers="props.fallback.order" :workers="agentWorkers" @added="agentAdded" />
+
       <!-- Every agent in one table with its role and its own warming switch. The switch reads what the cache
            warmer holds for that agent alone; while the whole round is off, a row still on says so. -->
       <section :id="settingsAnchor('agents')" class="flex flex-col gap-3" aria-labelledby="agents-title">
@@ -191,11 +193,12 @@ import { matchFields } from "bmo-ui/shared/search";
 import { settingsAnchor } from "~/domain/agent-settings";
 import { agentGroups, gateBlocks, generalSectionTitle, keepaliveMarkOf, movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useIsland } from "bmo-ui/app/domain/island";
 import { countText } from "~/domain/numbers";
 import { modeLabel, modelLabel } from "~/domain/status";
 import { useRowDrag } from "~/domain/row-drag";
 
-import type { AgentList, AgentSummary, FallbackView, KeepaliveView, OrderedProvider, RoomSummary } from "#shared/types";
+import type { AgentList, AgentRegistered, AgentSummary, FallbackView, KeepaliveView, OrderedProvider, RoomSummary } from "#shared/types";
 import type { AgentBlock, AgentGroup, GeneralPart, GeneralTab } from "~/domain/agents";
 import type { ModelPage } from "#shared/agency";
 
@@ -406,5 +409,26 @@ function openAddBasePrompt(): void {
   basePromptsRef.value?.openAdd();
 }
 
-defineExpose({ openAddAccount, openAddRegistration, openAddCatalogue, openAddBasePrompt });
+// An agent of any kind registered from the agent table; the notice says what became of its brain.
+const agentAdding = ref(false);
+// What the notice says became of the agent's brain.
+const BRAIN_NOTICES: Record<AgentRegistered["brain"], string> = {
+  made: "agents.status.agent_added_made",
+  kept: "agents.status.agent_added_kept",
+  none: "agents.status.agent_added_none",
+  failed: "agents.status.agent_added_failed"
+};
+const island = useIsland(t);
+const agentWorkers = computed(() => props.agents.agents.filter((agent) => agent.kind === "worker").map((agent) => ({ name: agent.name, label: agent.label ?? agent.name })));
+
+function openAddAgent(): void {
+  agentAdding.value = true;
+}
+
+async function agentAdded(added: AgentRegistered): Promise<void> {
+  island.say({ title: t(BRAIN_NOTICES[added.brain], { name: added.name }), to: `/agents/${encodeURIComponent(added.name)}` });
+  await props.reread("agents");
+}
+
+defineExpose({ openAddAccount, openAddRegistration, openAddCatalogue, openAddBasePrompt, openAddAgent });
 </script>

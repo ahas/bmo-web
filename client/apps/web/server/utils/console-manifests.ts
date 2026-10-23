@@ -1,4 +1,4 @@
-import { CONSOLE_MANIFEST_ROUTE, consoleManifest, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
+import { CONSOLE_MANIFEST_ROUTE, consoleManifest, relaysRoute, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 import { unitHeaders } from "./units";
@@ -181,6 +181,12 @@ export function relayedPath(manifest: ConsoleManifest, path: string): boolean {
   const prefix = manifest.apiPrefix.replace(/\/+$/, "");
 
   return prefix === "" || path === prefix || path.startsWith(`${prefix}/`);
+}
+
+/** Whether a call of a service's API is one the relay hands on: a path `relayedPath` lets through, or a route the
+ * manifest names under `relays` by its method and path. */
+export function relayedCall(manifest: ConsoleManifest, method: string, path: string): boolean {
+  return relayedPath(manifest, path) || relaysRoute(manifest, method, path);
 }
 
 /** The bundle whose screen path a page address stands under, read from the console's base path, or null where none. */

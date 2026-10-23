@@ -253,3 +253,81 @@ describe("the relay of a call from a bundle's page", () => {
     }
   });
 });
+
+// A route a manifest names under `relays` stands outside its API prefix and is relayed by its method and path alone,
+// for its own screens and for a page whose manifest names the service under `calls`; the translator's route waits
+// as long as the console's setting says for its answer to begin, every other call thirty seconds (docs/web.md,
+// 「Screens a unit brings」).
+describe("the relay of a route a manifest relays", () => {
+  const heard: string[] = [];
+  const served = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    async fetch(request) {
+      const path = new URL(request.url).pathname;
+
+      heard.push(`${request.method} ${path}`);
+      if (path === "/slow" || path === "/readings") await Bun.sleep(150);
+
+      return Response.json({ ok: true });
+    }
+  });
+  const named = (name: string, calls: string[] = [], relays: { method: string; path: string }[] = []) => ({
+    manifest: consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/console/bundle/module-a.js", words: "/console/words", apiPrefix: "/console", role: "administrator", calls, relays }),
+    unit: { address: `http://127.0.0.1:${served.port}`, token: null },
+    words: {}
+  });
+  const runtime = globals.useRuntimeConfig;
+  let translator: { service: string; path: string } = { service: "", path: "" };
+  let translatorBeginMs: unknown = 50;
+
+  beforeAll(() => {
+    globals.useRuntimeConfig = () => ({ app: { baseURL: "/" }, translatorBeginMs, public: { bmoUi: { translator } } });
+    attachBundles([
+      named("caller", ["reader"]),
+      named("stranger"),
+      named("reader", [], [
+        { method: "POST", path: "/readings" },
+        { method: "POST", path: "/slow" }
+      ])
+    ]);
+  });
+  afterAll(() => {
+    attachBundles([]);
+    globals.useRuntimeConfig = runtime;
+    void served.stop(true);
+  });
+
+  const call = (path: string, method = "POST", referer?: string) =>
+    handler({ params: { path }, method, headers: referer === undefined ? {} : { referer }, node: {} } as RouteEvent).then(
+      (response) => response.status,
+      (error: { statusCode?: number }) => error.statusCode
+    );
+
+  test("hands on the route by its method and path, and no other method or path beside it", async () => {
+    expect(await call("reader/readings")).toBe(200);
+    expect(heard.at(-1)).toBe("POST /readings");
+    expect(await call("reader/readings", "GET")).toBe(404);
+    expect(await call("reader/readings/kept")).toBe(404);
+  });
+
+  test("hands it on from a page whose manifest names the service, and refuses another bundle's page", async () => {
+    expect(await call("reader/readings", "POST", "https://console.example.test/caller")).toBe(200);
+    expect(await call("reader/readings", "POST", "https://console.example.test/stranger")).toBe(403);
+  });
+
+  test("waits for the translator's route as long as the setting says, and every other call thirty seconds", async () => {
+    translator = { service: "reader", path: "/readings" };
+
+    try {
+      expect(await call("reader/readings")).toBe(504);
+      expect(await call("reader/slow")).toBe(200);
+
+      translatorBeginMs = undefined;
+      expect(await call("reader/readings")).toBe(200);
+    } finally {
+      translator = { service: "", path: "" };
+      translatorBeginMs = 50;
+    }
+  });
+});

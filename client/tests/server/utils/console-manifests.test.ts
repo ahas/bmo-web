@@ -2,7 +2,7 @@ import { afterAll, expect, test } from "bun:test";
 
 import { consoleManifest } from "bmo-ui/shared/console-manifest";
 
-import { askedBundle, namedUnits, readerMay, relayedPath, screenOf, sharePage, withoutConflicts } from "../../../apps/web/server/utils/console-manifests";
+import { askedBundle, namedUnits, readerMay, relayedCall, relayedPath, screenOf, sharePage, withoutConflicts } from "../../../apps/web/server/utils/console-manifests";
 
 // The manifests the units answer (docs/web.md, 「Screens a unit brings」): every unit the settings name is asked, a
 // manifest that reads brings its bundle with its words, and two that clash bring none.
@@ -86,4 +86,14 @@ test("the relay lets through the API prefix, the module and the stylesheet, and 
   expect(sharePage(manifest, "/unit-a/share/token-a")).toBe(true);
   expect(sharePage(manifest, "/unit-a/sharing")).toBe(false);
   expect(screenOf({ manifest, unit, words: {} }, "/base/").module).toBe("/base/api/unit-a/console/bundle.js");
+});
+
+test("the relay lets through a route the manifest relays by its method and path, beside what its prefix lets through", () => {
+  const manifest = consoleManifest(manifestOf({ apiPrefix: "/screen", relays: [{ method: "POST", path: "/readings" }] }));
+
+  expect(relayedCall(manifest, "POST", "/readings")).toBe(true);
+  expect(relayedCall(manifest, "post", "/readings")).toBe(true);
+  expect(relayedCall(manifest, "GET", "/readings")).toBe(false);
+  expect(relayedCall(manifest, "POST", "/readings/kept")).toBe(false);
+  expect(relayedCall(manifest, "GET", "/screen/items")).toBe(true);
 });

@@ -76,6 +76,9 @@ export default defineNuxtConfig({
   // messages stand under and the label rooms call it by, set at run time as `NUXT_PUBLIC_CHAT_AGENT_NAME` and
   // `NUXT_PUBLIC_CHAT_AGENT_LABEL`.
   runtimeConfig: {
+    // How long the relay waits for the translator's route to begin its answer, set at run time as
+    // `NUXT_TRANSLATOR_BEGIN_MS` (docs/boundary.md, 「Settings」).
+    translatorBeginMs: 90_000,
     public: {
       chatAgent: { name: "", label: "" },
       // The installed app's shell version, which the shell-version module states as the build stands.

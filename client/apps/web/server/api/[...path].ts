@@ -7,7 +7,7 @@ import { wording } from "#shared/wording";
 import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
 
 import { relayedSegment, socketRelay } from "../utils/bundle-relay";
-import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedPath } from "../utils/console-manifests";
+import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedCall } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
 import { unitAt } from "../utils/units";
 
@@ -21,9 +21,9 @@ import { unitAt } from "../utils/units";
 // shapes and refusals.
 //
 // A service a manifest names is relayed at the address of the unit that answered it, and only for the paths under
-// its API prefix, its module and its stylesheet, to a reader its manifest's role and owner key allow (docs/web.md,
-// 「Screens a unit brings」). A unit the console calls directly, which answers no manifest, is relayed at the
-// address its setting names.
+// its API prefix, the routes it names under `relays`, its module and its stylesheet, to a reader its manifest's role
+// and owner key allow (docs/web.md, 「Screens a unit brings」). A unit the console calls directly, which answers no
+// manifest, is relayed at the address its setting names.
 //
 // A bundle's page reaches another service a manifest names only where its own manifest names that service under
 // `calls`, on that service's own terms; the page is the address the browser sends as the call's referrer. Any other
@@ -55,6 +55,22 @@ const ANSWERED_HEADERS = [
 // How long a service has to begin answering; the bytes themselves, a file or a stream, may take longer.
 const BEGIN_MS = 30_000;
 
+// How long the translator's route has to begin answering where the console's setting names no other wait.
+const TRANSLATOR_BEGIN_MS = 90_000;
+
+// How long a call has to begin its answer: the console's own wait for the translator's route, which queues its work
+// before it answers, and `BEGIN_MS` for every other (docs/web.md, 「Screens a unit brings」).
+function beginMs(service: string, path: string): number {
+  const config = useRuntimeConfig() as { translatorBeginMs?: unknown; public?: { bmoUi?: { translator?: { service?: unknown; path?: unknown } } } };
+  const translator = config.public?.bmoUi?.translator;
+
+  if (translator?.service !== service || translator.path !== path) return BEGIN_MS;
+
+  const named = Number(config.translatorBeginMs);
+
+  return Number.isInteger(named) && named > 0 ? named : TRANSLATOR_BEGIN_MS;
+}
+
 // A road under a share token, which is the whole of the permission it carries.
 const SHARE_READ = /^shares\/[^/]+(\/content)?$/;
 
@@ -80,14 +96,14 @@ async function relayed(event: H3Event): Promise<Response> {
   const rest = path.map(relayedSegment).join("/");
   const attached = attachedService(service);
   const unit = attached?.unit ?? unitAt(service.replaceAll("-", "_").toUpperCase());
+  const method = getMethod(event).toUpperCase();
 
   // A name neither a manifest nor a setting names is this console's own absence, not a unit's. A unit the console
   // calls directly — the agency, bmo-job, the receiver, the brain — stands beside the bundles, and its own paths are
   // handed on as they are. A path of a bundle's service outside what its manifest lets through is absent as well.
   if (unit === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
-  if (attached !== null && !relayedPath(attached.manifest, `/${rest}`)) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  if (attached !== null && !relayedCall(attached.manifest, method, `/${rest}`)) throw createError({ statusCode: 404, statusMessage: "Not Found" });
 
-  const method = getMethod(event).toUpperCase();
   const reading = method === "GET" || method === "HEAD";
   const session = await getUserSession(event);
   const unsigned = reading && (SHARE_READ.test(rest) || (attached !== null && bundleFile(attached.manifest, `/${rest}`)));
@@ -122,7 +138,7 @@ async function relayed(event: H3Event): Promise<Response> {
   // The body goes as the bytes it came as, so a bundle's file upload is not read as text on the way.
   const body = reading ? undefined : await readRawBody(event);
   const waiting = new AbortController();
-  const timer = setTimeout(() => waiting.abort(new DOMException("the service did not begin its answer", "TimeoutError")), BEGIN_MS);
+  const timer = setTimeout(() => waiting.abort(new DOMException("the service did not begin its answer", "TimeoutError")), beginMs(service, `/${rest}`));
   let response: Response;
 
   try {

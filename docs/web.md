@@ -5686,7 +5686,10 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   `consoleManifest`, or whose words do not answer, brings none either, and the server's log names the fault.
   Two manifests sharing a name, a screen path or a service name both bring none.
 - **The service is relayed under the name its manifest gives,** at the address and with the token of the unit
-  that answered it: the paths under its `apiPrefix`, its module and its stylesheet, and nothing else of it. Its
+  that answered it: the paths under its `apiPrefix`, each route its manifest names under `relays` by its method and
+  path, its module and its stylesheet, and nothing else of it. A relayed call gives the service thirty seconds to
+  begin its answer, and a call to the translator's route (below) the console's `NUXT_TRANSLATOR_BEGIN_MS`, ninety
+  seconds by default; a service that has not begun by then is a 504. Its
   event stream and its socket are relayed where the manifest asks for them, and the notices it names under
   `pushKinds` are rung (「Notifications」).
 - **A bundle calls the services it names.** A manifest's `calls` names the other services its screens call
@@ -5700,7 +5703,10 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
 - **The translator a bundle translates through** is named by the console's environment
   (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_SERVICE` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_PATH`, `docs/boundary.md`,
   「Settings」), as bmo-ui's runtime configuration reads it; the console's code names none. A bundle's screen asks it
-  through bmo-ui's translation module, and with neither set no screen translates.
+  through bmo-ui's translation module, and with neither set no screen translates. How many originals one ask
+  carries and how many asks a tab holds out at once are the same configuration's
+  (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_BATCH` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_ASKS_AT_ONCE`), bmo-ui's defaults
+  standing where neither is set.
 - **A reader is handed the screens their role opens.** The console's `GET /api/console-bundles` answers the
   bundles whose manifest's role the signed-in reader's role allows, leaving out one that asks for the owner key
   where the login has no user: each with its name, title and icon, its screen path, the relay addresses of its

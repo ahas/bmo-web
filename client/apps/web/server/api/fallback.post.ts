@@ -186,6 +186,11 @@ async function toAgency(sent: Record<string, unknown>): Promise<FallbackChanged>
     name: text(sent.name),
     kind: text(sent.kind),
     path: text(sent.path),
+    // An endpoint account's own fields are none the screen sets.
+    endpoint: null,
+    keyFile: null,
+    models: null,
+    basePrompt: null,
     key: text(sent.key),
     mode: text(sent.mode)
   };

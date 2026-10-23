@@ -82,6 +82,28 @@ export interface TierSettingsView {
   conflicts: TierConflict[];
   assignments: TierAssignmentView[];
 }
+
+// Where a fold ratio comes from: set on the console, the provider's own default where none is set, or the
+// general default where the provider declares none either.
+export type FoldRatioSource = "set" | "provider" | "default";
+
+// One provider's fold ratio at one tier: the share of a model's window a session may fill before it is folded
+// once the turn that crossed it is over.
+export interface FoldRatioView {
+  provider: TierProvider;
+  tier: ModelTier;
+  ratio: number;
+  source: FoldRatioSource;
+}
+
+// The fold-ratio grid (the agency's `docs/api.md`, 「fold-ratios」): the tiers in ladder order, the providers
+// the agency declares, and every provider's ratio at every tier.
+export interface FoldRatiosView {
+  tiers: ModelTier[];
+  providers: TierProvider[];
+  ratios: FoldRatioView[];
+}
+
 // What one model of a provider's catalogue offers a screen beyond the capability a save is checked
 // against. Each fact is the provider's to answer and absent from one that does not: `free` from
 // OpenRouter, and from a provider whose catalogue tells a generation in service from a superseded

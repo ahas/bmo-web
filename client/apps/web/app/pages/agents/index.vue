@@ -162,6 +162,7 @@
 
         <template v-else-if="tab === 'tiers'">
           <AgentsTierTable :query="query" />
+          <AgentsFoldRatios :query="query" />
           <AgentsCoworkerLimits :query="query" />
         </template>
 
@@ -188,6 +189,7 @@
 <script setup lang="ts">
 import { AGENT_TABS, emptyFallbackView, emptyKeepaliveView, isAgentTab, mappingText, routeModeText, searchSettings, settingsAnchor } from "~/domain/agent-settings";
 import { agentGroups, GENERAL_SECTIONS, keepaliveMarkOf, NOT_CHECKOUT_LABEL } from "~/domain/agents";
+import { foldPercentText, foldRatioAt, foldSourceText } from "~/domain/fold-ratios";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useListPlace } from "bmo-ui/app/domain/list-place";
 import { useReadFailure } from "~/domain/events";
@@ -203,7 +205,7 @@ import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
 import type { AgentSummary, FallbackView, KeepaliveView, RoomSummary } from "#shared/types";
 import type { GeneralPart } from "~/domain/agents";
-import type { ModelPage, TierSettingsView } from "#shared/agency";
+import type { FoldRatiosView, ModelPage, TierSettingsView } from "#shared/agency";
 
 const route = useRoute();
 const router = useRouter();
@@ -257,6 +259,7 @@ const rooms = computed<RoomSummary[]>(() => roomList.value ?? []);
 const { data: fallback, refresh: rereadFallback, status: fallbackStatus } = useFetch<FallbackView>("/api/fallback", { key: "fallback", lazy: true, server: false, default: emptyFallbackView });
 const { data: keepalive, refresh: rereadKeepalive, status: keepaliveStatus } = useFetch<KeepaliveView>("/api/keepalive", { key: "keepalive", lazy: true, server: false, default: emptyKeepaliveView });
 const { data: tiers } = useFetch<TierSettingsView>("/api/model-tiers", { key: "model-tiers", lazy: true, server: false });
+const { data: foldRatios } = useFetch<FoldRatiosView>("/api/fold-ratios", { key: "fold-ratios", lazy: true, server: false });
 // The registered models, read apart from the rest of the tab: its section waits on its own read.
 const { data: models, error: modelsError, refresh: rereadModels, status: modelsStatus } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
 
@@ -283,7 +286,7 @@ async function reread(): Promise<void> {
   rereading.value = true;
 
   try {
-    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), refreshNuxtData("model-tiers"), rereadResearch(), rereadModels()]);
+    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), refreshNuxtData("model-tiers"), refreshNuxtData("fold-ratios"), rereadResearch(), rereadModels()]);
   } finally {
     rereading.value = false;
   }
@@ -391,6 +394,17 @@ const entries = computed<SettingsEntry[]>(() => {
     });
 
     list.push({ id: `tier-${tier}`, tab: "tiers", label: t("agents.label.find_tier", { tier }), fields: [{ label: t("agents.label.tier"), text: tier, shown: true }, ...cells] });
+  }
+
+  for (const tier of foldRatios.value?.tiers ?? []) {
+    const cells = (foldRatios.value?.providers ?? []).map((provider) => {
+      const label = modeLabel(t, provider);
+      const held = foldRatioAt(foldRatios.value, tier, provider);
+
+      return { label, text: held === null ? null : `${label} ${foldPercentText(t, held.ratio)} ${foldSourceText(t, held.source)}`, shown: true };
+    });
+
+    list.push({ id: `fold-${tier}`, tab: "tiers", label: t("agents.label.find_fold_ratio", { tier }), fields: [{ label: t("agents.label.tier"), text: tier, shown: true }, ...cells] });
   }
 
   const gateKeys = new Set((fallback.value?.profiles ?? []).filter((one) => one.kind === "gate").map((one) => one.key));

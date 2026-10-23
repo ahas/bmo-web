@@ -30,6 +30,7 @@ const tiers = await read("../../components/AgentsTierTable.vue");
 const routes = await read("../../components/AgentsRouteTable.vue");
 const gateDialog = await read("../../components/GateSettingsDialog.vue");
 const limits = await read("../../components/AgentsCoworkerLimits.vue");
+const folds = await read("../../components/AgentsFoldRatios.vue");
 const dialog = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/SettingsDialog.vue"))).text();
 const table = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/DataTable.vue"))).text();
 const choice = await read("../../components/SettingsChoiceCell.vue");
@@ -43,7 +44,7 @@ describe("the screen's sections", () => {
     expect(templateOf(page)).toContain("<UTabs");
     expect(scriptOf(page)).toContain("route.query.tab");
     expect(scriptOf(page)).toContain("router.push({ query: { ...route.query, tab:");
-    for (const part of ["<AgentsGeneral", "<AgentsWorkers", "<AgentsTierTable", "<AgentsCoworkerLimits", "<AgentsRouteTable", "<template v-else-if=\"tab === 'gates'\">", "<LayaStatusLine />", "<AgentsRouteTable gates", "<ResearchSettings"]) {
+    for (const part of ["<AgentsGeneral", "<AgentsWorkers", "<AgentsTierTable", "<AgentsFoldRatios", "<AgentsCoworkerLimits", "<AgentsRouteTable", "<template v-else-if=\"tab === 'gates'\">", "<LayaStatusLine />", "<AgentsRouteTable gates", "<ResearchSettings"]) {
       expect(templateOf(page)).toContain(part);
     }
     expect(page).not.toContain("WHERE_THE_LIST_LIVES");
@@ -90,7 +91,7 @@ describe("the screen's sections", () => {
 
 describe("every table of the screen", () => {
   test("is the one shared table, and no section draws its own", () => {
-    for (const source of [workers, tiers, routes, limits]) {
+    for (const source of [workers, tiers, routes, limits, folds]) {
       expect(templateOf(source)).toContain("<DataTable");
       expect(templateOf(source)).not.toContain("<UTable");
       // A section never repeats its tab's name as a title of its own.
@@ -291,6 +292,33 @@ describe("the model tab", () => {
     expect(template).toContain('label="effort"');
     expect(scriptOf(tiers)).toContain('answerTokens: answerTokens.value === 0 ? null : answerTokens.value');
     expect(scriptOf(tiers)).toContain('action: "set-mapping"');
+  });
+
+  test("holds the fold-ratio grid under the tier table, a tier to a row and a provider to a column, each cell set in percent in place", () => {
+    const template = templateOf(folds);
+
+    expect(templateOf(page).indexOf("<AgentsFoldRatios")).toBeGreaterThan(templateOf(page).indexOf("<AgentsTierTable"));
+    expect(templateOf(page).indexOf("<AgentsFoldRatios")).toBeLessThan(templateOf(page).indexOf("<AgentsCoworkerLimits"));
+    expect(template).toContain('>{{ $t("agents.title.fold_ratios") }}<');
+    expect(template).toContain('{{ $t("agents.label.fold_ratios_help") }}');
+    expect(template).toContain("<DataTableSkeleton");
+    expect(template).toContain("<ReadFailure");
+    expect(template).toContain('v-for="name in providerNames"');
+    expect(template).toContain("<SettingsInputCell");
+    expect(template).toContain(':min="FOLD_PERCENT_MIN"');
+    expect(template).toContain(':max="FOLD_PERCENT_MAX"');
+    expect(template).toContain("foldSourceText($t, foldRatioAt(data, row.original.tier, name)!.source)");
+    expect(template).toContain(":save=\"(text: string) => save(name, row.original.tier, text)\"");
+    expect(scriptOf(folds)).toContain('$fetch("/api/fold-ratios", { method: "POST", body: foldRatioChange(provider, tier, text) })');
+    expect(template).not.toContain("<SettingsDialog");
+  });
+
+  test("finds a fold ratio from the settings search and rereads the grid with the screen", () => {
+    expect(templateOf(folds)).toContain(":id=\"settingsAnchor(`fold-${row.original.tier}`)\"");
+    expect(scriptOf(page)).toContain("id: `fold-${tier}`, tab: \"tiers\"");
+    expect(scriptOf(page)).toContain('useFetch<FoldRatiosView>("/api/fold-ratios", { key: "fold-ratios"');
+    expect(scriptOf(folds)).toContain('useFetch<FoldRatiosView>("/api/fold-ratios", { key: "fold-ratios"');
+    expect(scriptOf(page)).toContain('refreshNuxtData("fold-ratios")');
   });
 
   test("holds the co-worker limits under it, on the providers the bot sends, with no chat agent or Frontier row and no role switch", () => {

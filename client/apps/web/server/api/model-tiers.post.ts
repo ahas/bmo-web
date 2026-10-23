@@ -26,6 +26,8 @@ export default defineEventHandler(async (event): Promise<TierSettingsView> => {
     acceptConflicts: truth(body?.acceptConflicts),
     provider: text(body?.provider),
     model: text(body?.model),
+    // The screen says thinking through the effort word, so the switch of its own stays unset.
+    thinking: null,
     effort: text(body?.effort),
     answerTokens: whole(body?.answerTokens)
   };

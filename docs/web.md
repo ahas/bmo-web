@@ -2358,7 +2358,16 @@ Two ways, split because the running places differ.
   ones in service; where what stands on the screen is the last list read rather than a fresh
   one, it says so under the model with the time that read was taken. Saving applies from the next run of
   every work key on that tier and does not touch a running one (the agency's `docs/model-tiers.md`).
-- **The co-worker table** (코워커 한도) stands under it, with 처음 한도로 at the right of its head: a row per
+- **The fold-ratio grid** (압축 기준) stands under it: a row per tier and a column per provider, as the agency
+  lists every provider it declares at every tier in ladder order (the agency's `docs/api.md`, 「fold-ratios」).
+  A fold ratio is the share of a model's window a session may fill before it is folded once the turn that
+  crossed it is over. A cell shows the ratio as a percent and, under it, where it comes from: set on the
+  console, the provider's own default, or the general default. A line under the grid's head says what the
+  percent is.
+- **A fold-ratio cell's box sets that one ratio:** a number box taking a whole percent from 1 to 100, saved with
+  Enter or the check button. The change reaches the next turn that reads it; no running session is folded by
+  the set itself, and a refused value stays in the box with the pack's sentence for the agency's code under it.
+- **The co-worker table** (코워커 한도) stands under the fold-ratio grid, with 처음 한도로 at the right of its head: a row per
   co-worker tier — Reliable, Fine, Light and Simple — and a column per provider turned on that lends
   co-workers; a turned-off provider and a single model have none (the agency's `docs/model-tiers.md`). The chat agent and Frontier have no row: they are the chat agent's own tier and the job worker's,
   never a borrowed co-worker's, so they have no limit, and the builder's turns run as many at once as

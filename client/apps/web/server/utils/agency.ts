@@ -6,9 +6,9 @@ import { wording } from "#shared/wording";
 import { unitAt } from "./units";
 import { answered } from "./unit-answer";
 
-import type { Agent as AgencyAgent, AgencyClient, Provider, Session, Tier, Worker } from "@agency/client";
+import type { Agent as AgencyAgent, AgencyClient, FoldRatio, Provider, Session, Tier, Worker } from "@agency/client";
 import type { components } from "@agency/client/schema";
-import type { AgentSamplingView, BasePromptView, BasePromptsView, GenerationSetting, GenerationValue, SessionView, TierProviderView, TierSettingsView } from "#shared/agency";
+import type { AgentSamplingView, BasePromptView, BasePromptsView, FoldRatiosView, FoldRatioView, GenerationSetting, GenerationValue, SessionView, TierProviderView, TierSettingsView } from "#shared/agency";
 import type { AgentSummary, RoleView } from "#shared/types";
 import type { UnitAnswerCall } from "./unit-answer";
 
@@ -169,6 +169,23 @@ export function tierSettingsOf(tiers: readonly Tier[], providers: readonly Provi
   }));
 
   return { tiers: tiers.map((tier) => tier.name), providers: views, mappings: [], conflicts: [], assignments: [] };
+}
+
+/** One provider's fold ratio at one tier as the fold-ratio grid reads it. */
+export function foldRatioView(ratio: FoldRatio): FoldRatioView {
+  return { provider: ratio.provider as FoldRatioView["provider"], tier: ratio.tier, ratio: ratio.ratio, source: ratio.source };
+}
+
+/** The fold-ratio grid as the tier screen reads it: the agency lists every provider at every tier in ladder
+ * order, so the tiers and the providers stand in the order they first appear. */
+export function foldRatiosOf(ratios: readonly FoldRatio[]): FoldRatiosView {
+  const views = ratios.map(foldRatioView);
+
+  return {
+    tiers: [...new Set(views.map((one) => one.tier))],
+    providers: [...new Set(views.map((one) => one.provider))],
+    ratios: views
+  };
 }
 
 // The base prompts the agency deploys and each agent's choice of one. A base prompt is a prompt document of the

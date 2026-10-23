@@ -791,15 +791,15 @@ const DRAFT_OUTCOMES: Record<string, string> = {
 };
 // The companion a turn or one of its events names, or undefined where it is the chat agent's. The receiver names
 // the speaker of every turn by the answering agent's registration name: the default answerer's is the chat agent's,
-// any other a companion's, and an event that names none is the chat agent's (docs/web.md, 「The name is the one
-// answering on that row」).
-export function companionOf(speaker: TurnSpeaker | undefined, answerer: string = defaultAnswererName()): Companion | undefined {
-  return speaker === undefined || speaker.name === answerer ? undefined : speaker;
+// any other a companion's, and an event that names none — its speaker absent or null — is the chat agent's
+// (docs/web.md, 「The name is the one answering on that row」).
+export function companionOf(speaker: TurnSpeaker | null | undefined, answerer: string = defaultAnswererName()): Companion | undefined {
+  return speaker === undefined || speaker === null || speaker.name === answerer ? undefined : speaker;
 }
 
 // Which turn of a room a run is: the chat agent's, or a companion's by its speaker's name. A room two agents answer
 // holds a turn of each at once, and each begins, moves and ends by this key alone.
-export function runKey(speaker: TurnSpeaker | undefined): string {
+export function runKey(speaker: TurnSpeaker | null | undefined): string {
   const companion = companionOf(speaker);
 
   return companion === undefined ? "bmo" : `speaker:${companion.name}`;

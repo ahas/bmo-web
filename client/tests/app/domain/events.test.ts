@@ -610,6 +610,21 @@ describe("the chat agent's turn as the receiver names it", () => {
     expect(runKey({ id: 11, name: "agent-c" })).not.toBe(runKey(companion));
   });
 
+  test("an event whose speaker is null, a verdict's among them, is the chat agent's and moves no other turn", async () => {
+    expect(companionOf(null)).toBeUndefined();
+    expect(runKey(null)).toBe(runKey(tagged));
+
+    await watching(-1003, async (screen) => {
+      screen.write("live", picture([]));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: companion }));
+      screen.write("bot", botEvent({ type: "judgement", messageId: 41, stage: "chat", verdict: "REPLY", speaker: null }));
+
+      expect(screen.runs().map((run) => run.speaker)).toEqual([companion]);
+
+      screen.write("live", picture([]));
+    }, () => true);
+  });
+
   test("the catalogue's session answering every room is the default answerer once the list has arrived", () => {
     holdCatalogue([catalogueRow("agent-b", "chat")]);
 

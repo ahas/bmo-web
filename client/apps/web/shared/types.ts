@@ -777,8 +777,8 @@ export interface ChatTurn extends TurnReceived {
   // The newest message the round carries, which it reads last and which its gates and answer judge;
   // null for a round carrying none, absent from a bot that does not say.
   messageId?: number | null;
-  // Whose turn it is, so a room two agents answer holds a turn of each at once.
-  speaker?: TurnSpeaker;
+  // Whose turn it is, so a room two agents answer holds a turn of each at once; null where the room gives none.
+  speaker?: TurnSpeaker | null;
   // The Job the turn waits on for its engine, while it waits; null or absent once it runs.
   waiting?: EngineHold | null;
   // The chat agent answering stands in no unit, so its stop is named by the execution the turn's run opened.
@@ -908,8 +908,8 @@ interface BotEventFields {
   // A run-started event alone: what the turn was handed, as it stood when the round opened.
   received?: TurnReceived;
   // A turn's events: who is answering, so each speaker's ending closes that speaker's turn and not another one
-  // going in the same room.
-  speaker?: TurnSpeaker;
+  // going in the same room. Null on an event that is no turn's, or of a room no turn has begun in.
+  speaker?: TurnSpeaker | null;
   // A run-progress event alone: where the turn is and what its stream has counted so far.
   progress?: RunProgress;
   // A sent event and a draft event: the round the answer went out in, which every message of that answer names.

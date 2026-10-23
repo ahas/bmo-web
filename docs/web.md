@@ -5349,7 +5349,9 @@ dialog open at 계정.
   receives it, and the path that rings it; the 알림 section and the delivery filter read the list of kinds and
   nothing else, so a kind added later changes no file but its own and that list. The two kinds of the bot's stream
   are rung by the plugin that listens to it; a bundle's notice kind is rung by the plugin that reads the stream
-  the bundle declares, in the bundle's own words.
+  the bundle declares, in the bundle's own words. That stream is read for nobody signed in, so it carries the
+  platform administrator's owner key: the user the account service names its administrator, its id as a
+  decimal number (`docs/boundary.md`, 「Calls the console makes」).
 - **A device receives a kind unless it was turned off there.** What a device stores is what it refused, so a kind added
   after the device subscribed reaches it too.
 - **The test button rings a test of its own,** not one of the kinds, and reaches every device of the account whatever
@@ -5424,7 +5426,8 @@ dialog open at 계정.
   screen, its share page and its notices; the cache siren and the cache warmer for their screens.
 - **A bundle's screen reaches its service through one relay.** The bundle calls the console's relay base, the
   service's name and the path the service's own API writes; the console hands it on to the address the
-  service's setting names with the service's token, and hands the answer back as it came. A socket the bundle
+  service's setting names with the service's token and the owner key of the person signed in — their user's id
+  on the account service, set in place of any the browser sent — and hands the answer back as it came. A socket the bundle
   declares stands at the same path and is relayed the same way: each frame is handed on as it came, and the
   close code ends both sides. Nothing here
   re-exposes a unit's API under a name of its own, so a route a service changes reaches its screen with no

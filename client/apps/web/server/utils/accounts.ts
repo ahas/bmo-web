@@ -51,8 +51,11 @@ export async function userNamed(name: string): Promise<number | null> {
 
 /** The signed-in user of a request, refused as anywhere where nobody is signed in. */
 export async function signedInUser(event: H3Event): Promise<SignedIn> {
-  const session = await requireUserSession(event);
+  return await signedInOf(await requireUserSession(event));
+}
 
+/** Who a session's seal says is signed in, read the same way wherever the seal is opened. */
+export async function signedInOf(session: { sid?: string; administrator?: boolean; user: { name: string; id?: number } }): Promise<SignedIn> {
   if (session.sid !== undefined) {
     return { name: session.user.name, id: session.user.id ?? null, administrator: session.administrator === true };
   }

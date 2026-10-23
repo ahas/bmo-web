@@ -32,7 +32,7 @@ interface UnitSocket {
 
 // What the unit was asked and what it heard: the path and query each socket opened at, the token it came with,
 // the frames, and the code the console's side closed with.
-const unitHeard = { opened: [] as { path: string; authorization: string | null }[], frames: [] as string[], closed: [] as number[] };
+const unitHeard = { opened: [] as { path: string; authorization: string | null; owner: string | null }[], frames: [] as string[], closed: [] as number[] };
 
 const unit = Bun.serve<UnitSocket, never>({
   hostname: "127.0.0.1",
@@ -40,7 +40,7 @@ const unit = Bun.serve<UnitSocket, never>({
   fetch(request, server) {
     const url = new URL(request.url);
 
-    unitHeard.opened.push({ path: `${url.pathname}${url.search}`, authorization: request.headers.get("authorization") });
+    unitHeard.opened.push({ path: `${url.pathname}${url.search}`, authorization: request.headers.get("authorization"), owner: request.headers.get("owner-key") });
 
     return server.upgrade(request, { data: { path: url.pathname } }) ? undefined : new Response("no upgrade", { status: 400 });
   },
@@ -105,14 +105,16 @@ afterAll(() => {
 });
 
 const signedIn = await sealSession(
-  { context: { sessions: { [SESSION.name]: { id: "session-a", createdAt: Date.now(), data: { user: { id: 1, name: "tester" } } } } } } as never,
+  { context: { sessions: { [SESSION.name]: { id: "session-a", createdAt: Date.now(), data: { sid: "sid-a", administrator: false, user: { id: 7, name: "tester" } } } } } } as never,
   SESSION
 );
 
 // A browser's socket on the console at `path`, with what it heard and how it closed.
+// The browser's own `Owner-Key` is one it cannot choose, so every socket here sends one the console must replace.
 function opened(path: string, cookie: string | null = `${SESSION.name}=${encodeURIComponent(signedIn)}`) {
   const SocketWith = WebSocket as unknown as new (url: string, options: { headers: Record<string, string> }) => WebSocket;
-  const socket = new SocketWith(`ws://127.0.0.1:${console_.port}${BASE}api/${path}`, { headers: cookie === null ? {} : { cookie } });
+  const headers: Record<string, string> = { "owner-key": "browser-chosen", ...(cookie === null ? {} : { cookie }) };
+  const socket = new SocketWith(`ws://127.0.0.1:${console_.port}${BASE}api/${path}`, { headers });
   const heard: string[] = [];
   const closed = new Promise<{ code: number; reason: string }>((resolve) => socket.addEventListener("close", (close) => resolve({ code: close.code, reason: close.reason })));
 
@@ -128,14 +130,14 @@ async function until(holds: () => boolean): Promise<void> {
 }
 
 describe("a bundle's socket through the console", () => {
-  test("reaches the unit's socket at the bundle's path with the unit's token, and a frame goes each way", async () => {
+  test("reaches the unit's socket at the bundle's path with the unit's token and the login's owner key, and a frame goes each way", async () => {
     const { socket, heard } = opened("relayed/terminals/term%20a/socket?cols=80");
 
     socket.addEventListener("open", () => socket.send("ping"));
 
     await until(() => heard.includes("echo ping"));
 
-    expect(unitHeard.opened.at(-1)).toEqual({ path: "/terminals/term%20a/socket?cols=80", authorization: `Bearer ${TOKEN}` });
+    expect(unitHeard.opened.at(-1)).toEqual({ path: "/terminals/term%20a/socket?cols=80", authorization: `Bearer ${TOKEN}`, owner: "7" });
     expect(heard[0]).toBe("hello /terminals/term%20a/socket");
     expect(unitHeard.frames).toContain("ping");
 

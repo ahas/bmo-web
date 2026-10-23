@@ -1,14 +1,18 @@
 import { defineWebSocket, unsealSession } from "h3";
 
+import { signedInOf } from "./accounts";
+import { OWNER_KEY_HEADER, ownerKeyOf } from "./owner-key";
 import { unitAt, unitHeaders } from "./units";
 
+import type { SignedIn } from "./accounts";
 import type { ConsoleBundleView } from "#shared/console-bundles";
 
 // The relay of a unit's own paths (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」; `docs/boundary.md`,
 // 「Calls the console makes」): a call under the relay base, the service's name and the path the service's own API
-// writes is handed on to the address the service's setting names, with the service's token, behind the console's
-// sign-in. A call goes through the catch-all route under the relay base; a socket a bundle declares stands at the
-// same path and is relayed here, frame by frame, so the bundle's protocol is the service's own.
+// writes is handed on to the address the service's setting names, with the service's token and the owner key of the
+// person signed in, behind the console's sign-in. A call goes through the catch-all route under the relay base; a
+// socket a bundle declares stands at the same path and is relayed here, frame by frame, so the bundle's protocol is
+// the service's own.
 
 /** One segment as it came, escaped once: what the request escaped stays escaped and what it left bare is escaped
  * now, and a segment whose escapes do not read as text goes as it came. */
@@ -45,9 +49,9 @@ function browserClose(code: number | undefined): number | undefined {
   return code === 1000 || (code !== undefined && code >= 3000 && code <= 4999) ? code : undefined;
 }
 
-// Whether the upgrade carries a live session. The upgrade never reaches the console's own middleware, so the seal is
-// read here through the same module the routes read it with.
-async function signedIn(request: { headers: Headers }): Promise<boolean> {
+// Who the upgrade's session says is signed in, or null where it carries no live session. The upgrade never reaches
+// the console's own middleware, so the seal is read here through the same module the routes read it with.
+async function signedIn(request: { headers: Headers }): Promise<SignedIn | null> {
   const config = useRuntimeConfig();
   const name = config.session?.name ?? "nuxt-session";
   const cookies = new Map(
@@ -59,15 +63,15 @@ async function signedIn(request: { headers: Headers }): Promise<boolean> {
   );
   const sealed = cookies.get(name);
 
-  if (sealed === undefined || sealed === "") return false;
+  if (sealed === undefined || sealed === "") return null;
 
   try {
     const unsealed = await unsealSession(undefined as never, config.session as never, decodeURIComponent(sealed));
-    const data = unsealed.data ?? {};
+    const data = (unsealed.data ?? {}) as { user?: unknown };
 
-    return typeof data.user === "object" && data.user !== null;
+    return typeof data.user === "object" && data.user !== null ? await signedInOf(data as Parameters<typeof signedInOf>[0]) : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -101,7 +105,9 @@ export const socketRelay = defineWebSocket({
       return;
     }
 
-    if (!(await signedIn(peer.request))) {
+    const signed = await signedIn(peer.request);
+
+    if (signed === null) {
       peer.close(1008, "unauthorized");
 
       return;
@@ -119,7 +125,8 @@ export const socketRelay = defineWebSocket({
     target.protocol = target.protocol === "https:" ? "wss:" : "ws:";
 
     const Socket = WebSocket as unknown as new (url: URL, options: SocketOptions) => WebSocket;
-    const socket = new Socket(target, { headers: unitHeaders(unit) });
+    const owner = ownerKeyOf(signed);
+    const socket = new Socket(target, { headers: { ...unitHeaders(unit), ...(owner === null ? {} : { [OWNER_KEY_HEADER]: owner }) } });
     socket.binaryType = "arraybuffer";
     held.upstream = socket;
 

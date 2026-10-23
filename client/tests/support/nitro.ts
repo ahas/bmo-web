@@ -59,7 +59,9 @@ for (const module of [
   await import("../../apps/web/server/utils/documents"),
   await import("../../apps/web/server/utils/document-fragments"),
   await import("../../apps/web/server/utils/document-request"),
-  await import("../../apps/web/server/utils/document-talk")
+  await import("../../apps/web/server/utils/document-talk"),
+  await import("../../apps/web/server/utils/hardware"),
+  await import("../../apps/web/server/utils/cards")
 ]) {
   Object.assign(globals, module);
 }

@@ -215,6 +215,8 @@ unit carries. A browser call to one of them reaches its fixed path through the r
 | the gate (`docs/api.md`) | the verdicts a room's messages were judged by, newest first, for the stretch of time a page of the room covers | `GET /judgements?roomId=&from=&to=&before=&limit=` |
 | the brain (`docs/api.md`) | the memories screen; the fragments behind the document viewer's documents, the name each kind is called by, and a fragment's standing | `GET`/`PATCH /memories`, `GET /fragments`, `GET /fragment-kinds`, `PATCH /fragments/{fragmentKey}`, `GET /health` |
 | the console bundles (`bmo-ui`'s `docs/console-bundles.md`; each unit's `docs/api.md`) | each bundle's own screen: its calls to the one service its declaration names | every path under `/api/<service>/`, handed on as it came to `<SERVICE>_ADDRESS` with `<SERVICE>_TOKEN`, behind the console's sign-in, its status, bytes and headers as the service gave them; each call and each socket also carries `Owner-Key`, the owner the service acts for: the signed-in login's user on the account service, its id written as a decimal number, set by the console in place of any the browser sent, and none where the login has no user (a share read, a console login before the account model is in force); the event stream the console reads itself for a bundle's notices carries the platform administrator's key, the user `users_administrator` names; a `GET` or `HEAD` of `shares/<token>` is relayed with no session, since the token is the whole of the permission. A bundle whose declaration asks for a socket opens it at the same path: the console takes the upgrade under `/api/<service>/` behind its sign-in, opens the service's own socket at that path with the token, and hands each frame on as it came and the close code and reason back either way; a socket on a service no bundle declares one for is closed as no relay. The services and their bundles are bmo-artifact (`artifact`), bmo-mail (`mail`), bmo-review (`review`), bmo-drive (`drive`) and bmo-remote (`remote`); a bundle's screen, its words, its event stream, its sockets and its notice kinds come from the bundle's declaration, and no code here names one. The relay also hands on a unit the console calls directly — the agency, bmo-job, the receiver and the brain — at the address its setting names, so a browser call to `<unit>`'s own fixed path stands under `/api/<unit>/`. The artifact bundle's share page reads the document its link names, which the relay does not open without a session: that is a gap in bmo-ui's contract, written in `docs/inventory.md`. |
+| the node service (`docs/api.md`) | the monitor screen's 기기 tab: the node list, each machine with its latest reading, its live tracking and CPU limit set, and its recorded readings, live and over a span | `GET /nodes` (page after page), `GET /machines/{machineName}`, `PATCH /machines/{machineName}` (`tracking`, `cpuLimit`), `GET /machines/{machineName}/readings?after=&spanMs=&limit=` |
+| the card master (bmo-arbiter's `docs/api.md`, 「What the master serves」) | the monitor screen's 서비스 tab: the whole picture of every node's cards, and the picture again whenever it changes | `GET /cluster`, `GET /events?kinds=cluster.changed` |
 | the cache siren (`docs/api.md`) | the cache siren screen: the sums it keeps by session, its siren count, its settings, and the newest events it holds | `GET /stats`, `GET /settings`, `GET /events?limit=` (read as a page, with `Accept: application/json`) |
 | the cache warmer (`docs/api.md`) | the keepalive view: the round, each agent's switch, pause and last warming, an agent being the subject of its name under the consumer `KEEPALIVE_CONSUMER` names | `GET /round`, `PATCH /round`, `GET /targets?consumerName=`, `GET /consumers/{consumer}/subjects`, `PATCH /consumers/{consumer}/subjects/{subject}` |
 | the Telegram service (`docs/api.md`) | the pictures kept for rooms and people, listed page by page, and one such picture | `GET /avatars`, `GET /rooms/{roomId}/avatar`, `GET /people/{personId}/avatar` |
@@ -276,6 +278,8 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `DRIVE_ADDRESS`, `DRIVE_TOKEN` | bmo-drive |
 | console | `REMOTE_ADDRESS`, `REMOTE_TOKEN` | bmo-remote |
 | console | `CACHE_SIREN_ADDRESS`, `CACHE_SIREN_TOKEN` | the cache siren |
+| console | `NODE_ADDRESS`, `NODE_TOKEN` | the node service |
+| console | `ARBITER_ADDRESS`, `ARBITER_TOKEN` | the card master; it takes a token only where its own settings name one |
 | console | `CACHE_WARMER_ADDRESS`, `CACHE_WARMER_TOKEN` | the cache warmer, which takes its bearer on every route, health included |
 | console | `KEEPALIVE_CONSUMER` | the consumer the agency registers its targets under at the cache warmer; with none, an agent's own keepalive switch is not offered and the round's still is |
 | console | `TELEGRAM_ADDRESS`, `TELEGRAM_TOKEN` | the Telegram service |
@@ -406,8 +410,7 @@ for it, and no file or table of that unit is read meanwhile.
 
 ## Screens of units not yet split
 
-The screens of the code graph, the nodes and the monitor, the card arbiter, the gates and the voice briefing
-belong to units whose own repositories carry no console bundle yet. Until each unit publishes one, the console
+The screens of the code graph, the gates and the voice briefing belong to units whose own repositories carry no console bundle yet. Until each unit publishes one, the console
 shows a placeholder in that screen's place: its navigation entry and its route stand, and the page says,
 through the language pack, that the feature is not available in this console. The placeholder makes no call,
 and no file of the unit's screen is carried. `docs/inventory.md` lists every file of those screens.
@@ -415,8 +418,6 @@ and no file of the unit's screen is carried. `docs/inventory.md` lists every fil
 | Unit | Address | Below it |
 |---|---|---|
 | bmo-graph | `/graph` | none |
-| bmo-node | `/monitor` | every address, as this machine's own monitor stood |
-| bmo-arbiter | `/cards` | none |
 | bmo-gate | `/gates` | every address, as each gate's own page stood |
 | bmo-voice | `/briefing` | none |
 

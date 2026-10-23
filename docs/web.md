@@ -18,7 +18,7 @@ alone over Nuxt and Nuxt UI, extending the bmo-ui layer and the bmo-artifact con
   store of the unit that owns what is shown, and **the control API** is those routes. The console's own data
   is the server's (`docs/accounts.md`, 「The tables」).
 - **A screen of a unit not yet split stands as a placeholder.** The mail, files, code review, remote access,
-  code graph, node and monitor, card and gate screens, and the voice briefing, belong to units whose own
+  code graph and gate screens, and the voice briefing, belong to units whose own
   repositories are not yet split: their navigation entries and routes stand, and each page says, through the
   language pack, that the feature is not available in this console (`docs/boundary.md`, 「Screens of units not
   yet split」). The layout holds no briefing player. Where this document names one of them, it names the
@@ -2077,6 +2077,117 @@ Two ways, split because the running places differ.
   to that place in the document. With no document open the body says so and, on a phone, offers the list. If a document cannot be read
   its reason and a reread button stand, and while reading the list and while reading a document follow the
   console's loading display.
+
+### Monitor screen
+
+- **`/monitor`, 모니터, is two tabs under the title bar, one level deep:** 기기, every machine's hardware, which
+  bmo-node reads, and 서비스, the card master's board (「Monitor's services tab」). The tab stands in the address
+  (`?tab=`), 기기 being the screen's own address and 서비스 `?tab=services`, so a link opens the same tab and
+  moving between them is a step of the history. Only the open tab reads anything. The console search finds
+  each tab as it finds a screen.
+- `/cards` sends a reader on to `/monitor?tab=services`, so a link made to that address lands on the master's
+  board.
+- **기기 shows every machine at a glance** (bmo-node's `docs/hardware.md`, 「Which machines」): this machine first,
+  then the nodes in the node list's order, one tile each; a node that is this machine is shown as this machine's
+  tile alone. It fills the panel rather than standing in the reading column, and so does each machine's own
+  monitor.
+- **A machine goes by the label its reading hands over** — this machine by its host name — on its tile and as the
+  title of its own monitor; no name is written into the code. Until the first reading lands the name's place is a
+  skeleton, and where the reading could not be asked at all it reads as its connection type.
+- The tiles stand as many to a row as the panel holds at a width their rows read well at, so a tile is never
+  stretched to the whole panel, and every tile of a row is as tall as the row; on a phone they are one column.
+- A tile carries:
+  - its name, its live tracking switch (bmo-node's `docs/hardware.md`, 「Tracking」) and its connection type —
+    SSH or Jake for a node, 로컬 for this machine;
+  - each GPU by its short model name, the maker's and the brand's words dropped (`RTX 3070`);
+  - a bar for each GPU's VRAM and one for RAM, each with its figures in their physical units and its fill after
+    them;
+  - a small copy of its chip at one height on every tile;
+  - two live charts side by side over the last minute (bmo-node's `docs/hardware.md`, 「Live」), 사용률 and 온도,
+    each drawing the CPU and every GPU as lines of their own colours on one axis, with each one's name in its
+    line's colour beside its latest value.
+- The OS, the CPU's model and the storage devices stand only on the machine's own monitor, so a tile's height
+  never turns on its disks or its cores. A tile opens the machine's own monitor from anywhere on it but its
+  switch: `/monitor/local` for this machine, `/monitor/<node>` for a node. A machine that cannot be read says so
+  on its tile in the error colour.
+- **A machine's own monitor** is the system card across the top, then one card per piece of hardware, each with
+  its live charts of the last minute and its record over the span its dropdown names, from 5분 to 1개월. Cards
+  are padded 16px and stand 16px apart. Its columns are decided by the room the monitor itself has: wide, the CPU
+  and the storage take a broader column with the memory, every GPU, board and failed services beside them in
+  that order; middling, the two columns share the width; narrow, one column in the order CPU, memory, GPU,
+  storage, board. The system card carries the live tracking switch, and the CPU card the CPU limit, each written
+  to the node service as it is set.
+- **How it reads.** A machine with its latest reading is asked every second while its screen stands and its tab
+  is visible, the live charts are filled from the node service's live record on opening and on coming back, and
+  a record is a span of the node service's readings gathered into the span's points (bmo-node's
+  `docs/hardware.md`, 「History」). The console keeps no copy of either.
+- Every figure that is a share of a whole — a use, a fill, a power against its limit, a temperature against a
+  hundred degrees — is a bar, coloured only where its figure has steps: a temperature against its part's limit
+  and a fill, a use never. The bars of one card stand as one group: the names in a column, the bars starting on
+  one line and the figures ending on one. A figure is written in its physical unit, and a share stands after it
+  rather than in its place (bmo-node's `docs/hardware.md`, 「Units」).
+- Every figure that ticks stands in tabular figures, and a value the machine did not answer reads 읽지 못함 rather
+  than nought.
+
+### Monitor's services tab
+
+- **The 서비스 tab of 모니터 shows every card the card master reads** (bmo-arbiter's `docs/api.md`, 「The
+  cluster」). It reads the master's picture alone, through the console's own server, and changes nothing; it is
+  read again the moment the master's picture changes, through its event stream. It fills the panel as a
+  monitoring board.
+- **The master's row** heads the board: whether the console reaches the master and its version (버전). The rules
+  stand in it only when the master could not read them, in the error colour with why. A master the console
+  cannot reach says so in one line in the error colour, and the last picture read stays under it.
+- **The whole board, 전체, stands under the master's row,** every node's card, unit and service on one view, in
+  the order the sections below take:
+  - a chart of every card as one horizontal bar on one shared MiB scale, drawn with ECharts in the form of its
+    custom-series profile: the card's capacity as a frame drawn first, so what is left empty is the free room,
+    then each unit on the card as a block in its service's colour with its part's pattern (none, stripes, dots,
+    in the order a service's parts first stand), then the memory in use that no unit accounts for in a neutral
+    tone, one block for each share named below; the node's name and card on the left, or over the bar where the
+    chart is narrower than a phone's landscape, and on the right its memory used and in all with the free room
+    under it; a slider under the chart widens a stretch of the scale, so a block of a few MiB can be seen, and
+    touching or hovering a block names it with its size;
+  - each service wears one colour on the board and the tiles below alike, given in the order the services
+    stand, so no two of the first ten share one;
+  - the services, one row each in shared columns: its colour, its name, its memory on the cards (its units' and
+    its processes' own), and its standing as chips — whose claim holds a card, whose turn a card is, how many
+    tickets of it wait. A service is every name the picture carries: a unit's, a ticket's, a turn's, a claim's,
+    an occupant's on any node (the catch-all `*` aside), a process's and a unit's the rules declare;
+  - under each service, one row per card it holds anything on — the node, with the card's number where the node
+    has more than one — with the service's memory on that card, and the kind from the rules (상시, 요청 시, 채움)
+    and where its units are — 로드됨, RAM, NVMe, 일부, or 대기 중 for a unit a waiting ticket asks for that no card
+    holds — said once for the card where its units agree; the units the rules name exactly that no card holds and
+    no ticket asks for stand under a row of their own, 카드 밖, each as 언로드됨 with the size the rules measured;
+  - under each card's row, its units, never naming the node again: the part with its pattern, under it what the
+    service says the unit holds where it says — 블록 0~17, 풀 어텐션 블록 4개, MTP, 출력층 — its memory, and its
+    kind and place where they differ from the other units of the card; then the memory the service's processes
+    take on the card past its units, as CUDA 컨텍스트 with the processes' names;
+  - after the services, 서비스 밖: for each card, every process no service is known for by its name, and what the
+    driver keeps that no process accounts for, 드라이버 예약; where the processes cannot be read, the memory past
+    the units stands as one share, 드라이버·컨텍스트;
+  - the waiting tickets of every card: the service, the node, the unit asked for, the place, how long it has
+    waited and the counted wait, or 대기 없음.
+  - Every name in it is the picture's: nothing on the board names a node, a service or a unit of its own.
+- **Each group of the rules** stands as a section titled with its name, its cards' memory in all and free, and a
+  bar of the whole; then a node that answers but no group chooses stands in a section of its own.
+- **Each node's card is a tile,** as many to a row as the panel holds at the width a tile reads well at, one
+  column on a phone, every tile shown whole, nothing folded or cut:
+  - its node's mark and name, the link to the master as a chip (연결됨, or 끊김 with since when), and the node's
+    own version;
+  - the occupant whose claim holds the card, by its own name, and the engine waiting at this card's stage with
+    for how long, each as a chip when it stands;
+  - the card's memory: one bar split by the units on the card, each unit in its service's colour and the free
+    room last, and under it the units in shared columns — name, with where it is beside it where it is not on the
+    card (RAM, NVMe, or 일부), its memory in MiB, and its last unload and load in ms;
+  - whose turn the card is (the service and how long it has held it), and the queue: each ticket's service,
+    place, the unit it asks for where it names one, and how long it has waited;
+  - the host memory the node's dumps take, with the most the rules let them take, what the node has available
+    and the share a standing claim keeps available, where each is known;
+  - the dump store's extents and slots in use.
+- **The events** stand last, newest first: what the master saw change and what it ordered, in its own words.
+- Every figure carries thousands separators and stands in tabular figures, and a value the master could not read
+  reads 읽지 못함.
 
 ### Agent management screen
 

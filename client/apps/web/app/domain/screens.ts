@@ -1,4 +1,5 @@
 import { AGENT_TABS } from "./agent-settings";
+import { MONITOR_TABS } from "./hardware";
 import { LIVE_TABS } from "./status";
 
 import { avatarFor } from "./avatars";
@@ -88,10 +89,9 @@ export const SCREENS: readonly Screen[] = [
   // The catalogue as a screen: who the agents are, and the job workers the owner adds and removes. Its pages below
   // its address are the agents' own, so they do not light it.
   { label: "screens.label.agents", to: "/agents", icon: "i-material-symbols-list-alt-outline", nested: false, tabs: AGENT_TABS },
-  // Every machine's hardware, bmo-node's. This machine's own monitor stood below its address.
-  { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, placeholder: true },
-  // The cards and who holds them, bmo-arbiter's.
-  { label: "screens.label.cards", to: "/cards", icon: "i-material-symbols-developer-board-outline", nested: false, placeholder: true },
+  // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
+  // machine's own monitor stands below its address.
+  { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS },
   // The gates and their trials, bmo-gate's. Each gate's own page stood below its address.
   { label: "screens.label.gates", to: "/gates", icon: "i-material-symbols-shield-outline", nested: true, placeholder: true },
   // The voice briefing, bmo-voice's.

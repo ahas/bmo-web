@@ -40,7 +40,7 @@ function pageOf(to: string, nested: boolean): string {
 }
 
 test("every unit not yet split stands as a placeholder", () => {
-  expect(PLACEHOLDERS.map((screen) => screen.to)).toEqual(["/graph", "/monitor", "/cards", "/gates", "/briefing"]);
+  expect(PLACEHOLDERS.map((screen) => screen.to)).toEqual(["/graph", "/gates", "/briefing"]);
 });
 
 describe.each(PLACEHOLDERS.map((screen) => [screen.to, screen] as const))("the placeholder at %s", (_to, screen) => {

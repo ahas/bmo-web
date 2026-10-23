@@ -27,6 +27,7 @@
     "bmo-review-client": "file:../../vendor/bmo-review-client-0.1.0-rev.1.tgz",
     "dayjs": "^1.11.23",
     "dompurify": "3.4.8",
+    "echarts": "6.1.0",
     "eventsource-parser": "4.1.1",
     "h3": "^1.15.0",
     "marked": "14.0.0",

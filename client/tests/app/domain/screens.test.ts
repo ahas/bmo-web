@@ -11,13 +11,13 @@ import type { ConsoleBundleView } from "../../../apps/web/shared/console-bundles
 // from the pack, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen standing in this console is listed, named from the pack", () => {
-  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/memories", "/graph", "/code", "/agents", "/monitor", "/cards", "/gates", "/briefing", "/remote"]);
+  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/memories", "/graph", "/code", "/agents", "/monitor", "/gates", "/briefing", "/remote"]);
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
 });
 
 test("the screens this console carries stand whole and the units not yet split are placeholders", () => {
-  expect(SCREENS.filter((screen) => screen.placeholder !== true).map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/memories", "/code", "/agents", "/remote"]);
-  expect(SCREENS.filter((screen) => screen.placeholder === true).map((screen) => screen.to)).toEqual(["/graph", "/monitor", "/cards", "/gates", "/briefing"]);
+  expect(SCREENS.filter((screen) => screen.placeholder !== true).map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/memories", "/code", "/agents", "/monitor", "/remote"]);
+  expect(SCREENS.filter((screen) => screen.placeholder === true).map((screen) => screen.to)).toEqual(["/graph", "/gates", "/briefing"]);
 });
 
 test("a bundle's screen takes the bundle's own name and icon, and stands where the console lists it", () => {

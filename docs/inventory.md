@@ -33,12 +33,12 @@ bmo-artifact bundle already carries at the same path is not carried; a test goes
 | Already in the bmo-artifact console plugin bundle | 58 | build-6 (console workspace) |
 | A screen of bmo-mail | 113 | not carried: bmo-mail's console bundle |
 | A screen of bmo-remote | 92 | not carried: bmo-remote's console bundle |
-| A screen of bmo-node, not yet split | 44 | not carried: placeholder (build-8) |
+| A screen of bmo-node | 44 | the monitor screen carried, reading the node service; the node screen not carried |
 | A screen of bmo-review | 32 | not carried: bmo-review's console bundle |
 | A screen of bmo-drive | 27 | not carried: bmo-drive's console bundle |
 | A screen of bmo-voice, not yet split | 14 | not carried: placeholder (build-8) |
 | A screen of bmo-graph, not yet split | 16 | not carried: placeholder (build-8) |
-| A screen of bmo-arbiter, not yet split | 10 | not carried: placeholder (build-8) |
+| A screen of bmo-arbiter | 10 | carried as the monitor screen's services tab, reading the card master |
 | A screen of bmo-gate, not yet split | 8 | not carried: placeholder (build-8) |
 | The phone app, dropped with `android/` | 11 | not carried: dropped (build-8) |
 | **Total** | **1238** | |
@@ -407,18 +407,25 @@ through the console's relay. The files below are bmo-artifact's, whose bundle th
 
 ### Screens of the units that ship no console bundle (92 files)
 
-The files of bmo-graph, bmo-node, bmo-arbiter, bmo-gate and bmo-voice are not carried: each unit's own console
-bundle carries its screen when it publishes one. Until then the console shows a placeholder in the screen's
-place (build-8; `docs/boundary.md`, 「Screens of units not yet split」), from these files written for it:
+The files of bmo-graph, bmo-gate and bmo-voice are not carried: each unit's own console bundle carries its
+screen when it publishes one. Until then the console shows a placeholder in the screen's place (build-8;
+`docs/boundary.md`, 「Screens of units not yet split」), from these files written for it:
 
 - `client/apps/web/app/components/ScreenPlaceholder.vue`, the one placeholder page body: the screen's name and
   icon, and the pack's `screens.message.not_available`. Each unit's entry stands in `app/domain/screens.ts`,
   marked as a placeholder, with its label in the pack under `screens.label`.
-- One page to a unit, holding the placeholder alone: `app/pages/graph.vue`, `app/pages/monitor/[...path].vue`,
-  `app/pages/cards.vue`, `app/pages/gates/[...path].vue` and `app/pages/briefing.vue`. Where one stands at an
-  old member's path, it is this placeholder and not that member.
+- One page to a unit, holding the placeholder alone: `app/pages/graph.vue`, `app/pages/gates/[...path].vue` and
+  `app/pages/briefing.vue`. Where one stands at an old member's path, it is this placeholder and not that member.
 - `client/tests/app/pages/placeholders.test.ts`, rendering each placeholder page through Vue's own compiler
   and server renderer with `client/tests/support/render-page.ts`.
+
+The monitor screen of bmo-node and the card board of bmo-arbiter are carried as the monitor screen's two tabs
+(`docs/web.md`, 「Monitor screen」): the components, the domain modules and their tests as they stood, the monitor
+page with a machine's own monitor below it at `/monitor/<machine>`, and `/cards` sending a reader on to the
+services tab; the console's server reads the node service and the card master over their APIs instead of the old
+archive, live record and the master's old state route, and the shapes the screen draws are copied into
+`shared/hardware.ts` and `shared/cards.ts`. The node screen, the node list in the sidebar and a node's check are
+not carried.
 
 The old pages below the addresses that are not carried — a node's own page at `/nodes/{name}`, a shared
 folder's page at `/share/files/{token}` — stand as no page, and a link to one finds none.

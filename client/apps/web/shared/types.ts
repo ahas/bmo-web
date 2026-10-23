@@ -8,6 +8,13 @@ import type { DeployEnding, DeployStage, DeployStep, DeployStepAhead, DeployStep
 // bmo-job's shapes (bmo-job's `docs/api.md`).
 
 /** What the deployment's hold says of itself, for every screen and every fact that shows it. */
+// A machine's hardware as the monitor screen reads it, stated once in the module that holds it.
+export type {
+  BoardView, ChipView, ClusterView, CoreView, CpuView, DieView, FanView, GpuView, HardwareCpuLimitChanged, HardwareTrackingChanged,
+  HardwareView, HistoryBand, HistoryRange, HistorySpan, LiveRange, MachineHardware, MemoryView, MonitorNode, PartView, SensorView,
+  ServicesView, StorageKind, StorageView, VolumeView
+} from "./hardware";
+
 export interface DeployHold {
   /** When the hold was taken, in seconds. */
   since: number;

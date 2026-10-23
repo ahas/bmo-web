@@ -788,8 +788,8 @@ todo:
     approve: 승인
     auto_pause: 자동 진행 일시정지
     auto_resume: 자동 진행 재개
-    brief_english: 영어 원문 보기
-    brief_korean: 한국어로 보기
+    brief_original: 원문 보기
+    brief_rendering: 번역 보기
     clear_all: 모두 해제
     clear_filters: 필터 모두 해제
     clear_search: 검색어 삭제
@@ -1077,7 +1077,6 @@ todo:
   status:
     approvals_loading: 결재 기록 불러오는 중…
     auto_paused_hint: 자동 진행 일시정지 중 · 재개해야 다음 단계가 시작됨
-    brief_rendering: 한국어로 옮기는 중
     change_handed: "{time} Job에 전달됨"
     change_no_job: 실행 중인 Job 없음 · 다음 Job이 읽음
     change_waiting: Job에 전달 대기

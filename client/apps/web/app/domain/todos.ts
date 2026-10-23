@@ -74,6 +74,15 @@ const STATE_LABELS: Record<Exclude<TodoState, "stopping">, string> = {
   done: "todo.label.state_done"
 };
 
+// The brief as its reader reads it: the rendering held in the reader's language, matched by the language's primary
+// subtag, or none, where the original stands instead. A rendering in another language is never read in its place.
+export function briefRendered(item: Pick<TodoItem, "brief" | "briefRendering">, language: string): string | null {
+  const rendering = item.briefRendering;
+  const primary = (tag: string): string => tag.split("-")[0]!.toLowerCase();
+
+  return item.brief === null || rendering === null || primary(rendering.language) !== primary(language) ? null : rendering.text;
+}
+
 // The line a stopped row carries under its badge: what stopped it, and — while it stands at the head
 // of its worker's queue — where it stands and why it is not resumed yet, in the bot's own words.
 // The one short line a stopped order at the head of its worker's queue says on its card: its turn

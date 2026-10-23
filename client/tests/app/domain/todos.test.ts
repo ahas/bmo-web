@@ -4,6 +4,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import { REPORTING_WINDOW_SECONDS } from "../../../apps/web/shared/config";
 import {
+  briefRendered,
   itemModel,
   boardInOrder,
   busyBlocks,
@@ -100,7 +101,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
     brief: null,
-    briefKorean: null,
+    briefRendering: null,
     heldAt: null,
     heldReason: null,
     heldKind: null,
@@ -158,6 +159,32 @@ function summary(queue: number, pending = 0): string {
 const rooms: RoomSummary[] = [
   { chatId: -1002, title: "Charlie Room", messageCount: 3, lastMessageAt: null, pinned: false }
 ];
+
+// The brief is written once, in the original a job reads, and read in a rendering only where one is held in the
+// language the console speaks to its reader; otherwise the original stands.
+describe("the brief as its reader reads it", () => {
+  const brief = "Fix the relay.";
+
+  test("is the rendering held in the reader's language, matched by its primary subtag", () => {
+    const held = item(1, { brief, briefRendering: { language: "ko", text: "rendered" } });
+
+    expect(briefRendered(held, "ko")).toBe("rendered");
+    expect(briefRendered(held, "ko-KR")).toBe("rendered");
+    expect(briefRendered(item(1, { brief, briefRendering: { language: "KO-kr", text: "rendered" } }), "ko")).toBe("rendered");
+  });
+
+  test("is none where no rendering is held, so the original stands", () => {
+    expect(briefRendered(item(1, { brief, briefRendering: null }), "ko")).toBeNull();
+  });
+
+  test("is none where the rendering held is in another language than the reader's", () => {
+    expect(briefRendered(item(1, { brief, briefRendering: { language: "ja", text: "rendered" } }), "ko")).toBeNull();
+  });
+
+  test("is none where there is no brief to render", () => {
+    expect(briefRendered(item(1, { brief: null, briefRendering: { language: "ko", text: "rendered" } }), "ko")).toBeNull();
+  });
+});
 
 describe("the panel's sections", () => {
   test("what waits on the owner comes first, then the queue, then what was done", () => {

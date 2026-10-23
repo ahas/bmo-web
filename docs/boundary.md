@@ -337,6 +337,8 @@ for it, and no file or table of that unit is read meanwhile.
   those, a finished item whose run still ends reads as finished rather than as reporting, an item's approvals and talk stand empty, the question bar and a question's ringing stand with nothing
   to say, and a task stands without its end. A search reaches every open item whole and a finished one by its
   line, its number, title and status, since opening every finished item is a read per item.
+- **A brief in its reader's language.** No unit serves an item's brief rendered in the language its reader reads, so
+  every brief stands in the original it was written in.
 - **A work order's text in the other language.** The translator and the translations it keeps are bmo-gate's,
   which serves the console no route for them yet, so a work order's text reads as it was written and asking for
   its translation is answered as unavailable.

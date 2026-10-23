@@ -121,7 +121,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     title: item.title,
     instruction: item.brief,
     brief: item.brief,
-    briefKorean: null,
+    briefRendering: null,
     requester: item.requesterName ?? "",
     requesterId: null,
     chatId: null,

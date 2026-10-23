@@ -4410,9 +4410,13 @@ Four bounds keep it from growing forever.
       tab is the one scroll. The owner's approval comment stands at the end of this group, and after it **추가 지시**, the
       words added to the item, each with who said it and when, a 지우기 that takes one back, and the box 지시 사항 that
       adds one: what the chat agent reads and organizes, which no worker reads (bmo-job's `docs/todo.md`, 「Added words」).
-    - **지시** is what the work is told: the item's brief, the chat agent's organized instruction, in its Korean rendering with the
-      English on asking; under it the chat agent's changes to it, each with when and whether the running job has been handed it;
-      and the work order — its draft with 저장, or the order as it runs.
+    - **지시** is what the work is told: the item's brief, the chat agent's organized instruction. The brief is written once, in
+      the original a job reads, and a reader reads it in the language the console speaks to them: where a rendering of it in
+      that language is held, the rendering stands, with the original on asking; where none is held in that language, the
+      original stands as it was written, with nothing to ask for, since a place waiting on a rendering would leave the
+      reader with nothing to read. Each rendering carries the language it is in, and one in another language than the
+      reader's is never stood in its place. Under it stand the chat agent's changes to it, each with when and whether the
+      running job has been handed it; and the work order — its draft with 저장, or the order as it runs.
   - **Right: 상태, 이야기 and 관리** — what became of the item and what the owner does to it.
     - **상태** stands the **실행 기록**, then the **코워커 목록**, then what a job asked, then the **결재 기록**:
       every approval and every approval taken back, newest first, each with who did it — a person, an agent or a

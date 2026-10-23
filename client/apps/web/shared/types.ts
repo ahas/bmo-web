@@ -461,17 +461,23 @@ export interface TodoSpan {
   tokens: number | null;
 }
 
+// A text rendered in a reader's language: the language it is in, as a language tag such as `ko`, and the text.
+export interface TextRendering {
+  language: string;
+  text: string;
+}
+
 // One piece of work the owner is owed, as the archive's todos table holds it. The instruction
 // is the owner's words and the chat agent's reply verbatim, which is why an item is worth keeping at all.
 export interface TodoItem {
   id: number;
   title: string;
   instruction: string;
-  // The organized instruction the chat agent keeps for the item's jobs, in English, and its Korean rendering made
-  // beside it. Null until a job of the item is launched or the chat agent rewrites it, and the rendering null until
-  // the bot has made it.
+  // The organized instruction the chat agent keeps for the item's jobs, in the original a job reads, and a rendering
+  // of it in a reader's language, carrying the language it is in. The brief is null until a job of the item is
+  // launched or the chat agent rewrites it, and the rendering null where none is held.
   brief: string | null;
-  briefKorean: string | null;
+  briefRendering: TextRendering | null;
   requester: string;
   requesterId: number | null;
   chatId: number | null;

@@ -407,28 +407,28 @@
 
               <template v-else>
                 <!-- The item's brief: the chat agent's organized instruction, the one text a job reads for the
-                     item. It is written in English for the worker and read here in its Korean
-                     rendering, with the English a press away; a brief whose rendering has not come
-                     back yet says so rather than standing the English as if it were the reading.
+                     item. It is written once, in the original the job reads, and read here in a rendering in
+                     the reader's own language where one is held, with the original a press away; where none
+                     is held in that language the original stands, with nothing to press, so the reader is
+                     never left waiting on a rendering with nothing to read.
                      Under it, each change the chat agent made to it, with when, and whether the job running
                      then has been handed it. -->
                 <div class="flex flex-col gap-4 rounded-lg border border-default p-3">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <p class="text-sm font-medium text-muted">{{ $t("todo.title.brief") }}</p>
                     <UButton
-                      v-if="openedItem.brief !== null"
+                      v-if="briefReading !== null"
                       size="sm"
                       color="neutral"
                       variant="ghost"
-                      :label="briefEnglish ? $t('todo.action.brief_korean') : $t('todo.action.brief_english')"
-                      @click="briefEnglish = !briefEnglish"
+                      :label="briefOriginal ? $t('todo.action.brief_rendering') : $t('todo.action.brief_original')"
+                      @click="briefOriginal = !briefOriginal"
                     />
                   </div>
 
                   <p v-if="openedItem.brief === null" class="text-sm text-muted">{{ $t("todo.status.no_brief") }}</p>
-                  <MarkdownText v-else-if="briefEnglish" :text="openedItem.brief" class="text-sm text-highlighted" />
-                  <MarkdownText v-else-if="openedItem.briefKorean !== null" :text="openedItem.briefKorean" class="text-sm text-highlighted" />
-                  <p v-else class="text-sm text-muted">{{ $t("todo.status.brief_rendering") }}</p>
+                  <MarkdownText v-else-if="briefReading !== null && !briefOriginal" :text="briefReading" class="text-sm text-highlighted" />
+                  <MarkdownText v-else :text="openedItem.brief" class="text-sm text-highlighted" />
 
                   <div v-if="briefChanges.length > 0" class="flex flex-col gap-4">
                     <p class="text-sm font-medium text-muted">{{ $t("todo.title.brief_changes") }}</p>
@@ -863,6 +863,7 @@ import {
   approvalChangeIcon,
   approvalChangeLine,
   approvalLabel,
+  briefRendered,
   busyBlocks,
   busyKey,
   canBottom,
@@ -925,7 +926,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const emit = defineEmits<{
   close: [];
 }>();
@@ -1094,9 +1095,11 @@ const standingNotes = computed(() => addedNotes.value.filter((note) => note.remo
 const removedNotes = computed(() => addedNotes.value.filter((note) => note.removedAt !== null));
 // The chat agent's changes to the brief, oldest first, as the brief came to be.
 const briefChanges = computed(() => notes.value.filter((note) => note.kind === "change" && note.removedAt === null));
-// Whether the brief is read in its English, the worker's own text, rather than its rendering.
+// The brief's rendering in the language the console speaks to its reader, or none where none is held in it.
+const briefReading = computed(() => (openedItem.value === null ? null : briefRendered(openedItem.value, locale.value)));
+// Whether the brief is read in its original, the worker's own text, rather than its rendering.
 // It belongs to whichever item is open and starts on the rendering every time one is.
-const briefEnglish = ref(false);
+const briefOriginal = ref(false);
 
 // Where a change the chat agent made stands with the job it was made for: handed and when, still waiting
 // to be handed, or made while no job ran, for the next one to read in the brief.
@@ -1170,7 +1173,7 @@ function toggled(id: number, closed: boolean, word: string): void {
 
   notes.value = [];
   noteText.value = "";
-  briefEnglish.value = false;
+  briefOriginal.value = false;
   noteFailure.value = null;
   confirmingNote.value = null;
 

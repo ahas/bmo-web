@@ -212,16 +212,18 @@ describe("the words added to an open item", () => {
   });
 
   // The brief is the one text a job reads for the item, so the tab of what the work is told opens
-  // on it: its Korean rendering, its English on asking, and the chat agent's changes with whether each was
-  // handed to the job running then.
+  // on it: its rendering in the reader's language where one is held, its original on asking, and the chat agent's
+  // changes with whether each was handed to the job running then.
   test("the tab of what the work is told stands the brief and the chat agent's changes above the work order", () => {
     const briefAt = detailTemplate.indexOf('>{{ $t("todo.title.brief") }}<');
 
     expect(briefAt).toBeGreaterThan(detailTemplate.indexOf('>{{ $t("todo.title.notes") }}<'));
     expect(briefAt).toBeLessThan(detailTemplate.indexOf('<WorkOrderPanel part="order"'));
-    expect(detailTemplate).toContain('<MarkdownText v-else-if="briefEnglish" :text="openedItem.brief"');
-    expect(detailTemplate).toContain('<MarkdownText v-else-if="openedItem.briefKorean !== null" :text="openedItem.briefKorean"');
-    expect(detailTemplate).toContain('{{ $t("todo.status.brief_rendering") }}');
+    expect(detailTemplate).toContain('<MarkdownText v-else-if="briefReading !== null && !briefOriginal" :text="briefReading"');
+    // With no rendering held in the reader's language the original stands, and nothing says a rendering is awaited.
+    expect(detailTemplate).toContain('<MarkdownText v-else :text="openedItem.brief"');
+    expect(detailTemplate).not.toContain("todo.status.brief_rendering");
+    expect(detailSource).toContain("briefRendered(openedItem.value, locale.value)");
     expect(detailTemplate).toContain("{{ formatStamp(change.addedAt) }} · {{ changeHanded(change) }}");
     expect(detailSource).toContain('t("todo.status.change_handed", { time: formatStamp(change.deliveredAt) })');
   });

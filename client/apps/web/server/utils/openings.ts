@@ -16,7 +16,7 @@ export async function withOpenings(chatId: number, judgements: Judgement[]): Pro
     return judgements;
   }
 
-  let read: Map<string, RoundOpening>;
+  let read: Map<string, RoundOpening["instructions"]>;
 
   try {
     const page = await receiverCall(
@@ -26,7 +26,7 @@ export async function withOpenings(chatId: number, judgements: Judgement[]): Pro
       })
     );
 
-    read = new Map(page.items.map((opening) => [opening.round, { instructions: opening.instructions, offers: [] }]));
+    read = new Map(page.items.map((opening) => [opening.round, opening.instructions]));
   } catch (error) {
     console.error(`openings of chat ${chatId} could not be read:`, error);
 
@@ -34,9 +34,9 @@ export async function withOpenings(chatId: number, judgements: Judgement[]): Pro
   }
 
   return judgements.map((judgement) => {
-    const opening = judgement.round === null || judgement.round === undefined ? undefined : read.get(judgement.round);
+    const instructions = judgement.round === null || judgement.round === undefined ? undefined : read.get(judgement.round);
 
-    return opening === undefined ? judgement : { ...judgement, opening };
+    return instructions === undefined ? judgement : { ...judgement, opening: { instructions, offers: judgement.opening?.offers ?? [] } };
   });
 }
 

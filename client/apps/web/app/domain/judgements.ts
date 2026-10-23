@@ -1,4 +1,4 @@
-import type { Judgement, JudgementRoad, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
+import type { Judgement, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
 import { chatAgent } from "#shared/agent-names";
 
 import type { Translate } from "#shared/wording";
@@ -400,6 +400,12 @@ export function narrowedOffer(judgement: Judgement): NarrowedOffer | null {
   }
 
   return { held: offer.held, left: offer.asked, itemRule: offer.rules?.length === 1 && offer.rules[0] === "item" };
+}
+
+// What each rule kept for a gate's card, from its round's offers record: null where the record holds no row for
+// the card's gate.
+export function keptOffer(judgement: Judgement): KeptCounts | null {
+  return judgement.opening?.offers.findLast((one) => one.stage === judgement.stage)?.kept ?? null;
 }
 
 export function judgementsByMessage(judgements: Judgement[]): Map<number, Judgement[]> {

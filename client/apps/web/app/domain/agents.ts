@@ -219,11 +219,32 @@ export function agentLabel(t: Translate, name: string, catalogue: readonly Agent
 // label the deployment gives it, and where that names none the pack's own word for it, never a name kept in this
 // file.
 export function bmoLabel(t: Translate, catalogue: readonly AgentSummary[] = held.value): string {
-  const shared = catalogue.find((agent) => agent.defaultAnswerer && agent.chatId === null && chatIdOf(agent.name) === null);
+  const shared = sharedAnswerer(catalogue);
 
   if (shared?.label !== null && shared?.label !== undefined && shared.label !== "") return shared.label;
 
   return chatAgent().label !== "" ? chatAgent().label : t("common.label.chat_agent");
+}
+
+// The catalogue's chat session that answers every room naming nobody, rather than one room of its own.
+function sharedAnswerer(catalogue: readonly AgentSummary[]): AgentSummary | undefined {
+  return catalogue.find((agent) => agent.defaultAnswerer && agent.chatId === null && chatIdOf(agent.name) === null);
+}
+
+// The registration name of the default answerer, the agent a turn is the chat agent's under: the catalogue's session
+// answering every room, and before the list has arrived the chat agent the deployment's settings name.
+export function defaultAnswererName(catalogue: readonly AgentSummary[] = held.value): string {
+  return sharedAnswerer(catalogue)?.name ?? chatAgent().name;
+}
+
+// What an agent named by its registration is called on a row, with no translator to hand: the catalogue's label,
+// the chat agent's label the settings give where it is the default answerer, and its registration name otherwise.
+export function agentRowName(name: string, catalogue: readonly AgentSummary[] = held.value): string {
+  const label = catalogue.find((agent) => agent.name === name)?.label;
+
+  if (label !== null && label !== undefined && label !== "") return label;
+
+  return name === defaultAnswererName(catalogue) && chatAgent().label !== "" ? chatAgent().label : name;
 }
 
 // A run of a work order stands under a name the runner builds out of the item, the task and the

@@ -1,7 +1,7 @@
 import { markWords, MEDIA_MARKS, VOICE_MARK } from "#shared/text-marks";
 import { PAGING, POLL_INTERVAL_MS } from "#shared/config";
 import { chatAgent } from "#shared/agent-names";
-import { bmoLabel } from "./agents";
+import { agentRowName, bmoLabel } from "./agents";
 import { avatarFor, hueOf } from "./avatars";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { runKey } from "./events";
@@ -300,6 +300,9 @@ export interface FeedItem {
   // Whether the bot sent this message as the service rather than as the chat agent, as the server says: the row
   // stands as a system line rather than an answer.
   notice: boolean;
+  // On an agent's answer that went out in the owner's own account, the name of that account, which the row names
+  // beside the agent's own; absent on every other row.
+  voice?: string;
 }
 
 // A turn that went silent is written down as a judgement of this stage on the message it read.
@@ -989,9 +992,22 @@ function lookOf(message: ArchivedMessage, avatars: AvatarIndex, ownerId: number 
     role: agent ? "assistant" : "user",
     side: sideOf(message.senderId, ownerId),
     variant: bare ? "naked" : "soft",
-    avatar: avatarFor(avatars, "person", message.senderId, message.senderName),
+    avatar: faceOf(message, avatars),
     markdown: agent
   };
+}
+
+// The name a message's row stands under: the agent's own where its answer went out in the owner's account, which
+// the archive files under the owner's name, and the name it was filed with otherwise.
+function shownSender(message: Pick<ArchivedMessage, "senderName" | "voicedBy">): string {
+  return message.voicedBy === undefined ? message.senderName : agentRowName(message.voicedBy);
+}
+
+// The picture a message's row wears, the agent's own on an answer that went out in the owner's account.
+function faceOf(message: Pick<ArchivedMessage, "senderId" | "senderName" | "voicedBy">, avatars: AvatarIndex): AvatarProps {
+  return message.voicedBy === undefined
+    ? avatarFor(avatars, "person", message.senderId, message.senderName)
+    : avatarFor(avatars, "person", null, message.voicedBy);
 }
 
 // Whether a message stands what it carried with no bubble round it: a sticker sent alone, which is a
@@ -1088,17 +1104,21 @@ export interface Speaker {
 // waiting for an answer is about to become, so the two wear one picture. In a room no agent has spoken in there is
 // nothing to take, and the chat agent's own name stands instead.
 export function botSpeaker(messages: readonly ArchivedMessage[]): Speaker {
-  const said = [...messages].reverse().find((message) => message.agent === true && message.notice !== true);
+  const said = lastAnswer(messages);
 
-  return { id: said?.senderId ?? null, name: said?.senderName ?? chatAgent().label };
+  return { id: said?.senderId ?? null, name: said === undefined ? chatAgent().label : shownSender(said) };
+}
+
+function lastAnswer(messages: readonly ArchivedMessage[]): ArchivedMessage | undefined {
+  return [...messages].reverse().find((message) => message.agent === true && message.notice !== true);
 }
 
 // What the row that stands while the chat agent works wears: the picture the answer it is waiting for will
 // wear, on the side that answer will stand on.
 export function botAvatar(messages: readonly ArchivedMessage[], avatars: AvatarIndex): AvatarProps {
-  const speaker = botSpeaker(messages);
+  const said = lastAnswer(messages);
 
-  return avatarFor(avatars, "person", speaker.id, speaker.name);
+  return said === undefined ? avatarFor(avatars, "person", null, chatAgent().label) : faceOf(said, avatars);
 }
 
 // The row a room stands while its own turn runs. It is a feed row like any other and is drawn by
@@ -1409,7 +1429,7 @@ function feedItemOf(
     key: `m${message.messageId}`,
     messageId: message.messageId,
     senderId: message.senderId,
-    senderName: message.senderName,
+    senderName: shownSender(message),
     sentAt: message.sentAt,
     text: message.text,
     shownText: shown.text,
@@ -1429,6 +1449,7 @@ function feedItemOf(
     pending: null,
     run: null,
     skipped: skippedTurns(judgements.get(message.messageId) ?? []),
-    notice: message.notice === true
+    notice: message.notice === true,
+    ...(message.voicedBy === undefined ? {} : { voice: message.senderName })
   };
 }

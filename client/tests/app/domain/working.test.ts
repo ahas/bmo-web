@@ -160,7 +160,13 @@ describe("what the room says the answering agent is doing", () => {
     expect(phaseLook(wording, KO.line_150, progress({ phase: "writing" }))).toEqual({ label: wording("room.status.agent_writing", { subject: KO.line_150_2 }) });
   });
 
-  test("a companion's turn is named as the bot named it, and the chat agent's by the catalogue's label for it", () => {
+  test("a companion's turn wears the label the agents table gives it, never the registration name the turn carries", () => {
+    holdCatalogue([catalogued("agent-c", "chat", "Agent C")]);
+
+    expect(turnName(wording, { id: 11, name: "agent-c" })).toBe("Agent C");
+  });
+
+  test("a companion the agents table has no label for is named by its registration, and the chat agent by the catalogue's label for it", () => {
     expect(turnName(wording, { id: 11, name: KO.line_154 })).toBe(KO.line_154);
     // The pack's word stands for the chat agent only while the catalogue holds no session serving every room.
     expect(turnName(wording, undefined)).toBe(KO.line_156);

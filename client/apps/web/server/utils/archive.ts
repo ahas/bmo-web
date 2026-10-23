@@ -128,10 +128,16 @@ async function mediaOf(chatId: number, message: ReceivedMessage): Promise<{ atta
 // The numbers an agent's own words stand under in a room, as the receiver gives each of the room's answerers
 // its own number: a message whose sender is one of them is an agent's.
 export async function agentNumbers(chatId: number): Promise<Set<number>> {
+  return new Set((await answererNumbers(chatId)).keys());
+}
+
+// Each of a room's answerers' own numbers with the agent whose words stand under it. Where two agents stand under one
+// number, it is the room's voice's: the one the receiver speaks for the room as.
+async function answererNumbers(chatId: number): Promise<Map<number, string>> {
   const answerers = await receiverCall(
     receiver().GET("/rooms/{roomId}/answerers", { params: { path: { roomId: chatId } }, signal: within(5_000) })
   );
-  const names = [...new Set([answerers.default, answerers.voice, ...answerers.items.map((answerer) => answerer.agentName)])].filter((name) => name !== "");
+  const names = [...new Set([answerers.default, ...answerers.items.map((answerer) => answerer.agentName), answerers.voice])].filter((name) => name !== "");
   const numbers = await Promise.all(
     names.map(async (agentName) => {
       try {
@@ -148,15 +154,70 @@ export async function agentNumbers(chatId: number): Promise<Set<number>> {
       }
     })
   );
+  const owned = new Map<number, string>();
 
-  return new Set(numbers.filter((number): number is number => number !== null));
+  // The voice is named last, so a number it shares is its own.
+  names.forEach((name, at) => {
+    const number = numbers[at];
+
+    if (number !== null && number !== undefined) owned.set(number, name);
+  });
+
+  return owned;
 }
 
-// Whether each sender of a page is an agent, by the number its words stand under.
-async function agentSenders(chatId: number, messages: readonly ReceivedMessage[]): Promise<Map<string, boolean>> {
-  const numbers = await agentNumbers(chatId).catch(() => new Set<number>());
+// How long the receiver's word that a number is the owner's account stands before it is asked again.
+const OWNER_NUMBER_TTL_MS = 10 * 60_000;
+const ownerNumbers = new Map<string, { owner: boolean; until: number }>();
 
-  return new Map(messages.map((message) => [senderKey(message), message.senderId !== null && numbers.has(message.senderId)]));
+// The agents whose answers a page holds sent in the owner's own account, by the number they went out under: an agent's
+// number the receiver says is the owner's, asked once for each such number on the page through one message of it that
+// went out in a round (docs/web.md, 「An answer sent in the owner's own account wears the agent's face」).
+async function ownerVoices(chatId: number, messages: readonly ReceivedMessage[], answerers: ReadonlyMap<number, string>): Promise<Map<number, string>> {
+  const asked = new Map<number, number>();
+
+  for (const message of messages) {
+    if (message.senderId !== null && message.round !== null && answerers.has(message.senderId) && !asked.has(message.senderId)) {
+      asked.set(message.senderId, message.messageId);
+    }
+  }
+
+  const voiced = new Map<number, string>();
+
+  await Promise.all(
+    [...asked].map(async ([number, messageId]) => {
+      if (await isOwnerNumber(chatId, number, messageId)) voiced.set(number, answerers.get(number)!);
+    })
+  );
+
+  return voiced;
+}
+
+async function isOwnerNumber(chatId: number, number: number, messageId: number): Promise<boolean> {
+  const key = `${chatId}:${number}`;
+  const held = ownerNumbers.get(key);
+
+  if (held !== undefined && held.until > Date.now()) return held.owner;
+
+  try {
+    const answer = await receiverCall(
+      receiver().GET("/rooms/{roomId}/messages/{messageId}/sender-is-owner", {
+        params: { path: { roomId: chatId, messageId } },
+        signal: within(5_000)
+      })
+    );
+
+    // The route answers `owner` (the receiver's `docs/api.md`), where the published client's types name its field
+    // otherwise, so the answer is read by the document's name.
+    const owner = (answer as { owner?: unknown }).owner === true;
+
+    ownerNumbers.set(key, { owner, until: Date.now() + OWNER_NUMBER_TTL_MS });
+
+    return owner;
+  } catch {
+    // A question the receiver did not answer leaves the message under the name it was filed with.
+    return false;
+  }
 }
 
 function senderKey(message: ReceivedMessage): string {
@@ -192,7 +253,9 @@ async function replyQuoteOf(chatId: number, messageId: number, held?: { message:
 
 // A page of the receiver's read into the messages the screen draws.
 async function messagesOf(chatId: number, received: readonly ReceivedMessage[]): Promise<ArchivedMessage[]> {
-  const agents = await agentSenders(chatId, received);
+  const answerers = await answererNumbers(chatId).catch(() => new Map<number, string>());
+  const agents = new Map(received.map((message) => [senderKey(message), message.senderId !== null && answerers.has(message.senderId)]));
+  const voiced = await ownerVoices(chatId, received, answerers);
   // Each message's files are read once, and a reply to a message the page holds quotes it from the page.
   const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message)]));
   const onPage = new Map(received.map((message) => [message.messageId, message]));
@@ -214,6 +277,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const built: ArchivedMessage[] = await Promise.all(
     received.map(async (message) => {
       const agent = agents.get(senderKey(message)) === true;
+      const voicedBy = agent && message.round !== null && message.senderId !== null ? voiced.get(message.senderId) : undefined;
       const files = await media.get(message.messageId)!;
 
       return {
@@ -229,6 +293,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         round: message.round,
         album: message.album,
         agent,
+        ...(voicedBy === undefined ? {} : { voicedBy }),
         notice: agent && isSystemNotice(message.text),
         attachments: files.attachments,
         expressions: files.expressions,

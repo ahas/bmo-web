@@ -1,5 +1,6 @@
 import { EVENT_FIRST_RETRY_MS, EVENT_RETRY_MS, RESTART_GRACE_MS, STREAM_KEEPALIVE_MS, STREAM_SILENCE_MS } from "#shared/config";
 import { TURN_ENDED } from "#shared/types";
+import { defaultAnswererName } from "./agents";
 import { askWhetherLoginEnded } from "./login-end";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { appUrl } from "./urls";
@@ -17,7 +18,7 @@ export interface RunState {
   // What the turn last said of itself: which phase it is in and what its stream has counted.
   // Null until the first word of it arrives, which is where every run begins.
   progress: RunProgress | null;
-  // Who is answering, where it is a companion. Absent for the chat agent, whatever number the bot handed with the turn.
+  // Who is answering, where it is a companion. Absent for the chat agent's turn.
   speaker?: Companion;
   // The question the turn's draft process is on, as its start told it: absent until the first question starts, and
   // again once the process has ended.
@@ -45,17 +46,15 @@ export interface RoomRun {
   outcome: Ref<RoomOutcome | null>;
 }
 
-// Why a turn ended with nothing to read: the key of the reason, and whose turn it was where the bot
-// named a companion. Absent for the chat agent, as on the turn itself.
+// Why a turn ended with nothing to read: the key of the reason, and whose turn it was where it was a
+// companion's. Absent for the chat agent, as on the turn itself.
 export interface RoomOutcome {
   key: string;
   speaker?: Companion;
 }
 
-// A turn's speaker that is a companion: one the bot handed with its name.
-export interface Companion extends TurnSpeaker {
-  name: string;
-}
+// A turn's speaker that is a companion: any agent but the default answerer.
+export type Companion = TurnSpeaker;
 
 export interface RoomRunHandlers {
   // A judgement the bot has just recorded, before the archive page carrying it is asked for.
@@ -790,21 +789,20 @@ const DRAFT_OUTCOMES: Record<string, string> = {
   "ceiling-skip": "room.status.outcome_draft_ceiling_skip",
   "ceiling-message": "room.status.outcome_draft_ceiling_message"
 };
-// The companion a turn or one of its events names, or undefined where it is the chat agent's. The bot hands a
-// turn's speaker as the agent's number in the room alone for the chat agent too, and names no speaker on the
-// chat agent's `sent` and `draft`; only a speaker carrying a name is a companion's (docs/boundary.md, 「Gaps the
-// console meets」). Read any other way, the chat agent's turn would stand as a companion's beside its own
-// listening row, and its sending and its draft rounds would reach no turn.
-export function companionOf(speaker: TurnSpeaker | undefined): Companion | undefined {
-  return typeof speaker?.name === "string" && speaker.name !== "" ? (speaker as Companion) : undefined;
+// The companion a turn or one of its events names, or undefined where it is the chat agent's. The receiver names
+// the speaker of every turn by the answering agent's registration name: the default answerer's is the chat agent's,
+// any other a companion's, and an event that names none is the chat agent's (docs/web.md, 「The name is the one
+// answering on that row」).
+export function companionOf(speaker: TurnSpeaker | undefined, answerer: string = defaultAnswererName()): Companion | undefined {
+  return speaker === undefined || speaker.name === answerer ? undefined : speaker;
 }
 
-// Which turn of a room a run is: the chat agent's, or a companion's by its speaker. A room two agents answer
+// Which turn of a room a run is: the chat agent's, or a companion's by its speaker's name. A room two agents answer
 // holds a turn of each at once, and each begins, moves and ends by this key alone.
 export function runKey(speaker: TurnSpeaker | undefined): string {
   const companion = companionOf(speaker);
 
-  return companion === undefined ? "bmo" : `speaker:${companion.id ?? companion.name}`;
+  return companion === undefined ? "bmo" : `speaker:${companion.name}`;
 }
 
 // The turns this room's picture holds right now, one to a speaker. A round that hands over to the
@@ -920,8 +918,8 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
 
   // A question of the draft process starting: the chat agent's turn is now on it. The process's end leaves the line as
   // any turn's again until the turn itself ends. The rows written as questions are answered move nothing, so a
-  // round that waits after its first question's start stands on it with no row to come. A companion's round runs no
-  // process, so a draft event is the chat agent's.
+  // round that waits after its first question's start stands on it with no row to come. A draft event reaches the
+  // turn of the speaker it names.
   if (event.type === "draft") {
     if (was === undefined) return rooms;
 
@@ -1183,7 +1181,7 @@ export function useLivePicture(onPicture: (picture: LiveSnapshot) => void): void
 }
 
 // The chat agent's own turn in each room that has one, out of the tab's record of every room's turns. A
-// companion's turn names its speaker and is not the chat agent's, so it is passed over here. The stream is held
+// companion's turn is not the chat agent's, so it is passed over here. The stream is held
 // for as long as the screen asking stands, since nothing moves the record while no stream is open.
 export function useBmoTurns(): Readonly<Ref<ReadonlyMap<number, RunState>>> {
   const record = roomTurns();

@@ -148,3 +148,20 @@ describe("the choosing mark", () => {
     expect(source).toMatch(/if \(props\.item\.notice\) \{\s*return "top-0 text-sm";/);
   });
 });
+
+// An agent's answer that went out in the owner's own account names the agent at the bubble's head and, beside it and
+// smaller, the account it went out in (docs/web.md, 「An answer sent in the owner's own account wears the agent's
+// face」). A row that went out under its own name wears no such mark.
+describe("the account an answer went out in", () => {
+  test("stands beside the name, small and muted, only on a row that carries one", () => {
+    const head = template.slice(template.indexOf('v-if="head"'), template.indexOf("<RoomQuote"));
+    const voice = tagOf("data-voice");
+
+    expect(head).toContain('v-if="named && props.item.voice === undefined"');
+    expect(head).toContain('v-else-if="named"');
+    expect(head.indexOf("data-voice")).toBeGreaterThan(head.lastIndexOf("data-name"));
+    expect(head).toContain('$t("room.label.voiced_as", { name: props.item.voice })');
+    expect(voice).toContain("text-xs text-dimmed");
+    expect(voice).toContain("shrink-0");
+  });
+});

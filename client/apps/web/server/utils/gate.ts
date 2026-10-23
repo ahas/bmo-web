@@ -2,7 +2,7 @@ import { PAGING } from "#shared/config";
 
 import { unitAt, unitFetch } from "./units";
 
-import type { Judgement, JudgementPage, JudgementRoad, TokenSplit } from "#shared/types";
+import type { GateOfferRecord, Judgement, JudgementPage, JudgementRoad, KeptCounts, TokenSplit } from "#shared/types";
 
 // A room's judgements as the gate's console API holds them (the gate's `docs/api.md`, 「Judgements」): newest
 // first, a page at a time, each road a gate run walked beside it. The gate's address and token stand in the
@@ -19,6 +19,16 @@ interface GateRoad {
   tokens?: TokenSplit | null;
 }
 
+// One gate's row of its round's offers record, as the gate hands it with a judgement.
+interface GateOffer {
+  gateName: string;
+  held: number;
+  asked: number;
+  kept: Partial<KeptCounts>;
+  capped: number;
+  rules: string[] | null;
+}
+
 // One judgement, as the gate writes it.
 interface GateJudgement {
   id: number;
@@ -31,6 +41,7 @@ interface GateJudgement {
   ms: number | null;
   round: string | null;
   roads?: GateRoad[];
+  offers?: GateOffer[];
 }
 
 interface GatePage {
@@ -49,6 +60,8 @@ function asJudgement(row: GateJudgement): Judgement {
     tokens: road.tokens ?? null
   }));
 
+  const offers = (row.offers ?? []).map(offerOf);
+
   return {
     id: row.id,
     chatId: row.roomId,
@@ -60,7 +73,23 @@ function asJudgement(row: GateJudgement): Judgement {
     createdAt: Math.floor(row.createdAt / 1000),
     ms: row.ms,
     roads,
-    round: row.round
+    round: row.round,
+    // The round's offers record rides on the verdict; its quiet instructions are the receiver's, put in beside it.
+    ...(offers.length === 0 ? {} : { opening: { instructions: [], offers } })
+  };
+}
+
+// A row of the offers record in the room screen's words. A count the gate does not hand is none kept.
+function offerOf(offer: GateOffer): GateOfferRecord {
+  const kept = offer.kept;
+
+  return {
+    stage: offer.gateName,
+    held: offer.held,
+    asked: offer.asked,
+    kept: { item: kept.item ?? 0, keyword: kept.keyword ?? 0, word: kept.word ?? 0, person: kept.person ?? 0, recent: kept.recent ?? 0 },
+    capped: offer.capped,
+    rules: offer.rules
   };
 }
 

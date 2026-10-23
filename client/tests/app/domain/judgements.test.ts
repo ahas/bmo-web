@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { endsJudging, instructionParts, judgedNow, judgementText, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
+import { endsJudging, instructionParts, judgedNow, judgementText, keptOffer, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
 
 import type { GateOfferRecord, Judgement, LiveRun, RoundOpening } from "../../../apps/web/shared/types";
 import { WORKER } from "../../support/ids";
@@ -155,7 +155,7 @@ describe("which messages are being judged", () => {
 // What opened a turn is said once above its cards, and a gate asked about none says what it narrowed.
 describe("what opened a turn", () => {
   const offer = (stage: string, asked: number, rules: string[] | null): GateOfferRecord =>
-    ({ stage, held: 20, asked, kept: { item: 0, keyword: 0, person: 0 }, capped: 0, rules });
+    ({ stage, held: 20, asked, kept: { item: 0, keyword: asked, word: 2, person: 0, recent: 1 }, capped: 0, rules });
   const opening: RoundOpening = {
     instructions: [{ id: 5, sort: "run_state", summary: "#12 · queue-waiting", createdAt: 1 }],
     offers: [offer("people-search", 0, ["item"]), offer("room-rules", 3, null), offer("library-knowledge", 0, null)],
@@ -176,6 +176,12 @@ describe("what opened a turn", () => {
   test("a gate asked about none says how many it narrowed from and whether it kept by the item rule alone", () => {
     expect(narrowedOffer(judgement(1, "people-search", "r1"))).toEqual({ held: 20, left: 0, itemRule: true });
     expect(narrowedOffer(judgement(2, "library-knowledge", "r1"))).toEqual({ held: 20, left: 0, itemRule: false });
+  });
+
+  test("a gate's card carries what each of its rules kept where its round's record holds a row for it, and none where not", () => {
+    expect(keptOffer(judgement(2, "room-rules", "r1"))).toEqual({ item: 0, keyword: 3, word: 2, person: 0, recent: 1 });
+    expect(keptOffer(judgement(5, "situation-rules", "r1"))).toBeNull();
+    expect(keptOffer(judgement(6, "room-rules", "r2", null))).toBeNull();
   });
 
   test("an instruction's sort reads in the owner's words, an unknown one as its own key and none as a quiet instruction", () => {

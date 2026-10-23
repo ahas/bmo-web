@@ -121,7 +121,16 @@
                          message this one answers: a line pressed to go there, one the archive does
                          not hold going nowhere. -->
                     <div v-if="head" class="flex min-w-0 flex-col gap-(--chat-meta-gap) px-(--chat-pad-x) pt-(--chat-pad-y)" :class="pictured ? 'pb-(--chat-pad-y)' : ''">
-                      <span data-words v-if="named" data-name class="truncate text-sm leading-(--chat-meta-line) font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
+                      <span data-words v-if="named && props.item.voice === undefined" data-name class="truncate text-sm leading-(--chat-meta-line) font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
+                      <!-- An agent's answer that went out in the owner's own account names the agent, and beside it, small,
+                           the account it went out in. -->
+                      <span v-else-if="named" data-words class="flex min-w-0 items-center gap-1.5 text-sm leading-(--chat-meta-line)">
+                        <span data-name class="truncate font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
+                        <span data-voice class="flex shrink-0 items-center gap-0.5 text-xs text-dimmed">
+                          <UIcon name="i-material-symbols-record-voice-over-outline" class="size-3.5" aria-hidden="true" />
+                          {{ $t("room.label.voiced_as", { name: props.item.voice }) }}
+                        </span>
+                      </span>
                       <RoomQuote
                         v-if="props.item.run === null && props.item.quote !== null"
                         :quote="props.item.quote"

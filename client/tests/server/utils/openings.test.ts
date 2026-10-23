@@ -7,7 +7,7 @@ import type { Judgement, RoundOpening } from "../../../apps/web/shared/types";
 
 // What opened a room's turns, asked of the receiver once for every round a page's judgements name and worn by
 // each judgement of those rounds. A stand-in answers for the receiver. The gate's offers are no part of the
-// receiver's answer, so an opening wears none.
+// receiver's answer: an opening keeps the ones the judgement came with from the gate, and wears none otherwise.
 
 const opening: RoundOpening = {
   instructions: [{ id: 5, sort: "run_state", summary: "#12 · queue-waiting", createdAt: 1 }],
@@ -31,6 +31,13 @@ describe("the openings a page's judgements wear", () => {
 
     expect(receiver.asked.map((one) => one.path)).toEqual([`/rounds/openings?${new URLSearchParams({ room: "-7", rounds: "round:-7:1:1,round:-7:2:1" })}`]);
     expect(worn.map((one) => one.opening ?? null)).toEqual([opening, opening, null, null]);
+  });
+
+  test("a judgement that came with its round's offers from the gate keeps them beside the instructions", async () => {
+    const offers = [{ stage: "room-rules", held: 15, asked: 12, kept: { item: 0, keyword: 1, word: 11, person: 0, recent: 2 }, capped: 0, rules: null }];
+    const carried = { ...judgement(1, "round:-7:1:1"), opening: { instructions: [], offers } };
+
+    expect((await withOpenings(-7, [carried]))[0]?.opening).toEqual({ instructions: opening.instructions, offers });
   });
 
   test("a page whose judgements name no round asks nothing, and a receiver that cannot be reached leaves them as they were", async () => {

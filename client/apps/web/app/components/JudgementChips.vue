@@ -154,7 +154,7 @@
         />
 
         <div
-          v-for="{ judgement, narrowed } in turn.cards"
+          v-for="{ judgement, narrowed, kept } in turn.cards"
           :key="judgement.id"
           class="w-full"
         >
@@ -179,6 +179,11 @@
               {{ $t("room.label.offer_counts", { held: countText(narrowed.held), left: countText(narrowed.left) }) }}
             </p>
           </template>
+
+          <!-- What each of the gate's rules kept, where its round's offers record holds a row for the gate. -->
+          <p v-if="kept !== null" data-kept class="mt-1 text-sm text-dimmed tabular-nums">
+            {{ $t("room.label.offer_kept", { item: countText(kept.item), keyword: countText(kept.keyword), word: countText(kept.word), person: countText(kept.person), recent: countText(kept.recent) }) }}
+          </p>
 
           <!-- Which road the answer came by, and what was waited out before it. The provider and the
                model stand as the record wrote them, so they are monospaced the way every other
@@ -212,7 +217,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useTurnActionsFold } from "~/domain/turn-actions-fold";
 import { readRunLines } from "~/domain/log";
 import { countText } from "~/domain/numbers";
-import { narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, stageLabel, verdictState } from "~/domain/judgements";
+import { keptOffer, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, stageLabel, verdictState } from "~/domain/judgements";
 import { turnActions } from "~/domain/working";
 import { formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
@@ -453,7 +458,7 @@ const turns = computed(() =>
   openedTurns(opened.value).map((turn) => ({
     key: turn.key,
     opening: turn.opening,
-    cards: turn.judgements.map((judgement) => ({ judgement, narrowed: narrowedOffer(judgement) })),
+    cards: turn.judgements.map((judgement) => ({ judgement, narrowed: narrowedOffer(judgement), kept: keptOffer(judgement) })),
   }))
 );
 // How full the session stood once the turn ended, on a turn that has ended and whose round reported it.

@@ -293,6 +293,9 @@ export interface ArchivedMessage {
   // a screen draws an agent's answer by it rather than by any name. Absent where the server did not
   // say, which a screen reads as a person's words.
   agent?: boolean;
+  // The registration name of the agent whose answer this is, where it went out in the owner's own account and so
+  // stands in the archive under the owner's number and name; absent on every other message.
+  voicedBy?: string;
   // Whether the bot sent this message as the service rather than as the chat agent — a system notice, which a
   // screen stands as a system line rather than an answer. Absent where the server did not say.
   notice?: boolean;
@@ -404,7 +407,7 @@ export interface Judgement {
   roads?: JudgementRoad[];
   // The round of the chat agent's session the decision was made in, where the record names one.
   round?: string | null;
-  // What opened that round and what its gates were offered, where bmo-server read any.
+  // What opened that round and what its gates were offered, where either was read.
   opening?: RoundOpening;
 }
 
@@ -424,12 +427,23 @@ export interface GateOfferRecord {
   stage: string;
   held: number;
   asked: number;
-  kept: { item: number; keyword: number; person: number };
+  kept: KeptCounts;
   capped: number;
   rules: string[] | null;
 }
 
-// What one round settled and was offered, as bmo-server reads it.
+// How many candidates each of a gate's rules kept, as the gate's offers record counts them: by an item number the
+// turn named, by a keyword, by a word, by a person and by recency.
+export interface KeptCounts {
+  item: number;
+  keyword: number;
+  word: number;
+  person: number;
+  recent: number;
+}
+
+// What one round settled and was offered: its quiet instructions as the receiver reads them, and its offers
+// record as the gate hands it with each of the round's verdicts.
 export interface RoundOpening {
   instructions: TurnInstruction[];
   offers: GateOfferRecord[];
@@ -749,12 +763,12 @@ export interface TurnReceived {
 // A chat answering a round right now. Like a fold it opens no row and writes no ending, so the
 // bot's own picture is the only place it can be read while it is going on — which is what lets a
 // screen that arrives in the middle of a turn, or comes back from a dropped stream, show it.
-// Who answers a turn, as the bot hands it: the number the agent's words stand under in the room, and a companion's
-// name. The bot hands the number alone for any agent holding one in the room, the chat agent included, so only a
-// speaker carrying a name is read as a companion's (docs/boundary.md, 「Gaps the console meets」).
+// Who answers a turn, as the receiver names it on every event of the turn and on the turn its picture holds: the
+// number the agent's words stand under in the room, or null where the room gives it none, and the agent's
+// registration name, which tells the chat agent's turn from a companion's and is never shown as it is.
 export interface TurnSpeaker {
   id: number | null;
-  name?: string;
+  name: string;
 }
 
 export interface ChatTurn extends TurnReceived {
@@ -763,7 +777,7 @@ export interface ChatTurn extends TurnReceived {
   // The newest message the round carries, which it reads last and which its gates and answer judge;
   // null for a round carrying none, absent from a bot that does not say.
   messageId?: number | null;
-  // A companion's turn names its speaker, so a room two agents answer holds a turn of each at once.
+  // Whose turn it is, so a room two agents answer holds a turn of each at once.
   speaker?: TurnSpeaker;
   // The Job the turn waits on for its engine, while it waits; null or absent once it runs.
   waiting?: EngineHold | null;
@@ -893,7 +907,7 @@ interface BotEventFields {
   live?: LiveSnapshot;
   // A run-started event alone: what the turn was handed, as it stood when the round opened.
   received?: TurnReceived;
-  // A turn's events: who is answering, so a companion's ending closes that companion's turn and not another one
+  // A turn's events: who is answering, so each speaker's ending closes that speaker's turn and not another one
   // going in the same room.
   speaker?: TurnSpeaker;
   // A run-progress event alone: where the turn is and what its stream has counted so far.

@@ -65,10 +65,11 @@ export function subjectOf(name: string): string {
   return joinedSubject(name);
 }
 
-// Who a turn is, by the name a person calls it: the companion the bot named with the turn, under
-// the label its row in the agents table carries, or the chat agent where the turn named nobody.
+// Who a turn is, by the name a person calls it: a companion under the label its row in the agents table carries,
+// and the chat agent under its own; never the registration name the turn carries, but where the catalogue holds no
+// label for it.
 export function turnName(t: Translate, speaker: TurnSpeaker | undefined): string {
-  return speaker?.name ?? bmoLabel(t);
+  return speaker === undefined ? bmoLabel(t) : agentLabel(t, speaker.name);
 }
 
 // The line says who is at it, by the name of the agent answering on that row: a room two agents
@@ -93,6 +94,7 @@ const DRAFT_QUESTION_FACES: Record<string, string> = {
   facts: "room.status.draft_question_facts",
   promises: "room.status.draft_question_promises",
   fit: "room.status.draft_question_fit",
+  memory: "room.status.draft_question_memory",
   final: "room.status.draft_writing"
 };
 

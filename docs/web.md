@@ -235,7 +235,7 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
   or down.
   - The parts of one change of mode are one movement, whatever way each goes: they start in the same
     frame, take one length and one easing, and end in the same frame, so no part is seen waiting for
-    another. Choosing messages is one (「고르기와 복사」): the top bar growing down and the choosing
+    another. Choosing messages is one (「Choosing and copying」): the top bar growing down and the choosing
     column opening sideways run together.
 - **How a thing comes and goes says where it came from.**
   - A thing that comes out of a place grows out of that place with a fade and shrinks back into it:
@@ -2846,7 +2846,7 @@ Two ways, split because the running places differ.
     was launched with. The system prompt line is written when a launch composes a system prompt whose
     text differs from the last one written for that agent, so each distinct version stands once, in the
     run that first carried it.
-  - **받은 것** — what the turn was handed before it ran, one line per piece and in the order it entered the
+  - **What it was handed** — what the turn was handed before it ran, one line per piece and in the order it entered the
     prompt. Each wears the word its own sort has — **방 문맥**, **기억**, **인물북**, **참조 문서**, **룰**,
     **지식**, **지난 대화** — and they share one tone, so they read as one family and the word is what tells
     one from another. The line names the piece: the slug or path of a document, a person's own sheet, and for
@@ -3157,7 +3157,16 @@ Four bounds keep it from growing forever.
   a person wrote is still the characters it is. Which messages an agent sent is the
   server's answer, carried on each message, and never a name the screen compares: the server asks the receiver,
   once for each sender on a page, whether a message of that sender's is one an agent filed. So a row standing for a
-  turn and the answer that takes its place wear one look, whichever agent answers. Where this app is not told the owner's own number
+  turn and the answer that takes its place wear one look, whichever agent answers.
+  - **An answer sent in the owner's own account wears the agent's face.** A room answered in a chat service's
+    `human-avatar` voice has the agent's words go out under the owner's account there, so the archive files them
+    under the owner's number and name. The server asks the receiver, once for each agent's number on a page whose
+    messages went out in a round, whether that number is the owner's; where it is, each such message is the
+    room's voice agent's, as the receiver names the voice among the room's answerers. The row then wears that
+    agent's name — its label in the `agents` table — and its picture, and beside the name a small mark naming
+    the account it went out in, "〈이름〉 계정으로 보냄". A message under that number that went out in no round
+    stands under the account's own name and picture.
+  Where this app is not told the owner's own number
   there is nobody to stand on the right and the room reads down the left.
   Times are all Seoul time. A date mark goes
   where the date changes, holding to the top while its day is read. Pressing it opens a calendar centred under
@@ -3202,7 +3211,7 @@ Four bounds keep it from growing forever.
     pixel ratio.
 - **One width for both sides.** A bubble on either side is at most the same width, set by the room's width.
   - Under 640px, a phone's width, it is the row less its own photo's column and the choosing column
-    (「고르기와 복사」), so it runs on over most of the far side's photo column: a phone has no room to keep that
+    (「Choosing and copying」), so it runs on over most of the far side's photo column: a phone has no room to keep that
     column clear, and a meta line of chips needs it to stand on one line. The choosing column stays clear on the far
     side at all times, so a message on the left slid aside by it while choosing is never cut or narrowed, and the
     owner's messages on the right leave it free for the marks.
@@ -3671,12 +3680,12 @@ Four bounds keep it from growing forever.
   - **Every chip is a mark with a figure or nothing** — no chip carries a word. What it is, is its tooltip and
     the name a screen reader hears, with 축소 or 확장 after it: 컨텍스트, 읽은 문서, 사용 토큰, 툴 사용, 기록함, 드래프트, 판정, 보이스브리핑.
     컨텍스트 spreads nothing, so it is heard by its name and figure alone, with neither word after it.
-  - **칩의 한 모습** — they wear one look, one height and one padding, and every chip that spreads answers a
+  - **One look for every chip** — they wear one look, one height and one padding, and every chip that spreads answers a
     pointer alike: a chip standing open carries a background of its own, and each state walks its own three
     colours — resting, under the pointer, pressed — so no press and no hover ever lands on the colour the chip
     already wears. 컨텍스트 is pressed for nothing, so it rests in the closed chip's colours and takes no
     hover or press colour; a tap or a resting pointer brings up its tooltip.
-  - **칩이 서는 차례** — 컨텍스트, 읽은 문서, 사용 토큰, 툴 사용, 기록함, 드래프트, 판정, 보이스브리핑. 컨텍스트 stands first, where the owner
+  - **The order the chips stand in** — 컨텍스트, 읽은 문서, 사용 토큰, 툴 사용, 기록함, 드래프트, 판정, 보이스브리핑. 컨텍스트 stands first, where the owner
     placed it. After it, the order is what the turn's own clock decides rather than a taste: the documents
     handed to the turn and what it spends stand from its first second, a call joins them the moment it is
     made, what the turn wrote down, how the answer was drafted and the verdicts arrive with the answer, and the full reading is asked for
@@ -3763,9 +3772,14 @@ Four bounds keep it from growing forever.
     to an item number those lines named (the gate unit's documents, 「What the code narrows before a gate
     is asked」). A gate whose record holds no offer row for the turn, the situation rules among them, stands
     its text alone.
-  - The turn's instructions and offers are read from the receiver (the receiver's `docs/boundary-api.md`, 「What opened a turn」) when the room's
-    verdicts are read, so the heading stands the moment the cards spread; a front that cannot be reached
-    leaves the cards as they were, without it.
+  - **A gate's card says what each rule kept.** Under its text, a card whose round's offers record holds a row
+    for its gate stands one line of how many candidates each rule kept — by item, by keyword, by word, by person
+    and by recency — as "항목 3 · 키워드 2 · 단어 0 · 인물 1 · 최근 0", every rule standing whether it kept any
+    or none (the gate's `docs/api.md`, 「Judgements」). A card with no such row stands no such line.
+  - The turn's instructions are read from the receiver (the receiver's `docs/boundary-api.md`, 「What opened a
+    turn」) when the room's verdicts are read, so the heading stands the moment the cards spread; a front that
+    cannot be reached leaves the cards as they were, without it. The offers record comes with the verdicts
+    themselves, each of the gate's verdicts carrying its round's.
   - **A turn's verdicts stand under the last message it read**, so every earlier message of the same turn
     carries one verdict of its own, 함께 읽음, naming that last message. A message a turn read and passed over
     in its answer then never looks like one no turn read: a message with no verdict at all is one that woke
@@ -3886,9 +3900,9 @@ Four bounds keep it from growing forever.
   - A KakaoTalk answer is archived when Iris echoes it back. The send leaves its round waiting for that
     room's next echo of the chat agent's own words for two minutes, and the echo takes it; an echo that does not
     come back inside that time leaves the answer with no chip.
-- **말은 읽는 사람의 것** — with a mouse, the conversation's letters can be dragged to select and copied, except while
+- **The words are the reader's** — with a mouse, the conversation's letters can be dragged to select and copied, except while
   selecting, when pressing a line is selecting. On a touch screen a held finger chooses messages rather than letters
-  (「고르기와 복사」), so a message's letters are selected by holding them once that message is chosen: a hold there is
+  (「Choosing and copying」), so a message's letters are selected by holding them once that message is chosen: a hold there is
   always the browser's own select and copy, never the conversation's to read as choosing, and the console opens
   nothing over it.
 - **메시지 메뉴** — right-clicking a message opens that message's menu. On a touch screen a plain tap on the message
@@ -3901,7 +3915,7 @@ Four bounds keep it from growing forever.
   enters one tab place — entering first is the last message — and lines are moved by up/down arrows. It holds
   five.
   - **답장** — starts a reply to that message (「답장」 below).
-  - **복사** — the record written in "복사한 것" below.
+  - **복사** — the record written in 「What a copy holds」 below.
   - **텍스트만 복사** — only the body written in the bubble. No room name, time, sender or verdict attaches, so it
     is one word to transcribe as is. A wordless message like a photo or sticker has the mark the archive wrote as
     its body so that is copied, and a message with an entirely empty body has this item off.
@@ -3915,7 +3929,7 @@ Four bounds keep it from growing forever.
   - **The shortcuts are this screen's only while selecting.** Esc, copy and select-all are registered on this
     screen only while selecting is on. A registered shortcut takes that key from the browser whether used or not,
     so registering always would keep a copy from happening after selecting letters.
-- **고르기와 복사** — one message is copied from its menu. To take several at once, start selecting with the menu's
+- **Choosing and copying** — one message is copied from its menu. To take several at once, start selecting with the menu's
   **선택**, or on a touch screen hold a message for half a second: selecting starts with that message chosen, with a
   short vibration where the phone has one. A finger that goes on to move without lifting chooses every message
   between the held one and the one under it, and moving back gives the passed messages up again; what was chosen
@@ -3964,7 +3978,7 @@ Four bounds keep it from growing forever.
   Neither entering nor leaving touches the input box or where the keyboard is. Exit by Esc or
   cancel. While selecting, Ctrl+C (⌘C on Mac) copies and Ctrl+A (⌘A) selects all. Copying ends selecting on the
   spot. The three-dot menu beside the room's name also has start selecting and copy all.
-- **복사한 것** — a copy is not a visible shape but a record to be read elsewhere. The first line has the room name
+- **What a copy holds** — a copy is not a visible shape but a record to be read elsewhere. The first line has the room name
   and chat number, each message stands in one line with its time, sender, sender number, message number and body,
   and below it the verdicts that message got attach in time order as stage name, time and verdict. When a
   verdict's left content differs from the verdict, that content follows indented too. Whatever is turned on on
@@ -4016,7 +4030,7 @@ Four bounds keep it from growing forever.
     One that said nothing else says what it carried: 「사진」, 「스티커」, 「동영상」 or 「음성 메시지」 with the length
     the archive's mark gives, or a file's own name.
   - The bar at the head of the input box, while a reply is being written, says the same words.
-- **붙여 넣은 긴 글** — pasting 2,000 or more characters at once does not spill into the input box. A mark —
+- **A long paste** — pasting 2,000 or more characters at once does not spill into the input box. A mark —
   `[붙여넣기 1 · 3,210자]` — goes in at the caret, and a one-line entry above the box stands the mark's name, the
   text's head and how many characters. Sending puts each text back where its mark stands, so the pastes and the
   typed words keep the order they were written in. Deleting a mark drops its text; undo brings the mark and the
@@ -4055,7 +4069,7 @@ Four bounds keep it from growing forever.
   never leaves a second bubble standing. A photo of the press that failed stands on a line of its own, since
   다시 보내기 sends it alone. A line that went and whose message the archive never carries leaves after half a
   minute on its own clock, read or no read.
-- **한 줄씩, 차례로** — what is pressed to send goes to the bot one send at a time, in the order it was pressed: a
+- **One send at a time, in order** — what is pressed to send goes to the bot one send at a time, in the order it was pressed: a
   send waits until the one before it has answered — gone, failed, or checking — so the room carries the words in
   the order they were written. A press of words with files is one send, as it always was.
 - **대기** — the input box and its send button never close for the bot or this app being away: a deployment
@@ -4070,22 +4084,22 @@ Four bounds keep it from growing forever.
   never took it, so it is sent again or deleted by hand rather than left waiting for good; opening the room again
   starts the ten minutes afresh. A call sending words that this app has not answered in a minute is given up on
   the screen and tried again under its key, so a call lost on the way never holds the line on 「보내는 중」.
-- **브라우저에 보관** — every line on its way, words and files alike, is kept in that browser's own storage
+- **Kept in the browser** — every line on its way, words and files alike, is kept in that browser's own storage
   (IndexedDB) under its room until the archive carries it or it is deleted. A reload, a closed tab or a browser
   restarted puts each line back where it stood, in its state, and sends on whatever had not yet been answered.
   The room screen is what sends, so lines left waiting in a room the reader moved away from go when that room
   is opened again.
   Files are kept apart from the line's state, so the state changing never writes a file again.
-- **한 번만** — every send carries a key the browser made for it, the same on every try. This app keeps each key
+- **Once only** — every send carries a key the browser made for it, the same on every try. This app keeps each key
   it was handed for a week in its own data folder, the one its settings name, one small file per room and key, made only where none stands, so
   of two tries of one key only one ever reaches the bot. A key whose send has answered hands that same answer to
   every later try; a key whose send is still going, or whose app stopped before the answer came, answers as a
-  send that ran late, so the screen watches for it (**확인 중**). A send the bot refused or did not take frees its
+  send that ran late, so the screen watches for it (「Checking」). A send the bot refused or did not take frees its
   key for the next try. A send that ran late is still listened for: this app keeps waiting on the bot for two
   minutes past the 45 seconds it gave the screen, and writes under the key the message the send went out as, or
   the refusal that came instead. The screen asks for a key's outcome on a route of its own, which reads the
   record and sends nothing. **다시 보내기** is a new send and takes a new key.
-- **확인 중** — a send can take longer than a read: the bot waits its turn on a road that does one thing at a time,
+- **Checking** — a send can take longer than a read: the bot waits its turn on a road that does one thing at a time,
   such as the owner's PC KakaoTalk, before the words go. So a send is given 45 seconds, and a send the bot took but
   did not answer in that time is no failure: its mark stays the clock, its tooltip reads 「보냈는지 확인하는 중」, it offers no 다시 보내기, and
   becomes the message as soon as the archive carries it, the way a line on its way does. While it is checked the
@@ -4225,7 +4239,7 @@ Four bounds keep it from growing forever.
   out of that record. So going to another room and coming back finds the line standing where it was, with what the
   turn has done so far; the running work group and the home screen's 〈이름〉가 답변 중 on a room's line stand the same way. A reload or another device reads the
   picture the stream opens with, which is the same record from the bot's side.
-- **생각하는 중과 사용 중** — that one line stands differently by what the answering agent is doing now. While
+- **Thinking, and using a tool** — that one line stands differently by what the answering agent is doing now. While
   thinking it is a blinking line saying "〈이름〉가 생각하는 중". When it starts writing the answer that place says
   "〈이름〉가 답을 쓰는 중", and while a tool is being worked it says "〈이름〉가 〈툴 이름〉 사용 중" — so a wait is
   not all seen as the same wait, and the wait that is a tool says which tool. A companion's turn whose engine a
@@ -4248,13 +4262,16 @@ Four bounds keep it from growing forever.
     companion's turn runs no process, and its line says the state alone.
   - **The name is the one answering on that row.** Each running row is one speaker's turn, so a companion's row
     names the companion and the chat agent's row names the chat agent, and a room both answer at once stands both rows, each with its
-    own name. The name is the agent's label in the `agents` table — a companion's as the bot hands it with the
-    turn, the chat agent's from the catalogue's row for the session answering every room — and only before the catalogue
-    has arrived does the chat agent's row fall back to the language pack's word for it. A turn is a companion's only
-    where the bot hands it with the companion's name: the bot hands the chat agent's turns too with the number its
-    words stand under in the room, and names no speaker on the chat agent's sending or its draft rows, so a turn whose
-    speaker is a number alone is the chat agent's, and its row is the one its listening row stands as
-    (`docs/boundary.md`, 「Gaps the console meets」). The particle after the name, 가 or
+    own name. The receiver names the speaker on every event of a turn and on the turn its picture holds, by the
+    answering agent's registration name (the receiver's `docs/api.md`, 「Events and the live board」). A speaker
+    whose name is the default answerer's — the catalogue's row for the session answering every room, or the
+    deployment's chat agent before the catalogue has arrived — is the chat agent, and its row is the one its
+    listening row stands as; a speaker of any other name is a companion. Every event of a turn reaches the row
+    whose speaker bears the same name, its sending and its draft rows among them, and an event carrying no
+    speaker is the chat agent's. The name on the row is the agent's label in the `agents` table, never the
+    registration name the event carries: a companion's from its own row, the chat agent's from the row of the
+    session answering every room, and only before the catalogue has arrived does a row fall back — the chat
+    agent's to the language pack's word for it, a companion's to its registration name. The particle after the name, 가 or
     이, follows the name's last sound. The tool is named by the word a person calls it by — 셸, 읽기, 편집,
   웹 · web_search — and never by the name the CLI sends; a tool the vocabulary does not carry stands under the
   name it came with, which says more than 툴 alone. The line reads the tool's name and nothing else the call
@@ -4294,7 +4311,7 @@ Four bounds keep it from growing forever.
   listens. It counts down from the same answer the listening row counts from and is read on the same occasions
   (above); it goes once the time it counts reaches nought, and stands nowhere while the window is shut, so the
   owner's own chat never carries it.
-- **그 턴이 한 일** — spread from the meta line, inside the bubble, stand the things the turn has done, oldest first, one line each, as
+- **What the turn did** — spread from the meta line, inside the bubble, stand the things the turn has done, oldest first, one line each, as
   two lists: the documents put in front of it and the stretch of the room it read back, and every tool it has
   called. They wear the same badges the agent's own log wears — 방 문맥, 기억, 인물북, 참조 문서, 룰, 지식,
   지난 대화 — with a reference document's full-or-held mark left of its badge as the log wears it, and a
@@ -4320,7 +4337,7 @@ Four bounds keep it from growing forever.
     one list on that row and remembers the choice for the next turn, never reaching a row already standing.
   - **The lists are read from the log when one is first spread and not before**, so a room standing open costs
     no reading of a log it does not show.
-- **한 묶음** — the running turn stands in its answer's place, in the same run, with the same name at its head and
+- **One run with its answer** — the running turn stands in its answer's place, in the same run, with the same name at its head and
   the same photo beside its foot, but on no bubble ground, with no tail and no time (「지금 하는 일」); its meta line
   carries the chips on its leading end as the answer's does. What the turn received and the state line are both at
   the meta line's size, line height and colour, each alone on its own line, so the block reads at one size. The
@@ -4345,8 +4362,8 @@ Four bounds keep it from growing forever.
   - When the answer arrives the row becomes the message, and its chip is the round's recorded figure
     (「사용 토큰」 under the room's messages), so the estimate never outlives the run. The chip does not move as it
     changes: it stood where it stands on the answer, and what arrives with the answer stands after it
-    (「칩이 서는 차례」).
-- **이 방에서 실행 중인 것** — besides the chat agent's answer, what else runs for this room — a search, a browser search, a job,
+    (「The order the chips stand in」).
+- **What else runs for this room** — besides the chat agent's answer, what else runs for this room — a search, a browser search, a job,
   a standing watch's check — stands below as **one line of counts**, never one line per run, however many run.
   - The parts are 「Job <n>」 for jobs, 「워치 <n>」 for watch checks, 「검색 <n>」 for searches and 「기타 <n>」 for the rest,
     joined by a middle dot: 「Job 7 · 워치 3」. A part with nothing in it does not stand, and the line stands while any
@@ -4383,7 +4400,7 @@ Four bounds keep it from growing forever.
   the last look went, the whole of the note, the condition, and the deadline or the timer's moment. A check that wrote no log is the ordinary case, so what the
   watch says stands whether there is a log under it or not.
 
-#### 대화 상대 초기화와 모델 설정
+#### A companion's 모델 설정 and 초기화
 
 - **A room a companion answers in carries two more entries in its top bar's menu, for the owner alone:**
   모델 설정 and 초기화, in a group of their own under 세션 정보, 메시지 고르기, 전체 복사 and 고정. A room with more than one companion
@@ -4622,7 +4639,7 @@ Four bounds keep it from growing forever.
   the browser font as before. This is web display and does not change custom-emoji sending eligibility. Entities and
   sticker IDs lost from an earlier record are not guessed as a description string.
 
-#### 비동기 콘텐츠의 로딩 표시
+#### Loading marks for content read later
 
 - What a skeleton stands for, what it is built from and how its shape is matched to the real thing are in
   [the loading-skeleton account](skeleton-loading.md).
@@ -5149,9 +5166,9 @@ Four bounds keep it from growing forever.
 - Pressing a line stands that item's instruction in the modal's 지시 group. An item filed from conversation is four pieces — exchanged conversation,
   what the work is, conclusion, what to do — with the front conversation as the owner's words and the chat agent's answer at intake, the other three written by the chat agent in
   its own words at intake. Each piece its own cell, and every cell stands at its whole length; the tab is the one scroll. A line the chat agent filed by its own judgement stands judgement and source unfinished-items, so not four pieces. What can be done stands in
-  that modal's 관리 group. On an awaiting-approval line, **승인** or **버린다**. On a queue line, **맨 위로**, **위아래로 옮기거나**,
-  **맨 아래로** — behind every other line of the queue, the rest keeping their numbers — 결재를 **되돌리거나**, or 붙어 있는
-  **의견을 고쳐 저장한다**. On a completed line only its unfinished-item is acted on. All go through the bot's control API so the bot
+  that modal's 관리 group. On an awaiting-approval line, **승인** or **버리기**. On a queue line, **맨 위로**, a move up or down,
+  **맨 아래로** — behind every other line of the queue, the rest keeping their numbers — taking the approval back, or
+  editing and saving the 결재 의견 attached to it. On a completed line only its unfinished-item is acted on. All go through the bot's control API so the bot
   always writes the table, and approval happens only in the owner's place. That intake is not approval, and that a room's chat agent cannot approve, this panel does
   not weaken.
 - **Approval makes the queue re-examined.** Putting an item in the queue is approval, so where approved the bot re-examines the queue and if no job is

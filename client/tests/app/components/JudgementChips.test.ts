@@ -201,7 +201,7 @@ describe("what opened the turn", () => {
   test("stands once above each turn's cards, whichever gates the turn ran", () => {
     expect(script).toContain("openedTurns(opened.value)");
     expect(cards.indexOf("<TurnOpening")).toBeGreaterThan(-1);
-    expect(cards.indexOf("<TurnOpening")).toBeLessThan(cards.indexOf('v-for="{ judgement, narrowed } in turn.cards"'));
+    expect(cards.indexOf("<TurnOpening")).toBeLessThan(cards.indexOf('v-for="{ judgement, narrowed, kept } in turn.cards"'));
     expect(cards).toContain('v-if="turn.opening !== null && turn.opening.instructions.length > 0"');
   });
 
@@ -209,6 +209,12 @@ describe("what opened the turn", () => {
     expect(script).toContain("narrowed: narrowedOffer(judgement)");
     expect(cards).toContain('<p v-if="narrowed.itemRule"');
     expect(cards).toContain('room.label.offer_counts", { held: countText(narrowed.held), left: countText(narrowed.left) }');
+  });
+
+  test("a gate's card says what each of its rules kept, wherever its round's record holds a row for the gate", () => {
+    expect(script).toContain("kept: keptOffer(judgement)");
+    expect(cards).toContain('<p v-if="kept !== null" data-kept');
+    expect(cards).toContain('room.label.offer_kept", { item: countText(kept.item), keyword: countText(kept.keyword), word: countText(kept.word), person: countText(kept.person), recent: countText(kept.recent) }');
   });
 });
 

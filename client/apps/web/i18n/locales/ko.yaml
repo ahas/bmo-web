@@ -358,6 +358,7 @@ room:
     draft_question_fit: 규칙·말투 점검
     draft_question_information: 정보 확인
     draft_question_intent: 의도 파악
+    draft_question_memory: 기억 정리
     draft_question_promises: 약속 점검
     draft_step: "{step} · {what}"
     draft_step_round: "라운드 {n}/{count}"
@@ -539,6 +540,7 @@ room:
     not_yet: 아직 없음
     offer_counts: "필터 전 {held} · 필터 후 {left}"
     offer_item_rule: 봇 줄만 받은 턴이라 그 줄이 언급한 항목 번호와 연결된 조각만 후보로 받았습니다.
+    offer_kept: "항목 {item} · 키워드 {keyword} · 단어 {word} · 인물 {person} · 최근 {recent}"
     open_sessions: 열린 세션
     opening_title: 턴을 시작한 지시
     paste_name: "붙여넣기 {n}"
@@ -651,6 +653,7 @@ room:
     unknown_message: 기록에 없는 메시지
     unreceivable: 받을 수 없음
     voice_message: 음성 메시지
+    voiced_as: "{name} 계정으로 보냄"
     room_add_service: 채팅 서비스
     room_add_room: 방
     room_add_mode: 모드

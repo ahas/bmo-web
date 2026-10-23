@@ -382,7 +382,7 @@ import { POLL_INTERVAL_MS } from "#shared/config";
 import { controlLine, useControlStatus } from "~/domain/control";
 import { messageOfQuery } from "#shared/paths";
 import { screenKey } from "~/domain/route-key";
-import { roomTitle } from "~/domain/agents";
+import { agentLabel, roomTitle } from "~/domain/agents";
 import { attachmentBody } from "~/domain/attachments";
 import { avatarFor, useAvatars } from "~/domain/avatars";
 import { followBottom } from "~/domain/bottom";
@@ -818,14 +818,17 @@ const botFace = computed(() => botAvatar(roomFeed.messages.value, avatars.value)
 // The turns still running, each as a row of this conversation. A row is built the way every other
 // row is and handed to the same component, which is what keeps the answer's own coordinates from
 // moving when it takes the row's place. A companion's turn wears the companion's own name and
-// picture, which its answer will wear too, and stands beside the chat agent's where both answer at once. While
-// the chat agent only listens in a group room its row stands holding no turn.
+// picture, which its answer will wear too, and stands beside the chat agent's where both answer at once; its name
+// is the label the agents table gives it. While the chat agent only listens in a group room its row stands holding
+// no turn.
 const turnRows = computed<FeedItem[]>(() =>
-  [...runs.value, ...listeningRuns(runs.value, listeningWindow.value)].map((run) =>
-    run.speaker === undefined
-      ? runItem(run, botSpeaker(roomFeed.messages.value), botFace.value)
-      : runItem(run, run.speaker, avatarFor(avatars.value, "person", run.speaker.id, run.speaker.name))
-  )
+  [...runs.value, ...listeningRuns(runs.value, listeningWindow.value)].map((run) => {
+    if (run.speaker === undefined) return runItem(run, botSpeaker(roomFeed.messages.value), botFace.value);
+
+    const shown = { id: run.speaker.id, name: agentLabel(t, run.speaker.name) };
+
+    return runItem(run, shown, avatarFor(avatars.value, "person", shown.id, shown.name));
+  })
 );
 // A row gives its place to its turn's answer the moment the answer is in the feed, by whichever read.
 const runRows = useHandOver(turnRows, roomFeed.messages);

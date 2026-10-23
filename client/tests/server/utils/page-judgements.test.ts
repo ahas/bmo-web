@@ -54,7 +54,7 @@ const judgement = (id: number, messageId: number | null, gateName: string, verdi
 // Newest first, as the gate pages them.
 const held = [
   judgement(907, null, "send", "SENT", AT + 60_500),
-  judgement(906, null, "chat", "REPLY", AT + 58_000),
+  { ...judgement(906, null, "chat", "REPLY", AT + 58_000), offers: [{ gateName: "room-rules", held: 15, asked: 12, kept: { item: 0, keyword: 1, word: 11, person: 0, recent: 2 }, capped: 0, rules: null }] },
   judgement(905, null, "sanitizer", "CLEAN", AT + 30_000, null),
   judgement(904, -998, "system-documents", "SKIP: no candidates", AT + 5_000),
   judgement(903, null, "people-search", "SKIP", AT + 4_000, "round:other"),
@@ -120,6 +120,16 @@ describe("a page's verdicts", () => {
     const first = new URL(gate.asked[0]!.path, "http://gate").searchParams;
 
     expect(first.get("to")).toBe(String(AT + 61_000 + 3_600_000));
+  });
+
+  test("wear their round's offers record as the gate hands it, every rule's kept count among it", async () => {
+    const read = await readJudgementPage(ROOM, null, 2);
+    const chat = read.judgements.find((one) => one.id === 906);
+
+    expect(chat?.opening?.offers).toEqual([
+      { stage: "room-rules", held: 15, asked: 12, kept: { item: 0, keyword: 1, word: 11, person: 0, recent: 2 }, capped: 0, rules: null }
+    ]);
+    expect(read.judgements.find((one) => one.id === 907)?.opening).toBeUndefined();
   });
 
   test("read as their own page state their times in unix seconds", async () => {

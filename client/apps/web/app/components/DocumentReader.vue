@@ -37,7 +37,7 @@
           role="region"
           :aria-label="$t('common.label.rendered')"
           tabindex="0"
-          class="relative min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 focus-inset sm:px-6"
+          class="relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-4 focus-inset sm:px-6"
           @scroll.passive="onRenderedScroll"
           @click="onRenderedClick"
           @pointerup="noteSelection"
@@ -539,8 +539,18 @@ async function applyView(): Promise<void> {
   requestAnimationFrame(() => restore(line));
 }
 
+// The splitter lays its panes out once after mounting, and only from then can a pane be folded. The view is
+// applied at that first layout, so the drawn text stands at its full width while the editor is still loading;
+// once the editor is there, the view is applied again to hand the place over.
+let laidOut = false;
+
 function onLayout(): void {
   picked.value = null;
+
+  if (!laidOut) {
+    laidOut = true;
+    void applyView();
+  }
 }
 
 watch(() => props.view, () => void applyView());

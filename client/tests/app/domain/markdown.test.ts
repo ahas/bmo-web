@@ -274,10 +274,14 @@ describe("a diagram block", () => {
   const source = ["```mermaid", "flowchart TD", "  a[<b>request</b>] --> b", "```"].join("\n");
 
   for (const kind of ["words", "document", "book"] as const) {
-    test(`stands as a diagram's place holding its source, with no copy button, read as ${kind}`, () => {
+    test(`stands as a diagram's place holding its source and its zoom buttons, with no copy button, read as ${kind}`, () => {
       const html = markdownHtml(wording, source, kind);
 
-      expect(html).toContain('class="markdown-diagram" data-diagram><pre><code>flowchart TD\n  a[&lt;b&gt;request&lt;/b&gt;] --&gt; b</code></pre></div>');
+      expect(html).toContain('class="markdown-diagram" data-diagram><pre><code>flowchart TD\n  a[&lt;b&gt;request&lt;/b&gt;] --&gt; b</code></pre><div class="markdown-diagram-tools">');
+      expect([...html.matchAll(/data-diagram-zoom="(\w+)" aria-label="([^"]*)" data-tooltip="([^"]*)"/g)].map((found) => found.slice(1))).toEqual(
+        ([["out", "common.action.zoom_out"], ["in", "common.action.zoom_in"], ["fit", "common.action.fit_screen"]] as const).map(([towards, key]) => [towards, wording(key), wording(key)])
+      );
+      expect(html).toMatch(/<\/div><\/div>\n$/);
       expect(html).not.toContain("data-copy");
     });
   }

@@ -18,7 +18,7 @@
           <UAlert v-if="ended && !failure" color="warning" variant="subtle" :title="$t('app.message.session_ended')" :description="$t('app.message.login_again')" />
 
           <UFormField :label="$t('app.label.user_id')" name="name" required>
-            <UInput v-model="form.name" class="w-full" autocomplete="username" autofocus />
+            <UInput v-model="form.name" class="w-full" autocomplete="username" />
           </UFormField>
 
           <UFormField :label="$t('app.label.password')" name="password" required>

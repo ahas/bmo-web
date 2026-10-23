@@ -147,7 +147,9 @@ function fenceWord(info: string | undefined): string {
 // drawn, and the stylesheet shows the one the button is in.
 //
 // A fenced block written in a diagram language is not code to carry anywhere but a picture to look
-// at, so it stands as a diagram's place instead (see domain/diagram), with no copy button.
+// at, so it stands as a diagram's place instead (see domain/diagram), with no copy button but its
+// zoom buttons — zoom out, zoom in and fit — drawn here for the same reason the copy button is; the
+// diagram module zooms it and shows them once it is drawn.
 //
 // A block whose fence names a language carries that word at its top left and on the box, which is
 // what colours it once it is on the screen (see domain/code-colour).
@@ -156,9 +158,27 @@ const COPY_ICON =
 const COPIED_ICON =
   '<svg class="markdown-copy-done" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m9.55 18l-5.7-5.7l1.425-1.425L9.55 15.15l9.175-9.175L20.15 7.4z"/></svg>';
 
+const ZOOM_ICONS = {
+  out: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14M7 10.5v-2h5v2z"/></svg>',
+  in: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14m-1-1.5v-2h-2v-2h2v-2h2v2h2v2h-2v2z"/></svg>',
+  fit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 9V6h-3V4h3q.825 0 1.413.588T22 6v3zM2 9V6q0-.825.588-1.412T4 4h3v2H4v3zm15 11v-2h3v-3h2v3q0 .825-.587 1.413T20 20zM4 20q-.825 0-1.412-.587T2 18v-3h2v3h3v2zm2-4V8h12v8zm2-2h8v-4H8zm0 0v-4z"/></svg>'
+} as const;
+
+const ZOOM_WORDS = { out: "common.action.zoom_out", in: "common.action.zoom_in", fit: "common.action.fit_screen" } as const;
+
+function zoomTools(): string {
+  const buttons = (Object.keys(ZOOM_ICONS) as (keyof typeof ZOOM_ICONS)[]).map((towards) => {
+    const name = escapeHtml(speak(ZOOM_WORDS[towards]));
+
+    return `<button type="button" data-diagram-zoom="${towards}" aria-label="${name}" data-tooltip="${name}">${ZOOM_ICONS[towards]}</button>`;
+  });
+
+  return `<div class="markdown-diagram-tools">${buttons.join("")}</div>`;
+}
+
 function copyableCode(this: RendererThis, token: Tokens.Code): string {
   if (isDiagram(token.lang)) {
-    return `<div class="markdown-diagram" data-diagram><pre><code>${escapeHtml(token.text)}</code></pre></div>\n`;
+    return `<div class="markdown-diagram" data-diagram><pre><code>${escapeHtml(token.text)}</code></pre>${zoomTools()}</div>\n`;
   }
 
   const block = Renderer.prototype.code.call(this as unknown as Renderer, token).trimEnd();

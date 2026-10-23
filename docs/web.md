@@ -797,6 +797,13 @@ edit to that file alone.
 
 ### Focus
 
+- **No screen focuses an input on arrival; focus follows a user action.** Opening a screen — the console's
+  own, the login screen among them, or one a unit brings — never puts the caret in a box, since on a phone a
+  focused box raises the keyboard over the screen the person came to read. A box takes the focus when the person
+  asked for it: pressing reply, opening a dialog or a drawer that is there to be typed in, starting to edit a
+  cell. The component library's chat prompt focuses itself as it mounts unless told not to, so every place that
+  draws one tells it not to; a test reads the console's pages and layouts for a box focused on arrival and its
+  chat prompts for one left to focus itself.
 - **Focus is shown only where the keyboard put it.** A control focused by a press of the mouse or a
   finger draws nothing; one the keyboard reached — Tab, an arrow along a list, a dialog handing focus
   back after a key closed it — draws the focus ring. The browser's own `:focus-visible` tells the two
@@ -1413,9 +1420,22 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
     hue; a box or a section that holds words wears a tint of it, and every word keeps the console's own text
     colour. A ninth series has no hue of its own. Slices are parted by a gap of the surface colour, and a
     share printed on a slice stands on a ring of that colour, so it reads on any hue.
-  - It stands centred at the size it was laid out at, and gives up at most a fifth of that to fit the column.
-    A diagram wider still scrolls sideways inside its own box, as a table does, so its words keep a reading
-    size on a phone and the page never moves sideways.
+  - It stands centred at the size it was laid out at, and a diagram wider than the column shrinks to stand
+    whole in it, so neither the page nor the diagram's own box moves sideways; words a phone draws too small
+    are read by zooming.
+  - **It zooms in place.** The wheel over it zooms around the pointer, with no key held, and a trackpad's
+    pinch does the same; a wheel with nothing left to zoom — out at fitting, in at the most — scrolls the page
+    on, so reading past a diagram never sticks on it. Two fingers pinch it and move it; one finger on a
+    fitted diagram scrolls the page, and on a zoomed one moves the diagram. A drag moves a zoomed diagram, and
+    a double click zooms in at that point or back out to fitting. It zooms from fitting up to eight times,
+    as a picture does (「사진 보기」), never moved so far that an edge comes away from its box, and what a
+    zoom carries past the box is clipped.
+  - **Its zoom buttons** stand in a row under it on its trailing side — zoom out, zoom in and fit, the
+    picture viewer's own three — always shown, so a finger has them, and each names itself over it on hover
+    and on focus. One with nothing left to do stands dimmed. The renderer draws them with the text, as it
+    does a code block's copy button; until the diagram is drawn, and where its source stands instead, they
+    are not shown.
+  - A diagram drawn again when the theme switches stands fitted.
   - A label breaks between words and never inside one, so a Korean word is not split between syllables; the
     boxes are measured for the lines as they break.
   - Until it is drawn, and where Mermaid refuses the source, the source stands as the code block it was
@@ -2055,6 +2075,11 @@ Two ways, split because the running places differ.
   by the console's one renderer. Split has source left, rendering right, its width divided by a middle handle.
   The two boxes move together synced by line. The chosen view and width stay in this browser. A piece link
   inside an index document opens that piece in the viewer.
+- **The rendering box moves only up and down.** At every width, a phone's among them, nothing in it moves the box
+  or the page sideways: a table and a code block scroll sideways inside their own boxes, a diagram stands whole
+  in the column and zooms in place (「A diagram block is drawn as its diagram」), and a long word, address or run
+  of code breaks at the column's edge. The view the screen opens in folds the other box from the first frame,
+  so the rendering box stands at its full width while the source box is still loading.
 - **Contents.** The document's headings stand beside the document as a list indented by depth, scrolling
   within itself. The heading at the reading place is marked, and pressing goes to it. The address is changed
   to point at that heading so the place can be handed over. A document with no heading has no contents.

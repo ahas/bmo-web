@@ -31,7 +31,7 @@ const RUNNING: DeployView = {
   release: "fixture-release",
   detailed: true,
   hold: null,
-  run: { unitName: "unit-a", phase: "running", startedAt: Date.now(), endedAt: null, outcome: null, commit: null, plan: [], stages: [{ stage: "tree", at: Date.now() }], steps: [], ahead: [], running: null }
+  run: { unitName: "unit-a", phase: "running", startedAt: Date.now(), endedAt: null, outcome: null, commit: null, carried: [], plan: [], stages: [{ stage: "tree", at: Date.now() }], steps: [], ahead: [], running: null }
 };
 
 type Mark = { name: string; width: number; height: number };

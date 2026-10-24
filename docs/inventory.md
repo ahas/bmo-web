@@ -352,9 +352,10 @@ How the ops screens stand here:
   each agent held and the moves of a cache prefix stood in the old archive and are the agency's now, served by no
   route, so a request is named only by the siren's row or a runner's directory and carries no cause.
 - **The deployment mark** reads the testbed's progress record of every deploy root `DEPLOY_ROOTS` lists, in the shape the testbed
-  writes it (`shared/deploy-progress.ts`, written new for the record's stages, steps and ending), and the deployment's
-  hold from bmo-job's `GET /queue/holds`. The old record's items and its reasons' codes are not the testbed's, so a
-  run's popover lists no items and a stopped run says its outcome alone.
+  writes it (`shared/deploy-progress.ts`, written new for the record's stages, steps and ending), the commits a deploy
+  carries from the root's `deployed.log` and the git log of its `deploy-expand` tree, and the deployment's
+  hold from bmo-job's `GET /queue/holds`. The old record's reasons' codes are not the testbed's, so a
+  stopped run says its outcome alone.
 - **The DB screen** reads the server's own database alone, on PostgreSQL, in read-only transactions run by a process
   of its own; the old SQLite reading is not carried. It withholds the console's account hashes and push keys and
   sumida's users' passwords and keys.

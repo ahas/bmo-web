@@ -28,11 +28,12 @@
         <p v-if="!detailed" class="text-muted">{{ $t("deploy.message.updating_slow") }}</p>
 
         <template v-else>
-          <!-- What goes live, each item by its number and title, opening in the TODO panel. -->
-          <div v-if="items.length > 0 || commit !== null" class="flex flex-col gap-1">
-            <div v-if="items.length > 0" class="flex flex-col gap-1">
+          <!-- What goes live: the items a hold waits for, and every commit the deploy carries, oldest
+               first. A commit whose subject names an item opens that item in the TODO panel. -->
+          <div v-if="items.length > 0 || carried.length > 0 || commit !== null" class="flex flex-col gap-1">
+            <div v-if="items.length > 0 || carried.length > 0" class="flex flex-col gap-1">
               <span class="text-muted">{{ $t("deploy.label.items") }}</span>
-              <ul class="flex flex-col gap-1">
+              <ul v-if="items.length > 0" class="flex flex-col gap-1">
                 <li v-for="item in items" :key="item" class="flex min-w-0">
                   <ItemTip v-slot="{ item: read, settled }" :id="item" eager press class="flex min-w-0">
                     <ULink :to="{ query: { ...route.query, todo: item } }" class="flex min-w-0 items-start gap-2 text-primary" @click="open = false">
@@ -41,6 +42,18 @@
                       <SkeletonBar v-else-if="!settled" class="h-4 w-48" />
                     </ULink>
                   </ItemTip>
+                </li>
+              </ul>
+              <ul v-if="carried.length > 0" class="flex flex-col gap-1">
+                <li v-for="one in carried" :key="one.commit" class="flex min-w-0">
+                  <ULink v-if="one.todoId !== null" :to="{ query: { ...route.query, todo: one.todoId } }" class="flex min-w-0 items-start gap-2 text-primary" @click="open = false">
+                    <span class="shrink-0 font-mono">{{ one.commit.slice(0, 12) }}</span>
+                    <span class="min-w-0 break-words">{{ one.subject }}</span>
+                  </ULink>
+                  <span v-else class="flex min-w-0 items-start gap-2">
+                    <span class="shrink-0 font-mono text-muted">{{ one.commit.slice(0, 12) }}</span>
+                    <span class="min-w-0 break-words">{{ one.subject }}</span>
+                  </span>
                 </li>
               </ul>
             </div>
@@ -254,6 +267,7 @@ const detailed = computed(() => view.value?.detailed === true);
 const newer = computed(() => view.value !== null && view.value !== undefined && view.value.release !== pageRelease);
 // The items the commits a hold waits to put live carry; the progress record names none.
 const items = computed(() => view.value?.hold?.commits.flatMap((one) => (one.todoId === null ? [] : [one.todoId])) ?? []);
+const carried = computed(() => view.value?.run?.carried ?? []);
 const commit = computed(() => view.value?.run?.commit ?? null);
 const rows = computed(() => (view.value?.run ? stageRows(view.value.run, now.value) : []));
 

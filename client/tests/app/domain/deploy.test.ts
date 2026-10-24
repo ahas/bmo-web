@@ -27,6 +27,7 @@ function run(over: Partial<DeployRunView> = {}): DeployRunView {
     endedAt: null,
     outcome: null,
     commit: "c".repeat(40),
+    carried: [],
     plan: [],
     stages: [{ stage: "check", at: NOW - 754_000 }, { stage: "build", at: NOW - 60_000 }],
     steps: [],

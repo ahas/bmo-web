@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -31,7 +32,7 @@ standIn("JOB", (one) => (one.path.startsWith("/queues")
     })
   : answer({ code: "not_found" }, 404)));
 
-const { deployRoots, deployViewFor, readDeployHoldRow, readDeployReading, readDeployReadings, shownReading } = await import("../../../apps/web/server/utils/deploy");
+const { deployRoots, deployViewFor, readDeployCarried, readDeployHoldRow, readDeployReading, readDeployReadings, shownReading } = await import("../../../apps/web/server/utils/deploy");
 
 const record: DeployProgress = {
   unit: "deploy-unit-a",
@@ -62,9 +63,9 @@ describe("the record", () => {
 
     const [read, none] = readDeployReadings([root, join(scratch, "unit-b")]);
 
-    expect(read).toMatchObject({ unitName: "unit-a", record });
+    expect(read).toMatchObject({ unitName: "unit-a", record, root });
     expect(read!.writtenAt).toBeGreaterThan(0);
-    expect(none).toEqual({ unitName: "unit-b", record: null, writtenAt: null });
+    expect(none).toEqual({ unitName: "unit-b", record: null, writtenAt: null, root: join(scratch, "unit-b") });
   });
 
   test("is none where no path is named, the file is missing or it does not read as a record", () => {
@@ -87,6 +88,74 @@ describe("the record", () => {
   });
 });
 
+describe("what a deploy carries", () => {
+  test("is every commit since the deploy of another version, oldest first, with the release's version commit left off and the item a subject names", () => {
+    const root = join(scratch, "unit-carried");
+    const tree = join(root, "deploy-expand");
+    const git = (...args: string[]): string => execFileSync("git", ["-C", tree, ...args], { encoding: "utf8" });
+
+    mkdirSync(tree, { recursive: true });
+    git("init", "-q");
+    git("config", "user.email", "agent-a@example.invalid");
+    git("config", "user.name", "agent-a");
+
+    writeFileSync(join(tree, "VERSION"), "2.19.0\n");
+    writeFileSync(join(tree, "work.txt"), "one\n");
+    git("add", ".");
+    git("commit", "-q", "-m", "chore(console): version 2.19.0");
+    const before = git("rev-parse", "HEAD").trim();
+
+    writeFileSync(join(tree, "work.txt"), "two\n");
+    git("add", ".");
+    git("commit", "-q", "-m", "fix(console): an item (#41)");
+    const feature = git("rev-parse", "HEAD").trim();
+
+    writeFileSync(join(tree, "VERSION"), "2.19.1\n");
+    git("add", ".");
+    git("commit", "-q", "-m", "chore(console): version 2.19.1");
+    const bump = git("rev-parse", "HEAD").trim();
+
+    writeFileSync(join(tree, "work.txt"), "three\n");
+    git("add", ".");
+    git("commit", "-q", "-m", "fix(console): another change");
+    const final = git("rev-parse", "HEAD").trim();
+
+    writeFileSync(join(root, "deployed.log"), [
+      `2026-10-24T00:00:00.000Z ${before}  chore(console): version 2.19.0`,
+      `2026-10-24T00:01:00.000Z ${bump}  chore(console): version 2.19.1`,
+      `2026-10-24T00:02:00.000Z ${final}  fix(console): another change`,
+      ""
+    ].join("\n"));
+    writeFileSync(join(root, "deployed.json"), JSON.stringify({ commit: final, subject: "fix(console): another change", version: "2.19.1", at: "2026-10-24T00:02:00.000Z" }));
+
+    expect(readDeployCarried({ unitName: "unit-carried", record: null, writtenAt: null, root })).toEqual([
+      { commit: feature, subject: "fix(console): an item (#41)", todoId: 41 },
+      { commit: final, subject: "fix(console): another change", todoId: null }
+    ]);
+  });
+
+  test("a deploy with no earlier line shows its own commit, so a deploy of one says one", () => {
+    const root = join(scratch, "unit-first");
+    const tree = join(root, "deploy-expand");
+    const git = (...args: string[]): string => execFileSync("git", ["-C", tree, ...args], { encoding: "utf8" });
+
+    mkdirSync(tree, { recursive: true });
+    git("init", "-q");
+    git("config", "user.email", "agent-a@example.invalid");
+    git("config", "user.name", "agent-a");
+    writeFileSync(join(tree, "VERSION"), "1.0.0\n");
+    git("add", ".");
+    git("commit", "-q", "-m", "feat(console): the first change");
+    const only = git("rev-parse", "HEAD").trim();
+
+    writeFileSync(join(root, "deployed.json"), JSON.stringify({ commit: only, subject: "feat(console): the first change", version: "1.0.0" }));
+
+    expect(readDeployCarried({ unitName: "unit-first", record: null, writtenAt: null, root })).toEqual([
+      { commit: only, subject: "feat(console): the first change", todoId: null }
+    ]);
+  });
+});
+
 describe("the run the mark stands", () => {
   const reading = (unitName: string, over: Partial<DeployProgress>, writtenAt = 0) => ({ unitName, record: { ...record, ...over }, writtenAt });
 
@@ -100,7 +169,7 @@ describe("the run the mark stands", () => {
     const shown = shownReading([reading("unit-a", { ending: { outcome: "live", at: 5_000, why: null } }), reading("unit-b", {}, 6_000)], () => false);
 
     expect(shown.unitName).toBe("unit-b");
-    expect(shownReading([], () => true)).toEqual({ unitName: null, record: null, writtenAt: null });
+    expect(shownReading([], () => true)).toEqual({ unitName: null, record: null, writtenAt: null, root: null });
   });
 });
 
@@ -112,7 +181,7 @@ describe("the deployment a tab is handed", () => {
       release: "r1",
       detailed: true,
       hold,
-      run: { unitName: "unit-a", phase: "running", startedAt: 1_000, endedAt: null, outcome: null, commit: record.commit, plan: record.plan, stages: record.stages, steps: record.steps, ahead: record.ahead, running: record.running }
+      run: { unitName: "unit-a", phase: "running", startedAt: 1_000, endedAt: null, outcome: null, commit: record.commit, carried: [], plan: record.plan, stages: record.stages, steps: record.steps, ahead: record.ahead, running: record.running }
     });
   });
 
@@ -125,7 +194,7 @@ describe("the deployment a tab is handed", () => {
       release: "r1",
       detailed: false,
       hold: null,
-      run: { unitName: null, phase: "running", startedAt: 1_000, endedAt: null, outcome: null, commit: null, plan: [], stages: [], steps: [], ahead: [], running: null }
+      run: { unitName: null, phase: "running", startedAt: 1_000, endedAt: null, outcome: null, commit: null, carried: [], plan: [], stages: [], steps: [], ahead: [], running: null }
     });
     expect(deployViewFor({ unitName: "unit-a", record: { ...record, ending: { outcome: "live", at: 4_000, why: null } }, writtenAt: 4_000 }, null, "r1", false).run).toBeNull();
   });

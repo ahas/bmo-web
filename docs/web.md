@@ -987,9 +987,13 @@ edit to that file alone.
   - Wide, it is a spinning mark, 「배포 중」, the stage and the time since the deployment began,
     ticking each second in tabular figures. At phone width it is the spinning mark alone, its words
     in its tooltip.
-  - Pressed, it opens a popover: the commit; the stages, and the last lines of the deployment unit's
-    journal, read with `journalctl` again every few seconds while the popover stands. The record names
-    no items, so a run's popover stands none.
+  - Pressed, it opens a popover: the commit and what it carries — every commit since the deploy that put the
+    release before this one live, oldest first, each by its short hash and subject — then the stages, and the last
+    lines of the deployment unit's journal, read with `journalctl` again every few seconds while the popover
+    stands. A commit whose subject names an item (`#NNNN`) opens that item in the TODO panel, as the hold's items
+    do. The carried commits are read from the deployed log and from the build tree's own git log between the two
+    deploys; the release's version commit is its marker rather than work it carries, so it is left off, and a
+    deploy that carries only that one still shows it.
   - The stages stand whole from the run's first moment, in the order of the run's plan — 검사·테스트, 백업,
     릴리스 준비, 빌드, 전환 전 단계, 서비스 재시작, 헬스 체크, 마무리, and 롤백 where one is put back
     (the testbed's `docs/deploy.md`, 「What a deployment says of itself as it runs」) — so what is done, what is under way and what is

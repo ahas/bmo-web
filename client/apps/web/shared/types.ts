@@ -2811,6 +2811,14 @@ export interface DbRowDetail {
   row: DbRow | null;
 }
 
+// One commit a deployment carried, as the title bar reads it from the deploy log and the repository's own log.
+export interface DeployCommit {
+  commit: string;
+  subject: string;
+  // The item its subject or the deployed record names, which the popover opens in the TODO panel.
+  todoId: number | null;
+}
+
 // A deployment as the title bar reads it (docs/web.md, 「Deployment in the title bar」), out of the testbed's
 // progress record. A run whose process went without ending its record is cut off, and its end is the record's
 // last write.
@@ -2822,6 +2830,8 @@ export interface DeployRunView {
   endedAt: number | null;
   outcome: DeployEnding | null;
   commit: string | null;
+  /** The commits this deployment carries, oldest first, beside the commit itself. */
+  carried: DeployCommit[];
   /** Every stage the run means to pass, in order. */
   plan: DeployStage[];
   stages: { stage: DeployStage; at: number }[];

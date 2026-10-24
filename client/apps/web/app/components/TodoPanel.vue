@@ -461,9 +461,10 @@
     </TabSlide>
   </aside>
 
-  <!-- The log of the job running a row, opened from the row's menu at its end and following it.
-       Drawn only by the panel a person is looking at, as the item dialog is. -->
-  <AgentLogDialog v-if="showsDetail && logAgent !== null" v-model:open="logOpen" :name="logAgent" :rooms="rooms ?? []" />
+  <!-- The log of the job running a row, opened from the row's menu at its run and following it.
+       Drawn only by the panel a person is looking at, as the item dialog is; the state is shared, so the
+       press answers in that panel whichever one took it. -->
+  <AgentLogDialog v-if="showsDetail && logAgent !== null" v-model:open="logOpen" :name="logAgent" :place="logPlace" :rooms="rooms ?? []" />
 
   <!-- Words added to a row from its menu: the same added instructions the opened row adds. -->
   <UModal v-if="showsDetail" v-model:open="appendOpen" :title="appendItem === null ? '' : `#${appendItem.id} ${$t('todo.title.notes')}`">
@@ -550,6 +551,7 @@ import type {
 import type { SearchMatch } from "bmo-ui/shared/search";
 import type { RowVerb, TodoActFields, TodoConditions, TodoFilter } from "~/domain/todos";
 import type { DragPoint, RowBox } from "~/domain/row-drag";
+import type { LogPlace } from "~/domain/log";
 import type { ContextMenuItem } from "@nuxt/ui";
 
 interface Props {
@@ -1076,7 +1078,7 @@ function openDeploy(): void {
 // What each act of the menu is called and wears, and what the line under the list says once it
 // went through. Throwing out, a job's log and adding words say their own.
 const ROW_VERBS: Record<RowVerb, { label: string; icon: string; done?: string }> = {
-  status: { label: "todo.action.worker_status", icon: "i-material-symbols-engineering-outline" },
+  log: { label: "todo.action.job_log", icon: "i-material-symbols-engineering-outline" },
   approve: { label: "todo.action.approve", icon: "i-material-symbols-check", done: "todo.message.approved" },
   unapprove: { label: "todo.action.unapprove", icon: "i-material-symbols-undo", done: "todo.message.unapproved" },
   hold: { label: "todo.title.section_held", icon: "i-material-symbols-pause", done: "todo.message.held" },
@@ -1125,8 +1127,8 @@ const rowMenu = computed<ContextMenuItem[][]>(() => {
   const takesAway = (verb: RowVerb): boolean => verb === "drop" || verb === "unapprove";
 
   return [
-    verbs.filter((verb) => verb === "status"),
-    verbs.filter((verb) => verb !== "status" && !takesAway(verb)),
+    verbs.filter((verb) => verb === "log"),
+    verbs.filter((verb) => verb !== "log" && !takesAway(verb)),
     verbs.filter(takesAway)
   ]
     .filter((group) => group.length > 0)
@@ -1157,29 +1159,32 @@ function swallowLift(event: MouseEvent): void {
   }
 }
 
-// The log of the job running a row, and the agent it is the log of, kept while it closes.
-const logOpen = ref(false);
-const logAgent = ref<string | null>(null);
+// The log of the job running a row, the agent it is the log of and the run to open at. The state is the tab's,
+// so the panel a person is reading draws the dialog whichever panel took the press; only that one has its dialog
+// mounted.
+const logOpen = useState<boolean>("todo-job-log-open", () => false);
+const logAgent = useState<string | null>("todo-job-log-agent", () => null);
+const logPlace = useState<LogPlace | null>("todo-job-log-place", () => null);
 
-// The row says a job runs it; which agent that job is, the live picture of runs says. A job that
-// ended between the menu opening and the press has no log to follow, and the line under the list
-// says so.
+// The row says a job runs it; which agent that job is and the run to follow, the live picture of runs says. A job
+// that ended between the menu opening and the press has no log to follow, so the press answers with the message
+// pill rather than leaving only a line under the list.
 async function openJobLog(item: TodoItem): Promise<void> {
   try {
     const { live } = await $fetch<StatusView>("/api/status");
     const run = live.find((one) => one.kind === "worker" && one.todoId === item.id);
 
     if (run === undefined) {
-      failure.value = t("todo.error.job_ended", { id: item.id });
+      island.say({ tone: "warning", title: t("todo.error.job_ended", { id: item.id }) });
 
       return;
     }
 
-    failure.value = null;
     logAgent.value = run.agent;
+    logPlace.value = { run: run.unit ?? String(run.id) };
     logOpen.value = true;
   } catch (error) {
-    failure.value = failureText(error, t("todo.error.job_read_failed", { id: item.id }));
+    island.fail(error, t("todo.error.job_read_failed", { id: item.id }));
   }
 }
 
@@ -1191,7 +1196,7 @@ const appendFailure = ref<string | null>(null);
 const appending = ref(false);
 
 async function runRowVerb(item: TodoItem, verb: RowVerb): Promise<void> {
-  if (verb === "status") {
+  if (verb === "log") {
     await openJobLog(item);
 
     return;

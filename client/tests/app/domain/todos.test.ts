@@ -637,13 +637,13 @@ describe("what a row's menu offers", () => {
   });
 
   test("a running row opens its job's log and is not closed from the menu: its job closes it", () => {
-    expect(rowVerbs(item(2, { running: true }), queue)).toEqual(["status", "hold", "top", "append", "unapprove"]);
+    expect(rowVerbs(item(2, { running: true }), queue)).toEqual(["log", "hold", "top", "append", "unapprove"]);
   });
 
   test("taking an approval back stands last, apart from the job's log that opens the menu", () => {
     const verbs = rowVerbs(item(2, { running: true }), queue);
 
-    expect(verbs.at(0)).toBe("status");
+    expect(verbs.at(0)).toBe("log");
     expect(verbs.at(-1)).toBe("unapprove");
   });
 

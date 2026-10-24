@@ -1062,7 +1062,7 @@ todo:
     task_skip: 건너뛰기
     unapprove: 결재 취소
     unhold: 보류 해제
-    worker_status: 워커 현황
+    job_log: Job 로그
     write_separately: 따로 작성
   aria:
     drag_reorder: 드래그해서 순서 변경

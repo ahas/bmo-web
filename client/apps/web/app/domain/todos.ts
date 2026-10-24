@@ -807,9 +807,9 @@ export function canTop(queue: TodoItem[], id: number): boolean {
 }
 
 // What a row's own menu offers, in the order it stands them (docs/web.md, the TODO panel's section): the
-// worker's status, then each act the row's state allows, the same acts the opened item allows. A
+// running job's log, then each act the row's state allows, the same acts the opened item allows. A
 // finished or merged row is acted on by nobody, so it offers nothing and opens no menu.
-export type RowVerb = "status" | "approve" | "unapprove" | "hold" | "release" | "top" | "done" | "append" | "drop";
+export type RowVerb = "log" | "approve" | "unapprove" | "hold" | "release" | "top" | "done" | "append" | "drop";
 
 export function rowVerbs(item: TodoItem, queue: TodoItem[], now: number = toUnixSeconds(Date.now())): RowVerb[] {
   const state = todoState(item, now);
@@ -823,7 +823,7 @@ export function rowVerbs(item: TodoItem, queue: TodoItem[], now: number = toUnix
   // one is his to move or take the approval back from.
   const deciding = held || state === "pending";
   // Its job's log stands only while one runs: a line nobody is at has none to open.
-  const verbs: RowVerb[] = item.running ? ["status"] : [];
+  const verbs: RowVerb[] = item.running ? ["log"] : [];
 
   if (state === "pending") verbs.push("approve");
   verbs.push(held ? "release" : "hold");

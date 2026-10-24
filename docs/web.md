@@ -4700,9 +4700,10 @@ Four bounds keep it from growing forever.
   close neither.
 - **A right press, or a held finger, on a line stands that item's menu.** It carries the line's quick acts, so they
   are done without opening it:
-  1. **워커 현황** on a line a job is running for — that job's log, opened at once over the panel at its end and
+  1. **Job 로그** on a line a job is running for — that job's log, opened at once over the panel at its run and
      following it, the same log dialog a room's run line opens. A line no job runs for has nothing to show, so the
-     entry is not there.
+     entry is not there. A job that ended between the menu opening and the press answers with the message pill
+     saying so; the line under the list is never the only answer.
   2. **승인** on a request waiting on them and not set aside.
   3. **보류** on a line not set aside, **보류 해제** on one that is. The hold takes no reason here; one with a reason is
      set from the opened item.
@@ -4715,8 +4716,8 @@ Four bounds keep it from growing forever.
      further step, then **취소** and **결재 취소**; 버리기, the one act here that cannot be taken back, asks in the
      message pill.
   - An act the line's state does not allow is not in the menu at all, and a finished or merged line opens no menu.
-  - Every act goes through the same road as the opened item's buttons, and what it did, or why it was refused,
-    stands in the line under the list.
+  - Every other act goes through the same road as the opened item's buttons, and what it did, or why it was
+    refused, stands in the line under the list.
   - The hold is the console's one held finger (「A held finger」), so a finger scrolling the list never opens the menu,
     and the lift that follows a hold does not open the line as well.
 - **The modal is built as a screen to read one item.** The list line's shape is not carried over — a line shape fitted to

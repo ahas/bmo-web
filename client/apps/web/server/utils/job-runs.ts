@@ -1,6 +1,8 @@
 import { STATUS_HISTORY_LIMIT, WORKER_AGENT } from "#shared/config";
 
 import { agency, agencyCall } from "./agency";
+import { job as jobService, jobCall, JOB_TIMEOUT_MS } from "./job";
+import { within } from "./unit-answer";
 
 import type { Job as AgencyJob } from "@agency/client";
 import type { JobLine, JobPrompt, JobRecord, LiveRun } from "#shared/types";
@@ -85,22 +87,36 @@ export async function readRecentJobs(): Promise<JobRecord[]> {
 }
 
 // The room a job ran for. The agency's answer carries it beside the job, though its published client does not
-// name the field yet, so it is read from the answer as it stands.
-function roomOf(job: AgencyJob): number | null {
-  const room = (job as AgencyJob & { roomId?: number | null }).roomId;
+// name the field yet, so it is read from the answer as it stands. A launch that named no room is placed by the
+// item it is a run of, whose scope is the room the item was filed for; an item of no room, or one the job service
+// no longer holds, leaves the run in no room.
+async function roomOf(job: AgencyJob): Promise<number | null> {
+  const direct = (job as AgencyJob & { roomId?: number | null }).roomId;
 
-  return typeof room === "number" ? room : null;
+  if (typeof direct === "number") return direct;
+  if (job.itemId <= 0) return null;
+
+  try {
+    const item = await jobCall(
+      jobService().GET("/items/{itemId}", { params: { path: { itemId: job.itemId } }, signal: within(JOB_TIMEOUT_MS) })
+    );
+    const scope = item.scope?.trim() ?? "";
+
+    return /^-?\d+$/.test(scope) ? Number(scope) : null;
+  } catch {
+    return null;
+  }
 }
 
 // One job under way, as the live board and a room's working line read it: a worker's run, named by the run its
 // log stands under, of the item it is a run of, in the room it reports to. The agency says no model while the
 // job runs, and none of its ceiling, depth or launcher; the job's item is what a stop from the board names.
-function liveRunOf(job: AgencyJob): LiveRun {
+function liveRunOf(job: AgencyJob, room: number | null): LiveRun {
   return {
     id: job.id,
     kind: "worker",
     agent: job.workerName,
-    chatId: roomOf(job),
+    chatId: room,
     messageId: null,
     startedAt: seconds(job.startedAt),
     unit: job.runName ?? String(job.runId ?? job.id),
@@ -126,7 +142,8 @@ export async function readLiveRuns(): Promise<LiveRun[]> {
     agencyCall(agency().GET("/jobs", { params: { query: { state: "running", limit: LIVE_JOBS_LIMIT } } }))
   ]);
   // A job that moved from starting to running between the two reads is listed by both, and stands once.
-  const jobs = new Map([...starting.items, ...running.items].map((job) => [job.id, job]));
+  const jobs = [...new Map([...starting.items, ...running.items].map((job) => [job.id, job])).values()];
+  const rooms = await Promise.all(jobs.map(roomOf));
 
-  return [...jobs.values()].map(liveRunOf);
+  return jobs.map((job, at) => liveRunOf(job, rooms[at] ?? null));
 }

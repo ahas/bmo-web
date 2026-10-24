@@ -52,7 +52,7 @@ const agency = standIn("AGENCY", (one) => {
 
     if (url.searchParams.get("state") === "running") {
       return answer({
-        items: [jobOf({ id: 9, runId: 9, runName: "job-unit-9", state: "running", endedAt: null, outcome: null })],
+        items: [jobOf({ id: 9, runId: 9, runName: "job-unit-9", state: "running", roomId: null, endedAt: null, outcome: null })],
         more: false
       });
     }
@@ -87,6 +87,12 @@ const agency = standIn("AGENCY", (one) => {
 });
 
 standIn("RECEIVER", (one) => (one.path === "/live" ? answer({ at, turns: [], compacting: [], queued: [] }) : answer({ code: "not-found", error: "no route" }, 404)));
+
+const jobs = standIn("JOB", (one) => (
+  one.path === "/items/41"
+    ? answer({ id: 41, title: "a row", brief: "", queueName: "todo", state: "leased", scope: "90000001", approvals: [], labels: {}, cowork: false })
+    : answer({ code: "not-found", error: "no route" }, 404)
+));
 
 const line = await routeOf<{ job: JobLine | null }>("../../apps/web/server/api/agents/[name]/job.get");
 const prompt = await routeOf<{ prompt: JobPrompt | null }>("../../apps/web/server/api/agents/[name]/job-prompt.get");
@@ -143,6 +149,7 @@ describe("the prompt of that job", () => {
 describe("the jobs running and the jobs that have just run on the live board", () => {
   test("are the ones the agency lists, with their item and worker", async () => {
     agency.asked.length = 0;
+    jobs.asked.length = 0;
 
     const board = (await asked(status, {})).answer;
 
@@ -152,6 +159,8 @@ describe("the jobs running and the jobs that have just run on the live board", (
       "/jobs?state=starting&limit=500",
       "/jobs?state=stopped&limit=10"
     ]);
+    // A job whose launch named no room is placed by its item's scope.
+    expect(jobs.asked.map((one) => one.path)).toEqual(["/items/41"]);
     expect(board?.reachable).toBe(true);
     expect(board?.live).toEqual([
       {

@@ -338,7 +338,9 @@ for it, and no file or table of that unit is read meanwhile.
   moment stand unavailable.
 - **What is running beside the chat, and what has just run.** The receiver's live picture holds the chat's turns
   and the rooms folding. The jobs running beside the chat are the agency's `GET /jobs`, read at `starting` and at
-  `running`: each names the room it reports to and the item it is a run of, and the item is what a stop names. The
+  `running`: each names the item it is a run of, and the item is what a stop names. A job whose launch named no
+  room is placed in the room its item's scope names, read from the job service's item; one whose item names no room
+  stands in no room. The
   runs of runners, gates and editors going now, the executions, gate runs, runner records and standing watches that
   have just run, the machine's standing and the nodes are lists no unit serves, so the live board stands without
   them. The jobs that have just run are the agency's `GET /jobs` at `ended` and `stopped`.

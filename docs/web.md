@@ -4380,7 +4380,8 @@ Four bounds keep it from growing forever.
     stands (「Deployment in the title bar」).
   - It never wraps: on a screen too narrow for it the line is cut at its edge. It is centred under the conversation,
     and its shimmering words are its only running sign, with no spinning mark beside them.
-  - The jobs are the agency's `GET /jobs` at `starting` and `running`, each of the room it reports to; the line is
+  - The jobs are the agency's `GET /jobs` at `starting` and `running`: a job whose launch named no room is placed
+    in the room its item's scope names, and one whose item names no room stands in no room. The line is
     read again when the agency says a job started, changed or ended, and on the catch-up read a reopened stream
     brings. A watch's check comes from the board's standing watches. The runs of searches, gates and runners going
     now are served by no unit (`docs/boundary.md`, 「Gaps the console meets」), so the line carries none of them.

@@ -469,8 +469,6 @@ export function useAgentLog(t: Translate, name: string): AgentLogFeed {
   const loadingOlder = ref(false);
 
   const path = `/api/agents/${encodeURIComponent(name)}/log`;
-  // The run the log opened at, which a page read forward names: the log is read by its run.
-  let openRun: string | undefined;
 
   const rows = computed<LogRow[]>(() => buildLog(lines.value));
 
@@ -522,8 +520,6 @@ export function useAgentLog(t: Translate, name: string): AgentLogFeed {
     failure.value = null;
 
     try {
-      openRun = "run" in place ? place.run : undefined;
-
       const page = await fetchPage({ ...place });
 
       merge(page);
@@ -566,7 +562,9 @@ export function useAgentLog(t: Translate, name: string): AgentLogFeed {
     const newest = lines.value[lines.value.length - 1];
 
     try {
-      const page = await fetchPage({ after: newest?.id ?? 0, run: openRun });
+      // A log holding no line yet is read from its newest page: a page is asked for after a line, and there is none
+      // to name.
+      const page = await fetchPage(newest === undefined ? {} : { after: newest.id });
 
       failure.value = null;
 

@@ -57,6 +57,18 @@ export function readCursor(value: unknown): number | null {
   return cursor;
 }
 
+// A moment a link names, in the unix seconds this console keeps. A value that is no moment reads as none rather than
+// failing the page, since a moment left out of a log opens its newest page and a reader is served either way.
+export function readMoment(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const at = Number(value);
+
+  return Number.isSafeInteger(at) && at > 0 ? at : null;
+}
+
 export function readLimit(value: unknown): number {
   if (value === undefined || value === null || value === "") {
     return PAGING.defaultSize;

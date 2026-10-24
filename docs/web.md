@@ -3057,11 +3057,12 @@ Two ways, split because the running places differ.
 #### Where the log comes from
 
 - The log is **the agency's run log** (the agency's `docs/api.md`, 「Run log and run records」): the very process
-  reading the run's stream writes it a line at a time as it reads, and the console reads it through the agency's
-  `GET /run-log`, which reads a run's lines after the last one held. A log opened at one run reads that run and
-  follows it; the log across an agent's runs — its newest page, the pages before it, the page at a moment — is a
-  read the agency serves no route for, and the screen says it cannot be read yet (`docs/boundary.md`, 「Gaps the
-  console meets」).
+  reading the run's stream writes it a line at a time as it reads, and the console reads one agent's whole log —
+  every line it left, across its runs — through the agency's `GET /log/agents/{agentName}/lines`. The screen opens
+  on the newest page, reads the page before the oldest line it holds and follows the newest, and opens at the page
+  a moment stands in, narrowed to a room where the link names one. A screen opened at one run reads that run from
+  the agency's `GET /log-lines`, narrowed to it, and the lines above it are the same agent log: a page read upward
+  from a run lands on the lines the run before it left.
 - **Why it is written rather than streamed:** each arriving line is kept, so a run killed from outside stays up to
   just before it died, and a finished run rewinds by going back by id. Relaying the stream alone would lose a killed
   run's end and could not rewind a finished one, and pushing what one job pours to each connected browser is the

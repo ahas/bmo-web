@@ -174,10 +174,9 @@ How the agency screens stand here:
   `app/domain/polling.ts` (the polling and the feed's edges, out of the room module), `app/domain/agent-folds.ts`
   (out of the old settings module) and the row drag's pointer rules, which `app/domain/row-drag.ts` now holds
   (out of the TODO module).
-- **What no unit serves stands unavailable** (`docs/boundary.md`, 「Gaps the console meets」): the log across an
-  agent's runs, the runs going beside the chat and what has just run but the jobs, usage, a turn's figures and
-  what a running job has spent, the tools' icons; and of the units not yet split, Laya, the gate order and the
-  nodes.
+- **What no unit serves stands unavailable** (`docs/boundary.md`, 「Gaps the console meets」): the runs going beside
+  the chat and what has just run but the jobs, usage, a turn's figures and what a running job has spent, the tools'
+  icons; and of the units not yet split, Laya, the gate order and the nodes.
 - **The Korean the tests feed in** stands in `client/tests/fixtures/` at each test's own path; the branch word a
   run's name is filed under stands in the data file beside the pack. The tests stand the units in on loopback
   ports (`client/tests/support/units.ts`), with Nitro's own imports in place (`client/tests/support/nitro.ts`),

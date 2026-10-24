@@ -1513,9 +1513,10 @@ export interface AgentLogPage {
   // Whether another page waits on the side this one was read towards: older lines for the page
   // a screen opens on, newer lines for a page read forward from a moment in the log.
   hasMore: boolean;
-  // Only a page read from a moment says this, since it alone has a log on both sides of it.
+  // Only a page a screen opens at — a moment in the log, or one run — says this, since such a page has the log
+  // above its head.
   hasOlder?: boolean;
-  // A page no unit serves: the log across an agent's runs, which the agency reads only by run.
+  // The page a link names where the agency holds no such run: the screen says the log cannot be read.
   unavailable?: true;
 }
 

@@ -20,15 +20,16 @@ answers in English messages and codes, which these packs render.
 
 At the root stand the Cargo workspace manifest, whose members are `server/` and `server/client/`, and its lockfile; the version in
 `VERSION`; `testbed.toml` (the testbed's declaration of how this repository is tested, checked, built and
-deployed); `rustfmt.toml`; `LICENSE` (MIT); `PERSONAL-DATA.md` (the personal data no file may hold); `CLAUDE.md`; and
-`korean-ledger.json` (the Korean left in a code file, which the testbed's Korean sweep holds every file to; no
-code file of this repository holds any).
+deployed); `rustfmt.toml`; `LICENSE` (MIT); `PERSONAL-DATA.md` (the personal data no file may hold); `WORDING.md` (the
+guide to the Korean the console shows); `CLAUDE.md`; and `korean-ledger.json` (the Korean left in a code file, which
+the testbed's Korean sweep holds every file to; no code file of this repository holds any).
 
 ## Documents
 
 | Document | States |
 |---|---|
 | `PERSONAL-DATA.md` | The personal data no file may hold: whose it is, what counts, where a value belongs instead, and the checks that hold it |
+| `WORDING.md` | The guide to the Korean the console shows: the principle a sentence follows and the one Korean word each console concept is written as |
 | `docs/boundary.md` | The boundary: every route the server serves, its OpenAPI contract and its generated clients, every call the server and the console make on another unit, the settings that name those units, and the codes the packs render |
 | `docs/accounts.md` | The account service: what it holds, where it answers, when the model is in force, its routes, its command and its tables |
 | `docs/language-pack.md` | The language packs: the server's and the console's, how each is read, and what other units read of them |

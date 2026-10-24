@@ -33,6 +33,9 @@ is a placeholder.
   comments, strings, tests and documents are English, and so are commit messages. A test reads a sentence by
   its key or uses neutral English input; Korean words the code matches on are data in a pack, never in a code
   file.
+- **The UI's Korean is guided by `WORDING.md` at the root.** A worker writing or changing a sentence a person
+  reads follows it and adds a word there when a concept first needs one; the words themselves stand in the pack.
+  No test reads the guide.
 - **No agent names, owner names, host names, home paths, private network addresses or personal domains** in
   code, documents or commits. An agent is named by its registration; tests use neutral names such as `agent-a`
   and `agent-b`. No list of forbidden names is kept in the repository; the names check reads one from outside

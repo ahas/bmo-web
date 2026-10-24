@@ -497,8 +497,12 @@ only paths that answer without one.
 
 Every word the console shows stands in one file, `client/apps/web/i18n/locales/ko.yaml`, and a screen, a
 server route or a shared module names a key into it rather than writing the words. A wording fix is an
-edit to that file alone.
+edit to that file alone, once the guide below carries the word.
 
+- **The guide behind the words stands at the repository's root, `WORDING.md`.** It holds the principle a
+  Korean sentence follows and the console glossary: the one Korean word each console concept is written
+  as. A worker writing or changing UI text reads it, follows it, and adds a line when a concept first
+  needs its word. No test reads it, and no other repository receives it.
 - **The mechanism is `@nuxtjs/i18n`**, set up as the bmo-ui layer asks of its host (bmo-ui's
   `docs/boundary.md`, 「What the host owes」): no locale prefix in the address, the pack in YAML under
   `client/apps/web/i18n/locales/`, the locale declared with the

@@ -528,3 +528,6 @@ stays its own unit's; what is taken is the sentence or the composition, never th
 | `docs/documents-viewer.md` | `docs/documents-viewer.md` | build-1 |
 | `docs/skeleton-loading.md` | `docs/skeleton-loading.md` | build-1 |
 | `docs/web.md` | `docs/web.md`, without the sections of the screens it does not carry: Mail screen, Files screen, 아카이브 screen, Code graph screen, Code review screen, Remote screen, Node screen, Monitor screen, Monitor's 서비스 tab and Gate screen, nor the phone app's settings | build-1 |
+
+The old root `WORDING.md` stands at this repository's root as `WORDING.md`, the console's UI wording guide: its
+principle and console glossary came, and its banned-term list, allowed uses and check sections did not (#1846).

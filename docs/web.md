@@ -2964,8 +2964,8 @@ Two ways, split because the running places differ.
     counted in its run's log at the agency, and what its models have spent so far is said by no
     route (`docs/boundary.md`, 「Gaps the console meets」), so a running job reads one 「—」 and
     spreads no model; so does a finished job that wrote no spend.
-  - The line is asked again on the poll and whenever a turn ends, and it follows a job starting or
-    ending without the screen being reopened.
+  - The line is asked again on the poll, whenever a turn ends, and whenever the agency says a job started,
+    changed or ended, so it follows a job without the screen being reopened.
   - A road written before the record carried the round is placed by time instead. The turn's own
     road is the one of its room written inside the turn's log lines, and every other road of the room
     goes to the turn before or after it by the message it was about and by nearness in time.
@@ -4371,19 +4371,23 @@ Four bounds keep it from growing forever.
     (「사용 토큰」 under the room's messages), so the estimate never outlives the run. The chip does not move as it
     changes: it stood where it stands on the answer, and what arrives with the answer stands after it
     (「The order the chips stand in」).
-- **What else runs for this room** — besides the chat agent's answer, what else runs for this room — a search, a browser search, a job,
-  a standing watch's check — stands below as **one line of counts**, never one line per run, however many run.
-  - The parts are 「Job <n>」 for jobs, 「워치 <n>」 for watch checks, 「검색 <n>」 for searches and 「기타 <n>」 for the rest,
-    joined by a middle dot: 「Job 7 · 워치 3」. A part with nothing in it does not stand, and the line stands while any
-    part does.
+- **What else runs for this room** — besides the chat agent's answer, a job or a standing watch's check —
+  stands below as **one line of counts**, never one line per run, however many run.
+  - The parts are 「Job <n>」 for jobs and 「워치 <n>」 for watch checks, joined by a middle dot: 「Job 7 · 워치 3」.
+    A part with nothing in it does not stand, and the line stands while any part does. The line still knows a
+    search's `검색 <n>` and the rest's `기타 <n>` from a picture that carries one; no unit serves those runs now.
   - A deployment is never one of its parts: it is no run of this room, and the title bar's mark is the one place it
     stands (「Deployment in the title bar」).
   - It never wraps: on a screen too narrow for it the line is cut at its edge. It is centred under the conversation,
     and its shimmering words are its only running sign, with no spinning mark beside them.
+  - The jobs are the agency's `GET /jobs` at `starting` and `running`, each of the room it reports to; the line is
+    read again when the agency says a job started, changed or ended, and on the catch-up read a reopened stream
+    brings. A watch's check comes from the board's standing watches. The runs of searches, gates and runners going
+    now are served by no unit (`docs/boundary.md`, 「Gaps the console meets」), so the line carries none of them.
   - Pressing it opens the log of what runs, with no dialog between. With one run it opens that run's log at once;
     with several it drops a menu of them, one line a run, and choosing one opens its log.
-- **A run line says what runs, how long, and who launched it.** In that menu each of this room's runs — jobs, watches'
-  checks, searches and the rest — stands as one line: what runs (a search its depth, a job its item or its model if
+- **A run line says what runs, how long, and who launched it.** In that menu each of this room's runs — jobs and watches'
+  checks — stands as one line: what runs (a job its item or its model if
   no item), how long it has gone, and **who launched it**. The launcher writes its own name on launching, so what
   that room's chat agent launched stands as that room's chat agent's, what the owner launched from the console as launched from the
   console, what another room's chat agent launched by that chat agent's name. So a search one room's chat agent launched reads
@@ -4947,8 +4951,9 @@ Four bounds keep it from growing forever.
   marks from, so the two never disagree about why a line was found. And **all three groups are searched** — searching only complete would find nothing when
   looking for work standing in the queue, and that is a trap. How many were found stands below the box summing the three
   groups. Found results append the same way, and clearing the search returns to the original list.
-- **A fresh read does not throw away what was skimmed.** When the panel reads again — on its own clock, since bmo-job's
-  stream is not relayed (`docs/boundary.md`, 「Gaps the console meets」) — what it asks is not the first twenty but as much
+- **A fresh read does not throw away what was skimmed.** When the panel reads again — on bmo-job's notice that an
+  item, a queue, a question, a work order or an item's talk moved, and on the catch-up read a reopened stream
+  brings — what it asks is not the first twenty but as much
   as it already held, and the search term goes too. While a line is being dragged and
   while an order saves, appending waits too — a line growing below moves the ground under the dragging foot.
 - **A running line is always at the top.** A running job's item stands at the front of the queue whatever its priority. What
@@ -5828,11 +5833,14 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   - **bmo-job's and the agency's are the relay's to keep.** One that ends, refuses or is not up yet is asked again
     after three seconds for as long as the tab's stream stands, bmo-job's from the last event the relay passed on;
     a unit whose address is not set is not asked.
-  - **Each reaches the tab under names of its own,** so nothing of one is read as another's: bmo-job's run as
-    `job-run` and its events as `job`, its numbers counted apart from the receiver's; the agency's turns going out
-    and ending as `agency`, with their kind beside what they carry. The tab reads bmo-job's queue moving as the
-    TODO moving, an order changing as that item's work order and the talk moving as that item's talk, and an
-    agency turn as an agent's turn going out or ending, which the worker's job line and the live board read back on.
+  - **Each reaches the tab under names of its own,** so nothing of one is read as another's: bmo-job's events as
+    `job`, its numbers counted apart from the receiver's, each event naming its kind and what it carries; the
+    agency's turns going out and ending and its jobs starting, changing and ending as `agency`, with their kind
+    beside what they carry. The tab reads bmo-job's item and queue moving as the TODO moving, a work order or task
+    changing as that item's work order and an item's notes, reports and replies as that item's talk; and it reads
+    an agency turn as an agent's turn going out or ending, which the worker's job line and the live board read back
+    on, and an agency job as work running for its room, which the room's working line and the live board read back
+    on.
 - **What the screen knows is this stream.** The room screen knowing what it is doing now, the live status screen
   knowing starts and ends, the home's context and usage bars moving, the TODO panel re-reading the queue and
   questions — all one thing. Instead of each screen running its own clock re-asking every few seconds, each says

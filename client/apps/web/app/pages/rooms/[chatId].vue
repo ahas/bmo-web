@@ -2288,6 +2288,10 @@ usePolling(() => {
   }
 }, POLL_INTERVAL_MS);
 
+// A job beside the chat is the agency's, not the receiver's, so the live picture the receiver sends says nothing
+// of one starting or ending. The agency's job events name it, and the board is read again when one comes.
+useLiveRefresh(() => void readLive(), { on: ["worker-run"], everyMs: POLL_INTERVAL_MS });
+
 async function readLive(): Promise<void> {
   // The work running anywhere is the administrator's to see.
   if (!administrator.value) {

@@ -60,6 +60,28 @@ describe("bmo-job's events", () => {
     expect(jobEvent({ id: 6, at: 1, kind: "order_changed", order: {} })).toBeNull();
     expect(jobEvent({ id: 7, at: 1, kind: "something_else" })).toBeNull();
   });
+
+  test("a member the stream names by its kind is the TODO, that item's work order or that item's talk", () => {
+    expect(jobEvent({ id: 9, at: 2, kind: "item.changed", data: { id: 41, title: "a row" } })).toEqual({
+      id: 9,
+      at: 2,
+      type: "todo",
+      chatId: 0,
+      messageId: null
+    });
+    expect(jobEvent({ id: 10, at: 2, kind: "queue.changed", data: { name: "todo" } })?.type).toBe("todo");
+    expect(jobEvent({ id: 11, at: 2, kind: "work-order.changed", data: { itemId: 41, state: "active" } })).toEqual({
+      id: 11,
+      at: 2,
+      type: "work-order",
+      chatId: 0,
+      messageId: null,
+      todoId: 41
+    });
+    expect(jobEvent({ id: 12, at: 2, kind: "task.changed", data: { id: 4, itemId: 41 } })).toMatchObject({ type: "work-order", todoId: 41 });
+    expect(jobEvent({ id: 13, at: 2, kind: "note.created", data: { id: 4, itemId: 41 } })).toMatchObject({ type: "todo-talk", todoId: 41 });
+    expect(jobEvent({ id: 14, at: 2, kind: "subscription.changed", data: { id: 4 } })).toBeNull();
+  });
 });
 
 describe("the agency's turns", () => {
@@ -80,5 +102,38 @@ describe("the agency's turns", () => {
   test("another kind, or a turn naming no session, is nothing", () => {
     expect(agencyEvent({ kind: "turn-question", session: "worker-b", run: "run-a" })).toBeNull();
     expect(agencyEvent({ kind: "turn-ended", run: "run-a" })).toBeNull();
+  });
+
+  test("the stream's own kind and what it carries name the turn or the job", () => {
+    expect(agencyEvent({
+      id: 28,
+      at: 1_790_000_000_100,
+      kind: "turn.created",
+      data: { session: "worker-b", run: "run-a", turnId: 1, at: 1_790_000_000_000 }
+    })).toEqual({
+      id: 28,
+      at: 1_790_000_000_000,
+      type: "agency-turn",
+      chatId: 0,
+      messageId: null,
+      phase: "started",
+      session: "worker-b",
+      run: "run-a"
+    });
+
+    expect(agencyEvent({
+      id: 29,
+      at: 1_790_000_000_100,
+      kind: "job.created",
+      data: { id: 8, roomId: -100_387_496_9077, state: "starting", startedAt: 1_790_000_000_000 }
+    })).toEqual({
+      id: 29,
+      at: 1_790_000_000_000,
+      type: "worker-run",
+      chatId: -100_387_496_9077,
+      messageId: null
+    });
+
+    expect(agencyEvent({ id: 30, at: 1, kind: "run.changed", data: { id: 4, roomId: 5 } })).toBeNull();
   });
 });

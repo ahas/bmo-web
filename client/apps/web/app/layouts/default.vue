@@ -299,19 +299,27 @@ const jumpSources = computed<JumpGroup[]>(() => [
 ]);
 const searchGroups = computed(() => jumpGroups(t, jumpSources.value, searchTerm.value));
 
+// The jobs running beside the chat are the agency's, so the receiver's picture says nothing of one starting or
+// ending. The agency's job events name it, and the board is read again when one comes.
+async function readLiveStatus(): Promise<void> {
+  try {
+    live.value = (await $fetch<StatusView>("/api/status")).live;
+  } catch {
+    // The sidebar stands whether the units answer or not; without it the agents go without their marks.
+  }
+}
+
 const stream = useBotEvents((event) => {
   if (event.type === "live" && event.live !== undefined) {
     live.value = event.live.runs ?? [];
   }
-});
 
-onMounted(async () => {
-  try {
-    live.value = (await $fetch<StatusView>("/api/status")).live;
-  } catch {
-    // The sidebar stands whether the picture answers or not; without it the agents go without their marks.
+  if (event.type === "worker-run") {
+    void readLiveStatus();
   }
 });
+
+onMounted(readLiveStatus);
 
 interface StreamNotice {
   label: string;

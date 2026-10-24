@@ -869,7 +869,10 @@ export type BotEventType =
   | "room-removed"
   // An agent's turn went out or ended, as the agency publishes it: any agent's, a worker's among them, which
   // the receiver's turns say nothing of.
-  | "agency-turn";
+  | "agency-turn"
+  // A job the agency runs for a room started, changed or ended. What runs now is read from the agency's job
+  // list, so the event says only that it moved.
+  | "worker-run";
 
 // The ways a turn ends: the bot answered, it held its peace, its run failed, somebody stopped it,
 // or it did nothing but wait for the rest of what someone is typing. Whatever a turn moves — a
@@ -944,7 +947,9 @@ export interface WorkOrderProgress {
 export type BotEvent = BotEventFields & ({
   type: "work-order";
   todoId: number;
-  workOrder: WorkOrderProgress;
+  // Where the event itself says how the order stands. An event that only says it moved leaves it off, and the
+  // panel reading it asks the job service for the order as it stands.
+  workOrder?: WorkOrderProgress;
   document?: never;
 } | {
   type: "todo-talk";

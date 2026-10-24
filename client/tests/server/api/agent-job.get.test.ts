@@ -22,6 +22,7 @@ function jobOf(over: Record<string, unknown>): Record<string, unknown> {
     sessionId: null,
     runId: 8,
     runName: "job-unit-8",
+    roomId: 90000001,
     state: "ended",
     outcome: "ok",
     report: null,
@@ -42,9 +43,36 @@ const agency = standIn("AGENCY", (one) => {
 
     if (url.searchParams.get("workerName") === "worker-c") return answer({ items: [], more: false });
 
+    if (url.searchParams.get("state") === "starting") {
+      return answer({
+        items: [jobOf({ id: 10, runId: 10, runName: "job-unit-10", state: "starting", endedAt: null, outcome: null })],
+        more: false
+      });
+    }
+
+    if (url.searchParams.get("state") === "running") {
+      return answer({
+        items: [jobOf({ id: 9, runId: 9, runName: "job-unit-9", state: "running", endedAt: null, outcome: null })],
+        more: false
+      });
+    }
+
+    if (url.searchParams.get("state") === "ended") {
+      return answer({
+        items: [
+          jobOf({ id: 8, runName: "job-unit-8" }),
+          jobOf({ id: 7, workerName: "worker-b", state: "ended", outcome: "failed", report: "a look around", endedAt: at + 5_000 }),
+          jobOf({ id: 6, itemId: 40, state: "ended", outcome: "ok", endedAt: at + 1_000 })
+        ],
+        more: false
+      });
+    }
+
+    if (url.searchParams.get("state") === "stopped") return answer({ items: [], more: false });
+
     return answer({
       items: [
-        jobOf({ id: 9, state: "running", endedAt: null, outcome: null }),
+        jobOf({ id: 9, runId: 9, runName: "job-unit-9", state: "running", endedAt: null, outcome: null }),
         jobOf({ id: 8, runName: "job-unit-8" }),
         jobOf({ id: 7, workerName: "worker-b", state: "ended", outcome: "failed", report: "a look around", endedAt: at + 5_000 }),
         jobOf({ id: 6, itemId: 40, state: "ended", outcome: "ok", endedAt: at + 1_000 })
@@ -112,14 +140,57 @@ describe("the prompt of that job", () => {
   });
 });
 
-describe("the jobs that have just run on the live board", () => {
-  test("are the finished ones the agency lists, with their item and worker", async () => {
+describe("the jobs running and the jobs that have just run on the live board", () => {
+  test("are the ones the agency lists, with their item and worker", async () => {
     agency.asked.length = 0;
 
     const board = (await asked(status, {})).answer;
 
-    expect(agency.asked.map((one) => one.path)).toEqual(["/jobs?state=ended%2Cstopped&limit=10"]);
+    expect(agency.asked.map((one) => one.path).sort()).toEqual([
+      "/jobs?state=ended&limit=10",
+      "/jobs?state=running&limit=500",
+      "/jobs?state=starting&limit=500",
+      "/jobs?state=stopped&limit=10"
+    ]);
     expect(board?.reachable).toBe(true);
+    expect(board?.live).toEqual([
+      {
+        id: 10,
+        kind: "worker",
+        agent: "worker-b",
+        chatId: 90000001,
+        messageId: null,
+        startedAt: 1_790_000_000,
+        unit: "job-unit-10",
+        capSeconds: null,
+        depth: null,
+        model: null,
+        startedBy: null,
+        todoId: 41,
+        purpose: null,
+        progress: null,
+        waiting: null,
+        stop: { kind: "item", id: "41" }
+      },
+      {
+        id: 9,
+        kind: "worker",
+        agent: "worker-b",
+        chatId: 90000001,
+        messageId: null,
+        startedAt: 1_790_000_000,
+        unit: "job-unit-9",
+        capSeconds: null,
+        depth: null,
+        model: null,
+        startedBy: null,
+        todoId: 41,
+        purpose: null,
+        progress: null,
+        waiting: null,
+        stop: { kind: "item", id: "41" }
+      }
+    ]);
     expect(board?.jobs).toEqual([
       { id: 8, unit: "", chatId: 0, model: null, launchedAt: 1_790_000_000, finishedAt: 1_790_000_060, outcome: "ok", ok: true, todoId: 41, attempt: 1, purpose: null, worker: "worker-b" },
       { id: 7, unit: "", chatId: 0, model: null, launchedAt: 1_790_000_000, finishedAt: 1_790_000_005, outcome: "failed", ok: false, todoId: 41, attempt: 1, purpose: "a look around", worker: "worker-b" },

@@ -31,8 +31,9 @@ export interface RelayCursors {
   job: StreamCursor;
 }
 
-// The agency's events the console's screens read back on: a turn going out and a turn ending.
-export const AGENCY_KINDS = ["turn-started", "turn-ended"] as const;
+// The agency's events the console's screens read back on: a turn going out, a turn ending, and a job starting,
+// changing or ending beside the chat.
+export const AGENCY_KINDS = ["turn.created", "turn.ended", "job.created", "job.changed", "job.ended"] as const;
 
 // How long a stream of bmo-job's or the agency's that ended waits before it is opened again. The receiver's
 // stream is the one the tab's own reconnecting follows; these two are the relay's to keep.
@@ -40,12 +41,15 @@ export const UNIT_RETRY_MS = 3_000;
 
 // The frames of bmo-job's stream as the tab reads them: its run named under a name of its own, so it is never
 // taken for the receiver's, and each event under `job`, without its id line, since the tab counts bmo-job's
-// numbers apart from the receiver's.
+// numbers apart from the receiver's. bmo-job names each event by its kind (its `docs/api.md`, 「Events」), and
+// the event itself carries the number the cursor counts.
 function jobFrames(cursor: StreamCursor): (frame: string) => string[] {
   return (frame) => {
     const event = frameEvent(frame);
 
-    if (event?.name === "run") {
+    if (event === null) return [];
+
+    if (event.name === "run") {
       const named = parsed(event.data)?.run;
 
       if (typeof named === "string") {
@@ -56,20 +60,21 @@ function jobFrames(cursor: StreamCursor): (frame: string) => string[] {
       return [`event: job-run\ndata: ${event.data}\n\n`];
     }
 
-    if (event?.name === "job") {
-      const id = parsed(event.data)?.id;
+    const data = parsed(event.data);
 
-      if (typeof id === "number") cursor.after = Math.max(cursor.after, id);
+    if (data === null) return [];
 
-      return [`event: job\ndata: ${event.data}\n\n`];
-    }
+    const id = data.id;
 
-    return [];
+    if (typeof id === "number") cursor.after = Math.max(cursor.after, id);
+
+    return [`event: job\ndata: ${event.data}\n\n`];
   };
 }
 
 // The frames of the agency's stream as the tab reads them: each event of a kind the screens read under
-// `agency`, with its kind beside what it carries. The agency numbers none of them, so they move no cursor.
+// `agency`, with its kind beside what it carries. The agency numbers its events, and the tab reads a turn or a
+// job by what it carries rather than by that number, so none moves a cursor.
 function agencyFrames(frame: string): string[] {
   const event = frameEvent(frame);
 

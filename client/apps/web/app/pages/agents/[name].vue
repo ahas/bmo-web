@@ -375,20 +375,26 @@ const place = computed<LogPlace | null>(() => {
   return Number.isSafeInteger(chat) ? { at, chat } : { at };
 });
 
-onMounted(async () => {
-  await readControl();
-
+// The jobs running beside the chat are the agency's, so the receiver's picture says nothing of one starting or
+// ending. The agency's job events name it, and the board is read again when one comes.
+async function readLiveStatus(): Promise<void> {
   try {
     live.value = (await $fetch<StatusView>("/api/status")).live;
   } catch {
-    // The log reads whether the bot answers or not; without the picture the header is quiet.
+    // The log reads whether the units answer or not; without the picture the header is quiet.
   }
+}
+
+onMounted(async () => {
+  await readControl();
+  await readLiveStatus();
 });
 
 // Whether the bot is there decides only whether this screen may launch anything. A turn that
 // ended is the bot answering, so that is when it is asked again; while the stream is down it is
 // asked at the pace the rest of the console keeps.
 useLiveRefresh(() => void readControl(), { on: TURN_ENDED, everyMs: POLL_INTERVAL_MS });
+useLiveRefresh(() => void readLiveStatus(), { on: ["worker-run"], everyMs: POLL_INTERVAL_MS });
 
 usePolling(() => {
   now.value = Math.floor(Date.now() / 1000);

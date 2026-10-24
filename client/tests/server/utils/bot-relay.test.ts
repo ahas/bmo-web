@@ -47,12 +47,12 @@ const job = standIn("JOB", (asked: Asked) => {
   jobAnswers += 1;
 
   return jobAnswers === 1
-    ? sse(': hello\n\nevent: run\ndata: {"run":"job-run"}\n\nid: 4\nevent: job\ndata: {"id":4,"at":1,"kind":"queue_moved"}\n\n', false)
-    : sse(`event: run\ndata: {"run":"job-run"}\n\n: asked ${asked.path}\n\n`, true);
+    ? sse(': hello\n\nevent: item.changed\nid: 4\ndata: {"id":4,"kind":"item.changed","at":1,"data":{"id":41}}\n\n', false)
+    : sse(`: asked ${asked.path}\n\n`, true);
 });
 
 const agency = standIn("AGENCY", () =>
-  sse('event: turn-ended\ndata: {"session":"worker-b","run":"run-a","outcome":"answered"}\n\nevent: nodes-moved\ndata: {}\n\n', true)
+  sse('event: turn.created\ndata: {"id":28,"kind":"turn.created","at":1,"data":{"session":"worker-b","run":"run-a"}}\n\nevent: job.created\ndata: {"id":29,"kind":"job.created","at":2,"data":{"id":8,"roomId":7}}\n\nevent: nodes-moved\ndata: {}\n\n', true)
 );
 
 const { relayBotStream, UNIT_RETRY_MS } = await import("../../../apps/web/server/utils/bot-relay");
@@ -82,25 +82,25 @@ describe("the relay to a tab", () => {
   test("asks each unit from its own cursor and hands on each unit's events under the tab's names", async () => {
     const aborted = new AbortController();
     const text = await read(
-      relayBotStream({ receiver: { after: 5, run: "receiver-run" }, job: { after: 3, run: "job-run" } }, aborted, {}),
+      relayBotStream({ receiver: { after: 5, run: "receiver-run" }, job: { after: 3, run: null } }, aborted, {}),
       aborted,
       UNIT_RETRY_MS + 1_500
     );
 
     expect(receiver.asked.at(-1)?.path).toBe("/events?after=5&run=receiver-run");
-    expect(job.asked.map((one) => one.path)).toEqual(["/events?after=3&run=job-run", "/events?after=4&run=job-run"]);
-    expect(agency.asked.at(-1)?.path).toBe("/events?kinds=turn-started,turn-ended");
+    expect(job.asked.map((one) => one.path)).toEqual(["/events?after=3", "/events?after=4"]);
+    expect(agency.asked.at(-1)?.path).toBe("/events?kinds=turn.created,turn.ended,job.created,job.changed,job.ended");
 
     // The receiver's events pass as they came.
     expect(text).toContain('event: run\ndata: {"run":"receiver-run"}\n\n');
     expect(text).toContain('id: 6\nevent: bot\ndata: {"id":6,"type":"todo"}\n\n');
-    // bmo-job's under names of their own, with no id line, and no comment of its.
-    expect(text).toContain('event: job-run\ndata: {"run":"job-run"}\n\n');
-    expect(text).toContain('event: job\ndata: {"id":4,"at":1,"kind":"queue_moved"}\n\n');
+    // bmo-job's under a name of the tab's own, with no id line, and no comment of its.
+    expect(text).toContain('event: job\ndata: {"id":4,"kind":"item.changed","at":1,"data":{"id":41}}\n\n');
     expect(text).not.toContain("id: 4");
     expect(text).not.toContain(": hello");
-    // The agency's turns with their kind; a kind the screens read nothing of is left out.
-    expect(text).toContain('event: agency\ndata: {"session":"worker-b","run":"run-a","outcome":"answered","kind":"turn-ended"}\n\n');
+    // The agency's turns and jobs with their kind; a kind the screens read nothing of is left out.
+    expect(text).toContain('event: agency\ndata: {"id":28,"kind":"turn.created","at":1,"data":{"session":"worker-b","run":"run-a"}}\n\n');
+    expect(text).toContain('event: agency\ndata: {"id":29,"kind":"job.created","at":2,"data":{"id":8,"roomId":7}}\n\n');
     expect(text).not.toContain("nodes-moved");
   }, 10_000);
 

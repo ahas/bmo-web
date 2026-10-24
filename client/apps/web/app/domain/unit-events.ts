@@ -3,16 +3,21 @@ import type { BotEvent, WorkOrderProgress } from "#shared/types";
 // bmo-job's and the agency's events, as the relay hands them on (docs/web.md, 「How the units are talked to」),
 // read into the console's own events, so a screen that reads back on the TODO moving or a turn ending hears
 // them as it hears the receiver's. bmo-job's are numbered in its own run and read under its own cursor; the
-// agency's are numbered by nothing.
+// agency's are numbered by its stream and read by what each carries.
 
 type Fields = Record<string, unknown>;
 
 const text = (value: unknown): string | null => (typeof value === "string" ? value : null);
 const number = (value: unknown): number | null => (typeof value === "number" && Number.isFinite(value) ? value : null);
 
+// What an event carries, as the object it is, or null where it carries none.
+function fieldsOf(value: unknown): Fields | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Fields) : null;
+}
+
 // A work order's standing as bmo-job's `order_changed` carries it.
 function orderOf(value: unknown): WorkOrderProgress | null {
-  const order = (typeof value === "object" && value !== null ? value : null) as Fields | null;
+  const order = fieldsOf(value);
 
   if (order === null) return null;
 
@@ -32,39 +37,105 @@ function orderOf(value: unknown): WorkOrderProgress | null {
   };
 }
 
+// The item an event's member belongs to, where it names one: an item by its own number, and every member
+// nested under one by the item's.
+function itemOf(kind: string, member: Fields): number | null {
+  if (kind.startsWith("item.")) return number(member.id);
+  if (kind === "queue.changed" || kind === "queue.moved") return null;
+
+  return number(member.itemId) ?? number(member.item);
+}
+
+// Whether bmo-job's kind moves the TODO's list, the queue or a question the panel stands.
+function todoKind(kind: string): boolean {
+  return kind === "queue.changed"
+    || kind === "queue.moved"
+    || kind.startsWith("item.")
+    || kind.startsWith("lease.")
+    || kind.startsWith("question.")
+    || kind === "reply.created";
+}
+
 /**
- * One of bmo-job's events as the console's (bmo-job's `docs/api.md`, 「The event stream」): the queue moving is
- * the TODO moving, an order changing is that item's work order, and the talk moving is that item's talk. Its id
- * is bmo-job's own, which the caller counts apart from the receiver's; a kind the console reads nothing of is
- * null.
+ * One of bmo-job's events as the console's (bmo-job's `docs/api.md`, 「Events」): an item or its queue moving is
+ * the TODO moving, a work order and its tasks moving are that item's work order, and its notes, reports and
+ * replies moving are that item's talk. Its id is bmo-job's own, which the caller counts apart from the
+ * receiver's; a kind the console reads nothing of is null.
  */
 export function jobEvent(data: Fields): BotEvent | null {
   const id = number(data.id);
   const at = number(data.at) ?? 0;
-  const item = number(data.item);
+  const kind = text(data.kind);
 
-  if (id === null) return null;
+  if (id === null || kind === null) return null;
 
-  if (data.kind === "queue_moved") return { id, at, type: "todo", chatId: 0, messageId: null };
+  const member = fieldsOf(data.data) ?? data;
 
-  if (data.kind === "order_changed" && item !== null) {
+  // A kind bmo-job read before its stream named every member: the queue moved, an order changed and the
+  // talk moved, with the item at the top of the event.
+  if (kind === "queue_moved") return { id, at, type: "todo", chatId: 0, messageId: null };
+
+  if (kind === "order_changed") {
+    const item = number(data.item);
     const workOrder = orderOf(data.order);
 
-    return workOrder === null ? null : { id, at, type: "work-order", chatId: 0, messageId: null, todoId: item, workOrder };
+    return item === null || workOrder === null ? null : { id, at, type: "work-order", chatId: 0, messageId: null, todoId: item, workOrder };
   }
 
-  if (data.kind === "talk_moved" && item !== null) return { id, at, type: "todo-talk", chatId: 0, messageId: null, todoId: item };
+  if (kind === "talk_moved") {
+    const item = number(data.item);
+
+    return item === null ? null : { id, at, type: "todo-talk", chatId: 0, messageId: null, todoId: item };
+  }
+
+  if (todoKind(kind)) return { id, at, type: "todo", chatId: 0, messageId: null };
+
+  if (kind === "work-order.changed" || kind === "task.changed") {
+    const item = itemOf(kind, member);
+
+    return item === null ? { id, at, type: "todo", chatId: 0, messageId: null } : { id, at, type: "work-order", chatId: 0, messageId: null, todoId: item };
+  }
+
+  if (kind.startsWith("note.") || kind === "report.created") {
+    const item = itemOf(kind, member);
+
+    return item === null ? { id, at, type: "todo", chatId: 0, messageId: null } : { id, at, type: "todo-talk", chatId: 0, messageId: null, todoId: item };
+  }
 
   return null;
 }
 
-/** One of the agency's turn events as the console's (the agency's `docs/api.md`, 「Events」), or null. */
+/**
+ * One of the agency's events as the console's (the agency's `docs/api.md`, 「Events」): a turn going out or
+ * ending as an agent's turn, and a job starting, changing or ending as work running for its room. The event's
+ * own kind is the outer `kind`; what it carries is the event's `data`.
+ */
 export function agencyEvent(data: Fields): BotEvent | null {
-  const session = text(data.session);
-  const run = text(data.run);
-  const phase = data.kind === "turn-started" ? "started" : data.kind === "turn-ended" ? "ended" : null;
+  const kind = text(data.kind);
+  const id = number(data.id) ?? 0;
+  const at = number(data.at) ?? 0;
+  const member = fieldsOf(data.data);
 
-  if (session === null || run === null || phase === null) return null;
+  if (kind === null) return null;
 
-  return { id: 0, at: number(data.at) ?? Date.now(), type: "agency-turn", chatId: 0, messageId: null, phase, session, run };
+  if (kind === "turn.created" || kind === "turn.ended" || kind === "turn-started" || kind === "turn-ended") {
+    const turn = member ?? data;
+    const session = text(turn.session);
+    const run = text(turn.run);
+
+    if (session === null || run === null) return null;
+
+    const phase = kind === "turn.created" || kind === "turn-started" ? "started" : "ended";
+
+    return { id, at: number(turn.at) ?? at, type: "agency-turn", chatId: 0, messageId: null, phase, session, run };
+  }
+
+  if (kind === "job.created" || kind === "job.changed" || kind === "job.ended") {
+    const job = member ?? data;
+    const room = number(job.roomId);
+
+    return { id, at: number(job.startedAt) ?? at, type: "worker-run", chatId: room ?? 0, messageId: null };
+  }
+
+  return null;
 }

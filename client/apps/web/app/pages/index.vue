@@ -257,6 +257,22 @@ useLivePicture((picture) => {
   compacting.value = picture.compacting ?? [];
 });
 
+// The jobs running beside the chat are the agency's, so the receiver's picture says nothing of one starting or
+// ending. The agency's job events name it, and the board is read again when one comes.
+async function readLiveStatus(): Promise<void> {
+  try {
+    const snapshot = await $fetch<StatusView>("/api/status");
+
+    live.value = snapshot.live;
+    compacting.value = snapshot.compacting;
+  } catch {
+    // The page stands whether the units answer or not; without the picture the rows say nothing about what is
+    // running, which is the truth of what is then known.
+  }
+}
+
+useLiveRefresh(() => void readLiveStatus(), { on: ["worker-run"], everyMs: POLL_INTERVAL_MS });
+
 // The context a session carries moves when a turn ends, when a session is replaced by a fresh
 // one, and when an answer came off a lesser model, so the bot's list is read again on exactly
 // those. The rows are keyed by name, so what comes back is patched into the ones already on the
@@ -274,14 +290,6 @@ onMounted(async () => {
 
   onScopeDispose(() => clearInterval(ticker));
 
-  try {
-    const snapshot = await $fetch<StatusView>("/api/status");
-
-    live.value = snapshot.live;
-    compacting.value = snapshot.compacting;
-  } catch {
-    // The page stands whether the bot answers or not; without the picture the rows say nothing
-    // about what is running, which is the truth of what is then known.
-  }
+  await readLiveStatus();
 });
 </script>

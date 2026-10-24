@@ -1131,7 +1131,7 @@ Four groups.
   number. A room the console made itself — one made for companions — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
   conversation.
-  - **추가 beside the group's name adds a room,** for the administrator, in a dialog of three choices made in
+  - **The 추가 button beside the group's name adds a room,** for the administrator, in a dialog of three choices made in
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
     「Rooms」):
     - **A chat service:** every one the receiver names that takes a mode, each with the modes it states said
@@ -1388,7 +1388,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   every screen.
 - **Gate screen** — the gate's answer.
 - **Code graph** — markdown files.
-- **아카이브 screen** — a document's findings.
+- **Archive screen** — a document's findings.
 - **Document viewer** — the markdown documents the chat agent reads, their translation, and the turns of talk about a
   passage.
 - **Code review** — markdown files and review thread turns.
@@ -2631,10 +2631,12 @@ Two ways, split because the running places differ.
     기본값. A list with no question stands as 질문 없음.
   - **Each cell sets that one value,** the row's other values sent with it as they stand, so a default row a
     cell is changed on becomes the console's row of the same key. A list's dropdown is an ordered pick from the
-    catalogue's names: the questions chosen stand in order, each moved up or down or taken out, and a question
-    not yet chosen is added before `final`, which stands last in every list that holds a question and is taken
-    out only where it stands alone, emptying the list. 저장 sends the list. The two numbers take a whole number,
-    0 to 1,000 characters and 1 to 3,600 seconds, and 시간 초과 시 is a pick of its two.
+    catalogue, each question standing under the pack's word for it — 의도 파악, 기억 정리, 메시지 작성 and their kin —
+    and one the console added under its own name; the questions chosen stand in that same word, in order, each
+    moved up or down or taken out, and a question not yet chosen is added before `final`, which stands last in
+    every list that holds a question and is taken out only where it stands alone, emptying the list. 저장 sends the
+    list. The two numbers take a whole number, 0 to 1,000 characters and 1 to 3,600 seconds, and 시간 초과 시 is a
+    pick of its two.
   - **추가** in the table's head opens a box of a provider (전체 or one the agency lists), a tier (전체 or one
     of its ladder) and an agent (전체 or a registered agent); a key that already stands is not offered. The new
     row starts from the values of the row that key matches now and is the console's at once.
@@ -3175,12 +3177,14 @@ Four bounds keep it from growing forever.
   turn and the answer that takes its place wear one look, whichever agent answers.
   - **An answer sent in the owner's own account wears the agent's face.** A room answered in a chat service's
     `human-avatar` voice has the agent's words go out under the owner's account there, so the archive files them
-    under the owner's number and name. The server asks the receiver, once for each agent's number on a page whose
-    messages went out in a round, whether that number is the owner's; where it is, each such message is the
-    room's voice agent's, as the receiver names the voice among the room's answerers. The row then wears that
-    agent's name — its label in the `agents` table — and its picture, and beside the name a small mark naming
-    the account it went out in, "〈이름〉 계정으로 보냄". A message under that number that went out in no round
-    stands under the account's own name and picture.
+    under the owner's number and name. A send the receiver archived itself names the agent whose words they are and
+    the voice it went out in (`human-avatar`, `human-reader` or the agent's own `bot-account`; the receiver's
+    `docs/api.md`, 「Messages」). The row of a send in a person's account wears that agent's name — its label in the
+    `agents` table — and its picture, and beside the name a small mark naming the account it went out in,
+    "〈이름〉 계정으로 보냄"; a send in the agent's own bot account is the agent's alone. A message that names no
+    agent was written before the receiver named one on its sends, so the server asks once for each agent's number on
+    a page whose messages went out in a round whether that number is the owner's, and a message under it that went out
+    in no round stands under the account's own name and picture.
   Where this app is not told the owner's own number
   there is nobody to stand on the right and the room reads down the left.
   Times are all Seoul time. A date mark goes

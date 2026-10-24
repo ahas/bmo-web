@@ -104,6 +104,26 @@ export function draftQuestionFace(t: Translate, question: string): string {
   return face === undefined ? question : t(face);
 }
 
+// The same questions named in a list the reader picks from or reads a row of — the draft process's round table
+// and its catalogue — where each stands under the pack's word for it rather than under its catalogue name, and a
+// question the console adds under a name of its own under that name. The last question writes the message instead
+// of asking one, so it is named as the step it is.
+const DRAFT_QUESTION_NAMES: Record<string, string> = {
+  intent: "room.status.draft_question_intent",
+  information: "room.status.draft_question_information",
+  facts: "room.status.draft_question_facts",
+  promises: "room.status.draft_question_promises",
+  fit: "room.status.draft_question_fit",
+  memory: "room.status.draft_question_memory",
+  final: "agents.label.draft_question_final"
+};
+
+export function draftQuestionLabel(t: Translate, question: string): string {
+  const name = DRAFT_QUESTION_NAMES[question];
+
+  return name === undefined ? question : t(name);
+}
+
 function stateLook(t: Translate, name: string, progress: RunProgress | null): WorkingLook {
   const subject = subjectOf(name);
 

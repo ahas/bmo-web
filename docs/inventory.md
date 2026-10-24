@@ -193,7 +193,7 @@ Of these, not carried here:
 | `server/utils/turns.ts`, `server/utils/turns.test.ts` | not carried: they read a turn's roads and spend out of the old archive, which no unit serves |
 | `server/utils/job-line.ts`, `server/utils/job-line.test.ts` | not carried: they read a worker's job out of bmo-job's tables and the agency's transcripts; `server/utils/job-runs.ts` reads the job line, its prompt, the jobs running and the jobs that have just run through the agency's routes, held by `server/api/agent-job.get.test.ts` |
 | `server/utils/control-change.ts` | not carried: `server/utils/agency.ts` stands in its place |
-| `server/api/research-settings.get.ts`, `server/api/research-settings.post.ts`, `server/api/research-settings.post.test.ts`, `app/domain/research-settings.ts`, `app/components/EngineHealthList.vue` | not carried: they read and changed research settings no unit serves; the 서쳐 tab reads the searchers' work keys off the agency's roads and tiers, and the co-worker table reads the agency's pool (`docs/web.md`, 「서쳐」) |
+| `server/api/research-settings.get.ts`, `server/api/research-settings.post.ts`, `server/api/research-settings.post.test.ts`, `app/domain/research-settings.ts`, `app/components/EngineHealthList.vue` | not carried: they read and changed research settings no unit serves; the searcher tab reads the searchers' work keys off the agency's roads and tiers, and the co-worker table reads the agency's pool (`docs/web.md`, 「서쳐」) |
 | `server/utils/agentlog.test.ts` | rewritten: the log is read through the agency's run log, so the test stands the agency in |
 | the agency route tests (`server/api/agents.get.test.ts`, `fallback.post.test.ts`, `keepalive.post.test.ts`, `run-stop.post.test.ts`) | rewritten onto stood-in units, each refusal said by the pack's sentence |
 | the cross-checks of `app/domain/spans.test.ts` and `app/domain/status.test.ts` against the old packages' sources | not carried: another unit's files are never read; the branch word and the endings are held to the data file and to a list of the test's own |
@@ -527,7 +527,7 @@ stays its own unit's; what is taken is the sentence or the composition, never th
 | `docs/language-pack.md` | `docs/language-pack.md` | build-1 |
 | `docs/documents-viewer.md` | `docs/documents-viewer.md` | build-1 |
 | `docs/skeleton-loading.md` | `docs/skeleton-loading.md` | build-1 |
-| `docs/web.md` | `docs/web.md`, without the sections of the screens it does not carry: Mail screen, Files screen, 아카이브 screen, Code graph screen, Code review screen, Remote screen, Node screen, Monitor screen, Monitor's 서비스 tab and Gate screen, nor the phone app's settings | build-1 |
+| `docs/web.md` | `docs/web.md`, without the sections of the screens it does not carry: Mail screen, Files screen, Archive screen, Code graph screen, Code review screen, Remote screen, Node screen, Monitor screen, Monitor's services tab and Gate screen, nor the phone app's settings | build-1 |
 
 The old root `WORDING.md` stands at this repository's root as `WORDING.md`, the console's UI wording guide: its
 principle and console glossary came, and its banned-term list, allowed uses and check sections did not (#1846).

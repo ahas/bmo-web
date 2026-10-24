@@ -1,8 +1,9 @@
 <template>
-  <!-- A cell holding a list of the draft process's questions: its dropdown is an ordered pick from the catalogue's
-       names. The questions chosen stand in order, each moved up or down or taken out; one not yet chosen is added
-       before `final`, which stands last in every list that holds a question and is taken out only where it stands
-       alone. The save button sends the list; a refusal keeps the dropdown open with the reason under it. -->
+  <!-- A cell holding a list of the draft process's questions: its dropdown is an ordered pick from the catalogue,
+       each question under the pack's word for it and one the console added under its own name. The questions chosen
+       stand in order, each moved up or down or taken out; one not yet chosen is added before `final`, which stands
+       last in every list that holds a question and is taken out only where it stands alone. The save button sends
+       the list; a refusal keeps the dropdown open with the reason under it. -->
   <SettingsPopoverCell v-model:open="open" :label="props.label" :busy="saving">
     <slot />
 
@@ -12,10 +13,10 @@
           <ol class="flex flex-col gap-1" :aria-label="props.label">
             <li v-for="(name, index) in list" :key="name" class="flex min-w-0 items-center gap-1">
               <span class="w-5 shrink-0 text-end text-sm text-dimmed tabular-nums">{{ index + 1 }}</span>
-              <span class="min-w-0 flex-1 truncate font-mono text-sm text-highlighted">{{ name }}</span>
+              <span class="min-w-0 flex-1 truncate text-sm text-highlighted">{{ draftQuestionLabel($t, name) }}</span>
               <template v-if="name !== FINAL_QUESTION">
-                <UButton icon="i-material-symbols-arrow-upward" color="neutral" variant="ghost" size="xs" :disabled="saving || index === 0" :aria-label="$t('agents.aria.draft_move_up', { name })" @click="list = movedQuestion(list, name, -1)" />
-                <UButton icon="i-material-symbols-arrow-downward" color="neutral" variant="ghost" size="xs" :disabled="saving || index >= asked - 1" :aria-label="$t('agents.aria.draft_move_down', { name })" @click="list = movedQuestion(list, name, 1)" />
+                <UButton icon="i-material-symbols-arrow-upward" color="neutral" variant="ghost" size="xs" :disabled="saving || index === 0" :aria-label="$t('agents.aria.draft_move_up', { name: draftQuestionLabel($t, name) })" @click="list = movedQuestion(list, name, -1)" />
+                <UButton icon="i-material-symbols-arrow-downward" color="neutral" variant="ghost" size="xs" :disabled="saving || index >= asked - 1" :aria-label="$t('agents.aria.draft_move_down', { name: draftQuestionLabel($t, name) })" @click="list = movedQuestion(list, name, 1)" />
               </template>
               <UButton
                 v-if="name !== FINAL_QUESTION || list.length === 1"
@@ -24,7 +25,7 @@
                 variant="ghost"
                 size="xs"
                 :disabled="saving"
-                :aria-label="$t('agents.aria.draft_remove_question', { name })"
+                :aria-label="$t('agents.aria.draft_remove_question', { name: draftQuestionLabel($t, name) })"
                 @click="list = withoutQuestion(list, name)"
               />
             </li>
@@ -36,6 +37,7 @@
           <USelect
             :model-value="undefined"
             :items="addable"
+            value-key="value"
             :placeholder="$t('agents.placeholder.draft_add_question')"
             :aria-label="$t('agents.placeholder.draft_add_question')"
             :disabled="saving || addable.length === 0"
@@ -52,6 +54,7 @@
 <script setup lang="ts">
 import { FINAL_QUESTION } from "#shared/drafting";
 import { draftListFault, movedQuestion, withoutQuestion, withQuestion } from "~/domain/draft-process";
+import { draftQuestionLabel } from "~/domain/working";
 
 interface Props {
   value: string[];
@@ -72,7 +75,11 @@ const saving = ref(false);
 
 // How many questions stand before `final`, which the down arrow stops at.
 const asked = computed(() => list.value.filter((name) => name !== FINAL_QUESTION).length);
-const addable = computed(() => props.catalogue.filter((name) => !list.value.includes(name) && (name !== FINAL_QUESTION || list.value.length === 0)));
+const addable = computed(() =>
+  props.catalogue
+    .filter((name) => !list.value.includes(name) && (name !== FINAL_QUESTION || list.value.length === 0))
+    .map((name) => ({ value: name, label: draftQuestionLabel(t, name) }))
+);
 const changed = computed(() => list.value.join("\n") !== props.value.join("\n"));
 const fault = computed(() => draftListFault(t, list.value, props.catalogue));
 const shownFault = computed(() => (fault.value ?? refused.value) || undefined);

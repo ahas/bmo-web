@@ -55,10 +55,12 @@ const drawn = [
   }),
   message(7, { room: -8, files: [{ kind: "document", source: "lost.pdf", storedPath: null, summary: null, collectedAt: 4 }] })
 ];
-// In the owner's own account: an answer sent in a round, and a line under the same number that went out in none.
+// In the owner's own account: an answer the receiver named the agent and the voice on, one it named in the agent's own
+// bot account, and one written before it named either and so read by the number it went out under.
 const voiced = [
-  message(20, { room: -9, senderId: 33, senderName: "person-owner", round: "round:-9:1:1" }),
-  message(21, { room: -9, senderId: 33, senderName: "person-owner" })
+  message(20, { room: -9, senderId: 33, senderName: "person-owner", round: "round:-9:1:1", agentName: "agent-a", voice: "human-avatar" }),
+  message(21, { room: -9, senderId: 33, senderName: "person-owner", agentName: "agent-a", voice: "bot-account" }),
+  message(22, { room: -9, senderId: 33, senderName: "person-owner", round: "round:-9:1:2" })
 ];
 const keptFile = (place: number, kind: string, name: string, type: string | null, size: number | null, kept = true) => ({ place, kind, name, type, size, kept });
 
@@ -95,7 +97,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-9/answerers") return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", companion: false }], more: false });
   if (path === "/rooms/-9/own-number") return answer({ number: 33 });
   if (path === "/rooms/-9/messages") return answer({ items: voiced, more: false });
-  if (path === "/rooms/-9/messages/20/sender-is-owner") return answer({ owner: true });
+  if (path === "/rooms/-9/messages/22/sender-is-owner") return answer({ owner: true });
 
   if (path === "/rooms") {
     return answer({
@@ -159,16 +161,18 @@ describe("a page of a room", () => {
     expect(read.messages.some((one) => one.voicedBy !== undefined)).toBe(false);
   });
 
-  test("names the agent of an answer sent in the owner's own account, asking once whether its number is the owner's", async () => {
+  test("names the agent of an answer sent in the owner's own account from the send itself, and asks the number's owner only where the send names no agent", async () => {
     receiver.asked.length = 0;
 
     const read = await readMessagePage(-9, null, 50);
 
     expect(read.messages.map((one) => [one.messageId, one.agent, one.voicedBy, one.senderName])).toEqual([
       [20, true, "agent-a", "person-owner"],
-      [21, true, undefined, "person-owner"]
+      [21, true, undefined, "person-owner"],
+      [22, true, "agent-a", "person-owner"]
     ]);
-    expect(receiver.asked.filter((one) => one.path.includes("sender-is-owner")).map((one) => one.path)).toEqual(["/rooms/-9/messages/20/sender-is-owner"]);
+    // The two sends that name their agent need no question; the one written before the receiver named it is asked once.
+    expect(receiver.asked.filter((one) => one.path.includes("sender-is-owner")).map((one) => one.path)).toEqual(["/rooms/-9/messages/22/sender-is-owner"]);
   });
 
   test("carries each file a message kept, by its place, with its size and type and whether it can be received, and what a reply answers", async () => {

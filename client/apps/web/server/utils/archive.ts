@@ -29,6 +29,10 @@ interface KeptFile {
   collectedAt: number;
 }
 
+// The voice a send the receiver archived itself went out in (the receiver's `docs/api.md`, 「Messages」): the agent's
+// own bot account, or a person's account speaking for it.
+type SentVoice = "bot-account" | "human-avatar" | "human-reader";
+
 interface ReceivedMessage {
   chatId: number;
   messageId: number;
@@ -42,12 +46,20 @@ interface ReceivedMessage {
   round: string | null;
   album: number | null;
   via: string | null;
+  // The agent whose words the message is, on a send the receiver archived itself, and the voice it went out in. Both
+  // are null on a message a provider carried in.
+  agentName: string | null;
+  voice: SentVoice | null;
   files: KeptFile[];
 }
 
 // A message as the receiver's own document answers it, read into the names the room screen stands on: its
 // number is the message's, and the room it stands in is its own.
 function receivedOf(message: ReceiverMessage): ReceivedMessage {
+  // The published client's schema was built before the receiver named the agent and the voice on its own sends, so
+  // those two fields are read by their names from the receiver's document.
+  const sent = message as ReceiverMessage & { agentName?: string | null; voice?: SentVoice | null };
+
   return {
     chatId: message.room,
     messageId: message.id,
@@ -61,6 +73,8 @@ function receivedOf(message: ReceiverMessage): ReceivedMessage {
     round: message.round,
     album: message.album,
     via: message.via,
+    agentName: sent.agentName ?? null,
+    voice: sent.voice ?? null,
     files: message.files
   };
 }
@@ -171,13 +185,14 @@ const OWNER_NUMBER_TTL_MS = 10 * 60_000;
 const ownerNumbers = new Map<string, { owner: boolean; until: number }>();
 
 // The agents whose answers a page holds sent in the owner's own account, by the number they went out under: an agent's
-// number the receiver says is the owner's, asked once for each such number on the page through one message of it that
-// went out in a round (docs/web.md, 「An answer sent in the owner's own account wears the agent's face」).
+// number the receiver says is the owner's, asked once for each such number through one message of the page that went
+// out in a round (docs/web.md, 「An answer sent in the owner's own account wears the agent's face」). A page the
+// receiver named the agent on every send of needs no question.
 async function ownerVoices(chatId: number, messages: readonly ReceivedMessage[], answerers: ReadonlyMap<number, string>): Promise<Map<number, string>> {
   const asked = new Map<number, number>();
 
   for (const message of messages) {
-    if (message.senderId !== null && message.round !== null && answerers.has(message.senderId) && !asked.has(message.senderId)) {
+    if (message.agentName === null && message.senderId !== null && message.round !== null && answerers.has(message.senderId) && !asked.has(message.senderId)) {
       asked.set(message.senderId, message.messageId);
     }
   }
@@ -220,6 +235,17 @@ async function isOwnerNumber(chatId: number, number: number, messageId: number):
   }
 }
 
+// The agent whose words a message is, where its answer went out in a person's own account: the receiver names both
+// the agent and the voice on a send it archived itself, and a message written before it did is read by the number it
+// went out under and the voice the room answers as. A send in the agent's own bot account is no such answer.
+function accountAgent(message: ReceivedMessage, voiced: ReadonlyMap<number, string>): string | undefined {
+  if (message.agentName !== null) {
+    return message.voice === "human-avatar" || message.voice === "human-reader" ? message.agentName : undefined;
+  }
+
+  return message.round !== null && message.senderId !== null ? voiced.get(message.senderId) : undefined;
+}
+
 function senderKey(message: ReceivedMessage): string {
   return `${message.senderId ?? ""}:${message.senderName}`;
 }
@@ -254,7 +280,7 @@ async function replyQuoteOf(chatId: number, messageId: number, held?: { message:
 // A page of the receiver's read into the messages the screen draws.
 async function messagesOf(chatId: number, received: readonly ReceivedMessage[]): Promise<ArchivedMessage[]> {
   const answerers = await answererNumbers(chatId).catch(() => new Map<number, string>());
-  const agents = new Map(received.map((message) => [senderKey(message), message.senderId !== null && answerers.has(message.senderId)]));
+  const agents = new Map(received.map((message) => [senderKey(message), message.agentName !== null || (message.senderId !== null && answerers.has(message.senderId))]));
   const voiced = await ownerVoices(chatId, received, answerers);
   // Each message's files are read once, and a reply to a message the page holds quotes it from the page.
   const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message)]));
@@ -277,7 +303,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const built: ArchivedMessage[] = await Promise.all(
     received.map(async (message) => {
       const agent = agents.get(senderKey(message)) === true;
-      const voicedBy = agent && message.round !== null && message.senderId !== null ? voiced.get(message.senderId) : undefined;
+      const voicedBy = accountAgent(message, voiced);
       const files = await media.get(message.messageId)!;
 
       return {

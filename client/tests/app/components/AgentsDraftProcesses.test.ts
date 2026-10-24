@@ -57,6 +57,11 @@ describe("the table", () => {
 });
 
 describe("a list's cell", () => {
+  test("names each question by the pack's word, the pick as well as the list", () => {
+    expect(listTemplate).toContain("{{ draftQuestionLabel($t, name) }}");
+    expect(list).toContain('.map((name) => ({ value: name, label: draftQuestionLabel(t, name) }))');
+  });
+
   test("is an ordered pick: each question moved or taken out, final last and taken out only alone", () => {
     expect(listTemplate).toContain("@click=\"list = movedQuestion(list, name, -1)\"");
     expect(listTemplate).toContain("@click=\"list = movedQuestion(list, name, 1)\"");

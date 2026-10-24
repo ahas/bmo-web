@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { stepRoomTurns } from "../../../apps/web/app/domain/events";
-import { draftQuestionFace, phaseLook, subjectOf } from "../../../apps/web/app/domain/working";
+import { draftQuestionFace, draftQuestionLabel, phaseLook, subjectOf } from "../../../apps/web/app/domain/working";
 
 import type { RunState } from "../../../apps/web/app/domain/events";
 import type { BotEvent, RunProgress } from "../../../apps/web/shared/types";
@@ -91,6 +91,12 @@ describe("the running line", () => {
   test("names a question the pack has no words for by its own name", () => {
     expect(draftQuestionFace(wording, "tone")).toBe("tone");
     expect(draftQuestionFace(wording, "intent")).toBe(wording("room.status.draft_question_intent"));
+  });
+
+  test("names each question in the table's lists by the pack's word, the last as the step it is", () => {
+    expect(draftQuestionLabel(wording, "memory")).toBe(wording("room.status.draft_question_memory"));
+    expect(draftQuestionLabel(wording, "final")).toBe(wording("agents.label.draft_question_final"));
+    expect(draftQuestionLabel(wording, "tone")).toBe("tone");
   });
 
   test("says the state alone before the first question starts and for a turn that runs no process", () => {

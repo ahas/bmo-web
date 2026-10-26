@@ -161,7 +161,7 @@ describe("the account an answer went out in", () => {
     expect(head).toContain('v-else-if="named"');
     expect(head.indexOf("data-voice")).toBeGreaterThan(head.lastIndexOf("data-name"));
     expect(head).toContain('$t("room.label.voiced_as", { name: props.item.voice })');
-    expect(voice).toContain("text-xs text-dimmed");
+    expect(voice).toContain("text-sm text-dimmed");
     expect(voice).toContain("shrink-0");
   });
 });

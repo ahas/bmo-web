@@ -4,6 +4,7 @@ import { TURN_ENDED, useLiveRefresh } from "./events";
 import { roadName, roadOutcome, stageLabel } from "./judgements";
 import { countText } from "./numbers";
 import { tokenText } from "./usage";
+import { shortModel } from "#shared/model-short";
 
 import type { RoundSpend, RunProgress, SpendFigure, TokenSplit, TurnFigures, TurnRoad } from "#shared/types";
 import type { LogRow } from "./log";
@@ -63,11 +64,20 @@ export function runEnds(rows: readonly LogRow[]): Map<string, string> {
   return ends;
 }
 
+// A figure's line inside a bubble names its road short where a rule shortens it (docs/web.md, 「Model names where room
+// is short」), and whole otherwise.
+function compactRoad(road: TurnRoad): string {
+  const whole = `${road.provider}/${road.model}`;
+  const short = road.model === "" ? whole : shortModel(whole);
+
+  return short === whole ? roadName(road) : short;
+}
+
 export function turnLines(t: Translate, roads: readonly TurnRoad[]): TurnLine[] {
   return roads.map((road) => ({
     key: road.id,
     stage: stageLabel(t, road.stage),
-    road: roadName(road),
+    road: compactRoad(road),
     outcome: road.outcome === "answered" ? null : roadOutcome(t, road.outcome),
     took: `${countText(road.ms)}ms`,
     tally: tallyOf(road.tokens ?? UNMEASURED),

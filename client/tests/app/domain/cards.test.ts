@@ -37,6 +37,8 @@ describe("the card arbiter screen", () => {
       groups: [{ name: "compute", pool: true, nodes: ["b", "a"], totalMiB: 23750, freeMiB: 3200 }],
       nodes: [node("a", card(1600, [])), node("b", card(1600, [])), node("c", card(9000, []))],
       events: [],
+      tiers: [],
+      services: [],
     };
     expect(sections(state).map((section) => [section.name, section.nodes.map((one) => one.name)])).toEqual([["compute", ["b", "a"]], ["", ["c"]]]);
   });
@@ -52,6 +54,8 @@ describe("the card arbiter screen", () => {
       nodes: [{ ...node("a", card(0, [])), occupants: ["trainer", "kakia", "*"], cards: [busy] }],
       declared: [{ unit: "kakia/*", service: "kakia", kind: "resident", vramMiB: null }, { unit: "voice/small", service: "voice", kind: "on-demand", vramMiB: 900 }],
       events: [],
+      tiers: [],
+      services: [],
     };
     const shown = board(state);
     expect(shown.cards[0]!.pieces.map((piece) => [piece.unit, piece.pattern])).toEqual([["kakia/weights", 0]]);
@@ -80,6 +84,8 @@ describe("the card arbiter screen", () => {
       groups: [],
       nodes: [{ ...node("a", card(0, [])), cards: [busy] }],
       events: [],
+      tiers: [],
+      services: [],
     };
     const shown = board(state);
     const kakia = shown.services[0]!.chunks[0]!;

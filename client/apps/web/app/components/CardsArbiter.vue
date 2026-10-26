@@ -48,6 +48,47 @@
         </div>
       </section>
 
+      <!-- The order the rules keep among the cards' occupants, read here and changed only in the rules file. -->
+      <section v-if="state.tiers.length > 0 || state.services.length > 0" class="flex flex-col gap-3" data-cards-priority>
+        <div class="flex flex-col gap-1">
+          <h2 class="text-lg font-medium">{{ $t("cards.label.priority") }}</h2>
+          <p class="text-sm text-muted wrap-anywhere">{{ $t("cards.label.priority_rule", { file: state.master.rulesFile }) }}</p>
+        </div>
+
+        <DataTable v-if="state.tiers.length > 0" :data="tierRows" :columns="tierColumns" layout="own">
+          <template #occupant-cell="{ row }">
+            <span :class="CELL_TEXT" class="ps-4 font-mono text-sm text-highlighted">{{ row.original.occupant }}</span>
+          </template>
+          <template #tier-cell="{ row }">
+            <span :class="CELL_TEXT" class="text-sm tabular-nums text-highlighted">{{ figure(row.original.tier) }}</span>
+          </template>
+          <template #nodes-cell="{ row }">
+            <span :class="[CELL_TEXT, row.original.nodes.length === 0 ? 'text-muted' : 'text-highlighted']" class="text-sm">{{ nodesText(row.original.nodes) }}</span>
+          </template>
+        </DataTable>
+
+        <DataTable v-if="state.services.length > 0" :data="state.services" :columns="serviceColumns" layout="own">
+          <template #service-cell="{ row }">
+            <span :class="CELL_TEXT" class="ps-4 font-mono text-sm text-highlighted">{{ row.original.service }}</span>
+          </template>
+          <template #tier-cell="{ row }">
+            <span :class="[CELL_TEXT, row.original.tier === null ? 'text-muted' : 'text-highlighted']" class="text-sm tabular-nums">{{ row.original.tier === null ? "—" : figure(row.original.tier) }}</span>
+          </template>
+          <template #priority-cell="{ row }">
+            <span :class="CELL_TEXT" class="text-sm tabular-nums text-highlighted">{{ row.original.priority === null ? "—" : figure(row.original.priority) }}</span>
+          </template>
+          <template #nodes-cell="{ row }">
+            <span :class="CELL_TEXT" class="max-w-72 text-sm text-highlighted">{{ nodesText(row.original.nodes) }}</span>
+          </template>
+          <template #card-cell="{ row }">
+            <span :class="CELL_TEXT" class="text-sm tabular-nums text-highlighted">{{ row.original.cardMiB === null ? "—" : mibText($t, row.original.cardMiB) }}</span>
+          </template>
+          <template #spread-cell="{ row }">
+            <span :class="CELL_TEXT" class="text-sm text-highlighted">{{ spreadText(row.original) }}</span>
+          </template>
+        </DataTable>
+      </section>
+
       <section class="flex flex-col gap-2">
         <h2 class="text-lg font-medium">{{ $t("cards.label.events") }}</h2>
         <ol class="flex flex-col gap-1 text-sm">
@@ -65,6 +106,13 @@
 <script setup lang="ts">
 import { board, mibText, palette, sections, useCards } from "~/domain/cards";
 import { useNodes } from "~/domain/nodes";
+import { countText } from "~/domain/numbers";
+import { CELL_TEXT } from "~/domain/settings-cells";
+
+import type { TableColumn } from "@nuxt/ui";
+import type { CardsState } from "#shared/cards";
+
+const { t } = useI18n();
 
 const { state, failed, loading } = useCards();
 const { nodes } = useNodes();
@@ -76,6 +124,34 @@ const now = ref(Date.now() / 1000);
 let ticking: ReturnType<typeof setInterval> | null = null;
 onMounted(() => { ticking = setInterval(() => { now.value = Date.now() / 1000; }, 1_000); });
 onBeforeUnmount(() => { if (ticking !== null) clearInterval(ticking); });
+
+// The occupants lowest tier first, the order the rules yield in.
+const tierRows = computed(() => [...(state.value?.tiers ?? [])].sort((one, other) => one.tier - other.tier));
+const tierColumns = computed<TableColumn<CardsState["tiers"][number]>[]>(() => [
+  { id: "occupant", header: t("cards.label.occupant"), meta: { class: { th: "w-full" } } },
+  { id: "tier", header: t("cards.label.tier") },
+  { id: "nodes", header: t("cards.label.nodes") }
+]);
+const serviceColumns = computed<TableColumn<CardsState["services"][number]>[]>(() => [
+  { id: "service", header: t("cards.label.service"), meta: { class: { th: "w-full" } } },
+  { id: "tier", header: t("cards.label.tier") },
+  { id: "priority", header: t("cards.label.priority_value") },
+  { id: "nodes", header: t("cards.label.nodes") },
+  { id: "card", header: t("cards.label.card_memory") },
+  { id: "spread", header: t("cards.label.spread") }
+]);
+
+function figure(value: number): string {
+  return Number.isInteger(value) ? countText(value) : value.toLocaleString("ko-KR", { maximumFractionDigits: 2 });
+}
+
+function nodesText(names: readonly string[]): string {
+  return names.length === 0 ? "—" : names.map((name) => labels.value.get(name) ?? name).join(" · ");
+}
+
+function spreadText(service: CardsState["services"][number]): string {
+  return [t(service.many ? "cards.label.spread_many" : "cards.label.spread_one"), ...(service.alone ? [t("cards.label.card_alone")] : [])].join(" · ");
+}
 
 function clock(at: number): string {
   return new Date(at * 1000).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });

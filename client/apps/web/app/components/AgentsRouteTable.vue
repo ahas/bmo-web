@@ -505,7 +505,7 @@ function cellNote(row: RouteRow, column: DataColumn): string {
 
     return row.assignment?.effective.find((one) => one.provider === start)?.error ?? modeLabel(t, start);
   }
-  if (column === "laya") return row.profile?.gateOptions?.layaProbe && row.profile.gateOptions.layaMode === null ? t("common.label.default") : "";
+  if (column === "laya") return row.profile?.gateOptions?.layaProbe && row.profile.gateOptions.layaMode === null ? t("common.label.default_choice") : "";
   if (column === "agreement") return agreementNote(t, agreementOf(laya.value, row.key), row.profile?.gateOptions?.effective.layaTau ?? null);
   // A gate on a road of requests with no tools asks it for an answer room and thinking; the note
   // names the registration its tier maps to there. A gate on any other road asks for neither, and

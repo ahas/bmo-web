@@ -74,6 +74,8 @@ export interface Cluster {
   nodes: ClusterNode[];
   declared?: Maybe<{ unit: string; serviceName: string; kind: UnitKind; vramMiB?: Maybe<number> }[]>;
   events: { at: number; nodeName?: Maybe<string>; code: string; text: string }[];
+  tiers?: Maybe<{ name: string; tier: number }[]>;
+  services?: Maybe<{ serviceName: string; tier?: Maybe<number>; priority?: Maybe<number>; nodeNames?: Maybe<string[]>; cardMiB?: Maybe<number>; spread?: Maybe<string>; alone?: Maybe<boolean> }[]>;
 }
 
 function seconds(ms: Maybe<number>): number | null {
@@ -182,7 +184,17 @@ export function cardsStateOf(cluster: Cluster): CardsState {
     groups: cluster.groups.map((group) => ({ name: group.name, pool: group.pool, nodes: group.nodeNames, totalMiB: group.totalMiB, freeMiB: group.freeMiB })),
     nodes: cluster.nodes.map(nodeOf),
     declared: (cluster.declared ?? []).map((one) => ({ unit: one.unit, service: one.serviceName, kind: one.kind, vramMiB: one.vramMiB ?? null })),
-    events: cluster.events.map((event) => ({ at: Math.floor(event.at / 1000), node: event.nodeName ?? null, text: event.text }))
+    events: cluster.events.map((event) => ({ at: Math.floor(event.at / 1000), node: event.nodeName ?? null, text: event.text })),
+    tiers: (cluster.tiers ?? []).map((one) => ({ occupant: one.name, tier: one.tier, nodes: cluster.nodes.filter((node) => node.occupants.includes(one.name)).map((node) => node.name) })),
+    services: (cluster.services ?? []).map((one) => ({
+      service: one.serviceName,
+      tier: one.tier ?? null,
+      priority: one.priority ?? null,
+      nodes: one.nodeNames ?? [],
+      cardMiB: one.cardMiB ?? null,
+      many: one.spread === "many",
+      alone: one.alone === true
+    }))
   };
 }
 

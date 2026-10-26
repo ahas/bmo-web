@@ -113,7 +113,7 @@
               :digits="one.field === 'maxTokens' ? 9 : 4"
               :format-options="{ useGrouping: true, maximumFractionDigits: one.field === 'maxTokens' ? 0 : 2 }"
               locale="en-US"
-              :placeholder="$t('common.label.default')"
+              :placeholder="$t('common.label.default_choice')"
               :aria-label="one.label"
             />
           </UFormField>
@@ -170,7 +170,7 @@ onBeforeUnmount(() => {
 });
 
 const thinkingItems = computed(() => [
-  { label: t("common.label.default"), value: "default" },
+  { label: t("common.label.default_choice"), value: "default" },
   { label: t("agents.label.think_on"), value: "on" },
   { label: t("agents.label.think_off"), value: "off" }
 ]);

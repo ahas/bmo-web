@@ -237,7 +237,7 @@ describe("what a row shows", () => {
   test("the model is the one its work went out on, and only the detail says auto beside it as the request", () => {
     const settled = item(9, { model: "auto", ranOn: { provider: "claude-code", model: "claude-opus-5-5", changed: false } });
 
-    expect(itemModel(wording, settled)).toBe("claude-code/claude-opus-5-5");
+    expect(itemModel(wording, settled)).toBe("CC::O55");
     expect(itemModel(wording, settled, true)).toBe(`claude-code/claude-opus-5-5 ${wording("todo.label.model_requested", { model: "auto" })}`);
     expect(itemModel(wording, item(9, { model: "auto", ranOn: { provider: "registered", model: "flash-next-coder", changed: false } }))).toBe(`registered/flash-next-coder ${wording("todo.label.model_fallback")}`);
     expect(itemModel(wording, item(9, { model: "auto" }))).toBe("auto");

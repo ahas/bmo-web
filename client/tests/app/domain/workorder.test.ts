@@ -76,7 +76,9 @@ describe("a task's first line", () => {
 
 describe("a task's second line", () => {
   test("says the provider and model it ran on", () => {
-    expect(taskModelLine(wording, task())).toBe("claude-haiku-4-5-20251001");
+    expect(taskModelLine(wording, task())).toBe("H45");
+    // A place with room names it whole.
+    expect(taskModelLine(wording, task(), true)).toBe("claude-haiku-4-5-20251001");
   });
 
   test("a task that fell to another road says that road, the fallback and whether its runs switched, and only the detail the one asked for", () => {
@@ -87,7 +89,7 @@ describe("a task's second line", () => {
 
     expect(taskModelLine(wording, fallen)).toBe(`registered/flash-next-coder ${marks}`);
     expect(taskModelLine(wording, fallen, true)).toBe(`registered/flash-next-coder ${marks} ${wording("todo.label.model_requested", { model: "claude-code::claude-opus-5-5" })}`);
-    expect(taskModelLine(wording, settled)).toBe("claude-code/claude-opus-5-5");
+    expect(taskModelLine(wording, settled)).toBe("CC::O55");
     expect(taskModelLine(wording, settled, true)).toBe(`claude-code/claude-opus-5-5 ${wording("todo.label.model_requested", { model: "auto" })}`);
   });
 
@@ -200,7 +202,7 @@ describe("the steps of an order", () => {
     const stage = workSteps(wording, order())[1]!;
 
     expect(stepHeading(wording, stage)).toBe([wording("todo.label.task_running"), wording("todo.label.step_investigate"), "screener", "Screen the root-cause claims"].join(" · "));
-    expect(stepModelLine(wording, stage)).toBe("claude-haiku-4-5-20251001");
+    expect(stepModelLine(wording, stage)).toBe("H45");
     expect(stepPlace(stage)).toBe("2/3 66%");
     expect(stepRoles(stage)).toBe("screener");
     expect(stepSeconds(stage, 1_200)).toBe(100);
@@ -253,7 +255,7 @@ describe("the steps of an order", () => {
   test("a lone task's step reads as that task does and stands no place", () => {
     const plan = workSteps(wording, order())[0]!;
 
-    expect(stepModelLine(wording, plan)).toBe("claude-code::claude-opus-5");
+    expect(stepModelLine(wording, plan)).toBe("CC::O5");
     expect(stepPlace(plan)).toBe("");
     expect(stepSeconds(plan, 5_000)).toBe(90);
   });

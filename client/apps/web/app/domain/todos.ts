@@ -196,6 +196,7 @@ export function itemModel(t: Translate, item: Pick<TodoItem, "model" | "ranOn">,
     : ranModelText(model, {
         fallback: t("todo.label.model_fallback"),
         changed: t("todo.label.model_changed"),
+        short: !detail,
         ...(detail ? { requested } : {})
       });
 }

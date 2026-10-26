@@ -232,7 +232,7 @@ const registrationItems = computed(() => view.value.registrations.map((one) => (
 const entryItems = computed(() => view.value.entries.map((one) => ({ label: one.label, value: one.name, description: one.file })));
 const baseItems = computed(() => basePromptChoices(t, view.value.basePrompts));
 const thinkingItems = computed(() => [
-  { label: t("common.label.default"), value: "default" },
+  { label: t("common.label.default_choice"), value: "default" },
   { label: t("agents.label.think_on"), value: "on" },
   { label: t("agents.label.think_off"), value: "off" },
 ]);

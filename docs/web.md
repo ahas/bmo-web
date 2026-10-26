@@ -1360,6 +1360,24 @@ Four groups.
 - **A value of a kind the screen does not know** stands as a sentence saying so, naming what it is, never as the
   value's own JSON.
 
+### Model names where room is short
+
+- **A place with room for a few letters only names a model short**; every place with room names it whole. The short
+  places are a TODO row's model chip, a step's model on the progress stepper and a figure's line inside a bubble;
+  an item's own detail, a table's cell, a dialog and a verdict card name the model whole.
+- **The short name is one reading for every such place:** a Claude model is its provider's letters and its family's
+  initial with its version — `CC::O55` for `claude-code/claude-opus-5-5`, S, H and F for Sonnet, Haiku and Fable, a
+  dated build's date left out; a Qwen model is its version without the dot, the initials of its build's words and
+  its kind — `Q38-FN-Coder` for `qwen3.8-flash-next-coder-…` — its quantisation left out. A model no rule shortens
+  stands whole.
+
+### The default among choices
+
+- **A list of choices that holds the default marks it, and only it,** with 기본값: the choice reads `<what it stands
+  for> (기본값)` where the default names a value the screen knows — `섀도 (기본값)` for a gate's Laya mode — and 기본값
+  alone where it stands for the tier's, the engine's or the bot's own choice. A cell or a field that holds the default
+  reads the same words, and an empty number box that stands for it holds 기본값 as its placeholder.
+
 ### Name and value lists
 
 - **A list of names each with its value is one shape everywhere:** a hardware tile's figures, a
@@ -2369,6 +2387,15 @@ Two ways, split because the running places differ.
   - the host memory the node's dumps take, with the most the rules let them take, what the node has available
     and the share a standing claim keeps available, where each is known;
   - the dump store's extents and slots in use.
+- **우선순위** stands after the nodes' tiles: the order the rules keep among the cards' occupants, read from the
+  master's picture and never written here.
+  - A table of the occupants, one row each, lowest tier first: its name, its tier as the rules give it, and the
+    nodes it stands on as an occupant.
+  - A table of the services, one row each in the order the master lists them: its name, its tier where the rules
+    give one, its priority, the nodes it may be placed on, the card memory it asks for, whether it takes one node
+    or many and whether it holds a card alone.
+  - A line under the title says the order is the rules file's, by its path, and that it is changed there and not
+    on the console.
 - **The events** stand last, newest first: what the master saw change and what it ordered, in its own words.
 - Every figure carries thousands separators and stands in tabular figures, and a value the master could not read
   reads 읽지 못함.
@@ -2482,7 +2509,7 @@ Two ways, split because the running places differ.
   change it, 이 모델로 바꾸기 to choose it for its engine — asked first in the message pill, naming the
   engine and the entry and saying the registration answers nothing until the engine is up again — and 삭제, asked first, a removal the bot
   refuses showing its reason under the list. The box holds every field of an entry, the name fixed once
-  made, each default with 기본 for empty.
+  made, each default with 기본값 for empty.
 - **기본 프롬프트.** Under 모델 파일, every base prompt the archive keeps (the agency's `docs/base-prompts.md`), one
   row each: its label and name, its length in characters, the agents that choose it by their
   labels, or 쓰는 에이전트 없음, and when and by whom it was last saved. 추가 in the tab row opens a
@@ -2555,7 +2582,7 @@ Two ways, split because the running places differ.
   their own (the agency's `docs/model-tiers.md`, 「An agent's own thinking and effort」) — the chat agent, each worker
   that is no support worker, the two editors and the two searchers; every other row shows a dash in both. Pressing
   either cell drops its list down from the cell.
-  - **생각** is 기본, 켬 or 끔, and **Effort** is 기본 or one of `low`, `medium`, `high`, `xhigh` and
+  - **생각** is 기본값, 켬 or 끔, and **Effort** is 기본값 or one of `low`, `medium`, `high`, `xhigh` and
     `max`; each is saved as it is picked, through the bot, and a refused save puts the bot's reason
     in a notice.
   - **What does not reach the provider the agent begins on is said where it stands:** a choice none
@@ -2669,8 +2696,8 @@ Two ways, split because the running places differ.
   column head carries 꺼짐 and its cells are edited like any other; a missing mapping says so in red.
 - **A cell's dropdown sets that one mapping.** It offers the provider's registered models and, for
   Claude Code, Codex and OpenRouter, the efforts the chosen model supports. The 등록 모델 column's
-  is set by registration, Token Size (기본, 1,024, 2,048, 4,096 or 8,192), where 기본 is the
-  registration's answer size, and a 생각 choice of 기본, 생각 or 생각 안 함, where 기본 is the
+  is set by registration, Token Size (기본값, 1,024, 2,048, 4,096 or 8,192), where 기본값 is the
+  registration's answer size, and a 생각 choice of 기본값, 생각 or 생각 안 함, where 기본값 is the
   registration's thinking default (the agency's `docs/own-llm.md`, 「Settings per tier」). OpenRouter's list starts filtered to free models with a 무료 모델만 switch; a
   free listing does not guarantee access, quota, tool support or a successful run. The dropdown names
   every work key assigned to that tier. The mapping is saved as soon as the model and the effort make a
@@ -2794,7 +2821,7 @@ Two ways, split because the running places differ.
   - A gate's own screen opens its one row alone, without parts.
 - **Each cell edits its own value:** the provider, the account and the tier as on 실행 경로, and the time
   limit — always the gate's real value in seconds, chosen from the seconds the screen offers from 5 to
-  300 (the bot takes any whole number from 1 to 300). There is no 기본 choice and no way to empty the
+  300 (the bot takes any whole number from 1 to 300). There is no 기본값 choice and no way to empty the
   cell: the table is the only place a gate's wait is set (the agency's `docs/own-llm.md`, 「Per-gate time limit」).
   A gate's model is always its tier, never a provider's model, and
   its thinking and answer room come from that tier, never below the gate's own floor (the agency's `docs/own-llm.md`).
@@ -2805,7 +2832,7 @@ Two ways, split because the running places differ.
   named none, and its account and τ cells show a dash, since neither is read. Its time limit cell
   stays pressable: it is how long the gate waits for Laya, and its fallback LLM again after it. In
   place of its Laya mode stands the LLM it asks where Laya gives no verdict, 대체 with the provider
-  or 대체 없음, pressed for 기본 (with the provider its road would begin on), 대체 없음 and each
+  or 대체 없음, pressed for the provider its road would begin on with 기본값, 대체 없음 and each
   provider kept on (the gate unit's documents, 「A gate whose provider is Laya」).
 - **Laya stands on this tab too** (the gate unit's documents):
   - A band above the table gives the Laya server's state from its latest health check, as the gate unit's `GET
@@ -2817,7 +2844,7 @@ Two ways, split because the running places differ.
     page's one gutter: the band's words start where the table's first column does, its button's own inset
     counted in the gutter rather than added to it.
   - The table carries each gate's Laya mode and τ as cells that edit their own value like the others.
-    The mode offers 기본 (with the mode it stands for) and the four modes; τ offers 없음 and the grid the
+    The mode offers the default, named by the mode it stands for with 기본값 (「The default among choices」), and the four modes; τ offers 없음 and the grid the
     agreement is counted at. A gate that declares no probe shows a dash in both and in the next.
   - **A gate's options are the gate unit's.** Its time limit, its switch, its Laya mode, τ and fallback LLM
     are read with the table from the gate unit's `GET /options/{gateName}`, for each gate its `GET /gates`

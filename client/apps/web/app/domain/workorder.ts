@@ -63,6 +63,7 @@ function taskModel(t: Translate, task: WorkTask, detail: boolean): string {
   return ranModelText(ranModel(task.model, task.ranOn), {
     fallback: t("todo.label.model_fallback"),
     changed: t("todo.label.model_changed"),
+    short: !detail,
     ...(detail ? { requested } : {}),
   });
 }

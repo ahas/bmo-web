@@ -34,7 +34,7 @@
         :step-snapping="false"
         :format-options="{ maximumFractionDigits: one.whole ? 0 : DECIMAL_PLACES }"
         :digits="DIGITS"
-        :placeholder="$t('common.label.default')"
+        :placeholder="$t('common.label.default_choice')"
         :color="refusalAt(one.name) === '' ? undefined : 'error'"
         :highlight="refusalAt(one.name) !== ''"
         :disabled="disabled"
@@ -84,7 +84,7 @@ function textOf(value: number | null | undefined): string {
 const { t } = useI18n();
 
 const switchItems = computed(() => [
-  { label: t("common.label.default"), value: "default" },
+  { label: t("common.label.default_choice"), value: "default" },
   { label: t("agents.label.switch_on"), value: "on" },
   { label: t("agents.label.switch_off"), value: "off" },
 ]);

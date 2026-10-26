@@ -249,7 +249,7 @@ const modelItems = computed(() => {
 const staleReadAt = computed<number | null>(() => catalogue.value.find((one) => one.staleReadAt !== undefined)?.staleReadAt ?? null);
 
 const effortItems = computed(() => chosenModel.value?.efforts.map((one) => ({ value: one ?? "unset", label: one ?? t("agents.label.unset") })) ?? []);
-const tokenItems = [{ value: 0, label: t("common.label.default") }, ...ANSWER_TOKEN_CHOICES.map((value) => ({ value, label: tokensText(t, value) }))];
+const tokenItems = [{ value: 0, label: t("common.label.default_choice") }, ...ANSWER_TOKEN_CHOICES.map((value) => ({ value, label: tokensText(t, value) }))];
 
 // Whether what the dropdown holds differs from the saved mapping.
 const changed = computed(() => {

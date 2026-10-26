@@ -93,4 +93,9 @@ export interface CardsState {
   /** The units the rules declare, by name or pattern; absent from a master that does not say them. */
   declared?: { unit: string; service: string; kind: UnitKind; vramMiB: number | null }[];
   events: { at: number; node: string | null; text: string }[];
+  /** The occupants' tiers as the rules give them, lowest first, with the nodes each stands on. */
+  tiers: { occupant: string; tier: number; nodes: string[] }[];
+  /** Each service's placement as the rules give it: its tier and priority, the nodes it may go on, the card memory it
+   * asks for, whether it spreads over many nodes and whether it holds a card alone. */
+  services: { service: string; tier: number | null; priority: number | null; nodes: string[]; cardMiB: number | null; many: boolean; alone: boolean }[];
 }

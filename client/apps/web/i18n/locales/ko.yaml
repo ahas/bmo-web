@@ -45,6 +45,7 @@ common:
     days: "{d}일"
     days_hours: "{d}일 {h}시간"
     default: 기본
+    default_choice: 기본값
     depth_basic: 기본
     depth_exhaustive: 초정밀
     depth_thorough: 정밀
@@ -741,6 +742,8 @@ cards:
     block: "블록 {n}"
     blocks: "블록 {from}~{to}"
     board: 전체
+    card_alone: 카드 단독
+    card_memory: 카드 메모리
     card_of: "{node} 카드 {n}"
     chart: 카드별 VRAM
     context: "CUDA 컨텍스트 ({process})"
@@ -753,17 +756,26 @@ cards:
     load: 로드
     master: 마스터
     mtp: MTP
+    nodes: 노드
+    occupant: 점유자
     on_demand: 요청 시
     others: 그룹 밖
     outside: 서비스 밖
     output: 출력층
     pool: 한 묶음
+    priority: 우선순위
+    priority_rule: "중재기 규칙 파일({file})에서 정하며, 콘솔에서는 바꿀 수 없습니다."
+    priority_value: 우선순위
     queue: 대기열
     ram: RAM 덤프
     resident: 상시
     rules: 규칙
     service: 서비스
+    spread: 배치
+    spread_many: 여러 노드
+    spread_one: 한 노드
     store: 덤프 저장소
+    tier: 등급
     turn: 차례
     unit: 단위
     unload: 언로드
@@ -1633,7 +1645,7 @@ agents:
     agent_kind_worker: 워커
     agent_node: 노드
     agent_role: 롤
-    agent_role_default: 기본
+    agent_role_default: 기본값
     alias: 별칭
     all_agents: 모든 에이전트
     applies_to: 적용 대상
@@ -1691,7 +1703,7 @@ agents:
     context_tokens: "컨텍스트 {tokens}"
     credential: 자격 증명
     cwd_help: 비우면 자동 생성 · git 아니면 협업 없음
-    default_with: "기본 ({value})"
+    default_with: "{value} (기본값)"
     dev_server: 개발서버 명령
     dev_server_help: 한 줄 · 비우면 없음
     diff_added: "{added}줄 추가"
@@ -1857,7 +1869,7 @@ agents:
     provider_openrouter: OpenRouter
     provider_registered: 등록 모델
     reason: 사유
-    reasoning_default: 기본
+    reasoning_default: 기본값
     reasoning_levels: "적용되는 단계: {levels}"
     reasoning_no_levels: 이 공급자는 Effort를 받지 않습니다.
     reasoning_not_applied: 미적용
@@ -1924,7 +1936,7 @@ agents:
     think_off: 생각 끔
     think_on: 생각 켬
     thinking: 생각
-    thinking_choice_default: 기본
+    thinking_choice_default: 기본값
     thinking_choice_off: 생각 안 함
     thinking_choice_on: 생각
     thinking_default: "{tokens} · 생각 기본"

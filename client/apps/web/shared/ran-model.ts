@@ -1,3 +1,4 @@
+import { shortModel } from "./model-short";
 import { agentProviderNames } from "./types";
 
 import type { RanOn } from "./types";
@@ -65,6 +66,9 @@ export function itemRanModel(requested: string | null, ran: RanOn | null): RanMo
 export interface RanModelWords {
   fallback: string;
   changed: string;
+  // Whether the road is named short, for a place with room for a few letters only (docs/web.md, 「Model names where
+  // room is short」).
+  short?: boolean;
   // Fills the requested model into a detail view's words; a line leaves it out and says the road alone.
   requested?: (requested: string) => string;
 }
@@ -72,7 +76,7 @@ export interface RanModelWords {
 /** The reading in one line: the road taken, its fallback and changed marks, and the request where the words ask for it. */
 export function ranModelText(model: RanModel, words: RanModelWords): string {
   return [
-    model.shown,
+    words.short === true ? shortModel(model.shown) : model.shown,
     ...(model.fallback ? [words.fallback] : []),
     ...(model.changed ? [words.changed] : []),
     ...(model.requested === null || words.requested === undefined ? [] : [words.requested(model.requested)]),

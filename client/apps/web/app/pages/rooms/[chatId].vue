@@ -8,7 +8,7 @@
   <UDashboardPanel
     id="room"
     :ui="{
-      body: `p-0 sm:p-0 pt-(--room-head) pb-(--room-foot) sm:pt-(--room-head) sm:pb-(--room-foot) ${selecting ? 'scroll-pt-[calc(var(--room-head)+var(--room-choose))]' : 'scroll-pt-(--room-head)'} scroll-pb-(--room-foot) overscroll-none ${STABLE_GUTTER} ${TRACK_BETWEEN_BARS}`
+      body: `p-0 sm:p-0 pt-(--room-head) pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] sm:pt-(--room-head) sm:pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] ${selecting ? 'scroll-pt-[calc(var(--room-head)+var(--room-choose))]' : 'scroll-pt-(--room-head)'} scroll-pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] overscroll-none ${STABLE_GUTTER} ${TRACK_BETWEEN_BARS}`
     }"
     :style="{ '--room-head': `${headHeight}px`, '--room-choose': `${chooseHeight}px`, '--room-foot': `${footHeight}px`, '--feed-gutter': `${feedGutter}px` }"
     @dragover.prevent="dragging = !madeForCompanions"
@@ -258,7 +258,7 @@
            back in the room reads first rather than paging down to it. -->
       <div
         class="pointer-events-none absolute z-10 flex overflow-hidden px-(--chat-face-gap) pt-(--chat-face-gap) pb-(--chat-face-gap)"
-        :style="{ bottom: 'var(--room-foot)', insetInlineEnd: `calc(${feedGutter + wayDownEnd}px - var(--chat-face-gap))` }"
+        :style="{ bottom: 'calc(var(--room-foot) + var(--bmo-foot-lift, 0px))', insetInlineEnd: `calc(${feedGutter + wayDownEnd}px - var(--chat-face-gap))` }"
       >
         <Transition
           enter-active-class="transition-transform duration-(--bmo-motion-pop) ease-(--bmo-ease-enter) motion-reduce:transition-none"
@@ -295,7 +295,7 @@
         v-if="administrator"
         ref="composerFoot"
         data-screen-foot
-        class="absolute inset-x-0 bottom-0 z-20 flex max-h-[calc(100%-var(--room-head))] min-h-0 flex-col border-t border-default pt-(--chat-bar-pad) pe-(--feed-gutter) backdrop-blur-md"
+        class="absolute inset-x-0 bottom-[var(--bmo-foot-lift,0px)] z-20 flex max-h-[calc(100%-var(--room-head))] min-h-0 flex-col border-t border-default pt-(--chat-bar-pad) pe-(--feed-gutter) backdrop-blur-md"
         :class="[dragging ? 'bg-elevated/75' : 'bg-default/75', overlaid ? 'pb-(--chat-bar-pad)' : 'pb-[calc(var(--chat-bar-pad)+var(--bmo-safe-bottom))]']"
       >
         <UContainer class="flex min-h-0 flex-col">

@@ -17,8 +17,10 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     return `${name}=${typeof value === "number" && Number.isFinite(value) ? Math.round(value * 100) / 100 : "-"}`;
   });
   const agent = (getRequestHeader(event, "user-agent") ?? "-").slice(0, 160);
+  // The boxes around the bar, each a tag with its top and height, written as they came and cut to a short line.
+  const boxes = Array.isArray(body.boxes) ? body.boxes.filter((one): one is string => typeof one === "string").slice(0, 8).map((one) => one.slice(0, 60).replace(/\s/g, "")) : [];
 
-  console.info(`client report foot-covered by ${session.user?.name ?? "-"}: ${read.join(" ")} agent=${agent}`);
+  console.info(`client report foot-covered by ${session.user?.name ?? "-"}: ${read.join(" ")} boxes=${boxes.join(",") || "-"} agent=${agent}`);
 
   return { ok: true };
 });

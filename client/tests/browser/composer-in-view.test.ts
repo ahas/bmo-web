@@ -291,6 +291,51 @@ describe.skipIf(!origin || !touchReady())("the room's input bar stands within wh
       }
     }, TEST_MS);
 
+    test(`at ${phone.width}x${phone.height} a room laid out taller than the visible part lifts its bar into view, and lets it down once it fits`, async () => {
+      const context = await open(phone, { windowHeight: null, height: null, offsetTop: null });
+      const reports: Record<string, unknown>[] = [];
+
+      await context.route(/\/api\/client-reports$/, async (route) => {
+        reports.push(route.request().postDataJSON() as Record<string, unknown>);
+        await route.fulfill({ json: { ok: true } });
+      });
+      // The box the room stands in laid out a browser bar's height taller than the shell, as a phone's browser lays
+      // it out from a reload until its first touch: the shell itself stands at what is visible.
+      await context.addInitScript(() => {
+        addEventListener("DOMContentLoaded", () => {
+          const style = document.createElement("style");
+
+          style.id = "taller-room";
+          style.textContent = "div:has(> [data-screen-foot]) { height: calc(100% + 56px) !important; max-height: none !important; flex: none !important; }";
+          document.head.append(style);
+        });
+      });
+
+      try {
+        const page = await loadFresh(context);
+
+        await page.waitForTimeout(1_200);
+        expectInView(await placed(page));
+        expect(reports).toHaveLength(1);
+        expect(reports[0]).toMatchObject({ kind: "foot-covered", windowHeight: phone.height });
+        expect(Array.isArray(reports[0]!.boxes) && (reports[0]!.boxes as unknown[]).length > 0).toBe(true);
+
+        // The box fits again, and the bar stands at the foot again rather than lifted above it.
+        await page.evaluate(() => {
+          document.getElementById("taller-room")?.remove();
+          window.dispatchEvent(new Event("resize"));
+        });
+        await page.waitForTimeout(400);
+
+        const at = await placed(page);
+
+        expectInView(at);
+        expect(at.bottom).toBeGreaterThan(at.visibleBottom - 80);
+      } finally {
+        await context.close();
+      }
+    }, TEST_MS);
+
     test(`at ${phone.width}x${phone.height} a keyboard coming over the window and going leaves it in view`, async () => {
       const context = await open(phone, { windowHeight: null, height: null, offsetTop: null });
 

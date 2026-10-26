@@ -42,24 +42,39 @@ function readVisibleFrame(): VisibleFrame | null {
     scale: visual.scale
   });
 
-  // A foot held in view standing below what is visible, though nothing read says anything covers the window, has
-  // the shell stand at the visible part all the same, and says what was read the first time it does.
-  if (frame === null && visual.scale <= 1) {
-    const bottom = visual.offsetTop + visual.height;
-    const covered = [...feet].find((foot) => {
-      const box = foot.getBoundingClientRect();
-
-      return box.height > 0 && box.bottom > bottom + FOOT_SLACK_PX;
-    });
-
-    if (covered !== undefined) {
-      reportCovered(covered, visual);
-
-      return { top: Math.round(visual.offsetTop), height: Math.round(visual.height) };
-    }
-  }
+  // A foot held in view standing below what is visible, though nothing read says anything covers the window, is
+  // lifted by how far it stands below, and what was read is said the first time it does.
+  if (frame === null && visual.scale <= 1) liftFeet(visual);
 
   return frame;
+}
+
+// The property a foot's box carries for how far the foot is lifted above where it would stand: the box the foot is
+// laid out in, so whatever else stands in that box — the end of a conversation — makes the same room.
+export const FOOT_LIFT_PROPERTY = "--bmo-foot-lift";
+
+// How far each foot is lifted now.
+const lifts = new WeakMap<HTMLElement, number>();
+
+// Each foot measured against the bottom of what is visible: where it would stand unlifted, and the lift that brings
+// it up to that bottom, or none.
+function liftFeet(visual: VisualViewport): void {
+  const bottom = visual.offsetTop + visual.height;
+
+  for (const foot of feet) {
+    const box = foot.getBoundingClientRect();
+    const held = lifts.get(foot) ?? 0;
+    const below = box.height > 0 ? box.bottom + held - bottom : 0;
+    const lift = below > FOOT_SLACK_PX ? Math.ceil(below) : 0;
+    const area = foot.offsetParent instanceof HTMLElement ? foot.offsetParent : null;
+
+    if (lift > 0 && held === 0) reportCovered(foot, visual);
+    if (lift === held || area === null) continue;
+
+    lifts.set(foot, lift);
+    if (lift === 0) area.style.removeProperty(FOOT_LIFT_PROPERTY);
+    else area.style.setProperty(FOOT_LIFT_PROPERTY, `${lift}px`);
+  }
 }
 
 // The bars at the foot of a screen that must stand inside what is visible, a room's input bar among them.
@@ -90,9 +105,26 @@ function reportCovered(foot: HTMLElement, visual: VisualViewport): void {
       dynamicHeight: shellOwnHeight(),
       footTop: box.top,
       footBottom: box.bottom,
-      scrollY: window.scrollY
+      scrollY: window.scrollY,
+      boxes: boxesAround(foot)
     }
   }).catch(() => undefined);
+}
+
+// The boxes from the one a foot stands in up to the page's root, each by its tag and its top and height, so a report
+// says which of them is laid out taller than what is visible.
+const BOXES_REPORTED = 8;
+
+function boxesAround(foot: HTMLElement): string[] {
+  const boxes: string[] = [];
+
+  for (let at = foot.parentElement; at !== null && boxes.length < BOXES_REPORTED; at = at.parentElement) {
+    const box = at.getBoundingClientRect();
+
+    boxes.push(`${at.tagName.toLowerCase()}${at.id === "" ? "" : `#${at.id}`}@${Math.round(box.top)}+${Math.round(box.height)}`);
+  }
+
+  return boxes;
 }
 
 /** Holds a bar at the foot of a screen inside what is visible for as long as it stands. */
@@ -109,7 +141,10 @@ export function useFootInView(foot: Readonly<Ref<HTMLElement | null>>): void {
   );
 
   onScopeDispose(() => {
-    if (foot.value) feet.delete(foot.value);
+    if (foot.value) {
+      feet.delete(foot.value);
+      lifts.delete(foot.value);
+    }
   });
 }
 

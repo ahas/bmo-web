@@ -160,11 +160,16 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
       back into view — so a browser settling its bars after a reload re-places the shell without waiting on
       a touch. Where a browser knows no `dvh`, the whole window is `100vh`.
     - **The room's input bar holds itself in view.** Each time the reading is taken the room measures its
-      input bar against the visible part; a bar whose foot stands below what is visible has the shell
-      stand at the visible part instead, so the bar comes back above whatever covers it, and the first time
-      on a page that happens the screen tells the console's log the numbers it read — the window's height,
-      the visible part's height, start and zoom, the dynamic viewport's height and where the bar stood — so a
-      browser that covers the bar in a way no reading shows is measured the next time it does.
+      input bar against the visible part. A bar whose foot stands below what is visible while a bar or a
+      keyboard covers the window has the shell stand at the visible part instead. One that stands below it
+      while nothing covers the window — the box the room stands in laid out taller than the visible part,
+      as a phone's browser can lay one out from its page's load until its first touch — is lifted by how far
+      it stands below, and the end of the conversation with it, so the last message still stands above the
+      bar; the lift is measured again each time the reading is taken and is nothing once the box fits again.
+      The first time on a page that the bar stands below, the screen tells the console's log the numbers it
+      read — the window's height, the visible part's height, start and zoom, the dynamic viewport's height,
+      where the bar stood, and the top and height of the box it stands in and of each box around that one up
+      to the shell — so a browser that lays the page out that way is measured the next time it does.
   - **The third: the document itself never scrolls.** Every scroll is a part's own. A screen that stands
     on no shell — a share link's page, the remote screens — stands on the one screen
     frame instead, which is pinned the way the shell is, by the same two values. Being pinned is what

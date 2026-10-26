@@ -3033,6 +3033,11 @@ Two ways, split because the running places differ.
   Where two runs went side by side, each line still stands under the agent's one flow, its run named on its 시작
   line. A worker session whose job is a co-work item or carries a plan stands the stepper above its log
   (「The progress stepper」).
+  - **A line that is words** stands as the markdown it was written in; **a line that is a record** — how the run
+    was opened, a stream's own event — stands as its named fields where it is a JSON object or list, a text inside
+    it that is itself JSON among them, and whole as it was stored otherwise (「A value shown as what it is」).
+  - **The agent screen keeps the panel's room at its foot** under the last line, as every content screen does
+    (bmo-ui's `docs/design.md`, 「Room at the foot」), and gives it up only where the launch box stands there.
 - **The work view.** A worker's screen, the agent log dialog a room, the live board or the TODO panel opens, and the
   co-work stage dialog are one view, opened from different places; nothing in it depends on where it was opened.
   It holds, one under the other and none of it folded:

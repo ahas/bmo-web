@@ -178,3 +178,12 @@ describe("a JSON value", () => {
     ]);
   });
 });
+
+describe("a JSON value carried as a text inside another", () => {
+  test("stands as its fields too", () => {
+    expect(jsonFields(wording, { input: '{"command":"ls","timeout":5}' })).toEqual([
+      { label: "input › command", value: "ls" },
+      { label: "input › timeout", value: "5" }
+    ]);
+  });
+});

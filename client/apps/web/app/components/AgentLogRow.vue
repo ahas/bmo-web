@@ -28,6 +28,14 @@
          whole as it was stored, wrapping inside the log rather than widening it. -->
     <template v-else>
       <MarkdownText v-if="look.words" :text="line.text" class="text-sm" />
+      <!-- A record that is a JSON object or list stands as its named fields, never as its text (docs/web.md, 「A
+           value shown as what it is」); any other record stands whole as it was stored. -->
+      <dl v-else-if="recordFields.length > 0" class="pair-list gap-x-4 gap-y-1 text-sm" data-log-record>
+        <template v-for="field in recordFields" :key="field.label">
+          <dt class="font-mono text-muted">{{ field.label }}</dt>
+          <dd class="break-words whitespace-pre-wrap">{{ field.value }}</dd>
+        </template>
+      </dl>
       <pre v-else class="font-mono text-sm break-words whitespace-pre-wrap">{{ line.text }}</pre>
       <p v-if="line.truncated" class="text-sm text-dimmed">{{ SHORT }}</p>
     </template>
@@ -38,6 +46,7 @@
 <script setup lang="ts">
 import { contextStateLook, lineLook, toolChip } from "~/domain/log";
 import { formatTime } from "bmo-ui/app/domain/time";
+import { jsonFields } from "~/domain/dbview";
 
 import type { LogRow } from "~/domain/log";
 
@@ -59,4 +68,19 @@ const mark = computed(() => contextStateLook(t, line.value));
 
 // The chip a call wears in place of its kind's word.
 const chip = computed(() => toolChip(line.value));
+
+// A record that reads as a JSON object or list, as its named fields; none for a record of any other shape.
+const recordFields = computed(() => {
+  const text = line.value.text.trim();
+
+  if (look.value.words || !/^[[{]/.test(text)) return [];
+
+  try {
+    const value: unknown = JSON.parse(text);
+
+    return value !== null && typeof value === "object" ? jsonFields(t, value) : [];
+  } catch {
+    return [];
+  }
+});
 </script>

@@ -1,5 +1,7 @@
 <template>
-  <UDashboardPanel id="agent" :ui="{ body: 'p-0 sm:p-0 overscroll-none' }">
+  <!-- The body's sections run to its sides, and the foot keeps the panel's gutter of room under the last of them
+       unless the launch box stands at the foot (bmo-ui's docs/design.md, 「Room at the foot」). -->
+  <UDashboardPanel id="agent" :ui="{ body: launchable === null ? 'p-0 sm:p-0 pb-4 sm:pb-6 overscroll-none' : 'p-0 sm:p-0 overscroll-none' }">
     <template #header>
       <ConsoleTitleBar :title="meta.label" :icon="meta.icon">
         <!-- What belongs to this agent alone stands beside its name; the right end keeps what every

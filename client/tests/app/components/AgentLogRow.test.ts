@@ -37,12 +37,17 @@ describe("a call", () => {
 });
 
 describe("a line that is not a call", () => {
-  const rest = template.slice(template.indexOf("<template v-else>"), template.indexOf("</template>", template.indexOf("<template v-else>")));
+  const rest = template.slice(template.indexOf("<template v-else>"), template.indexOf("</li>"));
 
   test("stands whole as it was stored when it is not words, wrapping rather than clamped or folded", () => {
     expect(rest).toContain('<MarkdownText v-if="look.words"');
     expect(rest).toMatch(/<pre v-else class="[^"]*font-mono[^"]*break-words whitespace-pre-wrap[^"]*"/);
     expect(rest).not.toContain("line-clamp");
+  });
+
+  test("stands a record that is a JSON object or list as its named fields, never as its text", () => {
+    expect(rest).toContain('<dl v-else-if="recordFields.length > 0" class="pair-list');
+    expect(source).toContain("jsonFields(t, value)");
   });
 
   test("wears its badge off the one look every line of this screen takes", () => {

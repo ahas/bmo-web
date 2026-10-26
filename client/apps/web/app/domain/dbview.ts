@@ -181,6 +181,17 @@ export function jsonFields(t: Translate, value: unknown, under = ""): JsonField[
 
   if (under === "") return [];
 
+  // A text that is itself a JSON object or list — a call's arguments carried as a string — stands as its fields too.
+  if (typeof value === "string" && /^\s*[[{]/.test(value)) {
+    try {
+      const inner: unknown = JSON.parse(value);
+
+      if (inner !== null && typeof inner === "object") return jsonFields(t, inner, under);
+    } catch {
+      // A text that only opens like JSON stands as the text it is.
+    }
+  }
+
   if (value === null || value === undefined) return [{ label: under, value: t("db.label.json_none") }];
   if (typeof value === "boolean") return [{ label: under, value: t(value ? "db.label.json_yes" : "db.label.json_no") }];
 

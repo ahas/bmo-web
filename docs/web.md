@@ -154,9 +154,17 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
       Android's bottom bar over the gesture bar can be from a page's load until its first touch. Read against
       the window alone, nothing would overlay, the shell would stand at `100dvh`, and its foot — the room's
       input bar — would stand under that bar until the page is touched.
-    - The reading is taken as the screen is first drawn and on the frame after it, and again whenever the
-      visual viewport changes size or moves or the window changes size, so a browser settling its bars
-      after the first frame re-places the shell without waiting on a touch.
+    - The reading is taken as the screen is first drawn, on the frame after it and again a quarter, one and
+      two and a half seconds later, whenever the visual viewport changes size or moves, the window changes
+      size or scrolls, the page is shown again from the browser's history, the screen turns, or the tab comes
+      back into view — so a browser settling its bars after a reload re-places the shell without waiting on
+      a touch. Where a browser knows no `dvh`, the whole window is `100vh`.
+    - **The room's input bar holds itself in view.** Each time the reading is taken the room measures its
+      input bar against the visible part; a bar whose foot stands below what is visible has the shell
+      stand at the visible part instead, so the bar comes back above whatever covers it, and the first time
+      on a page that happens the screen tells the console's log the numbers it read — the window's height,
+      the visible part's height, start and zoom, the dynamic viewport's height and where the bar stood — so a
+      browser that covers the bar in a way no reading shows is measured the next time it does.
   - **The third: the document itself never scrolls.** Every scroll is a part's own. A screen that stands
     on no shell — a share link's page, the remote screens — stands on the one screen
     frame instead, which is pinned the way the shell is, by the same two values. Being pinned is what

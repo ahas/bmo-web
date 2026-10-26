@@ -90,6 +90,8 @@ declare global {
   interface Window {
     // Set by the stand-in below.
     report: (next: Partial<Reported>) => void;
+    // What is reported changed with no event told of it, as a browser settling its bars after a reload can.
+    reportQuietly: (next: Partial<Reported>) => void;
   }
 }
 
@@ -118,6 +120,9 @@ function standIn(initial: Reported): void {
     Object.assign(reported, next);
     visual.dispatchEvent(new Event("resize"));
     window.dispatchEvent(new Event("resize"));
+  };
+  window.reportQuietly = (next) => {
+    Object.assign(reported, next);
   };
 }
 
@@ -227,6 +232,60 @@ describe.skipIf(!origin || !touchReady())("the room's input bar stands within wh
 
         expect(at.visibleBottom).toBe(visible);
         expectInView(at);
+      } finally {
+        await context.close();
+      }
+    }, TEST_MS);
+
+    test(`at ${phone.width}x${phone.height} a reload whose bars settle a moment later, with no event told, leaves it in view`, async () => {
+      const context = await open(phone, { windowHeight: null, height: null, offsetTop: null });
+
+      try {
+        const page = await loadFresh(context);
+
+        await page.reload({ waitUntil: "load" });
+        await page.locator("form textarea").first().waitFor({ state: "attached" });
+        // The bar comes over the page's foot after the first frames, and the browser says nothing of it.
+        await page.evaluate((visible) => window.reportQuietly({ windowHeight: visible, height: visible, offsetTop: 0 }), phone.height - BAR_PX);
+        await page.waitForTimeout(2_800);
+
+        const at = await placed(page);
+
+        expect(at.visibleBottom).toBe(phone.height - BAR_PX);
+        expectInView(at);
+      } finally {
+        await context.close();
+      }
+    }, TEST_MS);
+
+    test(`at ${phone.width}x${phone.height} a bar standing below what is visible though nothing read says so is brought into view and reported`, async () => {
+      const context = await open(phone, { windowHeight: null, height: null, offsetTop: null });
+      const reports: unknown[] = [];
+
+      await context.route(/\/api\/client-reports$/, async (route) => {
+        reports.push(route.request().postDataJSON());
+        await route.fulfill({ json: { ok: true } });
+      });
+      // A browser laying the shell out taller than what it reports as visible, which no reading of the window shows.
+      await context.addInitScript(() => {
+        addEventListener("DOMContentLoaded", () => {
+          const style = document.createElement("style");
+
+          style.textContent = "html:root { --bmo-screen: calc(100dvh + 120px); }";
+          document.head.append(style);
+        });
+      });
+
+      try {
+        const page = await loadFresh(context);
+
+        await page.waitForTimeout(1_200);
+
+        const at = await placed(page);
+
+        expectInView(at);
+        expect(reports).toHaveLength(1);
+        expect(reports[0]).toMatchObject({ kind: "foot-covered", windowHeight: phone.height });
       } finally {
         await context.close();
       }

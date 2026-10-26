@@ -383,7 +383,7 @@ import { flightTiming, riseOutOf, settleInto } from "~/domain/flight";
 import { measurePicture, messagePicture, releaseStandIn, rememberShape, shapeOf, standIn } from "~/domain/picture-shapes";
 import { readsFromFirstLine } from "~/domain/first-line";
 import { loadMarkdownRenderer } from "~/domain/markdown-load";
-import { useOverlaid } from "~/domain/overlay";
+import { useFootInView, useOverlaid } from "~/domain/overlay";
 import { keepPlace } from "bmo-ui/app/domain/fullscreen";
 import { useReadMarks } from "~/domain/read-marks";
 import { useNewestReads } from "~/domain/room-list";
@@ -548,6 +548,10 @@ const replyLine = computed(() => (replyTarget.value === null ? { name: "", words
 const flashKey = ref<string | null>(null);
 const composer = useTemplateRef<{ focus: () => void; attach: (files: File[]) => void; clear: (options?: { keepPreviews?: boolean }) => void }>("composer");
 const composerFoot = useTemplateRef<HTMLElement>("composerFoot");
+
+// The input bar holds itself inside what is visible, whatever the browser lays over the page's foot (docs/web.md,
+// 「Layout fundamentals」).
+useFootInView(composerFoot);
 const roomHead = useTemplateRef<HTMLElement>("roomHead");
 const roomNavbar = useTemplateRef<HTMLElement>("roomNavbar");
 

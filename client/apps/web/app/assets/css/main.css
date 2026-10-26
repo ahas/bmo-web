@@ -627,3 +627,10 @@
     transition: none;
   }
 }
+
+/* The whole window where nothing covers it: the dynamic viewport, and the window's own height in a browser that
+   knows no dvh (docs/web.md, 「Layout fundamentals」). */
+:root {
+  --bmo-screen: 100vh;
+  --bmo-screen: 100dvh;
+}

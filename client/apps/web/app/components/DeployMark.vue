@@ -3,7 +3,7 @@
        of what there is to do about it. It is the bar's own icon button at every width, its words in
        its tooltip. -->
   <UTooltip v-if="mark !== null && mark.kind === 'newer'" :text="markWords">
-    <UButton class="shrink-0" :icon="mark.icon" :color="mark.tone" variant="ghost" :aria-label="markWords" @click="reload" />
+    <UButton class="shrink-0" :icon="mark.icon" :color="mark.tone" variant="ghost" :aria-label="markWords" data-deploy-mark @click="reload" />
   </UTooltip>
 
   <!-- While a deployment runs, holds the queue, or has just ended (docs/web.md, 「Deployment in
@@ -11,7 +11,7 @@
        words in its tooltip. Pressed, what stands behind it opens. -->
   <UPopover v-else-if="mark !== null" v-model:open="shown" :content="{ align: 'end' }" :ui="{ content: 'w-96 max-w-[calc(100vw-1rem)] p-3' }">
     <UTooltip :text="markWords" :disabled="!narrow">
-      <button type="button" :class="[MARK_BUTTON, toneClass(mark.tone)]" :aria-label="markWords">
+      <button type="button" :class="[MARK_BUTTON, toneClass(mark.tone)]" :aria-label="markWords" data-deploy-mark>
         <UIcon :name="mark.icon" class="size-5 shrink-0" :class="mark.spin ? 'animate-spin' : ''" />
         <span class="hidden min-w-0 truncate sm:inline">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
       </button>

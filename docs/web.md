@@ -1052,8 +1052,9 @@ edit to that file alone, once the guide below carries the word.
   alone. Its
   popover is the same as the run's, with the outcome at its head.
 - **A page older than the console being served says so.** Where the build the console server runs
-  differs from the page's own, the mark is a refresh icon button in the accent colour at every width,
-  the title bar's own icon button, its words 「새 버전 · 새로고침」 in its tooltip and its accessible name;
+  differs from the page's own, the mark is a new-release icon button in the accent colour at every width — never a
+  circular arrow, which beside the deployment's spinning mark reads as that mark stopped — the title bar's own icon
+  button, its words 「새 버전 · 새로고침」 in its tooltip and its accessible name;
   pressing it loads the page again. It is read every time the stream opens, which it does again once
   bmo-web is back from a deployment's restart.
 - **It is told live, and stands through the units' restarts.** The console server looks at the progress

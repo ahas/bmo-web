@@ -245,7 +245,7 @@ export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease:
   }
 
   if (view.release !== pageRelease) {
-    return { kind: "newer", tone: "primary", icon: "i-material-symbols-refresh", spin: false, label: t("deploy.status.newer"), detail: t("deploy.action.reload") };
+    return { kind: "newer", tone: "primary", icon: "i-material-symbols-new-releases-outline", spin: false, label: t("deploy.status.newer"), detail: t("deploy.action.reload") };
   }
 
   return null;

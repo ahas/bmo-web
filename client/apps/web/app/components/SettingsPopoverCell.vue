@@ -4,7 +4,7 @@
   <UPopover v-model:open="open" :content="{ align: 'start', side: 'bottom', sideOffset: 0 }">
     <button type="button" :class="CELL_BUTTON" :disabled="props.disabled" :aria-label="props.label">
       <slot />
-      <UIcon v-if="props.busy" name="i-lucide-loader-circle" class="absolute end-2 top-2 size-4 animate-spin text-muted" />
+      <UIcon v-if="props.busy" name="i-material-symbols-progress-activity" class="absolute end-2 top-2 size-4 animate-spin text-muted motion-reduce:animate-none" />
     </button>
 
     <template #content>

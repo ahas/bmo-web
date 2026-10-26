@@ -505,7 +505,7 @@ paths that answer without one (bmo-ui's `docs/console-bundles.md`, 「Share page
   makes is a share read: a `GET` or `HEAD` whose path a pattern under the manifest's `shareReads` matches,
   each carrying the token, which the service answers for a live token alone. It is relayed with no session
   and, whoever is signed in, with no owner key and no role, so every holder of the token reads the same. A
-  manifest that names none has `shares/<token>` and `shares/<token>/content` taken as its share reads.
+  manifest that names none has no share read.
 - **What it opens is that one thing** — a document and the pages it refers to, or a file and its
   download — and nothing of the console it came from.
 - **It ends by itself.** Every link carries an expiry chosen when it is made, and past that time it

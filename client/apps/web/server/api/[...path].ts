@@ -5,9 +5,10 @@ import type { H3Event } from "h3";
 import { wording } from "#shared/wording";
 
 import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
+import { shareRead } from "bmo-ui/shared/console-manifest";
 
 import { relayedSegment, socketRelay } from "../utils/bundle-relay";
-import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedCall, shareReadCall } from "../utils/console-manifests";
+import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedCall } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
 import { unitAt } from "../utils/units";
 
@@ -105,7 +106,9 @@ async function relayed(event: H3Event): Promise<Response> {
 
   const reading = method === "GET" || method === "HEAD";
   const session = await getUserSession(event);
-  const shared = reading && attached !== null && shareReadCall(attached.manifest, method, `/${rest}`);
+  // A share read is a pattern the manifest names under `shareReads` (docs/web.md, 「Access」); a manifest naming none
+  // has none.
+  const shared = reading && attached !== null && shareRead(attached.manifest, method, `/${rest}`);
   const unsigned = shared || (reading && attached !== null && bundleFile(attached.manifest, `/${rest}`));
 
   if (session.user === undefined && !unsigned) {

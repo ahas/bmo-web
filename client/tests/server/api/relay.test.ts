@@ -330,7 +330,7 @@ describe("the relay of a route a manifest relays", () => {
 });
 
 // The share reads a manifest names (bmo-ui's `docs/console-bundles.md`, 「Share pages」): relayed with no session and,
-// whoever is signed in, with no owner key and no role; a manifest naming none has its link and that link's file.
+// whoever is signed in, with no owner key and no role; a manifest naming none has none.
 describe("the relay of a share read", () => {
   const heard: { path: string; key: string | null; role: string | null }[] = [];
   const served = Bun.serve({
@@ -394,11 +394,10 @@ describe("the relay of a share read", () => {
     expect(heard.at(-1)).toEqual({ path: "/items", key: "1", role: "administrator" });
   });
 
-  test("of a manifest naming none is its link and that link's file", async () => {
+  test("is none of a manifest that names none", async () => {
     await signedOut(async () => {
-      expect(await call("plain/shares/Ab3_x")).toBe(200);
-      expect(await call("plain/shares/Ab3_x/content")).toBe(200);
-      expect(await call("plain/shares/Ab3_x/document")).toBe(401);
+      expect(await call("plain/shares/Ab3_x")).toBe(401);
+      expect(await call("plain/shares/Ab3_x/content")).toBe(401);
     });
   });
 });

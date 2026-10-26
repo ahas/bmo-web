@@ -1,4 +1,4 @@
-import { CONSOLE_MANIFEST_ROUTE, consoleManifest, relaysRoute, roleAllows, screensCall, shareRead } from "bmo-ui/shared/console-manifest";
+import { CONSOLE_MANIFEST_ROUTE, consoleManifest, relaysRoute, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 import { unitHeaders } from "./units";
@@ -229,18 +229,6 @@ export function pageReaches(page: AttachedBundle | null, called: AttachedBundle,
   if (page === null || screensCall(page.manifest, called.manifest.serviceName)) return true;
 
   return (method === "GET" || method === "HEAD") && bundleFiles(called.manifest, path);
-}
-
-// The share reads a manifest naming none under `shareReads` is taken to have: its link and that link's one file.
-const SHARE_READS_UNNAMED = ["/shares/{token}", "/shares/{token}/content"];
-
-/**
- * Whether a call is a share read (bmo-ui's `docs/console-bundles.md`, 「Share pages」; docs/web.md, 「Access」): a `GET`
- * or `HEAD` a pattern the manifest names under `shareReads` matches, or, for a manifest naming none, a read of
- * `shares/<token>` or `shares/<token>/content`.
- */
-export function shareReadCall(manifest: ConsoleManifest, method: string, path: string): boolean {
-  return shareRead(manifest.shareReads.length > 0 ? manifest : { ...manifest, shareReads: SHARE_READS_UNNAMED }, method, path);
 }
 
 /** Whether a path is a bundle's module or stylesheet, which the relay hands on to a reader not signed in as well. */

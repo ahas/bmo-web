@@ -1,5 +1,7 @@
 # The boundary
 
+**Fixed at 0.1.0-rev.1.**
+
 This document is bmo-web's boundary: every route its server serves, every call its server and its console
 make on another unit, the settings that name those units, and the codes its language packs render. A unit
 reaches bmo-web only across it, and bmo-web reaches another unit only by the calls below: never by its code,

@@ -126,21 +126,21 @@ describe("the chips of the row", () => {
 describe("the full reading of the line", () => {
   const spread = template.slice(template.indexOf('<template v-if="briefingOpen'), template.indexOf('<template v-for="kind in ACTION_KINDS"'));
 
-  test("is a chip of the row named by where it stands, and spreads the sound's own player from the voice message or the kept reading", () => {
+  test("is a chip of the row named by where it stands, and spreads the sound's own player from the engine or the old voice message", () => {
     expect(row).toContain(':label="$t(briefingLook.label)"');
     expect(spread).toContain("<AudioPlayer");
-    expect(script).toContain('return mediaUrl("audio", props.chatId, briefing.voiceMessageId);');
-    expect(script).toContain('mediaUrl("reading", props.chatId, props.messageId)');
+    expect(script).toContain('return mediaUrl("audio", props.chatId, held.voiceMessageId);');
+    expect(script).toContain("briefingSoundUrl(held.id)");
   });
 
-  test("plays a reading that stands, and says one was never made where there is none", () => {
+  test("asks the receiver for a reading where none stands, and follows the engine's stream to it", () => {
     expect(spread).toMatch(/<AudioPlayer[^>]*\n\s*autoplay\n/);
-    expect(script).not.toContain("/api/briefing/read");
-    expect(script).toContain('briefingRefused.value = t("briefing.error.not_made");');
+    expect(script).toContain("`/api/rooms/${props.chatId}/messages/${props.messageId}/reading`, { method: \"POST\" }");
+    expect(script).toContain('event.type !== "voice-briefing" || event.voice.kind !== "full"');
   });
 
   test("says in the quiet colour that it is being made, and in the error colour only once it failed or was refused", () => {
-    expect(spread).toContain(`<p v-else-if="briefingRefused !== ''" role="alert" class="text-sm text-error">`);
+    expect(spread).toContain(`<p v-if="briefingRefused !== ''" role="alert" class="text-sm text-error">`);
     expect(spread).toContain(`<p v-else-if="briefingState === 'failed'" class="text-sm text-error">`);
     expect(spread).toContain(`<p v-else class="text-sm text-dimmed">{{ $t("briefing.status.making") }}</p>`);
   });

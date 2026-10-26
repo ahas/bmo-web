@@ -46,6 +46,10 @@ export const AGENCY_KINDS = [
   "session.changed"
 ] as const;
 
+// The voice engine's kinds the screens read (its `docs/boundary-api.md`, 「Events」): a briefing taken in, ended, or
+// naming its line.
+export const VOICE_KINDS = ["briefing.created", "briefing.ended", "briefing.changed"] as const;
+
 // How long a stream of bmo-job's or the agency's that ended waits before it is opened again. The receiver's
 // stream is the one the tab's own reconnecting follows; these two are the relay's to keep.
 export const UNIT_RETRY_MS = 3_000;
@@ -94,6 +98,18 @@ function agencyFrames(frame: string): string[] {
   const data = parsed(event.data);
 
   return data === null ? [] : [`event: agency\ndata: ${JSON.stringify({ ...data, kind: event.name })}\n\n`];
+}
+
+// The frames of the voice engine's stream as the tab reads them: each event of a kind the screens read under `voice`,
+// with its kind beside what it carries. The tab reads a briefing by its own number, so none moves a cursor.
+function voiceFrames(frame: string): string[] {
+  const event = frameEvent(frame);
+
+  if (event === null || !(VOICE_KINDS as readonly string[]).includes(event.name)) return [];
+
+  const data = parsed(event.data);
+
+  return data === null ? [] : [`event: voice\ndata: ${JSON.stringify({ ...data, kind: event.name })}\n\n`];
 }
 
 function parsed(data: string): Record<string, unknown> | null {
@@ -239,6 +255,7 @@ export function relayBotStream(cursors: RelayCursors, aborted: AbortController, 
 
         keepUnit("JOB", () => `/events?after=${job.after}${job.run === null ? "" : `&run=${encodeURIComponent(job.run)}`}`, jobFrames(job));
         keepUnit("AGENCY", () => `/events?kinds=${AGENCY_KINDS.join(",")}`, agencyFrames);
+        keepUnit("VOICE", () => `/events?kinds=${VOICE_KINDS.join(",")}`, voiceFrames);
       }
 
       const { after, run } = cursors.receiver;

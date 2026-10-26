@@ -5,6 +5,11 @@ import { appUrl } from "./urls";
 
 // Where a kept file is asked for. The kind is part of the road rather than the file's name, so a
 // video kept the same way is served by the same route under its own kind.
+/** A voice briefing's sound, as the console serves it from the voice engine. */
+export function briefingSoundUrl(id: number): string {
+  return appUrl(`/api/briefings/${id}/sound`);
+}
+
 export function mediaUrl(kind: string, chatId: number, messageId: number): string {
   return appUrl(`/api/media/${kind}/${chatId}/${messageId}`);
 }

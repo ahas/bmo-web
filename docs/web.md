@@ -3898,30 +3898,26 @@ Four bounds keep it from growing forever.
     spreads or folds that list on that message alone — the other chip's list, the other answers and the turn still
     running stand as they stood. The browser keeps none of it (「활동 표시의 접힘」).
 - **보이스브리핑** — every the chat agent line carries the chip that reads it out in full, and a summary spoken for the line
-  stands as no row of its own (the voice unit's documents, 「The full reading on a line's chip」 and 「The summary of
-  a notice turn」). A voice message and a turn still running carry none.
+  stands as no row of its own (the voice engine's `docs/boundary-api.md`, 「Briefings」). A voice message and a turn
+  still running carry none. What a line's chip stands on is the voice engine's word, read with the page: the
+  briefings of the room, each naming the line it speaks and whether it is the line's summary or its full reading.
   - **Nothing is made until it is pressed.** The chip says where the reading stands, by its mark and its
     tooltip: the voice mark before anything is made and once it is there (보이스브리핑), the mark of spinning
     work while it is being made (보이스브리핑 만드는 중), and the voice mark in the error colour where it could not
     be made (보이스브리핑 실패).
   - **Pressing it spreads the sound's own player**, the one of 「소리 듣기」, and plays it at once where the
     reading is there; pressing again folds it and the sound stops. Pressed before anything is made, it asks
-    the bot for the reading and spreads one line saying it is being made, and the player takes that line's
-    place and plays the moment the reading lands, for as long as the chip stays spread. Pressed after it
-    failed, it asks again. A refusal — the whole briefing switched off — spreads the bot's sentence in the
-    error colour; a sound whose file is gone spreads 받을 수 없음.
-  - **Which line a voice belongs to is the archive's word**: the run it was launched as names the line, and
-    names whether it is the line's summary or its full reading. A voice message from before the archive named
-    one is that line's full reading where it stands right after the line in the room, both are the chat agent's, and the
-    voice says exactly that line's words. The voice message of a summary or of such a reading stands as no row,
-    whether or not its line is among the rows read so far, and neither does a summary the archive says still
-    awaits its line: a voice made before its line stands in the room only on that line.
+    the receiver for the reading (its `docs/api.md`, `POST /rooms/{roomId}/messages/{messageId}/reading`) and
+    spreads one line saying it is being made, and the player takes that line's place and plays the moment the
+    engine's stream says the reading ended done, for as long as the chip stays spread. Pressed after it failed, it
+    asks again. A refusal — the whole briefing switched off, an agent with no voice, a line the receiver does not
+    hold, a voice engine it could not reach — spreads its sentence in the error colour.
+  - **A line read before the engine spoke readings** keeps the voice message the room heard it as, named by the
+    engine's row, and its chip plays that voice message.
   - **A jump to the voice message lands on the line**, the briefing player's press among them.
-  - **The chip moves as the reading does.** The bot says the line changed once the reading is asked for and
-    again when its run ends, and the room reads that line again each time. A voice message is said to have
-    landed only once the archive names the line it belongs to, so the room reading it on that news never stands
-    it as a row of its own; a summary tied to its line after it went out is said again as it is tied, and one
-    whose round ended with no line is said again as it is let go, the one moment it comes to stand as a row.
+  - **The chip moves as the reading does.** The voice engine's stream says a briefing was taken in, ended, or
+    named its line, and the chip of the line it speaks follows it there: making once it is taken in, there or
+    failed once it ends.
 - **기록함** — a chat agent answer carries what its round wrote down: every note of the room, memory, new TODO row
   and word appended to one, made by the turn or by any time the round asked the same session again. The chip
   is the count; pressing it spreads one line per record — where it landed as a badge (메모 #N, 기억 #N, 상황 규칙 #N, 새 항목 #N,
@@ -5420,9 +5416,10 @@ dialog open at 계정.
 
 #### 보이스브리핑
 
-- The voice briefing's own settings: the section says they cannot be read now and offers no switch, since no
-  unit serves a route for the briefing's switch or a line's reading (`docs/boundary.md`, 「Gaps the console
-  meets」).
+- The voice briefing's two switches, the receiver's (its `docs/api.md`, `GET`/`PUT /voice-briefing`): **전체
+  보이스브리핑**, whether anything is spoken at all, and **자동 재생**, whether a summary plays by itself in the
+  console's player. Each is set on its own as it is pressed, and stays switchable while the other is off. A
+  switch the receiver refused springs back, and the refusal stands under the section in one line.
 
 ### Messages
 
@@ -5455,8 +5452,26 @@ dialog open at 계정.
   while the page is already being left takes no entry of its own: it is holding that navigation, and the navigation
   moves the history itself.
 - **A voice briefing playing is not news and does not stand on it.** It stands as a small player of its own at the
-  top-left of the page's panel — a visualiser and a close mark, no words — while the island goes on carrying the
-  news beside it (the voice unit's documents, 「The console's player」).
+  top-left of the page area, just under the one title bar and level with the content's gutter — a visualiser and a
+  close mark, no words — while the island goes on carrying the news beside it. The layout holds it, so it stays as
+  the reader moves between screens.
+  - **What plays by itself** is what the voice engine's stream says has ended (its `docs/boundary-api.md`,
+    「Events」, 「Briefings」): a `briefing.ended` of a `summary`, `done`, whose `plays` holds. One that ended more
+    than two minutes before the console heard of it stands in the player waiting for a press rather than
+    playing, and one that ended more than half an hour before — a stream handing back what it kept — is left to
+    its line; a full reading never plays by itself, and one that does not play by itself is left to its line.
+  - **One after another.** A briefing that arrives while another plays waits behind it and plays once it has
+    ended, after a short pause. **그만듣기**, the close mark, ends the one playing and every one waiting in this
+    tab; a briefing this browser has played or stopped is not played again when the stream hands it back.
+  - **One tab plays.** Several console tabs in one browser agree among themselves which one plays — the tab being
+    looked at first, then one merely shown, then a hidden one — so a briefing is heard once per browser.
+  - **It is moved the way a picture-in-picture window is,** dragged with a mouse or a finger inside the page area,
+    settling on the nearer side when let go; the side and the height it was left at are kept in this browser.
+    While it plays its surface swells a little with the sound; a reader who asked for less movement is given it
+    still.
+  - **Its presses.** The visualiser leads to the line the briefing speaks, in its room; paused or refused by a
+    browser that will not start a sound nobody pressed for, it plays instead. Starting a briefing pauses any
+    other sound playing on the screen.
 - **Its surface is fixed dark in both themes**, so the text and the marks on it are fixed with it rather than left
   to the theme's own colours. The tone is carried by the mark alone — a note, something gone through, a warning,
   something gone wrong — and never by the whole surface.

@@ -3,6 +3,7 @@ import { isSystemNotice } from "#shared/text-marks";
 import { wording } from "#shared/wording";
 
 import { draftSummaries } from "./drafting";
+import { roomBriefings } from "./voice";
 import { figuresOf } from "./runfigures";
 import { judgementsOf, judgementsWithin } from "./gate";
 import { ownerChat } from "./owner";
@@ -10,7 +11,7 @@ import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
 import { within } from "./unit-answer";
 
-import type { ArchivedMessage, Judgement, JudgementPage, MessageAttachment, MessagePage, ReplyQuote, RoomSummary, TelegramExpression } from "#shared/types";
+import type { ArchivedMessage, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, ReplyQuote, RoomSummary, TelegramExpression, VoiceBriefing } from "#shared/types";
 import type { ReceiverMessage, ReceiverRoom } from "./receiver";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
@@ -342,7 +343,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
 
   // How the round's draft process made its answer stands there too (docs/web.md, the room screen's draft chip): the
   // page's rounds are read from the receiver's round log at once.
-  const [, drafts] = await Promise.all([
+  const [, drafts, briefings] = await Promise.all([
     Promise.all(
       [...last].map(async ([round, index]) => {
         const figures = await figuresOf(round).catch(() => null);
@@ -353,8 +354,15 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         }
       })
     ),
-    draftSummaries(chatId, [...last.keys()])
+    draftSummaries(chatId, [...last.keys()]),
+    roomBriefings(chatId)
   ]);
+
+  // Each agent line carries its voice briefing chip, standing where the voice engine says the line's full reading
+  // stands (docs/web.md, the room screen's voice briefing chip).
+  for (const message of built) {
+    if (message.agent === true) message.briefing = lineBriefing(briefings, message.messageId);
+  }
 
   for (const [round, index] of last) {
     if (built[index] !== undefined) built[index]!.drafts = drafts.get(round) ?? null;
@@ -461,4 +469,23 @@ export async function readDayStart(chatId: number, from: number): Promise<{ mess
 /** A room's judgements newest first, the page before `before` where it is given: the gate's own (docs/boundary.md, 「Gaps the console meets」). */
 export async function readJudgementPage(chatId: number, before: number | null, limit: number): Promise<JudgementPage> {
   return await judgementsOf(chatId, before, limit);
+}
+
+/** Where a line's full reading stands, as the voice engine's briefings of its room say: never asked for, being made,
+ * there — the engine's own sound, or the voice message a reading from before it spoke readings went out as — or
+ * failed. The newest reading of the line is the one that counts. */
+export function lineBriefing(briefings: readonly VoiceBriefing[], messageId: number): MessageBriefing {
+  const reading = briefings.find((one) => one.kind === "full" && one.messageId === messageId);
+
+  if (reading === undefined) return { state: "idle", source: null, voiceMessageId: null, sound: null, briefingId: null };
+  if (reading.state === "waiting") return { state: "making", source: null, voiceMessageId: null, sound: null, briefingId: reading.id };
+  if (reading.state === "failed") return { state: "failed", source: null, voiceMessageId: null, sound: null, briefingId: reading.id };
+
+  return {
+    state: "ready",
+    source: reading.spoken ? "kept" : reading.voiceMessageId === null ? null : "voice",
+    voiceMessageId: reading.voiceMessageId,
+    sound: null,
+    briefingId: reading.id
+  };
 }

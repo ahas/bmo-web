@@ -334,6 +334,40 @@ export interface MessageBriefing {
   source: "voice" | "kept" | null;
   voiceMessageId: number | null;
   sound: MessageAttachment | null;
+  // The voice engine's briefing the line's full reading is, where one was asked for.
+  briefingId?: number | null;
+}
+
+// One briefing as the voice engine keeps it (its `docs/boundary-api.md`, 「Briefings」): the room and the line it
+// speaks — none while a summary awaits its line — whether it is a line's summary or its full reading, its title,
+// where it stands, how long it runs, whether a listener plays it by itself, the voice message an old one went out
+// as, whether the engine spoke it, and when it ended, in epoch milliseconds.
+export interface VoiceBriefing {
+  id: number;
+  chatId: number;
+  messageId: number | null;
+  kind: "summary" | "full";
+  title: string | null;
+  state: "waiting" | "done" | "failed";
+  durationMs: number | null;
+  plays: boolean;
+  voiceMessageId: number | null;
+  spoken: boolean;
+  finishedAt: number | null;
+}
+
+// The voice briefing's two switches, the receiver's: whether anything is spoken, and whether a summary plays by
+// itself.
+export interface BriefingSwitches {
+  on: boolean;
+  autoplay: boolean;
+}
+
+// What asking for a line's full reading answered: being made, or there already, and the briefing it is — none yet
+// while the room's agent writes the script it is spoken from, the engine's stream then naming it as it is taken in.
+export interface BriefingReading {
+  state: "making" | "ready";
+  briefingId: number | null;
 }
 
 // A finished turn's own actions, as a message points at them: the agent whose log holds the run,
@@ -893,6 +927,9 @@ export type BotEventType =
   | "agency-run"
   // The signed-in account read a room up to a message, in this tab or another, on the console's own word.
   | "room-read"
+  // One of the voice engine's briefings was taken in, ended, or named its line (its `docs/boundary-api.md`,
+  // 「Events」).
+  | "voice-briefing"
   // A job the agency runs for a room started, changed or ended. What runs now is read from the agency's job
   // list, so the event says only that it moved.
   | "worker-run";
@@ -995,6 +1032,15 @@ export type BotEvent = BotEventFields & ({
   workOrder?: never;
   document?: never;
 } | {
+  type: "voice-briefing";
+  // What the engine said of the briefing, and the briefing as it stands with it.
+  phase: "created" | "ended" | "changed";
+  voice: VoiceBriefing;
+  todoId?: never;
+  workOrder?: never;
+  document?: never;
+  review?: never;
+} | {
   type: "agency-run";
   // The agent the run or the session is of, and the run where the event names one; null where it names none.
   agent: string | null;
@@ -1014,7 +1060,7 @@ export type BotEvent = BotEventFields & ({
   document?: never;
   review?: never;
 } | {
-  type: Exclude<BotEventType, "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review" | "agency-turn" | "agency-run">;
+  type: Exclude<BotEventType, "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review" | "agency-turn" | "agency-run" | "voice-briefing">;
   todoId?: never;
   workOrder?: never;
   document?: never;

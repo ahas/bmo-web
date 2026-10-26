@@ -98,3 +98,12 @@ export function replyToOf(value: unknown): number | null {
 
   return id;
 }
+
+/** The briefing an address names, refused where it names none. */
+export function requireBriefingId(event: H3Event): number {
+  const id = Number(getRouterParam(event, "id") ?? "");
+
+  if (!Number.isSafeInteger(id) || id <= 0) throw fail(400, wording("briefing.error.bad_id"));
+
+  return id;
+}

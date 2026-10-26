@@ -1,4 +1,4 @@
-import type { BotEvent, WorkOrderProgress } from "#shared/types";
+import type { BotEvent, VoiceBriefing, WorkOrderProgress } from "#shared/types";
 
 // bmo-job's and the agency's events, as the relay hands them on (docs/web.md, 「How the units are talked to」),
 // read into the console's own events, so a screen that reads back on the TODO moving or a turn ending hears
@@ -146,4 +146,36 @@ export function agencyEvent(data: Fields): BotEvent | null {
   }
 
   return null;
+}
+
+/** One of the voice engine's briefing events as the screens read it (its `docs/boundary-api.md`, 「Events」): what it
+ * said of the briefing, and the briefing as it stands; null for any other kind or a briefing that does not read. */
+export function voiceEvent(data: Fields): BotEvent | null {
+  const kind = text(data.kind);
+  const phase = kind === "briefing.created" ? "created" : kind === "briefing.ended" ? "ended" : kind === "briefing.changed" ? "changed" : null;
+  const row = fieldsOf(data.data);
+
+  if (phase === null || row === null) return null;
+
+  const id = number(row.id) ?? Number(text(row.id) ?? Number.NaN);
+  const chatId = number(row.chatId);
+
+  if (!Number.isSafeInteger(id) || chatId === null) return null;
+
+  const messageId = number(row.messageId);
+  const voice: VoiceBriefing = {
+    id,
+    chatId,
+    messageId,
+    kind: row.kind === "full" ? "full" : "summary",
+    title: text(row.title),
+    state: row.state === "done" ? "done" : row.state === "failed" ? "failed" : "waiting",
+    durationMs: number(row.durationMs),
+    plays: row.plays !== false,
+    voiceMessageId: number(row.voiceMessageId),
+    spoken: row.synthesisId !== null && row.synthesisId !== undefined,
+    finishedAt: number(row.finishedAt)
+  };
+
+  return { id: number(data.id) ?? 0, at: number(data.at) ?? 0, type: "voice-briefing", chatId, messageId, phase, voice };
 }

@@ -4,7 +4,7 @@ import { companionOf } from "./agents";
 import { askWhetherLoginEnded } from "./login-end";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { appUrl } from "./urls";
-import { agencyEvent, jobEvent } from "./unit-events";
+import { agencyEvent, jobEvent, voiceEvent } from "./unit-events";
 
 import type { BotEvent, BotEventType, ChatTurn, Judgement, LiveSnapshot, RunProgress, TurnReceived, TurnSpeaker } from "#shared/types";
 import type { InjectionKey, Ref } from "vue";
@@ -361,6 +361,18 @@ function open(): void {
     }
 
     jobLastId = id;
+
+    if (event !== null) {
+      hand(event);
+    }
+  });
+
+  // One of the voice engine's briefings taken in, ended, or naming its line, which no cursor counts.
+  source.addEventListener("voice", (message) => {
+    heard = true;
+
+    const fields = fieldsOf((message as MessageEvent<string>).data);
+    const event = fields === null ? null : voiceEvent(fields);
 
     if (event !== null) {
       hand(event);

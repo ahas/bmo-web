@@ -1433,8 +1433,6 @@ settings:
     notifications: 알림
     palette: 대화방
     theme: 테마
-  status:
-    briefing_unavailable: 보이스브리핑 설정을 지금 읽을 수 없습니다.
   action:
     back: 뒤로
 agents:
@@ -2643,9 +2641,31 @@ documents:
     talk: 대화
 briefing:
   error:
+    bad_id: 보이스브리핑 번호가 올바르지 않습니다.
+    engine_unreachable: 보이스 엔진에 닿지 못해 읽어 드릴 수 없습니다.
+    line_not_found: 읽을 줄을 찾지 못했습니다.
+    no_engine: 이 콘솔에는 보이스 엔진이 설정되어 있지 않습니다.
+    not_found: 그 보이스브리핑을 찾을 수 없습니다.
     not_made: 보이스브리핑을 만들지 못했습니다.
+    one_switch: 스위치는 한 번에 하나만 바꿀 수 있습니다.
+    play_failed: 보이스브리핑을 재생하지 못했습니다.
+    settings_read_failed: 보이스브리핑 설정을 읽지 못했습니다.
+    settings_write_failed: 보이스브리핑 설정을 바꾸지 못했습니다.
+    switched_off: 보이스브리핑이 꺼져 있어 읽어 드릴 수 없습니다.
+    voiceless: 이 에이전트에는 목소리가 없어 읽어 드릴 수 없습니다.
+  action:
+    listen: 재생
+    open: 줄로 가기
+    stop: 그만듣기
+  label:
+    autoplay: 자동 재생
+    autoplay_note: 켜 두면 요약 브리핑이 도착하는 대로 플레이어에서 저절로 재생됩니다.
+    switch_all: 전체 보이스브리핑
+    switch_all_note: 꺼 두면 요약 브리핑도, 줄의 전체 읽기도 만들지 않습니다.
+    title: 보이스브리핑
   status:
     making: 보이스브리핑을 만드는 중입니다.
+    settings_loading: 보이스브리핑 설정을 읽는 중…
 home:
   label:
     agents_description: 게이트, 러너, 에디터, Job 워커

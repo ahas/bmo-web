@@ -99,16 +99,17 @@
          its own box. -->
     <div v-if="spreading" data-spread class="flex min-w-0 basis-full flex-col gap-3 border-t border-default pt-2">
       <template v-if="briefingOpen && props.briefing !== null">
+        <p v-if="briefingRefused !== ''" role="alert" class="text-sm text-error">{{ briefingRefused }}</p>
         <AudioPlayer
-          v-if="briefingSrc !== null && briefingSound !== null"
+          v-else-if="briefingState === 'ready' && briefingSrc !== null"
           class="w-80 max-w-full"
           :src="briefingSrc"
           :download="`${briefingSrc}?as=download`"
-          :name="briefingSound.name"
-          :size="briefingSound.bytes === null ? null : fileSizeText(briefingSound.bytes)"
+          :name="$t('room.label.chip_briefing')"
+          :size="null"
           autoplay
+          data-briefing-reading
         />
-        <p v-else-if="briefingRefused !== ''" role="alert" class="text-sm text-error">{{ briefingRefused }}</p>
         <p v-else-if="briefingState === 'failed'" class="text-sm text-error">{{ $t("briefing.error.not_made") }}</p>
         <p v-else-if="briefingState === 'ready'" class="text-sm text-dimmed">{{ $t("room.label.unreceivable") }}</p>
         <p v-else class="text-sm text-dimmed">{{ $t("briefing.status.making") }}</p>
@@ -218,10 +219,10 @@
 </template>
 
 <script setup lang="ts">
-import { fileSizeText } from "~/domain/attachments";
 import { briefingChip, CHIP_ICONS, CHIP_LABELS, verdictChip } from "~/domain/chips";
-import { mediaUrl } from "~/domain/player";
+import { briefingSoundUrl, mediaUrl } from "~/domain/player";
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useBotEvents } from "~/domain/events";
 import { useTurnActionsFold } from "~/domain/turn-actions-fold";
 import { readRunLines } from "~/domain/log";
 import { countText } from "~/domain/numbers";
@@ -231,7 +232,7 @@ import { formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
 import { draftAsked, draftRound, draftSummaryLines, splitDraftJudgements } from "~/domain/draft-process";
 
-import type { Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
+import type { BriefingReading, Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
 import type { DraftRow, DraftSummary } from "#shared/drafting";
 import type { BriefingChip, VerdictChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
@@ -298,31 +299,49 @@ const briefingOpen = ref(false);
 // What the press was told where the line carries no reading to play.
 const briefingRefused = ref("");
 
-const briefingState = computed<MessageBriefing["state"]>(() => props.briefing?.state ?? "idle");
+// Where the line's full reading stands: as the page read it, then as this chip asked for it and the voice engine's
+// stream moved it (docs/web.md, the room screen's voice briefing chip).
+const briefingHeld = ref<{ id: number | null; state: MessageBriefing["state"]; source: MessageBriefing["source"]; voiceMessageId: number | null } | null>(null);
+const briefingState = computed<MessageBriefing["state"]>(() => briefingHeld.value?.state ?? props.briefing?.state ?? "idle");
 const briefingLook = computed<BriefingChip>(() => briefingChip(briefingState.value));
-const briefingSound = computed(() => (props.briefing?.sound?.available === true ? props.briefing.sound : null));
-// Where the reading is served from: the voice message a line was read out as before readings were
-// kept, or the reading kept on the line.
+// Where the reading is served from: the voice engine's sound of it, or the voice message a line was read out as
+// before the engine spoke readings.
 const briefingSrc = computed(() => {
-  const briefing = props.briefing;
+  const held = briefingHeld.value ?? (props.briefing === null ? null : { id: props.briefing.briefingId ?? null, source: props.briefing.source, voiceMessageId: props.briefing.voiceMessageId });
 
-  if (briefing?.source === "voice" && briefing.voiceMessageId !== null) {
-    return mediaUrl("audio", props.chatId, briefing.voiceMessageId);
-  }
+  if (held === null) return null;
+  if (held.source === "voice" && held.voiceMessageId !== null) return mediaUrl("audio", props.chatId, held.voiceMessageId);
 
-  return briefing?.source === "kept" ? mediaUrl("reading", props.chatId, props.messageId) : null;
+  return held.id === null ? null : briefingSoundUrl(held.id);
 });
 
-// Spreads the player where a reading stands. No fixed API makes one, so a line without a reading
-// says it was never made instead of asking for it.
-function toggleBriefing(): void {
+// Spreads the reading's player where it stands; pressed where none was made, or where it failed, asks the receiver
+// for it and spreads the line saying it is being made, which the player takes the place of once the engine says it
+// ended done.
+async function toggleBriefing(): Promise<void> {
   briefingOpen.value = !briefingOpen.value;
   briefingRefused.value = "";
 
-  if (briefingOpen.value && briefingSound.value === null) {
-    briefingRefused.value = t("briefing.error.not_made");
+  if (!briefingOpen.value || briefingState.value === "ready" || briefingState.value === "making") return;
+
+  try {
+    const asked = await $fetch<BriefingReading>(`/api/rooms/${props.chatId}/messages/${props.messageId}/reading`, { method: "POST" });
+
+    briefingHeld.value = { id: asked.briefingId, state: asked.state === "ready" ? "ready" : "making", source: "kept", voiceMessageId: null };
+  } catch (error) {
+    briefingRefused.value = failureText(error, t("briefing.error.not_made"));
   }
 }
+
+// The engine's word on the reading this line waits on: ended done, it is there to play; ended failed, it says so.
+useBotEvents((event) => {
+  if (event.type !== "voice-briefing" || event.voice.kind !== "full" || event.voice.messageId !== props.messageId || event.voice.chatId !== props.chatId) return;
+
+  const voice = event.voice;
+  const state: MessageBriefing["state"] = voice.state === "done" ? "ready" : voice.state === "failed" ? "failed" : "making";
+
+  briefingHeld.value = { id: voice.id, state, source: voice.spoken ? "kept" : voice.voiceMessageId === null ? null : "voice", voiceMessageId: voice.voiceMessageId };
+});
 
 // The two sorts of action a turn has, each a chip and a list of its own.
 type ActionKind = TurnAction["kind"];

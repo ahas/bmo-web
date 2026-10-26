@@ -136,6 +136,7 @@
 
 <script setup lang="ts">
 import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
+import { useBriefings } from "~/domain/briefing";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
@@ -173,6 +174,8 @@ useVisibleShell();
 
 const open = ref(false);
 const { t } = useI18n();
+// The voice briefings, heard for as long as the layout stands, and played in its player.
+useBriefings(t);
 const todoOpen = useState<boolean>("todo-open", () => false);
 
 // An address naming a TODO item opens that item wherever the panel stands. Below the width the

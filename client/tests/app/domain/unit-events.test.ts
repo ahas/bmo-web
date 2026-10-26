@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { agencyEvent, jobEvent } from "../../../apps/web/app/domain/unit-events";
+import { agencyEvent, jobEvent, voiceEvent } from "../../../apps/web/app/domain/unit-events";
 
 // bmo-job's and the agency's events read into the console's own, so a screen that reads back on the TODO, a work
 // order, an item's talk or a turn ending hears them as it hears the receiver's.
@@ -149,5 +149,30 @@ describe("the agency's turns", () => {
     });
     expect(agencyEvent({ id: 32, at: 8, kind: "session.changed", data: { agentName: "worker-b" } })).toMatchObject({ type: "agency-run", agent: "worker-b", run: null });
     expect(agencyEvent({ id: 33, at: 9, kind: "run.stopped", data: { id: 4 } })).toMatchObject({ type: "agency-run", agent: null, run: null });
+  });
+});
+
+// The voice engine's briefing events (its docs/boundary-api.md, 「Events」), as the screens read them.
+describe("the voice engine's briefings", () => {
+  test("an ended briefing names its room, its line, its kind and where it stands", () => {
+    expect(voiceEvent({
+      id: 40,
+      at: 1_800_000_000_000,
+      kind: "briefing.ended",
+      data: { id: 7, chatId: 42, messageId: 548, kind: "summary", title: "t", state: "done", durationMs: 9000, plays: true, voiceMessageId: null, synthesisId: 3, finishedAt: 1_799_999_999_000 }
+    })).toEqual({
+      id: 40,
+      at: 1_800_000_000_000,
+      type: "voice-briefing",
+      chatId: 42,
+      messageId: 548,
+      phase: "ended",
+      voice: { id: 7, chatId: 42, messageId: 548, kind: "summary", title: "t", state: "done", durationMs: 9000, plays: true, voiceMessageId: null, spoken: true, finishedAt: 1_799_999_999_000 }
+    });
+  });
+
+  test("a kind of no briefing, or a briefing that does not read, is none", () => {
+    expect(voiceEvent({ id: 1, at: 1, kind: "synthesis.ended", data: { id: 1, chatId: 2 } })).toBeNull();
+    expect(voiceEvent({ id: 1, at: 1, kind: "briefing.created", data: { chatId: 2 } })).toBeNull();
   });
 });

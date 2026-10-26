@@ -1,4 +1,4 @@
-import { mcpCallOf } from "#shared/mcp-names";
+import { isBrainCall, mcpCallOf } from "#shared/mcp-names";
 import { agentLabel, bmoLabel } from "./agents";
 import { subjectOf as joinedSubject } from "#shared/particles";
 
@@ -291,6 +291,12 @@ export function useToolIcons(): ComputedRef<ReadonlyMap<string, string>> {
 // stack up while the turn ran — the writer wrote both from one normalizer — so a turn read back an
 // hour later reads as it read live: what it was handed, then each call, with what the call came
 // back as written onto it.
+// What a turn read from the brain: the documents the reference put in front of it, and its calls to the brain's
+// reading tools (docs/web.md, the room screen's 브레인 chip).
+export function brainActions(actions: readonly TurnAction[]): TurnAction[] {
+  return actions.filter((action) => action.kind === "context" || (action.kind === "tool" && isBrainCall(action.tool?.name ?? action.name, action.text)));
+}
+
 export function turnActions(lines: readonly AgentLogLine[]): TurnAction[] {
   const actions: TurnAction[] = [];
   const calls = new Map<string, TurnAction>();

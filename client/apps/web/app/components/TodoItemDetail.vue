@@ -119,10 +119,9 @@
           </p>
         </div>
 
-        <!-- The body is two parts, each a set of tabs: on the left what the item says — the
-             result of an item that has ended, the conversation it came from and what the work is
-             told — and on the right what has happened to it, the talk about it and what he does to
-             it. Where the dialog is narrow the tabs stand as one row over one scroll. -->
+        <!-- The body is two parts, each a set of tabs: on the left the result of an item that has ended, what has
+             happened to it, what the work is told and the request's own words; on the right the talk about it and
+             what he does to it. Where the dialog is narrow the tabs stand as one row over one scroll. -->
         <div v-if="openedItem !== null" class="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(22rem,28rem)] lg:grid-rows-[minmax(0,1fr)]">
           <UTabs
             v-if="!twoColumns"
@@ -293,6 +292,88 @@
                 </div>
               </section>
 
+              <!-- What became of the item: its run record and the job running it now, the co-worker list, what its work
+                   asked and the approval record. While a job runs, its figures move as they happen. -->
+              <section v-else-if="shownLeft === 'status'" class="flex min-w-0 flex-col gap-2" :aria-label="$t('todo.label.field_state')">
+                  <!-- The merge on both sides: the item this one's work went to, and the items whose
+                       work this one carries. Each number opens that item. -->
+                  <div v-if="openedItem.mergedInto !== null || openedItem.mergedFrom.length > 0" class="rounded-lg border border-default p-3">
+                    <p class="text-sm font-medium text-muted">{{ $t("todo.label.field_merged") }}</p>
+                    <template v-if="openedItem.mergedInto !== null">
+                      <p class="mt-1 flex min-w-0 items-start gap-2 text-sm">
+                        <UButton
+                          size="sm"
+                          variant="link"
+                          class="shrink-0 p-0 tabular-nums"
+                          :label="`#${openedItem.mergedInto}`"
+                          @click="openLinked(openedItem.mergedInto)"
+                        />
+                        <span class="min-w-0 flex-1 break-words text-highlighted">{{ openedItem.mergedIntoTitle }}</span>
+                      </p>
+                      <p class="mt-1 text-sm text-muted">{{ mergedLine($t, openedItem, formatStamp) }}</p>
+                    </template>
+                    <ul v-if="openedItem.mergedFrom.length > 0" class="mt-1 flex flex-col gap-2">
+                      <li v-for="one in openedItem.mergedFrom" :key="one.id" class="flex min-w-0 items-start gap-2 text-sm">
+                        <UButton size="sm" variant="link" class="shrink-0 p-0 tabular-nums" :label="`#${one.id}`" @click="openLinked(one.id)" />
+                        <span class="min-w-0 flex-1 break-words text-highlighted">{{ one.title }}</span>
+                        <UBadge :color="one.done ? 'success' : 'neutral'" variant="subtle" size="sm">{{ one.done ? $t("todo.title.section_done") : $t("todo.title.section_merged") }}</UBadge>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <!-- How long it took, across every run, the phases it was divided into and what
+                       the run went to inside them — or which run is going, or that none has. -->
+                  <div class="rounded-lg border border-default p-3">
+                    <p class="text-sm font-medium text-muted">{{ $t("todo.title.run_log") }}</p>
+                    <p v-if="jobRecordLine($t, openedItem) !== null" class="mt-1 text-sm text-muted">{{ jobRecordLine($t, openedItem) }}</p>
+                    <ItemRunFigures :todo-id="openedItem.id" :running="openedItem.running" />
+                    <TodoTime :item="openedItem" />
+                  </div>
+
+                  <WorkOrderPanel part="steps" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="openedItem.heldAt !== null" :item="openedItem" />
+
+                  <!-- What this item's work stopped to ask, and what each question became. A row
+                       that is still open reads as the card above it does. -->
+                  <div v-for="card in questionsOf(openedItem.id)" :key="card.id" class="rounded-md border p-3" :class="questionTone(card)">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <p class="text-sm font-medium">{{ $t("todo.title.questions") }}</p>
+                      <p class="text-sm">{{ card.status }}</p>
+                    </div>
+
+                    <MarkdownText :text="card.question" class="mt-1 text-sm text-muted" />
+
+                    <p v-if="card.answer !== null" class="mt-1 text-sm break-words text-highlighted">→ {{ card.answer }}</p>
+                  </div>
+
+                  <!-- Every time the approval was given or taken back, newest first: whose hand,
+                       which road and when, so a request found waiting on him again says who put it
+                       there. -->
+                  <div class="flex flex-col gap-2 rounded-lg border border-default p-3">
+                    <p class="text-sm font-medium text-muted">{{ $t("todo.title.approvals") }}</p>
+                    <ContentSkeleton
+                      v-if="approvalsLoading && approvals.length === 0"
+                      :rows="2"
+                      listClass="flex flex-col gap-2"
+                      :label="$t('todo.status.approvals_loading')"
+                    >
+                      <SkeletonLine width="w-3/5" />
+                    </ContentSkeleton>
+                    <template v-else-if="approvalsFailure !== null">
+                      <p class="text-sm text-error">{{ approvalsFailure }}</p>
+                      <UButton class="self-end" size="sm" color="neutral" variant="subtle" @click="loadApprovals(openedItem.id)">{{ $t("common.action.refresh") }}</UButton>
+                    </template>
+                    <p v-else-if="approvals.length === 0" class="text-sm text-muted">{{ $t("todo.status.no_approvals") }}</p>
+                    <ul v-else class="flex flex-col gap-2">
+                      <li v-for="change in approvals" :key="change.id" class="flex min-w-0 items-start gap-x-2 text-sm">
+                        <UIcon :name="approvalChangeIcon(change)" class="mt-0.5 size-4 shrink-0" :class="change.approved ? 'text-muted' : 'badge-ink text-warning'" />
+                        <span class="min-w-0 flex-1 break-words" :class="change.approved ? 'text-highlighted' : 'badge-ink text-warning'">{{ approvalChangeLine($t, change) }}</span>
+                        <span class="shrink-0 text-muted tabular-nums">{{ formatStamp(change.at) }}</span>
+                      </li>
+                    </ul>
+                  </div>
+
+              </section>
+
               <section v-else-if="shownLeft === 'conversation'" class="flex min-w-0 flex-col gap-2" :aria-label="$t('todo.label.conversation')">
                 <TodoInstruction :item="openedItem" />
 
@@ -405,7 +486,7 @@
                 </div>
               </section>
 
-              <template v-else>
+              <template v-else-if="shownLeft === 'order'">
                 <!-- The item's brief: the chat agent's organized instruction, the one text a job reads for the
                      item. It is written once, in the original the job reads, and read here in a rendering in
                      the reader's own language where one is held, with the original a press away; where none
@@ -467,86 +548,8 @@
             <!-- The talk scrolls its own turns above the box it is typed into, so its column does not
                  scroll around it; every other part scrolls with the column. -->
             <div class="flex min-h-0 flex-1 flex-col gap-2 overscroll-contain px-4 py-3" :class="shownRight === 'talk' ? 'overflow-hidden' : 'overflow-y-auto'">
-              <template v-if="shownRight === 'status'">
-                  <!-- The merge on both sides: the item this one's work went to, and the items whose
-                       work this one carries. Each number opens that item. -->
-                  <div v-if="openedItem.mergedInto !== null || openedItem.mergedFrom.length > 0" class="rounded-lg border border-default p-3">
-                    <p class="text-sm font-medium text-muted">{{ $t("todo.label.field_merged") }}</p>
-                    <template v-if="openedItem.mergedInto !== null">
-                      <p class="mt-1 flex min-w-0 items-start gap-2 text-sm">
-                        <UButton
-                          size="sm"
-                          variant="link"
-                          class="shrink-0 p-0 tabular-nums"
-                          :label="`#${openedItem.mergedInto}`"
-                          @click="openLinked(openedItem.mergedInto)"
-                        />
-                        <span class="min-w-0 flex-1 break-words text-highlighted">{{ openedItem.mergedIntoTitle }}</span>
-                      </p>
-                      <p class="mt-1 text-sm text-muted">{{ mergedLine($t, openedItem, formatStamp) }}</p>
-                    </template>
-                    <ul v-if="openedItem.mergedFrom.length > 0" class="mt-1 flex flex-col gap-2">
-                      <li v-for="one in openedItem.mergedFrom" :key="one.id" class="flex min-w-0 items-start gap-2 text-sm">
-                        <UButton size="sm" variant="link" class="shrink-0 p-0 tabular-nums" :label="`#${one.id}`" @click="openLinked(one.id)" />
-                        <span class="min-w-0 flex-1 break-words text-highlighted">{{ one.title }}</span>
-                        <UBadge :color="one.done ? 'success' : 'neutral'" variant="subtle" size="sm">{{ one.done ? $t("todo.title.section_done") : $t("todo.title.section_merged") }}</UBadge>
-                      </li>
-                    </ul>
-                  </div>
 
-                  <!-- How long it took, across every run, the phases it was divided into and what
-                       the run went to inside them — or which run is going, or that none has. -->
-                  <div class="rounded-lg border border-default p-3">
-                    <p class="text-sm font-medium text-muted">{{ $t("todo.title.run_log") }}</p>
-                    <p v-if="jobRecordLine($t, openedItem) !== null" class="mt-1 text-sm text-muted">{{ jobRecordLine($t, openedItem) }}</p>
-                    <TodoTime :item="openedItem" />
-                  </div>
-
-                  <WorkOrderPanel part="steps" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="openedItem.heldAt !== null" :item="openedItem" />
-
-                  <!-- What this item's work stopped to ask, and what each question became. A row
-                       that is still open reads as the card above it does. -->
-                  <div v-for="card in questionsOf(openedItem.id)" :key="card.id" class="rounded-md border p-3" :class="questionTone(card)">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                      <p class="text-sm font-medium">{{ $t("todo.title.questions") }}</p>
-                      <p class="text-sm">{{ card.status }}</p>
-                    </div>
-
-                    <MarkdownText :text="card.question" class="mt-1 text-sm text-muted" />
-
-                    <p v-if="card.answer !== null" class="mt-1 text-sm break-words text-highlighted">→ {{ card.answer }}</p>
-                  </div>
-
-                  <!-- Every time the approval was given or taken back, newest first: whose hand,
-                       which road and when, so a request found waiting on him again says who put it
-                       there. -->
-                  <div class="flex flex-col gap-2 rounded-lg border border-default p-3">
-                    <p class="text-sm font-medium text-muted">{{ $t("todo.title.approvals") }}</p>
-                    <ContentSkeleton
-                      v-if="approvalsLoading && approvals.length === 0"
-                      :rows="2"
-                      listClass="flex flex-col gap-2"
-                      :label="$t('todo.status.approvals_loading')"
-                    >
-                      <SkeletonLine width="w-3/5" />
-                    </ContentSkeleton>
-                    <template v-else-if="approvalsFailure !== null">
-                      <p class="text-sm text-error">{{ approvalsFailure }}</p>
-                      <UButton class="self-end" size="sm" color="neutral" variant="subtle" @click="loadApprovals(openedItem.id)">{{ $t("common.action.refresh") }}</UButton>
-                    </template>
-                    <p v-else-if="approvals.length === 0" class="text-sm text-muted">{{ $t("todo.status.no_approvals") }}</p>
-                    <ul v-else class="flex flex-col gap-2">
-                      <li v-for="change in approvals" :key="change.id" class="flex min-w-0 items-start gap-x-2 text-sm">
-                        <UIcon :name="approvalChangeIcon(change)" class="mt-0.5 size-4 shrink-0" :class="change.approved ? 'text-muted' : 'badge-ink text-warning'" />
-                        <span class="min-w-0 flex-1 break-words" :class="change.approved ? 'text-highlighted' : 'badge-ink text-warning'">{{ approvalChangeLine($t, change) }}</span>
-                        <span class="shrink-0 text-muted tabular-nums">{{ formatStamp(change.at) }}</span>
-                      </li>
-                    </ul>
-                  </div>
-
-              </template>
-
-              <template v-else-if="shownRight === 'talk'">
+              <template v-if="shownRight === 'talk'">
               <!-- Talking about this item with the chat agent, and about whatever hangs off it. The chat agent's own
                    session answers, with its tools, so a draft is shaped here turn by turn and
                    the parts beside it show what the item now says. The turns are kept with the
@@ -992,18 +995,19 @@ const detailShell = computed(() => {
 // What is typed into the open item's approval comment box.
 const note = ref("");
 
-// The detail's tabs: how the item ended and what it says on the left, what became of it and what
-// he does to it on the right. Where the dialog is too narrow for two columns they are one row.
+// The detail's tabs, in one order across both columns: how the item ended, what became of it, what the work is told
+// and the request's own words on the left, the talk about it and what he does to it on the right. Where the dialog is
+// too narrow for two columns they are one row, in the same order.
 // The result tab is there only on an item that carries a report or an outstanding note, and it
 // stands first, because on an item that has ended that is what he opens it to read.
 const RESULT_TAB = { value: "result", label: t("todo.label.result"), icon: "i-material-symbols-task-alt" };
 const BODY_TABS = [
-  { value: "conversation", label: t("todo.label.conversation"), icon: "i-material-symbols-forum-outline" },
-  { value: "order", label: t("todo.label.field_instruction"), icon: "i-material-symbols-assignment-outline" }
+  { value: "status", label: t("todo.label.field_state"), icon: "i-material-symbols-monitoring" },
+  { value: "order", label: t("todo.label.field_instruction"), icon: "i-material-symbols-assignment-outline" },
+  { value: "conversation", label: t("todo.label.request_text"), icon: "i-material-symbols-forum-outline" }
 ];
 const RIGHT_TABS = [
-  { value: "status", label: t("todo.label.field_state"), icon: "i-material-symbols-monitoring" },
-  { value: "talk", label: t("todo.label.talk"), icon: "i-material-symbols-chat-outline" },
+  { value: "talk", label: t("todo.label.discussion"), icon: "i-material-symbols-chat-outline" },
   { value: "manage", label: t("todo.label.manage"), icon: "i-material-symbols-settings-outline" }
 ];
 const hasResult = (item: TodoItem | null): boolean => item !== null && (item.report !== null || item.unfinished !== null);
@@ -1013,21 +1017,20 @@ const leftTabs = computed(() => (hasResult(openedItem.value) ? [RESULT_TAB, ...B
 const detailTabs = computed(() => [...leftTabs.value, ...RIGHT_TABS].map(({ value, label }) => ({ value, label })));
 
 const twoColumns = useNarrow("(min-width: 1024px)");
-const leftTab = ref("conversation");
-const rightTab = ref("status");
-const singleTab = ref("conversation");
-// Every item opens on its first tab: the result where it has one, the conversation otherwise, and
-// its state on the right. It is chosen when an item is opened and not as it changes, so an item
+const leftTab = ref("status");
+const rightTab = ref("talk");
+const singleTab = ref("status");
+// Every item opens on its first tab: the result where it has one, its state otherwise, and the talk on the right. It is chosen when an item is opened and not as it changes, so an item
 // that ends while it is being read keeps the tab he is on; one whose result goes away while it
 // stands on it falls back to the conversation rather than to a tab that is no longer there.
 watch(
   () => props.item?.id ?? null,
   (id) => {
     if (id !== null) {
-      const first = hasResult(props.item) ? "result" : "conversation";
+      const first = hasResult(props.item) ? "result" : "status";
       leftTab.value = first;
       singleTab.value = first;
-      rightTab.value = "status";
+      rightTab.value = "talk";
     }
   },
   { immediate: true }
@@ -1036,8 +1039,8 @@ watch(
   () => hasResult(openedItem.value),
   (has) => {
     if (!has) {
-      leftTab.value = leftTab.value === "result" ? "conversation" : leftTab.value;
-      singleTab.value = singleTab.value === "result" ? "conversation" : singleTab.value;
+      leftTab.value = leftTab.value === "result" ? "status" : leftTab.value;
+      singleTab.value = singleTab.value === "result" ? "status" : singleTab.value;
     }
   }
 );

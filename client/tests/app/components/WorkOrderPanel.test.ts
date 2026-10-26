@@ -40,10 +40,9 @@ describe("a work order's live refresh", () => {
     expect(source.indexOf("ExecutionModelSelect")).toBeGreaterThan(source.indexOf('v-if="repeatsItem"'));
   });
 
-  test("has no periodic refresh", () => {
-    expect(source).not.toContain("usePolling");
+  test("reads itself again every few seconds only while its steps run", () => {
+    expect(source).toContain('usePolling(() => { if (props.part === "steps" && order.value?.status === "active") void refresh(); }, 5000);');
     expect(source).not.toContain("setInterval");
-    expect(source).not.toContain("5000");
   });
 });
 
@@ -52,38 +51,28 @@ describe("a work order's live refresh", () => {
 // dialog over the list, so a long result never pushes the rest of the order off the screen.
 
 describe("how a step and a task are opened", () => {
-  test("the steps stand on the shared stepper, and nothing folds open by the browser's own disclosure", () => {
-    expect(source).toContain('<ProgressStepper class="mt-2" :steps="stepperSteps" :label="$t(\'todo.title.coworkers\')">');
+  test("the steps stand on the shared stage stepper, and nothing folds open", () => {
+    expect(source).toContain('<StageStepper class="mt-2" :stages="stages" :label="$t(\'todo.title.coworkers\')" @open="openStage" />');
     expect(source).not.toContain("<details");
     expect(source).not.toContain("<summary");
   });
 
-  test("a step is open when it first appears only while it runs", () => {
-    expect(source).toContain('open: step.state === "running", work: step');
-    expect(source).toContain("stateLabel: t(taskLabel[step.state])");
-  });
-
-  test("the body is the step's tasks, each a button that hands its step and itself to the dialog", () => {
-    expect(source).toContain('<li v-for="(task, index) in step.work.tasks" :key="task.id">');
-    expect(source).toContain('@click="open(step.work, task.id)"');
+  test("a stage opens the dialog at its first task, and a sub-stage at its own", () => {
+    expect(source).toContain("if (step.key === key && step.tasks[0] !== undefined) return open(step, step.tasks[0].id);");
+    expect(source).toContain("const task = step.tasks.find(one => taskStageKey(step, one) === key);");
     expect(source).toContain("openedStep.value = step; openedTask.value = task;");
-    expect(source).toContain("{{ taskModelLine($t, task) }}");
     expect(source).not.toContain("task.result");
     expect(source).not.toContain("task.instruction");
   });
 
-  // A step's head is two lines: name, roles and title above with the time at the right end, models
-  // and progress below. A stage of several branches is one step, however many branches it ran.
-  test("and its head is two lines, with no headings between steps", () => {
-    expect(source).toContain("{{ stepRoles(step.work) }}");
-    expect(source).toContain("{{ stepModelLine($t, step.work) }}");
-    expect(source).toContain("{{ stepPlace(step.work) }}");
+  test("the stages are the order's steps, timed against the panel's clock", () => {
+    expect(source).toContain("workStages(t, steps.value, order.value?.ended ?? {}, props.now)");
     expect(source).toContain("workSteps(t, order.value)");
     expect(source).not.toContain("group.title");
   });
 
   test("and one dialog stands for the whole list rather than one per row", () => {
-    expect(source).toContain("<WorkTaskDialog v-model:open=\"taskOpen\" :step=\"openedStep\" :task-id=\"openedTask\" :ended=\"order?.ended ?? {}\" :todo-id=\"props.todoId\" :order-status=\"order?.status ?? null\" @changed=\"order = $event\" />");
+    expect(source).toContain(":order-status=\"order?.status ?? null\" :agent=\"order?.worker ?? null\" @changed=\"order = $event\" />");
     expect(source.match(/WorkTaskDialog/g)?.length).toBe(1);
   });
 });
@@ -93,7 +82,6 @@ describe("the time of the work", () => {
   test("stands as the start, the end and the whole, from the order's steps", () => {
     expect(source).toContain("orderSpan(steps.value, order.value.status, props.now)");
     expect(source).toContain('$t("todo.label.span_total", { time: spanClock($t, span.seconds) })');
-    expect(source).toContain("stepSeconds(step.work, props.now)");
   });
 
   test("moves with the clock of the panel it stands in, with no clock of its own", () => {
@@ -157,11 +145,12 @@ describe("reopening a finished order", () => {
 // A task decided against is not a task done: the list marks it with its own icon and a dimmed line,
 // and the progress line counts it apart.
 describe("skipped tasks on the panel", () => {
-  test("each task wears its state's own mark from the stepper, each step its name, and a skipped one is dimmed", () => {
-    expect(source).toContain(':name="stepLook(task.state).icon"');
-    expect(source).toContain("{{ step.work.name }}");
-    expect(source).toContain(":class=\"{ 'text-muted': step.state === 'skipped' }\"");
-    expect(source).toContain(":class=\"{ 'text-muted': task.state === 'skipped' }\"");
+  test("each task wears its state's own mark from the stepper as a sub-stage, and a skipped one is dimmed", async () => {
+    const stepper = await Bun.file(new URL("../../../apps/web/app/components/StageStepper.vue", import.meta.url)).text();
+
+    expect(stepper).toContain(':name="stepLook(sub.state).icon"');
+    expect(stepper).toContain(":class=\"{ 'text-muted': stageOf(item).state === 'skipped' }\"");
+    expect(stepper).toContain(":class=\"{ 'text-muted': sub.state === 'skipped' }\"");
   });
 
   test("the progress line names the step the order is at and counts the build steps alone, done and skipped apart", () => {

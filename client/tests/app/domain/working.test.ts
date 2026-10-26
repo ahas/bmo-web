@@ -7,7 +7,7 @@ import { wording } from "../../../apps/web/shared/wording";
 const OWNER_ROOM_TITLE = "Owner room";
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { GENERIC_TOOL_ICON } from "../../../apps/web/app/domain/log";
-import { actionLook, listeningLines, windowClockLines, outcomeLine, phaseLook, receivedLine, roomRuns, runSummary, subjectOf, turnActions, turnName } from "../../../apps/web/app/domain/working";
+import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, receivedLine, roomRuns, runSummary, subjectOf, turnActions, turnName } from "../../../apps/web/app/domain/working";
 
 import type { AgentLogLine, AgentSummary, LiveRun, RoomSummary, RunProgress, TurnAction, WatchView } from "../../../apps/web/shared/types";
 import type { RoomRunLine } from "../../../apps/web/app/domain/working";
@@ -478,5 +478,19 @@ describe("what a finished turn did, read back out of its run", () => {
 
   test("a call still without its result stands as one still out", () => {
     expect(turnActions([line({ kind: "tool", name: "Bash", ref: "t3", text: "{}" })])[0]?.state).toBeNull();
+  });
+});
+
+describe("what a turn read from the brain", () => {
+  test("is the documents it was handed and its calls to the brain's reading tools, by any road's name", () => {
+    const actions: TurnAction[] = [
+      { kind: "context", name: "doc-a", text: "doc-a", state: "attached" },
+      { kind: "tool", name: "mcp__bmo__brain_recall", tool: { name: "brain_recall", icon: null }, text: "{}", state: "succeeded" },
+      { kind: "tool", name: "bmo/brain_list", tool: null, text: "{}", state: null },
+      { kind: "tool", name: "bash", tool: { name: "bash", icon: null }, text: "{}", state: "succeeded" },
+      { kind: "tool", name: "shell", tool: { name: "shell", icon: null }, text: JSON.stringify({ command: "bmo use bmo/brain_similar --json '{}'" }), state: "succeeded" }
+    ];
+
+    expect(brainActions(actions).map((action) => action.name)).toEqual(["doc-a", "mcp__bmo__brain_recall", "bmo/brain_list", "shell"]);
   });
 });

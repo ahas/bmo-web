@@ -25,26 +25,30 @@ function pageWindow(limit: number): number {
   return Math.min(limit, PAGING.maxSize) + 1;
 }
 
-// The run a screen names by its own name, as the agency numbers it.
-async function runIdOf(run: string): Promise<number | null> {
+// The run a screen names by its own name, as the agency numbers it, with the agent its lines are written under: a
+// co-work stage's run is named from its order, whose worker need not be the agent that ran it.
+async function runOf(run: string): Promise<{ id: number; agent: string } | null> {
   const page = await agencyCall(agency().GET("/runs", { params: { query: { names: run, limit: 1 } } }));
+  const found = page.items[0];
 
-  return page.items[0]?.id ?? null;
+  return found === undefined ? null : { id: found.id, agent: found.agentName };
 }
 
 /** One run's lines of an agent's, oldest first, after `after` where it is given; `hasMore` says another page waits. */
 export async function readRunPage(agent: string, run: string, after: number, limit: number): Promise<AgentLogPage> {
-  const runId = await runIdOf(run);
+  const named = await runOf(run);
 
-  if (runId === null) return UNAVAILABLE;
+  if (named === null) return UNAVAILABLE;
 
+  const runId = named.id;
+  const owner = named.agent || agent;
   const window = pageWindow(limit);
   const found: AgentLogLine[] = [];
   let cursor = after;
 
   for (;;) {
     const page = await agencyCall(
-      agency().GET("/log-lines", { params: { query: { runId, agentName: agent, after: cursor, limit: AGENCY_PAGE } } })
+      agency().GET("/log-lines", { params: { query: { runId, agentName: owner, after: cursor, limit: AGENCY_PAGE } } })
     );
 
     found.push(...page.items.map(asLine));
@@ -57,7 +61,7 @@ export async function readRunPage(agent: string, run: string, after: number, lim
   const held = found.slice(0, window - 1);
   const first = held[0];
 
-  return { lines: held, hasMore: found.length > window - 1, hasOlder: first !== undefined && (await linesBefore(agent, first.id)) };
+  return { lines: held, hasMore: found.length > window - 1, hasOlder: first !== undefined && (await linesBefore(owner, first.id)) };
 }
 
 // Whether any line of the agent's stands before one the page holds: a run's own read cannot say, so the agent's log
@@ -146,7 +150,9 @@ function asLine(line: LogLine): AgentLogLine {
     name: stringField(line, "name"),
     tool: toolOf({ kind: line.kind as AgentLogLine["kind"], name: stringField(line, "name") }),
     parent: stringField(line, "parent"),
-    ref: stringField(line, "ref"),
+    // The agency's document names it `ref`, and its lines carry it as `reference` (docs/boundary.md, 「Gaps the console
+    // meets」).
+    ref: stringField(line, "ref") ?? stringField(line, "reference"),
     state: fieldOf(line, "state", (value) => (typeof value === "string" ? (value as AgentLogState) : null)),
     truncated: fieldOf(line, "truncated", (value) => value === true) === true,
     text: line.text,

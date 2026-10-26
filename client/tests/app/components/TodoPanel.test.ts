@@ -527,10 +527,26 @@ describe("the result of an item", () => {
     }
   });
 
+  test("the tabs stand in one order across both columns: 결과, 상태, 지시, 요청 원문, then 의논 and 관리", () => {
+    const left = detailSource.slice(detailSource.indexOf("const BODY_TABS = ["), detailSource.indexOf("const RIGHT_TABS = ["));
+    const right = detailSource.slice(detailSource.indexOf("const RIGHT_TABS = ["), detailSource.indexOf("const hasResult"));
+
+    expect([...left.matchAll(/value: "([a-z]+)"/g)].map((one) => one[1])).toEqual(["status", "order", "conversation"]);
+    expect(left).toContain('t("todo.label.request_text")');
+    expect([...right.matchAll(/value: "([a-z]+)"/g)].map((one) => one[1])).toEqual(["talk", "manage"]);
+    expect(right).toContain('t("todo.label.discussion")');
+    expect(detailSource).toContain("const detailTabs = computed(() => [...leftTabs.value, ...RIGHT_TABS]");
+    expect(detailSource).toContain('rightTab.value = "talk";');
+  });
+
+  test("while a job runs the state tab reads its figures again as they happen", () => {
+    expect(detailTemplate).toContain('<ItemRunFigures :todo-id="openedItem.id" :running="openedItem.running" />');
+  });
+
   test("is the left row's first tab, on an item carrying a report or an unfinished note alone, and is the tab it opens on", () => {
     expect(detailSource).toContain("const hasResult = (item: TodoItem | null): boolean => item !== null && (item.report !== null || item.unfinished !== null);");
     expect(detailSource).toContain("hasResult(openedItem.value) ? [RESULT_TAB, ...BODY_TABS] : BODY_TABS");
-    expect(detailSource).toContain('const first = hasResult(props.item) ? "result" : "conversation";');
+    expect(detailSource).toContain('const first = hasResult(props.item) ? "result" : "status";');
     expect(tagOf(':items="leftTabs"', detailTemplate)).toContain('v-model="leftTab"');
     expect(tagOf(':items="detailTabs"', detailTemplate)).toContain('v-model="singleTab"');
   });

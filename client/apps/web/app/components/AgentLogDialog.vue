@@ -36,9 +36,17 @@
           <WatchDetail :watch="props.watch" :now="now" :named="false" />
         </div>
 
-        <!-- The log does its own scrolling inside this, which is the box it finds above itself. -->
+        <!-- The work view, the same one the agent's own screen stands (docs/web.md, 「The work view」); its log does its
+             own scrolling inside this, which is the box it finds above itself. -->
         <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <AgentLogView :key="`${props.name}:${placeKey}`" :name="props.name" :place="props.place" />
+          <WorkView
+            :key="`${props.name}:${placeKey}`"
+            :agent="props.name"
+            :place="props.place"
+            :run="placeRun"
+            :job="isWorker"
+            :stepper="isWorker"
+          />
         </div>
       </div>
     </template>
@@ -82,6 +90,10 @@ usePolling(() => {
 }, 1000);
 
 const placeKey = computed(() => JSON.stringify(props.place));
+// The run the dialog was opened at, whose job the view speaks of.
+const placeRun = computed<string | null>(() => (props.place !== null && "run" in props.place ? props.place.run : null));
+// A worker's view carries its job and its stages; any other agent's is its log.
+const isWorker = computed(() => catalogueAgents().find((agent) => agent.name === props.name)?.kind === "worker");
 
 const emit = defineEmits<{ "update:open": [open: boolean] }>();
 

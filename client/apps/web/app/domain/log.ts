@@ -1,10 +1,8 @@
 import { AGENT_LOG_PAGE_SIZE, PAGING } from "#shared/config";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { formatTime, spanClock } from "bmo-ui/app/domain/time";
 
 import type { AgentLogContext, AgentLogContextState, AgentLogKind, AgentLogLine, AgentLogPage } from "#shared/types";
 import type { Translate } from "#shared/wording";
-import type { StepperStep, StepState } from "./stepper";
 import type { ComputedRef, Ref } from "vue";
 
 // How one line is shown: the badge its kind wears, the word on it, and whether its text is words
@@ -582,79 +580,3 @@ export function useAgentLog(t: Translate, name: string): AgentLogFeed {
 
   return { rows, older, newer, loading, loadingOlder, failure, load, loadAt, loadOlder, follow };
 }
-
-
-
-// One run of the log as the progress stepper stands it: its lines in the order they came, and the
-// lines that open and close it where the page holds them. Runs that went side by side each keep their
-// own lines, so a run is gathered by its name rather than cut wherever another run's line falls between.
-export interface LogRun {
-  run: string;
-  rows: LogRow[];
-  start: AgentLogLine | null;
-  end: AgentLogLine | null;
-  // When its first and its last line on the page were written.
-  first: number;
-  last: number;
-  chatId: number | null;
-}
-
-export function logRuns(rows: readonly LogRow[]): LogRun[] {
-  const runs = new Map<string, LogRun>();
-
-  for (const row of rows) {
-    const line = row.line;
-    let run = runs.get(line.run);
-
-    if (run === undefined) {
-      run = { run: line.run, rows: [], start: null, end: null, first: line.at, last: line.at, chatId: line.chatId };
-      runs.set(line.run, run);
-    }
-
-    run.rows.push(row);
-    run.last = Math.max(run.last, line.at, ...row.results.map((result) => result.at));
-    run.chatId ??= line.chatId;
-
-    if (row.depth === 0 && line.kind === "start" && run.start === null) run.start = line;
-    if (row.depth === 0 && line.kind === "end") run.end = line;
-  }
-
-  return [...runs.values()];
-}
-
-// Whether a run is the one a screen was opened at: the run it named, or the first run that began at
-// or after the second it named, in the room it named.
-export function openedRun(runs: readonly LogRun[], place: LogPlace | null): string | null {
-  if (place === null) return null;
-  if ("run" in place) return place.run;
-
-  return runs.find((run) => run.first >= place.at && (place.chat === undefined || run.chatId === place.chat))?.run ?? null;
-}
-
-// A run's step: running while it has no end line and is the newest run of a log read to its end,
-// failed or done by its end line, and otherwise said to have left no end line. It stands open when it
-// is the newest run, still going, or the run the screen was opened at.
-export function runStep(t: Translate, run: LogRun, at: { newest: boolean; atEnd: boolean; opened: boolean }): StepperStep {
-  const state: StepState = run.end !== null ? (run.end.state === "failed" ? "failed" : "done") : at.newest && at.atEnd ? "running" : "unended";
-  const headline = run.start?.text.split("\n").find((part) => part.trim() !== "")?.trim() ?? "";
-  const title = run.start === null ? t("agents.label.run_continued") : headline === "" ? t(KIND_LOOKS.start.label) : headline;
-  const took = run.last - run.first;
-
-  return {
-    key: run.run,
-    state,
-    stateLabel: t(RUN_STATE_LABELS[state]),
-    title,
-    time: took > 0 ? `${formatTime(run.first)} · ${spanClock(t, took)}` : formatTime(run.first),
-    open: at.newest || state === "running" || at.opened
-  };
-}
-
-const RUN_STATE_LABELS: Record<StepState, string> = {
-  pending: "agents.label.run_unended",
-  running: "agents.label.run_running",
-  done: "agents.label.run_done",
-  failed: "agents.label.run_failed",
-  skipped: "agents.label.run_unended",
-  unended: "agents.label.run_unended"
-};

@@ -35,12 +35,12 @@ export function chipLook(open: boolean, over = false): string {
 // the closed chip's colours and answers no pointer with a colour of its own.
 export const STILL_CHIP_LOOK = "px-1 text-dimmed";
 
-export type ChipKind = "context" | "documents" | "tools" | "tokens" | "records" | "drafts" | "verdicts" | "briefing";
+export type ChipKind = "context" | "brain" | "tools" | "tokens" | "records" | "drafts" | "verdicts" | "briefing";
 
 // A chip says what it is with its mark alone, and its name with its tooltip.
 export const CHIP_ICONS: Record<ChipKind, string> = {
   context: "i-material-symbols-data-usage",
-  documents: "i-material-symbols-description-outline",
+  brain: "i-material-symbols-psychology-outline",
   tools: "i-material-symbols-build-outline",
   tokens: "i-material-symbols-token-outline",
   records: "i-material-symbols-inventory-2-outline",
@@ -51,7 +51,7 @@ export const CHIP_ICONS: Record<ChipKind, string> = {
 
 export const CHIP_LABELS: Record<ChipKind, string> = {
   context: "room.label.chip_context",
-  documents: "room.label.chip_documents",
+  brain: "room.label.chip_brain",
   tools: "room.label.chip_tools",
   tokens: "room.label.chip_tokens",
   records: "room.label.chip_records",

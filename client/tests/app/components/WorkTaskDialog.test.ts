@@ -2,9 +2,9 @@ import { describe, expect, test } from "bun:test";
 
 const source = await Bun.file(new URL("../../../apps/web/app/components/WorkTaskDialog.vue", import.meta.url)).text();
 
-// The dialog one step of a work order is read in, a tab to each of its tasks. What it is held to is what an unfolded row
-// used to show — the instruction, the run it went out as, the result and the failure — and that
-// a result of any length scrolls inside it instead of growing the dialog past the screen.
+// The dialog one task of a work order is read in, the work view of that task (docs/web.md, 「The work view」): its work
+// order, its run, its log and what it left, one under the other with no tab row, and a result of any length scrolling
+// inside it instead of growing the dialog past the screen.
 
 describe("the shell a task opens in", () => {
   test("is this console's own: a modal on a wide screen, a sheet from the bottom on a narrow one", () => {
@@ -20,7 +20,7 @@ describe("the shell a task opens in", () => {
   });
 
   test("scrolls its body, so a long result cannot push the dialog past the window", () => {
-    expect(source).toContain("min-h-0 flex-1 overflow-y-auto overscroll-contain");
+    expect(source).toContain('<div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">');
     expect(source).toContain("whitespace-pre-wrap break-words");
   });
 
@@ -41,70 +41,37 @@ describe("what the dialog shows of a task", () => {
     expect(source).toContain("taskSeconds(task.value, props.ended)");
   });
 
-  test("heads it with the two lines the list writes for that same step", () => {
-    expect(source).toContain("stepHeading(t, props.step)");
-    expect(source).toContain("stepModelLine(t, props.step, true)");
+  test("heads it with the task's own line and its models", () => {
+    expect(source).toContain('taskHeading(t, task.value, props.step?.title || props.step?.name || "")');
+    expect(source).toContain("taskModelLine(t, task.value, true)");
     expect(source).toContain("<MarqueeLine class=\"text-sm text-muted\">{{ modelLine }}</MarqueeLine>");
   });
 
-  test("draws nothing of a task where none is open", () => {
-    expect(source).toContain('<template v-if="task">');
+  test("stands the task in the work view, narrowed to its run, and draws nothing where none is open", () => {
+    expect(source).toContain(':place="task.unit === null ? null : { run: task.unit }"');
+    expect(source).toContain(':only="task.unit"');
+    expect(source).toContain("<template #order>");
+    expect(source).toContain('<template v-if="hasDetail" #result>');
     expect(source).toContain("step: WorkStep | null");
   });
 });
 
-// A stage of several branches is one step, and each branch is a tab named by its short title with
-// its state on the left.
-describe("the tabs a step's tasks stand on", () => {
-  test("stand only for a step of more than one task", () => {
-    expect(source).toContain('v-if="props.step !== null && props.step.tasks.length > 1"');
-  });
-
-  test("are named by the task's title and marked with its state", () => {
-    expect(source).toContain("label: taskTitle(one, `${index + 1}`)");
-    expect(source).toContain("icon: taskStateIcon(one.state)");
+// A stage of several branches is one step on the stepper, each branch a sub-stage of it: the dialog has no tab row of
+// the step's tasks, and none of the instruction and its result either.
+describe("the tabs the dialog has", () => {
+  test("are none: the work order and what came of it stand one under the other", () => {
+    expect(source).not.toContain("<UTabs");
+    expect(source).not.toContain("taskTabs");
+    expect(source).not.toContain("TAB_ROW_LINE");
   });
 
   test("open on the task pressed, or the first, and keep the open one when the order is read again", () => {
     expect(source).toContain('taskKey.value = props.taskId ?? props.step?.tasks[0]?.id ?? "";');
-    expect(source).toContain("watch(() => [props.step?.key, props.taskId], startTask);");
-    expect(source).toContain("watch(() => props.open, (open) => { if (open) startTask(); });");
-    expect(source).toContain("props.step?.tasks.find((one) => one.id === taskKey.value)");
   });
-});
-
-// The instruction and what came of it are read one at a time. In one flow a result of any length
-// stood under an instruction of any length, so reading what a branch found meant scrolling past
-// everything it had been told first.
-describe("the tabs the body is split into", () => {
-  test("are the instruction and what came of it, and nothing else", () => {
-    expect(source).toContain('const TABS = [{ label: t("todo.label.instruction_text"), value: "instruction" }, { label: t("todo.label.result"), value: "result" }];');
-    expect(source).toContain("v-show=\"tab === 'instruction'\"");
-    expect(source).toContain("v-show=\"tab === 'result'\"");
-  });
-
-  test("stand outside the scroll, so the other one is always a press away", () => {
-    expect(source).toContain("<UTabs");
-    expect(source).toContain('<div v-if="task" :class="[\'flex h-10 shrink-0 items-center gap-2 px-4\', TAB_ROW_LINE]">');
-    expect(source).toContain(`:aria-label="$t('todo.aria.task_view_choose')"`);
-  });
-
-  test("open on the instruction, and another task opened in the same dialog opens there too", () => {
-    expect(source).toContain('const tab = ref("instruction");');
-    expect(source).toContain('tab.value = "instruction";');
-  });
-
-  test("say so where the task has left nothing yet", () => {
-    expect(source).toContain('v-if="!hasDetail"');
-    expect(source).toContain('todo.status.nothing_left');
-  });
-
-  // What a verb does is done to the task, not to the part of it being read, so it stands under
-  // both rather than inside either.
   test("do not hold the step verbs, which stand in the dialog's foot at its right end, outside the scroll", () => {
     const foot = source.indexOf('<div v-if="task && verbs.length > 0" class="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-default px-4 py-3">');
 
-    expect(foot).toBeGreaterThan(source.indexOf('class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3"'));
+    expect(foot).toBeGreaterThan(source.indexOf('<div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">'));
     expect(source.indexOf('v-for="verb in verbs"')).toBeGreaterThan(foot);
   });
 
@@ -145,29 +112,28 @@ describe("the step verbs in the dialog", () => {
 // this dialog is read in either language. It is the document viewer's own translator behind it, and
 // the switch stands in the tab row's action area rather than on a row of its own.
 describe("reading a co-worker's text in the other language", () => {
-  test("is a state toggle at the right end of the row the body's tabs stand on", () => {
-    const row = source.indexOf('<div v-if="task" :class="[\'flex h-10 shrink-0 items-center gap-2 px-4\', TAB_ROW_LINE]">');
+  test("is a state toggle at the right end of the dialog's head", () => {
+    const head = source.indexOf("<!-- The head names the task the dialog stands at");
 
-    expect(row).toBeGreaterThan(-1);
-    expect(source.indexOf("<USwitch")).toBeGreaterThan(row);
+    expect(head).toBeGreaterThan(-1);
+    expect(source.indexOf("<USwitch")).toBeGreaterThan(head);
     expect(source).toContain(':model-value="translated"');
-    expect(source).toContain('class="ms-auto flex shrink-0 items-center gap-2"');
   });
 
   test("names the language it would put the text into, and only the translation word where the screen is narrow", () => {
-    expect(source).toContain('narrow.value || translation.target.value === null ? t("todo.label.translation") : t("documents.label.translation_of", { language: languageName(t, translation.target.value) })');
+    expect(source).toContain('narrow.value || target.value === null ? t("todo.label.translation") : t("documents.label.translation_of", { language: languageName(t, target.value) })');
   });
 
-  test("goes through the translator the document viewer uses, per text of the open tab", () => {
+  test("goes through the translator the document viewer uses, the work order and the result each on its own", () => {
     expect(source).toContain('import { useWorkTextTranslation } from "~/domain/work-translation"');
-    expect(source).toContain('field: tab.value === "result" ? "result" : "instruction"');
+    expect(source).toContain('field: "instruction", text: task.value.instruction');
+    expect(source).toContain('field: "result", text: task.value.result ?? ""');
   });
 
   test("is one spinning mark beside it and no count, since each part lands in the text as it is written", () => {
-    expect(source).toContain(`<UTooltip v-if="translation.translating.value" :text="$t('todo.status.translating')">`);
+    expect(source).toContain(`<UTooltip v-if="translating" :text="$t('todo.status.translating')">`);
     expect(source).toContain(`role="status" :aria-label="$t('todo.status.translating')"`);
     expect(source).toContain("animate-spin text-muted motion-reduce:animate-none");
-    expect(source).not.toMatch(/todo\.status\.translating['"], \{/);
   });
 
   // A switch drawn as loading is a switch that cannot be pressed, and a translation runs for as long
@@ -185,15 +151,15 @@ describe("reading a co-worker's text in the other language", () => {
     expect(source).toContain('translated.value = window.localStorage.getItem(TRANSLATED_KEY) === "1";');
   });
 
-  test("is not drawn for a tab with no text to put into another language", () => {
+  test("is not drawn for a task with no text to put into another language", () => {
     expect(source).toContain('v-if="translatable"');
-    expect(source).toContain('const translatable = computed(() => textOfTab.value.trim() !== "");');
+    expect(source).toContain('const translatable = computed(() => (task.value?.instruction ?? "").trim() !== "" || (task.value?.result ?? "").trim() !== "");');
   });
 
   test("says what went wrong in one line, with the press that asks again", () => {
     expect(source).toContain("troubleLine");
     expect(source).toContain(`:label="$t('todo.action.retry_translation')"`);
-    expect(source).toContain('@click="translation.retry()"');
+    expect(source).toContain('@click="retryTranslation"');
   });
 
   test("leaves the original as the text the worker read, however the screen is drawn", () => {

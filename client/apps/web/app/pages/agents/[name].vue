@@ -107,7 +107,9 @@
         class="border-b border-default px-4 py-3"
       />
 
-      <AgentLogView ref="view" :name="name" :place="place" :live="chatTurns" />
+      <!-- The work view: the job's work order, what it is doing now, what it spent and called, its stages where it is
+           co-work or laid out a plan, and its log (docs/web.md, 「The work view」). -->
+      <WorkView ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="isJobWorker" :stepper="isJobWorker" />
 
       <WorkerSettingsDialog v-if="settingsKind === 'worker'" v-model:open="settingsOpen" :worker="row" :reread="refreshCatalogue" />
       <GateSettingsDialog v-else-if="settingsKind === 'gate'" v-model:open="settingsOpen" :gate="name" />
@@ -116,11 +118,8 @@
     </template>
 
     <template #footer>
-      <div v-if="launchable !== null || isJobWorker" class="border-t border-default py-4">
+      <div v-if="launchable !== null" class="border-t border-default py-4">
         <UContainer class="flex flex-col gap-3">
-          <!-- A job worker's job, the line the CLI keeps at the foot of its own screen. -->
-          <JobStatusLine v-if="isJobWorker" :agent="name" :run="placeRun" :now="now" />
-
           <!-- The box says what it will do to the agent whose log stands above it, and to no
                other: what is launched here is this screen's own worker. -->
           <LaunchPrompt

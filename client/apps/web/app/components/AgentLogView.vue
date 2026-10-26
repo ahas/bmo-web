@@ -12,35 +12,31 @@
         :label="$t('agents.action.older_lines')"
         @click="loadOlder"
       />
-      <p v-else-if="rows.length > 0" class="text-sm text-dimmed">{{ $t("agents.message.log_start") }}</p>
+      <p v-else-if="shownRows.length > 0" class="text-sm text-dimmed">{{ $t("agents.message.log_start") }}</p>
     </div>
 
     <ContentSkeleton v-if="log.loading.value && rows.length === 0" :rows="3" listClass="flex flex-col gap-3" :label="$t('agents.status.log_loading')">
       <ProgressStepSkeleton />
     </ContentSkeleton>
     <!-- An empty log is the whole of the body, so its line stands in the middle of it. -->
-    <p v-else-if="rows.length === 0 && !log.failure.value" class="m-auto text-center text-sm text-muted">{{ $t("agents.status.no_log") }}</p>
+    <p v-else-if="shownRows.length === 0 && !log.failure.value" class="m-auto text-center text-sm text-muted">{{ $t("agents.status.no_log") }}</p>
 
     <ContentSkeleton v-if="log.loadingOlder.value" listClass="flex flex-col gap-3" :label="$t('agents.status.older_loading')">
       <ProgressStepSkeleton />
     </ContentSkeleton>
 
-    <!-- One agent's log is its runs, a step each on the console's one stepper: the head says how the
-         run went and when, and the body is the run's lines with what it spent under its end. -->
-    <ProgressStepper v-if="steps.length > 0" :steps="steps" :label="$t('agents.label.run_steps')">
-      <template #body="{ step }">
-        <ul class="flex flex-col gap-3">
-          <template v-for="row in step.rows" :key="row.key">
-            <AgentLogRow :row="row" />
+    <!-- One agent's log, flat: a line after another in the order written, a run opening at its start line and ending at
+         its end line with what it spent under it (docs/web.md, 「The log is flat」). -->
+    <ul v-if="shownRows.length > 0" class="flex flex-col gap-3" :aria-label="$t('agents.title.work_log')" data-agent-log>
+      <template v-for="row in shownRows" :key="row.key">
+        <AgentLogRow :row="row" />
 
-            <!-- A run ends with what it spent: for a turn of the chat agent's, the whole round it answered. -->
-            <li v-if="chipOf(row) !== null" class="list-none">
-              <RunSpend :chip="chipOf(row)!" />
-            </li>
-          </template>
-        </ul>
+        <!-- A run ends with what it spent: for a turn of the chat agent's, the whole round it answered. -->
+        <li v-if="chipOf(row) !== null" class="list-none">
+          <RunSpend :chip="chipOf(row)!" />
+        </li>
       </template>
-    </ProgressStepper>
+    </ul>
 
     <!-- The turns of the chat agent's going right now, each with what it has spent so far. -->
     <ul v-if="props.live.length > 0" class="flex flex-col gap-1">
@@ -67,13 +63,12 @@
 // ancestor it was put inside and holds the reader's place in it.
 
 import { AGENT_LOG_POLL_MS } from "#shared/config";
-import { logRuns, openedRun, runStep, useAgentLog } from "~/domain/log";
+import { useAgentLog } from "~/domain/log";
 import { SCROLL_BOTTOM_THRESHOLD_PX, usePolling } from "~/domain/polling";
 import { liveChip, runEnds, useRunChips } from "~/domain/turns";
 
 import type { RunProgress } from "#shared/types";
 import type { LogPlace, LogRow } from "~/domain/log";
-import type { StepperStep } from "~/domain/stepper";
 import type { SpendChip } from "~/domain/turns";
 
 interface Props {
@@ -82,9 +77,12 @@ interface Props {
   place?: LogPlace | null;
   // The turns of this agent's chat that are running now, with what their streams have said.
   live?: { chatId: number; progress: RunProgress | null }[];
+  // One run's name, where the view stands at a stage's run and shows its lines alone.
+  only?: string | null;
 }
 
-const props = withDefaults(defineProps<Props>(), { place: null, live: () => [] });
+const props = withDefaults(defineProps<Props>(), { place: null, live: () => [], only: null });
+const emit = defineEmits<{ rows: [rows: LogRow[]] }>();
 
 const feedRef = useTemplateRef<{ $el?: HTMLElement }>("feed");
 
@@ -99,17 +97,11 @@ const stick = ref(true);
 
 const rows = computed(() => log.rows.value);
 
-// The runs on the page, each a step: the newest open, and the one the screen was opened at.
-const runs = computed(() => logRuns(rows.value));
-const steps = computed<(StepperStep & { rows: LogRow[] })[]>(() => {
-  const opened = openedRun(runs.value, props.place);
-  const newest = runs.value.at(-1)?.run;
+// The lines shown: every one, or one run's alone where the view stands at a stage's run.
+const shownRows = computed<LogRow[]>(() => (props.only === null ? rows.value : rows.value.filter((row) => row.line.run === props.only)));
 
-  return runs.value.map((run) => ({
-    ...runStep(t, run, { newest: run.run === newest, atEnd: !log.newer.value, opened: run.run === opened }),
-    rows: run.rows
-  }));
-});
+// Whoever holds the view reads what the log says as it grows: what the session is doing now, and the plan it laid out.
+watch(shownRows, (now) => emit("rows", now), { immediate: true });
 
 // What each run on the page spent, standing under the line it ended on.
 const chips = useRunChips(t, props.name, rows);

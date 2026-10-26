@@ -30,8 +30,8 @@
              before them, once the turn has ended and only where the session reported it. -->
         <ContextChip v-if="context !== null" :ratio="context" />
 
-        <LineChip v-if="counts.documents + counts.held > 0" :icon="CHIP_ICONS.documents" :label="$t(CHIP_LABELS.documents)" :open="listOpen('context')" @toggle="openActions('context')">
-          <RollingNumber :value="counts.documents" />
+        <LineChip v-if="counts.documents + counts.held + counts.brain > 0" :icon="CHIP_ICONS.brain" :label="$t(CHIP_LABELS.brain)" :open="listOpen('context')" @toggle="openActions('context')">
+          <RollingNumber :value="counts.documents + counts.brain" />
         </LineChip>
 
         <!-- What the answer wrote, filling while the turn runs and the round's own figure afterwards. -->
@@ -218,7 +218,7 @@ import { useTurnActionsFold } from "~/domain/turn-actions-fold";
 import { readRunLines } from "~/domain/log";
 import { countText } from "~/domain/numbers";
 import { keptOffer, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, stageLabel, verdictState } from "~/domain/judgements";
-import { turnActions } from "~/domain/working";
+import { brainActions, turnActions } from "~/domain/working";
 import { formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
 import { draftAsked, draftRound, draftSummaryLines, splitDraftJudgements } from "~/domain/draft-process";
@@ -337,27 +337,34 @@ function listOpen(kind: ActionKind): boolean {
 
 const done = computed<TurnActionsRef | null>(() => props.actionsAt ?? null);
 
-// What each chip counts: the whole turn either way — for one still running, what its stream has
+// What each chip counts: the whole round either way — for a turn still running, what its stream has
 // said plus what fell off the front of its block. A reference document the session already held is
-// counted apart, since it went as a mark and nothing of it was read on this turn.
-const counts = computed<{ documents: number; held: number; tools: number }>(() => {
+// counted apart, since it went as a mark and nothing of it was read on this turn. The brain chip counts
+// the documents handed and the calls that read the brain; the tool chip counts every call, those among them.
+const counts = computed<{ documents: number; held: number; tools: number; brain: number }>(() => {
   const live = props.live;
 
   if (live === null) {
-    return { documents: done.value?.documents ?? 0, held: done.value?.held ?? 0, tools: done.value?.tools ?? 0 };
+    return { documents: done.value?.documents ?? 0, held: done.value?.held ?? 0, tools: done.value?.tools ?? 0, brain: done.value?.brain ?? 0 };
   }
 
-  const handed = liveOf("context");
+  const handed = live.actions.filter((action) => action.kind === "context");
   const held = handed.filter((action) => action.state === "held").length;
   const documents = handed.length - held + live.droppedContext;
+  const brain = brainActions(live.actions).filter((action) => action.kind === "tool").length;
 
-  return { documents, held, tools: live.actions.length + live.dropped - handed.length - live.droppedContext };
+  return { documents, held, tools: live.actions.length + live.dropped - handed.length - live.droppedContext, brain };
 });
 
 const records = computed<TurnRecord[]>(() => done.value?.records ?? []);
 
+// One chip's list: the brain's — the documents handed and the calls that read the brain — or every call.
+function listOf(kind: ActionKind, actions: readonly TurnAction[]): TurnAction[] {
+  return kind === "context" ? brainActions(actions) : actions.filter((action) => action.kind === "tool");
+}
+
 function liveOf(kind: ActionKind): TurnAction[] {
-  return (props.live?.actions ?? []).filter((action) => action.kind === kind);
+  return listOf(kind, props.live?.actions ?? []);
 }
 
 function liveDropped(kind: ActionKind): number {
@@ -367,13 +374,13 @@ function liveDropped(kind: ActionKind): number {
 }
 
 function loadedOf(kind: ActionKind): TurnAction[] {
-  return actions.value.filter((action) => action.kind === kind);
+  return listOf(kind, actions.value);
 }
 
 // How many of the turn's actions of one sort the list did not get: the record counted them all,
 // and a page of the log holds only so many lines.
 function restOf(kind: ActionKind): number {
-  return Math.max(0, (kind === "context" ? counts.value.documents + counts.value.held : counts.value.tools) - loadedOf(kind).length);
+  return Math.max(0, (kind === "context" ? counts.value.documents + counts.value.held + counts.value.brain : counts.value.tools) - loadedOf(kind).length);
 }
 
 // Opening asks the log for that run's lines, once, and each list stands its own sort of them. They
@@ -402,7 +409,10 @@ async function openActions(kind: ActionKind): Promise<void> {
   actionsFailure.value = null;
 
   try {
-    actions.value = turnActions(await readRunLines(at.agent, at.run));
+    // Every run of the round, its own turn first and then each question its draft process asked, read as one.
+    const lines = await Promise.all(at.runs.map((run) => readRunLines(at.agent, run)));
+
+    actions.value = turnActions(lines.flat());
   } catch (error) {
     actionsFailure.value = failureText(error, t("room.error.actions_read_failed"));
   } finally {
@@ -469,7 +479,7 @@ const context = computed<number | null>(() => (props.live === null ? (props.spen
 const chipped = computed<boolean>(
   () =>
     context.value !== null ||
-    counts.value.documents + counts.value.held > 0 ||
+    counts.value.documents + counts.value.held + counts.value.brain > 0 ||
     chip.value !== null ||
     counts.value.tools > 0 ||
     records.value.length > 0 ||

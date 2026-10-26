@@ -4,6 +4,7 @@ import { runSeconds, taskRun, taskStartSeconds } from "#shared/work-time";
 import type { WorkRun } from "#shared/work-time";
 import { ranModel, ranModelText } from "#shared/ran-model";
 import type { WorkOrder, WorkTask } from "#shared/types";
+import type { Stage } from "./stepper";
 import type { WorkOrderView } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
@@ -377,4 +378,44 @@ export function readBuilderResult(result: string | null): ReadBuilderResult | nu
   fieldsOf(data, "", 0, fields);
 
   return { kind: "fields", fields };
+}
+
+// How long one task has run, counting a running one to now.
+function taskRunSeconds(task: WorkTask, ended: Readonly<Record<string, number>>, now: number): number | null {
+  const run = taskRun(task, ended);
+
+  return run === null ? null : runSeconds([run], now);
+}
+
+/** The key a task stands under as a sub-stage of its step. */
+export function taskStageKey(step: WorkStep, task: WorkTask): string {
+  return `${step.key}::${task.id}`;
+}
+
+/** A work order's steps as the stepper stands them (docs/web.md, 「The progress stepper」): a stage a step, its dot,
+ * its name and title, its co-worker roles, the models it ran on and how long it ran, counting a running one to now;
+ * a step of several tasks holds them as its sub-stages. */
+export function workStages(t: Translate, steps: readonly WorkStep[], ended: Readonly<Record<string, number>>, now: number): Stage[] {
+  return steps.map((step) => ({
+    key: step.key,
+    state: step.state,
+    stateLabel: t(taskLabel[step.state]),
+    title: [step.name, step.title.trim()].filter((part) => part !== "").join(" · ") || stepRoles(step),
+    owner: stepRoles(step),
+    model: stepModelLine(t, step),
+    seconds: stepSeconds(step, now),
+    subs:
+      step.tasks.length > 1
+        ? step.tasks.map((task, index) => ({
+            key: taskStageKey(step, task),
+            state: task.state,
+            stateLabel: t(taskLabel[task.state]),
+            title: taskTitle(task, `${index + 1}`),
+            owner: task.role,
+            model: taskModelLine(t, task),
+            seconds: taskRunSeconds(task, ended, now),
+            subs: []
+          }))
+        : []
+  }));
 }

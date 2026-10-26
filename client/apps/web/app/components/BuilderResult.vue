@@ -20,12 +20,12 @@
       </div>
     </dl>
 
-    <UCollapsible>
-      <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-data-object" trailing-icon="i-material-symbols-keyboard-arrow-down" :label="$t('common.label.original')" />
-      <template #content>
-        <pre class="mt-2 overflow-x-auto rounded-md bg-elevated p-3 font-mono text-sm whitespace-pre">{{ pretty }}</pre>
-      </template>
-    </UCollapsible>
+    <!-- The text as the builder wrote it stands whole under its name, never folded (docs/web.md, the co-work step
+         dialog). -->
+    <section class="flex min-w-0 flex-col gap-1">
+      <p class="text-sm font-medium text-muted">{{ $t("common.label.original") }}</p>
+      <pre class="overflow-x-auto rounded-md bg-elevated p-3 font-mono text-sm whitespace-pre">{{ pretty }}</pre>
+    </section>
   </div>
 </template>
 

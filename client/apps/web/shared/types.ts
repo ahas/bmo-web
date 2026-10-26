@@ -342,12 +342,16 @@ export interface MessageBriefing {
 // round wrote down, which is carried whole.
 export interface TurnActionsRef {
   agent: string;
-  run: string;
+  // Every run of the round by the name its log lines are kept under: its own turn, then each question its draft
+  // process asked the same session.
+  runs: string[];
   documents: number;
   // The reference documents the turn went on holding from earlier in its session, which went as a
   // one-line mark: listed with the rest, but not counted among what it was handed.
   held: number;
   tools: number;
+  // The calls among them that read from the brain.
+  brain: number;
   records: TurnRecord[];
 }
 

@@ -15,3 +15,16 @@ export function mcpCallOf(name: string | null | undefined): LoggedMcpCall | null
 
   return found === null ? null : { server: found[1]!, tool: found[2]! };
 }
+
+// The brain's tools start their own name so: `brain_list`, `brain_similar`, `brain_recall` and the rest (docs/web.md,
+// the room screen's 브레인 chip). A road whose session reaches the tools through the shell runs them as
+// `bmo use <server>/<tool>`, so such a command names the tool too.
+const BRAIN_TOOL = /^brain_/;
+const SHELL_TOOL_USE = /\bbmo\s+use\s+(?:[\w.-]+\/)?(brain_[\w-]+)/;
+
+/** Whether a logged call, by the name its road wrote it under and the arguments it was sent with, used the brain. */
+export function isBrainCall(name: string | null | undefined, text = ""): boolean {
+  const tool = mcpCallOf(name)?.tool ?? name ?? "";
+
+  return BRAIN_TOOL.test(tool) || SHELL_TOOL_USE.test(text);
+}

@@ -6,14 +6,25 @@
   <component :is="narrow ? UDrawer : UModal" v-bind="shell" :open="props.open" @update:open="emit('update:open', $event)">
     <template #content>
       <div class="flex h-full min-h-0 flex-col">
-        <!-- The head is the two lines the list writes for this same step, so the item pressed and
-             the dialog it opened read as the one thing. The model line is names with their marks at
-             the end, so it slides as the row's does. -->
+        <!-- The head names the task the dialog stands at, as the stepper's own line does, with its models under it,
+             and at its right end the translation switch, since a co-worker writes in English. -->
         <div class="flex items-center gap-2 border-b border-default px-4 py-3">
           <UIcon :name="icon" class="size-5 shrink-0 text-muted" />
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-medium text-highlighted">{{ heading }}</p>
             <MarqueeLine class="text-sm text-muted">{{ modelLine }}</MarqueeLine>
+          </div>
+
+          <!-- Each part lands in the text as the translator writes it, so the text itself is how far the translation
+               has come. The switch is never the thing that spins: a reader who turned the translation on must be able
+               to turn it off again while it runs. -->
+          <div v-if="translatable" class="flex shrink-0 items-center gap-2">
+            <UTooltip v-if="translating" :text="$t('todo.status.translating')">
+              <span role="status" :aria-label="$t('todo.status.translating')" class="flex size-5 items-center justify-center">
+                <UIcon name="i-material-symbols-progress-activity" class="size-4 animate-spin text-muted motion-reduce:animate-none" />
+              </span>
+            </UTooltip>
+            <USwitch size="sm" :model-value="translated" :label="translationLabel" @update:model-value="setTranslated" />
           </div>
 
           <UTooltip :text="$t('common.action.close')">
@@ -28,110 +39,64 @@
           </UTooltip>
         </div>
 
-        <!-- A step of several tasks has a tab to each, named by the task's short title with its
-             state on the left; the task in the open tab is the one everything below is about. -->
-        <UTabs
-          v-if="props.step !== null && props.step.tasks.length > 1"
-          v-model="taskKey"
-          :items="taskTabs"
-          :content="false"
-          color="neutral"
-          variant="link"
-          size="sm"
-          :class="['h-10 shrink-0 px-4', TAB_ROW_LINE]"
-          :ui="TAB_ROW_UI"
-          :aria-label="$t('todo.aria.task_choose')"
-        />
-
-        <!-- The instruction and what came of it are read one at a time. Standing them in one
-             flow put a result of any length below an instruction of any length, so reading what
-             a branch found meant scrolling past everything it had been told. The tabs stand
-             outside the scroll, so the other one is always a press away. -->
-        <div v-if="task" :class="['flex h-10 shrink-0 items-center gap-2 px-4', TAB_ROW_LINE]">
-          <UTabs
-            v-model="tab"
-            :items="TABS"
-            :content="false"
-            color="neutral"
-            variant="link"
-            size="sm"
-            class="h-full min-w-0"
-            :ui="TAB_ROW_UI"
-            :aria-label="$t('todo.aria.task_view_choose')"
-          />
-
-          <!-- A co-worker writes in English, so what stands here is read in either language. Each
-               part lands in the text as the translator writes it, so the text itself is how far the
-               translation has come and the mark beside the switch carries no count. The switch is
-               never the thing that spins: a switch drawn as loading cannot be pressed, and a reader
-               who turned the translation on must be able to turn it off again while it runs. -->
-          <div v-if="translatable" class="ms-auto flex shrink-0 items-center gap-2">
-            <UTooltip v-if="translation.translating.value" :text="$t('todo.status.translating')">
-              <span role="status" :aria-label="$t('todo.status.translating')" class="flex size-5 items-center justify-center">
-                <UIcon name="i-material-symbols-progress-activity" class="size-4 animate-spin text-muted motion-reduce:animate-none" />
-              </span>
-            </UTooltip>
-            <USwitch size="sm" :model-value="translated" :label="translationLabel" @update:model-value="setTranslated" />
-          </div>
-        </div>
-
-        <!-- What went wrong with the translation, where something did; that it is still going stands
-             on the mark beside the switch. A translator that could not render some parts is a
-             warning the reader may act on, and a bot that cannot be reached at all is an error. -->
+        <!-- What went wrong with the translation, where something did. -->
         <div
           v-if="translated && troubleLine !== ''"
-          :role="translation.failure.value === '' ? 'status' : 'alert'"
+          :role="failure === '' ? 'status' : 'alert'"
           class="flex shrink-0 flex-wrap items-center gap-2 border-b border-default px-4 py-2 text-sm"
         >
-          <span :class="translation.failure.value === '' ? 'text-warning' : 'text-error'">{{ troubleLine }}</span>
-          <UButton class="ms-auto" size="sm" color="neutral" variant="subtle" :label="$t('todo.action.retry_translation')" :loading="translation.asking.value" @click="translation.retry()" />
+          <span :class="failure === '' ? 'text-warning' : 'text-error'">{{ troubleLine }}</span>
+          <UButton class="ms-auto" size="sm" color="neutral" variant="subtle" :label="$t('todo.action.retry_translation')" :loading="asked" @click="retryTranslation" />
         </div>
 
-        <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
-          <template v-if="task">
-            <div v-show="tab === 'instruction'">
-              <p class="text-sm text-muted">{{ taskHeading($t, task, props.step?.title || props.step?.name || "") }}</p>
-              <MarkdownText :text="shownInstruction" class="mt-2 text-sm" />
-            </div>
+        <!-- The work view of the task: its work order, what its session is doing, what it spent and called, its log and
+             what it left, one under the other (docs/web.md, 「The work view」). -->
+        <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <WorkView
+            v-if="task && props.agent !== null"
+            :key="task.id"
+            :agent="props.agent"
+            :place="task.unit === null ? null : { run: task.unit }"
+            :only="task.unit"
+            :run="task.unit"
+            :stepper="false"
+          >
+            <template #order>
+              <MarkdownText :text="shownInstruction" class="text-sm" />
+            </template>
 
-            <div v-show="tab === 'result'">
-              <p v-if="!hasDetail" class="text-sm text-muted">{{ $t("todo.status.nothing_left") }}</p>
-
+            <template v-if="hasDetail" #result>
               <p v-if="task.jobId" class="text-sm text-muted tabular-nums">
                 {{ took === null ? $t("todo.label.run_id", { id: task.jobId }) : $t("todo.label.run_id_took", { id: task.jobId, time: spanClock($t, took) }) }}
               </p>
-
               <template v-if="task.result">
-                <p class="mt-3 text-sm font-medium text-muted">{{ $t("todo.label.result") }}</p>
-                <BuilderResult v-if="builderRead !== null" :read="builderRead" :text="task.result" class="mt-1" />
-                <MarkdownText v-else :text="shownResult" class="mt-1 text-sm" />
+                <BuilderResult v-if="builderRead !== null" :read="builderRead" :text="task.result" />
+                <MarkdownText v-else :text="shownResult" class="text-sm" />
               </template>
-
               <template v-if="task.error">
-                <p class="mt-3 text-sm font-medium text-muted">{{ $t("todo.label.task_failed") }}</p>
-                <p class="mt-1 text-sm whitespace-pre-wrap break-words text-error">{{ task.error }}</p>
+                <p class="text-sm font-medium text-muted">{{ $t("todo.label.task_failed") }}</p>
+                <p class="text-sm whitespace-pre-wrap break-words text-error">{{ task.error }}</p>
               </template>
-
               <template v-if="task.skip">
-                <p class="mt-3 text-sm font-medium text-muted">{{ $t("todo.label.skipped_at", { time: formatStamp(Math.floor(task.skip.at / 1000)) }) }}</p>
-                <p class="mt-1 text-sm whitespace-pre-wrap break-words">{{ task.skip.why }}</p>
+                <p class="text-sm font-medium text-muted">{{ $t("todo.label.skipped_at", { time: formatStamp(Math.floor(task.skip.at / 1000)) }) }}</p>
+                <p class="text-sm whitespace-pre-wrap break-words">{{ task.skip.why }}</p>
               </template>
-            </div>
+            </template>
+          </WorkView>
 
-            <!-- What a verb asks for before it is sent stands at the end of the body. -->
-            <div v-if="asking !== null || refusal" class="mt-4 flex flex-col gap-2">
-              <template v-if="asking === 'edit' || asking === 'rerun'">
-                <UFormField :label="asking === 'edit' ? $t('todo.label.edited_instruction') : $t('todo.label.rerun_instruction')" name="taskInstruction">
-                  <GrowingTextarea v-model="instruction" :aria-label="$t('todo.aria.work_instruction')" :rows="4" />
-                </UFormField>
-                <UFormField :label="$t('todo.label.task_tier')" name="taskTier"><USelect :content="{ align: 'start' }" v-model="tierChoice" :items="tierItems" class="min-h-11 w-full" :aria-label="$t('todo.label.task_tier')" /></UFormField>
-              </template>
-              <UFormField v-if="asking === 'skip'" :label="$t('todo.label.skip_reason')" name="skipWhy">
-                <GrowingTextarea v-model="why" :aria-label="$t('todo.label.skip_reason')" :rows="2" />
+          <!-- What a verb asks for before it is sent stands at the end of the body. -->
+          <div v-if="task && (asking !== null || refusal)" class="flex flex-col gap-2 px-4 py-3">
+            <template v-if="asking === 'edit' || asking === 'rerun'">
+              <UFormField :label="asking === 'edit' ? $t('todo.label.edited_instruction') : $t('todo.label.rerun_instruction')" name="taskInstruction">
+                <GrowingTextarea v-model="instruction" :aria-label="$t('todo.aria.work_instruction')" :rows="4" />
               </UFormField>
-              <p v-if="refusal" class="text-sm whitespace-pre-wrap break-words text-error">{{ refusal }}</p>
-            </div>
-          </template>
+              <UFormField :label="$t('todo.label.task_tier')" name="taskTier"><USelect :content="{ align: 'start' }" v-model="tierChoice" :items="tierItems" class="min-h-11 w-full" :aria-label="$t('todo.label.task_tier')" /></UFormField>
+            </template>
+            <UFormField v-if="asking === 'skip'" :label="$t('todo.label.skip_reason')" name="skipWhy">
+              <GrowingTextarea v-model="why" :aria-label="$t('todo.label.skip_reason')" :rows="2" />
+            </UFormField>
+            <p v-if="refusal" class="text-sm whitespace-pre-wrap break-words text-error">{{ refusal }}</p>
+          </div>
         </div>
 
         <!-- The step verbs this task's state takes, in the dialog's foot at its right end. They act
@@ -166,10 +131,9 @@ import { UDrawer, UModal } from "#components";
 import { languageName } from "~/domain/work-translation";
 import { countText } from "~/domain/numbers";
 import { useNarrow } from "bmo-ui/app/domain/screen";
-import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { formatStamp, spanClock } from "bmo-ui/app/domain/time";
 import { useWorkTextTranslation } from "~/domain/work-translation";
-import { readBuilderResult, stepHeading, stepModelLine, taskHeading, taskSeconds, taskStateIcon, taskTitle, taskVerbs } from "~/domain/workorder";
+import { readBuilderResult, stepHeading, stepModelLine, taskHeading, taskModelLine, taskSeconds, taskStateIcon, taskVerbs } from "~/domain/workorder";
 
 import type { TaskVerb, WorkStep } from "~/domain/workorder";
 import type { WorkOrder } from "#shared/types";
@@ -187,10 +151,12 @@ interface Props {
   // The item the order belongs to and where the order stands, which is what decides the verbs.
   todoId: number;
   orderStatus: WorkOrder["status"] | null;
+  // The worker whose order this is, whose log the task's run is read from.
+  agent?: string | null;
 }
 
 const { t } = useI18n();
-const props = withDefaults(defineProps<Props>(), { step: null, taskId: null, ended: () => ({}), orderStatus: null });
+const props = withDefaults(defineProps<Props>(), { step: null, taskId: null, ended: () => ({}), orderStatus: null, agent: null });
 
 const emit = defineEmits<{ "update:open": [open: boolean]; changed: [order: WorkOrderView] }>();
 
@@ -198,19 +164,10 @@ const emit = defineEmits<{ "update:open": [open: boolean]; changed: [order: Work
 // read again, looked for by its id.
 const taskKey = ref("");
 const task = computed(() => props.step?.tasks.find((one) => one.id === taskKey.value) ?? props.step?.tasks[0] ?? null);
-const taskTabs = computed(() =>
-  (props.step?.tasks ?? []).map((one, index) => ({
-    label: taskTitle(one, `${index + 1}`),
-    value: one.id,
-    icon: taskStateIcon(one.state)
-  }))
-);
 const took = computed(() => (task.value === null ? null : taskSeconds(task.value, props.ended)));
 
 const narrow = useNarrow();
 
-const TABS = [{ label: t("todo.label.instruction_text"), value: "instruction" }, { label: t("todo.label.result"), value: "result" }];
-const tab = ref("instruction");
 
 // Whether a co-worker's text is read translated. It belongs to the screen rather than to one task,
 // so the next step opened stands as this one was left, and the browser remembers it for the next
@@ -236,32 +193,41 @@ onMounted(() => {
   }
 });
 
-// The text the open tab shows, which is the one being translated. An empty one has nothing to put
-// into another language, and the switch is not drawn for it.
-const textOfTab = computed(() => (tab.value === "result" ? (task.value?.result ?? "") : (task.value?.instruction ?? "")));
-const translation = useWorkTextTranslation(
+// The task's work order and its result are read in either language, each translated on its own.
+const instructionTranslation = useWorkTextTranslation(
   t,
-  () =>
-    task.value === null || textOfTab.value.trim() === ""
-      ? null
-      : { todoId: props.todoId, task: task.value.id, field: tab.value === "result" ? "result" : "instruction", text: textOfTab.value },
+  () => (task.value === null || task.value.instruction.trim() === "" ? null : { todoId: props.todoId, task: task.value.id, field: "instruction", text: task.value.instruction }),
   () => translated.value
 );
-const translatable = computed(() => textOfTab.value.trim() !== "");
-const translationLabel = computed(() =>
-  narrow.value || translation.target.value === null ? t("todo.label.translation") : t("documents.label.translation_of", { language: languageName(t, translation.target.value) })
+const resultTranslation = useWorkTextTranslation(
+  t,
+  () => (task.value === null || (task.value.result ?? "").trim() === "" ? null : { todoId: props.todoId, task: task.value.id, field: "result", text: task.value.result ?? "" }),
+  () => translated.value
 );
-const shownInstruction = computed(() => (tab.value === "instruction" ? translation.shown.value : (task.value?.instruction ?? "")));
-const shownResult = computed(() => (tab.value === "result" ? translation.shown.value : (task.value?.result ?? "")));
-// What went wrong with the translation, in one line: what the bot said of it, or how many parts the
-// translator could not render. Either is asked for again by the same press.
+const translations = [instructionTranslation, resultTranslation];
+const translatable = computed(() => (task.value?.instruction ?? "").trim() !== "" || (task.value?.result ?? "").trim() !== "");
+const translating = computed(() => translations.some((one) => one.translating.value));
+const asked = computed(() => translations.some((one) => one.asking.value));
+const failure = computed(() => translations.map((one) => one.failure.value).find((one) => one !== "") ?? "");
+const target = computed(() => instructionTranslation.target.value ?? resultTranslation.target.value);
+const translationLabel = computed(() =>
+  narrow.value || target.value === null ? t("todo.label.translation") : t("documents.label.translation_of", { language: languageName(t, target.value) })
+);
+const shownInstruction = computed(() => instructionTranslation.shown.value || (task.value?.instruction ?? ""));
+const shownResult = computed(() => resultTranslation.shown.value || (task.value?.result ?? ""));
+// What went wrong with the translation, in one line: what the bot said of it, or how many parts the translator could
+// not render. Either is asked for again by the same press.
 const troubleLine = computed(() => {
-  if (translation.failure.value !== "") {
-    return translation.failure.value;
-  }
+  if (failure.value !== "") return failure.value;
 
-  return translation.failed.value > 0 ? t("documents.status.translation_failed_parts", { n: countText(translation.failed.value) }) : "";
+  const failed = translations.reduce((sum, one) => sum + one.failed.value, 0);
+
+  return failed > 0 ? t("documents.status.translation_failed_parts", { n: countText(failed) }) : "";
 });
+
+function retryTranslation(): void {
+  for (const one of translations) one.retry();
+}
 const hasDetail = computed(() => task.value !== null && (task.value.jobId !== null || task.value.result !== null || task.value.error !== null || task.value.skip !== undefined));
 
 const verbs = computed(() => (task.value === null || props.orderStatus === null ? [] : taskVerbs(t, task.value, props.orderStatus)));
@@ -290,7 +256,7 @@ watch(() => props.open, (open) => { if (open) startTask(); });
 // Another task opened in the same dialog starts with nothing half-asked and on its instruction,
 // which is what the reader pressed the item to see.
 watch(() => task.value?.id, () => {
-  asking.value = null; refusal.value = ""; why.value = ""; tab.value = "instruction";
+  asking.value = null; refusal.value = ""; why.value = "";
 });
 
 function choose(verb: TaskVerb) {
@@ -325,9 +291,9 @@ async function send() {
   }
 }
 
-const heading = computed(() => (props.step === null ? "" : stepHeading(t, props.step)));
-const modelLine = computed(() => (props.step === null ? "" : stepModelLine(t, props.step, true)));
-const icon = computed(() => taskStateIcon(props.step?.state));
+const heading = computed(() => (task.value === null ? (props.step === null ? "" : stepHeading(t, props.step)) : taskHeading(t, task.value, props.step?.title || props.step?.name || "")));
+const modelLine = computed(() => (task.value === null ? (props.step === null ? "" : stepModelLine(t, props.step, true)) : taskModelLine(t, task.value, true)));
+const icon = computed(() => taskStateIcon(task.value?.state ?? props.step?.state));
 
 // A sheet fills the screen and is dragged down to dismiss; a modal stands in the middle, wide
 // enough for an instruction to read as paragraphs and tall enough that a long result scrolls

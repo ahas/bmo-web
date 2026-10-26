@@ -33,7 +33,7 @@ describe("opening the row", () => {
 
 describe("the chips of the row", () => {
   test("each is a mark with a figure or nothing, and none carries a word of its own", () => {
-    expect(row).toContain(':icon="CHIP_ICONS.documents" :label="$t(CHIP_LABELS.documents)"');
+    expect(row).toContain(':icon="CHIP_ICONS.brain" :label="$t(CHIP_LABELS.brain)"');
     expect(row).toContain(':icon="CHIP_ICONS.tools" :label="$t(CHIP_LABELS.tools)"');
     expect(row).toContain(':icon="CHIP_ICONS.records" :label="$t(CHIP_LABELS.records)"');
     expect(trail).toContain(':icon="CHIP_ICONS.verdicts"');
@@ -56,7 +56,7 @@ describe("the chips of the row", () => {
     // turn wrote down arrives with the answer. A chip that arrives late standing first would push
     // every chip beside it sideways the moment it landed. The briefing that speaks the answer comes
     // after the answer has gone out, so it stands last.
-    const order = ["<ContextChip", "CHIP_ICONS.documents", "<TokenChip", "CHIP_ICONS.tools", "CHIP_ICONS.records", "CHIP_ICONS.drafts", ':icon="briefingLook.icon"'].map((one) =>
+    const order = ["<ContextChip", "CHIP_ICONS.brain", "<TokenChip", "CHIP_ICONS.tools", "CHIP_ICONS.records", "CHIP_ICONS.drafts", ':icon="briefingLook.icon"'].map((one) =>
       lead.indexOf(one)
     );
 
@@ -114,7 +114,7 @@ describe("the chips of the row", () => {
     expect(row).toContain('<ContextChip v-if="context !== null" :ratio="context" />');
     expect(script).toContain("props.live === null ? (props.spend?.context ?? null) : null");
     // A turn whose every document was already held still stands its chip, at nought, to open the list.
-    expect(row).toContain('<LineChip v-if="counts.documents + counts.held > 0"');
+    expect(row).toContain('<LineChip v-if="counts.documents + counts.held + counts.brain > 0"');
     expect(row).toContain('<LineChip v-if="counts.tools > 0"');
     expect(row).toContain('<LineChip v-if="records.length > 0"');
     expect(row).toContain('<LineChip v-if="drafted"');
@@ -151,7 +151,7 @@ describe("what the turn read and called", () => {
     expect(script).toContain('const ACTION_KINDS: readonly ActionKind[] = ["context", "tool"];');
     expect(row).toContain("@toggle=\"openActions('context')\"");
     expect(row).toContain("@toggle=\"openActions('tool')\"");
-    expect(script).toContain("actions.value.filter((action) => action.kind === kind)");
+    expect(script).toContain("return listOf(kind, actions.value);");
   });
 
   test("a running turn counts each sort whole, what fell off the front of its block included", () => {
@@ -163,11 +163,12 @@ describe("what the turn read and called", () => {
 
   test("a document the session already held is listed but not counted as read", () => {
     expect(script).toContain("held: done.value?.held ?? 0");
-    expect(script).toContain('kind === "context" ? counts.value.documents + counts.value.held');
+    expect(script).toContain('kind === "context" ? counts.value.documents + counts.value.held + counts.value.brain');
   });
 
   test("a finished turn reads its lines out of the log once, when a list is first opened", () => {
-    expect(script).toContain("turnActions(await readRunLines(at.agent, at.run))");
+    expect(script).toContain("at.runs.map((run) => readRunLines(at.agent, run))");
+    expect(script).toContain("actions.value = turnActions(lines.flat());");
     expect(script).toContain("if (!next || at === null || actions.value.length > 0 || loadingActions.value)");
     expect(template).toContain('v-if="restOf(kind) > 0"');
   });
@@ -258,12 +259,15 @@ describe("the draft chip", () => {
     expect(template).toContain('<DraftRows v-if="draftsOpen && drafted" :summary="draftLines" :rows="draftRows" :loading="loadingDrafts" :failure="draftsFailure" />');
   });
 
-  test("spreads the summary, then each row's number, question, kind, outcome, length, change and time, and a question's answer folded", () => {
+  test("spreads the summary, then each row's number, question, kind, outcome, length, change and time, and a question's answer whole", () => {
     expect(rowsTemplate.indexOf("data-draft-summary")).toBeLessThan(rowsTemplate.indexOf("data-draft-rows"));
 
     for (const fact of ["countText(row.number)", "row.question", "draftKindText($t, row.kind)", "draftOutcomeText($t, row.outcome, row.kind)", "room.label.draft_chars", "room.label.draft_changed", "countText(row.ms)"]) {
       expect({ fact, stood: rowsTemplate.includes(fact) }).toEqual({ fact, stood: true });
     }
-    expect(rowsTemplate).toMatch(/<UChatTool v-if="draftAnswerShown\(row\)" :text="\$t\('room\.label\.draft_answer'\)" chevron="leading">\s*<pre[^>]*whitespace-pre-wrap wrap-anywhere[^>]*>\{\{ row\.answer \}\}<\/pre>/);
+    expect(rowsTemplate).toMatch(/<div v-if="draftAnswerShown\(row\)" data-draft-answer[^>]*>\s*<p[^>]*>\{\{ \$t\("room\.label\.draft_answer"\) \}\}<\/p>\s*<pre[^>]*whitespace-pre-wrap wrap-anywhere[^>]*>\{\{ row\.answer \}\}<\/pre>/);
+    // No answer and no row's text is folded.
+    expect(rowsTemplate).not.toContain("UChatTool");
+    expect(rowsTemplate).not.toContain("UCollapsible");
   });
 });

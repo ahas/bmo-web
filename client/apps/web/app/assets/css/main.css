@@ -125,6 +125,23 @@
   --chat-page: var(--ui-bg);
 }
 
+/* The console's ANSI palette (docs/web.md, 「A tool call」): the terminal colours a tool call's prompt is drawn in,
+   oh-my-zsh's pure theme read onto them, each at the step that reads on the screen's own surface in its mode. */
+:root,
+.light {
+  --ansi-blue: var(--color-blue-700);
+  --ansi-red: var(--color-red-700);
+  --ansi-yellow: var(--color-amber-700);
+  --ansi-gray: var(--color-neutral-600);
+}
+
+.dark {
+  --ansi-blue: var(--color-blue-400);
+  --ansi-red: var(--color-red-400);
+  --ansi-yellow: var(--color-yellow-400);
+  --ansi-gray: var(--color-neutral-400);
+}
+
 :root,
 .light {
   --chat-name-1: var(--color-red-700);

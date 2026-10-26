@@ -306,6 +306,15 @@ for it, and no file or table of that unit is read meanwhile.
   an agent whose row names no kind standing as a conversational one. A worker is one row however the agency
   lists it: the agents' answer and the workers' both name it, and the console lays the worker's own fields over
   its agent's row rather than listing it twice.
+- **What a chat turn was handed, once it has ended.** The receiver composes the reference documents a turn goes out
+  with, each in full or as an already-loaded mark, and tells them in its live picture of the running turn only: the
+  turn it sends the agency (`POST /sessions/{sessionId}/turns`) carries no list of them, so the agency's log of the
+  run holds no `context` line, and no receiver route serves the list for a finished round. A finished answer's
+  브레인 chip therefore holds its brain calls alone on such a road, until one of the two serves the list.
+- **The id that ties a call to its result.** The agency's document names it `ref` on a log line's fields, and the
+  lines it serves carry it as `reference`; the console reads either, `ref` first.
+- **A checkout's branch and whether it is dirty.** No unit serves them, so a tool call's prompt line names the
+  worker, the checkout, the time and the path, and stands no branch and no dirty mark.
 - **A chat provider's name for a reader.** The receiver calls each provider by a label of its own, in English for
   the room's record, and serves none in a reader's language, so a room's chat providers dialog shows the label as
   the receiver gives it.

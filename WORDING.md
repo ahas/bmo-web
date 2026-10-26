@@ -66,6 +66,9 @@
 - rollback → 롤백. Never 되돌림.
 - template → 템플릿; coverage → 커버리지; cap → 상한; cooldown → 쿨다운. Never 틀, 덮음, 천장, 휴식.
 - output tokens → 출력; context window → 컨텍스트. Never 답, 창.
+- brain (what a turn read from the agent's memory store) → 브레인. Never 기억 저장소, 두뇌, 읽은 문서.
+- an item's request in its own words → 요청 원문; the talk with the chat agent about an item → 의논. Never 대화 for
+  either, which is a room's conversation.
 - collapse, expand a panel → 닫기, 열기; collapse, expand in place → 축소, 확장. Never 접기, 펴기, 펼치기.
 - reach a limit → 도달; a match → 일치, 해당; tied to → 연결된. Never 걸리다, 걸린 곳.
 - reach a service → 연결되다: 봇에 연결되지 않아. Never 닿다.

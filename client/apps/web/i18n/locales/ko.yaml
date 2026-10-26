@@ -498,7 +498,7 @@ room:
     chip_briefing_failed: 보이스브리핑 실패
     chip_briefing_making: 보이스브리핑 만드는 중
     chip_context: 컨텍스트
-    chip_documents: 읽은 문서
+    chip_brain: 브레인
     chip_drafts: 드래프트
     chip_records: 기록함
     chip_tokens: 사용 토큰
@@ -1079,8 +1079,6 @@ todo:
     panel_width: TODO 패널 너비 조절
     resolve_reason: 미결 해소 사유
     search: TODO 검색
-    task_choose: 작업 선택
-    task_view_choose: 작업 보기 선택
     work_instruction: 작업 지시
     work_purpose: 작업 목적
   label:
@@ -1104,6 +1102,7 @@ todo:
     deploy_hold_jobs: 기다리는 Job
     deploy_waits: 이 Job이 끝나면 배포가 올라감
     detail_description: 지시와 기록
+    discussion: 의논
     edited_instruction: 수정한 지시
     end_reason: 종료 사유
     field_checkout: 체크아웃
@@ -1134,7 +1133,6 @@ todo:
     held_since_reason: "{since}부터 {kind} · {reason}"
     held_stop: 중지
     held_stopping: 중지 중
-    instruction_text: 지시문
     item_head: "#{id} {title}"
     keep_tier: 현재 등급 / 역할 설정 유지
     manage: 관리
@@ -1175,6 +1173,7 @@ todo:
     queue_turn_resume: 재개할 차례
     queue_turn_why: "{turn}: {why}"
     removed_at: "삭제 {time}"
+    request_text: 요청 원문
     requested_by: 요청한 사람
     requested_room: 요청한 방
     rerun_instruction: 다시 실행할 지시
@@ -1217,7 +1216,6 @@ todo:
     summary_merged: "병합 {n}"
     summary_pending: "결재 대기 {n}"
     summary_queue: "{n}건"
-    talk: 대화
     task_done: 완료
     task_failed: 실패
     task_pending: 대기
@@ -1340,7 +1338,6 @@ todo:
     no_notes: 추가 지시 없음
     no_talk: 대화 없음
     notes_loading: 추가 지시 불러오는 중…
-    nothing_left: 남긴 것 없음
     paused_suffix: 일시정지
     running_attempt: "{n}번째 실행 중"
     talk_loading: 대화 불러오는 중…
@@ -1447,7 +1444,6 @@ agents:
     node_checkout_add: 노드 체크아웃 추가
     prefix_document_add: 프리픽스 문서 추가
     older_lines: 이전 줄 더 보기
-    open_item: 항목 보기
     pause_until_job: 다음 Job까지 끄기
     persona_to_file: 파일 내용으로 되돌리기
     piece_add: 조각 추가
@@ -1478,7 +1474,6 @@ agents:
     effort_of: "{name} Effort"
     fold_ratio_of: "{tier} {provider} 압축 기준"
     gate_of: "{name} {gate}"
-    job_line: Job 현황
     keepalive_of: "{name} 캐시 유지"
     label_of: "{name} 이름표"
     limit_of: "{mode} {tier} 한도"
@@ -1650,7 +1645,6 @@ agents:
     context_situation: 상황 규칙
     context_tokens: "컨텍스트 {tokens}"
     credential: 자격 증명
-    cut: 잘림
     cwd_help: 비우면 자동 생성 · git 아니면 협업 없음
     default_with: "기본 ({value})"
     dev_server: 개발서버 명령
@@ -1720,7 +1714,6 @@ agents:
     group_gate: 게이트
     group_runner: 러너
     group_worker: 저장소
-    job_prompt: 프롬프트
     job_prompt_english: 영어본
     job_running: "실행 중 {time}"
     job_took: "{time} 소요"
@@ -1774,7 +1767,6 @@ agents:
     model_retired: "{model} (이전 세대)"
     model_source: 다운로드 주소
     model_unlisted: 목록에 없는 모델
-    no_arguments: 인자 없음
     no_assignment: 배정 없음
     no_cowork_without_git: git 아니면 협업 없음
     no_room: 방 없음
@@ -1822,18 +1814,12 @@ agents:
     reset_at: "{time}에 변경됨"
     restore: 강등 복원
     restore_help: 끄면 강등돼도 세션 유지
-    result: 결과
-    result_lines: "결과 {n}줄"
+    result_more: "{n}줄 더 보기"
+    result_less: 축소
     role_bundles_none: 기능 묶음 없음
     role_key: "역할 · {role}"
     role_none: 롤 없음
     room_sessions: 방 세션
-    run_continued: 위에서 이어진 실행
-    run_done: 완료
-    run_failed: 실패
-    run_running: 진행 중
-    run_steps: 실행 목록
-    run_unended: 끝 줄 없음
     runs: "{n}회"
     sampling: 샘플링
     search_tab: 탭
@@ -2029,6 +2015,12 @@ agents:
     section_reasoning: 생각·Effort
     section_sessions: 세션
     tiers: 모델 등급
+    work_figures: 토큰 · 툴 호출
+    work_log: 로그
+    work_now: 지금
+    work_order: 작업 지시
+    work_result: 결과
+    work_stages: 진행 단계
     worker_add: 워커 추가
     agent_add: 에이전트 추가
 gates:

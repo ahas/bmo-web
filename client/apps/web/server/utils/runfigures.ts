@@ -1,3 +1,5 @@
+import { isBrainCall } from "#shared/mcp-names";
+
 import { agency, agencyCall } from "./agency";
 
 import type { LogLine } from "@agency/client";
@@ -52,67 +54,101 @@ function nameOf(line: LogLine, record: Record<string, unknown> | null): string |
   return typeof named === "string" && named !== "" ? named : null;
 }
 
+// The most runs one round is read as: its own turn and the questions its draft process asked.
+const ROUND_RUNS = 50;
+
+// What a run's ledger row says it spent, where it says anything.
+function usageOf(usage: unknown): Omit<RoundSpend, "measured" | "unmeasured" | "roads" | "context"> | null {
+  if (typeof usage !== "object" || usage === null) return null;
+
+  const counted = usage as Record<string, unknown>;
+  const number = (name: string): number => (typeof counted[name] === "number" ? (counted[name] as number) : 0);
+
+  return {
+    inputTokens: number("inputTokens"),
+    outputTokens: number("outputTokens"),
+    cacheReadTokens: number("cacheReadTokens"),
+    cacheWriteTokens: number("cacheWriteTokens")
+  };
+}
+
 /**
- * What the round's run spent and what it called, read from the agency's log of the run (docs/boundary.md,
- * 「Gaps the console meets」): a pane program's answer line carries the turn's usage, and every line naming a
- * tool — its progress lines and a stream's own tool calls — is one thing the turn called. None where the run
- * left no log the agency still holds.
+ * What the round's runs spent and what they did, read from the agency's ledger and its log of every run of the round
+ * (docs/boundary.md, 「Gaps the console meets」): the round's own turn and each question its draft process asked the
+ * same session. Every `tool` line is one call; a pane program that leaves no such line names its calls on its
+ * progress lines instead. The reference documents are its `context` lines, held or attached. None where the agency
+ * holds no run of the round.
  */
 export async function figuresOf(round: string): Promise<RoundFigures | null> {
-  const page = await agencyCall(agency().GET("/runs", { params: { query: { names: round, limit: 1 } } }));
-  const run = page.items[0];
+  const page = await agencyCall(agency().GET("/runs", { params: { query: { names: round, limit: ROUND_RUNS } } }));
+  const runs = [...page.items].sort((one, other) => one.id - other.id);
+  const first = runs[0];
 
-  if (run === undefined) return null;
+  if (first === undefined) return null;
 
-  const lines = await linesOf(run.id, run.agentName);
-  const tools = new Set<string>();
+  let tools = 0;
+  let brain = 0;
+  let documents = 0;
+  let held = 0;
   let spend: RoundSpend | null = null;
+  const add = (spent: Omit<RoundSpend, "measured" | "unmeasured" | "roads" | "context">): void => {
+    const was = spend;
 
-  for (const line of lines) {
-    const record = recordOf(line);
+    spend = {
+      inputTokens: (was?.inputTokens ?? 0) + spent.inputTokens,
+      outputTokens: (was?.outputTokens ?? 0) + spent.outputTokens,
+      cacheReadTokens: (was?.cacheReadTokens ?? 0) + spent.cacheReadTokens,
+      cacheWriteTokens: (was?.cacheWriteTokens ?? 0) + spent.cacheWriteTokens,
+      measured: (was?.measured ?? 0) + 1,
+      unmeasured: 0,
+      roads: [],
+      context: null
+    };
+  };
 
-    if (line.kind === "progress") {
-      const name = nameOf(line, record);
+  for (const run of runs) {
+    const lines = await linesOf(run.id, run.agentName);
+    const called = lines.filter((line) => line.kind === "tool");
+    // A pane program's progress lines name a call only where the run left no call line of its own.
+    const named = called.length > 0 ? called : lines.filter((line) => line.kind === "progress" && nameOf(line, recordOf(line)) !== null);
+    let answered: ReturnType<typeof usageOf> = null;
 
-      if (name !== null) tools.add(name);
+    for (const line of named) {
+      tools += 1;
 
-      continue;
+      if (isBrainCall(nameOf(line, recordOf(line)), line.text)) brain += 1;
     }
 
-    if (line.kind === "answer" && record !== null && typeof record.usage === "object" && record.usage !== null) {
-      const counted = record.usage as Record<string, unknown>;
-      const number = (name: string): number => (typeof counted[name] === "number" ? (counted[name] as number) : 0);
+    for (const line of lines) {
+      if (line.kind === "context") {
+        const state = typeof line.fields === "object" && line.fields !== null ? (line.fields as Record<string, unknown>).state : null;
 
-      spend = {
-        inputTokens: number("inputTokens"),
-        outputTokens: number("outputTokens"),
-        cacheReadTokens: number("cacheReadTokens"),
-        cacheWriteTokens: number("cacheWriteTokens"),
-        measured: 1,
-        unmeasured: 0,
-        roads: [],
-        context: null
-      };
+        if (state === "held") held += 1;
+        else documents += 1;
+      }
 
-      continue;
+      if (line.kind === "answer") {
+        const record = recordOf(line);
+
+        answered = usageOf(record?.usage) ?? answered;
+      }
     }
 
-    // A stream's own tool call, which a Claude Code turn leaves as a line of its own.
-    if (line.kind === "tool") {
-      const name = nameOf(line, record);
+    // The ledger's row carries the run's usage beside what the published type states.
+    const spent = usageOf(Object.fromEntries(Object.entries(run)).usage) ?? answered;
 
-      if (name !== null) tools.add(name);
-    }
+    if (spent !== null) add(spent);
   }
 
   const actions: TurnActionsRef = {
-    agent: run.agentName,
-    run: round,
-    documents: 0,
-    held: 0,
-    tools: tools.size,
+    agent: first.agentName,
+    runs: runs.map((run) => run.unitName),
+    documents,
+    held,
+    tools,
+    brain,
     records: []
   };
 
-  return { spend, actions: tools.size > 0 || spend !== null ? actions : null };
+  return { spend, actions: tools > 0 || documents + held > 0 || spend !== null ? actions : null };
 }

@@ -1,7 +1,7 @@
 <template>
   <!-- What a round's draft process did, spread from its chip inside the bubble (docs/web.md, the room screen's draft
        chip): the summary first — the gate's rows as it wrote them, or how the process ended — then one line per row
-       of the round log, and under each question's line its answer, folded. Nothing here folds but the answers. -->
+       of the round log, and under each question's line its answer, whole as it was written. Nothing here folds. -->
   <div class="flex w-full min-w-0 flex-col gap-2">
     <ul v-if="props.summary.length > 0" data-draft-summary class="flex flex-col gap-0.5">
       <li v-for="(line, index) in props.summary" :key="index" class="text-sm break-words text-muted">{{ line }}</li>
@@ -30,9 +30,10 @@
           <span v-if="row.kind !== 'end'">{{ countText(row.ms) }}ms</span>
         </div>
 
-        <UChatTool v-if="draftAnswerShown(row)" :text="$t('room.label.draft_answer')" chevron="leading">
+        <div v-if="draftAnswerShown(row)" data-draft-answer class="mt-1 flex min-w-0 flex-col gap-0.5">
+          <p class="text-sm text-dimmed">{{ $t("room.label.draft_answer") }}</p>
           <pre class="font-sans text-sm whitespace-pre-wrap wrap-anywhere text-muted">{{ row.answer }}</pre>
-        </UChatTool>
+        </div>
       </li>
     </ol>
   </div>

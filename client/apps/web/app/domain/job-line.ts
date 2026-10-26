@@ -128,7 +128,7 @@ export function useJobPrompt(
 
 // The job a worker's screen keeps its line for, read again on the poll and whenever a turn ends. A
 // question that failed leaves the line as it stood: it is beside the log, not part of it.
-export function useJobLine(agent: string, run: Readonly<Ref<string | null>>): { job: Ref<JobLine | null>; loaded: Ref<boolean> } {
+export function useJobLine(agent: string, run: Readonly<Ref<string | null>>, everyMs: number = POLL_INTERVAL_MS): { job: Ref<JobLine | null>; loaded: Ref<boolean> } {
   const job = ref<JobLine | null>(null);
   const loaded = ref(false);
 
@@ -150,9 +150,9 @@ export function useJobLine(agent: string, run: Readonly<Ref<string | null>>): { 
     watch(run, () => void read(), { immediate: true });
   }
 
-  usePolling(() => void read(), POLL_INTERVAL_MS);
+  usePolling(() => void read(), everyMs);
   // A worker's turns are the agency's, so its job starting and ending is heard as an agency turn.
-  useLiveRefresh(() => void read(), { on: [...TURN_ENDED, "agency-turn"], everyMs: POLL_INTERVAL_MS });
+  useLiveRefresh(() => void read(), { on: [...TURN_ENDED, "agency-turn"], everyMs });
 
   return { job, loaded };
 }

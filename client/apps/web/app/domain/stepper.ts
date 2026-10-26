@@ -1,9 +1,6 @@
-import type { Ref } from "vue";
-
-// The progress stepper's own vocabulary: the states a step stands in, the mark each wears, and which
-// steps stand open. What a step is — a work order's stage, a run of an agent's log — and the words for
-// its state are the place's; the marks and the folding are the same wherever a stepper stands
-// (docs/web.md, 「The progress stepper」).
+// The progress stepper's own vocabulary: the states a stage stands in and the dot each wears. What a stage is — a work
+// order's step, a step of a worker's plan — and the words for its state are the place's; the dots are the same wherever
+// a stepper stands (docs/web.md, 「The progress stepper」).
 
 export type StepState = "pending" | "running" | "done" | "failed" | "skipped" | "unended";
 
@@ -28,42 +25,19 @@ export function stepLook(state: StepState): StepLook {
   return STEP_LOOKS[state];
 }
 
-// One step as the stepper draws it. The place hands what its head says and whether it stands open
-// when it first appears; the body is the place's own slot.
-export interface StepperStep {
+// One stage as the stepper draws it (docs/web.md, 「The progress stepper」): its dot, its title, its owner, its model
+// and how long it ran, and the sub-stages a stage of several tasks holds. The place hands the words; the dots are the
+// stepper's.
+export interface Stage {
   key: string;
   state: StepState;
-  // The state in the place's own words, said for a reader who cannot see the mark.
+  // The state in the place's own words, said for a reader who cannot see the dot.
   stateLabel: string;
   title: string;
-  // The time at the head's right end; empty where the step has none to say.
-  time: string;
-  // Whether the step stands open the first time it appears. After that only a press changes it.
-  open: boolean;
-}
-
-// Which steps stand open. A step is settled open or folded the first time it is seen, from what its
-// place said of it then, and only a press changes it afterwards: a step that ends while it is read stays
-// open, and a step arriving folds nothing.
-export interface StepFolds {
-  isOpen: (step: Pick<StepperStep, "key" | "open">) => boolean;
-  set: (key: string, open: boolean) => void;
-  // Settles every step not seen before.
-  see: (steps: readonly Pick<StepperStep, "key" | "open">[]) => void;
-}
-
-export function stepFolds(held: Ref<Record<string, boolean>>): StepFolds {
-  return {
-    isOpen: (step) => held.value[step.key] ?? step.open,
-    set: (key, open) => {
-      held.value = { ...held.value, [key]: open };
-    },
-    see: (steps) => {
-      const unseen = steps.filter((step) => !(step.key in held.value));
-
-      if (unseen.length > 0) {
-        held.value = { ...held.value, ...Object.fromEntries(unseen.map((step) => [step.key, step.open])) };
-      }
-    }
-  };
+  // The co-worker role, or the worker for a plan's step; empty where the place has none to say.
+  owner: string;
+  model: string;
+  // How long it ran, in seconds, counting a running stage to now; null for one not begun or one with no time.
+  seconds: number | null;
+  subs: Stage[];
 }

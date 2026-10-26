@@ -1,7 +1,7 @@
 <template>
   <!-- The changed lines as the terminal draws them: the number a line had, the number it has, its
        mark and its text. A long line wraps inside the diff, so the log never scrolls sideways. -->
-  <div class="flex flex-col overflow-hidden rounded-md border border-default py-1 font-mono text-sm">
+  <div class="flex flex-col font-mono text-sm" :class="props.bare ? '' : 'overflow-hidden rounded-md border border-default py-1'">
     <template v-for="(row, index) in props.view.rows" :key="index">
       <div v-if="row.kind === 'gap'" class="px-2 text-dimmed" :aria-label="$t('agents.label.diff_omitted')">⋯</div>
       <div v-else class="flex gap-2 px-2" :class="tone(row.mark)">
@@ -19,9 +19,11 @@ import type { DiffMark, DiffView } from "~/domain/patch";
 
 interface Props {
   view: DiffView;
+  // Drawn inside a call's own block, which is the box: no border of its own.
+  bare?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { bare: false });
 
 // Both number columns are as wide as the largest number either holds, so the marks stand in one
 // column down the whole diff.

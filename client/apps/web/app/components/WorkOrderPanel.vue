@@ -111,57 +111,16 @@
       <p v-if="span !== null" class="mt-1 text-sm text-muted tabular-nums">
         {{ $t("todo.label.span_start", { time: formatStamp(span.start) }) }}<template v-if="span.end !== null"> · {{ $t("todo.label.span_end", { time: formatStamp(span.end) }) }}</template><template v-if="span.seconds !== null"> · {{ $t("todo.label.span_total", { time: spanClock($t, span.seconds) }) }}</template>
       </p>
-      <!-- The procedure on the console's one stepper, a step each in the order the steps ran: a stage of
-           several branches is one step. The head names the step — its name and roles keep their
-           width, its title takes what is left and is cut there, the console's cut-line tooltip showing
-           it whole — and stands its time at the right end; under it the models slide where they do not
-           fit, with how far a stage has come at the end. The body is the step's tasks, a line each, and
-           pressing one opens the step in the dialog at that task. -->
-      <ProgressStepper class="mt-2" :steps="stepperSteps" :label="$t('todo.title.coworkers')">
-        <template #title="{ step }">
-          <span v-if="step.work.name !== ''" class="shrink-0 font-medium tabular-nums" :class="{ 'text-muted': step.state === 'skipped' }">{{ step.work.name }}</span>
-          <span class="shrink-0 font-medium" :class="{ 'text-muted': step.state === 'skipped' }">{{ stepRoles(step.work) }}</span>
-          <p v-if="step.work.title.trim() !== ''" class="min-w-0 flex-1 truncate" :class="{ 'text-muted': step.state === 'skipped' }">{{ step.work.title.trim() }}</p>
-        </template>
-        <template #time="{ step }">
-          <RollingNumber v-if="stepSeconds(step.work, props.now) !== null" :value="stepSeconds(step.work, props.now)!" :text="spanClock($t, stepSeconds(step.work, props.now)!)" />
-        </template>
-        <template #detail="{ step }">
-          <MarqueeLine class="flex-1">{{ stepModelLine($t, step.work) }}</MarqueeLine>
-          <span v-if="stepPlace(step.work)" class="shrink-0 tabular-nums">{{ stepPlace(step.work) }}</span>
-        </template>
-        <template #body="{ step }">
-          <ul class="flex flex-col gap-1" :aria-label="stepHeading($t, step.work)">
-            <li v-for="(task, index) in step.work.tasks" :key="task.id">
-              <button
-                type="button"
-                class="flex w-full min-w-0 cursor-pointer flex-col gap-1 rounded bg-elevated/60 p-2 text-left text-sm transition-colors hover:bg-elevated active:bg-accented"
-                :aria-label="taskHeading($t, task, step.work.title || step.work.name)"
-                @click="open(step.work, task.id)"
-              >
-                <span class="flex w-full min-w-0 items-center gap-2">
-                  <UIcon
-                    :name="stepLook(task.state).icon"
-                    class="size-4 shrink-0"
-                    :class="[stepLook(task.state).tone, stepLook(task.state).spins ? 'animate-spin motion-reduce:animate-none' : '']"
-                    :aria-label="$t(taskLabel[task.state])"
-                  />
-                  <span class="shrink-0 font-medium" :class="{ 'text-muted': task.state === 'skipped' }">{{ task.role }}</span>
-                  <p class="min-w-0 flex-1 truncate" :class="{ 'text-muted': task.state === 'skipped' }">{{ taskTitle(task, step.work.tasks.length > 1 ? `${index + 1}` : step.work.title || step.work.name) }}</p>
-                  <span v-if="taskSeconds(task, order?.ended ?? {}) !== null" class="shrink-0 tabular-nums text-muted">{{ spanClock($t, taskSeconds(task, order?.ended ?? {})!) }}</span>
-                </span>
-                <MarqueeLine class="ps-6 text-muted">{{ taskModelLine($t, task) }}</MarqueeLine>
-              </button>
-            </li>
-          </ul>
-        </template>
-      </ProgressStepper>
+      <!-- The procedure on the console's one stepper, a stage each in the order the steps ran (docs/web.md, 「The
+           progress stepper」): its dot, title, roles, models and time, a stage of several branches holding them as its
+           sub-stages. Pressing a stage or a sub-stage opens the co-work step dialog at it. -->
+      <StageStepper class="mt-2" :stages="stages" :label="$t('todo.title.coworkers')" @open="openStage" />
       </template>
     </template>
     <p v-if="fetched && props.part === 'order' && (error || order?.error)" class="mt-2 text-sm whitespace-pre-wrap break-words text-error">{{ error || order?.error }}</p>
 
     <!-- One dialog for the whole list: which step it is reading is what the list hands it. -->
-    <WorkTaskDialog v-model:open="taskOpen" :step="openedStep" :task-id="openedTask" :ended="order?.ended ?? {}" :todo-id="props.todoId" :order-status="order?.status ?? null" @changed="order = $event" />
+    <WorkTaskDialog v-model:open="taskOpen" :step="openedStep" :task-id="openedTask" :ended="order?.ended ?? {}" :todo-id="props.todoId" :order-status="order?.status ?? null" :agent="order?.worker ?? null" @changed="order = $event" />
   </section>
 </template>
 <script setup lang="ts">
@@ -170,12 +129,11 @@ import type { WorkStep } from "~/domain/workorder";
 import { queuePlaceText, workOrderClosing, workOrderStop } from "~/domain/queue-place";
 import { draftRepeatsItem } from "#shared/todo-blocks";
 import { useLiveRefresh, useReadFailure } from "~/domain/events";
+import { usePolling } from "~/domain/polling";
 import { useLastRead } from "bmo-ui/app/domain/loading";
 import { spanClock, formatStamp } from "bmo-ui/app/domain/time";
 import { progressText } from "~/domain/numbers";
-import { orderSpan, phaseName, stepHeading, stepModelLine, stepPlace, stepRoles, stepSeconds, taskCounts, taskHeading, taskLabel, taskModelLine, taskSeconds, taskTitle, workSteps } from "~/domain/workorder";
-import { stepLook } from "~/domain/stepper";
-import type { StepperStep } from "~/domain/stepper";
+import { orderSpan, phaseName, taskCounts, taskStageKey, workStages, workSteps } from "~/domain/workorder";
 // `now` is the clock of the panel this stands in, so a running step's time moves with it.
 // `part` is which half of the order this stands: the order, or its co-workers.
 // `held` is whether the item is set aside, which is what a resume waits for to be taken back.
@@ -220,6 +178,9 @@ useLiveRefresh(
     where: event => event.type === "work-order" && event.todoId === props.todoId
   }
 );
+// While the order runs its steps are read again every few seconds too, so a task starting or ending moves the list as
+// it happens even where no word of it arrives.
+usePolling(() => { if (props.part === "steps" && order.value?.status === "active") void refresh(); }, 5000);
 const stateLabel = { draft: "todo.label.order_draft", active: "todo.label.order_active", paused: "todo.label.order_paused", done: "todo.label.order_done" };
 const taskOpen = ref(false), openedStep = ref<WorkStep | null>(null), openedTask = ref<string | null>(null);
 const closingOrder = computed(() => workOrderClosing(order.value, props.item ?? null));
@@ -237,10 +198,18 @@ function open(step: WorkStep, task: string) {
   openedStep.value = step; openedTask.value = task; taskOpen.value = true;
 }
 const steps = computed<WorkStep[]>(() => order.value ? workSteps(t, order.value) : []);
-// Each step as the stepper stands it, carrying the step it is. A step at work stands open when it first appears.
-const stepperSteps = computed<(StepperStep & { work: WorkStep })[]>(() => steps.value.map(step => ({
-  key: step.key, state: step.state, stateLabel: t(taskLabel[step.state]), title: [step.name, stepRoles(step), step.title.trim()].filter(part => part !== "").join(" · "), time: "", open: step.state === "running", work: step
-})));
+// Each step as the stepper stands it, its time counted against the panel's clock.
+const stages = computed(() => workStages(t, steps.value, order.value?.ended ?? {}, props.now));
+// A stage opens the dialog at its first task, a sub-stage at its own.
+function openStage(key: string) {
+  for (const step of steps.value) {
+    if (step.key === key && step.tasks[0] !== undefined) return open(step, step.tasks[0].id);
+
+    const task = step.tasks.find(one => taskStageKey(step, one) === key);
+
+    if (task !== undefined) return open(step, task.id);
+  }
+}
 const counts = computed(() => taskCounts(order.value?.tasks ?? []));
 const span = computed(() => order.value ? orderSpan(steps.value, order.value.status, props.now) : null);
 // The dialog reads the step as the order now stands: a verb pressed in it or an event read after it

@@ -14,40 +14,58 @@ export interface ListedCompanion {
   workerName?: string | null;
 }
 
+const seconds = (ms: unknown): number | null => (typeof ms === "number" ? Math.floor(ms / 1000) : null);
+const text = (value: unknown): string | null => (typeof value === "string" ? value : null);
+const list = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
+
 /**
- * A listed companion as the companions screen stands it. The agency and the receiver list a companion by its
- * name and what answers for it; the settings beside it are read by no route of either (docs/boundary.md, 「Gaps
- * the console meets」), so they stand empty and the screen offers a change through the routes that take one.
+ * A companion as the companions screen stands it. The agency answers a companion whole (its `docs/api.md`,
+ * 「companions」): its registration and every registration it may be pinned to, the files behind it, its settings,
+ * pieces, base prompt, system prompt and room sessions, each moment in milliseconds, which the screen reads in
+ * seconds. The receiver lists one by its name and what answers for it alone, and what neither says stands empty.
  */
-export function companionViewOf(companion: ListedCompanion): CompanionView {
+export function companionViewOf(companion: ListedCompanion | Record<string, unknown>): CompanionView {
+  const held = companion as Record<string, unknown>;
+  const agent = text(held.agent) ?? text(held.name) ?? "";
+  const settings = (held.settings ?? {}) as Record<string, unknown>;
+  const provider = text(held.provider);
+  const model = text(held.model);
+
   return {
-    agent: companion.name,
-    label: companion.label,
-    icon: null,
-    builtin: false,
-    registration: companion.provider === undefined || companion.model === undefined ? null : `${companion.provider}::${companion.model}`,
-    registrations: [],
-    entries: [],
-    serving: companion.model ?? null,
-    modelUse: null,
+    agent,
+    label: text(held.label) ?? agent,
+    icon: text(held.icon),
+    builtin: held.builtin === true,
+    registration: text(held.registration) ?? (provider === null || model === null ? null : `${provider}::${model}`),
+    registrations: list(held.registrations),
+    entries: list(held.entries),
+    serving: text(held.serving) ?? model,
+    modelUse: (held.modelUse ?? null) as CompanionView["modelUse"],
     settings: {
-      agent: companion.name,
-      referenceOn: false,
-      pieces: null,
-      ownPieces: {},
-      persona: null,
-      generation: {},
-      updatedAt: null,
-      updatedBy: null
+      agent,
+      referenceOn: settings.referenceOn === true,
+      pieces: Array.isArray(settings.pieces) ? (settings.pieces as string[]) : null,
+      ownPieces: (settings.ownPieces ?? {}) as Record<string, string>,
+      persona: text(settings.persona),
+      generation: (settings.generation ?? {}) as Record<string, number | boolean>,
+      updatedAt: seconds(settings.updatedAt),
+      updatedBy: text(settings.updatedBy)
     },
-    generationSettings: [],
-    thinking: null,
-    pieces: [],
-    personaFile: "",
-    basePrompt: null,
-    basePrompts: [],
-    system: { text: "", characters: 0, hash: "" },
-    sessions: []
+    generationSettings: list(held.generationSettings),
+    thinking: typeof held.thinking === "boolean" ? held.thinking : null,
+    pieces: list(held.pieces),
+    personaFile: text(held.personaFile) ?? "",
+    basePrompt: text(held.basePrompt),
+    basePrompts: list(held.basePrompts),
+    system: (held.system ?? { text: "", characters: 0, hash: "" }) as CompanionView["system"],
+    sessions: list<Record<string, unknown>>(held.sessions).map((one) => ({
+      chatId: Number(one.chatId),
+      title: text(one.title),
+      generation: typeof one.generation === "number" ? one.generation : 0,
+      systemResetAt: seconds(one.systemResetAt),
+      resetWaiting: one.resetWaiting === true,
+      lastResetAt: seconds(one.lastResetAt)
+    }))
   };
 }
 

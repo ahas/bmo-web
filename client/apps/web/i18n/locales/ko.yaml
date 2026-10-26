@@ -1663,10 +1663,12 @@ agents:
     column_effort: Effort
     column_gate: 게이트
     column_keepalive: 캐시 유지
+    column_kind: 종류
     column_model: 현재 모델
     column_provider: 공급자
     column_recent: 최근
     column_role: 롤
+    column_rooms: 방
     column_step: 순서
     column_switch: 사용
     column_tau: τ
@@ -1770,6 +1772,8 @@ agents:
     keepalive_paused: 다음 Job까지 꺼짐
     key: 키
     key_search: 검색
+    kind_chat_agent: 채팅 에이전트
+    kind_companion: 대화 상대
     last_read_list: "마지막으로 읽은 목록 · {time}"
     launch_say: 메시지
     launch_task: 작업 지시

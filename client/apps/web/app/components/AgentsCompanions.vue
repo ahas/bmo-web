@@ -25,6 +25,35 @@
       <p v-else-if="companions.length === 0" class="text-sm text-muted">{{ $t("agents.status.no_companions") }}</p>
 
       <template v-else>
+        <!-- Every agent that answers in a room, with what it is, its model and the rooms it answers; a companion's row
+             brings its block into view, the chat agent's opens its own screen. -->
+        <DataTable :data="listRows" :columns="listColumns" layout="own" data-companion-list>
+          <template #agent-cell="{ row }">
+            <component
+              :is="row.original.companion ? 'a' : NuxtLink"
+              :href="row.original.companion ? `#${settingsAnchor(`companion-${row.original.name}`)}` : undefined"
+              :to="row.original.companion ? undefined : `/agents/${encodeURIComponent(row.original.name)}`"
+              :class="CELL_TEXT"
+              class="flex-row items-start justify-start gap-2 ps-4 transition-colors hover:bg-elevated active:bg-accented"
+            >
+              <UIcon :name="row.original.icon" class="mt-0.5 size-5 shrink-0 text-muted" />
+              <span class="flex min-w-0 flex-col">
+                <span class="text-sm font-medium text-highlighted">{{ row.original.label }}</span>
+                <span class="font-mono text-sm text-muted">{{ row.original.name }}</span>
+              </span>
+            </component>
+          </template>
+          <template #kind-cell="{ row }">
+            <span :class="CELL_TEXT" class="text-sm text-highlighted">{{ row.original.companion ? $t("agents.label.kind_companion") : $t("agents.label.kind_chat_agent") }}</span>
+          </template>
+          <template #model-cell="{ row }">
+            <span :class="[CELL_TEXT, row.original.model === null ? 'text-muted' : 'text-highlighted']" class="text-sm">{{ row.original.model ?? "—" }}</span>
+          </template>
+          <template #rooms-cell="{ row }">
+            <span :class="[CELL_TEXT, row.original.rooms.length === 0 ? 'text-muted' : 'text-highlighted']" class="max-w-72 text-sm">{{ row.original.rooms.length === 0 ? "—" : row.original.rooms.join(" · ") }}</span>
+          </template>
+        </DataTable>
+
         <CompanionSettingsBlock
           v-for="one in companions"
           :id="settingsAnchor(`companion-${one.agent}`)"
@@ -107,6 +136,12 @@ import { useReadFailure } from "~/domain/events";
 import { useFormSave, useLeaveGuard } from "bmo-ui/app/domain/form-save";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { answeringModels, REGISTRY_PROVIDER, registrationName } from "~/domain/registry";
+import { agentIcon } from "~/domain/agents";
+import { useAgentCatalogue } from "~/domain/catalogue";
+import { useRoomList } from "~/domain/room-list";
+import { CELL_TEXT } from "~/domain/settings-cells";
+
+import type { TableColumn } from "@nuxt/ui";
 
 import type { CompanionAdded, CompanionView, ModelPage } from "#shared/agency";
 
@@ -117,6 +152,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { workers: () => [] });
 const { t } = useI18n();
+const NuxtLink = resolveComponent("NuxtLink");
 const island = useIsland(t);
 const { data: companions, error, refresh, status } = useFetch<CompanionView[]>("/api/companions", { key: "companions", lazy: true, server: false });
 const readFailure = useReadFailure({ failed: () => !!error.value && companions.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
@@ -140,6 +176,65 @@ watch(() => anyRunning((companions.value ?? []).flatMap((one) => (one.modelUse =
 
 onBeforeUnmount(() => {
   if (poll !== null) clearInterval(poll);
+});
+
+// The list heading the tab: every agent that answers in a room, the chat agent and each companion, in the agent
+// list's order.
+interface ListRow {
+  name: string;
+  label: string;
+  icon: string;
+  companion: boolean;
+  model: string | null;
+  rooms: string[];
+}
+
+const { agents: catalogue } = useAgentCatalogue();
+const { data: roomList } = useRoomList();
+const listColumns = computed<TableColumn<ListRow>[]>(() => [
+  { id: "agent", header: t("agents.label.column_agent"), meta: { class: { th: "w-full" } } },
+  { id: "kind", header: t("agents.label.column_kind") },
+  { id: "model", header: t("common.label.model") },
+  { id: "rooms", header: t("agents.label.column_rooms") }
+]);
+const listRows = computed<ListRow[]>(() => {
+  const held = companions.value ?? [];
+  const titleOf = (chatId: number | null): string | null => (chatId === null ? null : (roomList.value.find((room) => room.chatId === chatId)?.title ?? String(chatId)));
+  // The rooms a companion answers: each it holds a session in, and each made for companions that names it.
+  const roomsOf = (one: CompanionView): string[] => [
+    ...new Set([
+      ...one.sessions.map((session) => session.title ?? titleOf(session.chatId) ?? String(session.chatId)),
+      ...roomList.value.filter((room) => room.madeForCompanions === true && (room.companions ?? []).includes(one.agent)).map((room) => room.title)
+    ])
+  ];
+  const answering = catalogue.value.agents.filter((agent) => agent.kind === "chat" || held.some((one) => one.agent === agent.name));
+  const rows = answering.map((agent): ListRow => {
+    const companion = held.find((one) => one.agent === agent.name);
+    const registration = companion?.registrations.find((one) => one.name === companion.registration);
+
+    return {
+      name: agent.name,
+      label: companion?.label ?? agent.label ?? agent.name,
+      icon: companion?.icon ?? agentIcon(agent.name),
+      companion: companion !== undefined,
+      model: companion === undefined ? null : (registration?.label ?? companion.registration),
+      rooms: companion === undefined ? [titleOf(agent.chatId)].filter((one): one is string => one !== null) : roomsOf(companion)
+    };
+  });
+  // A companion the catalogue does not list yet still stands, after the rest.
+  const listed = new Set(rows.map((row) => row.name));
+
+  return [
+    ...rows,
+    ...held.filter((one) => !listed.has(one.agent)).map((one): ListRow => ({
+      name: one.agent,
+      label: one.label,
+      icon: one.icon ?? agentIcon(one.agent),
+      companion: true,
+      model: one.registrations.find((reg) => reg.name === one.registration)?.label ?? one.registration,
+      rooms: roomsOf(one)
+    }))
+  ];
 });
 
 // A block stands as the bot answered its save; the list is replaced whole, since the fetched value

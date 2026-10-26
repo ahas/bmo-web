@@ -398,9 +398,6 @@ for it, and no file or table of that unit is read meanwhile.
   and a stopped run is said by its outcome alone.
 - **A companion's room taken back.** The receiver answers whether an added companion took a room back; the console
   says so in the pack's words and reads nothing else of the receiver's answer about it.
-- **A companion's settings.** The agency's fixed API lists a companion by its name, its label and what answers for
-  it, and takes a change to its settings; it serves no route that reads those settings back. The companions screen
-  lists what it reads and offers a change, and the settings beside a companion stand empty.
 - **An item's talk.** The unit that kept an item's talk was bmo-job, whose fixed API keeps none; the receiver's
   talks answer one turn and keep no turns. A talk about an item stands with no turns and takes none.
 - **A runner's launch, a word to a worker, and a run's stop by its kind.** The fixed APIs launch an item on its

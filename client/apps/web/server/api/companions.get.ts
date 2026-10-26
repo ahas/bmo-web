@@ -1,8 +1,7 @@
 import type { CompanionView } from "#shared/agency";
 
-// Every companion as the agency lists it (the agency's `docs/api.md`, 「companions」): its name, the label it is
-// called by, and what answers for it. The settings beside it are read by no route of the agency, so they stand
-// empty (docs/boundary.md, 「Gaps the console meets」).
+// Every companion as the agency answers it (the agency's `docs/api.md`, 「companions」), whole: its model, its settings,
+// its prompt's pieces and its room sessions.
 export default defineEventHandler(async (event): Promise<CompanionView[]> => {
   await requireUserSession(event);
 

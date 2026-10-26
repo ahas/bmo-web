@@ -2833,6 +2833,12 @@ Two ways, split because the running places differ.
 
 #### 대화 상대
 
+- **A list heads the tab:** every agent that answers in a room — the chat agent and each companion — one row each
+  in the agent list's order, with its mark, its label and its name, whether it is the chat agent or a companion,
+  the model it is pinned to (a companion's registration by its label; a dash for the chat agent, whose model is its
+  tier's on 실행 경로) and the rooms it answers — the chat agent's room, and each room a companion holds a session in
+  or was made for. Pressing a companion's row brings its block below into view; pressing the chat agent's opens its
+  own screen. A companion for a model of the deployment's own is added from the tab row's 추가 menu (below).
 - **One block for each companion** (the agency's `docs/companions.md`, 「Its settings」), in the agent list's order,
   headed by its picture, its label and its name, and the tab is one form (「Forms」): every block's
   changes wait for the one 저장 in the footer at the tab's foot. A block holds, top to bottom:

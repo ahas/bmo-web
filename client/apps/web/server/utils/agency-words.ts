@@ -43,9 +43,10 @@ const BUNDLE_LABELS: Readonly<Record<string, string>> = {
   "queue-read": "agents.label.bundle_queue_read"
 };
 
-/** Why a road cannot be taken, in the pack's words, beside the agency's own sentence; both null on a road that can. */
-export function roadReasonOf(reason: unknown, code: unknown): { reason: string | null; reasonEnglish: string | null } {
-  const english = typeof reason === "string" && reason !== "" ? reason : null;
+/** Why a road cannot be taken, in the pack's words, beside the agency's own sentence — its fuller `detail` where it
+ * sends one beside a short clause; both null on a road that can. */
+export function roadReasonOf(reason: unknown, code: unknown, detail?: unknown): { reason: string | null; reasonEnglish: string | null } {
+  const english = typeof detail === "string" && detail !== "" ? detail : typeof reason === "string" && reason !== "" ? reason : null;
   const named = typeof code === "string" && code !== "" ? code : null;
 
   if (english === null && named === null) return { reason: null, reasonEnglish: null };

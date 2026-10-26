@@ -2543,14 +2543,17 @@ Two ways, split because the running places differ.
 
 - **에이전트별 설정.** One table of every agent's own settings, the agents its rows and the settings its columns:
   every agent in its group — the chat agent, workers, gates, runners — under the group's heading row, one row each, and
-  the columns 에이전트, 롤, 캐시 유지, 생각, Effort and 게이트. Every agent stands in it exactly once: a worker the agency
+  the columns 에이전트, 롤, 캐시 유지, 생각, Effort and one column for each gate a turn passes, the pre-gate's then the
+  post-gate's, under the gate's name. Every value is edited in its own cell the one way the table edits: pressing
+  the cell drops down from it the list of its values, and the one chosen is saved at once, a refusal said in a
+  notice. Every agent stands in it exactly once: a worker the agency
   lists both as an agent and as a worker is one row, the worker's own fields on its agent's row, and a row stands in the
   group its kind names. No other list on the tab repeats the agents for their role, their warming, their thinking or
   their gates. The table takes its own height among the tab's sections and scrolls sideways inside its own box on a
   phone, so no cell is cut.
   - **에이전트** is the title column: its mark, its name and key, what last answered on it and, under them, its
     warming mark. Pressing the name opens that agent's own screen.
-  - **캐시 유지** holds the agent's own keepalive switch.
+  - **캐시 유지** holds the agent's own keepalive, 켬 or 끔, and for a worker also 다음 Job까지 끄기 (below).
     - **The switch reads what the cache warmer holds** (the cache warmer's `docs/api.md`): on where one of the
       agent's warming targets, under whichever consumer registered it, warms now — the switch the owner threw
       on its subject, or the target's own default where none is thrown — and off for an agent the warmer holds
@@ -2572,11 +2575,11 @@ Two ways, split because the running places differ.
 - **The gates stand in the parts of the gate order** (the gate unit's documents) — 프리게이트, 포스트게이트 and
   턴 밖, each under its own heading and in the turn's order within it, as on 게이트. A gate that runs in
   both 프리게이트 and 포스트게이트 stands in each, and its two switches are one setting.
-- **다음 Job까지 끄기.** A worker's row also carries an icon button that turns its warming off now, until
-  that worker's next job; there is no button that turns it back on. The row then carries 다음 Job까지
-  꺼짐, and the button stands disabled while the row is not being warmed anyway — its switch down, the
-  whole round off, or already turned off. On a phone a row's mark stands on the line under its name
-  instead of beside it, so the name is never cut. The marks are searchable like the names
+- **다음 Job까지 끄기.** A worker's 캐시 유지 cell also offers 다음 Job까지 끄기, which turns its warming off now, until
+  that worker's next job; nothing but that job turns it back on. The cell then reads 다음 Job까지
+  꺼짐, and the choice stands disabled while the worker is not being warmed anyway — its warming off, the
+  whole round off, or already turned off. A row's warming mark stands on the line under its name, so the name is
+  never cut. The marks are searchable like the names
   (the agency's `docs/cache-fallback.md`).
 - **생각 and Effort** are the table's next two columns, a choice each, for the agents whose thinking and effort are
   their own (the agency's `docs/model-tiers.md`, 「An agent's own thinking and effort」) — the chat agent, each worker
@@ -2593,16 +2596,12 @@ Two ways, split because the running places differ.
     a provider.
   - A support worker is not listed, since it runs on its base's settings, and neither is a gate,
     whose thinking and effort are its tier's.
-- **게이트** is the table's last column, for every agent that answers in a room — the chat agent and each companion:
-  the count of its gates switched on over the gates its turn passes, and pressing the cell drops down from it that
-  agent's own gates (the gate unit's documents, 「Each agent's own gates」), under the headings 프리게이트 and 포스트게이트
-  in the turn's order, one row to a gate with its label, its key and its switch. Every other row shows a dash.
-  - A gate standing in both parts stands once, in the first part it stands in, since its switch is one
-    setting for both.
-  - In the table a switch is saved as it is turned, through the bot, and a refused save puts the bot's
-    reason under it. Shown in an agent's own dialog, the switches wait for that dialog's 저장.
-  - Which gates an agent's turn passes is the bot's word, so while the bot is not answering the
-    cell shows a dash.
+- **A gate's column** holds, for every agent that answers in a room — the chat agent and each companion — its own
+  switch of that gate (the gate unit's documents, 「Each agent's own gates」), 켬 or 끔; an agent whose turn does not
+  pass the gate shows a dash. A gate standing in both parts of a turn has one column, since its switch is one
+  setting for both. Which gates an agent's turn passes is the bot's word, so while the bot is not answering the
+  columns are not drawn. Shown in an agent's own dialog, its gates stand as switches that wait for that dialog's
+  저장.
 - **세션.** Under the table of 에이전트별 설정, every session an agent holds now (the agency's `docs/session-resets.md`), one row
   each in the agent list's order: the agent's face or mark (「Profile photos」), label and key, which session it is — the chat agent's chat
   session, a worker's recorded sessions with their models, a companion's session in one room with its
@@ -2775,7 +2774,8 @@ Two ways, split because the running places differ.
   - **Each key's tier and what it resolves to** are the agency's `GET /work-keys`: the tier, the tiers it may take
     and, per provider, the model it resolves to, or why it does not — said under the model in the pack's sentence
     for the agency's code, the agency's own sentence where it gives no code standing as the general sentence
-    that the road cannot be taken now. A key the answer does not carry shows 등급 배정 없음.
+    that the road cannot be taken now. The model's cell keeps a ceiling of its own: a note longer than it is cut on
+    one line and stands whole in the tooltip every cut line gets. A key the answer does not carry shows 등급 배정 없음.
   - **A provider is named by its code** in the pack's words — the products by their own names, the registry as
     등록 모델 — never by the agency's English label.
 - **The provider cell** chooses 자동 or one provider, for a key that has a road of its own. 자동 walks the

@@ -30,29 +30,17 @@
         </span>
       </template>
 
+      <!-- Every value of the table is pressed and chosen from a list dropped down from its own cell: the warming as
+           on or off, and for a worker off until its next job, which nothing but that job undoes. -->
       <template #keepalive-cell="{ row }">
-        <span :class="CELL_TEXT" class="flex-row items-center justify-start gap-2">
-          <USwitch
-            :model-value="!row.original.agent.keepaliveStopped"
-            :aria-label="$t('agents.aria.keepalive_of', { name: row.original.meta.name })"
-            :loading="busy === `keepalive:${row.original.meta.name}`"
-            :disabled="busy !== ''"
-            @update:model-value="switchAgent(row.original.meta.name, !($event as boolean))"
-          />
-          <!-- A worker's warming turned off now, until its next job wakes it; nothing turns it back on. -->
-          <UTooltip v-if="row.original.agent.kind === 'worker'" :text="$t('agents.action.pause_until_job')">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              size="sm"
-              icon="i-material-symbols-mode-off-on"
-              :aria-label="$t('agents.aria.pause_keepalive_of', { name: row.original.meta.name })"
-              :loading="busy === `pause:${row.original.meta.name}`"
-              :disabled="busy !== '' || !pausable(row.original.agent)"
-              @click="pauseWorker(row.original.meta.name)"
-            />
-          </UTooltip>
-        </span>
+        <SettingsChoiceCell
+          :value="keepaliveValue(row.original.agent)"
+          :items="keepaliveItems(row.original.agent)"
+          :label="$t('agents.aria.keepalive_of', { name: row.original.meta.name })"
+          :save="(value) => saveKeepalive(row.original.meta.name, String(value))"
+        >
+          <span class="text-sm text-highlighted">{{ keepaliveText(row.original.agent) }}</span>
+        </SettingsChoiceCell>
       </template>
 
       <template #thinking-cell="{ row }">
@@ -89,33 +77,35 @@
         <span v-else :class="CELL_TEXT" class="text-sm text-muted">—</span>
       </template>
 
-      <!-- An agent that answers in a room carries its own gates, dropped down from the cell and switched as turned. -->
-      <template #gates-cell="{ row }">
-        <SettingsPopoverCell v-if="(row.original.agent.gates?.length ?? 0) > 0" :label="$t('agents.aria.gates_of', { name: row.original.meta.label })">
-          <span class="text-sm text-highlighted tabular-nums">{{ gatesText(row.original.agent) }}</span>
-          <template #content>
-            <AgentsGates :agents="[{ meta: row.original.meta, agent: row.original.agent }]" :reread="() => props.reread('agents')" />
-          </template>
-        </SettingsPopoverCell>
+      <!-- Each gate a turn passes is a column of its own, and an agent that answers in a room chooses its own switch of it
+           in its cell, on or off; an agent whose turn does not pass the gate shows a dash. -->
+      <template v-for="gate in gateColumns" :key="gate.key" #[`gate-${gate.key}-cell`]="{ row }">
+        <SettingsChoiceCell
+          v-if="gateOf(row.original.agent, gate.key) !== null"
+          :value="gateOf(row.original.agent, gate.key)!.on ? ON : OFF"
+          :items="switchItems"
+          :label="$t('agents.aria.gate_of', { name: row.original.meta.label, gate: gate.label })"
+          :save="(value) => saveGate(row.original.meta.name, gate.key, value === ON)"
+        >
+          <span class="text-sm text-highlighted">{{ gateOf(row.original.agent, gate.key)!.on ? $t("agents.label.gate_on") : $t("agents.label.gate_off") }}</span>
+        </SettingsChoiceCell>
         <span v-else :class="CELL_TEXT" class="text-sm text-muted">—</span>
       </template>
     </DataTable>
 
-    <p v-if="failed !== ''" role="alert" class="text-sm text-error">{{ failed }}</p>
   </section>
 </template>
 
 <script setup lang="ts">
 import { matchFields } from "bmo-ui/shared/search";
 import { settingsAnchor } from "~/domain/agent-settings";
-import { gateBlocks, generalSectionTitle, keepaliveMarkOf } from "~/domain/agents";
+import { agentLabel, gateBlocks, generalSectionTitle, keepaliveMarkOf } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { countText } from "~/domain/numbers";
 import { CELL_TEXT } from "~/domain/settings-cells";
 import { modeLabel, modelLabel } from "~/domain/status";
 
 import type { TableColumn } from "@nuxt/ui";
-import type { AgentList, AgentReasoningView, AgentSummary, KeepaliveView } from "#shared/types";
+import type { AgentGateView, AgentList, AgentReasoningView, AgentSummary, KeepaliveView } from "#shared/types";
 import type { AgentBlock, AgentGroup, AgentMeta, GeneralPart } from "~/domain/agents";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { TableSection } from "bmo-ui/app/domain/table-sections";
@@ -141,8 +131,6 @@ interface Row {
 const props = withDefaults(defineProps<Props>(), { query: "" });
 const { t } = useI18n();
 
-const busy = ref("");
-const failed = ref("");
 
 const DEFAULT = "default";
 const ON = "on";
@@ -156,8 +144,43 @@ const columns = computed<TableColumn<Row>[]>(() => [
   { id: "keepalive", header: t("agents.label.column_keepalive") },
   { id: "thinking", header: t("agents.label.column_thinking") },
   { id: "effort", header: t("agents.label.column_effort") },
-  { id: "gates", header: t("agents.label.column_gate") }
+  ...gateColumns.value.map((gate) => ({ id: `gate-${gate.key}`, header: gate.label }))
 ]);
+
+// The gates a turn passes, in the turn's order — the pre-gate's, then the post-gate's — each once, as the agents' rows
+// name them.
+const gateColumns = computed(() => {
+  const keys: { key: string; part: "pre" | "post" }[] = [];
+
+  for (const agent of props.agents.agents) {
+    for (const gate of agent.gates ?? []) {
+      if (!keys.some((one) => one.key === gate.key)) keys.push({ key: gate.key, part: gate.part });
+    }
+  }
+
+  return [...keys.filter((one) => one.part === "pre"), ...keys.filter((one) => one.part === "post")].map((one) => ({ key: one.key, label: agentLabel(t, one.key) }));
+});
+
+function gateOf(agent: AgentSummary, key: string): AgentGateView | null {
+  return agent.gates?.find((gate) => gate.key === key) ?? null;
+}
+
+const switchItems = computed<CellChoice[]>(() => [
+  { value: ON, label: t("agents.label.gate_on") },
+  { value: OFF, label: t("agents.label.gate_off") }
+]);
+
+// A switch of one of an agent's own gates, saved as it is chosen; the bot's refusal is said in a notice.
+async function saveGate(agent: string, gate: string, on: boolean): Promise<string | null> {
+  try {
+    await $fetch("/api/agent-gate", { method: "POST", body: { agent, gate, on } });
+    await props.reread("agents");
+
+    return null;
+  } catch (error) {
+    return failureText(error, t("common.error.save_failed"));
+  }
+}
 
 // A group as it stands: the gates in the parts of the gate order, every other group as one run under its title.
 function blocksOf(group: AgentGroup): AgentBlock[] {
@@ -237,33 +260,37 @@ function hiddenMatch(agent: AgentSummary) {
   return matchFields([{ label: t("agents.label.alias"), text: agent.aliases ?? "", shown: false }], props.query);
 }
 
-// How many of the agent's gates are switched on, over the gates its turn passes.
-function gatesText(agent: AgentSummary): string {
-  const gates = agent.gates ?? [];
+// The warming as the cell holds it: on, off, or off until the worker's next job.
+const PAUSED = "pause";
 
-  return t("agents.label.gates_on", { on: countText(gates.filter((gate) => gate.on).length), all: countText(gates.length) });
+function keepaliveValue(agent: AgentSummary): string {
+  return agent.keepalivePausedAt !== null ? PAUSED : agent.keepaliveStopped ? OFF : ON;
 }
 
-async function ask(body: Record<string, unknown>, mark: string): Promise<void> {
-  busy.value = mark;
-  failed.value = "";
+function keepaliveText(agent: AgentSummary): string {
+  const value = keepaliveValue(agent);
 
+  return value === PAUSED ? t("agents.label.keepalive_paused") : value === OFF ? t("agents.label.gate_off") : t("agents.label.gate_on");
+}
+
+// On and off for every agent; for a worker also off until its next job, open only while it is being warmed.
+function keepaliveItems(agent: AgentSummary): CellChoice[] {
+  return [
+    { value: ON, label: t("agents.label.gate_on") },
+    { value: OFF, label: t("agents.label.gate_off") },
+    ...(agent.kind === "worker" ? [{ value: PAUSED, label: t("agents.action.pause_until_job"), disabled: !pausable(agent) && keepaliveValue(agent) !== PAUSED }] : [])
+  ];
+}
+
+async function saveKeepalive(name: string, value: string): Promise<string | null> {
   try {
-    await $fetch("/api/keepalive", { method: "POST", body });
+    await $fetch("/api/keepalive", { method: "POST", body: value === PAUSED ? { agent: name, pause: true } : { agent: name, stopped: value === OFF } });
     await props.reread("agents");
+
+    return null;
   } catch (error) {
-    failed.value = failureText(error, t("common.error.save_failed"));
-  } finally {
-    busy.value = "";
+    return failureText(error, t("common.error.save_failed"));
   }
-}
-
-async function switchAgent(name: string, stopped: boolean): Promise<void> {
-  await ask({ agent: name, stopped }, `keepalive:${name}`);
-}
-
-async function pauseWorker(name: string): Promise<void> {
-  await ask({ agent: name, pause: true }, `pause:${name}`);
 }
 
 function thinkingValue(reasoning: AgentReasoningView): string {

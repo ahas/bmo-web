@@ -323,7 +323,8 @@ function assignmentOf(item: unknown): { assignment: TierAssignmentView; conflict
   const effective = list(held.effective).flatMap((one) => {
     if (typeof one.provider !== "string") return [];
 
-    const said = roadReasonOf(one.error, one.errorCode);
+    // The agency's fuller account, where it sends one beside its short clause, stands as its own sentence kept.
+    const said = roadReasonOf(one.error, one.errorCode, one.detail);
 
     return [{ provider: one.provider as TierProvider, selection: (one.selection ?? null) as TierMapping | null, error: said.reason, errorEnglish: said.reasonEnglish }];
   });

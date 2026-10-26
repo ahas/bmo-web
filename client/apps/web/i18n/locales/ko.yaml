@@ -1499,7 +1499,6 @@ agents:
     effort_of: "{name} Effort"
     fold_ratio_of: "{tier} {provider} 압축 기준"
     gate_of: "{name} {gate}"
-    gates_of: "{name}의 게이트"
     keepalive_of: "{name} 캐시 유지"
     label_of: "{name} 이름표"
     limit_of: "{mode} {tier} 한도"
@@ -1507,7 +1506,6 @@ agents:
     node_checkout_node: 체크아웃 노드
     node_checkout_path: 체크아웃 경로
     node_checkout_remove_of: "{node} 체크아웃 삭제"
-    pause_keepalive_of: "{name} 다음 Job까지 캐시 유지 끄기"
     prefix_document_down: "{path} 아래로"
     prefix_document_path: 프리픽스 문서 경로
     prefix_document_remove: "{path} 빼기"
@@ -1765,7 +1763,6 @@ agents:
     gate_part_post: 포스트게이트
     gate_part_pre: 프리게이트
     gate_together: 함께 실행
-    gates_on: "{on}/{all} 켬"
     generation: 생성 파라미터
     generation_of: "{generation}번째 세션"
     group_designated: 지정된 에이전트

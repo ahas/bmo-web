@@ -147,15 +147,15 @@ describe("the general tab", () => {
     expect(template).toContain("<AgentsSettingsTable ");
     expect(template).not.toContain("<AgentsReasoning");
     expect(template).not.toContain("<AgentsGates");
-    for (const column of ["agent", "role", "keepalive", "thinking", "effort", "gates"]) {
+    for (const column of ["agent", "role", "keepalive", "thinking", "effort"]) {
       expect(table).toContain(`#${column}-cell="{ row }"`);
     }
-    expect(table).toContain("switchAgent(row.original.meta.name, !($event as boolean))");
+    // Every value is chosen from a list dropped down from its own cell: the warming, the reasoning and each gate.
+    expect(table).not.toContain("<USwitch");
+    expect(table).toContain('#[`gate-${gate.key}-cell`]="{ row }"');
     expect(scriptOf(agentTable)).toContain("keepaliveMarkOf(t, agent, props.keepalive.stopped)");
-    expect(table).toContain(`v-if="row.original.agent.kind === 'worker'" :text="$t('agents.action.pause_until_job')"`);
+    expect(scriptOf(agentTable)).toContain('...(agent.kind === "worker" ? [{ value: PAUSED, label: t("agents.action.pause_until_job")');
     expect(scriptOf(agentTable)).toContain("{ agent: name, pause: true }");
-    // An agent's own gates drop down from its cell, switched as turned.
-    expect(table).toContain('<AgentsGates :agents="[{ meta: row.original.meta, agent: row.original.agent }]"');
   });
 
   test("stands the bot's order with a grip handle in its own column and each provider's own reason", () => {
@@ -458,8 +458,8 @@ describe("the route and gate tabs", () => {
     expect(agentTable).not.toContain("text-xs");
     // A gate in both parts carries the search's anchor on its first row only.
     expect(templateOf(agentTable)).toContain(':id="row.original.first ? settingsAnchor(`agent-${row.original.meta.name}`) : undefined"');
-    // Both of a gate's switches read and write the one setting of its name.
-    expect(templateOf(agentTable)).toContain(':model-value="!row.original.agent.keepaliveStopped"');
+    // A worker's warming reads on, off, or off until its next job.
+    expect(scriptOf(agentTable)).toContain("return agent.keepalivePausedAt !== null ? PAUSED : agent.keepaliveStopped ? OFF : ON;");
   });
 
   test("name no gate to decide its order or its part", () => {

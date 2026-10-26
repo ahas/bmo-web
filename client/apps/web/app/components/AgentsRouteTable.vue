@@ -218,9 +218,11 @@
       </template>
 
       <template v-for="column in READ_COLUMNS" :key="column" #[`${column}-cell`]="{ row }">
-        <span :class="CELL_TEXT">
+        <!-- The cell keeps a ceiling of its own; a note longer than it — why the key does not resolve on the provider it
+             starts on — is cut on one line and stands whole in the tooltip every cut line gets. -->
+        <span :class="CELL_TEXT" class="max-w-64">
           <SearchText class="text-highlighted" :text="cellText(row.original, column)" :query="props.query" />
-          <SearchText v-if="cellNote(row.original, column) !== ''" class="text-muted" :text="cellNote(row.original, column)" :query="props.query" />
+          <SearchText v-if="cellNote(row.original, column) !== ''" class="block truncate text-muted" :text="cellNote(row.original, column)" :query="props.query" />
         </span>
       </template>
     </DataTable>

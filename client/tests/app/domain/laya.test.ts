@@ -68,6 +68,10 @@ describe("the rest of what Laya shows", () => {
     expect(percentText(null)).toBe("—");
     expect(percentText(1)).toBe("100.0%");
     expect(vramText(1_587_544_064)).toBe("1.5 GB");
+    expect(vramText(20 * 1024 ** 2)).toBe("20 MB");
+    expect(vramText(1_000 * 1024 ** 2)).toBe("1,000 MB");
+    expect(vramText(1024 ** 3)).toBe("1.0 GB");
+    expect(vramText(4_096)).toBe("1 MB");
     expect(vramText(null)).toBe("");
     expect(modelShortName("convaiinnovations/laya/multilingual")).toBe("multilingual");
     expect(modelShortName("/home/user/laya/checkpoints/smoke")).toBe("smoke");

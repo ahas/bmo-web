@@ -1,9 +1,9 @@
 import { PAGING } from "#shared/config";
-import { gateConditions } from "#shared/types";
+import { gateConditions, layaModes } from "#shared/types";
 
 import { unitAt, unitFetch } from "./units";
 
-import type { GateCondition, GateOfferRecord, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, LayaAgreement, LayaGateView, LayaHealth, LayaMode, LayaModeRefusal, TokenSplit, TurnGateView } from "#shared/types";
+import type { GateCondition, GateOfferRecord, GateOptionsView, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, LayaAgreement, LayaGateView, LayaHealth, LayaMode, LayaModeRefusal, TokenSplit, TurnGateView } from "#shared/types";
 
 // A room's judgements as the gate's console API holds them (the gate's `docs/api.md`, 「Judgements」): newest
 // first, a page at a time, each road a gate run walked beside it. The gate's address and token stand in the
@@ -230,6 +230,109 @@ export async function turnGates(): Promise<TurnGateView[]> {
 /** One gate switched on or off, where its profile lets it be. */
 export async function switchGate(name: string, enabled: boolean): Promise<void> {
   await unitFetch("GATE", `/options/${encodeURIComponent(name)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled }) });
+}
+
+// The gate unit's refusal codes for a change of a gate's options, each with the pack's key for its sentence (the
+// gate unit's `docs/api.md`, 「Gates」).
+const OPTION_CODES: Readonly<Record<string, string>> = {
+  "own-llm": "agents.error.gate_llm_settings",
+  "no-gate": "agents.error.gate_unknown",
+  "nothing-to-change": "agents.error.gate_nothing_to_change",
+  "timeout-out-of-range": "agents.error.bad_timeout",
+  "switch-not-boolean": "agents.error.bad_gate_switch",
+  "always-on": "agents.error.gate_always_on",
+  "laya-tau-out-of-range": "agents.error.bad_tau",
+  "laya-fallback-unknown": "agents.error.bad_laya_fallback",
+  "no-probe": "agents.error.laya_no_probe",
+  "no-safe-verdict": "agents.error.laya_no_safe_verdict",
+  "no-checkpoint": "agents.error.laya_no_checkpoint",
+  "needs-tau": "agents.error.laya_needs_tau"
+};
+
+const isLayaMode = (value: unknown): value is LayaMode => typeof value === "string" && (layaModes as readonly string[]).includes(value);
+const numberOr = (value: unknown, otherwise: number | null): number | null => (typeof value === "number" && Number.isFinite(value) ? value : otherwise);
+
+// One gate's options as the gate unit answers them, or null where the answer does not read as options.
+function optionsOf(answer: unknown): GateOptionsView | null {
+  if (answer === null || typeof answer !== "object") return null;
+
+  const sent = answer as Record<string, unknown>;
+  const effective = sent.effective as Record<string, unknown> | undefined;
+  const defaults = sent.defaults as Record<string, unknown> | undefined;
+
+  if (typeof sent.timeoutMs !== "number" || effective === undefined || defaults === undefined) return null;
+  if (!isLayaMode(effective.layaMode) || !isLayaMode(defaults.layaMode)) return null;
+
+  return {
+    timeoutMs: sent.timeoutMs,
+    layaMode: isLayaMode(sent.layaMode) ? sent.layaMode : null,
+    layaTau: numberOr(sent.layaTau, null),
+    layaProbe: sent.layaProbe === true,
+    switchable: sent.switchable === true,
+    enabled: sent.enabled !== false,
+    layaFallback: typeof sent.layaFallback === "string" ? sent.layaFallback : null,
+    effective: {
+      thinking: effective.thinking === true,
+      answerTokens: numberOr(effective.answerTokens, 0) ?? 0,
+      timeoutMs: numberOr(effective.timeoutMs, sent.timeoutMs) ?? sent.timeoutMs,
+      layaMode: effective.layaMode,
+      layaTau: numberOr(effective.layaTau, null)
+    },
+    defaults: {
+      thinking: defaults.thinking === true,
+      answerTokens: numberOr(defaults.answerTokens, 0) ?? 0,
+      layaMode: defaults.layaMode,
+      layaTau: numberOr(defaults.layaTau, null)
+    }
+  };
+}
+
+/**
+ * The options of each named gate the gate unit lists, by its name: its wait, its switch, its Laya mode, tau and
+ * fallback LLM. A name the unit does not list, one whose answer does not read, and every name while the unit is
+ * not reached, have none.
+ */
+export async function gateOptionsOf(names: readonly string[]): Promise<Map<string, GateOptionsView>> {
+  const held = new Map<string, GateOptionsView>();
+
+  if (unitAt("GATE") === null) return held;
+
+  let listed: Set<string>;
+
+  try {
+    listed = new Set((await gateRows()).map((row) => row.gateName));
+  } catch {
+    return held;
+  }
+
+  await Promise.all(
+    [...new Set(names)].filter((name) => listed.has(name)).map(async (name) => {
+      const options = optionsOf(await unitFetch<unknown>("GATE", `/options/${encodeURIComponent(name)}`).catch(() => null));
+
+      if (options !== null) held.set(name, options);
+    })
+  );
+
+  return held;
+}
+
+/** What a change of a gate's options may name; a Laya field sent null goes back to the gate's default. */
+export interface GateOptionsChange {
+  timeoutMs?: number;
+  enabled?: boolean;
+  layaMode?: LayaMode | null;
+  layaTau?: number | null;
+  layaFallback?: string | null;
+}
+
+/** One gate's options changed in the gate unit, a refusal said in the pack's sentence for its code and its status. */
+export async function setGateOptions(name: string, change: GateOptionsChange): Promise<void> {
+  await unitFetch(
+    "GATE",
+    `/options/${encodeURIComponent(name)}`,
+    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(change) },
+    { codes: OPTION_CODES, passStatus: [422] }
+  );
 }
 
 // The Laya server's last health check and each gate's standing beside it, as the gate unit serves them (the gate

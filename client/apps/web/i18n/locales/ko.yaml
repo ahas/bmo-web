@@ -1562,9 +1562,10 @@ agents:
     field_refused: 받아들여지지 않은 값입니다.
     fold_percent: "압축 기준은 {min}부터 {max}까지의 정수(%)입니다."
     fold_ratios_read_failed: 압축 기준을 불러오지 못했습니다.
+    gate_always_on: 이 게이트는 끌 수 없습니다.
     gate_llm_settings: 게이트의 생각과 출력 크기는 모델 등급의 자체 LLM 설정에서 정합니다.
     gate_nothing_to_change: "바꿀 값이 없습니다: 제한시간, Laya 모드, τ, 사용 가운데 하나를 보내 주세요."
-    gate_options_unavailable: 게이트 설정은 게이트 유닛에 닿기 전까지 바꿀 수 없습니다.
+    gate_unknown: 게이트 유닛에 없는 게이트입니다.
     job_prompt_failed: 프롬프트를 불러오지 못했습니다.
     keepalive_direction: 캐시 유지를 멈출지 다시 켤지 정해 주세요.
     keepalive_failed: 캐시 워머가 요청을 처리하지 못했습니다.
@@ -1574,6 +1575,10 @@ agents:
     label_needed: 이름표를 입력해 주세요.
     launch_empty: 작업 지시를 입력해 주세요.
     launch_failed: 실행하지 못했습니다.
+    laya_needs_tau: 필터와 비대칭 모드는 τ를 정한 뒤에 고를 수 있습니다.
+    laya_no_checkpoint: Laya 서버에 이 게이트의 체크포인트가 없어 이 모드를 쓸 수 없습니다.
+    laya_no_probe: 이 게이트에는 Laya 질문이 없어 Laya 모드를 정할 수 없습니다.
+    laya_no_safe_verdict: 이 게이트에는 안전 판정이 없어 이 모드를 쓸 수 없습니다.
     limits_read_failed: 코워커 한도를 읽지 못했습니다.
     log_read_failed: 로그를 읽지 못했습니다. 잠시 뒤 다시 시도해 주세요.
     model_unlisted: 목록에 없는 모델입니다. 다시 선택해 주세요.

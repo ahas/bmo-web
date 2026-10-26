@@ -12,6 +12,12 @@ const agency = standIn("AGENCY", (call) =>
   call.body?.key === "unknown" ? answer({ code: "bad-request", error: "unknown fallback key: unknown" }, 400) : answer({ ok: true })
 );
 const sent = agency.asked;
+const gate = standIn("GATE", (call) => {
+  if (call.path === "/options/no-such-gate") return answer({ code: "no-gate", error: "Not a gate: no-such-gate" }, 404);
+  if (call.body?.layaMode === "asymmetric" && call.body.layaTau === undefined) return answer({ code: "needs-tau", error: "Mode needs a tau" }, 422);
+
+  return answer({ gateName: "gate-a", options: {} });
+});
 const handler = await routeOf<{ ok: true }>("../../apps/web/server/api/fallback.post");
 
 async function post(body: unknown): Promise<{ status: number; message: string }> {
@@ -137,14 +143,22 @@ test("passes switches, entry orders and the local model's options through unchan
   expect((await post({ action: "set-context-tokens", provider: "registered", tokens: 32_768 })).status).toBe(400);
 });
 
-// A gate's own request options are the gate unit's, which is not split, so a change that reads as one is
-// refused as unavailable and nothing is sent; one that does not read is refused for what is wrong with it.
-test("refuses a gate's options as unavailable, and thinking, a size or a wait that could never stand", async () => {
+// A gate's own request options are the gate unit's: a change that reads as one is written there as it was asked,
+// a refusal said in the pack's sentence for its code, and one that does not read is refused for what is wrong with
+// it before it travels.
+test("writes a gate's options to the gate unit, and refuses thinking, a size or a wait that could never stand", async () => {
   sent.length = 0;
+  gate.asked.length = 0;
 
-  for (const body of [{ timeoutMs: 30_000 }, { layaMode: "filter" }, { layaTau: 0.9 }, { layaMode: null, layaTau: null }, { enabled: false }]) {
-    expect(await post({ action: "set-gate-options", key: "gate-a", ...body })).toMatchObject({ status: 503, message: wording("agents.error.gate_options_unavailable") });
+  for (const body of [{ timeoutMs: 30_000 }, { layaMode: "filter", layaTau: 0.9 }, { layaTau: 0.9 }, { layaMode: null, layaTau: null }, { enabled: false }, { layaFallback: "none" }]) {
+    expect(await post({ action: "set-gate-options", key: "gate-a", ...body })).toMatchObject({ status: 200 });
+    expect(gate.asked.at(-1)).toEqual({ method: "POST", path: "/options/gate-a", body });
   }
+
+  expect(sent).toEqual([]);
+  expect(await post({ action: "set-gate-options", key: "gate-a", layaMode: "asymmetric" })).toMatchObject({ status: 422, message: wording("agents.error.laya_needs_tau") });
+  expect(await post({ action: "set-gate-options", key: "no-such-gate", timeoutMs: 30_000 })).toMatchObject({ status: 404, message: wording("agents.error.gate_unknown") });
+  gate.asked.length = 0;
 
   expect(sent).toEqual([]);
 
@@ -166,6 +180,7 @@ test("refuses a gate's options as unavailable, and thinking, a size or a wait th
   }
 
   expect(sent).toEqual([]);
+  expect(gate.asked).toEqual([]);
   expect((await post({ action: "set-gate-options", timeoutMs: 2_000 })).status).toBe(400);
 });
 

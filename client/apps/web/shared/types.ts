@@ -1685,8 +1685,9 @@ export interface FallbackProfile {
   claudeModel: string;
   // What the key asks each own LLM service for, one entry per service; a gate's is held to its floor.
   services: OwnLlmSettingsView[];
-  // A gate's wait as the owner chose it, beside what the gate runs on — its tier's thinking and
-  // answer room with that wait — and its defaults. Absent on every key that is not a gate.
+  // A gate's options as the gate unit holds them — its wait, switch, Laya mode, tau and fallback LLM as the owner
+  // chose them, beside what the gate runs on and its defaults. Absent on every key that is not a gate the gate
+  // unit lists, and on every key while the gate unit is not reached.
   gateOptions?: GateOptionsView;
   noRoute: string | null;
   openrouterModel: string | null;

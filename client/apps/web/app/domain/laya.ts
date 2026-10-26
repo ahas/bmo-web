@@ -121,8 +121,14 @@ export function layaRefusalText(t: Translate, why: LayaModeRefusal): string {
   return t(keys[why]);
 }
 
+// The memory the server holds on its card: whole megabytes below a gigabyte, so a small hold never reads as nought,
+// and gigabytes to one place from there.
 export function vramText(bytes: number | null): string {
-  return bytes === null ? "" : `${(bytes / 1024 ** 3).toLocaleString("ko-KR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} GB`;
+  if (bytes === null) return "";
+
+  const gb = bytes / 1024 ** 3;
+
+  return gb < 1 ? `${countText(Math.max(1, Math.round(bytes / 1024 ** 2)))} MB` : `${gb.toLocaleString("ko-KR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} GB`;
 }
 
 // The model's last name, which is what a line has room for.

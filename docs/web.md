@@ -2798,8 +2798,8 @@ Two ways, split because the running places differ.
 - **Laya stands on this tab too** (the gate unit's documents):
   - A band above the table gives the Laya server's state from its latest health check, as the gate unit's `GET
     /laya` answers it — 응답함, 사용 중 where its card was taken for the last call, the failure word, 꺼짐 where no
-    address is set, or 확인 전; where the gate unit is not reached, 연결 안 됨 — with the model, the VRAM it holds and
-    how long the check took, in the node screen's state colours. It is pressed for a popover of the
+    address is set, or 확인 전; where the gate unit is not reached, 연결 안 됨 — with the model, the VRAM it holds
+    (in whole MB below a gigabyte, in GB to one place from there) and how long the check took, in the node screen's state colours. It is pressed for a popover of the
     details — model, device, VRAM, load time, address, when it was checked and last answered — with
     노드 보기 to the node whose host the address names, where one does. The band and the table share the
     page's one gutter: the band's words start where the table's first column does, its button's own inset
@@ -2807,12 +2807,16 @@ Two ways, split because the running places differ.
   - The table carries each gate's Laya mode and τ as cells that edit their own value like the others.
     The mode offers 기본 (with the mode it stands for) and the four modes; τ offers 없음 and the grid the
     agreement is counted at. A gate that declares no probe shows a dash in both and in the next.
+  - **A gate's options are the gate unit's.** Its time limit, its switch, its Laya mode, τ and fallback LLM
+    are read with the table from the gate unit's `GET /options/{gateName}`, for each gate its `GET /gates`
+    lists, and a cell that changes one writes it with `POST /options/{gateName}`. A row the gate unit does
+    not list, or a table read while the unit is not reached, has no options and shows a dash in their cells.
   - Read-only beside them, 일치: the gate's agreement with its LLM, over the pairs it rests on and the
     failures beside them, and at the gate's τ the share Laya would settle and how often it agrees
     there. A gate Laya settles one question at a time counts questions instead of pairs, and beside
     them the share of its questions Laya settled (the gate unit's documents, 「Agreement」). It keeps its place with a skeleton until the records are read.
-  - A mode of 필터 or 비대칭 for a gate with no τ is refused by the bot, and the refusal is said in a
-    notice. The whole of it is read from the gate unit's `GET /laya` and read again every half minute while the tab
+  - A mode of 필터 or 비대칭 for a gate with no τ is refused by the gate unit, as is a mode the gate cannot
+    run in, and the refusal is said in a notice in the pack's sentence for its code. The whole of it is read from the gate unit's `GET /laya` and read again every half minute while the tab
     stands, and when a turn ends.
 
 #### 대화 상대

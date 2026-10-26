@@ -98,6 +98,7 @@ import { CHIP_ICONS, CHIP_LABELS } from "~/domain/chips";
 import { jobLineView, useJobLine, useJobPrompt } from "~/domain/job-line";
 import { useLiveRefresh } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
+import { planStages } from "~/domain/stepper";
 import { callTopLine, planOf } from "~/domain/tool-view";
 import { taskStageKey, workStages, workSteps } from "~/domain/workorder";
 
@@ -192,21 +193,10 @@ const plan = computed(() => {
   return null;
 });
 
-const PLAN_LABELS = { pending: "todo.label.task_pending", running: "todo.label.task_running", done: "todo.label.task_done" } as const;
-
 const stages = computed<Stage[]>(() => {
   if (steps.value.length > 0) return workStages(t, steps.value, order.value?.ended ?? {}, clock.value);
 
-  return (plan.value?.steps ?? []).map((step, index) => ({
-    key: `plan-${index}`,
-    state: step.state,
-    stateLabel: t(PLAN_LABELS[step.state]),
-    title: step.title,
-    owner: props.agent,
-    model: "",
-    seconds: null,
-    subs: []
-  }));
+  return planStages(t, plan.value?.steps ?? [], props.agent);
 });
 
 const hasHead = computed(() => slots.order !== undefined || slots.result !== undefined || job.value !== null || (props.stepper && stages.value.length > 0));

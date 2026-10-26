@@ -138,7 +138,9 @@ describe("reopening a finished order", () => {
   test("the earlier rounds stand as steps of their own, on the draft as well", () => {
     // The co-worker list reads whatever order stands, a draft reopened included.
     expect(source).toContain("<template v-if=\"fetched && props.part === 'steps'\">");
-    expect(source).toContain('<p v-if="order === null || steps.length === 0"');
+    expect(source).toContain('<p v-else-if="order === null || steps.length === 0"');
+    // An order of no stages stands the plan the item's latest job laid out of its own, on the same stepper.
+    expect(source).toContain(`<StageStepper v-if="(order === null || steps.length === 0) && planned.length > 0"`);
   });
 });
 

@@ -104,7 +104,10 @@
     </template>
     <template v-if="fetched && props.part === 'steps'">
       <p class="text-sm font-medium">{{ $t("todo.title.coworkers") }}</p>
-      <p v-if="order === null || steps.length === 0" class="mt-1 text-sm text-muted">{{ $t("todo.status.no_coworkers") }}</p>
+      <!-- An order of no stages stands the plan the item's latest job laid out of its own, on the same stepper; a step
+           of it opens nothing, since the plan is the job's own work. -->
+      <StageStepper v-if="(order === null || steps.length === 0) && planned.length > 0" class="mt-2" :stages="planned" :label="$t('todo.title.coworkers')" data-item-plan />
+      <p v-else-if="order === null || steps.length === 0" class="mt-1 text-sm text-muted">{{ $t("todo.status.no_coworkers") }}</p>
       <template v-else>
       <!-- When the work began and ended, and how long of that it spent running: an order paused
            between the two stamps stood for that time rather than worked it, so what stands as the
@@ -135,12 +138,15 @@ import { useLastRead } from "bmo-ui/app/domain/loading";
 import { spanClock, formatStamp } from "bmo-ui/app/domain/time";
 import { progressText } from "~/domain/numbers";
 import { orderSpan, phaseName, taskCounts, taskStageKey, workStages, workSteps } from "~/domain/workorder";
+import { planStages } from "~/domain/stepper";
+import type { PlanStep } from "~/domain/tool-view";
 // `now` is the clock of the panel this stands in, so a running step's time moves with it.
 // `part` is which half of the order this stands: the order, or its co-workers.
 // `held` is whether the item is set aside, which is what a resume waits for to be taken back.
 // `item` is whether the item is finished and what it is merged into: an order over an item that is
 // either stands only to be closed, and is never shown as stopped.
-const props = defineProps<{ part: "order" | "steps"; todoId: number; title: string; instruction: string; queuePaused: boolean; now: number; held?: boolean; item?: { done: boolean; mergedInto: number | null } }>();
+// `worker` is the item's worker and `plan` the plan its latest job laid out of its own.
+const props = defineProps<{ part: "order" | "steps"; todoId: number; title: string; instruction: string; queuePaused: boolean; now: number; held?: boolean; item?: { done: boolean; mergedInto: number | null }; worker?: string | null; plan?: PlanStep[] }>();
 const { t } = useI18n();
 const { data: orderRead, refresh, status, error: fetchError } = useFetch<WorkOrderView | null>(() => `/api/todos/${props.todoId}/work-order`, { default: () => null });
 // A failed read puts the order back to none; the order last read stays through it instead.
@@ -212,6 +218,8 @@ function openStage(key: string) {
   }
 }
 const counts = computed(() => taskCounts(order.value?.tasks ?? []));
+// The plan the item's latest job laid out of its own, which stands where the order holds no stages.
+const planned = computed(() => planStages(t, props.plan ?? [], props.worker ?? t("todo.label.base_worker")));
 const span = computed(() => order.value ? orderSpan(steps.value, order.value.status, props.now) : null);
 // The dialog reads the step as the order now stands: a verb pressed in it or an event read after it
 // brings a new body, and the step it had open is looked for again by its name there.

@@ -3,9 +3,10 @@ import { STATUS_HISTORY_LIMIT, WORKER_AGENT } from "#shared/config";
 import { agency, agencyCall } from "./agency";
 import { job as jobService, jobCall, JOB_TIMEOUT_MS } from "./job";
 import { within } from "./unit-answer";
+import { planOf } from "../../app/domain/tool-view";
 
 import type { Job as AgencyJob } from "@agency/client";
-import type { JobLine, JobPrompt, JobRecord, LiveRun } from "#shared/types";
+import type { ItemRuns, JobLine, JobPrompt, JobRecord, LiveRun, RanOn } from "#shared/types";
 
 // A worker's job and the jobs that have just run, as the agency's fixed API reads them (the agency's `docs/api.md`,
 // 「assignments and jobs」), into the shapes the worker's screen and the live board draw. The agency's times are
@@ -146,4 +147,50 @@ export async function readLiveRuns(): Promise<LiveRun[]> {
   const rooms = await Promise.all(jobs.map(roomOf));
 
   return jobs.map((job, at) => liveRunOf(job, rooms[at] ?? null));
+}
+
+// The most lines of a job's run read for its plan and its road: a plan is laid out early and rewritten as it goes, and
+// a run longer than this has both in the lines read.
+const RUN_LINES = 500;
+
+// The road an answer line names: its record's `model`, a `[provider, model]` pair.
+function roadOf(text: string): RanOn | null {
+  try {
+    const record = JSON.parse(text) as { model?: unknown };
+    const pair: unknown = typeof record.model === "string" ? JSON.parse(record.model) : record.model;
+
+    return Array.isArray(pair) && typeof pair[0] === "string" && typeof pair[1] === "string" ? { provider: pair[0], model: pair[1], changed: false } : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The jobs of an item on its worker, read from the agency: how many ran it and for how long, the road its latest
+ * answered on and the newest plan it laid out of its own (docs/web.md, 「The work view」). A job's lines stand under its
+ * worker's name.
+ */
+export async function itemRunsOf(worker: string | null, todoId: number): Promise<ItemRuns> {
+  // An item that names no worker runs on the base worker, so its jobs are found among the recent ones.
+  const query = worker === null ? { limit: LIVE_JOBS_LIMIT } : { workerName: worker, limit: 50 };
+  const jobs = (await agencyCall(agency().GET("/jobs", { params: { query } }))).items.filter((one) => one.itemId === todoId);
+  const ended = jobs.filter((one) => one.endedAt !== null);
+  const latest = [...jobs].sort((one, other) => other.startedAt - one.startedAt)[0];
+  const runs: ItemRuns = {
+    attempts: jobs.length,
+    seconds: ended.length === 0 ? null : ended.reduce((sum, one) => sum + ((one.endedAt ?? one.startedAt) - one.startedAt) / 1000, 0),
+    ranOn: null,
+    plan: []
+  };
+
+  if (latest === undefined || latest.runId === null) return runs;
+
+  const lines = (await agencyCall(agency().GET("/log-lines", { params: { query: { runId: latest.runId, agentName: latest.workerName, after: 0, limit: RUN_LINES } } }))).items;
+
+  for (const line of [...lines].reverse()) {
+    if (runs.ranOn === null && line.kind === "answer") runs.ranOn = roadOf(line.text);
+    if (runs.plan.length === 0 && line.kind === "tool") runs.plan = planOf(line.text) ?? [];
+  }
+
+  return runs;
 }

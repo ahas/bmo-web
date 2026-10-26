@@ -337,12 +337,12 @@
                        the run went to inside them — or which run is going, or that none has. -->
                   <div class="rounded-lg border border-default p-3">
                     <p class="text-sm font-medium text-muted">{{ $t("todo.title.run_log") }}</p>
-                    <p v-if="jobRecordLine($t, openedItem) !== null" class="mt-1 text-sm text-muted">{{ jobRecordLine($t, openedItem) }}</p>
+                    <p v-if="jobRecordLine($t, ranItem ?? openedItem) !== null" class="mt-1 text-sm text-muted">{{ jobRecordLine($t, ranItem ?? openedItem) }}</p>
                     <ItemRunFigures :todo-id="openedItem.id" :running="openedItem.running" />
-                    <TodoTime :item="openedItem" />
+                    <TodoTime :item="ranItem ?? openedItem" />
                   </div>
 
-                  <WorkOrderPanel part="steps" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="openedItem.heldAt !== null" :item="openedItem" />
+                  <WorkOrderPanel part="steps" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="openedItem.heldAt !== null" :item="openedItem" :worker="openedItem.worker" :plan="itemRuns?.plan ?? []" />
 
                   <!-- What this item's work stopped to ask, and what each question became. A row
                        that is still open reads as the card above it does. -->
@@ -887,10 +887,12 @@ import {
   todoState,
   unfinishedLabel
 } from "~/domain/todos";
+import { usePolling } from "~/domain/polling";
 import type { TodoActFields } from "~/domain/todos";
 
 import type { Ref } from "vue";
 import type {
+  ItemRuns,
   JobQuestion,
   RoomSummary,
   TodoAction,
@@ -972,6 +974,41 @@ const narrow = useNarrow();
 // dismissed would slide away as a blank frame.
 const openedItem = useHeldWhileClosing(() => props.item);
 const openedStop = computed(() => (openedItem.value === null ? null : stopDetail(t, openedItem.value)));
+
+// What the jobs that carried the item say of it — how many ran it and for how long, the road its latest answered on
+// and the plan it laid out of its own — read as it opens and every few seconds while a job of it runs.
+const itemRuns = ref<ItemRuns | null>(null);
+const RUNS_READ_MS = 3000;
+
+async function readRuns(): Promise<void> {
+  const item = openedItem.value;
+
+  if (item === null) return;
+
+  try {
+    const read = await $fetch<ItemRuns>(`/api/todos/${item.id}/runs`, { query: item.worker === null ? {} : { worker: item.worker } });
+
+    if (openedItem.value?.id === item.id) itemRuns.value = read;
+  } catch {
+    // A read that fails leaves the record as it stood.
+  }
+}
+
+watch(() => openedItem.value?.id ?? null, (id) => {
+  itemRuns.value = null;
+  if (id !== null) void readRuns();
+}, { immediate: true });
+usePolling(() => {
+  if (openedItem.value?.running) void readRuns();
+}, RUNS_READ_MS);
+
+// The item as its record reads it once its runs are read.
+const ranItem = computed<TodoItem | null>(() => {
+  const item = openedItem.value;
+  const runs = itemRuns.value;
+
+  return item === null || runs === null ? null : { ...item, attempts: Math.max(1, runs.attempts), seconds: runs.seconds, ranOn: runs.ranOn ?? item.ranOn };
+});
 
 // The dialog standing, as the thing that opens it and the thing that closes it. Closing goes
 // through the panel's own toggle, the one the row's press uses, so what the address carries and

@@ -57,6 +57,17 @@ export interface WorkOrderStop {
 }
 
 /** What a task ran on, and whether that changed from what it was planned on. */
+/** What the jobs that carried an item say of it, for its run record and its stages (docs/web.md, the TODO modal's state tab). */
+export interface ItemRuns {
+  // How many jobs ran it, and their time added up in seconds, null before one ended.
+  attempts: number;
+  seconds: number | null;
+  // The provider and model its latest job answered on, as that job's answer line names them.
+  ranOn: RanOn | null;
+  // The newest plan its latest job laid out with its plan tool.
+  plan: { title: string; state: "pending" | "running" | "done" }[];
+}
+
 export interface RanOn {
   provider: string;
   model: string;

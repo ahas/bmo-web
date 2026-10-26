@@ -4973,7 +4973,11 @@ Four bounds keep it from growing forever.
 - **Ending a work order.** The work order's own buttons — 중지 and **지시서 종료** — stand at the right. 지시서 종료 asks for
   the 종료 사유 and then **남은 작업 건너뛰고 종료**.
 - **작업 단계** is the work order's steps on the progress stepper (「The progress stepper」), drawn as a vertical stepper
-  and never as a list, whether the order gives its stages to co-workers or to the one worker alone; a head of two
+  and never as a list, whether the order gives its stages to co-workers or to the one worker alone. An item with no
+  work order of stages whose job laid out a plan of its own — the newest plan its latest job wrote with its plan tool,
+  as the work view reads it (「The work view」 under 「Agent screen」) — stands that plan's steps on the same stepper,
+  each with its state, read again every few seconds while the job runs (「실행 기록」 below); a step of it opens nothing, since the plan is
+  the job's own work and its log is where it is read. A stage of the work order has a head of two
   lines per step. The first line holds the step's name and its co-worker types, which keep their width, then its
   title, which takes the rest and ends in an ellipsis, and at the right end the time it took, lined up down the list.
   The second holds the models, which take the free width and slide where they do not fit, then at the right end the
@@ -5396,7 +5400,9 @@ Four bounds keep it from growing forever.
   the room, stored whole uncut. Opening a line that carries either stands the **결과** tab first and selected, with each report and the **미결** each in its own cell. So long after the report
   flowed by, opening one item reads how it ended and what remained. An item with no such record is an old item closed before jobs were asked to report,
   and it is not backfilled.
-- In the 상태 tab, the **실행 기록** cell stands how long the work took as a bar. The time of every job that carried this item summed stands at the top,
+- In the 상태 tab, the **실행 기록** cell stands how long the work took as a bar. What it counts is read from the agency's jobs
+  of the item on its worker (its `GET /jobs`), as the dialog opens and every few seconds while a job of it runs: how many ran
+  it, their time, and, from the latest job's own lines, the road it answered on and the plan it laid out. The time of every job that carried this item summed stands at the top,
   and an item run twice or more attaches how many times beside it. A failed attempt is time the item paid so it is summed too, and a still-running job is
   counted as none — while running, one line attaches which run is going. An item with no job run stands one line that no job has run yet, and an item run
   before spans were recorded stands only the total time with no bar below.

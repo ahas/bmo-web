@@ -150,9 +150,13 @@ export function useJobLine(agent: string, run: Readonly<Ref<string | null>>, eve
     watch(run, () => void read(), { immediate: true });
   }
 
-  usePolling(() => void read(), everyMs);
-  // A worker's turns are the agency's, so its job starting and ending is heard as an agency turn.
-  useLiveRefresh(() => void read(), { on: [...TURN_ENDED, "agency-turn"], everyMs });
+  // The line is read again the moment the agency's stream says a turn, a run, a session or a job moved, and on
+  // the clock while that stream is down. Its tool calls and tokens move with no event of their own, so while the
+  // job runs the clock carries them too; a job that has ended reads on the stream alone.
+  useLiveRefresh(() => void read(), { on: [...TURN_ENDED, "agency-turn", "agency-run", "worker-run"], everyMs });
+  usePolling(() => {
+    if (job.value !== null && job.value.finishedAt === null) void read();
+  }, everyMs);
 
   return { job, loaded };
 }

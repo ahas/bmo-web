@@ -33,7 +33,18 @@ export interface RelayCursors {
 
 // The agency's events the console's screens read back on: a turn going out, a turn ending, and a job starting,
 // changing or ending beside the chat.
-export const AGENCY_KINDS = ["turn.created", "turn.ended", "job.created", "job.changed", "job.ended"] as const;
+export const AGENCY_KINDS = [
+  "turn.created",
+  "turn.ended",
+  "job.created",
+  "job.changed",
+  "job.ended",
+  "run.created",
+  "run.changed",
+  "run.stopped",
+  "session.created",
+  "session.changed"
+] as const;
 
 // How long a stream of bmo-job's or the agency's that ended waits before it is opened again. The receiver's
 // stream is the one the tab's own reconnecting follows; these two are the relay's to keep.

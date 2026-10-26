@@ -888,6 +888,9 @@ export type BotEventType =
   // An agent's turn went out or ended, as the agency publishes it: any agent's, a worker's among them, which
   // the receiver's turns say nothing of.
   | "agency-turn"
+  // One of an agent's runs or sessions began, moved or stopped, as the agency publishes it: what a log and a
+  // stepper of that agent read again on.
+  | "agency-run"
   // A job the agency runs for a room started, changed or ended. What runs now is read from the agency's job
   // list, so the event says only that it moved.
   | "worker-run";
@@ -990,6 +993,15 @@ export type BotEvent = BotEventFields & ({
   workOrder?: never;
   document?: never;
 } | {
+  type: "agency-run";
+  // The agent the run or the session is of, and the run where the event names one; null where it names none.
+  agent: string | null;
+  run: string | null;
+  todoId?: never;
+  workOrder?: never;
+  document?: never;
+  review?: never;
+} | {
   type: "agency-turn";
   // Whether the turn went out or ended, the session it is a turn of and the run it went out as.
   phase: "started" | "ended";
@@ -1000,7 +1012,7 @@ export type BotEvent = BotEventFields & ({
   document?: never;
   review?: never;
 } | {
-  type: Exclude<BotEventType, "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review" | "agency-turn">;
+  type: Exclude<BotEventType, "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review" | "agency-turn" | "agency-run">;
   todoId?: never;
   workOrder?: never;
   document?: never;
@@ -2783,6 +2795,12 @@ export interface DbCell {
   text: string;
   cut: boolean;
   length: number;
+  // A JSON object or list: its shape, how many fields or members it holds, the first of its field names, and the
+  // value itself where it was read whole. A screen stands it as what it holds, never as its text.
+  shape?: "object" | "list";
+  count?: number;
+  keys?: string[];
+  json?: unknown;
 }
 
 // SQL NULL is nothing rather than empty, so it stands as nothing here too.

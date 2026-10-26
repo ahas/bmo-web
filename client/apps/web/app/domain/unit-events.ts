@@ -130,6 +130,14 @@ export function agencyEvent(data: Fields): BotEvent | null {
     return { id, at: number(turn.at) ?? at, type: "agency-turn", chatId: 0, messageId: null, phase, session, run };
   }
 
+  if (kind === "run.created" || kind === "run.changed" || kind === "run.stopped" || kind === "session.created" || kind === "session.changed") {
+    const moved = member ?? data;
+    const agent = text(moved.agentName) ?? text(moved.agent);
+    const run = kind.startsWith("run.") ? (text(moved.unitName) ?? text(moved.name) ?? text(moved.run)) : text(moved.run);
+
+    return { id, at: number(moved.at) ?? at, type: "agency-run", chatId: 0, messageId: null, agent, run };
+  }
+
   if (kind === "job.created" || kind === "job.changed" || kind === "job.ended") {
     const job = member ?? data;
     const room = number(job.roomId);

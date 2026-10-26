@@ -106,6 +106,17 @@ describe("what a statement is allowed to answer with", () => {
     expect(answered?.rows[0]?.[0]).toBeNull();
   });
 
+  test("a JSON value goes with its shape, and whole where it is read whole", async () => {
+    const [answered] = await askDatabase([
+      { sql: `SELECT '{"role":"worker","tags":["a"]}'::jsonb AS one, '[1,2,3]'::text AS two, 'plain'::text AS three`, params: [] }
+    ]);
+    const [one, two, three] = answered?.rows[0] ?? [];
+
+    expect(one).toMatchObject({ shape: "object", count: 2, keys: ["role", "tags"], json: { role: "worker", tags: ["a"] }, cut: false });
+    expect(two).toMatchObject({ shape: "list", count: 3, json: [1, 2, 3] });
+    expect(three?.shape).toBeUndefined();
+  });
+
   test("bytes are said to be bytes rather than shown as letters", async () => {
     const [answered] = await askDatabase([{ sql: "SELECT data FROM notes WHERE title = 'bytes'", params: [] }]);
 

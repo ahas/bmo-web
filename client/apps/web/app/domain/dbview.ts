@@ -133,12 +133,56 @@ export function oneLine(text: string): string {
 }
 
 // What one cell reads as in the list: one line of it, with a mark where there is more.
-export function cellPreview(value: DbValue): string {
+export function cellPreview(t: Translate, value: DbValue): string {
   if (value === null) {
     return "";
   }
 
+  if (value.shape !== undefined) return jsonSummary(t, value);
+
   const line = oneLine(value.text);
 
   return value.cut ? `${line}…` : line;
+}
+
+// What a JSON value holds, in words: an object's count of fields and the first of their names, a list's count of
+// members (docs/web.md, 「DB screen」).
+export function jsonSummary(t: Translate, value: DbCell): string {
+  const count = countText(value.count ?? 0);
+
+  if (value.shape === "list") return t("db.label.json_list", { n: count });
+
+  const keys = value.keys ?? [];
+  const more = (value.count ?? 0) > keys.length ? "…" : "";
+
+  return keys.length === 0 ? t("db.label.json_object_empty") : t("db.label.json_object", { n: count, keys: `${keys.join(", ")}${more}` });
+}
+
+/** One named field of a JSON value as the opened row stands it. */
+export interface JsonField {
+  label: string;
+  value: string;
+}
+
+// A JSON value's named fields, one row each, a nested field under its parent's name and a list's member by its
+// place; a yes or a no as a state word and an empty value as none.
+export function jsonFields(t: Translate, value: unknown, under = ""): JsonField[] {
+  const named = (name: string) => (under === "" ? name : `${under} › ${name}`);
+
+  if (Array.isArray(value)) {
+    return value.length === 0 && under !== "" ? [{ label: under, value: t("db.label.json_none") }] : value.flatMap((one, at) => jsonFields(t, one, named(String(at + 1))));
+  }
+
+  if (value !== null && typeof value === "object") {
+    const entries = Object.entries(value);
+
+    return entries.length === 0 && under !== "" ? [{ label: under, value: t("db.label.json_none") }] : entries.flatMap(([name, one]) => jsonFields(t, one, named(name)));
+  }
+
+  if (under === "") return [];
+
+  if (value === null || value === undefined) return [{ label: under, value: t("db.label.json_none") }];
+  if (typeof value === "boolean") return [{ label: under, value: t(value ? "db.label.json_yes" : "db.label.json_no") }];
+
+  return [{ label: under, value: typeof value === "number" ? countText(value) : String(value) }];
 }

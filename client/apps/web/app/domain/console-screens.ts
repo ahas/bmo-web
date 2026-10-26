@@ -23,6 +23,19 @@ export function useBundleArea() {
   return computed(() => (screenAt(screens.value, route.path) === null ? {} : { [BUNDLE_AREA]: "", style: { contain: "layout" } }));
 }
 
+/** The bar the console draws over a bundle's screen: the manifest's title and icon, where the route the screen
+ * stands at asks for the console's bar in its meta (docs/web.md, 「The title bar」); none where it draws its own. */
+export function useBundleBar() {
+  const route = useRoute();
+  const screens = useConsoleScreens();
+
+  return computed(() => {
+    const screen = screenAt(screens.value, route.path);
+
+    return screen === null || route.meta.consoleTitleBar !== true ? null : { title: screen.title, icon: screen.icon };
+  });
+}
+
 /** Whether a path stands at or below a screen path. */
 export function under(path: string, screenPath: string): boolean {
   return path === screenPath || path.startsWith(`${screenPath}/`);

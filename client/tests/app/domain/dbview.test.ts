@@ -5,6 +5,8 @@ import { wording } from "../../../apps/web/shared/wording";
 import {
   cellPreview,
   cellText,
+  jsonFields,
+  jsonSummary,
   clampPage,
   cutNote,
   isCut,
@@ -90,7 +92,7 @@ describe("one value on the screen", () => {
 
     expect(isCut(whole)).toBe(false);
     expect(cutNote(wording, whole)).toBe("");
-    expect(cellPreview(whole)).toBe(KO.line_92);
+    expect(cellPreview(wording, whole)).toBe(KO.line_92);
   });
 
   test("a value the screen holds only the head of says how much there is", () => {
@@ -98,12 +100,12 @@ describe("one value on the screen", () => {
 
     expect(isCut(cut)).toBe(true);
     expect(cutNote(wording, cut)).toBe(wording("db.label.cut_length", { n: "4,120" }));
-    expect(cellPreview(cut).endsWith("…")).toBe(true);
+    expect(cellPreview(wording, cut).endsWith("…")).toBe(true);
   });
 
   test("reads as one line in a list, however many the value had", () => {
     expect(oneLine(KO.line_104)).toBe(KO.line_104_2);
-    expect(cellPreview({ text: KO.line_105, cut: false, length: 3 })).toBe(KO.line_105_2);
+    expect(cellPreview(wording, { text: KO.line_105, cut: false, length: 3 })).toBe(KO.line_105_2);
   });
 
   test("the one-row view says a length only where the length is news", () => {
@@ -153,5 +155,26 @@ describe("which of the two sides the screen is on", () => {
     expect(isDbMode("sql")).toBe(true);
     expect(isDbMode("rows")).toBe(false);
     expect(isDbMode(null)).toBe(false);
+  });
+});
+
+// A JSON value is never shown as its text (docs/web.md, 「DB screen」): a list cell says what it holds, and the opened
+// row stands its named fields.
+describe("a JSON value", () => {
+  const object = { text: '{"role":"worker","place":{"line":"a"},"kept":true,"tags":[]}', cut: false, length: 60, shape: "object" as const, count: 4, keys: ["role", "place", "kept", "tags"], json: { role: "worker", place: { line: "a" }, kept: true, tags: [] } };
+
+  test("stands in a list cell as its count of fields and their first names, a list as its count of members", () => {
+    expect(cellPreview(wording, object)).toBe(wording("db.label.json_object", { n: "4", keys: "role, place, kept, tags" }));
+    expect(jsonSummary(wording, { text: "[1,2,3]", cut: false, length: 7, shape: "list", count: 3, keys: [] })).toBe(wording("db.label.json_list", { n: "3" }));
+    expect(cellPreview(wording, object)).not.toMatch(/[{}[\]"]/);
+  });
+
+  test("stands in the opened row as its named fields, a nested one under its parent, a yes as a state word", () => {
+    expect(jsonFields(wording, object.json)).toEqual([
+      { label: "role", value: "worker" },
+      { label: "place › line", value: "a" },
+      { label: "kept", value: wording("db.label.json_yes") },
+      { label: "tags", value: wording("db.label.json_none") }
+    ]);
   });
 });

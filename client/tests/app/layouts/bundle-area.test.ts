@@ -6,13 +6,25 @@ import { describe, expect, test } from "bun:test";
 const read = (path: string) => Bun.file(new URL(`../../../apps/web/${path}`, import.meta.url)).text();
 
 describe("the page area of a bundle's screen", () => {
-  test("each layout binds the area's attributes to the box its page stands in", async () => {
+  test("each layout stands its page in the frame, and offers the console's bar to the screens under it", async () => {
     for (const layout of ["app/layouts/default.vue", "app/layouts/member.vue"]) {
       const source = await read(layout);
 
-      expect(source).toContain('<div class="relative flex min-h-0 min-w-0 flex-1" v-bind="bundleArea">\n');
-      expect(source).toContain("const bundleArea = useBundleArea();");
+      expect(source).toMatch(/<BundleScreenFrame>\s*<slot \/>\s*<\/BundleScreenFrame>/);
+      expect(source).toContain("provideConsoleTitleBar();");
     }
+
+    const frame = await read("app/components/BundleScreenFrame.vue");
+
+    expect(frame).toContain('v-bind="area"');
+    expect(frame).toContain('<ConsoleTitleBar v-if="bar !== null" :title="$t(bar.title)" :icon="bar.icon">');
+    expect(frame).toContain("data-title-bar-screen-actions");
+  });
+
+  test("the console draws the bar only for a bundle route that asks for it", async () => {
+    const source = await read("app/domain/console-screens.ts");
+
+    expect(source).toContain("route.meta.consoleTitleBar !== true ? null : { title: screen.title, icon: screen.icon }");
   });
 
   test("the area is marked for a bundle's path alone, and contains the screen's layout", async () => {

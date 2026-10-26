@@ -24,10 +24,10 @@
 
     <template v-for="(column, place) in props.columns" :key="column.name" #[`${column.name}-cell`]="{ row }">
       <span v-if="isNull(row.original.cells[place] ?? null)" class="text-muted italic">NULL</span>
-      <span v-else class="block truncate" :title="cellPreview(row.original.cells[place] ?? null)">
+      <span v-else class="block truncate" :title="cellPreview($t, row.original.cells[place] ?? null)">
         <SearchText
           :class="row.original.cells[place]?.cut ? 'text-muted' : ''"
-          :text="cellPreview(row.original.cells[place] ?? null)"
+          :text="cellPreview($t, row.original.cells[place] ?? null)"
           :query="props.query"
         />
       </span>

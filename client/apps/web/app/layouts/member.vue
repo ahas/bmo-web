@@ -44,9 +44,9 @@
       </template>
     </UDashboardSidebar>
 
-    <div class="relative flex min-h-0 min-w-0 flex-1" v-bind="bundleArea">
+    <BundleScreenFrame>
       <slot />
-    </div>
+    </BundleScreenFrame>
 
     <!-- The title bar's one set of buttons, held here and laid into the standing screen's bar, so a page change moves
          them rather than standing them up again (docs/web.md, 「The title bar」). -->
@@ -57,14 +57,14 @@
 </template>
 
 <script setup lang="ts">
-import { useTitleBarTarget } from "~/domain/title-bar";
+import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
 import { MEMBER_HOME } from "~/domain/access";
 import { consoleName } from "#shared/agent-names";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { SCREEN_FRAME } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
-import { useBundleArea, useConsoleScreens } from "~/domain/console-screens";
+import { useConsoleScreens } from "~/domain/console-screens";
 import { broughtScreens, namedWhenFolded, roomItems, screenItems } from "~/domain/screens";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
@@ -81,8 +81,8 @@ const shell = SCREEN_FRAME;
 useVisibleShell();
 
 const route = useRoute();
-// The page area as a bundle's screen stands in it.
-const bundleArea = useBundleArea();
+// The console's bar, offered to every screen a unit brings.
+provideConsoleTitleBar();
 const { t } = useI18n();
 const open = ref(false);
 const sidebarFolded = ref(false);

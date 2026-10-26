@@ -215,6 +215,12 @@ control:
 db:
   label:
     cut_length: "전체 {n}자"
+    json_list: "항목 {n}개"
+    json_no: 아니요
+    json_none: 없음
+    json_object: "필드 {n}개 · {keys}"
+    json_object_empty: 필드 없음
+    json_yes: 예
     length: "{n}자"
     masked: 가려진 값
     masked_badge: 가려짐

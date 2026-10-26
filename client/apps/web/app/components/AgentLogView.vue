@@ -63,6 +63,7 @@
 // ancestor it was put inside and holds the reader's place in it.
 
 import { AGENT_LOG_POLL_MS } from "#shared/config";
+import { useLiveRefresh } from "~/domain/events";
 import { useAgentLog } from "~/domain/log";
 import { SCROLL_BOTTOM_THRESHOLD_PX, usePolling } from "~/domain/polling";
 import { liveChip, runEnds, useRunChips } from "~/domain/turns";
@@ -261,14 +262,32 @@ onBeforeUnmount(() => {
 });
 
 // New lines are followed only while the screen holds the end of the log. One opened at an
-// older run stands still until the reader has read forward to the end of it. The agents write
-// their lines into the archive themselves and this reads them from there, with the bot nowhere
-// in the way and no event to follow them by, so the clock is what carries them — and it runs
-// only while a log is open.
-usePolling(() => {
+// older run stands still until the reader has read forward to the end of it. The log is read again
+// the moment the agency's stream says one of this agent's runs or sessions moved, a turn went out or
+// ended or a job moved (docs/web.md, 「The flat log」), and on the clock while that stream is down.
+// The agency announces no single line, so while one of the agent's runs is going the clock carries
+// its lines as well; a log whose runs have all ended reads on the stream alone.
+function followEnd(): void {
   if (!log.newer.value) {
     void follow();
   }
+}
+
+const runGoing = computed(() => {
+  if (props.live.length > 0) return true;
+
+  const last = [...rows.value].reverse().find((row) => row.depth === 0);
+
+  return last !== undefined && last.line.kind !== "end";
+});
+
+useLiveRefresh(followEnd, {
+  on: ["agency-run", "agency-turn", "worker-run"],
+  where: (event) => event.type !== "agency-run" || event.agent === null || event.agent === props.name,
+  everyMs: AGENT_LOG_POLL_MS
+});
+usePolling(() => {
+  if (runGoing.value) followEnd();
 }, AGENT_LOG_POLL_MS);
 
 defineExpose({ follow });

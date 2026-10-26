@@ -1558,8 +1558,13 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   stands. A page change moves it into the next screen's bar: nothing in it is stood up again, read again or
   drawn as loading, a button that has its figures keeps showing them, and none of it blinks.
   `client/tests/browser/title-bar.test.ts` holds that the set is the same element across a page change.
-- **Screens a unit brings draw their own bar** in their unit's bundle, which the shared bar does not reach until
-  the base layer offers it to a bundle (`docs/boundary.md`, 「Gaps the console meets」).
+- **A screen a unit brings stands under the same bar.** The console offers its bar to every screen under its
+  layout, provided under the key `bmo-console-title-bar`, and a bundle's route that asks for it — `consoleTitleBar`
+  true in the route's meta — is drawn under the console's bar, named by its manifest's title and mark, the sidebar
+  button and the set of buttons in it as on every screen. Such a screen draws no bar of its own: what acts on it
+  as a whole it lays beside the name, in the place the offer names (`[data-title-bar-screen-actions]`), by a
+  deferred teleport, and its own panels carry no bar. A bundle read where nothing offers the bar — its unit's own
+  app, or a console without the offer — draws its own, and a route that does not ask stands as its bundle draws it.
 - **The title bar holds only what every screen holds** — the sidebar button, the screen's name, the deployment's
   mark, the TODO button and the usage figures — and beside the name what acts on that screen as a whole. What acts
   on one screen's content — its filters, its reread, the time its
@@ -2080,6 +2085,12 @@ Two ways, split because the running places differ.
   head, so this place rereads that row. The ground for picking it is the identity the database gave that row, so
   what opens is the row that was on screen, not another that looks like it. A wide table flows sideways within its
   box, and the screen itself is not pushed aside.
+- **A JSON value is never shown as its text** (「A value shown as what it is」). A value that is a JSON object or
+  list — a `json` or `jsonb` column, or a text column holding one — stands in a list cell as what it holds: an
+  object as how many fields and the first of their names, a list as how many members. The opened row stands it as
+  its named fields, one row each, a nested field under its parent's name, a yes or a no as a state word and an
+  empty value as 없음; a value too long to have been read whole says how long it is and stands its shape alone.
+  Copying the row still copies the value as the database holds it.
 - **Column names are stuck.** Rows flow within that box too, so going down fifty rows keeps the column of the cell
   being read standing above. The name stands over its own background so a row passing beneath does not show
   through, and pushed sideways the name is pushed along its column. The page control below the box stays in place
@@ -5977,9 +5988,14 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
 - **A failed read is said in one band.** The error band carries the reason, and the refresh that reads again stands
   inside it at its trailing end, as an icon button named 새로고침 on hover; no separate button stands under or beside
   the band. Every screen says its read failures in this one band.
-- **Two do not ride the stream.** The cache siren screen runs its own clock: the siren publishes no stream the
-  console relays. The agent log too reads the agency's run log on its own clock, with no event to follow per line,
-  and that clock runs only while a log is open.
+- **The cache siren does not ride the stream.** Its screen runs its own clock: the siren publishes no stream the
+  console relays.
+- **An agent's log and its job line ride the agency's stream.** The console relays the agency's `GET /events` — its
+  turns, its runs and sessions created, changed or stopped, and its jobs — and an open log, a work view's job line
+  and its stepper read again the moment one of them concerns that agent. While the stream is down they read on their
+  own clock. The agency announces no single line of a log and no tool call of a job, so while one of the agent's
+  runs is going, or its job runs, that clock carries its lines and figures as well; a log whose runs have all ended,
+  and a job that has ended, read on the stream alone.
 - The live status screen gets the status once on opening and thereafter swaps in the status the stream carries.
 
 ## Tables

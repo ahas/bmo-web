@@ -271,7 +271,7 @@ describe("the edge the queue stands against", () => {
   test("and the page beside it stays the last of its box, so it draws no second line", () => {
     // Anything standing after the page in its box would make the page's panel a not-last child, which
     // draws its trailing edge.
-    expect(layout).toMatch(/<div class="relative flex min-h-0 min-w-0 flex-1" v-bind="bundleArea">\s*<slot \/>\s*<\/div>\s*<TodoPanel place="aside" \/>/);
+    expect(layout).toMatch(/<BundleScreenFrame>\s*<slot \/>\s*<\/BundleScreenFrame>\s*<TodoPanel place="aside" \/>/);
   });
 
   test("the line inside the handle is nothing at all until a drag begins", () => {

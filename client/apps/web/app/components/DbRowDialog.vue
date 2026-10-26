@@ -50,6 +50,17 @@
               >
                 NULL
               </dd>
+              <!-- A JSON value stands as its named fields, never as its text; one too long to have been read whole stands
+                   its shape alone (docs/web.md, 「DB screen」). -->
+              <dd v-else-if="valueAt(at)?.shape !== undefined" class="text-sm" data-db-json>
+                <dl v-if="valueAt(at)?.json !== undefined && jsonFields($t, valueAt(at)?.json).length > 0" class="pair-list gap-x-4 gap-y-1">
+                  <template v-for="field in jsonFields($t, valueAt(at)?.json)" :key="field.label">
+                    <dt class="font-mono text-muted">{{ field.label }}</dt>
+                    <dd class="break-words whitespace-pre-wrap text-highlighted">{{ field.value }}</dd>
+                  </template>
+                </dl>
+                <p v-else class="text-muted">{{ jsonSummary($t, valueAt(at)!) }}</p>
+              </dd>
               <dd v-else class="font-mono text-sm break-all whitespace-pre-wrap text-highlighted">{{
                 cellText(valueAt(at))
               }}</dd>
@@ -64,7 +75,7 @@
 <script setup lang="ts">
 import { UDrawer, UModal } from "#components";
 import { copyText } from "~/domain/copy";
-import { cellText, isNull, lengthNote } from "~/domain/dbview";
+import { cellText, isNull, jsonFields, jsonSummary, lengthNote } from "~/domain/dbview";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
 import type { DbValue } from "#shared/types";

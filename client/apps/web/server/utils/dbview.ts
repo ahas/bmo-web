@@ -80,7 +80,32 @@ function cell(value, cap) {
     return { text: "<" + value.length + " bytes>", cut: false, length: value.length };
   }
 
-  const text = typeof value === "string" ? value : typeof value === "object" && !(value instanceof Date) ? JSON.stringify(value) : String(value);
+  // A JSON object or list — a json column's value, or a text holding one — goes with its shape, so the screen stands
+  // it as what it holds rather than as its text, and whole where it is read whole.
+  let json;
+
+  if (typeof value === "object" && !(value instanceof Date)) {
+    json = value;
+  } else if (typeof value === "string" && /^\s*[[{]/.test(value)) {
+    try {
+      const parsed = JSON.parse(value);
+
+      if (parsed !== null && typeof parsed === "object") json = parsed;
+    } catch {}
+  }
+
+  if (json !== undefined) {
+    const whole = JSON.stringify(json);
+    const shape = Array.isArray(json) ? "list" : "object";
+    const count = Array.isArray(json) ? json.length : Object.keys(json).length;
+    const keys = Array.isArray(json) ? [] : Object.keys(json).slice(0, 6);
+
+    return whole.length > cap
+      ? { text: whole.slice(0, cap), cut: true, length: whole.length, shape, count, keys }
+      : { text: whole, cut: false, length: whole.length, shape, count, keys, json };
+  }
+
+  const text = typeof value === "string" ? value : String(value);
 
   return text.length > cap
     ? { text: text.slice(0, cap), cut: true, length: text.length }

@@ -134,6 +134,20 @@ describe("the agency's turns", () => {
       messageId: null
     });
 
-    expect(agencyEvent({ id: 30, at: 1, kind: "run.changed", data: { id: 4, roomId: 5 } })).toBeNull();
+    expect(agencyEvent({ id: 30, at: 1, kind: "account.changed", data: { id: 4 } })).toBeNull();
+  });
+
+  test("a run or a session that moved names its agent and its run, where the event carries them", () => {
+    expect(agencyEvent({ id: 31, at: 7, kind: "run.changed", data: { id: 4, agentName: "worker-b", unitName: "run-a" } })).toEqual({
+      id: 31,
+      at: 7,
+      type: "agency-run",
+      chatId: 0,
+      messageId: null,
+      agent: "worker-b",
+      run: "run-a"
+    });
+    expect(agencyEvent({ id: 32, at: 8, kind: "session.changed", data: { agentName: "worker-b" } })).toMatchObject({ type: "agency-run", agent: "worker-b", run: null });
+    expect(agencyEvent({ id: 33, at: 9, kind: "run.stopped", data: { id: 4 } })).toMatchObject({ type: "agency-run", agent: null, run: null });
   });
 });

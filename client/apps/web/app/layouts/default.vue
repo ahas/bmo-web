@@ -95,9 +95,9 @@
            panel is the task panel's own leading edge, so the page's last panel must stay the last element of
            its box, where it draws no trailing edge. -->
       <div class="flex min-h-0 min-w-0 flex-1">
-        <div class="relative flex min-h-0 min-w-0 flex-1" v-bind="bundleArea">
+        <BundleScreenFrame>
           <slot />
-        </div>
+        </BundleScreenFrame>
         <TodoPanel place="aside" />
       </div>
     </div>
@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { useTitleBarTarget } from "~/domain/title-bar";
+import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
@@ -147,7 +147,7 @@ import { jumpGroups, screenGroup } from "~/domain/jump";
 import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
-import { useBundleArea, useConsoleScreens } from "~/domain/console-screens";
+import { useConsoleScreens } from "~/domain/console-screens";
 import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
 
 import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
@@ -159,8 +159,8 @@ import type { JumpGroup } from "~/domain/jump";
 const titleBarTarget = useTitleBarTarget();
 
 const route = useRoute();
-// The page area as a bundle's screen stands in it.
-const bundleArea = useBundleArea();
+// The console's bar, offered to every screen a unit brings.
+provideConsoleTitleBar();
 
 // The shell of the console fills what is on the screen rather than what the window says it is.
 // The two are the same until something is laid over the page — a virtual keyboard is, on a phone

@@ -10,11 +10,12 @@ import type { Browser, BrowserContext } from "playwright-core";
 import type { TodoBoard, TodoItem, TodoReport } from "../../apps/web/shared/types";
 
 // A finished item's reports and the translations under its English texts, as the browser lays them out (docs/web.md,
-// the TODO modal's result and instruction tabs, 「The original, and its translation under it」): every report stands in the result tab, the
-// closing one first and whole, headed by its kind and moment; the row's mark counts them; and each English text stands
-// in its original with a Korean reading under it, each text asked of the translator once however often the item is
-// opened. It drives the console tests/support/browser-console.ts stands up, serving what each place reads through the
-// page's own routes; the suite stands up no console, so there it skips.
+// the TODO modal's result and instruction tabs, 「The original, and its translation under it」): every report stands
+// in the result tab, the closing one first and whole, headed by its kind and moment; the row's mark counts them; each
+// English text stands in its original with a Korean reading under it, each text asked of the translator once however
+// often the item is opened; and each approval stands with its caller and kind, a recommendation apart from approval.
+// It drives the console tests/support/browser-console.ts stands up, serving what each place reads through the page's
+// own routes; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "item-reports", password: "fixture-password-2251" };
@@ -43,7 +44,7 @@ const REPORTS: TodoReport[] = [
 
 function item(): TodoItem {
   return {
-    id: ITEM, title: "item-title", instruction: BRIEF, requester: "Owner", requesterId: null, chatId: null, approved: true, done: true,
+    id: ITEM, title: "item-title", instruction: BRIEF, requester: "Owner", requesterId: null, chatId: null, approved: true, recommended: false, done: true,
     running: false, worker: "worker-b", cowork: false, priority: 1, status: "done", model: null, ranOn: null, note: null, reports: REPORTS, unfinished: null,
     unfinishedResolvedAt: null, unfinishedResolution: null, brief: BRIEF, heldAt: null, heldReason: null, heldKind: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
@@ -164,7 +165,9 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
         // Closed and opened again in the same tab, nothing is asked again: every text was asked for once. (A tab opened
         // afresh asks the gate again, which answers what it keeps without its translator.)
         await page.keyboard.press("Escape");
-        expect(await until(async () => await page.getByRole("dialog").filter({ hasText: "item-title" }).count(), (n) => n === 0)).toBe(0);
+        const itemDialogs = page.getByRole("dialog").filter({ has: page.getByRole("tab", { name: wording("todo.label.field_instruction") }) });
+
+        expect(await until(async () => await itemDialogs.count(), (n) => n === 0)).toBe(0);
         await page.evaluate(async (id) => {
           const root = document.querySelector("#__nuxt") as unknown as { __vue_app__: { config: { globalProperties: { $router: { push: (to: object) => Promise<unknown> } } } } };
 
@@ -172,7 +175,7 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
           await root.__vue_app__.config.globalProperties.$router.push({ query: { todo: String(id) } });
         }, ITEM);
         // The same item opened again keeps the tab being read, and its reading stands at once, from what the tab kept.
-        const again = page.getByRole("dialog").filter({ hasText: "item-title" }).last();
+        const again = itemDialogs.last();
 
         await again.locator("[data-reading]").filter({ hasText: `ko-reading: ${BRIEF}` }).waitFor({ timeout: 20_000 });
         await again.getByRole("tab", { name: wording("todo.label.result") }).first().click();
@@ -191,6 +194,45 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
       }
     }, 90_000);
   }
+
+  test("an approval stands with its caller and kind, and a recommendation apart from it, waiting on the owner", async () => {
+    const context = await open(WIDTHS[0]);
+
+    try {
+      await context.route(new RegExp(`/api/todos/${ITEM}/approvals$`), (route) =>
+        route.fulfill({ json: [{ id: 2, kind: "approval", caller: "ahas", at: NOW - 60 }, { id: 1, kind: "recommendation", caller: "chat", at: NOW - 120 }] })
+      );
+      await context.route(/\/api\/todos(\?|$)/, async (route) => {
+        if (route.request().method() !== "GET") return await route.continue();
+
+        const board = (await (await route.fetch()).json()) as TodoBoard;
+        const waiting = { ...item(), id: 2252, title: "recommended-title", done: false, status: "open", approved: false, recommended: true, reports: [] };
+
+        await route.fulfill({ json: { ...board, pending: [waiting], done: [item()], doneTotal: 1 } });
+      });
+
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/?todo=${ITEM}`, { waitUntil: "load" });
+
+      const dialog = page.getByRole("dialog").filter({ has: page.getByRole("tab", { name: wording("todo.label.field_instruction") }) }).last();
+
+      await dialog.getByRole("tab", { name: wording("todo.label.field_state") }).first().click();
+
+      const record = dialog.locator("[data-approval-kind]");
+
+      await record.first().waitFor({ timeout: 20_000 });
+      expect(await record.evaluateAll((all) => all.map((one) => [one.getAttribute("data-approval-kind"), one.textContent?.trim()]))).toEqual([
+        ["approval", `${wording("todo.label.approval_given")} · ahas`],
+        ["recommendation", `${wording("todo.label.approval_recommended")} · chat`]
+      ]);
+
+      await page.keyboard.press("Escape");
+      expect(await page.locator("[data-recommended]").first().innerText()).toContain(wording("todo.label.approval_recommended"));
+    } finally {
+      await context.close();
+    }
+  }, 90_000);
 
   test("the row's report mark counts the reports and names their kinds", async () => {
     const context = await open(WIDTHS[0]);

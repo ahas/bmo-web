@@ -1,4 +1,4 @@
-import { loadBundle } from "./bundle-loader";
+import { BUNDLE_AREA, loadBundle } from "./bundle-loader";
 
 import type { ConsoleScreen } from "#shared/console-bundles";
 import type { Router } from "vue-router";
@@ -11,6 +11,16 @@ import type { Router } from "vue-router";
 /** The screens the reader may open, as the page read them. */
 export function useConsoleScreens() {
   return useState<ConsoleScreen[]>("console-screens", () => []);
+}
+
+/** The attributes the page area carries while the path open is a bundle's screen: the mark that holds the bundle's
+ * variant rules to it, and the containment that makes it the box the screen's fixed positions are laid out in, so a
+ * screen fixed to the window fills the page area alone (docs/web.md, 「Screens a unit brings」). */
+export function useBundleArea() {
+  const route = useRoute();
+  const screens = useConsoleScreens();
+
+  return computed(() => (screenAt(screens.value, route.path) === null ? {} : { [BUNDLE_AREA]: "", style: { contain: "layout" } }));
 }
 
 /** Whether a path stands at or below a screen path. */

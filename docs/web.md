@@ -1314,6 +1314,16 @@ Four groups.
   - Its ends round whole, and it is at least as wide as it is tall.
   - Its number turns as it changes (「Motion」).
 
+### A value shown as what it is
+
+- **No screen draws a JSON object or array as text** — not in a label, a cell, a chip, a row, a field's value or
+  a tooltip. A value is shown as what it is: a list as its rows, an object as its named fields in the console's own
+  words (`WORDING.md`), a moment as a moment, a yes or no as a state word, a number as a number, and a long body —
+  a schema, a payload, a tool's raw result — in a block of its own with its highlighting, where a reader expects
+  code. A field whose value is itself an object stands its fields one level in, under its name.
+- **A value of a kind the screen does not know** stands as a sentence saying so, naming what it is, never as the
+  value's own JSON.
+
 ### Name and value lists
 
 - **A list of names each with its value is one shape everywhere:** a hardware tile's figures, a
@@ -3770,6 +3780,14 @@ Four bounds keep it from growing forever.
     stands, and only a run split by size stands one line per part. A result the screen does not know stands by
     the recorded words, so an old verdict's line reads by the words of that time. A non-gate stage and a verdict
     from before road records existed have no road, and such a card stands only the full text.
+  - **A picker's card stands what its model was asked.** A verdict of a picker or the matcher — 시스템 문서, 방
+    규칙, 라이브러리 지식, 사람 찾기, 방 기억, 상황 규칙 — carries the lines the model read of its candidates
+    (the gate's `docs/api.md`, 「Judgements」), and its card stands them under the verdict in the order the model
+    read them: each line character for character, monospaced and wrapping where the bubble ends, and its answer
+    beside it — 예 or 아니요, a rule's 적용 and 사용 each as 예 or 아니요, and 읽지 못함 where the answer was not
+    read. Those lines take the place of the list of picked names the verdict's detail holds, which says less
+    than they do. A verdict that carries no lines stands as before. A verdict the live stream announces carries
+    its lines where the stream hands them, and the page read after it carries them all the same.
   - **What opened the turn stands with its verdicts.** Spread, a message's verdicts are headed, for each
     turn they belong to, by the quiet instructions that turn carried: one line each, its sort and its one-line
     summary, cut to the line. Pressing a line spreads the instruction's whole text under it, read the moment it
@@ -4766,9 +4784,10 @@ Four bounds keep it from growing forever.
       words added to the item, each with who said it and when, a 지우기 that takes one back, and the box 지시 사항 that
       adds one: what the chat agent reads and organizes, which no worker reads (bmo-job's `docs/todo.md`, 「Added words」).
     - **상태** stands the **실행 기록**, then the **코워커 목록**, then what a job asked, then the **결재 기록**:
-      every approval and every approval taken back, newest first, each with who did it — a person, an agent or a
-      job — by which road and when (bmo-job's `docs/todo.md`, 「Approval」). bmo-job serves the record by no route yet
-      (`docs/boundary.md`, 「Gaps the console meets」), so it says in one line that it holds no row. The 실행 기록 always stands, saying which run is going if a job runs and that there is none yet if no job
+      every approval the item carries, newest first, each with the caller whose token gave it and when, and its kind
+      (bmo-job's `docs/api.md`, 「Items」): a **결재**, an approver's, which is what lets the item's work begin, or a
+      **추천**, the chat agent's word for it, which moves nothing and stands apart in its own colour so it is never
+      read as the owner's. An approval taken back is gone from the item and from the record. The 실행 기록 always stands, saying which run is going if a job runs and that there is none yet if no job
       has run — an empty place saying nothing would leave the reader unable to tell no record from unread.
       While a job of the item runs, 상태 reads its job line again every few seconds and on every word the agency
       says of the job, so its tool calls, its tokens and how far it has come move as they happen, and the co-worker
@@ -5232,6 +5251,10 @@ Four bounds keep it from growing forever.
   editing and saving the 결재 의견 attached to it. On a completed line only its unfinished-item is acted on. All go through the bot's control API so the bot
   always writes the table, and approval happens only in the owner's place. That intake is not approval, and that a room's chat agent cannot approve, this panel does
   not weaken.
+- **Only an approver's approval approves.** An item reads as approved — in the queue, 결재됨 on its line — only where it carries an approval of the
+  `approval` kind, which the console's own caller gives: the console sends an approval with no name of its own, since who gives it is the caller its
+  token names (bmo-job's `docs/api.md`, 「Items」). An item carrying only the chat agent's **추천** still waits on the owner among 결재 대기, its line
+  saying it is recommended, and the owner's 결재 still decides it.
 - **Approval makes the queue re-examined.** Putting an item in the queue is approval, so where approved the bot re-examines the queue and if no job is
   running assigns the front item there. A job's launching is grounded on that assignment alone, and a chat session cannot launch unassigned work.
   Reversing approval removes the item from the queue so it assigns nothing.
@@ -5848,6 +5871,17 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   — in place of a console page that stood at the same address, a placeholder — and its stylesheet is linked
   once, in a cascade layer of its own above the console's base and below its components and utilities, so a
   class both style reads as the console's and a bundle's copy of a utility never undoes the frame around it. A loaded module stays for the life of the tab; a manifest naming a new one reaches the next tab.
+  - **A bundle's variants still win over a plain utility.** A utility under a variant — a width (`md:`), a state
+    (`hover:`), a child or a selector of its own — is meant to beat the plain utility it stands beside, and in
+    the bundles' layer it would lose to the console's plain copy of that utility. So the console reads the
+    stylesheet once more and lays its variant rules alone in a second layer of the bundles', above the console's
+    utilities, where a browser that scopes styles holds them to the page area of a bundle's screen. A screen's
+    `flex-col md:flex-row` then turns to a row at its width as the bundle wrote it, while its plain utilities still
+    give way to the console's.
+  - **A bundle's screen stands in the page area.** The page area beside the sidebar and the task panel is the box a
+    bundle's screen is laid out in, a fixed position included: a screen whose root is fixed to the window — a
+    dashboard group of its own — fills the page area and never the window, so the sidebar, the task panel and the
+    page area's edges stand around it as around every page, and no part of another page stands under it.
 - **A bundle's page is drawn in the browser.** The server holds no bundle's module, so an address under a
   bundle's screen path is answered with the app's shell, and the browser draws the page once the module is in.
 - **A share page reads only its own bundle.** Asked with no session for an address under a screen path's

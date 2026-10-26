@@ -738,51 +738,24 @@ export function jobRecordLine(t: Translate, item: TodoItem): string | null {
 
 // Where the item stands on approval, in the words the dialog's head line uses.
 export function approvalLabel(t: Translate, item: TodoItem): string {
-  return item.approved ? t("todo.label.approved") : t("todo.label.not_approved");
+  if (item.approved) return t("todo.label.approved");
+
+  return item.recommended ? t("todo.label.recommended_awaiting") : t("todo.label.not_approved");
 }
 
-// One change of an item's approval, as its record reads it: given or taken back, whose hand it was,
-// the road it came by and, for one given, the way it came (docs/todo.md, 「Approval」).
-const APPROVAL_ROAD: Record<TodoApproval["road"], string> = {
-  console: "todo.label.approval_road_console",
-  verb: "todo.label.approval_road_verb",
-  chat_tool: "todo.label.approval_road_chat_tool"
-};
-
-const APPROVAL_VIA: Record<NonNullable<TodoApproval["via"]>, string> = {
-  owner: "todo.label.approval_via_owner",
-  rule: "todo.label.approval_via_rule",
-  grant: "todo.label.approval_via_grant"
-};
-
+// One approval of an item, as its record reads it: its kind — an approver's approval or the chat agent's
+// recommendation — and the caller whose token gave it (docs/web.md, the TODO modal's approval record).
 export function approvalChangeLine(t: Translate, change: TodoApproval): string {
-  const parts = [
-    change.approved ? t("todo.label.approval_given") : t("todo.label.approval_taken"),
-    approvalHand(t, change),
-    t(APPROVAL_ROAD[change.road])
-  ];
+  const kind = change.kind === "approval" ? t("todo.label.approval_given") : t("todo.label.approval_recommended");
+  const caller = change.caller === null ? t("todo.label.approval_no_caller") : t("todo.label.approval_by_person", { name: change.caller });
 
-  if (change.approved && change.via !== null) parts.push(t(APPROVAL_VIA[change.via]));
-
-  return parts.join(" · ");
+  return `${kind} · ${caller}`;
 }
 
-// Whose hand made the change: a person stands by name alone, an agent and a job are said to be one.
-function approvalHand(t: Translate, change: TodoApproval): string {
-  switch (change.whoKind) {
-    case "person":
-      return t("todo.label.approval_by_person", { name: change.who });
-    case "agent":
-      return t("todo.label.approval_by_agent", { name: change.who });
-    case "job":
-      return t("todo.label.approval_by_job", { name: change.who });
-  }
-}
-
-// The mark a record line wears beside its words: the same marks the row's own verbs give and take
-// the approval with.
+// The mark a record line wears beside its words: the check the row's own verb gives an approval with, and a
+// thumb for a recommendation, which is not one.
 export function approvalChangeIcon(change: TodoApproval): string {
-  return change.approved ? "i-material-symbols-check" : "i-material-symbols-undo";
+  return change.kind === "approval" ? "i-material-symbols-check" : "i-material-symbols-thumb-up-outline";
 }
 
 // Where a request came from, for a row waiting on the owner: the room and the person who asked.

@@ -86,6 +86,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     requesterId: 42,
     chatId: OWNER_ID,
     approved: true,
+    recommended: false,
     done: false,
     running: false,
     worker: null,
@@ -633,35 +634,24 @@ describe("what a row's menu offers", () => {
   });
 });
 
-describe("a change in an item's approval record", () => {
-  const change = { id: 1, approved: true, via: "grant" as const, whoKind: "person" as const, who: "tester", road: "console" as const, at: NOW };
+describe("an approval in an item's record", () => {
+  const given = { id: 1, kind: "approval" as const, caller: "tester", at: NOW };
 
-  test("names what changed, whose hand it was and the road, and for an approval the way it came", () => {
-    expect(approvalChangeLine(wording, change)).toBe(
-      [wording("todo.label.approval_given"), "tester", wording("todo.label.approval_road_console"), wording("todo.label.approval_via_grant")].join(" · ")
+  test("names its kind and the caller whose token gave it", () => {
+    expect(approvalChangeLine(wording, given)).toBe([wording("todo.label.approval_given"), "tester"].join(" · "));
+    expect(approvalChangeLine(wording, { ...given, kind: "recommendation", caller: null })).toBe(
+      [wording("todo.label.approval_recommended"), wording("todo.label.approval_no_caller")].join(" · ")
     );
   });
 
-  test("tells an agent and a job apart from a person, and a reversal carries no way", () => {
-    expect(approvalChangeLine(wording, { ...change, approved: false, via: null, whoKind: "agent", who: "bmo", road: "chat_tool" })).toBe(
-      [
-        wording("todo.label.approval_taken"),
-        wording("todo.label.approval_by_agent", { name: "bmo" }),
-        wording("todo.label.approval_road_chat_tool")
-      ].join(" · ")
-    );
-    expect(approvalChangeLine(wording, { ...change, whoKind: "job", who: "worker-w5-9", road: "verb", via: "owner" })).toBe(
-      [
-        wording("todo.label.approval_given"),
-        wording("todo.label.approval_by_job", { name: "worker-w5-9" }),
-        wording("todo.label.approval_road_verb"),
-        wording("todo.label.approval_via_owner")
-      ].join(" · ")
-    );
+  test("wears a mark of its own for a recommendation", () => {
+    expect(approvalChangeIcon(given)).not.toBe(approvalChangeIcon({ ...given, kind: "recommendation" }));
   });
 
-  test("wears the mark of the verb that made it", () => {
-    expect(approvalChangeIcon(change)).not.toBe(approvalChangeIcon({ ...change, approved: false, via: null }));
+  test("an item only recommended still awaits the owner's approval", () => {
+    expect(approvalLabel(wording, item(9, { approved: false, recommended: true }))).toBe(wording("todo.label.recommended_awaiting"));
+    expect(approvalLabel(wording, item(9, { approved: true, recommended: true }))).toBe(wording("todo.label.approved"));
+    expect(todoState(item(9, { approved: false, recommended: true }))).toBe("pending");
   });
 });
 

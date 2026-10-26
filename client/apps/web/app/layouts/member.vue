@@ -44,7 +44,7 @@
       </template>
     </UDashboardSidebar>
 
-    <div class="flex min-h-0 min-w-0 flex-1">
+    <div class="relative flex min-h-0 min-w-0 flex-1" v-bind="bundleArea">
       <slot />
     </div>
 
@@ -64,7 +64,7 @@ import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { SCREEN_FRAME } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
-import { useConsoleScreens } from "~/domain/console-screens";
+import { useBundleArea, useConsoleScreens } from "~/domain/console-screens";
 import { broughtScreens, namedWhenFolded, roomItems, screenItems } from "~/domain/screens";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
@@ -81,6 +81,8 @@ const shell = SCREEN_FRAME;
 useVisibleShell();
 
 const route = useRoute();
+// The page area as a bundle's screen stands in it.
+const bundleArea = useBundleArea();
 const { t } = useI18n();
 const open = ref(false);
 const sidebarFolded = ref(false);

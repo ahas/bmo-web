@@ -165,8 +165,16 @@
           </div>
 
           <p class="mt-1 text-sm break-words whitespace-pre-wrap text-muted">{{ judgement.verdict }}</p>
+          <!-- What a picker's model was asked of its candidates, each line as it read it with its answer beside it, in
+               place of the list of picked names the detail holds. -->
+          <ol v-if="(judgement.lines ?? []).length > 0" data-judgement-lines class="mt-2 flex flex-col gap-1">
+            <li v-for="(one, at) in judgement.lines" :key="at" class="flex min-w-0 flex-wrap items-baseline gap-x-2 text-sm">
+              <span class="min-w-0 flex-1 font-mono break-words whitespace-pre-wrap text-muted">{{ one.line }}</span>
+              <span class="shrink-0" :class="lineKept(one.answer) ? 'text-success' : 'text-dimmed'" data-line-answer>{{ lineAnswer($t, one.answer) }}</span>
+            </li>
+          </ol>
           <MarkdownText
-            v-if="detailOf(judgement)"
+            v-else-if="detailOf(judgement)"
             :text="detailOf(judgement)"
             class="mt-1 text-sm text-dimmed"
           />
@@ -217,7 +225,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useTurnActionsFold } from "~/domain/turn-actions-fold";
 import { readRunLines } from "~/domain/log";
 import { countText } from "~/domain/numbers";
-import { keptOffer, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, stageLabel, verdictState } from "~/domain/judgements";
+import { keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, stageLabel, verdictState } from "~/domain/judgements";
 import { brainActions, turnActions } from "~/domain/working";
 import { formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";

@@ -67,6 +67,7 @@ function item(over: Partial<TodoItem> = {}): TodoItem {
     requesterId: 42,
     chatId: 42,
     approved: true,
+    recommended: false,
     done: false,
     running: true,
     worker: AGENT,

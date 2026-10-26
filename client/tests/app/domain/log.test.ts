@@ -242,9 +242,9 @@ describe("what a call's fold reads out of it", () => {
     expect(toolArguments(input({ query: "x".repeat(200) })).args[0]?.block).toBe(true);
   });
 
-  test("a value that is no string reads as the shape it is, indented", () => {
-    expect(value(input({ pages: { from: 1, to: 3 } }), "pages")).toBe('{\n  "from": 1,\n  "to": 3\n}');
-    expect(value(input({ ws: ["a", "b"] }), "ws")).toBe('[\n  "a",\n  "b"\n]');
+  test("a value that is no string reads as its named fields and rows, never as JSON", () => {
+    expect(value(input({ pages: { from: 1, to: 3 } }), "pages")).toBe("from: 1\nto: 3");
+    expect(value(input({ ws: ["a", "b"] }), "ws")).toBe("- a\n- b");
     expect(value(input({ max_chars: 1200, deep: true, none: null }), "max_chars")).toBe("1200");
   });
 
@@ -306,7 +306,7 @@ describe("what a call's fold reads out of it", () => {
     expect(toolArguments(KO.line_312).args).toEqual([
       { name: "", value: KO.line_313, block: false, cut: false }
     ]);
-    expect(toolArguments("[1, 2]").args[0]?.value).toBe("[\n  1,\n  2\n]");
+    expect(toolArguments("[1, 2]").args[0]?.value).toBe("- 1\n- 2");
     expect(toolArguments("not json at all")).toEqual({
       args: [{ name: "", value: "not json at all", block: false, cut: false }],
       whole: false

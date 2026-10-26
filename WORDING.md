@@ -36,6 +36,11 @@
     Job, 실행 중인 Job — and wherever 작업 would read as the TODO item (항목) or as a work order
     (작업 지시서). A particle follows it as it followed 잡: Job이, Job을, Job은, Job으로.
   - 작업 where the text means the work itself rather than the unit that runs it.
+- **A value is shown in words, never as JSON.** No label, cell, chip or row holds a JSON object or array as
+  text: a list stands as its rows, an object as its named fields in this guide's words, a moment as a moment, a
+  yes or no as a state word (켜짐/꺼짐, 예/아니요), and a long body in a block of its own with highlighting. A code the
+  console has no words for stands as a sentence naming the code — "알 수 없는 코드 `unknown-thing`" — and never as
+  the code's JSON.
 - A concept not yet in the glossary is written by the principle above, and the glossary gains its word
   when it is first needed.
 

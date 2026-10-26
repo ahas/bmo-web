@@ -1,5 +1,6 @@
 import { shared as sharedTable } from "#console-shared";
 
+import { variantRules } from "./bundle-variants";
 import { IMPORT_KEY, SHARED_KEY, bare, edited, editsOf, shimSource } from "./module-rewrite";
 
 import type { ConsoleScreen } from "#shared/console-bundles";
@@ -110,8 +111,40 @@ const stylesheets = new Set<string>();
 
 // The cascade layer every bundle's stylesheet stands in: above the console's base, so a bundle's own styles reach
 // its elements, and below the console's components and utilities, so a class both style reads as the console's
-// and a bundle's copy of a utility never undoes the console's frame around it.
+// and a bundle's copy of a utility never undoes the console's frame around it. Its variant rules stand once more in
+// a layer above the console's utilities, so a bundle's `md:` or `hover:` still beats the plain utility beside it as
+// the bundle wrote it (docs/web.md, 「Screens a unit brings」).
 const BUNDLE_LAYER = "console-bundles";
+const VARIANT_LAYER = "console-bundle-variants";
+
+/** The attribute the page area carries while a bundle's screen stands in it, which holds a bundle's variants to it. */
+export const BUNDLE_AREA = "data-console-bundle";
+
+// The bundle's variant rules laid in the layer above the console's utilities, scoped to the page area where the
+// browser scopes styles. A stylesheet that cannot be read again keeps the one layer it stands in.
+async function liftVariants(address: string): Promise<void> {
+  try {
+    const answer = await fetch(address, { credentials: "same-origin" });
+
+    if (!answer.ok) return;
+
+    const sheet = new CSSStyleSheet();
+
+    await sheet.replace(await answer.text());
+
+    const rules = variantRules(sheet).join("\n");
+
+    if (rules === "") return;
+
+    const scoped = typeof CSSScopeRule === "undefined" ? rules : `@scope ([${BUNDLE_AREA}]) {\n${rules}\n}`;
+    const lifted = document.createElement("style");
+
+    lifted.textContent = `@layer ${VARIANT_LAYER} {\n${scoped}\n}`;
+    document.head.append(lifted);
+  } catch {
+    // The variants stay in the bundles' layer alone.
+  }
+}
 
 /** Links a bundle's stylesheet once, in the bundles' layer, the layer's place stated ahead of every stylesheet. */
 function linkStylesheet(address: string): void {
@@ -120,7 +153,7 @@ function linkStylesheet(address: string): void {
   if (stylesheets.size === 0) {
     const order = document.createElement("style");
 
-    order.textContent = `@layer theme, base, ${BUNDLE_LAYER}, components, utilities;`;
+    order.textContent = `@layer theme, base, ${BUNDLE_LAYER}, components, utilities, ${VARIANT_LAYER};`;
     document.head.prepend(order);
   }
 
@@ -130,6 +163,7 @@ function linkStylesheet(address: string): void {
 
   sheet.textContent = `@import url(${JSON.stringify(address)}) layer(${BUNDLE_LAYER});`;
   document.head.append(sheet);
+  void liftVariants(address);
 }
 
 /** A bundle's module loaded, its stylesheet linked; what it exports as its default. */

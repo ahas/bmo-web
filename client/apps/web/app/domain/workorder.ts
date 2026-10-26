@@ -1,3 +1,4 @@
+import { valueText } from "./value-text";
 import { progressText } from "./numbers";
 import { stepLook } from "./stepper";
 import { runSeconds, taskRun, taskStartSeconds } from "#shared/work-time";
@@ -317,7 +318,7 @@ export type ReadBuilderResult =
 const FIELD_DEPTH_MAX = 4;
 
 function text(value: unknown): string {
-  return typeof value === "string" ? value : value === null || value === undefined ? "" : JSON.stringify(value);
+  return valueText(value);
 }
 
 function planTask(raw: unknown): ReadPlanTask {
@@ -339,7 +340,7 @@ function fieldsOf(value: unknown, label: string, depth: number, into: ReadField[
     return;
   }
 
-  into.push({ label, value: typeof value === "string" ? value : JSON.stringify(value, null, 2), depth });
+  into.push({ label, value: valueText(value), depth });
 }
 
 // The answer read as JSON, a fenced block around it allowed; null where it is prose.

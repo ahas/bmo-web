@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { endsJudging, instructionParts, judgedNow, judgementText, keptOffer, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
+import { endsJudging, instructionParts, judgedNow, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
 
 import type { GateOfferRecord, Judgement, LiveRun, RoundOpening } from "../../../apps/web/shared/types";
 import { WORKER } from "../../support/ids";
@@ -241,5 +241,27 @@ describe("how a road reads", () => {
     expect(roadName({ id: 1, provider: "registered", model: "model-a", outcome: "answered", ms: 1_300 }))
       .toBe("registered · model-a");
     expect(roadName({ id: 2, provider: "stand-in", model: "", outcome: "unavailable", ms: 1 })).toBe("stand-in");
+  });
+});
+
+// What a picker's model answered of a line, in the console's words (docs/web.md, the room screen's verdict cards).
+describe("a judgement line's answer", () => {
+  test("a yes or a no is a state word, and an unread answer says so", () => {
+    expect(lineAnswer(wording, "yes")).toBe(wording("room.label.judgement_yes"));
+    expect(lineAnswer(wording, "no")).toBe(wording("room.label.judgement_no"));
+    expect(lineAnswer(wording, null)).toBe(wording("room.label.judgement_unread"));
+    expect(lineKept("yes")).toBe(true);
+    expect(lineKept("no")).toBe(false);
+  });
+
+  test("a rule's answer names whether it applies and whether it is spent", () => {
+    expect(lineAnswer(wording, "applies: yes, spent: no")).toBe(
+      `${wording("room.label.judgement_applies")} ${wording("room.label.judgement_yes")} · ${wording("room.label.judgement_spent")} ${wording("room.label.judgement_no")}`
+    );
+    expect(lineKept("applies: yes, spent: no")).toBe(true);
+  });
+
+  test("an answer of another shape stands as its own words", () => {
+    expect(lineAnswer(wording, "maybe later")).toBe("maybe later");
   });
 });

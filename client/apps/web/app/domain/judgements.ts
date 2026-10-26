@@ -433,3 +433,31 @@ export function judgementsByMessage(judgements: Judgement[]): Map<number, Judgem
 
   return index;
 }
+
+// What a model answered of one line, in the console's words: a yes or a no as a state word, a rule's applying and
+// being spent each so, and a word saying it was not read where it was not. An answer of another shape stands as its
+// own words.
+const ANSWER_WORDS: Record<string, string> = { yes: "room.label.judgement_yes", no: "room.label.judgement_no" };
+const ANSWER_PARTS: Record<string, string> = { applies: "room.label.judgement_applies", spent: "room.label.judgement_spent" };
+
+export function lineAnswer(t: Translate, answer: string | null): string {
+  if (answer === null) return t("room.label.judgement_unread");
+
+  const word = (value: string): string => {
+    const key = ANSWER_WORDS[value.trim().toLowerCase()];
+
+    return key === undefined ? value.trim() : t(key);
+  };
+  const parts = answer.split(",").map((part) => /^\s*([a-z-]+)\s*:\s*(.+)$/i.exec(part));
+
+  if (parts.every((part) => part !== null && ANSWER_PARTS[part[1]!.toLowerCase()] !== undefined)) {
+    return parts.map((part) => `${t(ANSWER_PARTS[part![1]!.toLowerCase()]!)} ${word(part![2]!)}`).join(" · ");
+  }
+
+  return word(answer);
+}
+
+// Whether an answer is a yes, so its line reads as kept.
+export function lineKept(answer: string | null): boolean {
+  return answer !== null && /^\s*yes\s*$|applies\s*:\s*yes/i.test(answer);
+}

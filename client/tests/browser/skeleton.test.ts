@@ -26,7 +26,7 @@ const empty: TodoBoard = {
 
 const item = (id: number, title: string): TodoItem => ({
   id, title, instruction: 'fixture instruction', brief: null, requester: 'fixture', requesterId: null, chatId: null,
-  approved: true, done: false, running: false, priority: 1, status: '', model: null, ranOn: null,
+  approved: true, recommended: false, done: false, running: false, priority: 1, status: '', model: null, ranOn: null,
   worker: null, cowork: false, attempts: 0, progress: null, stopped: null, holding: null, waiting: null, deployWaits: false,
   holdPending: false, orderActive: false, seconds: null, spans: [], note: null, reports: [],
   unfinished: null, unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null,

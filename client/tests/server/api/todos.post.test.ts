@@ -98,17 +98,17 @@ describe("closing an item from the console", () => {
   });
 });
 
-// Giving or taking back an approval. bmo-job keeps every change under the hand that made it, so the route
-// carries who is signed in rather than leaving bmo-job to call it the console.
+// Giving or taking back an approval. Who gives it is the caller the console's token names, never a field of the
+// change, so the approval goes over with no name of its own.
 describe("approving from the console", () => {
-  test("carries the signed-in name to bmo-job with the change", async () => {
+  test("sends the approval with no name, the token naming its caller", async () => {
     fresh();
 
     await post({ action: "approve", id: 7, note: "go ahead" });
     await post({ action: "unapprove", id: 7 });
 
     expect(job.asked.map((one) => one.body?.approval)).toEqual([
-      { actorName: "tester" },
+      {},
       null
     ]);
   });

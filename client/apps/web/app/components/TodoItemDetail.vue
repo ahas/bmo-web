@@ -377,8 +377,8 @@
                     <p v-else-if="approvals.length === 0" class="text-sm text-muted">{{ $t("todo.status.no_approvals") }}</p>
                     <ul v-else class="flex flex-col gap-2">
                       <li v-for="change in approvals" :key="change.id" class="flex min-w-0 items-start gap-x-2 text-sm">
-                        <UIcon :name="approvalChangeIcon(change)" class="mt-0.5 size-4 shrink-0" :class="change.approved ? 'text-muted' : 'badge-ink text-warning'" />
-                        <span class="min-w-0 flex-1 break-words" :class="change.approved ? 'text-highlighted' : 'badge-ink text-warning'">{{ approvalChangeLine($t, change) }}</span>
+                        <UIcon :name="approvalChangeIcon(change)" class="mt-0.5 size-4 shrink-0" :class="change.kind === 'approval' ? 'text-muted' : 'badge-ink text-info'" />
+                        <span class="min-w-0 flex-1 break-words" :class="change.kind === 'approval' ? 'text-highlighted' : 'badge-ink text-info'" :data-approval-kind="change.kind">{{ approvalChangeLine($t, change) }}</span>
                         <span class="shrink-0 text-muted tabular-nums">{{ formatStamp(change.at) }}</span>
                       </li>
                     </ul>

@@ -1,4 +1,5 @@
 import { AGENT_LOG_PAGE_SIZE, PAGING } from "#shared/config";
+import { valueText } from "./value-text";
 import { failureText } from "bmo-ui/app/domain/errors";
 
 import type { AgentLogContext, AgentLogContextState, AgentLogKind, AgentLogLine, AgentLogPage } from "#shared/types";
@@ -207,9 +208,7 @@ function scalar(value: unknown): string {
     return "";
   }
 
-  const text = typeof value === "string" ? value : JSON.stringify(value);
-
-  return text.replace(/\s+/g, " ").trim();
+  return valueText(value).replace(/\s+/g, " ").trim();
 }
 
 // What each escape stands for. Only the ones a value of this kind actually carries are here; a
@@ -320,10 +319,10 @@ const VALUE_LINES = 20;
 const VALUE_CHARS = 1500;
 
 // A string stands exactly as it was sent — a command, a path, a patch or a prompt only reads if
-// its own newlines and indentation stand. Anything else is written out indented, so a nested
-// shape reads as a shape rather than as one long line.
+// its own newlines and indentation stand. Anything else is written out as its named fields and rows,
+// so a nested shape reads as a shape rather than as JSON.
 function readable(value: unknown): string {
-  return typeof value === "string" ? value : JSON.stringify(value, null, 2);
+  return valueText(value);
 }
 
 // The value cut down to what the fold stands, and whether the cutting took anything away.

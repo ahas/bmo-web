@@ -24,7 +24,7 @@
          dialog). -->
     <section class="flex min-w-0 flex-col gap-1">
       <p class="text-sm font-medium text-muted">{{ $t("common.label.original") }}</p>
-      <pre class="overflow-x-auto rounded-md bg-elevated p-3 font-mono text-sm whitespace-pre">{{ pretty }}</pre>
+      <MarkdownText :text="pretty" class="text-sm" />
     </section>
   </div>
 </template>
@@ -46,8 +46,9 @@ const props = defineProps<Props>();
 const pretty = computed(() => {
   const trimmed = props.text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
 
+  // The JSON stands as a block of code with its highlighting; a text that does not read as JSON stands as written.
   try {
-    return JSON.stringify(JSON.parse(trimmed), null, 2);
+    return `\`\`\`json\n${JSON.stringify(JSON.parse(trimmed), null, 2)}\n\`\`\``;
   } catch {
     return props.text;
   }

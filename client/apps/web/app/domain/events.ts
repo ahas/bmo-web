@@ -1086,7 +1086,8 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
           stage: event.stage,
           verdict: event.verdict,
           detail: event.detail ?? null,
-          createdAt: toUnixSeconds(event.at)
+          createdAt: toUnixSeconds(event.at),
+          ...(event.lines === undefined || event.lines.length === 0 ? {} : { lines: event.lines })
         });
       }
 

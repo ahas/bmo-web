@@ -21,7 +21,7 @@ interface Item {
   assigneeName: string | null;
   requesterName: string | null;
   labels: Record<string, string>;
-  approvals: { actorName: string; at: number }[];
+  approvals: { callerName: string | null; kind: "approval" | "recommendation"; at: number }[];
   createdAt: number;
   changedAt: number;
   endedAt: number | null;
@@ -43,7 +43,7 @@ function item(id: number, over: Partial<Item> = {}): Item {
     assigneeName: null,
     requesterName: "owner",
     labels: {},
-    approvals: [{ actorName: "owner", at: 1_790_000_000_000 }],
+    approvals: [{ callerName: "owner", kind: "approval", at: 1_790_000_000_000 }],
     createdAt: 1_790_000_000_000,
     changedAt: 1_790_000_000_000,
     endedAt: null,
@@ -121,6 +121,20 @@ describe("the lists each item stands in", () => {
     expect(board.standing).toEqual({ queue: 1, running: 0, pending: 2, held: 1, merged: 0 });
   });
 
+  test("only an approver's approval puts an item in the queue; one the chat agent recommended waits on the owner", async () => {
+    stand([
+      item(11, { state: "open", approvals: [{ callerName: "chat", kind: "recommendation", at: 1_790_000_000_000 }] }),
+      item(12, { state: "open", approvals: [{ callerName: "chat", kind: "recommendation", at: 1_790_000_000_000 }, { callerName: "ahas", kind: "approval", at: 1_790_000_001_000 }] })
+    ]);
+
+    const board = await readTodoBoard();
+
+    expect(ids(board.pending)).toEqual([11]);
+    expect(board.pending[0]).toMatchObject({ approved: false, recommended: true });
+    expect(ids(board.queue)).toEqual([12]);
+    expect(board.queue[0]).toMatchObject({ approved: true, recommended: true });
+  });
+
   test("a leased item stands in the queue and reads as running; a held one stands among the holds", async () => {
     stand([item(1, { state: "leased", leaseId: 4 }), item(2, { state: "held" })]);
 
@@ -150,7 +164,7 @@ describe("what a row carries", () => {
       item(9, {
         brief: "rename the tooltip",
         assigneeName: "worker-b",
-        approvals: [{ actorName: "owner", at: 1_790_000_010_000 }],
+        approvals: [{ callerName: "owner", kind: "approval", at: 1_790_000_010_000 }],
         createdAt: 1_790_000_000_000,
         endedAt: 1_790_000_090_000
       })

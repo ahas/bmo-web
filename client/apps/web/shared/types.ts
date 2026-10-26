@@ -413,6 +413,15 @@ export interface Judgement {
   round?: string | null;
   // What opened that round and what its gates were offered, where either was read.
   opening?: RoundOpening;
+  // What a picker's or the matcher's model was asked of its candidates, each line exactly as the model read it and
+  // its answer, null where the answer was not read; none on every other judgement.
+  lines?: JudgementLine[];
+}
+
+// One line a gate's model read of a candidate, and what it answered of it.
+export interface JudgementLine {
+  line: string;
+  answer: string | null;
 }
 
 // One quiet instruction a round settled, without its text (docs/web.md, the room screen's judgements). Its sort is the
@@ -512,7 +521,10 @@ export interface TodoItem {
   requester: string;
   requesterId: number | null;
   chatId: number | null;
+  // Whether an approver's approval stands on it, which is what puts it in the queue, and whether the chat agent
+  // recommended it, which moves nothing and leaves it waiting on the owner.
   approved: boolean;
+  recommended: boolean;
   done: boolean;
   // Whether a job of this item is under way, read from the run itself: the item has a job row
   // that has not finished. The state line is a word somebody typed, so it is not asked.
@@ -912,6 +924,8 @@ interface BotEventFields {
   stage?: string;
   verdict?: string;
   detail?: string | null;
+  // A judgement event: the lines its model read of its candidates, where the stream hands them.
+  lines?: JudgementLine[];
   // A live event belongs to no room and carries the whole picture rather than a change to it.
   live?: LiveSnapshot;
   // A run-started event alone: what the turn was handed, as it stood when the round opened.
@@ -2014,11 +2028,10 @@ export interface TodoNote {
 // an approval came is null on one taken back.
 export interface TodoApproval {
   id: number;
-  approved: boolean;
-  via: "owner" | "rule" | "grant" | null;
-  whoKind: "person" | "agent" | "job";
-  who: string;
-  road: "console" | "verb" | "chat_tool";
+  // An approver's approval, which lets the item's work begin, or the chat agent's recommendation, which moves nothing.
+  kind: "approval" | "recommendation";
+  // The caller whose token gave it, or null for the shared token or one recorded with no caller.
+  caller: string | null;
   at: number;
 }
 

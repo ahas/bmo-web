@@ -108,12 +108,18 @@ function reportsOf(reports: readonly Report[]): { reports: TodoReport[]; heldRea
   };
 }
 
+// An item is approved by an approver's approval alone; the chat agent's recommendation moves nothing (bmo-job's
+// `docs/api.md`, 「Items」).
+export function approvedItem(item: Pick<Item, "approvals">): boolean {
+  return item.approvals.some((approval) => approval.kind === "approval");
+}
+
 function listOf(item: Item): "queue" | "pending" | "held" | "done" {
   if (item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null) return "done";
   if (item.state === "held") return "held";
   // An item the owner has not approved waits on him wherever it was filed, as the row's own state says
   // (`todoState`): its filing is open, but it is in no queue until his approval puts it there.
-  if (item.approvals.length === 0) return "pending";
+  if (!approvedItem(item)) return "pending";
 
   return "queue";
 }
@@ -130,7 +136,8 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     requester: item.requesterName ?? "",
     requesterId: null,
     chatId: null,
-    approved: item.approvals.length > 0,
+    approved: approvedItem(item),
+    recommended: item.approvals.some((approval) => approval.kind === "recommendation"),
     done: item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null,
     running: item.state === "leased",
     priority: item.priority,

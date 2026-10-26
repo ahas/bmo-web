@@ -3,11 +3,13 @@
 // JSON: every value is read out of it and written as the call's own words.
 
 import { mcpCallOf } from "#shared/mcp-names";
+import { valueText } from "./value-text";
 
 // How many lines of a result always stand; the rest folds.
 export const RESULT_SHOWN_LINES = 5;
 
-// The arguments of a call, each value as it was sent: a string as it stands, anything else as indented JSON.
+// The arguments of a call, each value as it was sent: a string as it stands, anything else as its named fields and
+// rows, one to a line under the argument.
 export function callArguments(text: string): Map<string, string> {
   const fields = new Map<string, string>();
 
@@ -16,7 +18,7 @@ export function callArguments(text: string): Map<string, string> {
 
     if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
       for (const [key, value] of Object.entries(parsed)) {
-        fields.set(key, typeof value === "string" ? value : JSON.stringify(value, null, 2));
+        fields.set(key, typeof value === "string" || typeof value !== "object" || value === null ? valueText(value) : `\n${valueText(value, 1)}`);
       }
     }
   } catch {

@@ -58,8 +58,8 @@ const ACTIONS: readonly TodoAction[] = [
 // raising is: what he thinks of an hour into the work is said at the screen he is watching it
 // from, and the only other way to say it is a shell.
 export default defineEventHandler(async (event): Promise<TodoActionResult> => {
-  // Who is signed in goes to bmo-job with the change, which keeps it where a change is recorded
-  // under its hand — an approval given or taken back (docs/todo.md, 「Approval」).
+  // Who is signed in goes to bmo-job where a change carries a name of its own: the words added, a stop's reason, an
+  // item raised. An approval carries none, its caller being the one the console's token names.
   const signed = await signedInUser(event);
 
   const body = await readBody<TodoBody>(event);
@@ -166,7 +166,8 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   // item has no place for — an unfinished note resolved — is refused as one this item cannot take.
   switch (action) {
     case "approve":
-      await patchItem(id, { approval: { actorName: signed.name } });
+      // Who approves is the caller the console's token names, never a field of the change.
+      await patchItem(id, { approval: {} });
       break;
     case "unapprove":
       await patchItem(id, { approval: null });
@@ -237,7 +238,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   return { ok: true };
 });
 
-async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: { actorName: string } | null; assigneeName?: string | null; cowork?: boolean; position?: number }): Promise<void> {
+async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; cowork?: boolean; position?: number }): Promise<void> {
   await jobCall(job().PATCH("/items/{itemId}", {
     params: { path: { itemId: id } },
     body: change,

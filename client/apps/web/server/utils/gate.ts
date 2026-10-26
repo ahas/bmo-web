@@ -2,7 +2,7 @@ import { PAGING } from "#shared/config";
 
 import { unitAt, unitFetch } from "./units";
 
-import type { GateOfferRecord, Judgement, JudgementPage, JudgementRoad, KeptCounts, TokenSplit } from "#shared/types";
+import type { GateOfferRecord, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, TokenSplit } from "#shared/types";
 
 // A room's judgements as the gate's console API holds them (the gate's `docs/api.md`, 「Judgements」): newest
 // first, a page at a time, each road a gate run walked beside it. The gate's address and token stand in the
@@ -42,6 +42,14 @@ interface GateJudgement {
   round: string | null;
   roads?: GateRoad[];
   offers?: GateOffer[];
+  lines?: { line?: unknown; answer?: unknown }[];
+}
+
+/** The lines a judgement's model read of its candidates, each with its answer; a line that does not read is left out. */
+export function linesOf(lines: readonly { line?: unknown; answer?: unknown }[] | undefined): JudgementLine[] {
+  return (lines ?? []).flatMap((one) =>
+    typeof one?.line === "string" ? [{ line: one.line, answer: typeof one.answer === "string" ? one.answer : null }] : []
+  );
 }
 
 interface GatePage {
@@ -61,6 +69,7 @@ function asJudgement(row: GateJudgement): Judgement {
   }));
 
   const offers = (row.offers ?? []).map(offerOf);
+  const lines = linesOf(row.lines);
 
   return {
     id: row.id,
@@ -75,7 +84,8 @@ function asJudgement(row: GateJudgement): Judgement {
     roads,
     round: row.round,
     // The round's offers record rides on the verdict; its quiet instructions are the receiver's, put in beside it.
-    ...(offers.length === 0 ? {} : { opening: { instructions: [], offers } })
+    ...(offers.length === 0 ? {} : { opening: { instructions: [], offers } }),
+    ...(lines.length === 0 ? {} : { lines })
   };
 }
 

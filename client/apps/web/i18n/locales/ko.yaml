@@ -536,6 +536,11 @@ room:
     hour: "{n}시"
     hour_count: "{hour}시 · {n}개"
     hour_of_day: 시간대
+    judgement_applies: 적용
+    judgement_no: 아니요
+    judgement_spent: 사용
+    judgement_unread: 읽지 못함
+    judgement_yes: 예
     last_answer: 마지막 응답
     last_talk: 마지막 대화
     launched_by: "{name} 실행"
@@ -1080,17 +1085,10 @@ todo:
     work_instruction: 작업 지시
     work_purpose: 작업 목적
   label:
-    approval_by_agent: "에이전트 {name}"
-    approval_by_job: "Job {name}"
     approval_by_person: "{name}"
     approval_given: 결재
-    approval_road_chat_tool: 챗 도구
-    approval_road_console: 콘솔
-    approval_road_verb: bmo todo
-    approval_taken: 결재 취소
-    approval_via_grant: 위임받은 권한
-    approval_via_owner: 소유자의 결정
-    approval_via_rule: 상시 규칙
+    approval_no_caller: 호출자 미상
+    approval_recommended: 추천
     approved: 결재됨
     builder_model: Builder 모델
     builder_stage: "{n}단계 · {title}"
@@ -1170,6 +1168,7 @@ todo:
     queue_turn_passed: 차례를 넘기는 중
     queue_turn_resume: 재개할 차례
     queue_turn_why: "{turn}: {why}"
+    recommended_awaiting: 추천됨 · 결재 필요
     removed_at: "삭제 {time}"
     report_count: "보고 {n}건"
     report_final: 완료 보고

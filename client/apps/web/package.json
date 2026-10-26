@@ -17,7 +17,7 @@
     "@nuxt/ui": "^4.11.2",
     "@nuxtjs/i18n": "^10.6.0",
     "@web/server-client": "workspace:*",
-    "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.5.tgz",
+    "bmo-job-client": "file:../../vendor/bmo-job-client-0.1.0-rev.7.tgz",
     "dayjs": "^1.11.23",
     "dompurify": "3.4.8",
     "echarts": "6.1.0",

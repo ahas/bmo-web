@@ -57,7 +57,7 @@
 
             <span class="flex items-center gap-1">
               <span class="text-muted">{{ $t("todo.label.field_model") }}</span>
-              <span class="text-highlighted">{{ itemModel($t, openedItem, true) ?? $t("common.label.default") }}</span>
+              <span class="text-highlighted">{{ itemModel($t, ranItem ?? openedItem, true) ?? $t("common.label.default") }}</span>
             </span>
 
             <span v-if="!openedItem.done" class="flex items-center gap-1">

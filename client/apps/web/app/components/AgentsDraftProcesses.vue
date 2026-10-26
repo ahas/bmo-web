@@ -349,15 +349,19 @@ const questionRefused = ref("");
 const addingQuestion = ref(false);
 const newQuestion = reactive({ name: "", text: "" });
 
-watch(editing, (open) => {
-  const name = Object.keys(open).find((one) => open[one]) ?? null;
+// Opening a question's cell starts its box from the text the receiver holds. Closing one leaves the box as it stands
+// until the next opening: the dropdown is still on screen while it goes, and a box emptied on the closing frame would
+// flash the required-text refusal as it left.
+watch(
+  () => Object.keys(editing).find((one) => editing[one]) ?? null,
+  (name) => {
+    if (name === null) return;
 
-  if (name === editingName.value) return;
-
-  editingName.value = name;
-  editedText.value = data.value?.questions.find((one) => one.name === name)?.text ?? "";
-  questionRefused.value = "";
-});
+    editingName.value = name;
+    editedText.value = data.value?.questions.find((one) => one.name === name)?.text ?? "";
+    questionRefused.value = "";
+  }
+);
 
 watch(addingQuestion, (now) => {
   if (!now) return;

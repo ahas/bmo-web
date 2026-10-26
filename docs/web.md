@@ -2720,7 +2720,8 @@ Two ways, split because the running places differ.
     the row stands as the receiver holds it. Every change reaches the next round that reads the table.
 - **The questions** (드래프트 질문) stand under the process table: a row per question of the catalogue, its
   name, its text in the language it was written in, and where it comes from, 콘솔 설정 or 기본값. Pressing a
-  text opens a box of it, at most 4,000 characters and never empty, saved with 저장. 추가 in its head opens a
+  text opens a box of it, at most 4,000 characters and never empty, saved with 저장; closing it unsaved says
+  nothing and keeps nothing of what was typed. 추가 in its head opens a
   box of a new name — a lowercase word of letters, digits and dashes — and its text; the new question is then
   offered in every list's pick. A refusal is said by the pack's sentence for the receiver's code.
 - **Either table's read that fails** says so with a reread, as the fold-ratio grid's does.
@@ -5693,7 +5694,9 @@ dialog open at 계정.
 - **What floats keeps what it holds until it is off the screen.** Closing is animated — half a second for a
   sheet, a fifth for a dialog — and it is being looked at for the whole of that, so what it draws is not emptied
   on the press that closed it. A dialog drawing a row it was opened on holds that row until it is gone; one
-  opened again on another row shows that one straight away. What is held is only what is drawn: the thing is
+  opened again on another row shows that one straight away. A dropdown holding a box keeps the box's text as it
+  goes, so a box that refuses being empty never flashes its refusal on the way out; it starts again from the saved
+  value the next time it opens. What is held is only what is drawn: the thing is
   told to close at once and closes at once.
 - **A dialog grows out of the control that opened it.** It fades in while growing from where the pressed control
   stands, and fades and shrinks back into it as it goes, so where it came from is seen rather than remembered. The

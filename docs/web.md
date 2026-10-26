@@ -5034,8 +5034,8 @@ Four bounds keep it from growing forever.
   in place on the right. When the chat agent rewrites the draft in talk, the work order on the left is seen changing beside it.
 - The TODO is bmo-job's, read through its listings and its readings of an item (`docs/boundary.md`, 「Calls the console
   makes」), and here is where the owner handles those lines. Three groups stand top to bottom in this order.
-  - **결재 대기** — requests another room's chat agent received from a room's person and filed gather at the top. The only group
-    asking the owner something, so first. Who asked in which room stands, and it does not enter the queue before approval.
+  - **결재 대기** — the items in the `draft` state, requests another room's chat agent received from a room's person and filed,
+    gather at the top. The only group asking the owner something, so first. Who asked in which room stands, and it does not enter the queue before approval.
   - **대기열** — approved unfinished items stand. With several workers this one line splits into per-worker lines to run, but
     what stands on screen is one list and each line's worker tag says which line it belongs to. **Every line a job is still going on for stands at the top** — 진행 중,
     중단 대기 중, 중지 중, 마무리 중 and 완료 보고 중 alike — and below them the rest by priority, then by item number for the
@@ -5421,9 +5421,14 @@ Four bounds keep it from growing forever.
   editing and saving the 결재 의견 attached to it. On a completed line only its unfinished-item is acted on. All go through the bot's control API so the bot
   always writes the table, and approval happens only in the owner's place. That intake is not approval, and that a room's chat agent cannot approve, this panel does
   not weaken.
-- **Only an approver's approval approves.** An item reads as approved — in the queue, 결재됨 on its line — only where it carries an approval of the
-  `approval` kind, which the console's own caller gives: the console sends an approval with no name of its own, since who gives it is the caller its
-  token names (bmo-job's `docs/api.md`, 「Items」). An item carrying only the chat agent's **추천** still waits on the owner among 결재 대기, its line
+- **An item waits on approval while its state is `draft`, and only then.** The item's state is the job service's word on
+  whether its work may begin (bmo-job's `docs/api.md`, 「States and moves」): a `draft` stands among 결재 대기, and an item in any
+  other state is past approval — in the queue, running, held or ended. An item raised with an unattended label opens at once
+  with no approval recorded (bmo-job's `docs/api.md`, 「Unattended labels」), so it stands in the queue and its line reads 결재 없이
+  열림 rather than 결재됨. The approvals an item carries say who approved or recommended it and nothing more: an
+  approval of the `approval` kind, which the console's own caller gives — the console sends an approval with no name of its own,
+  since who gives it is the caller its token names (bmo-job's `docs/api.md`, 「Items」) — is what moves a `draft` to `open`, and
+  its line then reads 결재됨. A draft carrying only the chat agent's **추천** still waits on the owner among 결재 대기, its line
   saying it is recommended, and the owner's 결재 still decides it.
 - **Approval makes the queue re-examined.** Putting an item in the queue is approval, so where approved the bot re-examines the queue and if no job is
   running assigns the front item there. A job's launching is grounded on that assignment alone, and a chat session cannot launch unassigned work.

@@ -108,8 +108,9 @@ function reportsOf(reports: readonly Report[]): { reports: TodoReport[]; heldRea
   };
 }
 
-// An item is approved by an approver's approval alone; the chat agent's recommendation moves nothing (bmo-job's
-// `docs/api.md`, 「Items」).
+// Whether an approver approved the item: its approvals hold one of the `approval` kind; the chat agent's
+// recommendation moves nothing (bmo-job's `docs/api.md`, 「Items」). What says whether it still waits on approval is its
+// state alone.
 export function approvedItem(item: Pick<Item, "approvals">): boolean {
   return item.approvals.some((approval) => approval.kind === "approval");
 }
@@ -117,9 +118,9 @@ export function approvedItem(item: Pick<Item, "approvals">): boolean {
 function listOf(item: Item): "queue" | "pending" | "held" | "done" {
   if (item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null) return "done";
   if (item.state === "held") return "held";
-  // An item the owner has not approved waits on him wherever it was filed, as the row's own state says
-  // (`todoState`): its filing is open, but it is in no queue until his approval puts it there.
-  if (!approvedItem(item)) return "pending";
+  // A draft waits on the owner wherever it was filed; every other state is past approval, an item opened by itself
+  // under an unattended label among them (bmo-job's `docs/api.md`, 「Unattended labels」).
+  if (item.state === "draft") return "pending";
 
   return "queue";
 }
@@ -137,6 +138,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     requesterId: null,
     chatId: null,
     approved: approvedItem(item),
+    awaitingApproval: item.state === "draft",
     recommended: item.approvals.some((approval) => approval.kind === "recommendation"),
     done: item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null,
     running: item.state === "leased",

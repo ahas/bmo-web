@@ -105,34 +105,45 @@ describe("the lists each item stands in", () => {
       item(4, { state: "merged", mergedInto: 1 }),
       item(5, { state: "dropped", endedAt: 1_790_000_060_000 }),
       item(6, { state: "held" }),
-      // An item filed open but not approved by the owner waits on him like a draft one.
-      item(7, { state: "open", approvals: [] })
+      // An item that opened by itself under an unattended label carries no approval and is past approval all the same.
+      item(7, { state: "open", approvals: [], labels: { lane: "pr-review" } })
     ]);
 
     const board = await readTodoBoard();
 
-    expect(ids(board.queue)).toEqual([1]);
-    expect(ids(board.pending)).toEqual([2, 7]);
+    expect(ids(board.queue)).toEqual([1, 7]);
+    expect(ids(board.pending)).toEqual([2]);
     expect(ids(board.held)).toEqual([6]);
     // An item merged into another is finished, and the fixed item carries no list of its own for merging ones.
     expect(ids(board.merged)).toEqual([]);
     expect(ids(board.done)).toEqual([5, 4, 3]);
     expect(board.doneTotal).toBe(3);
-    expect(board.standing).toEqual({ queue: 1, running: 0, pending: 2, held: 1, merged: 0 });
+    expect(board.standing).toEqual({ queue: 2, running: 0, pending: 1, held: 1, merged: 0 });
+    expect(board.queue.find((one) => one.id === 7)).toMatchObject({ approved: false, awaitingApproval: false });
   });
 
-  test("only an approver's approval puts an item in the queue; one the chat agent recommended waits on the owner", async () => {
+  test("a draft waits on the owner, one the chat agent recommended among them; an approved one stands in the queue", async () => {
     stand([
-      item(11, { state: "open", approvals: [{ callerName: "chat", kind: "recommendation", at: 1_790_000_000_000 }] }),
+      item(11, { state: "draft", approvals: [{ callerName: "chat", kind: "recommendation", at: 1_790_000_000_000 }] }),
       item(12, { state: "open", approvals: [{ callerName: "chat", kind: "recommendation", at: 1_790_000_000_000 }, { callerName: "ahas", kind: "approval", at: 1_790_000_001_000 }] })
     ]);
 
     const board = await readTodoBoard();
 
     expect(ids(board.pending)).toEqual([11]);
-    expect(board.pending[0]).toMatchObject({ approved: false, recommended: true });
+    expect(board.pending[0]).toMatchObject({ approved: false, awaitingApproval: true, recommended: true });
     expect(ids(board.queue)).toEqual([12]);
-    expect(board.queue[0]).toMatchObject({ approved: true, recommended: true });
+    expect(board.queue[0]).toMatchObject({ approved: true, awaitingApproval: false, recommended: true });
+  });
+
+  test("an unattended item that is leased and running stands in the queue as running, never among what waits on approval", async () => {
+    stand([item(21, { state: "leased", leaseId: 9, approvals: [], labels: { lane: "pr-review" } })]);
+
+    const board = await readTodoBoard();
+
+    expect(ids(board.pending)).toEqual([]);
+    expect(ids(board.queue)).toEqual([21]);
+    expect(board.queue[0]).toMatchObject({ running: true, approved: false, awaitingApproval: false });
   });
 
   test("a leased item stands in the queue and reads as running; a held one stands among the holds", async () => {
@@ -182,7 +193,7 @@ describe("what a row carries", () => {
       instruction: "rename the tooltip",
       brief: "rename the tooltip",
       worker: "worker-b",
-      approved: true,
+      approved: true, awaitingApproval: false,
       note: "also this",
       reports: [
         { id: 2, kind: "final", body: "done as asked", actor: "worker-b", at: 1_790_000_080 },

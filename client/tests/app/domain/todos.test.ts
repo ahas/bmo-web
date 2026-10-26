@@ -85,7 +85,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     requester: "Owner",
     requesterId: 42,
     chatId: OWNER_ID,
-    approved: true,
+    approved: true, awaitingApproval: false,
     recommended: false,
     done: false,
     running: false,
@@ -129,7 +129,7 @@ const NO_STANDING: TodoBoard["standing"] = { queue: 0, running: 0, pending: 0, h
 
 const board: TodoBoard = {
   queue: [item(1), item(2, { running: true, status: "running (Job #91)" }), item(3)],
-  pending: [item(9, { approved: false, requester: "Heidi", requesterId: 777, chatId: -1002 })],
+  pending: [item(9, { approved: false, awaitingApproval: true, requester: "Heidi", requesterId: 777, chatId: -1002 })],
   held: [], merged: [],
   done: [item(4, { done: true, doneAt: 1_756_900_000, status: "done" })],
   doneTotal: 1,
@@ -261,7 +261,12 @@ describe("moving an item within the queue", () => {
 
 describe("where an item stands", () => {
   test("waiting on the owner, waiting in the queue, being done, or done", () => {
-    expect(todoState(item(9, { approved: false }))).toBe("pending");
+    expect(todoState(item(9, { approved: false, awaitingApproval: true }))).toBe("pending");
+    // One that opened by itself under an unattended label carries no approval and is past approval all the same.
+    expect(todoState(item(10, { approved: false, awaitingApproval: false }))).toBe("waiting");
+    expect(todoState(item(11, { approved: false, awaitingApproval: false, running: true }))).toBe("running");
+    expect(approvalLabel(wording, item(10, { approved: false, awaitingApproval: false }))).toBe(wording("todo.label.opened_unattended"));
+    expect(approvalLabel(wording, item(12, { approved: true, awaitingApproval: false }))).toBe(wording("todo.label.approved"));
     expect(todoState(item(1))).toBe("waiting");
     expect(todoState(item(2, { running: true }))).toBe("running");
     expect(todoState(item(4, { done: true }))).toBe("done");
@@ -279,7 +284,7 @@ describe("where an item stands", () => {
 
   test("being done and waiting on the owner are decided before any run is asked about", () => {
     expect(todoState(item(4, { done: true, running: true }))).toBe("done");
-    expect(todoState(item(9, { approved: false, running: true }))).toBe("pending");
+    expect(todoState(item(9, { approved: false, awaitingApproval: true, running: true }))).toBe("pending");
   });
 
   test("an item the job service holds is held from its state, with no report beside it", () => {
@@ -293,7 +298,7 @@ describe("where an item stands", () => {
     expect(stateLabel(wording, item(1, { status: "running" }))).toBe(wording("todo.label.state_waiting"));
     expect(stateLabel(wording, item(2, { running: true }))).toBe(wording("todo.label.state_running"));
     expect(stateLabel(wording, item(2, { running: true, status: "waiting" }))).toBe(wording("todo.label.state_running"));
-    expect(stateLabel(wording, item(9, { approved: false }))).toBe(wording("todo.label.state_pending"));
+    expect(stateLabel(wording, item(9, { approved: false, awaitingApproval: true }))).toBe(wording("todo.label.state_pending"));
     expect(stateLabel(wording, item(4, { done: true }))).toBe(wording("todo.label.state_done"));
   });
 });
@@ -352,7 +357,7 @@ describe("an item whose job is still writing its report", () => {
   test("the other four states are what they were", () => {
     expect(todoState(item(1), NOW)).toBe("waiting");
     expect(todoState(item(2, { running: true }), NOW)).toBe("running");
-    expect(todoState(item(9, { approved: false, running: true }), NOW)).toBe("pending");
+    expect(todoState(item(9, { approved: false, awaitingApproval: true, running: true }), NOW)).toBe("pending");
     expect(todoState(item(4, { done: true, doneAt: REPORTED }), NOW)).toBe("done");
 
     const sections = todoSections(wording, board, { ...DEFAULT_VIEW, filter: "all" }, NOW);
@@ -370,7 +375,7 @@ describe("the colour a row's word wears", () => {
   test("each state wears its own, and done wears the console's word for finished", () => {
     expect(stateColour(item(4, { done: true }), NOW)).toBe("success");
     expect(stateColour(item(2, { running: true }), NOW)).toBe("primary");
-    expect(stateColour(item(9, { approved: false }), NOW)).toBe("warning");
+    expect(stateColour(item(9, { approved: false, awaitingApproval: true }), NOW)).toBe("warning");
     expect(stateColour(item(1), NOW)).toBe("neutral");
     expect(stateColour(item(7, { heldAt: NOW }), NOW)).toBe("neutral");
   });
@@ -387,7 +392,7 @@ describe("the colour a row's word wears", () => {
       item(2, { running: true }),
       item(7, { heldAt: NOW }),
       item(1),
-      item(9, { approved: false }),
+      item(9, { approved: false, awaitingApproval: true }),
       reporting
     ]) {
       const state = todoState(other, NOW);
@@ -601,7 +606,7 @@ describe("what a row's menu offers", () => {
   const queue = [item(1), item(2), item(3)];
 
   test("a request waiting on him is approved, set aside, closed or thrown out", () => {
-    expect(rowVerbs(item(9, { approved: false }), queue)).toEqual(["approve", "hold", "done", "append", "drop"]);
+    expect(rowVerbs(item(9, { approved: false, awaitingApproval: true }), queue)).toEqual(["approve", "hold", "done", "append", "drop"]);
   });
 
   test("an approved row behind another is sent to the front or has its approval taken back, never thrown out", () => {
@@ -649,9 +654,9 @@ describe("an approval in an item's record", () => {
   });
 
   test("an item only recommended still awaits the owner's approval", () => {
-    expect(approvalLabel(wording, item(9, { approved: false, recommended: true }))).toBe(wording("todo.label.recommended_awaiting"));
-    expect(approvalLabel(wording, item(9, { approved: true, recommended: true }))).toBe(wording("todo.label.approved"));
-    expect(todoState(item(9, { approved: false, recommended: true }))).toBe("pending");
+    expect(approvalLabel(wording, item(9, { approved: false, awaitingApproval: true, recommended: true }))).toBe(wording("todo.label.recommended_awaiting"));
+    expect(approvalLabel(wording, item(9, { approved: true, awaitingApproval: false, recommended: true }))).toBe(wording("todo.label.approved"));
+    expect(todoState(item(9, { approved: false, awaitingApproval: true, recommended: true }))).toBe("pending");
   });
 });
 
@@ -701,7 +706,7 @@ describe("dragging a row to a place of its own", () => {
     expect(canDrag(item(2, { running: true }), DEFAULT_VIEW, NOW)).toBe(false);
     expect(canDrag(reporting, DEFAULT_VIEW, NOW)).toBe(false);
     expect(canDrag(item(4, { done: true, doneAt: REPORTED }), DEFAULT_VIEW, NOW)).toBe(false);
-    expect(canDrag(item(9, { approved: false }), DEFAULT_VIEW, NOW)).toBe(false);
+    expect(canDrag(item(9, { approved: false, awaitingApproval: true }), DEFAULT_VIEW, NOW)).toBe(false);
   });
 
   test("the waiting tab drags like the whole list, and no other tab or search does", () => {
@@ -1024,12 +1029,12 @@ describe("what a search found", () => {
 // is out of sight everywhere except its own chip — which is the whole of what he asked for.
 describe("an item set aside", () => {
   const aside = item(7, { heldAt: 1_756_900_000, heldReason: "not now" });
-  const board: TodoBoard = { queue: [item(1)], pending: [item(9, { approved: false })], held: [aside], merged: [], done: [], doneTotal: 0, standingNotes: [], choices: CHOICES, standing: { queue: 1, running: 0, pending: 1, held: 1, merged: 0 }, paused: false, deployHold: null };
+  const board: TodoBoard = { queue: [item(1)], pending: [item(9, { approved: false, awaitingApproval: true })], held: [aside], merged: [], done: [], doneTotal: 0, standingNotes: [], choices: CHOICES, standing: { queue: 1, running: 0, pending: 1, held: 1, merged: 0 }, paused: false, deployHold: null };
 
   test("is neither waiting nor waiting on him: it waits on nothing", () => {
     expect(todoState(aside)).toBe("held");
     // Its approval is untouched; being set aside is what it is before anything else.
-    expect(todoState(item(7, { approved: false, heldAt: 1_756_900_000 }))).toBe("held");
+    expect(todoState(item(7, { approved: false, awaitingApproval: true, heldAt: 1_756_900_000 }))).toBe("held");
   });
 
   test("does not show under the all tab, which is what setting it aside is for", () => {
@@ -1065,7 +1070,7 @@ describe("an item set aside", () => {
 // An item merged into another. Its work is carried by the item it names, so it stands apart from
 // the queue and from what is set aside, under a chip of its own, and says where its work went.
 describe("an item merged into another", () => {
-  const merged = item(8, { mergedInto: 1, mergedAt: 1_756_900_000, mergedIntoTitle: "bundle", approved: true });
+  const merged = item(8, { mergedInto: 1, mergedAt: 1_756_900_000, mergedIntoTitle: "bundle", approved: true, awaitingApproval: false });
   const board: TodoBoard = {
     queue: [item(1, { mergedFrom: [{ id: 8, title: "original item", done: false }] })],
     pending: [],
@@ -1347,7 +1352,7 @@ describe("the parts of an item's instruction", () => {
 describe("the head line and the job record of an opened item", () => {
   test("say whether it is approved", () => {
     expect(approvalLabel(wording, item(1))).toBe(wording("todo.label.approved"));
-    expect(approvalLabel(wording, item(1, { approved: false }))).toBe(wording("todo.label.not_approved"));
+    expect(approvalLabel(wording, item(1, { approved: false, awaitingApproval: true }))).toBe(wording("todo.label.not_approved"));
   });
 
   test("say which run is going, that none has run, or nothing where the bars speak", () => {

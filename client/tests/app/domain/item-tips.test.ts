@@ -11,7 +11,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
   return {
     id,
     title: `Item ${id}`,
-    approved: true,
+    approved: true, awaitingApproval: false,
     done: false,
     running: false,
     worker: null,

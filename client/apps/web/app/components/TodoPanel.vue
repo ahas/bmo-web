@@ -388,7 +388,7 @@
                 <UBadge :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="searched" /></UBadge>
 
                 <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
-                <UBadge v-if="item.recommended && !item.approved" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
+                <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
 
                 <UBadge v-if="itemModel($t, item) !== null" color="neutral" variant="outline" size="sm"><SearchText :text="itemModel($t, item)!" :query="searched" /></UBadge>
 

@@ -1172,6 +1172,7 @@ todo:
     no_room: 방 없음
     not_approved: 결재 전
     notes_count_removed: "{n}건 · 삭제 {removed}건"
+    opened_unattended: 결재 없이 열림
     order_active: 진행 중
     order_closing: 종료 중
     order_done: 완료

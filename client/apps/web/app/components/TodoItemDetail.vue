@@ -46,7 +46,7 @@
 
             <!-- A request waiting on him already says so in its state, so the approval is named
                  beside the state only where the state does not carry it. -->
-            <span v-if="todoState(openedItem) !== 'pending'" :class="openedItem.approved ? 'text-highlighted' : 'text-warning'">
+            <span v-if="todoState(openedItem) !== 'pending'" :class="openedItem.awaitingApproval ? 'text-warning' : 'text-highlighted'">
               {{ approvalLabel($t, openedItem) }}
             </span>
 

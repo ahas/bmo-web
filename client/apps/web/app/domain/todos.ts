@@ -168,7 +168,8 @@ export function todoState(item: TodoItem, now: number = toUnixSeconds(Date.now()
     return item.holdPending ? "stopping" : "held";
   }
 
-  if (!item.approved) {
+  // A draft waits on the owner; an item past it is in the queue whether or not an approval stands on it.
+  if (item.awaitingApproval) {
     return "pending";
   }
 
@@ -754,9 +755,9 @@ export function jobRecordLine(t: Translate, item: TodoItem): string | null {
 
 // Where the item stands on approval, in the words the dialog's head line uses.
 export function approvalLabel(t: Translate, item: TodoItem): string {
-  if (item.approved) return t("todo.label.approved");
+  if (item.awaitingApproval) return item.recommended ? t("todo.label.recommended_awaiting") : t("todo.label.not_approved");
 
-  return item.recommended ? t("todo.label.recommended_awaiting") : t("todo.label.not_approved");
+  return item.approved ? t("todo.label.approved") : t("todo.label.opened_unattended");
 }
 
 // One approval of an item, as its record reads it: its kind — an approver's approval or the chat agent's
@@ -827,8 +828,8 @@ export function rowVerbs(item: TodoItem, queue: TodoItem[], now: number = toUnix
   if (!item.running && !jobGoingOn(state) && item.heldKind !== "pause" && item.heldKind !== "stop") verbs.push("done");
   verbs.push("append");
   // What takes something away comes last: the approval from an approved row, the row itself from
-  // one still his to decide.
-  verbs.push(deciding ? "drop" : "unapprove");
+  // one still his to decide or one that opened by itself with no approval to take back.
+  verbs.push(!deciding && item.approved ? "unapprove" : "drop");
 
   return verbs;
 }

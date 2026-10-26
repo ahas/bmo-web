@@ -577,9 +577,12 @@ export interface TodoItem {
   requester: string;
   requesterId: number | null;
   chatId: number | null;
-  // Whether an approver's approval stands on it, which is what puts it in the queue, and whether the chat agent
-  // recommended it, which moves nothing and leaves it waiting on the owner.
+  // Whether an approver's approval stands on it, and, below, whether the chat agent recommended it, which moves
+  // nothing; neither says whether it still waits on the owner.
   approved: boolean;
+  // Whether the item waits on the owner's approval: its state is `draft`, which is the job service's one word on it.
+  // An item past it carries no approval where it opened by itself under an unattended label.
+  awaitingApproval: boolean;
   recommended: boolean;
   done: boolean;
   // Whether a job of this item is under way, read from the run itself: the item has a job row

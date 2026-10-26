@@ -30,9 +30,10 @@ describe("what a worker's job line reads", () => {
     }), 1_000 + 3_725);
 
     expect(view).toMatchObject({ running: true, todoId: 1082, title: KO.line_31, time: wording("agents.label.job_running", { time: "01:02:05" }), tools: KO.line_31_2, written: "45K" });
-    expect(view.models.map((model) => [model.model, model.total, model.tally.tokens])).toEqual([
-      ["claude-opus-5", KO.line_33, 1_040_302],
-      ["claude-haiku-4-5", KO.line_34, 5_001]
+    // Each model short, as the work view's head names it, and whole for its tooltip.
+    expect(view.models.map((model) => [model.model, model.whole, model.total, model.tally.tokens])).toEqual([
+      ["O5", "claude-opus-5", KO.line_33, 1_040_302],
+      ["H45", "claude-haiku-4-5", KO.line_34, 5_001]
     ]);
   });
 

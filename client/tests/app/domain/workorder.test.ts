@@ -81,16 +81,14 @@ describe("a task's second line", () => {
     expect(taskModelLine(wording, task(), true)).toBe("claude-haiku-4-5-20251001");
   });
 
-  test("a task that fell to another road says that road, the fallback and whether its runs switched, and only the detail the one asked for", () => {
-    const fallen = task({ model: "claude-code::claude-opus-5-5", ranOn: { provider: "registered", model: "flash-next-coder", changed: true } });
+  test("a task that fell to another road names that road alone, short, and whole for its tooltip", () => {
+    const fallen = task({ model: "claude-code::claude-opus-5-5", ranOn: { provider: "deepseek", model: "deepseek-v4-pro", changed: true } });
     const settled = task({ model: "auto", ranOn: { provider: "claude-code", model: "claude-opus-5-5", changed: false } });
 
-    const marks = `${wording("todo.label.model_fallback")} ${wording("todo.label.model_changed")}`;
-
-    expect(taskModelLine(wording, fallen)).toBe(`registered/flash-next-coder ${marks}`);
-    expect(taskModelLine(wording, fallen, true)).toBe(`registered/flash-next-coder ${marks} ${wording("todo.label.model_requested", { model: "claude-code::claude-opus-5-5" })}`);
+    expect(taskModelLine(wording, fallen)).toBe("DS::V4-Pro");
+    expect(taskModelLine(wording, fallen, true)).toBe("deepseek/deepseek-v4-pro");
     expect(taskModelLine(wording, settled)).toBe("CC::O55");
-    expect(taskModelLine(wording, settled, true)).toBe(`claude-code/claude-opus-5-5 ${wording("todo.label.model_requested", { model: "auto" })}`);
+    expect(taskModelLine(wording, settled, true)).toBe("claude-code/claude-opus-5-5");
   });
 
   test("wears no number on its first round, and wears one after that", () => {

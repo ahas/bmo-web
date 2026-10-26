@@ -17,8 +17,14 @@ test("a Qwen model is its version, its build's initials, its kind and its size, 
   expect(shortModel("qwen3.8-flash-next-coder-q4_k_m")).toBe("Q38-FN-Coder");
 });
 
+test("a DeepSeek model is DS and its words after deepseek-, each led by a capital, on its own provider or with none", () => {
+  expect(shortModel("deepseek/deepseek-flash")).toBe("DS::Flash");
+  expect(shortModel("deepseek::deepseek-v4-pro")).toBe("DS::V4-Pro");
+  expect(shortModel("deepseek-flash")).toBe("DS::Flash");
+  expect(shortModel("openrouter/deepseek-v4-pro")).toBe("openrouter/deepseek-v4-pro");
+});
+
 test("a model no rule shortens stands whole", () => {
   expect(shortModel("codex/gpt-5.6-sol")).toBe("codex/gpt-5.6-sol");
-  expect(shortModel("deepseek-flash")).toBe("deepseek-flash");
   expect(shortModel("")).toBe("");
 });

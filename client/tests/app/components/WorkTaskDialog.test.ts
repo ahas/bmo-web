@@ -43,8 +43,10 @@ describe("what the dialog shows of a task", () => {
 
   test("heads it with the task's own line and its models", () => {
     expect(source).toContain('taskHeading(t, task.value, props.step?.title || props.step?.name || "")');
+    expect(source).toContain("taskModelLine(t, task.value)");
     expect(source).toContain("taskModelLine(t, task.value, true)");
     expect(source).toContain("<MarqueeLine class=\"text-sm text-muted\">{{ modelLine }}</MarqueeLine>");
+    expect(source).toContain('<UTooltip :text="wholeModelLine" :disabled="wholeModelLine === modelLine">');
   });
 
   test("stands the task in the work view, narrowed to its run, and draws nothing where none is open", () => {

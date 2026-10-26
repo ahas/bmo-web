@@ -11,7 +11,9 @@
           <UIcon :name="icon" class="size-5 shrink-0 text-muted" />
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-medium text-highlighted">{{ heading }}</p>
-            <MarqueeLine class="text-sm text-muted">{{ modelLine }}</MarqueeLine>
+            <UTooltip :text="wholeModelLine" :disabled="wholeModelLine === modelLine">
+              <MarqueeLine class="text-sm text-muted">{{ modelLine }}</MarqueeLine>
+            </UTooltip>
           </div>
 
           <UTooltip :text="$t('common.action.close')">
@@ -208,7 +210,10 @@ async function send() {
 }
 
 const heading = computed(() => (task.value === null ? (props.step === null ? "" : stepHeading(t, props.step)) : taskHeading(t, task.value, props.step?.title || props.step?.name || "")));
-const modelLine = computed(() => (task.value === null ? (props.step === null ? "" : stepModelLine(t, props.step, true)) : taskModelLine(t, task.value, true)));
+// The head names its models short, as the stepper does, and whole in the tooltip (docs/web.md, 「Model names where room is
+// short」).
+const modelLine = computed(() => (task.value === null ? (props.step === null ? "" : stepModelLine(t, props.step)) : taskModelLine(t, task.value)));
+const wholeModelLine = computed(() => (task.value === null ? (props.step === null ? "" : stepModelLine(t, props.step, true)) : taskModelLine(t, task.value, true)));
 const icon = computed(() => taskStateIcon(task.value?.state ?? props.step?.state));
 
 // A sheet fills the screen and is dragged down to dismiss; a modal stands in the middle, wide

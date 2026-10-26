@@ -54,7 +54,9 @@
         <ul v-if="view.models.length > 0" class="flex flex-col gap-2 text-sm">
           <li v-for="model in view.models" :key="model.model" class="flex flex-col gap-1">
             <span class="flex min-w-0 items-baseline gap-2">
-              <span class="min-w-0 truncate font-mono text-highlighted">{{ model.model }}</span>
+              <UTooltip :text="model.whole" :disabled="model.whole === model.model">
+                <span class="min-w-0 truncate font-mono text-highlighted" data-job-model>{{ model.model }}</span>
+              </UTooltip>
               <span class="ms-auto whitespace-nowrap text-muted tabular-nums">{{ model.total }}</span>
             </span>
             <UsageSplit :tally="model.tally" />

@@ -22,6 +22,16 @@ const NAMED: Readonly<Record<string, string>> = { coder: "Coder", vl: "VL", omni
 const QUANT = /^(i?q\d.*|f16|bf16|fp\d+|gguf|mtp)$/;
 const SIZE = /^\d+(\.\d+)?b$/;
 
+// A DeepSeek model: its words after `deepseek-`, each led by a capital.
+const DEEPSEEK = /^deepseek-([a-z0-9]+(?:-[a-z0-9]+)*)$/;
+const DEEPSEEK_PROVIDER = "deepseek";
+
+function deepseekShort(model: string): string | null {
+  const found = DEEPSEEK.exec(model);
+
+  return found === null ? null : found[1]!.split("-").map((word) => word[0]!.toUpperCase() + word.slice(1)).join("-");
+}
+
 function claudeShort(model: string): string | null {
   const found = CLAUDE.exec(model);
 
@@ -52,17 +62,22 @@ function qwenShort(model: string): string | null {
   return [`Q${found[1]}${found[2] ?? ""}`, ...(initials.length > 0 ? [initials.join("")] : []), ...rest].join("-");
 }
 
-/** A model's short name: `CC::O55` for `claude-code/claude-opus-5-5`, `Q38-FN-Coder` for a Qwen3.8 flash-next coder. */
+/**
+ * A model's short name: `CC::O55` for `claude-code/claude-opus-5-5`, `Q38-FN-Coder` for a Qwen3.8 flash-next coder,
+ * `DS::Flash` for `deepseek/deepseek-flash` — a DeepSeek model named so on its own provider or with none.
+ */
 export function shortModel(road: string): string {
   const pair = road.includes("::") ? "::" : "/";
   const at = road.indexOf(pair);
   const provider = at === -1 ? null : road.slice(0, at);
   const model = at === -1 ? road : road.slice(at + pair.length);
-  const short = claudeShort(model) ?? qwenShort(model);
+  // A DeepSeek model shortens on its own provider, or where none is named; on another it stands whole.
+  const deepseek = provider === null || provider === DEEPSEEK_PROVIDER ? deepseekShort(model) : null;
+  const short = claudeShort(model) ?? qwenShort(model) ?? deepseek;
 
   if (short === null) return road;
 
-  const prefix = provider === null ? null : (PROVIDERS[provider] ?? null);
+  const prefix = (provider === null ? null : (PROVIDERS[provider] ?? null)) ?? (deepseek === null ? null : PROVIDERS[DEEPSEEK_PROVIDER]!);
 
   return prefix === null ? short : `${prefix}::${short}`;
 }

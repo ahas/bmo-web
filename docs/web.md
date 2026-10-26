@@ -1367,14 +1367,19 @@ Four groups.
 
 ### Model names where room is short
 
-- **A place with room for a few letters only names a model short**; every place with room names it whole. The short
-  places are a TODO row's model chip, a step's model on the progress stepper and a figure's line inside a bubble;
-  an item's own detail, a table's cell, a dialog and a verdict card name the model whole.
+- **A compact line names a model short**, and its tooltip names it whole. The compact lines are a TODO row's model
+  chip, the model in the TODO modal's head, a step's model on the progress stepper, the model line in a step's or a
+  task's dialog head, the models in a work view's head and a figure's line inside a bubble. A table's cell, a
+  settings form and a verdict card name the model whole.
+- **A model stands alone.** No line puts beside a model's name why its road was taken — that the provider order fell
+  to it, that its runs went out on more than one — nor the model the work asked for; the road table on the agent
+  management screen is where a road's reason is read.
 - **The short name is one reading for every such place:** a Claude model is its provider's letters and its family's
   initial with its version — `CC::O55` for `claude-code/claude-opus-5-5`, S, H and F for Sonnet, Haiku and Fable, a
   dated build's date left out; a Qwen model is its version without the dot, the initials of its build's words and
-  its kind — `Q38-FN-Coder` for `qwen3.8-flash-next-coder-…` — its quantisation left out. A model no rule shortens
-  stands whole.
+  its kind — `Q38-FN-Coder` for `qwen3.8-flash-next-coder-…` — its quantisation left out; a DeepSeek model is `DS::`
+  and its words after `deepseek-`, each led by a capital — `DS::Flash` for `deepseek/deepseek-flash`, `DS::V4-Pro`
+  for `deepseek-v4-pro`, named so on DeepSeek's own provider or with none. A model no rule shortens stands whole.
 
 ### The default among choices
 
@@ -5181,9 +5186,7 @@ Four bounds keep it from growing forever.
   cost of preventing that mismatch.
 - **Search searches the whole table.** Searching only the loaded lines would change the answer by how far down you came, and
   that is no answer. It is the console's list search (「List search」): what a line shows — its `#number`, title, state word
-  with its stage (`진행 중 · 단계 7/9`), model — the one its work ran on, with its fallback and changed marks; the
-  item detail says the requested one beside it where they differ (bmo-job's `docs/work-orders.md`, 「The model an item ran
-  on」) — worker, `협업`, the 미결 badge, the requester line of a request waiting on
+  with its stage (`진행 중 · 단계 7/9`), model — the one its work ran on, by its short name and its whole one (「Model names where room is short」) — worker, `협업`, the 미결 badge, the requester line of a request waiting on
   them, the stopped and checkout lines — and what the item holds without showing it — the instruction, the completion report,
   the unfinished-items and the approval comment. The server reads each line's texts from the same list the panel draws its
   marks from, so the two never disagree about why a line was found. And **all three groups are searched** — searching only complete would find nothing when
@@ -6456,10 +6459,8 @@ journalctl --user -u <unit> -f
   single task's name is its own title, and a task with none takes its group's name. A stage mixing roles
   names every role in it. The step's state is running while any task in it runs, failed while any failed,
   waiting while none has started, skipped when every task was skipped, and done otherwise. The second line
-  is the model each of its tasks ran on — every distinct one the step used, each with a fallback mark where
-  the provider order fell to it and a changed mark where its runs went out on more than one, and in the step
-  modal the requested model beside it where the two differ (bmo-job's `docs/work-orders.md`, 「The model a step ran on」)
-  — then, for a step of more than one task, how many of them are settled as a some/some. How long the step
+  is the model each of its tasks ran on — every distinct one the step used, each by its short name and alone
+  (「Model names where room is short」; bmo-job's `docs/work-orders.md`, 「The model a step ran on」) — then, for a step of more than one task, how many of them are settled as a some/some. How long the step
   took stands at the right end of the first line, where every stepper keeps its time. A first line wider than
   the row ends in an ellipsis and shows whole in the tooltip every cut line carries (「Tooltips」); a second
   line wider than the row slides instead, since its models are names and its marks stand at its end. The some/some stands one more space off the model, since a

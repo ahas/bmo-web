@@ -1,4 +1,5 @@
 import { POLL_INTERVAL_MS } from "#shared/config";
+import { shortModel } from "#shared/model-short";
 import { spanClock } from "bmo-ui/app/domain/time";
 
 import { TURN_ENDED, useLiveRefresh } from "./events";
@@ -32,7 +33,10 @@ function durationText(t: Translate, ms: number): string {
 }
 
 export interface JobModelLine {
+  // The model short, as a compact line names it, and whole for its tooltip (docs/web.md, 「Model names where room is
+  // short」).
   model: string;
+  whole: string;
   total: string;
   tally: TokenSplit & { tokens: number };
 }
@@ -77,7 +81,7 @@ export function jobLineView(t: Translate, job: JobLine, now: number): JobLineVie
     models: job.models.map((model) => {
       const tally = tallyOf(model);
 
-      return { model: model.model, total: totalText(t, tally), tally };
+      return { model: shortModel(model.model), whole: model.model, total: totalText(t, tally), tally };
     })
   };
 }

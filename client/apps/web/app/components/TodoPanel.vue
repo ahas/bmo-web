@@ -390,7 +390,9 @@
                 <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
                 <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
 
-                <UBadge v-if="itemModel($t, item) !== null" color="neutral" variant="outline" size="sm"><SearchText :text="itemModel($t, item)!" :query="searched" /></UBadge>
+                <UTooltip v-if="itemModel(item) !== null" :text="itemModel(item, true)!" :disabled="itemModel(item) === itemModel(item, true)">
+                  <UBadge color="neutral" variant="outline" size="sm"><SearchText :text="itemModel(item)!" :query="searched" /></UBadge>
+                </UTooltip>
 
                 <UBadge v-if="(item.stopped?.failures ?? 0) > 0" color="warning" variant="subtle" size="sm">{{ $t("todo.label.stop_failures", { n: countText(item.stopped!.failures) }) }}</UBadge>
 

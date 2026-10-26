@@ -44,28 +44,20 @@ export function taskHeading(t: Translate, task: WorkTask | null, fallback = ""):
 // The left of a task's second line: which provider and model ran it, read as every surface reads it
 // (`ran-model.ts`), and how many times it has gone out. A task on its first round wears no number —
 // every task has one, so writing it says nothing, and "attempt" said of a task nothing went wrong with
-// reads as a failure. The model it asked for is said only in the `detail` the task's dialog shows.
-export function taskModelLine(t: Translate, task: WorkTask | null, detail = false): string {
+// reads as a failure. The model is short, and whole where `whole` asks for the line's tooltip.
+export function taskModelLine(t: Translate, task: WorkTask | null, whole = false): string {
   if (task === null) {
     return "";
   }
 
-  const model = taskModel(t, task, detail);
+  const model = taskModel(task, whole);
 
   return task.attempt > 1 ? t("todo.label.model_round", { model, n: task.attempt }) : model;
 }
 
-// The provider and model a task went out on, the mark of a road the provider order fell to and of a
-// task whose runs went out on more than one, and in the detail the requested one where the two differ.
-function taskModel(t: Translate, task: WorkTask, detail: boolean): string {
-  const requested = (model: string) => t("todo.label.model_requested", { model });
-
-  return ranModelText(ranModel(task.model, task.ranOn), {
-    fallback: t("todo.label.model_fallback"),
-    changed: t("todo.label.model_changed"),
-    short: !detail,
-    ...(detail ? { requested } : {}),
-  });
+// The provider and model a task went out on, short, or whole where `whole` asks for its tooltip.
+function taskModel(task: WorkTask, whole: boolean): string {
+  return ranModelText(ranModel(task.model, task.ranOn), !whole);
 }
 
 // The right of it: where the task stands among the tasks of its group. It is kept apart from the
@@ -238,11 +230,11 @@ export function stepHeading(t: Translate, step: WorkStep): string {
 }
 
 // The left of a step's second line: every model it ran on, and the round where a lone task went
-// out more than once; in the step's dialog, the models asked for beside them.
-export function stepModelLine(t: Translate, step: WorkStep, detail = false): string {
+// out more than once; short, and whole where `whole` asks for the line's tooltip.
+export function stepModelLine(t: Translate, step: WorkStep, whole = false): string {
   const only = step.tasks.length === 1 ? step.tasks[0] : undefined;
 
-  return only === undefined ? distinct(step.tasks.map((task) => taskModel(t, task, detail))).join(" · ") : taskModelLine(t, only, detail);
+  return only === undefined ? distinct(step.tasks.map((task) => taskModel(task, whole))).join(" · ") : taskModelLine(t, only, whole);
 }
 
 // Which kinds of co-worker a step sent out, each named once.

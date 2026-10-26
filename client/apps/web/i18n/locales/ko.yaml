@@ -1163,9 +1163,6 @@ todo:
     merged_into: "#{id}에 병합됨"
     merged_open: "{target}에 병합됨 · 그 항목이 완료되면 함께 완료"
     merged_open_since: "{since} {target}에 병합됨 · 그 항목이 완료되면 함께 완료"
-    model_changed: (모델 바뀜)
-    model_fallback: (폴백)
-    model_requested: "(요청 {model})"
     model_round: "{model} · {n}회차"
     new_title: 새 항목 제목
     no_room: 방 없음

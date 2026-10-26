@@ -184,22 +184,13 @@ export function jobGoingOn(state: TodoState): boolean {
   return state === "running" || state === "stopping" || state === "reporting";
 }
 
-// The model a row wears: the provider and model its work last went out on with its fallback and changed
-// marks, read as a step's is (docs/work-orders.md 「The model an item ran on」), and in the item's `detail`
-// the model it asked for — `auto` above all — beside it where the two differ. Before anything went out it
-// is the model asked for, and nothing where that is the default.
-export function itemModel(t: Translate, item: Pick<TodoItem, "model" | "ranOn">, detail = false): string | null {
+// The model a row wears: the provider and model its work last went out on, read as a step's is (bmo-job's
+// docs/work-orders.md 「The model an item ran on」), short, or whole where `whole` asks for its tooltip. Before
+// anything went out it is the model asked for, and nothing where that is the default.
+export function itemModel(item: Pick<TodoItem, "model" | "ranOn">, whole = false): string | null {
   const model = itemRanModel(item.model, item.ranOn);
-  const requested = (requested: string) => t("todo.label.model_requested", { model: requested });
 
-  return model === null
-    ? null
-    : ranModelText(model, {
-        fallback: t("todo.label.model_fallback"),
-        changed: t("todo.label.model_changed"),
-        short: !detail,
-        ...(detail ? { requested } : {})
-      });
+  return model === null ? null : ranModelText(model, !whole);
 }
 
 // The word a row wears. An item no job is going on for reads waiting whatever the table happens to
@@ -1171,6 +1162,13 @@ export function doneTail(t: Translate, input: { shown: number; total: number; se
 // Every text one row carries for the search: what the row shows, in the words it shows them, and
 // what the item holds that the row does not. The server filters with this and the panel marks the
 // hits with it, so the two can never disagree about why a row was found.
+function modelSearchText(item: TodoItem): string | null {
+  const short = itemModel(item);
+  const whole = itemModel(item, true);
+
+  return short === null ? null : short === whole ? short : `${short} ${whole}`;
+}
+
 export function todoSearchFields(
   t: Translate,
   item: TodoItem,
@@ -1183,7 +1181,8 @@ export function todoSearchFields(
     { label: t("todo.label.field_id"), text: `#${item.id}`, shown: true },
     { label: t("todo.label.field_title"), text: item.title, shown: true },
     { label: t("todo.label.field_state"), text: stateLabel(t, item, now), shown: true },
-    { label: t("todo.label.field_model"), text: itemModel(t, item, true), shown: true },
+    // The model the row's chip shows short, found by its whole name as well, which its tooltip shows.
+    { label: t("todo.label.field_model"), text: modelSearchText(item), shown: true },
     { label: t("todo.label.field_worker"), text: item.worker, shown: true },
     { label: t("todo.label.field_cowork"), text: item.cowork ? t("todo.label.field_cowork") : null, shown: true },
     { label: t("todo.label.field_unfinished"), text: unfinishedLabel(t, item), shown: true },

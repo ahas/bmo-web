@@ -234,14 +234,17 @@ describe("what a row shows", () => {
     expect(requesterLine(item(9, { chatId: null }), rooms)).toBe("Owner");
   });
 
-  test("the model is the one its work went out on, and only the detail says auto beside it as the request", () => {
+  test("the model is the one its work went out on, short, whole for its tooltip, and never with why its road was taken", () => {
     const settled = item(9, { model: "auto", ranOn: { provider: "claude-code", model: "claude-opus-5-5", changed: false } });
+    const fallen = item(9, { model: "auto", ranOn: { provider: "deepseek", model: "deepseek-flash", changed: true } });
 
-    expect(itemModel(wording, settled)).toBe("CC::O55");
-    expect(itemModel(wording, settled, true)).toBe(`claude-code/claude-opus-5-5 ${wording("todo.label.model_requested", { model: "auto" })}`);
-    expect(itemModel(wording, item(9, { model: "auto", ranOn: { provider: "registered", model: "flash-next-coder", changed: false } }))).toBe(`registered/flash-next-coder ${wording("todo.label.model_fallback")}`);
-    expect(itemModel(wording, item(9, { model: "auto" }))).toBe("auto");
-    expect(itemModel(wording, item(9))).toBeNull();
+    expect(itemModel(settled)).toBe("CC::O55");
+    expect(itemModel(settled, true)).toBe("claude-code/claude-opus-5-5");
+    expect(itemModel(fallen)).toBe("DS::Flash");
+    expect(itemModel(fallen, true)).toBe("deepseek/deepseek-flash");
+    expect(itemModel(item(9, { model: "auto", ranOn: { provider: "registered", model: "flash-next-coder", changed: false } }))).toBe("registered/flash-next-coder");
+    expect(itemModel(item(9, { model: "auto" }))).toBe("auto");
+    expect(itemModel(item(9))).toBeNull();
   });
 });
 

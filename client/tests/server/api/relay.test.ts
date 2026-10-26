@@ -98,19 +98,6 @@ describe("the relay's owner key and role", () => {
     expect(heard.at(-1)).toBe("2");
     expect(roles.at(-1)).toBe("member");
   });
-
-  test("is absent from a share read made with no session", async () => {
-    session = {};
-
-    try {
-      await handler({ params: { path: "keyed/shares/token-a" }, headers: { "owner-key": "browser-chosen" }, node: {} } as RouteEvent);
-    } finally {
-      session = { user: { id: 1, name: "tester" } };
-    }
-
-    expect(heard.at(-1)).toBeNull();
-    expect(roles.at(-1)).toBeNull();
-  });
 });
 
 // A service a manifest names: relayed at the unit that answered it, only under its API prefix and for its module and
@@ -339,5 +326,79 @@ describe("the relay of a route a manifest relays", () => {
       translator = { service: "", path: "" };
       translatorBeginMs = 50;
     }
+  });
+});
+
+// The share reads a manifest names (bmo-ui's `docs/console-bundles.md`, 「Share pages」): relayed with no session and,
+// whoever is signed in, with no owner key and no role; a manifest naming none has its link and that link's file.
+describe("the relay of a share read", () => {
+  const heard: { path: string; key: string | null; role: string | null }[] = [];
+  const served = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch(request) {
+      heard.push({ path: new URL(request.url).pathname, key: request.headers.get("owner-key"), role: request.headers.get("owner-role") });
+
+      return Response.json({ ok: true });
+    }
+  });
+  const named = (name: string, role: "member" | "administrator", shareReads?: string[]) => ({
+    manifest: consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/console/bundle.js", words: "/console/words", role, ...(shareReads === undefined ? {} : { shareReads }) }),
+    unit: { address: `http://127.0.0.1:${served.port}`, token: null },
+    words: {}
+  });
+
+  beforeAll(() => attachBundles([named("linked", "administrator", ["/links/{token}", "/links/{token}/files/{fileId}"]), named("plain", "member")]));
+  afterAll(() => {
+    attachBundles([]);
+    void served.stop(true);
+  });
+
+  const call = (path: string, method = "GET") =>
+    handler({ params: { path }, method, node: {} } as RouteEvent).then((response) => response.status, (error: { statusCode?: number }) => error.statusCode);
+  const signedOut = async (asked: () => Promise<unknown>) => {
+    session = {};
+
+    try {
+      await asked();
+    } finally {
+      session = { user: { id: 1, name: "tester" } };
+    }
+  };
+
+  test("is relayed with no session for every pattern the manifest names, and nothing else of the service is", async () => {
+    await signedOut(async () => {
+      expect(await call("linked/links/Ab3_x")).toBe(200);
+      expect(heard.at(-1)).toEqual({ path: "/links/Ab3_x", key: null, role: null });
+      expect(await call("linked/links/Ab3_x/files/4")).toBe(200);
+      expect(await call("linked/links/Ab3_x/other")).toBe(401);
+      expect(await call("linked/links")).toBe(401);
+      expect(await call("linked/shares/Ab3_x")).toBe(401);
+    });
+  });
+
+  test("carries no owner key and no role for a reader signed in, even one the manifest's role refuses", async () => {
+    const administrator = globals.signedInUser;
+
+    globals.signedInUser = async () => ({ id: 2, name: "member-a", administrator: false });
+
+    try {
+      expect(await call("linked/links/Ab3_x")).toBe(200);
+      expect(heard.at(-1)).toEqual({ path: "/links/Ab3_x", key: null, role: null });
+      expect(await call("linked/elsewhere")).toBe(404);
+    } finally {
+      globals.signedInUser = administrator;
+    }
+
+    expect(await call("plain/items")).toBe(200);
+    expect(heard.at(-1)).toEqual({ path: "/items", key: "1", role: "administrator" });
+  });
+
+  test("of a manifest naming none is its link and that link's file", async () => {
+    await signedOut(async () => {
+      expect(await call("plain/shares/Ab3_x")).toBe(200);
+      expect(await call("plain/shares/Ab3_x/content")).toBe(200);
+      expect(await call("plain/shares/Ab3_x/document")).toBe(401);
+    });
   });
 });

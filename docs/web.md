@@ -496,25 +496,22 @@ answers again (the room screen's **대기**).
 
 One kind of path stands outside the login: a console bundle's share page, below its screen path at
 `share/<token>`. A link opens one document or file to whoever holds it, with no account and no session.
-The page, its bundle's module, stylesheet and words, and the one read of its token through the relay are the
-only paths that answer without one.
+The page, its bundle's module, stylesheet and words, and the share reads its manifest names are the only
+paths that answer without one (bmo-ui's `docs/console-bundles.md`, 「Share pages」).
 
 - **The module and the stylesheet are the service's to give.** They are relayed with no session, no owner key
-  and no role, and a service that guards them by role refuses, so its share page does not open to someone
-  signed out (`docs/boundary.md`, 「Gaps the console meets」).
-
-- **The link is the whole key.** Its address carries a token and nothing besides, and the relayed read
-  of it is `shares/<token>`, which the service answers for a live token alone.
+  and no role, which a service whose manifest names a share read answers as it does its words.
+- **The link is the whole key.** Its address carries a token and nothing besides, and every read its page
+  makes is a share read: a `GET` or `HEAD` whose path a pattern under the manifest's `shareReads` matches,
+  each carrying the token, which the service answers for a live token alone. It is relayed with no session
+  and, whoever is signed in, with no owner key and no role, so every holder of the token reads the same. A
+  manifest that names none has `shares/<token>` and `shares/<token>/content` taken as its share reads.
 - **What it opens is that one thing** — a document and the pages it refers to, or a file and its
   download — and nothing of the console it came from.
 - **It ends by itself.** Every link carries an expiry chosen when it is made, and past that time it
   opens nothing. The owner takes it away earlier where they want it gone sooner.
 - **It leads nowhere else.** No other screen of this console stands within reach of it, and the page
   carries none of the console's own frame to reach them by.
-- **A bundle's share page that reads more than its token's own resource** is a gap in bmo-ui's
-  console-bundle contract, which has no field for it: the artifact bundle reads the document its token
-  names by that document's id, and the relay does not open a document without a session
-  (`docs/boundary.md`, 「Calls the console makes」).
 
 ## Wording and the language pack
 

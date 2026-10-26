@@ -7,7 +7,7 @@ import { wording } from "#shared/wording";
 import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
 
 import { relayedSegment, socketRelay } from "../utils/bundle-relay";
-import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedCall } from "../utils/console-manifests";
+import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedCall, shareReadCall } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
 import { unitAt } from "../utils/units";
 
@@ -30,9 +30,10 @@ import { unitAt } from "../utils/units";
 // bundle's page is refused, but for a read of that service's own files, which a screen opened from it loads.
 //
 // A share link is the one road with no session behind it: a reader holding the token opens the bundle's
-// share page, and the one read that page makes of the token — `shares/<token>` — is relayed without a
-// session, as are the bundle's module and stylesheet the page is drawn by. Nothing else is: a service whose
-// share page needs more than the token's own resource is a contract gap between that bundle and its console.
+// share page, and every read that page makes is a share read its manifest names, each carrying the token, which
+// is relayed without a session and, whoever is signed in, with no owner key and no role, so every holder of the
+// token reads the same (bmo-ui's `docs/console-bundles.md`, 「Share pages」). The bundle's module and stylesheet
+// the page is drawn by are relayed without a session as well. Nothing else is.
 //
 // A socket a bundle declares stands at the same path, and the route carries the relay's socket hooks for it
 // (`utils/bundle-relay.ts`).
@@ -72,9 +73,6 @@ function beginMs(service: string, path: string): number {
   return Number.isInteger(named) && named > 0 ? named : TRANSLATOR_BEGIN_MS;
 }
 
-// A road under a share token, which is the whole of the permission it carries.
-const SHARE_READ = /^shares\/[^/]+(\/content)?$/;
-
 function queryOf(event: Parameters<typeof getQuery>[0]): string {
   const asked = new URLSearchParams();
 
@@ -107,14 +105,15 @@ async function relayed(event: H3Event): Promise<Response> {
 
   const reading = method === "GET" || method === "HEAD";
   const session = await getUserSession(event);
-  const unsigned = reading && (SHARE_READ.test(rest) || (attached !== null && bundleFile(attached.manifest, `/${rest}`)));
+  const shared = reading && attached !== null && shareReadCall(attached.manifest, method, `/${rest}`);
+  const unsigned = shared || (reading && attached !== null && bundleFile(attached.manifest, `/${rest}`));
 
   if (session.user === undefined && !unsigned) {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
   }
 
   // A screen a reader may not open is one that does not stand for them, and so is its service.
-  if (session.user !== undefined && attached !== null && !readerMay(readerOf(await signedInUser(event)), attached.manifest)) {
+  if (session.user !== undefined && attached !== null && !shared && !readerMay(readerOf(await signedInUser(event)), attached.manifest)) {
     throw createError({ statusCode: 404, statusMessage: "Not Found" });
   }
 
@@ -134,7 +133,8 @@ async function relayed(event: H3Event): Promise<Response> {
   if (unit.token !== null) headers.authorization = `Bearer ${unit.token}`;
 
   // The owner the unit acts for, and the role they act in, are the person signed in, never what the browser says.
-  if (session.user !== undefined) Object.assign(headers, ownerHeaders(await signedInUser(event)));
+  // A share read carries neither: the token is the whole of what it is held to.
+  if (session.user !== undefined && !shared) Object.assign(headers, ownerHeaders(await signedInUser(event)));
 
   // The body goes as the bytes it came as, so a bundle's file upload is not read as text on the way.
   const body = reading ? undefined : await readRawBody(event);

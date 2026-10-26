@@ -29,7 +29,7 @@ import type { Judgement } from "../../../apps/web/shared/types";
 const CATALOGUE = ["intent", "information", "facts", "promises", "fit", "final"];
 
 function row(over: Partial<DraftProcessView>): DraftProcessView {
-  return { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], light: ["final"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default", ...over };
+  return { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, turnSeconds: null, pastCeiling: "send", source: "default", ...over };
 }
 
 function judgement(id: number, verdict: string, stage = "draft"): Judgement {
@@ -117,7 +117,7 @@ describe("the draft chip", () => {
   test("counts the turns asked after the round's own, from the page's summary or else the gate's rows", () => {
     const { drafts } = splitDraftJudgements(gate);
 
-    expect(draftAsked({ round: "round-1", asked: 2, end: "message" }, drafts)).toBe(2);
+    expect(draftAsked({ round: "round-1", asked: 2, end: "message", reads: [] }, drafts)).toBe(2);
     expect(draftAsked(null, drafts)).toBe(1);
     expect(draftRound(null, drafts)).toBe("round-1");
     expect(draftRound(null, [])).toBeNull();
@@ -127,10 +127,10 @@ describe("the draft chip", () => {
     const { drafts } = splitDraftJudgements(gate);
 
     expect(draftSummaryLines(wording, null, drafts)).toEqual(["ROUND 1 final: answered", "END: message"]);
-    expect(draftSummaryLines(wording, { round: "round-1", asked: 1, end: "withheld" }, [])).toEqual([
+    expect(draftSummaryLines(wording, { round: "round-1", asked: 1, end: "withheld", reads: [] }, [])).toEqual([
       wording("room.label.draft_ended", { outcome: wording("room.label.draft_end_withheld") })
     ]);
-    expect(draftSummaryLines(wording, { round: "round-1", asked: 1, end: null }, [])).toEqual([]);
+    expect(draftSummaryLines(wording, { round: "round-1", asked: 1, end: null, reads: [] }, [])).toEqual([]);
   });
 
   test("says a turn's outcome and the end's apart, and an outcome it does not know as it came", () => {

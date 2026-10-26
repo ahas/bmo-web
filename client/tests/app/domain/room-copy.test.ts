@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
+import type { DraftRead } from "../../../apps/web/shared/drafting";
 import type { Judgement } from "../../../apps/web/shared/types";
 
 Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } }) });
@@ -14,6 +15,13 @@ const { copyBrain, copyCalls, reportOf } = await import("../../../apps/web/app/d
 const judgement = (id: number, stage: string, verdict: string, detail: string | null): Judgement => ({
   id, chatId: -7, messageId: 31, stage, verdict, detail, createdAt: 1_790_000_000 + id
 });
+
+// What a round's end names as read: one piece the index lists, one it does not, one the session already held.
+const READS: DraftRead[] = [
+  { path: "core/facts.md", holds: "core facts", how: "attached" },
+  { path: "recent-notes.md", holds: null, how: "read" },
+  { path: "people/index.md", holds: "people", how: "held" }
+];
 
 describe("a copied message", () => {
   test("holds its verdicts, and the answer it drew as its word alone", () => {
@@ -62,6 +70,7 @@ describe("a copied answer", () => {
       { name: "web_fetch", resultChars: 7, failed: true }
     ]);
     expect(copyBrain(lines)).toEqual(["doc-a"]);
+    expect(copyBrain(lines, READS)).toEqual([]);
   });
 
   test("holds every chip's content in the chips' order, the send last", () => {
@@ -79,11 +88,12 @@ describe("a copied answer", () => {
         ],
         chips: {
           drafts: [
-            { id: 1, number: 1, question: "final", kind: "question", answerChars: 70, changed: false, outcome: "answered", detail: null, ms: 10_939, at: 1, answer: null },
-            { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: 2, answer: null }
+            { id: 1, number: 1, question: "final", kind: "question", answerChars: 70, changed: false, outcome: "answered", detail: null, ms: 10_939, at: 1, answer: null, reads: [] },
+            { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: 2, answer: null, reads: READS }
           ],
           calls: copyCalls(lines),
-          brain: copyBrain(lines),
+          reads: READS,
+          brain: copyBrain(lines, READS),
           spend: null
         }
       }
@@ -94,16 +104,21 @@ describe("a copied answer", () => {
       "ROUND 0 supervisor",
       "final",
       "10,939ms",
+      wording("room.label.draft_reads", { names: "core facts, recent-notes.md" }),
       wording("room.label.chip_tools"),
       `bash: ${wording("room.label.copy_result_chars", { n: "1,234" })}`,
       `web_fetch: ${wording("room.label.copy_call_failed")}`,
       wording("room.label.chip_brain"),
-      "doc-a",
+      `${wording("room.label.brain_read_attached")}: core facts (core/facts.md)`,
+      `${wording("room.label.brain_read_read")}: recent-notes.md`,
+      `${wording("room.label.brain_read_before")}: people (people/index.md)`,
       "SENT"
     ].map((part) => copied.indexOf(part));
 
     expect(order.every((at) => at >= 0)).toBe(true);
     expect([...order].sort((left, right) => left - right)).toEqual(order);
     expect(copied).not.toContain(wording("room.label.chip_tokens"));
+    // The end names what was handed, so the log's own document does not stand a second time.
+    expect(copied).not.toContain("doc-a");
   });
 });

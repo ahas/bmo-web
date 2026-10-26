@@ -120,25 +120,31 @@
              was the only thing there was to read; a turn that has ended reads them out of the log. -->
         <TurnActions v-if="listOpen(kind) && props.live !== null" :actions="liveOf(kind)" :dropped="liveDropped(kind)" />
 
-        <div v-else-if="listOpen(kind)" class="w-full">
-          <ContentSkeleton v-if="loadingActions" :rows="3" listClass="flex flex-col gap-1" :label="$t('room.status.records_loading')">
-            <div class="flex h-5 items-center gap-2">
-              <SkeletonBar class="size-4 shrink-0 rounded-sm" />
-              <SkeletonBar class="h-4 min-w-0 flex-1" />
+        <div v-else-if="listOpen(kind)" class="w-full min-w-0">
+          <!-- What the round's end names as read from the brain stands with the page; the brain calls the log holds
+               follow it, read the first time the list opens. -->
+          <BrainReads v-if="kind === 'context' && reads.length > 0" :reads="reads" :class="logListed(kind) ? 'mb-2' : ''" />
+
+          <template v-if="logListed(kind)">
+            <ContentSkeleton v-if="loadingActions" :rows="3" listClass="flex flex-col gap-1" :label="$t('room.status.records_loading')">
+              <div class="flex h-5 items-center gap-2">
+                <SkeletonBar class="size-4 shrink-0 rounded-sm" />
+                <SkeletonBar class="h-4 min-w-0 flex-1" />
+              </div>
+            </ContentSkeleton>
+            <p v-else-if="actionsFailure !== null" class="text-sm text-dimmed">{{ actionsFailure }}</p>
+            <p v-else-if="loadedOf(kind).length === 0" class="text-sm text-dimmed">{{ $t("room.status.no_records_left") }}</p>
+            <!-- An ended turn's calls stand as the agent's log draws them, the command under its prompt. -->
+            <div v-else-if="kind === 'tool'" class="flex min-w-0 flex-col gap-2">
+              <AgentToolCall v-for="row in callRows" :key="row.key" :row="row" />
+              <RollingSentence v-if="restOf(kind) > 0" tag="p" class="mt-1 text-sm text-dimmed" :keypath="'room.status.more_records'" :figures="{ n: restOf(kind) }" />
             </div>
-          </ContentSkeleton>
-          <p v-else-if="actionsFailure !== null" class="text-sm text-dimmed">{{ actionsFailure }}</p>
-          <p v-else-if="loadedOf(kind).length === 0" class="text-sm text-dimmed">{{ $t("room.status.no_records_left") }}</p>
-          <!-- An ended turn's calls stand as the agent's log draws them, the command under its prompt. -->
-          <div v-else-if="kind === 'tool'" class="flex min-w-0 flex-col gap-2">
-            <AgentToolCall v-for="row in callRows" :key="row.key" :row="row" />
-            <RollingSentence v-if="restOf(kind) > 0" tag="p" class="mt-1 text-sm text-dimmed" :keypath="'room.status.more_records'" :figures="{ n: restOf(kind) }" />
-          </div>
-          <template v-else>
-            <TurnActions :actions="loadedOf(kind)" />
-            <!-- A turn longer than one page of the log comes back short of its own count, and the rest
-                 stands on the agent's own screen rather than being quietly left out here. -->
-            <RollingSentence v-if="restOf(kind) > 0" tag="p" class="mt-1 text-sm text-dimmed" :keypath="'room.status.more_records'" :figures="{ n: restOf(kind) }" />
+            <template v-else>
+              <TurnActions :actions="loadedOf(kind)" />
+              <!-- A turn longer than one page of the log comes back short of its own count, and the rest
+                   stands on the agent's own screen rather than being quietly left out here. -->
+              <RollingSentence v-if="restOf(kind) > 0" tag="p" class="mt-1 text-sm text-dimmed" :keypath="'room.status.more_records'" :figures="{ n: restOf(kind) }" />
+            </template>
           </template>
         </div>
       </template>
@@ -239,7 +245,7 @@ import { draftAsked, draftRound, draftSummaryLines, splitDraftJudgements } from 
 
 import type { AgentLogLine, BriefingReading, Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
 import type { LogRow } from "~/domain/log";
-import type { DraftRow, DraftSummary } from "#shared/drafting";
+import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
 import type { BriefingChip, VerdictChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
 import type { LiveTurn } from "~/domain/working";
@@ -382,6 +388,10 @@ function listOpen(kind: ActionKind): boolean {
 
 const done = computed<TurnActionsRef | null>(() => props.actionsAt ?? null);
 
+// What the round's end names as read from the brain, on a turn that has ended; where it names any, they are the
+// documents the brain chip lists and counts, in place of the ones the log says the turn was handed.
+const reads = computed<DraftRead[]>(() => (props.live === null ? (props.drafts?.reads ?? []) : []));
+
 // What each chip counts: the whole round either way — for a turn still running, what its stream has
 // said plus what fell off the front of its block. A reference document the session already held is
 // counted apart, since it went as a mark and nothing of it was read on this turn. The brain chip counts
@@ -390,7 +400,15 @@ const counts = computed<{ documents: number; held: number; tools: number; brain:
   const live = props.live;
 
   if (live === null) {
-    return { documents: done.value?.documents ?? 0, held: done.value?.held ?? 0, tools: done.value?.tools ?? 0, brain: done.value?.brain ?? 0 };
+    const named = reads.value.length > 0;
+    const held = reads.value.filter((read) => read.how === "held").length;
+
+    return {
+      documents: named ? reads.value.length - held : (done.value?.documents ?? 0),
+      held: named ? held : (done.value?.held ?? 0),
+      tools: done.value?.tools ?? 0,
+      brain: done.value?.brain ?? 0
+    };
   }
 
   const handed = live.actions.filter((action) => action.kind === "context");
@@ -405,7 +423,17 @@ const records = computed<TurnRecord[]>(() => done.value?.records ?? []);
 
 // One chip's list: the brain's — the documents handed and the calls that read the brain — or every call.
 function listOf(kind: ActionKind, actions: readonly TurnAction[]): TurnAction[] {
-  return kind === "context" ? brainActions(actions) : actions.filter((action) => action.kind === "tool");
+  if (kind === "tool") return actions.filter((action) => action.kind === "tool");
+
+  const brain = brainActions(actions);
+
+  return reads.value.length > 0 ? brain.filter((action) => action.kind === "tool") : brain;
+}
+
+// Whether a list stands what the log holds: every list but the brain's where the round's end names its documents
+// and the round made no brain call.
+function logListed(kind: ActionKind): boolean {
+  return kind === "tool" || reads.value.length === 0 || counts.value.brain > 0;
 }
 
 function liveOf(kind: ActionKind): TurnAction[] {
@@ -425,7 +453,9 @@ function loadedOf(kind: ActionKind): TurnAction[] {
 // How many of the turn's actions of one sort the list did not get: the record counted them all,
 // and a page of the log holds only so many lines.
 function restOf(kind: ActionKind): number {
-  return Math.max(0, (kind === "context" ? counts.value.documents + counts.value.held + counts.value.brain : counts.value.tools) - loadedOf(kind).length);
+  const listed = kind === "tool" ? counts.value.tools : reads.value.length > 0 ? counts.value.brain : counts.value.documents + counts.value.held + counts.value.brain;
+
+  return Math.max(0, listed - loadedOf(kind).length);
 }
 
 // Opening asks the log for that run's lines, once, and each list stands its own sort of them. They
@@ -446,7 +476,7 @@ async function openActions(kind: ActionKind): Promise<void> {
 
   const at = done.value;
 
-  if (!next || at === null || actions.value.length > 0 || loadingActions.value) {
+  if (!next || at === null || actions.value.length > 0 || loadingActions.value || !logListed(kind)) {
     return;
   }
 

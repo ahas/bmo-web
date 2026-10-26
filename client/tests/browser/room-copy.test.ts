@@ -84,12 +84,12 @@ describe.skipIf(!origin || !touchReady())("copying a message", () => {
       ...answer,
       messageId: 14321,
       text: "an answer drafted and checked",
-      drafts: { round: "round:7", asked: 1, end: "message" },
+      drafts: { round: "round:7", asked: 1, end: "message", reads: [] },
       actions: { agent: "agent-a", runs: ["run-7"], documents: 0, held: 0, tools: 1, brain: 0, records: [] }
     };
     const rows = [
-      { id: 1, number: 1, question: "final", kind: "question", answerChars: 70, changed: false, outcome: "answered", detail: null, ms: 10_939, at: NOW - 50, answer: null },
-      { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: NOW - 49, answer: null }
+      { id: 1, number: 1, question: "final", kind: "question", answerChars: 70, changed: false, outcome: "answered", detail: null, ms: 10_939, at: NOW - 50, answer: null, reads: [] },
+      { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: NOW - 49, answer: null, reads: [] }
     ];
     const logLine = (id: number, kind: string, fields: Record<string, unknown>) => ({
       id, agent: "agent-a", run: "run-7", chatId: ROOM, at: NOW - 55, kind, name: "bash", tool: { name: "bash", icon: null }, parent: null, ref: "call-7",

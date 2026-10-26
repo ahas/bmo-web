@@ -3,7 +3,7 @@ import { agentProviderNames } from "#shared/types";
 import { countText } from "./numbers";
 import { modeLabel } from "./status";
 
-import type { DraftKey, DraftProcessValues, DraftProcessView, DraftRow, DraftSource, DraftSummary, PastCeiling } from "#shared/drafting";
+import type { DraftKey, DraftProcessValues, DraftProcessView, DraftRead, DraftReadHow, DraftRow, DraftSource, DraftSummary, PastCeiling } from "#shared/drafting";
 import type { AgentMode, Judgement } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
@@ -40,6 +40,7 @@ export const PAST_CEILINGS: readonly PastCeiling[] = ["send", "skip"];
 // A row's kind and how it ended, each by the key of the words it is said in; one the receiver names that the
 // pack does not hold stands as the receiver's word.
 const KIND_LABELS: Record<string, string> = {
+  supervisor: "room.label.draft_kind_supervisor",
   turn: "room.label.draft_kind_turn",
   question: "room.label.draft_kind_question",
   item: "room.label.draft_kind_item",
@@ -117,7 +118,15 @@ export function draftRowFor(rows: readonly DraftProcessView[], key: DraftKey): D
 
 /** A row's values, as a set sends them. */
 export function draftValues(row: DraftProcessValues): DraftProcessValues {
-  return { rounds: [...row.rounds], light: [...row.light], lightChars: row.lightChars, ceilingSeconds: row.ceilingSeconds, pastCeiling: row.pastCeiling };
+  return {
+    rounds: [...row.rounds],
+    sendFrom: row.sendFrom,
+    light: [...row.light],
+    lightChars: row.lightChars,
+    ceilingSeconds: row.ceilingSeconds,
+    turnSeconds: row.turnSeconds,
+    pastCeiling: row.pastCeiling
+  };
 }
 
 /** A list with a question added before `final`, `final` joining it where the list was empty. */
@@ -219,4 +228,47 @@ export function draftOutcomeText(t: Translate, outcome: string, kind: string): s
 /** Whether a row's answer stands folded under it: a question's that wrote one. */
 export function draftAnswerShown(row: DraftRow): boolean {
   return row.kind === "question" && row.answer !== null && row.answer !== "";
+}
+
+// How a round read a piece of the brain, in the order the brain chip lists them: what went whole with the turn, what
+// the agent pulled itself during the round, and what went as a mark of a version the session already held.
+export const READ_ORDER: readonly DraftReadHow[] = ["attached", "read", "held"];
+
+const READ_LABELS: Record<DraftReadHow, string> = {
+  attached: "room.label.brain_read_attached",
+  read: "room.label.brain_read_read",
+  held: "room.label.brain_read_before"
+};
+
+/** How a piece was read, in its way's word. */
+export function readHowText(t: Translate, how: DraftReadHow): string {
+  return t(READ_LABELS[how]);
+}
+
+/** A piece's name: the index's words for it, or its path where the index does not list it. */
+export function readName(read: DraftRead): string {
+  const holds = read.holds?.trim() ?? "";
+
+  return holds === "" ? read.path : holds;
+}
+
+/** The pieces a round read, by how it read them, in the chip's order; a way it read none of stands as no group. */
+export function readGroups(reads: readonly DraftRead[]): { how: DraftReadHow; reads: DraftRead[] }[] {
+  return READ_ORDER.map((how) => ({ how, reads: reads.filter((read) => read.how === how) })).filter((group) => group.reads.length > 0);
+}
+
+/** A group's heading: its way's word, the held group's with how many it holds. */
+export function readGroupText(t: Translate, how: DraftReadHow, count: number): string {
+  return how === "held" ? t("room.label.brain_read_held", { n: countText(count) }) : t(READ_LABELS[how]);
+}
+
+/** What the round line of the draft log says of the brain: the names it read on this round, then how many it held. */
+export function draftReadsParts(t: Translate, reads: readonly DraftRead[]): string[] {
+  const named = reads.filter((read) => read.how !== "held").map(readName);
+  const held = reads.filter((read) => read.how === "held").length;
+
+  return [
+    ...(named.length === 0 ? [] : [t("room.label.draft_reads", { names: named.join(", ") })]),
+    ...(held === 0 ? [] : [t("room.label.brain_read_held", { n: countText(held) })])
+  ];
 }

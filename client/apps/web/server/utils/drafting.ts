@@ -4,7 +4,7 @@
 import { receiver, receiverCall } from "./receiver";
 import { within } from "./unit-answer";
 
-import type { DraftKey, DraftProcessesView, DraftProcessValues, DraftProcessView, DraftQuestionView, DraftRow, DraftSummary, DraftSource, PastCeiling } from "#shared/drafting";
+import type { DraftKey, DraftProcessesView, DraftProcessValues, DraftProcessView, DraftQuestionView, DraftRead, DraftReadHow, DraftRow, DraftSummary, DraftSource, PastCeiling } from "#shared/drafting";
 import type { components } from "@bmo/receiver-client/schema";
 
 type Schemas = components["schemas"];
@@ -25,9 +25,11 @@ function processOf(row: Schemas["DraftProcess"]): DraftProcessView {
     tier: row.tier,
     agentName: row.agentName,
     rounds: row.rounds,
+    sendFrom: row.sendFrom,
     light: row.light,
     lightChars: row.lightChars,
     ceilingSeconds: row.ceilingSeconds,
+    turnSeconds: row.turnSeconds,
     pastCeiling: row.pastCeiling === "skip" ? "skip" : "send",
     source: sourceOf(row.source)
   };
@@ -49,8 +51,18 @@ function rowOf(row: Schemas["DraftRound"]): DraftRow {
     detail: row.detail,
     ms: row.ms,
     at: row.at,
-    answer: row.answer
+    answer: row.answer,
+    reads: (row.reads ?? []).flatMap(readOf)
   };
+}
+
+const READ_HOWS: readonly DraftReadHow[] = ["attached", "read", "held"];
+
+// One piece the end names as read; one of a way the console does not know is left out.
+function readOf(read: Schemas["DraftRead"]): DraftRead[] {
+  const how = READ_HOWS.find((one) => one === read.how);
+
+  return how === undefined ? [] : [{ path: read.path, holds: read.holds ?? null, how }];
 }
 
 /** The table and the catalogue, read together. */
@@ -91,14 +103,16 @@ export async function readRoundDrafts(chatId: number, rounds: readonly string[],
 }
 
 /** What a round's rows say in short: how many rounds the process asked — its questions, items and checks, and no row
- * of the round's own turn where the log holds one — and how it ended; null for a round whose process left no other
- * row. */
+ * of the round's own turn or of the agent's judgement before it — how it ended and what it read from the brain; null
+ * for a round whose process left no other row. */
 export function draftSummaryOf(round: string, rows: readonly DraftRow[]): DraftSummary | null {
-  const past = rows.filter((row) => row.kind !== "turn");
+  const past = rows.filter((row) => row.kind !== "turn" && row.kind !== "supervisor");
 
   if (past.length === 0) return null;
 
-  return { round, asked: past.filter((row) => row.kind !== "end").length, end: past.findLast((row) => row.kind === "end")?.outcome ?? null };
+  const end = past.findLast((row) => row.kind === "end");
+
+  return { round, asked: past.filter((row) => row.kind !== "end").length, end: end?.outcome ?? null, reads: end?.reads ?? [] };
 }
 
 /** The summaries of a page's rounds; a receiver that does not answer in time leaves the page without them. */
@@ -136,8 +150,12 @@ export function draftValuesOf(body: Record<string, unknown> | null | undefined):
   const lightChars = whole(body?.lightChars);
   const ceilingSeconds = whole(body?.ceilingSeconds);
   const pastCeiling = body?.pastCeiling === "send" || body?.pastCeiling === "skip" ? (body.pastCeiling as PastCeiling) : null;
+  // The two values the table carries unshown: absent from an older body, the first question and the policy's time.
+  const sendFrom = body?.sendFrom === undefined ? "" : typeof body.sendFrom === "string" ? body.sendFrom : null;
+  const turnSeconds = body?.turnSeconds === undefined || body.turnSeconds === null ? null : whole(body.turnSeconds);
 
-  if (rounds === null || light === null || lightChars === null || ceilingSeconds === null || pastCeiling === null) return null;
+  if (rounds === null || light === null || lightChars === null || ceilingSeconds === null || pastCeiling === null || sendFrom === null) return null;
+  if (body?.turnSeconds !== undefined && body.turnSeconds !== null && turnSeconds === null) return null;
 
-  return { rounds, light, lightChars, ceilingSeconds, pastCeiling };
+  return { rounds, sendFrom, light, lightChars, ceilingSeconds, turnSeconds, pastCeiling };
 }

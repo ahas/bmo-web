@@ -6,7 +6,7 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Route } from "playwright-core";
 import type { AgentLogLine, AgentLogPage, ArchivedMessage, JobLine, LiveRun, StatusView, TodoBoard, TodoItem, WorkOrderView, WorkTask } from "../../apps/web/shared/types";
-import type { DraftRow } from "../../apps/web/shared/drafting";
+import type { DraftRead, DraftRow } from "../../apps/web/shared/drafting";
 
 // The work view and what stands in it, as the browser lays it out (docs/web.md, 「The work view」, 「A tool call」,
 // 「The progress stepper」, the TODO modal's tabs and the room screen's brain, tool and draft chips): a worker's
@@ -80,13 +80,13 @@ const ANSWER_ID = 9_001;
 const ANSWER: ArchivedMessage = {
   chatId: CHAT, messageId: ANSWER_ID, senderId: 0, senderName: "agent-a", sentAt: NOW - 100, text: "the answer", imagePath: null,
   replyToMessageId: null, agent: true, round: "round-a",
-  drafts: { round: "round-a", asked: 1, end: "message" },
+  drafts: { round: "round-a", asked: 1, end: "message", reads: [] },
   actions: { agent: "agent-a", runs: ["turn-a", "question-a"], documents: 0, held: 0, tools: 2, brain: 1, records: [] }
 };
 const DRAFT_ANSWER = "the whole notes of the first question, as written";
 const DRAFT_ROWS: DraftRow[] = [
-  { id: 1, number: 1, question: "information", kind: "question", answerChars: DRAFT_ANSWER.length, changed: false, outcome: "answered", detail: null, ms: 1_000, at: NOW - 200, answer: DRAFT_ANSWER },
-  { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: NOW - 150, answer: null }
+  { id: 1, number: 1, question: "information", kind: "question", answerChars: DRAFT_ANSWER.length, changed: false, outcome: "answered", detail: null, ms: 1_000, at: NOW - 200, answer: DRAFT_ANSWER, reads: [] },
+  { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: NOW - 150, answer: null, reads: [] }
 ];
 const RUN_LINES: Record<string, AgentLogLine[]> = {
   "turn-a": [line(21, "turn-a", "tool", JSON.stringify({ command: "ls" }), { agent: "agent-a", name: "bash", tool: { name: "bash", icon: null }, ref: "r1" })],
@@ -257,6 +257,51 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
 
         await message.getByRole("button", { name: new RegExp(wording("room.label.chip_brain")) }).click();
         expect(await until(async () => await message.getByText("brain_recall").count(), (n) => n >= 2)).toBeGreaterThanOrEqual(2);
+      } finally {
+        await context.close();
+      }
+    }, 90_000);
+
+    test(`what a round's end names as read stands in the brain chip by group and on the draft log's round line, ${viewport.width}px wide`, async () => {
+      const context = await open(viewport);
+      const reads: DraftRead[] = [
+        { path: "core/facts.md", holds: "core facts", how: "attached" },
+        { path: "notes/today.md", holds: null, how: "read" },
+        { path: "people/index.md", holds: "people", how: "held" }
+      ];
+
+      await context.route(new RegExp(`/api/rooms/${CHAT}/messages`), (route) =>
+        route.fulfill({ json: { messages: [{ ...ANSWER, drafts: { ...ANSWER.drafts!, reads } }], judgements: [], hasMore: false } })
+      );
+      await context.route(new RegExp(`/api/rooms/${CHAT}/drafts`), (route) =>
+        route.fulfill({ json: { rows: DRAFT_ROWS.map((row) => (row.kind === "end" ? { ...row, reads } : row)) } })
+      );
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "load" });
+
+        const message = page.locator(`[data-message="m${ANSWER_ID}"]`);
+
+        await message.waitFor({ timeout: 20_000 });
+        await message.getByRole("button", { name: new RegExp(wording("room.label.chip_brain")) }).click();
+
+        const spread = message.locator("[data-brain-reads]");
+
+        await spread.waitFor({ timeout: 10_000 });
+        expect(await spread.locator('[data-brain-reads-group="attached"]').innerText()).toContain("core facts");
+        expect(await spread.locator('[data-brain-reads-group="read"]').innerText()).toContain("notes/today.md");
+        // What the session already held stands folded under its heading until it is pressed.
+        expect(await spread.getByText("people", { exact: true }).isVisible()).toBe(false);
+        await spread.getByText(wording("room.label.brain_read_held", { n: "1" })).click();
+        expect(await until(async () => await spread.getByText("people", { exact: true }).isVisible(), (shown) => shown)).toBe(true);
+        // The brain call the log holds follows the pieces.
+        expect(await until(async () => await message.getByText("brain_recall").count(), (n) => n >= 1)).toBeGreaterThanOrEqual(1);
+
+        await message.getByRole("button", { name: new RegExp(wording("room.label.chip_drafts")) }).click();
+        await message.locator("[data-draft-reads]").first().waitFor({ timeout: 10_000 });
+        expect(await message.locator("[data-draft-reads]").first().innerText()).toBe(wording("room.label.draft_reads", { names: "core facts, notes/today.md" }));
       } finally {
         await context.close();
       }

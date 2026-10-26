@@ -16,14 +16,22 @@ globals.requireReadableRoom = async () => undefined;
 globals.readableRooms = async () => "all";
 
 const ROWS = [
-  { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], light: ["final"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default" },
-  { provider: "claude-code", tier: "*", agentName: "*", rounds: ["final"], light: ["final"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "skip", source: "set" }
+  { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, turnSeconds: 120, pastCeiling: "send", source: "default" },
+  { provider: "claude-code", tier: "*", agentName: "*", rounds: ["final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, turnSeconds: 120, pastCeiling: "skip", source: "set" }
 ];
 const QUESTIONS = [{ name: "intent", text: "Why?", source: "default" }, { name: "final", text: "Write it.", source: "set" }];
 const DRAFT_ROWS = [
   { id: 1, agentName: "agent-a", number: 0, question: "turn", kind: "turn", answerChars: 40, changed: false, outcome: "answered", detail: null, ms: 900, at: 1_788_000_000_000, answer: "draft" },
   { id: 2, agentName: "agent-a", number: 1, question: "final", kind: "question", answerChars: 42, changed: true, outcome: "answered", detail: null, ms: 700, at: 1_788_000_001_000, answer: "message" },
-  { id: 3, agentName: "agent-a", number: 2, question: "", kind: "end", answerChars: 42, changed: false, outcome: "message", detail: "row=claude-code/*/*", ms: 0, at: 1_788_000_001_000, answer: null }
+  {
+    id: 3, agentName: "agent-a", number: 2, question: "", kind: "end", answerChars: 42, changed: false, outcome: "message", detail: "row=claude-code/*/*", ms: 0, at: 1_788_000_001_000, answer: null,
+    reads: [
+      { path: "core/facts.md", holds: "core facts", how: "attached" },
+      { path: "notes/today.md", holds: null, how: "read" },
+      { path: "people/index.md", holds: "people", how: "held" },
+      { path: "odd.md", holds: null, how: "glanced" }
+    ]
+  }
 ];
 
 const receiver = standIn("RECEIVER", (one) => {
@@ -59,7 +67,7 @@ const remove = await routeOf<{ ok: true }>("../../apps/web/server/api/draft-proc
 const question = await routeOf<DraftQuestionView>("../../apps/web/server/api/draft-questions.post");
 const drafts = await routeOf<{ rows: DraftRow[] }>("../../apps/web/server/api/rooms/[chatId]/drafts.get");
 
-const VALUES = { rounds: ["information", "final"], light: ["final"], lightChars: 20, ceilingSeconds: 90, pastCeiling: "skip" };
+const VALUES = { rounds: ["information", "final"], sendFrom: "final", light: ["final"], lightChars: 20, ceilingSeconds: 90, turnSeconds: 60, pastCeiling: "skip" };
 
 describe("reading the table", () => {
   test("answers every row with its source and every question, read together", async () => {
@@ -129,6 +137,21 @@ describe("setting a question", () => {
   });
 });
 
+describe("a round's summary", () => {
+  test("counts the questions, items and checks, never the agent's judgement before the round, and carries the end's reads", async () => {
+    const { draftSummaryOf } = await import("../../../apps/web/server/utils/drafting");
+    const row = (id: number, kind: string, outcome = "answered"): DraftRow => ({
+      id, number: id, question: kind, kind, answerChars: 0, changed: false, outcome, detail: null, ms: 0, at: 0, answer: null,
+      reads: kind === "end" ? [{ path: "core/facts.md", holds: null, how: "attached" }] : []
+    });
+
+    expect(draftSummaryOf("round-1", [row(0, "supervisor"), row(1, "question"), row(2, "check"), row(3, "end", "message")])).toEqual({
+      round: "round-1", asked: 2, end: "message", reads: [{ path: "core/facts.md", holds: null, how: "attached" }]
+    });
+    expect(draftSummaryOf("round-2", [row(0, "supervisor", "skip")])).toBeNull();
+  });
+});
+
 describe("one round's rows", () => {
   test("reads the round from the receiver's round log in the room, its answers whole", async () => {
     receiver.asked.length = 0;
@@ -138,6 +161,9 @@ describe("one round's rows", () => {
     expect(read.status).toBe(200);
     expect(read.answer?.rows.map((row) => row.number)).toEqual([0, 1, 2]);
     expect(read.answer?.rows[1]?.answer).toBe("message");
+    // The end names what the round read from the brain, a way the console does not know left out; other rows none.
+    expect(read.answer?.rows[2]?.reads.map((one) => one.how)).toEqual(["attached", "read", "held"]);
+    expect(read.answer?.rows[1]?.reads).toEqual([]);
     expect(receiver.asked[0]?.path).toBe("/rounds/drafts?room=-7&rounds=round-1");
   });
 

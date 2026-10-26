@@ -2709,8 +2709,9 @@ Two ways, split because the running places differ.
     짧은 턴 기준, how short the room's words must be for a light turn, in characters; 제한 시간, the time the whole
     process may take, in seconds; 시간 초과 시, 보내기 or 보내지 않기; and where the row comes from, 콘솔 설정 or
     기본값. A list with no question stands as 질문 없음.
-  - **Each cell sets that one value,** the row's other values sent with it as they stand, so a default row a
-    cell is changed on becomes the console's row of the same key. A list's dropdown is an ordered pick from the
+  - **Each cell sets that one value,** the row's other values sent with it as they stand — the question a send
+    is read from and the time a turn runs before the room is told it is still at work among them, which the
+    table does not show — so a default row a cell is changed on becomes the console's row of the same key. A list's dropdown is an ordered pick from the
     catalogue, each question standing under the pack's word for it — 의도 파악, 기억 정리, 메시지 작성 and their kin —
     and one the console added under its own name; the questions chosen stand in that same word, in order, each
     moved up or down or taken out, and a question not yet chosen is added before `final`, which stands last in
@@ -3948,6 +3949,15 @@ Four bounds keep it from growing forever.
   - **They stand on the answer's last message**, the way the figure does, and only where that round left that sort
     of action at all. A turn that only spoke leaves none and stands neither.
   - **An answer whose round the record does not name has neither**, since there is no run to read.
+  - **Where the round's end names what it read from the brain** (the receiver's `docs/drafting.md`, 「The round
+    log」), those pieces are the brain's documents in place of the ones the agency's log says the turn was handed.
+    They come with the page, read with the round's summary, and stand at the head of the list before anything is
+    read: each by the index's words for it, or its path where the index lists none, with the path as its tooltip,
+    in three groups in this order — 첨부, the pieces of the turn's core that went whole; 직접 읽음, the pieces the
+    agent read itself through the index during the round; and 전에 읽음 with how many, the pieces that went as a
+    mark of a version the session already held, folded under its heading and spread by pressing it. The chip
+    counts the first two groups and the brain calls; the calls follow the pieces, read from the log the first
+    time the list opens, and a round that made none reads nothing.
   - **What the record does not hold stands as nothing.** A round on a road whose turns hand the agency no list of
     what they were handed leaves no reference document in its log, so its 브레인 holds its brain calls alone
     (`docs/boundary.md`, 「Gaps the console meets」).
@@ -3988,16 +3998,17 @@ Four bounds keep it from growing forever.
   - **It stands on the answer's last message**, and only where the round wrote something down.
 - **드래프트** — a chat agent answer carries how its round's draft process made it (the receiver's
   `docs/drafting.md`): the chip is the count of the rounds the process asked — its questions, items and checks;
-  neither its end nor a row of the round's own turn, where the log holds one, is counted — and pressing it spreads
-  the process.
+  neither its end, the agent's own judgement before the round, nor a row of the round's own turn, where the log
+  holds one, is counted — and pressing it spreads the process.
   - **The spread opens with the summary:** the gate's `draft` verdicts of the round where the gate wrote any, one
     line each as the gate wrote it (`ROUND <number> <name>: <outcome>`, `END: <outcome>`), and otherwise one line
     of how the process ended — 메시지, 보내지 않음, 보류, 시간 초과 후 메시지 or 시간 초과 후 보내지 않음 — read off its
     end row. The gate's `draft` verdicts stand here alone and are no card of the 판정 chip.
   - **Under it, one line per row of the round log,** in the order written: the row's number, its question's
-    name, its kind (턴, 질문, 항목, 점검, 끝), how it ended (답함, 건너뜀, 실패, or the end's outcome), the answer's
+    name, its kind (판단, 턴, 질문, 항목, 점검, 끝), how it ended (답함, 건너뜀, 실패, or the end's outcome), the answer's
     length in characters, 바뀜 where the answer differs from the one before it, and how long it took in
-    milliseconds. A row of a kind the console does not know stands under the receiver's word for it. Under each
+    milliseconds. The end's line is the round's: after its outcome it says what the round read from the brain,
+    읽음: with the names of the pieces read on this round, and 전에 읽음 with how many went as marks. A row of a kind the console does not know stands under the receiver's word for it. Under each
     question row its answer — the notes that round wrote, or the message in the last — stands whole, as it was
     written, wrapping at the bubble's width. No answer and no row's text is folded or cut.
   - **The rows are read the first time the chip is pressed,** from the receiver's round log by the message's
@@ -4115,8 +4126,9 @@ Four bounds keep it from growing forever.
   order: its verdicts (판정) in time order as stage name, time and verdict, a verdict's content following indented
   where it differs from the verdict; 드래프트, the gate's rows of the round's draft process and then each round row
   as the chip lists it — its number, question, kind, outcome, characters and milliseconds; 툴 사용, each call by its
-  tool's name with the size of its result, or that it failed; 브레인, each document the turn was handed and each call
-  that read the brain; 사용 토큰, each road the round's runs took with its figure; and 전송 last. What a chip reads
+  tool's name with the size of its result, or that it failed; 브레인, each piece the round's end names as read — its
+  group's word, its name and its path — or, where the end names none, each document the turn was handed, and then
+  each call that read the brain; 사용 토큰, each road the round's runs took with its figure; and 전송 last. What a chip reads
   only when opened — the round rows, the calls — is read for the copy, and a read that fails leaves that chip's
   content out rather than holding the copy. Copying one message or several has the same shape.
   - **A copy holds the chosen messages and their own verdicts, and nothing of any other message.** A verdict that

@@ -505,6 +505,10 @@ room:
   label:
     answer_took: "{time} 소요"
     avatar_of: "{name} 프로필 사진"
+    brain_read_attached: 첨부
+    brain_read_before: 전에 읽음
+    brain_read_held: "전에 읽음 {n}개"
+    brain_read_read: 직접 읽음
     chip_brain: 브레인
     chip_briefing: 보이스브리핑
     chip_briefing_failed: 보이스브리핑 실패
@@ -535,10 +539,12 @@ room:
     draft_kind_end: 끝
     draft_kind_item: 항목
     draft_kind_question: 질문
+    draft_kind_supervisor: 판단
     draft_kind_turn: 턴
     draft_outcome_answered: 답함
     draft_outcome_failed: 실패
     draft_outcome_skip: 건너뜀
+    draft_reads: "읽음: {names}"
     earlier_count: "이전 {n}개"
     elapsed: "{time} 경과"
     empty_message: (빈 메시지)
@@ -1575,7 +1581,7 @@ agents:
     label_needed: 이름표를 입력해 주세요.
     launch_empty: 작업 지시를 입력해 주세요.
     launch_failed: 실행하지 못했습니다.
-    laya_needs_tau: 필터와 비대칭 모드는 τ를 정한 뒤에 고를 수 있습니다.
+    laya_needs_tau: 필터와 비대칭 모드는 τ를 정한 뒤에 선택할 수 있습니다.
     laya_no_checkpoint: Laya 서버에 이 게이트의 체크포인트가 없어 이 모드를 쓸 수 없습니다.
     laya_no_probe: 이 게이트에는 Laya 질문이 없어 Laya 모드를 정할 수 없습니다.
     laya_no_safe_verdict: 이 게이트에는 안전 판정이 없어 이 모드를 쓸 수 없습니다.

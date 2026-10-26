@@ -1,7 +1,7 @@
 import { formatStamp, formatTime } from "bmo-ui/app/domain/time";
 
 import { CHIP_LABELS } from "./chips";
-import { DRAFT_STAGE, draftKindText, draftOutcomeText, draftRound, splitDraftJudgements } from "./draft-process";
+import { DRAFT_STAGE, draftKindText, draftOutcomeText, draftReadsParts, draftRound, readGroups, readHowText, readName, splitDraftJudgements } from "./draft-process";
 import { stageLabel } from "./judgements";
 import { readRunLines } from "./log";
 import { countText } from "./numbers";
@@ -9,7 +9,7 @@ import { toolName } from "./tool-view";
 import { roundChip } from "./turns";
 import { brainActions, turnActions } from "./working";
 
-import type { DraftRow, DraftSummary } from "#shared/drafting";
+import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
 import type { AgentLogLine, Judgement, RoundSpend, TurnActionsRef } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
@@ -39,6 +39,8 @@ export interface CopyCall {
 export interface CopyChips {
   drafts: DraftRow[];
   calls: CopyCall[];
+  // What the round's end names as read from the brain, and what the log says of the rest.
+  reads: DraftRead[];
   brain: string[];
   spend: RoundSpend | null;
 }
@@ -84,7 +86,7 @@ function blockOf(t: Translate, item: CopyItem): string {
       ...(chips?.drafts ?? []).map((row) => draftLine(t, row))
     ]),
     ...section(t(CHIP_LABELS.tools), (chips?.calls ?? []).map((call) => callLine(t, call))),
-    ...section(t(CHIP_LABELS.brain), chips?.brain ?? []),
+    ...section(t(CHIP_LABELS.brain), [...readLines(t, chips?.reads ?? []), ...(chips?.brain ?? [])]),
     ...section(t(CHIP_LABELS.tokens), chips?.spend == null ? [] : spendLines(t, chips.spend)),
     ...sent.flatMap((judgement) => linesOf(t, judgement))
   ].join("\n");
@@ -103,6 +105,7 @@ function draftLine(t: Translate, row: DraftRow): string {
   const parts = [countText(row.number), row.question, draftKindText(t, row.kind), draftOutcomeText(t, row.outcome, row.kind)];
 
   if (row.kind !== "end") parts.push(t("room.label.draft_chars", { n: countText(row.answerChars) }), `${countText(row.ms)}ms`);
+  else parts.push(...draftReadsParts(t, row.reads));
 
   return parts.filter((part) => part !== "").join(" ");
 }
@@ -133,9 +136,21 @@ export function copyCalls(lines: readonly AgentLogLine[]): CopyCall[] {
     });
 }
 
-/** What the turn read from the brain: each document it was handed and each call that read the brain. */
-export function copyBrain(lines: readonly AgentLogLine[]): string[] {
-  return brainActions(turnActions(lines)).map((action) => (action.kind === "context" ? (action.name ?? action.text) : `${action.tool?.name ?? toolName(action.name)} ${action.text}`.trim()));
+/**
+ * What the turn's log says it read from the brain: each document it was handed — where its round's end names no piece,
+ * since the end's pieces stand in their place — and each call that read the brain.
+ */
+export function copyBrain(lines: readonly AgentLogLine[], reads: readonly DraftRead[] = []): string[] {
+  const actions = brainActions(turnActions(lines)).filter((action) => reads.length === 0 || action.kind !== "context");
+
+  return actions.map((action) => (action.kind === "context" ? (action.name ?? action.text) : `${action.tool?.name ?? toolName(action.name)} ${action.text}`.trim()));
+}
+
+// Each piece the round's end names, by how it was read, with its path where the index's words stand for it.
+function readLines(t: Translate, reads: readonly DraftRead[]): string[] {
+  return readGroups(reads).flatMap((group) =>
+    group.reads.map((read) => `${readHowText(t, group.how)}: ${readName(read) === read.path ? read.path : `${readName(read)} (${read.path})`}`)
+  );
 }
 
 /**
@@ -150,7 +165,9 @@ export async function copyChipsOf(chatId: number, source: ChipSource): Promise<C
     at === null ? Promise.resolve([]) : Promise.all(at.runs.map((run) => readRunLines(at.agent, run))).then((runs) => runs.flat()).catch((): AgentLogLine[] => [])
   ]);
 
-  return { drafts, calls: copyCalls(lines), brain: copyBrain(lines), spend: source.spend };
+  const reads = source.drafts?.reads ?? [];
+
+  return { drafts, calls: copyCalls(lines), reads, brain: copyBrain(lines, reads), spend: source.spend };
 }
 
 // The verdicts that are the answer a message drew: what they carry is the answering message's own words.

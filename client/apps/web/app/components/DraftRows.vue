@@ -1,7 +1,8 @@
 <template>
   <!-- What a round's draft process did, spread from its chip inside the bubble (docs/web.md, the room screen's draft
        chip): the summary first — the gate's rows as it wrote them, or how the process ended — then one line per row
-       of the round log, and under each question's line its answer, whole as it was written. Nothing here folds. -->
+       of the round log, the end's with what the round read from the brain, and under each question's line its
+       answer, whole as it was written. Nothing here folds. -->
   <div class="flex w-full min-w-0 flex-col gap-2">
     <ul v-if="props.summary.length > 0" data-draft-summary class="flex flex-col gap-0.5">
       <li v-for="(line, index) in props.summary" :key="index" class="text-sm break-words text-muted">{{ line }}</li>
@@ -28,6 +29,11 @@
           <span v-if="row.kind !== 'end'">{{ $t("room.label.draft_chars", { n: countText(row.answerChars) }) }}</span>
           <span v-if="row.changed && row.kind !== 'end'">{{ $t("room.label.draft_changed") }}</span>
           <span v-if="row.kind !== 'end'">{{ countText(row.ms) }}ms</span>
+          <!-- The end names what the round read from the brain: the pieces read on this round, then how many went
+               as marks of what the session already held. -->
+          <template v-else>
+            <span v-for="part in draftReadsParts($t, row.reads)" :key="part" data-draft-reads class="min-w-0 break-words">{{ part }}</span>
+          </template>
         </div>
 
         <div v-if="draftAnswerShown(row)" data-draft-answer class="mt-1 flex min-w-0 flex-col gap-0.5">
@@ -40,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { draftAnswerShown, draftKindText, draftOutcomeText } from "~/domain/draft-process";
+import { draftAnswerShown, draftKindText, draftOutcomeText, draftReadsParts } from "~/domain/draft-process";
 import { countText } from "~/domain/numbers";
 
 import type { DraftRow } from "#shared/drafting";

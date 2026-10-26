@@ -24,9 +24,15 @@ export interface DraftKey {
 /** What a row holds besides its key, as a set sends it. */
 export interface DraftProcessValues {
   rounds: string[];
+  // The question of `rounds` from whose answer on a send is read, empty for the first; the table does not show it
+  // and carries it as it stands.
+  sendFrom: string;
   light: string[];
   lightChars: number;
   ceilingSeconds: number;
+  // How long one turn runs before the room is told the agent is still at work, null for the policy's; carried as
+  // it stands.
+  turnSeconds: number | null;
   pastCeiling: PastCeiling;
 }
 
@@ -48,12 +54,23 @@ export interface DraftProcessesView {
   questions: DraftQuestionView[];
 }
 
+/** How a round read one piece of the brain: whole as part of the turn's core, as a mark of a version the session
+ * already held, or pulled by the agent itself through the index during the round. */
+export type DraftReadHow = "attached" | "read" | "held";
+
+/** One piece a round read from the brain: its path, and the index's words for it where the index lists it. */
+export interface DraftRead {
+  path: string;
+  holds: string | null;
+  how: DraftReadHow;
+}
+
 /** One turn of a round's draft process, or its end (the receiver's `docs/drafting.md`, 「The round log」). */
 export interface DraftRow {
   id: number;
   number: number;
   question: string;
-  kind: "turn" | "question" | "item" | "check" | "end" | string;
+  kind: "supervisor" | "turn" | "question" | "item" | "check" | "end" | string;
   answerChars: number;
   changed: boolean;
   outcome: string;
@@ -61,12 +78,15 @@ export interface DraftRow {
   ms: number;
   at: number;
   answer: string | null;
+  // On the end, what the round read from the brain; empty on every other row.
+  reads: DraftRead[];
 }
 
-/** What a round's draft process did, on the round's last message: the round, how many rounds it asked, and how it
- * ended, where its end is written. */
+/** What a round's draft process did, on the round's last message: the round, how many rounds it asked, how it
+ * ended, where its end is written, and what it read from the brain, as its end names it. */
 export interface DraftSummary {
   round: string;
   asked: number;
   end: string | null;
+  reads: DraftRead[];
 }

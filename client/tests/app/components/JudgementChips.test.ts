@@ -162,15 +162,22 @@ describe("what the turn read and called", () => {
   });
 
   test("a document the session already held is listed but not counted as read", () => {
-    expect(script).toContain("held: done.value?.held ?? 0");
-    expect(script).toContain('kind === "context" ? counts.value.documents + counts.value.held + counts.value.brain');
+    expect(script).toContain("held: named ? held : (done.value?.held ?? 0)");
+    expect(script).toContain("counts.value.documents + counts.value.held + counts.value.brain;");
+  });
+
+  test("what the round's end names as read stands in place of the log's documents, and is counted but for the held", () => {
+    expect(script).toContain('const reads = computed<DraftRead[]>(() => (props.live === null ? (props.drafts?.reads ?? []) : []));');
+    expect(script).toContain("documents: named ? reads.value.length - held : (done.value?.documents ?? 0)");
+    expect(script).toContain('return reads.value.length > 0 ? brain.filter((action) => action.kind === "tool") : brain;');
+    expect(template).toContain(`<BrainReads v-if="kind === 'context' && reads.length > 0" :reads="reads"`);
   });
 
   test("a finished turn reads its lines out of the log once, when a list is first opened", () => {
     expect(script).toContain("at.runs.map((run) => readRunLines(at.agent, run))");
     expect(script).toContain("loadedLines.value = lines.flat();");
     expect(script).toContain("actions.value = turnActions(loadedLines.value);");
-    expect(script).toContain("if (!next || at === null || actions.value.length > 0 || loadingActions.value)");
+    expect(script).toContain("if (!next || at === null || actions.value.length > 0 || loadingActions.value || !logListed(kind))");
     expect(template).toContain('v-if="restOf(kind) > 0"');
   });
 

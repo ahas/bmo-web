@@ -3,7 +3,7 @@ import { gateConditions } from "#shared/types";
 
 import { unitAt, unitFetch } from "./units";
 
-import type { GateCondition, GateOfferRecord, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, TokenSplit, TurnGateView } from "#shared/types";
+import type { GateCondition, GateOfferRecord, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, LayaAgreement, LayaGateView, LayaHealth, LayaMode, LayaModeRefusal, TokenSplit, TurnGateView } from "#shared/types";
 
 // A room's judgements as the gate's console API holds them (the gate's `docs/api.md`, 「Judgements」): newest
 // first, a page at a time, each road a gate run walked beside it. The gate's address and token stand in the
@@ -230,4 +230,75 @@ export async function turnGates(): Promise<TurnGateView[]> {
 /** One gate switched on or off, where its profile lets it be. */
 export async function switchGate(name: string, enabled: boolean): Promise<void> {
   await unitFetch("GATE", `/options/${encodeURIComponent(name)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled }) });
+}
+
+// The Laya server's last health check and each gate's standing beside it, as the gate unit serves them (the gate
+// unit's `docs/api.md`, 「Laya」), its moments in unix seconds as every screen reads them.
+interface GateLaya {
+  health: {
+    state: string;
+    model: string | null;
+    device: string | null;
+    vramBytes: number | null;
+    loadMs: number | null;
+    versions: Record<string, string>;
+    address: string | null;
+    checkMs: number | null;
+    checkedAt: number | null;
+    answeredAt: number | null;
+  };
+  gates: {
+    gateName: string;
+    mode: LayaMode;
+    tau: number | null;
+    agreement: (Omit<LayaAgreement, "stage"> & { gateName: string }) | null;
+    checkpoint: string | null;
+    refused: LayaGateView["refused"] | { mode: LayaMode; code: LayaModeRefusal }[];
+  }[];
+  modes: LayaMode[];
+  taus: number[];
+}
+
+export interface LayaRead {
+  health: LayaHealth;
+  gates: LayaGateView[];
+  modes: LayaMode[];
+  taus: number[];
+}
+
+const seconds = (ms: number | null): number | null => (ms === null ? null : Math.floor(ms / 1000));
+
+function refusedOf(refused: GateLaya["gates"][number]["refused"]): LayaGateView["refused"] {
+  return Array.isArray(refused) ? Object.fromEntries(refused.map((one) => [one.mode, one.code])) : refused;
+}
+
+/** The Laya server's last health check and every gate's mode, tau, agreement and checkpoint. */
+export async function layaOf(): Promise<LayaRead> {
+  const read = await unitFetch<GateLaya>("GATE", "/laya");
+  const { health } = read;
+
+  return {
+    health: {
+      state: health.state as LayaHealth["state"],
+      model: health.model,
+      device: health.device,
+      vramBytes: health.vramBytes,
+      loadMs: health.loadMs,
+      versions: health.versions ?? {},
+      address: health.address,
+      checkMs: health.checkMs,
+      checkedAt: seconds(health.checkedAt),
+      healthyAt: seconds(health.answeredAt)
+    },
+    gates: read.gates.map((gate) => ({
+      stage: gate.gateName,
+      mode: gate.mode,
+      tau: gate.tau,
+      agreement: gate.agreement === null ? null : { ...gate.agreement, stage: gate.agreement.gateName },
+      checkpoint: gate.checkpoint,
+      refused: refusedOf(gate.refused ?? {})
+    })),
+    modes: read.modes,
+    taus: read.taus
+  };
 }

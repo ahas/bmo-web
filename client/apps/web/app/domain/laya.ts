@@ -1,18 +1,19 @@
 import { countText } from "./numbers";
 
-import type { LayaAgreement, LayaGateView, LayaMode, LayaModeRefusal, LayaView } from "#shared/types";
+import { TURN_ENDED, useLiveRefresh } from "./events";
+import { layaModeWord } from "./gate-order";
+
+import type { LayaAgreement, LayaGateView, LayaHealth, LayaMode, LayaModeRefusal, LayaView, NodeTone } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { Ref } from "vue";
 
-// Laya on the agent management screen and a gate's own screen (docs/web.md, 「Agent management screen」): the server's last
-// health check and each gate's agreement with its LLM. Both are the gate unit's, which is not split yet and is
-// reached at no address, so the view stands as Laya not reached and no call is made (docs/boundary.md, 「Screens
-// of units not yet split」); this decides only how they read.
+// Laya on the agent management screen (docs/web.md, the agents page's gates tab): the server's last health check and
+// each gate's agreement with its LLM, as the gate unit's `GET /laya` answers them; this decides how they read.
 
 export function emptyLayaView(t: Translate): LayaView {
   return {
     health: {
-      state: "off", stateWord: t("agents.status.laya_unavailable"), tone: "unknown", node: null, model: null, device: null, vramBytes: null,
+      state: "unreachable", stateWord: t("agents.status.laya_unavailable"), tone: "bad", node: null, model: null, device: null, vramBytes: null,
       loadMs: null, versions: {}, address: null, checkMs: null, checkedAt: null, healthyAt: null,
     },
     gates: [],
@@ -21,9 +22,43 @@ export function emptyLayaView(t: Translate): LayaView {
   };
 }
 
-// The view as it stands while the gate unit is reached at no address: Laya not reached, and no gate of its.
+// The words and the tone each state of the server's health check is said in.
+const STATE_LOOKS: Record<string, { key: string; tone: NodeTone }> = {
+  up: { key: "agents.status.laya_up", tone: "good" },
+  busy: { key: "agents.status.laya_busy", tone: "good" },
+  off: { key: "agents.status.laya_off", tone: "unknown" },
+  unknown: { key: "agents.status.laya_unchecked", tone: "unknown" },
+  unreachable: { key: "agents.status.laya_unreachable", tone: "bad" },
+  timeout: { key: "agents.status.laya_timeout", tone: "bad" },
+  refused: { key: "agents.status.laya_refused", tone: "bad" },
+  "bad-answer": { key: "agents.status.laya_bad_answer", tone: "bad" },
+  "too-large": { key: "agents.status.laya_too_large", tone: "bad" }
+};
+
+/** The view a screen stands from the gate unit's answer: the state in its words and tone, each mode in its words. */
+export function layaViewOf(t: Translate, read: { health: LayaHealth; gates: LayaGateView[]; modes: LayaMode[]; taus: number[] }): LayaView {
+  const look = STATE_LOOKS[read.health.state] ?? { key: "agents.status.laya_unchecked", tone: "unknown" as NodeTone };
+
+  return {
+    health: { ...read.health, stateWord: t(look.key), tone: look.tone, node: null },
+    gates: read.gates,
+    modes: read.modes.map((mode) => ({ value: mode, label: layaModeWord(t, mode) })),
+    taus: read.taus
+  };
+}
+
+// How often the band is read again while it stands.
+const LAYA_POLL_MS = 30_000;
+
+// The view as the gate unit answers it, read again every half minute and as a turn ends; where the unit is not
+// reached, Laya not reached and no gate of its.
 export function useLaya(t: Translate): { laya: Ref<LayaView>; status: Ref<string>; refresh: () => Promise<void> } {
-  return { laya: ref(emptyLayaView(t)), status: ref("success"), refresh: async () => {} };
+  const { data, status, refresh } = useFetch<{ health: LayaHealth; gates: LayaGateView[]; modes: LayaMode[]; taus: number[] }>("/api/laya", { key: "laya", lazy: true, server: false });
+  const laya = computed(() => (data.value == null ? emptyLayaView(t) : layaViewOf(t, data.value)));
+
+  useLiveRefresh(() => void refresh(), { on: TURN_ENDED, everyMs: LAYA_POLL_MS });
+
+  return { laya, status, refresh: async () => await refresh() };
 }
 
 export function percentText(share: number | null): string {

@@ -2788,8 +2788,9 @@ Two ways, split because the running places differ.
   or 대체 없음, pressed for 기본 (with the provider its road would begin on), 대체 없음 and each
   provider kept on (the gate unit's documents, 「A gate whose provider is Laya」).
 - **Laya stands on this tab too** (the gate unit's documents):
-  - A band above the table gives the Laya server's state from its latest health check — 응답함, the
-    failure word, 주소 없음 where no address is set, or 확인 전 — with the model, the VRAM it holds and
+  - A band above the table gives the Laya server's state from its latest health check, as the gate unit's `GET
+    /laya` answers it — 응답함, 사용 중 where its card was taken for the last call, the failure word, 꺼짐 where no
+    address is set, or 확인 전; where the gate unit is not reached, 연결 안 됨 — with the model, the VRAM it holds and
     how long the check took, in the node screen's state colours. It is pressed for a popover of the
     details — model, device, VRAM, load time, address, when it was checked and last answered — with
     노드 보기 to the node whose host the address names, where one does. The band and the table share the
@@ -2803,8 +2804,8 @@ Two ways, split because the running places differ.
     there. A gate Laya settles one question at a time counts questions instead of pairs, and beside
     them the share of its questions Laya settled (the gate unit's documents, 「Agreement」). It keeps its place with a skeleton until the records are read.
   - A mode of 필터 or 비대칭 for a gate with no τ is refused by the bot, and the refusal is said in a
-    notice. The whole of it is read from the archive and read again when the server's health moves or
-    a turn ends.
+    notice. The whole of it is read from the gate unit's `GET /laya` and read again every half minute while the tab
+    stands, and when a turn ends.
 
 #### 대화 상대
 

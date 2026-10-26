@@ -473,7 +473,9 @@ async function go(hit: SettingsHit): Promise<void> {
 
     if (target !== null) {
       scrollWithin(target, "center");
-      target.animate([{ backgroundColor: "color-mix(in oklab, var(--ui-warning) 25%, transparent)" }, { backgroundColor: "transparent" }], { duration: 1600 });
+      // The row is marked at once and holds the mark a moment, then lets it go on the shared unfold length.
+      target.classList.add("settings-hit");
+      setTimeout(() => target.classList.remove("settings-hit"), SETTINGS_HIT_HOLD_MS);
 
       return;
     }
@@ -481,4 +483,7 @@ async function go(hit: SettingsHit): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
+
+// How long a found row holds its mark before letting it go: a stay, not a movement, so it is no motion length.
+const SETTINGS_HIT_HOLD_MS = 1_200;
 </script>

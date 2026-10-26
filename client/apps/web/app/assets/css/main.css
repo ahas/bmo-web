@@ -611,3 +611,19 @@
   white-space: pre;
   overflow-wrap: normal;
 }
+
+/* A row the settings search brought into view holds a tint while it is found and lets it go on the shared unfold
+   length (docs/web.md, the settings search); a reader who asked for less movement sees it go at once. */
+.settings-hit {
+  background-color: color-mix(in oklab, var(--ui-warning) 25%, transparent);
+}
+
+[id^="setting-"] {
+  transition: background-color var(--bmo-motion-unfold) var(--bmo-ease-exit);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [id^="setting-"] {
+    transition: none;
+  }
+}

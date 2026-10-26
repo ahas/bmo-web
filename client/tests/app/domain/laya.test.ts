@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { agreementNote, agreementOf, agreementText, emptyLayaView, layaGateOf, layaModeLabel, layaRefusalText, modelShortName, percentText, tauText, vramText } from "../../../apps/web/app/domain/laya";
+import { agreementNote, agreementOf, agreementText, emptyLayaView, layaGateOf, layaModeLabel, layaRefusalText, layaViewOf, modelShortName, percentText, tauText, vramText } from "../../../apps/web/app/domain/laya";
 
 import type { LayaAgreement, LayaView } from "../../../apps/web/shared/types";
 import KO from "../../fixtures/app/domain/laya.test.ko.json";
@@ -73,5 +73,22 @@ describe("the rest of what Laya shows", () => {
     expect(modelShortName("/home/user/laya/checkpoints/smoke")).toBe("smoke");
     expect(layaModeLabel(view, "shadow")).toBe(KO.line_73);
     expect(layaModeLabel(view, "filter")).toBe("filter");
+  });
+});
+
+// The band stands the gate unit's answer in its words (docs/web.md, the agents page's gates tab): each state of the
+// health check in its word and tone, each mode in its words; a unit not reached stands as not reached.
+describe("the Laya view", () => {
+  test("stands each state in its words and tone, and each mode in its words", () => {
+    const health = { state: "up" as const, model: "m", device: "cuda", vramBytes: 1, loadMs: 1, versions: {}, address: null, checkMs: 7, checkedAt: 1, healthyAt: 1 };
+    const view = layaViewOf(wording, { health, gates: [], modes: ["off", "shadow"], taus: [0.5] });
+
+    expect(view.health).toMatchObject({ stateWord: wording("agents.status.laya_up"), tone: "good" });
+    expect(layaViewOf(wording, { health: { ...health, state: "timeout" }, gates: [], modes: [], taus: [] }).health.tone).toBe("bad");
+    expect(view.modes).toEqual([
+      { value: "off", label: wording("agents.label.laya_mode_off") },
+      { value: "shadow", label: wording("agents.label.laya_mode_shadow") }
+    ]);
+    expect(emptyLayaView(wording).health).toMatchObject({ stateWord: wording("agents.status.laya_unavailable"), tone: "bad" });
   });
 });

@@ -13,7 +13,7 @@ export interface RouteEvent {
   // The request's method, its headers by lower-case name and its body as it was sent, where a route reads them.
   method?: string;
   headers?: Record<string, string>;
-  rawBody?: string;
+  rawBody?: string | Uint8Array;
 }
 
 const globals: Record<string, unknown> = globalThis;

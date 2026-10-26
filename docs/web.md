@@ -23,7 +23,8 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
   and no page.
 - **The mail, files, archive, code review, remote access and gate screens are their units' own,** each a console
   bundle loaded from its unit's manifest, whose calls this app relays (「Screens a unit brings」). A bundle's
-  share page, below its screen path at `share/`, is the one path outside the login (「Access」).
+  share page, below its screen path at `share/`, is the one screen outside the login, and GitHub's deliveries the
+  one call (「Access」).
 
 ## Layout fundamentals
 
@@ -322,6 +323,15 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
 The owner alone sees it. Without logging in, no screen and no API open. The agent log holds a room's
 conversation and the credentials handed to the browser searcher as they are, so the log stands behind
 this rule alone and goes nowhere else.
+
+- **GitHub's deliveries are the one call taken with no sign-in.** GitHub posts an organisation's webhook
+  deliveries to `api/github/deliveries` under the console's base path, and nobody signs in to post them. The
+  console takes that one path for `POST` alone, and a body of at most 1 MB, and hands it on unchanged to the
+  agency's `POST /github/deliveries` with its `Content-Type`, `X-GitHub-Event`, `X-GitHub-Delivery` and
+  `X-Hub-Signature-256` headers and the agency's token, answering with the agency's status and body. Whether
+  the delivery is GitHub's is the agency's to say, by its signature: the console judges nothing of it. A larger
+  body is refused 413 and nothing is handed on; an agency that does not answer is 502. Each delivery leaves one
+  line in the console's log: its event, its delivery id and the status it was answered with.
 
 **Once the multi-user model is in force, the sign-in is the account service's**
 (`docs/accounts.md`).

@@ -44,3 +44,51 @@ export function researchKeys(profiles: readonly Pick<FallbackProfile, "key" | "l
 
   return keys;
 }
+
+// The fetch strategies the agency holds a research run to, in the order the choice offers them, each by the key of
+// the words it is said in (the agency's `docs/research-runs.md`, 「What a run is held to: the research settings」).
+export const STRATEGY_LABELS: Record<string, string> = {
+  "direct-then-browser": "research.label.strategy_direct_then_browser",
+  "browser-first": "research.label.strategy_browser_first",
+  "direct-only": "research.label.strategy_direct_only"
+};
+
+/** A strategy's words; one this screen has no words for stands as a sentence naming it. */
+export function strategyLabel(t: Translate, strategy: string): string {
+  const label = STRATEGY_LABELS[strategy];
+
+  return label === undefined ? t("research.label.unknown_value", { value: strategy }) : t(label);
+}
+
+/** A gap between two requests, in milliseconds, or the web tools' own where none is set. */
+export function gapText(t: Translate, ms: number | null): string {
+  return ms === null ? t("research.label.default") : t("research.label.gap_value", { n: ms.toLocaleString("ko-KR") });
+}
+
+/** What a gap's box holds once saved: an emptied box sets the gap back to the web tools' own. */
+export function gapOf(text: string): number | null {
+  const trimmed = text.trim();
+
+  return trimmed === "" ? null : Number(trimmed);
+}
+
+// How a search engine's state stands: its mark, its tone and its words.
+export interface EngineLook {
+  icon: string;
+  tone: string;
+  label: string;
+}
+
+const ENGINE_LOOKS: Record<string, Omit<EngineLook, "label"> & { key: string }> = {
+  healthy: { icon: "i-material-symbols-check-circle-outline", tone: "text-success", key: "research.label.state_healthy" },
+  degraded: { icon: "i-material-symbols-warning-outline", tone: "text-warning", key: "research.label.state_degraded" },
+  suspended: { icon: "i-material-symbols-pause-circle-outline", tone: "text-error", key: "research.label.state_suspended" }
+};
+
+export function engineLook(t: Translate, state: string): EngineLook {
+  const look = ENGINE_LOOKS[state];
+
+  return look === undefined
+    ? { icon: "i-material-symbols-help-outline", tone: "text-muted", label: t("research.label.unknown_value", { value: state }) }
+    : { icon: look.icon, tone: look.tone, label: t(look.key) };
+}

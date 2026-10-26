@@ -3,7 +3,7 @@ import { agencyClient } from "@agency/client";
 import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import { unitAt } from "./units";
+import { unitAt, unitHeaders } from "./units";
 import { answered } from "./unit-answer";
 
 import type { Agent as AgencyAgent, AgencyClient, FoldRatio, Provider, Session, Tier, Worker } from "@agency/client";
@@ -44,6 +44,29 @@ export function agency(): AgencyClient {
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
 
   return agencyClient(unit.address, unit.token ?? "");
+}
+
+/**
+ * One call on an agency route the published client the console vendors names no type for, by the path the agency's
+ * `docs/api.md` documents, answered and refused as every other agency call is.
+ */
+export async function agencyRoute<T>(method: "GET" | "PUT", path: string, body?: unknown): Promise<T> {
+  const unit = unitAt("AGENCY");
+
+  if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
+
+  const asked = fetch(`${unit.address}${path}`, {
+    method,
+    headers: { ...unitHeaders(unit), accept: "application/json", ...(body === undefined ? {} : { "content-type": "application/json" }) },
+    body: body === undefined ? undefined : JSON.stringify(body),
+    signal: AbortSignal.timeout(AGENCY_TIMEOUT_MS)
+  }).then(async (response) => {
+    const parsed: unknown = await response.json().catch(() => undefined);
+
+    return response.ok ? { data: parsed as T, response } : { error: (parsed ?? {}) as { code?: string; error?: string; field?: string }, response };
+  });
+
+  return await agencyCall<T, { code?: string; error?: string; field?: string }>(asked);
 }
 
 /** One call on the agency, its refusals said in the pack's words and a refused field said under that field. */

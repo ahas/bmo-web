@@ -2861,10 +2861,21 @@ Two ways, split because the running places differ.
   answered on it. Each cell saves through the same road and tier assignment as there and meets the same refusals;
   a read that fails is that table's, with its reread.
 - **Where the agency holds no research key,** one sentence says so in place of the table.
-- **What no unit serves stands as one sentence under it:** the branch role and count, the fetch strategy, the gaps,
-  the clocks and the search engines' state. A research's web settings travel on the tool session record the agency
-  issues (bmo-explorer's `docs/api.md`, 「What a placed tool reads of its record」), and no route hands them to the
-  console (`docs/boundary.md`, 「Gaps the console meets」).
+- **What every research run is held to** stands under it, as the agency's research settings hold it (the agency's
+  `docs/research-runs.md`, 「What a run is held to: the research settings」), each value in a cell of its own that
+  saves that one value at once as the road table's cells do, and meets the agency's refusal under its box:
+  - **키별 한도** — a research key to a row, under the name the road table gives it: **브랜치**, how many pooled
+    branches a run of it may open, and **시간**, for how many minutes its web tools stay open.
+  - **가져오기** — one row of the four settings every key shares: **브랜치 역할**, the co-worker role whose tier a
+    search's branches go out on, chosen from the agency's co-worker roles; **가져오기 전략**, one of three — 직접
+    먼저, 브라우저 먼저 or 직접만; and **호스트 간격** and **엔진 간격**, the milliseconds between two direct
+    requests to one host and between two requests to one search engine, each 기본값 where the web tools' own
+    stands and set back to it by an emptied box.
+  - Whether a value is the policy's default or the owner's own stands beside the section's title.
+- **검색 엔진** — every search engine the web tools answer for, one row each: its name, its category, its state
+  as a mark and a word — 정상, 저하, 중단 — and where they are known why, when it was last seen and, for one
+  suspended, how long it stays so. Where the engines could not be read, one line says why in their place. The
+  table is read again with the settings.
 
 #### Around the tabs
 

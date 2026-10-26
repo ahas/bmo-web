@@ -2180,15 +2180,52 @@ live:
   title:
     recent_log: 최근 기록
 research:
+  aria:
+    branches_of: "{key} 브랜치"
+    minutes_of: "{key} 시간"
+  error:
+    engines_unread: "검색 엔진 상태를 읽지 못했습니다: {reason}"
+    settings_read_failed: 리서치 설정을 읽지 못했습니다.
+  message:
+    gap_help: 비우면 기본값
   label:
+    branch_role: 브랜치 역할
+    branches: 브랜치
+    category: 분류
+    default: 기본값
+    engine: 엔진
+    engine_gap: 엔진 간격
+    gap_value: "{n}ms"
+    host_gap: 호스트 간격
+    key: 키
+    minutes: 시간
+    minutes_value: "{n}분"
+    observed: 확인
     profile_browse: 브라우즈
     profile_search_basic: 기본 검색
     profile_search_exhaustive: 초정밀 검색
     profile_search_thorough: 정밀 검색
-  message:
-    settings_unserved: 브랜치, 가져오기 전략, 간격과 시간, 엔진 상태는 에이전시가 내주지 않아 여기에 없습니다.
+    reason: 이유
+    source_default: 기본값
+    source_set: 수동 지정
+    state: 상태
+    state_degraded: 저하
+    state_healthy: 정상
+    state_suspended: 중단
+    strategy: 가져오기 전략
+    strategy_browser_first: 브라우저 먼저
+    strategy_direct_only: 직접만
+    strategy_direct_then_browser: 직접 먼저
+    suspended_until: 중단 해제
+    unknown_value: "알 수 없는 값 {value}"
   status:
+    no_engines: 검색 엔진이 없습니다.
     no_keys: 에이전시에 서쳐의 작업 키가 없습니다.
+    settings_loading: 리서치 설정을 불러오는 중
+  title:
+    engines: 검색 엔진
+    fetching: 가져오기
+    limits: 키별 한도
 tool:
   label:
     bash: 셸

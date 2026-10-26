@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-// The searcher tab as it ships: the searchers' work keys as rows of the road table, and a sentence for
-// what no unit serves. The keys it picks are the domain's (domain/research.test.ts); these checks hold
-// the screen to what docs/web.md promises it shows.
+// The searcher tab as it ships (docs/web.md, the searcher tab): the searchers' work keys as rows of the road table,
+// and under them what every research run is held to — each key's branches and clock, the branch role, the fetch
+// strategy and the two gaps, each a cell saving its one value — and the search engines' state. The words and
+// values are the domain's (domain/research.test.ts); these checks hold the screen to what the document promises.
 
-// The sources are read where the app keeps them.
 const read = async (name: string) => await Bun.file(new URL(name, new URL("../../../apps/web/app/components/", import.meta.url))).text();
 const templateOf = (source: string) => source.slice(0, source.indexOf("<script"));
 const scriptOf = (source: string) => source.slice(source.indexOf("<script"));
@@ -19,17 +19,25 @@ describe("the searcher tab", () => {
 
   test("shows the research keys as rows of the road table, saved through the same roads and tiers", () => {
     expect(templateOf(settings)).toContain('<AgentsRouteTable v-if="!read || keys.length > 0" :only="keys" :query="props.query" />');
-    expect(scriptOf(settings)).toContain('useFetch<FallbackView>("/api/fallback", { key: "fallback"');
-    expect(scriptOf(settings)).toContain('useFetch<TierSettingsView>("/api/model-tiers", { key: "model-tiers"');
     expect(scriptOf(settings)).toContain("researchKeys(fallback.value?.profiles ?? [], tiers.value?.assignments ?? [])");
   });
 
-  test("says in one sentence what the agency does not serve, and reads no research settings", () => {
-    expect(templateOf(settings)).toContain('$t("research.status.no_keys")');
-    expect(templateOf(settings)).toContain('$t("research.message.settings_unserved")');
+  test("reads the research settings and saves each value in a cell of its own", () => {
+    expect(scriptOf(settings)).toContain('useFetch<ResearchSettingsView>("/api/research-settings"');
+    expect(scriptOf(settings)).toContain('$fetch<ResearchSettingsView>("/api/research-settings", { method: "PUT", body: change })');
 
-    for (const source of [settings, page]) {
-      expect(source).not.toContain("research-settings");
+    for (const cell of ["#branches-cell", "#minutes-cell", "#branchRole-cell", "#strategy-cell", "#hostIntervalMs-cell", "#engineIntervalMs-cell"]) {
+      expect(templateOf(settings)).toContain(cell);
     }
+  });
+
+  test("stands the engines' state as a mark and a word, and says why where they could not be read", () => {
+    expect(templateOf(settings)).toContain("engineLook($t, row.original.state).label");
+    expect(templateOf(settings)).toContain('$t("research.error.engines_unread", { reason: settings.enginesUnread ?? "" })');
+    expect(templateOf(settings)).toContain("remainingText($t, toUnixSeconds(row.original.suspendedUntil), now)");
+  });
+
+  test("no longer says the agency serves none of it", () => {
+    expect(settings).not.toContain("settings_unserved");
   });
 });

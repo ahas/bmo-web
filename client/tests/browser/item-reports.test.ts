@@ -168,12 +168,13 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
         const itemDialogs = page.getByRole("dialog").filter({ has: page.getByRole("tab", { name: wording("todo.label.field_instruction") }) });
 
         expect(await until(async () => await itemDialogs.count(), (n) => n === 0)).toBe(0);
-        await page.evaluate(async (id) => {
-          const root = document.querySelector("#__nuxt") as unknown as { __vue_app__: { config: { globalProperties: { $router: { push: (to: object) => Promise<unknown> } } } } };
+        // The app's own router opens the item again, as a press in the same tab would.
+        await page.evaluate(`(async () => {
+          const router = document.querySelector("#__nuxt").__vue_app__.config.globalProperties.$router;
 
-          await root.__vue_app__.config.globalProperties.$router.push({ query: {} });
-          await root.__vue_app__.config.globalProperties.$router.push({ query: { todo: String(id) } });
-        }, ITEM);
+          await router.push({ query: {} });
+          await router.push({ query: { todo: "${ITEM}" } });
+        })()`);
         // The same item opened again keeps the tab being read, and its reading stands at once, from what the tab kept.
         const again = itemDialogs.last();
 

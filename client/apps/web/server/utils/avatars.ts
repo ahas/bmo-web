@@ -2,10 +2,20 @@ import { unitAt, unitHeaders } from "./units";
 
 import type { AvatarKind, AvatarRef } from "#shared/types";
 
-// A room's and a person's profile picture, which the chat service that keeps it serves by its kind and id
-// (docs/web.md, 「Profile photos」; the Telegram service's `docs/api.md`, `GET /rooms/{roomId}/avatar` and
-// `GET /people/{personId}/avatar`). The console serves it under its own path behind the sign-in, so the
-// browser never names the service.
+import type { UnitAddress } from "./units";
+
+// A room's and a person's profile picture, which the archive and each chat service keep and serve by its kind and
+// id (docs/web.md, 「Profile photos」; the receiver's and the Telegram service's `docs/api.md`, `GET /avatars`,
+// `GET /rooms/{roomId}/avatar` and `GET /people/{personId}/avatar`). The console serves it under its own path
+// behind the sign-in, so the browser never names the unit.
+
+// The units that keep pictures, in the order a number both keep is read from: the receiver first, since it is the
+// archive, then the Telegram service.
+const KEEPERS: readonly string[] = ["RECEIVER", "TELEGRAM"];
+
+function keepers(): UnitAddress[] {
+  return KEEPERS.flatMap((name) => unitAt(name) ?? []);
+}
 
 const KINDS: readonly string[] = ["room", "person"];
 
@@ -28,16 +38,28 @@ interface AvatarRow {
   takenAt?: unknown;
 }
 
-// Every picture the console can show, read from the provider's `GET /avatars` a page at a time
-// (the Telegram service's `docs/api.md`, 「Profile pictures」). A page is walked by the moment the
-// last picture on it was received, oldest first, so no picture is read twice or left behind. A page
-// the provider does not answer ends the walk with what has been read so far: the screens fall back
-// to their letters rather than standing empty.
+// Every picture the console can show: each keeper's list, joined, the earlier keeper's picture standing for a
+// number both keep.
 export async function avatarRefs(): Promise<AvatarRef[]> {
-  const unit = unitAt("TELEGRAM");
+  const lists = await Promise.all(keepers().map(listedBy));
+  const seen = new Set<string>();
 
-  if (unit === null) return [];
+  return lists.flat().filter((ref) => {
+    const subject = `${ref.kind}:${ref.id}`;
 
+    if (seen.has(subject)) return false;
+
+    seen.add(subject);
+
+    return true;
+  });
+}
+
+// One keeper's pictures, read from its `GET /avatars` a page at a time. A page is walked by the moment the last
+// picture on it was taken, oldest first, so no picture is read twice or left behind. A page the keeper does not
+// answer ends the walk with what has been read so far: the screens fall back to their letters rather than
+// standing empty.
+async function listedBy(unit: UnitAddress): Promise<AvatarRef[]> {
   const refs: AvatarRef[] = [];
   let after: number | null = null;
 
@@ -80,19 +102,27 @@ export async function avatarRefs(): Promise<AvatarRef[]> {
   }
 }
 
-// One subject's picture as the chat service serves it, or null where it keeps none or is not reached.
-export async function avatarPicture(kind: AvatarKind, subjectId: number): Promise<Uint8Array | null> {
-  const unit = unitAt("TELEGRAM");
+// One subject's picture, its bytes and the type its keeper names, as the first keeper that keeps one serves it, or
+// null where none keeps one or none is reached.
+export interface AvatarPicture {
+  bytes: Uint8Array;
+  type: string;
+}
 
-  if (unit === null) return null;
-
+export async function avatarPicture(kind: AvatarKind, subjectId: number): Promise<AvatarPicture | null> {
   const path = kind === "room" ? `/rooms/${subjectId}/avatar` : `/people/${subjectId}/avatar`;
 
-  try {
-    const response = await fetch(`${unit.address}${path}`, { headers: unitHeaders(unit), signal: AbortSignal.timeout(5_000) });
+  for (const unit of keepers()) {
+    try {
+      const response = await fetch(`${unit.address}${path}`, { headers: unitHeaders(unit), signal: AbortSignal.timeout(5_000) });
 
-    return response.ok ? new Uint8Array(await response.arrayBuffer()) : null;
-  } catch {
-    return null;
+      if (response.ok) {
+        return { bytes: new Uint8Array(await response.arrayBuffer()), type: response.headers.get("content-type") ?? "image/jpeg" };
+      }
+    } catch {
+      // This keeper is not reached; the next one may keep the picture.
+    }
   }
+
+  return null;
 }

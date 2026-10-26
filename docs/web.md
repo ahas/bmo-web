@@ -1049,7 +1049,9 @@ edit to that file alone, once the guide below carries the word.
 
 ### Profile photos
 
-- Rooms and people stand with the very photo shown in Telegram. The room in the sidebar and that room's
+- Rooms and people stand with the photo kept for them: the one the archive keeps, or else the one their chat
+  service shows — a room the receiver numbers itself, such as a room made for a companion, and the numbers it gives
+  a companion and the chat agent there wear the archive's. The room in the sidebar and that room's
   the chat agent, the room header and beside a bubble are all the same photo. The chat agent stands with its own photo too. The
   photo beside a bubble attaches to the side that bubble stands on — words on the left on the left, words on
   the right on the right.
@@ -6215,12 +6217,17 @@ journalctl --user -u <unit> -f
 
 ## Profile photos
 
-- A profile photo is the chat service's: the console reads it through the chat service that keeps it, a room's and
-  a person's by their kind and id, and serves it under its own path behind the sign-in.
-- The Telegram service lists the pictures it keeps at `GET /avatars`, a page at a time, each with the moment it
-  was received and oldest first. The console reads that list page by page and gives each picture an address
-  carrying the moment it was received, so a browser keeps what it holds until a new picture changes the address.
-  A room or a person with no picture in the list stands as its letter.
+- A profile photo comes from the archive and from each chat service: the receiver keeps a picture for every room
+  and person the archive knows that has one, and the Telegram service keeps Telegram's. The console reads them
+  through those units, a room's and a person's by their kind and id, and serves them under its own path behind
+  the sign-in.
+- The receiver and the Telegram service each list the pictures they keep at `GET /avatars`, a page at a time,
+  each with the moment it was taken and oldest first. The console reads both lists page by page and joins them,
+  the receiver's first for a number both keep, since the receiver is the archive; each picture's address carries
+  the moment it was taken, so a browser keeps what it holds until a new picture changes the address. One picture
+  is asked of the receiver first and of the Telegram service where the receiver keeps none. A list a unit does not
+  answer leaves only its pictures out, and a room or a person with no picture in either list stands as its
+  letter.
 - When a photo is added, changed or deleted the receiver's stream carries a refresh event and the left room list and
   conversation profiles re-read the common list. While disconnected it checks at one-minute intervals, and re-reads at
   once on reconnect. Opening a screen does not call the chat service's platform.

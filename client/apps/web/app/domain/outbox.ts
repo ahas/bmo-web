@@ -217,7 +217,7 @@ const MATCH_SLACK_SECONDS = 10;
 // picture it left, with its caption when it had one. The archive files a photo's message a moment
 // before it keeps the picture, so a photo is also known by a message with its caption that carries
 // nothing yet: that message is the row's, and waits for its picture before it takes the row's place.
-function matches(held: OutboxItem, message: ArchivedMessage, speakerId: number | null): boolean {
+function matches(held: OutboxItem, message: ArchivedMessage, speakerId: number | null, sendCaption: string = held.text): boolean {
   if (speakerId !== null && message.senderId !== speakerId) {
     return false;
   }
@@ -230,9 +230,11 @@ function matches(held: OutboxItem, message: ArchivedMessage, speakerId: number |
     // Words too long for a caption went ahead of the file, and the file went bare.
     const caption = held.text.length > TELEGRAM_CAPTION_LENGTH ? "" : held.text;
 
-    const carried = message.imagePath !== null || (isPicture(held) && awaitingPicture(message));
+    // A message whose picture is not kept yet carries its send's caption alone — the archive files the caption on
+    // every picture of the send — so a message of other words is never taken for a picture.
+    if (message.imagePath === null) return isPicture(held) && awaitingPicture(message) && (message.text === caption || message.text === sendCaption);
 
-    return carried && (caption === "" || message.text === caption);
+    return caption === "" || message.text === caption;
   }
 
   if (message.text === "") {
@@ -243,6 +245,11 @@ function matches(held: OutboxItem, message: ArchivedMessage, speakerId: number |
   return held.text.length > TELEGRAM_MESSAGE_LENGTH
     ? held.text.startsWith(message.text)
     : message.text === held.text;
+}
+
+// The words a row's send carries, which stand on its first row.
+function captionOf(items: readonly OutboxItem[], held: OutboxItem): string {
+  return items.find((one) => one.sendKey === held.sendKey)?.text ?? held.text;
 }
 
 // A row that goes up as a picture, which the archive keeps as a message with its picture.
@@ -289,6 +296,23 @@ export function echoedKeys(
   speakerId: number | null
 ): Set<string> {
   return caughtUp(items, messages, speakerId, true);
+}
+
+// The rows whose archived message has taken their place, by the message's number: the line's key, which the message
+// keeps standing under from then on, so the one row stands for the whole of the message's life (docs/web.md, the
+// room screen's section on a message being sent).
+export function standingKeys(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null): Map<number, string> {
+  const landed = completeLandings(items, messages, speakerId, true);
+  const down = caughtUp(items, messages, speakerId, true);
+  const keys = new Map<number, string>();
+
+  for (const held of items) {
+    const messageId = down.has(held.key) ? landed.get(held.key) : undefined;
+
+    if (messageId !== undefined && !keys.has(messageId)) keys.set(messageId, held.key);
+  }
+
+  return keys;
 }
 
 // The archived messages the feed does not stand yet because a row still standing stands for them: a photo's message
@@ -360,7 +384,7 @@ function landings(items: readonly OutboxItem[], messages: readonly ArchivedMessa
       continue;
     }
 
-    const said = messages.find((message) => !taken.has(message.messageId) && matches(held, message, speakerId));
+    const said = messages.find((message) => !taken.has(message.messageId) && matches(held, message, speakerId, captionOf(items, held)));
 
     if (said !== undefined) {
       taken.add(said.messageId);
@@ -378,7 +402,7 @@ function landings(items: readonly OutboxItem[], messages: readonly ArchivedMessa
     }
 
     const said = messages.find(
-      (message) => !taken.has(message.messageId) && message.sentAt >= held.startedAt - ECHO_SLACK_SECONDS && matches(held, message, speakerId)
+      (message) => !taken.has(message.messageId) && message.sentAt >= held.startedAt - ECHO_SLACK_SECONDS && matches(held, message, speakerId, captionOf(items, held))
     );
 
     if (said !== undefined) {

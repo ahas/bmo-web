@@ -196,4 +196,112 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
       await context.close();
     }
   }, 180_000);
+
+  test("three sends fired at once stand as three rows from the press on, in the order sent, each its one row for good", async () => {
+    const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = cookie.indexOf("=");
+    const archive: ArchivedMessage[] = [earlier];
+    const sent: string[] = [];
+    let reads = 0;
+    let next = 9100;
+
+    // The receiver files each send's message before it answers the send, and the archive is read while the send is
+    // still out; the send then answers with the number it filed.
+    async function files(message: Omit<ArchivedMessage, "messageId">): Promise<number> {
+      const messageId = next++;
+      const from = reads;
+
+      archive.push({ ...message, messageId });
+      for (let waited = 0; reads === from && waited < 30_000; waited += 100) await Bun.sleep(100);
+      await Bun.sleep(300);
+
+      return messageId;
+    }
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+    await context.route(/\/api\/control$/, (route) => route.fulfill({ json: { reachable: true, ownerChatId: OWNER } }));
+    await context.route(new RegExp(`/api/rooms/${ROOM}/messages(\\?|$)`), (route) => {
+      const after = new URL(route.request().url()).searchParams.get("after");
+
+      reads += 1;
+
+      return route.fulfill({ json: { messages: archive.filter((one) => after === null || one.messageId > Number(after)), judgements: [], hasMore: false } });
+    });
+    await context.route(new RegExp(`/api/rooms/${ROOM}/say$`), async (route) => {
+      const text = String((route.request().postDataJSON() as { text?: unknown }).text ?? "");
+
+      sent.push(text);
+
+      const messageId = await files({ chatId: ROOM, senderId: OWNER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text, imagePath: null, replyToMessageId: null });
+
+      await route.fulfill({ json: { messageId } });
+    });
+    await context.route(new RegExp(`/api/rooms/${ROOM}/attach$`), async (route) => {
+      sent.push("picture");
+
+      const messageId = await files({ chatId: ROOM, senderId: OWNER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: "", imagePath: `data/images/${ROOM}/burst.jpg`, replyToMessageId: null });
+
+      await route.fulfill({ json: { sent: [{ name: "b.png", messageId }], failed: [], checking: [] } });
+    });
+    await context.route(new RegExp(`/api/images/${ROOM}/\\d+$`), (route) => route.fulfill({ body: PNG, contentType: "image/png" }));
+
+    try {
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/rooms/${ROOM}`, { waitUntil: "load" });
+      await page.locator(`[data-message="m${earlier.messageId}"]`).waitFor({ timeout: 30_000 });
+
+      // Every frame: the rows after the earlier one, each by the element it is drawn in, so a row drawn again in a
+      // new element, gone for a frame or out of its order shows.
+      await page.evaluate(`(() => {
+        window.__burst = [];
+        const ids = new WeakMap();
+        let made = 0;
+        const look = () => {
+          const rows = [...document.querySelectorAll("[data-message]")].slice(1);
+          const seen = rows.map((row) => { if (!ids.has(row)) ids.set(row, ++made); return ids.get(row); }).join(",");
+          const last = window.__burst[window.__burst.length - 1];
+
+          if (last !== seen) window.__burst.push(seen);
+          requestAnimationFrame(look);
+        };
+
+        requestAnimationFrame(look);
+      })()`);
+
+      const box = page.locator("form textarea").first();
+
+      await box.fill("first of three");
+      await box.press("Enter");
+      await box.fill("second of three");
+      await box.press("Enter");
+      await page.locator('input[type="file"]').first().setInputFiles({ name: "b.png", mimeType: "image/png", buffer: PNG });
+      await page.locator("[data-picked]").first().waitFor();
+      await box.press("Enter");
+
+      if (shots !== "") {
+        for (let frame = 0; frame < 6; frame += 1) {
+          await shoot(page, `burst-${frame}`);
+          await page.waitForTimeout(1_500);
+        }
+      }
+
+      for (let waited = 0; sent.length < 3 && waited < 90_000; waited += 200) await Bun.sleep(200);
+      expect(sent).toEqual(["first of three", "second of three", "picture"]);
+      await page.waitForFunction(() => [...document.querySelectorAll("[data-message]")].every((row) => row.getAttribute("data-message")!.startsWith("m")), undefined, { timeout: 30_000 });
+      await page.waitForTimeout(2_500);
+      await shoot(page, "burst-end");
+
+      const frames = (await page.evaluate("window.__burst")) as string[];
+      // From the frame the third row first stood, the same three elements in the same order, and nothing else.
+      const standing = frames.filter((frame) => frame.split(",").length >= 3);
+
+      expect(frames.filter((frame) => frame !== "" && frame.split(",").length > 3)).toEqual([]);
+      expect([...new Set(standing)]).toHaveLength(1);
+      expect(frames.slice(frames.indexOf(standing[0]!))).toEqual([standing[0]!]);
+      expect(await page.locator("[data-message]").evaluateAll((rows) => rows.map((row) => row.textContent?.includes("first of three") ? 1 : row.textContent?.includes("second of three") ? 2 : row.querySelector("img") !== null ? 3 : 0))).toEqual([0, 1, 2, 3]);
+    } finally {
+      await context.close();
+    }
+  }, 240_000);
 });

@@ -194,7 +194,7 @@
               <RoomSenderRun :side="run.side" :sender-name="run.senderName" :avatar="run.notice ? undefined : run.avatar" :selecting="selecting">
                 <RoomMessage
                   v-for="(item, at) in run.rows"
-                  :key="item.key"
+                  :key="item.life ?? item.key"
                   :item="item"
                   :day="entry.day.key"
                   :place="runPlace(at === 0, at === run.rows.length - 1)"
@@ -416,6 +416,7 @@ import {
   sendOutcome,
   sendRetryMs,
   settledKeys,
+  standingKeys,
   withChecking,
   withFailed,
   withKeyOutcome,
@@ -445,7 +446,8 @@ import {
   skippedLine,
   turnAnswer,
   useHandOver,
-  useRoomFeed
+  useRoomFeed,
+  withLives
 } from "~/domain/room";
 import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX, usePolling } from "~/domain/polling";
 import { formatClock, toUnixSeconds } from "bmo-ui/app/domain/time";
@@ -830,6 +832,21 @@ const turnRows = computed<FeedItem[]>(() =>
 // A row gives its place to its turn's answer the moment the answer is in the feed, by whichever read.
 const runRows = useHandOver(turnRows, roomFeed.messages);
 
+// The key each message the owner sent stands under for its whole life: the key of the line that stood for it while
+// it went, taken the moment the message takes that line's place and kept after the line is let go, so the message is
+// the one row it already was and is never drawn again (docs/web.md, the room screen's section on a message being
+// sent). It is read before the feed is drawn, so no frame stands the message under a key of its own.
+const lives = shallowRef<ReadonlyMap<number, string>>(new Map());
+
+watch(
+  () => [outbox.value, roomFeed.messages.value, speaker.value.id] as const,
+  ([items, messages, speakerId]) => {
+    const found = [...standingKeys(items, messages, speakerId)].filter(([messageId]) => !lives.value.has(messageId));
+
+    if (found.length > 0) lives.value = new Map([...lives.value, ...found]);
+  },
+  { immediate: true }
+);
 // The archived messages the feed stands: all of them but the ones a line on its way still stands for, a photo's
 // message whose picture the archive has not kept yet among them (docs/web.md, the room screen's section on a
 // message being sent).
@@ -845,7 +862,7 @@ const shownMessages = computed<ArchivedMessage[]>(() => {
 const archived = computed<FeedItem[]>((standing) =>
   keptRows(
     standing,
-    archivedRows(
+    withLives(archivedRows(
       shownMessages.value,
       judgementIndex.value,
       imageUrl,
@@ -856,7 +873,7 @@ const archived = computed<FeedItem[]>((standing) =>
       // side and turn it over seconds later, or never while the bot is down.
       owner.value.chatId,
       !group.value
-    )
+    ), lives.value)
   )
 );
 // The messages on their way, as the rows they stand as: the pictures of one press are one row. A line whose message the

@@ -196,7 +196,7 @@ export function senderRuns(rows: readonly FeedItem[], opening: string): SenderRu
       current.rows.push(row);
     } else {
       runs.push({
-        key: previous === null ? opening : `after:${previous.key}`,
+        key: previous === null ? opening : `after:${previous.life ?? previous.key}`,
         side: row.look.side,
         senderName: row.senderName,
         avatar: row.look.avatar,
@@ -251,6 +251,10 @@ export interface AlbumPicture {
 // One line of the conversation.
 export interface FeedItem {
   key: string;
+  // The key the row has stood under since it first stood, where that is not its own: a message the owner sent keeps
+  // the key of the line that stood for it while it went, so it is one row for its whole life and is never drawn
+  // again (docs/web.md, the room screen's section on a message being sent).
+  life?: string;
   messageId: number;
   senderId: number | null;
   senderName: string;
@@ -1328,6 +1332,15 @@ export function archivedRows(
   }
 
   return items;
+}
+
+// The archive's rows, each a message the owner sent wearing the key its line stood under while it went.
+export function withLives(rows: readonly FeedItem[], lives: ReadonlyMap<number, string>): FeedItem[] {
+  return rows.map((row) => {
+    const life = lives.get(row.messageId);
+
+    return life === undefined || row.pending != null ? row : { ...row, life };
+  });
 }
 
 // The rows built again, each one that says what the row of its key already standing says handed back

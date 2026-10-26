@@ -4138,7 +4138,11 @@ Four bounds keep it from growing forever.
   red exclamation mark when it failed. Every message of the owner's own carries that mark, the check once it
   stands in the archive, so the mark's column is always there and a change of state changes only the mark and
   its tooltip — never a line under the bubble, the bubble's height or width, or where the time stands. When it
-  actually goes up and that message is re-read from the archive, that line becomes an ordinary message. A stood line and an uploaded message never
+  actually goes up and that message is re-read from the archive, that line becomes an ordinary message, and it is the
+  same row throughout: the message takes the line's place inside the line's own row, under the key the line stood
+  under, so the row keeps where it stands, its size and its look and only its mark changes; it is never drawn again,
+  never gone for a frame and never moved, however many lines are on their way behind it, whichever of their messages
+  the archive carries first. A stood line and an uploaded message never
   both stand, not even while the send is still out: the bot files the owner's words before it carries them on to
   the room's other providers and answers the send only after, so the archive can carry them first. Until the send
   answers, the line is found by what it carries alone, standing under the owner's name, filed no earlier than a few

@@ -20,6 +20,7 @@ import {
   sendOutcome,
   sendRetryMs,
   settledKeys,
+  standingKeys,
   withChecking,
   withFailed,
   withKeyOutcome,
@@ -257,6 +258,23 @@ describe("which rows the feed stands no longer for the archive carrying their me
     expect([...echoedKeys(files, [first, second], owner)]).toEqual([]);
     expect([...heldMessages(files, [first, second], owner)]).toEqual([-7, -8]);
     expect([...echoedKeys(files, [first, { ...second, imagePath: "data/images/-100/8.jpg" }], owner)]).toEqual(files.map((held) => held.key));
+  });
+
+  test("a picture with no caption is not taken for the words of a send ahead of it", () => {
+    const picture = outboxOf("", [picked("a.jpg")], 100);
+    const words = archived(-7, "first of three", 101);
+
+    expect([...heldMessages(picture, [words], owner)]).toEqual([]);
+    expect([...echoedKeys(picture, [words], owner)]).toEqual([]);
+  });
+
+  test("a message taking a line's place stands under the line's key from then on", () => {
+    const words = outboxOf("hello", [], 100);
+    const sent = withSent(words, words[0]?.key ?? "", 42);
+
+    expect([...standingKeys(words, [archived(-7, "hello", 101)], owner)]).toEqual([[-7, words[0]?.key ?? ""]]);
+    expect([...standingKeys(sent, [archived(42, "hello", 101)], owner)]).toEqual([[42, words[0]?.key ?? ""]]);
+    expect([...standingKeys(words, [], owner)]).toEqual([]);
   });
 
   test("a picture is not taken for a message that carries a file of its own", () => {

@@ -67,7 +67,7 @@
             <SearchText :text="(item as DocumentTreeItem).label" :query="found" />
           </HintTip>
           <UTooltip v-if="(item as DocumentTreeItem).unread !== undefined" :text="(item as DocumentTreeItem).unread">
-            <span class="shrink-0 text-xs text-muted">{{ $t("documents.label.root_unread") }}</span>
+            <span class="shrink-0 text-sm text-muted">{{ $t("documents.label.root_unread") }}</span>
           </UTooltip>
         </span>
       </template>

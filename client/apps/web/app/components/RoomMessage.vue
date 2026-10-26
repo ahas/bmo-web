@@ -126,7 +126,7 @@
                            the account it went out in. -->
                       <span v-else-if="named" data-words class="flex min-w-0 items-center gap-1.5 text-sm leading-(--chat-meta-line)">
                         <span data-name class="truncate font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
-                        <span data-voice class="flex shrink-0 items-center gap-0.5 text-xs text-dimmed">
+                        <span data-voice class="flex shrink-0 items-center gap-0.5 text-sm text-dimmed">
                           <UIcon name="i-material-symbols-record-voice-over-outline" class="size-3.5" aria-hidden="true" />
                           {{ $t("room.label.voiced_as", { name: props.item.voice }) }}
                         </span>

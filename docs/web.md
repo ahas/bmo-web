@@ -2707,7 +2707,9 @@ Two ways, split because the running places differ.
     failure word, 주소 없음 where no address is set, or 확인 전 — with the model, the VRAM it holds and
     how long the check took, in the node screen's state colours. It is pressed for a popover of the
     details — model, device, VRAM, load time, address, when it was checked and last answered — with
-    노드 보기 to the node whose host the address names, where one does.
+    노드 보기 to the node whose host the address names, where one does. The band and the table share the
+    page's one gutter: the band's words start where the table's first column does, its button's own inset
+    counted in the gutter rather than added to it.
   - The table carries each gate's Laya mode and τ as cells that edit their own value like the others.
     The mode offers 기본 (with the mode it stands for) and the four modes; τ offers 없음 and the grid the
     agreement is counted at. A gate that declares no probe shows a dash in both and in the next.

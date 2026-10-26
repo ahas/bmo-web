@@ -1,13 +1,15 @@
 <template>
   <!-- The Laya server's last health check, as a band over the gate table, pressed for the details. Laya is
        the gate unit's, reached at no address while that unit is not split, so the band says it is not reached. -->
-  <div class="flex h-10 shrink-0 items-center border-b border-default px-4">
-    <span v-if="initial" class="flex min-w-0 flex-1 items-center gap-2" role="status" :aria-label="$t('agents.status.laya_loading')">
+  <!-- The band takes the page's one gutter: its button's own inset makes up the rest, so its words start where the
+       table's first column does. -->
+  <div class="flex h-10 shrink-0 items-center border-b border-default ps-2 pe-4">
+    <span v-if="initial" class="flex min-w-0 flex-1 items-center gap-2 ps-2" role="status" :aria-label="$t('agents.status.laya_loading')">
       <SkeletonLine width="w-48" />
     </span>
 
     <UPopover v-else :content="{ align: 'start' }">
-      <UButton color="neutral" variant="ghost" size="sm" class="min-w-0 max-w-full" :aria-label="`Laya ${health.stateWord}`">
+      <UButton color="neutral" variant="ghost" size="sm" class="min-w-0 max-w-full px-2" :aria-label="`Laya ${health.stateWord}`">
         <UIcon name="i-material-symbols-circle" class="size-2 shrink-0" :class="TONE_TEXT[health.tone]" />
         <span class="shrink-0 font-medium text-highlighted">Laya</span>
         <span class="shrink-0" :class="health.tone === 'bad' ? 'text-error' : 'text-toned'">{{ health.stateWord }}</span>

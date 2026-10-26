@@ -1141,6 +1141,20 @@ describe("how long an item's work took, in the block beside its account", () => 
     expect(timeline([], { attempts: 3 })?.attempts).toBe(wording("todo.label.time_attempts", { n: "3" }));
   });
 
+  test("names the run by who ran it and on which road, never by one program's name", () => {
+    const ran = timeline([...phases, span("tool", "Bash", 10)], { worker: "worker-b", model: "auto", ranOn: { provider: "codex", model: "gpt-5.6-sol", changed: false } });
+    const runner = wording("todo.label.runner", { worker: "worker-b", road: "codex/gpt-5.6-sol" });
+
+    expect(ran?.bars[0]?.segments.map((one) => one.label)).toContain(wording("todo.label.phase_run_by", { runner }));
+    expect(ran?.bars.map((one) => one.title)).toContain(wording("todo.title.time_inside_by", { runner }));
+
+    const based = timeline(phases, { worker: null, ranOn: { provider: "claude-code", model: "claude-opus-5", changed: false } });
+
+    expect(based?.bars[0]?.segments.map((one) => one.label)).toContain(
+      wording("todo.label.phase_run_by", { runner: wording("todo.label.runner", { worker: wording("todo.label.base_worker"), road: "claude-code/claude-opus-5" }) })
+    );
+  });
+
   test("divides the item's time into the phases, in the order a job passes through them", () => {
     const bySection = bar(phases, PHASES);
 

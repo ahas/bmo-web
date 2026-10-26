@@ -4904,15 +4904,15 @@ Four bounds keep it from growing forever.
       tab is the one scroll. The owner's approval comment stands at the end of this group, and after it **추가 지시**, the
       words added to the item, each with who said it and when, a 지우기 that takes one back, and the box 지시 사항 that
       adds one: what the chat agent reads and organizes, which no worker reads (bmo-job's `docs/todo.md`, 「Added words」).
-    - **상태** stands the **실행 기록**, then the **코워커 목록**, then what a job asked, then the **결재 기록**:
+    - **상태** stands the **실행 기록**, then the **작업 단계**, then what a job asked, then the **결재 기록**:
       every approval the item carries, newest first, each with the caller whose token gave it and when, and its kind
       (bmo-job's `docs/api.md`, 「Items」): a **결재**, an approver's, which is what lets the item's work begin, or a
       **추천**, the chat agent's word for it, which moves nothing and stands apart in its own colour so it is never
       read as the owner's. An approval taken back is gone from the item and from the record. The 실행 기록 always stands, saying which run is going if a job runs and that there is none yet if no job
       has run — an empty place saying nothing would leave the reader unable to tell no record from unread.
       While a job of the item runs, 상태 reads its job line again every few seconds and on every word the agency
-      says of the job, so its tool calls, its tokens and how far it has come move as they happen, and the co-worker
-      list moves with every task that starts or ends, not only at a job's or a stage's end.
+      says of the job, so its time, its tool calls, its tokens and how far it has come move as they happen, and the
+      작업 단계 move with every task that starts or ends, not only at a job's or a stage's end.
     - **지시** is what the work is told: the item's brief, the chat agent's organized instruction. The brief is written once, in
       the original a job reads, and stands in that original with its translation under it (「The original, and its
       translation under it」). Under it stand the chat agent's changes to it, each with when and whether the
@@ -4957,7 +4957,7 @@ Four bounds keep it from growing forever.
     alike, and the right column opens on **의논**. The choice is made each time another item is opened, so an item
     that reaches its end while open keeps the tab being read.
   - The modal is a page of its own, so each action stands beside the section it acts on rather than in a common foot.
-- **The co-work step dialog** opens from a stage or a sub-stage of the co-worker list, and is the work view
+- **The co-work step dialog** opens from a stage or a sub-stage of the 작업 단계, and is the work view
   (「The work view」 under 「Agent screen」) of that stage's task: a head of the stage's own line, one scroll for the
   body and a foot fixed under it. It has no tab row: a stage of several tasks opens at the one pressed, each task
   being a sub-stage of the stepper, and the work order and the result stand one under the other.
@@ -4972,7 +4972,8 @@ Four bounds keep it from growing forever.
     verb asks for before it is sent stands at the end of the body, and the foot then holds 취소 and the verb's own button.
 - **Ending a work order.** The work order's own buttons — 중지 and **지시서 종료** — stand at the right. 지시서 종료 asks for
   the 종료 사유 and then **남은 작업 건너뛰고 종료**.
-- **The co-worker list** is the work order's steps on the progress stepper (「The progress stepper」), a head of two
+- **작업 단계** is the work order's steps on the progress stepper (「The progress stepper」), drawn as a vertical stepper
+  and never as a list, whether the order gives its stages to co-workers or to the one worker alone; a head of two
   lines per step. The first line holds the step's name and its co-worker types, which keep their width, then its
   title, which takes the rest and ends in an ellipsis, and at the right end the time it took, lined up down the list.
   The second holds the models, which take the free width and slide where they do not fit, then at the right end the
@@ -5399,9 +5400,12 @@ Four bounds keep it from growing forever.
   and an item run twice or more attaches how many times beside it. A failed attempt is time the item paid so it is summed too, and a still-running job is
   counted as none — while running, one line attaches which run is going. An item with no job run stands one line that no job has run yet, and an item run
   before spans were recorded stands only the total time with no bar below.
-- The bar is two. **구간** is wait, prepare, Claude run and wrap-up lined in the order the job passes them. Those four divide the item's time with nothing
+- The bar is two. **구간** is wait, prepare, the agent's run and wrap-up lined in the order the job passes them; the run is
+  named by who ran it and on which road — the item's worker, or 기본 워커 where it names none, and the provider and model
+  its work last went out on (`<worker> · <provider>/<model> 실행`), 에이전트 실행 before any run went out. Those four divide the item's time with nothing
   left so the width is the share as seen. A span too short to read drops from the legend and the bar leaving its place empty — the dropped share dropped
-  from the whole too, so the remaining spans' width is still each's share of the item's whole time. **클로드 실행 중 도구별 시간** is where time went inside it —
+  from the whole too, so the remaining spans' width is still each's share of the item's whole time. **`<worker> · <road>` 실행 중 도구별 시간**
+  (에이전트 실행 중 도구별 시간 before any run went out) is where time went inside it —
   tools and branches lined longest-first to five with the rest folded into one "기타 N가지". This side counts things run side by side overlapping so it is
   each's share of each other, not the job's whole, said in a smaller line under the bar's title. So the legend writes time not proportion — a proportion putting the sum of
   overlap-counted things at 100 is not true. A tool called several times attaches how many, and a branch reporting tokens stands them after the time.

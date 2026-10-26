@@ -520,6 +520,9 @@ const PHASES: readonly { name: string; color: BarColor; label: string }[] = [
 
 const PHASE_ORDER = PHASES.map((phase) => phase.name);
 
+// The phase the agent's own run is, which names who ran it where that is known.
+const RUN_PHASE = "agent run";
+
 // The colours the inside bar runs through, in order. Nothing here is red: these segments are
 // what the work went to, and a red one would read as something having gone wrong.
 const INSIDE_COLORS: BarColor[] = ["primary", "info", "success", "warning", "secondary"];
@@ -551,16 +554,26 @@ export function todoTimeline(t: Translate, item: TodoItem): TodoTime | null {
     // A bar with nothing to draw is a title over an empty track, which says less than no bar at
     // all: an item whose every phase rounds under a second has one, and so has one whose inside
     // spans were all answered the instant they were called.
-    bars: [phaseBar(t, item.spans), insideBar(t, item.spans)].filter(
+    bars: [phaseBar(t, item.spans, runnerOf(t, item)), insideBar(t, item.spans, runnerOf(t, item))].filter(
       (bar): bar is TimeBar => bar !== null && bar.segments.length > 0 && bar.max > 0
     )
   };
 }
 
+// Who ran the item's work and on which road, as the run's phase and the bar inside it name it: its worker — the base
+// worker where it names none — and the provider and model its work last went out on; null before any run went out.
+function runnerOf(t: Translate, item: TodoItem): string | null {
+  const ran = itemRanModel(item.model, item.ranOn);
+
+  if (item.ranOn === null || ran === null) return null;
+
+  return t("todo.label.runner", { worker: item.worker ?? t("todo.label.base_worker"), road: ran.shown });
+}
+
 // The bar that divides the item's time: the phases, in the order a job passes through them.
 // They are a true partition of what the total counts, so the widths mean exactly what they look
 // like and the bar needs no word of warning under it.
-function phaseBar(t: Translate, spans: TodoSpan[]): TimeBar | null {
+function phaseBar(t: Translate, spans: TodoSpan[], runner: string | null): TimeBar | null {
   const phases = spans.filter((span) => span.kind === "phase");
 
   if (phases.length === 0) {
@@ -577,7 +590,9 @@ function phaseBar(t: Translate, spans: TodoSpan[]): TimeBar | null {
       .map((phase) => {
         const known = PHASES.find((one) => one.name === phase.name);
 
-        return { ...segment(t, phase, known?.color ?? "neutral"), label: known === undefined ? phase.name : t(known.label) };
+        const label = known === undefined ? phase.name : known.name === RUN_PHASE && runner !== null ? t("todo.label.phase_run_by", { runner }) : t(known.label);
+
+        return { ...segment(t, phase, known?.color ?? "neutral"), label };
       })
   };
 }
@@ -586,7 +601,7 @@ function phaseBar(t: Translate, spans: TodoSpan[]): TimeBar | null {
 // longest first, with the tail folded into one segment. These ran side by side and each counts
 // its own seconds, so they are shares of one another rather than of the job — which is why the
 // max is their own sum and why the bar says as much on the screen.
-function insideBar(t: Translate, spans: TodoSpan[]): TimeBar | null {
+function insideBar(t: Translate, spans: TodoSpan[], runner: string | null): TimeBar | null {
   const inside = shownInside(spans.filter((span) => span.kind !== "phase")).sort(
     (left, right) => right.seconds - left.seconds
   );
@@ -604,7 +619,7 @@ function insideBar(t: Translate, spans: TodoSpan[]): TimeBar | null {
   }
 
   return {
-    title: t("todo.title.time_inside"),
+    title: runner === null ? t("todo.title.time_inside") : t("todo.title.time_inside_by", { runner }),
     note: t("todo.message.time_inside_note"),
     max: totalSeconds(segments),
     segments

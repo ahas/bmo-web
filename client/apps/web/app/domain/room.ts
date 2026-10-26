@@ -1,8 +1,8 @@
 import { markWords, MEDIA_MARKS, VOICE_MARK } from "#shared/text-marks";
 import { PAGING, POLL_INTERVAL_MS } from "#shared/config";
 import { chatAgent } from "#shared/agent-names";
-import { agentRowName, bmoLabel, companionOf } from "./agents";
-import { avatarFor, hueOf } from "./avatars";
+import { agentRowName, bmoLabel, companionOf, defaultAnswererName } from "./agents";
+import { agentKey, avatarFor, hueOf } from "./avatars";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { runKey } from "./events";
 import { countText } from "./numbers";
@@ -1007,7 +1007,16 @@ function shownSender(message: Pick<ArchivedMessage, "senderName" | "voicedBy">):
 function faceOf(message: Pick<ArchivedMessage, "senderId" | "senderName" | "voicedBy">, avatars: AvatarIndex): AvatarProps {
   return message.voicedBy === undefined
     ? avatarFor(avatars, "person", message.senderId, message.senderName)
-    : avatarFor(avatars, "person", null, message.voicedBy);
+    : agentAvatar(avatars, message.voicedBy);
+}
+
+// A chat agent's face by its registration name, where the index holds one under it, and otherwise its label's letter
+// as everyone's (docs/web.md, 「Profile photos」).
+function agentAvatar(avatars: AvatarIndex, name: string): AvatarProps {
+  const picture = avatars.get(agentKey(name));
+  const label = agentRowName(name);
+
+  return picture === undefined ? avatarFor(avatars, "person", null, label) : { src: picture, alt: label };
 }
 
 // Whether a message stands what it carried with no bubble round it: a sticker sent alone, which is a
@@ -1118,7 +1127,7 @@ function lastAnswer(messages: readonly ArchivedMessage[]): ArchivedMessage | und
 export function botAvatar(messages: readonly ArchivedMessage[], avatars: AvatarIndex): AvatarProps {
   const said = lastAnswer(messages);
 
-  return said === undefined ? avatarFor(avatars, "person", null, chatAgent().label) : faceOf(said, avatars);
+  return said === undefined ? agentAvatar(avatars, defaultAnswererName()) : faceOf(said, avatars);
 }
 
 // The row a room stands while its own turn runs. It is a feed row like any other and is drawn by

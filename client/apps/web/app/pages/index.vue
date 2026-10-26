@@ -86,7 +86,7 @@
                 class="flex items-start gap-3 rounded-lg border border-default px-4 py-3 transition-colors hover:bg-elevated active:bg-accented"
                 :to="`/agents/${agent.name}`"
               >
-                <UIcon :name="agent.icon" class="mt-0.5 size-5 shrink-0 text-dimmed" />
+                <AgentMark :agent="agent" class="mt-0.5 text-dimmed" />
                 <div class="flex min-w-0 grow flex-col gap-1">
                   <p class="truncate text-sm font-medium">{{ agent.label }}</p>
                   <p class="truncate text-sm text-muted">{{ subtitle(agent) }}</p>

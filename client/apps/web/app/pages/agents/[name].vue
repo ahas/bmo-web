@@ -3,7 +3,11 @@
        unless the launch box stands at the foot (bmo-ui's docs/design.md, 「Room at the foot」). -->
   <UDashboardPanel id="agent" :ui="{ body: launchable === null ? 'p-0 sm:p-0 pb-4 sm:pb-6 overscroll-none' : 'p-0 sm:p-0 overscroll-none' }">
     <template #header>
-      <ConsoleTitleBar :title="meta.label" :icon="meta.icon">
+      <!-- A chat agent's bar wears its face, every other agent's its group's mark (docs/web.md, 「Profile photos」). -->
+      <ConsoleTitleBar :title="meta.label" :icon="wearsFace(meta) ? undefined : meta.icon">
+        <template v-if="wearsFace(meta)" #leading>
+          <AgentMark :agent="meta" size="2xs" class="me-1.5" />
+        </template>
         <!-- What belongs to this agent alone stands beside its name; the right end keeps what every
              screen carries. -->
         <template #trailing>
@@ -135,6 +139,7 @@
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { isAgentName, POLL_INTERVAL_MS, WORKER_AGENT } from "#shared/config";
 import { agentMetaOf, catalogueAgents, groupLabel, launchableAgent, roomTitle, runOfAgent } from "~/domain/agents";
+import { wearsFace } from "~/domain/agent-face";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useControlStatus } from "~/domain/control";
 import { agentVitals } from "~/domain/vitals";

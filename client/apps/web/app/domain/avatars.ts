@@ -1,4 +1,3 @@
-import { chatAgent } from "#shared/agent-names";
 import { useLiveRefresh } from "./events";
 import { appUrl } from "./urls";
 
@@ -6,9 +5,7 @@ import type { AvatarKind, AvatarRef } from "#shared/types";
 import type { AvatarProps } from "@nuxt/ui";
 import type { ComputedRef } from "vue";
 
-// What the chat agent wears where it has no picture of its own, and what stands for a name whose first
-// character says nothing.
-const BOT_ICON = "i-material-symbols-smart-toy-outline";
+// What stands for a name whose first character says nothing.
 const ROOM_ICON = "i-material-symbols-chat-bubble-outline";
 const PERSON_ICON = "i-material-symbols-person-outline";
 
@@ -21,6 +18,13 @@ export type AvatarIndex = Map<string, string>;
 
 export function avatarKey(kind: AvatarKind, id: number | string): string {
   return `${kind}:${id}`;
+}
+
+// Where an index holds a chat agent's face by the agent's registration name, beside the rooms and people: an answer
+// filed under another's number, and the row standing for an agent that has not spoken yet, wear it by the name
+// (docs/web.md, 「Profile photos」).
+export function agentKey(name: string): string {
+  return `agent:${name}`;
 }
 
 export function avatarIndex(refs: readonly AvatarRef[], toUrl: (path: string) => string): AvatarIndex {
@@ -113,8 +117,8 @@ export function identityMark(key: string, name: string, options: { picture?: str
 }
 
 // What one room or one person wears. The picture when there is one; otherwise the first letter
-// of the name, which is a name standing in for a face rather than a broken image. The chat agent keeps its
-// own mark, and a name with no letter at all falls back to the mark of its kind.
+// of the name, which is a name standing in for a face rather than a broken image. A chat agent is one of them like
+// any other, and a name with no letter at all falls back to the mark of its kind.
 export function avatarFor(
   index: AvatarIndex,
   kind: AvatarKind,
@@ -123,10 +127,6 @@ export function avatarFor(
 ): AvatarProps {
   const key = avatarKey(kind, id ?? name);
   const picture = id === null ? undefined : index.get(key);
-
-  if (picture === undefined && name !== "" && name === chatAgent().name) {
-    return { icon: BOT_ICON, alt: name };
-  }
 
   return identityMark(key, name, { picture, icon: kind === "room" ? ROOM_ICON : PERSON_ICON, tone: FACE_TONES[hueOf(id, name)] });
 }

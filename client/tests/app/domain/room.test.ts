@@ -219,13 +219,16 @@ describe("the row that stands while the chat agent is working", () => {
     expect(botSpeaker([archived(1, KO.line_210), bmo(2)])).toEqual({ id: bot, name: "agent-a" });
   });
 
-  test("falls back to the chat agent's own mark where the chat agent has never spoken", () => {
+  test("falls back to the chat agent's face by its name where it has never spoken, and to its letter without one", () => {
     expect(botSpeaker([archived(1, KO.line_214)])).toEqual({ id: null, name: "agent-a" });
-    expect(botAvatar([archived(1, KO.line_215)], face)).toEqual({ icon: "i-material-symbols-smart-toy-outline", alt: "agent-a" });
+    expect(botAvatar([archived(1, KO.line_215)], new Map([["agent:agent-a", "/agent-a.jpg"]]))).toMatchObject({ src: "/agent-a.jpg" });
+    expect(botAvatar([archived(1, KO.line_215)], face)).toMatchObject({ text: "A" });
+    expect(botAvatar([archived(1, KO.line_215)], face).icon).toBeUndefined();
   });
 
-  test("and its own mark too where the chat agent has spoken but has no picture", () => {
-    expect(botAvatar([bmo(2)], new Map())).toEqual({ icon: "i-material-symbols-smart-toy-outline", alt: "agent-a" });
+  test("and its letter too where the chat agent has spoken but has no picture, as everyone's", () => {
+    expect(botAvatar([bmo(2)], new Map())).toMatchObject({ text: "A" });
+    expect(botAvatar([bmo(2)], new Map()).icon).toBeUndefined();
   });
 });
 
@@ -237,20 +240,21 @@ describe("an answer sent in the owner's own account", () => {
 
   afterAll(() => holdCatalogue([]));
 
-  test("wears the agent's label from the agents table and its mark, and names the account it went out in", () => {
+  test("wears the agent's label from the agents table and its face, and names the account it went out in", () => {
     holdCatalogue([catalogueRow("agent-a", "chat", "Agent A")]);
 
     const [row] = buildDays(wording, [voiced(1)], new Map(), imageUrl, avatars).flatMap((day) => day.items);
 
     expect(row).toMatchObject({ senderName: "Agent A", voice: "person-owner", senderId: owner });
-    expect(row?.look).toMatchObject({ role: "assistant", avatar: { icon: "i-material-symbols-smart-toy-outline", alt: "agent-a" } });
+    expect(row?.look).toMatchObject({ role: "assistant", avatar: { text: "A", alt: "Agent A" } });
   });
 
   test("and the row standing for the agent's next turn wears the same", () => {
     holdCatalogue([catalogueRow("agent-a", "chat", "Agent A")]);
 
     expect(botSpeaker([voiced(1)])).toEqual({ id: owner, name: "Agent A" });
-    expect(botAvatar([voiced(1)], new Map([[`person:${owner}`, "/owner.jpg"]]))).toEqual({ icon: "i-material-symbols-smart-toy-outline", alt: "agent-a" });
+    expect(botAvatar([voiced(1)], new Map([[`person:${owner}`, "/owner.jpg"]]))).toMatchObject({ text: "A", alt: "Agent A" });
+    expect(botAvatar([voiced(1)], new Map([["agent:agent-a", "/agent-a.jpg"]]))).toEqual({ src: "/agent-a.jpg", alt: "Agent A" });
   });
 
   test("an answer filed under its own name wears no account mark", () => {

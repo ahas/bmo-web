@@ -376,7 +376,8 @@ import { messageOfQuery } from "#shared/paths";
 import { screenKey } from "~/domain/route-key";
 import { agentLabel, companionOf, roomTitle } from "~/domain/agents";
 import { attachmentBody } from "~/domain/attachments";
-import { avatarFor, useAvatars } from "~/domain/avatars";
+import { useAgentAvatars } from "~/domain/agent-face";
+import { avatarFor } from "~/domain/avatars";
 import { followBottom } from "~/domain/bottom";
 import { flightTiming, riseOutOf, settleInto } from "~/domain/flight";
 import { measurePicture, messagePicture, releaseStandIn, rememberShape, shapeOf, standIn } from "~/domain/picture-shapes";
@@ -652,7 +653,7 @@ const title = computed<string>(() => roomsInitial.value ? t("room.status.room_lo
 // A room made for companions takes words alone (docs/companions.md), so nothing is offered to attach.
 const madeForCompanions = computed(() => (rooms.value ?? []).some((room) => room.chatId === chatId && room.madeForCompanions === true));
 // The index names every room and person, so a member's feed draws its faces by their initials.
-const avatars = administrator.value ? useAvatars() : computed<AvatarIndex>(() => new Map());
+const avatars = administrator.value ? useAgentAvatars() : computed<AvatarIndex>(() => new Map());
 const roomAvatar = computed(() => avatarFor(avatars.value, "room", chatId, title.value));
 const roomFaceOpen = ref(false);
 

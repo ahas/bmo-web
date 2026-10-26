@@ -526,7 +526,8 @@ export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[]):
   return {
     name: agent.name,
     label: agentLabel(t, agent.name, [agent]),
-    icon: agentIcon(agent.name, [agent]),
+    // The workers are one kind, and stand with its one mark (docs/web.md, 「Profile photos」).
+    icon: group === "worker" ? GROUP_ICONS.worker : agentIcon(agent.name, [agent]),
     group,
     chatId: null,
     cwd: agent.cwd ?? null,

@@ -20,7 +20,7 @@
     <ul v-else class="flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default" :aria-label="generalSectionTitle($t, 'sessions')">
       <li v-for="one in sessions" :key="keyOf(one)" :data-session="keyOf(one)" class="flex flex-col gap-2 px-4 py-2">
         <div class="flex min-h-8 items-center gap-3">
-          <UIcon :name="one.icon ?? 'i-material-symbols-person-outline'" class="size-5 shrink-0 text-muted" />
+          <AgentMark :agent="markOf(one)" class="text-muted" />
           <span class="flex min-w-0 flex-1 flex-col">
             <span class="flex min-w-0 items-center gap-2">
               <SearchText class="truncate text-sm font-medium text-highlighted" :text="one.label" :query="props.query" />
@@ -55,7 +55,10 @@ import { generalSectionTitle } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { sessionClearedAt, sessionDetail } from "~/domain/sessions";
 
+import { groupIcon } from "~/domain/agents";
+
 import type { SessionView } from "#shared/agency";
+import type { AgentMarkSubject } from "~/domain/agent-face";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
@@ -64,6 +67,12 @@ const sessions = ref<SessionView[] | null>(null);
 const failed = ref("");
 // The row whose reset is being asked, by its key.
 const confirming = ref("");
+
+// The agent a session is held by, as its mark draws it: a worker's with the worker mark, every other its face
+// (docs/web.md, 「Profile photos」).
+function markOf(one: SessionView): AgentMarkSubject {
+  return { name: one.agent, label: one.label, chatId: null, group: one.kind === "worker" ? "worker" : "designated", icon: groupIcon("worker") };
+}
 
 function keyOf(one: Pick<SessionView, "agent" | "chatId">): string {
   return `${one.agent}:${one.chatId ?? ""}`;

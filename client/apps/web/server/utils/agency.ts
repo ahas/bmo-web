@@ -64,7 +64,7 @@ const seconds = (ms: number | null): number | null => (ms === null ? null : Math
 // and the session's loads — stands empty (docs/boundary.md, 「Gaps the console meets」).
 // What the agency's answer carries on an agent beside the fields its published type states: the registration row's
 // kind, whether it is the default answerer and the room it answers (docs/boundary.md, 「Gaps the console meets」).
-function carriedOf(agent: AgencyAgent): { kind: string; defaultAnswerer: boolean; chatId: number | null } {
+export function carriedOf(agent: AgencyAgent): { kind: string; defaultAnswerer: boolean; chatId: number | null } {
   const row: Record<string, unknown> = Object.fromEntries(Object.entries(agent));
 
   return {

@@ -243,6 +243,13 @@ export interface AvatarRef {
   url: string;
 }
 
+// The person number a chat agent's own words stand under, by which it wears that person's picture (docs/web.md,
+// 「Profile photos」).
+export interface AgentFace {
+  name: string;
+  personId: number;
+}
+
 export interface MessageAttachment {
   id: number;
   kind: "audio" | "video" | "document" | "sticker";

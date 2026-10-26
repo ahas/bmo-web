@@ -582,8 +582,8 @@ edit to that file alone, once the guide below carries the word.
   small button, a menu item — stands at 14 too. The code and document editors read at 14.
 - **Icons come from Material Symbols,** served by the app's icon endpoint, and the library's own components
   are told to draw theirs from the same set. An agent's mark in the catalogue is a Material Symbols name;
-  a seed mark from another set is rewritten to its Material Symbols counterpart when the bot starts, and a
-  mark the owner chose stands.
+  a seed mark from another set is rewritten to its Material Symbols counterpart when the bot starts. The console
+  draws no agent by it: a chat agent stands as its face and a worker with the one worker mark (「Profile photos」).
   - **An icon first drawn after the page has loaded never redraws the page's letters.** The icon library
     puts the style of each icon it draws for the first time into the page's head, ahead of every other
     stylesheet. A sheet put in ahead of the others makes the browser rebuild its whole set of fonts, and for
@@ -1055,11 +1055,18 @@ edit to that file alone, once the guide below carries the word.
   the chat agent, the room header and beside a bubble are all the same photo. The chat agent stands with its own photo too. The
   photo beside a bubble attaches to the side that bubble stands on — words on the left on the left, words on
   the right on the right.
+- **Every chat agent stands the same way, wherever it stands.** The chat agents are equal, so each stands as its
+  own face on the agents page, in the sidebar's agent branch, in the search, in its own screen's bar, in a room's
+  header and beside its bubbles: the picture kept for the person number its words stand under, as the receiver
+  names that number in the owner's room or in a room it is a companion of, or else the picture of a room made for
+  it; failing both, the first letter of its label on its identity's colour. A room's own session wears that
+  room's picture. No chat agent wears a mark of its own, whatever mark its catalogue row carries. The workers
+  are one kind and stand with the one worker mark.
 - **A place with no message yet carries the same photo as a message.** The line standing while the chat agent thinks
   carries the same photo on the same side as the chat agent's answer that will stand there, and a line being sent
   carries the sender's photo. So even when an answer or message actually arrives, the photo does not change
   and the line does not shift. If the chat agent has never spoken in that room and there is no photo to choose, it
-  stands as the chat agent's mark.
+  stands as its letter, as every chat agent does.
 - **A photo opens whole when pressed.** A face beside a bubble and the room's photo in the room header are each
   a button that opens that very picture large, in the same viewer; the header's is the room's own picture,
   which in a room made for a companion is the companion's. A room or a face standing as its letter has no
@@ -1078,7 +1085,7 @@ edit to that file alone, once the guide below carries the word.
   same letter in the same colour wherever it stands — sidebar, room, mail — because a list whose
   names are gone is read by that mark alone. The console decides it in one place, and every list
   that folds its names away asks that one place rather than drawing a mark of its own. There is no
-  place a broken image stands. The chat agent with no photo returns to its own mark.
+  place a broken image stands. A chat agent with no photo stands as its letter like everyone else.
   - **A person's or a room's letter stands on the hue its name is drawn in.** The circle takes the 700 step of
     the one of the conversation's eight name colours chosen by the same number (「The conversation's measures」),
     so a person's face and the name at the head of their bubble are one colour, in every theme; a private
@@ -1177,7 +1184,8 @@ Four groups.
     list stands under them in the order above. A room is pinned and let go from its own screen's menu
     (「고정」), and the receiver writes the order.
 - **Agents** — every one of the chat agent's agents stands. Choosing one shows that agent's log. The list is not held by
-  this app but comes from the archive's `agents` table. Name and mark are as written there, so if the owner makes
+  this app but comes from the archive's `agents` table. The name is as written there, and each stands as 「Profile
+  photos」 says — a chat agent as its face, a worker with the one worker mark — so if the owner makes
   one more worker, that worker stands in this list under its own name. **It lists the agents a person designates
   and the workers, and nothing else:** a row of the `chat` kind holding a role, and a row of the `worker` kind. The
   rows the agency keeps for the gate unit's sessions — the `gate` kind, and a `chat` row holding no role — and the
@@ -1228,7 +1236,8 @@ Four groups.
   Choosing a node opens its screen.
 - Folded, only icons and the rooms' own photos remain — a screen is one of a kind and stands as its
   icon, a room is an identity and stands as its own picture or letter, and an agent branch stands as
-  its branch's own mark — and on a narrow screen it becomes a drawer opened by the top button.
+  its branch's own mark, its chat agents each as its face and its workers with the worker mark — and on a narrow
+  screen it becomes a drawer opened by the top button.
 - **Folded, everything names itself on hover.** Every screen, room, the fold button, the user menu
   button (the account name) and the stream line each carry a tooltip saying the words they show
   spread, and that is also their accessible name. A folded agent branch opens its agents beside its
@@ -2546,7 +2555,7 @@ Two ways, split because the running places differ.
   - Which gates an agent's turn passes is the bot's word, so while the bot is not answering the
     section shows nothing.
 - **세션.** Under 에이전트별 게이트, every session an agent holds now (the agency's `docs/session-resets.md`), one row
-  each in the agent list's order: the agent's mark, label and key, which session it is — the chat agent's chat
+  each in the agent list's order: the agent's face or mark (「Profile photos」), label and key, which session it is — the chat agent's chat
   session, a worker's recorded sessions with their models, a companion's session in one room with its
   room and generation — the last time it was cleared, and an 초기화 button.
   - A waiting reset stands on its row as 초기화 대기, with the button off until it is carried out.

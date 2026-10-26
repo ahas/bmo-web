@@ -6,7 +6,7 @@
     <template #content>
       <div class="flex h-full min-h-0 flex-col">
         <div class="flex items-center gap-2 border-b border-default px-4 py-3">
-          <UIcon :name="meta.icon" class="size-4 shrink-0 text-dimmed" />
+          <AgentMark :agent="meta" size="3xs" icon-class="size-4" class="text-dimmed" />
           <p class="min-w-0 flex-1 truncate text-sm font-medium text-highlighted">{{ shell.title }}</p>
 
           <UButton

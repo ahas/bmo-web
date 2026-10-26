@@ -141,6 +141,7 @@ import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
 import { agentGroups, groupIcon, isAgentRunning, isGroupOpen, designatedAndWorkers, sessionLink, withGroupFolds } from "~/domain/agents";
+import { useAgentFace } from "~/domain/agent-face";
 import { avatarFor, useAvatars } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useBotEvents } from "~/domain/events";
@@ -201,6 +202,7 @@ const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.
 
 // The picture every session in this sidebar wears.
 const avatars = useAvatars();
+const agentFace = useAgentFace();
 
 // The agents are the agency's to report; a catalogue it does not answer leaves the block saying so.
 const { agents, initial: agentsInitial, failed: agentsFailed } = useAgentCatalogue();
@@ -260,9 +262,10 @@ function agentEntry(agent: AgentMeta): NavigationMenuItem {
   return {
     label: agent.label,
     to: `/agents/${encodeURIComponent(agent.name)}`,
-    // A room's own session wears that room's picture; every other agent wears its mark.
-    icon: agent.chatId === null ? agent.icon : undefined,
-    avatar: agent.chatId === null ? undefined : avatarFor(avatars.value, "room", agent.chatId, agent.label),
+    // A chat agent wears its face, a room's own session that room's picture, and every other agent its group's mark
+    // (docs/web.md, 「Profile photos」).
+    icon: agentFace.value(agent) === undefined ? agent.icon : undefined,
+    avatar: agentFace.value(agent),
     active: decodeURIComponent(route.path) === `/agents/${agent.name}`,
     // A turning circle rather than a still dot: the list is meant to say what is alive, and a dot says only
     // that something was true when the picture arrived.
@@ -306,8 +309,8 @@ const jumpSources = computed<JumpGroup[]>(() => [
       id: `agent-${agent.name}`,
       label: agent.label,
       to: `/agents/${encodeURIComponent(agent.name)}`,
-      icon: agent.chatId === null ? agent.icon : undefined,
-      avatar: agent.chatId === null ? undefined : avatarFor(avatars.value, "room", agent.chatId, agent.label),
+      icon: agentFace.value(agent) === undefined ? agent.icon : undefined,
+      avatar: agentFace.value(agent),
       hidden: [{ label: t("screens.label.internal_name"), text: agent.name }]
     }))
   }))

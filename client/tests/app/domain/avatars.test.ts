@@ -71,11 +71,12 @@ describe("what one room or one person wears", () => {
     expect(one.class).not.toBe(other.class);
   });
 
-  test("the chat agent's own mark, where it has no picture, and no other name's", () => {
+  test("the chat agent's letter where it has no picture, as every other name's: no chat agent wears a mark of its own", () => {
     registerChatAgent({ name: "agent-a", label: "Agent A" });
 
     try {
-      expect(avatarFor(new Map(), "person", 10000003, "agent-a")).toEqual({ icon: "i-material-symbols-smart-toy-outline", alt: "agent-a" });
+      expect(avatarFor(new Map(), "person", 10000003, "agent-a").icon).toBeUndefined();
+      expect(avatarFor(new Map(), "person", 10000003, "agent-a").text).toBe("A");
       expect(avatarFor(new Map(), "person", 10000003, "agent-b").icon).toBeUndefined();
     } finally {
       registerChatAgent({ name: "", label: "" });

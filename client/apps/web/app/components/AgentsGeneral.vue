@@ -125,7 +125,7 @@
 
             <ul class="flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default">
               <li v-for="agent in block.agents" :id="anchoredIn(group, block, agent.name) ? settingsAnchor(`agent-${agent.name}`) : undefined" :key="agent.name" class="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2">
-                <UIcon :name="agent.icon" class="size-5 shrink-0 text-muted" />
+                <AgentMark :agent="agent" class="text-muted" />
                 <NuxtLink :to="`/agents/${encodeURIComponent(agent.name)}`" class="flex min-w-0 flex-1 flex-col rounded-sm transition-colors hover:text-primary active:text-primary/80">
                   <span class="flex min-w-0 items-center gap-2">
                     <SearchText class="truncate text-sm font-medium text-highlighted" :text="agent.label" :query="props.query" />

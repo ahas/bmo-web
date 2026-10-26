@@ -1,7 +1,7 @@
 import { BUNDLE_AREA, loadBundle } from "./bundle-loader";
 
 import type { ConsoleScreen } from "#shared/console-bundles";
-import type { Router } from "vue-router";
+import type { RouteLocationNormalizedLoaded, Router } from "vue-router";
 
 // The screens units bring that the reader may open (docs/web.md, 「Screens a unit brings」): read once per page from
 // the console's own list, their words merged into the pack, and each bundle's module loaded the first time its
@@ -24,16 +24,20 @@ export function useBundleArea() {
 }
 
 /** The bar the console draws over a bundle's screen: the manifest's title and icon, where the route the screen
- * stands at asks for the console's bar in its meta (docs/web.md, 「The title bar」); none where it draws its own. */
+ * stands at asks for the console's bar in its meta (docs/web.md, 「The title bar」); none where it draws its own. The
+ * bar follows the route being gone to from the moment the router takes the navigation, so it and its place for the
+ * screen's actions stand before that screen mounts, and it stays while the screen being left still stands. */
 export function useBundleBar() {
-  const route = useRoute();
+  const shown = useRoute();
+  const going = useRouter().currentRoute;
   const screens = useConsoleScreens();
-
-  return computed(() => {
+  const barOf = (route: RouteLocationNormalizedLoaded) => {
     const screen = screenAt(screens.value, route.path);
 
     return screen === null || route.meta.consoleTitleBar !== true ? null : { title: screen.title, icon: screen.icon };
-  });
+  };
+
+  return computed(() => barOf(going.value) ?? barOf(shown));
 }
 
 /** Whether a path stands at or below a screen path. */

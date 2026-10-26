@@ -1572,7 +1572,11 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   true in the route's meta — is drawn under the console's bar, named by its manifest's title and mark, the sidebar
   button and the set of buttons in it as on every screen. Such a screen draws no bar of its own: what acts on it
   as a whole it lays beside the name, in the place the offer names (`[data-title-bar-screen-actions]`), by a
-  deferred teleport, and its own panels carry no bar. A bundle read where nothing offers the bar — its unit's own
+  deferred teleport, and its own panels carry no bar. The bar and that place stand before the screen does, on every
+  road to it — the first load, from a screen of the console's own, from another bundle's screen: the bar follows
+  the route being gone to as soon as the navigation is taken, so the place is in the page by the time the screen
+  mounts, and it stays while the screen being left still stands, until that screen has gone. Between two bundles'
+  screens it is the same bar and the same place, renamed. A bundle read where nothing offers the bar — its unit's own
   app, or a console without the offer — draws its own, and a route that does not ask stands as its bundle draws it.
 - **The title bar holds only what every screen holds** — the sidebar button, the screen's name, the deployment's
   mark, the TODO button and the usage figures — and beside the name what acts on that screen as a whole. What acts

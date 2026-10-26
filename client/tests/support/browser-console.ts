@@ -35,6 +35,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["agents-listed", "fixture-password-2255"],
   ["briefing-chip", "fixture-password-2256"],
   ["room-sending", "fixture-password-2257"],
+  ["bundle-bar", "fixture-password-2258"],
   ["prompt-wrap", "fixture-password-1575"],
   ["room-feed", "fixture-password-1457"],
   ["skeleton259", "fixture-password-259"],
@@ -156,6 +157,52 @@ const entries = new Map<string, Record<string, unknown>>([
   ["entry-b", catalogueEntry("entry-b", "engine-b", "model-b")]
 ]);
 const uses: Record<string, unknown>[] = [];
+
+// A unit that brings a screen of its own under the console's title bar (docs/web.md, 「Screens a unit brings」, 「The
+// title bar」): its manifest, its words and its module, whose one route asks for the console's bar. The screen notes
+// whether the bar's place for its actions stood when it mounted, lays a button there by a deferred teleport and
+// redraws it every few frames, so a place missing at mount shows as an error on the page.
+function screenUnit(name: string, path: string): Response | null {
+  if (path === "/console-manifest") {
+    return Response.json({
+      name, title: `${name}.title`, icon: "i-material-symbols-widgets", screenPath: `/${name}`, serviceName: name,
+      bundle: "/console/bundle.js", words: "/console/words", role: "member"
+    });
+  }
+
+  if (path === "/console/words") return Response.json({ ko: { [name]: { title: name } }, en: { [name]: { title: name } } });
+
+  if (path === "/console/bundle.js") {
+    const source = `import { Teleport, defineComponent, h, onBeforeUnmount, onMounted, ref } from "vue";
+
+const SLOT = "[data-title-bar-screen-actions]";
+
+const Screen = defineComponent({
+  setup() {
+    const ticks = ref(0);
+    let timer = null;
+
+    onMounted(() => {
+      (globalThis.__screenMounts ??= []).push({ screen: ${JSON.stringify(name)}, slot: document.querySelector(SLOT) !== null });
+      timer = setInterval(() => (ticks.value += 1), 50);
+    });
+    onBeforeUnmount(() => clearInterval(timer));
+
+    return () => h("div", { "data-screen": ${JSON.stringify(name)} }, [
+      h(Teleport, { to: SLOT, defer: true }, [h("button", { type: "button", "data-screen-action": ${JSON.stringify(name)} }, "act " + ticks.value)]),
+      h("p", ${JSON.stringify(name)} + " " + ticks.value)
+    ]);
+  }
+});
+
+export default { routes: [{ path: "/${name}", name: ${JSON.stringify(name)}, component: Screen, meta: { consoleTitleBar: true } }] };
+`;
+
+    return new Response(source, { headers: { "content-type": "text/javascript" } });
+  }
+
+  return null;
+}
 
 const catalogueView = () => ({ entries: [...entries.values()], uses });
 const notFound = () => Response.json({ code: "not-found", error: "not served by this stand-in" }, { status: 404 });
@@ -321,6 +368,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
   },
   BRAIN: () => null,
+  SCREEN_A: (path) => screenUnit("screen-a", path),
+  SCREEN_B: (path) => screenUnit("screen-b", path),
   ARTIFACT: () => null,
   TELEGRAM: () => null,
   CACHE_SIREN: () => null,

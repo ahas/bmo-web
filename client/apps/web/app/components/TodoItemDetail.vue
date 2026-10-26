@@ -151,13 +151,25 @@
             />
 
             <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-3">
-              <!-- How the item ended, first where it has ended: the account the closing job wrote and
-                   what it left behind, each whole, so the item reads as the report of itself. -->
+              <!-- How the item ended, first where it has ended: every report kept of it, the closing one first, and
+                   what it left behind, each whole and never folded, so the item reads as the report of itself. Each
+                   report stands in its original with its translation under it. -->
               <section v-if="shownLeft === 'result'" class="flex min-w-0 flex-col gap-4" :aria-label="$t('todo.label.result')">
-                <div v-if="openedItem.report !== null" class="rounded-md border border-success/30 bg-success/5 p-3">
-                  <p class="text-sm font-medium text-success">{{ $t("todo.title.report") }}</p>
-                  <MarkdownText :text="openedItem.report" class="mt-1 text-sm text-highlighted" />
-                </div>
+                <article
+                  v-for="report in shownReports"
+                  :key="report.id"
+                  class="rounded-md border p-3"
+                  :class="report.kind === 'final' ? 'border-success/30 bg-success/5' : 'border-default bg-elevated/40'"
+                  data-report
+                  :data-report-kind="report.kind"
+                >
+                  <p class="flex flex-wrap items-center gap-x-2 text-sm">
+                    <span class="font-medium" :class="report.kind === 'final' ? 'text-success' : 'text-highlighted'">{{ $t(REPORT_KIND_LABELS[report.kind]) }}</span>
+                    <span class="text-muted tabular-nums">{{ formatStamp(report.at) }}</span>
+                    <span v-if="report.actor !== ''" class="break-all text-muted">{{ report.actor }}</span>
+                  </p>
+                  <TranslatedText :text="report.body" class="mt-1" />
+                </article>
 
                 <!-- What the work left behind, exactly as the closing job wrote it, and what is
                      done about it. Resolving never takes those words off the row: what it adds is
@@ -488,28 +500,17 @@
 
               <template v-else-if="shownLeft === 'order'">
                 <!-- The item's brief: the chat agent's organized instruction, the one text a job reads for the
-                     item. It is written once, in the original the job reads, and read here in a rendering in
-                     the reader's own language where one is held, with the original a press away; where none
-                     is held in that language the original stands, with nothing to press, so the reader is
-                     never left waiting on a rendering with nothing to read.
+                     item. It is written once, in the original the job reads, and stands in that original with its
+                     translation under it.
                      Under it, each change the chat agent made to it, with when, and whether the job running
                      then has been handed it. -->
                 <div class="flex flex-col gap-4 rounded-lg border border-default p-3">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <p class="text-sm font-medium text-muted">{{ $t("todo.title.brief") }}</p>
-                    <UButton
-                      v-if="briefReading !== null"
-                      size="sm"
-                      color="neutral"
-                      variant="ghost"
-                      :label="briefOriginal ? $t('todo.action.brief_rendering') : $t('todo.action.brief_original')"
-                      @click="briefOriginal = !briefOriginal"
-                    />
                   </div>
 
                   <p v-if="openedItem.brief === null" class="text-sm text-muted">{{ $t("todo.status.no_brief") }}</p>
-                  <MarkdownText v-else-if="briefReading !== null && !briefOriginal" :text="briefReading" class="text-sm text-highlighted" />
-                  <MarkdownText v-else :text="openedItem.brief" class="text-sm text-highlighted" />
+                  <TranslatedText v-else :text="openedItem.brief" />
 
                   <div v-if="briefChanges.length > 0" class="flex flex-col gap-4">
                     <p class="text-sm font-medium text-muted">{{ $t("todo.title.brief_changes") }}</p>
@@ -518,7 +519,7 @@
                       <p class="text-sm text-muted">
                         {{ formatStamp(change.addedAt) }} · {{ changeHanded(change) }}
                       </p>
-                      <MarkdownText :text="change.text" class="text-sm text-highlighted" />
+                      <TranslatedText :text="change.text" />
                     </div>
                   </div>
                 </div>
@@ -866,7 +867,7 @@ import {
   approvalChangeIcon,
   approvalChangeLine,
   approvalLabel,
-  briefRendered,
+  REPORT_KIND_LABELS,
   busyBlocks,
   busyKey,
   canBottom,
@@ -898,6 +899,7 @@ import type {
   TodoBoard,
   TodoItem,
   TodoNote,
+  TodoReport,
   TodoTalk,
   TodoTalkTurn
 } from "#shared/types";
@@ -929,7 +931,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const emit = defineEmits<{
   close: [];
 }>();
@@ -995,6 +997,17 @@ const detailShell = computed(() => {
 // What is typed into the open item's approval comment box.
 const note = ref("");
 
+// The open item's reports as this dialog last read them, by the item they were read for. Until the dialog's own read
+// lands, the board's reading of the item stands.
+const readReports = ref<{ id: number; reports: TodoReport[] } | null>(null);
+const shownReports = computed<TodoReport[]>(() => {
+  const item = openedItem.value;
+
+  if (item === null) return [];
+
+  return readReports.value?.id === item.id ? readReports.value.reports : item.reports;
+});
+
 // The detail's tabs, in one order across both columns: how the item ended, what became of it, what the work is told
 // and the request's own words on the left, the talk about it and what he does to it on the right. Where the dialog is
 // too narrow for two columns they are one row, in the same order.
@@ -1010,8 +1023,8 @@ const RIGHT_TABS = [
   { value: "talk", label: t("todo.label.discussion"), icon: "i-material-symbols-chat-outline" },
   { value: "manage", label: t("todo.label.manage"), icon: "i-material-symbols-settings-outline" }
 ];
-const hasResult = (item: TodoItem | null): boolean => item !== null && (item.report !== null || item.unfinished !== null);
-const leftTabs = computed(() => (hasResult(openedItem.value) ? [RESULT_TAB, ...BODY_TABS] : BODY_TABS));
+const hasResult = computed(() => openedItem.value !== null && (shownReports.value.length > 0 || openedItem.value.unfinished !== null));
+const leftTabs = computed(() => (hasResult.value ? [RESULT_TAB, ...BODY_TABS] : BODY_TABS));
 // The one row of a narrow dialog carries the names alone: six tabs with their icons are wider than
 // a phone, and a row that scrolls sideways hides the last of them.
 const detailTabs = computed(() => [...leftTabs.value, ...RIGHT_TABS].map(({ value, label }) => ({ value, label })));
@@ -1032,7 +1045,7 @@ watch(
   (id) => {
     if (id !== null && id !== lastOpened) {
       lastOpened = id;
-      const first = hasResult(props.item) ? "result" : "status";
+      const first = props.item !== null && (props.item.reports.length > 0 || props.item.unfinished !== null) ? "result" : "status";
       leftTab.value = first;
       singleTab.value = first;
       rightTab.value = "talk";
@@ -1041,7 +1054,7 @@ watch(
   { immediate: true }
 );
 watch(
-  () => hasResult(openedItem.value),
+  () => hasResult.value,
   (has) => {
     if (!has) {
       leftTab.value = leftTab.value === "result" ? "status" : leftTab.value;
@@ -1103,11 +1116,6 @@ const standingNotes = computed(() => addedNotes.value.filter((note) => note.remo
 const removedNotes = computed(() => addedNotes.value.filter((note) => note.removedAt !== null));
 // The chat agent's changes to the brief, oldest first, as the brief came to be.
 const briefChanges = computed(() => notes.value.filter((note) => note.kind === "change" && note.removedAt === null));
-// The brief's rendering in the language the console speaks to its reader, or none where none is held in it.
-const briefReading = computed(() => (openedItem.value === null ? null : briefRendered(openedItem.value, locale.value)));
-// Whether the brief is read in its original, the worker's own text, rather than its rendering.
-// It belongs to whichever item is open and starts on the rendering every time one is.
-const briefOriginal = ref(false);
 
 // Where a change the chat agent made stands with the job it was made for: handed and when, still waiting
 // to be handed, or made while no job ran, for the next one to read in the brief.
@@ -1130,6 +1138,7 @@ const approvalsFailure = ref<string | null>(null);
 let detailGeneration = 0;
 let talkGeneration = 0;
 let notesGeneration = 0;
+let reportsGeneration = 0;
 let approvalsGeneration = 0;
 onScopeDispose(() => { detailGeneration++; });
 // Where the talk's turns scroll. A turn that has just arrived is the one he is waiting for, so the
@@ -1181,7 +1190,7 @@ function toggled(id: number, closed: boolean, word: string): void {
 
   notes.value = [];
   noteText.value = "";
-  briefOriginal.value = false;
+  readReports.value = null;
   noteFailure.value = null;
   confirmingNote.value = null;
 
@@ -1191,6 +1200,7 @@ function toggled(id: number, closed: boolean, word: string): void {
   if (!closed) {
     void loadTalk(id);
     void loadNotes(id);
+    void loadReports(id);
     void loadApprovals(id);
   }
 }
@@ -1279,6 +1289,31 @@ async function loadNotes(id: number, quiet = false): Promise<void> {
   }
 }
 
+// The item's reports are read when it is opened and again whenever the bot says the queue moved, so a report written
+// while the dialog stands lands in it. An item opened on its state whose first read brings a report turns to the
+// result, which is what it would have opened on had the board known.
+async function loadReports(id: number, quiet = false): Promise<void> {
+  const generation = detailGeneration;
+  const mine = ++reportsGeneration;
+  const latest = (): boolean => generation === detailGeneration && mine === reportsGeneration;
+  const before = hasResult.value;
+
+  try {
+    const answer = await $fetch<TodoReport[]>(`/api/todos/${id}/reports`);
+
+    if (latest() && opened.value === id) {
+      readReports.value = { id, reports: answer };
+
+      if (!quiet && !before && hasResult.value) {
+        leftTab.value = leftTab.value === "status" ? "result" : leftTab.value;
+        singleTab.value = singleTab.value === "status" ? "result" : singleTab.value;
+      }
+    }
+  } catch {
+    // The board's reading of the reports stands where the dialog's own could not be made.
+  }
+}
+
 // The record of the open item's approval, read the way its added words are: a quiet read draws over
 // what stands, since the queue moving is seldom news of an approval.
 async function loadApprovals(id: number, quiet = false): Promise<void> {
@@ -1305,6 +1340,7 @@ async function loadApprovals(id: number, quiet = false): Promise<void> {
 // The panel heard that the queue moved, which can be news of the open row's added words.
 function reread(id: number): void {
   void loadNotes(id, true);
+  void loadReports(id, true);
   void loadApprovals(id, true);
 }
 

@@ -490,10 +490,14 @@ export interface TodoSpan {
   tokens: number | null;
 }
 
-// A text rendered in a reader's language: the language it is in, as a language tag such as `ko`, and the text.
-export interface TextRendering {
-  language: string;
-  text: string;
+// One report bmo-job keeps of an item: what the one doing it told of it, as its kind — the closing account, an
+// account on the way, or why the item waits — the words whole, who wrote them, and when, in unix seconds.
+export interface TodoReport {
+  id: number;
+  kind: "final" | "progress" | "held";
+  body: string;
+  actor: string;
+  at: number;
 }
 
 // One piece of work the owner is owed, as the archive's todos table holds it. The instruction
@@ -502,11 +506,9 @@ export interface TodoItem {
   id: number;
   title: string;
   instruction: string;
-  // The organized instruction the chat agent keeps for the item's jobs, in the original a job reads, and a rendering
-  // of it in a reader's language, carrying the language it is in. The brief is null until a job of the item is
-  // launched or the chat agent rewrites it, and the rendering null where none is held.
+  // The organized instruction the chat agent keeps for the item's jobs, in the original a job reads. It is null
+  // until a job of the item is launched or the chat agent rewrites it.
   brief: string | null;
-  briefRendering: TextRendering | null;
   requester: string;
   requesterId: number | null;
   chatId: number | null;
@@ -566,10 +568,10 @@ export interface TodoItem {
   // What the owner said when they approved it — a remark or a question of their own — and null
   // where they said nothing.
   note: string | null;
-  // How the work was done, written by the job that did it as it closed the item, and what the
-  // work left behind. Both null on an item nobody has finished, and on one finished before a
-  // closing job was asked for its account.
-  report: string | null;
+  // Every report kept of the item, the closing ones first, the latest of them leading, and the rest after
+  // them in the order they were written, and what the work left behind. Both empty on an item nobody has reported on, and on one
+  // finished before a closing job was asked for its account.
+  reports: TodoReport[];
   unfinished: string | null;
   // Whether that open matter still stands, and the one line saying what makes it no longer outstanding.
   // The note itself is never taken off the row: what is added is when it was resolved and why.
@@ -2250,13 +2252,6 @@ export interface DocumentTranslation {
   // How many parts the bot is still translating; null where the bot could not be asked.
   pending: number | null;
   failure: DocumentTranslationFailure | null;
-}
-
-// One text of a work order — a task's instruction, or its result — as its translation stands. The
-// same shape a document's translation has, with the name the parts are kept under so the screen
-// knows which news is about this text.
-export interface WorkTextTranslation extends DocumentTranslation {
-  document: string;
 }
 
 // A work order as the console reads it: the order, and when each of its tasks ended — the finish

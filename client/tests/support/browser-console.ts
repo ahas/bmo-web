@@ -28,6 +28,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["bubble-wrap", "fixture-password-1477"],
   ["composer-view", "fixture-password-2170"],
   ["console-ids", "fixture-password-789"],
+  ["item-reports", "fixture-password-2251"],
   ["prompt-wrap", "fixture-password-1575"],
   ["room-feed", "fixture-password-1457"],
   ["skeleton259", "fixture-password-259"],
@@ -367,6 +368,10 @@ try {
     WEB_DATA_DIR: join(scratch, "data"),
     NUXT_PUBLIC_CHAT_AGENT_NAME: "agent-a",
     NUXT_PUBLIC_CHAT_AGENT_LABEL: "Agent A",
+    // The translator the screens ask, the gate's translating route relayed; the tests that read a translation answer
+    // it through the page's own routes.
+    NUXT_PUBLIC_BMO_UI_TRANSLATOR_SERVICE: "gate",
+    NUXT_PUBLIC_BMO_UI_TRANSLATOR_PATH: "/translations",
     KEEPALIVE_CONSUMER: "console",
     DEPLOY_ROOTS: scratch,
     // A build folder of its own inside the checkout, so a typecheck beside it leaves what it serves alone and its

@@ -33,7 +33,7 @@ describe("the shell a task opens in", () => {
 
 describe("what the dialog shows of a task", () => {
   test("everything an unfolded row showed, and how long it took", () => {
-    expect(source).toContain("shownInstruction");
+    expect(source).toContain("task.instruction");
     expect(source).toContain('$t("todo.label.run_id", { id: task.jobId })');
     expect(source).toContain('$t("todo.label.run_id_took", { id: task.jobId, time: spanClock($t, took) })');
     expect(source).toContain("task.result");
@@ -77,7 +77,7 @@ describe("the tabs the dialog has", () => {
 
   test("lay a builder turn's JSON answer out rather than show the text", () => {
     expect(source).toContain('<BuilderResult v-if="builderRead !== null" :read="builderRead" :text="task.result"');
-    expect(source).toContain('task.value?.role === "builder" ? readBuilderResult(shownResult.value) : null');
+    expect(source).toContain('task.value?.role === "builder" ? readBuilderResult(task.value.result ?? "") : null');
   });
 });
 
@@ -112,54 +112,11 @@ describe("the step verbs in the dialog", () => {
 // this dialog is read in either language. It is the document viewer's own translator behind it, and
 // the switch stands in the tab row's action area rather than on a row of its own.
 describe("reading a co-worker's text in the other language", () => {
-  test("is a state toggle at the right end of the dialog's head", () => {
-    const head = source.indexOf("<!-- The head names the task the dialog stands at");
-
-    expect(head).toBeGreaterThan(-1);
-    expect(source.indexOf("<USwitch")).toBeGreaterThan(head);
-    expect(source).toContain(':model-value="translated"');
-  });
-
-  test("names the language it would put the text into, and only the translation word where the screen is narrow", () => {
-    expect(source).toContain('narrow.value || target.value === null ? t("todo.label.translation") : t("documents.label.translation_of", { language: languageName(t, target.value) })');
-  });
-
-  test("goes through the translator the document viewer uses, the work order and the result each on its own", () => {
-    expect(source).toContain('import { useWorkTextTranslation } from "~/domain/work-translation"');
-    expect(source).toContain('field: "instruction", text: task.value.instruction');
-    expect(source).toContain('field: "result", text: task.value.result ?? ""');
-  });
-
-  test("is one spinning mark beside it and no count, since each part lands in the text as it is written", () => {
-    expect(source).toContain(`<UTooltip v-if="translating" :text="$t('todo.status.translating')">`);
-    expect(source).toContain(`role="status" :aria-label="$t('todo.status.translating')"`);
-    expect(source).toContain("animate-spin text-muted motion-reduce:animate-none");
-  });
-
-  // A switch drawn as loading is a switch that cannot be pressed, and a translation runs for as long
-  // as the translator takes: turning it on would lock the reader out of turning it off.
-  test("never draws the switch itself as loading, so it can always be turned off again", () => {
-    const at = source.indexOf("<USwitch");
-
-    expect(at).toBeGreaterThan(-1);
-    expect(source.slice(at, source.indexOf("/>", at))).not.toContain(":loading");
-  });
-
-  test("stands as the reader left it, in this dialog and on the next visit", () => {
-    expect(source).toContain('const TRANSLATED_KEY = "bmo-work-translated";');
-    expect(source).toContain("window.localStorage.setItem(TRANSLATED_KEY, on ? \"1\" : \"0\")");
-    expect(source).toContain('translated.value = window.localStorage.getItem(TRANSLATED_KEY) === "1";');
-  });
-
-  test("is not drawn for a task with no text to put into another language", () => {
-    expect(source).toContain('v-if="translatable"');
-    expect(source).toContain('const translatable = computed(() => (task.value?.instruction ?? "").trim() !== "" || (task.value?.result ?? "").trim() !== "");');
-  });
-
-  test("says what went wrong in one line, with the press that asks again", () => {
-    expect(source).toContain("troubleLine");
-    expect(source).toContain(`:label="$t('todo.action.retry_translation')"`);
-    expect(source).toContain('@click="retryTranslation"');
+  test("stands the work order and the result each in the original with the translation under it, with no switch", () => {
+    expect(source).toContain('<TranslatedText :text="task.instruction" text-class="text-sm" />');
+    expect(source).toContain('<TranslatedText v-else :text="task.result" text-class="text-sm" />');
+    expect(source).not.toContain("<USwitch");
+    expect(source).not.toContain("localStorage");
   });
 
   test("leaves the original as the text the worker read, however the screen is drawn", () => {

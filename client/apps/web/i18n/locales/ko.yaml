@@ -131,6 +131,7 @@ common:
     play: 재생
     previous_picture: 이전 사진
     refresh: 새로고침
+    retry_translation: 다시 요청
     save: 저장
     unpin: 고정 해제
     unshare: 공유 해제
@@ -164,6 +165,9 @@ common:
     reconnecting: 다시 연결하는 중
     rooms_loading: 방 불러오는 중…
     share_loading: 공유 링크 불러오는 중…
+    translating: 번역하는 중…
+    translation_busy: 번역기가 바빠 지금은 번역하지 못했습니다.
+    translation_partial: 일부는 번역하지 못해 원문 그대로 둡니다.
     video_loading: 영상 정보 불러오는 중…
   message:
     discard_confirm: 저장하지 않은 변경을 버릴까요?
@@ -195,6 +199,7 @@ common:
     share_create_failed: 공유 링크를 만들지 못했습니다.
     share_read_failed: 공유 링크를 읽지 못했습니다.
     too_long: "메시지가 너무 깁니다. {n}자까지 보낼 수 있습니다."
+    translation_failed: 번역하지 못했습니다.
     unshare_failed: 공유를 해제하지 못했습니다.
     video_failed: 영상을 불러오지 못했습니다.
 
@@ -1011,10 +1016,6 @@ todo:
     resolve_reason_empty: 미결을 해소한 사유를 한 줄로 입력해 주세요.
     stop_reason_needed: 중지 사유를 입력해 주세요.
     talk_load_failed: 대화를 불러오지 못했습니다.
-    translation_ask_failed: 번역을 요청하지 못했습니다.
-    translation_read_failed: 번역을 읽지 못했습니다.
-    translation_unavailable: 작업 지시 번역은 아직 콘솔에서 쓸 수 없습니다. 원문으로 읽어 주세요.
-    translation_unreachable: 번역기에 연결되지 않아 번역을 요청할 수 없습니다.
     unfinished_not_open: 해소할 미결이 없거나 이미 해소된 항목입니다.
     work_order_fold_failed: 작업 지시서를 종료하지 못했습니다.
     work_order_load_failed: 작업 지시서를 불러오지 못했습니다.
@@ -1025,8 +1026,6 @@ todo:
     approve: 승인
     auto_pause: 자동 진행 일시정지
     auto_resume: 자동 진행 재개
-    brief_original: 원문 보기
-    brief_rendering: 번역 보기
     clear_all: 모두 해제
     clear_filters: 필터 모두 해제
     clear_search: 검색어 삭제
@@ -1049,7 +1048,6 @@ todo:
     reopen_keep: 이전 결과를 유지하고 다시 열기
     resume: 재개
     resume_from_done: 완료 단계부터 재개
-    retry_translation: 다시 요청
     save_instruction: 지시 저장
     skip_and_end: 남은 작업 건너뛰고 종료
     stop: 중지
@@ -1173,6 +1171,10 @@ todo:
     queue_turn_resume: 재개할 차례
     queue_turn_why: "{turn}: {why}"
     removed_at: "삭제 {time}"
+    report_count: "보고 {n}건"
+    report_final: 완료 보고
+    report_held: 보류 사유
+    report_progress: 진행 보고
     request_text: 요청 원문
     requested_by: 요청한 사람
     requested_room: 요청한 방
@@ -1226,7 +1228,6 @@ todo:
     time_attempts: "{n}번 실행"
     time_rest: "기타 {n}가지"
     time_total: "총 {time}"
-    translation: 번역
     unassigned_builtin: 배정 없음 (Built-in 워커)
     unfinished_open: 미결
     unfinished_remaining: 미결 남음
@@ -1341,7 +1342,6 @@ todo:
     paused_suffix: 일시정지
     running_attempt: "{n}번째 실행 중"
     talk_loading: 대화 불러오는 중…
-    translating: 번역 중
     unreadable: 읽지 못함
     work_order_loading: 작업 지시서 불러오는 중…
   title:
@@ -1353,7 +1353,6 @@ todo:
     instruction_as_said: 지시 원문
     notes: 추가 지시
     questions: Job의 질문
-    report: 완료 보고
     run_log: 실행 기록
     section_done: 완료
     section_held: 보류

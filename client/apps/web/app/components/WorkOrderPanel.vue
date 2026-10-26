@@ -70,8 +70,9 @@
       </template>
     </template>
     <template v-else>
-      <MarkdownText :text="order.intent" class="mt-2 text-sm text-muted" />
-      <MarkdownText :text="order.instruction" class="mt-1 text-sm" />
+      <!-- The order's purpose and what it says to do, each in the original with its translation under it. -->
+      <TranslatedText :text="order.intent" class="mt-2" text-class="text-sm text-muted" />
+      <TranslatedText :text="order.instruction" class="mt-2" text-class="text-sm" />
       <!-- The step the order is at by its name, and how far the build has come counted among the build
            steps alone: a design step is never a count. -->
       <p class="mt-2 text-sm font-medium">{{ phaseName($t, order) }} <RollingNumber v-if="counts.total > 0" :value="counts.done" :text="progressText(counts.done, counts.total)" /><span v-if="counts.skipped > 0" class="text-muted"> · <RollingSentence :keypath="'todo.label.skipped_count'" :figures="{ n: counts.skipped }" /></span></p>

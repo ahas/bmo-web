@@ -163,6 +163,11 @@ export const DONE_PAGE_SIZE = 20;
 // may type.
 export const DONE_MAX = 500;
 
+// How long the board keeps what it read of an item's reports while the item is unchanged. bmo-job's rows count no
+// reports, so each listed item's are a read of their own, and a report appended moves nothing on the item; a
+// minute bounds how late a new report reaches a row's mark (docs/boundary.md, 「Gaps the console meets」).
+export const TODO_REPORTS_FRESH_MS = 60_000;
+
 // How long the words they are searching for may be. It is a phrase to find a row by, not a
 // document, and the route refuses more.
 export const TODO_SEARCH_LIMIT = 200;

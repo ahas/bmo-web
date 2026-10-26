@@ -379,11 +379,10 @@ for it, and no file or table of that unit is read meanwhile.
   those, a finished item whose run still ends reads as finished rather than as reporting, an item's approvals and talk stand empty, the question bar and a question's ringing stand with nothing
   to say, and a task stands without its end. A search reaches every open item whole and a finished one by its
   line, its number, title and status, since opening every finished item is a read per item.
-- **A brief in its reader's language.** No unit serves an item's brief rendered in the language its reader reads, so
-  every brief stands in the original it was written in.
-- **A work order's text in the other language.** The translator and the translations it keeps are bmo-gate's,
-  which serves the console no route for them yet, so a work order's text reads as it was written and asking for
-  its translation is answered as unavailable.
+- **An item's reports, counted.** bmo-job's item rows carry no count of the item's reports, so the board reads the
+  reports of every finished and held item it hands over, one read per item, and keeps each for a minute while the
+  item's `changedAt` stands. A report appended moves no state, so one written in that minute reaches the row's mark
+  only when the minute is up; the item's dialog reads its reports itself.
 - **A worker's downgrade heal.** Whether a worker's session is put back on its model when it answered on a lesser
   one is set by the agency's command line and taken by no route, so the console's switch for it changes nothing.
 - **A tool's icon.** Which icon each of the deployment's own tools declares is the tool host's to say, and no unit

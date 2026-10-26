@@ -67,8 +67,8 @@ const ORDER: WorkOrderView = {
 function item(): TodoItem {
   return {
     id: ITEM, title: "item-title", instruction: "item-instruction", requester: "Owner", requesterId: CHAT, chatId: CHAT, approved: true, done: false,
-    running: true, worker: null, cowork: true, priority: 1, status: "running", model: null, ranOn: null, note: null, report: null, unfinished: null,
-    unfinishedResolvedAt: null, unfinishedResolution: null, brief: null, briefRendering: null, heldAt: null, heldReason: null, heldKind: null,
+    running: true, worker: null, cowork: true, priority: 1, status: "running", model: null, ranOn: null, note: null, reports: [], unfinished: null,
+    unfinishedResolvedAt: null, unfinishedResolution: null, brief: null, heldAt: null, heldReason: null, heldKind: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
     deployWaits: false, holdPending: false, orderActive: true, seconds: null, spans: [], createdAt: NOW - 4_000, doneAt: null
   };

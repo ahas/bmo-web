@@ -6,25 +6,12 @@
   <component :is="narrow ? UDrawer : UModal" v-bind="shell" :open="props.open" @update:open="emit('update:open', $event)">
     <template #content>
       <div class="flex h-full min-h-0 flex-col">
-        <!-- The head names the task the dialog stands at, as the stepper's own line does, with its models under it,
-             and at its right end the translation switch, since a co-worker writes in English. -->
+        <!-- The head names the task the dialog stands at, as the stepper's own line does, with its models under it. -->
         <div class="flex items-center gap-2 border-b border-default px-4 py-3">
           <UIcon :name="icon" class="size-5 shrink-0 text-muted" />
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-medium text-highlighted">{{ heading }}</p>
             <MarqueeLine class="text-sm text-muted">{{ modelLine }}</MarqueeLine>
-          </div>
-
-          <!-- Each part lands in the text as the translator writes it, so the text itself is how far the translation
-               has come. The switch is never the thing that spins: a reader who turned the translation on must be able
-               to turn it off again while it runs. -->
-          <div v-if="translatable" class="flex shrink-0 items-center gap-2">
-            <UTooltip v-if="translating" :text="$t('todo.status.translating')">
-              <span role="status" :aria-label="$t('todo.status.translating')" class="flex size-5 items-center justify-center">
-                <UIcon name="i-material-symbols-progress-activity" class="size-4 animate-spin text-muted motion-reduce:animate-none" />
-              </span>
-            </UTooltip>
-            <USwitch size="sm" :model-value="translated" :label="translationLabel" @update:model-value="setTranslated" />
           </div>
 
           <UTooltip :text="$t('common.action.close')">
@@ -39,18 +26,9 @@
           </UTooltip>
         </div>
 
-        <!-- What went wrong with the translation, where something did. -->
-        <div
-          v-if="translated && troubleLine !== ''"
-          :role="failure === '' ? 'status' : 'alert'"
-          class="flex shrink-0 flex-wrap items-center gap-2 border-b border-default px-4 py-2 text-sm"
-        >
-          <span :class="failure === '' ? 'text-warning' : 'text-error'">{{ troubleLine }}</span>
-          <UButton class="ms-auto" size="sm" color="neutral" variant="subtle" :label="$t('todo.action.retry_translation')" :loading="asked" @click="retryTranslation" />
-        </div>
-
         <!-- The work view of the task: its work order, what its session is doing, what it spent and called, its log and
-             what it left, one under the other (docs/web.md, 「The work view」). -->
+             what it left, one under the other (docs/web.md, 「The work view」). A co-worker writes in English, so the
+             work order and the result each stand in the original with the translation under it. -->
         <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <WorkView
             v-if="task && props.agent !== null"
@@ -62,7 +40,7 @@
             :stepper="false"
           >
             <template #order>
-              <MarkdownText :text="shownInstruction" class="text-sm" />
+              <TranslatedText :text="task.instruction" text-class="text-sm" />
             </template>
 
             <template v-if="hasDetail" #result>
@@ -71,7 +49,7 @@
               </p>
               <template v-if="task.result">
                 <BuilderResult v-if="builderRead !== null" :read="builderRead" :text="task.result" />
-                <MarkdownText v-else :text="shownResult" class="text-sm" />
+                <TranslatedText v-else :text="task.result" text-class="text-sm" />
               </template>
               <template v-if="task.error">
                 <p class="text-sm font-medium text-muted">{{ $t("todo.label.task_failed") }}</p>
@@ -128,11 +106,8 @@
 
 <script setup lang="ts">
 import { UDrawer, UModal } from "#components";
-import { languageName } from "~/domain/work-translation";
-import { countText } from "~/domain/numbers";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { formatStamp, spanClock } from "bmo-ui/app/domain/time";
-import { useWorkTextTranslation } from "~/domain/work-translation";
 import { readBuilderResult, stepHeading, stepModelLine, taskHeading, taskModelLine, taskSeconds, taskStateIcon, taskVerbs } from "~/domain/workorder";
 
 import type { TaskVerb, WorkStep } from "~/domain/workorder";
@@ -169,71 +144,12 @@ const took = computed(() => (task.value === null ? null : taskSeconds(task.value
 const narrow = useNarrow();
 
 
-// Whether a co-worker's text is read translated. It belongs to the screen rather than to one task,
-// so the next step opened stands as this one was left, and the browser remembers it for the next
-// visit.
-const TRANSLATED_KEY = "bmo-work-translated";
-const translated = ref(false);
-
-function setTranslated(on: boolean): void {
-  translated.value = on;
-
-  try {
-    window.localStorage.setItem(TRANSLATED_KEY, on ? "1" : "0");
-  } catch {
-    // A browser that refuses storage keeps the choice for this visit.
-  }
-}
-
-onMounted(() => {
-  try {
-    translated.value = window.localStorage.getItem(TRANSLATED_KEY) === "1";
-  } catch {
-    // Nothing remembered; the original is what stands.
-  }
-});
-
-// The task's work order and its result are read in either language, each translated on its own.
-const instructionTranslation = useWorkTextTranslation(
-  t,
-  () => (task.value === null || task.value.instruction.trim() === "" ? null : { todoId: props.todoId, task: task.value.id, field: "instruction", text: task.value.instruction }),
-  () => translated.value
-);
-const resultTranslation = useWorkTextTranslation(
-  t,
-  () => (task.value === null || (task.value.result ?? "").trim() === "" ? null : { todoId: props.todoId, task: task.value.id, field: "result", text: task.value.result ?? "" }),
-  () => translated.value
-);
-const translations = [instructionTranslation, resultTranslation];
-const translatable = computed(() => (task.value?.instruction ?? "").trim() !== "" || (task.value?.result ?? "").trim() !== "");
-const translating = computed(() => translations.some((one) => one.translating.value));
-const asked = computed(() => translations.some((one) => one.asking.value));
-const failure = computed(() => translations.map((one) => one.failure.value).find((one) => one !== "") ?? "");
-const target = computed(() => instructionTranslation.target.value ?? resultTranslation.target.value);
-const translationLabel = computed(() =>
-  narrow.value || target.value === null ? t("todo.label.translation") : t("documents.label.translation_of", { language: languageName(t, target.value) })
-);
-const shownInstruction = computed(() => instructionTranslation.shown.value || (task.value?.instruction ?? ""));
-const shownResult = computed(() => resultTranslation.shown.value || (task.value?.result ?? ""));
-// What went wrong with the translation, in one line: what the bot said of it, or how many parts the translator could
-// not render. Either is asked for again by the same press.
-const troubleLine = computed(() => {
-  if (failure.value !== "") return failure.value;
-
-  const failed = translations.reduce((sum, one) => sum + one.failed.value, 0);
-
-  return failed > 0 ? t("documents.status.translation_failed_parts", { n: countText(failed) }) : "";
-});
-
-function retryTranslation(): void {
-  for (const one of translations) one.retry();
-}
 const hasDetail = computed(() => task.value !== null && (task.value.jobId !== null || task.value.result !== null || task.value.error !== null || task.value.skip !== undefined));
 
 const verbs = computed(() => (task.value === null || props.orderStatus === null ? [] : taskVerbs(t, task.value, props.orderStatus)));
 
 // A builder turn answers in JSON; the result tab lays that out rather than showing the text.
-const builderRead = computed(() => (task.value?.role === "builder" ? readBuilderResult(shownResult.value) : null));
+const builderRead = computed(() => (task.value?.role === "builder" ? readBuilderResult(task.value.result ?? "") : null));
 const confirmLabel: Record<TaskVerb, string> = { edit: t("todo.action.save_instruction"), skip: t("todo.action.task_skip"), restore: t("todo.action.task_restore_confirm"), rerun: t("todo.action.task_rerun") };
 const asking = ref<TaskVerb | null>(null);
 const instruction = ref("");

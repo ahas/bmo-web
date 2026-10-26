@@ -8,7 +8,7 @@ import { tokenText } from "./usage";
 import { itemRanModel, ranModelText } from "#shared/ran-model";
 
 import type { SearchField } from "bmo-ui/shared/search";
-import type { RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoSpan } from "#shared/types";
+import type { RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoReport, TodoSpan } from "#shared/types";
 import type { BarColor } from "bmo-ui/app/domain/bars";
 import type { Translate } from "#shared/wording";
 
@@ -74,13 +74,18 @@ const STATE_LABELS: Record<Exclude<TodoState, "stopping">, string> = {
   done: "todo.label.state_done"
 };
 
-// The brief as its reader reads it: the rendering held in the reader's language, matched by the language's primary
-// subtag, or none, where the original stands instead. A rendering in another language is never read in its place.
-export function briefRendered(item: Pick<TodoItem, "brief" | "briefRendering">, language: string): string | null {
-  const rendering = item.briefRendering;
-  const primary = (tag: string): string => tag.split("-")[0]!.toLowerCase();
+// What each kind of report is called where it is read.
+export const REPORT_KIND_LABELS: Record<TodoReport["kind"], string> = {
+  final: "todo.label.report_final",
+  progress: "todo.label.report_progress",
+  held: "todo.label.report_held"
+};
 
-  return item.brief === null || rendering === null || primary(rendering.language) !== primary(language) ? null : rendering.text;
+// The row's report mark in words: how many reports the item keeps and of which kinds, in the order they stand.
+export function reportsTip(t: Translate, reports: readonly TodoReport[]): string {
+  const kinds = [...new Set(reports.map((report) => report.kind))].map((kind) => t(REPORT_KIND_LABELS[kind]));
+
+  return [t("todo.label.report_count", { n: reports.length }), kinds.join(", ")].join(" · ");
 }
 
 // The line a stopped row carries under its badge: what stopped it, and — while it stands at the head
@@ -1203,7 +1208,7 @@ export function todoSearchFields(
       shown: true
     },
     { label: t("todo.label.field_instruction"), text: item.instruction, shown: false },
-    { label: t("todo.label.field_report"), text: item.report, shown: false },
+    { label: t("todo.label.field_report"), text: item.reports.length === 0 ? null : item.reports.map((report) => report.body).join("\n\n"), shown: false },
     { label: t("todo.label.field_unfinished"), text: item.unfinished, shown: false },
     { label: t("todo.label.field_note"), text: item.note, shown: false }
   ];

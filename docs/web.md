@@ -4743,9 +4743,14 @@ Four bounds keep it from growing forever.
   read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 상태,
   지시 and 요청 원문 on the left, 의논 and 관리 on the right.
   - **Left: 결과, 상태, 지시 and 요청 원문** — how the item ended, what became of it and what it says.
-    - **결과** stands only on an item that carries a completion report or unfinished-items, and it is the first tab of
-      the row. It holds the **완료 보고** and then the **미결** with its resolution, each at its whole length with no
-      scroll of its own. What is done about an unfinished-item stands inside the unfinished-item's own cell and under its
+    - **결과** stands only on an item that carries a report or unfinished-items, and it is the first tab of
+      the row. It holds every report bmo-job keeps of the item (bmo-job's `docs/api.md`, 「Reports」) — the closing
+      one, **완료 보고**, first — the latest first where the item closed more than once — and after it the others, **진행 보고** and **보류 사유**, in the order they were
+      written — and then the **미결** with its resolution. Each report is headed by its kind, the moment it was
+      written and who wrote it, and every one of them stands at its whole length with no fold and no scroll of its
+      own: a report is the item's account of itself, and a part of it put away behind a press is a part not read.
+      The tab reads the reports again each time the item is opened and whenever the queue moves, so a report
+      written while the dialog is open stands without reopening it. What is done about an unfinished-item stands inside the unfinished-item's own cell and under its
       words — the **미결 해소** box with its button while the note still stands, and **항목 세우기** under a line —
       because both are written about those words and a box on another tab is written blind. A resolved note carries
       when it was resolved and why under a line in the same cell, not in a cell of its own.
@@ -4769,12 +4774,28 @@ Four bounds keep it from growing forever.
       says of the job, so its tool calls, its tokens and how far it has come move as they happen, and the co-worker
       list moves with every task that starts or ends, not only at a job's or a stage's end.
     - **지시** is what the work is told: the item's brief, the chat agent's organized instruction. The brief is written once, in
-      the original a job reads, and a reader reads it in the language the console speaks to them: where a rendering of it in
-      that language is held, the rendering stands, with the original on asking; where none is held in that language, the
-      original stands as it was written, with nothing to ask for, since a place waiting on a rendering would leave the
-      reader with nothing to read. Each rendering carries the language it is in, and one in another language than the
-      reader's is never stood in its place. Under it stand the chat agent's changes to it, each with when and whether the
+      the original a job reads, and stands in that original with its translation under it (「The original, and its
+      translation under it」). Under it stand the chat agent's changes to it, each with when and whether the
       running job has been handed it; and the work order — its draft with 저장, or the order as it runs.
+  - **The original, and its translation under it.** A text a worker or a job wrote is read in the language it was
+    written in and in the reader's own: the brief and each change to it, the running work order's purpose and
+    instruction, each report, and a co-work task's work order and result. Each stands as it was written, and under it,
+    headed by the language it is in, its reading in the language the console speaks to its reader — 한국어 번역. The
+    original is never hidden, folded or replaced by its reading, and nothing is pressed to read either.
+    - **The road** is the translator the console names (「Screens a unit brings」),
+      the gate's translating route, which the gate's `gate/translate` tool also takes, asked through bmo-ui's
+      translation module as a bundle's screen asks it. The console's own screen is no bundle's page, so the relay
+      hands its ask on under the gate's own manifest's terms.
+    - **Each text is asked for once.** The gate keeps every translation it makes under its original and its
+      language and answers a kept one without its translator, the tab keeps every whole reading for its life, and
+      two places asking for the same text at once share the one ask. So reopening an item, or another item quoting the
+      same words, asks the translator nothing again.
+    - **It lands as it arrives.** While a reading is on its way, the place under the original says it is being
+      translated; the reading stands the moment it comes, each text on its own, so a short text stands translated
+      before a long one beside it. A text already in the reader's language takes no reading and stands alone.
+    - **What did not come says so,** in one line under the original with **다시 요청**: a translator that refused
+      or failed, or one still too busy after its waits. A reading the translator could not render every part of
+      stands with a line saying that some parts stand in the original.
   - **Right: 의논 and 관리** — the talk about the item and what the owner does to it.
     - **의논** is the talk with the chat agent about the item. The talk takes the tab's whole height and the words box, the room's
       own box, attaches to the tab's bottom edge — with no turns yet, while they load and when they fail alike, the empty
@@ -4801,15 +4822,10 @@ Four bounds keep it from growing forever.
   - A builder turn's result, which is JSON the bot reads, is laid out to read: a plan as its steps and their tasks —
     title, role, model and instruction — a list of things to build as its tasks, and any other JSON as its fields. The
     text as it was written stands whole under 원문, never folded. The JSON the bot reads is not changed.
-  - At the right end of the head stands a 번역 toggle, since a co-worker writes in English
-    (bmo-job's `docs/work-orders.md`, 「Reading a co-worker's English on the console」). It names the language it would put the open
-    view's text into — 한국어 번역 — and says only 번역 where the screen is narrow. Turned on, each part lands in the text
-    as the translator writes it, so the switch's own spinner is the whole of the progress and no count stands beside it.
-    It stands as it was left: the next step opened in the dialog and the next visit both read the same way. A task whose
-    work order and result are both empty draws no toggle. What the translator could not render says so in one line under the row, with the press
-    that asks for it again. 원문 keeps the text the worker read. The translator is bmo-gate's, which serves the console no
-    route for it yet, so turning the toggle on says in that line that the translation is unavailable and the text
-    stands as it was written (`docs/boundary.md`, 「Gaps the console meets」).
+  - A co-worker writes in English (bmo-job's `docs/work-orders.md`, 「Reading a co-worker's English on the console」),
+    so the task's work order and its result each stand in the original with the translation under it (「The original,
+    and its translation under it」). A builder turn's result is laid out from the original and its fields are not
+    translated: what it holds is the bot's to read, and 원문 under it is the text as written.
   - The verbs the task's state takes — 지시 수정, 건너뛰기, 되돌리기, 다시 실행 — stand in the foot at its right end. What a
     verb asks for before it is sent stands at the end of the body, and the foot then holds 취소 and the verb's own button.
 - **Ending a work order.** The work order's own buttons — 중지 and **지시서 종료** — stand at the right. 지시서 종료 asks for
@@ -4898,7 +4914,11 @@ Four bounds keep it from growing forever.
       was closed, and the number is the order items were filed in.
     - **The server sorts it,** so the page in hand and every 더 보기 after it continue one order, and a search
       narrows that order without rearranging it.
-    - If a finished job wrote a completion report too, that line stands a document mark, and if it left unfinished-items
+    - If bmo-job keeps a report of the item, that line stands a document mark, and with more than one report it
+      carries how many; the mark's tooltip names them by kind. The board reads the reports of each finished and held
+      item it hands over, and keeps what it read for an item for a minute while the item is unchanged, so a page read
+      again in that minute asks bmo-job nothing more of them (`docs/boundary.md`, 「Gaps the console meets」). If it
+      left unfinished-items
       a **미결** tag — telling which line left its own story without opening. A resolved unfinished-item reads as
       **미결 해소**, told apart at a glance from what remains. An unfinished-item whose branches were each stood as their
       own line resolves on its own the moment those lines all finish, so the resolution reason standing here reads
@@ -5226,7 +5246,7 @@ Four bounds keep it from growing forever.
   written. A comment rides a job when a job is launched for that item, so a word written on an already-running item does not reach that job and rides the
   next run — written so on the line. An item with a comment shows a mark on the list line too, so a line with a word attached is known without opening.
 - **완료 보고와 미결.** A job, finishing and closing the item, writes with it how it completed and what it left unfinished. The same text as the report to
-  the room, stored whole uncut. Opening a line that carries either stands the **결과** tab first and selected, with **완료 보고** and **미결** each in its own cell. So long after the report
+  the room, stored whole uncut. Opening a line that carries either stands the **결과** tab first and selected, with each report and the **미결** each in its own cell. So long after the report
   flowed by, opening one item reads how it ended and what remained. An item with no such record is an old item closed before jobs were asked to report,
   and it is not backfilled.
 - In the 상태 tab, the **실행 기록** cell stands how long the work took as a bar. The time of every job that carried this item summed stands at the top,

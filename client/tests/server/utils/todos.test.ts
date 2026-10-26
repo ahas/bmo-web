@@ -170,7 +170,10 @@ describe("what a row carries", () => {
       worker: "worker-b",
       approved: true,
       note: "also this",
-      report: "done as asked",
+      reports: [
+        { id: 2, kind: "final", body: "done as asked", actor: "worker-b", at: 1_790_000_080 },
+        { id: 1, kind: "progress", body: "going", actor: "worker-b", at: 1_790_000_020 }
+      ],
       createdAt: 1_790_000_000,
       doneAt: 1_790_000_090
     });
@@ -199,6 +202,43 @@ describe("what a row carries", () => {
 
     expect(ids(await readTodoItems([2, 99, 1, 2]))).toEqual([1, 2]);
     expect(await readTodoItem(99)).toBeNull();
+  });
+});
+
+describe("the reports a row carries on the board", () => {
+  const reportsOf = (id: number) => job.asked.filter((one) => one.path === `/items/${id}/reports`).length;
+
+  test("each finished item of the page and each held one carries every report, the closing one first", async () => {
+    stand([item(21, { state: "done", changedAt: 5 }), item(22, { state: "held", changedAt: 5 }), item(23, { state: "open" })]);
+    held.reports.set(21, [
+      { id: 7, itemId: 21, actorName: "worker", kind: "progress", body: "half", createdAt: 1_790_000_010_000, labels: {} },
+      { id: 8, itemId: 21, actorName: "worker", kind: "final", body: "all done", createdAt: 1_790_000_020_000, labels: {} }
+    ]);
+    held.reports.set(22, [{ id: 9, itemId: 22, actorName: "owner", kind: "held", body: "wait", createdAt: 1_790_000_030_000, labels: {} }]);
+    job.asked.length = 0;
+
+    const board = await readTodoBoard();
+
+    expect(board.done[0]!.reports.map((one) => [one.kind, one.body])).toEqual([["final", "all done"], ["progress", "half"]]);
+    expect(board.held[0]!.reports.map((one) => one.kind)).toEqual(["held"]);
+    expect(board.held[0]!.heldReason).toBe("wait");
+    expect(reportsOf(23)).toBe(0);
+  });
+
+  test("a reading stands while the item is unchanged, and an item that changed is read again", async () => {
+    stand([item(31, { state: "done", changedAt: 5 })]);
+    held.reports.set(31, [{ id: 10, itemId: 31, actorName: "worker", kind: "final", body: "first", createdAt: 1_790_000_000_000, labels: {} }]);
+    job.asked.length = 0;
+
+    await readTodoBoard();
+    await readTodoBoard();
+    expect(reportsOf(31)).toBe(1);
+
+    stand([item(31, { state: "done", changedAt: 6 })]);
+    await readTodoBoard();
+    expect(reportsOf(31)).toBe(2);
+
+    held.reports.delete(31);
   });
 });
 

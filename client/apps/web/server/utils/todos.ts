@@ -1,4 +1,4 @@
-import { DONE_MAX, DONE_PAGE_SIZE, TODO_SEARCH_LIMIT, WORKER_AGENT } from "#shared/config";
+import { DONE_MAX, DONE_PAGE_SIZE, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, WORKER_AGENT } from "#shared/config";
 import { filterRecords } from "bmo-ui/shared/search";
 import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields } from "../../app/domain/todos";
@@ -6,7 +6,7 @@ import { job, jobCall, JOB_TIMEOUT_MS } from "./job";
 import { within } from "./unit-answer";
 
 import type { Note, Item, Report, Queue } from "bmo-job-client";
-import type { DeployHold, TodoBoard, TodoChoices, TodoItem, TodoNote, TodoStanding } from "#shared/types";
+import type { DeployHold, TodoBoard, TodoChoices, TodoItem, TodoNote, TodoReport, TodoStanding } from "#shared/types";
 import type { TodoConditions } from "../../app/domain/todos";
 
 // The TODO as bmo-job reads it in its fixed API (bmo-job's `docs/api.md`): the items it keeps, the queues they
@@ -89,14 +89,20 @@ export function holdOf(value: unknown): DeployHold | null {
   };
 }
 
-// What the panel reads of an item's own reports: the account of the work when there is one, and the reason a
-// held item was set aside.
-function reportsOf(reports: readonly Report[]): { report: string | null; heldReason: string | null; heldAt: number | null } {
-  const final = reports.filter((report) => report.kind === "final").at(-1);
+/** An item's reports as the dialog reads them: the closing ones first, the latest leading, then the rest in the
+ * order they were written, which is the order bmo-job hands them in. */
+export function reportRows(reports: readonly Report[]): TodoReport[] {
+  const rows = reports.map((report) => ({ id: report.id, kind: report.kind, body: report.body, actor: report.actorName, at: Math.floor(report.createdAt / 1000) }));
+
+  return [...rows.filter((row) => row.kind === "final").reverse(), ...rows.filter((row) => row.kind !== "final")];
+}
+
+// What the panel reads of an item's own reports: every one of them, and the reason a held item was set aside.
+function reportsOf(reports: readonly Report[]): { reports: TodoReport[]; heldReason: string | null; heldAt: number | null } {
   const held = reports.filter((report) => report.kind === "held").at(-1);
 
   return {
-    report: final?.body ?? null,
+    reports: reportRows(reports),
     heldReason: held?.body ?? null,
     heldAt: held === undefined ? null : Math.floor(held.createdAt / 1000)
   };
@@ -112,7 +118,7 @@ function listOf(item: Item): "queue" | "pending" | "held" | "done" {
   return "queue";
 }
 
-// One item as the row the panel shows; its notes and reports are read where a screen opens it.
+// One item as the row the panel shows, with its reports where they were read and the last note where a screen opens it.
 function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null): TodoItem {
   const said = reportsOf(reports);
 
@@ -121,7 +127,6 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     title: item.title,
     instruction: item.brief,
     brief: item.brief,
-    briefRendering: null,
     requester: item.requesterName ?? "",
     requesterId: null,
     chatId: null,
@@ -147,7 +152,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     seconds: null,
     spans: [],
     note,
-    report: said.report,
+    reports: said.reports,
     unfinished: null,
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
@@ -172,6 +177,8 @@ export async function readTodoItem(id: number): Promise<TodoItem | null> {
       reportsOfItem(id)
     ]);
 
+    keptReports.set(id, { changedAt: item.changedAt, readAt: Date.now(), reports });
+
     return itemOf(item, reports, notes.map((note) => note.text).at(-1) ?? null);
   } catch (error) {
     if ((error as { statusCode?: number }).statusCode === 404) return null;
@@ -194,8 +201,56 @@ async function notesOf(todoId: number): Promise<Note[]> {
   return (await jobCall(job().GET("/items/{itemId}/notes", { params: { path: { itemId: todoId }, query: { limit: 500 } }, signal: within(JOB_TIMEOUT_MS) }))).items;
 }
 
-async function reportsOfItem(todoId: number): Promise<Report[]> {
-  return (await jobCall(job().GET("/items/{itemId}/reports", { params: { path: { itemId: todoId }, signal: within(JOB_TIMEOUT_MS) } }))).items;
+/** Every report bmo-job keeps of an item, oldest first, read afresh. */
+export async function reportsOfItem(todoId: number): Promise<Report[]> {
+  return (await jobCall(job().GET("/items/{itemId}/reports", { params: { path: { itemId: todoId } }, signal: within(JOB_TIMEOUT_MS) }))).items;
+}
+
+/** An item's reports as the dialog reads them, afresh. */
+export async function readTodoReports(todoId: number): Promise<TodoReport[]> {
+  return reportRows(await reportsOfItem(todoId));
+}
+
+// The reports the board read of each item, with the item's `changedAt` at the reading and when it was read. bmo-job's
+// rows carry no count of their reports, so the board reads them item by item, and a reading stands for a minute
+// while the item is unchanged (docs/boundary.md, 「Gaps the console meets」).
+const keptReports = new Map<number, { changedAt: number | null; readAt: number; reports: Report[] }>();
+
+// How many items' reports the board reads at once.
+const REPORT_READS_AT_ONCE = 8;
+
+// The reports of the items the board hands over, by item: each read again only where the minute is up or the item
+// changed since. An item whose reports could not be read stands with none, as the item it is.
+async function boardReports(items: readonly Item[]): Promise<Map<number, Report[]>> {
+  const now = Date.now();
+  const found = new Map<number, Report[]>();
+  const stale = items.filter((item) => {
+    const kept = keptReports.get(item.id);
+
+    if (kept !== undefined && kept.changedAt === item.changedAt && now - kept.readAt < TODO_REPORTS_FRESH_MS) {
+      found.set(item.id, kept.reports);
+      return false;
+    }
+
+    return true;
+  });
+
+  for (let at = 0; at < stale.length; at += REPORT_READS_AT_ONCE) {
+    await Promise.all(
+      stale.slice(at, at + REPORT_READS_AT_ONCE).map(async (item) => {
+        try {
+          const read = await reportsOfItem(item.id);
+
+          keptReports.set(item.id, { changedAt: item.changedAt, readAt: Date.now(), reports: read });
+          found.set(item.id, read);
+        } catch {
+          found.set(item.id, []);
+        }
+      })
+    );
+  }
+
+  return found;
 }
 
 /** The words added to one item, oldest first, as its notes carry them. */
@@ -256,7 +311,9 @@ export async function readTodoBoard(
   const finishedFound = query === null
     ? finished
     : filterRecords(finished, (item) => [{ label: "", text: `#${item.id} ${item.title} ${item.state}`, shown: true }], query);
-  const rows = new Map(matching.map((item) => [item.id, itemOf(item)]));
+  const page = finishedFound.slice(0, limit);
+  const reports = await boardReports([...page, ...matching.filter((item) => listOf(item) === "held")]);
+  const rows = new Map(matching.map((item) => [item.id, itemOf(item, reports.get(item.id) ?? [])]));
   const found = (row: TodoItem) => query === null || filterRecords([row], (one) => todoSearchFields(wording, one, []), query).length > 0;
   const listed = (name: "queue" | "pending" | "held", from: readonly Item[]) =>
     from.filter((item) => listOf(item) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);
@@ -272,7 +329,7 @@ export async function readTodoBoard(
     pending: listed("pending", matching),
     held: listed("held", matching),
     merged: [],
-    done: finishedFound.slice(0, limit).flatMap((item) => rows.get(item.id) ?? []),
+    done: page.flatMap((item) => rows.get(item.id) ?? []),
     doneTotal: finishedFound.length,
     standingNotes: [],
     choices,

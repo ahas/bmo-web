@@ -219,11 +219,10 @@ describe("the words added to an open item", () => {
 
     expect(briefAt).toBeGreaterThan(detailTemplate.indexOf('>{{ $t("todo.title.notes") }}<'));
     expect(briefAt).toBeLessThan(detailTemplate.indexOf('<WorkOrderPanel part="order"'));
-    expect(detailTemplate).toContain('<MarkdownText v-else-if="briefReading !== null && !briefOriginal" :text="briefReading"');
-    // With no rendering held in the reader's language the original stands, and nothing says a rendering is awaited.
-    expect(detailTemplate).toContain('<MarkdownText v-else :text="openedItem.brief"');
-    expect(detailTemplate).not.toContain("todo.status.brief_rendering");
-    expect(detailSource).toContain("briefRendered(openedItem.value, locale.value)");
+    // The brief and each change to it stand in the original with the translation under it, nothing pressed to read either.
+    expect(detailTemplate).toContain('<TranslatedText v-else :text="openedItem.brief" />');
+    expect(detailTemplate).toContain('<TranslatedText :text="change.text" />');
+    expect(detailTemplate).not.toContain("brief_original");
     expect(detailTemplate).toContain("{{ formatStamp(change.addedAt) }} · {{ changeHanded(change) }}");
     expect(detailSource).toContain('t("todo.status.change_handed", { time: formatStamp(change.deliveredAt) })');
   });
@@ -519,8 +518,8 @@ describe("the result of an item", () => {
   const result = detailTemplate.slice(detailTemplate.indexOf(`v-if="shownLeft === 'result'"`), detailTemplate.indexOf(`v-else-if="shownLeft === 'conversation'"`));
   const status = detailTemplate.slice(detailTemplate.indexOf(`<template v-if="shownRight === 'status'">`), detailTemplate.indexOf(`v-else-if="shownRight === 'talk'"`));
 
-  test("stands the report and the unfinished note, with what is done about it, in the result tab and nowhere else", () => {
-    for (const mark of ['$t("todo.title.report")', "unfinishedLabel($t, openedItem)", "todo.label.resolved_at", "resolve(openedItem.id)", "raise(openedItem.id)"]) {
+  test("stands every report and the unfinished note, with what is done about it, in the result tab and nowhere else", () => {
+    for (const mark of ['v-for="report in shownReports"', "unfinishedLabel($t, openedItem)", "todo.label.resolved_at", "resolve(openedItem.id)", "raise(openedItem.id)"]) {
       expect(result).toContain(mark);
       expect(status).not.toContain(mark);
       expect(detailTemplate.split(mark).length).toBe(2);
@@ -544,11 +543,29 @@ describe("the result of an item", () => {
   });
 
   test("is the left row's first tab, on an item carrying a report or an unfinished note alone, and is the tab it opens on", () => {
-    expect(detailSource).toContain("const hasResult = (item: TodoItem | null): boolean => item !== null && (item.report !== null || item.unfinished !== null);");
-    expect(detailSource).toContain("hasResult(openedItem.value) ? [RESULT_TAB, ...BODY_TABS] : BODY_TABS");
-    expect(detailSource).toContain('const first = hasResult(props.item) ? "result" : "status";');
+    expect(detailSource).toContain("const hasResult = computed(() => openedItem.value !== null && (shownReports.value.length > 0 || openedItem.value.unfinished !== null));");
+    expect(detailSource).toContain("hasResult.value ? [RESULT_TAB, ...BODY_TABS] : BODY_TABS");
+    expect(detailSource).toContain('(props.item.reports.length > 0 || props.item.unfinished !== null) ? "result" : "status"');
     expect(tagOf(':items="leftTabs"', detailTemplate)).toContain('v-model="leftTab"');
     expect(tagOf(':items="detailTabs"', detailTemplate)).toContain('v-model="singleTab"');
+  });
+
+  test("every report stands whole, headed by its kind, its moment and who wrote it, the closing one first", () => {
+    const report = tagOf('v-for="report in shownReports"', result);
+
+    expect(report).toContain('data-report');
+    expect(result).toContain("$t(REPORT_KIND_LABELS[report.kind])");
+    expect(result).toContain("formatStamp(report.at)");
+    expect(result).toContain("report.actor");
+    expect(result).toContain('<TranslatedText :text="report.body" class="mt-1" />');
+    expect(result).not.toContain("UCollapsible");
+    expect(detailSource).toContain("$fetch<TodoReport[]>(`/api/todos/${id}/reports`)");
+    expect(detailSource).toContain("void loadReports(id, true);");
+  });
+
+  test("the row's report mark stands for any report, with how many where more than one", () => {
+    expect(template).toContain('<UTooltip v-if="item.reports.length > 0" :text="reportsTip($t, item.reports)">');
+    expect(template).toContain('<template v-if="item.reports.length > 1">{{ countText(item.reports.length) }}</template>');
   });
 
   test("carries no box inside the unfinished note's box: the resolution stands under a line", () => {

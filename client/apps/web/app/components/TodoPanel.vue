@@ -404,9 +404,14 @@
 
                 <UIcon v-if="item.note !== null" name="i-material-symbols-format-quote-outline" class="size-4 text-primary" />
 
-                <!-- A finished item says at a glance that it left an account of itself, and that
-                     it left something undone; the account itself is read by opening the row. -->
-                <UIcon v-if="item.report !== null" name="i-material-symbols-description-outline" class="size-4 text-success" />
+                <!-- An item says at a glance that it left an account of itself — how many, where more than one — and
+                     that it left something undone; the accounts themselves are read by opening the row. -->
+                <UTooltip v-if="item.reports.length > 0" :text="reportsTip($t, item.reports)">
+                  <span class="flex items-center gap-0.5 text-sm text-success tabular-nums" :aria-label="reportsTip($t, item.reports)" data-report-mark>
+                    <UIcon name="i-material-symbols-description-outline" class="size-4" />
+                    <template v-if="item.reports.length > 1">{{ countText(item.reports.length) }}</template>
+                  </span>
+                </UTooltip>
 
                 <!-- An outstanding note that has been resolved still stands on the row and still says what was
                      left; it is no longer one of the leftovers, and the badge reads that way. -->
@@ -517,6 +522,7 @@ import {
   queueOrder,
   queueSection,
   reorderedQueue,
+  reportsTip,
   requesterLine,
   rowVerbs,
   stateColour,

@@ -277,7 +277,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `GATE_ADDRESS`, `GATE_TOKEN` | the gate, for the verdicts a room's messages were judged by |
 | console | `VOICE_ADDRESS`, `VOICE_TOKEN` | the voice engine, for a line's briefings, their sound and the stream that says one ended; a console that names none stands every chip as never made and plays nothing |
 | console | `BRAIN_ADDRESS`, `BRAIN_TOKEN` | the brain, which the console asks for its manifest and relays as any unit that brings a screen; the token is the console's own credential the brain's settings name for it (`[console] token`), not the brain's service token |
-| console | `ARTIFACT_ADDRESS`, `ARTIFACT_TOKEN` | bmo-artifact |
+| console | `ARTIFACT_ADDRESS`, `ARTIFACT_TOKEN` | bmo-artifact, which the console asks for its manifest and relays as any unit that brings a screen; the token is the console's own credential the artifact's settings name for it (`[console] token`), not the artifact's service token, so the artifact holds every relayed call to its screens' role |
 | console | `MAIL_ADDRESS`, `MAIL_TOKEN` | bmo-mail |
 | console | `REVIEW_ADDRESS`, `REVIEW_TOKEN` | bmo-review |
 | console | `DRIVE_ADDRESS`, `DRIVE_TOKEN` | bmo-drive |

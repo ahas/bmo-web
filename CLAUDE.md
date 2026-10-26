@@ -63,7 +63,7 @@ A change moves through three stages in order:
 Cargo runs through the testbed's Cargo verb, `bmo-testbed cargo <cargo arguments…>`, which builds in the one
 shared build directory; no checkout keeps a `target/` of its own.
 
-The version is the repository's, in semver, and `VERSION` holds it: a change to a contract a consumer reads
-moves the major version, an addition no existing consumer reads the minor, anything else the patch. The
-testbed's declaration, `testbed.toml`, carries none; it states how the testbed tests, checks, builds and
+The version is the repository's, and `VERSION` holds it. It moves only at a release the owner declares, as
+bmo-chat's `docs/conventions.md` 「Versions」 states; a commit, a deploy, a fix or a contract change moves none, and
+a deployment is told apart by its commit. The testbed's declaration, `testbed.toml`, carries none; it states how the testbed tests, checks, builds and
 deploys the repository.

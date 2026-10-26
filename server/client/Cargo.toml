@@ -4,7 +4,7 @@
 [package]
 name = "bmo-web-client"
 description = "The web console's server: the account service's fixed API, every body and member as a Rust type, one call for each route, and the OpenAPI document generated from them."
-version = "2.0.3"
+version = "0.1.0-rev.1"
 edition.workspace = true
 license.workspace = true
 publish.workspace = true

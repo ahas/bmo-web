@@ -129,6 +129,11 @@
           </ContentSkeleton>
           <p v-else-if="actionsFailure !== null" class="text-sm text-dimmed">{{ actionsFailure }}</p>
           <p v-else-if="loadedOf(kind).length === 0" class="text-sm text-dimmed">{{ $t("room.status.no_records_left") }}</p>
+          <!-- An ended turn's calls stand as the agent's log draws them, the command under its prompt. -->
+          <div v-else-if="kind === 'tool'" class="flex min-w-0 flex-col gap-2">
+            <AgentToolCall v-for="row in callRows" :key="row.key" :row="row" />
+            <RollingSentence v-if="restOf(kind) > 0" tag="p" class="mt-1 text-sm text-dimmed" :keypath="'room.status.more_records'" :figures="{ n: restOf(kind) }" />
+          </div>
           <template v-else>
             <TurnActions :actions="loadedOf(kind)" />
             <!-- A turn longer than one page of the log comes back short of its own count, and the rest
@@ -232,7 +237,8 @@ import { formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
 import { draftAsked, draftRound, draftSummaryLines, splitDraftJudgements } from "~/domain/draft-process";
 
-import type { BriefingReading, Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
+import type { AgentLogLine, BriefingReading, Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
+import type { LogRow } from "~/domain/log";
 import type { DraftRow, DraftSummary } from "#shared/drafting";
 import type { BriefingChip, VerdictChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
@@ -357,6 +363,18 @@ const { folded, setFolded } = useTurnActionsFold();
 const loadingActions = ref(false);
 const actionsFailure = ref<string | null>(null);
 const actions = ref<TurnAction[]>([]);
+// The lines the record holds of the turn's runs, which its calls stand on as the agent's log draws them.
+const loadedLines = ref<AgentLogLine[]>([]);
+const callRows = computed<LogRow[]>(() =>
+  loadedLines.value
+    .filter((line) => line.kind === "tool")
+    .map((line) => ({
+      key: `call:${line.id}`,
+      line,
+      results: loadedLines.value.filter((one) => one.kind === "tool-result" && one.ref !== null && one.ref === line.ref),
+      depth: 0
+    }))
+);
 
 function listOpen(kind: ActionKind): boolean {
   return pressed[kind] ?? (props.live !== null && !folded.value[kind]);
@@ -439,7 +457,8 @@ async function openActions(kind: ActionKind): Promise<void> {
     // Every run of the round, its own turn first and then each question its draft process asked, read as one.
     const lines = await Promise.all(at.runs.map((run) => readRunLines(at.agent, run)));
 
-    actions.value = turnActions(lines.flat());
+    loadedLines.value = lines.flat();
+    actions.value = turnActions(loadedLines.value);
   } catch (error) {
     actionsFailure.value = failureText(error, t("room.error.actions_read_failed"));
   } finally {

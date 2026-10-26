@@ -3924,7 +3924,9 @@ Four bounds keep it from growing forever.
   call. A reference document that went as an already-loaded mark is not counted, since nothing of it was read on
   that turn; it still stands in the list, wearing the mark that says so. Pressing either spreads its own sort as
   lines, in the order the round did them and wearing the badges the agent's own log wears; pressing again folds
-  the list. They say nothing the verdicts already say.
+  the list. They say nothing the verdicts already say. Once the turn has ended, 툴 사용 draws each call as the agent's
+  own log draws it (「A tool call」 under 「Agent screen」) — its top line, the command under the prompt, never
+  folded, and its result under it — whatever program the turn ran on, a pane program's calls as a stream's.
   - **The lines come from the record**, read out of the agency's log of every run of the round — its own turn and
     each question its draft process asked the same session — the first time either list is opened, so what a turn
     did reads the same however long after it ended and whatever the screen was doing while it ran. A run is read by

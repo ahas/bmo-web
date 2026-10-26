@@ -168,7 +168,8 @@ describe("what the turn read and called", () => {
 
   test("a finished turn reads its lines out of the log once, when a list is first opened", () => {
     expect(script).toContain("at.runs.map((run) => readRunLines(at.agent, run))");
-    expect(script).toContain("actions.value = turnActions(lines.flat());");
+    expect(script).toContain("loadedLines.value = lines.flat();");
+    expect(script).toContain("actions.value = turnActions(loadedLines.value);");
     expect(script).toContain("if (!next || at === null || actions.value.length > 0 || loadingActions.value)");
     expect(template).toContain('v-if="restOf(kind) > 0"');
   });
@@ -269,5 +270,16 @@ describe("the draft chip", () => {
     // No answer and no row's text is folded.
     expect(rowsTemplate).not.toContain("UChatTool");
     expect(rowsTemplate).not.toContain("UCollapsible");
+  });
+});
+
+// An ended turn's calls stand as the agent's own log draws a tool call (docs/web.md, the room screen's tool chip):
+// the command under its prompt and its result under it, whatever program the turn ran on.
+describe("the tool chip of an ended turn", () => {
+  test("draws each call as the log's tool call, its results by the call's reference", async () => {
+    const source = await Bun.file(new URL("../../../apps/web/app/components/JudgementChips.vue", import.meta.url)).text();
+
+    expect(source).toContain('<AgentToolCall v-for="row in callRows" :key="row.key" :row="row" />');
+    expect(source).toContain('one.kind === "tool-result" && one.ref !== null && one.ref === line.ref');
   });
 });

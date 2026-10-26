@@ -388,6 +388,18 @@ function open(): void {
     }
   });
 
+  // The console's word that the account read a room, in this tab or another. It is this app's own, so no cursor
+  // counts it.
+  source.addEventListener("room-read", (message) => {
+    heard = true;
+
+    const chatId = fieldsOf((message as MessageEvent<string>).data)?.chatId;
+
+    if (typeof chatId === "number") {
+      hand({ id: 0, at: Math.floor(Date.now() / 1000), type: "room-read", chatId, messageId: null });
+    }
+  });
+
   // The console's word that a document's talk moved: the owner's words written, or the chat agent's turn ended.
   // It is this app's own, so no cursor counts it.
   source.addEventListener("document-talk", (message) => {

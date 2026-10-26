@@ -139,7 +139,7 @@ import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
-import { agentGroups, groupIcon, isAgentRunning, isGroupOpen, sessionLink, withGroupFolds } from "~/domain/agents";
+import { agentGroups, groupIcon, isAgentRunning, isGroupOpen, designatedAndWorkers, sessionLink, withGroupFolds } from "~/domain/agents";
 import { avatarFor, useAvatars } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useBotEvents } from "~/domain/events";
@@ -221,7 +221,7 @@ const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.valu
 // carry, so a mark comes and goes without the sidebar asking again.
 const live = ref<LiveRun[]>([]);
 
-const groups = computed<AgentGroup[]>(() => agentGroups(t, agents.value.agents, rooms.value));
+const groups = computed<AgentGroup[]>(() => agentGroups(t, designatedAndWorkers(agents.value.agents), rooms.value));
 
 // Which groups the owner has folded away, and which are left open. The choice stays in this browser, so the
 // sidebar stands as it was left however many times the console is opened.

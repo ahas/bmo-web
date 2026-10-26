@@ -89,9 +89,9 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
   await context.route(new RegExp(`/api/todos/${ITEM}/(notes|approvals)$`), (route) => route.fulfill({ json: [] }));
   await context.route(new RegExp(`/api/todos/${ITEM}/talk$`), (route) => route.fulfill({ json: { turns: [], answering: false, unanswered: null } }));
   await context.route(new RegExp(`/api/todos/${ITEM}/work-order$`), (route) => route.fulfill({ json: null }));
-  // The gate's translating route, relayed: each reading comes after a moment, so the place under the original is seen
+  // The console's own translation route: each reading comes after a moment, so the place under the original is seen
   // waiting first.
-  await context.route(/\/api\/gate\/translations$/, async (route) => {
+  await context.route(/\/api\/translations$/, async (route) => {
     const body = route.request().postDataJSON() as { language: string; originals: string[] };
 
     asked.push(...body.originals);

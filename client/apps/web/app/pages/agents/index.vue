@@ -183,7 +183,7 @@
 
 <script setup lang="ts">
 import { AGENT_TABS, emptyFallbackView, emptyKeepaliveView, isAgentTab, mappingText, routeModeText, searchSettings, settingsAnchor } from "~/domain/agent-settings";
-import { agentGroups, GENERAL_SECTIONS, keepaliveMarkOf, NOT_CHECKOUT_LABEL } from "~/domain/agents";
+import { agentGroups, GENERAL_SECTIONS, keepaliveMarkOf, designatedAndWorkers, NOT_CHECKOUT_LABEL } from "~/domain/agents";
 import { foldPercentText, foldRatioAt, foldSourceText } from "~/domain/fold-ratios";
 import { draftKeyId, draftKeyLabel, draftListText, draftSourceText } from "~/domain/draft-process";
 import { useAgentCatalogue } from "~/domain/catalogue";
@@ -346,7 +346,7 @@ const entries = computed<SettingsEntry[]>(() => {
     });
   }
 
-  for (const group of agentGroups(t, agents.value.agents, rooms.value)) {
+  for (const group of agentGroups(t, designatedAndWorkers(agents.value.agents), rooms.value)) {
     for (const agent of group.agents) {
       const aliases = agents.value.agents.find((one) => one.name === agent.name)?.aliases ?? "";
 

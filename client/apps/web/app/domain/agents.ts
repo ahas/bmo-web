@@ -33,6 +33,13 @@ const KIND_GROUPS: Readonly<Record<string, AgentGroupKey>> = {
   worker: "worker"
 };
 
+/** The agents a person designates and the workers, the only rows the sidebar and the agent management screen list
+ * (docs/web.md, 「Sidebar」): a `chat` row holding a role, and a `worker` row. The gate unit's session rows — the
+ * `gate` kind, and a `chat` row holding none — and the runners' rows are the gates screen's and the searcher tab's. */
+export function designatedAndWorkers<A extends Pick<AgentSummary, "kind" | "role">>(agents: readonly A[]): A[] {
+  return agents.filter((agent) => agent.kind === "worker" || (agent.kind === "chat" && typeof agent.role === "string" && agent.role !== ""));
+}
+
 export function groupOfKind(kind: string): AgentGroupKey {
   return KIND_GROUPS[kind] ?? "worker";
 }

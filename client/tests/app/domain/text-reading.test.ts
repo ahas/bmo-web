@@ -19,16 +19,22 @@ let answer: (texts: readonly string[]) => Promise<{ text: string; whole: boolean
   texts.map((text) => ({ text: `ko:${text}`, whole: true }));
 const asks: string[][] = [];
 
-class Untranslated extends Error {}
-
-mock.module("bmo-ui/app/domain/translation", () => ({
-  Untranslated,
-  hasTranslator: () => named,
-  translated: (texts: readonly string[]) => {
-    asks.push([...texts]);
-    return answer(texts);
+class Refused extends Error {
+  constructor(readonly statusCode: number) {
+    super("refused");
   }
-}));
+}
+
+// The console's own translation route, as the composable asks it.
+globals.$fetch = async (url: string, options: { body: { originals: string[] } }) => {
+  if (url !== "/api/translations") throw new Error(`unexpected ${url}`);
+
+  asks.push([...options.body.originals]);
+
+  return { readings: await answer(options.body.originals) };
+};
+
+mock.module("bmo-ui/app/domain/translation", () => ({ hasTranslator: () => named }));
 
 const { useTextReading, wantsReading, readerLanguage } = await import("../../../apps/web/app/domain/text-reading");
 
@@ -92,7 +98,7 @@ describe("a text's reading", () => {
     expect(busy.reading.value).toEqual({ kind: "busy" });
 
     answer = async () => {
-      throw new Untranslated("refused");
+      throw new Refused(403);
     };
 
     const failing = useTextReading(() => "Failing words.", () => "ko");

@@ -186,7 +186,7 @@
 <script setup lang="ts">
 import { matchFields } from "bmo-ui/shared/search";
 import { settingsAnchor } from "~/domain/agent-settings";
-import { agentGroups, gateBlocks, generalSectionTitle, keepaliveMarkOf, movedOrder } from "~/domain/agents";
+import { agentGroups, designatedAndWorkers, gateBlocks, generalSectionTitle, keepaliveMarkOf, movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { countText } from "~/domain/numbers";
@@ -218,7 +218,7 @@ const busy = ref("");
 const failed = ref("");
 const orderFailed = ref("");
 
-const groups = computed<AgentGroup[]>(() => agentGroups(t, props.agents.agents, props.rooms, props.agents.gateOrder ?? []));
+const groups = computed<AgentGroup[]>(() => agentGroups(t, designatedAndWorkers(props.agents.agents), props.rooms, props.agents.gateOrder ?? []));
 
 // A group as it stands on this screen: the gates in the parts of the gate order, every other group
 // as one list under its title.

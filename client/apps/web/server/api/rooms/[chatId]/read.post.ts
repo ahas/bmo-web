@@ -19,5 +19,8 @@ export default defineEventHandler(async (event): Promise<RoomRead> => {
 
   const unread = await markRead(signed, await ownSenders(signed, await ownerChat()), chatId, messageId, nowSeconds());
 
+  // Every other open tab of the account hears the mark and reads its count again (docs/web.md, 「Unread messages」).
+  publishConsoleEvent("room-read", { user: signed.name, chatId });
+
   return { unread: unread.count, firstUnread: unread.first, readTo: unread.from };
 });

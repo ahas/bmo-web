@@ -40,10 +40,21 @@ function blockOf(t: Translate, item: CopyItem): string {
   return [head, ...sorted.flatMap((judgement) => linesOf(t, judgement))].join("\n");
 }
 
+// The verdicts that are the answer a message drew: what they carry is the answering message's own words.
+const ANSWER_MARKERS = new Set(["REPLY", "SENT"]);
+
 // The detail is the whole of what the stage said; when the verdict already is that whole, repeating it under
-// itself says nothing.
+// itself says nothing. A verdict that is the message's answer stands as its word alone, since the answer's words
+// are another message's (docs/web.md, 「What a copy holds」).
 function linesOf(t: Translate, judgement: Judgement): string[] {
-  const head = `  - ${stageLabel(t, judgement.stage)} (${formatTime(judgement.createdAt)}): ${judgement.verdict}`;
+  const marker = /^([A-Z][A-Z-]*)(?::|$)/.exec(judgement.verdict.trim())?.[1] ?? null;
+  const label = `  - ${stageLabel(t, judgement.stage)} (${formatTime(judgement.createdAt)})`;
+
+  if (marker !== null && ANSWER_MARKERS.has(marker)) {
+    return [`${label}: ${marker}`];
+  }
+
+  const head = `${label}: ${judgement.verdict}`;
   const detail = judgement.detail?.trim() ?? "";
 
   if (detail === "" || detail === judgement.verdict.trim()) {

@@ -81,7 +81,7 @@ export function useRoomList() {
       data.value = data.value.filter((room) => room.chatId !== removed);
     }
   });
-  useLiveRefresh(() => void refresh({ dedupe: "defer" }), { on: ["message", "room-removed"] });
+  useLiveRefresh(() => void refresh({ dedupe: "defer" }), { on: ["message", "room-removed", "room-read"] });
 
   return { data: useNewestReads(data), status, error };
 }

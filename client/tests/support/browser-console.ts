@@ -30,6 +30,9 @@ const ACCOUNTS: readonly [string, string][] = [
   ["console-ids", "fixture-password-789"],
   ["item-reports", "fixture-password-2251"],
   ["room-unread", "fixture-password-2252"],
+  ["room-unread-tabs", "fixture-password-2253"],
+  ["room-copy", "fixture-password-2254"],
+  ["agents-listed", "fixture-password-2255"],
   ["prompt-wrap", "fixture-password-1575"],
   ["room-feed", "fixture-password-1457"],
   ["skeleton259", "fixture-password-259"],
@@ -41,6 +44,8 @@ const ACCOUNTS: readonly [string, string][] = [
 // The owner's room, which the receiver's stand-in names as theirs and lists, and a room an account meets two behind.
 const OWNER_CHAT = 42;
 const UNREAD_CHAT = 43;
+// When that room's line was said, fixed for the harness's life so a mark on it stays where it was made.
+const LINE_AT = Date.now();
 // The base path the console is served under; the tests read theirs off the address they are given.
 const BASE = "/console/";
 
@@ -159,7 +164,17 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
   AGENCY: async (path, request) => {
     // The agents' answer names the worker too, as the agency's does, beside the workers' own answer.
     if (path === "/agents") {
-      return Response.json({ items: [agent("agent-a", "Agent A", { kind: "chat", defaultAnswerer: true }), agent("worker", "Worker", { kind: "worker" })], more: false });
+      // Beside them, the rows the agency keeps for the gate unit's sessions and a runner's, which no list of agents stands.
+      return Response.json({
+        items: [
+          agent("agent-a", "Agent A", { kind: "chat", defaultAnswerer: true }),
+          agent("worker", "Worker", { kind: "worker" }),
+          agent("gate-session", "Gate Session", { kind: "chat", role: null }),
+          agent("gate-a", "Gate A", { kind: "gate", role: "gate" }),
+          agent("runner-a", "Runner A", { kind: "runner", role: "searcher" })
+        ],
+        more: false
+      });
     }
     if (path === "/workers") return Response.json({ items: [worker("worker", "Worker")], more: false });
     if (path === "/roles") return Response.json({ items: [], more: false });
@@ -251,18 +266,23 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     // A second room, whose line grows while it is first read: asked for its newest message it answers the first,
     // and past that one it answers two more, so a reader meeting it for the first time is two behind.
-    const behind = { ...room, id: UNREAD_CHAT, title: "unread-room", ownerRoom: false, workRoom: UNREAD_CHAT, lastMessageAt: now - 1_000 };
+    const behind = { ...room, id: UNREAD_CHAT, title: "unread-room", ownerRoom: false, workRoom: UNREAD_CHAT, lastMessageAt: LINE_AT - 1_000 };
     const said = (id: number, sentAt: number) => ({
       id, room: UNREAD_CHAT, senderId: 7, senderName: "person-b", sentAt, text: `words ${id}`, imagePath: null, replyToMessageId: null,
       answerSeconds: null, round: null, album: null, via: null, files: []
     });
-    const line = [said(1, now - 3_000), said(2, now - 2_000), said(3, now - 1_000)];
+    const line = [said(1, LINE_AT - 3_000), said(2, LINE_AT - 2_000), said(3, LINE_AT - 1_000)];
 
+    // The receiver's stream stands open and says nothing, so a tab's stream stays open and carries the console's own
+    // words between the units' silences.
+    if (path === "/events") return silentStream();
     if (path === "/owner") return Response.json({ room: OWNER_CHAT, senderId: 1 });
     if (path === "/live") return Response.json({ at: now, compacting: [], queued: [], turns: [] });
     if (path === "/rooms") return Response.json({ items: [room, behind], more: false });
     if (path === `/rooms/${UNREAD_CHAT}/messages`) {
-      return Response.json({ items: new URL(request.url).searchParams.has("after") ? line.slice(1) : line.slice(0, 1), more: false });
+      const after = new URL(request.url).searchParams.get("after");
+
+      return Response.json({ items: after === null ? line.slice(0, 1) : line.filter((one) => one.id > Number(after)), more: false });
     }
 
     const message = new RegExp(`^/rooms/${UNREAD_CHAT}/messages/(\\d+)$`).exec(path);

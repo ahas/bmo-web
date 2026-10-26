@@ -442,8 +442,8 @@ describe("the route and gate tabs", () => {
 
   // The general tab's list of agents stands its gates in the same parts, under the same words, and
   // a gate in both parts carries the search's anchor on its first row only.
-  test("stand the general tab's gates in the same parts of the gate order", () => {
-    expect(scriptOf(general)).toContain("agentGroups(t, props.agents.agents, props.rooms, props.agents.gateOrder ?? [])");
+  test("stand on the general tab the designated agents and the workers alone", () => {
+    expect(scriptOf(general)).toContain("agentGroups(t, designatedAndWorkers(props.agents.agents), props.rooms, props.agents.gateOrder ?? [])");
     expect(scriptOf(general)).toContain('group.key === "gate" ? gateBlocks(t, group.agents, props.agents.gateOrder ?? [])');
     expect(templateOf(general)).toContain('<h4 v-if="block.label !== \'\'" class="text-sm text-muted">');
     expect(general).not.toContain("text-xs");

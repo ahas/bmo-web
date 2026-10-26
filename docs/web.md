@@ -1176,8 +1176,12 @@ Four groups.
     (「고정」), and the receiver writes the order.
 - **Agents** — every one of the chat agent's agents stands. Choosing one shows that agent's log. The list is not held by
   this app but comes from the archive's `agents` table. Name and mark are as written there, so if the owner makes
-  one more worker, that worker stands in this list under its own name. Grouped in branches, one per group of
-  kinds, each branch read from the kinds of the rows and naming no agent:
+  one more worker, that worker stands in this list under its own name. **It lists the agents a person designates
+  and the workers, and nothing else:** a row of the `chat` kind holding a role, and a row of the `worker` kind. The
+  rows the agency keeps for the gate unit's sessions — the `gate` kind, and a `chat` row holding no role — and the
+  runners' rows never stand here, whatever the agency lists: a gate is the gates screen's, a runner the agent
+  screen's 서쳐 tab's. The same holds for the agent management screen's lists of agents. Grouped in branches, one
+  per group of kinds, each branch read from the kinds of the rows and naming no agent:
   - **지정된 에이전트** — every designated agent: the chat agent and every companion, side by side, each under
     its own label, so another companion stands here the moment its row does. Under each stand its room
     sessions: the chat agent's one per room a session was recorded for, a companion's one per room it answers, each
@@ -1185,11 +1189,9 @@ Four groups.
     in that room — or at the log's end while the room has none. The owner's private chat stands not as a chat number but as the name the language pack gives it. A room name is
     the same everywhere on screen, so nowhere — sidebar, live status, log header — does a number come up
     as is. The branch's name stands until the owner names it otherwise.
-  - **Gates** — every gate, in the gate order (the gate unit's documents).
-  - **Runners** — the searcher and the browser searcher.
   - **Job workers** — the worker. On screen this branch is labelled 저장소, the name the group goes by
     wherever it stands: the sidebar, the home page and the live status tab.
-- Gates, runners and workers always stand whether or not the bot answers. An entry carries its name and
+- Workers always stand whether or not the bot answers. An entry carries its name and
   nothing that grows beside it, so the name is never crowded out. A currently running agent gets a spinning circle —
   so that seeing the list alone tells what is alive, it carries a turning mark, not a stopped dot.
 - **The branches each fold and unfold, and how each branch stood is remembered by that browser.** Not
@@ -1255,6 +1257,10 @@ Four groups.
   - **The count moves as the room does.** A message landing in any room the reader reads reads the
     list again over the stream, whichever screen is open; a mark the room makes lowers its
     count at once.
+  - **A mark reaches every tab of the account.** When a mark lands on the server, the console's own stream
+    says so — `room-read`, naming the room — to that account's open tabs alone, on every browser and phone it
+    is signed in on, and each reads its list again, so a room read in one tab stops counting in every other
+    without a reload. No unit is asked for it: the mark is the console's own.
   - **A count never moves back behind what the screen already knows.** The list and a mark's answer
     each say the place their count runs from, and a count from a place behind the one the screen
     holds for that room is older news and is not shown: a list read that set off before a mark
@@ -4050,6 +4056,10 @@ Four bounds keep it from growing forever.
   and below it the verdicts that message got attach in time order as stage name, time and verdict. When a
   verdict's left content differs from the verdict, that content follows indented too. Whatever is turned on on
   screen, every verdict is included. Copying one message or several has the same shape.
+  - **A copy holds the chosen messages and their own verdicts, and nothing of any other message.** A verdict that
+    is the answer the message drew — the chat agent's or a companion's `REPLY`, a send's `SENT` — stands as that
+    word alone: what the answer says is the answering message's own, which a copy takes only where that message
+    is chosen too.
 - **입력창** — words written here go up to that room as is under the owner's name. They go out on the Telegram
   provider's owner-account road, no different from words typed directly in Telegram. They stay in the archive as
   the owner's message, and that room's chat agent takes them like any words and answers. If the reader is not connected it is
@@ -4823,10 +4833,12 @@ Four bounds keep it from growing forever.
     instruction, each report, and a co-work task's work order and result. Each stands as it was written, and under it,
     headed by the language it is in, its reading in the language the console speaks to its reader — 한국어 번역. The
     original is never hidden, folded or replaced by its reading, and nothing is pressed to read either.
-    - **The road** is the translator the console names (「Screens a unit brings」),
-      the gate's translating route, which the gate's `gate/translate` tool also takes, asked through bmo-ui's
-      translation module as a bundle's screen asks it. The console's own screen is no bundle's page, so the relay
-      hands its ask on under the gate's own manifest's terms.
+    - **The road** is the gate's translating route, `POST /translations`, which the gate's `gate/translate` tool
+      and a bundle's screens also take. The console asks it through a route of its own, `POST /api/translations`,
+      on its own credential and for the reader's role, rather than through the relay: the relay judges a call by
+      the page it came from, and the TODO dialog is the layout's, standing over a bundle's screen as much as over
+      the console's own, where a call relayed from that page would be the bundle's and refused. A console that
+      names no gate offers no reading.
     - **Each text is asked for once.** The gate keeps every translation it makes under its original and its
       language and answers a kept one without its translator, the tab keeps every whole reading for its life, and
       two places asking for the same text at once share the one ask. So reopening an item, or another item quoting the

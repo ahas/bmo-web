@@ -891,6 +891,8 @@ export type BotEventType =
   // One of an agent's runs or sessions began, moved or stopped, as the agency publishes it: what a log and a
   // stepper of that agent read again on.
   | "agency-run"
+  // The signed-in account read a room up to a message, in this tab or another, on the console's own word.
+  | "room-read"
   // A job the agency runs for a room started, changed or ended. What runs now is read from the agency's job
   // list, so the event says only that it moved.
   | "worker-run";

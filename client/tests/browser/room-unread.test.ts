@@ -56,4 +56,50 @@ describe.skipIf(!origin || !touchReady())("a room's unread count", () => {
       await context.close();
     }
   }, 90_000);
+
+  // A mark made in one tab reaches every other tab of the account over the console's stream (docs/web.md, 「Unread
+  // messages」), so the other's badge goes without a reload.
+  test("a room read in one tab stops counting in another of the same account", async () => {
+    const login = await fetch(`${origin}/api/auth/login`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "room-unread-tabs", password: "fixture-password-2253" })
+    });
+    const own = login.headers.get("set-cookie")!.split(";")[0]!;
+    const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = own.indexOf("=");
+
+    await context.addCookies([{ name: own.slice(0, at), value: own.slice(at + 1), url: origin! }]);
+
+    try {
+      const first = await context.newPage();
+      const second = await context.newPage();
+
+      await first.goto(`${origin}/live`, { waitUntil: "load" });
+      await second.goto(`${origin}/live`, { waitUntil: "load" });
+
+      const badge = (page: typeof first) => page.getByRole("link", { name: /unread-room/ }).first();
+
+      await badge(second).waitFor({ timeout: 20_000 });
+      await second.waitForTimeout(1_500);
+      expect((await badge(second).innerText()).replace(/\s+/g, " ")).toContain("2");
+
+      // The first tab reads the room to its end.
+      const read = await first.request.post(`${origin}/api/rooms/43/read`, { data: { messageId: 3 } });
+
+      expect(read.ok()).toBe(true);
+
+      const end = Date.now() + 10_000;
+      let text = await badge(second).innerText();
+
+      while (/\b2\b/.test(text) && Date.now() < end) {
+        await second.waitForTimeout(250);
+        text = await badge(second).innerText();
+      }
+
+      expect(text).not.toMatch(/\b2\b/);
+    } finally {
+      await context.close();
+    }
+  }, 90_000);
 });

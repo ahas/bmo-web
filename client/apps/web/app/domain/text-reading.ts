@@ -1,4 +1,4 @@
-import { hasTranslator, translated } from "bmo-ui/app/domain/translation";
+import { hasTranslator } from "bmo-ui/app/domain/translation";
 import { textLanguage } from "#shared/translation";
 
 import type { Reading } from "bmo-ui/app/domain/translation";
@@ -6,9 +6,9 @@ import type { DocumentLanguage } from "#shared/types";
 import type { Ref } from "vue";
 
 // A text a worker or a job wrote, read in the reader's own language under the original (docs/web.md, 「The original,
-// and its translation under it」). The reading is asked of the translator the console names, through bmo-ui's
-// translation module; the gate keeps every translation under its original, the module keeps every whole reading for
-// the tab's life, and two places asking for the same text at once share one ask, so a text is asked for once.
+// and its translation under it」). The reading is asked of the gate's translating route through the console's own
+// route; the gate keeps every translation under its original, this tab keeps every whole reading for its life, and
+// two places asking for the same text at once share one ask, so a text is asked for once.
 
 /** Where one text's reading stands. */
 export type TextReading =
@@ -21,18 +21,47 @@ export type TextReading =
   | { kind: "busy" }
   | { kind: "failed" };
 
-// The asks out now, by language and text, so a second place asking for a text already asked for waits on the same
-// answer rather than asking again.
+// Every whole reading made, by language and text, for the tab's life, and the asks out now, so a second place asking
+// for a text already asked for waits on the same answer rather than asking again.
+const kept = new Map<string, Reading>();
 const asked = new Map<string, Promise<Reading>>();
+
+// The busy answers waited out before a text is said to be untranslated, as bmo-ui's module waits them.
+const BUSY_WAITS_MS = [2_000, 4_000, 8_000];
+
+async function askedOnce(text: string, language: string): Promise<Reading> {
+  for (let tried = 0; ; tried += 1) {
+    try {
+      const answer = await $fetch<{ readings: Reading[] }>("/api/translations", { method: "POST", body: { language, originals: [text] } });
+
+      return answer.readings[0] ?? { text, whole: false, untranslated: true };
+    } catch (error) {
+      const status = (error as { statusCode?: number; status?: number }).statusCode ?? (error as { status?: number }).status;
+
+      if (status !== 503 && status !== 504) throw error;
+      if (tried === BUSY_WAITS_MS.length) return { text, whole: false, untranslated: true };
+
+      await new Promise((done) => setTimeout(done, BUSY_WAITS_MS[tried]));
+    }
+  }
+}
 
 function readingOf(text: string, language: string): Promise<Reading> {
   const key = `${language}\u0000${text}`;
+  const whole = kept.get(key);
+
+  if (whole !== undefined) return Promise.resolve(whole);
+
   const out = asked.get(key);
 
   if (out !== undefined) return out;
 
-  const ask = translated([text], language)
-    .then((readings) => readings[0] ?? { text, whole: false, untranslated: true })
+  const ask = askedOnce(text, language)
+    .then((read) => {
+      if (read.whole) kept.set(key, read);
+
+      return read;
+    })
     .finally(() => asked.delete(key));
 
   asked.set(key, ask);

@@ -586,3 +586,20 @@ describe("the gates on the general screen", () => {
     expect(gateBlocks(wording, shown, [])).toEqual([{ key: "unplaced", label: "", agents: shown }]);
   });
 });
+
+// The rows a list of agents stands (docs/web.md, 「Sidebar」): a chat row holding a role and a worker row, never the
+// gate unit's session rows or a runner's.
+describe("the agents a list stands", () => {
+  test("are the designated agents and the workers alone", async () => {
+    const { designatedAndWorkers } = await import("../../../apps/web/app/domain/agents");
+    const rows = [
+      { name: "chat-a", kind: "chat", role: "chat" },
+      { name: "gate-session", kind: "chat", role: null },
+      { name: "gate-a", kind: "gate", role: "gate" },
+      { name: "runner-a", kind: "runner", role: "searcher" },
+      { name: "worker-a", kind: "worker", role: "worker" }
+    ];
+
+    expect(designatedAndWorkers(rows).map((one) => one.name)).toEqual(["chat-a", "worker-a"]);
+  });
+});

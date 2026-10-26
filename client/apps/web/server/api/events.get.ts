@@ -9,7 +9,12 @@ import { roomStreamFilter } from "../utils/room-stream";
 export default defineEventHandler(async (event) => {
   await requireUserSession(event);
 
+  const signed = await signedInUser(event);
   const rooms = await readableRooms(event);
+  // A room read is the account's own news: the console's word of it goes to that account's tabs alone.
+  const ownRead = (said: { name: string; data: unknown }): boolean | null =>
+    said.name === "room-read" ? (said.data as { user?: unknown } | null)?.user === signed.name : null;
+  const filter = rooms === "all" ? {} : roomStreamFilter(rooms);
 
   const query = getQuery(event);
   // Where the receiver's and bmo-job's streams resume from, each with the run of that unit its number was
@@ -32,5 +37,8 @@ export default defineEventHandler(async (event) => {
     "x-accel-buffering": "no"
   });
 
-  return sendStream(event, relayBotStream(cursors, aborted, rooms === "all" ? {} : roomStreamFilter(rooms)));
+  return sendStream(
+    event,
+    relayBotStream(cursors, aborted, { ...filter, consoleEvent: (said) => ownRead(said) ?? filter.consoleEvent?.(said) ?? true })
+  );
 });

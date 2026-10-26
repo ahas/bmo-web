@@ -497,10 +497,13 @@ function cellNote(row: RouteRow, column: DataColumn): string {
 
     return pinned !== undefined && !pinned.enabled ? t("agents.label.account_off") : "";
   }
+  // The provider the run starts on, or, where the key does not resolve there, why, in the pack's words.
   if (column === "model") {
     const start = startProvider(row);
 
-    return start === null ? "" : modeLabel(t, start);
+    if (start === null) return "";
+
+    return row.assignment?.effective.find((one) => one.provider === start)?.error ?? modeLabel(t, start);
   }
   if (column === "laya") return row.profile?.gateOptions?.layaProbe && row.profile.gateOptions.layaMode === null ? t("common.label.default") : "";
   if (column === "agreement") return agreementNote(t, agreementOf(laya.value, row.key), row.profile?.gateOptions?.effective.layaTau ?? null);

@@ -71,7 +71,8 @@ export interface TierAssignmentView {
   key: string;
   tier: ModelTier;
   choices: ModelTier[];
-  effective: { provider: TierProvider; selection: TierMapping | null; error: string | null }[];
+  // Why the key does not resolve on a provider, in the pack's words, with the agency's own sentence beside it.
+  effective: { provider: TierProvider; selection: TierMapping | null; error: string | null; errorEnglish: string | null }[];
 }
 
 // The tiers, their mappings on each provider and every work key's assignment (the agency's docs/model-tiers.md).

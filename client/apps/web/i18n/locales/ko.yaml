@@ -1487,6 +1487,7 @@ agents:
     effort_of: "{name} Effort"
     fold_ratio_of: "{tier} {provider} 압축 기준"
     gate_of: "{name} {gate}"
+    gates_of: "{name}의 게이트"
     keepalive_of: "{name} 캐시 유지"
     label_of: "{name} 이름표"
     limit_of: "{mode} {tier} 한도"
@@ -1655,14 +1656,17 @@ agents:
     characters_unit: 자
     checkpoint: 체크포인트
     column_account: 계정
+    column_agent: 에이전트
     column_agreement: 일치
     column_auto_job: 자동 Job
     column_cwd: 작업 경로
     column_effort: Effort
     column_gate: 게이트
+    column_keepalive: 캐시 유지
     column_model: 현재 모델
     column_provider: 공급자
     column_recent: 최근
+    column_role: 롤
     column_step: 순서
     column_switch: 사용
     column_tau: τ
@@ -1747,6 +1751,7 @@ agents:
     gate_part_post: 포스트게이트
     gate_part_pre: 프리게이트
     gate_together: 함께 실행
+    gates_on: "{on}/{all} 켬"
     generation: 생성 파라미터
     generation_of: "{generation}번째 세션"
     group_designated: 지정된 에이전트
@@ -1840,7 +1845,13 @@ agents:
     prefix_documents: 프리픽스 문서
     prefix_documents_help: 워커 체크아웃 기준 상대 경로이거나 umbrella 아래 절대 경로입니다. 세션 프리픽스가 이 순서대로 읽습니다.
     previous: 이전 설정
+    provider_claude_code: Claude Code
+    provider_codex: Codex
+    provider_deepseek: DeepSeek
+    provider_laya: Laya
     provider_off: 꺼진 공급자
+    provider_openrouter: OpenRouter
+    provider_registered: 등록 모델
     reason: 사유
     reasoning_default: 기본
     reasoning_levels: "적용되는 단계: {levels}"
@@ -2079,11 +2090,9 @@ agents:
     previous_check: 이전 설정 확인 필요
     registry: 등록 모델
     registry_add: 등록 모델 추가
-    section_agent_gates: 에이전트별 게이트
-    section_agents: 에이전트별 캐시 유지 · 롤
+    section_agents: 에이전트별 설정
     section_keepalive: 캐시 유지
     section_providers: 활성 공급자 및 우선순위
-    section_reasoning: 생각·Effort
     section_sessions: 세션
     tiers: 모델 등급
     turn_gates: 턴 게이트

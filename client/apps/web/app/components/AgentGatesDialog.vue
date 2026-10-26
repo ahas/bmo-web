@@ -3,7 +3,7 @@
        switches saving through the same path, so an agent's gates are switched one way wherever they
        are opened. Here they are a form, saved by the one Save button at the foot (docs/web.md, 「Forms」). -->
   <SettingsDialog v-model:open="open" :title="props.meta.label" :description="props.meta.name" :dirty="form.dirty.value">
-    <AgentsGates bare :agents="[{ meta: props.meta, agent: props.agent }]" :reread="props.reread" />
+    <AgentsGates :agents="[{ meta: props.meta, agent: props.agent }]" :reread="props.reread" />
 
     <template #footer="{ close }">
       <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="form.saving.value" @click="close()" />

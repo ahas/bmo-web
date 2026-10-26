@@ -19,6 +19,7 @@ const scriptOf = (source: string) => source.slice(source.indexOf("<script"));
 
 const page = await read("./index.vue");
 const general = await read("../../components/AgentsGeneral.vue");
+const agentTable = await read("../../components/AgentsSettingsTable.vue");
 const accounts = await read("../../components/AgentsAccounts.vue");
 const drag = await read("../../domain/row-drag.ts");
 const workers = await read("../../components/AgentsWorkers.vue");
@@ -127,26 +128,34 @@ describe("every table of the screen", () => {
 });
 
 describe("the general tab", () => {
-  test("holds the warming switch, the provider order and each agent's role and own switch in one table", () => {
+  test("holds the warming switch, the provider order and each agent's own settings in one table", () => {
     const template = templateOf(general);
+    const table = templateOf(agentTable);
 
     // Each section is named in one place, so the screen stands the same titles before the
     // settings arrive as after.
-    for (const id of ["keepalive", "providers", "agents"]) {
+    for (const id of ["keepalive", "providers"]) {
       expect(template).toContain(`{{ generalSectionTitle($t, "${id}") }}`);
     }
+    expect(table).toContain(`{{ generalSectionTitle($t, "agents") }}`);
     expect(GENERAL_SECTIONS.map((section) => wording(section.title)))
-      .toEqual([wording("agents.title.section_keepalive"), wording("agents.title.section_providers"), wording("agents.title.registry"), wording("agents.title.catalogue"), KO.line_132_2, wording("agents.title.accounts"), wording("agents.title.section_agents"), wording("agents.title.section_reasoning"), wording("agents.title.section_agent_gates"), KO.line_132_3]);
+      .toEqual([wording("agents.title.section_keepalive"), wording("agents.title.section_providers"), wording("agents.title.registry"), wording("agents.title.catalogue"), KO.line_132_2, wording("agents.title.accounts"), wording("agents.title.section_agents"), KO.line_132_3]);
     expect(template).toContain(':model-value="!props.keepalive.stopped"');
     // The voice briefing's settings stand in the settings dialog, not here.
     expect(template).not.toContain("voice-briefing");
-    // The role is chosen in the same row as the agent's warming switch; no second list repeats the agents.
-    expect(template).toContain("roleLabel(agentOf(agent.name)?.role ?? null)");
-    expect(template).not.toContain("<AgentsRoles");
-    expect(template).toContain("switchAgent(agent.name, !($event as boolean))");
-    expect(scriptOf(general)).toContain("keepaliveMarkOf(t, agentOf(name), props.keepalive.stopped)");
-    expect(template).toContain(`v-if="isWorker(agent.name)" :text="$t('agents.action.pause_until_job')"`);
-    expect(scriptOf(general)).toContain('{ agent: name, pause: true }');
+    // One table of the agents, its columns the settings: no second list repeats the agents for their thinking or gates.
+    expect(template).toContain("<AgentsSettingsTable ");
+    expect(template).not.toContain("<AgentsReasoning");
+    expect(template).not.toContain("<AgentsGates");
+    for (const column of ["agent", "role", "keepalive", "thinking", "effort", "gates"]) {
+      expect(table).toContain(`#${column}-cell="{ row }"`);
+    }
+    expect(table).toContain("switchAgent(row.original.meta.name, !($event as boolean))");
+    expect(scriptOf(agentTable)).toContain("keepaliveMarkOf(t, agent, props.keepalive.stopped)");
+    expect(table).toContain(`v-if="row.original.agent.kind === 'worker'" :text="$t('agents.action.pause_until_job')"`);
+    expect(scriptOf(agentTable)).toContain("{ agent: name, pause: true }");
+    // An agent's own gates drop down from its cell, switched as turned.
+    expect(table).toContain('<AgentsGates :agents="[{ meta: row.original.meta, agent: row.original.agent }]"');
   });
 
   test("stands the bot's order with a grip handle in its own column and each provider's own reason", () => {
@@ -444,12 +453,13 @@ describe("the route and gate tabs", () => {
   // a gate in both parts carries the search's anchor on its first row only.
   test("stand on the general tab the designated agents and the workers alone", () => {
     expect(scriptOf(general)).toContain("agentGroups(t, designatedAndWorkers(props.agents.agents), props.rooms, props.agents.gateOrder ?? [])");
-    expect(scriptOf(general)).toContain('group.key === "gate" ? gateBlocks(t, group.agents, props.agents.gateOrder ?? [])');
-    expect(templateOf(general)).toContain('<h4 v-if="block.label !== \'\'" class="text-sm text-muted">');
+    expect(scriptOf(agentTable)).toContain('group.key === "gate" ? gateBlocks(t, group.agents, props.agents.gateOrder ?? [])');
     expect(general).not.toContain("text-xs");
-    expect(templateOf(general)).toContain(':id="anchoredIn(group, block, agent.name) ? settingsAnchor(`agent-${agent.name}`) : undefined"');
+    expect(agentTable).not.toContain("text-xs");
+    // A gate in both parts carries the search's anchor on its first row only.
+    expect(templateOf(agentTable)).toContain(':id="row.original.first ? settingsAnchor(`agent-${row.original.meta.name}`) : undefined"');
     // Both of a gate's switches read and write the one setting of its name.
-    expect(templateOf(general)).toContain(':model-value="!stoppedOf(agent.name)"');
+    expect(templateOf(agentTable)).toContain(':model-value="!row.original.agent.keepaliveStopped"');
   });
 
   test("name no gate to decide its order or its part", () => {

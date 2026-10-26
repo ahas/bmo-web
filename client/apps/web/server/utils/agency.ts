@@ -3,14 +3,14 @@ import { agencyClient } from "@agency/client";
 import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import { bundleLabelOf, roleLabelOf } from "./agency-words";
+import { bundleLabelOf, providerLabelOf, roadReasonOf, roleLabelOf } from "./agency-words";
 import { unitAt, unitHeaders } from "./units";
 import { answered } from "./unit-answer";
 
 import type { Agent as AgencyAgent, AgencyClient, FoldRatio, Provider, Session, Tier, Worker } from "@agency/client";
 import type { components } from "@agency/client/schema";
-import type { AgentSamplingView, BasePromptView, BasePromptsView, FoldRatiosView, FoldRatioView, GenerationSetting, GenerationValue, SessionView, TierMapping, TierProviderView, TierSettingsView } from "#shared/agency";
-import type { AgentSummary, RoleView } from "#shared/types";
+import type { AgentSamplingView, BasePromptView, BasePromptsView, FoldRatiosView, FoldRatioView, GenerationSetting, GenerationValue, SessionView, TierAssignmentView, TierConflict, TierMapping, TierProvider, TierProviderView, TierSettingsView } from "#shared/agency";
+import type { AgentGateView, AgentReasoningView, AgentSummary, RoleView } from "#shared/types";
 import type { UnitAnswerCall } from "./unit-answer";
 
 type Schemas = components["schemas"];
@@ -88,14 +88,45 @@ const seconds = (ms: number | null): number | null => (ms === null ? null : Math
 // and the session's loads — stands empty (docs/boundary.md, 「Gaps the console meets」).
 // What the agency's answer carries on an agent beside the fields its published type states: the registration row's
 // kind, whether it is the default answerer and the room it answers (docs/boundary.md, 「Gaps the console meets」).
-export function carriedOf(agent: AgencyAgent): { kind: string; defaultAnswerer: boolean; chatId: number | null } {
+export function carriedOf(agent: AgencyAgent): { kind: string; defaultAnswerer: boolean; chatId: number | null; reasoning: AgentReasoningView | null; gates: AgentGateView[] | null } {
   const row: Record<string, unknown> = Object.fromEntries(Object.entries(agent));
 
   return {
     kind: typeof row.kind === "string" && row.kind !== "" ? row.kind : "chat",
     defaultAnswerer: row.defaultAnswerer === true,
-    chatId: typeof row.chatId === "number" ? row.chatId : null
+    chatId: typeof row.chatId === "number" ? row.chatId : null,
+    reasoning: reasoningOf(row.reasoning),
+    gates: gatesOf(row.gates)
   };
+}
+
+// An agent's own thinking and effort and what of it reaches the provider it begins on, as the agency answers them
+// (its `docs/model-tiers.md`, 「An agent's own thinking and effort」); none where the agency names none.
+function reasoningOf(value: unknown): AgentReasoningView | null {
+  if (value === null || typeof value !== "object") return null;
+
+  const held = value as { thinking?: unknown; effort?: unknown; reaches?: unknown };
+  const reaches = held.reaches as { thinking?: unknown; levels?: unknown } | null | undefined;
+
+  return {
+    thinking: typeof held.thinking === "boolean" ? held.thinking : null,
+    effort: typeof held.effort === "string" ? held.effort : null,
+    reaches:
+      reaches === null || reaches === undefined || typeof reaches !== "object"
+        ? null
+        : { thinking: reaches.thinking === true, levels: Array.isArray(reaches.levels) ? reaches.levels.filter((one): one is string => typeof one === "string") : [] }
+  };
+}
+
+// The gates an agent's turn passes with its own switch of each, as the agency answers them; none where it names none.
+function gatesOf(value: unknown): AgentGateView[] | null {
+  if (!Array.isArray(value)) return null;
+
+  return value.flatMap((one): AgentGateView[] => {
+    const gate = one as { part?: unknown; key?: unknown; on?: unknown };
+
+    return (gate.part === "pre" || gate.part === "post") && typeof gate.key === "string" ? [{ part: gate.part, key: gate.key, on: gate.on !== false }] : [];
+  });
 }
 
 function agentSummary(agent: AgencyAgent): AgentSummary {
@@ -126,7 +157,9 @@ function agentSummary(agent: AgencyAgent): AgentSummary {
     lastKeepaliveAt: null,
     contextTokens: null,
     keepaliveStopped: false,
-    keepalivePausedAt: null
+    keepalivePausedAt: null,
+    reasoning: carried.reasoning,
+    gates: carried.gates
   };
 }
 
@@ -258,16 +291,49 @@ export function tierMappingsOf(tier: Tier): TierMapping[] {
 
 /** The tiers, their mappings on each provider and the providers as the tier screen reads them; a work key's
  * assignment is no part of the agency's answers and stands empty (docs/boundary.md, 「Gaps the console meets」). */
-export function tierSettingsOf(tiers: readonly Tier[], providers: readonly Provider[]): TierSettingsView {
+export function tierSettingsOf(tiers: readonly Tier[], providers: readonly Provider[], keys: readonly unknown[] = []): TierSettingsView {
   const views: TierProviderView[] = providers.map((provider) => ({
     provider: provider.name as TierProviderView["provider"],
-    label: provider.name,
+    label: providerLabelOf((provider as { code?: unknown }).code, provider.name),
     capsAnswerTokens: false,
     efforts: [],
     enabled: provider.enabled
   }));
+  const assignments = keys.flatMap(assignmentOf);
 
-  return { tiers: tiers.map((tier) => tier.name), providers: views, mappings: tiers.flatMap(tierMappingsOf), conflicts: [], assignments: [] };
+  return {
+    tiers: tiers.map((tier) => tier.name),
+    providers: views,
+    mappings: tiers.flatMap(tierMappingsOf),
+    conflicts: assignments.flatMap((one) => one.conflicts),
+    assignments: assignments.map((one) => one.assignment)
+  };
+}
+
+// One work key's tier as the agency's `GET /work-keys` answers it (its `docs/api.md`): the tier, the tiers it may
+// take, what it resolves to on each provider — the error said in the pack's words by its code, the agency's sentence
+// kept beside it — and its conflicts; a member that does not read as one is left out.
+function assignmentOf(item: unknown): { assignment: TierAssignmentView; conflicts: TierConflict[] }[] {
+  const held = item as { key?: unknown; tier?: unknown; choices?: unknown; conflicts?: unknown; effective?: unknown } | null;
+
+  if (typeof held?.key !== "string" || typeof held.tier !== "string") return [];
+
+  const key = held.key;
+  const list = (value: unknown): Record<string, unknown>[] => (Array.isArray(value) ? value.filter((one): one is Record<string, unknown> => one !== null && typeof one === "object") : []);
+  const effective = list(held.effective).flatMap((one) => {
+    if (typeof one.provider !== "string") return [];
+
+    const said = roadReasonOf(one.error, one.errorCode);
+
+    return [{ provider: one.provider as TierProvider, selection: (one.selection ?? null) as TierMapping | null, error: said.reason, errorEnglish: said.reasonEnglish }];
+  });
+  const conflicts = list(held.conflicts).flatMap((one): TierConflict[] =>
+    typeof one.provider === "string" && one.previous !== null && typeof one.previous === "object"
+      ? [{ key, provider: one.provider as TierProvider, previous: one.previous as TierConflict["previous"], accepted: one.accepted === true }]
+      : []
+  );
+
+  return [{ assignment: { key, tier: held.tier, choices: Array.isArray(held.choices) ? held.choices.filter((one): one is string => typeof one === "string") : [], effective }, conflicts }];
 }
 
 /** One provider's fold ratio at one tier as the fold-ratio grid reads it. */

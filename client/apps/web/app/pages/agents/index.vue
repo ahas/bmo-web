@@ -104,26 +104,21 @@
                 <h2 class="text-lg font-semibold text-highlighted">{{ $t(section.title) }}</h2>
 
                 <!-- The registered models wait in their own list's row, the one the section itself
-                     shows while its own read is still out. -->
+                     shows while its own read is still out; the agents' settings in their table's. -->
                 <AgentsRegistrySkeleton v-if="LIST_SECTIONS.includes(section.id)" :rows="section.waiting" />
+                <DataTableSkeleton v-else-if="section.id === 'agents'" :headers="AGENT_TABLE_HEADERS" :rows="section.waiting" layout="own" :label="$t('agents.status.settings_loading')" />
                 <div
-                  v-for="n in LIST_SECTIONS.includes(section.id) ? 0 : section.waiting"
+                  v-for="n in LIST_SECTIONS.includes(section.id) || section.id === 'agents' ? 0 : section.waiting"
                   :key="n"
                   class="flex items-center gap-3 rounded-lg border border-default px-4 py-3"
                 >
-                  <!-- A gate's row carries no mark, only its name, its key and its switch. -->
-                  <SkeletonBar v-if="section.id !== 'agent-gates'" class="size-5 shrink-0 rounded-sm" />
+                  <SkeletonBar class="size-5 shrink-0 rounded-sm" />
                   <div class="flex min-w-0 flex-1 flex-col gap-1">
                     <SkeletonBar class="h-4 w-2/5" />
                     <SkeletonBar class="h-4 w-1/4" />
                   </div>
-                  <!-- The thinking and effort rows end in their two choices rather than a switch. -->
-                  <template v-if="section.id === 'reasoning'">
-                    <SkeletonBar class="h-8 w-24 shrink-0 rounded-md max-sm:hidden" />
-                    <SkeletonBar class="h-8 w-28 shrink-0 rounded-md max-sm:hidden" />
-                  </template>
                   <!-- A session's row ends in its reset button. -->
-                  <SkeletonBar v-else-if="section.id === 'sessions'" class="size-8 shrink-0 rounded-md" />
+                  <SkeletonBar v-if="section.id === 'sessions'" class="size-8 shrink-0 rounded-md" />
                   <SkeletonBar v-else class="h-5 w-9 shrink-0 rounded-full" />
                 </div>
               </section>
@@ -221,6 +216,10 @@ const companionsRef = useTemplateRef<{ openAdd: () => void }>("companionsRef");
 const generalRef = useTemplateRef<{ openAddAccount: () => void; openAddRegistration: () => void; openAddCatalogue: () => void; openAddBasePrompt: () => void; openAddAgent: () => void }>("generalRef");
 // The sections that wait in their own list's rows rather than a card's.
 const LIST_SECTIONS = ["registry", "catalogue", "base-prompts"];
+// The columns of the agents' settings table, which its skeleton stands under before the settings arrive.
+const AGENT_TABLE_HEADERS = computed(() =>
+  ["agents.label.column_agent", "agents.label.column_role", "agents.label.column_keepalive", "agents.label.column_thinking", "agents.label.column_effort", "agents.label.column_gate"].map((key) => t(key))
+);
 
 const generalAddItems = computed(() => [
   { label: t("agents.title.accounts"), icon: "i-material-symbols-person-add-outline", onSelect: () => generalRef.value?.openAddAccount() },
@@ -304,9 +303,16 @@ const entries = computed<SettingsEntry[]>(() => {
   const list: SettingsEntry[] = [
     { id: "keepalive", tab: "general", label: t("agents.label.keepalive_all"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_keepalive_all"), shown: true }] },
     { id: "providers", tab: "general", label: t("agents.title.section_providers"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_fallback"), shown: true }] },
-    { id: "agents", tab: "general", label: t("agents.title.section_agents"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_roles"), shown: true }] },
-    { id: "reasoning", tab: "general", label: t("agents.title.section_reasoning"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_reasoning"), shown: true }] },
-    { id: "agent-gates", tab: "general", label: t("agents.title.section_agent_gates"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_agent_gates"), shown: true }] },
+    {
+      id: "agents",
+      tab: "general",
+      label: t("agents.title.section_agents"),
+      fields: [
+        { label: t("agents.label.settings"), text: t("agents.label.find_roles"), shown: true },
+        { label: t("agents.label.settings"), text: t("agents.label.find_reasoning"), shown: true },
+        { label: t("agents.label.settings"), text: t("agents.label.find_agent_gates"), shown: true }
+      ]
+    },
     { id: "sessions", tab: "general", label: t("agents.title.section_sessions"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_sessions"), shown: true }] }
   ];
 

@@ -108,8 +108,6 @@ export const GENERAL_SECTIONS: readonly { id: string; title: string; waiting: nu
   { id: "base-prompts", title: "agents.title.base_prompts", waiting: 1 },
   { id: "accounts", title: "agents.title.accounts", waiting: 2 },
   { id: "agents", title: "agents.title.section_agents", waiting: 3 },
-  { id: "reasoning", title: "agents.title.section_reasoning", waiting: 3 },
-  { id: "agent-gates", title: "agents.title.section_agent_gates", waiting: 3 },
   { id: "sessions", title: "agents.title.section_sessions", waiting: 3 }
 ];
 

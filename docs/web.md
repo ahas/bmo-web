@@ -2421,10 +2421,10 @@ Two ways, split because the running places differ.
   place (see those screens), and no second editor exists anywhere:
   - a worker's whole settings are the same dialog the 워커 tab opens for that worker;
   - a gate's settings are that gate's one row of the 게이트 table, the same cells, shown in a dialog;
-  - the gates of an agent that answers in a room are that agent's one block of 에이전트별 게이트,
+  - the gates of an agent that answers in a room are what that agent's 게이트 cell of 에이전트별 설정 drops down,
     shown in a dialog;
   - the settings of an agent whose turns its settings' pieces make, a companion's, are its one block of
-    the 대화 상대 tab, shown in a dialog together with its block of 에이전트별 게이트; the screen tells such
+    the 대화 상대 tab, shown in a dialog together with its gates as its 게이트 cell holds them; the screen tells such
     an agent by the turn shape its row carries (the agency's `docs/agents.md`, 「One runner」).
   - All four save through the same bot paths and meet the same refusals as here, and the console reads the
     same shared data after a save, so a value changed on one screen is what the other shows. The worker's,
@@ -2514,19 +2514,23 @@ Two ways, split because the running places differ.
   anything out of a credential file** — the path is the whole of what is shown, and what the screen learns
   about a login is only whether it stands and when it ends.
 
-- **에이전트별 캐시 유지 · 롤.** One table: every agent in its group — the chat agent, workers, gates,
-  runners — one row each with its mark, its name and key, what last answered on it, its role and what the
-  role gives, and its own keepalive switch. Every agent stands in it exactly once: a worker the agency lists
-  both as an agent and as a worker is one row, the worker's own fields on its agent's row, and a row stands
-  in the group its kind names. No other list on the tab repeats the agents for their role or their warming.
-  Pressing the name opens that agent's own screen.
-  - **The switch reads what the cache warmer holds** (the cache warmer's `docs/api.md`): on where one of the
-    agent's warming targets, under whichever consumer registered it, warms now — the switch the owner threw
-    on its subject, or the target's own default where none is thrown — and off for an agent the warmer holds
-    no target of, so an agent nobody turned on reads off. Throwing it throws the agent's subject under every
-    consumer that holds a target for it. A row with its switch down carries 멈춤; while the whole round is off every row
-    still on carries 전체 멈춤, and the switch is then the setting to use when the round comes back on.
-  - **The role** is read, not chosen: an agent's role is set when it is registered (the agency's
+- **에이전트별 설정.** One table of every agent's own settings, the agents its rows and the settings its columns:
+  every agent in its group — the chat agent, workers, gates, runners — under the group's heading row, one row each, and
+  the columns 에이전트, 롤, 캐시 유지, 생각, Effort and 게이트. Every agent stands in it exactly once: a worker the agency
+  lists both as an agent and as a worker is one row, the worker's own fields on its agent's row, and a row stands in the
+  group its kind names. No other list on the tab repeats the agents for their role, their warming, their thinking or
+  their gates. The table takes its own height among the tab's sections and scrolls sideways inside its own box on a
+  phone, so no cell is cut.
+  - **에이전트** is the title column: its mark, its name and key, what last answered on it and, under them, its
+    warming mark. Pressing the name opens that agent's own screen.
+  - **캐시 유지** holds the agent's own keepalive switch.
+    - **The switch reads what the cache warmer holds** (the cache warmer's `docs/api.md`): on where one of the
+      agent's warming targets, under whichever consumer registered it, warms now — the switch the owner threw
+      on its subject, or the target's own default where none is thrown — and off for an agent the warmer holds
+      no target of, so an agent nobody turned on reads off. Throwing it throws the agent's subject under every
+      consumer that holds a target for it. A row with its switch down carries 멈춤; while the whole round is off every row
+      still on carries 전체 멈춤, and the switch is then the setting to use when the round comes back on.
+  - **롤** is read, not chosen, and its cell is not pressable: an agent's role is set when it is registered (the agency's
     `docs/agent-roles.md`). The row names it by the pack's word for the code the bot declares it under — 채팅,
     워커, 서쳐, 번역기, 게이트 — and, beside it, what it gives, the bundles by the pack's short Korean names for their
     codes, or 기능 묶음 없음; a code the pack holds no word for is said as the code, and a role the bot no longer
@@ -2547,33 +2551,32 @@ Two ways, split because the running places differ.
   whole round off, or already turned off. On a phone a row's mark stands on the line under its name
   instead of beside it, so the name is never cut. The marks are searchable like the names
   (the agency's `docs/cache-fallback.md`).
-- **생각·Effort.** Under the agents' table, the agents whose thinking and effort are their own
-  (the agency's `docs/model-tiers.md`, 「An agent's own thinking and effort」) — the chat agent, each worker that is no support
-  worker, the two editors and the two searchers — in the list's order, one row each: its mark, its
-  name and key, the provider and model it begins on, and its 생각 and Effort choices, which stand on a
-  line of their own under the name on a phone.
+- **생각 and Effort** are the table's next two columns, a choice each, for the agents whose thinking and effort are
+  their own (the agency's `docs/model-tiers.md`, 「An agent's own thinking and effort」) — the chat agent, each worker
+  that is no support worker, the two editors and the two searchers; every other row shows a dash in both. Pressing
+  either cell drops its list down from the cell.
   - **생각** is 기본, 켬 or 끔, and **Effort** is 기본 or one of `low`, `medium`, `high`, `xhigh` and
     `max`; each is saved as it is picked, through the bot, and a refused save puts the bot's reason
-    under the list.
+    in a notice.
   - **What does not reach the provider the agent begins on is said where it stands:** a choice none
     of which reaches it stands disabled with 지원 안 함, a level it does not take is marked 미적용 in the
-    list, and a row whose saved choice does not reach it carries a 미적용 badge naming, when the
+    list, and a cell whose saved choice does not reach it carries a 미적용 mark naming, when the
     pointer rests on it, the levels it does take.
-  - While the bot is not answering, the rows show what the archive holds and nothing of what reaches
+  - While the bot is not answering, the cells show what the archive holds and nothing of what reaches
     a provider.
   - A support worker is not listed, since it runs on its base's settings, and neither is a gate,
     whose thinking and effort are its tier's.
-- **에이전트별 게이트.** Under 생각·Effort, every agent that answers in a room — the chat agent and each companion
-  — in the list's order, one block each: its mark, its name and key, and under them the gates its turn
-  passes (the gate unit's documents, 「Each agent's own gates」), under the headings 프리게이트 and 포스트게이트 in
-  the turn's order, one row to a gate with its label, its key and its switch.
+- **게이트** is the table's last column, for every agent that answers in a room — the chat agent and each companion:
+  the count of its gates switched on over the gates its turn passes, and pressing the cell drops down from it that
+  agent's own gates (the gate unit's documents, 「Each agent's own gates」), under the headings 프리게이트 and 포스트게이트
+  in the turn's order, one row to a gate with its label, its key and its switch. Every other row shows a dash.
   - A gate standing in both parts stands once, in the first part it stands in, since its switch is one
     setting for both.
-  - On this tab a switch is saved as it is turned, through the bot, and a refused save puts the bot's
-    reason under the list. Shown in an agent's own dialog, the switches wait for that dialog's 저장.
+  - In the table a switch is saved as it is turned, through the bot, and a refused save puts the bot's
+    reason under it. Shown in an agent's own dialog, the switches wait for that dialog's 저장.
   - Which gates an agent's turn passes is the bot's word, so while the bot is not answering the
-    section shows nothing.
-- **세션.** Under 에이전트별 게이트, every session an agent holds now (the agency's `docs/session-resets.md`), one row
+    cell shows a dash.
+- **세션.** Under the table of 에이전트별 설정, every session an agent holds now (the agency's `docs/session-resets.md`), one row
   each in the agent list's order: the agent's face or mark (「Profile photos」), label and key, which session it is — the chat agent's chat
   session, a worker's recorded sessions with their models, a companion's session in one room with its
   room and generation — the last time it was cleared, and an 초기화 button.
@@ -2742,6 +2745,12 @@ Two ways, split because the running places differ.
   co-work roles (`role:*`), the search depths and browse — with each key's provider, its Claude account,
   its tier, the model its run now starts on (and on which provider), and what last answered on it. A key whose
   enabled providers leave it no road carries a warning mark and says why. Workers share `job-worker`.
+  - **Each key's tier and what it resolves to** are the agency's `GET /work-keys`: the tier, the tiers it may take
+    and, per provider, the model it resolves to, or why it does not — said under the model in the pack's sentence
+    for the agency's code, the agency's own sentence where it gives no code standing as the general sentence
+    that the road cannot be taken now. A key the answer does not carry shows 등급 배정 없음.
+  - **A provider is named by its code** in the pack's words — the products by their own names, the registry as
+    등록 모델 — never by the agency's English label.
 - **The provider cell** chooses 자동 or one provider, for a key that has a road of its own. 자동 walks the
   enabled providers of the order; a provider runs the key on that provider alone and does not walk on,
   and while that provider is off the key walks as 자동 (the agency's `docs/cache-fallback.md`, 「The per-key choice is
@@ -2957,7 +2966,7 @@ Two ways, split because the running places differ.
 - **설정** stands beside the name, as an icon button, where the agent has settings of its own: a job
   worker's opens the worker settings dialog of the agent management screen's 워커 tab, a gate's opens
   that gate's row of the 게이트 table in a dialog, and an agent that answers in a room — the chat agent, a
-  companion — opens its block of 에이전트별 게이트 in a dialog. Every other agent has no such button, since what it runs
+  companion — opens its gates, as its 게이트 cell of 에이전트별 설정 holds them, in a dialog. Every other agent has no such button, since what it runs
   on is either shared or set on the agent management screen alone. Saving here is saving there: the same
   path, the same refusals, and the name, marks and model on this screen read again after a save.
 - A line has a time, a kind and content. There are eight kinds.

@@ -1,14 +1,15 @@
 import { emptyFallbackView } from "../../app/domain/agent-settings";
-import { roadReasonOf } from "../utils/agency-words";
+import { providerLabelOf, roadReasonOf } from "../utils/agency-words";
 import { gateOptionsOf } from "../utils/gate";
 
 import type { FallbackView } from "#shared/types";
 
 // A road's reason said in the pack's words, read off the code the agency answers beside it, the agency's sentence kept.
-function worded<T extends { reason: string | null; reasonCode?: unknown }>(road: T): Omit<T, "reasonCode"> & { reasonEnglish: string | null } {
-  const { reasonCode, ...rest } = road;
+// A provider's name is said the same way, by its code.
+function worded<T extends { name: string; label: string; reason: string | null; reasonCode?: unknown; code?: unknown }>(road: T): Omit<T, "reasonCode" | "code"> & { reasonEnglish: string | null } {
+  const { reasonCode, code, ...rest } = road;
 
-  return { ...rest, ...roadReasonOf(road.reason, reasonCode) };
+  return { ...rest, label: providerLabelOf(code, road.name), ...roadReasonOf(road.reason, reasonCode) };
 }
 
 // The ordered fallback as the agency answers it (the agency's `docs/api.md`, 「providers, models, pin-checks, tiers

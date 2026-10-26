@@ -10,7 +10,7 @@
       </ContentSkeleton>
       <CompanionSettingsBlock v-else bare :view="view" @saved="(saved) => (view = saved)" />
 
-      <AgentsGates bare :agents="[{ meta: props.meta, agent: props.agent }]" :reread="props.reread" />
+      <AgentsGates :agents="[{ meta: props.meta, agent: props.agent }]" :reread="props.reread" />
     </div>
 
     <template #footer="{ close }">

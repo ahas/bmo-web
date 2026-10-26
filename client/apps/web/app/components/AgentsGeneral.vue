@@ -112,74 +112,8 @@
     <AgentsAccounts ref="accountsRef" :accounts="props.fallback.accounts" :reread="() => props.reread('fallback')" :query="props.query" />
     <AgentAddDialog v-model:open="agentAdding" :roles="props.agents.roles" :providers="props.fallback.order" :workers="agentWorkers" @added="agentAdded" />
 
-    <!-- Every agent in one table with its role and its own warming switch. The switch reads what the cache
-         warmer holds for that agent alone; while the whole round is off, a row still on says so. -->
-    <section :id="settingsAnchor('agents')" class="flex flex-col gap-3" aria-labelledby="agents-title">
-      <h2 id="agents-title" class="text-lg font-semibold text-highlighted">{{ generalSectionTitle($t, "agents") }}</h2>
-
-      <!-- The gates stand in the parts of the gate order, each under its part's name; a gate that runs
-           in both parts of a turn stands in both, and its two switches are its one setting. -->
-      <div v-for="group in groups" :key="group.key" class="flex flex-col gap-1">
-        <h3 class="text-sm font-medium text-muted">{{ group.label }}</h3>
-
-        <div class="flex flex-col gap-3">
-          <div v-for="block in blocksOf(group)" :key="block.key" class="flex flex-col gap-1">
-            <h4 v-if="block.label !== ''" class="text-sm text-muted">{{ block.label }}</h4>
-
-            <ul class="flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default">
-              <li v-for="agent in block.agents" :id="anchoredIn(group, block, agent.name) ? settingsAnchor(`agent-${agent.name}`) : undefined" :key="agent.name" class="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2">
-                <AgentMark :agent="agent" class="text-muted" />
-                <NuxtLink :to="`/agents/${encodeURIComponent(agent.name)}`" class="flex min-w-0 flex-1 flex-col rounded-sm transition-colors hover:text-primary active:text-primary/80">
-                  <span class="flex min-w-0 items-center gap-2">
-                    <SearchText class="truncate text-sm font-medium text-highlighted" :text="agent.label" :query="props.query" />
-                    <SearchText class="truncate font-mono text-sm text-muted" :text="agent.name" :query="props.query" />
-                  </span>
-                  <!-- On a phone the warming mark stands on this line, so the name beside it is never cut. -->
-                  <SearchText v-if="keepaliveMark(agent.name) !== ''" class="truncate text-sm text-warning sm:hidden" :text="keepaliveMark(agent.name)" :query="props.query" />
-                  <SearchText v-if="recentOf(agent.name) !== ''" class="truncate text-sm text-muted" :text="$t('agents.label.recent', { value: recentOf(agent.name) })" :query="props.query" />
-                  <SearchText class="truncate text-sm text-muted" :text="givesText(agentOf(agent.name)?.role ?? null)" :query="props.query" />
-                  <SearchHit :match="hiddenMatch(agent.name)" :query="props.query" />
-                </NuxtLink>
-                <UBadge v-if="keepaliveMark(agent.name) !== ''" color="neutral" variant="subtle" size="sm" class="max-sm:hidden" :label="keepaliveMark(agent.name)" />
-                <!-- On a phone the role and the switches stand on a line of their own under the name. The role is
-                     read, not chosen: it is set when the agent is registered. -->
-                <div class="flex shrink-0 items-center gap-3 max-sm:w-full max-sm:min-w-0 max-sm:ps-8">
-                  <UBadge color="neutral" variant="outline" size="sm" class="max-sm:me-auto" :label="roleLabel(agentOf(agent.name)?.role ?? null)" />
-                  <!-- A worker's warming turned off now, until its next job wakes it; nothing turns it back on. -->
-                  <UTooltip v-if="isWorker(agent.name)" :text="$t('agents.action.pause_until_job')">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      size="sm"
-                      icon="i-material-symbols-mode-off-on"
-                      :aria-label="$t('agents.aria.pause_keepalive_of', { name: agent.name })"
-                      :loading="busy === `pause:${agent.name}`"
-                      :disabled="busy !== '' || !pausable(agent.name)"
-                      @click="pauseWorker(agent.name)"
-                    />
-                  </UTooltip>
-                  <USwitch
-                    :model-value="!stoppedOf(agent.name)"
-                    :aria-label="$t('agents.aria.keepalive_of', { name: agent.name })"
-                    :loading="busy === `keepalive:${agent.name}`"
-                    :disabled="busy !== ''"
-                    @update:model-value="switchAgent(agent.name, !($event as boolean))"
-                  />
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <p v-if="failed !== ''" role="alert" class="text-sm text-error">{{ failed }}</p>
-    </section>
-
-    <!-- Each agent's own thinking and effort, in the order the list above stands in. -->
-    <AgentsReasoning :agents="reasoningAgents" :reread="() => props.reread('agents')" :query="props.query" />
-
-    <!-- Each agent's own gates, in the order the list above stands in. -->
-    <AgentsGates :agents="listedAgents" :reread="() => props.reread('agents')" :query="props.query" />
+    <!-- Every agent's own settings as one table: its role, its keepalive, its thinking and effort and its own gates. -->
+    <AgentsSettingsTable :agents="props.agents" :keepalive="props.keepalive" :groups="groups" :reread="props.reread" :query="props.query" />
 
     <!-- Every session an agent holds, each with its reset. -->
     <AgentsSessions :query="props.query" />
@@ -187,17 +121,15 @@
 </template>
 
 <script setup lang="ts">
-import { matchFields } from "bmo-ui/shared/search";
 import { settingsAnchor } from "~/domain/agent-settings";
-import { agentGroups, designatedAndWorkers, gateBlocks, generalSectionTitle, keepaliveMarkOf, movedOrder } from "~/domain/agents";
+import { agentGroups, designatedAndWorkers, generalSectionTitle, movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { countText } from "~/domain/numbers";
-import { modeLabel, modelLabel } from "~/domain/status";
 import { useRowDrag } from "~/domain/row-drag";
 
-import type { AgentList, AgentRegistered, AgentSummary, FallbackView, KeepaliveView, OrderedProvider, RoomSummary } from "#shared/types";
-import type { AgentBlock, AgentGroup, GeneralPart } from "~/domain/agents";
+import type { AgentList, AgentRegistered, FallbackView, KeepaliveView, OrderedProvider, RoomSummary } from "#shared/types";
+import type { AgentGroup, GeneralPart } from "~/domain/agents";
 import type { ModelPage } from "#shared/agency";
 
 interface Props {
@@ -223,89 +155,7 @@ const orderFailed = ref("");
 
 const groups = computed<AgentGroup[]>(() => agentGroups(t, designatedAndWorkers(props.agents.agents), props.rooms, props.agents.gateOrder ?? []));
 
-// A group as it stands on this screen: the gates in the parts of the gate order, every other group
-// as one list under its title.
-function blocksOf(group: AgentGroup): AgentBlock[] {
-  return group.key === "gate" ? gateBlocks(t, group.agents, props.agents.gateOrder ?? []) : [{ key: group.key, label: "", agents: group.agents }];
-}
-
-// Whether this is the first place an agent stands in its group, which is where the settings search
-// jumps to it.
-function anchoredIn(group: AgentGroup, block: AgentBlock, name: string): boolean {
-  return blocksOf(group).find((one) => one.agents.some((agent) => agent.name === name))?.key === block.key;
-}
 const stoppedCount = computed(() => props.agents.agents.filter((agent) => agent.keepaliveStopped).length);
-
-// Every agent in the list's order, with what the bot says of it.
-const listedAgents = computed(() =>
-  groups.value.flatMap((group) => group.agents.flatMap((meta) => {
-    const agent = agentOf(meta.name);
-
-    return agent === undefined ? [] : [{ meta, agent, group: group.key }];
-  }))
-);
-
-// The agents a choice of thinking and effort of their own may reach: never a gate, whose thinking and
-// effort are its tier's.
-const reasoningAgents = computed(() => listedAgents.value.filter((one) => one.group !== "gate"));
-
-function stoppedOf(name: string): boolean {
-  return props.agents.agents.find((agent) => agent.name === name)?.keepaliveStopped ?? false;
-}
-
-function agentOf(name: string): AgentSummary | undefined {
-  return props.agents.agents.find((agent) => agent.name === name);
-}
-
-// The role an agent holds by the label the bot declares for it; one it no longer declares, or any while it is not
-// answering, by its own name.
-function roleLabel(held: string | null): string {
-  if (held === null) return t("agents.label.role_none");
-
-  return props.agents.roles.find((one) => one.name === held)?.label ?? held;
-}
-
-// What the role an agent holds gives, the bundles by their short names; while the bot is not answering, the
-// role's own name alone.
-function givesText(held: string | null): string {
-  if (held === null) return t("agents.label.role_none");
-
-  const role = props.agents.roles.find((one) => one.name === held);
-
-  if (role === undefined) return held;
-
-  return role.bundles.length === 0 ? t("agents.label.role_bundles_none") : role.bundles.map((bundle) => bundle.label).join(" · ");
-}
-
-function keepaliveMark(name: string): string {
-  return keepaliveMarkOf(t, agentOf(name), props.keepalive.stopped);
-}
-
-function isWorker(name: string): boolean {
-  return agentOf(name)?.kind === "worker";
-}
-
-// A worker being warmed right now, which is the only one there is anything to turn off for.
-function pausable(name: string): boolean {
-  const agent = agentOf(name);
-
-  return agent !== undefined && !agent.keepaliveStopped && agent.keepalivePausedAt === null && !props.keepalive.stopped;
-}
-
-function recentOf(name: string): string {
-  const agent = props.agents.agents.find((one) => one.name === name);
-
-  if (agent === undefined || agent.lastMode === null) return "";
-
-  return [modeLabel(t, agent.lastMode), agent.lastModel === null ? null : modelLabel(agent.lastModel), agent.lastEffort].filter(Boolean).join(" · ");
-}
-
-// Where the search found a row in what the row does not show: the names the owner calls it by.
-function hiddenMatch(name: string) {
-  const aliases = props.agents.agents.find((one) => one.name === name)?.aliases ?? "";
-
-  return matchFields([{ label: t("agents.label.alias"), text: aliases, shown: false }], props.query);
-}
 
 function answering(name: OrderedProvider["name"]): boolean {
   return props.fallback.since !== null && props.fallback.active.provider === name;
@@ -327,14 +177,6 @@ async function ask(path: string, body: Record<string, unknown>, mark: string, wh
 
 async function switchKeepalive(stopped: boolean): Promise<void> {
   await ask("/api/keepalive", { stopped }, "keepalive", "keepalive");
-}
-
-async function switchAgent(name: string, stopped: boolean): Promise<void> {
-  await ask("/api/keepalive", { agent: name, stopped }, `keepalive:${name}`, "agents");
-}
-
-async function pauseWorker(name: string): Promise<void> {
-  await ask("/api/keepalive", { agent: name, pause: true }, `pause:${name}`, "agents");
 }
 
 async function resetOrder(): Promise<void> {

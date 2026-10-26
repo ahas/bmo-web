@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 
-import { bundleLabelOf, roadReasonOf, roleLabelOf } from "../../../apps/web/server/utils/agency-words";
+import { bundleLabelOf, providerLabelOf, roadReasonOf, roleLabelOf } from "../../../apps/web/server/utils/agency-words";
 import { wording } from "../../../apps/web/shared/wording";
 
 // The agency's codes said in the pack's words (docs/web.md, the agents page's general tab): a road's reason with
@@ -21,4 +21,11 @@ test("a role and a bundle are named by their codes", () => {
   expect(bundleLabelOf("web-read", "web.read")).toBe(wording("agents.label.bundle_web_read"));
   expect(bundleLabelOf(undefined, "room-send")).toBe(wording("agents.label.bundle_room_send"));
   expect(roleLabelOf("pilot", "pilot")).toBe(wording("agents.label.unknown_code", { code: "pilot" }));
+});
+
+test("a provider is named by its code, a product by its own name and the registry in the pack's word", () => {
+  expect(providerLabelOf("claude-code", "claude-code")).toBe(wording("agents.label.provider_claude_code"));
+  expect(providerLabelOf("registered", "registered")).toBe(wording("agents.label.provider_registered"));
+  expect(providerLabelOf(undefined, "deepseek")).toBe(wording("agents.label.provider_deepseek"));
+  expect(providerLabelOf("brand-new", "brand-new")).toBe(wording("agents.label.unknown_code", { code: "brand-new" }));
 });

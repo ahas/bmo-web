@@ -1,29 +1,20 @@
 <template>
-  <!-- Each agent's own gates (the gate unit's docs/gates.md, 「Each agent's own gates」): one block to an agent that
-       answers in a room, its gates under the turn's parts in the turn's order, one switch to a gate.
-       A dialog opening one agent's block alone leaves out the titles the dialog already shows. On
-       the tab a switch saves as it is turned; inside a form the switches wait for its save
-       (docs/web.md, 「Forms」). -->
-  <section :id="props.bare ? undefined : settingsAnchor('agent-gates')" class="flex flex-col gap-3" :aria-labelledby="props.bare ? undefined : 'agent-gates-title'">
-    <h2 v-if="!props.bare" id="agent-gates-title" class="text-lg font-semibold text-highlighted">{{ generalSectionTitle($t, "agent-gates") }}</h2>
-
+  <!-- One agent's own gates (the gate unit's docs/gates.md, 「Each agent's own gates」): its gates under the turn's
+       parts in the turn's order, one switch to a gate, as the gates cell of the general tab's table drops them down
+       and as an agent's own dialog holds them. In the cell a switch saves as it is turned; inside a form the switches
+       wait for its save (docs/web.md, 「Forms」). -->
+  <section class="flex flex-col gap-3">
     <div v-for="row in rows" :key="row.meta.name" class="flex flex-col gap-1">
-      <h3 v-if="!props.bare" class="flex min-w-0 items-center gap-2 text-sm font-medium text-muted">
-        <UIcon :name="row.meta.icon" class="size-5 shrink-0" />
-        <SearchText class="truncate" :text="row.meta.label" :query="props.query" />
-        <SearchText class="truncate font-mono" :text="row.meta.name" :query="props.query" />
-      </h3>
-
       <div class="flex flex-col gap-3">
         <div v-for="part in partsOf(row.gates)" :key="part.part" class="flex flex-col gap-1">
           <h4 class="text-sm text-muted">{{ $t(GATE_PART_LABELS[part.part]) }}</h4>
 
           <ul class="flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default">
             <li v-for="gate in part.gates" :key="gate.key" class="flex min-h-12 items-center gap-3 px-4 py-2">
-              <!-- On a phone the key stands on the line under the label, so neither is cut. -->
-              <span class="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-center sm:gap-2">
-                <SearchText class="truncate text-sm font-medium text-highlighted" :text="agentLabel($t, gate.key)" :query="props.query" />
-                <SearchText class="truncate font-mono text-sm text-muted" :text="gate.key" :query="props.query" />
+              <!-- The key stands on the line under the label, and both wrap, so neither is cut in a cell's dropdown. -->
+              <span class="flex min-w-0 flex-1 flex-col">
+                <SearchText class="break-words text-sm font-medium text-highlighted" :text="agentLabel($t, gate.key)" :query="props.query" />
+                <SearchText class="break-all font-mono text-sm text-muted" :text="gate.key" :query="props.query" />
               </span>
               <USwitch
                 :model-value="shown(row.meta.name, gate)"
@@ -43,8 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { settingsAnchor } from "~/domain/agent-settings";
-import { agentLabel, generalSectionTitle } from "~/domain/agents";
+import { agentLabel } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useFormPart } from "bmo-ui/app/domain/form-save";
 import { GATE_PART_LABELS } from "~/domain/gate-order";
@@ -64,10 +54,8 @@ const props = withDefaults(
     // The bot is asked to save and the screen then reads the list again, which this waits for.
     reread: () => Promise<void>;
     query?: string;
-    // One agent's block alone, under a dialog's own title.
-    bare?: boolean;
   }>(),
-  { query: "", bare: false }
+  { query: "" }
 );
 
 const { t } = useI18n();

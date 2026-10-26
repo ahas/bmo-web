@@ -1,6 +1,6 @@
 import { wording } from "#shared/wording";
 
-// The agency's codes for what it says in English — why a road cannot be taken, a role and a bundle — each with the
+// The agency's codes for what it says in English — why a road cannot be taken, a provider, a role and a bundle — each with the
 // pack's key for its words (the agency's `docs/api.md`). The codes are the agency's and its providers' own; the
 // table is where the console says them. A code the pack holds no words for is said as the code itself.
 
@@ -12,6 +12,15 @@ const ROAD_REASONS: Readonly<Record<string, string>> = {
   "no-registration-addressed": "agents.status.road_no_registration_addressed",
   "line-not-carried": "agents.status.road_line_not_carried",
   "laya-url-unset": "agents.status.road_laya_url_unset"
+};
+
+const PROVIDER_LABELS: Readonly<Record<string, string>> = {
+  "claude-code": "agents.label.provider_claude_code",
+  codex: "agents.label.provider_codex",
+  openrouter: "agents.label.provider_openrouter",
+  deepseek: "agents.label.provider_deepseek",
+  registered: "agents.label.provider_registered",
+  laya: "agents.label.provider_laya"
 };
 
 const ROLE_LABELS: Readonly<Record<string, string>> = {
@@ -62,4 +71,9 @@ export function roleLabelOf(code: unknown, name: string): string {
 /** A bundle's name in the pack's words, by its code. */
 export function bundleLabelOf(code: unknown, name: string): string {
   return labelOf(BUNDLE_LABELS, code, name);
+}
+
+/** A provider's name in the pack's words, by its code. */
+export function providerLabelOf(code: unknown, name: string): string {
+  return labelOf(PROVIDER_LABELS, code, name);
 }

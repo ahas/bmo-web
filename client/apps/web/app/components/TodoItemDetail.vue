@@ -1020,13 +1020,18 @@ const twoColumns = useNarrow("(min-width: 1024px)");
 const leftTab = ref("status");
 const rightTab = ref("talk");
 const singleTab = ref("status");
-// Every item opens on its first tab: the result where it has one, its state otherwise, and the talk on the right. It is chosen when an item is opened and not as it changes, so an item
-// that ends while it is being read keeps the tab he is on; one whose result goes away while it
-// stands on it falls back to the conversation rather than to a tab that is no longer there.
+// Every item opens on its first tab: the result where it has one, its state otherwise, and the talk on the right. It
+// is chosen when an item is opened and not as it changes, so an item that ends while it is being read keeps the tab
+// he is on; one whose result goes away while it stands on it falls back to its state rather than to a tab that is no
+// longer there.
+// The item last opened, so a re-read that hands the same item back after a moment of none keeps the tab being read.
+let lastOpened: number | null = null;
+
 watch(
   () => props.item?.id ?? null,
   (id) => {
-    if (id !== null) {
+    if (id !== null && id !== lastOpened) {
+      lastOpened = id;
       const first = hasResult(props.item) ? "result" : "status";
       leftTab.value = first;
       singleTab.value = first;
@@ -1210,7 +1215,8 @@ async function loadTalk(id: number): Promise<void> {
   try {
     const answer = await $fetch<TodoTalk>(`/api/todos/${id}/talk`);
     if (latest() && opened.value === id) {
-      talk.value = answer.turns;
+      // A talk that answers no turns, as a unit answering in another shape does, stands as none.
+      talk.value = Array.isArray(answer.turns) ? answer.turns : [];
       talkAnswering.value = answer.answering;
       talkUnanswered.value = answer.failure;
     }

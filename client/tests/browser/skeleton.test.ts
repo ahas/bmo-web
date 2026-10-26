@@ -247,9 +247,8 @@ describe.skipIf(!origin || !touchReady())('TODO response ownership', () => {
       await refreshing(aside).waitFor({ state: 'detached' });
       releaseOld();
       await aside.getByRole('button', { name: /9001 current result/ }).click();
-      // The note box stands under the item's conversation, the first of the detail's tabs of that name: the
-      // talk on the other side carries the same one.
-      await page.getByRole('tab', { name: wording('todo.label.conversation'), exact: true }).first().click();
+      // The note box stands under the request's own words, the detail's tab of that name.
+      await page.getByRole('dialog').last().getByRole('tab', { name: wording('todo.label.request_text'), exact: true }).click();
       const input = page.getByRole('textbox', { name: KO.line_247, exact: true }).filter({ visible: true });
       await input.fill('keep my draft');
       // The detail stands over the list, and everything under it is out of a pointer's reach, so

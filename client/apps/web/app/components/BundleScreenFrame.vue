@@ -9,9 +9,6 @@
       </template>
     </ConsoleTitleBar>
     <slot />
-    <!-- The voice briefing's player, the layout's: it stands over the page area and stays as the reader moves between
-         screens (docs/web.md, 「Messages」). It stands only where the layout hears the briefings. -->
-    <BriefingPlayer />
   </div>
 </template>
 

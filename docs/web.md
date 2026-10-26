@@ -1578,8 +1578,8 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 
 - **Every screen carries the one title bar, with the same buttons in the same places.** It is one component:
   the sidebar button, the screen's name and mark, what acts on that screen alone beside its name (an agent's
-  설정 and 중지, a room's menu and its window clock), and at its right end the one set of buttons — the
-  deployment's mark, and for the administrator the TODO button and the usage figures. No screen composes a bar
+  설정 and 중지, a room's menu and its window clock), and at its right end the one set of buttons — for the
+  administrator the voice briefing's player while one plays (「Messages」), the deployment's mark, and for the administrator the TODO button and the usage figures. No screen composes a bar
   of its own or leaves a button of the set out. The one difference a screen may make is the room's: its bar is
   the same bar on the translucent ground the room's bars lie over the conversation on.
 - **The set of buttons is one instance, held by the layout,** and laid into the bar of whichever screen
@@ -1597,8 +1597,8 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   mounts, and it stays while the screen being left still stands, until that screen has gone. Between two bundles'
   screens it is the same bar and the same place, renamed. A bundle read where nothing offers the bar — its unit's own
   app, or a console without the offer — draws its own, and a route that does not ask stands as its bundle draws it.
-- **The title bar holds only what every screen holds** — the sidebar button, the screen's name, the deployment's
-  mark, the TODO button and the usage figures — and beside the name what acts on that screen as a whole. What acts
+- **The title bar holds only what every screen holds** — the sidebar button, the screen's name, the briefing's
+  player while one plays, the deployment's mark, the TODO button and the usage figures — and beside the name what acts on that screen as a whole. What acts
   on one screen's content — its filters, its reread, the time its
   data was read, the original of a document — stands in that screen's own row under the title bar, at the
   right end of its tab bar, or in its content's title, never in the title bar. The screen's own row is one
@@ -4806,8 +4806,8 @@ Four bounds keep it from growing forever.
   bottom borders are one straight line across the window. The token is 48px, for the top bar, the sidebar's head
   and this head alike.
 - **The boundary to the page is one 1px line, the panel's own leading border**, drawn open and folded, in both themes.
-  The page and the briefing's player share a box of their own beside the panel, and the page stays the last element of
-  that box, so its own panel draws no trailing edge there and no second line stands beside the panel's. Dragging the
+  The page stands in a box of its own beside the panel, and is the last element of that box, so its own panel draws
+  no trailing edge there and no second line stands beside the panel's. Dragging the
   edge lights that same line rather than drawing another.
 - **The head is titled TODO**, with the count of open questions beside it in the warning colour while any stand, and the
   buttons at its right end. The counts stand on the state tabs rather than in the head: **대기**, **진행 중**, **결재 대기**,
@@ -5509,10 +5509,11 @@ dialog open at 계정.
   notice goes on its own and a press of back spent on one is a press the reader has to make twice. A question asked
   while the page is already being left takes no entry of its own: it is holding that navigation, and the navigation
   moves the history itself.
-- **A voice briefing playing is not news and does not stand on it.** It stands as a small player of its own at the
-  top-left of the page area, just under the one title bar and level with the content's gutter — a visualiser and a
-  close mark, no words — while the island goes on carrying the news beside it. The layout holds it, so it stays as
-  the reader moves between screens.
+- **A voice briefing playing is not news and does not stand on it.** It stands as a compact control in the one
+  title bar's set of buttons, ahead of the deployment's mark — a visualiser and a close mark, no words — so it is
+  over nothing a screen draws, while the island goes on carrying the news beside it. The layout holds the set, so it
+  stays as the reader moves between screens; it comes in and goes by fading where it stands, since nothing was
+  pressed for it.
   - **What plays by itself** is what the voice engine's stream says has ended (its `docs/boundary-api.md`,
     「Events」, 「Briefings」): a `briefing.ended` of a `summary`, `done`, whose `plays` holds. One that ended more
     than two minutes before the console heard of it stands in the player waiting for a press rather than
@@ -5523,9 +5524,7 @@ dialog open at 계정.
     tab; a briefing this browser has played or stopped is not played again when the stream hands it back.
   - **One tab plays.** Several console tabs in one browser agree among themselves which one plays — the tab being
     looked at first, then one merely shown, then a hidden one — so a briefing is heard once per browser.
-  - **It is moved the way a picture-in-picture window is,** dragged with a mouse or a finger inside the page area,
-    settling on the nearer side when let go; the side and the height it was left at are kept in this browser.
-    While it plays its surface swells a little with the sound; a reader who asked for less movement is given it
+  - **While it plays its surface swells a little with the sound;** a reader who asked for less movement is given it
     still.
   - **Its presses.** The visualiser leads to the line the briefing speaks, in its room; paused or refused by a
     browser that will not start a sound nobody pressed for, it plays instead. Starting a briefing pauses any

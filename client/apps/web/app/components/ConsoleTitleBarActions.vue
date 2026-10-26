@@ -1,8 +1,10 @@
 <template>
-  <!-- The title bar's one set of buttons, the same on every screen and in the same places: the deployment's mark,
-       and for the administrator the TODO button and the usage figures (docs/web.md, 「The title bar」). The layout
-       holds this one instance, so a page change neither stands it up again nor reads its figures again. -->
+  <!-- The title bar's one set of buttons, the same on every screen and in the same places: for the administrator the
+       voice briefing's player while one plays, then the deployment's mark, and for the administrator the TODO button
+       and the usage figures (docs/web.md, 「The title bar」, 「Messages」). The layout holds this one instance, so a
+       page change neither stands it up again nor reads its figures again. -->
   <span class="flex shrink-0 items-center gap-1.5" data-title-bar-actions>
+    <BriefingPlayer v-if="administrator" />
     <DeployMark />
     <template v-if="administrator">
       <TodoOpenButton />

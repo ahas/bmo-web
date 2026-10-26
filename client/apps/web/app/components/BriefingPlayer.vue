@@ -1,35 +1,22 @@
 <template>
-  <!-- The voice briefing playing, as a small player over the page's panel, first at its top-left
-       just under its title row and level with the gutter the content stands on, and dragged from
-       there like a picture-in-picture window (docs/web.md, 「Messages」, the briefing's player). It
-       carries no words: the visualiser, which leads to the voice message or plays a sound waiting
-       for a press, and the close mark, which stops the listening. It stands inside the layout rather than
-       over it, so what opens over the screen covers it like the rest. Its dark surface is a layer of
-       its own behind the two presses, so the swell with the sound moves the surface alone. -->
-  <Transition name="bmo-briefing" type="animation">
-    <div
-      v-if="shown !== null"
-      ref="player"
-      data-briefing-popup
-      role="group"
-      :aria-label="$t('briefing.label.title')"
-      class="absolute z-20 flex touch-none items-center gap-1 p-1 select-none [--bmo-gutter:1rem] sm:[--bmo-gutter:1.5rem]"
-      :class="dragAt === null ? '' : 'cursor-grabbing'"
-      :style="placed"
-      @pointerdown="grab"
-      @click.capture="swallow"
-    >
+  <!-- The voice briefing playing, as a compact control in the one title bar's set of buttons (docs/web.md,
+       「Messages」, the briefing's player): over nothing a screen draws. It carries no words: the visualiser, which
+       leads to the voice message or plays a sound waiting for a press, and the close mark, which stops the
+       listening. Nothing was pressed for it, so it comes and goes by fading where it stands. Its dark surface is a
+       layer of its own behind the two presses, so the swell with the sound moves the surface alone. -->
+  <Transition name="bmo-briefing">
+    <div v-if="shown !== null" data-briefing-popup role="group" :aria-label="$t('briefing.label.title')" class="relative flex shrink-0 items-center gap-0.5 p-0.5">
       <span
         data-briefing-surface
         aria-hidden="true"
-        class="absolute inset-0 -z-10 rounded-full bg-zinc-900 shadow-lg shadow-black/40 ring-1 ring-white/15 dark:bg-zinc-800"
+        class="absolute inset-0 -z-10 rounded-full bg-zinc-900 ring-1 ring-white/15 dark:bg-zinc-800"
         :style="{ scale: swell }"
       />
 
       <UTooltip :text="pressLabel">
         <button
           type="button"
-          class="flex h-8 w-14 cursor-pointer items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 active:bg-white/20 focus-inset"
+          class="flex h-7 w-12 cursor-pointer items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 active:bg-white/20 focus-inset"
           :aria-label="pressLabel"
           @click="press"
         >
@@ -43,7 +30,7 @@
       <UTooltip :text="$t('briefing.action.stop')">
         <UButton
           icon="i-material-symbols-close"
-          size="sm"
+          size="xs"
           color="neutral"
           variant="ghost"
           class="rounded-full"
@@ -58,7 +45,6 @@
 
 <script setup lang="ts">
 import { barsOf, BRIEFING_BARS, BRIEFING_FFT, briefingState, swayingBars, swellOf } from "~/domain/briefing";
-import { type BriefingBounds, clampTo, isDrag, settledSide, useBriefingPosition } from "~/domain/briefing-position";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
 const { t } = useI18n();
@@ -150,268 +136,33 @@ async function press(): Promise<void> {
 
   await navigateTo(now.to);
 }
-
-// Where it stands. At rest it is held to its side's gutter and to the height it was left at, which
-// the stylesheet pulls inside the panel between the title row and the foot's gutter, so a panel
-// that shrinks shows it as low as it allows without losing the height kept for a taller one.
-const { position, keep } = useBriefingPosition();
-const player = ref<HTMLElement | null>(null);
-const dragAt = ref<{ left: number; top: number } | null>(null);
-const height = ref(0);
-
-watch(player, (element) => {
-  if (element !== null) {
-    height.value = element.offsetHeight;
-  }
-});
-
-function restingTop(top: number): string {
-  return `clamp(calc(var(--ui-header-height) + 0.5rem), ${top}px, calc(100% - ${height.value}px - var(--bmo-gutter)))`;
-}
-
-const placed = computed(() => {
-  if (dragAt.value !== null) {
-    return { left: `${dragAt.value.left}px`, top: `${dragAt.value.top}px` };
-  }
-
-  const { side, top } = position.value;
-
-  return { [side]: "var(--bmo-gutter)", top: restingTop(top) };
-});
-
-// The edges it may be dragged between, read off the panel it stands in as the drag begins: the
-// gutter its side keeps, and the highest and lowest its resting rule lets it stand.
-function boundsOf(element: HTMLElement): BriefingBounds {
-  const panel = element.offsetParent as HTMLElement;
-  const width = element.offsetWidth;
-  const gutter = position.value.side === "left" ? element.offsetLeft : panel.clientWidth - element.offsetLeft - width;
-  const resting = element.style.top;
-
-  element.style.top = restingTop(0);
-  const minTop = element.offsetTop;
-
-  element.style.top = restingTop(panel.clientHeight);
-  const maxTop = element.offsetTop;
-
-  element.style.top = resting;
-
-  return { minLeft: gutter, maxLeft: panel.clientWidth - width - gutter, minTop, maxTop };
-}
-
-// One press on the player, from the pointer going down: a press until it has travelled past the
-// slop, a drag from then on.
-interface Held {
-  pointer: number;
-  type: string;
-  x: number;
-  y: number;
-  from: { left: number; top: number };
-  bounds: BriefingBounds | null;
-  lastX: number;
-  lastAt: number;
-  speed: number;
-}
-
-let held: Held | null = null;
-let dragged = false;
-
-function grab(event: PointerEvent): void {
-  const element = player.value;
-
-  dragged = false;
-
-  if (element === null || !event.isPrimary || event.button !== 0) {
-    return;
-  }
-
-  for (const running of element.getAnimations()) {
-    running.cancel();
-  }
-
-  held = {
-    pointer: event.pointerId,
-    type: event.pointerType,
-    x: event.clientX,
-    y: event.clientY,
-    from: { left: element.offsetLeft, top: element.offsetTop },
-    bounds: null,
-    lastX: event.clientX,
-    lastAt: event.timeStamp,
-    speed: 0
-  };
-  window.addEventListener("pointermove", follow);
-  window.addEventListener("pointerup", release);
-  window.addEventListener("pointercancel", release);
-}
-
-function follow(event: PointerEvent): void {
-  const element = player.value;
-
-  if (held === null || element === null || event.pointerId !== held.pointer) {
-    return;
-  }
-
-  const dx = event.clientX - held.x;
-  const dy = event.clientY - held.y;
-
-  if (held.bounds === null) {
-    if (!isDrag(dx, dy, held.type)) {
-      return;
-    }
-
-    height.value = element.offsetHeight;
-    held.bounds = boundsOf(element);
-  }
-
-  const { bounds } = held;
-  const elapsed = event.timeStamp - held.lastAt;
-
-  if (elapsed > 0) {
-    held.speed = ((event.clientX - held.lastX) / elapsed) * 1000;
-  }
-
-  held.lastX = event.clientX;
-  held.lastAt = event.timeStamp;
-  dragAt.value = {
-    left: clampTo(held.from.left + dx, bounds.minLeft, bounds.maxLeft),
-    top: clampTo(held.from.top + dy, bounds.minTop, bounds.maxTop)
-  };
-}
-
-// Let go, a drag settles on the nearer side at the height it was let go at, glides there, and is
-// kept; the press it began as is not passed on to what it started on.
-async function release(event: PointerEvent): Promise<void> {
-  const element = player.value;
-  const ended = held;
-
-  if (ended === null || event.pointerId !== ended.pointer) {
-    return;
-  }
-
-  held = null;
-  window.removeEventListener("pointermove", follow);
-  window.removeEventListener("pointerup", release);
-  window.removeEventListener("pointercancel", release);
-
-  const at = dragAt.value;
-
-  if (element === null || ended.bounds === null || at === null) {
-    dragAt.value = null;
-
-    return;
-  }
-
-  dragged = true;
-
-  const before = element.getBoundingClientRect();
-
-  keep({ side: settledSide(at.left, element.offsetWidth, ended.bounds, ended.speed), top: Math.round(at.top) });
-  dragAt.value = null;
-  await nextTick();
-
-  if (still.value) {
-    return;
-  }
-
-  const after = element.getBoundingClientRect();
-
-  element.animate([{ transform: `translate(${before.left - after.left}px, ${before.top - after.top}px)` }, { transform: "none" }], {
-    duration: 220,
-    easing: "cubic-bezier(0.2, 0.9, 0.25, 1)"
-  });
-}
-
-// A click that ends a drag is the drag's; one from the keyboard carries no pointer and is passed on.
-function swallow(event: MouseEvent): void {
-  if (dragged && event.detail !== 0) {
-    event.stopPropagation();
-    event.preventDefault();
-  }
-
-  dragged = false;
-}
-
-onScopeDispose(() => {
-  if (import.meta.client) {
-    window.removeEventListener("pointermove", follow);
-    window.removeEventListener("pointerup", release);
-    window.removeEventListener("pointercancel", release);
-  }
-});
 </script>
 
 <style scoped>
-/* It comes out of its own middle, past its size and back, and goes back into it; the size alone
-   shows it coming and going, so nothing fades. Its swell with the sound is the surface's scale
-   alone, eased from one frame to the next, so the presses keep their size and place while it plays
-   and no frame lays anything out again. */
-[data-briefing-popup],
+/* Its swell with the sound is the surface's scale alone, eased from one frame to the next, so the presses keep
+   their size and place while it plays and no frame lays anything out again. It comes and goes by fading where it
+   stands, on the shared quick length. */
 [data-briefing-surface] {
   transform-origin: center;
-}
-
-[data-briefing-surface] {
-  transition: scale 120ms ease-out;
+  transition: scale var(--bmo-motion-quick) var(--bmo-ease-move);
 }
 
 .bmo-briefing-enter-active {
-  animation: bmo-briefing-in 460ms both;
+  transition: opacity var(--bmo-motion-quick) var(--bmo-ease-enter);
 }
 
 .bmo-briefing-leave-active {
-  animation: bmo-briefing-out 220ms both;
+  transition: opacity var(--bmo-motion-quick) var(--bmo-ease-exit);
 }
 
-@keyframes bmo-briefing-in {
-  0% {
-    transform: scale(0);
-    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
-  }
-
-  50% {
-    transform: scale(1.12);
-    animation-timing-function: ease-in-out;
-  }
-
-  72% {
-    transform: scale(0.95);
-    animation-timing-function: ease-in-out;
-  }
-
-  88% {
-    transform: scale(1.02);
-    animation-timing-function: ease-in-out;
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes bmo-briefing-out {
-  0% {
-    transform: scale(1);
-    animation-timing-function: ease-out;
-  }
-
-  30% {
-    transform: scale(1.06);
-    animation-timing-function: cubic-bezier(0.5, 0, 0.8, 0.3);
-  }
-
-  100% {
-    transform: scale(0);
-  }
+.bmo-briefing-enter-from,
+.bmo-briefing-leave-to {
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
   [data-briefing-surface] {
     transition: none;
-  }
-
-  .bmo-briefing-enter-active,
-  .bmo-briefing-leave-active {
-    animation: none;
   }
 }
 </style>

@@ -170,7 +170,8 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
         await page.goto(`${origin}/agents/${AGENT}`, { waitUntil: "load" });
         await page.locator("[data-tool-call]").nth(1).waitFor({ timeout: 20_000 });
 
-        expect(await page.locator("[data-work-order]").innerText()).toContain("prompt-ko");
+        // The job's prompt is read after the log, so it is waited for rather than read the moment the log stands.
+        expect(await until(async () => await page.locator("[data-work-order]").innerText(), (text) => text.includes("prompt-ko"))).toContain("prompt-ko");
         expect(await page.locator("li[data-step]").count()).toBe(0);
         expect(await page.locator("[data-agent-log]").count()).toBe(1);
 

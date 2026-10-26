@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
+import { harnessScreens } from "./harness-screens";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
@@ -129,6 +130,13 @@ function expectSquares(found: Record<string, Mark[]>): void {
   expect(Object.entries(found).flatMap(([at, list]) => list.filter((mark) => mark.width !== side || mark.height !== side).map((mark) => ({ at, ...mark })))).toEqual([]);
 }
 
+// The screens visited stand every one the harness's sidebar leads to, with at least one room and one agent.
+function expectEveryScreen(visited: readonly string[]): void {
+  expect(harnessScreens().filter((path) => !visited.includes(path))).toEqual([]);
+  expect(visited.some((path) => path.startsWith("/rooms/"))).toBe(true);
+  expect(visited.some((path) => path.startsWith("/agents/"))).toBe(true);
+}
+
 describe.skipIf(!origin || !touchReady())("the title bar's icon buttons", () => {
   for (const viewport of WIDTHS) {
     for (const scheme of SCHEMES) {
@@ -174,7 +182,8 @@ describe.skipIf(!origin || !touchReady())("the title bar's icon buttons", () => 
           found[path] = await marks(page);
         }
 
-        expect(Object.keys(found).length).toBeGreaterThan(12);
+        // Every screen the console's sidebar leads to, a room and an agent among them.
+        expectEveryScreen(Object.keys(found));
         expectSquares(found);
       } finally {
         await context.close();

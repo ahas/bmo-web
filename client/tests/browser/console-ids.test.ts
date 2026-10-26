@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { harnessScreens } from "./harness-screens";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
@@ -115,6 +116,13 @@ async function sidebar(page: Page, phone: boolean): Promise<Locator> {
   return page.locator("body");
 }
 
+// The screens visited stand every one the harness's sidebar leads to, with at least one room and one agent.
+function expectEveryScreen(visited: readonly string[]): void {
+  expect(harnessScreens().filter((path) => !visited.includes(path))).toEqual([]);
+  expect(visited.some((path) => path.startsWith("/rooms/"))).toBe(true);
+  expect(visited.some((path) => path.startsWith("/agents/"))).toBe(true);
+}
+
 describe.skipIf(!origin || !touchReady())("ids on a console screen", () => {
   for (const viewport of WIDTHS) {
     test(`no id stands twice on any screen at ${viewport.width}px`, async () => {
@@ -131,8 +139,8 @@ describe.skipIf(!origin || !touchReady())("ids on a console screen", () => {
           found[path] = await shared(page);
         }
 
-        // Home, a dozen screens, a room and an agent at the least.
-        expect(Object.keys(found).length).toBeGreaterThan(12);
+        // Every screen the console's sidebar leads to, a room and an agent among them.
+        expectEveryScreen(Object.keys(found));
 
         if (viewport.phone) {
           await sidebar(page, true);

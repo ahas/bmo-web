@@ -14,6 +14,7 @@ import { join } from "node:path";
 import { SQL } from "bun";
 
 import { connectionOf } from "../../apps/web/server/utils/db";
+import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { addressOf } from "./web-database";
 
 const CLIENT = new URL("../..", import.meta.url).pathname;
@@ -40,6 +41,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["prompt-wrap", "fixture-password-1575"],
   ["room-feed", "fixture-password-1457"],
   ["skeleton259", "fixture-password-259"],
+  ["stepper", "fixture-password-2206"],
   ["title-bar", "fixture-password-2318"],
   ["topbar-square", "fixture-password-1444"],
   ["work-view", "fixture-password-2311"]
@@ -369,8 +371,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
   },
   BRAIN: () => null,
-  SCREEN_A: (path) => screenUnit("screen-a", path),
-  SCREEN_B: (path) => screenUnit("screen-b", path),
+  SCREEN_A: (path) => screenUnit(HARNESS_SCREEN_UNITS[0], path),
+  SCREEN_B: (path) => screenUnit(HARNESS_SCREEN_UNITS[1], path),
   ARTIFACT: () => null,
   TELEGRAM: () => null,
   CACHE_SIREN: () => null,

@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { PAGING } from "../../apps/web/shared/config";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page, Route } from "playwright-core";
@@ -229,19 +230,21 @@ describe.skipIf(!origin || !touchReady())("the room's line after a send and afte
 
       room.fill(160);
 
-      // The first unread message near the end: the room opens on the stretch around it, which
-      // begins later than the room's end page does.
-      const unread = room.ids()[150]!;
+      // The first unread message further back than the room's end page reaches: the room opens on the
+      // stretch around it, read as its first read in place of the end (docs/web.md, 「Where a room opens is
+      // settled before it is drawn」).
+      const unread = room.ids()[room.rows.length - PAGING.defaultSize - 5]!;
       const context = await open(viewport, room, unread, { up: false });
 
       try {
         const page = await context.newPage();
 
         await visit(page);
-        await standing(page, room.ids().at(-1)!);
+        await standing(page, unread);
 
         // It opened on the stretch around the unread message, not at the end.
-        expect(room.asked).toContain(`before=${unread}&limit=50`);
+        expect(room.asked).toContain(`before=${unread}&limit=${Math.floor(PAGING.defaultSize / 2)}`);
+        expect(await shown(page)).not.toContain(room.ids().at(-1)!);
 
         const box = page.locator("form textarea").first();
 

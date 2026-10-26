@@ -5912,8 +5912,9 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   told by the page address the browser sends as the call's referrer, to a service another manifest names is
   relayed only where the page's manifest names that service, and then as that service's own screen's calls are:
   only the paths its own manifest lets through, and only for a reader its own role and owner key allow. Any other
-  such call is refused 403, but for a read of that service's module, its stylesheet or a file beside its module,
-  so a screen opened from another's page still loads. A unit the console calls directly answers no manifest, and
+  such call is refused 403, but for a read of that service's module, its stylesheet or a file in its module's
+  folder or below it, such as the chunks a module loads as a screen is reached, so a screen opened from another's
+  page still loads. A unit the console calls directly answers no manifest, and
   the rule does not reach it.
 - **The translator a bundle translates through** is named by the console's environment
   (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_SERVICE` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_PATH`, `docs/boundary.md`,

@@ -212,11 +212,12 @@ export function bundleOfPage(baseURL: string, page: string | undefined): Attache
   return attached.find(({ manifest }) => path === manifest.screenPath || path.startsWith(`${manifest.screenPath}/`)) ?? null;
 }
 
-/** Whether a read is of a bundle's own files: its module, its stylesheet, or a file beside its module. */
+/** Whether a read is of a bundle's own files: its module, its stylesheet, or a file in its module's folder or below it. */
 export function bundleFiles(manifest: ConsoleManifest, path: string): boolean {
   const folder = manifest.bundle.slice(0, manifest.bundle.lastIndexOf("/") + 1);
+  const below = path.slice(folder.length).split("/");
 
-  return bundleFile(manifest, path) || (folder !== "/" && path.startsWith(folder) && !path.slice(folder.length).includes("/"));
+  return bundleFile(manifest, path) || (folder !== "/" && path.startsWith(folder) && below.every((step) => step !== "" && step !== "." && step !== ".."));
 }
 
 /**

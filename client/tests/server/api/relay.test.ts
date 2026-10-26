@@ -231,12 +231,13 @@ describe("the relay of a call from a bundle's page", () => {
     expect(await call("callee/console/translations")).toBe(200);
   });
 
-  test("lets another bundle's page read the service's module, stylesheet and the files beside its module", async () => {
+  test("lets another bundle's page read the service's module, stylesheet and the files in its module's folder and below", async () => {
     const page = "https://console.example.test/web/stranger";
 
     expect(await call("callee/console/bundle/module-a.js", page, "GET")).toBe(200);
     expect(await call("callee/console/bundle/style-a.css", page, "GET")).toBe(200);
     expect(await call("callee/console/bundle/chunk-b.js", page, "GET")).toBe(200);
+    expect(await call("callee/console/bundle/chunks/chunk-c.js", page, "GET")).toBe(200);
     expect(await call("callee/console/bundle/chunk-b.js", page, "POST")).toBe(403);
     expect(await call("callee/console/items", page, "GET")).toBe(403);
   });

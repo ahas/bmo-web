@@ -1568,7 +1568,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   drawn as loading, a button that has its figures keeps showing them, and none of it blinks.
   `client/tests/browser/title-bar.test.ts` holds that the set is the same element across a page change.
 - **A screen a unit brings stands under the same bar.** The console offers its bar to every screen under its
-  layout, provided under the key `bmo-console-title-bar`, and a bundle's route that asks for it — `consoleTitleBar`
+  layout, provided under the key `bmo-console-title-bar` as bmo-ui's `docs/console-bundles.md` states the contract, and a bundle's route that asks for it — `consoleTitleBar`
   true in the route's meta — is drawn under the console's bar, named by its manifest's title and mark, the sidebar
   button and the set of buttons in it as on every screen. Such a screen draws no bar of its own: what acts on it
   as a whole it lays beside the name, in the place the offer names (`[data-title-bar-screen-actions]`), by a

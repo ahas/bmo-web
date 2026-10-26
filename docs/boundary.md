@@ -317,9 +317,6 @@ for it, and no file or table of that unit is read meanwhile.
   lines it serves carry it as `reference`; the console reads either, `ref` first.
 - **A checkout's branch and whether it is dirty.** No unit serves them, so a tool call's prompt line names the
   worker, the checkout, the time and the path, and stands no branch and no dirty mark.
-- **The title bar on a screen a unit brings.** bmo-ui's contract names no title bar of the console's, so the offer
-  a bundle reads it by — the `bmo-console-title-bar` key and a route's `consoleTitleBar` meta (`docs/web.md`,
-  「The title bar」) — is this console's own, and a bundle that does not read it still draws its own bar.
 - **A chat provider's name for a reader.** The receiver calls each provider by a label of its own, in English for
   the room's record, and serves none in a reader's language, so a room's chat providers dialog shows the label as
   the receiver gives it.

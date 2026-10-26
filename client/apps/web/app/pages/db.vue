@@ -3,13 +3,7 @@
        edge to edge, and the paging stands flush at the foot of the window. -->
   <UDashboardPanel id="db" :ui="{ body: 'p-0 sm:p-0 gap-0 overflow-hidden [&>*]:max-w-none' }">
     <template #header>
-      <UDashboardNavbar title="DB" icon="i-material-symbols-database-outline">
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      <ConsoleTitleBar title="DB" icon="i-material-symbols-database-outline" />
 
       <!-- Walking a table, or asking a question of it. Both answer with the same table of rows,
            so the two are one press apart rather than two screens. -->

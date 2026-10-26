@@ -1,7 +1,7 @@
 <template>
   <UDashboardPanel id="agent" :ui="{ body: 'p-0 sm:p-0 overscroll-none' }">
     <template #header>
-      <UDashboardNavbar :title="meta.label" :icon="meta.icon">
+      <ConsoleTitleBar :title="meta.label" :icon="meta.icon">
         <!-- What belongs to this agent alone stands beside its name; the right end keeps what every
              screen carries. -->
         <template #trailing>
@@ -87,13 +87,7 @@
             <ActionGroup class="sm:hidden" :actions="phoneActions" size="md" />
           </div>
         </template>
-
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      </ConsoleTitleBar>
     </template>
 
     <template #body>

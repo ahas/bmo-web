@@ -98,10 +98,12 @@ describe("the bar over the home screen", () => {
     expect(template).toContain(`:ui="{ title: 'hidden' }"`);
   });
 
-  test("keeps what stands on every screen", () => {
-    const bar = template.slice(template.indexOf("<UDashboardNavbar"), template.indexOf("</UDashboardNavbar>"));
+  test("is the one title bar every screen carries, its buttons the layout's one set", async () => {
+    const actions = await Bun.file(new URL("../../../apps/web/app/components/ConsoleTitleBarActions.vue", import.meta.url)).text();
 
-    expect(bar).toContain("<TodoOpenButton />");
-    expect(bar).toContain("<UsageMeters />");
+    expect(template).toContain('<ConsoleTitleBar :ui="{ title: \'hidden\' }" />');
+    expect(template).not.toContain("<UsageMeters");
+    expect(actions).toContain("<TodoOpenButton />");
+    expect(actions).toContain("<UsageMeters />");
   });
 });

@@ -5,13 +5,7 @@
        alone and the other two rise from the bottom edge. -->
   <UDashboardPanel id="documents" :ui="{ body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-y-hidden [&>*]:max-w-none' }">
     <template #header>
-      <UDashboardNavbar :title="$t('screens.label.documents')" icon="i-material-symbols-library-books-outline">
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      <ConsoleTitleBar :title="$t('screens.label.documents')" icon="i-material-symbols-library-books-outline" />
     </template>
 
     <template #body>

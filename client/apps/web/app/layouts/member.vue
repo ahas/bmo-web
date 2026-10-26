@@ -47,10 +47,17 @@
     <div class="flex min-h-0 min-w-0 flex-1">
       <slot />
     </div>
+
+    <!-- The title bar's one set of buttons, held here and laid into the standing screen's bar, so a page change moves
+         them rather than standing them up again (docs/web.md, 「The title bar」). -->
+    <Teleport v-if="titleBarTarget !== null" :to="titleBarTarget">
+      <ConsoleTitleBarActions />
+    </Teleport>
   </UDashboardGroup>
 </template>
 
 <script setup lang="ts">
+import { useTitleBarTarget } from "~/domain/title-bar";
 import { MEMBER_HOME } from "~/domain/access";
 import { consoleName } from "#shared/agent-names";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
@@ -66,6 +73,9 @@ import type { AvatarIndex } from "~/domain/avatars";
 // A member's shell (docs/web.md, 「Access」): the screens units bring that they may open, the rooms they
 // may read and their own menu, and nothing that reads a route opened to the administrator alone. It
 // frames the screen as the administrator's shell does, so a member's page stands the same way.
+// Where the title bar's one set of buttons stands: the standing screen's bar.
+const titleBarTarget = useTitleBarTarget();
+
 const shell = SCREEN_FRAME;
 
 useVisibleShell();

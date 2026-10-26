@@ -1536,10 +1536,23 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   table and agent management's tables mark their hits with it; the graph matches with it too, and its match
   badges say which hidden field a node was found by.
 
-### Tab bar and toolbar
+### The title bar
 
-- **The title bar holds only what every screen holds** — the sidebar button, the screen's name, the TODO
-  button and the usage figures. What acts on one screen's content — its filters, its reread, the time its
+- **Every screen carries the one title bar, with the same buttons in the same places.** It is one component:
+  the sidebar button, the screen's name and mark, what acts on that screen alone beside its name (an agent's
+  설정 and 중지, a room's menu and its window clock), and at its right end the one set of buttons — the
+  deployment's mark, and for the administrator the TODO button and the usage figures. No screen composes a bar
+  of its own or leaves a button of the set out. The one difference a screen may make is the room's: its bar is
+  the same bar on the translucent ground the room's bars lie over the conversation on.
+- **The set of buttons is one instance, held by the layout,** and laid into the bar of whichever screen
+  stands. A page change moves it into the next screen's bar: nothing in it is stood up again, read again or
+  drawn as loading, a button that has its figures keeps showing them, and none of it blinks.
+  `client/tests/browser/title-bar.test.ts` holds that the set is the same element across a page change.
+- **Screens a unit brings draw their own bar** in their unit's bundle, which the shared bar does not reach until
+  the base layer offers it to a bundle (`docs/boundary.md`, 「Gaps the console meets」).
+- **The title bar holds only what every screen holds** — the sidebar button, the screen's name, the deployment's
+  mark, the TODO button and the usage figures — and beside the name what acts on that screen as a whole. What acts
+  on one screen's content — its filters, its reread, the time its
   data was read, the original of a document — stands in that screen's own row under the title bar, at the
   right end of its tab bar, or in its content's title, never in the title bar. The screen's own row is one
   line high on a phone; filters that do not fit it fold into one button opening them.
@@ -1548,6 +1561,9 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   is one size. A mark whose words fold away at phone width — the deployment's, the usage figures — becomes
   that same square from the moment it stands alone. `client/tests/browser/topbar-square.test.ts` measures every
   button in the title bar that shows only a mark, at a desktop width and a phone's, in light and dark.
+
+### Tab bar and toolbar
+
 - Tabs are of two kinds and the two are not mixed. **Open-and-close tabs** — files, documents, sessions the
   reader opens and closes — stand as the console's shared **tab bar**, and **fixed switches within a screen** —
   section tabs of a narrow screen, the DB screen's table and SQL — stand as the component library's tabs. There

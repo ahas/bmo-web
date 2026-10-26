@@ -1,11 +1,7 @@
 <template>
   <UDashboardPanel id="rooms">
     <template #header>
-      <UDashboardNavbar :title="$t('common.label.room')">
-        <template #right>
-          <DeployMark />
-        </template>
-      </UDashboardNavbar>
+      <ConsoleTitleBar :title="$t('common.label.room')" />
     </template>
 
     <template #body>

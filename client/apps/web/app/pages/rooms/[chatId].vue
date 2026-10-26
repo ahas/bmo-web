@@ -34,7 +34,7 @@
         class="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col overflow-clip pb-3"
       >
         <div ref="roomNavbar" class="pointer-events-auto relative z-10">
-          <UDashboardNavbar
+          <ConsoleTitleBar
             :title="title"
             :ui="{ root: 'border-b-0' }"
           >
@@ -74,15 +74,7 @@
               <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
               <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
             </template>
-
-            <template #right>
-              <DeployMark />
-              <template v-if="administrator">
-                <TodoOpenButton />
-                <UsageMeters />
-              </template>
-            </template>
-          </UDashboardNavbar>
+          </ConsoleTitleBar>
         </div>
 
         <!-- While messages are being picked the bar grows downward and the choosing row unfolds in

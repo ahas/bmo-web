@@ -84,7 +84,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
       expect(await rowText(page, '[data-registration="model-b"]')).toContain("model-b-7b");
 
       // A create.
-      // The tab row's own 추가, the one that opens the menu of what the general tab adds.
+      // The tab row's own add button, the one that opens the menu of what the general tab adds.
       await page.locator('button[aria-haspopup="menu"]').and(page.getByRole("button", { name: wording("common.action.add") })).click();
       await page.getByRole("menuitem", { name: wording("agents.title.registry") }).click();
 
@@ -131,7 +131,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
       // The list as the agency serves it.
       expect(await rowText(page, '[data-entry="entry-a"]')).toContain("entry-a.gguf");
 
-      // The tab row's own 추가, the one that opens the menu of what the general tab adds.
+      // The tab row's own add button, the one that opens the menu of what the general tab adds.
       await page.locator('button[aria-haspopup="menu"]').and(page.getByRole("button", { name: wording("common.action.add") })).click();
       await page.getByRole("menuitem", { name: wording("agents.title.catalogue") }).click();
 

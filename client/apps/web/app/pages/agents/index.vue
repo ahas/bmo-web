@@ -3,13 +3,7 @@
        the button that reads them all again; the section fills what is left and scrolls on its own. -->
   <UDashboardPanel id="catalogue" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
-      <UDashboardNavbar :title="$t('screens.label.agents')" icon="i-material-symbols-list-alt-outline">
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      <ConsoleTitleBar :title="$t('screens.label.agents')" icon="i-material-symbols-list-alt-outline" />
 
       <div :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]">
         <UTabs

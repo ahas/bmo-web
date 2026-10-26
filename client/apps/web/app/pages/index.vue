@@ -4,13 +4,7 @@
       <!-- The front door names nothing: the sidebar's own mark already says which console this is,
            and the bar is left to what holds on every screen. The empty heading is taken out of the
            bar rather than left standing, so it costs neither a gap nor a nameless heading. -->
-      <UDashboardNavbar :ui="{ title: 'hidden' }">
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      <ConsoleTitleBar :ui="{ title: 'hidden' }" />
     </template>
 
     <template #body>

@@ -1,13 +1,7 @@
 <template>
   <UDashboardPanel id="live">
     <template #header>
-      <UDashboardNavbar :title="$t('screens.label.live')" icon="i-material-symbols-monitor-heart-outline">
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      <ConsoleTitleBar :title="$t('screens.label.live')" icon="i-material-symbols-monitor-heart-outline" />
 
       <!-- A section to a tab, one of them standing at a time. The tab is in the address, so a link
            opens the section it was taken on. -->

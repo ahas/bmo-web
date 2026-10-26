@@ -125,10 +125,17 @@
     </UDrawer>
 
     <RoomAddDialog v-model:open="roomAdding" @added="roomAdded" />
+
+    <!-- The title bar's one set of buttons, held here and laid into the standing screen's bar, so a page change moves
+         them rather than standing them up again (docs/web.md, 「The title bar」). -->
+    <Teleport v-if="titleBarTarget !== null" :to="titleBarTarget">
+      <ConsoleTitleBarActions />
+    </Teleport>
   </UDashboardGroup>
 </template>
 
 <script setup lang="ts">
+import { useTitleBarTarget } from "~/domain/title-bar";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
@@ -147,6 +154,9 @@ import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AgentGroup, AgentMeta, AgentSession } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
+
+// Where the title bar's one set of buttons stands: the standing screen's bar.
+const titleBarTarget = useTitleBarTarget();
 
 const route = useRoute();
 

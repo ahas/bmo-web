@@ -4,13 +4,7 @@
 <template>
   <UDashboardPanel id="monitor" :ui="{ body: '[&>*]:max-w-none' }">
     <template #header>
-      <UDashboardNavbar :title="$t('screens.label.monitor')" icon="i-material-symbols-monitor-heart-outline">
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      <ConsoleTitleBar :title="$t('screens.label.monitor')" icon="i-material-symbols-monitor-heart-outline" />
 
       <div :class="['flex h-12 shrink-0 items-center sm:ps-4 sm:pe-4', TAB_ROW_LINE]">
         <UTabs

@@ -33,8 +33,8 @@ describe("stopping this agent's own run", () => {
 describe("what an agent's title bar says about that agent", () => {
   test("there is source to read, so nothing below passes on an empty string", () => {
     expect(template.length).toBeGreaterThan(500);
-    expect(template).toContain("<UDashboardNavbar");
-    expect(template).toContain("<UsageMeters />");
+    expect(template).toContain("<ConsoleTitleBar");
+    expect(template).not.toContain("<UsageMeters");
   });
 
   test("carries the agent's figures behind one mark, and no stretch's total on the bar itself", () => {

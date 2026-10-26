@@ -3,19 +3,13 @@
 <template>
   <UDashboardPanel id="monitor-machine" :ui="{ body: '[&>*]:max-w-none' }">
     <template #header>
-      <UDashboardNavbar :title="name ?? undefined" :icon="machineIcon(kind)">
+      <ConsoleTitleBar :title="name ?? undefined" :icon="machineIcon(kind)">
         <template v-if="name === null" #title>
           <SkeletonStatus :label="$t('hardware.status.name_loading')" class="flex">
             <SkeletonBar class="h-5 w-32" />
           </SkeletonStatus>
         </template>
-
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      </ConsoleTitleBar>
     </template>
 
     <template #body>

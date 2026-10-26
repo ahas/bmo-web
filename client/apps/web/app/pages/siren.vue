@@ -1,13 +1,7 @@
 <template>
   <UDashboardPanel id="siren">
     <template #header>
-      <UDashboardNavbar :title="$t('screens.label.siren')" icon="i-material-symbols-e911-emergency-outline">
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      <ConsoleTitleBar :title="$t('screens.label.siren')" icon="i-material-symbols-e911-emergency-outline" />
 
       <!-- The screen's own row: the three filters of the request list, and how long the watch has
            been up. A phone has no room for three selects in one row, so there they fold into one

@@ -18,7 +18,7 @@ const tree = await read("../../../apps/web/app/components/DocumentTree.vue");
 describe("the page", () => {
   test("is one panel under one title", () => {
     expect(page.match(/<UDashboardPanel/g)).toHaveLength(1);
-    expect(page.match(/<UDashboardNavbar/g)).toHaveLength(1);
+    expect(page.match(/<ConsoleTitleBar/g)).toHaveLength(1);
   });
 
   test("stands the document alone with the list rising from the bottom on a narrow screen, and between library boundaries otherwise", () => {

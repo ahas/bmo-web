@@ -2,6 +2,7 @@ import { wording } from "#shared/wording";
 
 import type { components } from "@agency/client/schema";
 import type { WorkerChanged } from "#shared/types";
+import type { WorkerSent } from "../utils/agency";
 
 type WorkerAdd = components["schemas"]["WorkerAdd"];
 type WorkerChange = components["schemas"]["WorkerChange"];
@@ -49,7 +50,7 @@ export default defineEventHandler(async (event): Promise<WorkerChanged> => {
   }
 
   if (action === "add") {
-    const added: WorkerAdd & { prefixDocuments?: string[] } = {
+    const added: WorkerSent<WorkerAdd> = {
       name,
       label: text(body?.label) ?? null,
       cwd: text(body?.path) ?? null,
@@ -59,9 +60,9 @@ export default defineEventHandler(async (event): Promise<WorkerChanged> => {
       ...prefixDocuments(body?.prefixDocuments)
     };
 
-    await agencyCall(agency().POST("/workers", { body: added }));
+    await agencyCall(agency().POST("/workers", { body: added as WorkerAdd }));
   } else if (action === "update") {
-    const change: WorkerChange & { prefixDocuments?: string[] } = {
+    const change: WorkerSent<WorkerChange> = {
       ...prefixDocuments(body?.prefixDocuments),
       sampling: null,
       nodeName: null,
@@ -74,7 +75,7 @@ export default defineEventHandler(async (event): Promise<WorkerChanged> => {
       bench: null
     };
 
-    await agencyCall(agency().PATCH("/workers/{workerName}", { params: { path: { workerName: name } }, body: change }));
+    await agencyCall(agency().PATCH("/workers/{workerName}", { params: { path: { workerName: name } }, body: change as WorkerChange }));
   } else {
     await agencyCall(agency().DELETE("/workers/{workerName}", { params: { path: { workerName: name } } }));
   }

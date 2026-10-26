@@ -208,6 +208,8 @@ async function toAgency(sent: Record<string, unknown>): Promise<FallbackChanged>
     keyFile: null,
     models: null,
     basePrompt: null,
+    // A key's own registration is no road the screen sets.
+    registration: null,
     key: text(sent.key),
     mode: text(sent.mode)
   };

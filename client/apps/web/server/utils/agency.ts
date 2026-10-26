@@ -14,6 +14,12 @@ import type { AgentGateView, AgentReasoningView, AgentSummary, RoleView } from "
 import type { UnitAnswerCall } from "./unit-answer";
 
 type Schemas = components["schemas"];
+
+/**
+ * A worker's addition or change as it is sent: its prefix documents named only where the list is given whole, since
+ * the agency keeps the list as it stands where the key is absent and refuses it null (its `docs/api.md`, 「workers」).
+ */
+export type WorkerSent<T extends { prefixDocuments: string[] | null }> = Omit<T, "prefixDocuments"> & { prefixDocuments?: string[] };
 type PromptDocument = Schemas["PromptDocument"];
 
 // The agency's fixed API as its published package states it (the agency's `docs/api.md`, 「The control port」):

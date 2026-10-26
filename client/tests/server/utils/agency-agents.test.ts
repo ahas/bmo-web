@@ -16,7 +16,8 @@ const agent = (name: string, extra: Record<string, unknown> = {}): Agent => ({
 
 const worker = (name: string): Worker => ({
   name, label: `${name} label`, cwd: `/srv/checkouts/${name}`, icon: null, builtin: false, nodeName: "node-a",
-  role: "worker", state: "resting", sampling: null, restingSince: null, sessionId: null, runCount: 3, lastRunAt: null
+  role: "worker", state: "resting", sampling: null, restingSince: null, sessionId: null, runCount: 3, lastRunAt: null,
+  prefixDocuments: []
 });
 
 test("lists a worker both answers name once, its worker's fields on its agent's row", () => {

@@ -17,9 +17,6 @@ export default defineEventHandler(async (event): Promise<CompanionView> => {
     agent: body.agent,
     by: session.user.name,
     referenceOn: typeof body.referenceOn === "boolean" ? body.referenceOn : null,
-    // The published client still names these two on a change; the agency changes nothing by them.
-    ownPieces: null,
-    pieces: null,
     persona: typeof body.persona === "string" ? body.persona : null,
     registration: typeof body.registration === "string" ? body.registration : null,
     generation: body.generation ?? null,

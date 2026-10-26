@@ -214,7 +214,9 @@ const MATCH_SLACK_SECONDS = 10;
 
 // Whether one archived message is what a row was standing for. It has to be the owner's own,
 // from about when the row went up, and then: words are known by their words, and a file by the
-// picture it left, with its caption when it had one.
+// picture it left, with its caption when it had one. The archive files a photo's message a moment
+// before it keeps the picture, so a photo is also known by a message with its caption that carries
+// nothing yet: that message is the row's, and waits for its picture before it takes the row's place.
 function matches(held: OutboxItem, message: ArchivedMessage, speakerId: number | null): boolean {
   if (speakerId !== null && message.senderId !== speakerId) {
     return false;
@@ -228,7 +230,9 @@ function matches(held: OutboxItem, message: ArchivedMessage, speakerId: number |
     // Words too long for a caption went ahead of the file, and the file went bare.
     const caption = held.text.length > TELEGRAM_CAPTION_LENGTH ? "" : held.text;
 
-    return message.imagePath !== null && (caption === "" || message.text === caption);
+    const carried = message.imagePath !== null || (isPicture(held) && awaitingPicture(message));
+
+    return carried && (caption === "" || message.text === caption);
   }
 
   if (message.text === "") {
@@ -239,6 +243,17 @@ function matches(held: OutboxItem, message: ArchivedMessage, speakerId: number |
   return held.text.length > TELEGRAM_MESSAGE_LENGTH
     ? held.text.startsWith(message.text)
     : message.text === held.text;
+}
+
+// A row that goes up as a picture, which the archive keeps as a message with its picture.
+function isPicture(held: OutboxItem): boolean {
+  return held.file !== null && expectsArchive(held);
+}
+
+// A message that carries nothing yet: no picture kept and no file, the way the archive files a photo's message
+// before its picture is kept.
+function awaitingPicture(message: ArchivedMessage): boolean {
+  return message.imagePath === null && (message.attachments ?? []).length === 0;
 }
 
 // Which put-up messages the archive has caught up with, so the feed never shows one twice. The
@@ -263,10 +278,11 @@ export function landedKeys(
 // Which put-up messages the feed stands no longer because the archive already carries them: the ones it has caught up
 // with, and words whose send is still out but which the bot has already filed. The bot files the owner's words before
 // it carries them on to the room's other providers and only then answers the send, so the archive can carry them while
-// the send is still out (docs/web.md, the room screen's section on a message being sent). Such a row is known by its
-// words under the owner's name, filed no earlier than a moment before it was pressed and taken by no other row; it
+// the send is still out (docs/web.md, the room screen's section on a message being sent). Such a row is known by what
+// it carries under the owner's name, filed no earlier than a moment before it was pressed and taken by no other row; it
 // stays on its way until its send answers, so the order sends go in and what becomes of one are untouched, and only its
-// standing in the feed is given up.
+// standing in the feed is given up. The pictures of one send still out give it up together, once the archive carries
+// every one of them with its picture, so the line never splits into a part sent and a part going.
 export function echoedKeys(
   items: readonly OutboxItem[],
   messages: readonly ArchivedMessage[],
@@ -275,15 +291,47 @@ export function echoedKeys(
   return caughtUp(items, messages, speakerId, true);
 }
 
-function caughtUp(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null, echoes: boolean): Set<string> {
-  const landed = landings(items, messages, speakerId, echoes);
-  const sends = new Set(items.filter((held) => landed.has(held.key)).map((held) => held.sendKey));
+// The archived messages the feed does not stand yet because a row still standing stands for them: a photo's message
+// whose picture the archive has not kept, and the messages of a send of pictures still out that the archive carries
+// only part of. The row keeps their place until they take it whole.
+export function heldMessages(
+  items: readonly OutboxItem[],
+  messages: readonly ArchivedMessage[],
+  speakerId: number | null
+): Set<number> {
+  const landed = landings(items, messages, speakerId, true);
+  const down = caughtUp(items, messages, speakerId, true);
 
-  return new Set(
-    items
-      .filter((held) => landed.has(held.key) || (sends.has(held.sendKey) && held.state !== "failed" && !unanswered(held)))
-      .map((held) => held.key)
-  );
+  return new Set([...landed].filter(([key]) => !down.has(key)).map(([, messageId]) => messageId));
+}
+
+function caughtUp(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null, echoes: boolean): Set<string> {
+  const landed = completeLandings(items, messages, speakerId, echoes);
+  const down = new Set<string>();
+
+  for (const sendKey of new Set(items.map((held) => held.sendKey))) {
+    const going = items.filter((held) => held.sendKey === sendKey && held.state !== "failed");
+
+    if (going.some((held) => !unanswered(held) && landed.has(held.key))) {
+      for (const held of going.filter((one) => landed.has(one.key) || !unanswered(one))) {
+        down.add(held.key);
+      }
+    } else if (going.some((held) => landed.has(held.key)) && going.filter(expectsArchive).every((held) => landed.has(held.key))) {
+      for (const held of going.filter((one) => landed.has(one.key))) {
+        down.add(held.key);
+      }
+    }
+  }
+
+  return down;
+}
+
+// The landings whose message can take its row's place: a picture's only once the archive has kept the picture.
+function completeLandings(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null, echoes: boolean): Map<string, number> {
+  const pictured = new Set(messages.filter((message) => message.imagePath !== null).map((message) => message.messageId));
+  const pictures = new Set(items.filter(isPicture).map((held) => held.key));
+
+  return new Map([...landings(items, messages, speakerId, echoes)].filter(([key, messageId]) => !pictures.has(key) || pictured.has(messageId)));
 }
 
 // How long before a send was pressed the archive may date the words the bot filed for it while the send is still
@@ -325,7 +373,7 @@ function landings(items: readonly OutboxItem[], messages: readonly ArchivedMessa
   }
 
   for (const held of items) {
-    if (!unanswered(held) || held.file !== null) {
+    if (!unanswered(held) || !expectsArchive(held)) {
       continue;
     }
 
@@ -351,10 +399,11 @@ export interface LandedPicture {
 }
 
 export function landedPictures(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null): LandedPicture[] {
-  const landed = landings(items, messages, speakerId);
+  const landed = completeLandings(items, messages, speakerId, true);
+  const down = caughtUp(items, messages, speakerId, true);
 
   return items.flatMap((held) => {
-    const messageId = landed.get(held.key);
+    const messageId = down.has(held.key) ? landed.get(held.key) : undefined;
     const previewUrl = held.file?.previewUrl ?? null;
 
     return messageId === undefined || previewUrl === null ? [] : [{ messageId, previewUrl }];

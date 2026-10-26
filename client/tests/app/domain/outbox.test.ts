@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   echoedKeys,
   graceEndsAt,
+  heldMessages,
   keyChecks,
   landedKeys,
   landedPictures,
@@ -227,14 +228,42 @@ describe("which rows the feed stands no longer for the archive carrying their me
     expect([...echoedKeys(items, [archived(-7, "hello", 101), archived(-8, "hello", 102)], owner)]).toEqual(items.map((held) => held.key));
   });
 
-  test("never a row that failed, and never a file whose send is still out", () => {
+  test("never a row that failed", () => {
     const words = outboxOf("hello", [], 100);
     const failed = withFailed(words, words[0]?.key ?? "", "refused");
-    const file = outboxOf("hello", [picked("a.jpg")], 100);
-    const picture = { ...archived(-7, "hello", 101), imagePath: "data/images/-100/7.jpg" };
 
     expect([...echoedKeys(failed, [archived(-7, "hello", 101)], owner)]).toEqual([]);
-    expect([...echoedKeys(file, [picture], owner)]).toEqual([]);
+  });
+
+  test("a picture whose send is still out gives way once the archive has kept its picture, its message held till then", () => {
+    const file = outboxOf("hello", [picked("a.jpg")], 100);
+    const filed = archived(-7, "hello", 101);
+    const pictured = { ...filed, imagePath: "data/images/-100/7.jpg" };
+
+    expect([...echoedKeys(file, [filed], owner)]).toEqual([]);
+    expect([...heldMessages(file, [filed], owner)]).toEqual([-7]);
+    expect([...echoedKeys(file, [pictured], owner)]).toEqual([file[0]?.key ?? ""]);
+    expect([...heldMessages(file, [pictured], owner)]).toEqual([]);
+    expect(settledKeys(file, [pictured], owner, 101)).toEqual([]);
+  });
+
+  test("the pictures of one send still out give way together, once the archive carries every one with its picture", () => {
+    const files = outboxOf("hello", [picked("a.jpg"), picked("b.jpg")], 100);
+    const first = { ...archived(-7, "hello", 101), imagePath: "data/images/-100/7.jpg" };
+    const second = archived(-8, "hello", 101);
+
+    expect([...echoedKeys(files, [first], owner)]).toEqual([]);
+    expect([...heldMessages(files, [first], owner)]).toEqual([-7]);
+    expect([...echoedKeys(files, [first, second], owner)]).toEqual([]);
+    expect([...heldMessages(files, [first, second], owner)]).toEqual([-7, -8]);
+    expect([...echoedKeys(files, [first, { ...second, imagePath: "data/images/-100/8.jpg" }], owner)]).toEqual(files.map((held) => held.key));
+  });
+
+  test("a picture is not taken for a message that carries a file of its own", () => {
+    const file = outboxOf("", [picked("a.jpg")], 100);
+    const carrying = { ...archived(-7, "", 101), attachments: [{ id: 1, kind: "document" as const, name: "a.pdf", bytes: 1, type: null, available: true }] };
+
+    expect([...heldMessages(file, [carrying], owner)]).toEqual([]);
   });
 
   test("a row the archive has caught up with gives way as it always did", () => {
@@ -290,13 +319,15 @@ describe("which rows the feed is done with", () => {
     expect(settledKeys(items, [archived(42, KO.line_231, 101)], owner, 101)).toEqual([key]);
   });
 
-  test("a picture stands until its own message is there too", () => {
+  test("a picture stands until its own message is there with its picture", () => {
     const items = outboxOf(KO.line_235, [picked("a.jpg")], 100);
     const key = items[0]?.key ?? "";
     const sent = withSent(items, key, 42);
 
     expect(settledKeys(sent, [], owner, 101)).toEqual([]);
-    expect(settledKeys(sent, [archived(42, KO.line_240, 101)], owner, 101)).toEqual([key]);
+    expect(settledKeys(sent, [archived(42, KO.line_240, 101)], owner, 101)).toEqual([]);
+    expect([...heldMessages(sent, [archived(42, KO.line_240, 101)], owner)]).toEqual([42]);
+    expect(settledKeys(sent, [{ ...archived(42, KO.line_240, 101), imagePath: "data/images/-100/42.jpg" }], owner, 101)).toEqual([key]);
   });
 
   test("a file that is no message of its own goes as soon as it has gone", () => {

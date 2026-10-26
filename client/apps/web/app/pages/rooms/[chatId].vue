@@ -402,6 +402,7 @@ import { isBackEscape } from "bmo-ui/app/domain/overlays";
 import {
   echoedKeys,
   graceEndsAt,
+  heldMessages,
   keyChecks,
   landedPictures,
   nextSend,
@@ -453,6 +454,7 @@ import { groupRoom, listeningRuns, shownOutcome, useRoomWindow } from "~/domain/
 import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 
 import type {
+  ArchivedMessage,
   Judgement,
   RoomStats,
   ListedRoom,
@@ -827,6 +829,14 @@ const turnRows = computed<FeedItem[]>(() =>
 // A row gives its place to its turn's answer the moment the answer is in the feed, by whichever read.
 const runRows = useHandOver(turnRows, roomFeed.messages);
 
+// The archived messages the feed stands: all of them but the ones a line on its way still stands for, a photo's
+// message whose picture the archive has not kept yet among them (docs/web.md, the room screen's section on a
+// message being sent).
+const shownMessages = computed<ArchivedMessage[]>(() => {
+  const held = heldMessages(outbox.value, roomFeed.messages.value, speaker.value.id);
+
+  return held.size === 0 ? roomFeed.messages.value : roomFeed.messages.value.filter((message) => !held.has(message.messageId));
+});
 // The archive's rows, kept apart from the messages on their way, so sending one, its being sent and
 // its being checked hand every row already standing the same row and draw none of them again; a read
 // of the archive hands back the same row for every message it left as it was (docs/web.md, 「What
@@ -835,7 +845,7 @@ const archived = computed<FeedItem[]>((standing) =>
   keptRows(
     standing,
     archivedRows(
-      roomFeed.messages.value,
+      shownMessages.value,
       judgementIndex.value,
       imageUrl,
       avatars.value,

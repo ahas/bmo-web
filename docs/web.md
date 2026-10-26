@@ -4126,10 +4126,15 @@ Four bounds keep it from growing forever.
   actually goes up and that message is re-read from the archive, that line becomes an ordinary message. A stood line and an uploaded message never
   both stand, not even while the send is still out: the bot files the owner's words before it carries them on to
   the room's other providers and answers the send only after, so the archive can carry them first. Until the send
-  answers, the line is found by its words alone, standing under the owner's name, filed no earlier than a few
-  seconds before it was pressed and bound to no other line; it then stands down from the conversation for that
-  message but stays on its way, so the order sends go in and what becomes of the send are as they were, and the
-  number the send answers with settles it. If the message number the bot returned is in the archive, that message is that line, and since
+  answers, the line is found by what it carries alone, standing under the owner's name, filed no earlier than a few
+  seconds before it was pressed and bound to no other line — words by their words, a photo by a message with its
+  caption, or none — and it then stands down from the conversation for that message but stays on its way, so the
+  order sends go in and what becomes of the send are as they were, and the number the send answers with settles
+  it. The photos of one press stand down together, once the archive carries every one of them with its picture.
+  The archive files a photo's message a moment before it keeps the picture, and until the picture is kept that
+  message does not stand: the line keeps standing with its preview in that message's place, so the conversation
+  shows the photo once and never an empty bubble beside it. Once the picture is kept the message takes the line's
+  place drawing the line's preview until its own copy has loaded. If the message number the bot returned is in the archive, that message is that line, and since
   numbers are not the same per room — the owner's private chat has their account and the bot number it separately —
   if it is not found by number it is found by what the archive carried. Words are recognised as the same words
   standing up in place under the owner's name, a photo by the photo uploaded then. One uploaded message binds one

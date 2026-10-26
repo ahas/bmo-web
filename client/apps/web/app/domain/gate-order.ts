@@ -1,3 +1,4 @@
+import type { Translate } from "#shared/wording";
 import type { GateCondition, GatePart, GatePartView } from "#shared/types";
 
 // The gate order as a screen lays it out (the gate unit's docs/gates.md): the order itself is the server's, served
@@ -10,6 +11,21 @@ export const GATE_PART_LABELS: Record<GatePart, string> = {
   post: "agents.label.gate_part_post",
   apart: "agents.label.gate_part_apart"
 };
+
+// The words each Laya mode a gate may run in is said in (the gate unit's `docs/laya.md`).
+const LAYA_MODE_WORDS: Record<string, string> = {
+  off: "agents.label.laya_mode_off",
+  shadow: "agents.label.laya_mode_shadow",
+  filter: "agents.label.laya_mode_filter",
+  asymmetric: "agents.label.laya_mode_asymmetric"
+};
+
+/** A Laya mode's words; one this screen has no words for stands as a sentence naming it. */
+export function layaModeWord(t: Translate, mode: string | null): string {
+  const key = mode === null ? undefined : LAYA_MODE_WORDS[mode];
+
+  return key === undefined ? t("agents.label.laya_mode_unknown", { mode: mode ?? "—" }) : t(key);
+}
 
 // The words a step that runs in some turns only is marked with.
 export const GATE_CONDITION_NOTES: Record<GateCondition, string> = {

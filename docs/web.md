@@ -21,7 +21,7 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
 - **No screen stands for a feature nothing serves.** A screen is the console's own, reading the units it calls,
   or a unit's own, loaded from the manifest the unit answers; a unit that answers none brings no entry, no route
   and no page.
-- **The mail, files, archive, code review, remote access and gate screens are their units' own,** each a console
+- **The mail, files, archive, code review and remote access screens are their units' own,** each a console
   bundle loaded from its unit's manifest, whose calls this app relays (「Screens a unit brings」). A bundle's
   share page, below its screen path at `share/`, is the one screen outside the login, and GitHub's deliveries the
   one call (「Access」).
@@ -1199,7 +1199,7 @@ Four groups.
   one more worker, that worker stands in this list under its own name. **It lists the agents a person designates
   and the workers, and nothing else:** a row of the `chat` kind holding a role, and a row of the `worker` kind. The
   rows the agency keeps for the gate unit's sessions — the `gate` kind, and a `chat` row holding no role — and the
-  runners' rows never stand here, whatever the agency lists: a gate is the gates screen's, a runner the agent
+  runners' rows never stand here, whatever the agency lists: a gate stands on the agent management screen's 게이트 tab, a runner the agent
   screen's 서쳐 tab's. The same holds for the agent management screen's lists of agents. Grouped in branches, one
   per group of kinds, each branch read from the kinds of the rows and naming no agent:
   - **지정된 에이전트** — every designated agent: the chat agent and every companion, side by side, each under
@@ -1753,9 +1753,8 @@ queue's button and the usage meters — so the front door opens on the groups th
 
 - **Live status** — one hook to the live status screen.
 - **Rooms** — the rooms as the receiver lists them. The room name, message count and last message time stand.
-- **Gate agents** — every gate the agency's catalogue holds, in the catalogue's order, each opening its agent page;
-  the gate order is the gate unit's, which serves the console none (`docs/boundary.md`, 「Screens of units not yet
-  split」).
+- **Gate agents** — every gate the agency's catalogue holds, in the gate order the gate unit serves where it stands
+  in it and in the catalogue's order otherwise, each opening its agent page.
 - **Runners** — the searcher and the browser searcher.
 - **Job workers** — each worker on this machine stands a line. As the agent doing the queue's work it stands in
   its own group. If a job runs on a worker, which item that job is a run of attaches under that worker's name,
@@ -2755,6 +2754,12 @@ Two ways, split because the running places differ.
 
 #### 게이트
 
+- **턴 게이트 heads the tab:** every gate a turn passes, as the gate unit's `GET /gates` lists it — the pre-gate's
+  and the post-gate's, never an off-turn one and never one the unit has shelved — one row each: its name, where it
+  stands (its part and its step), the condition its step runs under, its Laya mode where it has a Laya probe and
+  「Laya 질문 없음」 where it has none, its switch where its profile lets it be turned off, and the switch of its
+  cache warming where the agency holds a session for it. A dash stands where it has neither switch. The console
+  holds no view of a room's verdicts by gate, so a row leads nowhere else.
 - **One table of the gates** — each with a profile, so as gates grow the rows grow — with each gate's
   provider, its Claude account, its tier (and under it the registration, Token Size and thinking the
   tier gives it on the registry's provider), its time limit and what last answered on it. The person-book search and summariser and the knowledge

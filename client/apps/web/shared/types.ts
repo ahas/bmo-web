@@ -2050,6 +2050,20 @@ export interface GatePartView {
   steps: GateStepView[];
 }
 
+// One gate of a turn as the agents page lists it (docs/web.md, the agents page's gates tab): where it stands in the
+// turn, under what condition, its Laya mode where it has a probe, and its switch where its profile lets it be
+// turned off.
+export interface TurnGateView {
+  name: string;
+  part: "pre" | "post";
+  step: number;
+  condition: GateCondition | null;
+  switchable: boolean;
+  enabled: boolean;
+  layaProbe: boolean;
+  layaMode: string | null;
+}
+
 // The job screens' shapes, as bmo-job answers them (bmo-job's `docs/api.md`).
 
 // Which chat is the owner's own, as this app itself knows it. The bot's health answer carries

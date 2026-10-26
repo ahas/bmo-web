@@ -86,8 +86,6 @@ export const SCREENS: readonly Screen[] = [
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS },
-  // The gates and their trials, the gate unit's screen. Each gate's own page stands below its address.
-  { label: "screens.label.gates", to: "/gates", icon: "i-material-symbols-shield-outline", nested: true, brought: true },
   // A machine's terminals and desktop, bmo-remote's bundle. It stands last because it reaches the machine
   // rather than reading anything kept; its full-screen pages stand below its address.
   { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true, brought: true }

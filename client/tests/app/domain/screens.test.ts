@@ -11,7 +11,7 @@ import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 // from the pack, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen standing in this console is listed, named from the pack", () => {
-  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/code", "/agents", "/monitor", "/gates", "/remote"]);
+  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/code", "/agents", "/monitor", "/remote"]);
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
 });
 
@@ -35,7 +35,7 @@ function brought(screenPath: string, name: string): ConsoleScreen {
 }
 
 test("a unit's screen takes its manifest's own name and icon, and stands where the console lists it", () => {
-  const all = ["/mail", "/files", "/archive", "/code", "/gates", "/remote"].map((path) => brought(path, path.slice(1)));
+  const all = ["/mail", "/files", "/archive", "/code", "/remote"].map((path) => brought(path, path.slice(1)));
   const screens = screensWithBundles(all);
   const screen = screens.find((entry) => entry.to === "/mail")!;
 

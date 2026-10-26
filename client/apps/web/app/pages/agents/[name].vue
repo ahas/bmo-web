@@ -52,7 +52,7 @@
 
             <!-- This agent's own run, stopped from its own screen. What it is stopped by is the
                  target the bot's picture gives the run, so this screen decides none of it. On a
-                 phone the stop, the gate's test and the settings are one group behind the shared
+                 phone the stop and the settings are one group behind the shared
                  menu, whose button spins while the stop is under way. -->
             <div class="hidden items-center gap-2 sm:flex">
               <UBadge
@@ -70,16 +70,6 @@
                 :disabled="stops.busy()"
                 :aria-label="$t('live.aria.stop_named', { name: meta.label })"
                 @click="stops.ask(stopTarget)"
-              />
-
-              <UButton
-                v-if="gate !== null"
-                :to="`/gates/${gate.slug}`"
-                size="sm"
-                color="neutral"
-                variant="subtle"
-                icon="i-material-symbols-science-outline"
-                :label="$t('agents.action.try')"
               />
 
               <!-- This agent's own settings, where it has any of its own: a worker's whole settings,
@@ -241,8 +231,6 @@ const hasFigures = computed<boolean>(
   () => vitals.value.model !== null || vitals.value.contextTokens !== null || vitals.value.usage !== null
 );
 
-// A gate is tried on its own screen, the gate unit's, which stands as its placeholder.
-const gate = computed<{ slug: string } | null>(() => (row.value?.kind === "gate" ? { slug: name } : null));
 
 // Which of the agent management screen's own editors this agent has: a job worker its whole
 // settings, a gate its row of the gate table, an agent whose turn is its settings' pieces its block of
@@ -303,12 +291,6 @@ const phoneActions = computed<BarAction[]>(() => {
       loading: stops.isStopping(target),
       onSelect: () => stops.ask(target)
     });
-  }
-
-  if (gate.value !== null) {
-    const to = `/gates/${gate.value.slug}`;
-
-    actions.push({ id: "try", label: t("agents.action.try"), icon: "i-material-symbols-science-outline", onSelect: () => void navigateTo(to) });
   }
 
   if (settingsKind.value !== null) {

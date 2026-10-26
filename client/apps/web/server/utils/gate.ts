@@ -1,8 +1,9 @@
 import { PAGING } from "#shared/config";
+import { gateConditions } from "#shared/types";
 
 import { unitAt, unitFetch } from "./units";
 
-import type { GateOfferRecord, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, TokenSplit } from "#shared/types";
+import type { GateCondition, GateOfferRecord, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, TokenSplit, TurnGateView } from "#shared/types";
 
 // A room's judgements as the gate's console API holds them (the gate's `docs/api.md`, 「Judgements」): newest
 // first, a page at a time, each road a gate run walked beside it. The gate's address and token stand in the
@@ -147,4 +148,86 @@ export async function judgementsWithin(chatId: number, span: JudgementSpan): Pro
   }
 
   return held;
+}
+
+// The gate order as the gate unit serves it (the gate unit's `docs/api.md`, 「Gates」): each gate's part, step and
+// condition, whether its profile lets it be switched off, and its Laya probe.
+interface GateRow {
+  gateName: string;
+  part: string;
+  step: number;
+  condition: string | null;
+  switchable: boolean;
+  layaProbe: boolean;
+  defaultLayaMode: string | null;
+}
+
+interface GateOptions {
+  enabled?: boolean;
+  layaMode?: string | null;
+  effective?: { layaMode?: string | null };
+}
+
+const knownCondition = (condition: string | null): GateCondition | null =>
+  condition !== null && (gateConditions as readonly string[]).includes(condition) ? (condition as GateCondition) : null;
+
+async function gateRows(): Promise<GateRow[]> {
+  return (await unitFetch<{ items: GateRow[] }>("GATE", "/gates")).items;
+}
+
+/** The gate order, part by part and step by step, or null where the gate unit is not reached. */
+export async function gateOrderView(): Promise<GatePartView[] | null> {
+  if (unitAt("GATE") === null) return null;
+
+  let rows: GateRow[];
+
+  try {
+    rows = await gateRows();
+  } catch {
+    return null;
+  }
+
+  const inTurn = (part: "pre" | "post"): GatePartView => {
+    const steps = [...new Set(rows.filter((row) => row.part === part).map((row) => row.step))].sort((left, right) => left - right);
+
+    return {
+      part,
+      inTurn: true,
+      steps: steps.map((step) => ({
+        places: rows.filter((row) => row.part === part && row.step === step).map((row) => ({ key: row.gateName, condition: knownCondition(row.condition) }))
+      }))
+    };
+  };
+  const apart = rows.filter((row) => row.part === "apart").map((row) => ({ places: [{ key: row.gateName, condition: null }] }));
+
+  const parts: GatePartView[] = [inTurn("pre"), inTurn("post"), { part: "apart", inTurn: false, steps: apart }];
+
+  return parts.filter((part) => part.steps.length > 0);
+}
+
+/** The gates a turn passes, each with its Laya mode as it runs and its switch where it has one. */
+export async function turnGates(): Promise<TurnGateView[]> {
+  const rows = (await gateRows()).filter((row) => row.part === "pre" || row.part === "post");
+
+  return await Promise.all(
+    rows.map(async (row): Promise<TurnGateView> => {
+      const options = await unitFetch<GateOptions>("GATE", `/options/${encodeURIComponent(row.gateName)}`).catch((): GateOptions => ({}));
+
+      return {
+        name: row.gateName,
+        part: row.part as "pre" | "post",
+        step: row.step,
+        condition: knownCondition(row.condition),
+        switchable: row.switchable,
+        enabled: options.enabled ?? true,
+        layaProbe: row.layaProbe,
+        layaMode: row.layaProbe ? (options.effective?.layaMode ?? options.layaMode ?? row.defaultLayaMode) : null
+      };
+    })
+  );
+}
+
+/** One gate switched on or off, where its profile lets it be. */
+export async function switchGate(name: string, enabled: boolean): Promise<void> {
+  await unitFetch("GATE", `/options/${encodeURIComponent(name)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled }) });
 }

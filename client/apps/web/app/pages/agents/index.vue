@@ -164,6 +164,7 @@
         <AgentsRouteTable v-else-if="tab === 'routes'" :query="query" />
 
         <template v-else-if="tab === 'gates'">
+          <AgentsTurnGates :agents="agents" :reread="refreshAgents" :query="query" />
           <LayaStatusLine />
           <AgentsRouteTable gates :query="query" />
         </template>

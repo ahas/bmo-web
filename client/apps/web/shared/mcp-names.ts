@@ -17,7 +17,7 @@ export function mcpCallOf(name: string | null | undefined): LoggedMcpCall | null
 }
 
 // The brain's tools start their own name so: `brain_list`, `brain_similar`, `brain_recall` and the rest (docs/web.md,
-// the room screen's 브레인 chip). A road whose session reaches the tools through the shell runs them as
+// the room screen's brain chip). A road whose session reaches the tools through the shell runs them as
 // `bmo use <server>/<tool>`, so such a command names the tool too.
 const BRAIN_TOOL = /^brain_/;
 const SHELL_TOOL_USE = /\bbmo\s+use\s+(?:[\w.-]+\/)?(brain_[\w-]+)/;

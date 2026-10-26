@@ -527,7 +527,7 @@ describe("the result of an item", () => {
     }
   });
 
-  test("the tabs stand in one order across both columns: 결과, 상태, 지시, 요청 원문, then 의논 and 관리", () => {
+  test("the tabs stand in one order across both columns: result, state, instruction, the request, then the talk and management", () => {
     const left = detailSource.slice(detailSource.indexOf("const BODY_TABS = ["), detailSource.indexOf("const RIGHT_TABS = ["));
     const right = detailSource.slice(detailSource.indexOf("const RIGHT_TABS = ["), detailSource.indexOf("const hasResult"));
 

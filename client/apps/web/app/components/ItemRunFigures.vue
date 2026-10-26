@@ -1,6 +1,6 @@
 <template>
   <!-- How far the item's running job has come, read again every few seconds while it runs (docs/web.md, the TODO
-       modal's 상태): its time, its tool calls and the tokens it wrote, as the job's own figures count them. -->
+       modal's state tab): its time, its tool calls and the tokens it wrote, as the job's own figures count them. -->
   <ItemJobFigures v-if="run !== null" :key="`${run.agent}:${run.unit}`" :agent="run.agent" :run="run.unit" />
 </template>
 

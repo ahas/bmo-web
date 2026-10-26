@@ -2451,7 +2451,8 @@ Two ways, split because the running places differ.
   order every automatic walk follows, one row each: a drag handle in a column of its own, the place in
   the order, a status mark, the name, the reason the provider cannot answer on this machine now (the
   Codex executable, a registered OpenRouter model with its key, the gateway's key
-  file or an empty registry), the up and down
+  file or an empty registry) — said in the pack's sentence for the agency's code of it, the agency's own English
+  sentence as its tooltip, and a code the pack holds no sentence for said as the code — the up and down
   arrows and the enable switch. Grabbing a handle and dragging saves the whole order at once, by mouse
   and finger alike; a refused save puts the bot's order back with the reason under the list. Lowering a
   switch turns that provider off at once; a turned-off row stands dimmed and keeps its place. Turning
@@ -2526,9 +2527,10 @@ Two ways, split because the running places differ.
     consumer that holds a target for it. A row with its switch down carries 멈춤; while the whole round is off every row
     still on carries 전체 멈춤, and the switch is then the setting to use when the round comes back on.
   - **The role** is read, not chosen: an agent's role is set when it is registered (the agency's
-    `docs/agent-roles.md`). The row names it by the label the bot declares for it and, beside it, what it
-    gives, the bundles by their own short Korean names, or 기능 묶음 없음; a role the bot no longer declares,
-    or any while the bot is not answering, stands as the role's own name.
+    `docs/agent-roles.md`). The row names it by the pack's word for the code the bot declares it under — 채팅,
+    워커, 서쳐, 번역기, 게이트 — and, beside it, what it gives, the bundles by the pack's short Korean names for their
+    codes, or 기능 묶음 없음; a code the pack holds no word for is said as the code, and a role the bot no longer
+    declares, or any while the bot is not answering, stands as the role's own name.
 - **에이전트 추가.** 에이전트 in the tab row's 추가 menu opens a form registering an agent of any kind through the agency's
   `POST /agents` (its `docs/api.md`, 「agents」): its key and label, its kind — 대화, 워커, 러너 or 게이트 — its role
   among those the bot declares, the kind's own where none is chosen, and for a 대화 agent the model
@@ -4035,7 +4037,10 @@ Four bounds keep it from growing forever.
     silence leave no message to stand beside; that round's figure is on the chat agent's agent screen.
   - **Pressing the chip spreads the round**, one line per run: the stage, the provider and model that
     answered and how long it took, and under it that run's four kinds as one group of bars — 읽기,
-    쓰기, 캐시읽기, 캐시쓰기, each named beside its figure.
+    쓰기, 캐시읽기, 캐시쓰기, each named beside its figure. A round read as one figure stands one line, 이 실행, and
+    where the agency's ledger gives the context its last run closed on, a line under it says why the cache read is
+    what it is: 요청 N회 · 컨텍스트 ~K · 캐시 읽기 N, the requests being the cache read over that context, rounded,
+    since every request carries the whole context in again.
   - **An answer from before the round was recorded has no chip.** The round is named on the answer's
     message and on each run's road record, and an answer without that name has nothing to be counted
     by.

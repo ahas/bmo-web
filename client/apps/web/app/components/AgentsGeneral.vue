@@ -73,7 +73,10 @@
               <SearchText class="truncate text-sm font-medium" :class="one.enabled ? 'text-highlighted' : 'text-muted'" :text="one.label" :query="props.query" />
               <UBadge v-if="answering(one.name)" color="warning" variant="subtle" size="sm" :label="$t('agents.status.answering_instead')" />
             </span>
-            <SearchText v-if="one.reason !== null" class="break-words text-sm text-muted" :text="one.reason" :query="props.query" />
+            <!-- Why it cannot be taken, in the pack's words; the agency's own sentence is its tooltip. -->
+            <HintTip v-if="one.reason !== null" :text="one.reasonEnglish ?? undefined" :disabled="one.reasonEnglish === null" class="min-w-0">
+              <SearchText class="break-words text-sm text-muted" :text="one.reason" :query="props.query" />
+            </HintTip>
           </span>
 
           <span class="flex shrink-0 items-center gap-1">

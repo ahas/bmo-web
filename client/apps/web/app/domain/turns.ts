@@ -34,6 +34,9 @@ export interface TurnLine {
   took: string;
   // The four kinds and the total they are shares of; each kind null where it was never measured.
   tally: TokenSplit & { tokens: number };
+  // What the cache read says of the run where the context it carried in is known: how many requests it made, the
+  // context each carried, and the cache read itself; null where the context is not known.
+  requests: string | null;
 }
 
 // A chip and what it spreads into.
@@ -67,7 +70,8 @@ export function turnLines(t: Translate, roads: readonly TurnRoad[]): TurnLine[] 
     road: roadName(road),
     outcome: road.outcome === "answered" ? null : roadOutcome(t, road.outcome),
     took: `${countText(road.ms)}ms`,
-    tally: tallyOf(road.tokens ?? UNMEASURED)
+    tally: tallyOf(road.tokens ?? UNMEASURED),
+    requests: null
   }));
 }
 
@@ -90,7 +94,21 @@ export function spendText(figure: SpendFigure): string {
 
 // The chip of one run or one round. A figure with runs of its own spreads into them; one without
 // spreads into the one line of its own reading.
-export function spendChip(t: Translate, figure: SpendFigure, roads: readonly TurnRoad[]): SpendChip {
+/**
+ * Why a run's cache read stands as high as it does: a session carries its whole context in again on every request,
+ * so the cache read over the context is about how many requests the run made. Null where either is not known.
+ */
+export function requestsText(t: Translate, cacheReadTokens: number | null, contextTokens: number | null | undefined): string | null {
+  if (contextTokens === null || contextTokens === undefined || contextTokens <= 0 || cacheReadTokens === null || cacheReadTokens <= 0) return null;
+
+  return [
+    t("agents.label.run_requests", { n: countText(Math.max(1, Math.round(cacheReadTokens / contextTokens))) }),
+    t("agents.label.run_context", { tokens: tokenText(contextTokens) }),
+    t("agents.label.run_cache_read", { n: countText(cacheReadTokens) })
+  ].join(" · ");
+}
+
+export function spendChip(t: Translate, figure: SpendFigure & { contextTokens?: number | null }, roads: readonly TurnRoad[]): SpendChip {
   const lines =
     roads.length > 0
       ? turnLines(t, roads)
@@ -101,7 +119,8 @@ export function spendChip(t: Translate, figure: SpendFigure, roads: readonly Tur
             road: "",
             outcome: figure.measured === 0 ? t("agents.label.unmeasured") : null,
             took: "",
-            tally: tallyOf(splitOf(figure))
+            tally: tallyOf(splitOf(figure)),
+            requests: figure.measured === 0 ? null : requestsText(t, figure.cacheReadTokens, figure.contextTokens)
           }
         ];
 
@@ -133,7 +152,7 @@ export function liveChip(t: Translate, progress: RunProgress | null): SpendChip 
     text: written === null ? NOTHING : `~${tokenText(written)}`,
     figure: written,
     estimated: true,
-    lines: [{ key: 0, stage: t("agents.status.running"), road: "", outcome: null, took: "", tally: tallyOf(split) }]
+    lines: [{ key: 0, stage: t("agents.status.running"), road: "", outcome: null, took: "", tally: tallyOf(split), requests: null }]
   };
 }
 

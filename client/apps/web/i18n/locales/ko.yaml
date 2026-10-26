@@ -1639,6 +1639,15 @@ agents:
     base_prompt_unused: 사용하는 에이전트 없음
     base_prompt_values: 넣을 수 있는 값
     builtin: 빌트인
+    bundle_graph_read: 그래프
+    bundle_queue_read: TODO 읽기
+    bundle_room_chat: 기억 · 메모 · TODO
+    bundle_room_send: 보내기
+    bundle_web_branches: 리서치 분기
+    bundle_web_images: 이미지 보기
+    bundle_web_read: 웹 읽기
+    bundle_web_rulebooks: 룰북
+    bundle_web_sites: 사이트 도구
     characters_unit: 자
     checkpoint: 체크포인트
     column_account: 계정
@@ -1848,9 +1857,17 @@ agents:
     result_less: 축소
     result_more: "{n}줄 더 보기"
     role_bundles_none: 기능 묶음 없음
+    role_chat: 채팅
+    role_gate: 게이트
     role_key: "역할 · {role}"
     role_none: 롤 없음
+    role_searcher: 서쳐
+    role_translator: 번역기
+    role_worker: 워커
     room_sessions: 방 세션
+    run_cache_read: "캐시 읽기 {n}"
+    run_context: "컨텍스트 ~{tokens}"
+    run_requests: "요청 {n}회"
     runs: "{n}회"
     sampling: 샘플링
     search_tab: 탭
@@ -1908,6 +1925,7 @@ agents:
     unit_reopened: "{run}차 {label}"
     unit_round: "{label} {round}회차"
     unit_stage: "단계 {stage}-{task}"
+    unknown_code: "알 수 없는 코드 `{code}`"
     unmeasured: 미측정
     unset: 지정 없음
     uptime: "업타임 {time}"
@@ -2009,6 +2027,15 @@ agents:
     no_turn_gates: 턴 게이트가 없습니다.
     older_loading: 이전 줄 불러오는 중…
     registry_loading: 등록 모델 불러오는 중
+    road_codex_missing: 이 기기에 Codex 실행 파일이 없어 선택할 수 없습니다.
+    road_deepseek_key_unusable: DeepSeek 키 파일(deepseek.key)이 없거나 권한이 0600이 아니어서 선택할 수 없습니다.
+    road_gateway_key_unusable: 게이트웨이 키 파일(llm-gateway.key)이 없거나 권한이 0600이 아니어서 선택할 수 없습니다.
+    road_laya_url_unset: Laya 서버 주소가 설정되지 않아 선택할 수 없습니다.
+    road_line_not_carried: 이 공급자의 프로그램은 이 작업의 실행 라인을 지원하지 않습니다.
+    road_no_registration_addressed: 주소가 있는 등록 모델이 없어 선택할 수 없습니다.
+    road_openrouter_key_unset: BMO_OPENROUTER_KEY가 설정되지 않아 OpenRouter를 선택할 수 없습니다.
+    road_unavailable: 지금은 이 경로를 선택할 수 없습니다.
+    road_unknown_code: "알 수 없는 코드 `{code}`로 선택할 수 없습니다."
     routes_loading: 실행 경로 불러오는 중…
     run_gate: 판정 중
     run_runner: 검색 중

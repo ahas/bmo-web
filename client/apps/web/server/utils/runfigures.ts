@@ -91,6 +91,8 @@ export async function figuresOf(round: string): Promise<RoundFigures | null> {
   let documents = 0;
   let held = 0;
   let spend: RoundSpend | null = null;
+  // The context the last run that reported it closed on.
+  let carried: number | null = null;
   const add = (spent: Omit<RoundSpend, "measured" | "unmeasured" | "roads" | "context">): void => {
     const was = spend;
 
@@ -102,7 +104,8 @@ export async function figuresOf(round: string): Promise<RoundFigures | null> {
       measured: (was?.measured ?? 0) + 1,
       unmeasured: 0,
       roads: [],
-      context: null
+      context: null,
+      contextTokens: carried ?? was?.contextTokens ?? null
     };
   };
 
@@ -134,8 +137,11 @@ export async function figuresOf(round: string): Promise<RoundFigures | null> {
       }
     }
 
-    // The ledger's row carries the run's usage beside what the published type states.
-    const spent = usageOf(Object.fromEntries(Object.entries(run)).usage) ?? answered;
+    // The ledger's row carries the run's usage and its context beside what the published type states.
+    const row: Record<string, unknown> = Object.fromEntries(Object.entries(run));
+    const spent = usageOf(row.usage) ?? answered;
+
+    if (typeof row.contextTokens === "number" && row.contextTokens > 0) carried = row.contextTokens;
 
     if (spent !== null) add(spent);
   }

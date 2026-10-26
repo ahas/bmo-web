@@ -120,7 +120,12 @@ function callLine(t: Translate, call: CopyCall): string {
 function spendLines(t: Translate, spend: RoundSpend): string[] {
   const chip = roundChip(t, spend);
 
-  return [chip.text, ...chip.lines.map((line) => [line.stage, line.road, line.outcome ?? "", line.took, t("room.label.copy_tokens", { n: countText(line.tally.tokens) })].filter((part) => part !== "").join(" · "))];
+  return [
+    chip.text,
+    ...chip.lines.map((line) =>
+      [line.stage, line.road, line.outcome ?? "", line.took, t("room.label.copy_tokens", { n: countText(line.tally.tokens) }), line.requests ?? ""].filter((part) => part !== "").join(" · ")
+    )
+  ];
 }
 
 /** The calls of a turn's runs as a copy names them, each with its result's size where the result came back. */

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { liveChip, roundChip, runEnds, spendChip, spendText, turnLines } from "../../../apps/web/app/domain/turns";
+import { liveChip, requestsText, roundChip, runEnds, spendChip, spendText, turnLines } from "../../../apps/web/app/domain/turns";
 
 import type { AgentLogLine, RunProgress, SpendFigure, TurnRoad } from "../../../apps/web/shared/types";
 import type { LogRow } from "../../../apps/web/app/domain/log";
@@ -123,5 +123,19 @@ describe("what a turn's line says", () => {
     expect(line?.outcome).toBe(KO.line_122);
     expect(line?.tally).toEqual({ inputTokens: null, outputTokens: null, cacheReadTokens: null, cacheWriteTokens: null, tokens: 0 });
     expect(unmeasured).toEqual(line?.tally);
+  });
+});
+
+describe("why a run's cache read stands as it does", () => {
+  test("says how many requests carried its context in, the context and the cache read", () => {
+    expect(requestsText(wording, 3_087_360, 630_000)).toBe(
+      [wording("agents.label.run_requests", { n: "5" }), wording("agents.label.run_context", { tokens: "630K" }), wording("agents.label.run_cache_read", { n: "3,087,360" })].join(" · ")
+    );
+    expect(requestsText(wording, 3_087_360, null)).toBeNull();
+    expect(requestsText(wording, 0, 630_000)).toBeNull();
+
+    const figure = { inputTokens: 10, outputTokens: 20, cacheReadTokens: 3_087_360, cacheWriteTokens: 0, measured: 1, unmeasured: 0, contextTokens: 630_000 };
+
+    expect(spendChip(wording, figure, []).lines[0]?.requests).toBe(requestsText(wording, 3_087_360, 630_000));
   });
 });

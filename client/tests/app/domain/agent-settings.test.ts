@@ -20,10 +20,10 @@ describe("the sections of the agent management screen", () => {
 
 describe("a key's provider chooser", () => {
   const offered: OfferedProvider[] = [
-    { name: "claude-code", label: "Claude Code", reason: null },
-    { name: "codex", label: "Codex", reason: KO.line_23 },
-    { name: "openrouter", label: "OpenRouter", reason: null },
-    { name: "registered", label: KO.line_25, reason: null }
+    { name: "claude-code", label: "Claude Code", reason: null, reasonEnglish: null },
+    { name: "codex", label: "Codex", reason: KO.line_23, reasonEnglish: null },
+    { name: "openrouter", label: "OpenRouter", reason: null, reasonEnglish: null },
+    { name: "registered", label: KO.line_25, reason: null, reasonEnglish: null }
   ];
 
   test("offers auto and every provider by its own name, a refused one disabled, and no local model first", () => {

@@ -3,6 +3,7 @@ import { agencyClient } from "@agency/client";
 import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { bundleLabelOf, roleLabelOf } from "./agency-words";
 import { unitAt, unitHeaders } from "./units";
 import { answered } from "./unit-answer";
 
@@ -184,28 +185,27 @@ export function agentSummaries(agents: readonly AgencyAgent[], workers: readonly
   return [...listed, ...workers.filter((worker) => !named.has(worker.name)).map(workerSummary)];
 }
 
-/** A role as the agent list names it; the agency keeps no label or bundle list for one. */
-/** The roles an agent may hold as the agents' answer carries them, each with its label and the bundles it gives; a
- * member that does not read as one is left out. */
+/** The roles an agent may hold as the agents' answer carries them, each named by its code in the pack's words with
+ * the bundles it gives, named the same way; a member that does not read as one is left out. */
 export function agentRolesOf(answer: unknown): RoleView[] {
   const roles = (answer as { roles?: unknown } | null)?.roles;
 
   if (!Array.isArray(roles)) return [];
 
   return roles.flatMap((role): RoleView[] => {
-    const held = role as { name?: unknown; label?: unknown; bundles?: unknown };
+    const held = role as { name?: unknown; code?: unknown; bundles?: unknown };
 
     if (typeof held?.name !== "string") return [];
 
     const bundles = Array.isArray(held.bundles)
       ? held.bundles.flatMap((bundle) => {
-          const one = bundle as { name?: unknown; label?: unknown };
+          const one = bundle as { name?: unknown; code?: unknown };
 
-          return typeof one?.name === "string" ? [{ name: one.name, label: typeof one.label === "string" ? one.label : one.name }] : [];
+          return typeof one?.name === "string" ? [{ name: one.name, label: bundleLabelOf(one.code, one.name) }] : [];
         })
       : [];
 
-    return [{ name: held.name, label: typeof held.label === "string" ? held.label : held.name, bundles }];
+    return [{ name: held.name, label: roleLabelOf(held.code, held.name), bundles }];
   });
 }
 

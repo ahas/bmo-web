@@ -414,6 +414,10 @@ export interface SpendFigure {
 export interface RoundSpend extends SpendFigure {
   roads: TurnRoad[];
   context: number | null;
+  // The tokens the session's context held as the last of the round's runs that reported it closed: what each
+  // request carried in again, so the cache read over it says how many requests the round made. Absent or null
+  // where no run reported it.
+  contextTokens?: number | null;
 }
 
 /**
@@ -1651,10 +1655,13 @@ export interface OwnLlmSettingsView {
 // One provider as a work key's chooser offers it: the name the route stores, the label the owner
 // reads, and why it cannot be chosen for this key — this machine lacks what the provider needs,
 // or the program behind it does not carry the key's line. Null where it can.
+// Why a road cannot be taken is said in the pack's words, `reason`, read off the agency's code, with the agency's
+// own English sentence beside it for a tooltip; both null on a road that can be taken.
 export interface OfferedProvider {
   name: Exclude<FallbackRouteMode, "auto">;
   label: string;
   reason: string | null;
+  reasonEnglish: string | null;
 }
 
 // One agent provider in the owner's order, with its switch. Laya is a gate's road and never in it.
@@ -1662,6 +1669,7 @@ export interface OrderedProvider {
   name: AgentMode;
   label: string;
   reason: string | null;
+  reasonEnglish: string | null;
   enabled: boolean;
 }
 

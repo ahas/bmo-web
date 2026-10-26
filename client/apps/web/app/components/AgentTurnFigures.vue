@@ -1,6 +1,7 @@
 <template>
   <!-- What one turn ran and spent: the turn itself, then each gate its messages and its answer
-       went through. The stage and the road it took lead a line with how long it took; under it the
+       went through. The stage and the road it took lead a line with how long it took; under it, where the context
+       it carried is known, how many requests it made with that context and its cache read, then the
        four kinds stand as one track with each kind named beside its figure, and a run never
        measured stands four dashes. -->
   <ul class="flex flex-col gap-2 text-sm" :class="props.boxed ? 'rounded-lg border border-default px-3 py-2' : ''">
@@ -11,6 +12,9 @@
         <span v-if="line.outcome !== null" class="text-warning">{{ line.outcome }}</span>
         <span v-if="line.took !== ''" class="ms-auto whitespace-nowrap text-muted tabular-nums">{{ line.took }}</span>
       </span>
+
+      <!-- How many requests carried the context in, where the context is known: why the cache read is what it is. -->
+      <span v-if="line.requests !== null" data-run-requests class="text-muted tabular-nums">{{ line.requests }}</span>
 
       <UsageSplit :tally="line.tally" />
     </li>

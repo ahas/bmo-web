@@ -1,0 +1,65 @@
+import { wording } from "#shared/wording";
+
+// The agency's codes for what it says in English — why a road cannot be taken, a role and a bundle — each with the
+// pack's key for its words (the agency's `docs/api.md`). The codes are the agency's and its providers' own; the
+// table is where the console says them. A code the pack holds no words for is said as the code itself.
+
+const ROAD_REASONS: Readonly<Record<string, string>> = {
+  "openrouter-key-unset": "agents.status.road_openrouter_key_unset",
+  "deepseek-key-unusable": "agents.status.road_deepseek_key_unusable",
+  "codex-missing": "agents.status.road_codex_missing",
+  "gateway-key-unusable": "agents.status.road_gateway_key_unusable",
+  "no-registration-addressed": "agents.status.road_no_registration_addressed",
+  "line-not-carried": "agents.status.road_line_not_carried",
+  "laya-url-unset": "agents.status.road_laya_url_unset"
+};
+
+const ROLE_LABELS: Readonly<Record<string, string>> = {
+  chat: "agents.label.role_chat",
+  worker: "agents.label.role_worker",
+  searcher: "agents.label.role_searcher",
+  translator: "agents.label.role_translator",
+  gate: "agents.label.role_gate"
+};
+
+const BUNDLE_LABELS: Readonly<Record<string, string>> = {
+  "room-chat": "agents.label.bundle_room_chat",
+  "room-send": "agents.label.bundle_room_send",
+  "web-read": "agents.label.bundle_web_read",
+  "web-sites": "agents.label.bundle_web_sites",
+  "web-images": "agents.label.bundle_web_images",
+  "web-branches": "agents.label.bundle_web_branches",
+  "web-rulebooks": "agents.label.bundle_web_rulebooks",
+  "graph-read": "agents.label.bundle_graph_read",
+  "queue-read": "agents.label.bundle_queue_read"
+};
+
+/** Why a road cannot be taken, in the pack's words, beside the agency's own sentence; both null on a road that can. */
+export function roadReasonOf(reason: unknown, code: unknown): { reason: string | null; reasonEnglish: string | null } {
+  const english = typeof reason === "string" && reason !== "" ? reason : null;
+  const named = typeof code === "string" && code !== "" ? code : null;
+
+  if (english === null && named === null) return { reason: null, reasonEnglish: null };
+
+  const key = named === null ? undefined : ROAD_REASONS[named];
+  const said = key !== undefined ? wording(key) : named !== null ? wording("agents.status.road_unknown_code", { code: named }) : wording("agents.status.road_unavailable");
+
+  return { reason: said, reasonEnglish: english };
+}
+
+function labelOf(table: Readonly<Record<string, string>>, code: unknown, name: string): string {
+  const named = typeof code === "string" && code !== "" ? code : name;
+  const key = table[named];
+
+  return key === undefined ? wording("agents.label.unknown_code", { code: named }) : wording(key);
+}
+
+/** A role's name in the pack's words, by its code. */
+export function roleLabelOf(code: unknown, name: string): string {
+  return labelOf(ROLE_LABELS, code, name);
+}
+
+/** A bundle's name in the pack's words, by its code. */
+export function bundleLabelOf(code: unknown, name: string): string {
+  return labelOf(BUNDLE_LABELS, code, name);
+}

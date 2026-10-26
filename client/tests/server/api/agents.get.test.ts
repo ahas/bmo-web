@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
@@ -20,7 +21,7 @@ standIn("AGENCY", (call) => {
     return answer({
       items: [{ name: "agent-a", label: "Agent A", role: "builder", gates: null, reasoning: null, voice: null, resetAt: null, standInAvailable: false }],
       more: false,
-      roles: [{ name: "builder", label: "Builder", bundles: [{ name: "graph.read", label: "Graph" }] }, { label: "no name" }]
+      roles: [{ name: "worker", code: "worker", label: "Worker", bundles: [{ name: "graph.read", code: "graph-read", label: "Graph" }] }, { label: "no name" }]
     });
   }
 
@@ -49,7 +50,8 @@ describe("the agent list", () => {
     expect((await asked(handler, {})).answer).toMatchObject({
       reachable: true,
       agents: [{ name: "agent-a", kind: "chat", label: "Agent A", role: "builder", keepaliveStopped: true, keepalivePausedAt: 7, lastKeepaliveAt: 5 }],
-      roles: [{ name: "builder", label: "Builder", bundles: [{ name: "graph.read", label: "Graph" }] }],
+      // Each named by its code in the pack's words, never by the agency's English label.
+      roles: [{ name: "worker", label: wording("agents.label.role_worker"), bundles: [{ name: "graph.read", label: wording("agents.label.bundle_graph_read") }] }],
       gateOrder: null,
       defaultAnswerer: "agent-a"
     });

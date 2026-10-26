@@ -300,6 +300,12 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 What the console needs and no unit serves stands empty in the console until a unit's document states a route
 for it, and no file or table of that unit is read meanwhile.
 
+- **An agent's kind and the room it answers.** The agency's published `Agent` states its name, label, role,
+  gates, reasoning, voice, reset point, stand-in and owner, and no kind; its answer carries the registration row's
+  `kind`, `defaultAnswerer` and `chatId` beside them. The console reads those three where the row carries them,
+  an agent whose row names no kind standing as a conversational one. A worker is one row however the agency
+  lists it: the agents' answer and the workers' both name it, and the console lays the worker's own fields over
+  its agent's row rather than listing it twice.
 - **A chat provider's name for a reader.** The receiver calls each provider by a label of its own, in English for
   the room's record, and serves none in a reader's language, so a room's chat providers dialog shows the label as
   the receiver gives it.

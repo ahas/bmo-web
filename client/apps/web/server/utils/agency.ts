@@ -62,14 +62,28 @@ const seconds = (ms: number | null): number | null => (ms === null ? null : Math
 
 // The row an agent's screen stands on: what the agency's own agent list does not carry — its runs, its checkout
 // and the session's loads — stands empty (docs/boundary.md, 「Gaps the console meets」).
+// What the agency's answer carries on an agent beside the fields its published type states: the registration row's
+// kind, whether it is the default answerer and the room it answers (docs/boundary.md, 「Gaps the console meets」).
+function carriedOf(agent: AgencyAgent): { kind: string; defaultAnswerer: boolean; chatId: number | null } {
+  const row: Record<string, unknown> = Object.fromEntries(Object.entries(agent));
+
+  return {
+    kind: typeof row.kind === "string" && row.kind !== "" ? row.kind : "chat",
+    defaultAnswerer: row.defaultAnswerer === true,
+    chatId: typeof row.chatId === "number" ? row.chatId : null
+  };
+}
+
 function agentSummary(agent: AgencyAgent): AgentSummary {
+  const carried = carriedOf(agent);
+
   return {
     name: agent.name,
-    kind: "chat",
+    kind: carried.kind,
     role: agent.role,
     sessionScope: null,
     turnShape: null,
-    defaultAnswerer: false,
+    defaultAnswerer: carried.defaultAnswerer,
     model: null,
     configuredMode: null,
     configuredLabel: null,
@@ -82,7 +96,7 @@ function agentSummary(agent: AgencyAgent): AgentSummary {
     icon: null,
     cwd: null,
     builtin: false,
-    chatId: null,
+    chatId: carried.chatId,
     runs: 0,
     lastRunAt: null,
     lastKeepaliveAt: null,
@@ -133,8 +147,18 @@ function prefixDocumentsOf(worker: Worker & { prefixDocuments?: unknown }): { pr
 }
 
 /** Every agent and worker as the agent list stands them. */
+/** Every agent once, in the agents' order and then any worker the agents' answer does not name: a worker both answers
+ * name is one row, its worker's own fields laid over its agent's (docs/web.md, 「Agent management screen」). */
 export function agentSummaries(agents: readonly AgencyAgent[], workers: readonly Worker[]): AgentSummary[] {
-  return [...agents.map(agentSummary), ...workers.map(workerSummary)];
+  const byName = new Map(workers.map((worker) => [worker.name, worker]));
+  const listed = agents.map((agent): AgentSummary => {
+    const worker = byName.get(agent.name);
+
+    return worker === undefined ? agentSummary(agent) : { ...agentSummary(agent), ...workerSummary(worker) };
+  });
+  const named = new Set(agents.map((agent) => agent.name));
+
+  return [...listed, ...workers.filter((worker) => !named.has(worker.name)).map(workerSummary)];
 }
 
 /** A role as the agent list names it; the agency keeps no label or bundle list for one. */

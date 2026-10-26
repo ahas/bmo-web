@@ -26,9 +26,8 @@
         />
 
         <!-- The open section's own action stands first, at the right end of the row. -->
-        <!-- The supply tab adds three things, so its Add button opens a menu of them; the general tab adds a base
-             prompt. -->
-        <UDropdownMenu v-if="isGeneralTab(tab) && generalReady && generalAddItems.length > 0" :items="generalAddItems" :content="{ align: 'end' }">
+        <!-- The General tab adds five things, so its Add button opens a menu of them. -->
+        <UDropdownMenu v-if="tab === 'general' && generalReady" :items="generalAddItems" :content="{ align: 'end' }">
           <UTooltip :text="$t('common.action.add')">
             <UButton class="shrink-0" size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('common.action.add')" />
           </UTooltip>
@@ -96,7 +95,7 @@
       <!-- A section whose one table is the whole of it scrolls inside that table, so the table's
            header and sideways scrollbar hold to the section's edges; the rest scroll as a page. -->
       <div ref="body" class="flex min-h-0 flex-1 flex-col" :class="FULL_TABLE_TABS.includes(tab) ? 'overflow-hidden' : 'overflow-y-auto'">
-        <template v-if="isGeneralTab(tab)">
+        <template v-if="tab === 'general'">
           <!-- The settings before they have arrived. Every section title is the screen's own and
                stands at once; what waits is the cards under them, in the shape of the card each
                section is made of — a mark, two lines and the switch at its end. -->
@@ -107,7 +106,7 @@
             :label="$t('agents.status.settings_loading')"
           >
             <div class="flex flex-col gap-8">
-              <section v-for="section in GENERAL_SECTIONS.filter((one) => one.tab === tab)" :key="section.id" class="flex flex-col gap-3">
+              <section v-for="section in GENERAL_SECTIONS" :key="section.id" class="flex flex-col gap-3">
                 <h2 class="text-lg font-semibold text-highlighted">{{ $t(section.title) }}</h2>
 
                 <!-- The registered models wait in their own list's row, the one the section itself
@@ -147,7 +146,6 @@
           <AgentsGeneral
             v-else
             ref="generalRef"
-            :part="tab"
             :agents="agents"
             :rooms="rooms"
             :fallback="fallback"
@@ -191,7 +189,7 @@
 
 <script setup lang="ts">
 import { AGENT_TABS, emptyFallbackView, emptyKeepaliveView, isAgentTab, mappingText, routeModeText, searchSettings, settingsAnchor } from "~/domain/agent-settings";
-import { agentGroups, GENERAL_SECTIONS, generalTabOf, isGeneralTab, keepaliveMarkOf, NOT_CHECKOUT_LABEL } from "~/domain/agents";
+import { agentGroups, GENERAL_SECTIONS, keepaliveMarkOf, NOT_CHECKOUT_LABEL } from "~/domain/agents";
 import { foldPercentText, foldRatioAt, foldSourceText } from "~/domain/fold-ratios";
 import { draftKeyId, draftKeyLabel, draftListText, draftSourceText } from "~/domain/draft-process";
 import { useAgentCatalogue } from "~/domain/catalogue";
@@ -230,12 +228,12 @@ const generalRef = useTemplateRef<{ openAddAccount: () => void; openAddRegistrat
 const LIST_SECTIONS = ["registry", "catalogue", "base-prompts"];
 
 const generalAddItems = computed(() => [
-  { tab: "supply", label: t("agents.title.accounts"), icon: "i-material-symbols-person-add-outline", onSelect: () => generalRef.value?.openAddAccount() },
-  { tab: "supply", label: t("agents.title.registry"), icon: "i-material-symbols-model-training", onSelect: () => generalRef.value?.openAddRegistration() },
-  { tab: "supply", label: t("agents.title.catalogue"), icon: "i-material-symbols-deployed-code-outline", onSelect: () => generalRef.value?.openAddCatalogue() },
-  { tab: "general", label: t("agents.title.base_prompts"), icon: "i-material-symbols-article-outline", onSelect: () => generalRef.value?.openAddBasePrompt() },
-  { tab: "agents", label: t("agents.title.agent_add"), icon: "i-material-symbols-person-add-outline", onSelect: () => generalRef.value?.openAddAgent() }
-].filter((item) => item.tab === tab.value).map(({ tab: _tab, ...item }) => item));
+  { label: t("agents.title.accounts"), icon: "i-material-symbols-person-add-outline", onSelect: () => generalRef.value?.openAddAccount() },
+  { label: t("agents.title.registry"), icon: "i-material-symbols-model-training", onSelect: () => generalRef.value?.openAddRegistration() },
+  { label: t("agents.title.catalogue"), icon: "i-material-symbols-deployed-code-outline", onSelect: () => generalRef.value?.openAddCatalogue() },
+  { label: t("agents.title.base_prompts"), icon: "i-material-symbols-article-outline", onSelect: () => generalRef.value?.openAddBasePrompt() },
+  { label: t("agents.title.agent_add"), icon: "i-material-symbols-person-add-outline", onSelect: () => generalRef.value?.openAddAgent() }
+]);
 
 const tab = computed<AgentTab>(() => (isAgentTab(route.query.tab) ? route.query.tab : "general"));
 const { t } = useI18n();
@@ -309,16 +307,16 @@ function keyLabel(key: string): string {
 
 const entries = computed<SettingsEntry[]>(() => {
   const list: SettingsEntry[] = [
-    { id: "keepalive", tab: generalTabOf("keepalive"), label: t("agents.label.keepalive_all"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_keepalive_all"), shown: true }] },
-    { id: "providers", tab: generalTabOf("providers"), label: t("agents.title.section_providers"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_fallback"), shown: true }] },
-    { id: "agents", tab: generalTabOf("agents"), label: t("agents.title.section_agents"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_roles"), shown: true }] },
-    { id: "reasoning", tab: generalTabOf("reasoning"), label: t("agents.title.section_reasoning"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_reasoning"), shown: true }] },
-    { id: "agent-gates", tab: generalTabOf("agent-gates"), label: t("agents.title.section_agent_gates"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_agent_gates"), shown: true }] },
-    { id: "sessions", tab: generalTabOf("sessions"), label: t("agents.title.section_sessions"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_sessions"), shown: true }] }
+    { id: "keepalive", tab: "general", label: t("agents.label.keepalive_all"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_keepalive_all"), shown: true }] },
+    { id: "providers", tab: "general", label: t("agents.title.section_providers"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_fallback"), shown: true }] },
+    { id: "agents", tab: "general", label: t("agents.title.section_agents"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_roles"), shown: true }] },
+    { id: "reasoning", tab: "general", label: t("agents.title.section_reasoning"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_reasoning"), shown: true }] },
+    { id: "agent-gates", tab: "general", label: t("agents.title.section_agent_gates"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_agent_gates"), shown: true }] },
+    { id: "sessions", tab: "general", label: t("agents.title.section_sessions"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_sessions"), shown: true }] }
   ];
 
   for (const one of fallback.value?.order ?? []) {
-    list.push({ id: "providers", tab: generalTabOf("providers"), label: t("agents.label.find_provider", { name: one.label }), fields: [{ label: t("agents.label.column_provider"), text: one.label, shown: true }, { label: t("agents.label.reason"), text: one.reason, shown: true }] });
+    list.push({ id: "providers", tab: "general", label: t("agents.label.find_provider", { name: one.label }), fields: [{ label: t("agents.label.column_provider"), text: one.label, shown: true }, { label: t("agents.label.reason"), text: one.reason, shown: true }] });
   }
 
   // Every registered model, found by its name, its model and its tier.
@@ -327,7 +325,7 @@ const entries = computed<SettingsEntry[]>(() => {
 
     list.push({
       id: "registry",
-      tab: "supply",
+      tab: "general",
       label: t("agents.label.find_registration", { name }),
       fields: [
         { label: t("common.label.name"), text: name, shown: true },
@@ -338,13 +336,13 @@ const entries = computed<SettingsEntry[]>(() => {
   }
 
   if ((fallback.value?.accounts ?? []).length > 0) {
-    list.push({ id: "accounts", tab: generalTabOf("accounts"), label: t("agents.title.accounts"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_account_order"), shown: true }] });
+    list.push({ id: "accounts", tab: "general", label: t("agents.title.accounts"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_account_order"), shown: true }] });
   }
 
   for (const one of fallback.value?.accounts ?? []) {
     list.push({
       id: "accounts",
-      tab: "supply",
+      tab: "general",
       label: t("agents.label.find_account", { name: one.name }),
       fields: [
         { label: t("common.label.name"), text: one.name, shown: true },
@@ -360,7 +358,7 @@ const entries = computed<SettingsEntry[]>(() => {
 
       list.push({
         id: `agent-${agent.name}`,
-        tab: "agents",
+        tab: "general",
         label: t("agents.label.find_keepalive", { name: agent.label }),
         fields: [
           { label: t("common.label.name"), text: agent.label, shown: true },

@@ -24,6 +24,7 @@ const TOKEN = "browser-console-token-0123456789";
 // The accounts the console-driven tests sign in with, each by the name and password its file names.
 const ACCOUNTS: readonly [string, string][] = [
   ["agent-topbar", "fixture-password-1558"],
+  ["agents-general", "fixture-password-2301"],
   ["bubble-wrap", "fixture-password-1477"],
   ["composer-view", "fixture-password-2170"],
   ["console-ids", "fixture-password-789"],
@@ -152,7 +153,10 @@ const notFound = () => Response.json({ code: "not-found", error: "not served by 
 // not-found. The tests serve the rest of what they measure through the page's routes themselves.
 const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
   AGENCY: async (path, request) => {
-    if (path === "/agents") return Response.json({ items: [agent("agent-a", "Agent A")], more: false });
+    // The agents' answer names the worker too, as the agency's does, beside the workers' own answer.
+    if (path === "/agents") {
+      return Response.json({ items: [agent("agent-a", "Agent A", { kind: "chat", defaultAnswerer: true }), agent("worker", "Worker", { kind: "worker" })], more: false });
+    }
     if (path === "/workers") return Response.json({ items: [worker("worker", "Worker")], more: false });
     if (path === "/roles") return Response.json({ items: [], more: false });
     if (path === "/sessions") return Response.json({ items: [], more: false });

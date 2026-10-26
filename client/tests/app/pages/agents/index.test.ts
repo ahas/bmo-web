@@ -75,7 +75,7 @@ describe("the screen's sections", () => {
   });
 
   test("put the open section's own action on the tab row", () => {
-    expect(templateOf(page)).toContain("v-if=\"isGeneralTab(tab) && generalReady && generalAddItems.length > 0\"");
+    expect(templateOf(page)).toContain("v-if=\"tab === 'general' && generalReady\"");
     expect(templateOf(page)).toContain(':items="generalAddItems"');
     expect(scriptOf(page)).toContain("generalRef.value?.openAddAccount()");
     expect(scriptOf(page)).toContain("generalRef.value?.openAddRegistration()");
@@ -136,7 +136,7 @@ describe("the general tab", () => {
       expect(template).toContain(`{{ generalSectionTitle($t, "${id}") }}`);
     }
     expect(GENERAL_SECTIONS.map((section) => wording(section.title)))
-      .toEqual([wording("agents.title.section_keepalive"), KO.line_132_2, wording("agents.title.section_providers"), wording("agents.title.registry"), wording("agents.title.catalogue"), wording("agents.title.accounts"), wording("agents.title.section_agents"), wording("agents.title.section_reasoning"), wording("agents.title.section_agent_gates"), KO.line_132_3]);
+      .toEqual([wording("agents.title.section_keepalive"), wording("agents.title.section_providers"), wording("agents.title.registry"), wording("agents.title.catalogue"), KO.line_132_2, wording("agents.title.accounts"), wording("agents.title.section_agents"), wording("agents.title.section_reasoning"), wording("agents.title.section_agent_gates"), KO.line_132_3]);
     expect(template).toContain(':model-value="!props.keepalive.stopped"');
     // The voice briefing's settings stand in the settings dialog, not here.
     expect(template).not.toContain("voice-briefing");

@@ -13,8 +13,8 @@ console's typecheck and then every test file under `client/tests` in one `bun te
   and its layout check holds every `package.json` to a project or the root's package workspace, which this
   repository does not have. So `client/` stays a project, and its browser files run in its check rather than as
   declared browser files.
-- **Ten browser files drive a running console** rather than a page of their own: `agent-topbar`,
-  `agents-models`, `bubble-wrap`, `composer-in-view`, `console-ids`, `prompt-wrap`, `room-feed-gap`, `stepper`,
+- **Eleven browser files drive a running console** rather than a page of their own: `agent-topbar`,
+  `agents-general`, `agents-models`, `bubble-wrap`, `composer-in-view`, `console-ids`, `prompt-wrap`, `room-feed-gap`, `stepper`,
   `topbar-square` (which read the console's address from `BMO_CONSOLE_TEST_URL`) and `skeleton` (from
   `BMO_SKELETON_TEST_URL`). The suite stands up no console, so without those variables they skip; every other
   browser file runs.

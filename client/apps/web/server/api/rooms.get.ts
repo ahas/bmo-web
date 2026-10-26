@@ -9,7 +9,7 @@ export default defineEventHandler(async (event): Promise<ListedRoom[]> => {
   const rooms = await readableRooms(event);
   const listed = await listRooms();
   const readable = rooms === "all" ? listed : listed.filter((room) => rooms.has(room.chatId));
-  const unread = await unreadCounts(signed, await ownSenders(signed, await ownerChat()), readable, nowSeconds());
+  const unread = await unreadCounts(signed, await ownSenders(signed, await ownerChat()), readable.map(roomLast), nowSeconds());
 
   return readable.map((room) => {
     const read = unread.get(room.chatId);

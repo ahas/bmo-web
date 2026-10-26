@@ -1083,11 +1083,12 @@ edit to that file alone, once the guide below carries the word.
     room is its person's number, so it wears the same hue in the room list. Everything else that stands as
     a letter — a mail address, a machine — keeps the console's tones drawn from its own key.
 - **A companion stands with the picture it carries, and a room made for it with the one its seed names**
-  (the agency's `docs/companions.md`). Neither is a Telegram photo: the bot installs them into the same photo directory at
-  its start where no photo stands yet, and from there they are read like any other. A companion's picture is beside
-  its name in every room it speaks in, and on its own room in the sidebar and its header; a room made for several
-  companions wears none and stands as its letter. The chat agent speaks in such a room under a number of the console's and wears there a copy
-  of the face it wears in the owner's own chat, refreshed at each start when that face changed.
+  (the agency's `docs/companions.md`). Neither is a Telegram photo, and no unit serves them yet, so a companion, a
+  room made for it and the chat agent's face under the console's numbers stand as their letters
+  (`docs/boundary.md`, 「Gaps the console meets」). Where a unit serves them, a companion's picture stands
+  beside its name in every room it speaks in, and on its own room in the sidebar and its header; a room made for
+  several companions wears none and stands as its letter; and the chat agent, speaking in such a room under a
+  number of the console's, wears there the face it wears in the owner's own chat.
 - The photo is in the same place as the rest of this app. It does not open without login, its address is made
   only of a room or person number, and no file outside the bot's photo directory goes out on any request.
 
@@ -1579,6 +1580,13 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 
 ### Tab bar and toolbar
 
+- **One row under the title bar, never two.** A screen whose sections stand as tabs holds them on the one row
+  under its title bar, and what acts on the screen's content — its refresh and the moment it was read, its
+  filters, a status line it keeps — stands at that same row's right end. No screen stacks a second row of its
+  own controls under its tabs. Where the row is too narrow for both, the tabs scroll sideways inside it, a
+  status line is cut short, and a control's words fold into its tooltip, its mark standing alone; the control
+  itself never leaves the row. A toolbar that belongs to one thing inside the screen — an editor's, a table's —
+  stands against that thing, not under the tabs (「The title bar」).
 - Tabs are of two kinds and the two are not mixed. **Open-and-close tabs** — files, documents, sessions the
   reader opens and closes — stand as the console's shared **tab bar**, and **fixed switches within a screen** —
   section tabs of a narrow screen, the DB screen's table and SQL — stand as the component library's tabs. There
@@ -1800,13 +1808,16 @@ archive and this week's tokens remain. That is all that can actually be known th
     goes on reading while another tab stands, and a tab opened again is full rather than starting over with a
     skeleton.
   - On a phone the row has not the width for both a mark and a name on five tabs, so the marks are what gives
-    way and the names stand alone; the row fits one line at a phone's width and never scrolls sideways.
+    way and the names stand alone; the row fits one line at a phone's width, the tabs scrolling sideways inside
+    it only where the machine's line and the refresh leave them too little.
   - **Gates** — every gate, in the gate order (the gate unit's documents).
   - **Runners** — the searcher and the browser searcher.
   - **Job workers** — the worker.
-- The row under the tabs carries, on the right, the time the bot's picture was taken — or, in red, that the bot
-  does not answer. It is a button: pressing it reads the picture again, and it spins while it does.
-- **The same row carries, on the left, the machine's room in one line** (the agency's `docs/agent-control.md`, 「Room on
+- The tab row carries, at its right end, the time the bot's picture was taken — or, in red, that the bot
+  does not answer (「Tab bar and toolbar」, one row under the title bar). It is a button: pressing it reads the
+  picture again, and it spins while it does. On a phone the time folds into its tooltip and the refresh stands as
+  its mark.
+- **The same row carries, just before it, the machine's room in one line** (the agency's `docs/agent-control.md`, 「Room on
   the machine」): load against threads, memory pressure, available memory, free swap, open jobs and those
   with a browser, as the bot's minute watch last read them. Where a launch limit is met the line's mark turns
   to a warning. Pressing the line opens the reading whole: when it was read, every figure, the limits holding

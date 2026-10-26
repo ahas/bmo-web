@@ -29,6 +29,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["composer-view", "fixture-password-2170"],
   ["console-ids", "fixture-password-789"],
   ["item-reports", "fixture-password-2251"],
+  ["room-unread", "fixture-password-2252"],
   ["prompt-wrap", "fixture-password-1575"],
   ["room-feed", "fixture-password-1457"],
   ["skeleton259", "fixture-password-259"],
@@ -37,8 +38,9 @@ const ACCOUNTS: readonly [string, string][] = [
   ["work-view", "fixture-password-2311"]
 ];
 
-// The owner's room, which the receiver's stand-in names as theirs and lists.
+// The owner's room, which the receiver's stand-in names as theirs and lists, and a room an account meets two behind.
 const OWNER_CHAT = 42;
+const UNREAD_CHAT = 43;
 // The base path the console is served under; the tests read theirs off the address they are given.
 const BASE = "/console/";
 
@@ -239,7 +241,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     return null;
   },
-  RECEIVER: (path) => {
+  RECEIVER: (path, request) => {
     const now = Date.now();
     // One room: the owner's, with nothing said in it. Its moments are the receiver's milliseconds.
     const room = {
@@ -247,9 +249,25 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       companions: [], ownerRoom: true, registered: true, workRoom: OWNER_CHAT
     };
 
+    // A second room, whose line grows while it is first read: asked for its newest message it answers the first,
+    // and past that one it answers two more, so a reader meeting it for the first time is two behind.
+    const behind = { ...room, id: UNREAD_CHAT, title: "unread-room", ownerRoom: false, workRoom: UNREAD_CHAT, lastMessageAt: now - 1_000 };
+    const said = (id: number, sentAt: number) => ({
+      id, room: UNREAD_CHAT, senderId: 7, senderName: "person-b", sentAt, text: `words ${id}`, imagePath: null, replyToMessageId: null,
+      answerSeconds: null, round: null, album: null, via: null, files: []
+    });
+    const line = [said(1, now - 3_000), said(2, now - 2_000), said(3, now - 1_000)];
+
     if (path === "/owner") return Response.json({ room: OWNER_CHAT, senderId: 1 });
     if (path === "/live") return Response.json({ at: now, compacting: [], queued: [], turns: [] });
-    if (path === "/rooms") return Response.json({ items: [room], more: false });
+    if (path === "/rooms") return Response.json({ items: [room, behind], more: false });
+    if (path === `/rooms/${UNREAD_CHAT}/messages`) {
+      return Response.json({ items: new URL(request.url).searchParams.has("after") ? line.slice(1) : line.slice(0, 1), more: false });
+    }
+
+    const message = new RegExp(`^/rooms/${UNREAD_CHAT}/messages/(\\d+)$`).exec(path);
+
+    if (message !== null) return Response.json(line.find((one) => one.id === Number(message[1])) ?? line[0]);
     if (path === "/people") return Response.json({ items: [], more: false });
 
     const at = /^\/rooms\/(-?\d+)(\/[^/]+(?:\/[^/]+)?)?$/.exec(path);

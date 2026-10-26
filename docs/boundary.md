@@ -315,6 +315,10 @@ for it, and no file or table of that unit is read meanwhile.
   lines it serves carry it as `reference`; the console reads either, `ref` first.
 - **A checkout's branch and whether it is dirty.** No unit serves them, so a tool call's prompt line names the
   worker, the checkout, the time and the path, and stands no branch and no dirty mark.
+- **A companion's picture, and the faces under the console's numbers.** The photos the console reads are the
+  Telegram service's, which holds Telegram's alone. A companion's picture, a room made for a companion — a room the
+  receiver numbers itself, such as `-9000000000002` — and the person numbers the receiver gives a companion and the
+  chat agent in such rooms are served by no unit, so each stands as its letter.
 - **The title bar on a screen a unit brings.** bmo-ui's contract names no title bar of the console's, so the offer
   a bundle reads it by — the `bmo-console-title-bar` key and a route's `consoleTitleBar` meta (`docs/web.md`,
   「The title bar」) — is this console's own, and a bundle that does not read it still draws its own bar.

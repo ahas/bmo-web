@@ -110,9 +110,18 @@ describe("when the picture was taken", () => {
   test("stands as a button that reads it again, spinning while it does", () => {
     const template = templateOf(page);
 
-    expect(template).toContain(`<UTooltip :text="$t('common.action.refresh')">`);
+    expect(template).toContain(`<UTooltip :text="standing === '' ? $t('common.action.refresh') : $t('common.aria.refresh_standing', { standing })">`);
     expect(template).toContain(':loading="reading"');
     expect(template).toContain('@click="load()"');
-    expect(template).toContain(':label="standing"');
+    expect(template).toContain(':label="narrow ? undefined : standing"');
+  });
+
+  test("stands on the tab row's right end, so the screen holds one row under its title bar", () => {
+    const template = templateOf(page);
+    const row = template.slice(template.indexOf("<UTabs"), template.indexOf("<template #body>"));
+
+    expect(row).toContain("<MachineRoom");
+    expect(row).toContain('icon="i-material-symbols-refresh"');
+    expect(template).not.toContain("<UDashboardToolbar");
   });
 });

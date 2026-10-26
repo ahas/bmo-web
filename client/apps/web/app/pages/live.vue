@@ -3,9 +3,12 @@
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.live')" icon="i-material-symbols-monitor-heart-outline" />
 
-      <!-- A section to a tab, one of them standing at a time. The tab is in the address, so a link
-           opens the section it was taken on. -->
-      <div :class="['flex h-12 shrink-0 items-center sm:ps-4 sm:pe-4', TAB_ROW_LINE]">
+      <!-- One row under the title bar: a section to a tab on the left, one of them standing at a time — the tab is in
+           the address, so a link opens the section it was taken on — and at the row's right end what acts on the page,
+           the machine's line and the moment the board was read with its refresh (docs/web.md, 「Tab bar and toolbar」).
+           The tabs scroll sideways before the page's controls give way, and the machine's line is cut short before
+           the refresh is. -->
+      <div :class="['flex h-12 shrink-0 items-center gap-2 sm:ps-4 sm:pe-4 pe-2', TAB_ROW_LINE]">
         <UTabs
           :model-value="tab"
           :items="tabItems"
@@ -13,36 +16,34 @@
           color="neutral"
           variant="link"
           size="sm"
-          class="min-w-0 flex-1 self-stretch"
+          class="min-w-0 flex-1 self-stretch overflow-x-auto [scrollbar-width:none]"
           :ui="TAB_ROW_UI"
           :aria-label="$t('live.aria.sections')"
           @update:model-value="(value: string | number) => setTab(String(value))"
         />
-      </div>
-
-      <!-- The machine's line takes what width the row has and is cut short before the refresh is. -->
-      <UDashboardToolbar :ui="{ left: 'min-w-0 flex-1', right: 'shrink-0' }">
-        <template #left>
-          <MachineRoom :standing="status.machine ?? null" :nodes="status.nodes ?? null" :as-of="machineAsOf" :loaded="loaded" />
-        </template>
-        <template #right>
-          <!-- When the bot's picture was taken, and the way to ask for it again: the board is a
-               picture of a moment, so the moment itself is what leads back to a fresher one. -->
-          <UTooltip :text="$t('common.action.refresh')">
+        <div class="flex min-w-0 shrink items-center gap-1">
+          <div class="flex min-w-0">
+            <MachineRoom :standing="status.machine ?? null" :nodes="status.nodes ?? null" :as-of="machineAsOf" :loaded="loaded" />
+          </div>
+          <!-- When the bot's picture was taken, and the way to ask for it again: the board is a picture of a moment,
+               so the moment itself is what leads back to a fresher one. On a phone the moment folds into the
+               button's tooltip and the refresh stands as its mark. -->
+          <UTooltip :text="standing === '' ? $t('common.action.refresh') : $t('common.aria.refresh_standing', { standing })">
             <UButton
               icon="i-material-symbols-refresh"
-              :label="standing"
+              :label="narrow ? undefined : standing"
               :color="controlTone(link)"
               variant="ghost"
               size="sm"
+              class="shrink-0"
               :loading="reading"
               :aria-label="standing === '' ? $t('common.action.refresh') : $t('common.aria.refresh_standing', { standing })"
               :ui="{ label: 'tabular-nums' }"
               @click="load()"
             />
           </UTooltip>
-        </template>
-      </UDashboardToolbar>
+        </div>
+      </div>
     </template>
 
     <template #body>

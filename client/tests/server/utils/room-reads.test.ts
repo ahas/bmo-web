@@ -12,7 +12,7 @@ import { scratchWebDatabase } from "../../support/web-database";
 await scratchWebDatabase();
 
 const OWN = 42;
-let line: { messageId: number; senderId: number | null; sentAt: number }[] = [{ messageId: 1, senderId: 7, sentAt: 100 }];
+let line: { messageId: number; senderId: number | null; sentAt: number }[] = [{ messageId: 1, senderId: 7, sentAt: 100_000 }];
 
 const after = (id: number) => line.slice(line.findIndex((one) => one.messageId === id) + 1);
 
@@ -53,30 +53,35 @@ standIn("RECEIVER", (one) => {
   return answer({ code: "no-route", error: "no route" }, 404);
 });
 
-const { markRead, unreadCounts } = await import("../../../apps/web/server/utils/room-reads");
+const { markRead, roomLast, unreadCounts } = await import("../../../apps/web/server/utils/room-reads");
 
 const signed = { name: "member-a", id: null, administrator: true };
-const room = () => [{ chatId: -7, lastMessageAt: line.at(-1)!.sentAt }];
+// The room list names a room's last message by its second; the receiver's line and the marks keep milliseconds.
+const room = () => [roomLast({ chatId: -7, lastMessageAt: Math.floor(line.at(-1)!.sentAt / 1000) })];
 
 describe("what a room holds unread", () => {
   test("a room met for the first time is read as it stands", async () => {
-    expect((await unreadCounts(signed, [OWN], room(), 1_000)).get(-7)).toEqual({ count: 0, first: null, from: { sentAt: 100, order: 0 } });
+    expect((await unreadCounts(signed, [OWN], room(), 1_000)).get(-7)).toEqual({ count: 0, first: null, from: { sentAt: 100_000, order: 0 } });
   });
 
   test("what lands past the mark is counted from the first of it", async () => {
-    line = [...line, { messageId: 2, senderId: 7, sentAt: 110 }, { messageId: 3, senderId: 8, sentAt: 120 }];
+    line = [...line, { messageId: 2, senderId: 7, sentAt: 110_000 }, { messageId: 3, senderId: 8, sentAt: 120_000 }];
 
-    expect((await unreadCounts(signed, [OWN], room(), 1_000)).get(-7)).toEqual({ count: 2, first: 2, from: { sentAt: 100, order: 0 } });
+    expect((await unreadCounts(signed, [OWN], room(), 1_000)).get(-7)).toEqual({ count: 2, first: 2, from: { sentAt: 100_000, order: 0 } });
   });
 
   test("the account's own word reads the room up to it", async () => {
-    line = [...line, { messageId: 4, senderId: OWN, sentAt: 130 }, { messageId: 5, senderId: 7, sentAt: 140 }];
+    line = [...line, { messageId: 4, senderId: OWN, sentAt: 130_000 }, { messageId: 5, senderId: 7, sentAt: 140_000 }];
 
-    expect((await unreadCounts(signed, [OWN], room(), 1_000)).get(-7)).toEqual({ count: 1, first: 5, from: { sentAt: 130, order: 0 } });
+    expect((await unreadCounts(signed, [OWN], room(), 1_000)).get(-7)).toEqual({ count: 1, first: 5, from: { sentAt: 130_000, order: 0 } });
+  });
+
+  test("a message sent in the same second as the place read to still counts", async () => {
+    expect(roomLast({ chatId: -7, lastMessageAt: 140 })).toEqual({ chatId: -7, lastMessageMs: 140_999 });
   });
 
   test("a room read up to a message counts only past it, and a mark behind it moves nothing", async () => {
-    expect(await markRead(signed, [OWN], -7, 5, 1_000)).toEqual({ count: 0, first: null, from: { sentAt: 140, order: 0 } });
-    expect(await markRead(signed, [OWN], -7, 2, 1_001)).toEqual({ count: 0, first: null, from: { sentAt: 140, order: 0 } });
+    expect(await markRead(signed, [OWN], -7, 5, 1_000)).toEqual({ count: 0, first: null, from: { sentAt: 140_000, order: 0 } });
+    expect(await markRead(signed, [OWN], -7, 2, 1_001)).toEqual({ count: 0, first: null, from: { sentAt: 140_000, order: 0 } });
   });
 });

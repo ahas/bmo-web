@@ -294,6 +294,7 @@
       <div
         v-if="administrator"
         ref="composerFoot"
+        data-screen-foot
         class="absolute inset-x-0 bottom-0 z-20 flex max-h-[calc(100%-var(--room-head))] min-h-0 flex-col border-t border-default pt-(--chat-bar-pad) pe-(--feed-gutter) backdrop-blur-md"
         :class="[dragging ? 'bg-elevated/75' : 'bg-default/75', overlaid ? 'pb-(--chat-bar-pad)' : 'pb-[calc(var(--chat-bar-pad)+var(--bmo-safe-bottom))]']"
       >

@@ -2744,7 +2744,7 @@ documents:
 briefing:
   error:
     bad_id: 보이스브리핑 번호가 올바르지 않습니다.
-    engine_unreachable: 보이스 엔진에 닿지 못해 읽어 드릴 수 없습니다.
+    engine_unreachable: 보이스 엔진에 연결되지 않아 읽어 드릴 수 없습니다.
     line_not_found: 읽을 줄을 찾지 못했습니다.
     no_engine: 이 콘솔에는 보이스 엔진이 설정되어 있지 않습니다.
     not_found: 그 보이스브리핑을 찾을 수 없습니다.
@@ -2758,10 +2758,12 @@ briefing:
   action:
     listen: 재생
     open: 줄로 가기
+    pause: 일시정지
     stop: 그만듣기
   label:
     autoplay: 자동 재생
     autoplay_note: 켜 두면 요약 브리핑이 도착하는 대로 플레이어에서 저절로 재생됩니다.
+    played: "{at} / {length}"
     switch_all: 전체 보이스브리핑
     switch_all_note: 꺼 두면 요약 브리핑도, 줄의 전체 읽기도 만들지 않습니다.
     title: 보이스브리핑

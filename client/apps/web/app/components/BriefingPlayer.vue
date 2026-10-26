@@ -1,22 +1,38 @@
 <template>
-  <!-- The voice briefing playing, as a compact control in the one title bar's set of buttons (docs/web.md,
-       「Messages」, the briefing's player): over nothing a screen draws. It carries no words: the visualiser, which
-       leads to the voice message or plays a sound waiting for a press, and the close mark, which stops the
-       listening. Nothing was pressed for it, so it comes and goes by fading where it stands. Its dark surface is a
-       layer of its own behind the two presses, so the swell with the sound moves the surface alone. -->
-  <Transition name="bmo-briefing">
-    <div v-if="shown !== null" data-briefing-popup role="group" :aria-label="$t('briefing.label.title')" class="relative flex shrink-0 items-center gap-0.5 p-0.5">
+  <!-- The voice briefing playing, as a small player floating over the page area like a picture-in-picture window,
+       first at the bottom right on the content's gutter above whatever bar stands at the screen's foot, and dragged
+       from there (docs/web.md, 「Messages」, the briefing's player). Its press pauses the sound or plays one waiting,
+       its title leads to the line it speaks over how far it has played, and its close mark stops the listening. It
+       stands inside the layout rather than over it, so what opens over the screen covers it like the rest. Its dark
+       surface is a layer of its own behind the presses, so the swell with the sound moves the surface alone. -->
+  <Transition name="bmo-briefing" type="animation">
+    <div
+      v-if="shown !== null"
+      ref="player"
+      data-briefing-popup
+      role="group"
+      :aria-label="$t('briefing.label.title')"
+      class="absolute z-30 flex w-72 max-w-[calc(100%-2*var(--bmo-gutter))] touch-none items-center gap-2 p-1.5 select-none [--bmo-gutter:1rem] sm:[--bmo-gutter:1.5rem]"
+      :class="dragAt === null ? '' : 'cursor-grabbing'"
+      :style="placed"
+      @pointerdown="grab"
+      @click.capture="swallow"
+    >
+      <!-- Back puts it away as it puts away anything floating over the screen: it stops the listening. -->
+      <BriefingBack @back="shown.stop()" />
+
       <span
         data-briefing-surface
         aria-hidden="true"
-        class="absolute inset-0 -z-10 rounded-full bg-zinc-900 ring-1 ring-white/15 dark:bg-zinc-800"
+        class="absolute inset-0 -z-10 rounded-2xl bg-zinc-900 shadow-lg shadow-black/40 ring-1 ring-white/15 dark:bg-zinc-800"
         :style="{ scale: swell }"
       />
 
-      <UTooltip :text="pressLabel">
+      <HintTip :text="pressLabel" press class="shrink-0">
         <button
           type="button"
-          class="flex h-7 w-12 cursor-pointer items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 active:bg-white/20 focus-inset"
+          data-briefing-press
+          class="flex h-9 w-12 cursor-pointer items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 active:bg-white/20 focus-inset"
           :aria-label="pressLabel"
           @click="press"
         >
@@ -25,26 +41,48 @@
             <span v-for="(bar, index) in bars" :key="index" class="w-1 rounded-full bg-white" :style="{ height: `${barHeight(bar)}px` }" />
           </span>
         </button>
-      </UTooltip>
+      </HintTip>
 
-      <UTooltip :text="$t('briefing.action.stop')">
+      <span class="flex min-w-0 flex-1 flex-col gap-1.5">
+        <HintTip :text="$t('briefing.action.open')" press class="min-w-0">
+          <button type="button" data-briefing-title class="block w-full cursor-pointer truncate rounded-sm text-start text-sm text-white hover:underline focus-inset" @click="go">
+            {{ title }}
+          </button>
+        </HintTip>
+        <span
+          role="progressbar"
+          data-briefing-progress
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-valuenow="Math.round(played * 100)"
+          :aria-valuetext="playedText"
+          :aria-label="$t('briefing.label.title')"
+          class="block h-1 overflow-hidden rounded-full bg-white/20"
+        >
+          <span class="block h-full rounded-full bg-white" :style="{ width: `${played * 100}%` }" />
+        </span>
+      </span>
+
+      <HintTip :text="$t('briefing.action.stop')" press class="shrink-0">
         <UButton
           icon="i-material-symbols-close"
-          size="xs"
+          size="sm"
           color="neutral"
           variant="ghost"
           class="rounded-full"
+          data-briefing-stop
           :ui="{ base: 'text-zinc-300 hover:bg-white/10 hover:text-white active:bg-white/20' }"
           :aria-label="$t('briefing.action.stop')"
           @click="shown.stop()"
         />
-      </UTooltip>
+      </HintTip>
     </div>
   </Transition>
 </template>
 
 <script setup lang="ts">
 import { barsOf, BRIEFING_BARS, BRIEFING_FFT, briefingState, swayingBars, swellOf } from "~/domain/briefing";
+import { type BriefingBounds, clampTo, footClearance, isDrag, SCREEN_FOOT, settledSide, useBriefingPosition } from "~/domain/briefing-position";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
 const { t } = useI18n();
@@ -53,7 +91,26 @@ const shown = briefingState();
 // A sound that stopped short of playing — paused by another player, or refused by a browser that
 // will not start one nobody pressed for — waits for a press, and the visualiser's place says so.
 const waitsForPress = computed(() => shown.value?.phase === "paused" || shown.value?.phase === "blocked");
-const pressLabel = computed(() => (waitsForPress.value ? t("briefing.action.listen") : t("briefing.action.open")));
+const pressLabel = computed(() => (waitsForPress.value ? t("briefing.action.listen") : t("briefing.action.pause")));
+const title = computed(() => shown.value?.title ?? t("briefing.label.title"));
+
+
+// How far the sound has played, from nought to one, and the same in minutes and seconds.
+const played = ref(0);
+const playedText = ref("");
+
+function clockOf(seconds: number): string {
+  const whole = Math.max(0, Math.floor(seconds));
+
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+}
+
+function readPlayed(): void {
+  const at = shown.value?.position() ?? null;
+
+  played.value = at === null ? 0 : Math.min(1, at.at / at.length);
+  playedText.value = at === null ? "" : t("briefing.label.played", { at: clockOf(at.at), length: clockOf(at.length) });
+}
 
 // The bars at rest, while the sound loads, and the still shape a reader who asked for less movement
 // is shown while it plays.
@@ -74,14 +131,15 @@ function barHeight(bar: number): number {
   return Math.round(BAR_MIN_PX + Math.min(1, Math.max(0, bar)) * (BAR_MAX_PX - BAR_MIN_PX));
 }
 
-// One frame of the visualiser: the sound's own spectrum where the browser gives it, the bars
-// swaying on their own where it does not. It runs only while the sound plays.
+// One frame of the visualiser and of how far the sound has played: the sound's own spectrum where the browser gives
+// it, the bars swaying on their own where it does not. It runs only while the sound plays.
 let frame: number | null = null;
 
 function draw(now: number): void {
   const playing = shown.value;
 
   frame = null;
+  readPlayed();
 
   if (playing === null || playing.phase !== "playing") {
     bars.value = RESTING;
@@ -89,8 +147,10 @@ function draw(now: number): void {
     return;
   }
 
+  // Still bars for a reader who asked for less movement, while how far it has played goes on being read.
   if (still.value) {
     bars.value = STILL;
+    frame = requestAnimationFrame(draw);
 
     return;
   }
@@ -119,50 +179,320 @@ if (import.meta.client) {
   });
 }
 
-// The visualiser's press: a sound waiting for one is played, and one playing leads to its voice
-// message and keeps playing, since only the close mark, which stops the listening, or the sound's end takes it down.
-async function press(): Promise<void> {
+// Its press: a sound waiting for one is played, and one playing or loading is paused; only the close mark, which
+// stops the listening, or the sound's end takes it down.
+function press(): void {
   const now = shown.value;
 
-  if (now === null) {
-    return;
-  }
+  if (now === null) return;
 
-  if (waitsForPress.value) {
-    now.play();
-
-    return;
-  }
-
-  await navigateTo(now.to);
+  if (waitsForPress.value) now.play();
+  else now.pause();
 }
+
+// Its title leads to the line it speaks, in its room, and leaves it playing.
+async function go(): Promise<void> {
+  const now = shown.value;
+
+  if (now !== null) await navigateTo(now.to);
+}
+
+// Where it stands. At rest it is held to its side's gutter and to the height it was left at — where it first stands,
+// as low as it may — which the stylesheet pulls inside the page area between the title row and the bar at the
+// screen's foot, so a page area that shrinks shows it as low as it allows without losing the height kept for a
+// taller one.
+const { position, keep } = useBriefingPosition();
+const player = ref<HTMLElement | null>(null);
+const dragAt = ref<{ left: number; top: number } | null>(null);
+const height = ref(0);
+// How far up from the page area's foot it keeps, over the bar standing there.
+const foot = ref(0);
+
+watch(player, (element) => {
+  if (element !== null) {
+    height.value = element.offsetHeight;
+    measureFoot();
+  }
+});
+
+function measureFoot(): void {
+  const area = player.value?.offsetParent;
+
+  if (!(area instanceof HTMLElement)) return;
+
+  foot.value = Math.round(footClearance(area.getBoundingClientRect(), [...area.querySelectorAll(SCREEN_FOOT)].map((one) => one.getBoundingClientRect())));
+}
+
+// The bar at a screen's foot comes with the screen and grows with what is typed into it, so while the player stands
+// it reads the bar again every half second.
+const FOOT_READ_MS = 500;
+let footTimer: ReturnType<typeof setInterval> | null = null;
+
+if (import.meta.client) {
+  watch(
+    () => shown.value !== null,
+    (standing) => {
+      if (footTimer !== null) clearInterval(footTimer);
+
+      footTimer = standing ? setInterval(measureFoot, FOOT_READ_MS) : null;
+    },
+    { immediate: true }
+  );
+
+  onScopeDispose(() => {
+    if (footTimer !== null) clearInterval(footTimer);
+  });
+}
+
+function restingTop(top: number | null): string {
+  const lowest = `calc(100% - ${height.value}px - var(--bmo-gutter) - ${foot.value}px)`;
+
+  return top === null ? `max(calc(var(--ui-header-height) + 0.5rem), ${lowest})` : `clamp(calc(var(--ui-header-height) + 0.5rem), ${top}px, ${lowest})`;
+}
+
+const placed = computed(() => {
+  if (dragAt.value !== null) {
+    return { left: `${dragAt.value.left}px`, top: `${dragAt.value.top}px` };
+  }
+
+  const { side, top } = position.value;
+
+  return { [side]: "var(--bmo-gutter)", top: restingTop(top) };
+});
+
+// The edges it may be dragged between, read off the panel it stands in as the drag begins: the
+// gutter its side keeps, and the highest and lowest its resting rule lets it stand.
+function boundsOf(element: HTMLElement): BriefingBounds {
+  const panel = element.offsetParent as HTMLElement;
+  const width = element.offsetWidth;
+  const gutter = position.value.side === "left" ? element.offsetLeft : panel.clientWidth - element.offsetLeft - width;
+  const resting = element.style.top;
+
+  element.style.top = restingTop(0);
+  const minTop = element.offsetTop;
+
+  element.style.top = restingTop(panel.clientHeight);
+  const maxTop = element.offsetTop;
+
+  element.style.top = resting;
+
+  return { minLeft: gutter, maxLeft: panel.clientWidth - width - gutter, minTop, maxTop };
+}
+
+// One press on the player, from the pointer going down: a press until it has travelled past the
+// slop, a drag from then on.
+interface Held {
+  pointer: number;
+  type: string;
+  x: number;
+  y: number;
+  from: { left: number; top: number };
+  bounds: BriefingBounds | null;
+  lastX: number;
+  lastAt: number;
+  speed: number;
+}
+
+let held: Held | null = null;
+let dragged = false;
+
+function grab(event: PointerEvent): void {
+  const element = player.value;
+
+  dragged = false;
+
+  if (element === null || !event.isPrimary || event.button !== 0) {
+    return;
+  }
+
+  for (const running of element.getAnimations()) {
+    running.cancel();
+  }
+
+  held = {
+    pointer: event.pointerId,
+    type: event.pointerType,
+    x: event.clientX,
+    y: event.clientY,
+    from: { left: element.offsetLeft, top: element.offsetTop },
+    bounds: null,
+    lastX: event.clientX,
+    lastAt: event.timeStamp,
+    speed: 0
+  };
+  window.addEventListener("pointermove", follow);
+  window.addEventListener("pointerup", release);
+  window.addEventListener("pointercancel", release);
+}
+
+function follow(event: PointerEvent): void {
+  const element = player.value;
+
+  if (held === null || element === null || event.pointerId !== held.pointer) {
+    return;
+  }
+
+  const dx = event.clientX - held.x;
+  const dy = event.clientY - held.y;
+
+  if (held.bounds === null) {
+    if (!isDrag(dx, dy, held.type)) {
+      return;
+    }
+
+    height.value = element.offsetHeight;
+    held.bounds = boundsOf(element);
+  }
+
+  const { bounds } = held;
+  const elapsed = event.timeStamp - held.lastAt;
+
+  if (elapsed > 0) {
+    held.speed = ((event.clientX - held.lastX) / elapsed) * 1000;
+  }
+
+  held.lastX = event.clientX;
+  held.lastAt = event.timeStamp;
+  dragAt.value = {
+    left: clampTo(held.from.left + dx, bounds.minLeft, bounds.maxLeft),
+    top: clampTo(held.from.top + dy, bounds.minTop, bounds.maxTop)
+  };
+}
+
+// Let go, a drag settles on the nearer side at the height it was let go at, glides there, and is
+// kept; the press it began as is not passed on to what it started on.
+async function release(event: PointerEvent): Promise<void> {
+  const element = player.value;
+  const ended = held;
+
+  if (ended === null || event.pointerId !== ended.pointer) {
+    return;
+  }
+
+  held = null;
+  window.removeEventListener("pointermove", follow);
+  window.removeEventListener("pointerup", release);
+  window.removeEventListener("pointercancel", release);
+
+  const at = dragAt.value;
+
+  if (element === null || ended.bounds === null || at === null) {
+    dragAt.value = null;
+
+    return;
+  }
+
+  dragged = true;
+
+  const before = element.getBoundingClientRect();
+
+  keep({ side: settledSide(at.left, element.offsetWidth, ended.bounds, ended.speed), top: Math.round(at.top) });
+  dragAt.value = null;
+  await nextTick();
+
+  if (still.value) {
+    return;
+  }
+
+  const after = element.getBoundingClientRect();
+
+  element.animate([{ transform: `translate(${before.left - after.left}px, ${before.top - after.top}px)` }, { transform: "none" }], {
+    duration: 220,
+    easing: "cubic-bezier(0.2, 0.9, 0.25, 1)"
+  });
+}
+
+// A click that ends a drag is the drag's; one from the keyboard carries no pointer and is passed on.
+function swallow(event: MouseEvent): void {
+  if (dragged && event.detail !== 0) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
+  dragged = false;
+}
+
+onScopeDispose(() => {
+  if (import.meta.client) {
+    window.removeEventListener("pointermove", follow);
+    window.removeEventListener("pointerup", release);
+    window.removeEventListener("pointercancel", release);
+  }
+});
 </script>
 
 <style scoped>
-/* Its swell with the sound is the surface's scale alone, eased from one frame to the next, so the presses keep
-   their size and place while it plays and no frame lays anything out again. It comes and goes by fading where it
-   stands, on the shared quick length. */
+/* It comes out of its own middle, past its size and back, and goes back into it; the size alone
+   shows it coming and going, so nothing fades. Its swell with the sound is the surface's scale
+   alone, eased from one frame to the next, so the presses keep their size and place while it plays
+   and no frame lays anything out again. */
+[data-briefing-popup],
 [data-briefing-surface] {
   transform-origin: center;
-  transition: scale var(--bmo-motion-quick) var(--bmo-ease-move);
+}
+
+[data-briefing-surface] {
+  transition: scale 120ms ease-out;
 }
 
 .bmo-briefing-enter-active {
-  transition: opacity var(--bmo-motion-quick) var(--bmo-ease-enter);
+  animation: bmo-briefing-in 460ms both;
 }
 
 .bmo-briefing-leave-active {
-  transition: opacity var(--bmo-motion-quick) var(--bmo-ease-exit);
+  animation: bmo-briefing-out 220ms both;
 }
 
-.bmo-briefing-enter-from,
-.bmo-briefing-leave-to {
-  opacity: 0;
+@keyframes bmo-briefing-in {
+  0% {
+    transform: scale(0);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+  }
+
+  50% {
+    transform: scale(1.12);
+    animation-timing-function: ease-in-out;
+  }
+
+  72% {
+    transform: scale(0.95);
+    animation-timing-function: ease-in-out;
+  }
+
+  88% {
+    transform: scale(1.02);
+    animation-timing-function: ease-in-out;
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bmo-briefing-out {
+  0% {
+    transform: scale(1);
+    animation-timing-function: ease-out;
+  }
+
+  30% {
+    transform: scale(1.06);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.8, 0.3);
+  }
+
+  100% {
+    transform: scale(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   [data-briefing-surface] {
     transition: none;
+  }
+
+  .bmo-briefing-enter-active,
+  .bmo-briefing-leave-active {
+    animation: none;
   }
 }
 </style>

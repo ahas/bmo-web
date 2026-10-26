@@ -22,6 +22,8 @@ export interface HeardBriefing {
   messageId: number | null;
   // When it ended, in epoch milliseconds.
   endedAt: number;
+  // The title the engine gave it, none where it gave none.
+  title: string | null;
 }
 
 /** A briefing that plays by itself, as the engine says it ended: a summary, done, whose `plays` holds. */
@@ -32,7 +34,7 @@ export function briefingOfEvent(event: BotEvent): HeardBriefing | null {
 
   if (voice.kind !== "summary" || voice.state !== "done" || !voice.plays || !voice.spoken) return null;
 
-  return { id: voice.id, chatId: voice.chatId, messageId: voice.messageId, endedAt: voice.finishedAt ?? event.at };
+  return { id: voice.id, chatId: voice.chatId, messageId: voice.messageId, endedAt: voice.finishedAt ?? event.at, title: voice.title };
 }
 
 // Whether it is still news. The stream hands back what it holds when it opens, and a briefing heard more than two
@@ -51,16 +53,20 @@ export function briefingKey(id: number): string {
 // blocked is a browser that refused to start a sound nobody pressed for, which waits for a press.
 export type BriefingPhase = "loading" | "playing" | "paused" | "blocked";
 
-// The briefing the player stands for while it plays. It carries no words: what it shows is the
-// sound itself, and its two presses.
+// The briefing the player stands for while it plays: the sound itself, its title, how far it has played, and its
+// presses.
 export interface BriefingShown {
   key: string;
   // Where pressing the visualiser goes: the line it speaks, in its room.
   to: string;
+  title: string | null;
   phase: BriefingPhase;
-  // Starting or carrying on the sound, and stop-listening, which ends it and every one waiting behind it.
+  // Starting or carrying on the sound, pausing it, and stop-listening, which ends it and every one waiting behind it.
   play: () => void;
+  pause: () => void;
   stop: () => void;
+  // How far the sound has played this moment and how long it is, in seconds; null while its length is not known.
+  position: () => { at: number; length: number } | null;
   // The sound's spectrum this moment, written into the array; false where the browser gives none.
   levels: (into: Uint8Array<ArrayBuffer>) => boolean;
 }
@@ -137,6 +143,7 @@ export interface BriefingSound extends Playing {
   play: () => Promise<void>;
   release: () => void;
   levels: (into: Uint8Array<ArrayBuffer>) => boolean;
+  position: () => { at: number; length: number } | null;
 }
 
 // What the tabs of one browser say to each other to agree which of them plays. Every tab hears the
@@ -242,6 +249,7 @@ interface Playable {
   key: string;
   src: string;
   to: string;
+  title: string | null;
   starts: boolean;
 }
 
@@ -309,6 +317,7 @@ export class BriefingDesk {
       key,
       src: this.deps.src(heard.id),
       to: heard.messageId === null ? `/rooms/${heard.chatId}` : `/rooms/${heard.chatId}?at=${heard.messageId}`,
+      title: heard.title,
       starts: fresh(heard, this.deps.now())
     });
   }
@@ -413,10 +422,13 @@ export class BriefingDesk {
     this.deps.shown.write({
       key,
       to: playable.to,
+      title: playable.title,
       phase: playable.starts ? "loading" : "paused",
       play: () => void this.play(current),
+      pause: () => current.sound.pause(),
       stop: () => this.stop(current),
-      levels: (into) => current.sound.levels(into)
+      levels: (into) => current.sound.levels(into),
+      position: () => current.sound.position()
     });
 
     if (playable.starts) void this.play(current);
@@ -537,6 +549,7 @@ function elementSound(src: string, on: SoundHandlers): BriefingSound {
     play: () => element.play(),
     pause: () => element.pause(),
     levels: (into) => tap?.levels(into) ?? false,
+    position: () => (Number.isFinite(element.duration) && element.duration > 0 ? { at: element.currentTime, length: element.duration } : null),
     release: () => {
       listening.abort();
       tap?.release();

@@ -6,7 +6,9 @@
        edge, following it as the bar grows, and slides with the scroll; it stops at the last bubble,
        never leaving the run. The rows keep the photo's room
        themselves, so the column only draws the photo into it. -->
-  <div ref="root" data-run class="relative flex flex-col">
+  <!-- A run keeps a quarter of the step round its rows, and each row a quarter round its box, so two rows of one run
+       stand half a step apart and two runs a whole step (docs/web.md, 「The conversation's measures」). -->
+  <div ref="root" data-run class="relative flex flex-col py-[calc(var(--chat-message-gap)/4)]">
     <slot />
 
     <div

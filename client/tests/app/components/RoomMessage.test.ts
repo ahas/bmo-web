@@ -99,8 +99,9 @@ describe("the padding a row keeps", () => {
   });
 
   test("is the same top and bottom, and the side room stands outside the column", () => {
-    // Half the step between two bubbles of a run on each side, so the run's step is the measure.
-    expect(padding).toEqual(["px-3", "py-[calc(var(--chat-message-gap)/2)]"]);
+    // A quarter of the step on each side, so two bubbles of a run stand half a step apart; the run keeps the other
+    // quarter round its rows, so two runs stand a whole step apart.
+    expect(padding).toEqual(["px-3", "py-[calc(var(--chat-message-gap)/4)]"]);
     expect(row).toContain("-mx-3");
   });
 

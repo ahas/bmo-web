@@ -177,12 +177,13 @@
           <template v-for="entry in dayRuns" :key="entry.key">
             <!-- The date mark holds to the top under the top bar: the conversation's own top padding
                  is the bar's room, which what holds to the top already keeps clear of, and it steps
-                 down with the bar's foot, on the bar's motion, while choosing grows the bar. Every message
-                 stands one step from the next (docs/web.md, 「The conversation's measures」), so the mark
-                 and the lines between runs keep their own room round them. -->
+                 down with the bar's foot, on the bar's motion, while choosing grows the bar. The mark keeps the
+                 same room above and below it, so it stands centred between the bubbles on either side, a run's
+                 own room round its rows counted in (docs/web.md, 「The conversation's measures」). -->
             <div
+              data-day-mark
               :class="[
-                'sticky z-10 mt-8 mb-7 self-center not-first:mt-12 transition-[top]',
+                'sticky z-10 my-7 self-center transition-[top]',
                 choosingMotion,
                 selecting ? 'top-[calc(var(--spacing)*3+var(--room-choose))]' : 'top-3'
               ]"

@@ -3415,7 +3415,8 @@ Four bounds keep it from growing forever.
   | Bubble corner | 8px, the large tier; 4px where two bubbles of a run meet; the tail's corner square | 15–16px, 5px |
   | A run's join time | 10 minutes between one message and the next | |
   | Bubble inner room | 8px top and foot, 12px sides | 8px and 11px |
-  | Step between messages | 8px between any two messages, whoever sent each and whether a run goes on or a new one begins, half of it each row's own room round its box; only a day mark, a passed-over line, a passing word and the running work keep room of their own round them | 2px within a run, 6–8px between runs |
+  | Step between messages | 4px between two messages of one run, whoever sent it — a person, the chat agent or a companion — so the run reads as one; 8px between runs: a quarter of the 8px is each row's own room round its box and a quarter each run's round its rows. Only a day mark, a passed-over line, a passing word and the running work keep room of their own round them | 2px within a run, 6–8px between runs |
+  | Day mark | centred, 32px from the bubble above it and 32px from the one below, the same on both sides wherever it stands | |
   | Photo | 32px, a circle | 33px |
   | Photo to bubble | 8px | 7px |
   | Tail | an arc on the photo's centre, 24px round, from the photo's centre height to the foot; 16px tall, 8px across, reaching 1px into the bubble | 11 × 20px |

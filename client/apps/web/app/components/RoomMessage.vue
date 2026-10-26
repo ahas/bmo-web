@@ -19,7 +19,7 @@
          row's scroll margin is the day mark held at that top, so the row's first line stands clear
          under it. -->
     <div
-      class="group/row -mx-3 scroll-mt-10 rounded-lg px-3 py-[calc(var(--chat-message-gap)/2)] transition-colors"
+      class="group/row -mx-3 scroll-mt-10 rounded-lg px-3 py-[calc(var(--chat-message-gap)/4)] transition-colors"
       :class="[
         props.selecting ? 'cursor-pointer' : '',
         letters,

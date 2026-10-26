@@ -389,7 +389,7 @@ import { useReadMarks } from "~/domain/read-marks";
 import { useNewestReads } from "~/domain/room-list";
 import { removedRoom } from "~/domain/room-removal";
 import { copyText } from "~/domain/copy";
-import { bodyOf, messageRef, reportOf } from "~/domain/room-copy";
+import { bodyOf, copyChipsOf, messageRef, reportOf } from "~/domain/room-copy";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { TURN_ENDED, useBotEvents, useLiveRefresh, useReadFailure, useRoomRun } from "~/domain/events";
 import { useDragSelect } from "bmo-ui/app/domain/dragselect";
@@ -1556,7 +1556,9 @@ async function copyReport(chosen: FeedItem[]): Promise<void> {
     return;
   }
 
-  const done = await copyText(reportOf(t, title.value, chatId, chosen.map(copyItemOf)));
+  // What a chip reads only when opened is read for the copy, every message at once.
+  const items = await Promise.all(chosen.map(async (item) => ({ ...copyItemOf(item), chips: await copyChipsOf(chatId, item) })));
+  const done = await copyText(reportOf(t, title.value, chatId, items));
 
   island.say(
     done

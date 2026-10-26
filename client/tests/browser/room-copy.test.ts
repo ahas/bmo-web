@@ -76,4 +76,56 @@ describe.skipIf(!origin || !touchReady())("copying a message", () => {
       await context.close();
     }
   }, 90_000);
+
+  test("copies an answer with every chip's content: its draft rounds and its tool calls, read for the copy", async () => {
+    const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce", permissions: ["clipboard-read", "clipboard-write"] });
+    const at = cookie.indexOf("=");
+    const drafted: ArchivedMessage = {
+      ...answer,
+      messageId: 14321,
+      text: "an answer drafted and checked",
+      drafts: { round: "round:7", asked: 1, end: "message" },
+      actions: { agent: "agent-a", runs: ["run-7"], documents: 0, held: 0, tools: 1, brain: 0, records: [] }
+    };
+    const rows = [
+      { id: 1, number: 1, question: "final", kind: "question", answerChars: 70, changed: false, outcome: "answered", detail: null, ms: 10_939, at: NOW - 50, answer: null },
+      { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: NOW - 49, answer: null }
+    ];
+    const logLine = (id: number, kind: string, fields: Record<string, unknown>) => ({
+      id, agent: "agent-a", run: "run-7", chatId: ROOM, at: NOW - 55, kind, name: "bash", tool: { name: "bash", icon: null }, parent: null, ref: "call-7",
+      state: null, truncated: false, text: "", patches: [], patchesMore: 0, ...fields
+    });
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+    await context.route(new RegExp(`/api/rooms/${ROOM}/messages`), (route) => route.fulfill({ json: { messages: [asked, drafted], judgements: verdicts, hasMore: false } }));
+    await context.route(new RegExp(`/api/rooms/${ROOM}/drafts`), (route) => route.fulfill({ json: { rows } }));
+    await context.route(/\/api\/agents\/agent-a\/log/, (route) =>
+      route.fulfill({ json: { lines: [logLine(1, "tool", { text: "ls -la" }), logLine(2, "tool-result", { state: "succeeded", text: "x".repeat(1_234) })], hasMore: false } })
+    );
+
+    try {
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/rooms/${ROOM}`, { waitUntil: "load" });
+
+      const message = page.locator(`[data-message="m${drafted.messageId}"]`);
+
+      await message.waitFor({ timeout: 20_000 });
+      await message.getByText(drafted.text).click({ button: "right" });
+      await page.getByRole("menuitem", { name: wording("common.action.copy"), exact: true }).click();
+      await page.waitForTimeout(1_000);
+
+      const copied = await page.evaluate(async () => await navigator.clipboard.readText());
+
+      expect(copied).toContain(`#${drafted.messageId}: ${drafted.text}`);
+      expect(copied).toContain(wording("room.label.chip_drafts"));
+      expect(copied).toContain("final");
+      expect(copied).toContain("10,939ms");
+      expect(copied).toContain(wording("room.label.chip_tools"));
+      expect(copied).toContain(`bash: ${wording("room.label.copy_result_chars", { n: "1,234" })}`);
+      expect(copied).not.toContain(asked.text);
+    } finally {
+      await context.close();
+    }
+  }, 90_000);
 });

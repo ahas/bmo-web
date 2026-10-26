@@ -4096,9 +4096,14 @@ Four bounds keep it from growing forever.
   spot. The three-dot menu beside the room's name also has start selecting and copy all.
 - **What a copy holds** — a copy is not a visible shape but a record to be read elsewhere. The first line has the room name
   and chat number, each message stands in one line with its time, sender, sender number, message number and body,
-  and below it the verdicts that message got attach in time order as stage name, time and verdict. When a
-  verdict's left content differs from the verdict, that content follows indented too. Whatever is turned on on
-  screen, every verdict is included. Copying one message or several has the same shape.
+  and below it the content of every chip the message carries, whether the chip is open on screen or not, in this
+  order: its verdicts (판정) in time order as stage name, time and verdict, a verdict's content following indented
+  where it differs from the verdict; 드래프트, the gate's rows of the round's draft process and then each round row
+  as the chip lists it — its number, question, kind, outcome, characters and milliseconds; 툴 사용, each call by its
+  tool's name with the size of its result, or that it failed; 브레인, each document the turn was handed and each call
+  that read the brain; 사용 토큰, each road the round's runs took with its figure; and 전송 last. What a chip reads
+  only when opened — the round rows, the calls — is read for the copy, and a read that fails leaves that chip's
+  content out rather than holding the copy. Copying one message or several has the same shape.
   - **A copy holds the chosen messages and their own verdicts, and nothing of any other message.** A verdict that
     is the answer the message drew — the chat agent's or a companion's `REPLY`, a send's `SENT` — stands as that
     word alone: what the answer says is the answering message's own, which a copy takes only where that message

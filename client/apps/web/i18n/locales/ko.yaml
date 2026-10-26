@@ -505,11 +505,11 @@ room:
   label:
     answer_took: "{time} 소요"
     avatar_of: "{name} 프로필 사진"
+    chip_brain: 브레인
     chip_briefing: 보이스브리핑
     chip_briefing_failed: 보이스브리핑 실패
     chip_briefing_making: 보이스브리핑 만드는 중
     chip_context: 컨텍스트
-    chip_brain: 브레인
     chip_drafts: 드래프트
     chip_records: 기록함
     chip_tokens: 사용 토큰
@@ -519,6 +519,9 @@ room:
     chip_verdicts_judging: 판정 중
     chip_verdicts_passed: 판정 통과
     context: 컨텍스트
+    copy_call_failed: 실패
+    copy_result_chars: "결과 {n}자"
+    copy_tokens: "{n} 토큰"
     draft_answer: 답변
     draft_changed: 바뀜
     draft_chars: "{n}자"
@@ -615,6 +618,25 @@ room:
     road_timeout: 시간 초과
     road_too_large: 크기 초과로 거부
     road_unavailable: 없음
+    room_add_added_as: "{mode}로 추가됨"
+    room_add_group_title: 그룹 이름
+    room_add_has_chat: 대화 있음
+    room_add_held: 이미 있는 방
+    room_add_kind_bot: 봇
+    room_add_kind_group: 그룹
+    room_add_kind_owner: 개인
+    room_add_kind_person: 사람
+    room_add_mode: 모드
+    room_add_mode_avatar: 아바타
+    room_add_mode_record_only: 기록 전용
+    room_add_modes: "모드: {modes}"
+    room_add_room: 방
+    room_add_search: 이름 검색
+    room_add_service: 채팅 서비스
+    room_add_tab_contacts: 새 대화
+    room_add_tab_rooms: 기존 방
+    room_add_title: 제목
+    room_add_untitled: "방 {id}"
     runs: 실행
     runs_count: "{n}회"
     runs_last: "{n}회 · 마지막 {time}"
@@ -670,25 +692,6 @@ room:
     unreceivable: 받을 수 없음
     voice_message: 음성 메시지
     voiced_as: "{name} 계정으로 보냄"
-    room_add_service: 채팅 서비스
-    room_add_room: 방
-    room_add_mode: 모드
-    room_add_title: 제목
-    room_add_mode_avatar: 아바타
-    room_add_mode_record_only: 기록 전용
-    room_add_kind_owner: 개인
-    room_add_kind_group: 그룹
-    room_add_added_as: "{mode}로 추가됨"
-    room_add_untitled: "방 {id}"
-    room_add_tab_rooms: 기존 방
-    room_add_tab_contacts: 새 대화
-    room_add_search: 이름 검색
-    room_add_kind_person: 사람
-    room_add_kind_bot: 봇
-    room_add_held: 이미 있는 방
-    room_add_has_chat: 대화 있음
-    room_add_group_title: 그룹 이름
-    room_add_modes: "모드: {modes}"
   message:
     id_copied: 대화번호를 복사했습니다.
     message_ref: "방 {room} (chatId {chatId}) · 메시지 #{messageId}"

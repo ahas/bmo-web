@@ -605,8 +605,10 @@ edit to that file alone, once the guide below carries the word.
   small button, a menu item — stands at 14 too. The code and document editors read at 14.
 - **Icons come from Material Symbols,** served by the app's icon endpoint, and the library's own components
   are told to draw theirs from the same set. An agent's mark in the catalogue is a Material Symbols name;
-  a seed mark from another set is rewritten to its Material Symbols counterpart when the bot starts. The console
-  draws no agent by it: a chat agent stands as its face and a worker with the one worker mark (「Profile photos」).
+  a seed mark from another set is rewritten to its Material Symbols counterpart when the bot starts. Every agent's
+  mark is the one the agency answers for its kind, so the agents of one kind look alike; the console holds no mark
+  of its own for an agent, beyond one for an agent the agency answers no mark for. Where a chat agent stands as its
+  face (「Profile photos」), the face takes the mark's place.
   - **An icon first drawn after the page has loaded never redraws the page's letters.** The icon library
     puts the style of each icon it draws for the first time into the page's head, ahead of every other
     stylesheet. A sheet put in ahead of the others makes the browser rebuild its whole set of fonts, and for
@@ -1084,8 +1086,8 @@ edit to that file alone, once the guide below carries the word.
   header and beside its bubbles: the picture kept for the person number its words stand under, as the receiver
   names that number in the owner's room or in a room it is a companion of, or else the picture of a room made for
   it; failing both, the first letter of its label on its identity's colour. A room's own session wears that
-  room's picture. No chat agent wears a mark of its own, whatever mark its catalogue row carries. The workers
-  are one kind and stand with the one worker mark.
+  room's picture. Where a chat agent stands as a mark instead, it is the mark the agency answers for its kind,
+  as every other agent's is (「Fonts」).
 - **A place with no message yet carries the same photo as a message.** The line standing while the chat agent thinks
   carries the same photo on the same side as the chat agent's answer that will stand there, and a line being sent
   carries the sender's photo. So even when an answer or message actually arrives, the photo does not change
@@ -2872,7 +2874,9 @@ Two ways, split because the running places differ.
   tier's on 실행 경로) and the rooms it answers — the chat agent's room, and each room a companion holds a session in
   or was made for. Pressing a companion's row brings its block below into view; pressing the chat agent's opens its
   own screen. A companion for a model of the deployment's own is added from the tab row's 추가 menu (below).
-- **One block for each companion** (the agency's `docs/companions.md`, 「Its settings」), in the agent list's order,
+- **One block for each companion** (the agency's `docs/companions.md`, 「Its settings」), in the agent list's order — a
+  companion's system prompt is its base prompt, the fixed companion role and its persona, so what a block sets of it is
+  the base prompt and the persona —
   headed by its picture, its label and its name, and the tab is one form (「Forms」): every block's
   changes wait for the one 저장 in the footer at the tab's foot. A block holds, top to bottom:
   - **모델:** its registration, a list of the registrations that have an address; and, where the
@@ -2887,12 +2891,6 @@ Two ways, split because the running places differ.
     switch among them, `preserve_thinking`, is a choice of 기본, 켬 and 끔 in place of the box, with no
     bounds; above them 생각, a choice of 기본, 켬 and 끔. On a phone what it does stands under the name.
   - **참조 주입:** a switch for whether a turn is given its reference block.
-  - **시스템 프롬프트:** the pieces, one row each — 절대 규칙, 대화 상대 틀, 턴, 에이전트 말 규칙,
-    페르소나, and the companion's own pieces by name, marked 직접 쓴 조각 — with a checkbox for whether
-    it is sent and up and down arrows for its place; taking away the last piece sent is refused at the
-    save. An own piece's row has an edit button opening its text in a modal with 삭제, 취소 and 확인;
-    조각 추가 under the list opens the same modal for a name and a text and puts the new piece last,
-    sent.
   - **페르소나:** the persona's text in a text area as tall as its text, holding
     the companion's own where its settings hold one and its file's otherwise, with 파일 내용 on the
     file's. Saved, the text is the companion's own; 파일 내용으로 되돌리기 puts the file's text back in

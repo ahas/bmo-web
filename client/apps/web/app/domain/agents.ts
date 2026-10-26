@@ -324,14 +324,16 @@ export function groupAgents(
   return agentGroups(t, [...reported], rooms).find((group) => group.key === key)?.agents ?? [];
 }
 
+// An agent's mark is the one the agency answers for its kind (docs/web.md, 「Fonts」); the console's own stand only
+// for an agent it answers none for.
 export function agentIcon(name: string, catalogue: readonly AgentSummary[] = held.value): string {
   const found = catalogue.find((agent) => agent.name === name);
 
-  if (found?.defaultAnswerer === true || name.startsWith(CHAT_PREFIX)) {
-    return CHAT_ICON;
+  if (found?.icon !== null && found?.icon !== undefined && found.icon !== "") {
+    return found.icon;
   }
 
-  return found?.icon !== null && found?.icon !== undefined && found.icon !== "" ? found.icon : UNKNOWN_ICON;
+  return found?.defaultAnswerer === true || name.startsWith(CHAT_PREFIX) ? CHAT_ICON : UNKNOWN_ICON;
 }
 
 // The room a run or a chat agent belongs to, by the name the room list gives it — their own room
@@ -513,7 +515,7 @@ export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[]):
     return {
       name: agent.name,
       label: chatId === null ? (agent.label ?? agent.name) : roomTitle(t, rooms, chatId),
-      icon: CHAT_ICON,
+      icon: agentIcon(agent.name, [agent]),
       group,
       chatId,
       cwd: null,
@@ -524,8 +526,7 @@ export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[]):
   return {
     name: agent.name,
     label: agentLabel(t, agent.name, [agent]),
-    // The workers are one kind, and stand with its one mark (docs/web.md, 「Profile photos」).
-    icon: group === "worker" ? GROUP_ICONS.worker : agentIcon(agent.name, [agent]),
+    icon: agentIcon(agent.name, [agent]),
     group,
     chatId: null,
     cwd: agent.cwd ?? null,

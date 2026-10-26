@@ -1,7 +1,7 @@
 <template>
   <!-- One companion's settings (the agency's docs/companions.md, 「Its settings」; docs/web.md, 「Agent management screen」): its
-       model, the pieces of its system prompt, its persona, how its model is asked, the system prompt
-       its next request sends, its room sessions and its latest changes. The block is part of the
+       model, its base prompt, its persona, how its model is asked, the system prompt its next request sends (its base
+       prompt, the fixed companion role and its persona), its room sessions and its latest changes. The block is part of the
        form around it (「Forms」): what is changed here waits for that form's one save, which goes to
        the bot, keeps the change with who made it, and the block then stands as the bot answered. -->
   <section class="flex flex-col gap-6" :data-companion="view.agent" :aria-labelledby="`companion-${view.agent}`">
@@ -86,40 +86,6 @@
       <p v-if="refusalAt('referenceOn') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("referenceOn") }}</p>
     </div>
 
-    <!-- The system prompt: its pieces in order. -->
-    <div class="flex flex-col gap-2">
-      <div class="flex min-h-8 items-center gap-2">
-        <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.label.system_prompt") }}</h3>
-      </div>
-
-      <ul class="flex flex-col divide-y divide-default rounded-lg border border-default" :aria-label="$t('agents.label.pieces')">
-        <li v-for="(row, index) in rows" :key="row.name" :data-piece="row.name" class="flex min-h-10 items-center gap-2 py-1 ps-3 pe-1">
-          <UCheckbox
-            :model-value="row.on"
-            :disabled="busy"
-            :aria-label="row.label"
-            @update:model-value="(value: boolean | 'indeterminate') => (draft.order = draft.order.map((one, at) => (at === index ? { ...one, on: value === true } : one)))"
-          />
-          <span class="min-w-0 flex-1 truncate text-sm" :class="row.on ? 'text-highlighted' : 'text-muted'">{{ row.label }}</span>
-          <UBadge v-if="row.own" color="neutral" variant="subtle" size="sm" class="shrink-0">{{ $t("agents.label.own_piece") }}</UBadge>
-          <UTooltip v-if="row.own" :text="$t('common.action.edit')">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-edit-outline" :disabled="busy" :aria-label="$t('common.action.edit')" @click="openPiece(row.name)" />
-          </UTooltip>
-          <UTooltip :text="$t('agents.action.move_up')">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-upward" :disabled="busy || index === 0" :aria-label="$t('agents.action.move_up')" @click="draft.order = movedPiece(draft.order, index, -1)" />
-          </UTooltip>
-          <UTooltip :text="$t('agents.action.move_down')">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-downward" :disabled="busy || index === rows.length - 1" :aria-label="$t('agents.action.move_down')" @click="draft.order = movedPiece(draft.order, index, 1)" />
-          </UTooltip>
-        </li>
-      </ul>
-      <div class="flex justify-end">
-        <UButton size="sm" color="neutral" variant="outline" icon="i-material-symbols-add" :label="$t('agents.action.piece_add')" :disabled="busy" @click="openPiece(null)" />
-      </div>
-      <p v-if="refusalAt('pieces') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("pieces") }}</p>
-      <p v-if="refusalAt('ownPieces') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("ownPieces") }}</p>
-    </div>
-
     <!-- The persona: its own text, or its file's. -->
     <div class="flex flex-col gap-2">
       <div class="flex min-h-8 items-center gap-2">
@@ -183,38 +149,19 @@
     <SettingsDialog v-model:open="systemOpen" :title="$t('agents.label.system_prompt_sent')" :description="`${countText(view.system.characters)}${$t('agents.label.characters_unit')} · sha256 ${view.system.hash.slice(0, 12)}`">
       <pre class="whitespace-pre-wrap break-words font-mono text-sm text-toned">{{ view.system.text }}</pre>
     </SettingsDialog>
-
-    <!-- An own piece is written in a box of its own and handed back to the form with its OK button; the
-         form's save is what saves it. -->
-    <SettingsDialog v-model:open="pieceOpen" :title="pieceName === null ? $t('agents.action.piece_add') : pieceName" :dirty="pieceDirty">
-      <form :id="`piece-form-${view.agent}`" class="flex flex-col gap-4" @submit.prevent="takePiece()">
-        <UFormField v-if="pieceName === null" :label="$t('common.label.name')" name="name">
-          <UInput v-model="pieceDraftName" class="w-full font-mono" :aria-label="$t('common.label.name')" />
-        </UFormField>
-        <UFormField :label="$t('agents.label.piece_text')" name="text">
-          <GrowingTextarea v-model="pieceDraft" :rows="4" :aria-label="$t('agents.label.piece_text')" />
-        </UFormField>
-      </form>
-
-      <template #footer="{ close }">
-        <UButton v-if="pieceName !== null" class="me-auto" color="error" variant="ghost" :label="$t('common.action.delete')" @click="dropPiece()" />
-        <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" @click="close()" />
-        <UButton type="submit" :form="`piece-form-${view.agent}`" :label="$t('common.action.confirm')" :disabled="!pieceTakeable" />
-      </template>
-    </SettingsDialog>
   </section>
 </template>
 
 <script setup lang="ts">
 import { BASE_NONE, basePromptChoices, chosenPrompt } from "~/domain/base-prompts";
-import { companionChange, companionDraft, draftDiffers, movedPiece, orderRows } from "~/domain/companions";
+import { companionChange, companionDraft, draftDiffers } from "~/domain/companions";
 import { useText } from "~/domain/catalogue-models";
 import { countText } from "~/domain/numbers";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useFormPart } from "bmo-ui/app/domain/form-save";
 
 import type { CompanionView } from "#shared/agency";
-import type { CompanionDraft, PieceRow } from "~/domain/companions";
+import type { CompanionDraft } from "~/domain/companions";
 
 interface Props {
   view: CompanionView;
@@ -254,7 +201,6 @@ watch(() => JSON.stringify(saved.value), (_now, beforeText) => {
   draft.value = next;
 });
 
-const rows = computed<PieceRow[]>(() => orderRows(t, draft.value.order, draft.value.own));
 const persona = computed({
   get: () => draft.value.persona ?? view.value.personaFile,
   set: (text: string) => {
@@ -269,7 +215,7 @@ const busy = ref(false);
 const refusal = ref<{ field: string; text: string } | null>(null);
 
 // The fields that carry a refusal of their own under them.
-const SHOWN_FIELDS = new Set(["registration", "basePrompt", "thinking", "generation", "referenceOn", "pieces", "ownPieces", "persona"]);
+const SHOWN_FIELDS = new Set(["registration", "basePrompt", "thinking", "generation", "referenceOn", "persona"]);
 const generationNames = computed(() => new Set(view.value.generationSettings.map((one) => one.name)));
 
 function refusalAt(field: string): string {
@@ -346,48 +292,6 @@ function discard(): void {
 }
 
 useFormPart({ dirty: () => dirty.value, save, discard });
-
-// An own piece, written or changed in a box of its own and handed back to the form.
-const pieceOpen = ref(false);
-const pieceName = ref<string | null>(null);
-const pieceDraftName = ref("");
-const pieceDraft = ref("");
-const pieceHeld = ref("");
-
-const pieceDirty = computed(() => pieceDraft.value !== pieceHeld.value || pieceDraftName.value.trim() !== "");
-const pieceTakeable = computed(() => {
-  const name = pieceName.value ?? pieceDraftName.value.trim();
-
-  return pieceDirty.value && name !== "" && pieceDraft.value.trim() !== "" && (pieceName.value !== null || !draft.value.order.some((one) => one.name === name));
-});
-
-function openPiece(name: string | null): void {
-  pieceName.value = name;
-  pieceDraftName.value = "";
-  pieceHeld.value = name === null ? "" : draft.value.own[name] ?? "";
-  pieceDraft.value = pieceHeld.value;
-  pieceOpen.value = true;
-}
-
-function takePiece(): void {
-  if (!pieceTakeable.value) return;
-
-  const name = pieceName.value ?? pieceDraftName.value.trim();
-
-  draft.value.own = { ...draft.value.own, [name]: pieceDraft.value };
-  if (pieceName.value === null) draft.value.order = [...draft.value.order, { name, on: true }];
-  pieceOpen.value = false;
-}
-
-function dropPiece(): void {
-  const name = pieceName.value;
-
-  if (name === null) return;
-
-  draft.value.own = Object.fromEntries(Object.entries(draft.value.own).filter(([one]) => one !== name));
-  draft.value.order = draft.value.order.filter((one) => one.name !== name);
-  pieceOpen.value = false;
-}
 
 function timeText(seconds: number): string {
   return new Date(seconds * 1000).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });

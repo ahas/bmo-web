@@ -25,6 +25,7 @@ import {
   isAgentRunning,
   isGroupOpen,
   launchableAgent,
+  metaOf,
   movedOrder,
   readGroupFolds,
   roomTitle,
@@ -178,6 +179,17 @@ describe("the catalogue the archive answers with", () => {
     expect(agentLabel(wording, "infra")).toBe("infra");
     expect(agentIcon("infra")).toBe("i-material-symbols-radio-button-checked-outline");
     expect(agentIcon("chat:-1001")).toBe("i-material-symbols-chat-bubble-outline");
+  });
+
+  test("an agent stands with the mark the agency answers for it, a chat agent and a worker alike", () => {
+    const chat = { ...reported("chat-a", "chat", null), defaultAnswerer: true, icon: "i-material-symbols-mark-a" };
+    const worker = { ...reported("worker-a", "worker", null), icon: "i-material-symbols-mark-b" };
+
+    holdCatalogue([chat, worker]);
+
+    expect(agentIcon("chat-a")).toBe("i-material-symbols-mark-a");
+    expect(metaOf(wording, chat, []).icon).toBe("i-material-symbols-mark-a");
+    expect(metaOf(wording, worker, []).icon).toBe("i-material-symbols-mark-b");
   });
 });
 

@@ -21,7 +21,7 @@ const list = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) 
 /**
  * A companion as the companions screen stands it. The agency answers a companion whole (its `docs/api.md`,
  * 「companions」): its registration and every registration it may be pinned to, the files behind it, its settings,
- * pieces, base prompt, system prompt and room sessions, each moment in milliseconds, which the screen reads in
+ * base prompt, system prompt and room sessions, each moment in milliseconds, which the screen reads in
  * seconds. The receiver lists one by its name and what answers for it alone, and what neither says stands empty.
  */
 export function companionViewOf(companion: ListedCompanion | Record<string, unknown>): CompanionView {
@@ -44,8 +44,6 @@ export function companionViewOf(companion: ListedCompanion | Record<string, unkn
     settings: {
       agent,
       referenceOn: settings.referenceOn === true,
-      pieces: Array.isArray(settings.pieces) ? (settings.pieces as string[]) : null,
-      ownPieces: (settings.ownPieces ?? {}) as Record<string, string>,
       persona: text(settings.persona),
       generation: (settings.generation ?? {}) as Record<string, number | boolean>,
       updatedAt: seconds(settings.updatedAt),
@@ -53,7 +51,6 @@ export function companionViewOf(companion: ListedCompanion | Record<string, unkn
     },
     generationSettings: list(held.generationSettings),
     thinking: typeof held.thinking === "boolean" ? held.thinking : null,
-    pieces: list(held.pieces),
     personaFile: text(held.personaFile) ?? "",
     basePrompt: text(held.basePrompt),
     basePrompts: list(held.basePrompts),

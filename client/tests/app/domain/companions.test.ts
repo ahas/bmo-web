@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { anyRunning, catalogueSave, emptyCatalogueForm, sourceText } from "../../../apps/web/app/domain/catalogue-models";
-import { companionChange, companionDraft, draftDiffers, generationBounds, generationChange, generationDraft, generationUse, movedPiece, orderRows, pieceOrder, sentPieces } from "../../../apps/web/app/domain/companions";
+import { companionChange, companionDraft, draftDiffers, generationBounds, generationChange, generationDraft, generationUse } from "../../../apps/web/app/domain/companions";
 import { sessionClears, sessionDetail } from "../../../apps/web/app/domain/sessions";
 
 import type { CompanionView, ModelUseView } from "../../../apps/web/shared/agency";
@@ -12,42 +12,14 @@ import KO from "../../fixtures/app/domain/companions.test.ko.json";
 // 「Its settings」; the agency's docs/model-catalogue.md).
 
 const t = wording;
-const pieces = ["absolute-rules", "frame", "turn", "agent-words", "persona"];
 const settings: CompanionView["settings"] = {
   agent: "tester-chat",
   referenceOn: true,
-  pieces: ["absolute-rules", "frame", "trust", "turn", "persona"],
-  ownPieces: { trust: "a piece of its own" },
   persona: null,
   generation: { temperature: 0.7 },
   updatedAt: null,
   updatedBy: null,
 };
-
-const pieceRows = (one: CompanionView["settings"]) => orderRows(t, pieceOrder({ pieces, settings: one }), one.ownPieces);
-
-describe("the pieces", () => {
-  test("stand in the order they are sent, then the ones left out, its own marked", () => {
-    const rows = pieceRows(settings);
-
-    expect(rows.map((one) => [one.name, one.on, one.own])).toEqual([
-      ["absolute-rules", true, false],
-      ["frame", true, false],
-      ["trust", true, true],
-      ["turn", true, false],
-      ["persona", true, false],
-      ["agent-words", false, false],
-    ]);
-    expect(pieceRows({ ...settings, pieces: null, ownPieces: {} }).map((one) => one.name)).toEqual(pieces);
-  });
-
-  test("a move keeps the list at the edges, and a save sends only what is switched on", () => {
-    const rows = pieceRows(settings);
-
-    expect(movedPiece(rows, 0, -1)).toEqual(rows);
-    expect(sentPieces(movedPiece(rows, 2, -1))).toEqual(["absolute-rules", "trust", "frame", "turn", "persona"]);
-  });
-});
 
 describe("a catalogue entry", () => {
   test("a save sends empty texts as nothing and the hash in lower case", () => {
@@ -104,7 +76,6 @@ describe("the form a block holds", () => {
     settings,
     generationSettings: [{ name: "temperature", min: 0, max: 2 }, { name: "top_k", min: 0, max: 1_000, whole: true }],
     thinking: null,
-    pieces,
     personaFile: "",
     basePrompt: null,
     basePrompts: [],
@@ -118,13 +89,6 @@ describe("the form a block holds", () => {
 
     expect(companionChange(draft, saved)).toEqual({});
     expect(draftDiffers("generation", draft, saved)).toBe(false);
-  });
-
-  test("an unsent piece moved among the unsent changes nothing a save sends", () => {
-    const order = [...saved.order, { name: "extra", on: false }];
-
-    expect(draftDiffers("order", { ...saved, order }, saved)).toBe(false);
-    expect(companionChange({ ...saved, order: movedPiece(saved.order, 2, -1) }, saved)).toEqual({ pieces: ["absolute-rules", "trust", "frame", "turn", "persona"] });
   });
 
   test("sends every changed setting in one change, the base prompt and the engine file left to their own paths", () => {

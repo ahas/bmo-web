@@ -309,8 +309,7 @@ export interface CompanionView {
   // its thinking as its agent row names it, null where its model's default stands.
   generationSettings: GenerationSetting[];
   thinking: boolean | null;
-  // Every piece in its default order, and the persona its file holds.
-  pieces: readonly string[];
+  // The persona its file holds; its system prompt is its base prompt, the fixed companion role and its persona.
   personaFile: string;
   // The base prompt it chooses, by name, and every base prompt it may choose (the agency's docs/base-prompts.md).
   basePrompt: string | null;
@@ -333,10 +332,6 @@ export interface CompanionSettings {
   agent: string;
   // Whether a turn is given its reference — the sheets, memories and gate picks in front of its words.
   referenceOn: boolean;
-  // The pieces of the system prompt in the order they are sent, or null for the composer's default.
-  pieces: string[] | null;
-  // The pieces of its own, by name, each a text the pieces may place anywhere among the others.
-  ownPieces: Record<string, string>;
   // The persona's text, or null for the companion's own file.
   persona: string | null;
   // Its generation settings, each by the name the engine reads it under, with the number or the switch

@@ -4,69 +4,6 @@ import type { Translate } from "#shared/wording";
 // A companion's settings as the Companions tab reads and changes them (the agency's docs/companions.md, 「Its
 // settings」; docs/web.md, 「Agent management screen」).
 
-// Every companion's own pieces are named by the bot; these are the words the screen says for them.
-const PIECE_LABELS: Readonly<Record<string, string>> = {
-  "absolute-rules": "agents.label.piece_absolute_rules",
-  frame: "agents.label.piece_frame",
-  turn: "agents.label.piece_turn",
-  "agent-words": "agents.label.piece_agent_words",
-  persona: "agents.label.piece_persona",
-};
-
-// A piece in the order the list stands in, and whether it is sent.
-export interface PieceOrder {
-  name: string;
-  on: boolean;
-}
-
-// One piece as the list shows it: its name, what it is called, whether it is the companion's own,
-// and whether it is sent.
-export interface PieceRow {
-  name: string;
-  label: string;
-  own: boolean;
-  on: boolean;
-}
-
-export function pieceLabel(t: Translate, name: string): string {
-  const key = PIECE_LABELS[name];
-
-  return key === undefined ? name : t(key);
-}
-
-// The pieces in the order they are sent, the ones not sent after them in their own order: every
-// companion's, then its own.
-export function pieceOrder(view: Pick<CompanionView, "pieces" | "settings">): PieceOrder[] {
-  const sent = view.settings.pieces ?? [...view.pieces];
-  const all = [...view.pieces, ...Object.keys(view.settings.ownPieces)];
-
-  return [...sent.filter((one) => all.includes(one)).map((name) => ({ name, on: true })), ...all.filter((one) => !sent.includes(one)).map((name) => ({ name, on: false }))];
-}
-
-// The rows of an order a form holds, its own pieces being those the form holds.
-export function orderRows(t: Translate, order: readonly PieceOrder[], own: Readonly<Record<string, string>>): PieceRow[] {
-  return order.map(({ name, on }) => ({ name, label: pieceLabel(t, name), own: Object.hasOwn(own, name), on }));
-}
-
-// The order a save sends: the pieces switched on, in the order the list now stands.
-export function sentPieces(rows: readonly PieceOrder[]): string[] {
-  return rows.filter((one) => one.on).map((one) => one.name);
-}
-
-// The list with one row moved up or down a place, or as it was where it cannot move.
-export function movedPiece<T>(rows: readonly T[], index: number, by: -1 | 1): T[] {
-  const to = index + by;
-
-  if (to < 0 || to >= rows.length) return [...rows];
-
-  const moved = [...rows];
-  const [one] = moved.splice(index, 1);
-
-  moved.splice(to, 0, one!);
-
-  return moved;
-}
-
 // What each generation setting is for, in a few words the panel shows beside it
 // (the agency's docs/companions.md, 「Its generation settings」). A setting the bot names that this list does not is
 // shown by its name alone.
@@ -155,8 +92,6 @@ export interface CompanionDraft {
   thinking: Thinking;
   generation: Record<string, string>;
   referenceOn: boolean;
-  order: PieceOrder[];
-  own: Record<string, string>;
   persona: string | null;
 }
 
@@ -176,16 +111,12 @@ export function companionDraft(view: CompanionView, base: string): CompanionDraf
     thinking: thinkingOf(view.thinking),
     generation: generationDraft(view),
     referenceOn: view.settings.referenceOn,
-    order: pieceOrder(view),
-    own: { ...view.settings.ownPieces },
     persona: view.settings.persona,
   };
 }
 
-// Whether a field differs from what is saved. The list of pieces differs only where what is sent
-// does: an unsent piece moved among the unsent ones changes nothing a save would send.
+// Whether a field differs from what is saved.
 export function draftDiffers(key: keyof CompanionDraft, draft: CompanionDraft, saved: CompanionDraft): boolean {
-  if (key === "order") return JSON.stringify(sentPieces(draft.order)) !== JSON.stringify(sentPieces(saved.order));
   if (key === "generation") return Object.keys(generationChange(draft.generation, savedGeneration(saved.generation))).length > 0;
 
   return JSON.stringify(draft[key]) !== JSON.stringify(saved[key]);
@@ -207,8 +138,6 @@ export function companionChange(draft: CompanionDraft, saved: CompanionDraft): R
   return {
     ...(differs("registration") && draft.registration !== null ? { registration: draft.registration } : {}),
     ...(differs("referenceOn") ? { referenceOn: draft.referenceOn } : {}),
-    ...(differs("own") ? { ownPieces: draft.own } : {}),
-    ...(differs("order") ? { pieces: sentPieces(draft.order) } : {}),
     ...(differs("persona") ? { persona: draft.persona } : {}),
     ...(differs("generation") ? { generation: generationChange(draft.generation, savedGeneration(saved.generation)) } : {}),
     ...(differs("thinking") ? { thinking: draft.thinking === "default" ? null : draft.thinking === "on" } : {}),

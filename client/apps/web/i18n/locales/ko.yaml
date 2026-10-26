@@ -114,7 +114,6 @@ common:
     close_other_tabs: 다른 탭 닫기
     close_right_tabs: 오른쪽 탭 닫기
     collapse: 축소
-    confirm: 확인
     copy: 복사
     create_link: 만들기
     delete: 삭제
@@ -1465,15 +1464,12 @@ agents:
     default_order: 기본 순서로
     expand: 크게 보기
     log: 로그
-    move_down: 아래로
-    move_up: 위로
     newer_lines: 다음 줄 더 보기
     node_checkout_add: 노드 체크아웃 추가
     prefix_document_add: 프리픽스 문서 추가
     older_lines: 이전 줄 더 보기
     pause_until_job: 다음 Job까지 끄기
     persona_to_file: 파일 내용으로 되돌리기
-    piece_add: 조각 추가
     previous_confirm: 이전 설정 확인, 선택한 등급 적용
     session_reset: 세션 초기화
     session_reset_short: 초기화
@@ -1838,18 +1834,11 @@ agents:
     node_checkouts_help: 노드마다 하나 · 경로는 그 노드 기준
     not_checkout: git 아님
     note: 메모
-    own_piece: 직접 쓴 조각
     persona_file: 파일 내용
     phase_final: 최종 검증
     phase_plan: 계획
     phase_synthesis: 설계 종합
-    piece_absolute_rules: 절대 규칙
-    piece_agent_words: 다른 에이전트 메시지 규칙
-    piece_frame: 대화 상대 템플릿
     piece_persona: 페르소나
-    piece_text: 조각 내용
-    piece_turn: 턴
-    pieces: 시스템 프롬프트 조각
     pinned_provider: 공급자
     pinned_provider_help: 자동이면 워커 공용 경로 사용 · 선택하면 Job과 메시지 모두 이 공급자로 실행
     place_counts: "실행 {active} · 예약 {reserved} · 대기 {waiting}"
@@ -1922,7 +1911,6 @@ agents:
     support_of: "{base} 따름"
     switch_off: 끔
     switch_on: 켬
-    system_prompt: 시스템 프롬프트
     system_prompt_sent: 보낼 시스템 프롬프트
     tab_companions: 대화 상대
     tab_gates: 게이트

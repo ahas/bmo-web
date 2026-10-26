@@ -151,6 +151,7 @@ types; `server/client/` is the Rust crate the server answers with and that docum
   | `going-down` | none | `roads.service.mark`, then `service.stopping.restarting` |
   | `companion-engine-error` | `kind` | `companions.engine_error` of the kind |
   | `companion-cut` | `agent`, `reason` | `fixed-lines.companion_cut` |
+  | `still-working` | none | `fixed-lines.still_working`, said as the chat agent once in a round whose draft turn ran past its bound |
   | `draw` | `label`, `asked`, `result`, `number`, `seed`, `method`, `answered`, `next` | `draws.line`, what was asked by `draws.spec` and what came out by `draws.dice_total` where dice are summed |
 
 - **The chat agent's name** in a line is the server's `names.chat_agent` setting; no name stands in the pack.

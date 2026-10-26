@@ -204,6 +204,11 @@ async fn companion_engine_error_is_its_kinds_line() {
 }
 
 #[tokio::test]
+async fn still_working_is_the_fixed_lines_own() {
+  assert_eq!(rendered("still-working", json!({})).await, FIXED_LINES.still_working);
+}
+
+#[tokio::test]
 async fn companion_cut_names_the_companion_and_the_guards_reason() {
   assert_eq!(
     rendered("companion-cut", json!({ "agent": "companion-1", "reason": "The turn ran too long." })).await,

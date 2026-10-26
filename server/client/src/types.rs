@@ -295,6 +295,8 @@ pub enum FixedLineAsk {
     reason: String,
   },
   Draw(DrawLine),
+  /// A round's draft turn ran past its bound and goes on: said once in the round.
+  StillWorking,
 }
 
 /// How a companion's engine ended its turn.

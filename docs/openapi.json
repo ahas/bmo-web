@@ -446,6 +446,19 @@
               "code"
             ],
             "type": "object"
+          },
+          {
+            "description": "A round's draft turn ran past its bound and goes on: said once in the round.",
+            "properties": {
+              "code": {
+                "const": "still-working",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ],
+            "type": "object"
           }
         ]
       },

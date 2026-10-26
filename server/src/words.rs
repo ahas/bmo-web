@@ -44,6 +44,8 @@ pub enum FixedLine {
     reason: String,
   },
   Draw(DrawLine),
+  /// A round's draft turn ran past its bound and goes on: said once in the round.
+  StillWorking,
   /// A code the pack holds no sentence for.
   #[serde(other)]
   Unknown,
@@ -163,6 +165,7 @@ impl FixedLine {
         fill_marks(&FIXED_LINES.companion_cut, &[("name", agent), ("reason", reason)])
       }
       Self::Draw(draw) => draw.text(),
+      Self::StillWorking => FIXED_LINES.still_working.clone(),
       Self::Unknown => return None,
     })
   }

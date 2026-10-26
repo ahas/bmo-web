@@ -469,7 +469,10 @@ export interface components {
             /** @constant */
             code: "companion-cut";
             reason: string;
-        } | components["schemas"]["DrawLine"];
+        } | components["schemas"]["DrawLine"] | {
+            /** @constant */
+            code: "still-working";
+        };
         /** @description A grant made: a room and a relation there, or a kind, an object and a relation. */
         GrantAsk: {
             /**

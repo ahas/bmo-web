@@ -7,6 +7,10 @@ rest_begins: "{chat_agent} 오늘 머리를 너무 많이 썼어... 한도가 �
 # What a room the owner shut is told: the receiver no longer listens to it nor keeps its words.
 chat_denied: "이 방 차단됨. 여기 이야기는 이제 듣지도 저장하지도 않을게."
 
+# What a room is told once in a round whose draft turn ran past its bound, the turn still going on, said as the
+# chat agent.
+still_working: "아직 답을 준비하고 있어요. 조금만 기다려 주세요."
+
 # What a room is told of a companion's turn its guard cut short: the companion's {name} and the guard's
 # {reason}, the next turn opening a new session.
 companion_cut: "{name}의 이번 턴을 끊었어요. {reason} 다음 말부터는 새 세션에서 답해요."

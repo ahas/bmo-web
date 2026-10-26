@@ -12,6 +12,8 @@ pub struct FixedLines {
   pub chat_denied: String,
   /// A companion's turn its guard cut short.
   pub companion_cut: String,
+  /// A round's draft turn ran past its bound and goes on.
+  pub still_working: String,
 }
 
 crate::part!(pub FIXED_LINES: FixedLines = "fixed-lines");

@@ -87,6 +87,7 @@
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
               <RoomCompanionTools v-if="companionsHere.length > 0" ref="companionTools" :chat-id="chatId" />
               <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
+              <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
               <PictureDialog v-if="administrator" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
               <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
             </template>
@@ -956,6 +957,8 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
   [
     ...(administrator.value ? [{ label: t("room.title.session_info"), icon: "i-material-symbols-bar-chart", onSelect: openStats }] : []),
     { label: t("room.action.find"), icon: "i-material-symbols-search", onSelect: openFind },
+    // The room's situation note as it stands (docs/web.md, the room screen's situation entry).
+    { label: t("room.action.situation"), icon: "i-material-symbols-notes", onSelect: () => { situationOpen.value = true; } },
     { label: t("room.action.choose_messages"), icon: "i-material-symbols-checklist", onSelect: startSelecting },
     { label: t("room.action.copy_all"), icon: "i-material-symbols-content-copy-outline", onSelect: () => void copyAll() },
     // The pinned order is one list for every reader, so only the administrator sets it (docs/web.md, the room
@@ -988,6 +991,7 @@ async function pin(on: boolean): Promise<void> {
 }
 
 const providersOpen = ref(false);
+const situationOpen = ref(false);
 const pictureOpen = ref(false);
 const removalOpen = ref(false);
 // The room's registration was removed while this screen's own removal dialog stood open.

@@ -4137,7 +4137,8 @@ Four bounds keep it from growing forever.
     with a leading plus, as an added line, and each held one plain under them, in the muted colour with the
     plus's room kept blank. A piece stands by the index's words for it; the room's own due memories, the entry
     `memories/<room>` (the gate's `docs/reference-selection.md`, 「What a turn is given」), as 이 방의 때가 된 기억;
-    anything else by its path. The brain calls follow the pieces, read from the log the first time the list
+    the room's own situation note, `room-situations/<room>` (the receiver's `docs/drafting.md`, 「The situation
+    note」), as 이 방의 지금 상황; anything else by its path. The brain calls follow the pieces, read from the log the first time the list
     opens, and a round that made none reads nothing. The same list stands in the 드래프트 spread, after the
     round's end.
   - **Pressing a piece opens it** in a modal of its own, centred at every width, which Back closes: its name, its
@@ -4807,6 +4808,13 @@ Four bounds keep it from growing forever.
     (「사용 토큰」 under the room's messages), so the estimate never outlives the run. The chip does not move as it
     changes: it stood where it stands on the answer, and what arrives with the answer stands after it
     (「The order the chips stand in」).
+- **A message a round judged carries the room's situation note as that round read it**, under the verdicts its detail
+  spreads: the note's words, and a 갱신 mark beside them where that round wrote it afresh (the receiver's
+  `docs/drafting.md`, 「The situation note」). The note is the room's live state and not the agent's memory, so it is
+  read beside the verdicts and never as a verdict; a message no round judged under a note stands none.
+- **The room's situation as it stands now** is the room menu's 상황, which opens a small dialog of the note and the
+  moment it last changed, read from the receiver each time it opens (`GET /rooms/{roomId}/situation`); a room with no
+  note yet says so rather than standing an empty box.
 - **What else runs for this room** — besides the chat agent's answer, a job or a standing watch's check —
   stands below as **one line of counts**, never one line per run, however many run.
   - The parts are 「Job <n>」 for jobs and 「워치 <n>」 for watch checks, joined by a middle dot: 「Job 7 · 워치 3」.

@@ -165,6 +165,14 @@ describe("the draft chip", () => {
     expect(readList(reads).map((read) => readLabel(wording, read, 5))).toEqual(["X", "threads/user-1", wording("room.label.brain_read_due")]);
   });
 
+  test("names the room's own situation note by what it is rather than by its path", () => {
+    const read = { path: "room-situations/5", holds: null, how: "attached" as const };
+
+    expect(readLabel(wording, read, 5)).toBe(wording("room.label.brain_read_situation"));
+    // Another room's note keeps its path: this screen names only this room's note.
+    expect(readLabel(wording, read, 6)).toBe("room-situations/5");
+  });
+
   test("says a turn's outcome and the end's apart, and an outcome it does not know as it came", () => {
     expect(draftOutcomeText(wording, "skip", "question")).toBe(wording("room.label.draft_outcome_skip"));
     expect(draftOutcomeText(wording, "skip", "end")).toBe(wording("room.label.draft_end_skip"));

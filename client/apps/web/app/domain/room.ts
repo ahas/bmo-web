@@ -13,6 +13,7 @@ import { subjectOf } from "./working";
 import type {
   ArchivedMessage,
   ForwardedFrom,
+  Situation,
   Judgement,
   MessageAttachment,
   MessageBriefing,
@@ -317,6 +318,9 @@ export interface FeedItem {
   // Where the message was forwarded from, on one the record kept as a forward (docs/web.md, 「What was done to a
   // message」): the room, the message and who said it there.
   forwarded?: ForwardedFrom;
+  // The room's situation note as the round that judged this message read it, and whether that round changed it
+  // (docs/web.md, the room screen's verdicts).
+  situation?: Situation;
   // Whether the bot sent this message as the service rather than as the chat agent, as the server says: the row
   // stands as a system line rather than an answer.
   notice: boolean;
@@ -1551,6 +1555,7 @@ function feedItemOf(
     briefing: deleted ? null : (message.briefing ?? null),
     deleted,
     ...(deleted || message.forwardedFrom == null ? {} : { forwarded: message.forwardedFrom }),
+    ...(deleted || message.situation == null ? {} : { situation: message.situation }),
     editedAt: message.editedAt ?? null,
     pinnedAt: deleted ? null : (message.pinnedAt ?? null),
     pending: null,

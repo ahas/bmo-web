@@ -253,8 +253,12 @@ export function readLabel(t: Translate, read: DraftRead, chatId: number): string
   const holds = read.holds?.trim() ?? "";
 
   if (holds !== "") return holds;
+  if (read.path === `memories/${chatId}`) return t("room.label.brain_read_due");
+  // The room's own situation note, which the round reads before it judges a line (the receiver's `docs/drafting.md`,
+  // 「The situation note」), is named by what it is rather than by its path.
+  if (read.path === `room-situations/${chatId}`) return t("room.label.brain_read_situation");
 
-  return read.path === `memories/${chatId}` ? t("room.label.brain_read_due") : read.path;
+  return read.path;
 }
 
 /** Whether a piece was read new on the round — whole, or by the agent itself — rather than held from before. */

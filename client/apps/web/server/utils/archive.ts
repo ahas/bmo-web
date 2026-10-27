@@ -11,7 +11,7 @@ import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
 import { within } from "./unit-answer";
 
-import type { ArchivedMessage, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, TelegramExpression, VoiceBriefing } from "#shared/types";
+import type { ArchivedMessage, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, Situation, TelegramExpression, VoiceBriefing } from "#shared/types";
 import type { ReceiverMessage, ReceiverRoom } from "./receiver";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
@@ -54,6 +54,8 @@ interface ReceivedMessage {
   files: KeptFile[];
   // Where the record says the message was forwarded from, on a message kept as a forward.
   forwardedFrom: ForwardedFrom | null;
+  // The room's situation note as the round that judged the message read it.
+  situation: Situation | null;
   // What the record keeps done to it, in unix seconds, and its reactions.
   editedAt: number | null;
   deletedAt: number | null;
@@ -84,6 +86,7 @@ function receivedOf(message: ReceiverMessage): ReceivedMessage {
     voice: sent.voice ?? null,
     files: message.files,
     forwardedFrom: message.forwardedFrom ?? null,
+    situation: message.situation ?? null,
     editedAt: moment(message.editedAt),
     deletedAt: moment(message.deletedAt),
     pinnedAt: moment(message.pinnedAt),
@@ -371,6 +374,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         expressions: files.expressions,
         replyQuote: message.replyToMessageId === null ? null : await quote(message.replyToMessageId),
         ...(message.forwardedFrom === null ? {} : { forwardedFrom: message.forwardedFrom }),
+        ...(message.situation == null ? {} : { situation: message.situation }),
         spend: null,
         actions: null,
         drafts: null,

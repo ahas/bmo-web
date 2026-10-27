@@ -359,6 +359,8 @@ room:
     agent_tool: "{subject} 툴 사용 중"
     agent_tool_named: "{subject} {tool} 사용 중"
     agent_waiting_engine: "{subject} 같은 모델을 쓰는 Job이 끝나기를 기다리는 중"
+    situation_loading: 상황 노트 불러오는 중…
+    situation_none: 상황 노트 없음
     agent_waiting_engine_item: "{subject} 같은 모델을 쓰는 #{item} Job이 끝나기를 기다리는 중"
     agent_writing: "{subject} 답을 쓰는 중"
     brain_read_loading: 불러오는 중…
@@ -425,6 +427,7 @@ room:
     actions_read_failed: 실행 기록을 불러오지 못했습니다.
     attachment_empty: "{name}: 빈 파일이라 첨부하지 않았습니다."
     attachment_too_large: "{name}: {size}는 너무 큽니다. 한 파일에 50MB까지 보낼 수 있습니다."
+    situation_failed: 상황 노트를 읽지 못했습니다.
     attachment_too_many: "한 번에 {max}개까지 첨부할 수 있습니다. {name}은 제외하고 보냅니다."
     avatar_not_found: 프로필 사진을 찾을 수 없습니다.
     bad_avatar_id: 프로필 사진 번호가 올바르지 않습니다.
@@ -516,6 +519,7 @@ room:
     attach_file: 파일 첨부
     attach_media: 사진·동영상
     brain_read_page: 브레인에서 보기
+    situation: 방의 상황 보기
     cancel_recording: 녹음 취소
     cancel_reply: 답장 취소
     choose_messages: 메시지 선택
@@ -552,10 +556,14 @@ room:
   label:
     answer_took: "{time} 소요"
     avatar_of: "{name} 프로필 사진"
+    situation: 상황
+    situation_changed: 갱신
+    situation_updated: "{time}에 갱신"
     brain_read_attached: 첨부
     brain_read_before: 전에 읽음
     brain_read_due: 이 방의 때가 된 기억
     brain_read_held: "전에 읽음 {n}개"
+    brain_read_situation: 이 방의 지금 상황
     brain_read_held_one: 전에 읽음
     brain_read_how: 읽음
     brain_read_key: 키
@@ -821,6 +829,7 @@ room:
   title:
     companion_reset: "{name} 초기화"
     providers: 채팅 서비스
+    situation: 방의 상황
     remove_registration: 방 등록 삭제
     edit_message: 메시지 수정
     forward: 메시지 전달

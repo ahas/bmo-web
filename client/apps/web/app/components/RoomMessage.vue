@@ -292,6 +292,7 @@
                         :spend="props.item.spend"
                         :actions-at="props.item.actions"
                         :drafts="props.item.drafts"
+                        :situation="props.item.situation ?? null"
                         :live="live"
                         :chat-id="props.chatId"
                         :message-id="props.item.messageId"

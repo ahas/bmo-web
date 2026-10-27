@@ -207,6 +207,14 @@
         />
       </div>
 
+      <!-- The room's situation note as the round that judged this line read it, and whether that round wrote it
+           afresh (docs/web.md, the room screen's verdicts). -->
+      <p v-if="props.situation !== null && props.situation !== undefined" data-situation class="flex min-w-0 flex-wrap items-baseline gap-x-2 text-sm">
+        <span class="shrink-0 text-muted">{{ $t("room.label.situation") }}</span>
+        <span class="min-w-0 break-words text-highlighted">{{ props.situation.text }}</span>
+        <UBadge v-if="props.situation.changed" color="primary" variant="subtle" size="sm" data-situation-changed>{{ $t("room.label.situation_changed") }}</UBadge>
+      </p>
+
       <!-- Each turn's cards stand under what opened it, said once for the turn whichever gates it
            ran. Inside the bubble they are parted by its own step, never boxed a second time. -->
       <template v-for="turn in turns" :key="turn.key">
@@ -307,6 +315,7 @@ import type { BriefingChip, VerdictChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
 import type { OutcomeKind } from "~/domain/judgements";
 import type { OutcomeView } from "~/domain/room";
+import type { Situation } from "#shared/types";
 import type { LiveTurn } from "~/domain/working";
 
 interface Props {
@@ -317,6 +326,8 @@ interface Props {
   actionsAt?: TurnActionsRef | null;
   // How the round's draft process made the answer, on the same message.
   drafts?: DraftSummary | null;
+  // The room's situation note as the round that judged this line read it, and whether it changed it.
+  situation?: Situation | null;
   // The turn still running, where this line belongs to one: what it has done so far and what it
   // has spent so far, both of which it carries itself rather than leaving in a record to read.
   live?: LiveTurn | null;

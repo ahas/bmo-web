@@ -302,6 +302,20 @@ export interface ReplyQuote {
   attachment?: MessageAttachment | null;
 }
 
+// The room's situation note as the round that judged a message read it (the receiver's `docs/drafting.md`): the note's
+// text, and whether that round wrote it afresh.
+export interface Situation {
+  text: string;
+  changed: boolean;
+}
+
+// A room's situation note as it stands, with when it last changed (epoch milliseconds), both null where the room has no
+// note yet.
+export interface RoomSituation {
+  text: string | null;
+  updatedAt: number | null;
+}
+
 // Where a forwarded message came from, as the record marks it (the receiver's `docs/api.md`, 「Messages」): the room, the
 // message and who said it there.
 export interface ForwardedFrom {
@@ -323,6 +337,8 @@ export interface ArchivedMessage {
   replyQuote?: ReplyQuote | null;
   // Where this message was forwarded from, on a message the record kept as a forward; absent on every other.
   forwardedFrom?: ForwardedFrom | null;
+  // The room's situation note as the round that judged this message read it; absent where no round judged it under one.
+  situation?: Situation | null;
   attachments?: MessageAttachment[];
   expressions?: TelegramExpression[];
   // Whether an agent sent this message, the chat agent or a companion, as the server reads it off the archive;

@@ -14,4 +14,7 @@ export interface ConsoleScreen {
   module: string;
   stylesheet: string | null;
   words: ConsoleWords;
+  // Where the bundle's sidebar count is read, at its relay address, and the field of that answer the count stands in
+  // (bmo-ui's `docs/console-bundles.md`, the sidebar count); null where its manifest names none.
+  unread?: { url: string; field: string } | null;
 }

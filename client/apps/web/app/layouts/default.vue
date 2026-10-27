@@ -151,6 +151,7 @@ import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
+import { useSidebarUnread } from "~/domain/sidebar-unread";
 
 import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
 import type { NavigationMenuItem } from "@nuxt/ui";
@@ -197,8 +198,11 @@ onMounted(() => nextTick(openAskedTodo));
 const sidebarFolded = ref(false);
 // The screens units bring take their manifest's own name and icon; the console's own screens and the
 // placeholders of units not yet split stand as they are (docs/web.md, 「Screens a unit brings」).
-const screens = screensWithBundles(useConsoleScreens().value);
-const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens));
+const bundles = useConsoleScreens();
+const screens = screensWithBundles(bundles.value);
+// The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
+const unread = useSidebarUnread(bundles.value);
+const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value));
 
 // The picture every session in this sidebar wears.
 const avatars = useAvatars();

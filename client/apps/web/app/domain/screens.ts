@@ -26,8 +26,13 @@ export interface Screen {
   brought?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
+  // Where a bundle's sidebar count is read, at the relay address the console handed over, and the field of that
+  // answer the count stands in (bmo-ui's `docs/console-bundles.md`, the sidebar count). Only a screen a unit brings
+  // whose manifest names one carries it.
+  unread?: { url: string; field: string };
   // The mark the screen's entry carries while something on it wants looking at, read from what the
-  // console knows live. An entry carries a mark and never a count, so nothing grows beside its name.
+  // console knows live. A status is a mark and not a count, so nothing of it grows beside the name;
+  // a count stands only where a unit's manifest declares one (`unread`).
   status?: (live: ScreenLive) => ScreenStatus | null;
 }
 
@@ -104,13 +109,13 @@ export function screensWithBundles(bundles: readonly ConsoleScreen[], screens: r
 
     if (bundle === undefined) return screen.brought ? [] : [screen];
 
-    return [{ ...screen, label: bundle.title, icon: bundle.icon, nested: true, brought: true }];
+    return [{ ...screen, label: bundle.title, icon: bundle.icon, nested: true, brought: true, ...(bundle.unread == null ? {} : { unread: bundle.unread }) }];
   });
 
   for (const bundle of bundles) {
     if (screens.some((screen) => screen.to === bundle.screenPath)) continue;
 
-    standing.push({ label: bundle.title, to: bundle.screenPath, icon: bundle.icon, nested: true, brought: true });
+    standing.push({ label: bundle.title, to: bundle.screenPath, icon: bundle.icon, nested: true, brought: true, ...(bundle.unread == null ? {} : { unread: bundle.unread }) });
   }
 
   return standing;
@@ -134,9 +139,13 @@ export function tabAddress(screen: Screen, tab: ScreenTab): string {
 // does not carry the mark off it; on whole pixels, in the colour the status names.
 export const FOLDED_MARK = "relative after:absolute after:top-2 after:start-[round(down,calc(50%+4px),1px)] after:size-2 after:rounded-full after:content-['']";
 
-export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS): NavigationMenuItem[] {
+// A sidebar count as the sidebar last read it, by the address of the screen it stands on.
+export type ScreenCounts = Readonly<Record<string, number>>;
+
+export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS, counts: ScreenCounts = {}): NavigationMenuItem[] {
   return screens.map((screen) => {
     const status = screen.status?.(live) ?? null;
+    const count = screen.unread === undefined ? 0 : (counts[screen.to] ?? 0);
     const entry = {
       label: t(screen.label),
       to: screen.to,
@@ -144,16 +153,26 @@ export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET
       active: isScreenActive(screen, path)
     };
 
+    // A positive count stands at the line's end as a count badge, and folded as the number itself over the icon's rim
+    // at about two o'clock, where a badge conventionally sits (docs/web.md, 「Sidebar」).
+    const counted = count > 0;
+    const said = counted ? t("screens.aria.screen_unread", { name: t(screen.label), count: countText(count) }) : undefined;
+    const countedEntry = !counted
+      ? entry
+      : folded
+        ? { ...entry, chip: { text: unreadLabel(count) ?? String(count), color: "primary" as const } }
+        : { ...entry, badge: { ...COUNT_BADGE, label: unreadLabel(count) ?? String(count), color: "primary" as const } };
+
     if (status === null) {
-      return entry;
+      return said === undefined ? countedEntry : { ...countedEntry, "aria-description": said };
     }
 
     // Folded, the name is gone and the row is its icon alone. A mark given a cell at the row's end
     // is dropped there by the menu, so the row says nothing at all; drawn over the icon's corner it
     // says the same thing and moves no icon.
     return folded
-      ? { ...entry, ui: { link: `${FOLDED_MARK} ${status.folded}` }, "aria-description": t(status.label) }
-      : { ...entry, trailingIcon: status.icon, ui: { linkTrailingIcon: status.tone }, "aria-description": t(status.label) };
+      ? { ...countedEntry, ui: { link: `${FOLDED_MARK} ${status.folded}` }, "aria-description": said ?? t(status.label) }
+      : { ...countedEntry, trailingIcon: status.icon, ui: { linkTrailingIcon: status.tone }, "aria-description": said ?? t(status.label) };
   });
 }
 

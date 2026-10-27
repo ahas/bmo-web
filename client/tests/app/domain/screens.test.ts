@@ -21,7 +21,7 @@ test("the console's own screens stand always, and a screen a unit brings only wh
 });
 
 // A screen a unit brings, as the console's list hands it to the browser.
-function brought(screenPath: string, name: string): ConsoleScreen {
+function brought(screenPath: string, name: string, over: Partial<ConsoleScreen> = {}): ConsoleScreen {
   return {
     name,
     title: `${name}.title.screen`,
@@ -30,9 +30,43 @@ function brought(screenPath: string, name: string): ConsoleScreen {
     role: "member",
     module: `/base/api/${name}/bundle.js`,
     stylesheet: null,
-    words: {}
+    words: {},
+    ...over
   };
 }
+
+// The count a bundle declares, as the console hands it over: the relay address of the read and the field of its answer.
+const UNREAD = { url: "/base/api/mail/summary", field: "unreadCount" };
+
+test("a bundle's sidebar count stands at the line's end as a count badge, and folded as the number over the icon", () => {
+  const screens = screensWithBundles([brought("/mail", "mail", { unread: UNREAD, title: "screens.label.mail" })]);
+  const counts = { "/mail": 12 };
+  const spread = screenItems(wording, "/", undefined, false, screens, counts).find((item) => item.to === "/mail")!;
+  const folded = screenItems(wording, "/", undefined, true, screens, counts).find((item) => item.to === "/mail")!;
+
+  expect(spread.badge).toMatchObject({ label: "12", color: "primary" });
+  expect(spread.chip).toBeUndefined();
+  expect(folded.chip).toMatchObject({ text: "12", color: "primary" });
+  expect(folded.badge).toBeUndefined();
+  expect(spread["aria-description"]).toBe(wording("screens.aria.screen_unread", { name: wording("screens.label.mail"), count: "12" }));
+});
+
+test("no count draws nothing, and a count above ninety-nine reads as ninety-nine and more", () => {
+  const screens = screensWithBundles([brought("/mail", "mail", { unread: UNREAD, title: "screens.label.mail" })]);
+  const none = screenItems(wording, "/", undefined, false, screens, {}).find((item) => item.to === "/mail")!;
+  const many = screenItems(wording, "/", undefined, false, screens, { "/mail": 4210 }).find((item) => item.to === "/mail")!;
+
+  expect(none.badge).toBeUndefined();
+  expect(none.chip).toBeUndefined();
+  expect(many.badge).toMatchObject({ label: "99+" });
+});
+
+test("a screen whose bundle names no count never draws one, whatever the counts hold", () => {
+  const screens = screensWithBundles([brought("/mail", "mail", { title: "screens.label.mail" })]);
+
+  expect(screens.find((screen) => screen.to === "/mail")!.unread).toBeUndefined();
+  expect(screenItems(wording, "/", undefined, false, screens, { "/mail": 3 }).find((item) => item.to === "/mail")!.badge).toBeUndefined();
+});
 
 test("a unit's screen takes its manifest's own name and icon, and stands where the console lists it", () => {
   const all = ["/mail", "/files", "/archive", "/code", "/remote"].map((path) => brought(path, path.slice(1)));

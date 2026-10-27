@@ -62,10 +62,15 @@ describe("the console search in the sidebar", () => {
     expect(layout).not.toContain("useBackClose");
   });
 
+  test("reads the sidebar counts the bundles declare, and hands them to the screen entries", () => {
+    expect(layout).toContain("const unread = useSidebarUnread(bundles.value);");
+    expect(layout).toContain("screenItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value)");
+  });
+
   test("lists the screens the search lists, one list of them both", () => {
     expect(layout).toContain("screenItems(t, route.path, ");
     expect(layout).toContain("screenGroup(t, screens)");
-    expect(layout).toContain("screensWithBundles(useConsoleScreens().value)");
+    expect(layout).toContain("screensWithBundles(bundles.value)");
   });
 });
 

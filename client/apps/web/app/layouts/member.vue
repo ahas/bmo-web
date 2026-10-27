@@ -66,6 +66,7 @@ import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { broughtScreens, namedWhenFolded, roomItems, screenItems } from "~/domain/screens";
+import { useSidebarUnread } from "~/domain/sidebar-unread";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AvatarIndex } from "~/domain/avatars";
@@ -99,6 +100,9 @@ const pictures: AvatarIndex = new Map();
 const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.value, pictures, route.path, sidebarFolded.value, reading.value));
 
 // The screens units bring whose manifest opens to a member, as the console's list hands them to this reader.
-const screens = broughtScreens(useConsoleScreens().value);
-const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens));
+const bundles = useConsoleScreens();
+const screens = broughtScreens(bundles.value);
+// The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
+const unread = useSidebarUnread(bundles.value);
+const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value));
 </script>

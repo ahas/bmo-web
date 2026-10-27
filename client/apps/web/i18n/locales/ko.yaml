@@ -1046,6 +1046,7 @@ screens:
     tab_state_too_large: 탭 상태가 너무 큽니다.
   aria:
     room_unread: "안읽은 메시지 {count}개"
+    screen_unread: "{name} 안읽음 {count}건"
 
 siren:
   error:

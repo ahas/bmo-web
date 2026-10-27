@@ -135,9 +135,9 @@
                       <span data-words v-if="named && props.item.voice === undefined" data-name class="truncate text-sm leading-(--chat-meta-line) font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
                       <!-- An agent's answer that went out in the owner's own account names the agent, and beside it, small,
                            the account it went out in. -->
-                      <span v-else-if="named" data-words class="flex min-w-0 items-center gap-1.5 text-sm leading-(--chat-meta-line)">
-                        <span data-name class="truncate font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
-                        <span data-voice class="flex shrink-0 items-center gap-0.5 text-sm text-dimmed">
+                      <span v-else-if="named" data-words class="flex min-w-0 flex-wrap items-center gap-x-1.5 text-sm leading-(--chat-meta-line)">
+                        <span data-name class="min-w-0 truncate font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
+                        <span data-voice class="flex min-w-0 items-center gap-0.5 text-sm text-dimmed">
                           <UIcon name="i-material-symbols-record-voice-over-outline" class="size-3.5" aria-hidden="true" />
                           {{ $t("room.label.voiced_as", { name: props.item.voice }) }}
                         </span>

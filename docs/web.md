@@ -1283,6 +1283,10 @@ Four groups.
     person's own label, and a row the record names no agent on falls back to the name it does carry rather than being
     guessed at another agent's. One function names a row for every screen that draws one — the room list's preview, the
     room view, an item's notes, the live screen and a search.
+  - **"계정으로 보냄" is the account the words went out in, and nothing else.** A row names the agent that said it; the
+    small marker beside that name says the words went out in another account — the owner's, or another person's — and
+    never stands on a send in the agent's own bot account. It wraps or shortens inside the meta line rather than taking
+    width from the words, so a bubble keeps the width its words and pictures ask for with the marker and without it.
   - **The picture is the agent's own.** A chat agent wears the picture of the person number its words stand under,
     whichever row of the catalogue it stands in — its own row and a session registered for a room alike — and failing
     that a room made for it, and failing both its label's letter; a companion wears its own face the same way. A room's

@@ -360,6 +360,11 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
     received.map(async (message) => {
       const agent = agents.get(senderKey(message)) === true;
       const voicedBy = accountAgent(message, voiced);
+      // The account an agent's words went out in, where that is not its own bot account: an agent's answer sent in the
+      // owner's (or another person's) account says so beside its name (docs/web.md, the naming rule); a send in the
+      // agent's own bot account names the agent alone.
+      const voicedAccount =
+        message.agentName !== null && (message.voice === "human-avatar" || message.voice === "human-reader") ? message.agentName : null;
       const speaker = speakerOf(message, agent, answerers, room.voice);
       const files = await media.get(message.messageId)!;
 
@@ -377,6 +382,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         album: message.album,
         agent,
         ...(voicedBy === undefined ? {} : { voicedBy }),
+        ...(voicedAccount === null ? {} : { voicedAccount }),
         ...(speaker === undefined ? {} : { speaker }),
         notice: agent && isSystemNotice(message.text),
         attachments: files.attachments,

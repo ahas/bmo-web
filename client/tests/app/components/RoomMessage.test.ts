@@ -165,6 +165,8 @@ describe("the account an answer went out in", () => {
     expect(head.indexOf("data-voice")).toBeGreaterThan(head.lastIndexOf("data-name"));
     expect(head).toContain('$t("room.label.voiced_as", { name: props.item.voice })');
     expect(voice).toContain("text-sm text-dimmed");
-    expect(voice).toContain("shrink-0");
+    // The marker wraps under the name rather than taking the words' width.
+    expect(voice).toContain("min-w-0");
+    expect(head).toContain("flex-wrap");
   });
 });

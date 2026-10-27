@@ -561,7 +561,7 @@ room:
     situation_updated: "{time}에 갱신"
     brain_read_attached: 첨부
     brain_read_before: 전에 읽음
-    brain_read_due: 이 방의 때가 된 기억
+    brain_read_due: 이 방에서 지금 할 약속
     brain_read_held: "전에 읽음 {n}개"
     brain_read_situation: 이 방의 지금 상황
     brain_read_held_one: 전에 읽음

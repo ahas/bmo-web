@@ -84,6 +84,8 @@
 - template → 템플릿; coverage → 커버리지; cap → 상한; cooldown → 쿨다운. Never 틀, 덮음, 천장, 휴식.
 - output tokens → 출력; context window → 컨텍스트. Never 답, 창.
 - brain (what a turn read from the agent's memory store) → 브레인. Never 기억 저장소, 두뇌, 읽은 문서.
+- a room's due memories (its promise, follow-up and check memories whose time or event has come) → 이 방에서 지금
+  할 약속. Never 때가 된 기억, 만기된 기억, 예정된 메모리.
 - an item's request in its own words → 요청 원문; the talk with the chat agent about an item → 의논. Never 대화 for
   either, which is a room's conversation.
 - collapse, expand a panel → 닫기, 열기; collapse, expand in place → 축소, 확장. Never 접기, 펴기, 펼치기.

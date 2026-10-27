@@ -4136,7 +4136,7 @@ Four bounds keep it from growing forever.
   - **Spread, it is one list, read like a diff**: each new piece a line in the success colour on its own wash
     with a leading plus, as an added line, and each held one plain under them, in the muted colour with the
     plus's room kept blank. A piece stands by the index's words for it; the room's own due memories, the entry
-    `memories/<room>` (the gate's `docs/reference-selection.md`, 「What a turn is given」), as 이 방의 때가 된 기억;
+    `memories/<room>` (the gate's `docs/reference-selection.md`, 「What a turn is given」), as 이 방에서 지금 할 약속;
     the room's own situation note, `room-situations/<room>` (the receiver's `docs/drafting.md`, 「The situation
     note」), as 이 방의 지금 상황; anything else by its path. The brain calls follow the pieces, read from the log the first time the list
     opens, and a round that made none reads nothing. The same list stands in the 드래프트 spread, after the

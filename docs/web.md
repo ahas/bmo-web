@@ -4360,6 +4360,27 @@ Four bounds keep it from growing forever.
     One that said nothing else says what it carried: 「사진」, 「스티커」, 「동영상」 or 「음성 메시지」 with the length
     the archive's mark gives, or a file's own name.
   - The bar at the head of the input box, while a reply is being written, says the same words.
+- **What was done to a message** — the acts a room's record keeps on its messages (the receiver's
+  `docs/messages.md`, 「What an agent can send back」) stand on the message itself, in every room the receiver serves
+  them for, a record room among them, and follow the receiver's `message-changed` news: the room reads that one
+  message again the moment the news comes, as it reads one that was edited.
+  - **A deleted message** stands where it stood as one quiet line in its bubble, 삭제된 메시지, with its time; its
+    words, what it carried and its chips are gone, and its menu offers nothing but its link.
+  - **An edited message** carries 수정됨 on its meta line before its time, and its tooltip says when it changed.
+  - **Reactions** stand in a row of their own at the foot of the bubble's words, above its meta line: each emoji
+    once with how many put it there, tabular, the reactions of the reader's own senders in the accent's wash, and a
+    tooltip naming who put it there — an agent by its label, a person by the name the room knows them by, else
+    their number.
+  - **A pinned message** wears a pin mark on its meta line, and the room's top bar carries a pinned button beside the
+    room's menu while the room holds one: the pin mark and, from the sm width, the first line of the pinned message it
+    stands at, cut, with that message's words whole in its tooltip and how many are pinned where there are several.
+    Pressing it brings that message into view and marks it, the way a reply's quote does, and steps the button to the
+    next older pinned message for the next press, the newest again after the oldest. The room's pinned messages are those of the stretch
+    the room has read, since no route names a room's pinned messages apart (`docs/boundary.md`, 「Gaps the console
+    meets」).
+  - **The reader's own acts** — editing their own message, deleting one, pinning, reacting, a sticker from the input
+    box — stand in the message's menu and the input box once the receiver serves them as the reader's own
+    (`docs/boundary.md`, 「Gaps the console meets」); until then no control offers them.
 - **A long paste** — pasting 2,000 or more characters at once does not spill into the input box. A mark —
   `[붙여넣기 1 · 3,210자]` — goes in at the caret, and a one-line entry above the box stands the mark's name, the
   text's head and how many characters. Sending puts each text back where its mark stands, so the pastes and the

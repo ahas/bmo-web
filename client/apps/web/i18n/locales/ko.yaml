@@ -547,6 +547,7 @@ room:
     copy_call_failed: 실패
     copy_result_chars: "결과 {n}자"
     copy_tokens: "{n} 토큰"
+    deleted_message: 삭제된 메시지
     draft_changed: 바뀜
     draft_chars: "{n}자"
     draft_end_ceiling_message: 시간 초과 후 메시지 보냄
@@ -568,6 +569,8 @@ room:
     draft_reads: "읽음: {names}"
     draft_slow: 오래 걸린 라운드
     earlier_count: "이전 {n}개"
+    edited: 수정됨
+    edited_at: "{time}에 수정됨"
     elapsed: "{time} 경과"
     empty_message: (빈 메시지)
     find_box: 찾을 말
@@ -610,6 +613,9 @@ room:
     picture_sender: 보낸 사람
     picture_sent_at: 보낸 시각
     picture_size: 파일 크기
+    pinned: 고정됨
+    pinned_at: "{time}에 고정됨"
+    pinned_of: "고정된 메시지 {at}/{n} · {words}"
     quiet_instruction: 조용한 지시
     quote_picture: 사진
     quote_sticker: 스티커
@@ -782,6 +788,8 @@ room:
     jump_to_date: "{name}, 날짜로 이동"
     open_details: "{name} 자세히 열기"
     open_log: "{name} 로그 열기"
+    pinned_open: "고정된 메시지 {n}개"
+    reaction: "{emoji} {n}명"
     remove_named: "{name} 삭제"
   placeholder:
     drop_here: 여기에 놓으면 첨부됩니다

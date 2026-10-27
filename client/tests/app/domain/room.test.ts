@@ -17,6 +17,7 @@ import {
   keptRows,
   mergedMessages,
   NAME_COLOURS,
+  reactionViews,
   nameColour,
   needsPage,
   pendingItems,
@@ -904,7 +905,8 @@ describe("the row a running turn stands in", () => {
 });
 
 const screen = await Bun.file(new URL("../../../apps/web/app/pages/rooms/[chatId].vue", import.meta.url)).text();
-const wiring = screen.slice(screen.indexOf('on: ["message"]') - 600, screen.indexOf('on: ["message"]'));
+// A message kept and an act kept on one are the same news to the room: one row read again.
+const wiring = screen.slice(screen.indexOf('on: ["message", "message-changed"]') - 700, screen.indexOf('on: ["message", "message-changed"]'));
 
 // The reading itself lives in a composable the browser runs; what is held here is that the screen
 // still routes the bot's news to it. The three causes are not alike — news names one message, a
@@ -1133,5 +1135,28 @@ describe("the rows kept between changes", () => {
   test("a row's place in its run is one object for each place", () => {
     expect(runPlace(true, false)).toBe(runPlace(true, false));
     expect(runPlace(false, true)).toEqual({ first: false, last: true });
+  });
+});
+
+// What the room's record keeps done to a message stands on its row (docs/web.md, 「What was done to a message」).
+describe("what was done to a message", () => {
+  test("reactions gather by emoji in the order they came, each reactor named and the reader's own marked", () => {
+    const views = reactionViews(
+      [
+        { emoji: "\u{1F44D}", by: "1" },
+        { emoji: "\u{2764}", by: "7" },
+        { emoji: "\u{1F44D}", by: "agent-a" },
+        { emoji: "", by: "9" }
+      ],
+      new Map([["7", "person-b"]]),
+      [1]
+    );
+
+    expect(views.map((view) => [view.emoji, view.count, view.mine])).toEqual([
+      ["\u{1F44D}", 2, true],
+      ["\u{2764}", 1, false]
+    ]);
+    expect(views[1]?.who).toEqual(["person-b"]);
+    expect(views[0]?.who[0]).toBe("1");
   });
 });

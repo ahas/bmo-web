@@ -60,5 +60,35 @@ describe.skipIf(!origin || !touchReady())("a room the console made", () => {
         await context.close();
       }
     }, 90_000);
+
+    test(`stands what the record kept done to its messages: reactions, an edit, a delete and a pin, ${width}px wide`, async () => {
+      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
+      const at = cookie.indexOf("=");
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/rooms/${RECORD_CHAT}`, { waitUntil: "load" });
+        await page.locator("[data-message]").nth(2).waitFor({ timeout: 30_000 });
+
+        // Two put the same emoji on the first message, the reader's own sender among them.
+        const reaction = page.locator('[data-message="m-1"] [data-reaction]');
+
+        expect(await reaction.count()).toBe(1);
+        expect((await reaction.innerText()).replace(/\s/g, "")).toBe("\u{1F44D}2");
+        expect(await reaction.getAttribute("class")).toContain("bg-primary/15");
+        // The first is pinned, and the room's top bar carries the button that goes to it.
+        expect(await page.locator('[data-message="m-1"] [data-pinned]').count()).toBe(1);
+        expect(await page.locator("[data-pinned-button]").count()).toBe(1);
+        // The agent's answer was edited, and the third message was deleted, kept in its place with no words.
+        expect(await page.locator('[data-message="m-2"] [data-edited]').count()).toBe(1);
+        expect(await page.locator('[data-message="m-3"] [data-deleted]').count()).toBe(1);
+        expect(await page.locator('[data-message="m-3"] [data-reaction]').count()).toBe(0);
+      } finally {
+        await context.close();
+      }
+    }, 90_000);
   }
 });

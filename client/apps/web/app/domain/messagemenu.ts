@@ -14,7 +14,12 @@ export interface MessageMenuActions {
   select: () => void;
 }
 
-export function messageMenu(t: Translate, item: Said, actions: MessageMenuActions): ContextMenuItem[][] {
+export function messageMenu(t: Translate, item: Said & { deleted?: boolean }, actions: MessageMenuActions): ContextMenuItem[][] {
+  // A deleted message has nothing left to answer, copy or choose but the line that points at it.
+  if (item.deleted === true) {
+    return [[{ label: t("room.action.copy_ref"), icon: "i-material-symbols-tag", onSelect: () => actions.copyRef() }]];
+  }
+
   return [
     [{ label: t("room.action.reply"), icon: "i-material-symbols-reply", onSelect: () => actions.reply() }],
     [

@@ -339,10 +339,12 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       id, room: RECORD_CHAT, senderId: 1, senderName: "owner", sentAt, text: `record ${id}`, imagePath: null, replyToMessageId: null,
       answerSeconds: null, round: null, album: null, via: "record", files: [], ...over
     });
+    // What the record keeps done to its messages: a pin and two reactions, the owner's own among them, an edit, and a
+    // delete that cleared the words and kept the row.
     const record = [
-      kept(-1, LINE_AT - 6_000, {}),
-      kept(-2, LINE_AT - 5_000, { senderId: null, senderName: "Agent A", agentName: "agent-a", answerSeconds: 3 }),
-      kept(-3, LINE_AT - 4_000, {})
+      kept(-1, LINE_AT - 6_000, { pinnedAt: LINE_AT - 500, reactions: [{ emoji: "\u{1F44D}", by: "1" }, { emoji: "\u{1F44D}", by: "agent-a" }] }),
+      kept(-2, LINE_AT - 5_000, { senderId: null, senderName: "Agent A", agentName: "agent-a", answerSeconds: 3, editedAt: LINE_AT - 4_500 }),
+      kept(-3, LINE_AT - 4_000, { text: "", deletedAt: LINE_AT - 3_000 })
     ];
 
     // The receiver's stream stands open and says nothing, so a tab's stream stays open and carries the console's own

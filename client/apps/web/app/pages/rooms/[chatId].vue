@@ -66,6 +66,21 @@
                   <UButton icon="i-material-symbols-more-vert" color="neutral" variant="ghost" class="-ms-2" :aria-label="$t('common.action.more')" />
                 </UTooltip>
               </UDropdownMenu>
+              <!-- The room's pinned messages, one press a message, newest first (docs/web.md, 「What was done to a
+                   message」). -->
+              <UTooltip v-if="pinnedShown !== null" :text="pinnedTip">
+                <UButton
+                  icon="i-material-symbols-keep"
+                  color="neutral"
+                  variant="ghost"
+                  class="min-w-0"
+                  :aria-label="$t('room.aria.pinned_open', { n: countText(pinnedMessages.length) })"
+                  data-pinned-button
+                  @click="stepPinned"
+                >
+                  <span class="hidden max-w-48 truncate text-sm sm:inline">{{ pinnedLine }}</span>
+                </UButton>
+              </UTooltip>
               <!-- How long the chat agent's window here has left, for as long as it is open, whether a
                    turn runs or the listening row stands (docs/web.md, 「The window's time left stands in
                    the top bar」). -->
@@ -682,6 +697,29 @@ const { runs, outcome } = useRoomRun(chatId, {
 });
 
 // The room's verdicts by the message they stand under.
+// The room's pinned messages among those it has read, newest pin first, and the one the pinned button stands at,
+// which each press brings into view and steps past (docs/web.md, 「What was done to a message」).
+const pinnedMessages = computed(() =>
+  shownMessages.value
+    .filter((message) => message.pinnedAt != null && message.deletedAt == null)
+    .sort((one, other) => (other.pinnedAt ?? 0) - (one.pinnedAt ?? 0))
+);
+const pinnedAt = ref(0);
+const pinnedShown = computed(() => (pinnedMessages.value.length === 0 ? null : pinnedMessages.value[pinnedAt.value % pinnedMessages.value.length]!));
+const pinnedLine = computed(() => (pinnedShown.value?.text ?? "").split("\n").find((line) => line.trim() !== "")?.trim() ?? t("room.label.pinned"));
+const pinnedTip = computed(() =>
+  pinnedMessages.value.length > 1 ? t("room.label.pinned_of", { at: countText((pinnedAt.value % pinnedMessages.value.length) + 1), n: countText(pinnedMessages.value.length), words: pinnedLine.value }) : pinnedLine.value
+);
+
+async function stepPinned(): Promise<void> {
+  const shown = pinnedShown.value;
+
+  if (shown === null) return;
+
+  pinnedAt.value = (pinnedAt.value + 1) % pinnedMessages.value.length;
+  await jumpTo(shown.messageId);
+}
+
 // Each verdict under the message it is about, wherever the gate filed it (docs/web.md, the room screen's verdicts).
 const judgementIndex = computed(() => judgementsByMessage(homedJudgements(roomFeed.messages.value, roomFeed.judgements.value)));
 
@@ -2542,7 +2580,8 @@ onBeforeUnmount(() => {
 useLiveRefresh(
   (cause, event) => void (cause === "event" ? catchUpFeed(event?.messageId ?? null) : refreshFeed()),
   {
-    on: ["message"],
+    // A message kept, and an act the record kept on one: a reaction, a pin, an edit or a delete.
+    on: ["message", "message-changed"],
     where: (event) => event.chatId === chatId,
     everyMs: POLL_INTERVAL_MS
   }

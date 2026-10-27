@@ -11,7 +11,7 @@ import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
 import { within } from "./unit-answer";
 
-import type { ArchivedMessage, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, ReplyQuote, RoomSummary, TelegramExpression, VoiceBriefing } from "#shared/types";
+import type { ArchivedMessage, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, TelegramExpression, VoiceBriefing } from "#shared/types";
 import type { ReceiverMessage, ReceiverRoom } from "./receiver";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
@@ -52,14 +52,18 @@ interface ReceivedMessage {
   agentName: string | null;
   voice: SentVoice | null;
   files: KeptFile[];
+  // What the record keeps done to it, in unix seconds, and its reactions.
+  editedAt: number | null;
+  deletedAt: number | null;
+  pinnedAt: number | null;
+  reactions: MessageReaction[];
 }
 
 // A message as the receiver's own document answers it, read into the names the room screen stands on: its
 // number is the message's, and the room it stands in is its own.
 function receivedOf(message: ReceiverMessage): ReceivedMessage {
-  // The published client's schema was built before the receiver named the agent and the voice on its own sends, so
-  // those two fields are read by their names from the receiver's document.
-  const sent = message as ReceiverMessage & { agentName?: string | null; voice?: SentVoice | null };
+  const sent = message as ReceiverMessage & { voice?: SentVoice | null };
+  const moment = (ms: number | null | undefined): number | null => (ms == null ? null : seconds(ms));
 
   return {
     chatId: message.room,
@@ -76,7 +80,11 @@ function receivedOf(message: ReceiverMessage): ReceivedMessage {
     via: message.via,
     agentName: sent.agentName ?? null,
     voice: sent.voice ?? null,
-    files: message.files
+    files: message.files,
+    editedAt: moment(message.editedAt),
+    deletedAt: moment(message.deletedAt),
+    pinnedAt: moment(message.pinnedAt),
+    reactions: (message.reactions ?? []).map((one) => ({ emoji: one.emoji, by: one.by }))
   };
 }
 
@@ -361,7 +369,11 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         replyQuote: message.replyToMessageId === null ? null : await quote(message.replyToMessageId),
         spend: null,
         actions: null,
-        drafts: null
+        drafts: null,
+        editedAt: message.editedAt,
+        deletedAt: message.deletedAt,
+        pinnedAt: message.pinnedAt,
+        reactions: message.reactions
       };
     })
   );

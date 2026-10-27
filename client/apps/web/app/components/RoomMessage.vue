@@ -184,8 +184,9 @@
                           {{ props.item.fileName }}
                         </p>
 
-                        <p v-else-if="empty" class="text-muted italic">
-                          {{ $t("room.label.empty_message") }}
+                        <!-- A deleted message keeps its place as one quiet line (docs/web.md, 「What was done to a message」). -->
+                        <p v-else-if="empty" class="text-muted italic" :data-deleted="props.item.deleted ? '' : undefined">
+                          {{ props.item.deleted ? $t("room.label.deleted_message") : $t("room.label.empty_message") }}
                         </p>
                       </div>
 
@@ -255,6 +256,23 @@
                         </div>
                       </div>
 
+                      <!-- Who reacted to the message, each emoji once with how many put it there, named in its tooltip;
+                           the reader's own senders' in the accent's wash (docs/web.md, 「What was done to a message」). -->
+                      <div v-if="reactions.length > 0" data-reactions class="flex basis-full flex-wrap gap-1 pt-(--chat-meta-gap)">
+                        <HintTip
+                          v-for="reaction in reactions"
+                          :key="reaction.emoji"
+                          :text="reaction.who.join(', ')"
+                          class="inline-flex h-6 items-center gap-1 rounded-full px-2 text-sm tabular-nums"
+                          :class="reaction.mine ? 'bg-primary/15 text-primary' : 'bg-current/10 text-muted'"
+                          :data-reaction="reaction.emoji"
+                          :aria-label="$t('room.aria.reaction', { emoji: reaction.emoji, n: countText(reaction.count) })"
+                        >
+                          <span aria-hidden="true">{{ reaction.emoji }}</span>
+                          <span aria-hidden="true">{{ countText(reaction.count) }}</span>
+                        </HintTip>
+                      </div>
+
                       <!-- While the chat agent only listens there is nothing to count, and the time left stands
                            where the line would. -->
                       <JudgementChips
@@ -285,6 +303,13 @@
                         </template>
 
                         <template #clock>
+                          <!-- A pinned message wears the pin; an edited one says so, and when, in its tooltip. -->
+                          <HintTip v-if="message && props.item.pinnedAt" :text="$t('room.label.pinned_at', { time: formatStamp(props.item.pinnedAt) })" class="inline-flex" data-pinned>
+                            <UIcon name="i-material-symbols-keep" class="size-4" :aria-label="$t('room.label.pinned')" role="img" />
+                          </HintTip>
+                          <HintTip v-if="message && props.item.editedAt && !props.item.deleted" :text="$t('room.label.edited_at', { time: formatStamp(props.item.editedAt) })" data-edited>
+                            {{ $t("room.label.edited") }}
+                          </HintTip>
                           <span v-if="message" data-clock>{{ clock }}</span>
                           <!-- Where a message of the reader's own stands on its way, one mark in a column
                                of its own width beside the time, so a change of state changes the mark and
@@ -334,6 +359,7 @@ import { mediaUrl } from "~/domain/player";
 import { asideSlide, bubbleLook, choosingMotion, nameColour, sendMark, sideLayout, wordsWrap } from "~/domain/room";
 import { releaseFocusOutside } from "~/domain/tapfocus";
 import { clockUnder, formatStamp, spanClock } from "bmo-ui/app/domain/time";
+import { countText } from "~/domain/numbers";
 import { liveChip } from "~/domain/turns";
 
 import type { ContextMenuItem, DropdownMenuItem } from "@nuxt/ui";
@@ -392,6 +418,7 @@ const live = computed<LiveTurn | null>(() => {
 });
 
 const links = computed(() => messageLinks(props.item.text));
+const reactions = computed(() => (props.item.deleted ? [] : (props.item.reactions ?? [])));
 
 // A message that said nothing and carried nothing says that it is empty, in the place its words
 // would have stood; one that carried a picture or a file is that picture or that file alone.
@@ -404,7 +431,12 @@ const worded = computed<boolean>(() => props.item.shownText !== "" || props.item
 // the line may stand at the end of their last line; and how wide it stands there, which the words
 // keep blank.
 const wordsLast = computed<boolean>(
-  () => props.item.run === null && worded.value && !(props.item.pending === null && links.value.length > 0) && (props.item.attachments ?? []).length === 0
+  () =>
+    props.item.run === null &&
+    worded.value &&
+    !(props.item.pending === null && links.value.length > 0) &&
+    (props.item.attachments ?? []).length === 0 &&
+    reactions.value.length === 0
 );
 const metaRoom = ref<number | null>(null);
 
@@ -415,7 +447,7 @@ const voiced = computed<boolean>(() => (props.item.attachments ?? []).some(heard
 const playerLast = computed<boolean>(() => {
   const last = (props.item.attachments ?? []).at(-1);
 
-  return props.item.run === null && last !== undefined && heard(last);
+  return props.item.run === null && last !== undefined && heard(last) && reactions.value.length === 0;
 });
 
 // The times a row shows, read once per message rather than on every redraw: choosing redraws every
@@ -612,7 +644,7 @@ const menuContent = {
 };
 
 const menuItems = computed<ContextMenuItem[][]>(() =>
-  messageMenu(t, props.item, {
+  messageMenu(t, { text: props.item.text, deleted: props.item.deleted === true }, {
     reply: () => {
       replying = true;
     },

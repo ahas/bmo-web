@@ -333,6 +333,11 @@ for it, and no file or table of that unit is read meanwhile.
   opened; and each line's voice briefings from the voice engine's `GET /briefings?chatId=`, read once for the page's
   room, the newest first, for the chip each line carries. The metadata a message arrived with is read only for a message
   that carries files, since a custom emoji, a sticker and a video's shape each stand on one of its files.
+- **The reader's own acts on a message.** The receiver keeps a reaction, a pin, an edit, a delete and a sticker on a
+  room's messages, and serves them as its agents' acts alone (`POST /sends`, the act going out as the asker's agent):
+  no route takes them as the signed-in person's, under their own number, and none lists a room's pinned messages
+  apart from its pages. The room's screen shows every act the record kept and offers none of its own until the
+  receiver serves them.
 - **Which memory a piece the round read is.** The receiver's round end names each piece it read by its path,
   the index's words for it where the gate's index lists it, and how it was read, and names no memory of the
   brain: the 브레인 list's modal reads a memory only for a piece whose read carries its `memoryId`, and stands the

@@ -345,6 +345,18 @@ export interface ArchivedMessage {
   // On a summary whose round has not sent its line yet: the room stands it as no row until the
   // round ends, on the line it is tied to or as its own row where the round sent none.
   awaitsLine?: boolean;
+  // What the room's record keeps done to the message (the receiver's docs/messages.md, 「What an agent can send
+  // back」): when it was edited, deleted and pinned, in unix seconds, null where it was not, and its reactions.
+  editedAt?: number | null;
+  deletedAt?: number | null;
+  pinnedAt?: number | null;
+  reactions?: MessageReaction[];
+}
+
+// One reaction on a message: its emoji, and who put it there, an agent's name or a person's number.
+export interface MessageReaction {
+  emoji: string;
+  by: string;
 }
 
 // A line's full reading (docs/web.md, the room screen's chips): nothing made yet, being made, there to play, or failed
@@ -932,6 +944,8 @@ export type BotEventType =
   // A message arrived in a room and was archived. What the room now holds is read from the
   // archive, so the event says only which room and which message.
   | "message"
+  // The record kept an act on a message — a reaction, a pin, an edit or a delete — and the message is read again.
+  | "message-changed"
   // A room's window was opened, moved on or shut. How long it has left is read from the archive.
   | "window"
   // A room's window closed, by its time or early, as the receiver tells it once (the receiver's docs/wake.md, 「The

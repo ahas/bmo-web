@@ -16,6 +16,7 @@ import type {
   MessageAttachment,
   MessageBriefing,
   MessagePage,
+  MessageReaction,
   ReplyQuote,
   RoundSpend,
   TelegramExpression,
@@ -306,12 +307,47 @@ export interface FeedItem {
   // What became of a person's message, as its verdict line says it, with the message the line links to; null on
   // an agent's answer and on a message no verdict stands under (docs/web.md, the room screen's verdicts).
   outcome?: OutcomeView | null;
+  // What the room's record keeps done to the message (docs/web.md, 「What was done to a message」): whether it was
+  // deleted, when it was edited and pinned, in unix seconds, and its reactions as the row stands them.
+  deleted?: boolean;
+  editedAt?: number | null;
+  pinnedAt?: number | null;
+  reactions?: ReactionView[];
   // Whether the bot sent this message as the service rather than as the chat agent, as the server says: the row
   // stands as a system line rather than an answer.
   notice: boolean;
   // On an agent's answer that went out in the owner's own account, the name of that account, which the row names
   // beside the agent's own; absent on every other row.
   voice?: string;
+}
+
+// One emoji of a message's reactions as its row stands it: how many put it there, whether one of the reader's own
+// senders did, and who they are, by name.
+export interface ReactionView {
+  emoji: string;
+  count: number;
+  mine: boolean;
+  who: string[];
+}
+
+/** A message's reactions gathered by emoji in the order each first came, each reactor named: an agent by its label,
+ * a person by the name the page knows their number by, else the number. */
+export function reactionViews(reactions: readonly MessageReaction[], names: ReadonlyMap<string, string>, mine: readonly number[]): ReactionView[] {
+  const views = new Map<string, ReactionView>();
+  const own = new Set(mine.map(String));
+
+  for (const reaction of reactions) {
+    if (reaction.emoji === "") continue;
+
+    const view = views.get(reaction.emoji) ?? { emoji: reaction.emoji, count: 0, mine: false, who: [] };
+
+    view.count += 1;
+    view.mine ||= own.has(reaction.by);
+    view.who.push(names.get(reaction.by) ?? (/^-?\d+$/.test(reaction.by) ? reaction.by : agentRowName(reaction.by)));
+    views.set(reaction.emoji, view);
+  }
+
+  return [...views.values()];
 }
 
 // What a person's message's verdict line says, and the message it links to where that message is on the page.
@@ -1353,8 +1389,13 @@ export function archivedRows(
   // What became of each person's message, read once the album rows hold every verdict of their pictures.
   const places = roundPlaces(messages, [...judgements.values()].flat());
   const sent = new Map(messages.map((message) => [message.messageId, message.sentAt]));
+  // Who a reactor is, by the numbers the page's senders stand under.
+  const names = new Map(messages.filter((message) => message.senderId !== null).map((message) => [String(message.senderId), message.senderName]));
+  const reacted = new Map(messages.map((message) => [message.messageId, message.reactions ?? []]));
 
   for (const item of items) {
+    item.reactions = reactionViews(reacted.get(item.messageId) ?? [], names, mine);
+
     const outcome = item.look.role === "assistant" ? null : messageOutcome(item.judgements);
     const target = outcomeTarget(outcome, places);
     const at = target === null ? undefined : sent.get(target);
@@ -1474,10 +1515,12 @@ function feedItemOf(
   avatars: AvatarIndex,
   mine: readonly number[]
 ): FeedItem {
-  const attachments = message.attachments ?? [];
-  const pictured = message.imagePath !== null;
+  // A deleted message keeps its place and its time, and nothing it said or carried.
+  const deleted = message.deletedAt != null;
+  const attachments = deleted ? [] : (message.attachments ?? []);
+  const pictured = !deleted && message.imagePath !== null;
   const shown = withoutMediaMark(message.text, { attachments, pictured }, message.expressions ?? []);
-  const bare = bareMedia(shown.text, pictured ? ["picture"] : attachments.map((attachment) => attachment.kind));
+  const bare = !deleted && bareMedia(shown.text, pictured ? ["picture"] : attachments.map((attachment) => attachment.kind));
 
   return {
     key: `m${message.messageId}`,
@@ -1486,20 +1529,23 @@ function feedItemOf(
     senderName: shownSender(message),
     sentAt: message.sentAt,
     text: message.text,
-    shownText: shown.text,
-    quote: message.replyQuote ?? null,
-    imageUrl: message.imagePath === null ? null : imageUrlFor(message.chatId, message.messageId),
-    attachments: message.attachments,
+    shownText: deleted ? "" : shown.text,
+    quote: deleted ? null : (message.replyQuote ?? null),
+    imageUrl: !pictured ? null : imageUrlFor(message.chatId, message.messageId),
+    attachments: deleted ? [] : message.attachments,
     expressions: shown.expressions,
     fileName: null,
     answerSeconds: message.answerSeconds ?? null,
     look: lookOf(message, avatars, mine, bare),
     parts: [{ type: "text", text: message.text }],
-    judgements: judgements.get(message.messageId) ?? [],
-    spend: message.spend ?? null,
-    actions: message.actions ?? null,
-    drafts: message.drafts ?? null,
-    briefing: message.briefing ?? null,
+    judgements: deleted ? [] : (judgements.get(message.messageId) ?? []),
+    spend: deleted ? null : (message.spend ?? null),
+    actions: deleted ? null : (message.actions ?? null),
+    drafts: deleted ? null : (message.drafts ?? null),
+    briefing: deleted ? null : (message.briefing ?? null),
+    deleted,
+    editedAt: message.editedAt ?? null,
+    pinnedAt: deleted ? null : (message.pinnedAt ?? null),
     pending: null,
     run: null,
     skipped: skippedTurns(judgements.get(message.messageId) ?? []),

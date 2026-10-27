@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 
 import { REPORTING_WINDOW_SECONDS } from "../../../apps/web/shared/config";
+import { setModelRegistrations } from "../../../apps/web/shared/model-short";
 import {
   itemModel,
   boardInOrder,
@@ -248,7 +249,12 @@ describe("what a row shows", () => {
 
     // The worker's own road, the pin it holds or the model its work key maps to.
     expect(itemModel(item(8, { model: null, worker: "bmo-agent" }))).toBe("DS/DSF");
+    expect(itemModel(item(8, { model: null, worker: null }))).toBe("QFN38");
     expect(itemModel(item(8, { model: null, worker: null }), true)).toBe("registered/qwen3.8-flash-next-iq3_s");
+    // A registered alias is read as the engine its registration names, with no provider.
+    setModelRegistrations([{ key: "registered::flash-next-coder", provider: "registered", model: "qwen3.8-flash-next-coder" }]);
+    expect(itemModel(item(8, { model: "registered::flash-next-coder" }))).toBe("QFNC38");
+    setModelRegistrations([]);
     // A job of the item running names the road that run actually took.
     expect(itemModel(item(9, { model: null, worker: "bmo-agent" }))).toBe("CC/CO55");
     expect(itemModel(item(9, { model: null, worker: "bmo-agent" }), true)).toBe("claude-code/claude-opus-5-5");

@@ -146,6 +146,7 @@ import { avatarFor, useAvatars } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useBotEvents } from "~/domain/events";
 import { jumpGroups, screenGroup } from "~/domain/jump";
+import { useModelNames } from "~/domain/model-names";
 import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
@@ -176,6 +177,8 @@ useVisibleShell();
 
 const open = ref(false);
 const { t } = useI18n();
+// The registrations behind a model alias, for every row in this shell that names a model.
+useModelNames();
 // The voice briefings, heard for as long as the layout stands, and played in its player.
 useBriefings(t);
 const todoOpen = useState<boolean>("todo-open", () => false);

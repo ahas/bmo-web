@@ -1,4 +1,5 @@
 import { modelFace } from "~/domain/model-face";
+import { shortModel } from "#shared/model-short";
 import { agentGroups, agentKind, agentLabel, catalogueAgents, groupIcon, groupLabelKey, roomTitle } from "./agents";
 import { verdictTone } from "./judgements";
 
@@ -475,7 +476,7 @@ export function jobRows(t: Translate, records: JobRecord[], live: LiveRun[], roo
         at: record.finishedAt ?? record.launchedAt,
         // What a run is called: the item it was a run of, and the model it ran on. A run of no
         // item wears no number, because there is none to look up.
-        note: [workLabel(t, record), record.model === null ? null : modelLabel(record.model)]
+        note: [workLabel(t, record), record.model === null ? null : shortModel(record.model)]
           .filter((part): part is string => part !== null)
           .join(" · ") || null,
         to: unitLink(record.worker, record.unit)

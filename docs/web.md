@@ -1437,25 +1437,29 @@ Four groups.
 
 - **A compact line names a model short**, and its tooltip names it whole. The compact lines are a TODO row's model
   chip, the model in the TODO modal's head, a step's model on the progress stepper, the model line in a step's or a
-  task's dialog head, the models in a work view's head and a figure's line inside a bubble. A table's cell, a
-  settings form and a verdict card name the model whole.
+  task's dialog head, the models in a work view's head, a figure's line inside a bubble, and a live run's or an
+  execution's model. A table's cell, a settings form and a verdict card name the model whole.
 - **A model stands alone.** No line puts beside a model's name why its road was taken — that the provider order fell
   to it, that its runs went out on more than one — nor the model the work asked for; the road table on the agent
   management screen is where a road's reason is read.
-- **The short name is one reading for every such place: `<provider>/<model>`, a slash and no fillers.** The
-  provider's letters are `DS` for DeepSeek, `Q` for the deployment's registered Qwen engines, `CC` for Claude Code,
+- **The short name is one reading for every such place.** A registered engine is its alias resolved through the
+  deployment's registrations to the engine it names, and carries no provider before it: `QFNC38` for a registration
+  whose engine is `qwen3.8-flash-next-coder`, or the alias itself where no registration names it. Every other road
+  is `<provider>/<model>`, a slash and no fillers: the provider's letters are `DS` for DeepSeek, `CC` for Claude Code,
   `CX` for Codex and `OR` for OpenRouter; a road naming no provider takes the letters of the maker its model names,
   and a provider no letter is written for stands whole. After the slash stand the maker's letters, the family words'
   initials and the version digits without the dot:
   - DeepSeek — `DS` and the initials of the words after `deepseek-`, then `v` and the version: `DS/DSF` for
     `deepseek-flash`, `DS/DSPv4` for `deepseek-v4-pro`, `DS/DSFv41` for `deepseek-v4.1-flash`.
-  - A registered Qwen engine — `Q` and the initials of the words after its version, then `v` and the version:
-    `Q/QFNCv38` for `qwen3.8-flash-next-coder`, `Q/QFNv38` for `qwen3.8-flash-next`.
+  - Qwen — `Q` and the initials of the words after its version, then its version digits: `QFNC38` for
+    `qwen3.8-flash-next-coder`, `QFN38` for `qwen3.8-flash-next`, with no provider before it on a bare or registered
+    road.
   - Claude — `C` and its family's initial, then the version digits with no `v`: `CC/CO55` for `claude-opus-5-5`, S,
     H and F for Sonnet, Haiku and Fable — `CC/CS5` for `claude-sonnet-5`.
   - GPT — `G`, then the version digits, then the family word as it is written: `CX/G56sol` for `gpt-5.6-sol`.
   - A quantisation (`iq3_s`, `iq1_m`, `q8_0`) and a dated build's date are left out of the letters, and a model no
-    rule here shortens stands whole.
+    rule here shortens stands whole, but a registered engine still carries no provider.
+  The road a run recorded is untouched: only the name the console draws is read this way.
 
 ### The default among choices
 

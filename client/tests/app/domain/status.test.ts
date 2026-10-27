@@ -208,7 +208,7 @@ describe("where a row of the board leads", () => {
   test("a finished job with no item wears why it was launched, and one from before that wears no label", () => {
     const why = KO.line_224;
 
-    expect(jobRows(wording, [{ ...job, todoId: null, attempt: 0, purpose: why }], [], rooms)[0]?.note).toBe(`${why} · Opus 5`);
+    expect(jobRows(wording, [{ ...job, todoId: null, attempt: 0, purpose: why }], [], rooms)[0]?.note).toBe(`${why} · CC/CO5`);
     expect(workLabel(wording, { todoId: null, purpose: null })).toBeNull();
     expect(workLabel(wording, { todoId: 26, purpose: why })).toBe(KO.line_228);
   });
@@ -268,7 +268,7 @@ describe("where a row of the board leads", () => {
       delete stale.attempt;
 
       // An older bot's row lacks fields the record now holds required, which is what is being read here.
-      expect(jobRows(wording, [stale as JobRecord], [], rooms)[0]?.note).toBe("Opus 5");
+      expect(jobRows(wording, [stale as JobRecord], [], rooms)[0]?.note).toBe("CC/CO5");
     });
 
     test("a run nobody filed an item for wears no number", () => {

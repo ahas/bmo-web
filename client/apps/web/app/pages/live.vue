@@ -67,7 +67,7 @@
             <li v-for="execution in status.executions" :key="execution.id" class="flex gap-3 rounded-lg border border-default px-4 py-3 text-sm break-words">
               <UIcon :name="executionIcon(execution.nativeState ?? execution.state)" class="size-5 shrink-0" :class="executionTone(execution.nativeState ?? execution.state)" />
               <div class="min-w-0 grow">
-              {{ execution.provider }}<span v-if="execution.model"> · {{ execution.model }}</span> · {{ execution.workKey ?? execution.line }} · {{ execution.nativeState ? nativeState(execution.nativeState) : executionState(execution.state) }}
+              {{ executionModel(execution) }} · {{ execution.workKey ?? execution.line }} · {{ execution.nativeState ? nativeState(execution.nativeState) : executionState(execution.state) }}
               <span v-if="execution.attempt"> · {{ $t("live.label.attempt", { n: execution.attempt }) }}</span>
               <span v-if="execution.sharedPane"> · {{ $t("live.label.shares_parent_pane") }}</span>
               <span v-if="execution.exitCode !== null"> · {{ $t("live.label.exit_code", { code: execution.exitCode }) }}</span>
@@ -141,7 +141,7 @@
                     color="neutral"
                     variant="subtle"
                     :class="{ 'max-sm:hidden': waitingLabel($t, run) !== null }"
-                    :label="[run.mode ? modeLabel($t, run.mode) : null, modelLabel(run.model)].filter(Boolean).join(' · ')"
+                    :label="runModelText(run)"
                   />
                   <!-- A stop the bot has taken but not confirmed: the run is winding itself up,
                        and the row says so until the picture stops drawing it. -->
@@ -242,6 +242,7 @@
 
 <script setup lang="ts">
 import { POLL_INTERVAL_MS } from "#shared/config";
+import { shortModel } from "#shared/model-short";
 import { controlLine, controlLink, controlTone } from "~/domain/control";
 import type { ControlLink } from "~/domain/control";
 import { agentIcon, agentNameLabel, roomTitle } from "~/domain/agents";
@@ -259,8 +260,6 @@ import {
   launcherLabel,
   liveRunLink,
   liveRunsOf,
-  modelLabel,
-  modeLabel,
   runningWorkLabel,
   runRows,
   stoppable,
@@ -333,6 +332,23 @@ function nativeState(state: string): string {
 
 function executionState(state: string): string {
   return ({ launching: t("live.label.start_requested"), running: t("live.label.run_started"), exited: t("live.label.process_ended"), cancelled: t("common.action.cancel"), timeout: t("live.label.timed_out"), "launch-error": t("live.label.start_failed"), unknown: t("live.label.state_unknown") } as Record<string, string>)[state] ?? t("live.label.state_unknown");
+}
+
+// A run's model, and an execution's, as the short name reads them (docs/web.md, 「Model names where room is short」).
+// The road a registered engine records is its alias, so the one shortener resolves it against the registrations the
+// shell laid in; no row here names a provider of its own.
+function runModelText(run: LiveRun): string {
+  const model = run.model ?? "";
+
+  if (model === "") return "";
+
+  const road = model.includes("/") || model.includes("::") || run.mode === null ? model : `${run.mode}/${model}`;
+
+  return shortModel(road);
+}
+
+function executionModel(execution: { provider: string; model?: string | null }): string {
+  return shortModel(execution.model ? `${execution.provider}/${execution.model}` : execution.provider);
 }
 
 function emptyStatus(): StatusView {

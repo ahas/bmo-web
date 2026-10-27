@@ -5537,6 +5537,13 @@ Four bounds keep it from growing forever.
   and how much is left and what number it goes to if left, stand together. There are two roads to answer — press a choice, or write
   into the box an answer the choices do not hold. What the job reads is one line either way — a chosen one is that choice's words,
   a written one those words as is.
+- **A job standing on a question says so where the owner looks, and is answered there.** The item's row in the TODO
+  panel and on the board wears a warning badge, 질문에 답을 기다리는 중, beside its state, so a question is seen without
+  opening anything; the item's modal stands the same card the room's strip stands, at the top of what it reads — the
+  question, the choices and the recommended one, one line why, the time left and the box for an answer the choices do
+  not hold. The answering is one card and one press, through the same route a reply from the room takes; a settled
+  question stands under it in the words it was settled on. A question that arrived while he was away stands the same:
+  the badge is read off the archive as the panel opens.
 - **Choosing and sending are different presses.** Pressing a choice only chooses it, not sends. A chosen one stands in a full
   colour so what is on the line is read on screen, and the button below says by name what will be sent, like 「2번으로 답하기」. Only
   pressing that button sends. With nothing chosen the button stands 「답하기」 and is not pressable. It is split so because it cannot

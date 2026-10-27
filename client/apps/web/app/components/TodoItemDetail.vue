@@ -358,9 +358,12 @@
 
                   <WorkOrderPanel part="steps" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="openedItem.heldAt !== null" :item="openedItem" :worker="openedItem.worker" :plan="itemRuns?.plan ?? []" />
 
-                  <!-- What this item's work stopped to ask, and what each question became. A row
-                       that is still open reads as the card above it does. -->
-                  <div v-for="card in questionsOf(openedItem.id)" :key="card.id" class="rounded-md border p-3" :class="questionTone(card)">
+                  <!-- The question a job stopped to ask, answered here where the item is read (docs/web.md, the TODO
+                       modal's section): the same card the strip over the room stands, so the answering is one place. -->
+                  <QuestionAsk :only="openedItem.id" />
+
+                  <!-- What each of the item's questions became once it is settled, in the words it was settled on. -->
+                  <div v-for="card in settledQuestionsOf(openedItem.id)" :key="card.id" class="rounded-md border p-3" :class="questionTone(card)">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                       <p class="text-sm font-medium">{{ $t("todo.title.questions") }}</p>
                       <p class="text-sm">{{ card.status }}</p>
@@ -1208,6 +1211,11 @@ watch(
 
 function questionsOf(todoId: number): QuestionCard[] {
   return questionsOfTodo(t, questions.value, todoId, now.value);
+}
+
+// The questions this item's job asked that are settled: the ones still open are the card above them.
+function settledQuestionsOf(todoId: number): QuestionCard[] {
+  return questionsOf(todoId).filter((card) => card.state !== "open");
 }
 
 // How a question reads at a glance once it is answered: his own answer, the recommendation the

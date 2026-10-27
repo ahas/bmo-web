@@ -1384,6 +1384,7 @@ todo:
     waiting_unit: "대기 중: {what} · 유닛 {name} · {left}"
     work_order_state: "작업 지시서 · {state}"
     work_todo: 조사·검증·구현할 일
+    awaiting_question: 질문에 답을 기다리는 중
   message:
     approved: 결재했습니다.
     approved_with_note: 결재하고 의견을 남겼습니다.

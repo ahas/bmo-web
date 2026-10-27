@@ -387,6 +387,10 @@
               <div class="mt-1 flex flex-wrap items-center gap-1">
                 <UBadge :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="searched" /></UBadge>
 
+                <!-- A job standing still behind a question says so on its row (docs/web.md, the TODO panel's section):
+                     a badge here, beside the state, so it is seen without opening the item. -->
+                <UBadge v-if="awaitsAnswer(item.id)" color="warning" variant="subtle" size="sm" icon="i-material-symbols-help-outline" data-awaiting-question>{{ $t("todo.label.awaiting_question") }}</UBadge>
+
                 <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
                 <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
 
@@ -504,7 +508,7 @@ import { useLiveRefresh, useReadFailure } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { COUNT_BADGE, countText } from "~/domain/numbers";
-import { questionSummary, useOpenQuestions } from "~/domain/questions";
+import { questionsOfTodo, questionSummary, useOpenQuestions } from "~/domain/questions";
 import { useTodoPanelLayout, useTodoView } from "~/domain/todo-settings";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { holdWaits } from "~/domain/queue-place";
@@ -795,6 +799,10 @@ const filterTabs = computed(() =>
   })
 );
 const questionCount = computed(() => questionSummary(t, questions.value, now.value));
+// Whether a job for this item stands still behind a question it asked, which its row says plainly.
+function awaitsAnswer(todoId: number): boolean {
+  return questionsOfTodo(t, questions.value, todoId, now.value).some((card) => card.state === "open");
+}
 // The rows are read against the panel's own clock, so a row whose reporting grace has run out
 // leaves the queue on its own, with nothing asked of the archive for it.
 const sections = computed(() => todoSections(t, board.value, view.value, now.value, search.value.trim() !== ""));

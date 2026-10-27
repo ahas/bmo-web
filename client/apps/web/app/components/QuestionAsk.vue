@@ -10,11 +10,11 @@
        out of reach. Past that share the stack scrolls inside itself, so however many jobs are
        waiting the thing he answers them in stays where it is. -->
   <div
-    v-if="open.length > 0 || questionFailure !== null"
+    v-if="shown.length > 0 || questionFailure !== null"
     class="mb-3 max-h-[calc(var(--bmo-screen)*0.4)] min-h-0 overflow-y-auto overscroll-contain"
   >
     <div
-      v-for="card in open"
+      v-for="card in shown"
       :key="card.id"
       class="mb-2 rounded-md border border-warning bg-warning/10 p-2 last:mb-0"
     >
@@ -145,7 +145,17 @@ import type { QuestionCard } from "~/domain/questions";
 // strip that says a job is waiting leads here for the same reason.
 
 const { t } = useI18n();
+interface Props {
+  // Only this item's questions, where a screen stands the asking beside one item; every open question otherwise.
+  only?: number | null;
+}
+
+const props = withDefaults(defineProps<Props>(), { only: null });
+
 const { open, reload } = useOpenQuestions(t);
+
+// The cards this place stands: the whole strip's, or the one item's where it was given.
+const shown = computed(() => (props.only === null ? open.value : open.value.filter((card) => card.todoId === props.only)));
 
 // Which option each open question has set, and what has been written into its box, before
 // anything is sent. A card with nothing in either has nothing to send.

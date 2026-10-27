@@ -27,27 +27,27 @@ export function wearsFace(agent: Pick<AgentMeta, "group">): boolean {
   return agent.group === "designated";
 }
 
+
 /**
- * A chat agent's face: a room's own session the room's picture; otherwise the picture of the person number its
- * words stand under, then of a room made for it, and failing both its label's letter on its identity's colour.
+ * An agent's picture wherever a screen names it (docs/web.md, 「Profile photos」): the picture of the person number its
+ * words stand under — the agent's own face, whichever row of the catalogue it stands in, a session registered for one
+ * room among them — then of a room made for it, and failing both its label's letter on its identity's colour. A room's
+ * picture stands only where a room is what is shown, never for an agent.
  */
-export function agentFace(
+export function agentPicture(
   agent: Pick<AgentMeta, "name" | "label" | "chatId">,
   avatars: AvatarIndex,
   faces: AgentFaces,
   rooms: readonly RoomSummary[]
 ): AvatarProps {
-  // The chat agent wears its own face, whichever row of the catalogue it stands in — its own row and a session
-  // registered for a room alike (docs/web.md, 「Profile photos」). A companion's room session wears the room's.
-  const chat = agent.name === chatAgent().name || chatIdOf(agent.name) !== null;
-
-  if (agent.chatId !== null && !chat) return avatarFor(avatars, "room", agent.chatId, agent.label);
-
-  const person = faces.get(agent.name) ?? null;
+  // A session the chat agent keeps for one room is that agent serving it, and wears the agent's own face.
+  const session = chatIdOf(agent.name);
+  const name = session !== null || agent.name === chatAgent().name ? chatAgent().name : agent.name;
+  const person = faces.get(name) ?? null;
 
   if (person !== null && avatars.has(avatarKey("person", person))) return avatarFor(avatars, "person", person, agent.label);
 
-  const room = rooms.find((one) => one.companions?.includes(agent.name) === true && avatars.has(avatarKey("room", one.chatId)));
+  const room = rooms.find((one) => one.companions?.includes(name) === true && avatars.has(avatarKey("room", one.chatId)));
 
   return room === undefined ? avatarFor(avatars, "person", person, agent.label) : avatarFor(avatars, "room", room.chatId, agent.label);
 }
@@ -59,7 +59,7 @@ export function useAgentFace(): ComputedRef<(agent: Pick<AgentMeta, "name" | "la
   const rooms = useNuxtData<RoomSummary[]>("rooms").data;
   const faces = computed(() => agentFacesOf(data.value ?? []));
 
-  return computed(() => (agent) => (wearsFace(agent) ? agentFace(agent, avatars.value, faces.value, rooms.value ?? []) : undefined));
+  return computed(() => (agent) => (wearsFace(agent) ? agentPicture(agent, avatars.value, faces.value, rooms.value ?? []) : undefined));
 }
 
 /**
@@ -71,7 +71,7 @@ export function withAgentFaces(avatars: AvatarIndex, faces: AgentFaces, rooms: r
   const names = new Set([...faces.keys(), ...rooms.flatMap((room) => room.companions ?? [])]);
 
   for (const name of names) {
-    const src = agentFace({ name, label: name, chatId: null }, avatars, faces, rooms).src;
+    const src = agentPicture({ name, label: name, chatId: null }, avatars, faces, rooms).src;
 
     if (typeof src === "string") index.set(agentKey(name), src);
   }

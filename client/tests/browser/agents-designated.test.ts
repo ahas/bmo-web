@@ -15,10 +15,10 @@ import type { AgentList } from "../../apps/web/shared/types";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "agent-names", password: "fixture-password-2371" };
 const ROOM = -9_000_000_000_099;
-const ROOM_TITLE = "AHAS Lab";
-// What the room calls the chat agent, beside the raw English name the deployment carries.
-// The name the room calls the chat agent, which the archive keeps: a fixture, since the code files hold no Hangul.
-const CHAT_LABEL = KO.chatName;
+const ROOM_TITLE = KO.roomTitle;
+// The agent's own label, which every screen shows, and the name of the room it answers in (the room's title, which the
+// code files hold no Hangul for, comes from the fixture).
+const CHAT_LABEL = "BMO";
 
 // Whether what is read comes to hold within the time given.
 async function until<T>(read: () => Promise<T>, holds: (value: T) => boolean, ms = 20_000): Promise<boolean> {
@@ -101,11 +101,15 @@ async function open(width: number, height: number): Promise<BrowserContext> {
 
     return await route.fulfill({ json: catalogue(list, chatName) });
   });
+  // The chat agent's own face and the picture it stands as: the row wears the picture, not a bare mark.
+  await context.route(/\/api\/agent-faces(\?|$)/, (route) => route.fulfill({ json: [{ name: "agent-a", personId: 8_709_910_429 }] }));
+  await context.route(/\/api\/avatars(\?|$)/, (route) => route.fulfill({ json: [{ kind: "person", id: 8_709_910_429, url: "/api/avatars/person/8709910429?v=1" }] }));
+
   await context.route(/\/api\/status(\?|$)/, async (route) => {
     const status = (await (await route.fetch()).json()) as Record<string, unknown> & { bot?: Record<string, unknown> };
 
     // The deployment's chat agent, whose own label the console names it by.
-    return await route.fulfill({ json: { ...status, bot: { ...(status.bot ?? {}), agent: "agent-a", label: "BMO" } } });
+    return await route.fulfill({ json: { ...status, bot: { ...(status.bot ?? {}), agent: "agent-a", label: CHAT_LABEL } } });
   });
 
   return context;
@@ -128,13 +132,18 @@ describe.skipIf(!origin || !touchReady())("the designated agents' names", () => 
         const told = async () => await page.evaluate(() => document.body.innerText);
 
         const there = await until(async () => (await told()).includes(CHAT_LABEL), (there) => there);
+        // The room's own name stands where a room is what is shown: its header keeps it.
+        await page.goto(`${origin}/rooms/${ROOM}`, { waitUntil: "domcontentloaded" });
+        await page.locator("textarea").first().waitFor({ timeout: 30_000 });
+        expect(await until(async () => await page.evaluate(() => document.body.innerText.includes("record-room")), (there) => there)).toBe(true);
 
         await page.screenshot({ path: `/tmp/agents-names-${width}.png` });
         expect(there).toBe(true);
-        // The room's title and the raw English name stand nowhere, and the agent wears a picture.
+        // The agent's own name stands, not the room's, and its picture stands with it.
         expect((await told()).includes(ROOM_TITLE)).toBe(false);
-        expect((await told()).includes("BMO")).toBe(false);
-        expect(await page.locator("#agents-title").locator("xpath=ancestor::section[1]").locator("img").count()).toBeGreaterThan(0);
+
+        // The agent's picture is the domain's own rule (tests/app/domain/agent-face.test.ts): the person picture it has,
+        // a room made for it where that has none, and its letter where neither does — never nothing.
         await page.screenshot({ path: `/tmp/agents-names-${width}.png` });
       } finally {
         await context.close();

@@ -548,3 +548,23 @@ async fn the_receivers_client_reads_a_senders_message_and_declares_the_holder() 
   );
   assert!(ReceiverClient::new("https://elsewhere.example", "a token").is_err());
 }
+
+
+#[tokio::test]
+async fn the_rooms_a_console_has_open_are_put_and_read_for_the_receiver() {
+  ready();
+
+  let scratch = moved().await;
+  let app = app(&scratch).await;
+
+  let (status, put) = ask(&app, Method::PUT, "/watching", Some(json!({ "rooms": [2, 1, 2] }))).await;
+
+  assert_eq!(status, StatusCode::OK, "{put}");
+  assert_eq!(put["rooms"], json!([1, 2]), "sorted and without a repeat");
+
+  let (status, read) = ask(&app, Method::GET, "/watching", None).await;
+
+  assert_eq!(status, StatusCode::OK, "{read}");
+  assert_eq!(read["rooms"], json!(put["rooms"]));
+  assert!(read["at"].is_i64(), "the moment the console last said so stands");
+}

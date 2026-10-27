@@ -20,9 +20,10 @@ pub mod settings;
 pub mod store;
 pub mod users;
 pub mod wording;
+pub mod watching;
 pub mod words;
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::AtomicBool;
 
 use axum::Json;
@@ -47,6 +48,8 @@ pub struct Service {
   pub receiver: Arc<dyn Receiver>,
   pub names: Arc<Names>,
   pub seen_in_force: Arc<AtomicBool>,
+  /// The rooms the console reported open, which the receiver reads as it starts.
+  pub watching: Arc<Mutex<watching::Watching>>,
 }
 
 impl SumidaState for Service {

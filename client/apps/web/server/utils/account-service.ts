@@ -105,6 +105,19 @@ function answered<T>(reply: Reply<T>): T {
   return reply.data;
 }
 
+/** Report the rooms the console has open now, for the receiver's start. */
+export async function reportWatching(rooms: number[], options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+
+  await sent(
+    options,
+    client.PUT("/watching", {
+      body: { rooms },
+      signal: signalOf(options),
+    })
+  );
+}
+
 /** Whether the model is in force, and why not where it is not. */
 export interface ModelState {
   inForce: boolean;

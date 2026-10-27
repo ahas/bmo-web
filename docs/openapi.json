@@ -1218,6 +1218,45 @@
         ],
         "type": "object"
       },
+      "Watching": {
+        "description": "The rooms the console has open, as the receiver reads them, and when the console last said so.",
+        "properties": {
+          "at": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "rooms": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "rooms"
+        ],
+        "type": "object"
+      },
+      "WatchingAsk": {
+        "description": "The rooms a console reports open.",
+        "properties": {
+          "rooms": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "rooms"
+        ],
+        "type": "object"
+      },
       "WireError": {
         "description": "The body every non-2xx answer of the service's own routes carries: a stable kebab-case code a caller decides\non, and one English sentence for a person.",
         "properties": {
@@ -2351,6 +2390,99 @@
           "bad-request",
           "unauthorized",
           "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/watching": {
+      "get": {
+        "operationId": "watching",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Watching"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The rooms the console has open now, which the receiver reads as it starts.",
+        "tags": [
+          "Watching"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "putWatching",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatchingAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Watching"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Reports the rooms the console has open now.",
+        "tags": [
+          "Watching"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
           "not-in-force",
           "database",
           "failed"

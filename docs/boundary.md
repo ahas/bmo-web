@@ -126,6 +126,18 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | Route | Answer |
 |---|---|
 | `GET /rooms/{chat}/holdings` | `holdings`: each holding the room has at least one of, as `code` and `count` — `room_grants`, the grants made on the room or to its members, and `room_senders`, the senders whose user holds a grant on the room; none for a room holding nothing of the server's |
+### The rooms a console has open
+
+| Route | Request | Answer |
+|---|---|---|
+| `GET /watching` | | `rooms`, the rooms a visible console tab shows now, and `at`, when the console last reported; empty rooms where the report is older than two minutes |
+| `PUT /watching` | `rooms`, the rooms a visible console tab shows now | the same `rooms` and `at` |
+
+The console server reports the set as its tabs open, close, hide or show a room, and the receiver reads it as its
+restart hands each open room's unread lines to the chat agent, one room at a time. The report is kept in memory and
+falls away after two minutes without one.
+
+
 
 - **The server declares itself a holder** to the receiver as it starts (「Calls the server makes」), with the
   holdings `room_grants` (`effect` `warns`) and `room_senders` (`effect` `kept`), so the receiver shows what a

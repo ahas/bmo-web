@@ -4378,13 +4378,20 @@ Four bounds keep it from growing forever.
   and splitting no character in two. That room's chat agent takes the consecutive pieces merged into one turn and reads
   them as one block. A line stood at the conversation's end becomes that message when the first piece goes up, and
   the rest follow as ordinary messages.
+  - **The box carries one tool: the clip.** It takes files on every screen and in every room — a file goes in the way
+    words do, as one send with the typed words as its caption, and a picture, a sound or a video picked there stands in
+    the room as it would from a phone. A phone's clip opens a menu that adds one file a tap. Nothing else stands beside
+    it: the voice note's own button and the sticker button are not shown, while the roads that carry a voice note, a
+    sticker and a room's own tools stay in the console and on their routes, so what those roads carry still goes in by
+    the ways that already had it.
   - **In a room the console made for companions,** the words never leave this machine: they are kept as the
     owner's message under the console's own number and the room's answerers take them (the agency's `docs/companions.md`).
     A companion's answer stands on the left with its name and picture and the chat agent's with its own, and each turn shows on
     a running line as the chat agent's does, wearing the name and picture of whoever is answering. Each speaker has a running
     line of its own, so in a room of the chat agent and a companion the two turns stand as two lines at once and each goes when its own
-    turn ends; a screen opened or reloaded in the middle of either reads it off the bot's picture. Such a room takes words
-    alone: nothing is offered to attach, a dropped file is not taken, and a file sent to it anyway is refused.
+    turn ends; a screen opened or reloaded in the middle of either reads it off the bot's picture. A file attaches in such
+    a room as in any other: the composer's clip takes it, a dropped file is taken, and it goes in through the same road as
+    words — the record road, which keeps it in the room's own archive on the owner's account.
 - **멘션** — an @ typed in the box offers the room's people and its agents. The list stands over the box, the names
   it offers filtered by what follows the @, and it goes on filtering as those words do; the up and down arrows move
   the choice, Enter or Tab takes it, Esc puts the list away, and a press takes the choice it stands on. What a choice

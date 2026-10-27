@@ -56,6 +56,7 @@ pub async fn stand(
     receiver,
     names: Arc::new(names),
     seen_in_force: Arc::default(),
+    watching: crate::watching::state(),
   })
 }
 
@@ -187,6 +188,7 @@ fn own() -> Router<Service> {
     .route("/phones/who", post(phone_who))
     .route("/phones/{hash}", axum::routing::delete(phone_delete))
     .route("/rooms/{chat}/holdings", get(holdings_route))
+    .route("/watching", get(crate::watching::get).put(crate::watching::put))
 }
 
 async fn health(State(service): State<Service>) -> Json<WireHealth> {

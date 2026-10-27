@@ -59,6 +59,19 @@ export class RoomWatchers {
     return users;
   }
 
+  // The rooms a visible tab shows right now, sorted, for the receiver's start-up serving.
+  visibleRooms(now: number): number[] {
+    const rooms = new Set<number>();
+
+    for (const standing of this.tabs.values()) {
+      if (standing.visible && standing.chatId !== null && now - standing.at <= this.staleMs) {
+        rooms.add(standing.chatId);
+      }
+    }
+
+    return [...rooms].sort((one, other) => one - other);
+  }
+
   // When the room was last shown on a visible tab, or null where it has not been since this server
   // started. A tab still showing it counts as looking now.
   lastLooked(chatId: number, now: number): number | null {

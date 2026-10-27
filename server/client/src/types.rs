@@ -64,6 +64,21 @@ pub struct UserView {
   pub senders: Vec<i64>,
 }
 
+/// The rooms the console has open, as the receiver reads them, and when the console last said so.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Watching {
+  pub rooms: Vec<i64>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub at: Option<i64>,
+}
+
+/// The rooms a console reports open.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct WatchingAsk {
+  pub rooms: Vec<i64>,
+}
+
 /// The senders linked to a user.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Senders {

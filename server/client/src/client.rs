@@ -106,6 +106,16 @@ impl AccountClient {
     Self::answered(self.send(Method::POST, &["accounts", "move"], ask)).await
   }
 
+  /// `GET /watching`: the rooms the console has open now.
+  pub async fn watching(&self) -> Answer<Watching> {
+    Self::answered(self.request(Method::GET, &["watching"])).await
+  }
+
+  /// `PUT /watching`: the rooms the console has open now.
+  pub async fn put_watching(&self, ask: &WatchingAsk) -> Answer<Watching> {
+    Self::answered(self.send(Method::PUT, &["watching"], ask)).await
+  }
+
   /// `GET /senders/{sender}/user`.
   pub async fn sender_user(&self, sender: i64) -> Answer<SenderUser> {
     Self::answered(self.request(Method::GET, &["senders", &sender.to_string(), "user"])).await

@@ -252,6 +252,32 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/watching",
+    "watching",
+    "Watching",
+    "The rooms the console has open now, which the receiver reads as it starts.",
+    params: vec![],
+    body: None,
+    answers: vec![(200, json_answer::<Watching>(&mut generator))],
+    codes: vec!["unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/watching",
+    "putWatching",
+    "Watching",
+    "Reports the rooms the console has open now.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<WatchingAsk>())),
+    answers: vec![(200, json_answer::<Watching>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/senders/{sender}/user",
     "senderUser",
     "Users and senders",

@@ -330,6 +330,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/watching": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The rooms the console has open now, which the receiver reads as it starts. */
+        get: operations["watching"];
+        /** Reports the rooms the console has open now. */
+        put: operations["putWatching"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/words/render": {
         parameters: {
             query?: never;
@@ -703,6 +721,16 @@ export interface components {
             name: string;
             senders: number[];
             user: string;
+        };
+        /** @description The rooms the console has open, as the receiver reads them, and when the console last said so. */
+        Watching: {
+            /** Format: int64 */
+            at?: number | null;
+            rooms: number[];
+        };
+        /** @description The rooms a console reports open. */
+        WatchingAsk: {
+            rooms: number[];
         };
         /**
          * @description The body every non-2xx answer of the service's own routes carries: a stable kebab-case code a caller decides
@@ -1398,6 +1426,68 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    watching: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Watching"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    putWatching: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WatchingAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Watching"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

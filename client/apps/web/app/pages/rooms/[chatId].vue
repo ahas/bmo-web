@@ -441,7 +441,7 @@ import { POLL_INTERVAL_MS } from "#shared/config";
 import { controlLine, useControlStatus } from "~/domain/control";
 import { messageOfQuery } from "#shared/paths";
 import { screenKey } from "~/domain/route-key";
-import { agentLabel, bmoLabel, companionOf, roomTitle } from "~/domain/agents";
+import { agentLabel, agentNameLabel, bmoLabel, companionOf, roomTitle } from "~/domain/agents";
 import { chatAgent } from "#shared/agent-names";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { attachmentBody } from "~/domain/attachments";
@@ -1075,7 +1075,7 @@ const mentionAgents = computed<MentionAgent[]>(() => {
 
   return names.map((name) => ({
     name,
-    label: name === chatAgent().name ? bmoLabel(t) : agentLabel(t, name),
+    label: agentNameLabel(t, { name, label: catalogue.value.agents.find((agent) => agent.name === name)?.label }),
     avatar: agentAvatar(avatars.value, name)
   }));
 });

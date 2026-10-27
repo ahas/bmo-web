@@ -52,6 +52,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["brain-translation", "fixture-password-2355"],
   ["voice-transcript", "fixture-password-2361"],
   ["room-attach", "fixture-password-2364"],
+  ["agent-names", "fixture-password-2371"],
   ["job-chip", "fixture-password-2300"],
   ["todo-models", "fixture-password-2298"],
   ["work-view", "fixture-password-2311"]

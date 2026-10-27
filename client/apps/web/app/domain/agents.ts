@@ -209,6 +209,19 @@ export function agentLabel(t: Translate, name: string, catalogue: readonly Agent
   return workUnitLabel(t, name) ?? name;
 }
 
+/** What an agent is called wherever a screen names it (docs/web.md, 「An agent's own name」): the chat agent — its own
+ * row and every chat session registered for a room, whose own row carries that room's title — by the chat agent's label,
+ * and every other agent by its own catalogue row's label, its own name where the row has none. A room's title stands only
+ * where a room's name is what is shown, never for an agent. */
+export function agentNameLabel(t: Translate, agent: { name: string; label?: string | null }): string {
+  const chat = chatIdOf(agent.name) !== null || agent.name === chatAgent().name;
+
+  if (chat) return bmoLabel(t);
+  if (agent.label === undefined) return agentLabel(t, agent.name);
+
+  return agentLabel(t, agent.name, [{ name: agent.name, label: agent.label } as AgentSummary]);
+}
+
 // What the chat agent is called where it answers in a room: the label of the catalogue's chat session that
 // serves every room rather than one. Before the list has arrived, or where no such session stands, it is the
 // label the deployment gives it, and where that names none the pack's own word for it, never a name kept in this
@@ -514,7 +527,8 @@ export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[]):
   if (agent.defaultAnswerer) {
     return {
       name: agent.name,
-      label: chatId === null ? (agent.label ?? agent.name) : roomTitle(t, rooms, chatId),
+      // The agent's own name, never the room's: a chat session registered for one room is labeled by that room.
+      label: agentNameLabel(t, agent),
       icon: agentIcon(agent.name, [agent]),
       group,
       chatId,
@@ -525,7 +539,7 @@ export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[]):
 
   return {
     name: agent.name,
-    label: agentLabel(t, agent.name, [agent]),
+    label: agentNameLabel(t, agent),
     icon: agentIcon(agent.name, [agent]),
     group,
     chatId: null,

@@ -98,7 +98,7 @@
     </section>
 
     <section v-for="agent in props.stats === null ? [] : stats.agents" :key="agent.agent" class="flex flex-col gap-1">
-      <p class="text-sm font-medium text-muted">{{ $t("room.label.session_of", { name: agentLabel(agent) }) }}</p>
+      <p class="text-sm font-medium text-muted">{{ $t("room.label.session_of", { name: agentNameLabel($t, { name: agent.agent }) }) }}</p>
 
       <div class="flex items-center gap-2 text-sm">
         <span class="w-20 shrink-0 text-dimmed">{{ $t("room.label.open_sessions") }}</span>
@@ -155,9 +155,10 @@
 </template>
 
 <script setup lang="ts">
+import { agentNameLabel } from "~/domain/agents";
 import { BAR_SIZE, INLINE_LEGEND } from "bmo-ui/app/domain/bars";
 import { countText } from "~/domain/numbers";
-import { agentLabel, emptyRoomStats, hourBars, messageShares, peakHour, peakLabel, spanText, speakerShare } from "~/domain/roomstats";
+import { emptyRoomStats, hourBars, messageShares, peakHour, peakLabel, spanText, speakerShare } from "~/domain/roomstats";
 import { modeLabel, modelLabel } from "~/domain/status";
 import { formatStamp } from "bmo-ui/app/domain/time";
 import { tokenText } from "~/domain/usage";

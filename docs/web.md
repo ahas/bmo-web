@@ -1264,6 +1264,14 @@ Four groups.
     as is. The branch's name stands until the owner names it otherwise.
   - **Job workers** — the worker. On screen this branch is labelled 저장소, the name the group goes by
     wherever it stands: the sidebar, the home page and the live status tab.
+- **An agent is named by its own row's label, and never by a room's title.** A chat session registered for one room
+  carries that room's title, since the session serves that room and nothing else; the agent answering there is not
+  that room. Every screen that names an agent reads its name by one rule: the chat agent, whichever row of the
+  catalogue it stands in — its own row or a room's session — by the chat agent's own label (비모 where the deployment
+  names it so), and every other agent by its own row's label, its own name where that row has none. A room's title
+  stands only where a room is what is shown: the session row under an agent, a room's header, a message's room. The
+  rule holds on this screen's 지정된 에이전트 branch, on the sidebar's agent list, on the live status screen's
+  running turns, on the room's session panel, and on the agents an @ offers in a room's box.
 - Workers always stand whether or not the bot answers. An entry carries its name and
   nothing that grows beside it, so the name is never crowded out. A currently running agent gets a spinning circle —
   so that seeing the list alone tells what is alive, it carries a turning mark, not a stopped dot.

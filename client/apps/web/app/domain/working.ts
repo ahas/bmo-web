@@ -1,7 +1,7 @@
 import { ref } from "vue";
 
 import { isBrainCall, mcpCallOf } from "#shared/mcp-names";
-import { agentLabel, bmoLabel } from "./agents";
+import { agentLabel, agentNameLabel, bmoLabel } from "./agents";
 import { subjectOf as joinedSubject } from "#shared/particles";
 
 import { contextStateLook, lineLook, toolCall, toolChip } from "./log";
@@ -71,7 +71,7 @@ export function subjectOf(name: string): string {
 // and the chat agent under its own; never the registration name the turn carries, but where the catalogue holds no
 // label for it.
 export function turnName(t: Translate, speaker: TurnSpeaker | undefined): string {
-  return speaker === undefined ? bmoLabel(t) : agentLabel(t, speaker.name);
+  return speaker === undefined ? bmoLabel(t) : agentNameLabel(t, { name: speaker.name });
 }
 
 // The line says who is at it, by the name of the agent answering on that row: a room two agents

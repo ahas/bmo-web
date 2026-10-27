@@ -58,7 +58,7 @@ describe("the room that feeds it", () => {
     // The agents come from the room's answerers, by their own labels and pictures, never by a room's title.
     expect(screen).toContain("`/api/rooms/${chatId}/answerers`");
     expect(screen).toContain("const names = [...new Set([named.default, ...named.agents.map((answerer) => answerer.name)])]");
-    expect(screen).toContain('label: name === chatAgent().name ? bmoLabel(t) : agentLabel(t, name)');
+    expect(screen).toContain("label: agentNameLabel(t, { name, label: catalogue.value.agents.find((agent) => agent.name === name)?.label })");
     expect(screen).toContain("avatar: agentAvatar(avatars.value, name)");
   });
 });

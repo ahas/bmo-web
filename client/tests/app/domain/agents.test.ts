@@ -5,6 +5,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { registerChatAgent } from "../../../apps/web/shared/agent-names";
 import { roomLabel } from "../../../apps/web/shared/config";
 import {
+  bmoLabel,
   keepaliveMarkOf,
   GENERAL_SECTIONS,
   generalSectionTitle,
@@ -209,7 +210,7 @@ describe("keepaliveMarkOf", () => {
 describe("agentGroups", () => {
   const rooms = [room(-1001, "Alpha Room"), room(-1004, KO.line_196)];
 
-  test("the chat sessions come first, named after their rooms and in the rooms' own order", () => {
+  test("the chat sessions come first, each by the chat agent's own label, in the rooms' own order", () => {
     const groups = agentGroups(
       wording,
       [
@@ -222,14 +223,16 @@ describe("agentGroups", () => {
 
     // Only the groups the catalogue actually put something in stand.
     expect(groups.map((group) => group.key)).toEqual(["designated", "gate"]);
-    expect(groups[0]?.agents.map((agent) => agent.label)).toEqual(["Alpha Room", KO.line_211]);
+    // A session registered for a room carries that room's title, and the agent standing there is named its own.
+    expect(groups[0]?.agents.map((agent) => agent.label)).toEqual([bmoLabel(wording), bmoLabel(wording)]);
     expect(groups[0]?.agents.map((agent) => agent.name)).toEqual(["chat:-1001", "chat:-1004"]);
   });
 
-  test("a session for a room the archive has no row for keeps its own number and goes last", () => {
+  test("a session for a room the archive has no row for keeps its own number in its place and goes last", () => {
     const groups = agentGroups(wording, [reported("chat:-777", "chat", -777), reported("chat:-1001", "chat", -1001)], rooms);
 
-    expect(groups[0]?.agents.map((agent) => agent.label)).toEqual(["Alpha Room", "-777"]);
+    expect(groups[0]?.agents.map((agent) => agent.name)).toEqual(["chat:-1001", "chat:-777"]);
+    expect(groups[0]?.agents.map((agent) => agent.label)).toEqual([bmoLabel(wording), bmoLabel(wording)]);
   });
 
   test("a catalogue with nothing in it has no groups to stand", () => {

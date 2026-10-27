@@ -106,7 +106,7 @@
 
                 <div class="min-w-0 grow">
                   <MarqueeLine class="text-sm font-medium">
-                    {{ agentLabel($t, run.agent) }}
+                    {{ agentNameLabel($t, { name: run.agent }) }}
                     <span class="font-normal text-muted">· {{ roomTitle($t, rooms, run.chatId) }}</span>
                     <!-- A run of the queue wears the item it is a run of; nothing wears a job
                          number. -->
@@ -159,7 +159,7 @@
                     variant="outline"
                     class="min-h-11"
                     :disabled="stops.busy()"
-                    :aria-label="$t('live.aria.stop_named', { name: agentLabel($t, run.agent) })"
+                    :aria-label="$t('live.aria.stop_named', { name: agentNameLabel($t, { name: run.agent }) })"
                     @click.prevent.stop="stops.ask(stopTargetOf(run)!)"
                   />
                   <UIcon name="i-material-symbols-chevron-right" class="size-4 shrink-0 text-dimmed" />
@@ -173,7 +173,7 @@
               <StopConfirm
                 v-if="stoppable(run)"
                 :target="stopTargetOf(run)!"
-                :label="agentLabel($t, run.agent)"
+                :label="agentNameLabel($t, { name: run.agent })"
                 :stops="stops"
                 class="mt-2"
               />
@@ -244,7 +244,7 @@
 import { POLL_INTERVAL_MS } from "#shared/config";
 import { controlLine, controlLink, controlTone } from "~/domain/control";
 import type { ControlLink } from "~/domain/control";
-import { agentIcon, agentLabel, roomTitle } from "~/domain/agents";
+import { agentIcon, agentNameLabel, roomTitle } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { TURN_ENDED, useBotEvents, useLiveRefresh, useReadFailure } from "~/domain/events";
 import { useBackClose } from "bmo-ui/app/domain/layers";

@@ -109,7 +109,8 @@ describe.skipIf(!origin || !touchReady())("the agents an @ offers", () => {
       try {
         await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "domcontentloaded" });
         await page.locator("textarea").first().waitFor({ timeout: 30_000 });
-        await page.waitForTimeout(1_500);
+        // The room settles before the box is used, as a reader finds it.
+        await page.waitForTimeout(2_500);
 
         const names = await offered(page);
 

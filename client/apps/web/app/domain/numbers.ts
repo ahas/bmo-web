@@ -1,3 +1,5 @@
+import type { Translate } from "#shared/wording";
+
 // How a number reads on this console when it is saying how many or how much. Six digits in a row
 // is a thing to count rather than read — 116002 has to be walked with a finger to learn whether it
 // is a hundred thousand or a million — and the thousands mark is what turns it back into a figure
@@ -55,4 +57,9 @@ export function progressText(done: number, total: number): string {
   const share = total <= 0 ? 0 : Math.floor((Math.min(done, total) / total) * 100);
 
   return `${countText(done)}/${countText(total)} ${share}%`;
+}
+
+/** A length of time in seconds to one decimal, as the verdicts, the draft rounds and the calls say it. */
+export function secondsText(t: Translate, ms: number): string {
+  return t("common.label.seconds", { n: (ms / 1000).toLocaleString(COUNT_LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) });
 }

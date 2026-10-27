@@ -231,6 +231,8 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
 
         await stage.waitFor({ timeout: 10_000 });
         expect(await stage.getByRole("tablist").count()).toBe(0);
+        // The work order stands on one line in the head, spread whole when pressed.
+        await stage.locator("[data-work-order-toggle]").click();
         expect(await stage.locator("[data-work-order]").innerText()).toContain("instruction-s2");
       } finally {
         await context.close();
@@ -250,6 +252,8 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
         await message.waitFor({ timeout: 20_000 });
 
         await message.getByRole("button", { name: new RegExp(wording("room.label.chip_drafts")) }).click();
+        // A round's answer spreads under its line on a press of the line.
+        await message.locator("[data-draft-round] button").first().click();
         await message.locator("[data-draft-answer]").first().waitFor({ timeout: 10_000 });
         expect(await message.locator("[data-draft-answer]").first().innerText()).toContain(DRAFT_ANSWER);
 
@@ -263,7 +267,7 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
       }
     }, 90_000);
 
-    test(`what a round's end names as read stands in the brain chip by group and on the draft log's round line, ${viewport.width}px wide`, async () => {
+    test(`what a round's end names as read stands in the brain chip as a diff of new and held, and in the draft spread, ${viewport.width}px wide`, async () => {
       const context = await open(viewport);
       const reads: DraftRead[] = [
         { path: "core/facts.md", holds: "core facts", how: "attached" },
@@ -288,21 +292,23 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
         await message.waitFor({ timeout: 20_000 });
         await message.getByRole("button", { name: new RegExp(wording("room.label.chip_brain")) }).click();
 
-        const spread = message.locator("[data-brain-reads]");
+        // The chip stands what the session held, then what the round read new as a plus.
+        expect((await message.locator("[data-brain-figure]").innerText()).replace(/\s/g, "")).toMatch(/^1\+\d+$/);
+
+        const spread = message.locator("[data-brain-reads]").first();
 
         await spread.waitFor({ timeout: 10_000 });
-        expect(await spread.locator('[data-brain-reads-group="attached"]').innerText()).toContain("core facts");
-        expect(await spread.locator('[data-brain-reads-group="read"]').innerText()).toContain("notes/today.md");
-        // What the session already held stands folded under its heading until it is pressed.
-        expect(await spread.getByText("people", { exact: true }).isVisible()).toBe(false);
-        await spread.getByText(wording("room.label.brain_read_held", { n: "1" })).click();
-        expect(await until(async () => await spread.getByText("people", { exact: true }).isVisible(), (shown) => shown)).toBe(true);
+        // One list read like a diff: what was read new first, as added lines, then what was held, plain.
+        const fresh = await spread.locator('[data-brain-read="new"]').allInnerTexts();
+
+        expect(fresh.map((one) => one.replace(/^\+\s*/, "").trim())).toEqual(["core facts", "notes/today.md"]);
+        expect(await spread.locator('[data-brain-read="held"]').innerText()).toContain("people");
         // The brain call the log holds follows the pieces.
         expect(await until(async () => await message.getByText("brain_recall").count(), (n) => n >= 1)).toBeGreaterThanOrEqual(1);
 
         await message.getByRole("button", { name: new RegExp(wording("room.label.chip_drafts")) }).click();
         await message.locator("[data-draft-reads]").first().waitFor({ timeout: 10_000 });
-        expect(await message.locator("[data-draft-reads]").first().innerText()).toBe(wording("room.label.draft_reads", { names: "core facts, notes/today.md" }));
+        expect(await message.locator("[data-draft-reads] [data-brain-read]").count()).toBe(3);
       } finally {
         await context.close();
       }

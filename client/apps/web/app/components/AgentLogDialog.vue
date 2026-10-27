@@ -46,6 +46,7 @@
             :run="placeRun"
             :job="isWorker"
             :stepper="isWorker"
+            :end="props.end"
           />
         </div>
       </div>
@@ -74,9 +75,11 @@ interface Props {
   place?: LogPlace | null;
   // The standing watch this log belongs to, where it is one. It stands above the log.
   watch?: WatchView | null;
+  // Whether the log opens at its end, the newest lines in view: a running job's, opened to follow it.
+  end?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { rooms: () => [], place: null, watch: null });
+const props = withDefaults(defineProps<Props>(), { rooms: () => [], place: null, watch: null, end: false });
 const { t } = useI18n();
 
 // The watch's own countdowns are read against a clock that moves, and nothing else here depends on

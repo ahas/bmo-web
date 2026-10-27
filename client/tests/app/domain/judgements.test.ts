@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
+import { secondsText } from "../../../apps/web/app/domain/numbers";
 
-import { endsJudging, homedJudgements, instructionParts, judgedNow, messageOutcome, outcomeTarget, readingCards, roundPlaces, secondsText, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
+import { endsJudging, homedJudgements, instructionParts, judgedNow, messageOutcome, outcomeTarget, readingCards, roundPlaces, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
 
 import type { GateOfferRecord, Judgement, LiveRun, RoundOpening } from "../../../apps/web/shared/types";
 import { WORKER } from "../../support/ids";

@@ -50,6 +50,14 @@ function oneLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
 
+/** The call's own account of itself, where it came with one. */
+export function callDescription(text: string): string | null {
+  const fields = callArguments(text);
+  const told = DESCRIPTION_FIELDS.map((key) => fields.get(key) ?? "").find((value) => value.trim() !== "");
+
+  return told === undefined ? null : oneLine(told);
+}
+
 /** The top line of a call: its description, or its tool and its key argument where it came with none. */
 export function callTopLine(name: string | null, text: string): string {
   const fields = callArguments(text);
@@ -225,4 +233,15 @@ export function planOf(text: string): PlanStep[] | null {
   });
 
   return steps.length === list.length ? steps : null;
+}
+
+// How a pane program's call settled, as the agency files its result line (its docs/run-records.md, 「Agent log」): how
+// many milliseconds the call ran and how many bytes its result held.
+const PANE_SETTLED = /^(completed|failed) in (\d+) ms(?:, (\d+) bytes)?\s*$/;
+
+/** A pane program's settled call, read out of its result line; null for a result that carries the result itself. */
+export function paneSettled(text: string): { failed: boolean; ms: number; bytes: number | null } | null {
+  const found = PANE_SETTLED.exec(text.trim());
+
+  return found === null ? null : { failed: found[1] === "failed", ms: Number(found[2]), bytes: found[3] === undefined ? null : Number(found[3]) };
 }

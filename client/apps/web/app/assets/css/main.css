@@ -133,6 +133,9 @@
   --ansi-red: var(--color-red-700);
   --ansi-yellow: var(--color-amber-700);
   --ansi-gray: var(--color-neutral-600);
+  --ansi-green: var(--color-green-700);
+  --ansi-cyan: var(--color-cyan-700);
+  --ansi-magenta: var(--color-fuchsia-700);
 }
 
 .dark {
@@ -140,6 +143,9 @@
   --ansi-red: var(--color-red-400);
   --ansi-yellow: var(--color-yellow-400);
   --ansi-gray: var(--color-neutral-400);
+  --ansi-green: var(--color-green-400);
+  --ansi-cyan: var(--color-cyan-400);
+  --ansi-magenta: var(--color-fuchsia-400);
 }
 
 :root,

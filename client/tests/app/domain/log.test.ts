@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { buildLog, GENERIC_TOOL_ICON, kindLook, lineLook, resultPreview, toolArguments, toolCall, toolChip } from "../../../apps/web/app/domain/log";
+import { answerText, buildLog, GENERIC_TOOL_ICON, kindLook, knownKind, logFigures, lineLook, resultPreview, toolArguments, toolCall, toolChip } from "../../../apps/web/app/domain/log";
 
 import type { AgentLogKind, AgentLogLine, AgentLogState } from "../../../apps/web/shared/types";
 import KO from "../../fixtures/app/domain/log.test.ko.json";
@@ -325,5 +325,54 @@ describe("what a result shows before it is opened", () => {
     // Command output and file reads end with a newline; that ending is not another line.
     expect(resultPreview("abc\n")).toEqual({ head: "abc", lines: 1 });
     expect(resultPreview(KO.line_333)).toEqual({ head: KO.line_333_2, lines: 2 });
+  });
+});
+
+// A pane program's progress records are no line of the log: they mark the call they speak of and feed the work
+// view's head (docs/web.md, 「Agent screen」).
+describe("a pane program's progress records", () => {
+  const progress = (id: number, record: Record<string, unknown>) => line({ id, kind: "progress", run: "job-1", text: JSON.stringify({ kind: "progress", ...record }) });
+
+  test("stand as no row, and spin a call until its result comes back", () => {
+    const going = buildLog([
+      progress(1, { phase: "tool", state: "in_progress", tool: "bash", toolCallId: "c1" }),
+      line({ id: 2, kind: "tool", run: "job-1", name: "bash", ref: "c1", text: '{"command":"ls"}' }),
+      progress(3, { phase: "thinking", tool: null })
+    ]);
+
+    expect(going.map((row) => row.key)).toEqual(["2"]);
+    expect(going[0]?.running).toBe(true);
+
+    const settled = buildLog([
+      progress(1, { phase: "tool", state: "in_progress", tool: "bash", toolCallId: "c1" }),
+      line({ id: 2, kind: "tool", run: "job-1", name: "bash", ref: "c1", text: '{"command":"ls"}' }),
+      progress(3, { phase: "tool", state: "completed", tool: "tool", toolCallId: "c1", resultBytes: 9 }),
+      line({ id: 4, kind: "tool-result", run: "job-1", ref: "c1", text: "completed in 5 ms, 9 bytes", state: "succeeded" })
+    ]);
+
+    expect(settled.map((row) => row.key)).toEqual(["2"]);
+    expect(settled[0]?.running).toBe(false);
+  });
+
+  test("give the head the calls that settled, the newest usage and how full the session stands", () => {
+    const figures = logFigures(
+      [
+        progress(1, { usage: { inputTokens: 10, outputTokens: 2, cacheReadTokens: 5 } }),
+        line({ id: 2, kind: "tool-result", run: "job-1", ref: "c1" }),
+        progress(3, { usage: { inputTokens: 40, outputTokens: 8, cacheReadTokens: 50 } }),
+        progress(4, { context: { size: 1000, used: 470 } }),
+        line({ id: 5, kind: "tool-result", run: "job-2", ref: "c2" })
+      ],
+      "job-1"
+    );
+
+    expect(figures).toEqual({ calls: 1, usage: { inputTokens: 40, outputTokens: 8, cacheReadTokens: 50 }, context: { size: 1000, used: 470 }, phase: null });
+  });
+
+  test("an answer stands as its words, and a kind the console does not know is known as such", () => {
+    expect(answerText(JSON.stringify({ kind: "answer", text: "done", model: "x" }))).toBe("done");
+    expect(answerText("plain words")).toBe("plain words");
+    expect(knownKind("answer")).toBe(true);
+    expect(knownKind("heartbeat")).toBe(false);
   });
 });

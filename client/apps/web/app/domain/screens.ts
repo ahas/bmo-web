@@ -129,9 +129,10 @@ export function tabAddress(screen: Screen, tab: ScreenTab): string {
   return tab.value === screen.tabs?.[0]?.value ? screen.to : `${screen.to}?tab=${encodeURIComponent(tab.value)}`;
 }
 
-// Where the mark stands on a folded row: over the icon's own top corner, on whole pixels, in the
-// colour the status names.
-export const FOLDED_MARK = "relative after:absolute after:top-1 after:end-1 after:size-2 after:rounded-full after:content-['']";
+// Where the mark stands on a folded row: on the icon's rim at about two o'clock, as a badge conventionally sits,
+// placed from the row's centre — which is the icon's — rather than from the row's corner, so a row wider than its icon
+// does not carry the mark off it; on whole pixels, in the colour the status names.
+export const FOLDED_MARK = "relative after:absolute after:top-2 after:start-[round(down,calc(50%+4px),1px)] after:size-2 after:rounded-full after:content-['']";
 
 export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS): NavigationMenuItem[] {
   return screens.map((screen) => {

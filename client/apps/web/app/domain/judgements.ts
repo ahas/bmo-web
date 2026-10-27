@@ -1,7 +1,7 @@
 import type { Judgement, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
 import { chatAgent } from "#shared/agent-names";
 import { companionOf } from "./agents";
-import { COUNT_LOCALE, countText } from "./numbers";
+import { countText } from "./numbers";
 
 import type { Translate } from "#shared/wording";
 
@@ -673,9 +673,4 @@ export function verdictWords(t: Translate, judgement: Judgement): VerdictWords {
   if (SLUG_LIST.test(verdict)) return said("room.label.verdict_picked", "neutral", namesOf(verdict));
 
   return said("room.label.verdict_unknown");
-}
-
-/** A length of time in seconds to one decimal, as every verdict and draft line says it. */
-export function secondsText(t: Translate, ms: number): string {
-  return t("common.label.seconds", { n: (ms / 1000).toLocaleString(COUNT_LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) });
 }

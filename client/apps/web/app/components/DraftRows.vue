@@ -84,8 +84,8 @@ import { formatClock } from "bmo-ui/app/domain/time";
 import { CHIP_ICONS, CHIP_LABELS } from "~/domain/chips";
 
 import { endLine, gateRoundLines, roundLines } from "~/domain/draft-process";
-import { secondsText, stageLabel, verdictWords } from "~/domain/judgements";
-import { countText } from "~/domain/numbers";
+import { stageLabel, verdictWords } from "~/domain/judgements";
+import { countText, secondsText } from "~/domain/numbers";
 
 import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
 import type { Judgement } from "#shared/types";

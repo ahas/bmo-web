@@ -1546,7 +1546,11 @@ export type AgentLogKind =
   | "prompt"
   | "context"
   | "note"
-  | "end";
+  | "end"
+  // A pane program's record of what its turn is doing — the phase, a call starting or settling, the usage, how full
+  // the session stands — and the answer it gave (the agency's docs/run-records.md, 「Agent log」).
+  | "progress"
+  | "answer";
 
 export type AgentLogState = "requested" | "running" | "succeeded" | "failed" | "unverified" | "unavailable" | AgentLogContextState;
 

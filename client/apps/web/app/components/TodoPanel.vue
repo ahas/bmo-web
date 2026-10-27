@@ -474,7 +474,7 @@
   <!-- The log of the job running a row, opened from the row's menu at its run and following it.
        Drawn only by the panel a person is looking at, as the item dialog is; the state is shared, so the
        press answers in that panel whichever one took it. -->
-  <AgentLogDialog v-if="showsDetail && logAgent !== null" v-model:open="logOpen" :name="logAgent" :place="logPlace" :rooms="rooms ?? []" />
+  <AgentLogDialog v-if="showsDetail && logAgent !== null" v-model:open="logOpen" :name="logAgent" :place="logPlace" :rooms="rooms ?? []" end />
 
   <!-- Words added to a row from its menu: the same added instructions the opened row adds. -->
   <UModal v-if="showsDetail" v-model:open="appendOpen" :title="appendItem === null ? '' : `#${appendItem.id} ${$t('todo.title.notes')}`">

@@ -53,6 +53,21 @@
     <div v-if="log.newer.value" class="self-center">
       <UButton size="sm" color="neutral" variant="subtle" :label="$t('agents.action.newer_lines')" @click="followRequested" />
     </div>
+
+    <!-- Once the reader has scrolled up off the end, a way back to it that follows the end again. -->
+    <div v-if="!stick && shownRows.length > 0" class="pointer-events-none sticky bottom-4 z-10 flex justify-end">
+      <UTooltip :text="$t('agents.action.to_end')">
+        <UButton
+          class="pointer-events-auto shadow-md"
+          color="neutral"
+          variant="outline"
+          icon="i-material-symbols-arrow-downward"
+          :aria-label="$t('agents.action.to_end')"
+          data-log-to-end
+          @click="toEnd"
+        />
+      </UTooltip>
+    </div>
   </UContainer>
 </template>
 
@@ -68,7 +83,7 @@ import { useAgentLog } from "~/domain/log";
 import { SCROLL_BOTTOM_THRESHOLD_PX, usePolling } from "~/domain/polling";
 import { liveChip, runEnds, useRunChips } from "~/domain/turns";
 
-import type { RunProgress } from "#shared/types";
+import type { AgentLogLine, RunProgress } from "#shared/types";
 import type { LogPlace, LogRow } from "~/domain/log";
 import type { SpendChip } from "~/domain/turns";
 
@@ -80,10 +95,12 @@ interface Props {
   live?: { chatId: number; progress: RunProgress | null }[];
   // One run's name, where the view stands at a stage's run and shows its lines alone.
   only?: string | null;
+  // Whether the log opens at its end, the newest lines in view, whatever place it was opened at.
+  end?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { place: null, live: () => [], only: null });
-const emit = defineEmits<{ rows: [rows: LogRow[]] }>();
+const props = withDefaults(defineProps<Props>(), { place: null, live: () => [], only: null, end: false });
+const emit = defineEmits<{ rows: [rows: LogRow[]]; lines: [lines: AgentLogLine[]] }>();
 
 const feedRef = useTemplateRef<{ $el?: HTMLElement }>("feed");
 
@@ -103,6 +120,7 @@ const shownRows = computed<LogRow[]>(() => (props.only === null ? rows.value : r
 
 // Whoever holds the view reads what the log says as it grows: what the session is doing now, and the plan it laid out.
 watch(shownRows, (now) => emit("rows", now), { immediate: true });
+watch(log.lines, (now) => emit("lines", now), { immediate: true });
 
 // What each run on the page spent, standing under the line it ended on.
 const chips = useRunChips(t, props.name, rows);
@@ -216,10 +234,19 @@ async function follow(): Promise<void> {
   }
 }
 
+// Back to the end of the log, reading what lies past what is held first, and following the end again.
+async function toEnd(): Promise<void> {
+  while (log.newer.value) {
+    if ((await log.follow()) === 0) break;
+  }
+
+  await scrollToBottom();
+}
+
 async function open(): Promise<void> {
   const asked = props.place;
 
-  if (asked === null) {
+  if (asked === null || props.end) {
     await log.load();
     await scrollToBottom();
 

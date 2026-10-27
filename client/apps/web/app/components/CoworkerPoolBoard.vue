@@ -60,7 +60,7 @@
       </div>
     </template>
 
-    <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.agent" :place="{ run: log.run }" :rooms="props.rooms" />
+    <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.agent" :place="{ run: log.run }" :rooms="props.rooms" end />
   </div>
 </template>
 

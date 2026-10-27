@@ -26,6 +26,8 @@ export interface LogRow {
   results: AgentLogLine[];
   // A line that came out of a Task call is one step in, under the branch's own head.
   depth: number;
+  // Whether a call is still running: a pane program said it began and has not said it settled.
+  running?: boolean;
 }
 
 // Where in a log a screen is to open: the log's own name for one run, or the second one began
@@ -34,6 +36,8 @@ export type LogPlace = { run: string } | { at: number; chat?: number };
 
 export interface AgentLogFeed {
   rows: ComputedRef<LogRow[]>;
+  // Every line held, the progress records the rows leave out among them.
+  lines: Ref<AgentLogLine[]>;
   older: Ref<boolean>;
   // Whether the log goes on past the last line held. A screen that opened on the newest page
   // is at the end and this is false; one that opened at a moment in the log has the rest of it
@@ -63,7 +67,10 @@ const KIND_LOOKS: Record<AgentLogKind, KindLook> = {
   prompt: { label: "agents.label.line_prompt", color: "neutral", words: false },
   context: { label: "agents.label.line_context", color: "success", words: false },
   note: { label: "agents.label.line_note", color: "neutral", words: true },
-  end: { label: "agents.label.line_end", color: "warning", words: true }
+  end: { label: "agents.label.line_end", color: "warning", words: true },
+  // A progress record is read into what it says and never stands as a line; its look is only a fallback.
+  progress: { label: "agents.label.line_unknown", color: "neutral", words: false },
+  answer: { label: "agents.label.line_answer", color: "primary", words: true }
 };
 
 const UNKNOWN_LOOK: KindLook = { label: "agents.label.line_unknown", color: "neutral", words: false };
@@ -115,6 +122,11 @@ export function contextStateLook(t: Translate, line: { kind: string; state: stri
 // A kind's look with its label put into words.
 function spoken(t: Translate, look: KindLook): KindLook {
   return { ...look, label: t(look.label) };
+}
+
+/** Whether the console knows a line's kind; one it does not wears its own word and folds what it holds. */
+export function knownKind(kind: string): boolean {
+  return kind in KIND_LOOKS;
 }
 
 export function kindLook(t: Translate, kind: string): KindLook {
@@ -409,8 +421,27 @@ export function resultPreview(text: string): { head: string; lines: number } {
 export function buildLog(lines: AgentLogLine[]): LogRow[] {
   const rows: LogRow[] = [];
   const calls = new Map<string, LogRow>();
+  // The calls a pane program said began and has not said settled, by the call's id.
+  const going = new Set<string>();
 
   for (const line of lines) {
+    // A pane program's progress record is no line of the log: a call's start and settling mark its call, and the rest
+    // is read by the work view's head (docs/web.md, 「Agent screen」).
+    if (line.kind === "progress") {
+      const progress = progressOf(line);
+
+      if (progress?.callId != null) {
+        if (progress.state === "in_progress") going.add(progress.callId);
+        else going.delete(progress.callId);
+
+        const call = calls.get(progress.callId);
+
+        if (call !== undefined) call.running = going.has(progress.callId) && call.results.length === 0;
+      }
+
+      continue;
+    }
+
     // A result whose call has already scrolled out of the window has nothing to sit under,
     // so it stands as a row of its own.
     if (line.kind === "tool-result" && line.ref !== null) {
@@ -418,6 +449,7 @@ export function buildLog(lines: AgentLogLine[]): LogRow[] {
 
       if (call !== undefined) {
         call.results.push(line);
+        call.running = false;
         continue;
       }
     }
@@ -431,6 +463,7 @@ export function buildLog(lines: AgentLogLine[]): LogRow[] {
 
     if (line.kind === "tool" && line.ref !== null) {
       calls.set(line.ref, row);
+      row.running = going.has(line.ref);
     }
 
     rows.push(row);
@@ -577,5 +610,85 @@ export function useAgentLog(t: Translate, name: string): AgentLogFeed {
     }
   }
 
-  return { rows, older, newer, loading, loadingOlder, failure, load, loadAt, loadOlder, follow };
+  return { rows, lines, older, newer, loading, loadingOlder, failure, load, loadAt, loadOlder, follow };
+}
+
+// A pane program's progress record, read out of the line's text (the agency's docs/run-records.md, 「Agent log」).
+export interface ProgressRecord {
+  phase: string | null;
+  state: string | null;
+  tool: string | null;
+  callId: string | null;
+  usage: { inputTokens: number | null; outputTokens: number | null; cacheReadTokens: number | null } | null;
+  context: { size: number; used: number } | null;
+}
+
+function numberOf(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function recordOf(text: string): Record<string, unknown> | null {
+  try {
+    const parsed: unknown = JSON.parse(text);
+
+    return parsed !== null && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function progressOf(line: Pick<AgentLogLine, "kind" | "text">): ProgressRecord | null {
+  if (line.kind !== "progress") return null;
+
+  const record = recordOf(line.text);
+
+  if (record === null) return null;
+
+  const usage = record.usage !== null && typeof record.usage === "object" ? (record.usage as Record<string, unknown>) : null;
+  const context = record.context !== null && typeof record.context === "object" ? (record.context as Record<string, unknown>) : null;
+  const size = numberOf(context?.size);
+  const used = numberOf(context?.used);
+
+  return {
+    phase: typeof record.phase === "string" ? record.phase : null,
+    state: typeof record.state === "string" ? record.state : null,
+    tool: typeof record.tool === "string" ? record.tool : null,
+    callId: typeof record.toolCallId === "string" ? record.toolCallId : null,
+    usage: usage === null ? null : { inputTokens: numberOf(usage.inputTokens), outputTokens: numberOf(usage.outputTokens), cacheReadTokens: numberOf(usage.cacheReadTokens) },
+    context: size === null || used === null || size <= 0 ? null : { size, used }
+  };
+}
+
+/** The words of a pane program's answer line, out of its record; the text as it stands where it is no record. */
+export function answerText(text: string): string {
+  const record = recordOf(text);
+
+  return record !== null && typeof record.text === "string" ? record.text : text;
+}
+
+/** What a run's log says it has done so far, for the work view's head while its job runs: the calls whose result came
+ * back, the newest usage record, how full the session stands, and what it is doing now. */
+export interface LogFigures {
+  calls: number;
+  usage: ProgressRecord["usage"];
+  context: ProgressRecord["context"];
+  phase: string | null;
+}
+
+export function logFigures(lines: readonly AgentLogLine[], run: string | null): LogFigures {
+  const own = run === null ? lines : lines.filter((line) => line.run === run);
+  let usage: ProgressRecord["usage"] = null;
+  let context: ProgressRecord["context"] = null;
+  let phase: string | null = null;
+
+  for (const line of own) {
+    const progress = progressOf(line);
+
+    if (progress === null) continue;
+    if (progress.usage !== null) usage = progress.usage;
+    if (progress.context !== null) context = progress.context;
+    if (progress.phase !== null) phase = progress.phase;
+  }
+
+  return { calls: own.filter((line) => line.kind === "tool-result").length, usage, context, phase };
 }

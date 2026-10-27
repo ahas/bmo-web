@@ -11,6 +11,8 @@
       <!-- A result whose call is not on the page wears the tool's own name as its chip; any other line wears its kind's
            word. -->
       <UBadge v-if="chip !== null" :color="look.color" variant="subtle" size="sm" :icon="chip.icon" :label="chip.label" class="font-mono" />
+      <!-- A kind the console does not know wears its own word (docs/web.md, 「Agent screen」). -->
+      <UBadge v-else-if="!known" color="neutral" variant="subtle" size="sm" :label="line.kind" class="font-mono" />
       <UBadge v-else :color="look.color" variant="subtle" size="sm" :label="look.label" />
     </div>
 
@@ -26,8 +28,21 @@
     <!-- Any other line is either words the run or the bot wrote, which stand as the markdown they
          were written in, or a record — how the run was opened, what it was handed — which stands
          whole as it was stored, wrapping inside the log rather than widening it. -->
+    <!-- A line of a kind the console does not know folds what it holds behind its details press, never a bare field list. -->
+    <UChatTool v-else-if="!known" :text="$t('agents.action.line_details')" chevron="leading" data-log-unknown>
+      <dl v-if="recordFields.length > 0" class="pair-list gap-x-4 gap-y-1 text-sm">
+        <template v-for="field in recordFields" :key="field.label">
+          <dt class="font-mono text-muted">{{ field.label }}</dt>
+          <dd class="break-words whitespace-pre-wrap">{{ field.value }}</dd>
+        </template>
+      </dl>
+      <pre v-else class="font-mono text-sm break-words whitespace-pre-wrap">{{ line.text }}</pre>
+    </UChatTool>
+
     <template v-else>
-      <MarkdownText v-if="look.words" :text="line.text" class="text-sm" />
+      <!-- A pane program's answer stands as its words, out of the record it came in. -->
+      <MarkdownText v-if="line.kind === 'answer'" :text="answerText(line.text)" class="text-sm" />
+      <MarkdownText v-else-if="look.words" :text="line.text" class="text-sm" />
       <!-- A record that is a JSON object or list stands as its named fields, never as its text (docs/web.md, 「A
            value shown as what it is」); any other record stands whole as it was stored. -->
       <dl v-else-if="recordFields.length > 0" class="pair-list gap-x-4 gap-y-1 text-sm" data-log-record>
@@ -44,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { contextStateLook, lineLook, toolChip } from "~/domain/log";
+import { answerText, contextStateLook, knownKind, lineLook, toolChip } from "~/domain/log";
 import { formatTime } from "bmo-ui/app/domain/time";
 import { jsonFields } from "~/domain/dbview";
 
@@ -63,6 +78,7 @@ const SHORT = t("agents.label.record_ends");
 const line = computed(() => props.row.line);
 
 const look = computed(() => lineLook(t, line.value));
+const known = computed(() => knownKind(line.value.kind));
 // Whether a reference document went in full or as an already-loaded mark.
 const mark = computed(() => contextStateLook(t, line.value));
 
@@ -73,7 +89,7 @@ const chip = computed(() => toolChip(line.value));
 const recordFields = computed(() => {
   const text = line.value.text.trim();
 
-  if (look.value.words || !/^[[{]/.test(text)) return [];
+  if ((known.value && look.value.words) || !/^[[{]/.test(text)) return [];
 
   try {
     const value: unknown = JSON.parse(text);

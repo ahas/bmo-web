@@ -1212,7 +1212,8 @@ Four groups.
     answer. The dialog keeps no unsaved-changes guard: it opens, lists, adds and closes, and closing it asks
     nothing whatever was chosen.
   - **A room carries how many of its messages the reader has not read**, as a number at the line's end
-    (「Unread messages」); folded to pictures, a room with any carries a dot on its picture's corner instead.
+    (「Unread messages」); folded to pictures, a room with any carries a dot on its picture's rim at about two o'clock instead, where a
+    badge conventionally sits, placed from the picture's own centre so the row's width does not move it.
   - **A room moves to its new place rather than jumping there.** The rooms are a moving list
     (「Motion」): when a message lifts a room up the list, the room slides from where it stood to
     where it now stands while the rooms it passes slide down by one line, its count changing as it
@@ -3054,14 +3055,27 @@ Two ways, split because the running places differ.
     why the run could not answer, what instruction a branch received.
   - **A call** — what was called and what came back, as one block in the Claude Code terminal look (「A tool
     call」 below). It wears no kind word.
+  - **답** — the answer a pane program's turn gave, its words standing as markdown; the record's own fields
+    around them — the model, the usage, how full the session stood — are no part of the line.
   - **끝** — how the run ended.
+- **A pane program's progress lines are no line of the log.** The agency files a pane program's `progress`
+  records as they come (its `docs/run-records.md`, 「Agent log」), and each is read into what it says rather than
+  shown: a call's start and its settling are the call's own block, matched by the call's id, its mark spinning
+  while the call runs and its result line saying how long it ran and how much came back once it settled; a usage
+  record is the run's running total in the work view's head (「The work view」); how full the session stands is
+  the head's context figure; the thinking and writing phases are what 지금 says. None stands as a row, and no
+  field of one — its id, its moment, its call's id, whether its input was cut — is shown.
+- **A line of a kind the console does not know** wears its kind's own word and a 자세히 press that spreads what
+  it holds as a name and value list; it never stands as a bare field list.
 - The text of thinking, words, notes and end stands as markdown text (「Text written in markdown」),
   and the start line, the prompt, a call's command and its result stand as the literal characters sent.
 - **A prompt stands whole.** It is shown in full, verbatim and monospaced, with its line breaks kept — no
   markdown rendering, no clamp, no fold and no summary. A long one wraps and scrolls inside the log's own
   scroll region, and never scrolls the page sideways.
 - **A tool call** is one block in the terminal look a diff is drawn in: a bordered box of monospaced lines on
-  the screen's own surface, the same component for every tool. Nothing of a call stands as its raw JSON.
+  the screen's own surface, the same component for every tool. Nothing of a call stands as its raw JSON. A call
+  and its result are one pair: the command, and its result right under it in the same block, matched by the
+  call's id however many lines were written between them.
   1. **The top line is the call's description**, the one it came with; a call that came with none names its tool
      and its key argument instead — the file for `Read`, `Write` and `Edit`, the pattern for a search, the
      address for the web, the instruction for a subagent — and an MCP tool by its name without its server.
@@ -3071,7 +3085,11 @@ Two ways, split because the running places differ.
      where the checkout is dirty; the branch and the mark stand only where a unit serves them (`docs/boundary.md`,
      「Gaps the console meets」). Its second line is a blue `❯` and the command: a shell call's command line, any
      other tool's call written as a command — its name and its arguments, each value as it was sent. The command
-     is never folded: it stands whole, wrapping at the box's width, its line breaks and indentation kept.
+     is never folded: it stands whole, wrapping at the box's width, its line breaks and indentation kept. A shell
+     command is coloured the way zsh's syntax highlighting colours a typed line, in the same ANSI palette: the
+     command words, the options, the quoted strings, the variables, and the pipes, redirections and separators,
+     each a colour of its own. A shell command that visibly writes a file — a redirection into it, `tee`, `sed -i`
+     — names that file on its top line after its description.
   3. **Under it, the result,** the only part of a call that folds. Its first five lines always stand; where it
      runs longer, a press under them shows how many lines are hidden and spreads them, and the same press folds
      them back. It is coloured by the console's one code highlighter, the chat's code blocks' own, in the language
@@ -3080,13 +3098,16 @@ Two ways, split because the running places differ.
      coloured apart from the text; and only where no extension is known, by what the text is — JSON, a diff or a
      shell session. A result that carries none of these stands plain. A road that records no result text — a
      pane program that says only how long a call ran — stands that one line.
-  4. **A file change stands in the same block as `Updated`**: where the call's result carries the structured patch
-     its provider recorded — an edit, a write, the files a shell command changed — the result is the change as
-     Claude Code draws it: a head naming it (`Update(<path>)`, `Write(<path>)`, or `Updated <path> (+n -m)` for a
-     file a shell command changed), how many lines went in and out, and the changed lines with their line numbers
-     and a `+` or `-` mark, context lines unmarked, added and removed lines in the success and error tones. A
-     change is never folded. The path is relative to the checkout where it lies inside it, and on a phone a long
-     line wraps inside the block.
+  4. **A file change stands in the same block as `Updated`**: an edit or a write — Claude Code's `Edit`,
+     `MultiEdit` and `Write`, a pane program's `edit` and `write` — is drawn as the change it made, read off the
+     call's own arguments (the text it replaced and the text it put in, or the whole of what it wrote), and so is
+     a result carrying the structured patch its provider recorded. The change is drawn as Claude Code draws it: a
+     head naming it (`Update(<path>)`, `Write(<path>)`, or `Updated <path> (+n -m)` for a file a shell command
+     changed) with how many lines went in and out, and under it the changed lines with a `+` or `-` mark, context
+     lines unmarked, added and removed lines in the success and error tones of the brain chip's added lines, with
+     their line numbers where the record knows them. The lines start folded under the head, which is pressed to
+     spread them and again to fold them. The path is relative to the checkout where it lies inside it, and on a
+     phone a long line wraps inside the block.
   - The screen is sent only the patch, the file path and the result's type out of the stored structured result,
     never the whole of it; a patch past the size the screen is sent stands as the ordinary result instead.
   - **Codex's file changes are drawn the same way.** Codex's own stream names only the paths a patch touched; the
@@ -3124,18 +3145,18 @@ Two ways, split because the running places differ.
   keeps at the foot of its own screen. It speaks of one job: the run the screen was opened at where that run is one
   of this worker's jobs, otherwise the job the worker is running now, otherwise its last one. A worker with no job
   yet has none.
-  - **작업 지시** is the job's prompt in its Korean reading, whole, and under 영어본 the English its worker was handed
+  - **작업 지시** is the job's prompt in its Korean reading, and under 영어본 the English its worker was handed
     where that says something else (docs/worker-language.md, 「A job's prompt」), read once the job is known, with a
-    skeleton of two lines until it lands.
-  - **토큰 · 툴 호출** is one line — the item's number and title (or the purpose of a job with no item), 「실행 중
+    skeleton of one line until it lands; it stands on one line in the head and spreads whole when pressed.
+  - **The job line** is one line — the item's number and title (or the purpose of a job with no item), 「실행 중
     00:12:34」 ticking or how long a finished job took, how many tool calls the job made, subagents' included, and the
-    token chip's one figure, the tokens the job wrote, every model's together — and under it one line per model the
-    job used: the model, 「총 …」 and its four kinds as the popover's bar (「Usage in the title bar」). The item's
-    number opens the item.
-  - The figures are bmo-job's (its `docs/reading.md`, "A worker's job line"). A finished job's figures are what the
-    spans it wrote as it ended say it called and spent. A running job's tool calls are counted in its run's log at
-    the agency, and what its models have spent so far is said by no route (`docs/boundary.md`, 「Gaps the console
-    meets」), so a running job reads one 「—」 and lists no model; so does a finished job that wrote no spend.
+    tokens — and the spread work order holds one line per model the job used: the model, 「총 …」 and its four kinds
+    as the popover's bar (「Usage in the title bar」). The item's number opens the item.
+  - The figures are bmo-job's (its `docs/reading.md`, "A worker's job line") once the job has ended: what the spans
+    it wrote as it ended say it called and spent. While it runs, bmo-job says neither what its models have spent
+    nor every call it made (`docs/boundary.md`, 「Gaps the console meets」), so they are read off its log as it grows
+    (「The work view」): the calls whose result has come back, and the newest usage record of the job's run, as
+    입력, 출력 and 캐시 읽기. A job whose log holds neither yet, and a finished job that wrote no spend, read 「—」.
   - They are asked again on the poll, whenever a turn ends, and whenever the agency says a job started, changed or
     ended, so the view follows a job without the screen being reopened.
   - A road written before the record carried the round is placed by time instead. The turn's own
@@ -3168,14 +3189,27 @@ Two ways, split because the running places differ.
     (bmo-ui's `docs/design.md`, 「Room at the foot」), and gives it up only where the launch box stands there.
 - **The work view.** A worker's screen, the agent log dialog a room, the live board or the TODO panel opens, and the
   co-work stage dialog are one view, opened from different places; nothing in it depends on where it was opened.
-  It holds, one under the other and none of it folded:
-  1. **작업 지시** — the work order the session works to: a co-work stage's instruction, or the job's prompt.
-  2. **지금** — what the session is doing now, while it runs: its newest call's top line, or the newest line it wrote.
-  3. **토큰** and **툴 호출** — what it has spent and how many calls it has made, as the job line counts them.
-  4. **로그** — the session's log, flat, a co-work stage's narrowed to that stage's run.
-  5. **결과** — what the stage or the job left: its result, its failure, or why it was skipped.
+  It is a fixed head over one scrolling body:
+  1. **The head stays in view** however far the log is scrolled, and is compact: one line of the job — its item's
+     number and title, its state mark (spinning while it runs), how long it has run or took, how many tool calls it
+     made and the tokens — then **지금**, what the session is doing now while it runs, then **작업 지시** on one line,
+     cut, which is pressed to spread the whole work order — the English its worker was handed and every model's
+     share with it — and pressed again to fold it.
+  2. **지금** says the current stage of the stepper by the stage's own words where the job has stages, and the
+     newest call by its description, or the newest line the session wrote; never a tool's or a stage's key.
+  3. **The figures are read off the log as it grows** while the job runs: the tool calls are the calls whose result
+     has come back, and the tokens are the newest usage record's — 입력, 출력 and 캐시 읽기 — and once the job has
+     ended its own figures stand. 「—」 stands only where nothing has been read yet. How full the session stands
+     follows, where its record says.
+  4. **The stages**, where the job is a co-work item or the worker laid out a plan, and **결과**, what the stage or the
+     job left — its result, its failure, or why it was skipped — stand at the top of the body, above the log.
+  5. **로그** — the session's log, flat, a co-work stage's narrowed to that stage's run, the one part that scrolls.
+     It opens at its end, the newest lines in view, and follows the end while new lines arrive as long as the
+     reader is at the end; scrolling up stops the following, and a 맨 아래로 button standing over the log's foot
+     takes the reader back to the end and following again. A view opened at an older run of the agent's own screen
+     opens at that run instead.
   A stage of several tasks is no tab row of them: each task is a sub-stage of the stepper, and opening one opens
-  the view at that task. While the session runs, the view reads again as its log grows.
+  the view at that task.
 - **The input box that speaks to a runner or a worker directly** is below. It stands on the searcher and
   browser searcher, and **each job worker's screen**. Which agent is a worker is what the archive answers, not
   a list the app holds — if the owner makes one more worker, names it and points it at its repository, this input

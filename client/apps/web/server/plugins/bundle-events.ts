@@ -65,12 +65,20 @@ function noticeWord(words: Words, name: string, kind: string, role: "title" | "b
   return held;
 }
 
+// The bundle's screen under the console's own base path, where pressing the notice goes; the manifest names the
+// screen's path inside the console, which a device's notification cannot read without the base.
+function screenUrl(bundle: ConsoleManifest): string {
+  const base = useRuntimeConfig().app.baseURL.replace(/\/+$/, "");
+
+  return `${base}/${bundle.screenPath.replace(/^\/+/, "")}`;
+}
+
 function noticeOf(bundle: ConsoleManifest, kind: string, data: Fields, words: Words): PushPayload {
   return {
     kind: bundle.name as PushPayload["kind"],
     title: filled(noticeWord(words, bundle.name, kind, "title"), data) || bundle.title,
     body: filled(noticeWord(words, bundle.name, kind, "body"), data),
-    url: bundle.screenPath,
+    url: screenUrl(bundle),
     tag: `${bundle.name}:${fieldOf(data, "threadId") || fieldOf(data, "id") || kind}`
   };
 }

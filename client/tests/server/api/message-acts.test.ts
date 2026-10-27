@@ -4,7 +4,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
-import type { MessageAct, RoomPins, SentMessage, StickerSet } from "../../../apps/web/shared/types";
+import type { ForwardedMessage, MessageAct, RoomPins, SentMessage, StickerSet } from "../../../apps/web/shared/types";
 
 // The acts a signed-in person does to a room's messages through this app's server (the receiver's `docs/api.md`,
 // 「Messages」): a reaction of their own, a pin, an edit of their own message and a delete of it, and the room's pins
@@ -46,6 +46,10 @@ const receiver = standIn("RECEIVER", (one) => {
     return answer({ code: "message-forbidden", error: "Another person's message." }, 403);
   }
 
+  if (path === "/rooms/-7/messages/21/forwards") {
+    return answer({ room: one.body?.to, id: 77 }, 201);
+  }
+
   if (path === "/rooms/-7/pins") {
     return answer({ items: [MESSAGE] });
   }
@@ -60,6 +64,7 @@ const receiver = standIn("RECEIVER", (one) => {
 const react = await routeOf<MessageAct>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/reaction.put");
 const unreact = await routeOf<MessageAct>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/reaction.delete");
 const pin = await routeOf<MessageAct>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/pin.put");
+const forward = await routeOf<ForwardedMessage>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/forward.post");
 const edit = await routeOf<MessageAct>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/edit.patch");
 const remove = await routeOf<MessageAct>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/remove.delete");
 const pins = await routeOf<RoomPins>("../../apps/web/server/api/rooms/[chatId]/pins.get");
@@ -128,6 +133,25 @@ describe("the reader's own acts on a message", () => {
   test("says the receiver's refusal by the pack's sentence for its code", async () => {
     expect(await asked(edit, { params: params("-1"), body: { text: "words" } })).toMatchObject({ status: 502, message: wording("room.error.message_forbidden") });
     expect(await asked(remove, { params: params("-404") })).toMatchObject({ status: 404, message: wording("room.error.message_unknown") });
+  });
+});
+
+describe("a message the owner forwards", () => {
+  test("copies it into the room the picker chose, as the owner, and answers where the copy stands", async () => {
+    receiver.asked.length = 0;
+
+    expect((await asked(forward, { params: params("21"), body: { to: "-8" } })).answer).toEqual({ room: -8, messageId: 77 });
+    expect(receiver.asked.map((one) => [one.method, one.path, one.body, one.headers?.["owner-key"], one.headers?.["owner-role"]])).toEqual([
+      ["POST", "/rooms/-7/messages/21/forwards", { to: -8 }, "1", "administrator"]
+    ]);
+  });
+
+  test("refuses a forward with no room, or into the room the message stands in, before the receiver is asked", async () => {
+    receiver.asked.length = 0;
+
+    expect(await asked(forward, { params: params("21"), body: {} })).toMatchObject({ status: 400, message: wording("room.error.forward_room") });
+    expect(await asked(forward, { params: params("21"), body: { to: "-7" } })).toMatchObject({ status: 400, message: wording("room.error.forward_same_room") });
+    expect(receiver.asked).toEqual([]);
   });
 });
 

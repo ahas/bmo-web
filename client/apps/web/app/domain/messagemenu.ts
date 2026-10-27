@@ -11,6 +11,7 @@ import type { Translate } from "#shared/wording";
 // unless the reader is the administrator.
 export interface MessageMenuActions {
   reply: () => void;
+  forward: () => void;
   react: (emoji: string) => void;
   pin: (on: boolean) => void;
   edit: () => void;
@@ -65,8 +66,17 @@ export function messageMenu(t: Translate, item: MessageMenuState, actions: Messa
     own.push({ label: t("common.action.delete"), icon: "i-material-symbols-delete-outline", onSelect: () => actions.remove() });
   }
 
+  // The forward is the owner's alone: the record keeps the copy as theirs (docs/web.md, the room screen's message
+  // menu).
+  const answer: ContextMenuItem[] = [
+    { label: t("room.action.reply"), icon: "i-material-symbols-reply", onSelect: () => actions.reply() },
+    ...(item.administrator === true
+      ? [{ label: t("room.action.forward"), icon: "i-material-symbols-forward", onSelect: () => actions.forward() }]
+      : [])
+  ];
+
   return [
-    [{ label: t("room.action.reply"), icon: "i-material-symbols-reply", onSelect: () => actions.reply() }],
+    answer,
     [
       reactions(t, item, actions),
       {

@@ -294,6 +294,14 @@ export interface ReplyQuote {
   attachment?: MessageAttachment | null;
 }
 
+// Where a forwarded message came from, as the record marks it (the receiver's `docs/api.md`, 「Messages」): the room, the
+// message and who said it there.
+export interface ForwardedFrom {
+  room: number;
+  messageId: number;
+  senderName: string;
+}
+
 export interface ArchivedMessage {
   chatId: number;
   messageId: number;
@@ -305,6 +313,8 @@ export interface ArchivedMessage {
   replyToMessageId: number | null;
   // The answered message as a reply shows it, when this message is a reply.
   replyQuote?: ReplyQuote | null;
+  // Where this message was forwarded from, on a message the record kept as a forward; absent on every other.
+  forwardedFrom?: ForwardedFrom | null;
   attachments?: MessageAttachment[];
   expressions?: TelegramExpression[];
   // Whether an agent sent this message, the chat agent or a companion, as the server reads it off the archive;
@@ -2745,6 +2755,12 @@ export interface SentMessage {
 // What the signed-in person's act on a message answers: the message as the record now holds it, by its number, which
 // the screen reads again rather than trusting the row it acted from.
 export interface MessageAct {
+  messageId: number;
+}
+
+// Where a forwarded copy was kept: the room it went into and the message the room now holds there.
+export interface ForwardedMessage {
+  room: number;
   messageId: number;
 }
 

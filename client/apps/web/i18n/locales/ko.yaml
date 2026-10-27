@@ -380,6 +380,8 @@ room:
     find_count: "{at}/{n}"
     find_loaded_only: 불러온 메시지에서만 찾음
     find_none: 찾은 메시지 없음
+    forward_none: 찾는 방 없음
+    forward_rooms_none: 전달할 방이 없습니다.
     later_loading: 다음 대화를 불러오는 중…
     listening_left: "앞으로 {time} 동안"
     more_records: "{n}개 더 있음"
@@ -454,6 +456,9 @@ room:
     file_too_large_named: "{name}: 한 파일에 50MB까지 보낼 수 있습니다."
     file_with_voice: 음성 메모를 보내기 전에는 파일을 첨부할 수 없습니다.
     instruction_read_failed: 지시 원문을 읽지 못했습니다.
+    forward_failed: 메시지를 전달하지 못했습니다.
+    forward_room: 전달할 방을 골라 주세요.
+    forward_same_room: 지금 방으로는 전달할 수 없습니다.
     jump_failed: 날짜로 이동하지 못했습니다.
     message_not_found: 메시지를 찾지 못했습니다.
     no_file: 보낼 파일이 없습니다.
@@ -521,6 +526,7 @@ room:
     copy_text: 텍스트만 복사
     edit_message: 수정
     find: 대화에서 찾기
+    forward: 전달
     find_next: 다음 결과
     find_older: 이전 메시지 더 불러오기
     find_previous: 이전 결과
@@ -601,6 +607,7 @@ room:
     earlier_count: "이전 {n}개"
     edited: 수정됨
     edited_at: "{time}에 수정됨"
+    forwarded: "{name}에게서 전달됨"
     edit_message: 메시지
     elapsed: "{time} 경과"
     empty_message: (빈 메시지)
@@ -789,6 +796,7 @@ room:
   message:
     delete_ask: 이 메시지를 삭제할까요?
     delete_note: 메시지의 말은 지워지고, 있던 자리는 남습니다.
+    forwarded: "{room} 방으로 전달했습니다."
     id_copied: 대화번호를 복사했습니다.
     message_ref: "방 {room} (chatId {chatId}) · 메시지 #{messageId}"
     messages_copied: "메시지 {n}개를 복사했습니다."
@@ -815,11 +823,13 @@ room:
     providers: 채팅 서비스
     remove_registration: 방 등록 삭제
     edit_message: 메시지 수정
+    forward: 메시지 전달
     room_add: 방 추가
     session_info: 세션 정보
   aria:
     avatar_enlarge: "{name} 프로필 사진 크게 보기"
     brain_read_open: "{name} 열기"
+    forward_to: "전달할 방: {name}"
     go_to_quote: "{name}의 메시지로 이동"
     jump_to_date: "{name}, 날짜로 이동"
     open_details: "{name} 자세히 열기"
@@ -830,6 +840,7 @@ room:
     sticker_send: "{emoji} 스티커 보내기"
   placeholder:
     drop_here: 여기에 놓으면 첨부됩니다
+    forward_search: 방 이름으로 찾기
 
 cards:
   label:

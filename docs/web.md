@@ -4241,9 +4241,16 @@ Four bounds keep it from growing forever.
   Pressing while holding ctrl (cmd), and pressing the context-menu key or Enter with the line focused, open the same
   menu. The browser's own menu does not pop at the right-click place, and a held finger never opens either menu. An open menu is moved by arrow keys, chosen by Enter and closed by Esc. The conversation
   enters one tab place — entering first is the last message — and lines are moved by up/down arrows. What it
-  holds, in order: the answer, the acts on the message, the ways of taking it away, and the way into choosing
-  several.
+  holds, in order: the answer and the forward, the acts on the message, the ways of taking it away, and the way
+  into choosing several.
   - **답장** — starts a reply to that message (「답장」 below).
+  - **전달** — the owner's alone: opens a picker of the rooms the console lists, the room the message stands in left
+    out, each under its name and searched by it; choosing one copies the message there, kept in that room as the
+    owner's own message, its words the message's, and marked as forwarded (the receiver's
+    `POST /rooms/{roomId}/messages/{messageId}/forwards`, its `docs/api.md`, 「Messages」). The picker stays open
+    while the record answers and closes on the copy, and a notice then says which room it went to; pressing the
+    notice opens the copy there. A room or message the receiver no longer holds, a forward into the room the
+    message stands in, and a deleted message are each refused in the pack's sentence for the receiver's code.
   - **반응** — a submenu of six emojis — 👍, ❤️, 😂, 😮, 😢 and 🎉 — each marked where one of the reader's own senders
     put it on the message. Choosing one they have not put there adds it under the sender the room knows them by;
     choosing the one they have put there takes it off. One reactor keeps one reaction on a message, so another
@@ -4394,6 +4401,10 @@ Four bounds keep it from growing forever.
   - **A deleted message** stands where it stood as one quiet line in its bubble, 삭제된 메시지, with its time; its
     words, what it carried and its chips are gone, and its menu offers nothing but its link.
   - **An edited message** carries 수정됨 on its meta line before its time, and its tooltip says when it changed.
+  - **A forwarded message** stands marked over its words: 전달됨 with the name of whoever said the original, from the
+    record's `forwardedFrom`, which carries the original's room, message and sender (the receiver's `docs/api.md`,
+    「Messages」). Pressing the mark opens the original in its room, the way an address naming a message does; a
+    message the record marks none on wears none.
   - **Reactions** stand in a row of their own at the foot of the bubble's words, above its meta line: each emoji
     once with how many put it there, tabular, the reactions of the reader's own senders in the accent's wash, and a
     tooltip naming who put it there — an agent by its label, a person by the name the room knows them by, else

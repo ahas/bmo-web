@@ -27,6 +27,7 @@ function spies(): MessageMenuActions & { called: string[] } {
   return {
     called,
     reply: mark("reply"),
+    forward: mark("forward"),
     react: (emoji: string) => called.push(`react:${emoji}`),
     pin: (on: boolean) => called.push(`pin:${on}`),
     edit: mark("edit"),
@@ -48,6 +49,14 @@ describe("the menu on one message", () => {
       [wording("common.action.copy"), wording("room.action.copy_text"), wording("room.action.copy_ref")],
       [wording("room.action.select")]
     ]);
+  });
+
+  test("offers the forward beside the answer to the owner alone", () => {
+    const owner = messageMenu(wording, item("words", { administrator: true }), spies());
+    const member = messageMenu(wording, item("words", { administrator: false }), spies());
+
+    expect(owner[0]!.map((entry) => entry.label)).toEqual([wording("room.action.reply"), wording("room.action.forward")]);
+    expect(member[0]!.map((entry) => entry.label)).toEqual([wording("room.action.reply")]);
   });
 
   test("takes a pin off a pinned message and sets it on one that stands unpinned", () => {
@@ -80,7 +89,7 @@ describe("the menu on one message", () => {
 
   test("each entry does its own thing", () => {
     const actions = spies();
-    const groups = messageMenu(wording, item("words", { mine: true, pinned: true }), actions);
+    const groups = messageMenu(wording, item("words", { mine: true, pinned: true, administrator: true }), actions);
 
     for (const entry of groups.flat()) {
       entry.onSelect?.(new Event("select"));
@@ -92,6 +101,7 @@ describe("the menu on one message", () => {
 
     expect(actions.called).toEqual([
       "reply",
+      "forward",
       "pin:false",
       "edit",
       "remove",

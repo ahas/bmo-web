@@ -1,4 +1,4 @@
-import type { MessageAct, PinnedMessage, RoomPins, SentMessage, StickerSet } from "#shared/types";
+import type { ForwardedMessage, MessageAct, PinnedMessage, RoomPins, SentMessage, StickerSet } from "#shared/types";
 import type { FeedItem } from "./room";
 
 // What the signed-in reader does to a message of a room's, through this app's server (the receiver's `docs/api.md`,
@@ -38,6 +38,11 @@ export async function editMessage(chatId: number, messageId: number, text: strin
 /** A message deleted, the reader's own or any the administrator names. */
 export async function deleteMessage(chatId: number, messageId: number): Promise<MessageAct> {
   return await $fetch<MessageAct>(`/api/rooms/${chatId}/messages/${messageId}/remove`, { method: "DELETE" });
+}
+
+/** The owner's copy of a message in another room, marked with where it came from. */
+export async function forwardMessage(chatId: number, messageId: number, to: number): Promise<ForwardedMessage> {
+  return await $fetch<ForwardedMessage>(`/api/rooms/${chatId}/messages/${messageId}/forward`, { method: "POST", body: { to } });
 }
 
 /** A sticker of the record's set sent into the room as the reader's own message. */

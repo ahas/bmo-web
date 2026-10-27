@@ -12,7 +12,17 @@ const read = async (name: string) => await Bun.file(new URL(name, new URL("../..
 const row = await read("components/RoomMessage.vue");
 const screen = await read("pages/rooms/[chatId].vue");
 const stickers = await read("components/RoomStickerPicker.vue");
+const picker = await read("components/RoomForwardDialog.vue");
 const edit = await read("components/RoomMessageEditDialog.vue");
+
+describe("a forwarded message", () => {
+  test("stands marked with who said the original, and a press opens it where it stood", () => {
+    expect(row).toContain("props.item.forwarded !== undefined");
+    expect(row).toContain(':to="`/rooms/${props.item.forwarded.room}?at=${props.item.forwarded.messageId}`"');
+    expect(row).toContain('$t("room.label.forwarded", { name: props.item.forwarded.senderName })');
+    expect(row).toContain('forward: () => emit("forward", props.item.key),');
+  });
+});
 
 describe("a row's menu", () => {
   test("hands the row's side, the administrator and the record's marks to the menu", () => {
@@ -37,7 +47,7 @@ describe("a row's menu", () => {
 
 describe("the room screen's acts", () => {
   test("answers each row's act through the acts' own domain and the owner the room stands", () => {
-    expect(screen).toContain('import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, mineReaction, pinMessage, reactTo, readPins as loadPins } from "~/domain/message-acts";');
+    expect(screen).toContain('import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, forwardMessage as forwardCopy, mineReaction, pinMessage, reactTo, readPins as loadPins } from "~/domain/message-acts";');
     expect(screen).toContain('@react="reactToMessage"');
     expect(screen).toContain('@pin="pinMessageAsReader"');
     expect(screen).toContain('@edit="editMessageOf"');
@@ -70,6 +80,16 @@ describe("the room screen's acts", () => {
     expect(screen).toContain('<RoomStickerPicker :chat-id="chatId" :disabled="!reachable" />');
     expect(stickers).toContain("stickers.value = await readStickers(props.chatId);");
     expect(stickers).toContain("await sendSticker(props.chatId, emoji);");
+  });
+
+  test("forwards a message through the picker, and opens the copy where it went", () => {
+    expect(screen).toContain('@forward="forwardMessageOf"');
+    expect(screen).toContain('<RoomForwardDialog v-model:open="forwardingOpen"');
+    expect(screen).toContain(':forward="saveForward"');
+    expect(screen).toContain("const copy = await forwardCopy(chatId, item.messageId, to);");
+    expect(screen).toContain('to: `/rooms/${copy.room}?at=${copy.messageId}`');
+    expect(picker).toContain("const refused = await props.forward(chatId);");
+    expect(picker).toContain("room.title.toLowerCase().includes(typed)");
   });
 
   test("reads the room's pins from the receiver, on opening, on a message's change and after a pin", () => {

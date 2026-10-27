@@ -107,7 +107,7 @@ export function receiver(): ReceiverClient {
 
 /** One call on the receiver, its refusals said in the pack's words: the route's own sentences where the call names
  * them, and every route's otherwise. */
-export async function receiverCall<T, E extends { code?: string; error?: string; field?: string }>(
+export async function receiverCall<T, E extends { code?: string; error?: string; field?: string } = { code?: string; error?: string; field?: string }>(
   asked: Promise<{ data?: T; error?: E; response: Response }>,
   call: UnitAnswerCall = {}
 ): Promise<T> {

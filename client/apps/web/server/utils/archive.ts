@@ -11,7 +11,7 @@ import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
 import { within } from "./unit-answer";
 
-import type { ArchivedMessage, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, TelegramExpression, VoiceBriefing } from "#shared/types";
+import type { ArchivedMessage, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, TelegramExpression, VoiceBriefing } from "#shared/types";
 import type { ReceiverMessage, ReceiverRoom } from "./receiver";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
@@ -52,6 +52,8 @@ interface ReceivedMessage {
   agentName: string | null;
   voice: SentVoice | null;
   files: KeptFile[];
+  // Where the record says the message was forwarded from, on a message kept as a forward.
+  forwardedFrom: ForwardedFrom | null;
   // What the record keeps done to it, in unix seconds, and its reactions.
   editedAt: number | null;
   deletedAt: number | null;
@@ -81,6 +83,7 @@ function receivedOf(message: ReceiverMessage): ReceivedMessage {
     agentName: sent.agentName ?? null,
     voice: sent.voice ?? null,
     files: message.files,
+    forwardedFrom: message.forwardedFrom ?? null,
     editedAt: moment(message.editedAt),
     deletedAt: moment(message.deletedAt),
     pinnedAt: moment(message.pinnedAt),
@@ -367,6 +370,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         attachments: files.attachments,
         expressions: files.expressions,
         replyQuote: message.replyToMessageId === null ? null : await quote(message.replyToMessageId),
+        ...(message.forwardedFrom === null ? {} : { forwardedFrom: message.forwardedFrom }),
         spend: null,
         actions: null,
         drafts: null,

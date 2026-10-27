@@ -266,6 +266,7 @@
                   @move="moveFocus"
                   @retry="retry"
                   @discard="discard"
+                  @forward="forwardMessageOf"
                   @react="reactToMessage"
                   @pin="pinMessageAsReader"
                   @edit="editMessageOf"
@@ -408,6 +409,10 @@
        message menu). -->
   <RoomMessageEditDialog v-model:open="editingOpen" :text="editing?.text ?? ''" :description="editing?.senderName ?? ''" :save="saveEdit" />
 
+  <!-- A message the owner forwards into another room: the rooms it can go into, a search over their names, and the
+       record's answer opening the copy (docs/web.md, the room screen's message menu). -->
+  <RoomForwardDialog v-model:open="forwardingOpen" :rooms="forwardingRooms" :description="forwardingDescription" :forward="saveForward" />
+
   <USlideover v-model:open="statsOpen" :title="$t('room.title.session_info')" :description="title">
     <template #close="{ ui }">
       <ShellClose :class="ui.close()" @close="statsOpen = false" />
@@ -455,7 +460,7 @@ import { removedRoom } from "~/domain/room-removal";
 import { copyText } from "~/domain/copy";
 import { bodyOf, copyChipsOf, messageRef, reportOf } from "~/domain/room-copy";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, mineReaction, pinMessage, reactTo, readPins as loadPins } from "~/domain/message-acts";
+import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, forwardMessage as forwardCopy, mineReaction, pinMessage, reactTo, readPins as loadPins } from "~/domain/message-acts";
 import { TURN_ENDED, useBotEvents, useLiveRefresh, useReadFailure, useRoomRun } from "~/domain/events";
 import { useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { useIsland } from "bmo-ui/app/domain/island";
@@ -828,6 +833,53 @@ async function removeMessage(key: string): Promise<void> {
     await roomFeed.catchUp(item.messageId);
   } catch (error) {
     island.fail(error, t("room.error.delete_failed"));
+  }
+}
+
+// The message being forwarded, and the rooms it can go into: every room the console lists but the one it stands in,
+// each under the name the console shows it by. The copy is the record's, so the screen opens it where it went.
+const forwarding = ref<FeedItem | null>(null);
+const forwardingOpen = computed<boolean>({
+  get: () => forwarding.value !== null,
+  set: (open: boolean) => {
+    if (!open) forwarding.value = null;
+  }
+});
+const forwardingRooms = computed(() => rooms.value.filter((room) => room.chatId !== chatId).map((room) => ({ chatId: room.chatId, title: roomTitle(t, rooms.value, room.chatId) })));
+const forwardingDescription = computed<string>(() => {
+  const item = forwarding.value;
+
+  if (item === null) return "";
+
+  const said = item.text.split("\n").find((line) => line.trim() !== "")?.trim() ?? "";
+
+  return said === "" ? item.senderName : `${item.senderName} · ${said}`;
+});
+
+function forwardMessageOf(key: string): void {
+  const item = itemOf(key);
+
+  if (item !== undefined && item.deleted !== true) {
+    forwarding.value = item;
+  }
+}
+
+async function saveForward(to: number): Promise<string | null> {
+  const item = forwarding.value;
+
+  if (item === null) return null;
+
+  try {
+    const copy = await forwardCopy(chatId, item.messageId, to);
+
+    island.say({
+      title: t("room.message.forwarded", { room: roomTitle(t, rooms.value, copy.room) }),
+      to: `/rooms/${copy.room}?at=${copy.messageId}`
+    });
+
+    return null;
+  } catch (error) {
+    return failureText(error, t("room.error.forward_failed"));
   }
 }
 

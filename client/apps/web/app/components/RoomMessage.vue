@@ -121,6 +121,17 @@
                          message this one answers: a line pressed to go there, one the archive does
                          not hold going nowhere. -->
                     <div v-if="head" class="flex min-w-0 flex-col gap-(--chat-meta-gap) px-(--chat-pad-x) pt-(--chat-pad-y)" :class="pictured ? 'pb-(--chat-pad-y)' : ''">
+                      <!-- A message the owner forwarded stands marked with who said the original, and a press opens it
+                           there (docs/web.md, 「What was done to a message」). -->
+                      <NuxtLink
+                        v-if="props.item.forwarded !== undefined"
+                        data-forwarded
+                        :to="`/rooms/${props.item.forwarded.room}?at=${props.item.forwarded.messageId}`"
+                        class="flex min-w-0 items-center gap-1 text-sm leading-(--chat-meta-line) text-dimmed hover:text-default"
+                      >
+                        <UIcon name="i-material-symbols-forward" class="size-3.5 shrink-0" aria-hidden="true" />
+                        <span class="truncate">{{ $t("room.label.forwarded", { name: props.item.forwarded.senderName }) }}</span>
+                      </NuxtLink>
                       <span data-words v-if="named && props.item.voice === undefined" data-name class="truncate text-sm leading-(--chat-meta-line) font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
                       <!-- An agent's answer that went out in the owner's own account names the agent, and beside it, small,
                            the account it went out in. -->
@@ -497,8 +508,11 @@ const attachments = computed<MessageAttachment[]>(() => props.item.attachments ?
 // the reader's own and needs no name.
 const named = computed<boolean>(() => props.place.first && props.item.look.side === "left" && props.item.look.variant === "soft");
 
-// What stands at the bubble's head, over a picture or the words: the name and the quote.
-const head = computed<boolean>(() => named.value || (props.item.run === null && props.item.quote !== null));
+// What stands at the bubble's head, over a picture or the words: the name, the quote, and where a forwarded message
+// came from.
+const head = computed<boolean>(
+  () => named.value || (props.item.run === null && props.item.quote !== null) || (props.item.run === null && props.item.forwarded !== undefined)
+);
 
 // Where the choosing mark's cell starts and the type its one line is measured in: the row's first
 // line (docs/web.md, the section on choosing and copying). A system line starts the row; a bubble's first line starts
@@ -620,6 +634,8 @@ const emit = defineEmits<{
   // A message that failed to go: sent once more as it stands, or given up on.
   retry: [key: string];
   discard: [key: string];
+  // The owner's forward of the message into another room.
+  forward: [key: string];
   // The reader's own acts on the message: a reaction by its emoji, a pin set or taken off, an edit of their own
   // message, and a delete of it.
   react: [key: string, emoji: string];
@@ -671,6 +687,7 @@ const menuItems = computed<ContextMenuItem[][]>(() =>
       reply: () => {
         replying = true;
       },
+      forward: () => emit("forward", props.item.key),
       react: (emoji: string) => emit("react", props.item.key, emoji),
       pin: (on: boolean) => emit("pin", props.item.key, on),
       edit: () => emit("edit", props.item.key),

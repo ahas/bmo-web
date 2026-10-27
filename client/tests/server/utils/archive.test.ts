@@ -28,7 +28,7 @@ const message = (id: number, over: Record<string, unknown> = {}) => ({
 });
 
 const page = [
-  message(1),
+  message(1, { forwardedFrom: { room: -5, messageId: 3, senderName: "person-b" } }),
   message(2, { senderId: 22, senderName: "agent-a", answerSeconds: 4, round: "round:-7:1:1" }),
   message(3, { senderId: 22, senderName: "agent-a", text: `${(marks as { marks: { notice: string } }).marks.notice} restarting` }),
   message(4, {
@@ -170,6 +170,8 @@ describe("a page of a room", () => {
     expect(read.messages[1]).toMatchObject({ answerSeconds: 4, round: "round:-7:1:1", spend: null, actions: null });
     // The agent's number is not the owner's here, so no answer is said to have gone out in the owner's account.
     expect(read.messages.some((one) => one.voicedBy !== undefined)).toBe(false);
+    // Where a forwarded message came from, on the row the record marks and no other.
+    expect(read.messages.map((one) => one.forwardedFrom ?? null)).toEqual([{ room: -5, messageId: 3, senderName: "person-b" }, null, null, null]);
   });
 
   test("names the agent of an answer sent in the owner's own account from the send itself, and asks the number's owner only where the send names no agent", async () => {

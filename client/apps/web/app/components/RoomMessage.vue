@@ -132,16 +132,9 @@
                         <UIcon name="i-material-symbols-forward" class="size-3.5 shrink-0" aria-hidden="true" />
                         <span class="truncate">{{ $t("room.label.forwarded", { name: props.item.forwarded.senderName }) }}</span>
                       </NuxtLink>
-                      <span data-words v-if="named && props.item.voice === undefined" data-name class="truncate text-sm leading-(--chat-meta-line) font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
-                      <!-- An agent's answer that went out in the owner's own account names the agent, and beside it, small,
-                           the account it went out in. -->
-                      <span v-else-if="named" data-words class="flex min-w-0 flex-wrap items-center gap-x-1.5 text-sm leading-(--chat-meta-line)">
-                        <span data-name class="min-w-0 truncate font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
-                        <span data-voice class="flex min-w-0 items-center gap-0.5 text-sm text-dimmed">
-                          <UIcon name="i-material-symbols-record-voice-over-outline" class="size-3.5" aria-hidden="true" />
-                          {{ $t("room.label.voiced_as", { name: props.item.voice }) }}
-                        </span>
-                      </span>
+                      <!-- A message stands under the name of whoever said it, and nothing beside it (docs/web.md, the
+                           naming rule). -->
+                      <span data-words v-if="named" data-name class="truncate text-sm leading-(--chat-meta-line) font-medium" :class="nameColour(props.item.senderId, props.item.senderName)">{{ props.item.senderName }}</span>
                       <RoomQuote
                         v-if="props.item.run === null && props.item.quote !== null"
                         :quote="props.item.quote"

@@ -160,13 +160,9 @@ describe("the account an answer went out in", () => {
     const head = template.slice(template.indexOf('v-if="head"'), template.indexOf("<RoomQuote"));
     const voice = tagOf("data-voice");
 
-    expect(head).toContain('v-if="named && props.item.voice === undefined"');
-    expect(head).toContain('v-else-if="named"');
-    expect(head.indexOf("data-voice")).toBeGreaterThan(head.lastIndexOf("data-name"));
-    expect(head).toContain('$t("room.label.voiced_as", { name: props.item.voice })');
-    expect(voice).toContain("text-sm text-dimmed");
-    // The marker wraps under the name rather than taking the words' width.
-    expect(voice).toContain("min-w-0");
-    expect(head).toContain("flex-wrap");
+    // A message stands under its name alone: no account marker beside it.
+    expect(head).toContain('v-if="named"');
+    expect(head).not.toContain("data-voice");
+    expect(head).not.toContain("voiced_as");
   });
 });

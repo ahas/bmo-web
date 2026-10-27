@@ -10,7 +10,9 @@
         <SkeletonBar class="h-4 w-full" />
       </ContentSkeleton>
       <p v-else-if="failure !== null" class="text-sm text-dimmed">{{ failure }}</p>
-      <pre v-else-if="text !== null" data-brain-read-text class="max-h-96 overflow-y-auto rounded-md bg-elevated p-3 font-sans text-sm whitespace-pre-wrap wrap-anywhere text-default">{{ text }}</pre>
+      <!-- The memory's words with the translate action beside them and its reading under it (docs/web.md, the
+           translated texts section). -->
+      <BrainMemoryText v-else-if="text !== null" :text="text" />
     </template>
 
     <template #footer="{ close }">

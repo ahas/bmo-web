@@ -104,6 +104,7 @@ common:
     view: 보기
     worker: 워커
   action:
+    translate: 번역
     add: 추가
     cancel: 취소
     choose_all: 전체 선택
@@ -170,6 +171,8 @@ common:
     translation_partial: 일부는 번역하지 못해 원문 그대로 둡니다.
     video_loading: 영상 정보 불러오는 중…
   message:
+    translator_absent: 번역기가 없어 번역할 수 없습니다.
+    translator_busy: 번역기가 바빠 지금은 번역할 수 없습니다.
     discard_confirm: 저장하지 않은 변경을 버릴까요?
     link_copied: 링크를 복사했습니다.
     preview_badge: 진행 중

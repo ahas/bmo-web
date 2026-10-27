@@ -36,7 +36,7 @@ globals.$fetch = async (url: string, options: { body: { originals: string[] } })
 
 mock.module("bmo-ui/app/domain/translation", () => ({ hasTranslator: () => named }));
 
-const { useTextReading, wantsReading, readerLanguage } = await import("../../../apps/web/app/domain/text-reading");
+const { useAskedReading, useTextReading, wantsReading, readerLanguage } = await import("../../../apps/web/app/domain/text-reading");
 
 const settle = async (): Promise<void> => {
   for (let round = 0; round < 5; round += 1) await nextTick();
@@ -124,5 +124,77 @@ describe("a text's reading", () => {
     expect(reading.value).toEqual({ kind: "none" });
     expect(asks).toEqual([]);
     named = true;
+  });
+});
+
+describe("a reading asked for by a press", () => {
+  test("asks nothing until the action is pressed, and lands under the original", async () => {
+    named = true;
+    asks.length = 0;
+    answer = async (texts) => texts.map((text) => ({ text: `ko:${text}`, whole: true }));
+
+    const asked = useAskedReading(() => "Memory words.", () => "ko");
+
+    await settle();
+    expect(asked.reading.value).toEqual({ kind: "none" });
+    expect(asked.blocked.value).toBeNull();
+    expect(asks).toEqual([]);
+
+    asked.ask();
+    await settle();
+
+    expect(asked.reading.value).toEqual({ kind: "read", text: "ko:Memory words.", whole: true });
+    expect(asks).toEqual([["Memory words."]]);
+  });
+
+  test("stands disabled with its reason where no translator is named", async () => {
+    named = false;
+    asks.length = 0;
+
+    const asked = useAskedReading(() => "Memory words.", () => "ko");
+
+    asked.ask();
+    await settle();
+
+    expect(asked.blocked.value).toBe("absent");
+    expect(asks).toEqual([]);
+    named = true;
+  });
+
+  test("stands disabled with its reason where the translator answers too busy, until it is asked again", async () => {
+    named = true;
+    asks.length = 0;
+    answer = async (texts) => texts.map((text) => ({ text, whole: false, untranslated: true }));
+
+    const asked = useAskedReading(() => "Busy memory.", () => "ko");
+
+    asked.ask();
+    await settle();
+    expect(asked.blocked.value).toBe("busy");
+    expect(asked.reading.value).toEqual({ kind: "busy" });
+
+    answer = async (texts) => texts.map((text) => ({ text: `ko:${text}`, whole: true }));
+    asked.ask();
+    await settle();
+
+    expect(asked.blocked.value).toBeNull();
+    expect(asked.reading.value).toEqual({ kind: "read", text: "ko:Busy memory.", whole: true });
+  });
+
+  test("another text clears the reading asked for before", async () => {
+    named = true;
+    answer = async (texts) => texts.map((text) => ({ text: `ko:${text}`, whole: true }));
+
+    const text = ref("First words.");
+    const asked = useAskedReading(() => text.value, () => "ko");
+
+    asked.ask();
+    await settle();
+    expect(asked.reading.value.kind).toBe("read");
+
+    text.value = "Second words.";
+    await settle();
+
+    expect(asked.reading.value).toEqual({ kind: "none" });
   });
 });

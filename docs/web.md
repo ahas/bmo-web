@@ -4145,7 +4145,10 @@ Four bounds keep it from growing forever.
     path and whether this round read it new or the session held it. Where the round's end names the brain's
     memory the piece is, the modal reads that memory the first time it opens, with a skeleton while it comes,
     and stands its key, its type, its whole text, its layer, its subjects, when it was written, and a button to
-    that memory's page on the brain's screen. Where it names none, the modal stands the piece's text as the
+    that memory's page on the brain's screen. **The memory's words carry a 번역 action** and the gate's reading of
+    them under the original, the reader's own language heading it, as a worker's or a job's text does below; the
+    action asks nothing until it is pressed, and it stands disabled with its reason where no translator is named or
+    the translator answered too busy. Where it names none, the modal stands the piece's text as the
     gate serves it where the gate's index lists the path (the gate's `GET /reference/pieces/{slug}`), and its
     name and path alone otherwise. Only an administrator, the brain screen's one reader, opens a piece; for
     anyone else the lines stand still.
@@ -5235,9 +5238,11 @@ Four bounds keep it from growing forever.
       running job has been handed it; and the work order — its draft with 저장, or the order as it runs.
   - **The original, and its translation under it.** A text a worker or a job wrote is read in the language it was
     written in and in the reader's own: the brief and each change to it, the running work order's purpose and
-    instruction, each report, and a co-work task's work order and result. Each stands as it was written, and under it,
-    headed by the language it is in, its reading in the language the console speaks to its reader — 한국어 번역. The
-    original is never hidden, folded or replaced by its reading, and nothing is pressed to read either.
+    instruction, each report, and a co-work task's work order and result — and a brain memory opened from a room's
+    brain chip, where the reading is asked by the modal's 번역 action rather than as the text opens. Each stands as
+    it was written, and under it, headed by the language it is in, its reading in the language the console speaks to
+    its reader — 한국어 번역. The original is never hidden, folded or replaced by its reading, and no press is
+    needed to read what the text says.
     - **The road** is the gate's translating route, `POST /translations`, which the gate's `gate/translate` tool
       and a bundle's screens also take. The console asks it through a route of its own, `POST /api/translations`,
       on its own credential and for the reader's role, rather than through the relay: the relay judges a call by

@@ -79,6 +79,69 @@ export function wantsReading(text: string, language: DocumentLanguage): boolean 
   return text.trim() !== "" && textLanguage(text) !== language;
 }
 
+/** Why a press cannot ask for a reading now: the console names no translator, or the translator answered too busy. */
+export type ReadingBlock = "absent" | "busy";
+
+/** One text's reading in the reader's language, asked when `ask` is pressed and asked again on the same press. */
+export function useAskedReading(
+  text: () => string,
+  language: () => DocumentLanguage
+): { reading: Ref<TextReading>; blocked: Ref<ReadingBlock | null>; ask: () => void } {
+  const reading = ref<TextReading>({ kind: "none" });
+  const blocked = ref<ReadingBlock | null>(null);
+  let generation = 0;
+
+  async function ask(): Promise<void> {
+    const original = text();
+    const into = language();
+    const mine = ++generation;
+
+    blocked.value = null;
+
+    if (!hasTranslator()) {
+      blocked.value = "absent";
+
+      return;
+    }
+
+    if (!wantsReading(original, into)) {
+      reading.value = { kind: "none" };
+
+      return;
+    }
+
+    reading.value = { kind: "asking" };
+
+    try {
+      const read = await readingOf(original, into);
+
+      if (mine !== generation) return;
+
+      if (read.untranslated === true) {
+        blocked.value = "busy";
+        reading.value = { kind: "busy" };
+
+        return;
+      }
+
+      reading.value = { kind: "read", text: read.text, whole: read.whole };
+    } catch {
+      if (mine !== generation) return;
+
+      reading.value = { kind: "failed" };
+    }
+  }
+
+  // Another text is another reading: the one pressed for before stands no longer.
+  watch(text, () => {
+    generation += 1;
+    reading.value = { kind: "none" };
+    blocked.value = null;
+  });
+
+  return { reading, blocked, ask: () => void ask() };
+}
+
 /** One text's reading in the reader's language, asked as the text is given and asked again on `retry`. */
 export function useTextReading(text: () => string, language: () => DocumentLanguage): { reading: Ref<TextReading>; retry: () => void } {
   const reading = ref<TextReading>({ kind: "none" });

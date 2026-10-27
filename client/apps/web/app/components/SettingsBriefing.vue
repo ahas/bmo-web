@@ -1,9 +1,8 @@
 <template>
-  <!-- The voice briefing's two switches, the receiver's (docs/web.md, 「Settings」, the voice briefing section): whether anything is
-       spoken, and whether a summary comes to the player. Each is set on its own as it is pressed; one the receiver
-       refused springs back, and the refusal stands under the section. Under them, the console's player placed and
-       tried: where it first stands, kept in this browser, and the trial voice brought to it, waiting for its play
-       press. -->
+  <!-- The voice briefing's one switch, the receiver's (docs/web.md, 「Settings」, the voice briefing section): whether
+       anything is spoken at all. A briefing switched on plays as it arrives, so there is nothing else to set; one the
+       receiver refused springs back, and the refusal stands under the section. Under it, the console's player placed
+       and tried: where it first stands, kept in this browser, and the trial voice brought to it. -->
   <div class="flex flex-col gap-6">
     <ContentSkeleton v-if="switches === null && failure === ''" :rows="2" listClass="flex flex-col divide-y divide-default" :label="$t('briefing.status.settings_loading')">
       <div class="flex items-center gap-4 py-3">
@@ -24,15 +23,6 @@
       <SettingsGroup>
         <SettingsRow :label="$t('briefing.label.switch_all')" :description="$t('briefing.label.switch_all_note')">
           <USwitch :model-value="switches.on" :aria-label="$t('briefing.label.switch_all')" :disabled="busy" data-briefing-switch="on" @update:model-value="(on: boolean) => set({ on })" />
-        </SettingsRow>
-        <SettingsRow :label="$t('briefing.label.autoplay')" :description="$t('briefing.label.autoplay_note')">
-          <USwitch
-            :model-value="switches.autoplay"
-            :aria-label="$t('briefing.label.autoplay')"
-            :disabled="busy"
-            data-briefing-switch="autoplay"
-            @update:model-value="(autoplay: boolean) => set({ autoplay })"
-          />
         </SettingsRow>
       </SettingsGroup>
       <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
@@ -130,8 +120,8 @@ async function read(): Promise<void> {
   }
 }
 
-// One switch set, the other left as it stands; the answer is how both stand after it.
-async function set(change: { on: boolean } | { autoplay: boolean }): Promise<void> {
+// The switch set; the answer is how it stands after it.
+async function set(change: { on: boolean }): Promise<void> {
   const before = switches.value;
 
   if (before === null) return;

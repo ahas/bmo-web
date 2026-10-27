@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
 // The briefing's player as it hears the voice engine (docs/web.md, 「Messages」, the briefing's player): only a
-// summary that ended done and is to come to the player comes, nothing plays by itself, one played to its end goes
-// after a moment unless the reader touched it, a briefing is played once, and stop-listening ends the one playing
-// and all that wait behind it.
+// summary that ended done and is to come to the player comes, and it starts by itself as it comes; a browser that
+// refuses a sound nobody pressed for leaves it waiting for one press. One played to its end goes after a moment
+// unless the reader touched it, a briefing is played once, and stop-listening ends the one playing and all that wait
+// behind it.
 
 
 const { BRIEFING_TRIAL_KEY, BriefingDesk, briefingOfEvent } = await import("../../../apps/web/app/domain/briefing");
@@ -46,19 +47,26 @@ class StandInSound implements BriefingSound {
   }
 }
 
-function desk(): { desk: InstanceType<typeof BriefingDesk>; shown: () => BriefingShown | null; sounds: StandInSound[] } {
-  let shown: BriefingShown | null = null;
-  const sounds: StandInSound[] = [];
-  const heard = new Set<string>();
-  const deps: DeskDeps = {
-    t: (key: string) => key,
-    shown: { read: () => shown, write: (next) => (shown = next) },
-    sound: (src, on) => {
-      const sound = new StandInSound(src, on);
+// A sound the browser refuses to start until a press, as a browser that will not play a sound nobody pressed for does:
+// the play it did not ask for is refused, and the one a press makes is taken.
+class RefusingSound extends StandInSound {
+  private refusals = 0;
 
-      sounds.push(sound);
-      return sound;
-    },
+  override async play(): Promise<void> {
+    if (this.refusals > 0) return await super.play();
+
+    this.refusals += 1;
+    throw Object.assign(new Error("a sound nobody pressed for"), { name: "NotAllowedError" });
+  }
+}
+
+type Desk = InstanceType<typeof BriefingDesk>;
+
+function depsOf(shown: () => BriefingShown | null, write: (next: BriefingShown | null) => void, sound: (src: string, on: SoundHandlers) => BriefingSound, heard = new Set<string>()): DeskDeps {
+  return {
+    t: (key: string) => key,
+    shown: { read: shown, write },
+    sound,
     src: (id) => `/api/briefings/${id}/sound`,
     players: () => [],
     channel: () => null,
@@ -69,8 +77,26 @@ function desk(): { desk: InstanceType<typeof BriefingDesk>; shown: () => Briefin
     wait: async () => undefined,
     failed: () => undefined
   };
+}
+
+function desk(): { desk: Desk; shown: () => BriefingShown | null; sounds: StandInSound[] } {
+  let shown: BriefingShown | null = null;
+  const sounds: StandInSound[] = [];
+  const deps = depsOf(() => shown, (next) => (shown = next), (src, on) => {
+    const sound = new StandInSound(src, on);
+
+    sounds.push(sound);
+    return sound;
+  });
 
   return { desk: new BriefingDesk(deps), shown: () => shown, sounds };
+}
+
+function refusingDesk(): { desk: Desk; shown: () => BriefingShown | null } {
+  let shown: BriefingShown | null = null;
+  const deps = depsOf(() => shown, (next) => (shown = next), (src, on) => new RefusingSound(src, on));
+
+  return { desk: new BriefingDesk(deps), shown: () => shown };
 }
 
 describe("what plays by itself", () => {
@@ -84,45 +110,51 @@ describe("what plays by itself", () => {
 });
 
 describe("the trial voice", () => {
-  test("comes to the player waiting for the play press, leading back where it was tried, and once however often it is pressed", async () => {
+  test("comes to the player playing by itself, leading back where it was tried, and once however often it is pressed", async () => {
     const held = desk();
 
     held.desk.trial("/briefing-trial.ogg", "/rooms/1?settings=briefing");
     held.desk.trial("/briefing-trial.ogg", "/rooms/1?settings=briefing");
 
     expect(held.sounds.map((one) => one.src)).toEqual(["/briefing-trial.ogg"]);
-    expect(held.sounds[0]?.played).toBe(0);
-    expect(held.shown()?.key).toBe(BRIEFING_TRIAL_KEY);
-    expect(held.shown()?.phase).toBe("paused");
-    expect(held.shown()?.to).toBe("/rooms/1?settings=briefing");
-
-    held.shown()?.play();
-    await Promise.resolve();
     expect(held.sounds[0]?.played).toBe(1);
+    expect(held.shown()?.key).toBe(BRIEFING_TRIAL_KEY);
+    expect(held.shown()?.phase).toBe("playing");
+    expect(held.shown()?.to).toBe("/rooms/1?settings=briefing");
   });
 });
 
 describe("the player", () => {
-  test("stands even a fresh one waiting for the play press, from its sound, leading to its line", async () => {
+  test("plays by itself as it comes, from its sound, leading to its line", async () => {
     const held = desk();
 
     await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
-    expect(held.sounds[0]?.src).toBe("/api/briefings/7/sound");
-    expect(held.sounds[0]?.played).toBe(0);
-    expect(held.shown()?.to).toBe("/rooms/42?at=548");
-    expect(held.shown()?.phase).toBe("paused");
 
+    expect(held.sounds[0]?.src).toBe("/api/briefings/7/sound");
+    expect(held.sounds[0]?.played).toBe(1);
+    expect(held.shown()?.to).toBe("/rooms/42?at=548");
+    expect(held.shown()?.phase).toBe("playing");
+  });
+
+  test("waits for one press where the browser refuses a sound nobody pressed for, and that press starts it", async () => {
+    const held = refusingDesk();
+
+    await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+    await Promise.resolve();
+
+    expect(held.shown()?.phase).toBe("blocked");
+
+    // The press is the gesture the browser asked for, and the same play is taken.
     held.shown()?.play();
     await Promise.resolve();
-    expect(held.sounds[0]?.played).toBe(1);
+
+    expect(held.shown()?.phase).toBe("playing");
   });
 
   test("goes a moment after it played to its end, and stays where the reader paused or moved it", async () => {
     const played = desk();
 
     await played.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
-    played.shown()?.play();
-    await Promise.resolve();
     played.sounds[0]!.paused = true;
     played.sounds[0]!.on.ended();
     await Promise.resolve();
@@ -132,8 +164,6 @@ describe("the player", () => {
     const touched = desk();
 
     await touched.desk.hear({ id: 8, chatId: 42, messageId: 549, endedAt: NOW - 1_000, title: null });
-    touched.shown()?.play();
-    await Promise.resolve();
     touched.sounds[0]!.on.moved();
     touched.sounds[0]!.paused = true;
     touched.sounds[0]!.on.ended();
@@ -151,12 +181,12 @@ describe("the player", () => {
     expect(held.shown()).toBeNull();
   });
 
-  test("stands one heard late waiting for a press, and plays a briefing once", async () => {
+  test("plays one heard late by itself, and plays a briefing once", async () => {
     const held = desk();
 
     await held.desk.hear({ id: 8, chatId: 42, messageId: 549, endedAt: NOW - 300_000, title: null });
-    expect(held.sounds[0]?.played).toBe(0);
-    expect(held.shown()?.phase).toBe("paused");
+    expect(held.sounds[0]?.played).toBe(1);
+    expect(held.shown()?.phase).toBe("playing");
 
     await held.desk.hear({ id: 8, chatId: 42, messageId: 549, endedAt: NOW - 300_000, title: null });
     expect(held.sounds.length).toBe(1);

@@ -442,13 +442,18 @@ export class BriefingDesk {
       key,
       to: playable.to,
       title: playable.title,
-      phase: "paused",
+      phase: "loading",
       play: () => void this.play(current),
       pause: () => current.sound.pause(),
       stop: () => this.stop(current),
       levels: (into) => current.sound.levels(into),
       position: () => current.sound.position()
     });
+
+    // The sound starts by itself as it comes (docs/web.md, 「Messages」, the briefing's player): a briefing is meant to
+    // be heard, not waited for. A browser that will not start a sound nobody pressed for moves it to `blocked`, where
+    // the player's own press starts it.
+    void this.play(current);
   }
 
   // Played to its end: gone after a moment unless the reader paused or moved it along, or played it again meanwhile;

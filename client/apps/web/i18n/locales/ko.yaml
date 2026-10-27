@@ -2906,8 +2906,6 @@ briefing:
     stop: 그만듣기
     stop_trial: 정지
   label:
-    autoplay: 플레이어에 표시
-    autoplay_note: 켜 두면 요약 브리핑이 도착하는 대로 플레이어에 표시되고, 재생을 눌러야 들립니다.
     pixels: px
     played: "{at} / {length}"
     position_side: 위치

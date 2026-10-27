@@ -423,11 +423,10 @@ export interface VoiceBriefing {
   finishedAt: number | null;
 }
 
-// The voice briefing's two switches, the receiver's: whether anything is spoken, and whether a summary plays by
-// itself.
+// The voice briefing's one switch, the receiver's: whether anything is spoken at all. A briefing it speaks plays as
+// it arrives, so nothing else stands beside it.
 export interface BriefingSwitches {
   on: boolean;
-  autoplay: boolean;
 }
 
 // What asking for a line's full reading answered: being made, or there already, and the briefing it is — none yet
@@ -1850,13 +1849,6 @@ export interface KeepaliveChanged {
   ok: true;
 }
 
-// Whether the voice briefing is on: off, no briefing is made on any road (the voice unit's docs/voice-briefing.md).
-export interface VoiceBriefingView {
-  on: boolean;
-  // Whether a briefing plays by itself when it arrives (the voice unit's docs/voice-briefing.md, 「Playing by itself」).
-  autoplay: boolean;
-}
-
 // What the bot answers when one runner is stopped from the live board. The row is closed by the
 // runner itself once the signal reaches it, so this says only which unit was asked to end.
 /**
@@ -2876,12 +2868,6 @@ export interface SentAttachments {
   // The files the receiver took but did not answer for in time: they may well have gone, so they are
   // watched for in the room rather than called failed.
   checking: { name: string }[];
-}
-
-export interface VoiceBriefingChanged {
-  ok: true;
-  on: boolean;
-  autoplay: boolean;
 }
 
 // The home, cache-siren, deployment and database screens' shapes.

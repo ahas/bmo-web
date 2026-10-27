@@ -1,3 +1,5 @@
+import { ref } from "vue";
+
 import { isBrainCall, mcpCallOf } from "#shared/mcp-names";
 import { agentLabel, bmoLabel } from "./agents";
 import { subjectOf as joinedSubject } from "#shared/particles";
@@ -10,7 +12,7 @@ import { timerClock } from "bmo-ui/app/domain/time";
 import { watchOfRun, watchTitle } from "./watches";
 
 import type { AgentLogLine, LiveRun, RoomSummary, RunProgress, TurnAction, TurnReceived, TurnSpeaker, WatchView } from "#shared/types";
-import type { ComputedRef } from "vue";
+import type { ComputedRef, Ref } from "vue";
 import type { DraftStep, RoomOutcome } from "./events";
 import type { ContextStateLook, KindLook, ToolChip } from "./log";
 import type { FigureLine } from "./numbers";
@@ -330,6 +332,50 @@ export function turnActions(lines: readonly AgentLogLine[]): TurnAction[] {
   }
 
   return actions;
+}
+
+// How long a picture that carries no runs is held off before it takes the room's line away: long enough for a job to
+// hand over to the next one — a run ends and the next starts a moment later — and short enough that a line whose work
+// truly ended goes. A job's own line is the agency's, and its changes come as one event each, so a moment with none
+// running is a moment, not an ending.
+export const WORK_SETTLE_MS = 2_500;
+
+/**
+ * The runs a room's line stands on, held across the pictures that say nothing of them (docs/web.md, the room screen's
+ * section on what else runs for the room): a picture with no `runs` at all is the receiver's, which serves none, and
+ * says nothing about jobs; a picture with an empty list clears the line once the settle window passes with nothing
+ * running again.
+ */
+export function useHeldRuns(settleMs: number = WORK_SETTLE_MS): { runs: Ref<LiveRun[]>; take: (runs: LiveRun[] | undefined) => void; stop: () => void } {
+  const runs = ref<LiveRun[]>([]);
+  let clock: ReturnType<typeof setTimeout> | null = null;
+
+  const stop = (): void => {
+    if (clock === null) return;
+
+    clearTimeout(clock);
+    clock = null;
+  };
+
+  function take(seen: LiveRun[] | undefined): void {
+    if (seen === undefined) return;
+
+    if (seen.length > 0) {
+      stop();
+      runs.value = seen;
+
+      return;
+    }
+
+    if (runs.value.length === 0 || clock !== null) return;
+
+    clock = setTimeout(() => {
+      clock = null;
+      runs.value = [];
+    }, settleMs);
+  }
+
+  return { runs, take, stop };
 }
 
 // What is running for this room besides its own turn. A gate belongs to the turn it judges and

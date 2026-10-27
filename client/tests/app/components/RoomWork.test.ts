@@ -20,11 +20,16 @@ describe("the line under the conversation", () => {
   });
 
   test("one run opens its log at once, and several drop a menu of them", () => {
-    expect(work).toContain('<UDropdownMenu v-if="props.lines.length > 1"');
-    expect(work).toContain('v-else-if="only !== null"');
+    expect(work).toContain('<UDropdownMenu v-if="summary !== \'\' && props.lines.length > 1"');
+    expect(work).toContain('v-else-if="summary !== \'\' && only !== null"');
     expect(work).toContain('@click="openLog(only)"');
     expect(work).toContain("onSelect: () => openLog(line)");
     expect(work).not.toContain("WorkerStatusDialog");
+  });
+
+  test("keeps its row's height whether the line stands or not, so nothing above it moves", () => {
+    expect(work).toContain('data-work-row class="flex h-8');
+    expect(work).not.toContain('<div v-if="summary !== \'\'"');
   });
 
   test("never says the deployment: the title bar's mark is the one place it stands", () => {

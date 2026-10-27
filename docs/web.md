@@ -251,6 +251,9 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
     frame, take one length and one easing, and end in the same frame, so no part is seen waiting for
     another. Choosing messages is one (「Choosing and copying」): the top bar growing down and the choosing
     column opening sideways run together.
+- **A line that comes and goes at the foot of a conversation keeps its row's height,** so what is above it never
+  moves: the row stands, empty or not, at the height its line takes. A thing changing under a reader's eyes must not
+  carry what they read up and down with it.
 - **How a thing comes and goes says where it came from.**
   - A thing that comes out of a place grows out of that place with a fade and shrinks back into it:
     a dialog out of the control pressed to open it (「Floating things」), a menu, a list or a tooltip
@@ -4807,7 +4810,12 @@ Four bounds keep it from growing forever.
 - **What else runs for this room** — besides the chat agent's answer, a job or a standing watch's check —
   stands below as **one line of counts**, never one line per run, however many run.
   - The parts are 「Job <n>」 for jobs and 「워치 <n>」 for watch checks, joined by a middle dot: 「Job 7 · 워치 3」.
-    A part with nothing in it does not stand, and the line stands while any part does. The line still knows a
+    A part with nothing in it does not stand, and the line stands while any part does.
+  - **The line keeps the runs it last knew.** A picture that carries no runs at all is the receiver's, which serves
+    none, and it says nothing about jobs: it never clears the line. A picture with none in it clears the line only
+    once the settle window — two and a half seconds — passes with nothing running again, so a job handing over to the
+    next one, which is one ending and the next starting a moment later, does not blink the line. The room's row for
+    the line stands at one height whether the line is in it or not, so nothing above it ever moves. The line still knows a
     search's `검색 <n>` and the rest's `기타 <n>` from a picture that carries one; no unit serves those runs now.
   - A deployment is never one of its parts: it is no run of this room, and the title bar's mark is the one place it
     stands (「Deployment in the title bar」).

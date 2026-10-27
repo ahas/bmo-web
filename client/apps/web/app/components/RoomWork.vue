@@ -4,8 +4,10 @@
        line never wraps: one too long for the screen is cut at its edge. Its shimmering words are the
        whole sign that something runs. Pressing it opens the log of what runs: one run's at once, or
        a menu of the runs where there are several. -->
-  <div v-if="summary !== ''" v-bind="$attrs" class="flex max-w-full min-w-0 justify-center self-center">
-    <UDropdownMenu v-if="props.lines.length > 1" v-model:open="menuOpen" :items="menu" :content="{ side: 'top', align: 'start' }" :ui="{ itemDescription: 'tabular-nums' }">
+  <!-- The row stands whether the line does or not, at one height: a line that comes and goes at the foot of the
+       conversation must not move the messages above it (docs/web.md, 「Motion」). -->
+  <div v-bind="$attrs" data-work-row class="flex h-8 max-w-full min-w-0 items-center justify-center self-center">
+    <UDropdownMenu v-if="summary !== '' && props.lines.length > 1" v-model:open="menuOpen" :items="menu" :content="{ side: 'top', align: 'start' }" :ui="{ itemDescription: 'tabular-nums' }">
       <button type="button" :class="[LINE, PRESSABLE]">
         <UChatShimmer :text="summary" class="block truncate tabular-nums" />
       </button>
@@ -18,7 +20,7 @@
     </UDropdownMenu>
 
     <button
-      v-else-if="only !== null"
+      v-else-if="summary !== '' && only !== null"
       type="button"
       :class="[LINE, PRESSABLE]"
       :aria-haspopup="'dialog'"

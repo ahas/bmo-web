@@ -7,7 +7,7 @@ import { wording } from "../../../apps/web/shared/wording";
 const OWNER_ROOM_TITLE = "Owner room";
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { GENERIC_TOOL_ICON } from "../../../apps/web/app/domain/log";
-import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, receivedLine, roomRuns, runSummary, subjectOf, turnActions, turnName } from "../../../apps/web/app/domain/working";
+import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, receivedLine, roomRuns, runSummary, subjectOf, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
 
 import type { AgentLogLine, AgentSummary, LiveRun, RoomSummary, RunProgress, TurnAction, WatchView } from "../../../apps/web/shared/types";
 import type { RoomRunLine } from "../../../apps/web/app/domain/working";
@@ -492,5 +492,40 @@ describe("what a turn read from the brain", () => {
     ];
 
     expect(brainActions(actions).map((action) => action.name)).toEqual(["doc-a", "mcp__bmo__brain_recall", "bmo/brain_list", "shell"]);
+  });
+});
+
+describe("the runs a room's line stands on", () => {
+  const run = (id: number): LiveRun => ({ id, kind: "worker", agent: "worker-a", chatId: -7, messageId: null, startedAt: 1, unit: `job-${id}`, capSeconds: null, depth: null, model: null, startedBy: null, todoId: id, progress: null });
+
+  test("a picture with no runs at all says nothing about jobs, and leaves the line as it stood", () => {
+    const held = useHeldRuns(10);
+
+    held.take([run(1), run(2), run(3)]);
+    held.take(undefined);
+
+    expect(held.runs.value.map((one) => one.id)).toEqual([1, 2, 3]);
+    held.stop();
+  });
+
+  test("an empty picture clears the line only once the settle window passes with nothing running again", async () => {
+    const held = useHeldRuns(20);
+
+    held.take([run(1), run(2), run(3)]);
+    held.take([]);
+    expect(held.runs.value).toHaveLength(3);
+
+    // Work running again inside the window keeps the line, and the window closes with nothing cleared.
+    await Bun.sleep(8);
+    held.take([run(4)]);
+    await Bun.sleep(25);
+
+    expect(held.runs.value.map((one) => one.id)).toEqual([4]);
+
+    held.take([]);
+    await Bun.sleep(35);
+
+    expect(held.runs.value).toEqual([]);
+    held.stop();
   });
 });

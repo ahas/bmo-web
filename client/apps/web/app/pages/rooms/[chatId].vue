@@ -525,7 +525,7 @@ import {
 import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX, usePolling } from "~/domain/polling";
 import { formatClock, toUnixSeconds } from "bmo-ui/app/domain/time";
 import { imageUrl } from "~/domain/urls";
-import { outcomeLine, roomRuns } from "~/domain/working";
+import { outcomeLine, roomRuns, useHeldRuns } from "~/domain/working";
 import { groupRoom, listeningRuns, shownOutcome, useRoomWindow } from "~/domain/room-window";
 import { clearFound, foundMessages, markFound, steppedHit } from "~/domain/room-find";
 import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
@@ -702,7 +702,14 @@ const focusedKey = ref<string | null>(null);
 // What else is running for this room — a search, a browse, a job, a watch's check. The picture
 // arrives whole on the live event, as it does elsewhere. The standing watches do not ride that
 // stream, so they are read beside it: a check's run says nothing about which watch it is a check of.
-const live = ref<LiveRun[]>([]);
+//
+// The runs are held: the receiver's own picture carries no runs at all, so it never clears the
+// room's line, and an answer with none in it clears it only after the settle window, so a job
+// handing over to the next one does not blink the line and move the conversation with it
+// (docs/web.md, the room screen's section on what else runs for the room).
+const { runs: live, take: takeLive, stop: stopLive } = useHeldRuns();
+
+onBeforeUnmount(stopLive);
 const watches = ref<WatchView[]>([]);
 // The messages the bot holds queued for a turn of the chat agent's, which are waiting to be judged.
 const queued = ref<QueuedMessage[]>([]);
@@ -714,8 +721,8 @@ const { runs, outcome } = useRoomRun(chatId, {
   // A turn that sent its answer stands its row until that answer is in the feed, found as its row finds it.
   answered: (run: RunState) => turnAnswer(run, (companionOf(run.speaker) ?? botSpeaker(roomFeed.messages.value)).id, roomFeed.messages.value) !== undefined,
   onLive: (picture: LiveSnapshot) => {
-    live.value = picture.runs ?? [];
-    queued.value = picture.queued ?? [];
+    takeLive(picture.runs);
+    queued.value = picture.queued ?? queued.value;
   }
 });
 
@@ -2701,7 +2708,7 @@ async function readLive(): Promise<void> {
   try {
     const status = await $fetch<StatusView>("/api/status");
 
-    live.value = status.live;
+    takeLive(status.live);
     watches.value = status.watches ?? [];
   } catch {
     // The room reads either way; without the picture it simply shows no other work.

@@ -4,6 +4,7 @@ import { useIsland } from "bmo-ui/app/domain/island";
 
 import { useBotEvents } from "./events";
 import { briefingSoundUrl, playAlone } from "./player";
+import { appUrl } from "./urls";
 
 import type { Playing } from "./player";
 import type { Tap } from "bmo-ui/app/domain/sound-tap";
@@ -253,6 +254,9 @@ interface Playable {
   starts: boolean;
 }
 
+// The trial voice the settings play: its key, which no briefing can have.
+export const BRIEFING_TRIAL_KEY = "trial";
+
 interface Current {
   playable: Playable;
   sound: BriefingSound;
@@ -320,6 +324,15 @@ export class BriefingDesk {
       title: heard.title,
       starts: fresh(heard, this.deps.now())
     });
+  }
+
+  // The trial voice, played through the same player at a press (docs/web.md, 「Settings」, the voice briefing section): no other tab
+  // claims it or hears of it, nothing keeps it, and it is played once however often it is pressed while it stands
+  // or waits.
+  trial(src: string, to: string): void {
+    if (this.current?.playable.key === BRIEFING_TRIAL_KEY || this.waiting.some((one) => one.key === BRIEFING_TRIAL_KEY)) return;
+
+    this.line({ key: BRIEFING_TRIAL_KEY, src, to, title: null, starts: true });
   }
 
   // Played now, or behind the one playing and those already waiting.
@@ -611,6 +624,18 @@ function tabRank(): number {
   return document.hasFocus() ? 0 : 1;
 }
 
+// The desk of the layout hearing the briefings, for as long as it stands, so the settings can play the trial voice
+// through the same player.
+let openDesk: (() => BriefingDesk) | null = null;
+
+// The trial voice: about a minute of the chat agent's voice, shipped with the console as a file.
+const TRIAL_FILE = "/briefing-trial.ogg";
+
+/** The trial voice played through the player; a press on the player while it plays leads to `to`. */
+export function playTrialBriefing(to: string): void {
+  openDesk?.().trial(appUrl(TRIAL_FILE), to);
+}
+
 // The console's briefings, heard for as long as the layout that calls this stands.
 export function useBriefings(t: Translate): void {
   if (import.meta.server) {
@@ -644,5 +669,10 @@ export function useBriefings(t: Translate): void {
       void made().hear(heard);
     }
   });
-  onScopeDispose(() => desk?.close());
+  openDesk = made;
+  onScopeDispose(() => {
+    if (openDesk === made) openDesk = null;
+
+    desk?.close();
+  });
 }

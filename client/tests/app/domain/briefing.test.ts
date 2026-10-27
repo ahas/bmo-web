@@ -5,7 +5,7 @@ import { describe, expect, test } from "bun:test";
 // played once, and stop-listening ends the one playing and all that wait behind it.
 
 
-const { BriefingDesk, briefingOfEvent, fresh } = await import("../../../apps/web/app/domain/briefing");
+const { BRIEFING_TRIAL_KEY, BriefingDesk, briefingOfEvent, fresh } = await import("../../../apps/web/app/domain/briefing");
 
 import type { BriefingShown, BriefingSound, DeskDeps, SoundHandlers } from "../../../apps/web/app/domain/briefing";
 import type { BotEvent, VoiceBriefing } from "../../../apps/web/shared/types";
@@ -84,6 +84,19 @@ describe("what plays by itself", () => {
   test("is news for two minutes after it ended", () => {
     expect(fresh({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 119_000, title: null }, NOW)).toBe(true);
     expect(fresh({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 121_000, title: null }, NOW)).toBe(false);
+  });
+});
+
+describe("the trial voice", () => {
+  test("plays through the player at once, leading back where it was tried, and once however often it is pressed", () => {
+    const held = desk();
+
+    held.desk.trial("/briefing-trial.ogg", "/rooms/1?settings=briefing");
+    held.desk.trial("/briefing-trial.ogg", "/rooms/1?settings=briefing");
+
+    expect(held.sounds.map((one) => one.src)).toEqual(["/briefing-trial.ogg"]);
+    expect(held.shown()?.key).toBe(BRIEFING_TRIAL_KEY);
+    expect(held.shown()?.to).toBe("/rooms/1?settings=briefing");
   });
 });
 

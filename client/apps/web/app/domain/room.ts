@@ -1020,8 +1020,9 @@ function faceOf(message: Pick<ArchivedMessage, "senderId" | "senderName" | "voic
 }
 
 // A chat agent's face by its registration name, where the index holds one under it, and otherwise its label's letter
-// as everyone's (docs/web.md, 「Profile photos」).
-function agentAvatar(avatars: AvatarIndex, name: string): AvatarProps {
+// as everyone's (docs/web.md, 「Profile photos」): the one lookup an agent's finished rows and its running turn's row
+// both wear.
+export function agentAvatar(avatars: AvatarIndex, name: string): AvatarProps {
   const picture = avatars.get(agentKey(name));
   const label = agentRowName(name);
 

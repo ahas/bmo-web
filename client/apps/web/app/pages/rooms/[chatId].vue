@@ -464,6 +464,7 @@ import { emptyRoomStats } from "~/domain/roomstats";
 import {
   archivedRows,
   atFoot,
+  agentAvatar,
   botAvatar,
   botSpeaker,
   bubbleLook,
@@ -865,7 +866,8 @@ const turnRows = computed<FeedItem[]>(() =>
 
     const shown = { id: companion.id, name: agentLabel(t, companion.name) };
 
-    return runItem(run, shown, avatarFor(avatars.value, "person", shown.id, shown.name));
+    // The companion's own face, the one its answers wear, whatever number its words stand under here.
+    return runItem(run, shown, agentAvatar(avatars.value, companion.name));
   })
 );
 // A row gives its place to its turn's answer the moment the answer is in the feed, by whichever read.

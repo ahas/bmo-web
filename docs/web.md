@@ -5599,6 +5599,18 @@ dialog open at 계정.
   보이스브리핑**, whether anything is spoken at all, and **자동 재생**, whether a summary plays by itself in the
   console's player. Each is set on its own as it is pressed, and stays switchable while the other is off. A
   switch the receiver refused springs back, and the refusal stands under the section in one line.
+- **The player, placed and tried** (「Messages」, the briefing's player). **위치** chooses 왼쪽 or 오른쪽 and **높이**
+  the height in pixels from the top of the page area, a number box with px after it that stands empty, holding
+  기본값, where the player keeps its first place — as low as the page area lets it, above whatever bar stands at
+  the screen's foot. Both are this viewer's, kept in this browser beside the place a drag leaves the player at, and
+  are where the player stands when it next shows; each takes effect as it is changed. **초기화** puts the player
+  back at its first place.
+  - **테스트 재생** plays the trial voice — about a minute of the chat agent's voice, shipped with the console as a
+    file, so nothing is synthesised at the press — through the same player, so how it comes out, swells with the
+    voice, is dragged and goes can be watched at any time; the button reads **정지** while it plays and stops it.
+  - The trial is this tab's alone: no other tab hears of it and nothing keeps it. Pressed while a briefing plays,
+    it waits behind it as another briefing would, and the player's press during it leads back to the screen it
+    was tried on, with the settings open at 보이스브리핑.
 
 ### Messages
 

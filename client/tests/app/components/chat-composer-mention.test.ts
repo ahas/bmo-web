@@ -18,6 +18,9 @@ describe("the composer's mention list", () => {
     expect(template).toContain('role="listbox"');
     expect(template).toContain(':aria-label="$t(\'room.aria.mention_list\')"');
     expect(template).toContain("candidate.kind === 'agent' ? 'i-material-symbols-smart-toy-outline' : 'i-material-symbols-person-outline'");
+    // An agent that has a picture wears it, and the name beside it is its own.
+    expect(template).toContain('v-if="candidate.avatar !== undefined" v-bind="candidate.avatar" size="2xs"');
+    expect(template).toContain("<span data-mention-name class=\"truncate\">{{ candidate.text }}</span>");
   });
 
   test("takes its keys before the box, so Enter picks rather than sends", () => {
@@ -52,7 +55,10 @@ describe("the room that feeds it", () => {
     expect(screen).toContain("const mentionPeople = computed<string[]>(() =>");
     expect(screen).toContain("!owner.value.senders.includes(message.senderId)");
     expect(screen).toContain("message.agent !== true && message.notice !== true");
-    expect(screen).toContain("catalogue.value.agents.filter((agent) => agent.defaultAnswerer || agent.chatId === chatId)");
-    expect(screen).toContain(".map((agent) => agentLabel(t, agent.name))");
+    // The agents come from the room's answerers, by their own labels and pictures, never by a room's title.
+    expect(screen).toContain("`/api/rooms/${chatId}/answerers`");
+    expect(screen).toContain("const names = [...new Set([named.default, ...named.agents.map((answerer) => answerer.name)])]");
+    expect(screen).toContain('label: name === chatAgent().name ? bmoLabel(t) : agentLabel(t, name)');
+    expect(screen).toContain("avatar: agentAvatar(avatars.value, name)");
   });
 });

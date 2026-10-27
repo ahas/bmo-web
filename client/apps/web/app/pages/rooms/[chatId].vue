@@ -445,7 +445,8 @@ import { POLL_INTERVAL_MS } from "#shared/config";
 import { controlLine, useControlStatus } from "~/domain/control";
 import { messageOfQuery } from "#shared/paths";
 import { screenKey } from "~/domain/route-key";
-import { agentLabel, companionOf, roomTitle } from "~/domain/agents";
+import { agentLabel, bmoLabel, companionOf, roomTitle } from "~/domain/agents";
+import { chatAgent } from "#shared/agent-names";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { attachmentBody } from "~/domain/attachments";
 import { useAgentAvatars } from "~/domain/agent-face";
@@ -554,7 +555,8 @@ import type { AvatarIndex } from "~/domain/avatars";
 import type { RunState } from "~/domain/events";
 import type { LandedPicture, OutboxItem, SendOutcome } from "~/domain/outbox";
 import type { DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
-import type { PinnedMessage } from "#shared/types";
+import type { MentionAgent } from "~/domain/mentions";
+import type { PinnedMessage, RoomAnswerers } from "#shared/types";
 import type { Point, Rect } from "~/domain/flight";
 
 // Another room is another screen; the rest of the address is not the room's, and a message it names is
@@ -1057,6 +1059,15 @@ const statsRead = useReadFailure({
 // room, the reader's own senders left out, and the agents answering it — the chat agent and every companion of the
 // room — each by its label. A name written into the words is what the receiver reads: a registered label or wake word.
 const { agents: catalogue } = useAgentCatalogue();
+// The room's agents for the mention list, by the names the receiver gives its answerers (docs/web.md, the room screen's
+// mention section): each is called by the agent's own label and wears the picture the catalogue gives it, never by a
+// room's own title — a chat session registered for one room is labeled by that room, and the agent is not.
+const { data: roomAnswerers } = useFetch<RoomAnswerers>(() => `/api/rooms/${chatId}/answerers`, {
+  key: `room-answerers-${chatId}`,
+  lazy: true,
+  server: false,
+  default: () => ({ default: "", voice: null, agents: [] })
+});
 const mentionPeople = computed<string[]>(() =>
   [...new Set(
     roomFeed.messages.value
@@ -1064,7 +1075,16 @@ const mentionPeople = computed<string[]>(() =>
       .map((message) => message.senderName)
   )]
 );
-const mentionAgents = computed<string[]>(() => catalogue.value.agents.filter((agent) => agent.defaultAnswerer || agent.chatId === chatId).map((agent) => agentLabel(t, agent.name)));
+const mentionAgents = computed<MentionAgent[]>(() => {
+  const named = roomAnswerers.value;
+  const names = [...new Set([named.default, ...named.agents.map((answerer) => answerer.name)])].filter((name) => name !== "");
+
+  return names.map((name) => ({
+    name,
+    label: name === chatAgent().name ? bmoLabel(t) : agentLabel(t, name),
+    avatar: agentAvatar(avatars.value, name)
+  }));
+});
 const mentionSources = computed(() => ({ people: mentionPeople.value, agents: mentionAgents.value }));
 
 // Whom the console speaks as here: the owner, under the sender and the name their own messages are archived

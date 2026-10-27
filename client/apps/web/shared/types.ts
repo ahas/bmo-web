@@ -309,6 +309,14 @@ export interface Situation {
   changed: boolean;
 }
 
+// The agents answering a room, by their own registration names (the receiver's `docs/api.md`, `GET
+// /rooms/{roomId}/answerers`): the default answerer, the room's voice and every agent standing in the room.
+export interface RoomAnswerers {
+  default: string;
+  voice: string | null;
+  agents: { name: string; companion: boolean }[];
+}
+
 // A room's situation note as it stands, with when it last changed (epoch milliseconds), both null where the room has no
 // note yet.
 export interface RoomSituation {

@@ -1,6 +1,7 @@
 import { nextTick, ref, shallowRef } from "vue";
 
 import type { Ref, ShallowRef } from "vue";
+import type { AvatarProps } from "@nuxt/ui";
 
 // The mention an @ starts in the input box (docs/web.md, the room screen's section on mentions): the list of the room's people and
 // agents a name can be picked from, the keyboard that moves over it, and the words a pick leaves in the box. The
@@ -12,14 +13,25 @@ import type { Ref, ShallowRef } from "vue";
 export type MentionKind = "person" | "agent";
 
 export interface MentionCandidate {
+  // The name written into the words, which is what the receiver reads.
   text: string;
   kind: MentionKind;
+  // The picture the row wears, on an agent that has one (docs/web.md, the room screen's mention section).
+  avatar?: AvatarProps;
+}
+
+// An agent a room offers: the receiver's registration name, the name it is called by, and the picture the catalogue
+// gives it.
+export interface MentionAgent {
+  name: string;
+  label: string;
+  avatar?: AvatarProps;
 }
 
 // Who a room offers: the people who spoke there, the reader's own left out, and the agents answering it.
 export interface MentionSources {
   people: readonly string[];
-  agents: readonly string[];
+  agents: readonly MentionAgent[];
 }
 
 // What the list reads of the box it stands over: the words, where the caret is, and the way back to the words after a
@@ -72,8 +84,10 @@ export function useMentions(text: Ref<string>, box: () => MentionBox | null, sou
 
     // The agents first: calling one is what an @ is usually for. An agent's name wins one both lists hold, since it
     // is the name the receiver wakes.
-    for (const name of agents) {
-      if (name.trim() !== "") held.set(name, { text: name, kind: "agent" });
+    for (const agent of agents) {
+      const label = agent.label.trim();
+
+      if (label !== "") held.set(label, { text: label, kind: "agent", ...(agent.avatar === undefined ? {} : { avatar: agent.avatar }) });
     }
 
     for (const name of people) {

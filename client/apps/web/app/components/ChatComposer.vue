@@ -31,8 +31,9 @@
             @mousedown.prevent="chooseMention(index)"
             @mouseenter="aimMention(index)"
           >
-            <UIcon :name="candidate.kind === 'agent' ? 'i-material-symbols-smart-toy-outline' : 'i-material-symbols-person-outline'" class="size-4 shrink-0 text-dimmed" aria-hidden="true" />
-            <span class="truncate">{{ candidate.text }}</span>
+            <UAvatar v-if="candidate.avatar !== undefined" v-bind="candidate.avatar" size="2xs" class="shrink-0" />
+            <UIcon v-else :name="candidate.kind === 'agent' ? 'i-material-symbols-smart-toy-outline' : 'i-material-symbols-person-outline'" class="size-4 shrink-0 text-dimmed" aria-hidden="true" />
+            <span data-mention-name class="truncate">{{ candidate.text }}</span>
           </button>
         </li>
       </ul>

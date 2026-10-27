@@ -26,7 +26,13 @@ function setup(sources: MentionSources, value = "", caret = value.length) {
   return { text, area, mentions };
 }
 
-const SOURCES: MentionSources = { people: ["person-a", "person-b"], agents: ["agent-a", "agent-b"] };
+const SOURCES: MentionSources = {
+  people: ["person-a", "person-b"],
+  agents: [
+    { name: "agent-a", label: "agent-a" },
+    { name: "agent-b", label: "agent-b", avatar: { alt: "agent-b" } }
+  ]
+};
 
 const key = (name: string, over: Partial<KeyboardEvent> = {}): KeyboardEvent => ({ key: name, ...over }) as KeyboardEvent;
 
@@ -87,6 +93,19 @@ describe("the list an @ opens", () => {
     mentions.track();
 
     expect(mentions.open.value).toBe(false);
+  });
+});
+
+describe("what a row wears", () => {
+  test("an agent stands by its own label and picture, and writes that label into the words", () => {
+    const { mentions } = setup(SOURCES, "@");
+
+    mentions.track();
+
+    const agent = mentions.items.value.find((one) => one.kind === "agent" && one.text === "agent-b");
+
+    expect(agent?.avatar).toEqual({ alt: "agent-b" });
+    expect(mentions.items.value.find((one) => one.kind === "agent")?.text).toBe("agent-a");
   });
 });
 

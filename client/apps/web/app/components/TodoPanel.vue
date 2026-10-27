@@ -486,7 +486,7 @@
 
   <!-- One row's detail, over the list rather than inside it. Every panel holds one, so what is
        typed into it lives as long as the panel does; only the panel a person is reading draws it. -->
-  <TodoItemDetail ref="detail" :shows="showsDetail" :item="readingItem" :panel="shared" @close="dismiss" />
+  <TodoItemDetail ref="detail" :shows="showsDetail" :item="readingItem" :panel="shared" @close="dismiss" @log="(item) => void openJobLog(item)" />
 
 </template>
 

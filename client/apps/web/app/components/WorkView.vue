@@ -171,7 +171,8 @@ async function readOrder(): Promise<void> {
   }
 
   try {
-    order.value = await $fetch<WorkOrderView | null>(`/api/todos/${todo}/work-order`);
+    // An item with no work order is answered with no body, which reads as nothing at all.
+    order.value = (await $fetch<WorkOrderView | null>(`/api/todos/${todo}/work-order`)) ?? null;
   } catch {
     return;
   }

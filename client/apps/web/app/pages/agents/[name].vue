@@ -75,6 +75,10 @@
               <!-- This agent's own settings, where it has any of its own: a worker's whole settings,
                    a gate's row and a room agent's gates, the very pieces the agent management screen
                    shows. -->
+              <!-- A chat agent's own picture, set in the console, for the administrator (docs/web.md, 「Profile photos」). -->
+              <UTooltip v-if="picturable" :text="$t('picture.label.agent')">
+                <UButton color="neutral" variant="ghost" icon="i-material-symbols-add-photo-alternate-outline" :aria-label="$t('picture.label.agent')" data-agent-picture @click="pictureOpen = true" />
+              </UTooltip>
               <UTooltip v-if="settingsKind !== null" :text="$t('agents.action.settings')">
                 <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-settings-outline" :aria-label="$t('agents.action.settings')" @click="settingsOpen = true" />
               </UTooltip>
@@ -105,6 +109,7 @@
       <GateSettingsDialog v-else-if="settingsKind === 'gate'" v-model:open="settingsOpen" :gate="name" />
       <CompanionSettingsDialog v-else-if="settingsKind === 'companion' && row !== null" v-model:open="settingsOpen" :meta="meta" :agent="row" :reread="refreshCatalogue" />
       <AgentGatesDialog v-else-if="settingsKind === 'gates' && row !== null" v-model:open="settingsOpen" :meta="meta" :agent="row" :reread="refreshCatalogue" />
+      <PictureDialog v-if="picturable" v-model:open="pictureOpen" :title="$t('picture.label.agent')" :description="meta.label" kind="agent" :subject="name" :avatar="agentPicture" />
     </template>
 
     <template #footer>
@@ -129,7 +134,9 @@
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { isAgentName, POLL_INTERVAL_MS, WORKER_AGENT } from "#shared/config";
 import { agentMetaOf, catalogueAgents, groupLabel, launchableAgent, roomTitle, runOfAgent } from "~/domain/agents";
-import { wearsFace } from "~/domain/agent-face";
+import { useAgentFace, wearsFace } from "~/domain/agent-face";
+import { useAdministrator } from "~/domain/access";
+import { avatarFor } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useControlStatus } from "~/domain/control";
 import { agentVitals } from "~/domain/vitals";
@@ -246,6 +253,14 @@ const settingsKind = computed<"worker" | "gate" | "companion" | "gates" | null>(
 });
 const settingsOpen = ref(false);
 
+// A chat agent stands as its face, so its picture is set here, by the administrator alone (docs/web.md, 「Profile
+// photos」): the one standing now, or its letter.
+const administrator = useAdministrator();
+const picturable = computed(() => administrator.value && wearsFace(meta.value));
+const pictureOpen = ref(false);
+const faceOf = useAgentFace();
+const agentPicture = computed(() => faceOf.value(meta.value) ?? avatarFor(new Map(), "person", null, meta.value.label));
+
 // A job worker keeps the line of its job at the foot of its screen, whichever worker it is: the
 // catalogue says which agents are workers.
 const isJobWorker = computed<boolean>(() => row.value?.kind === "worker");
@@ -291,6 +306,10 @@ const phoneActions = computed<BarAction[]>(() => {
       loading: stops.isStopping(target),
       onSelect: () => stops.ask(target)
     });
+  }
+
+  if (picturable.value) {
+    actions.push({ id: "picture", label: t("picture.label.agent"), icon: "i-material-symbols-add-photo-alternate-outline", onSelect: () => { pictureOpen.value = true; } });
   }
 
   if (settingsKind.value !== null) {

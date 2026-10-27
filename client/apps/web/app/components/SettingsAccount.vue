@@ -1,12 +1,18 @@
 <template>
   <!-- The account section (docs/web.md, 「Settings」): the account's name and the way to its one form, the
-       name and the password, which is a dialog of its own with its own save. -->
+       name and the password, which is a dialog of its own with its own save; and one's own picture, the sender's
+       linked to the account, set in the console (「Profile photos」). -->
   <div class="flex flex-col gap-6">
     <SettingsGroup>
       <SettingsRow :label="$t('account.title.login')" :description="user?.name">
         <UButton color="neutral" variant="outline" :label="$t('account.action.change')" @click="editing = true" />
       </SettingsRow>
     </SettingsGroup>
+
+    <div v-if="ownSender !== null" class="flex flex-col gap-2">
+      <h3 class="text-sm font-medium text-highlighted">{{ $t("picture.label.own") }}</h3>
+      <PictureSetting kind="person" :subject="ownSender" :avatar="ownPicture" />
+    </div>
 
     <UAlert v-if="done" color="success" variant="subtle" :description="$t('account.message.saved')" />
 
@@ -36,12 +42,22 @@
 </template>
 
 <script setup lang="ts">
+import { avatarFor, useAvatars } from "~/domain/avatars";
+
+import type { OwnerChat } from "#shared/types";
 import { failureText } from "bmo-ui/app/domain/errors";
 
 import type { AccountUser } from "#shared/types";
 
 const { t } = useI18n();
 const { user, fetch: refreshSession } = useUserSession();
+
+// Whose picture is one's own: the sender the receiver files the owner under for the administrator, and the first
+// sender linked to the account otherwise; none where no sender is known.
+const { data: owner } = useFetch<OwnerChat>("/api/owner", { key: "owner", default: () => ({ chatId: null, senderId: null, senders: [], administrator: false }) });
+const ownSender = computed<number | null>(() => owner.value.senderId !== null && owner.value.senders.includes(owner.value.senderId) ? owner.value.senderId : (owner.value.senders[0] ?? null));
+const avatars = useAvatars();
+const ownPicture = computed(() => avatarFor(avatars.value, "person", ownSender.value, user.value?.name ?? ""));
 
 const editing = ref(false);
 const failure = ref<string | null>(null);

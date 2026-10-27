@@ -2807,3 +2807,21 @@ home:
     queue_job: 대기열 항목을 처리하는 Job
   status:
     bmo_answering: 채팅 에이전트가 답변 중
+picture:
+  action:
+    choose: 사진 고르기
+    clear: 제공자 사진으로 되돌리기
+    set_room: 방 사진
+  error:
+    failed: 사진을 바꾸지 못했습니다.
+    no_number: 이 에이전트는 아직 번호가 없어 사진을 둘 수 없습니다.
+    not_a_picture: 사진으로 읽을 수 없는 파일입니다.
+    too_large: 사진 파일이 너무 큽니다.
+  label:
+    agent: 에이전트 사진
+    own: 프로필 사진
+    preview_note: 저장하면 이 사진이 제공자 사진 대신 보입니다.
+    room: 방 사진
+  message:
+    cleared: 제공자 사진으로 되돌렸습니다.
+    saved: 사진을 바꿨습니다.

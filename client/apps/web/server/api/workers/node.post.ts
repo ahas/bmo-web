@@ -4,7 +4,6 @@ import type { components } from "@agency/client/schema";
 
 type WorkerChange = components["schemas"]["WorkerChange"];
 import type { WorkerChanged } from "#shared/types";
-import type { WorkerSent } from "../../utils/agency";
 
 interface WorkerNodeBody {
   action?: unknown;
@@ -33,7 +32,7 @@ export default defineEventHandler(async (event): Promise<WorkerChanged> => {
 
   const node = typeof body?.node === "string" ? body.node : null;
   const path = typeof body?.path === "string" ? body.path : null;
-  const change: WorkerSent<WorkerChange> = {
+  const change: WorkerChange = {
     sampling: null,
     nodeName: action === "remove-checkout" ? null : node,
     node,
@@ -45,7 +44,7 @@ export default defineEventHandler(async (event): Promise<WorkerChanged> => {
     bench: null
   };
 
-  await agencyCall(agency().PATCH("/workers/{workerName}", { params: { path: { workerName: name } }, body: change as WorkerChange }));
+  await agencyCall(agency().PATCH("/workers/{workerName}", { params: { path: { workerName: name } }, body: change }));
 
   return { ok: true };
 });

@@ -40,7 +40,19 @@
           </div>
 
           <div v-if="openedItem !== null" class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
-            <UBadge :color="stateColour(openedItem)" variant="subtle" size="sm" :icon="stateIcon(openedItem)">
+            <!-- A running item's state is pressed for its job's log, as the line's job log entry is (docs/web.md, the TODO panel). -->
+            <UTooltip v-if="openedItem.running" :text="$t('todo.action.job_log')">
+              <UButton
+                :color="stateColour(openedItem)"
+                variant="subtle"
+                size="xs"
+                :icon="stateIcon(openedItem)"
+                :label="stateLabel($t, openedItem)"
+                data-item-state-log
+                @click="emit('log', openedItem)"
+              />
+            </UTooltip>
+            <UBadge v-else :color="stateColour(openedItem)" variant="subtle" size="sm" :icon="stateIcon(openedItem)">
               {{ stateLabel($t, openedItem) }}
             </UBadge>
 
@@ -943,6 +955,8 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const emit = defineEmits<{
   close: [];
+  // The job log of the running item, which the panel opens.
+  log: [item: TodoItem];
 }>();
 
 const { opened, busy, failure, notice, noticeTodo, board, questions, now, rooms, act, reload, fetchStray } = props.panel;

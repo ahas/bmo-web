@@ -72,6 +72,7 @@
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
               <RoomCompanionTools v-if="companionsHere.length > 0" ref="companionTools" :chat-id="chatId" />
               <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
+              <PictureDialog v-if="administrator" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
               <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
             </template>
           </ConsoleTitleBar>
@@ -752,7 +753,9 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
       : { label: t("room.action.pin"), icon: "i-material-symbols-keep-outline", onSelect: () => void pin(true) }] : []),
     // Which providers the room is on is a setting of its registration, the administrator's (docs/web.md, the room
     // screen's chat providers).
-    ...(administrator.value ? [{ label: t("room.action.providers"), icon: "i-material-symbols-hub-outline", onSelect: () => { providersOpen.value = true; } }] : [])
+    ...(administrator.value ? [{ label: t("room.action.providers"), icon: "i-material-symbols-hub-outline", onSelect: () => { providersOpen.value = true; } }] : []),
+    // The room's picture, set in the console beside the one a provider hands in (docs/web.md, 「Profile photos」).
+    ...(administrator.value ? [{ label: t("picture.action.set_room"), icon: "i-material-symbols-add-photo-alternate-outline", onSelect: () => { pictureOpen.value = true; } }] : [])
   ],
   ...(companionsHere.value.length === 0 ? [] : [companionItems()]),
   // Removing the room's registration stands last, in a group of its own (docs/web.md, the room
@@ -773,6 +776,7 @@ async function pin(on: boolean): Promise<void> {
 }
 
 const providersOpen = ref(false);
+const pictureOpen = ref(false);
 const removalOpen = ref(false);
 // The room's registration was removed while this screen's own removal dialog stood open.
 const removed = ref(false);

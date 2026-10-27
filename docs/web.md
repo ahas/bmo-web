@@ -1089,6 +1089,20 @@ edit to that file alone, once the guide below carries the word.
   number of their own. A notice the receiver says in a room's voice wears the face of the agent the room answers as. A room's own session wears that
   room's picture. Where a chat agent stands as a mark instead, it is the mark the agency answers for its kind,
   as every other agent's is (「Fonts」).
+- **A picture is set in the console as readily as a provider hands one in.** A picture is the receiver's to keep,
+  filled by a chat service handing a person's or a room's photo in and by the console setting one (the receiver's
+  `PUT /avatars/{kind}/{subject}`, its `docs/api.md`); the newer of the two stands, and an agent's picture is the
+  console's alone, never a provider's. The console sets three:
+  - **an agent's,** by its registration name, on its own page — the 사진 button beside its name, for the
+    administrator — and in a companion's settings, the picture standing under every number the agent's words stand
+    under;
+  - **a room's,** from the room's menu, 방 사진, for the administrator;
+  - **one's own,** in 설정 › 계정, 프로필 사진: the sender linked to the account, the owner's for the administrator.
+  Each is one shape: the picture standing now, 사진 고르기 picking a file, the picked one shown in its place with
+  저장 and 취소, and 제공자 사진으로 되돌리기, which drops the console's picture so the provider's stands again (the
+  receiver's `DELETE`). A refusal is said in the pack's words for its code — too large, not a picture, an agent
+  with no number yet. Every screen takes a changed picture as the receiver tells of it, and the screen that set it
+  at once.
 - **A place with no message yet carries the same photo as a message.** The line standing while the chat agent thinks
   carries the same photo on the same side as the chat agent's answer that will stand there, and a line being sent
   carries the sender's photo. So even when an answer or message actually arrives, the photo does not change
@@ -4936,7 +4950,10 @@ Four bounds keep it from growing forever.
   1. **Job 로그** on a line a job is running for — that job's log, opened at once over the panel at its run and
      following it, the same log dialog a room's run line opens. A line no job runs for has nothing to show, so the
      entry is not there. A job that ended between the menu opening and the press answers with the message pill
-     saying so; the line under the list is never the only answer.
+     saying so; the line under the list is never the only answer. In the opened item the state mark at its head,
+     실행 중 and the stage it names, is the same press: it opens that job's log over the item.
+     - The job is the one the agency lists as starting or running for the item, read off each job's own state, so
+       a list that answers more than it was asked for never hands the log a job that has ended.
   2. **승인** on a request waiting on them and not set aside.
   3. **보류** on a line not set aside, **보류 해제** on one that is. The hold takes no reason here; one with a reason is
      set from the opened item.

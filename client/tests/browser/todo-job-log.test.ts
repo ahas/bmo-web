@@ -147,6 +147,8 @@ async function open(width: number, height: number, live: LiveRun[]): Promise<Bro
     await route.fulfill({ json: { ...board, queue: [item()], standing: { ...board.standing, queue: 1, running: 1 } } });
   });
   await context.route(new RegExp(`/api/agents/${AGENT}/log\\?.*run=${RUN_NAME}`), (route) => route.fulfill({ json: LOG }));
+  // An item with no work order is answered with no body, as the console's route answers it; the log must stand anyway.
+  await context.route(new RegExp(`/api/todos/${ITEM}/work-order$`), (route) => route.fulfill({ status: 204, body: "" }));
 
   return context;
 }
@@ -197,6 +199,26 @@ describe.skipIf(!origin || !touchReady())("the TODO row menu's job log", () => {
       }
     }, 60_000);
   }
+
+  test("opens the running job's log from the opened item's state mark, at 1280 and 360", async () => {
+    for (const [width, height] of [[1280, 900], [360, 780]] as const) {
+      const context = await open(width, height, [RUN]);
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/?todo=${ITEM}`, { waitUntil: "load" });
+
+        const mark = page.locator("[data-item-state-log]:visible").first();
+
+        await mark.waitFor({ timeout: 15_000 });
+        await mark.click();
+        await page.getByText("fixture-job-line").waitFor({ state: "visible", timeout: 10_000 });
+      } finally {
+        await context.close();
+      }
+    }
+  }, 90_000);
 
   test("says in the message pill that the job has ended, in either width", async () => {
     const context = await open(900, 810, []);

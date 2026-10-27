@@ -15,6 +15,13 @@
       </div>
     </header>
 
+    <!-- Its picture, set in the console and saved at once, apart from the form's one save (docs/web.md, 「Profile
+         photos」). -->
+    <div class="flex flex-col gap-2">
+      <h3 class="text-sm font-medium text-highlighted">{{ $t("picture.label.agent") }}</h3>
+      <PictureSetting kind="agent" :subject="view.agent" :avatar="picture" />
+    </div>
+
     <!-- The model: the registration it is pinned to, and the file its engine serves. -->
     <div class="flex flex-col gap-2">
       <h3 class="text-sm font-medium text-highlighted">{{ $t("common.label.model") }}</h3>
@@ -159,6 +166,7 @@ import { useText } from "~/domain/catalogue-models";
 import { countText } from "~/domain/numbers";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useFormPart } from "bmo-ui/app/domain/form-save";
+import { useAgentFace } from "~/domain/agent-face";
 
 import type { CompanionView } from "#shared/agency";
 import type { CompanionDraft } from "~/domain/companions";
@@ -171,6 +179,10 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { bare: false });
 const emit = defineEmits<{ saved: [view: CompanionView] }>();
+
+// The companion's face as every screen draws it, which its picture setting shows and replaces.
+const faceOf = useAgentFace();
+const picture = computed(() => faceOf.value({ name: props.view.agent, label: props.view.label, chatId: null, group: "designated" }) ?? { alt: props.view.label, text: props.view.label.slice(0, 1) });
 const { t } = useI18n();
 
 const view = computed(() => props.view);

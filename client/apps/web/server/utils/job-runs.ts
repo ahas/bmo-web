@@ -142,8 +142,9 @@ export async function readLiveRuns(): Promise<LiveRun[]> {
     agencyCall(agency().GET("/jobs", { params: { query: { state: "starting", limit: LIVE_JOBS_LIMIT } } })),
     agencyCall(agency().GET("/jobs", { params: { query: { state: "running", limit: LIVE_JOBS_LIMIT } } }))
   ]);
-  // A job that moved from starting to running between the two reads is listed by both, and stands once.
-  const jobs = [...new Map([...starting.items, ...running.items].map((job) => [job.id, job])).values()];
+  // A job that moved from starting to running between the two reads is listed by both, and stands once; and each is
+  // held to its own state, so a list answering more than its filter asked for hands on no job that has ended.
+  const jobs = [...new Map([...starting.items, ...running.items].filter((job) => job.state === "starting" || job.state === "running").map((job) => [job.id, job])).values()];
   const rooms = await Promise.all(jobs.map(roomOf));
 
   return jobs.map((job, at) => liveRunOf(job, rooms[at] ?? null));
@@ -171,8 +172,8 @@ function roadOf(text: string): RanOn | null {
  * worker's name.
  */
 export async function itemRunsOf(worker: string | null, todoId: number): Promise<ItemRuns> {
-  // An item that names no worker runs on the base worker, so its jobs are found among the recent ones.
-  const query = worker === null ? { limit: LIVE_JOBS_LIMIT } : { workerName: worker, limit: 50 };
+  // The item's own jobs, asked by its number, on its worker where it names one; each is held to the item as well.
+  const query = worker === null ? { itemId: todoId, limit: 50 } : { itemId: todoId, workerName: worker, limit: 50 };
   const jobs = (await agencyCall(agency().GET("/jobs", { params: { query } }))).items.filter((one) => one.itemId === todoId);
   const ended = jobs.filter((one) => one.endedAt !== null);
   const latest = [...jobs].sort((one, other) => other.startedAt - one.startedAt)[0];

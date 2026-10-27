@@ -549,7 +549,6 @@ async fn the_receivers_client_reads_a_senders_message_and_declares_the_holder() 
   assert!(ReceiverClient::new("https://elsewhere.example", "a token").is_err());
 }
 
-
 #[tokio::test]
 async fn the_rooms_a_console_has_open_are_put_and_read_for_the_receiver() {
   ready();

@@ -19,12 +19,12 @@ pub mod rules;
 pub mod settings;
 pub mod store;
 pub mod users;
-pub mod wording;
 pub mod watching;
+pub mod wording;
 pub mod words;
 
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::AtomicBool;
+use std::sync::{Arc, Mutex};
 
 use axum::Json;
 use axum::http::StatusCode;

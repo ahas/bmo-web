@@ -5,8 +5,8 @@
 
 use std::sync::{Arc, Mutex};
 
-use axum::extract::State;
 use axum::Json;
+use axum::extract::State;
 use serde::{Deserialize, Serialize};
 
 use crate::{Refusal, Service, now_ms};

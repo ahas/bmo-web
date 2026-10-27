@@ -376,6 +376,9 @@ room:
     draft_writing: 메시지 작성 중
     earlier_loading: 이전 대화를 불러오는 중…
     failed: 실패
+    find_count: "{at}/{n}"
+    find_loaded_only: 불러온 메시지에서만 찾음
+    find_none: 찾은 메시지 없음
     later_loading: 다음 대화를 불러오는 중…
     listening_left: "앞으로 {time} 동안"
     more_records: "{n}개 더 있음"
@@ -488,6 +491,10 @@ room:
     copy_all: 전체 복사
     copy_ref: 대화번호 복사
     copy_text: 텍스트만 복사
+    find: 대화에서 찾기
+    find_next: 다음 결과
+    find_older: 이전 메시지 더 불러오기
+    find_previous: 이전 결과
     of_companion: "{action} · {name}"
     providers: 채팅 서비스
     pin: 고정
@@ -548,6 +555,7 @@ room:
     earlier_count: "이전 {n}개"
     elapsed: "{time} 경과"
     empty_message: (빈 메시지)
+    find_box: 찾을 말
     hour: "{n}시"
     hour_count: "{hour}시 · {n}개"
     hour_of_day: 시간대

@@ -8,7 +8,7 @@
   <UDashboardPanel
     id="room"
     :ui="{
-      body: `p-0 sm:p-0 pt-(--room-head) pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] sm:pt-(--room-head) sm:pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] ${selecting ? 'scroll-pt-[calc(var(--room-head)+var(--room-choose))]' : 'scroll-pt-(--room-head)'} scroll-pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] overscroll-none ${STABLE_GUTTER} ${TRACK_BETWEEN_BARS}`
+      body: `p-0 sm:p-0 pt-(--room-head) pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] sm:pt-(--room-head) sm:pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] ${barGrown ? 'scroll-pt-[calc(var(--room-head)+var(--room-choose))]' : 'scroll-pt-(--room-head)'} scroll-pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] overscroll-none ${STABLE_GUTTER} ${TRACK_BETWEEN_BARS}`
     }"
     :style="{ '--room-head': `${headHeight}px`, '--room-choose': `${chooseHeight}px`, '--room-foot': `${footHeight}px`, '--feed-gutter': `${feedGutter}px` }"
     @dragover.prevent="dragging = !madeForCompanions"
@@ -94,7 +94,7 @@
             :class="[
               'absolute inset-0 transition-[translate]',
               choosingMotion,
-              selecting ? '' : '-translate-y-full'
+              barGrown ? '' : '-translate-y-full'
             ]"
           >
             <div class="absolute inset-x-0 bottom-0 top-[calc(var(--ui-header-height)*-1)] border-b border-default bg-default/75 backdrop-blur-md after:absolute after:inset-x-0 after:top-full after:h-3 after:bg-[linear-gradient(to_bottom,color-mix(in_oklab,var(--ui-bg)_75%,transparent),transparent)]" />
@@ -105,10 +105,42 @@
               :class="[
                 'pe-(--feed-gutter) transition-[translate,visibility]',
                 choosingMotion,
-                selecting ? 'pointer-events-auto' : 'invisible -translate-y-full'
+                barGrown ? 'pointer-events-auto' : 'invisible -translate-y-full'
               ]"
             >
-              <UContainer class="flex min-w-0 items-center gap-2 py-2">
+              <!-- The find row stands where the choosing row does, the bar growing by it the same way (docs/web.md,
+                   the room screen's find). -->
+              <UContainer v-if="finding" class="flex min-w-0 flex-col gap-1 py-2" data-find-row>
+                <div class="flex min-w-0 items-center gap-2">
+                  <UInput
+                    ref="findBox"
+                    v-model="findQuery"
+                    icon="i-material-symbols-search"
+                    size="sm"
+                    class="min-w-0 flex-1"
+                    :placeholder="$t('room.label.find_box')"
+                    :aria-label="$t('room.label.find_box')"
+                    @keydown.enter.exact.prevent="stepFound(-1)"
+                    @keydown.enter.shift.prevent="stepFound(1)"
+                    @keydown.esc.prevent="closeFind"
+                  />
+                  <span class="shrink-0 text-sm text-muted tabular-nums" data-find-count :data-find-shown="foundAt === null ? undefined : ''">{{ findCount }}</span>
+                  <UTooltip :text="$t('room.action.find_previous')">
+                    <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-keyboard-arrow-up" :aria-label="$t('room.action.find_previous')" :disabled="foundAt === null || foundAt === 0" @click="stepFound(-1)" />
+                  </UTooltip>
+                  <UTooltip :text="$t('room.action.find_next')">
+                    <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-keyboard-arrow-down" :aria-label="$t('room.action.find_next')" :disabled="foundAt === null || foundAt === found.length - 1" @click="stepFound(1)" />
+                  </UTooltip>
+                  <UTooltip :text="$t('common.action.close')">
+                    <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-close" :aria-label="$t('common.action.close')" @click="closeFind" />
+                  </UTooltip>
+                </div>
+                <p v-if="findQuery.trim() !== '' && roomFeed.older.value" class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-muted">
+                  <span>{{ $t("room.status.find_loaded_only") }}</span>
+                  <UButton size="sm" color="neutral" variant="link" class="px-0" :label="$t('room.action.find_older')" :loading="roomFeed.loadingOlder.value" @click="findOlder" />
+                </p>
+              </UContainer>
+              <UContainer v-else class="flex min-w-0 items-center gap-2 py-2">
                 <!-- The count follows the checkbox's cell straight on: the cell already keeps room
                      past the box, which is all the step the two need. -->
                 <span class="flex min-w-0 items-center">
@@ -185,7 +217,7 @@
               :class="[
                 'sticky z-10 my-7 self-center transition-[top]',
                 choosingMotion,
-                selecting ? 'top-[calc(var(--spacing)*3+var(--room-choose))]' : 'top-3'
+                barGrown ? 'top-[calc(var(--spacing)*3+var(--room-choose))]' : 'top-3'
               ]"
             >
               <RoomDayPicker :label="entry.day.label" :day="entry.day.key" @pick="jumpToDay" />
@@ -456,6 +488,7 @@ import { formatClock, toUnixSeconds } from "bmo-ui/app/domain/time";
 import { imageUrl } from "~/domain/urls";
 import { outcomeLine, roomRuns } from "~/domain/working";
 import { groupRoom, listeningRuns, shownOutcome, useRoomWindow } from "~/domain/room-window";
+import { clearFound, foundMessages, markFound, steppedHit } from "~/domain/room-find";
 import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 
 import type {
@@ -708,6 +741,7 @@ function companionItems(): DropdownMenuItem[] {
 const menuItems = computed<DropdownMenuItem[][]>(() => [
   [
     ...(administrator.value ? [{ label: t("room.title.session_info"), icon: "i-material-symbols-bar-chart", onSelect: openStats }] : []),
+    { label: t("room.action.find"), icon: "i-material-symbols-search", onSelect: openFind },
     { label: t("room.action.choose_messages"), icon: "i-material-symbols-checklist", onSelect: startSelecting },
     { label: t("room.action.copy_all"), icon: "i-material-symbols-content-copy-outline", onSelect: () => void copyAll() },
     // The pinned order is one list for every reader, so only the administrator sets it (docs/web.md, the room
@@ -1469,9 +1503,104 @@ useDragSelect({
   }
 });
 
+// Finding a phrase in the room (docs/web.md, the room screen's find): the messages loaded that hold it, oldest first, the one
+// shown among them, and the marks on what stands on the screen. The bar grows by the find row as it does for
+// choosing, and the two never stand at once.
+const finding = ref(false);
+const findQuery = ref("");
+const findShown = ref<number | null>(null);
+const findBox = useTemplateRef<{ inputRef?: HTMLInputElement }>("findBox");
+const barGrown = computed(() => selecting.value || finding.value);
+const found = computed(() => (finding.value ? foundMessages(roomFeed.messages.value, findQuery.value) : []));
+const foundAt = computed(() => {
+  const at = findShown.value === null ? -1 : found.value.indexOf(findShown.value);
+
+  return at === -1 ? null : at;
+});
+const findCount = computed(() =>
+  findQuery.value.trim() === ""
+    ? ""
+    : found.value.length === 0
+      ? t("room.status.find_none")
+      : t("room.status.find_count", { at: (foundAt.value ?? found.value.length - 1) + 1, n: found.value.length })
+);
+
+useBackClose(finding, () => closeFind());
+
+function openFind(): void {
+  if (selecting.value) stopSelecting();
+
+  finding.value = true;
+  void nextTick(() => findBox.value?.inputRef?.focus());
+}
+
+function closeFind(): void {
+  finding.value = false;
+  findQuery.value = "";
+  findShown.value = null;
+  clearFound();
+}
+
+// A step to the hit before or after the one shown, which is brought into view and marked for a moment. A step pressed
+// while the phrase is still being typed shows the newest hit first, as the typing would have.
+async function stepFound(by: -1 | 1): Promise<void> {
+  if (typed !== null) {
+    clearTimeout(typed);
+    typed = null;
+    findShown.value = null;
+  }
+
+  const at = steppedHit(found.value.length, foundAt.value, by);
+
+  if (at === null) return;
+
+  findShown.value = found.value[at]!;
+  await jumpTo(findShown.value);
+}
+
+// The next page further back, searched too; the hit shown stays the one shown.
+async function findOlder(): Promise<void> {
+  await roomFeed.loadOlder();
+}
+
+// A phrase typed shows its newest hit, a moment after the typing stops.
+let typed: ReturnType<typeof setTimeout> | null = null;
+
+watch(findQuery, () => {
+  if (typed !== null) clearTimeout(typed);
+
+  typed = setTimeout(() => {
+    typed = null;
+    findShown.value = null;
+    if (found.value.length > 0) void stepFound(-1);
+  }, 300);
+});
+
+// The marks follow the phrase, the hit shown and every row that comes or goes.
+watch(
+  () => [finding.value, findQuery.value, findShown.value, items.value.length] as const,
+  async () => {
+    await nextTick();
+
+    if (!finding.value) {
+      clearFound();
+
+      return;
+    }
+
+    const shown = findShown.value === null ? null : `m${rowLine(findShown.value)}`;
+
+    markFound(scroller(), findQuery.value, (row) => row.getAttribute("data-message") === shown);
+  },
+  { flush: "post" }
+);
+
+onBeforeUnmount(clearFound);
+
 // The box they write in stands through the mode, so entering and leaving it touch neither the box
 // nor where the keyboard is.
 function startSelecting(): void {
+  closeFind();
   void keepFeedStill(() => {
     selecting.value = true;
     selected.value = new Set();

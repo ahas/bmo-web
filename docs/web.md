@@ -4661,6 +4661,23 @@ Four bounds keep it from growing forever.
   - a refused reset keeps the dialog as it was, with the reason; one that went through is shown only
     there, and the session list says when each room session it ended was cleared.
 
+#### 대화에서 찾기
+
+- **Every room's top bar menu carries 대화에서 찾기, for every reader,** first in its first group. It opens a find row
+  in the top bar, where the choosing row stands: a search box, how many messages hold the phrase and which of them
+  is shown, a button to the one before and the one after, and 닫기. The bar grows by the row as it does for
+  choosing, so no message moves.
+- **What it finds is the console's list search** (「List search」): the phrase typed, matched whole and without regard
+  to case, in what a message shows — its words, its sender's name and its files' names. Every hit standing on the
+  screen is marked where it stands, inside the bubble as it is drawn, markdown included, and the hit being shown
+  more strongly than the rest.
+- **It searches the messages the room has loaded.** The newest hit is shown first; the button up steps to older
+  ones, the button down to newer ones, and Enter and Shift+Enter in the box do the same. Each step brings the
+  message into view and marks it for a moment, as a pressed quote does. Under the count stands that only the
+  loaded messages were searched, while the room goes on before them, with 이전 메시지 더 불러오기, which loads
+  the next page further back and searches it too.
+- **Escape or 닫기 closes it,** clearing every mark, and the bar folds back.
+
 #### 고정
 
 - **Every room's top bar menu carries 고정, or 고정 해제 for a pinned room, for the owner alone,** in its first

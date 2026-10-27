@@ -56,6 +56,11 @@ interface ReceivedMessage {
   forwardedFrom: ForwardedFrom | null;
   // The room's situation note as the round that judged the message read it.
   situation: Situation | null;
+  // What a voice note was heard as: the words, how long the recording ran in seconds, and whether it was heard or
+  // could not be. All null on any other message.
+  transcript: string | null;
+  voiceSeconds: number | null;
+  voiceState: string | null;
   // What the record keeps done to it, in unix seconds, and its reactions.
   editedAt: number | null;
   deletedAt: number | null;
@@ -87,6 +92,9 @@ function receivedOf(message: ReceiverMessage): ReceivedMessage {
     files: message.files,
     forwardedFrom: message.forwardedFrom ?? null,
     situation: message.situation ?? null,
+    transcript: message.transcript ?? null,
+    voiceSeconds: message.voiceSeconds ?? null,
+    voiceState: message.voiceState ?? null,
     editedAt: moment(message.editedAt),
     deletedAt: moment(message.deletedAt),
     pinnedAt: moment(message.pinnedAt),
@@ -375,6 +383,9 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         replyQuote: message.replyToMessageId === null ? null : await quote(message.replyToMessageId),
         ...(message.forwardedFrom === null ? {} : { forwardedFrom: message.forwardedFrom }),
         ...(message.situation == null ? {} : { situation: message.situation }),
+        transcript: message.transcript,
+        voiceSeconds: message.voiceSeconds,
+        voiceState: message.voiceState,
         spend: null,
         actions: null,
         drafts: null,

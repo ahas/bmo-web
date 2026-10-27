@@ -223,15 +223,24 @@
                         <TelegramAsset v-if="attachment.kind === 'sticker'" :class="sticker ? 'size-(--chat-sticker)' : ''" :attachment="attachment" :chat-id="props.chatId" :message-id="props.item.messageId" :fallback="$t('room.label.sticker_preview')" />
                         <!-- A sound the browser can play stands as the player, which carries its size and download
                              itself; a video stands as its player with its file line under it. -->
-                        <AudioPlayer
-                          v-else-if="heard(attachment)"
-                          class="w-80 max-w-full min-w-full"
-                          :src="`${mediaUrl(attachment.kind, props.chatId, props.item.messageId)}?item=${attachment.id}`"
-                          :download="`${mediaUrl(attachment.kind, props.chatId, props.item.messageId)}?item=${attachment.id}&as=download`"
-                          :name="attachment.name"
-                          :size="attachment.bytes === null ? null : fileSizeText(attachment.bytes)"
-                          :trail-room="playerLast && index === attachments.length - 1 ? metaRoom : null"
-                        />
+                        <!-- A sound stands as its player, the recording's length beside it and, on a voice note, the words
+                             heard in it under them — or the one line that it could not be heard (docs/web.md, the room
+                             screen's sound messages). -->
+                        <div v-else-if="heard(attachment)" data-sound class="flex w-80 max-w-full min-w-full flex-col gap-1">
+                          <div class="flex min-w-0 items-center gap-2">
+                            <AudioPlayer
+                              class="min-w-0 flex-1"
+                              :src="`${mediaUrl(attachment.kind, props.chatId, props.item.messageId)}?item=${attachment.id}`"
+                              :download="`${mediaUrl(attachment.kind, props.chatId, props.item.messageId)}?item=${attachment.id}&as=download`"
+                              :name="attachment.name"
+                              :size="attachment.bytes === null ? null : fileSizeText(attachment.bytes)"
+                              :trail-room="playerLast && index === attachments.length - 1 ? metaRoom : null"
+                            />
+                            <span v-if="voiceSeconds !== null" data-voice-seconds class="shrink-0 text-xs tabular-nums text-dimmed">{{ playClock(voiceSeconds) }}</span>
+                          </div>
+                          <p v-if="transcript !== null" data-transcript class="min-w-0 text-sm break-words whitespace-pre-wrap text-toned">{{ transcript }}</p>
+                          <p v-else-if="voiceFailed" data-voice-failed class="text-sm text-dimmed">{{ $t("room.label.voice_failed") }}</p>
+                        </div>
                         <MessageVideo
                           v-else-if="playable(attachment)"
                           class="self-start"
@@ -371,6 +380,7 @@ import { mineReaction } from "~/domain/message-acts";
 import { mediaUrl } from "~/domain/player";
 import { asideSlide, bubbleLook, choosingMotion, nameColour, sendMark, sideLayout, wordsWrap } from "~/domain/room";
 import { releaseFocusOutside } from "~/domain/tapfocus";
+import { playClock } from "bmo-ui/app/domain/player";
 import { clockUnder, formatStamp, spanClock } from "bmo-ui/app/domain/time";
 import { countText } from "~/domain/numbers";
 import { liveChip } from "~/domain/turns";
@@ -618,6 +628,12 @@ function playable(attachment: MessageAttachment): boolean {
 function heard(attachment: MessageAttachment): boolean {
   return attachment.kind === "audio" && playable(attachment);
 }
+
+// What the record heard in a voice note: the words, how long the recording ran in seconds, and whether it could be
+// heard at all (the receiver's `docs/messages.md`). All nothing on a sound that is not a voice note.
+const transcript = computed<string | null>(() => ((props.item.transcript ?? "").trim() === "" ? null : props.item.transcript!));
+const voiceSeconds = computed<number | null>(() => props.item.voiceSeconds ?? null);
+const voiceFailed = computed<boolean>(() => props.item.voiceState === "failed");
 
 const emit = defineEmits<{
   // What the menu on this message offers, and what a plain tap does while choosing.

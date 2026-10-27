@@ -321,6 +321,11 @@ export interface FeedItem {
   // The room's situation note as the round that judged this message read it, and whether that round changed it
   // (docs/web.md, the room screen's verdicts).
   situation?: Situation;
+  // What the record heard in a voice note, drawn under its player (docs/web.md, the room screen's sound messages): the
+  // words, how long the recording ran in seconds, and whether it could be heard at all.
+  transcript?: string;
+  voiceSeconds?: number;
+  voiceState?: string;
   // Whether the bot sent this message as the service rather than as the chat agent, as the server says: the row
   // stands as a system line rather than an answer.
   notice: boolean;
@@ -1556,6 +1561,9 @@ function feedItemOf(
     deleted,
     ...(deleted || message.forwardedFrom == null ? {} : { forwarded: message.forwardedFrom }),
     ...(deleted || message.situation == null ? {} : { situation: message.situation }),
+    ...(deleted || (message.transcript ?? "").trim() === "" ? {} : { transcript: message.transcript! }),
+    ...(deleted || message.voiceSeconds == null ? {} : { voiceSeconds: message.voiceSeconds }),
+    ...(deleted || message.voiceState == null ? {} : { voiceState: message.voiceState }),
     editedAt: message.editedAt ?? null,
     pinnedAt: deleted ? null : (message.pinnedAt ?? null),
     pending: null,

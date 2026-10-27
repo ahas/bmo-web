@@ -347,6 +347,11 @@ export interface ArchivedMessage {
   forwardedFrom?: ForwardedFrom | null;
   // The room's situation note as the round that judged this message read it; absent where no round judged it under one.
   situation?: Situation | null;
+  // What a voice note was heard as: the words, how long the recording ran in seconds, and whether it was heard
+  // (`heard`) or could not be (`failed`). Null on any other message and, for the words, on one that could not be heard.
+  transcript?: string | null;
+  voiceSeconds?: number | null;
+  voiceState?: string | null;
   attachments?: MessageAttachment[];
   expressions?: TelegramExpression[];
   // Whether an agent sent this message, the chat agent or a companion, as the server reads it off the archive;

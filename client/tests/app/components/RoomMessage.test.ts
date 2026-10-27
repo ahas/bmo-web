@@ -122,11 +122,13 @@ describe("a voice bubble", () => {
   });
 
   test("hands the player the bubble's whole width, asking for 320 px", () => {
-    expect(player).toContain('class="w-80 max-w-full min-w-full"');
+    // The sound's column asks for 320 px, and the player takes it whole beside the recording's length.
+    expect(player).toContain('class="flex w-80 max-w-full min-w-full flex-col gap-1"');
+    expect(source).toContain('class="min-w-0 flex-1"');
   });
 
   test("lays its meta line at the end of the last player's line, and the words keep no blank for it then", () => {
-    expect(player).toContain(':trail-room="playerLast && index === attachments.length - 1 ? metaRoom : null"');
+    expect(source).toContain(':trail-room="playerLast && index === attachments.length - 1 ? metaRoom : null"');
     expect(template).toContain(':after-words="wordsLast || playerLast"');
     expect(template).toContain(':data-meta-room="wordsLast && metaRoom !== null ? \'\' : undefined"');
   });

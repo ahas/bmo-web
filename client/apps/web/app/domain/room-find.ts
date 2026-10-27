@@ -13,7 +13,9 @@ export const FOUND_CURRENT = "room-found-current";
 
 /** What a message shows that a search reads. */
 function shownTexts(message: ArchivedMessage): string[] {
-  return [message.text, message.senderName, ...(message.attachments ?? []).map((file) => file.name)];
+  // What the bubble stands, which is what a reader can see to find: a voice note's words among them, read out of the
+  // record and drawn under its player (docs/web.md, the room screen's sound messages).
+  return [message.text, message.senderName, message.transcript ?? "", ...(message.attachments ?? []).map((file) => file.name)];
 }
 
 /** The messages holding the phrase, oldest first, by their numbers; none for an empty phrase. */

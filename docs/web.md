@@ -4901,7 +4901,8 @@ Four bounds keep it from growing forever.
   is shown, a button to the one before and the one after, and 닫기. The bar grows by the row as it does for
   choosing, so no message moves.
 - **What it finds is the console's list search** (「List search」): the phrase typed, matched whole and without regard
-  to case, in what a message shows — its words, its sender's name and its files' names. Every hit standing on the
+  to case, in what a message shows — its words, its sender's name, the words heard in a voice note and its files'
+  names. Every hit standing on the
   screen is marked where it stands, inside the bubble as it is drawn, markdown included, and the hit being shown
   more strongly than the rest.
 - **It searches the messages the room has loaded.** The newest hit is shown first; the button up steps to older
@@ -5005,6 +5006,12 @@ Four bounds keep it from growing forever.
 - **A bubble holding a player is as wide as the player or its words, whichever is wider.** The player asks for
   320 px, or the bubble's widest where that is narrower, and always takes the bubble's whole width, so no blank
   stands past its waveform; words wider than it widen the bubble and the player with it.
+- **A voice note stands what was heard in it.** The record keeps the recording's length, the words heard in it and
+  whether it could be heard at all (the receiver's `docs/messages.md`), and the bubble stands all three: the length
+  beside the player, then the words under it as its own paragraph, in the room's reading and wrapping as words do. A
+  recording that could not be heard stands one muted line, 듣지 못함, where the words would have stood, and the player
+  plays it all the same. A sound that is no voice note — an audio file, a briefing sent as a file — keeps its player
+  alone. The words are the bubble's own to find: 대화에서 찾기 matches them as it matches the message's text.
 - **The player is laid out as a Telegram voice message is,** with no frame of its own: it stands on whatever ground
   holds it. It is one component, and every sound of the console stands in it — a room's sounds here, a line's
   spoken reading (「칩 줄」), and a document's sounds in the 아카이브 and under its share link (bmo-artifact's `docs/archive.md`).
@@ -6259,7 +6266,12 @@ dialog open at 계정.
   is visible. A tab gone silent for longer than a few of those reports is taken as gone. While a visible tab of an
   account shows a room, that room's messages go to none of that account's devices; another room, a hidden tab, an app
   in the background or no tab at all, and they go. The service worker's own check stays behind it as a second guard,
-  for the moment between a tab opening a room and its report arriving.
+  for the moment between a tab opening a room and its report arriving.- **The rooms open are also told to the account service.** The same report carries the visible rooms to the
+  account service's `PUT /watching`, which keeps them for two minutes; the receiver reads `GET /watching` as it
+  starts and serves each open room's unread lines to the chat agent, one room at a time and in room order. A room
+  whose window closes before its turn waits, and a line already served is not served again. The agent never asks
+  for this; the serving path hands the turn.
+
 - **One room's messages are bundled.** What a room says is gathered for a couple of seconds and sent as one
   notification, so an answer filed in several parts rings once. Every notification of a room carries that room's tag,
   so a later one replaces the earlier in the tray without ringing again, and its title counts the messages since they

@@ -6,6 +6,9 @@ import type { ArchivedMessage } from "../../../apps/web/shared/types";
 
 // Finding a phrase in a room (docs/web.md, the room screen's find).
 
+// The console's own reading of a count, which the list search asks for.
+Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } }) });
+
 function said(messageId: number, text: string, senderName = "person-a", files: string[] = []): ArchivedMessage {
   return {
     chatId: -1,
@@ -16,7 +19,7 @@ function said(messageId: number, text: string, senderName = "person-a", files: s
     text,
     imagePath: null,
     replyToMessageId: null,
-    attachments: files.map((name, id) => ({ id, kind: "document", name, bytes: null, type: null, available: true }))
+    attachments: files.map((name, id) => ({ id, kind: "document" as const, name, bytes: null, type: null, available: true }))
   };
 }
 
@@ -26,6 +29,14 @@ describe("the messages a phrase finds", () => {
   test("are those whose words, sender or files hold it, in any case, oldest first", () => {
     expect(foundMessages(messages, "deploy")).toEqual([1, 3, 4]);
     expect(foundMessages(messages, "  went out ")).toEqual([1]);
+  });
+
+  test("holds what was heard in a voice note, which the bubble stands under its player", () => {
+    const heard = { ...said(5, ""), attachments: [{ id: 0, kind: "audio" as const, name: "voice.ogg", bytes: null, type: "audio/ogg", available: true }], transcript: "the deploy is held until dawn", voiceSeconds: 7, voiceState: "heard" };
+
+    expect(foundMessages([...messages, heard], "dawn")).toEqual([5]);
+    // A recording that could not be heard has no words to find.
+    expect(foundMessages([{ ...heard, transcript: null, voiceState: "failed" }], "dawn")).toEqual([]);
   });
 
   test("are none for an empty phrase or one nothing holds", () => {

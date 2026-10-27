@@ -804,6 +804,7 @@ room:
     voice_message: 음성 메시지
     voice_note: 음성 메모
     voiced_as: "{name} 계정으로 보냄"
+    voice_failed: 듣지 못함
   message:
     delete_ask: 이 메시지를 삭제할까요?
     delete_note: 메시지의 말은 지워지고, 있던 자리는 남습니다.

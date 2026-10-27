@@ -1934,6 +1934,12 @@ onScopeDispose(release);
 // afterwards, so nothing waits on the round trip. The box and the tray are emptied here
 // because what was in them is standing in the conversation now.
 async function send(message: ComposedMessage): Promise<void> {
+  if (message.files.some((file) => file.voice !== undefined) && message.files.length > 1) {
+    island.say({ title: t("room.error.voice_with_files"), tone: "warning" });
+
+    return;
+  }
+
   const fresh = outboxOf(message.text, message.files, toUnixSeconds(Date.now()), replyTarget.value);
 
   if (fresh.length === 0) {
@@ -2181,7 +2187,17 @@ async function deliver(batch: readonly OutboxItem[]): Promise<SendOutcome | "ans
   }
 
   try {
-    if (files.length > 0) {
+    const voice = first.file?.voice !== undefined;
+
+    if (voice) {
+      const body = attachmentBody(first.text, [first.file as PickedFile], first.reply?.messageId ?? null);
+
+      body.set("key", first.sendKey);
+
+      const answer = await $fetch<SentMessage>(`/api/rooms/${chatId}/voice`, { method: "POST", body });
+
+      outbox.value = withSent(outbox.value, first.key, answer.messageId);
+    } else if (files.length > 0) {
       const body = attachmentBody(first.text, files.map((held) => held.file as PickedFile), files[0]?.reply?.messageId ?? null);
 
       body.set("key", first.sendKey);

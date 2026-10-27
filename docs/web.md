@@ -4526,6 +4526,16 @@ Four bounds keep it from growing forever.
     but go the same road as the input box's words — split if needed — before the files, and the files follow
     with no caption. Its line breaks reach the room as typed, so the archived caption is the very words the line
     on its way stood with, and the archived message takes that line's place the moment it arrives.
+  - **A voice note** is recorded in the box, not picked as a file. The microphone button beside the clip starts a
+    recording and the box shows a red mark and its length while it runs, with the buttons that stop it and that
+    throw it away. Stopping it puts the recording in the tray above the words as one entry with the console's own
+    sound player, so it is heard before it goes, and it can be removed like a file. The words typed with it are
+    its caption. One recording stands at a time and stands alone: while it waits, no file may be attached, and
+    while a file waits, no recording starts. Sending it hands it to the console's voice route, which puts it in
+    the room through the receiver as a voice note rather than as a file, so a chat service that carries voice
+    messages receives it as one (the receiver's `docs/api.md`, 「Sends」). A browser records in the first of OGG/Opus,
+    MP4 and WebM that it supports, and the recording's type is kept in its name. A browser with no recorder offers
+    no microphone button; one whose microphone permission is refused says so when a recording is asked for.
   - **The kind** is split by the file's MIME. JPEG and PNG are photos, GIF a moving image, other images files so
     the original is not damaged, video a video, sound audio, and everything else a file. A photo-bound file with no
     extension is uploaded with one attached — the name must be so to stand as a photo in Telegram. One file is up

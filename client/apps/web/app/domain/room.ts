@@ -1100,7 +1100,7 @@ export function pendingItems(outbox: readonly OutboxItem[], speaker: Speaker, av
   const albums = new Map<string, FeedItem>();
 
   for (const held of outbox) {
-    const preview = held.state === "failed" ? null : (held.file?.previewUrl ?? null);
+    const preview = held.state === "failed" || held.file?.voice !== undefined ? null : (held.file?.previewUrl ?? null);
     const gathered = preview === null ? undefined : albums.get(held.sendKey);
 
     if (preview !== null && gathered?.pending != null) {
@@ -1127,6 +1127,8 @@ export function pendingItems(outbox: readonly OutboxItem[], speaker: Speaker, av
 }
 
 function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): FeedItem {
+  const voice = held.file?.voice !== undefined;
+
   return {
     key: held.key,
     messageId: 0,
@@ -1136,8 +1138,8 @@ function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): 
     text: held.text,
     shownText: held.text,
     quote: held.reply,
-    imageUrl: held.file?.previewUrl ?? null,
-    fileName: held.file !== null && held.file.previewUrl === null ? held.file.file.name : null,
+    imageUrl: voice ? null : (held.file?.previewUrl ?? null),
+    fileName: held.file !== null && (voice || held.file.previewUrl === null) ? held.file.file.name : null,
     // Nothing the owner says is an answer, so no row of theirs is measured.
     answerSeconds: null,
     look: {

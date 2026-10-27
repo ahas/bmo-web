@@ -3,11 +3,13 @@ import { MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS } from "#shared/config";
 import type { Translate } from "#shared/wording";
 
 // A file the owner has attached but not sent yet: the file itself, a key of its own so the
-// list can be drawn and one removed, and a preview when the browser can show one.
+// list can be drawn and one removed, and a preview when the browser can show one. A recording
+// made in the box stands as a file too, its length kept with it so the tray names what it is.
 export interface PickedFile {
   key: string;
   file: File;
   previewUrl: string | null;
+  voice?: { seconds: number };
 }
 
 // What one send carries: the words with every long paste put back where its mark stood, and the

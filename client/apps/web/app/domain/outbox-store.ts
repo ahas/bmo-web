@@ -24,6 +24,9 @@ interface KeptFile {
   key: string;
   pickedKey: string;
   file: File;
+  // What makes the file a recording made in the box rather than one picked: the length it runs, which is kept
+  // with it so a line restored after a reload still goes as a voice note.
+  voice?: { seconds: number };
 }
 
 export interface OutboxStore {
@@ -114,7 +117,13 @@ export function outboxStore(preview: (file: File) => string | null = defaultPrev
         const { chatId: _room, place: _place, hasFile: _hasFile, ...rest } = line;
 
         written.set(line.key, { chatId, state: stateOf(line) });
-        items.push({ ...rest, file: file === undefined ? null : { key: file.pickedKey, file: file.file, previewUrl: preview(file.file) } });
+        items.push({
+          ...rest,
+          file:
+            file === undefined
+              ? null
+              : { key: file.pickedKey, file: file.file, previewUrl: preview(file.file), ...(file.voice === undefined ? {} : { voice: file.voice }) }
+        });
       });
 
     return items;
@@ -135,7 +144,9 @@ export function outboxStore(preview: (file: File) => string | null = defaultPrev
 
     for (const { held, line } of changed) {
       if (!written.has(line.key) && held.file !== null) {
-        writing.objectStore(FILES).put({ key: line.key, pickedKey: held.file.key, file: held.file.file } satisfies KeptFile);
+        writing
+          .objectStore(FILES)
+          .put({ key: line.key, pickedKey: held.file.key, file: held.file.file, ...(held.file.voice === undefined ? {} : { voice: held.file.voice }) } satisfies KeptFile);
       }
 
       writing.objectStore(LINES).put(line);

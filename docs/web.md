@@ -3867,6 +3867,9 @@ Four bounds keep it from growing forever.
 - **칩 줄** — how full the session stood, a verdict, what the turn did, what it spent, what it wrote down, how its
   answer was drafted and the voice briefing that speaks it stand as chips on the meta line, inside the bubble, and what a chip spreads stands inside the bubble under that
   line, at the bubble's own width, parted from it by the bubble's own step and never boxed a second time.
+  A person's message and an agent's answer carry different chips, each only what is its own: a person's message
+  carries its 판정 alone, what became of it; an agent's answer carries what its round did and sent — 컨텍스트, 브레인,
+  사용 토큰, 툴 사용, 기록함, 드래프트 and 보이스브리핑 — and no 판정 of its own.
   Nothing spread is wider than the bubble, so the bubble's edge never cuts it: a long word, address or name
   wraps at that width, and a fenced code block or a table scrolls sideways inside its own box. A
   message carries no button of its own anywhere else; what is done to one message is in its menu. The room's top
@@ -3879,10 +3882,11 @@ Four bounds keep it from growing forever.
     colours — resting, under the pointer, pressed — so no press and no hover ever lands on the colour the chip
     already wears. 컨텍스트 is pressed for nothing, so it rests in the closed chip's colours and takes no
     hover or press colour; a tap or a resting pointer brings up its tooltip.
-  - **The order the chips stand in** — 컨텍스트, 브레인, 사용 토큰, 툴 사용, 기록함, 드래프트, 판정, 보이스브리핑. 컨텍스트 stands first, where the owner
+  - **The order the chips stand in** — on an answer, 컨텍스트, 브레인, 사용 토큰, 툴 사용, 기록함, 드래프트, 보이스브리핑; on a
+    person's message, 판정 alone, just before the time. 컨텍스트 stands first, where the owner
     placed it. After it, the order is what the turn's own clock decides rather than a taste: the documents
     handed to the turn and what it spends stand from its first second, a call joins them the moment it is
-    made, what the turn wrote down, how the answer was drafted and the verdicts arrive with the answer, and the full reading is asked for
+    made, what the turn wrote down and how the answer was drafted arrive with the answer, and the full reading is asked for
     only once the answer is there to read. A chip that arrives late stands after those already there, so
     nothing standing is pushed sideways when it lands, and the reader's pointer is still over the chip it was
     over. 컨텍스트 alone is read once the turn has ended, so the running block carries none and the answer's
@@ -3899,11 +3903,34 @@ Four bounds keep it from growing forever.
     tap on a chip, or on any control a message carries, therefore takes the focus off wherever it stood
     outside that message, so the input box left focused by a send gives it up and a phone does not raise its
     keyboard again on the tap. Only a tap on the input box itself brings the keyboard.
-- **판정** — the verdict chip is the verdict mark alone, with no dot and no count, standing just before the time;
-  its tooltip names it and what it says. Pressing it spreads every verdict card of that message, and pressing
-  again folds them all. It is the cards' only fold: no card opens or closes on its own, so a verdict arriving
-  while it is open stands open with the rest, and one arriving while it is closed stays folded. The browser
-  does not remember which message was left open.
+- **판정** — a person's message carries what became of it, and nothing else of the round that read it. The
+  verdict chip is the verdict mark alone, with no dot and no count, standing just before the time; its tooltip
+  names it and what it says. An agent's answer carries no verdict chip: what drafted and sent it stands in its
+  드래프트.
+  - **Pressing the mark spreads one line, the message's outcome, in words**: 답함 with the answer it drew,
+    답하지 않음, 기다림, 함께 읽음 with the message it was read with, 실패, or 판정 중 while it is being judged; a
+    message whose gates spoke and whose round has decided nothing yet reads 결정 전. The answer, and the message it
+    was read with, stand on the line by their time as a link that jumps to that message and lands on it, the way
+    a reply's quote does (「답장 인용」); one the page does not carry stands as the word alone. Pressing the mark
+    again folds the line.
+  - **The line carries a 자세히 press only where there is more than the outcome**: the cards of the gates that
+    read the message, and the instructions its turn carried. Pressing it spreads them under the line and pressing
+    again folds them. It is the cards' only fold: no card opens or closes on its own, so a verdict arriving while
+    they are open stands open with the rest, and one arriving while they are closed stays folded. The browser
+    does not remember which message was left open.
+  - **The outcome is read off the latest round that read the message**: the verdict of the round's own turn — the
+    chat agent's or a companion's `REPLY`, `SKIP`, `WAIT`, `FAILED` — a round that went silent (`skipped`), and a
+    verdict naming the message the turn read last (`read-with`), whose link goes to the message of the same round
+    that carries the turn's own verdict.
+  - **Which verdicts are a person's message's and which an answer's.** The verdicts of the round's draft process
+    (`draft`), of its send (`send`), and of the checks and rewrites the answer went through on its way out — 출력
+    형식, the content gate and its rewrite and addition, and every second asking (`…-again`) — are the answer's, and
+    stand in the 드래프트 of the round's answer on the page, its last message. Every other verdict is the
+    message's that the round read. The gate files a round's verdicts under the message the round read last and
+    its send under the answer, and a round the agent opened itself — a follow-up, a line after a restart — files
+    them all under its answer: a verdict filed under an agent's message that is not the answer's stands under the
+    person's message carrying the same round's verdicts on the page, and under nothing where the page has none.
+    An answer's verdict whose round's answer the page does not carry stands under nothing.
   - **While the message is being judged the mark beats** — a heartbeat, two quick swells of its size and
     brightness and a rest, over and over, in the chip's own grey; its tooltip says 판정 중. A message is being
     judged while a gate is judging it, while it waits for the chat agent's turn, and while the chat agent's turn that read it last is
@@ -3940,12 +3967,20 @@ Four bounds keep it from growing forever.
     stands it at once, and a reader who asked for less movement sees it stand at once.
   - A message sent in the last ten minutes keeps room on its meta line for the mark from the start, so the time
     and the bubble do not move when it comes.
-  - A spread card stands the stage name, its time, how long that stage took, and the road that run walked. The
-    road is one line each, writing the provider and model by their recorded names, then how that road ended —
-    answered, timed out, size refused, error, none — and the milliseconds. A gate has one road so one line
-    stands, and only a run split by size stands one line per part. A result the screen does not know stands by
-    the recorded words, so an old verdict's line reads by the words of that time. A non-gate stage and a verdict
-    from before road records existed have no road, and such a card stands only the full text.
+  - A spread card stands the stage name, its time, how long that stage took, the verdict in words, and the road
+    that run walked. A length of time stands in seconds to one decimal, 「11.8초」, never in milliseconds.
+    - **The verdict's words**: 선택 with the names chosen, 선택 없음, 후보 없음, 이상 없음 for a sanitiser's `CLEAN`,
+      무력화, 통과, 실패 with what failed, 건너뜀, 답을 읽지 못함 for `UNREADABLE`, 답 없음 for `NO-ANSWER`, a
+      situation rule's 적용 and 사용 each with its names, and 함께 읽음. The names chosen stand as their slugs, the
+      records' own names. A verdict of another shape reads 알 수 없는 판정, its text under 원문.
+    - **What the gate wrote under the verdict**, its detail, stands folded under 원문 and is never spread with the
+      card. No marker, no `key=value` and no English word of the gate's stands on a card; the raw verdict is the
+      copy's (「What a copy holds」).
+    - **The road** is one line each, writing the provider and model by their recorded names, then how that road
+      ended — 응답함, 시간 초과, 크기 초과로 거부, 오류, 없음 — and its seconds. A gate has one road so one line
+      stands, and only a run split by size stands one line per part. A result the screen does not know stands by
+      the recorded words, so an old verdict's line reads by the words of that time. A non-gate stage and a verdict
+      from before road records existed have no road.
   - **A picker's card stands what its model was asked.** A verdict of a picker or the matcher — 시스템 문서, 방
     규칙, 라이브러리 지식, 사람 찾기, 방 기억, 상황 규칙 — carries the lines the model read of its candidates
     (the gate's `docs/api.md`, 「Judgements」), and its card stands them under the verdict in the order the model
@@ -4029,12 +4064,28 @@ Four bounds keep it from growing forever.
   - **Where the round's end names what it read from the brain** (the receiver's `docs/drafting.md`, 「The round
     log」), those pieces are the brain's documents in place of the ones the agency's log says the turn was handed.
     They come with the page, read with the round's summary, and stand at the head of the list before anything is
-    read: each by the index's words for it, or its path where the index lists none, with the path as its tooltip,
-    in three groups in this order — 첨부, the pieces of the turn's core that went whole; 직접 읽음, the pieces the
-    agent read itself through the index during the round; and 전에 읽음 with how many, the pieces that went as a
-    mark of a version the session already held, folded under its heading and spread by pressing it. The chip
-    counts the first two groups and the brain calls; the calls follow the pieces, read from the log the first
-    time the list opens, and a round that made none reads nothing.
+    read.
+  - **The 브레인 chip's figure is what the session holds read, and what this round read new**: the count of the
+    pieces that went as a mark of a version the session already held, then a plus and, in the success colour,
+    the count of what the round read new — the pieces that went whole, those the agent read itself through the
+    index, and the brain calls. 「1+3」 is one held and three new; a round that read nothing new stands the plain
+    count, and one that held nothing stands 「+3」. A screen reader hears 브레인, the held count, and 새로 읽음 with
+    the new count. A turn still running counts the same way off what its stream has said.
+  - **Spread, it is one list, read like a diff**: each new piece a line in the success colour on its own wash
+    with a leading plus, as an added line, and each held one plain under them, in the muted colour with the
+    plus's room kept blank. A piece stands by the index's words for it; the room's own due memories, the entry
+    `memories/<room>` (the gate's `docs/reference-selection.md`, 「What a turn is given」), as 이 방의 때가 된 기억;
+    anything else by its path. The brain calls follow the pieces, read from the log the first time the list
+    opens, and a round that made none reads nothing. The same list stands in the 드래프트 spread, after the
+    round's end.
+  - **Pressing a piece opens it** in a modal of its own, centred at every width, which Back closes: its name, its
+    path and whether this round read it new or the session held it. Where the round's end names the brain's
+    memory the piece is, the modal reads that memory the first time it opens, with a skeleton while it comes,
+    and stands its key, its type, its whole text, its layer, its subjects, when it was written, and a button to
+    that memory's page on the brain's screen. Where it names none, the modal stands the piece's text as the
+    gate serves it where the gate's index lists the path (the gate's `GET /reference/pieces/{slug}`), and its
+    name and path alone otherwise. Only an administrator, the brain screen's one reader, opens a piece; for
+    anyone else the lines stand still.
   - **What the record does not hold stands as nothing.** A round on a road whose turns hand the agency no list of
     what they were handed leaves no reference document in its log, so its 브레인 holds its brain calls alone
     (`docs/boundary.md`, 「Gaps the console meets」).
@@ -4073,28 +4124,39 @@ Four bounds keep it from growing forever.
     by the record its catalogue entry declares (the receiver's `docs/chat-mcp.md`). The records ride on the answer whole, so
     spreading them reads nothing more.
   - **It stands on the answer's last message**, and only where the round wrote something down.
-- **드래프트** — a chat agent answer carries how its round's draft process made it (the receiver's
-  `docs/drafting.md`): the chip is the count of the rounds the process asked — its questions, items and checks;
-  neither its end, the agent's own judgement before the round, nor a row of the round's own turn, where the log
-  holds one, is counted — and pressing it spreads the process.
-  - **The spread opens with the summary:** the gate's `draft` verdicts of the round where the gate wrote any, one
-    line each as the gate wrote it (`ROUND <number> <name>: <outcome>`, `END: <outcome>`), and otherwise one line
-    of how the process ended — 메시지, 보내지 않음, 보류, 시간 초과 후 메시지 or 시간 초과 후 보내지 않음 — read off its
-    end row. The gate's `draft` verdicts stand here alone and are no card of the 판정 chip.
-  - **Under it, one line per row of the round log,** in the order written: the row's number, its question's
-    name, its kind (판단, 턴, 질문, 항목, 점검, 끝), how it ended (답함, 건너뜀, 실패, or the end's outcome), the answer's
-    length in characters, 바뀜 where the answer differs from the one before it, and how long it took in
-    milliseconds. The end's line is the round's: after its outcome it says what the round read from the brain,
-    읽음: with the names of the pieces read on this round, and 전에 읽음 with how many went as marks. A row of a kind the console does not know stands under the receiver's word for it. Under each
-    question row its answer — the notes that round wrote, or the message in the last — stands whole, as it was
-    written, wrapping at the bubble's width. No answer and no row's text is folded or cut.
-  - **The rows are read the first time the chip is pressed,** from the receiver's round log by the message's
+- **드래프트** — a chat agent answer carries how its round made it and sent it (the receiver's `docs/drafting.md`):
+  the chip is the count of the rounds the process asked — its questions, items and checks; neither its end, the
+  agent's own judgement before the round, nor a row of the round's own turn, where the log holds one, is counted
+  — and pressing it spreads the round as a person reads it, in this order.
+  - **The rounds, one line each**, in the order written: the round's number, what it asked — the question's word
+    (정보 확인, 사실 확인, 기억 정리, 약속 점검, 의도 파악, 규칙·말투 점검, 메시지 작성, 도착 확인, and 판단 for the
+    agent's judgement before the round), or the question's own name where the pack has none — what it decided —
+    답함, 보냄, 넘김, 실패, or the receiver's word for one the console does not know — how long its answer is,
+    「110자」, and how long it took, 「11.8초」. 바뀜 follows where the answer differs from the one before it.
+  - **The slow round is marked**: where more than one round ran, the round that took longest, when it took at
+    least twice as long as any other, wears a clock mark and its time in the warning colour.
+  - **Pressing a round's line spreads its answer** — the notes that round wrote, or the message in the last —
+    whole as it was written, wrapping at the bubble's width; pressing again folds it. A round with no answer is
+    pressed for nothing.
+  - **Then the end, one line**: what went out — 메시지 보냄, 보내지 않음, 보류, 시간 초과 후 메시지 보냄 or 시간 초과
+    후 보내지 않음 — and how long the whole took.
+  - **Then what was read before it**: the 브레인 chip's own list (「브레인 · 툴 사용」), in the same look, where the
+    round's end names any piece.
+  - **Then the send and the answer's checks**: the answer's verdicts (「판정」), each a line of its stage's name and
+    the verdict in words — 보냄 for the send, with how many parts it went as where it went as more than one — and
+    its time; the answer's own words, which a round's turn verdict carries, stand on no line, since the bubble
+    holds them.
+  - **Nothing stands in the receiver's or the gate's own form**: no `ROUND`, `END` or `SENT`, no `answerChars=`,
+    no milliseconds and no process key. The raw rows are the copy's (「What a copy holds」).
+  - **The rounds are read the first time the chip is pressed,** from the receiver's round log by the message's
     round (`GET /rounds/drafts`), with a skeleton of three lines while they come and a sentence where the read
-    fails; pressing again folds them and a later press reads nothing more. The count and whether the chip stands
-    come with the page itself, which reads the page's rounds once when it is read.
+    fails; pressing again folds them and a later press reads nothing more. Where the log holds no row of the
+    round, the gate's `draft` verdicts stand for the rounds, each its number, its question's word and what it
+    decided. The count and whether the chip stands come with the page itself, which reads the page's rounds once
+    when it is read.
   - **It stands on the answer's last message**, and only where the round's process left a row other than one of
-    the round's own turn, or the gate wrote a `draft` verdict of it. A companion's answer, a round that waited and a turn from before the
-    process was kept carry none.
+    the round's own turn, or the gate wrote a `draft` verdict of it. A companion's answer, a round that waited and
+    a turn from before the process was kept carry none.
 - **사용 토큰** — an agent's answer, the chat agent's or a companion's, carries what that answer wrote: the token mark and one figure (「What one answer spent
   stands as one figure」).
   - **What is counted is the round.** A round is everything the bot ran to produce that answer: the
@@ -4211,6 +4273,8 @@ Four bounds keep it from growing forever.
   each call that read the brain; 사용 토큰, each road the round's runs took with its figure; and 전송 last. What a chip reads
   only when opened — the round rows, the calls — is read for the copy, and a read that fails leaves that chip's
   content out rather than holding the copy. Copying one message or several has the same shape.
+  - **A message's verdicts in a copy are the ones the screen gives it** (「판정」): a person's message copies its
+    판정 and an answer copies its 드래프트 and its send, each in the record's own words.
   - **A copy holds the chosen messages and their own verdicts, and nothing of any other message.** A verdict that
     is the answer the message drew — the chat agent's or a companion's `REPLY`, a send's `SENT` — stands as that
     word alone: what the answer says is the answering message's own, which a copy takes only where that message

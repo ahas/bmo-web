@@ -361,6 +361,7 @@ room:
     agent_waiting_engine: "{subject} 같은 모델을 쓰는 Job이 끝나기를 기다리는 중"
     agent_waiting_engine_item: "{subject} 같은 모델을 쓰는 #{item} Job이 끝나기를 기다리는 중"
     agent_writing: "{subject} 답을 쓰는 중"
+    brain_read_loading: 불러오는 중…
     chat_enabled: 채팅 활성화
     checking: 보냈는지 확인하는 중
     draft_loading: 드래프트 기록 불러오는 중…
@@ -429,6 +430,7 @@ room:
     bad_message_id: 메시지 번호가 올바르지 않습니다.
     bad_reply_id: 답장할 메시지 번호가 올바르지 않습니다.
     bad_send_key: 전송 키가 올바르지 않습니다.
+    brain_read_failed: 브레인 기록을 불러오지 못했습니다.
     drafts_read_failed: 드래프트 기록을 불러오지 못했습니다.
     file_empty_named: "{name} 파일이 비어 있어 보내지 않았습니다."
     file_not_found: 파일을 찾을 수 없습니다.
@@ -484,6 +486,7 @@ room:
     attach_document: 파일
     attach_file: 파일 첨부
     attach_media: 사진·동영상
+    brain_read_page: 브레인에서 보기
     cancel_reply: 답장 취소
     choose_messages: 메시지 선택
     companion_reset: 초기화
@@ -496,6 +499,7 @@ room:
     find_older: 이전 메시지 더 불러오기
     find_previous: 이전 결과
     of_companion: "{action} · {name}"
+    outcome_details: 자세히
     providers: 채팅 서비스
     pin: 고정
     remove_paste: 붙여넣은 텍스트 삭제
@@ -514,9 +518,19 @@ room:
     avatar_of: "{name} 프로필 사진"
     brain_read_attached: 첨부
     brain_read_before: 전에 읽음
+    brain_read_due: 이 방의 때가 된 기억
     brain_read_held: "전에 읽음 {n}개"
+    brain_read_held_one: 전에 읽음
+    brain_read_how: 읽음
+    brain_read_key: 키
+    brain_read_layer: 레이어
+    brain_read_new: 새로 읽음
     brain_read_read: 직접 읽음
+    brain_read_subjects: 대상
+    brain_read_type: 유형
+    brain_read_written: 작성
     chip_brain: 브레인
+    chip_brain_new: "브레인 · 새로 읽음 {n}"
     chip_briefing: 보이스브리핑
     chip_briefing_failed: 보이스브리핑 실패
     chip_briefing_making: 보이스브리핑 만드는 중
@@ -533,15 +547,13 @@ room:
     copy_call_failed: 실패
     copy_result_chars: "결과 {n}자"
     copy_tokens: "{n} 토큰"
-    draft_answer: 답변
     draft_changed: 바뀜
     draft_chars: "{n}자"
-    draft_end_ceiling_message: 시간 초과 후 메시지
+    draft_end_ceiling_message: 시간 초과 후 메시지 보냄
     draft_end_ceiling_skip: 시간 초과 후 보내지 않음
-    draft_end_message: 메시지
+    draft_end_message: 메시지 보냄
     draft_end_skip: 보내지 않음
     draft_end_withheld: 보류
-    draft_ended: "끝: {outcome}"
     draft_kind_check: 점검
     draft_kind_end: 끝
     draft_kind_item: 항목
@@ -550,8 +562,11 @@ room:
     draft_kind_turn: 턴
     draft_outcome_answered: 답함
     draft_outcome_failed: 실패
-    draft_outcome_skip: 건너뜀
+    draft_outcome_send: 보냄
+    draft_outcome_skip: 넘김
+    draft_question_arrived: 도착 확인
     draft_reads: "읽음: {names}"
+    draft_slow: 오래 걸린 라운드
     earlier_count: "이전 {n}개"
     elapsed: "{time} 경과"
     empty_message: (빈 메시지)
@@ -576,6 +591,14 @@ room:
     offer_kept: "항목 {item} · 키워드 {keyword} · 단어 {word} · 인물 {person} · 최근 {recent}"
     open_sessions: 열린 세션
     opening_title: 턴을 시작한 지시
+    outcome_answer_at: "{time} 답"
+    outcome_answered: 답함
+    outcome_failed: 실패
+    outcome_read_with: 함께 읽음
+    outcome_skipped: 답하지 않음
+    outcome_undecided: 결정 전
+    outcome_waiting: 기다림
+    outcome_with_message: "{time} 메시지"
     paste_name: "붙여넣기 {n}"
     paste_size: "{n}자"
     peak_hour: "{hour}시대"
@@ -683,6 +706,7 @@ room:
     stage_companion: 대화 상대
     stage_content_append: 덧붙이기
     stage_content_rewrite: 재작성
+    stage_draft: 드래프트
     stage_language_again: 방 언어 재작성
     stage_owed_again: 누락된 답 재작성
     stage_people_search: 인물북 서칭
@@ -704,6 +728,23 @@ room:
     top_speakers: 메시지가 가장 많은 사람
     unknown_message: 기록에 없는 메시지
     unreceivable: 받을 수 없음
+    verdict_clean: 이상 없음
+    verdict_defused: 무력화
+    verdict_failed: 실패
+    verdict_folded: 일부 축소
+    verdict_no_answer: 답 없음
+    verdict_no_candidates: 후보 없음
+    verdict_none: 선택 없음
+    verdict_open: 축소 없음
+    verdict_passed: 통과
+    verdict_picked: 선택
+    verdict_rewritten: 고쳐 씀
+    verdict_sent: 보냄
+    verdict_sent_parts: "{n}개로 나눠 보냄"
+    verdict_situation: "적용 {applies} · 사용 {spent}"
+    verdict_skipped: 건너뜀
+    verdict_unknown: 알 수 없는 판정
+    verdict_unreadable: 답을 읽지 못함
     voice_message: 음성 메시지
     voiced_as: "{name} 계정으로 보냄"
   message:
@@ -736,6 +777,7 @@ room:
     room_add: 방 추가
   aria:
     avatar_enlarge: "{name} 프로필 사진 크게 보기"
+    brain_read_open: "{name} 열기"
     go_to_quote: "{name}의 메시지로 이동"
     jump_to_date: "{name}, 날짜로 이동"
     open_details: "{name} 자세히 열기"
@@ -2118,6 +2160,7 @@ gates:
     output_decide: 출력 서식 1단계 게이트
     output_format: 출력 서식 게이트
     output_verify: 출력 서식 2단계 게이트
+    room_memories: 방 기억 분류기
     room_rules: 방 규칙 분류기
     situation_rules: 상황 규칙 매칭기
     system_documents: 시스템 문서 분류기

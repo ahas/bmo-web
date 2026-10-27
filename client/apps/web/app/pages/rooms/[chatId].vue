@@ -429,7 +429,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { TURN_ENDED, useBotEvents, useLiveRefresh, useReadFailure, useRoomRun } from "~/domain/events";
 import { useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { useIsland } from "bmo-ui/app/domain/island";
-import { judgedNow, judgementsByMessage } from "~/domain/judgements";
+import { homedJudgements, judgedNow, judgementsByMessage } from "~/domain/judgements";
 import { CHOOSE_GUTTER, chosenRuns } from "bmo-ui/app/domain/chooseall";
 import { NARROW_MAX_PX, STABLE_GUTTER, useScrollGutter } from "bmo-ui/app/domain/screen";
 import { stepsLanded, useBackClose } from "bmo-ui/app/domain/layers";
@@ -682,7 +682,8 @@ const { runs, outcome } = useRoomRun(chatId, {
 });
 
 // The room's verdicts by the message they stand under.
-const judgementIndex = computed(() => judgementsByMessage(roomFeed.judgements.value));
+// Each verdict under the message it is about, wherever the gate filed it (docs/web.md, the room screen's verdicts).
+const judgementIndex = computed(() => judgementsByMessage(homedJudgements(roomFeed.messages.value, roomFeed.judgements.value)));
 
 // Which messages of the room are being judged right now, which their verdict mark beats for: none that
 // already holds a final verdict written since its judging began.

@@ -115,7 +115,10 @@ const DRAFT_QUESTION_NAMES: Record<string, string> = {
   promises: "room.status.draft_question_promises",
   fit: "room.status.draft_question_fit",
   memory: "room.status.draft_question_memory",
-  final: "agents.label.draft_question_final"
+  final: "agents.label.draft_question_final",
+  // The closing check, an item of the process rather than a question of the catalogue (the receiver's
+  // docs/drafting.md, 「The round log」).
+  arrived: "room.label.draft_question_arrived"
 };
 
 export function draftQuestionLabel(t: Translate, question: string): string {

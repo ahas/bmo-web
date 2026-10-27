@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { endsJudging, instructionParts, judgedNow, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
+import { endsJudging, homedJudgements, instructionParts, judgedNow, messageOutcome, outcomeTarget, readingCards, roundPlaces, secondsText, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
 
 import type { GateOfferRecord, Judgement, LiveRun, RoundOpening } from "../../../apps/web/shared/types";
 import { WORKER } from "../../support/ids";
@@ -263,5 +263,63 @@ describe("a judgement line's answer", () => {
 
   test("an answer of another shape stands as its own words", () => {
     expect(lineAnswer(wording, "maybe later")).toBe("maybe later");
+  });
+});
+
+describe("where each verdict stands", () => {
+  const at = (id: number, messageId: number, stage: string, verdict: string, round = "r1"): Judgement => ({ id, chatId: 5, messageId, stage, verdict, detail: null, createdAt: 1_000 + id, round });
+  const messages = [
+    { messageId: 10, agent: false, round: null },
+    { messageId: 11, agent: true, round: "r1" },
+    { messageId: 20, agent: true, round: "r2" }
+  ];
+
+  test("a person's message keeps what read it, and the answer takes its draft, its send and its checks", () => {
+    const homed = homedJudgements(messages, [
+      at(1, 10, "sanitizer", "CLEAN"),
+      at(2, 10, "draft", "ROUND 1 final: answered"),
+      at(3, 10, "chat", "REPLY: hi"),
+      at(4, 11, "send", "SENT"),
+      at(5, 11, "room-rules", "SKIP: no candidates"),
+      at(6, 11, "output-format", "FOLD")
+    ]);
+
+    expect(homed.map((one) => [one.id, one.messageId])).toEqual([[1, 10], [2, 11], [3, 10], [4, 11], [5, 10], [6, 11]]);
+  });
+
+  test("a round the agent opened itself leaves its own word under nothing and its draft on its answer", () => {
+    const homed = homedJudgements(messages, [at(7, 20, "chat", "REPLY: later", "r2"), at(8, 20, "draft", "END: message", "r2"), at(9, 10, "draft", "END: message", "r9")]);
+
+    expect(homed.map((one) => [one.id, one.messageId])).toEqual([[8, 20]]);
+  });
+
+  test("says what became of a message, off its latest round, and links the answer it drew", () => {
+    const judged = [at(1, 10, "sanitizer", "CLEAN"), at(3, 10, "chat", "REPLY: hi")];
+    const outcome = messageOutcome(judged);
+
+    expect(outcome).toEqual({ kind: "answered", round: "r1" });
+    expect(outcomeTarget(outcome, roundPlaces(messages, judged))).toBe(11);
+    expect(messageOutcome([at(1, 10, "chat", "SKIP"), at(2, 10, "skipped", "SKIP")])?.kind).toBe("skipped");
+    expect(messageOutcome([at(1, 10, "chat", "WAIT")])?.kind).toBe("waiting");
+    expect(messageOutcome([at(1, 9, "read-with", "READ: #10")])?.kind).toBe("read-with");
+    expect(messageOutcome([at(1, 10, "sanitizer", "CLEAN")])?.kind).toBe("undecided");
+    expect(messageOutcome([])).toBeNull();
+    expect(readingCards(judged).map((one) => one.id)).toEqual([1]);
+  });
+
+  test("words a verdict for a person, never in the gate's own tokens", () => {
+    const words = (verdict: string, stage = "room-rules") => verdictWords(wording, at(1, 10, stage, verdict));
+
+    expect(words("SKIP: no candidates").words).toBe(wording("room.label.verdict_no_candidates"));
+    expect(words("NONE").words).toBe(wording("room.label.verdict_none"));
+    expect(words("PICK: a, b")).toEqual({ words: wording("room.label.verdict_picked"), names: ["a", "b"], tone: "neutral" });
+    expect(words("p1-address, p1-pets", "people-search").names).toEqual(["p1-address", "p1-pets"]);
+    expect(words("applies=x spent=", "situation-rules").words).toBe(wording("room.label.verdict_situation", { applies: "x", spent: wording("common.label.none") }));
+    expect(words("CLEAN", "sanitizer").tone).toBe("success");
+    expect(words("FAIL: The answer lets out something", "content-judge").tone).toBe("error");
+    expect(words("SENT: 2 parts", "send").words).toBe(wording("room.label.verdict_sent_parts", { n: "2" }));
+    expect(words("REPLY: again", "wording-again").words).toBe(wording("room.label.verdict_rewritten"));
+    expect(words("The talk broke off there.", "system-documents").words).toBe(wording("room.label.verdict_unknown"));
+    expect(secondsText(wording, 11_818)).toBe(wording("common.label.seconds", { n: "11.8" }));
   });
 });

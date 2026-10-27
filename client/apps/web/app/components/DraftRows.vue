@@ -1,13 +1,9 @@
 <template>
-  <!-- What a round's draft process did, spread from its chip inside the bubble (docs/web.md, the room screen's draft
-       chip): the summary first — the gate's rows as it wrote them, or how the process ended — then one line per row
-       of the round log, the end's with what the round read from the brain, and under each question's line its
-       answer, whole as it was written. Nothing here folds. -->
-  <div class="flex w-full min-w-0 flex-col gap-2">
-    <ul v-if="props.summary.length > 0" data-draft-summary class="flex flex-col gap-0.5">
-      <li v-for="(line, index) in props.summary" :key="index" class="text-sm break-words text-muted">{{ line }}</li>
-    </ul>
-
+  <!-- How a round made its answer and sent it, spread from its draft chip inside the bubble (docs/web.md, the room
+       screen's draft chip), in a person's words: the rounds one line each, the slow one marked, each pressed for its
+       answer; then the end; then what the round read from the brain, the brain list itself; then the send and the
+       answer's checks. Nothing stands in the receiver's or the gate's own form. -->
+  <div data-draft class="flex w-full min-w-0 flex-col gap-2">
     <ContentSkeleton v-if="props.loading" :rows="3" listClass="flex flex-col gap-1" :label="$t('room.status.draft_loading')">
       <div class="flex h-5 items-center gap-2">
         <SkeletonBar class="h-4 w-6 shrink-0" />
@@ -15,50 +11,139 @@
       </div>
     </ContentSkeleton>
     <p v-else-if="props.failure !== null" class="text-sm text-dimmed">{{ props.failure }}</p>
-    <p v-else-if="props.rows !== null && props.rows.length === 0" class="text-sm text-dimmed">{{ $t("room.status.draft_none") }}</p>
+    <p v-else-if="props.rows !== null && rounds.length === 0 && end === null" class="text-sm text-dimmed">{{ $t("room.status.draft_none") }}</p>
 
-    <ol v-else-if="props.rows !== null" data-draft-rows class="flex flex-col gap-1">
-      <li v-for="row in props.rows" :key="row.id" class="min-w-0">
-        <!-- The row's facts on one line where they fit; its number, its question and its kind say which turn it
-             was, and how it ended, how long its answer is, whether it changed and how long it took follow. -->
-        <div class="flex flex-wrap items-baseline gap-x-2 text-sm text-dimmed tabular-nums">
-          <span class="text-muted">{{ countText(row.number) }}</span>
-          <span v-if="row.question !== ''" class="font-mono break-all text-highlighted">{{ row.question }}</span>
-          <span>{{ draftKindText($t, row.kind) }}</span>
-          <span :class="row.outcome === 'failed' || row.outcome === 'withheld' ? 'text-error' : ''">{{ draftOutcomeText($t, row.outcome, row.kind) }}</span>
-          <span v-if="row.kind !== 'end'">{{ $t("room.label.draft_chars", { n: countText(row.answerChars) }) }}</span>
-          <span v-if="row.changed && row.kind !== 'end'">{{ $t("room.label.draft_changed") }}</span>
-          <span v-if="row.kind !== 'end'">{{ countText(row.ms) }}ms</span>
-          <!-- The end names what the round read from the brain: the pieces read on this round, then how many went
-               as marks of what the session already held. -->
-          <template v-else>
-            <span v-for="part in draftReadsParts($t, row.reads)" :key="part" data-draft-reads class="min-w-0 break-words">{{ part }}</span>
-          </template>
-        </div>
+    <template v-else>
+      <ol v-if="rounds.length > 0" data-draft-rounds class="flex min-w-0 flex-col">
+        <li v-for="round in rounds" :key="round.key" class="min-w-0" :data-draft-round="round.number" :data-slow="round.slow ? '' : undefined">
+          <component
+            :is="round.answer === null ? 'div' : 'button'"
+            :type="round.answer === null ? undefined : 'button'"
+            class="flex w-full min-w-0 flex-wrap items-center gap-x-2 rounded-sm px-1 text-start text-sm text-muted tabular-nums"
+            :class="round.answer === null ? '' : 'hover:bg-current/10 active:bg-current/20'"
+            :aria-expanded="round.answer === null ? undefined : opened.has(round.key)"
+            @click="round.answer === null ? undefined : toggle(round.key)"
+          >
+            <UIcon
+              v-if="round.answer !== null"
+              name="i-material-symbols-chevron-right"
+              aria-hidden="true"
+              class="size-4 shrink-0 text-dimmed transition-transform"
+              :class="opened.has(round.key) ? 'rotate-90' : ''"
+            />
+            <span v-else aria-hidden="true" class="size-4 shrink-0" />
+            <span class="text-dimmed">{{ countText(round.number) }}</span>
+            <span class="text-highlighted">{{ round.asked }}</span>
+            <span :class="round.failed ? 'text-error' : ''">{{ round.decided }}</span>
+            <span v-if="round.chars !== null">{{ $t("room.label.draft_chars", { n: countText(round.chars) }) }}</span>
+            <span v-if="round.changed">{{ $t("room.label.draft_changed") }}</span>
+            <span v-if="round.ms !== null" class="inline-flex items-center gap-1" :class="round.slow ? 'text-warning' : ''">
+              <UIcon v-if="round.slow" name="i-material-symbols-schedule-outline" class="size-4" :aria-label="$t('room.label.draft_slow')" role="img" />
+              {{ secondsText($t, round.ms) }}
+            </span>
+          </component>
 
-        <div v-if="draftAnswerShown(row)" data-draft-answer class="mt-1 flex min-w-0 flex-col gap-0.5">
-          <p class="text-sm text-dimmed">{{ $t("room.label.draft_answer") }}</p>
-          <pre class="font-sans text-sm whitespace-pre-wrap wrap-anywhere text-muted">{{ row.answer }}</pre>
-        </div>
-      </li>
-    </ol>
+          <pre
+            v-if="round.answer !== null && opened.has(round.key)"
+            data-draft-answer
+            class="mt-1 mb-2 ms-7 font-sans text-sm whitespace-pre-wrap wrap-anywhere text-muted"
+          >{{ round.answer }}</pre>
+        </li>
+      </ol>
+
+      <p v-if="end !== null" data-draft-end class="flex flex-wrap items-center gap-x-2 px-1 text-sm text-muted tabular-nums">
+        <UIcon name="i-material-symbols-flag-outline" aria-hidden="true" class="size-4 shrink-0 text-dimmed" />
+        <span class="text-highlighted" :class="end.withheld ? 'text-error' : ''">{{ end.outcome }}</span>
+        <span v-if="end.ms !== null">{{ secondsText($t, end.ms) }}</span>
+      </p>
+
+      <div v-if="props.reads.length > 0" data-draft-reads class="flex min-w-0 flex-col">
+        <p class="flex items-center gap-x-2 px-1 text-sm text-highlighted">
+          <UIcon :name="CHIP_ICONS.brain" aria-hidden="true" class="size-4 shrink-0 text-dimmed" />
+          {{ $t(CHIP_LABELS.brain) }}
+        </p>
+        <BrainReads :reads="props.reads" :chat-id="props.chatId" :agent="props.agent" class="ms-6" />
+      </div>
+
+      <ul v-if="sent.length > 0" data-draft-sent class="flex min-w-0 flex-col">
+        <li v-for="line in sent" :key="line.id" class="flex min-w-0 flex-wrap items-center gap-x-2 px-1 text-sm text-muted tabular-nums">
+          <UIcon :name="line.icon" aria-hidden="true" class="size-4 shrink-0 text-dimmed" />
+          <span class="text-highlighted">{{ line.stage }}</span>
+          <span :class="line.toneClass">{{ line.words }}</span>
+          <span v-if="line.names !== ''" class="font-mono break-all">{{ line.names }}</span>
+          <time class="text-dimmed">{{ line.at }}</time>
+        </li>
+      </ul>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { draftAnswerShown, draftKindText, draftOutcomeText, draftReadsParts } from "~/domain/draft-process";
+import { formatClock } from "bmo-ui/app/domain/time";
+
+import { CHIP_ICONS, CHIP_LABELS } from "~/domain/chips";
+
+import { endLine, gateRoundLines, roundLines } from "~/domain/draft-process";
+import { secondsText, stageLabel, verdictWords } from "~/domain/judgements";
 import { countText } from "~/domain/numbers";
 
-import type { DraftRow } from "#shared/drafting";
+import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
+import type { Judgement } from "#shared/types";
 
 interface Props {
-  // The summary's lines, said before the rows are read.
-  summary: string[];
   // The round log's rows, null until they are read.
   rows: DraftRow[] | null;
   loading: boolean;
   failure: string | null;
+  // The gate's rows of the round's process, which stand for the rounds where the log holds none.
+  drafts: Judgement[];
+  // The answer's other verdicts: its send and the checks it went through on its way out.
+  checks: Judgement[];
+  summary: DraftSummary | null;
+  reads: DraftRead[];
+  chatId: number;
+  agent: string | null;
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
+
+const rounds = computed(() => {
+  const logged = props.rows === null ? [] : roundLines(t, props.rows);
+
+  return logged.length > 0 ? logged : gateRoundLines(t, props.drafts);
+});
+const end = computed(() => endLine(t, props.rows, props.drafts, props.summary));
+
+// Which rounds stand with their answer spread; each folds on its own.
+const opened = ref(new Set<string>());
+
+function toggle(key: string): void {
+  const next = new Set(opened.value);
+
+  if (!next.delete(key)) next.add(key);
+
+  opened.value = next;
+}
+
+const TONE_CLASSES = { success: "text-success", error: "text-error", neutral: "" } as const;
+const SEND_STAGE = "send";
+
+const sent = computed(() =>
+  [...props.checks]
+    .sort((one, other) => one.createdAt - other.createdAt || one.id - other.id)
+    .map((judgement) => {
+      const words = verdictWords(t, judgement);
+
+      return {
+        id: judgement.id,
+        icon: judgement.stage === SEND_STAGE ? "i-material-symbols-send-outline" : "i-material-symbols-rule",
+        stage: stageLabel(t, judgement.stage),
+        words: words.words,
+        names: words.names.join(", "),
+        toneClass: TONE_CLASSES[words.tone],
+        at: formatClock(judgement.createdAt)
+      };
+    })
+);
 </script>

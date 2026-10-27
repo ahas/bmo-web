@@ -63,6 +63,28 @@ export interface DraftRead {
   path: string;
   holds: string | null;
   how: DraftReadHow;
+  // The brain's memory the piece is, where the round's end names it; absent where it does not.
+  memoryId?: number | null;
+}
+
+/** One memory of the brain as a read piece's modal stands it (docs/web.md, the room screen's brain chip). */
+export interface BrainMemoryView {
+  id: number;
+  brainId: number;
+  key: string | null;
+  type: string;
+  text: string;
+  layer: string | null;
+  subjects: { type: string; key: string }[];
+  // When this version was written, in unix seconds.
+  writtenAt: number;
+}
+
+/** What a read piece's modal reads of it: the brain's memory where the read names one, else the gate's text of it
+ * where the gate's index lists its path, else neither. */
+export interface BrainPiece {
+  memory: BrainMemoryView | null;
+  text: string | null;
 }
 
 /** One turn of a round's draft process, or its end (the receiver's `docs/drafting.md`, 「The round log」). */

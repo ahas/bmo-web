@@ -6,6 +6,7 @@ import { agentKey, avatarFor, hueOf } from "./avatars";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { runKey } from "./events";
 import { countText } from "./numbers";
+import { messageOutcome, outcomeTarget, roundPlaces } from "./judgements";
 import { dayKey, formatDay } from "bmo-ui/app/domain/time";
 import { subjectOf } from "./working";
 
@@ -24,6 +25,7 @@ import type { DraftSummary } from "#shared/drafting";
 import type { AvatarProps } from "@nuxt/ui";
 import type { ComputedRef, Ref } from "vue";
 import type { AvatarIndex } from "./avatars";
+import type { OutcomeKind } from "./judgements";
 import type { CopyItem } from "./room-copy";
 import type { RunState } from "./events";
 import type { OutboxItem, OutboxState } from "./outbox";
@@ -301,12 +303,21 @@ export interface FeedItem {
   // How many of the chat agent's turns read this message last and ended in silence. The room stands a line
   // for them under the row, which is not a row of its own and nothing chooses or copies.
   skipped: number;
+  // What became of a person's message, as its verdict line says it, with the message the line links to; null on
+  // an agent's answer and on a message no verdict stands under (docs/web.md, the room screen's verdicts).
+  outcome?: OutcomeView | null;
   // Whether the bot sent this message as the service rather than as the chat agent, as the server says: the row
   // stands as a system line rather than an answer.
   notice: boolean;
   // On an agent's answer that went out in the owner's own account, the name of that account, which the row names
   // beside the agent's own; absent on every other row.
   voice?: string;
+}
+
+// What a person's message's verdict line says, and the message it links to where that message is on the page.
+export interface OutcomeView {
+  kind: OutcomeKind;
+  target: { messageId: number; sentAt: number } | null;
 }
 
 // A turn that went silent is written down as a judgement of this stage on the message it read.
@@ -1321,6 +1332,7 @@ export function archivedRows(
       gathered.album = [...(gathered.album ?? []), { messageId: message.messageId, src: imageUrlFor(message.chatId, message.messageId) }];
       // A turn reads the whole send and is pinned to its last picture, which stands in this row.
       gathered.skipped += skipLines ? skippedTurns(judgements.get(message.messageId) ?? []) : 0;
+      gathered.judgements = [...gathered.judgements, ...(judgements.get(message.messageId) ?? [])];
       continue;
     }
 
@@ -1336,6 +1348,18 @@ export function archivedRows(
     }
 
     items.push(item);
+  }
+
+  // What became of each person's message, read once the album rows hold every verdict of their pictures.
+  const places = roundPlaces(messages, [...judgements.values()].flat());
+  const sent = new Map(messages.map((message) => [message.messageId, message.sentAt]));
+
+  for (const item of items) {
+    const outcome = item.look.role === "assistant" ? null : messageOutcome(item.judgements);
+    const target = outcomeTarget(outcome, places);
+    const at = target === null ? undefined : sent.get(target);
+
+    item.outcome = outcome === null ? null : { kind: outcome.kind, target: target === null || at === undefined ? null : { messageId: target, sentAt: at } };
   }
 
   return items;

@@ -62,7 +62,12 @@ const READ_HOWS: readonly DraftReadHow[] = ["attached", "read", "held"];
 function readOf(read: Schemas["DraftRead"]): DraftRead[] {
   const how = READ_HOWS.find((one) => one === read.how);
 
-  return how === undefined ? [] : [{ path: read.path, holds: read.holds ?? null, how }];
+  if (how === undefined) return [];
+
+  // The memory the piece is, once the receiver's end names one.
+  const memoryId: unknown = Reflect.get(read, "memoryId");
+
+  return [{ path: read.path, holds: read.holds ?? null, how, ...(typeof memoryId === "number" ? { memoryId } : {}) }];
 }
 
 /** The table and the catalogue, read together. */

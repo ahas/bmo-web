@@ -15,13 +15,14 @@ const trail = row.slice(row.indexOf("data-meta-trail"));
 
 describe("opening the row", () => {
   test("runs the one rule that says what stands open, rather than a rule of its own", () => {
-    expect(script).toContain("openedCards(verdicts.value, expanded.value)");
+    expect(script).toContain("openedCards(verdicts.value, expanded.value && detailsOpen.value)");
     expect(script).toContain("splitDraftJudgements(props.judgements)");
   });
 
-  test("is the chips' alone: nothing spread below folds on its own", () => {
+  test("is the chips' alone: nothing spread below folds on its own but the outcome line's details", () => {
     // Every control of this row is one of its chips, and they all stand on the row itself: what
-    // they spread below — a stage's card, the figures, what the turn did or wrote down — carries none.
+    // they spread below — a stage's card, the figures, what the turn did or wrote down — carries none,
+    // but the outcome line's press for the gates' cards and its link to the message it names.
     const controls = [...template.matchAll(/<button|<LineChip|<TokenChip/g)].map((found) => found.index ?? 0);
     const spread = template.indexOf('<template v-if="briefingOpen');
 
@@ -33,7 +34,7 @@ describe("opening the row", () => {
 
 describe("the chips of the row", () => {
   test("each is a mark with a figure or nothing, and none carries a word of its own", () => {
-    expect(row).toContain(':icon="CHIP_ICONS.brain" :label="$t(CHIP_LABELS.brain)"');
+    expect(row).toContain(':icon="CHIP_ICONS.brain" :label="brainLabel"');
     expect(row).toContain(':icon="CHIP_ICONS.tools" :label="$t(CHIP_LABELS.tools)"');
     expect(row).toContain(':icon="CHIP_ICONS.records" :label="$t(CHIP_LABELS.records)"');
     expect(trail).toContain(':icon="CHIP_ICONS.verdicts"');
@@ -109,7 +110,7 @@ describe("the chips of the row", () => {
   test("each stands exactly when its own thing is there, and the row when any of them is", () => {
     expect(template).toContain('<div v-if="shown || spreading" :class="frame">');
     expect(script).toContain("const shown = computed<boolean>(() => full.value || marked.value || props.clock);");
-    expect(script).toContain("const marked = computed<boolean>(() => props.judging || verdicts.value.length > 0);");
+    expect(script).toContain("const marked = computed<boolean>(() => !props.answer && (props.judging || verdicts.value.length > 0));");
     // How full the session stood stands only once the turn has ended and its round reported it.
     expect(row).toContain('<ContextChip v-if="context !== null" :ratio="context" />');
     expect(script).toContain("props.live === null ? (props.spend?.context ?? null) : null");
@@ -210,7 +211,7 @@ describe("what opened the turn", () => {
   test("stands once above each turn's cards, whichever gates the turn ran", () => {
     expect(script).toContain("openedTurns(opened.value)");
     expect(cards.indexOf("<TurnOpening")).toBeGreaterThan(-1);
-    expect(cards.indexOf("<TurnOpening")).toBeLessThan(cards.indexOf('v-for="{ judgement, narrowed, kept } in turn.cards"'));
+    expect(cards.indexOf("<TurnOpening")).toBeLessThan(cards.indexOf('v-for="{ judgement, narrowed, kept, words } in turn.cards"'));
     expect(cards).toContain('v-if="turn.opening !== null && turn.opening.instructions.length > 0"');
   });
 
@@ -264,19 +265,34 @@ describe("the draft chip", () => {
   test("reads the round's rows the first time it opens and never again once they are in", () => {
     expect(script).toContain("`/api/rooms/${props.chatId}/drafts`, { query: { round } }");
     expect(script).toContain("if (!draftsOpen.value || round === null || draftRows.value !== null || loadingDrafts.value) return;");
-    expect(template).toContain('<DraftRows v-if="draftsOpen && drafted" :summary="draftLines" :rows="draftRows" :loading="loadingDrafts" :failure="draftsFailure" />');
+    expect(template).toMatch(/<DraftRows\s+v-if="draftsOpen && drafted"\s+:rows="draftRows"\s+:loading="loadingDrafts"\s+:failure="draftsFailure"/);
   });
 
-  test("spreads the summary, then each row's number, question, kind, outcome, length, change and time, and a question's answer whole", () => {
-    expect(rowsTemplate.indexOf("data-draft-summary")).toBeLessThan(rowsTemplate.indexOf("data-draft-rows"));
+  test("spreads the rounds, the end, what was read and the send, each in a person's words", () => {
+    const at = ["data-draft-rounds", "data-draft-end", "data-draft-reads", "data-draft-sent"].map((one) => rowsTemplate.indexOf(one));
 
-    for (const fact of ["countText(row.number)", "row.question", "draftKindText($t, row.kind)", "draftOutcomeText($t, row.outcome, row.kind)", "room.label.draft_chars", "room.label.draft_changed", "countText(row.ms)"]) {
+    expect(at.every((one) => one > -1)).toBe(true);
+    expect([...at].sort((one, other) => one - other)).toEqual(at);
+
+    for (const fact of ["countText(round.number)", "round.asked", "round.decided", "room.label.draft_chars", "room.label.draft_changed", "secondsText($t, round.ms)", "round.slow"]) {
       expect({ fact, stood: rowsTemplate.includes(fact) }).toEqual({ fact, stood: true });
     }
-    expect(rowsTemplate).toMatch(/<div v-if="draftAnswerShown\(row\)" data-draft-answer[^>]*>\s*<p[^>]*>\{\{ \$t\("room\.label\.draft_answer"\) \}\}<\/p>\s*<pre[^>]*whitespace-pre-wrap wrap-anywhere[^>]*>\{\{ row\.answer \}\}<\/pre>/);
-    // No answer and no row's text is folded.
-    expect(rowsTemplate).not.toContain("UChatTool");
-    expect(rowsTemplate).not.toContain("UCollapsible");
+    // Nothing stands in the record's own form: no row's raw question, no milliseconds.
+    expect(rowsTemplate).not.toContain("row.question");
+    expect(rowsTemplate).not.toContain("ms</span>");
+    // A round's answer spreads under its line on a press of the line, and folds on the next.
+    expect(rowsTemplate).toMatch(/<pre\s+v-if="round\.answer !== null && opened\.has\(round\.key\)"/);
+  });
+});
+
+// What became of a person's message (docs/web.md, the room screen's verdicts): one line under its mark, a link to the
+// message it names, and a press for the gates' cards; an answer carries no mark of its own.
+describe("the outcome line", () => {
+  test("stands under a person's message's mark alone, and links the message it names", () => {
+    expect(template).toContain('<div v-if="expanded && marked" data-outcome');
+    expect(template).toContain("@click.stop=\"emit('jump', props.outcome.target.messageId)\"");
+    expect(template).toContain('v-if="cardsHeld"');
+    expect(script).toContain("const verdicts = computed<Judgement[]>(() => (props.answer ? [] :");
   });
 });
 

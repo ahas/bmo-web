@@ -1,12 +1,16 @@
 import type { Judgement, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
 import { chatAgent } from "#shared/agent-names";
 import { companionOf } from "./agents";
+import { COUNT_LOCALE, countText } from "./numbers";
 
 import type { Translate } from "#shared/wording";
 
 export interface StageMeta {
   slug: string;
   label: string;
+  // Whether the stage judged the answer on its way out rather than the message the round read: its verdicts stand in
+  // the answer's draft spread and never under a person's message (docs/web.md, the room screen's verdicts).
+  answer?: true;
 }
 
 export type VerdictTone = "success" | "error" | "neutral";
@@ -20,31 +24,34 @@ export const STAGES: readonly StageMeta[] = [
   // The content gate, the leak check that no longer runs, the rewrite it asked for and an addition it
   // once asked for. Nothing records under these names any more and the turns that did are still
   // read, so they keep their names here.
-  { slug: "content-judge", label: "gates.label.content_judge" },
-  { slug: "content-rewrite", label: "room.label.stage_content_rewrite" },
-  { slug: "content-append", label: "room.label.stage_content_append" },
-  { slug: "owed-again", label: "room.label.stage_owed_again" },
-  { slug: "language-again", label: "room.label.stage_language_again" },
-  { slug: "record-again", label: "room.label.stage_record_again" },
-  { slug: "wake-again", label: "room.label.stage_wake_again" },
-  { slug: "rule-again", label: "room.label.stage_rule_again" },
-  { slug: "wording-again", label: "room.label.stage_wording_again" },
-  { slug: "output-format", label: "gates.label.output_format" },
+  { slug: "content-judge", label: "gates.label.content_judge", answer: true },
+  { slug: "content-rewrite", label: "room.label.stage_content_rewrite", answer: true },
+  { slug: "content-append", label: "room.label.stage_content_append", answer: true },
+  { slug: "owed-again", label: "room.label.stage_owed_again", answer: true },
+  { slug: "language-again", label: "room.label.stage_language_again", answer: true },
+  { slug: "record-again", label: "room.label.stage_record_again", answer: true },
+  { slug: "wake-again", label: "room.label.stage_wake_again", answer: true },
+  { slug: "rule-again", label: "room.label.stage_rule_again", answer: true },
+  { slug: "wording-again", label: "room.label.stage_wording_again", answer: true },
+  { slug: "output-format", label: "gates.label.output_format", answer: true },
   { slug: "system-documents", label: "gates.label.system_documents" },
   { slug: "room-rules", label: "gates.label.room_rules" },
   { slug: "library-knowledge", label: "gates.label.library_knowledge" },
   { slug: "situation-rules", label: "gates.label.situation_rules" },
+  { slug: "room-memories", label: "gates.label.room_memories" },
   // The one gate that picked every kind of reference before the three did. Nothing records under
   // this name any more and the turns that did are still read, so it keeps its name here.
   { slug: "classifier", label: "gates.label.classifier" },
   // Two gates that no longer run, whose recorded turns are still read under their names.
-  { slug: "output-decide", label: "gates.label.output_decide" },
-  { slug: "output-verify", label: "gates.label.output_verify" },
+  { slug: "output-decide", label: "gates.label.output_decide", answer: true },
+  { slug: "output-verify", label: "gates.label.output_verify", answer: true },
   // The person book's search is a picker like the three and stands beside them, but it is not one
   // of the gates the gate screen tries by hand, so it is named here rather than in that list.
   { slug: "people-search", label: "room.label.stage_people_search" },
   { slug: "sanitizer", label: "room.label.stage_sanitizer" },
-  { slug: "send", label: "room.label.stage_send" },
+  { slug: "send", label: "room.label.stage_send", answer: true },
+  // The round's draft process, row by row as the gate wrote it (the receiver's docs/drafting.md).
+  { slug: "draft", label: "room.label.stage_draft", answer: true },
   // A message a turn read before the last one it read, pointing at the message its verdicts stand under.
   { slug: "read-with", label: "room.label.stage_read_with" },
   // The ending of a round that went silent, which the room also stands as a line of its own.
@@ -52,6 +59,13 @@ export const STAGES: readonly StageMeta[] = [
 ];
 
 const STAGE_LABELS = new Map(STAGES.map((stage) => [stage.slug, stage.label]));
+const ANSWER_STAGES = new Set(STAGES.filter((stage) => stage.answer === true).map((stage) => stage.slug));
+
+/** Whether a verdict judged the answer on its way out — its draft, its send, its checks and rewrites — rather than
+ * the message the round read. */
+export function judgesAnswer(judgement: Judgement): boolean {
+  return ANSWER_STAGES.has(judgement.stage);
+}
 
 // A verdict that passed, answered, went out or came out clean reads as success, one that failed as
 // error, and everything else — a skip, a defuse, a wait, a format decision, a list of slugs — stays
@@ -460,4 +474,208 @@ export function lineAnswer(t: Translate, answer: string | null): string {
 // Whether an answer is a yes, so its line reads as kept.
 export function lineKept(answer: string | null): boolean {
   return answer !== null && /^\s*yes\s*$|applies\s*:\s*yes/i.test(answer);
+}
+
+// Where each verdict stands (docs/web.md, the room screen's verdicts): a person's message carries what the round that read it decided of
+// it, and the round's answer carries what drafted, checked and sent it.
+
+/** What of a message the screen needs to tell where its verdicts stand. */
+export interface HomedMessage {
+  messageId: number;
+  agent?: boolean;
+  round?: string | null;
+}
+
+// The stages that are the round's own turn deciding about the message it read, or saying it read one along with
+// another: what they say is the message's outcome rather than a card under it.
+const TURN_STAGES = new Set(["chat", "companion", "skipped", "read-with"]);
+const READ_WITH_STAGE = "read-with";
+
+/** Whether a verdict is the round's own turn's word on the message it read. */
+export function decidesMessage(judgement: Judgement): boolean {
+  return TURN_STAGES.has(judgement.stage);
+}
+
+// The last message of each round's answer on the page, and, for each round, the person's message carrying the
+// round's own turn verdict, else any of the round's verdicts on a person's message.
+export interface RoundPlaces {
+  answers: Map<string, number>;
+  read: Map<string, number>;
+}
+
+export function roundPlaces(messages: readonly HomedMessage[], judgements: readonly Judgement[]): RoundPlaces {
+  const agents = new Set(messages.filter((message) => message.agent === true).map((message) => message.messageId));
+  const answers = new Map<string, number>();
+
+  for (const message of messages) {
+    if (message.agent === true && message.round != null) answers.set(message.round, message.messageId);
+  }
+
+  const decided = new Map<string, number>();
+  const any = new Map<string, number>();
+
+  for (const judgement of [...judgements].sort((left, right) => left.createdAt - right.createdAt || left.id - right.id)) {
+    if (judgement.round == null || judgement.messageId === null || judgesAnswer(judgement) || agents.has(judgement.messageId)) continue;
+
+    any.set(judgement.round, judgement.messageId);
+    if (decidesMessage(judgement) && judgement.stage !== READ_WITH_STAGE) decided.set(judgement.round, judgement.messageId);
+  }
+
+  return { answers, read: new Map([...any, ...decided]) };
+}
+
+/**
+ * The page's verdicts, each under the message it is about: one that judged the answer under the round's answer, and
+ * one that judged what the round read under the person's message of the same round, wherever the gate filed it. One
+ * with nowhere on the page to stand stands under nothing.
+ */
+export function homedJudgements(messages: readonly HomedMessage[], judgements: readonly Judgement[]): Judgement[] {
+  const agents = new Set(messages.filter((message) => message.agent === true).map((message) => message.messageId));
+  const { answers, read } = roundPlaces(messages, judgements);
+
+  return judgements.flatMap((judgement) => {
+    if (judgement.messageId === null) return [];
+
+    const round = judgement.round ?? null;
+
+    if (judgesAnswer(judgement)) {
+      const answer = round === null ? undefined : answers.get(round);
+
+      if (answer !== undefined) return [answer === judgement.messageId ? judgement : { ...judgement, messageId: answer }];
+
+      return agents.has(judgement.messageId) ? [judgement] : [];
+    }
+
+    if (!agents.has(judgement.messageId)) return [judgement];
+
+    const person = round === null ? undefined : read.get(round);
+
+    return person === undefined ? [] : [{ ...judgement, messageId: person }];
+  });
+}
+
+/** What became of a person's message, in the words its verdict line says it in. */
+export type OutcomeKind = "answered" | "skipped" | "waiting" | "read-with" | "failed" | "undecided";
+
+export interface MessageOutcome {
+  kind: OutcomeKind;
+  // The round that decided it, which names the message the line links to.
+  round: string | null;
+}
+
+/** The outcome of a message, read off the latest round that read it; null for a message no verdict stands under. */
+export function messageOutcome(judgements: readonly Judgement[]): MessageOutcome | null {
+  const own = judgements.filter((judgement) => !judgesAnswer(judgement));
+
+  if (own.length === 0) return null;
+
+  const sorted = [...own].sort((left, right) => left.createdAt - right.createdAt || left.id - right.id);
+  const turn = sorted.findLast(decidesMessage);
+
+  if (turn === undefined) return { kind: "undecided", round: sorted.at(-1)?.round ?? null };
+
+  const round = turn.round ?? null;
+  const ofRound = round === null ? [turn] : sorted.filter((judgement) => judgement.round === round && decidesMessage(judgement));
+
+  if (ofRound.some((judgement) => judgement.stage === READ_WITH_STAGE)) return { kind: "read-with", round };
+
+  const said = ofRound.findLast((judgement) => judgement.stage !== READ_WITH_STAGE) ?? turn;
+  const verdict = said.verdict;
+
+  if (opensWith(verdict, "REPLY")) return { kind: "answered", round };
+  if (opensWith(verdict, "WAIT")) return { kind: "waiting", round };
+  if (opensWith(verdict, "FAIL") || opensWith(verdict, "FAILED")) return { kind: "failed", round };
+
+  return { kind: "skipped", round };
+}
+
+const OUTCOME_WORDS: Record<OutcomeKind, string> = {
+  answered: "room.label.outcome_answered",
+  skipped: "room.label.outcome_skipped",
+  waiting: "room.label.outcome_waiting",
+  "read-with": "room.label.outcome_read_with",
+  failed: "room.label.outcome_failed",
+  undecided: "room.label.outcome_undecided"
+};
+
+export function outcomeText(t: Translate, kind: OutcomeKind): string {
+  return t(OUTCOME_WORDS[kind]);
+}
+
+/** The message an outcome's line links to: the answer it drew, or the message it was read along with. */
+export function outcomeTarget(outcome: MessageOutcome | null, { answers, read }: RoundPlaces): number | null {
+  if (outcome === null || outcome.round === null) return null;
+
+  if (outcome.kind === "answered") return answers.get(outcome.round) ?? null;
+  if (outcome.kind === "read-with") return read.get(outcome.round) ?? null;
+
+  return null;
+}
+
+/** The cards a person's message spreads under its outcome: every verdict of the gates that read it, the turn's own
+ * word aside, which the outcome says. */
+export function readingCards(judgements: readonly Judgement[]): Judgement[] {
+  return judgements.filter((judgement) => !judgesAnswer(judgement) && !decidesMessage(judgement));
+}
+
+/** A verdict in words: what it says, the names it chose, and how it reads. */
+export interface VerdictWords {
+  words: string;
+  names: string[];
+  tone: VerdictTone;
+}
+
+// A list of the records' own names, as a picker on a road that answers with them writes it.
+const SLUG_LIST = /^[\p{Ll}\d][\p{Ll}\d_-]*(?:\s*,\s*[\p{Ll}\d][\p{Ll}\d_-]*)*$/u;
+const SITUATION_ANSWER = /^applies=(\S*)\s+spent=(\S*)$/;
+const NO_CANDIDATES = /no candidates/i;
+
+function namesOf(text: string): string[] {
+  return text.split(",").map((name) => name.trim()).filter((name) => name !== "");
+}
+
+/** What a stage's verdict says, in the console's words; one of a shape the console does not know says so. */
+export function verdictWords(t: Translate, judgement: Judgement): VerdictWords {
+  const verdict = judgement.verdict.trim();
+  const rest = /^[A-Za-z-]+:\s*([\s\S]*)$/.exec(verdict)?.[1]?.trim() ?? "";
+  const said = (key: string, tone: VerdictTone = "neutral", names: string[] = []): VerdictWords => ({ words: t(key), names, tone });
+
+  // A gate asked about none skipped for want of candidates, as its round's offers record or its own words say.
+  if (opensWith(verdict, "SKIP")) return said(NO_CANDIDATES.test(rest) || narrowedOffer(judgement) !== null ? "room.label.verdict_no_candidates" : "room.label.verdict_skipped");
+  if (opensWith(verdict, "NONE") || verdict === "none") return said("room.label.verdict_none");
+  if (opensWith(verdict, "PICK")) return said("room.label.verdict_picked", "neutral", namesOf(rest));
+  if (opensWith(verdict, "CLEAN")) return said("room.label.verdict_clean", "success");
+  if (opensWith(verdict, "DEFUSE")) return said("room.label.verdict_defused");
+  if (opensWith(verdict, "PASS")) return said("room.label.verdict_passed", "success");
+  if (opensWith(verdict, "FAILED") || opensWith(verdict, "FAIL")) return said("room.label.verdict_failed", "error");
+  if (opensWith(verdict, "UNREADABLE")) return said("room.label.verdict_unreadable");
+  if (opensWith(verdict, "NO-ANSWER")) return said("room.label.verdict_no_answer");
+  if (opensWith(verdict, "READ")) return said("room.label.outcome_read_with");
+  if (opensWith(verdict, "WAIT")) return said("room.label.outcome_waiting");
+  if (opensWith(verdict, "FOLD")) return said("room.label.verdict_folded");
+  if (opensWith(verdict, "OPEN")) return said("room.label.verdict_open");
+
+  if (opensWith(verdict, "SENT")) {
+    const parts = Number(/(\d+)\s*part/.exec(rest)?.[1] ?? "1");
+
+    return parts > 1 ? { words: t("room.label.verdict_sent_parts", { n: countText(parts) }), names: [], tone: "success" } : said("room.label.verdict_sent", "success");
+  }
+
+  if (judgesAnswer(judgement)) return said("room.label.verdict_rewritten");
+  if (opensWith(verdict, "REPLY")) return said("room.label.outcome_answered", "success");
+
+  const situation = SITUATION_ANSWER.exec(verdict);
+
+  if (situation !== null) {
+    return { words: t("room.label.verdict_situation", { applies: situation[1] || t("common.label.none"), spent: situation[2] || t("common.label.none") }), names: [], tone: "neutral" };
+  }
+
+  if (SLUG_LIST.test(verdict)) return said("room.label.verdict_picked", "neutral", namesOf(verdict));
+
+  return said("room.label.verdict_unknown");
+}
+
+/** A length of time in seconds to one decimal, as every verdict and draft line says it. */
+export function secondsText(t: Translate, ms: number): string {
+  return t("common.label.seconds", { n: (ms / 1000).toLocaleString(COUNT_LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) });
 }

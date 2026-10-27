@@ -2,6 +2,7 @@ import { ANY_KEY, FINAL_QUESTION } from "#shared/drafting";
 import { agentProviderNames } from "#shared/types";
 import { countText } from "./numbers";
 import { modeLabel } from "./status";
+import { draftQuestionLabel } from "./working";
 
 import type { DraftKey, DraftProcessValues, DraftProcessView, DraftRead, DraftReadHow, DraftRow, DraftSource, DraftSummary, PastCeiling } from "#shared/drafting";
 import type { AgentMode, Judgement } from "#shared/types";
@@ -50,6 +51,7 @@ const KIND_LABELS: Record<string, string> = {
 
 const OUTCOME_LABELS: Record<string, string> = {
   answered: "room.label.draft_outcome_answered",
+  send: "room.label.draft_outcome_send",
   skip: "room.label.draft_outcome_skip",
   failed: "room.label.draft_outcome_failed"
 };
@@ -205,13 +207,6 @@ export function draftAsked(summary: DraftSummary | null, drafts: readonly Judgem
   return summary?.asked ?? drafts.filter((one) => one.verdict.startsWith("ROUND ")).length;
 }
 
-/** The summary's lines: the gate's rows as it wrote them, else how the process ended. */
-export function draftSummaryLines(t: Translate, summary: DraftSummary | null, drafts: readonly Judgement[]): string[] {
-  if (drafts.length > 0) return [...drafts].sort((one, other) => one.createdAt - other.createdAt || one.id - other.id).map((one) => one.verdict);
-
-  return summary?.end == null ? [] : [t("room.label.draft_ended", { outcome: draftOutcomeText(t, summary.end, "end") })];
-}
-
 export function draftKindText(t: Translate, kind: string): string {
   const key = KIND_LABELS[kind];
 
@@ -250,6 +245,121 @@ export function readName(read: DraftRead): string {
   const holds = read.holds?.trim() ?? "";
 
   return holds === "" ? read.path : holds;
+}
+
+/** A piece's name as the brain list says it to a person: the index's words for it, the room's own due memories by
+ * what they are (the gate's docs/reference-selection.md, 「What a turn is given」), or its path. */
+export function readLabel(t: Translate, read: DraftRead, chatId: number): string {
+  const holds = read.holds?.trim() ?? "";
+
+  if (holds !== "") return holds;
+
+  return read.path === `memories/${chatId}` ? t("room.label.brain_read_due") : read.path;
+}
+
+/** Whether a piece was read new on the round — whole, or by the agent itself — rather than held from before. */
+export function readNew(read: DraftRead): boolean {
+  return read.how !== "held";
+}
+
+/** The pieces in the brain list's order: what the round read new, then what the session held. */
+export function readList(reads: readonly DraftRead[]): DraftRead[] {
+  return [...reads.filter(readNew), ...reads.filter((read) => !readNew(read))];
+}
+
+// The draft spread's lines (docs/web.md, the room screen's draft chip), in a person's words.
+
+/** One round of the process as its line says it. */
+export interface RoundLine {
+  key: string;
+  number: number;
+  asked: string;
+  decided: string;
+  failed: boolean;
+  // How long its answer is and how long it took, where the line knows them.
+  chars: number | null;
+  ms: number | null;
+  changed: boolean;
+  slow: boolean;
+  answer: string | null;
+}
+
+/** What the round asked, in the pack's word for the question, its judgement before the round as a judgement. */
+function askedText(t: Translate, kind: string, question: string): string {
+  if (kind === "supervisor") return t("room.label.draft_kind_supervisor");
+
+  return question === "" ? draftKindText(t, kind) : draftQuestionLabel(t, question);
+}
+
+// A round is the slow one where more than one ran and it took at least twice as long as any other.
+function markSlow(lines: RoundLine[]): RoundLine[] {
+  const timed = [...lines.filter((line) => line.ms !== null)].sort((one, other) => other.ms! - one.ms!);
+  const [longest, next] = timed;
+
+  if (longest === undefined || next === undefined || longest.ms! < next.ms! * 2) return lines;
+
+  return lines.map((line) => (line === longest ? { ...line, slow: true } : line));
+}
+
+/** The round log's rows other than the end, each as its line says it. */
+export function roundLines(t: Translate, rows: readonly DraftRow[]): RoundLine[] {
+  return markSlow(
+    rows
+      .filter((row) => row.kind !== "end")
+      .map((row) => ({
+        key: `row:${row.id}`,
+        number: row.number,
+        asked: askedText(t, row.kind, row.question),
+        decided: draftOutcomeText(t, row.outcome, row.kind),
+        failed: row.outcome === "failed",
+        chars: row.answerChars,
+        ms: row.ms,
+        changed: row.changed,
+        slow: false,
+        answer: draftAnswerShown(row) ? row.answer : null
+      }))
+  );
+}
+
+// The gate's own form of a round's row and its end (`ROUND <number> <name>: <outcome>`, `END: <outcome>`).
+const GATE_ROUND = /^ROUND\s+(\d+)\s+(\S+):\s*(\S+)/;
+const GATE_END = /^END:\s*(\S+)/;
+
+/** The gate's `draft` verdicts as round lines, where the round log holds no row of the round. */
+export function gateRoundLines(t: Translate, drafts: readonly Judgement[]): RoundLine[] {
+  return [...drafts]
+    .sort((one, other) => one.createdAt - other.createdAt || one.id - other.id)
+    .flatMap((judgement) => {
+      const round = GATE_ROUND.exec(judgement.verdict.trim());
+
+      if (round === null) return [];
+
+      return [{
+        key: `judgement:${judgement.id}`,
+        number: Number(round[1]),
+        asked: draftQuestionLabel(t, round[2]!),
+        decided: draftOutcomeText(t, round[3]!, "question"),
+        failed: round[3] === "failed",
+        chars: null,
+        ms: null,
+        changed: false,
+        slow: false,
+        answer: null
+      }];
+    });
+}
+
+/** How the round ended, as its end line says it: what went out and how long the whole took, from the round log's end
+ * row, else from the gate's end verdict, else from the page's summary. */
+export function endLine(t: Translate, rows: readonly DraftRow[] | null, drafts: readonly Judgement[], summary: DraftSummary | null): { outcome: string; withheld: boolean; ms: number | null } | null {
+  const end = rows?.findLast((row) => row.kind === "end");
+
+  if (end !== undefined) return { outcome: draftOutcomeText(t, end.outcome, "end"), withheld: end.outcome === "withheld", ms: end.ms };
+
+  const gate = drafts.map((judgement) => GATE_END.exec(judgement.verdict.trim())?.[1]).findLast((outcome) => outcome !== undefined);
+  const outcome = gate ?? summary?.end ?? null;
+
+  return outcome === null ? null : { outcome: draftOutcomeText(t, outcome, "end"), withheld: outcome === "withheld", ms: null };
 }
 
 /** The pieces a round read, by how it read them, in the chip's order; a way it read none of stands as no group. */

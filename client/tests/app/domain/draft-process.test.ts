@@ -10,7 +10,11 @@ import {
   draftOutcomeText,
   draftRound,
   draftRowFor,
-  draftSummaryLines,
+  endLine,
+  gateRoundLines,
+  readLabel,
+  readList,
+  roundLines,
   movedQuestion,
   questionNameFault,
   questionTextFault,
@@ -19,7 +23,7 @@ import {
   withQuestion
 } from "../../../apps/web/app/domain/draft-process";
 
-import type { DraftProcessView } from "../../../apps/web/shared/drafting";
+import type { DraftProcessView, DraftRow } from "../../../apps/web/shared/drafting";
 import type { Judgement } from "../../../apps/web/shared/types";
 
 // The draft-process table's cells and the room's draft chip (docs/web.md, the tier tab's draft-process table and the
@@ -123,14 +127,42 @@ describe("the draft chip", () => {
     expect(draftRound(null, [])).toBeNull();
   });
 
-  test("says the gate's rows as it wrote them, else how the process ended", () => {
-    const { drafts } = splitDraftJudgements(gate);
-
-    expect(draftSummaryLines(wording, null, drafts)).toEqual(["ROUND 1 final: answered", "END: message"]);
-    expect(draftSummaryLines(wording, { round: "round-1", asked: 1, end: "withheld", reads: [] }, [])).toEqual([
-      wording("room.label.draft_ended", { outcome: wording("room.label.draft_end_withheld") })
+  test("words each round in a person's words, and marks the slow one where it took twice any other", () => {
+    const logRow = (id: number, over: Partial<DraftRow>): DraftRow => ({
+      id, number: id, question: "information", kind: "question", answerChars: 110, changed: false, outcome: "answered", detail: null, ms: 1_000, at: 0, answer: "notes", reads: [], ...over
+    });
+    const lines = roundLines(wording, [
+      logRow(1, { ms: 11_818 }),
+      logRow(2, { question: "facts", outcome: "send", ms: 3_515, changed: true }),
+      logRow(3, { question: "", kind: "end", outcome: "message", ms: 15_333, answer: "" })
     ]);
-    expect(draftSummaryLines(wording, { round: "round-1", asked: 1, end: null, reads: [] }, [])).toEqual([]);
+
+    expect(lines.map((line) => [line.number, line.asked, line.decided, line.chars, line.ms, line.slow, line.changed])).toEqual([
+      [1, wording("room.status.draft_question_information"), wording("room.label.draft_outcome_answered"), 110, 11_818, true, false],
+      [2, wording("room.status.draft_question_facts"), wording("room.label.draft_outcome_send"), 110, 3_515, false, true]
+    ]);
+    expect(endLine(wording, [logRow(3, { kind: "end", outcome: "message", ms: 15_333 })], [], null)).toEqual({ outcome: wording("room.label.draft_end_message"), withheld: false, ms: 15_333 });
+    expect(roundLines(wording, [logRow(1, { ms: 100 }), logRow(2, { ms: 120 })]).some((line) => line.slow)).toBe(false);
+  });
+
+  test("stands the gate's rows for the rounds where the log holds none, with no length and no time", () => {
+    const { drafts } = splitDraftJudgements(gate);
+    const lines = gateRoundLines(wording, drafts);
+
+    expect(lines.map((line) => [line.number, line.asked, line.decided, line.chars, line.ms])).toEqual([[1, wording("agents.label.draft_question_final"), wording("room.label.draft_outcome_answered"), null, null]]);
+    expect(endLine(wording, null, drafts, null)?.outcome).toBe(wording("room.label.draft_end_message"));
+    expect(endLine(wording, null, [], { round: "round-1", asked: 1, end: "withheld", reads: [] })).toEqual({ outcome: wording("room.label.draft_end_withheld"), withheld: true, ms: null });
+  });
+
+  test("lists what was read new before what was held, and names the room's due memories", () => {
+    const reads = [
+      { path: "memories/5", holds: null, how: "held" as const },
+      { path: "knowledge/x.md", holds: "X", how: "read" as const },
+      { path: "threads/user-1", holds: null, how: "attached" as const }
+    ];
+
+    expect(readList(reads).map((read) => read.path)).toEqual(["knowledge/x.md", "threads/user-1", "memories/5"]);
+    expect(readList(reads).map((read) => readLabel(wording, read, 5))).toEqual(["X", "threads/user-1", wording("room.label.brain_read_due")]);
   });
 
   test("says a turn's outcome and the end's apart, and an outcome it does not know as it came", () => {

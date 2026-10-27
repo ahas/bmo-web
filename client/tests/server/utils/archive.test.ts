@@ -136,7 +136,8 @@ describe("the rooms", () => {
   test("stand in the receiver's order, the owner's own named by the chat agent, each pinned or not, and a room made for companions so marked", async () => {
     expect(await listRooms()).toEqual([
       { chatId: 5, title: "Person A", messageCount: 3, lastMessageAt: 100, pinned: true },
-      { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, pinned: false, madeForCompanions: true, companions: ["companion-a"] },
+      // A room agent-a answers is named by that agent's own label, and its own title stays with it.
+      { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, pinned: false, answeredBy: ["Agent A"], madeForCompanions: true, companions: ["companion-a"] },
       { chatId: -11, title: "Agent A", messageCount: 1, lastMessageAt: 300, pinned: false }
     ]);
     expect(await roomTitleOf(-7)).toBe("Room A");

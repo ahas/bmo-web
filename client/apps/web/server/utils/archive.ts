@@ -1,3 +1,4 @@
+import { chatAgent } from "#shared/agent-names";
 import { PAGING, roomLabel } from "#shared/config";
 import { isSystemNotice } from "#shared/text-marks";
 import { wording } from "#shared/wording";
@@ -6,6 +7,7 @@ import { draftSummaries } from "./drafting";
 import { roomBriefings } from "./voice";
 import { figuresOf } from "./runfigures";
 import { judgementsOf, judgementsWithin } from "./gate";
+import { agency, agencyCall } from "./agency";
 import { ownerChat } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
@@ -130,19 +132,62 @@ async function peopleNamed(ids: readonly number[]): Promise<Map<number, string>>
 
 const untitled = (title: string | null): boolean => title === null || title.trim() === "";
 
-/** Every room, the pinned ones first in the owner's order, each under the name it is called by. */
+/** Every room, the pinned ones first in the owner's order, each under the name it is called by and the agents that
+ * answer it — the agents' own labels, which is what the list names a room by (docs/web.md, the naming rule). */
 export async function listRooms(): Promise<RoomSummary[]> {
   const [rooms, owner] = await Promise.all([everyRoom(), ownerChat()]);
   const named = await peopleNamed(rooms.filter((room) => untitled(room.title) && room.id !== owner).map((room) => room.id));
+  const labels = await agentLabels();
 
-  return rooms.map((room) => ({
-    chatId: room.id,
-    title: roomLabel(room.id, untitled(room.title) ? (named.get(room.id) ?? null) : room.title, owner),
-    messageCount: room.messageCount,
-    lastMessageAt: room.lastMessageAt === null ? null : seconds(room.lastMessageAt),
-    pinned: room.pinned,
-    ...(room.companions.length > 0 ? { madeForCompanions: true as const, companions: room.companions } : {})
-  }));
+  return await Promise.all(
+    rooms.map(async (room): Promise<RoomSummary> => {
+      const answered = await answeredBy(room.id, labels);
+
+      return {
+        chatId: room.id,
+        title: roomLabel(room.id, untitled(room.title) ? (named.get(room.id) ?? null) : room.title, owner),
+        messageCount: room.messageCount,
+        lastMessageAt: room.lastMessageAt === null ? null : seconds(room.lastMessageAt),
+        pinned: room.pinned,
+        ...(answered.length === 0 ? {} : { answeredBy: answered }),
+        ...(room.companions.length > 0 ? { madeForCompanions: true as const, companions: room.companions } : {})
+      };
+    })
+  );
+}
+
+/** Every agent the catalogue labels, by its registration name, and the chat agent's own label under its name. */
+async function agentLabels(): Promise<ReadonlyMap<string, string>> {
+  const held = new Map<string, string>();
+
+  try {
+    const agents = await agencyCall(agency().GET("/agents")).then((answer) => answer.items);
+
+    for (const agent of agents) {
+      if (agent.label !== null && agent.label.trim() !== "") held.set(agent.name, agent.label);
+    }
+  } catch {
+    // A catalogue that cannot be read leaves the rooms under their own titles.
+  }
+
+  held.set(chatAgent().name, chatAgent().label);
+
+  return held;
+}
+
+/** The agents answering one room, by their own labels, in the order the receiver names them: its answerer, then its
+ * voice, then each agent standing in it. A room no agent answers holds none, and keeps its own title. */
+async function answeredBy(chatId: number, labels: ReadonlyMap<string, string>): Promise<string[]> {
+  try {
+    const answerers = await receiverCall(
+      receiver().GET("/rooms/{roomId}/answerers", { params: { path: { roomId: chatId } }, signal: within(2_000) })
+    );
+    const names = [answerers.default, answerers.voice, ...answerers.items.map((answerer) => answerer.agentName)].filter((name) => name.trim() !== "");
+
+    return [...new Set(names)].map((name) => labels.get(name) ?? name).filter((label) => label.trim() !== "");
+  } catch {
+    return [];
+  }
 }
 
 /** One room by the name it is called by, the same name the room list gives it. */

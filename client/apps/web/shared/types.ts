@@ -229,6 +229,9 @@ export interface RoomSummary {
   madeForCompanions?: true;
   // The companions among those who answer in it, by agent name, where it was made for companions.
   companions?: string[];
+  // The agents answering the room, by their own catalogue labels, which is what the room list names it by; absent where
+  // no agent answers it, and the room then stands under its own title (docs/web.md, the naming rule).
+  answeredBy?: string[];
 }
 
 // A place in a room's line: when the message was sent, and of those sent in one second the order

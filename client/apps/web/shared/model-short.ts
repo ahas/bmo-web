@@ -1,6 +1,8 @@
-// A model's short name, for the places with room for a few letters only — a row's chip, a stepper's line, a figure's
-// line inside a bubble (docs/web.md, 「Model names where room is short」); every place with room shows the full name.
-// A road is `provider/model`, `provider::model` or a bare model; what no rule here shortens stands whole.
+// A model's short name, for the places with room for a few letters only — a TODO row's chip, a stepper's line, a
+// figure's line inside a bubble (docs/web.md, 「Model names where room is short」); every place with room shows the
+// name whole. A road is `provider/model`, `provider::model` or a bare model, and a short name is
+// `<provider>/<model>` with a slash and no fillers: the provider's letters, then the maker's letters, the family
+// words' initials and the version digits. A model no rule here shortens stands whole, provider and all.
 
 // The providers whose names shorten, and to what.
 const PROVIDERS: Readonly<Record<string, string>> = {
@@ -10,74 +12,116 @@ const PROVIDERS: Readonly<Record<string, string>> = {
   deepseek: "DS"
 };
 
-// A Claude family by its initial: Opus, Sonnet, Haiku, Fable.
-const CLAUDE = /^claude-(opus|sonnet|haiku|fable)((?:-\d+)+)$/;
-const FAMILIES: Readonly<Record<string, string>> = { opus: "O", sonnet: "S", haiku: "H", fable: "F" };
+// A family of models: what names it, the letters its maker shortens to, and the provider's letters a road naming no
+// provider takes.
+interface Maker {
+  pattern: RegExp;
+  letters: string;
+  provider: string;
+}
 
-// A Qwen model: its version without the dot, then its words — a word of the build's kind by its initial, `coder` and
-// its kin by their name, a size as it is — and nothing of the quantisation after them.
-const QWEN = /^qwen(\d+)(?:\.(\d+))?-(.+)$/;
-const INITIALED = new Set(["flash", "next", "instruct", "thinking", "base", "chat"]);
-const NAMED: Readonly<Record<string, string>> = { coder: "Coder", vl: "VL", omni: "Omni" };
+const DEEPSEEK = 0;
+const QWEN = 1;
+const CLAUDE = 2;
+const GPT = 3;
+
+const MAKERS: readonly Maker[] = [
+  { pattern: /^deepseek-(.+)$/i, letters: "DS", provider: "DS" },
+  { pattern: /^qwen(\d+(?:\.\d+)?)?-(.+)$/i, letters: "Q", provider: "Q" },
+  { pattern: /^claude-([a-z]+)-((?:\d+-?)+)$/i, letters: "C", provider: "CC" },
+  { pattern: /^gpt-(\d+(?:\.\d+)?)-(.+)$/i, letters: "G", provider: "CX" }
+];
+
+// The words of a Qwen name that stand as their initial. A quantisation and a dated build end the words that count.
+const INITIALED = new Set(["flash", "next", "instruct", "thinking", "base", "chat", "coder", "omni", "vl"]);
 const QUANT = /^(i?q\d.*|f16|bf16|fp\d+|gguf|mtp)$/;
-const SIZE = /^\d+(\.\d+)?b$/;
+const DATED = /^\d{6,8}$/;
 
-// A DeepSeek model: its words after `deepseek-`, each led by a capital.
-const DEEPSEEK = /^deepseek-([a-z0-9]+(?:-[a-z0-9]+)*)$/;
-const DEEPSEEK_PROVIDER = "deepseek";
+// A Claude family by its initial.
+const CLAUDE_FAMILIES: Readonly<Record<string, string>> = { opus: "O", sonnet: "S", haiku: "H", fable: "F" };
 
-function deepseekShort(model: string): string | null {
-  const found = DEEPSEEK.exec(model);
-
-  return found === null ? null : found[1]!.split("-").map((word) => word[0]!.toUpperCase() + word.slice(1)).join("-");
+// The version digits a name spells, the dot and any dash between them left out.
+function versionOf(text: string): string {
+  return text.replace(/[.-]/g, "");
 }
 
-function claudeShort(model: string): string | null {
-  const found = CLAUDE.exec(model);
+// The initials of the words that count, a quantisation or a dated build ending them.
+function initialsOf(words: readonly string[]): string {
+  const letters: string[] = [];
 
-  if (found === null) return null;
+  for (const word of words) {
+    if (QUANT.test(word) || DATED.test(word)) break;
 
-  // A dated build's date is no part of its name.
-  const digits = found[2]!.split("-").filter((part) => part !== "" && part.length < 8);
-
-  return `${FAMILIES[found[1]!]}${digits.join("")}`;
-}
-
-function qwenShort(model: string): string | null {
-  const found = QWEN.exec(model);
-
-  if (found === null) return null;
-
-  const initials: string[] = [];
-  const rest: string[] = [];
-
-  for (const word of found[3]!.split("-")) {
-    if (QUANT.test(word)) break;
-    if (INITIALED.has(word)) initials.push(word[0]!.toUpperCase());
-    else if (word in NAMED) rest.push(NAMED[word]!);
-    else if (SIZE.test(word)) rest.push(word.toUpperCase());
-    else rest.push(word);
+    letters.push(word[0]!.toUpperCase());
   }
 
-  return [`Q${found[1]}${found[2] ?? ""}`, ...(initials.length > 0 ? [initials.join("")] : []), ...rest].join("-");
+  return letters.join("");
+}
+
+// A DeepSeek model's letters: its words' initials, then `v` and its version — `DSFv41` for `deepseek-v4.1-flash`.
+function deepseekLetters(rest: string): string {
+  const version = /^v?(\d+(?:\.\d+)?)/i.exec(rest);
+  const words = (version === null ? rest : rest.slice(version[0].length)).split(/[-_]/).filter((word) => word !== "");
+  const digits = version === null ? "" : versionOf(version[1]!);
+
+  return `${initialsOf(words)}${digits === "" ? "" : `v${digits}`}`;
+}
+
+// A registered Qwen engine's letters: its words' initials, then `v` and its version — `QFNv38` for
+// `qwen3.8-flash-next`.
+function qwenLetters(version: string | undefined, rest: string): string {
+  const words = rest.split(/[-_]/).filter((word) => word !== "");
+  const digits = version === undefined ? "" : versionOf(version);
+
+  return `${initialsOf(words)}${digits === "" ? "" : `v${digits}`}`;
+}
+
+// A Claude model's letters: its family's initial and its version digits with no `v` — `CO55` for `claude-opus-5-5`;
+// a dated build's date is no part of them.
+function claudeLetters(family: string, version: string): string {
+  const digits = version.replace(/-(\d{6,8})$/, "");
+
+  return `${CLAUDE_FAMILIES[family] ?? family[0]!.toUpperCase()}${versionOf(digits)}`;
+}
+
+// A GPT model's letters: its version digits, then the family word as it is written — `G56sol` for `gpt-5.6-sol`.
+function gptLetters(version: string, rest: string): string {
+  return `${versionOf(version)}${rest.replace(/[-_]/g, "")}`;
+}
+
+// The letters a model's own name gives, or null where no rule here shortens it.
+function lettersOf(maker: Maker, found: RegExpExecArray): string {
+  const index = MAKERS.indexOf(maker);
+
+  if (index === DEEPSEEK) return `${maker.letters}${deepseekLetters(found[1]!)}`;
+  if (index === QWEN) return `${maker.letters}${qwenLetters(found[1], found[2]!)}`;
+  if (index === CLAUDE) return `${maker.letters}${claudeLetters(found[1]!, found[2]!)}`;
+
+  return `${maker.letters}${gptLetters(found[1]!, found[2]!)}`;
 }
 
 /**
- * A model's short name: `CC::O55` for `claude-code/claude-opus-5-5`, `Q38-FN-Coder` for a Qwen3.8 flash-next coder,
- * `DS::Flash` for `deepseek/deepseek-flash` — a DeepSeek model named so on its own provider or with none.
+ * A model's short name: `DS/DSF` for `deepseek-flash`, `DS/DSPv4` for `deepseek-v4-pro`, `DS/DSFv41` for
+ * `deepseek-v4.1-flash`, `Q/QFNCv38` for `qwen3.8-flash-next-coder`, `Q/QFNv38` for `qwen3.8-flash-next-iq3_s`,
+ * `CC/CO55` for `claude-code/claude-opus-5-5`, `CC/CS5` for `claude-sonnet-5` and `CX/G56sol` for `gpt-5.6-sol`.
  */
 export function shortModel(road: string): string {
   const pair = road.includes("::") ? "::" : "/";
   const at = road.indexOf(pair);
   const provider = at === -1 ? null : road.slice(0, at);
   const model = at === -1 ? road : road.slice(at + pair.length);
-  // A DeepSeek model shortens on its own provider, or where none is named; on another it stands whole.
-  const deepseek = provider === null || provider === DEEPSEEK_PROVIDER ? deepseekShort(model) : null;
-  const short = claudeShort(model) ?? qwenShort(model) ?? deepseek;
 
-  if (short === null) return road;
+  for (const maker of MAKERS) {
+    const found = maker.pattern.exec(model);
 
-  const prefix = (provider === null ? null : (PROVIDERS[provider] ?? null)) ?? (deepseek === null ? null : PROVIDERS[DEEPSEEK_PROVIDER]!);
+    if (found === null) continue;
 
-  return prefix === null ? short : `${prefix}::${short}`;
+    // The provider's own letters, the registered engines taking the maker's, and a road naming no provider the
+    // maker's as well; a provider no letters are written for leaves the model whole.
+    const letters = PROVIDERS[provider ?? ""] ?? (provider === null || provider === "registered" ? maker.provider : null);
+
+    return letters === null ? road : `${letters}/${lettersOf(maker, found)}`;
+  }
+
+  return road;
 }

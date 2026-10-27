@@ -125,6 +125,14 @@ function listOf(item: Item): "queue" | "pending" | "held" | "done" {
   return "queue";
 }
 
+// The model an item was filed to run on, from the `model` label the chat agent files with it: null where it pins none,
+// the label reading `auto`, and the model named otherwise (docs/web.md, the TODO panel's section).
+function pinnedModel(labels: Record<string, string>): string | null {
+  const named = (labels.model ?? "").trim();
+
+  return named === "" || named === "auto" ? null : named;
+}
+
 // One item as the row the panel shows, with its reports where they were read and the last note where a screen opens it.
 function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null): TodoItem {
   const said = reportsOf(reports);
@@ -144,7 +152,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     running: item.state === "leased",
     priority: item.priority,
     status: item.state,
-    model: null,
+    model: pinnedModel(item.labels),
     ranOn: null,
     worker: item.assigneeName,
     cowork: item.cowork,

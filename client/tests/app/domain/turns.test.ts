@@ -112,7 +112,7 @@ describe("what a turn's line says", () => {
   test("the stage by its name, the road it took, how long and the four kinds it spent", () => {
     const [line] = turnLines(wording, [road({})]);
 
-    expect(line).toMatchObject({ stage: wording("room.label.stage_chat"), road: "CC::O5", outcome: null, took: "12,345ms" });
+    expect(line).toMatchObject({ stage: wording("room.label.stage_chat"), road: "CC/CO5", outcome: null, took: "12,345ms" });
     expect(line?.tally).toEqual({ inputTokens: 1_200, outputTokens: 30, cacheReadTokens: 250_000, cacheWriteTokens: 0, tokens: 251_230 });
   });
 

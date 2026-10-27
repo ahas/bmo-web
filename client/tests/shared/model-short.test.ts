@@ -2,29 +2,35 @@ import { expect, test } from "bun:test";
 
 import { shortModel } from "../../apps/web/shared/model-short";
 
-// A model's short name where room is short (docs/web.md, 「Model names where room is short」).
+// A model's short name where room is short (docs/web.md, 「Model names where room is short」): `<provider>/<model>`,
+// the provider's letters, then the maker's letters, the family words' initials and the version digits.
 
-test("a Claude model is its provider and its family's initial with its version", () => {
-  expect(shortModel("claude-code/claude-opus-5-5")).toBe("CC::O55");
-  expect(shortModel("claude-code::claude-sonnet-5")).toBe("CC::S5");
-  expect(shortModel("claude-haiku-4-5-20251001")).toBe("H45");
-  expect(shortModel("claude-code/claude-fable-1")).toBe("CC::F1");
+test("a DeepSeek model is DS and its words' initials, then v and its version", () => {
+  expect(shortModel("deepseek-flash")).toBe("DS/DSF");
+  expect(shortModel("deepseek/deepseek-flash")).toBe("DS/DSF");
+  expect(shortModel("deepseek::deepseek-v4-pro")).toBe("DS/DSPv4");
+  expect(shortModel("deepseek/deepseek-v4.1-flash")).toBe("DS/DSFv41");
 });
 
-test("a Qwen model is its version, its build's initials, its kind and its size, its quantisation left out", () => {
-  expect(shortModel("qwen3.8-flash-next-coder-iq1_m")).toBe("Q38-FN-Coder");
-  expect(shortModel("registered/qwen3.8-27b")).toBe("Q38-27B");
-  expect(shortModel("qwen3.8-flash-next-coder-q4_k_m")).toBe("Q38-FN-Coder");
+test("a registered Qwen engine is Q and its words' initials, then v and its version, its quantisation left out", () => {
+  expect(shortModel("qwen3.8-flash-next-coder-iq1_m")).toBe("Q/QFNCv38");
+  expect(shortModel("registered/qwen3.8-flash-next-iq3_s")).toBe("Q/QFNv38");
+  expect(shortModel("registered::qwen3.8-flash-next-coder-iq1_m")).toBe("Q/QFNCv38");
 });
 
-test("a DeepSeek model is DS and its words after deepseek-, each led by a capital, on its own provider or with none", () => {
-  expect(shortModel("deepseek/deepseek-flash")).toBe("DS::Flash");
-  expect(shortModel("deepseek::deepseek-v4-pro")).toBe("DS::V4-Pro");
-  expect(shortModel("deepseek-flash")).toBe("DS::Flash");
-  expect(shortModel("openrouter/deepseek-v4-pro")).toBe("openrouter/deepseek-v4-pro");
+test("a Claude model is C and its family's initial, then its version digits with no v", () => {
+  expect(shortModel("claude-code/claude-opus-5-5")).toBe("CC/CO55");
+  expect(shortModel("claude-sonnet-5")).toBe("CC/CS5");
+  expect(shortModel("claude-code::claude-haiku-4-5")).toBe("CC/CH45");
 });
 
-test("a model no rule shortens stands whole", () => {
-  expect(shortModel("codex/gpt-5.6-sol")).toBe("codex/gpt-5.6-sol");
+test("a GPT model is G, its version digits, then the family word as it is written", () => {
+  expect(shortModel("gpt-5.6-sol")).toBe("CX/G56sol");
+  expect(shortModel("codex/gpt-5.6-sol")).toBe("CX/G56sol");
+});
+
+test("a model no rule shortens stands whole, and a provider no letters are written for keeps its model whole", () => {
+  expect(shortModel("openrouter/nvidia/nemotron-3-ultra-550b-a55b:free")).toBe("openrouter/nvidia/nemotron-3-ultra-550b-a55b:free");
+  expect(shortModel("registered/hy-mt2-7b")).toBe("registered/hy-mt2-7b");
   expect(shortModel("")).toBe("");
 });

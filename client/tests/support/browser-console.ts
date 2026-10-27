@@ -47,6 +47,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["stepper", "fixture-password-2206"],
   ["title-bar", "fixture-password-2318"],
   ["topbar-square", "fixture-password-1444"],
+  ["todo-models", "fixture-password-2298"],
   ["work-view", "fixture-password-2311"]
 ];
 

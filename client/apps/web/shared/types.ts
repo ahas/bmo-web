@@ -74,6 +74,14 @@ export interface RanOn {
   changed: boolean;
 }
 
+// What the TODO rows name before anything of an item has run (docs/web.md, the TODO panel's section): each worker's own road, and
+// the road the running job of each item went out on, both `provider/model` with a registered engine under its model's
+// own name.
+export interface TodoModelPlan {
+  workers: Record<string, string>;
+  running: Record<number, string>;
+}
+
 // The agency's shapes (the agency's `docs/api.md`).
 
 /** The providers an agent runs on, one name to each provider the agency carries. */

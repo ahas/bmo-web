@@ -390,8 +390,10 @@
                 <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
                 <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
 
-                <UTooltip v-if="itemModel(item) !== null" :text="itemModel(item, true)!" :disabled="itemModel(item) === itemModel(item, true)">
-                  <UBadge color="neutral" variant="outline" size="sm"><SearchText :text="itemModel(item)!" :query="searched" /></UBadge>
+                <!-- The model this item's work will go out on, short, with its whole name on hover (docs/web.md, the
+                     TODO panel's section). -->
+                <UTooltip :text="itemModel(item, true)!" :disabled="itemModel(item) === itemModel(item, true)">
+                  <UBadge color="neutral" variant="outline" size="sm" data-item-model><SearchText :text="itemModel(item)!" :query="searched" /></UBadge>
                 </UTooltip>
 
                 <UBadge v-if="(item.stopped?.failures ?? 0) > 0" color="warning" variant="subtle" size="sm">{{ $t("todo.label.stop_failures", { n: countText(item.stopped!.failures) }) }}</UBadge>
@@ -497,6 +499,7 @@ import { useAgentCatalogue } from "~/domain/catalogue";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useHoldMenu } from "bmo-ui/app/domain/holdmenu";
 import { usePolling } from "~/domain/polling";
+import { useTodoModelPlan } from "~/domain/todo-models";
 import { useLiveRefresh, useReadFailure } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
@@ -574,6 +577,9 @@ interface Props {
 
 const props = defineProps<Props>();
 const { t } = useI18n();
+// The model each row names as the one its work will go out on, read while the panel stands (docs/web.md, the TODO
+// panel's section).
+useTodoModelPlan();
 
 const emit = defineEmits<{
   close: [];

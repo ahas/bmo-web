@@ -1411,12 +1411,20 @@ Four groups.
 - **A model stands alone.** No line puts beside a model's name why its road was taken — that the provider order fell
   to it, that its runs went out on more than one — nor the model the work asked for; the road table on the agent
   management screen is where a road's reason is read.
-- **The short name is one reading for every such place:** a Claude model is its provider's letters and its family's
-  initial with its version — `CC::O55` for `claude-code/claude-opus-5-5`, S, H and F for Sonnet, Haiku and Fable, a
-  dated build's date left out; a Qwen model is its version without the dot, the initials of its build's words and
-  its kind — `Q38-FN-Coder` for `qwen3.8-flash-next-coder-…` — its quantisation left out; a DeepSeek model is `DS::`
-  and its words after `deepseek-`, each led by a capital — `DS::Flash` for `deepseek/deepseek-flash`, `DS::V4-Pro`
-  for `deepseek-v4-pro`, named so on DeepSeek's own provider or with none. A model no rule shortens stands whole.
+- **The short name is one reading for every such place: `<provider>/<model>`, a slash and no fillers.** The
+  provider's letters are `DS` for DeepSeek, `Q` for the deployment's registered Qwen engines, `CC` for Claude Code,
+  `CX` for Codex and `OR` for OpenRouter; a road naming no provider takes the letters of the maker its model names,
+  and a provider no letter is written for stands whole. After the slash stand the maker's letters, the family words'
+  initials and the version digits without the dot:
+  - DeepSeek — `DS` and the initials of the words after `deepseek-`, then `v` and the version: `DS/DSF` for
+    `deepseek-flash`, `DS/DSPv4` for `deepseek-v4-pro`, `DS/DSFv41` for `deepseek-v4.1-flash`.
+  - A registered Qwen engine — `Q` and the initials of the words after its version, then `v` and the version:
+    `Q/QFNCv38` for `qwen3.8-flash-next-coder`, `Q/QFNv38` for `qwen3.8-flash-next`.
+  - Claude — `C` and its family's initial, then the version digits with no `v`: `CC/CO55` for `claude-opus-5-5`, S,
+    H and F for Sonnet, Haiku and Fable — `CC/CS5` for `claude-sonnet-5`.
+  - GPT — `G`, then the version digits, then the family word as it is written: `CX/G56sol` for `gpt-5.6-sol`.
+  - A quantisation (`iq3_s`, `iq1_m`, `q8_0`) and a dated build's date are left out of the letters, and a model no
+    rule here shortens stands whole.
 
 ### The default among choices
 
@@ -5128,6 +5136,11 @@ Four bounds keep it from growing forever.
   no badge. 전체 and 완료 carry none — the first is the sum of the rest and the second only grows.
 - **A line never pushes the panel sideways.** The title gives way and wraps however long it is, and the arrow at the
   line's end keeps its place.
+- **Every line names the model its work will go out on**, short, as a chip beside its state (「Model names where room is
+  short」): the model the item was filed to run on where it pins one, and otherwise what `auto` resolves to — the road
+  its worker is pinned to, else the model the registry maps that worker's work key to. While a job of the item runs,
+  the line names the road that run took, which may differ from the plan. A tooltip names the model whole, and the
+  item's detail names the same model in its head.
 - **Pressing a line stands that item's detail as a modal.** It does not spread inside the list — the panel is a
   fixed-width column and a line bears the whole of the original instruction, completion report, talk and buttons pressed
   on it, so spreading below the line pushes the rest of the queue off screen. So, like everything long in this console,

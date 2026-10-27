@@ -5,7 +5,10 @@ import { heldLabel } from "~/domain/queue-place";
 import { queueTurnWord } from "~/domain/queue-place";
 import { CONVERSATION_HEAD, instructionSegments, orderedSegments, PART_ORDER, SAID_LABELS } from "#shared/todo-blocks";
 import { tokenText } from "./usage";
-import { itemRanModel, ranModelText } from "#shared/ran-model";
+import { itemRanModel } from "#shared/ran-model";
+import { shortModel } from "#shared/model-short";
+import { WORKER_AGENT } from "#shared/config";
+import { todoModelPlan } from "./todo-models";
 
 import type { SearchField } from "bmo-ui/shared/search";
 import type { RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoReport, TodoSpan } from "#shared/types";
@@ -184,13 +187,14 @@ export function jobGoingOn(state: TodoState): boolean {
   return state === "running" || state === "stopping" || state === "reporting";
 }
 
-// The model a row wears: the provider and model its work last went out on, read as a step's is (bmo-job's
-// docs/work-orders.md 「The model an item ran on」), short, or whole where `whole` asks for its tooltip. Before
-// anything went out it is the model asked for, and nothing where that is the default.
-export function itemModel(item: Pick<TodoItem, "model" | "ranOn">, whole = false): string | null {
-  const model = itemRanModel(item.model, item.ranOn);
+// The model a row wears, short, or whole where `whole` asks for its tooltip (docs/web.md, the TODO panel's section): the model
+// the item was filed to run on where it pins one, otherwise what `auto` resolves to — the road its worker goes out on,
+// and while a job of it runs the road that run actually took. A row nothing is known of yet names `auto` itself.
+export function itemModel(item: Pick<TodoItem, "id" | "model" | "worker">, whole = false): string | null {
+  const known = todoModelPlan().value;
+  const road = item.model ?? known?.running[item.id] ?? known?.workers[item.worker ?? WORKER_AGENT] ?? null;
 
-  return model === null ? null : ranModelText(model, !whole);
+  return road === null ? "auto" : whole ? road : shortModel(road);
 }
 
 // The word a row wears. An item no job is going on for reads waiting whatever the table happens to

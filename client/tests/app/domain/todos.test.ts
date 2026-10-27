@@ -65,6 +65,7 @@ import {
   readableSource,
 } from "../../../apps/web/app/domain/todos";
 import { DRAG_START_PX, movedEnoughToDrag, rowAtPoint, startsRowDrag } from "../../../apps/web/app/domain/row-drag";
+import { todoModelPlan } from "../../../apps/web/app/domain/todo-models";
 
 import type { RoomSummary, TodoBoard, TodoItem, TodoSpan, WaitTarget } from "../../../apps/web/shared/types";
 import type { TodoConditions, TodoFilter } from "../../../apps/web/app/domain/todos";
@@ -234,17 +235,27 @@ describe("what a row shows", () => {
     expect(requesterLine(item(9, { chatId: null }), rooms)).toBe("Owner");
   });
 
-  test("the model is the one its work went out on, short, whole for its tooltip, and never with why its road was taken", () => {
-    const settled = item(9, { model: "auto", ranOn: { provider: "claude-code", model: "claude-opus-5-5", changed: false } });
-    const fallen = item(9, { model: "auto", ranOn: { provider: "deepseek", model: "deepseek-flash", changed: true } });
+  test("the model is the one the item will go out on, short, and whole for its tooltip", () => {
+    // A pinned item names the model it was filed to run on, whatever its worker would do.
+    expect(itemModel(item(9, { model: "claude-opus-5-5", worker: "bmo-agent" }))).toBe("CC/CO55");
+    expect(itemModel(item(9, { model: "claude-opus-5-5" }), true)).toBe("claude-opus-5-5");
+  });
 
-    expect(itemModel(settled)).toBe("CC::O55");
-    expect(itemModel(settled, true)).toBe("claude-code/claude-opus-5-5");
-    expect(itemModel(fallen)).toBe("DS::Flash");
-    expect(itemModel(fallen, true)).toBe("deepseek/deepseek-flash");
-    expect(itemModel(item(9, { model: "auto", ranOn: { provider: "registered", model: "flash-next-coder", changed: false } }))).toBe("registered/flash-next-coder");
-    expect(itemModel(item(9, { model: "auto" }))).toBe("auto");
-    expect(itemModel(item(9))).toBeNull();
+  test("an auto item names the road its worker goes out on, and a running job's own road over it", () => {
+    const plan = todoModelPlan();
+
+    plan.value = { workers: { "bmo-agent": "deepseek/deepseek-flash", worker: "registered/qwen3.8-flash-next-iq3_s" }, running: { 9: "claude-code/claude-opus-5-5" } };
+
+    // The worker's own road, the pin it holds or the model its work key maps to.
+    expect(itemModel(item(8, { model: null, worker: "bmo-agent" }))).toBe("DS/DSF");
+    expect(itemModel(item(8, { model: null, worker: null }), true)).toBe("registered/qwen3.8-flash-next-iq3_s");
+    // A job of the item running names the road that run actually took.
+    expect(itemModel(item(9, { model: null, worker: "bmo-agent" }))).toBe("CC/CO55");
+    expect(itemModel(item(9, { model: null, worker: "bmo-agent" }), true)).toBe("claude-code/claude-opus-5-5");
+    // Nothing known of it at all still names the plan, as the item was filed.
+    expect(itemModel(item(7, { model: null, worker: "unheard-of" }))).toBe("auto");
+
+    plan.value = null;
   });
 });
 

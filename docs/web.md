@@ -1277,6 +1277,12 @@ Four groups.
     live status screen, a room's session panel and the agents an @ offers alike; a room's own phrasing is not its name.
     A session registered for a room is that agent serving that room: it stands as the agent's own name and picture, with
     the room it serves its own line under it.
+  - **A message stands under the agent that said it.** The room view names a sender by the agent the record carries on
+    the message — its `agentName` — wherever that name is, whichever voice the words went out in: a companion answering
+    in its own room stands under its own name there, and the shared chat agent under BMO. A person's message keeps the
+    person's own label, and a row the record names no agent on falls back to the name it does carry rather than being
+    guessed at another agent's. One function names a row for every screen that draws one — the room list's preview, the
+    room view, an item's notes, the live screen and a search.
   - **The picture is the agent's own.** A chat agent wears the picture of the person number its words stand under,
     whichever row of the catalogue it stands in — its own row and a session registered for a room alike — and failing
     that a room made for it, and failing both its label's letter; a companion wears its own face the same way. A room's

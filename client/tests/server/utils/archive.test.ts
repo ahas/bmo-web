@@ -179,9 +179,11 @@ describe("a page of a room", () => {
 
     const read = await readMessagePage(-9, null, 50);
 
+    // Every send the receiver names its agent on is that agent's words, whichever voice it went out in: a companion's
+    // own bot account names it as a person's account does (docs/web.md, the naming rule).
     expect(read.messages.map((one) => [one.messageId, one.agent, one.voicedBy, one.senderName])).toEqual([
       [20, true, "agent-a", "person-owner"],
-      [21, true, undefined, "person-owner"],
+      [21, true, "agent-a", "person-owner"],
       [22, true, "agent-a", "person-owner"]
     ]);
     // The two sends that name their agent need no question; the one written before the receiver named it is asked once.

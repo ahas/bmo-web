@@ -371,6 +371,7 @@
             :attachable="!madeForCompanions"
             :label="$t('room.label.messages')"
             :placeholder="reachable ? (dragging ? $t('room.placeholder.drop_here') : $t('room.label.messages')) : controlLine($t, controlState)"
+            :mention="mentionSources"
             @escape="onEscape"
             @submit="send"
           >
@@ -444,6 +445,7 @@ import { controlLine, useControlStatus } from "~/domain/control";
 import { messageOfQuery } from "#shared/paths";
 import { screenKey } from "~/domain/route-key";
 import { agentLabel, companionOf, roomTitle } from "~/domain/agents";
+import { useAgentCatalogue } from "~/domain/catalogue";
 import { attachmentBody } from "~/domain/attachments";
 import { useAgentAvatars } from "~/domain/agent-face";
 import { avatarFor } from "~/domain/avatars";
@@ -1039,6 +1041,20 @@ const statsRead = useReadFailure({
   reading: () => statsPending.value,
   reread: () => void openStats()
 });
+
+// Who the input box offers an @ (docs/web.md, the room screen's section on mentions): the people who spoke in this
+// room, the reader's own senders left out, and the agents answering it — the chat agent and every companion of the
+// room — each by its label. A name written into the words is what the receiver reads: a registered label or wake word.
+const { agents: catalogue } = useAgentCatalogue();
+const mentionPeople = computed<string[]>(() =>
+  [...new Set(
+    roomFeed.messages.value
+      .filter((message) => message.agent !== true && message.notice !== true && (message.senderId === null || !owner.value.senders.includes(message.senderId)))
+      .map((message) => message.senderName)
+  )]
+);
+const mentionAgents = computed<string[]>(() => catalogue.value.agents.filter((agent) => agent.defaultAnswerer || agent.chatId === chatId).map((agent) => agentLabel(t, agent.name)));
+const mentionSources = computed(() => ({ people: mentionPeople.value, agents: mentionAgents.value }));
 
 // Whom the console speaks as here: the owner, under the sender and the name their own messages are archived
 // with, so a message on its way reads as the one that replaces it.

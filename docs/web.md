@@ -4362,6 +4362,15 @@ Four bounds keep it from growing forever.
     line of its own, so in a room of the chat agent and a companion the two turns stand as two lines at once and each goes when its own
     turn ends; a screen opened or reloaded in the middle of either reads it off the bot's picture. Such a room takes words
     alone: nothing is offered to attach, a dropped file is not taken, and a file sent to it anyway is refused.
+- **멘션** — an @ typed in the box offers the room's people and its agents. The list stands over the box, the names
+  it offers filtered by what follows the @, and it goes on filtering as those words do; the up and down arrows move
+  the choice, Enter or Tab takes it, Esc puts the list away, and a press takes the choice it stands on. What a choice
+  writes is the name itself, in place of the @ and the words after it: the receiver keeps no mention notation, so a
+  message reaches an agent because its words carry that agent's registered label or one of its wake words (the
+  receiver's `docs/wake.md`, 「The names and the window」), and a person is named as the room names them. The people
+  offered are the room's own senders, the reader's left out; the agents are the chat agent and every companion
+  answering in that room, each by its label. What is typed after the @ is taken as the name's start, so a name the
+  room does not hold leaves no list and the words alone.
 - **답장** — the menu's 답장 stands a bar at the head of the input box: an icon, the name of whoever said that
   message and the start of its words on one line (a wordless message stands its archive mark), and a close button.
   The bar keeps inside the box at every width: the words are cut short with an ellipsis and the close button stays

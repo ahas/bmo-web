@@ -125,8 +125,8 @@ function onSubmitClick(): void {
 
 const prompt = useTemplateRef<{ textareaRef?: HTMLTextAreaElement }>("prompt");
 
-// Where a place puts the cursor in the box as it opens.
-defineExpose({ focus: () => prompt.value?.textareaRef?.focus() });
+// Where a place puts the cursor in the box as it opens, and the box itself, which a mention reads for its caret.
+defineExpose({ focus: () => prompt.value?.textareaRef?.focus(), textarea: () => prompt.value?.textareaRef ?? null });
 
 const { submitOnEnter, enter } = usePromptEnter(() => void submit(), () => props.holds);
 </script>

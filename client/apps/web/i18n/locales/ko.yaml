@@ -830,6 +830,9 @@ room:
     avatar_enlarge: "{name} 프로필 사진 크게 보기"
     brain_read_open: "{name} 열기"
     forward_to: "전달할 방: {name}"
+    mention_agent: "에이전트 {name}"
+    mention_list: 멘션 후보
+    mention_person: "사람 {name}"
     go_to_quote: "{name}의 메시지로 이동"
     jump_to_date: "{name}, 날짜로 이동"
     open_details: "{name} 자세히 열기"

@@ -4,7 +4,40 @@
        reach it by the clip button, a paste or a drop. What is attached stands in the box's head
        until it is sent, each with its own way out; what the place adds — a reply it answers, a
        choice it launches with — stands before the attachments and in the foot. -->
-  <div class="flex min-h-0 flex-col" @dragover.prevent.stop="onDragOver" @dragleave="dragging = false" @drop.prevent.stop="onDrop">
+  <div
+    class="flex min-h-0 flex-col"
+    @dragover.prevent.stop="onDragOver"
+    @dragleave="dragging = false"
+    @drop.prevent.stop="onDrop"
+    @keydown.capture="mentionKeydown"
+    @input="mentionTrack"
+    @keyup="mentionTrack"
+    @click="mentionTrack"
+    @focusout="onFocusOut"
+  >
+    <!-- The mention an @ starts: the room's people and agents, the choice moved by the arrows and taken by Enter,
+         standing over the box so the list never covers what is being written (docs/web.md, the room screen's section
+         on mentions). -->
+    <div v-if="mentionOpen" data-mentions class="mb-2 flex min-h-0 flex-col overflow-hidden rounded-md border border-default bg-elevated shadow-sm">
+      <ul role="listbox" :aria-label="$t('room.aria.mention_list')" class="max-h-56 overflow-y-auto py-1">
+        <li v-for="(candidate, index) in mentionItems" :key="`${candidate.kind}:${candidate.text}`">
+          <button
+            type="button"
+            role="option"
+            :aria-selected="index === mentionActive"
+            :aria-label="candidate.kind === 'agent' ? $t('room.aria.mention_agent', { name: candidate.text }) : $t('room.aria.mention_person', { name: candidate.text })"
+            class="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm"
+            :class="index === mentionActive ? 'bg-muted text-highlighted' : 'text-muted'"
+            @mousedown.prevent="chooseMention(index)"
+            @mouseenter="aimMention(index)"
+          >
+            <UIcon :name="candidate.kind === 'agent' ? 'i-material-symbols-smart-toy-outline' : 'i-material-symbols-person-outline'" class="size-4 shrink-0 text-dimmed" aria-hidden="true" />
+            <span class="truncate">{{ candidate.text }}</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+
     <ChatInput
       ref="box"
       v-model="typed"
@@ -134,6 +167,7 @@
 <script setup lang="ts">
 import { attachmentLabel, fileSizeText, isPreviewable, pickFiles } from "~/domain/attachments";
 import { useDraft, useDraftPastes } from "~/domain/drafts";
+import { useMentions } from "~/domain/mentions";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { composedText, isPasteEntry, pastedLabel, pastedOf, standingPastes, withoutMark } from "~/domain/pasted";
 import { playClock } from "~/domain/player";
@@ -142,6 +176,7 @@ import { useNarrow } from "bmo-ui/app/domain/screen";
 import { recordingType, voiceFileName } from "~/domain/voice";
 
 import type { ComposedMessage, PickedFile } from "~/domain/attachments";
+import type { MentionSources } from "~/domain/mentions";
 import type { DraftKind } from "~/domain/drafts";
 import type { PastedText } from "~/domain/pasted";
 import type { RecordingType } from "~/domain/voice";
@@ -161,6 +196,9 @@ interface Props {
   attachable?: boolean;
   // Whether the box is one line, its buttons on the words' last line (see ChatInput).
   inline?: boolean;
+  // Who the room offers an @, where the place offers one at all: the people who spoke there and the agents answering
+  // it (docs/web.md, the room screen's section on mentions). A place that names none offers no mention.
+  mention?: MentionSources;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -169,7 +207,8 @@ const props = withDefaults(defineProps<Props>(), {
   busy: false,
   split: false,
   attachable: false,
-  inline: false
+  inline: false,
+  mention: undefined
 });
 
 const emit = defineEmits<{ submit: [message: ComposedMessage]; escape: [event: KeyboardEvent] }>();
@@ -178,6 +217,34 @@ const { t } = useI18n();
 const island = useIsland(t);
 
 const typed = useDraft(props.kind, props.draftId);
+
+// The mention an @ starts in this box: the room's people and agents, and the words a pick leaves. A place that names
+// nobody to mention offers none.
+const { open: mentionOpen, items: mentionItems, active: mentionActive, track: mentionTrack, key: mentionKey, choose: chooseMention, aim: aimMention, close: closeMention } = useMentions(
+  typed,
+  () => box.value?.textarea() ?? null,
+  () => props.mention ?? { people: [], agents: [] },
+  () => props.mention !== undefined
+);
+
+// A key the open list takes never reaches the box or the screen behind it, so Enter picks a name rather than sending
+// the words, and the arrows never move the caret.
+function mentionKeydown(event: KeyboardEvent): void {
+  if (!mentionKey(event)) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+// Pressing away from the box puts the list away, unless the press was on the list itself, which keeps the keyboard.
+function onFocusOut(event: FocusEvent): void {
+  const next = event.relatedTarget;
+
+  if (mentionOpen.value && (!(next instanceof Node) || !(event.currentTarget as HTMLElement | null)?.contains(next))) {
+    closeMention();
+  }
+}
+
 // The long pastes waiting beside the box, kept with the draft; the ones sent are those whose mark
 // still stands in it.
 const pasted = useDraftPastes(props.kind, props.draftId);
@@ -195,7 +262,7 @@ const pickers = computed<DropdownMenuItem[]>(() => [
   { label: t("room.action.attach_media"), icon: "i-material-symbols-photo-library-outline", onSelect: () => mediaPicker.value?.click() },
   { label: t("room.action.attach_document"), icon: "i-material-symbols-draft-outline", onSelect: () => picker.value?.click() }
 ]);
-const box = useTemplateRef<{ focus: () => void }>("box");
+const box = useTemplateRef<{ focus: () => void; textarea: () => HTMLTextAreaElement | null }>("box");
 
 // Recording stands in the box the way an attachment does: one note at a time, with its own length, and a way to
 // stop it or throw it away before it goes.

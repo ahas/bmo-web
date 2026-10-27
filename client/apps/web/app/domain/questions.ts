@@ -119,11 +119,15 @@ export function questionSummary(t: Translate, questions: JobQuestion[], now: num
 // stopped and how long the stop still holds.
 function statusLine(t: Translate, question: JobQuestion, state: QuestionState, now: number): string {
   if (state === "open" && question.pausedLeft !== null) {
-    return t("question.status.paused", { time: remainingLabel(t, question.dueAt - now), number: question.recommended + 1 });
+    return question.recommended === null
+      ? t("question.status.paused_alone", { time: remainingLabel(t, question.dueAt - now) })
+      : t("question.status.paused", { time: remainingLabel(t, question.dueAt - now), number: question.recommended + 1 });
   }
 
   if (state === "open") {
-    return t("question.status.running", { time: remainingLabel(t, question.dueAt - now), number: question.recommended + 1 });
+    return question.recommended === null
+      ? t("question.status.running_alone", { time: remainingLabel(t, question.dueAt - now) })
+      : t("question.status.running", { time: remainingLabel(t, question.dueAt - now), number: question.recommended + 1 });
   }
 
   return t(STATE_LABELS[state]);

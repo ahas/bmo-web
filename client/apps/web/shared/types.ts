@@ -799,7 +799,7 @@ export interface StandingNote {
 
 // Who settled a question a job put to the owner: their own answer, wherever they gave it, or the
 // wait running out.
-export type QuestionSettler = "owner" | "deadline";
+export type QuestionSettler = "owner" | "deadline" | "recommendation";
 
 // One question a job stopped to ask the owner, as the console reads it. The job is standing
 // still while it is open, which is why the console shows it rather than leaving it to the chat.
@@ -809,9 +809,12 @@ export interface JobQuestion {
   todoId: number;
   question: string;
   options: string[];
-  // Which option the job would take by itself, counted from zero. The deadline settles on it.
-  recommended: number;
-  // The one line saying why the job would not decide this itself.
+  // Which option the job would take by itself, counted from zero; null where its recommendation names no choice — a
+  // free answer, or none at all — so no choice wears the mark. The wait settles on it.
+  recommended: number | null;
+  // The free answer the job would take by itself where it names no choice; null on every other.
+  recommendation: string | null;
+  // The one line saying why the job would not decide this itself; empty where it named none.
   why: string;
   askedAt: number;
   // When the question settles on the recommendation if nobody answers: the end of the countdown

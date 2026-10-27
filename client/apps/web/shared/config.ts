@@ -368,7 +368,7 @@ export const CANNOT_UNAPPEND = "todo.error.cannot_unappend";
 // The one line a question's answer comes down to: the words the owner wrote where they wrote any,
 // and the text of the option it settled on otherwise. The job reads exactly this.
 export function questionAnswerText(question: JobQuestion): string {
-  return question.answer ?? question.options[question.chosen ?? question.recommended] ?? "";
+  return question.answer ?? question.options[question.chosen ?? question.recommended ?? -1] ?? "";
 }
 
 // What the console says to an answer that arrived after the question was already settled. The

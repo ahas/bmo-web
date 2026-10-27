@@ -23,6 +23,7 @@ function question(over: Partial<JobQuestion> = {}): JobQuestion {
     question: "what should be the default",
     options: ["first", "second"],
     recommended: 0,
+    recommendation: null,
     why: "it is a matter of taste",
     askedAt: 1_756_800_000,
     dueAt: 1_756_800_600,

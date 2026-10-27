@@ -25,6 +25,7 @@ function question(over: Partial<JobQuestion> = {}): JobQuestion {
     question: KO.line_24,
     options,
     recommended: 1,
+    recommendation: null,
     why: KO.line_27,
     askedAt,
     dueAt: askedAt + 600,
@@ -102,6 +103,22 @@ describe("how a question reads on the screen", () => {
   });
 });
 
+describe("what the service's recommendation says", () => {
+  test("a recommendation on one choice marks only that choice, and its reason stands with it", () => {
+    const [card] = questionsOfTodo(wording, [question({ recommended: 1, why: KO.line_27, options: [KO.line_18, KO.line_18_2] })], 12, askedAt + 10);
+
+    expect(card?.options.map((option) => option.recommended)).toEqual([false, true]);
+    expect(card?.why).toBe(KO.line_27);
+  });
+
+  test("a recommendation that names no choice marks none, and the card says a person is waited for", () => {
+    const [card] = questionsOfTodo(wording, [question({ recommended: null, recommendation: KO.line_18, why: KO.line_27 })], 12, askedAt + 10);
+    expect(card?.options.map((option) => option.recommended)).toEqual([false, false]);
+    // The wait still stands, and no choice is named as the one it goes to.
+    expect(card?.status).toContain(wording("question.status.running_alone", { time: card?.status ?? "" }).split(" · ").at(-1) ?? "");
+  });
+});
+
 describe("which questions the panel puts in front of him", () => {
   const asked = [
     question({ id: 1, chosen: 1, settledAt: askedAt + 30, settledBy: "owner" }),
@@ -138,7 +155,7 @@ describe("what stands over every screen while a job waits", () => {
   function asked(over: Partial<JobQuestion> = {}): JobQuestion {
     return {
       id: 1, todoId: 42, question: KO.line_139,
-      options: [KO.line_140, KO.line_140_2], recommended: 1, why: KO.line_140_3,
+      options: [KO.line_140, KO.line_140_2], recommended: 1, recommendation: null, why: KO.line_140_3,
       askedAt: now - 60, dueAt: now + 540, chosen: null, answer: null, pausedLeft: null,
       settledAt: null, settledBy: null, ...over
     };

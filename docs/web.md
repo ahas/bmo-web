@@ -5544,6 +5544,13 @@ Four bounds keep it from growing forever.
   not hold. The answering is one card and one press, through the same route a reply from the room takes; a settled
   question stands under it in the words it was settled on. A question that arrived while he was away stands the same:
   the badge is read off the archive as the panel opens.
+- **The recommendation is the job's own, and the card draws it as the job gives it.** A question carries the answer the
+  job would take by itself and one line saying why. Where that answer is one of the choices, only that choice wears the
+  mark; where it is words the choices do not hold, or the job named none, no choice wears it and the card says plainly
+  that a person is waited for. The wait the question has is the service's due time, read as the countdown; when it runs
+  out the service settles the question on its recommendation, and the card says so in the recommendation's own words,
+  told apart from a person's answer. A question read from the archive's older rows carries its own recommended choice
+  and reason, and draws the same way.
 - **Choosing and sending are different presses.** Pressing a choice only chooses it, not sends. A chosen one stands in a full
   colour so what is on the line is read on screen, and the button below says by name what will be sent, like 「2번으로 답하기」. Only
   pressing that button sends. With nothing chosen the button stands 「답하기」 and is not pressable. It is split so because it cannot

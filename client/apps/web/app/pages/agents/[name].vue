@@ -103,7 +103,7 @@
 
       <!-- The work view: the job's work order, what it is doing now, what it spent and called, its stages where it is
            co-work or laid out a plan, and its log (docs/web.md, 「The work view」). -->
-      <WorkView ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="isJobWorker" :stepper="isJobWorker" />
+      <WorkView ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="isJobWorker" :stepper="isJobWorker" :end="opensAtEnd" />
 
       <WorkerSettingsDialog v-if="settingsKind === 'worker'" v-model:open="settingsOpen" :worker="row" :reread="refreshCatalogue" />
       <GateSettingsDialog v-else-if="settingsKind === 'gate'" v-model:open="settingsOpen" :gate="name" />
@@ -264,6 +264,9 @@ const agentPicture = computed(() => faceOf.value(meta.value) ?? avatarFor(new Ma
 // A job worker keeps the line of its job at the foot of its screen, whichever worker it is: the
 // catalogue says which agents are workers.
 const isJobWorker = computed<boolean>(() => row.value?.kind === "worker");
+
+// Whether the log opens at its end whatever run it was opened at, as the log dialog that sent the reader here did.
+const opensAtEnd = computed<boolean>(() => route.query.end === "1");
 
 // The run the screen was opened at, which the job line speaks of where it is one of this worker's jobs.
 const placeRun = computed<string | null>(() => (typeof route.query.run === "string" && route.query.run !== "" ? route.query.run : null));

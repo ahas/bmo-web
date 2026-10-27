@@ -45,7 +45,12 @@ const LOG: AgentLogPage = {
     line(3, "run-b", "tool-result", SEARCH, { name: "Bash", tool: { name: "Bash", icon: null }, ref: "c1", state: "succeeded" }),
     line(4, "run-b", "tool", JSON.stringify({ file_path: "/srv/checkouts/worker/src/a.ts" }), { name: "Read", tool: { name: "Read", icon: null }, ref: "c2" }),
     line(5, "run-b", "tool-result", "export const a = 1;", { name: "Read", tool: { name: "Read", icon: null }, ref: "c2", state: "succeeded" }),
-    line(6, "run-b", "text", "working on it")
+    line(6, "run-b", "text", "working on it"),
+    // Enough after it that the log runs well past the height of the screen.
+    ...Array.from({ length: 30 }, (_, index) => [
+      line(7 + index * 2, "run-b", "tool", JSON.stringify({ command: `echo ${index}`, description: `Step ${index}` }), { name: "Bash", tool: { name: "Bash", icon: null }, ref: `s${index}` }),
+      line(8 + index * 2, "run-b", "tool-result", `out ${index}`, { name: "Bash", tool: { name: "Bash", icon: null }, ref: `s${index}`, state: "succeeded" })
+    ]).flat()
   ],
   hasMore: false
 };
@@ -174,6 +179,22 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
         expect(await until(async () => await page.locator("[data-work-order]").innerText(), (text) => text.includes("prompt-ko"))).toContain("prompt-ko");
         expect(await page.locator("li[data-step]").count()).toBe(0);
         expect(await page.locator("[data-agent-log]").count()).toBe(1);
+
+        // The head stays at the top of the page's body however far its log is scrolled, the log opening at its end.
+        const standing = async () =>
+          await page.locator("[data-work-head]").evaluate((head) => {
+            let box = head.parentElement;
+
+            while (box !== null && !/(auto|scroll)/.test(getComputedStyle(box).overflowY)) box = box.parentElement;
+
+            return { head: Math.round(head.getBoundingClientRect().top), box: Math.round(box?.getBoundingClientRect().top ?? -1), scrolled: (box?.scrollTop ?? 0) > 0 };
+          });
+
+        expect(await until(standing, (one) => one.scrolled)).toMatchObject({ scrolled: true });
+
+        const held = await standing();
+
+        expect(held.head).toBe(held.box);
 
         // The stages of the job's co-work order, a running one among them.
         const stepper = page.locator("[data-stage-stepper]");

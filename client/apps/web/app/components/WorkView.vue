@@ -3,7 +3,9 @@
        the co-work stage dialog are this one view, opened from different places. A compact head that stays in view
        however far the log is scrolled — the job line, what the session is doing now and the work order on one line,
        spread on a press — over the stages, what the job left and the log. -->
-  <div class="flex min-h-full flex-col">
+  <!-- It never shrinks to the box it scrolls in: squeezed by a column of flex items, as a page's body is, its log would
+       run past its foot and the head, held only inside the view, would scroll away with the lines. -->
+  <div class="flex min-h-full shrink-0 flex-col">
     <div v-if="hasHead" class="sticky top-0 z-10 flex flex-col gap-2 border-b border-default bg-default px-4 py-3 sm:px-6" data-work-head>
       <!-- The job: its item, its state, how long, how many calls and the tokens, read off the log while it runs. -->
       <p v-if="view !== null" class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted tabular-nums" data-work-figures>

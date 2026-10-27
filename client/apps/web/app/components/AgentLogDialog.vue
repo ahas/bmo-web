@@ -59,7 +59,7 @@ import { UDrawer, UModal } from "#components";
 import { agentMetaOf, catalogueAgents, roomTitle } from "~/domain/agents";
 import { usePolling } from "~/domain/polling";
 import { useNarrow } from "bmo-ui/app/domain/screen";
-import { agentLink } from "~/domain/status";
+import { agentLink, unitLink } from "~/domain/status";
 import { watchTitle } from "~/domain/watches";
 
 import type { RoomSummary, WatchView } from "#shared/types";
@@ -125,6 +125,9 @@ const shell = computed(() => {
 
 function goToPage(): void {
   emit("update:open", false);
-  void router.push(agentLink(props.name));
+  // The page stands the same log: the run the dialog was opened at, and its end where the dialog opened there.
+  const run = placeRun.value;
+
+  void router.push(run === null ? agentLink(props.name) : `${unitLink(props.name, run)}${props.end ? "&end=1" : ""}`);
 }
 </script>

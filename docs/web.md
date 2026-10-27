@@ -3214,6 +3214,9 @@ Two ways, split because the running places differ.
      reader is at the end; scrolling up stops the following, and a 맨 아래로 button standing over the log's foot
      takes the reader back to the end and following again. A view opened at an older run of the agent's own screen
      opens at that run instead.
+  The view grows with its log wherever it stands and is never squeezed to the box it scrolls in, so the head stays in
+  view on a worker's screen as in a dialog. The dialog's **페이지로** opens the worker's screen at the run the dialog
+  stood at, and at its end where the dialog opened there, so the screen shows the same head over the same log.
   A stage of several tasks is no tab row of them: each task is a sub-stage of the stepper, and opening one opens
   the view at that task.
 - **The input box that speaks to a runner or a worker directly** is below. It stands on the searcher and
@@ -4762,7 +4765,7 @@ Four bounds keep it from growing forever.
   narrow screen as a sheet rising from the bottom to fill the screen. What
   is inside is the very log view the agent screen uses, so the line's shape, spread and following are the same, and
   being the log now in use it holds the end and follows new lines. A **페이지로** button above crosses to that
-  agent's screen, and pressing closes what is open and moves there. Closing is by outside press, Esc and a close
+  agent's screen at the same run and place (「The work view」), and pressing closes what is open and moves there. Closing is by outside press, Esc and a close
   button, and a sheet has a handle above it too.
 - **A watch's line is named after the watch, not after the agent looking.** Where the run standing there is a
   standing watch's check, the line carries 「워치 #N · <name>」 — the watch's number and the few words it was set

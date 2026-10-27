@@ -87,5 +87,5 @@ const messages = computed<ArchivedMessage[]>(() => {
 // The answer's verdict: one that passed, so the mark stands in its passing colour.
 const judgements = computed(() => new Map<number, Judgement[]>([[4, [{ id: 1, chatId: 0, messageId: 4, stage: "chat", verdict: "PASS", detail: null, createdAt: START + 240 }]]]));
 
-const runs = computed(() => senderRuns(archivedRows(messages.value, judgements.value, () => "", new Map(), READER), "preview"));
+const runs = computed(() => senderRuns(archivedRows(messages.value, judgements.value, () => "", new Map(), [READER]), "preview"));
 </script>

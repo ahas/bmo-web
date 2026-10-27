@@ -22,6 +22,8 @@ const ACCOUNT = { name: "room-sending", password: "fixture-password-2257" };
 const ROOM = 43;
 // The owner's number, the one the receiver's stand-in names: the owner's words are archived under it.
 const OWNER = 42;
+// The sender the harness's receiver names as the owner's, which every message the owner sends is archived under.
+const OWNER_SENDER = 1;
 const WORDS = "words on their way";
 const WORDS_ID = 9001;
 const PICTURE_ID = 9002;
@@ -145,7 +147,7 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
       await page.getByText(WORDS).first().waitFor();
       await shoot(page, "1-words-sending");
 
-      archive.push({ chatId: ROOM, messageId: WORDS_ID, senderId: OWNER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: WORDS, imagePath: null, replyToMessageId: null });
+      archive.push({ chatId: ROOM, messageId: WORDS_ID, senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: WORDS, imagePath: null, replyToMessageId: null });
       await readAgain(page);
       await page.locator(`[data-message="m${WORDS_ID}"]`).waitFor();
       await shoot(page, "2-words-filed-send-out");
@@ -163,7 +165,7 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
       await page.locator("[data-picked]").first().waitFor({ state: "detached" });
       await shoot(page, "4-picture-sending");
 
-      const filed: ArchivedMessage = { chatId: ROOM, messageId: PICTURE_ID, senderId: OWNER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: "", imagePath: null, replyToMessageId: null };
+      const filed: ArchivedMessage = { chatId: ROOM, messageId: PICTURE_ID, senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: "", imagePath: null, replyToMessageId: null };
 
       archive.push(filed);
       await readAgain(page);
@@ -232,14 +234,14 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
 
       sent.push(text);
 
-      const messageId = await files({ chatId: ROOM, senderId: OWNER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text, imagePath: null, replyToMessageId: null });
+      const messageId = await files({ chatId: ROOM, senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text, imagePath: null, replyToMessageId: null });
 
       await route.fulfill({ json: { messageId } });
     });
     await context.route(new RegExp(`/api/rooms/${ROOM}/attach$`), async (route) => {
       sent.push("picture");
 
-      const messageId = await files({ chatId: ROOM, senderId: OWNER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: "", imagePath: `data/images/${ROOM}/burst.jpg`, replyToMessageId: null });
+      const messageId = await files({ chatId: ROOM, senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: "", imagePath: `data/images/${ROOM}/burst.jpg`, replyToMessageId: null });
 
       await route.fulfill({ json: { sent: [{ name: "b.png", messageId }], failed: [], checking: [] } });
     });

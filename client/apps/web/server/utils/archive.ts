@@ -91,13 +91,31 @@ async function everyRoom(): Promise<ReceiverRoom[]> {
   return (await receiverCall(receiver().GET("/rooms", { signal: within(5_000) }))).items;
 }
 
+// The names of the people whose numbers some rooms are, as the receiver names them (its `GET /people`): a one-to-one
+// with no title of its own is called by the person it is with (docs/web.md, 「Sidebar」). A list the receiver does not
+// answer names nobody, and the room stands under its number.
+async function peopleNamed(ids: readonly number[]): Promise<Map<number, string>> {
+  if (ids.length === 0) return new Map();
+
+  try {
+    const people = await receiverCall(receiver().GET("/people", { params: { query: { ids: ids.join(",") } }, signal: within(5_000) }));
+
+    return new Map(people.items.flatMap((person) => (person.name === null || person.name === undefined || person.name.trim() === "" ? [] : [[person.id, person.name] as const])));
+  } catch {
+    return new Map();
+  }
+}
+
+const untitled = (title: string | null): boolean => title === null || title.trim() === "";
+
 /** Every room, the pinned ones first in the owner's order, each under the name it is called by. */
 export async function listRooms(): Promise<RoomSummary[]> {
   const [rooms, owner] = await Promise.all([everyRoom(), ownerChat()]);
+  const named = await peopleNamed(rooms.filter((room) => untitled(room.title) && room.id !== owner).map((room) => room.id));
 
   return rooms.map((room) => ({
     chatId: room.id,
-    title: roomLabel(room.id, room.title, owner),
+    title: roomLabel(room.id, untitled(room.title) ? (named.get(room.id) ?? null) : room.title, owner),
     messageCount: room.messageCount,
     lastMessageAt: room.lastMessageAt === null ? null : seconds(room.lastMessageAt),
     pinned: room.pinned,
@@ -111,8 +129,9 @@ export async function roomTitleOf(chatId: number): Promise<string> {
     receiverCall(receiver().GET("/rooms/{roomId}/title", { params: { path: { roomId: chatId } }, signal: within(5_000) })),
     ownerChat()
   ]);
+  const person = untitled(title) && chatId !== owner ? ((await peopleNamed([chatId])).get(chatId) ?? null) : null;
 
-  return roomLabel(chatId, title, owner);
+  return roomLabel(chatId, untitled(title) ? person : title, owner);
 }
 
 // The files a message carried as its page names them, each by its place among them and standing unavailable: what
@@ -143,12 +162,12 @@ async function mediaOf(chatId: number, message: ReceivedMessage): Promise<{ atta
 // The numbers an agent's own words stand under in a room, as the receiver gives each of the room's answerers
 // its own number: a message whose sender is one of them is an agent's.
 export async function agentNumbers(chatId: number): Promise<Set<number>> {
-  return new Set((await answererNumbers(chatId)).keys());
+  return new Set((await answererNumbers(chatId)).numbers.keys());
 }
 
-// Each of a room's answerers' own numbers with the agent whose words stand under it. Where two agents stand under one
-// number, it is the room's voice's: the one the receiver speaks for the room as.
-async function answererNumbers(chatId: number): Promise<Map<number, string>> {
+// Each of a room's answerers' own numbers with the agent whose words stand under it, and the room's voice: the agent the
+// receiver speaks for the room as. Where two agents stand under one number, it is the voice's.
+async function answererNumbers(chatId: number): Promise<{ numbers: Map<number, string>; voice: string | null }> {
   const answerers = await receiverCall(
     receiver().GET("/rooms/{roomId}/answerers", { params: { path: { roomId: chatId } }, signal: within(5_000) })
   );
@@ -178,7 +197,7 @@ async function answererNumbers(chatId: number): Promise<Map<number, string>> {
     if (number !== null && number !== undefined) owned.set(number, name);
   });
 
-  return owned;
+  return { numbers: owned, voice: answerers.voice || answerers.default || null };
 }
 
 // How long the receiver's word that a number is the owner's account stands before it is asked again.
@@ -247,6 +266,18 @@ function accountAgent(message: ReceivedMessage, voiced: ReadonlyMap<number, stri
   return message.round !== null && message.senderId !== null ? voiced.get(message.senderId) : undefined;
 }
 
+// The agent whose words an agent's message is, so its row wears that agent's face in every room (docs/web.md, 「An
+// agent's words wear the agent's face in every room」): the one the receiver names on its send, else the agent whose
+// own number it went out under, else — a notice said in the room's voice — the agent the room answers as.
+function speakerOf(message: ReceivedMessage, agent: boolean, answerers: ReadonlyMap<number, string>, voice: string | null): string | undefined {
+  if (!agent) return undefined;
+  if (message.agentName !== null) return message.agentName;
+
+  const owned = message.senderId === null ? undefined : answerers.get(message.senderId);
+
+  return owned ?? voice ?? undefined;
+}
+
 function senderKey(message: ReceivedMessage): string {
   return `${message.senderId ?? ""}:${message.senderName}`;
 }
@@ -280,7 +311,8 @@ async function replyQuoteOf(chatId: number, messageId: number, held?: { message:
 
 // A page of the receiver's read into the messages the screen draws.
 async function messagesOf(chatId: number, received: readonly ReceivedMessage[]): Promise<ArchivedMessage[]> {
-  const answerers = await answererNumbers(chatId).catch(() => new Map<number, string>());
+  const room = await answererNumbers(chatId).catch(() => ({ numbers: new Map<number, string>(), voice: null }));
+  const answerers = room.numbers;
   const agents = new Map(received.map((message) => [senderKey(message), message.agentName !== null || (message.senderId !== null && answerers.has(message.senderId))]));
   const voiced = await ownerVoices(chatId, received, answerers);
   // Each message's files are read once, and a reply to a message the page holds quotes it from the page.
@@ -305,6 +337,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
     received.map(async (message) => {
       const agent = agents.get(senderKey(message)) === true;
       const voicedBy = accountAgent(message, voiced);
+      const speaker = speakerOf(message, agent, answerers, room.voice);
       const files = await media.get(message.messageId)!;
 
       return {
@@ -321,6 +354,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         album: message.album,
         agent,
         ...(voicedBy === undefined ? {} : { voicedBy }),
+        ...(speaker === undefined ? {} : { speaker }),
         notice: agent && isSystemNotice(message.text),
         attachments: files.attachments,
         expressions: files.expressions,

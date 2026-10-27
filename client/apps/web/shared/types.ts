@@ -314,6 +314,9 @@ export interface ArchivedMessage {
   // The registration name of the agent whose answer this is, where it went out in the owner's own account and so
   // stands in the archive under the owner's number and name; absent on every other message.
   voicedBy?: string;
+  // The registration name of the agent whose words an agent's message is, wherever it went out — a notice said in
+  // the room's voice the room's answering agent's — so its row wears that agent's face; absent on a person's words.
+  speaker?: string;
   // Whether the bot sent this message as the service rather than as the chat agent — a system notice, which a
   // screen stands as a system line rather than an answer. Absent where the server did not say.
   notice?: boolean;
@@ -2094,6 +2097,11 @@ export interface TurnGateView {
 // of the bot's has come back.
 export interface OwnerChat {
   chatId: number | null;
+  // The sender the receiver archives every message the owner sends under, the console's among them.
+  senderId: number | null;
+  // The senders whose messages are the signed-in person's own, and so stand on the right: those linked to their
+  // account, and the owner's for the administrator (docs/web.md, 「Which messages stand on the right」).
+  senders: number[];
   // Whether the one signed in is the platform administrator, who alone is offered what only the owner may do.
   administrator: boolean;
 }

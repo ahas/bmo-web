@@ -7,7 +7,8 @@ import type { AgentFace } from "#shared/types";
 
 // The person number each chat agent's own words stand under, which its face is the picture of (docs/web.md,
 // 「Profile photos」). The receiver names it per room (`GET /rooms/{roomId}/own-number`), so each chat agent is asked
-// for in the owner's room and in every room it is a companion of, and the first number answered stands. The answer
+// for in the owner's room, then in every room it is a companion of, then in every other room — a room the console made
+// on the record road numbers no agent — and the first number answered in that order stands. The answer
 // changes only as agents and rooms are made, so it is kept for a minute.
 
 const KEPT_MS = 60_000;
@@ -36,15 +37,12 @@ async function readFaces(): Promise<AgentFace[]> {
   const chats = agents.filter((agent) => carriedOf(agent).kind === "chat" && agent.role !== "").map((agent) => agent.name);
   const faces = await Promise.all(
     chats.map(async (name): Promise<AgentFace | null> => {
-      const places = [...(owner === null ? [] : [owner]), ...rooms.filter((room) => room.companions.includes(name)).map((room) => room.id)];
+      const companionOf = rooms.filter((room) => room.companions.includes(name)).map((room) => room.id);
+      const places = [...new Set([...(owner === null ? [] : [owner]), ...companionOf, ...rooms.map((room) => room.id)])];
+      const numbers = await Promise.all(places.map((place) => ownNumber(place, name)));
+      const personId = numbers.find((number) => number !== null) ?? null;
 
-      for (const place of places) {
-        const personId = await ownNumber(place, name);
-
-        if (personId !== null) return { name, personId };
-      }
-
-      return null;
+      return personId === null ? null : { name, personId };
     })
   );
 

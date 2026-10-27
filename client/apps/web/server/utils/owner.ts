@@ -10,6 +10,16 @@ export async function ownerChat(): Promise<number | null> {
   }
 }
 
+/** The sender the receiver names as the owner's, under which every message the owner sends is archived; null where the
+ * receiver is not reached or names none. */
+export async function ownerSender(): Promise<number | null> {
+  try {
+    return (await receiverCall(receiver().GET("/owner"))).senderId ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // The registration name of the receiver's default answerer, the agent whose turns are the chat agent's, as the
 // owner's room names it among its answerers; null where the receiver is not reached or names none.
 export async function defaultAnswerer(): Promise<string | null> {

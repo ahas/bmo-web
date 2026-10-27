@@ -517,13 +517,12 @@ const rooms = useNewestReads(listedRooms);
 
 const { control, link: controlState, reachable, read: readControl } = useControlStatus();
 
-// Whose room this is, answered by this app itself and carried in the page's own payload, so a
-// refresh has it before the first render rather than a round trip later.
+// Whose room this is and whose senders are the signed-in person's own, answered by this app itself and carried in the
+// page's own payload, so a refresh has them before the first render rather than a round trip later: the side every
+// message stands on hangs on it.
 const { data: owner } = useFetch<OwnerChat>("/api/owner", {
   key: "owner",
-  default: () => ({ chatId: null, administrator: false }),
-  // Nothing hangs on it but the administrator's own tools.
-  immediate: administrator.value
+  default: () => ({ chatId: null, senderId: null, senders: [], administrator: false })
 });
 // What has been handed to the bot and is not standing in the archive yet: it is in the feed
 // from the moment send is pressed, marked as on its way.
@@ -799,10 +798,10 @@ const statsRead = useReadFailure({
   reread: () => void openStats()
 });
 
-// Whom the console speaks as here: the owner, under the name their own messages are archived
+// Whom the console speaks as here: the owner, under the sender and the name their own messages are archived
 // with, so a message on its way reads as the one that replaces it.
 const speaker = computed<Speaker>(() => {
-  const own = control.value?.ownerChatId ?? null;
+  const own = owner.value.senderId;
   const said = [...roomFeed.messages.value].reverse().find((message) => message.senderId === own);
 
   return { id: own, name: said?.senderName ?? t("room.label.me") };
@@ -873,11 +872,11 @@ const archived = computed<FeedItem[]>((standing) =>
       judgementIndex.value,
       imageUrl,
       avatars.value,
-      // Which number the feed reads as the owner's own, and so which rows stand on the right. It is
-      // this app's own answer rather than the bot's, because the side a message stands on is decided
-      // as the row is drawn and a screen that waited on the bot would lay the whole room out on one
-      // side and turn it over seconds later, or never while the bot is down.
-      owner.value.chatId,
+      // Which senders the feed reads as the signed-in person's own, and so which rows stand on the right
+      // (docs/web.md, 「Which messages stand on the right」). It is this app's own answer rather than the bot's,
+      // because the side a message stands on is decided as the row is drawn and a screen that waited on the bot would
+      // lay the whole room out on one side and turn it over seconds later, or never while the bot is down.
+      owner.value.senders,
       !group.value
     ), lives.value)
   )

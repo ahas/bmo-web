@@ -103,13 +103,18 @@ const receiver = standIn("RECEIVER", (one) => {
     return answer({
       items: [
         room(5, { messageCount: 3, lastMessageAt: 100_000, pinned: true }),
-        room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200_000, companions: ["companion-a"] })
+        room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200_000, companions: ["companion-a"] }),
+        // The owner's private chat, a room the console made on the record road.
+        room(-11, { messageCount: 1, lastMessageAt: 300_000 })
       ],
       more: false
     });
   }
 
-  if (path === "/owner") return answer({ room: 5, senderId: 5 });
+  // The owner's room is the console-made one; their chat service's one-to-one is a room like any other.
+  if (path === "/owner") return answer({ room: -11, senderId: 5 });
+  if (path === "/people") return answer({ items: new URL(one.path, "http://receiver").searchParams.get("ids") === "5" ? [{ id: 5, name: "Person A" }] : [], more: false });
+  if (path === "/rooms/5/title" || path === "/rooms/-11/title") return answer({ title: null });
   if (path === "/rooms/-7/title") return answer({ title: "Room A" });
   if (path === "/rooms/-7/messages") {
     const after = new URL(one.path, "http://receiver").searchParams.get("after");
@@ -130,10 +135,16 @@ registerChatAgent({ name: "agent-a", label: "Agent A" });
 describe("the rooms", () => {
   test("stand in the receiver's order, the owner's own named by the chat agent, each pinned or not, and a room made for companions so marked", async () => {
     expect(await listRooms()).toEqual([
-      { chatId: 5, title: "Agent A", messageCount: 3, lastMessageAt: 100, pinned: true },
-      { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, pinned: false, madeForCompanions: true, companions: ["companion-a"] }
+      { chatId: 5, title: "Person A", messageCount: 3, lastMessageAt: 100, pinned: true },
+      { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, pinned: false, madeForCompanions: true, companions: ["companion-a"] },
+      { chatId: -11, title: "Agent A", messageCount: 1, lastMessageAt: 300, pinned: false }
     ]);
     expect(await roomTitleOf(-7)).toBe("Room A");
+  });
+
+  test("the owner's private chat is the room the receiver names, and their one-to-one is called by the person it is with", async () => {
+    expect(await roomTitleOf(-11)).toBe("Agent A");
+    expect(await roomTitleOf(5)).toBe("Person A");
   });
 });
 

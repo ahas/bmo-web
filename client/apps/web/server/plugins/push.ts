@@ -1,7 +1,5 @@
 import { createParser } from "eventsource-parser";
 
-import { roomLabel } from "#shared/config";
-
 import type { BotEvent } from "#shared/types";
 
 // The console's own ear on the receiver, held open for as long as this server runs. Every screen
@@ -39,12 +37,7 @@ async function agentMessage(chatId: number, messageId: number): Promise<{ sender
 
 // A room's name as the room list gives it, and the owner's own room as the console names it.
 async function roomTitle(chatId: number): Promise<string> {
-  const [{ title }, owner] = await Promise.all([
-    receiverCall(receiver().GET("/rooms/{roomId}/title", { params: { path: { roomId: chatId } } })),
-    ownerChat()
-  ]);
-
-  return roomLabel(chatId, title, owner);
+  return await roomTitleOf(chatId);
 }
 
 export default defineNitroPlugin((nitro) => {

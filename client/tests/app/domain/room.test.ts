@@ -304,7 +304,7 @@ describe("which side a row is laid out from", () => {
       imageUrl,
       avatars,
       pendingItems(outboxOf(KO.line_261, [], 1_788_000_100), speaker, avatars),
-      owner
+      [owner]
     );
     const rows = days.flatMap((day) => day.items);
 
@@ -321,14 +321,45 @@ describe("which side a row is laid out from", () => {
       imageUrl,
       avatars,
       [],
-      owner
+      [owner]
     ).flatMap((day) => day.items);
 
     expect(rows.map((row) => row.look.side)).toEqual(["left", "right", "left"]);
   });
 
+  test("every sender linked to the signed-in person is theirs, in a room a chat service carries or one the console made", () => {
+    const linked = 4_218_991;
+    const rows = buildDays(
+      wording,
+      [bySomeoneElse(1, "words from a linked sender"), archived(2, "words under the owner's sender"), { ...archived(3, "a record room's agent", "agent-a"), senderId: null }],
+      new Map(),
+      imageUrl,
+      avatars,
+      [],
+      [owner, linked]
+    ).flatMap((day) => day.items);
+
+    expect(rows.map((row) => row.look.side)).toEqual(["right", "right", "left"]);
+    expect(sideOf(null, [owner])).toBe("left");
+  });
+
+  test("an agent's words wear its own face, wherever they stand under no number of their own", () => {
+    const faces: AvatarIndex = new Map([["agent:agent-a", "/api/avatars/agent-a.jpg"]]);
+    const [row] = buildDays(wording, [{ ...archived(1, "an answer on the record road", "agent-a"), senderId: null, speaker: "agent-a" }], new Map(), imageUrl, faces, [], [owner])
+      .flatMap((day) => day.items);
+
+    expect(row?.look.avatar).toMatchObject({ src: "/api/avatars/agent-a.jpg" });
+  });
+
+  test("an agent's words under no number of their own stand under that agent's name, whatever name they were filed with", () => {
+    const [row] = buildDays(wording, [{ ...archived(1, "a companion's answer", "BMO"), agent: true, senderId: null, speaker: "agent-a" }], new Map(), imageUrl, avatars, [], [owner])
+      .flatMap((day) => day.items);
+
+    expect(row?.senderName).not.toBe("BMO");
+  });
+
   test("a side is decided by who sent it and never by the look the bubble wears", () => {
-    const rows = buildDays(wording, [bySomeoneElse(1, KO.line_286)], new Map(), imageUrl, avatars, [], owner)
+    const rows = buildDays(wording, [bySomeoneElse(1, KO.line_286)], new Map(), imageUrl, avatars, [], [owner])
       .flatMap((day) => day.items);
 
     // Another person is still a person: the bubble and the plain characters are what the chat agent's own
@@ -337,12 +368,12 @@ describe("which side a row is laid out from", () => {
   });
 
   test("with no owner to know, the whole room reads down the left rather than guessing", () => {
-    const rows = buildDays(wording, [archived(1, KO.line_295)], new Map(), imageUrl, avatars, [], null)
+    const rows = buildDays(wording, [archived(1, KO.line_295)], new Map(), imageUrl, avatars, [], [])
       .flatMap((day) => day.items);
 
     expect(rows.map((row) => row.look.side)).toEqual(["left"]);
-    expect(sideOf(owner, null)).toBe("left");
-    expect(sideOf(null, null)).toBe("left");
+    expect(sideOf(owner, [])).toBe("left");
+    expect(sideOf(null, [])).toBe("left");
   });
 
   test("only what the server says an agent sent stands as markdown, whatever the agent is called", () => {
@@ -429,7 +460,7 @@ describe("a message that is still on its way", () => {
     const marks = [items, withChecking(items, key, 2), withSent(items, key, 9), withFailed(items, key, KO.line_384)].map(
       (held) => sendMark(pendingItems(held, speaker, avatars)[0]!)
     );
-    const days = buildDays(wording, [archived(1, KO.line_387), archived(2, KO.line_387_2, "agent-a")], new Map(), imageUrl, avatars, [], owner);
+    const days = buildDays(wording, [archived(1, KO.line_387), archived(2, KO.line_387_2, "agent-a")], new Map(), imageUrl, avatars, [], [owner]);
 
     expect(marks).toEqual(["sending", "checking", "sent", "failed"]);
     expect(days.flatMap((day) => day.items).map(sendMark)).toEqual(["sent", null]);
@@ -649,7 +680,7 @@ describe("a message that is only what it carried", () => {
   const sticker = { id: 2, kind: "sticker" as const, name: "sticker.webp", bytes: 3, type: null, available: true };
 
   function rowOf(message: ArchivedMessage) {
-    return buildDays(wording, [message], new Map(), imageUrl, avatars, [], owner).flatMap((day) => day.items)[0];
+    return buildDays(wording, [message], new Map(), imageUrl, avatars, [], [owner]).flatMap((day) => day.items)[0];
   }
 
   test("stands a picture and a file in a bubble, and only a sticker sent alone with none", () => {
@@ -851,7 +882,7 @@ describe("the row a running turn stands in", () => {
   // The answer is dated the day it is sent, so a row standing in an earlier day would see a new date
   // mark open over its answer as the answer settles out of it.
   test("stands at the foot in the day its answer will be dated", () => {
-    const days = buildDays(wording, [archived(1, "hello")], new Map(), imageUrl, avatars, [], owner);
+    const days = buildDays(wording, [archived(1, "hello")], new Map(), imageUrl, avatars, [], [owner]);
     const said = days[0]!.items[0]!.sentAt;
     const today = runItem(run, { id: 87, name: "agent-a" }, face);
     const before = runItem({ ...run, startedAt: said - 86_400, speaker: { id: 5, name: "companion" } }, { id: 5, name: "companion" }, face);
@@ -865,7 +896,7 @@ describe("the row a running turn stands in", () => {
   });
 
   test("every row the archive holds says it is not one", () => {
-    const [first] = buildDays(wording, [archived(1, KO.line_805)], new Map(), imageUrl, avatars, [], owner);
+    const [first] = buildDays(wording, [archived(1, KO.line_805)], new Map(), imageUrl, avatars, [], [owner]);
 
     expect(first?.items[0]?.run).toBeNull();
     expect(pendingItems(outboxOf(KO.line_808, [], 1_788_000_100), speaker, avatars)[0]?.run).toBeNull();
@@ -929,7 +960,7 @@ describe("the room's bars", () => {
 
 // One sender's messages one after another stand as one block beside one photo.
 describe("a sender's run", () => {
-  const rows = (messages: ArchivedMessage[]) => buildDays(wording, messages, new Map(), imageUrl, avatars, [], owner).flatMap((day) => day.items);
+  const rows = (messages: ArchivedMessage[]) => buildDays(wording, messages, new Map(), imageUrl, avatars, [], [owner]).flatMap((day) => day.items);
 
   test("gathers one sender's messages in a row and parts at the next sender, a notice or a passed-over turn", () => {
     const said = rows([archived(1, KO.line_836), archived(2, KO.line_836_2), { ...archived(3, KO.line_836_3, "agent-a"), agent: true }, archived(4, KO.line_836_4)]);
@@ -1071,7 +1102,7 @@ describe("a running row handing its place over", () => {
 // a new object, and by the owner's own sending, which changes no archived row at all (docs/web.md,
 // 「What arrives comes in at the end」).
 describe("the rows kept between changes", () => {
-  const read = (messages: ArchivedMessage[], judgements = new Map<number, Judgement[]>()) => archivedRows(messages, judgements, imageUrl, avatars, owner);
+  const read = (messages: ArchivedMessage[], judgements = new Map<number, Judgement[]>()) => archivedRows(messages, judgements, imageUrl, avatars, [owner]);
   const skipped: Judgement = { id: 9, chatId: ROOM_ID, messageId: 2, stage: "skipped", verdict: "SKIP", detail: null, createdAt: 1_788_000_010 };
 
   test("a read of the archive hands back each row that says the same, and a new row for one that changed", () => {
@@ -1093,7 +1124,7 @@ describe("the rows kept between changes", () => {
 
   test("a group room's rows count no turn passed over, so no line stands under them", () => {
     const judgements = new Map([[2, [skipped]]]);
-    const counted = (skipLines: boolean) => archivedRows([archived(1, "one"), archived(2, "two")], judgements, imageUrl, avatars, owner, skipLines).map((row) => row.skipped);
+    const counted = (skipLines: boolean) => archivedRows([archived(1, "one"), archived(2, "two")], judgements, imageUrl, avatars, [owner], skipLines).map((row) => row.skipped);
 
     expect(counted(true)).toEqual([0, 1]);
     expect(counted(false)).toEqual([0, 0]);

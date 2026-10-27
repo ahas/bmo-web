@@ -987,14 +987,14 @@ export interface DayGroup {
 // turn already wore, and everything a person wrote is the characters it is. Each stands in a
 // bubble, unless it is only what it carried.
 //
-// Where the console does not know the owner's own number there is nobody to put on the right,
+// Where the console knows no sender as the signed-in person's there is nobody to put on the right,
 // and the whole room reads down the left rather than guessing at a side.
-function lookOf(message: ArchivedMessage, avatars: AvatarIndex, ownerId: number | null, bare: boolean): MessageLook {
+function lookOf(message: ArchivedMessage, avatars: AvatarIndex, mine: readonly number[], bare: boolean): MessageLook {
   const agent = message.agent === true;
 
   return {
     role: agent ? "assistant" : "user",
-    side: sideOf(message.senderId, ownerId),
+    side: sideOf(message.senderId, mine),
     variant: bare ? "naked" : "soft",
     avatar: faceOf(message, avatars),
     markdown: agent
@@ -1002,16 +1002,21 @@ function lookOf(message: ArchivedMessage, avatars: AvatarIndex, ownerId: number 
 }
 
 // The name a message's row stands under: the agent's own where its answer went out in the owner's account, which
-// the archive files under the owner's name, and the name it was filed with otherwise.
-function shownSender(message: Pick<ArchivedMessage, "senderName" | "voicedBy">): string {
-  return message.voicedBy === undefined ? message.senderName : agentRowName(message.voicedBy);
+// the archive files under the owner's name, or where an agent's words stand under no number of their own — the record
+// road's — whatever name the send was filed with; and the name it was filed with otherwise.
+function shownSender(message: Pick<ArchivedMessage, "senderName" | "senderId" | "voicedBy" | "speaker">): string {
+  if (message.voicedBy !== undefined) return agentRowName(message.voicedBy);
+
+  return message.speaker !== undefined && message.senderId === null ? agentRowName(message.speaker) : message.senderName;
 }
 
-// The picture a message's row wears, the agent's own on an answer that went out in the owner's account.
-function faceOf(message: Pick<ArchivedMessage, "senderId" | "senderName" | "voicedBy">, avatars: AvatarIndex): AvatarProps {
-  return message.voicedBy === undefined
-    ? avatarFor(avatars, "person", message.senderId, message.senderName)
-    : agentAvatar(avatars, message.voicedBy);
+// The picture a message's row wears: an agent's words its own face in every room, an answer that went out in the
+// owner's account among them, and a person's words their own picture (docs/web.md, 「An agent's words wear the agent's
+// face in every room」).
+function faceOf(message: Pick<ArchivedMessage, "senderId" | "senderName" | "voicedBy" | "speaker">, avatars: AvatarIndex): AvatarProps {
+  const agent = message.voicedBy ?? message.speaker;
+
+  return agent === undefined ? avatarFor(avatars, "person", message.senderId, message.senderName) : agentAvatar(avatars, agent);
 }
 
 // A chat agent's face by its registration name, where the index holds one under it, and otherwise its label's letter
@@ -1031,9 +1036,10 @@ export function bareMedia(shownText: string, kinds: readonly string[]): boolean 
   return shownText === "" && kinds.length > 0 && kinds.every((kind) => kind === "sticker");
 }
 
-// Which side one message stands on, which is the one rule the feed has: their own, or the left.
-export function sideOf(senderId: number | null, ownerId: number | null): MessageSide {
-  return ownerId !== null && senderId === ownerId ? "right" : "left";
+// Which side one message stands on, which is the one rule the feed has: the signed-in person's own — a sender linked to
+// them, or the owner's for the administrator (docs/web.md, 「Which messages stand on the right」) — or the left.
+export function sideOf(senderId: number | null, mine: readonly number[]): MessageSide {
+  return senderId !== null && mine.includes(senderId) ? "right" : "left";
 }
 
 // The messages the owner has just sent, as the feed shows them while they go: their own name, their own
@@ -1275,9 +1281,9 @@ export function buildDays(
   imageUrlFor: (chatId: number, messageId: number) => string,
   avatars: AvatarIndex,
   pending: readonly FeedItem[] = [],
-  ownerId: number | null = null
+  mine: readonly number[] = []
 ): DayGroup[] {
-  return groupDays(t, [...archivedRows(messages, judgements, imageUrlFor, avatars, ownerId), ...pending]);
+  return groupDays(t, [...archivedRows(messages, judgements, imageUrlFor, avatars, mine), ...pending]);
 }
 
 // The archive's messages as the feed's rows, each paired with the judgements made about them. They
@@ -1290,7 +1296,7 @@ export function archivedRows(
   judgements: Map<number, Judgement[]>,
   imageUrlFor: (chatId: number, messageId: number) => string,
   avatars: AvatarIndex,
-  ownerId: number | null = null,
+  mine: readonly number[] = [],
   skipLines = true
 ): FeedItem[] {
   const items: FeedItem[] = [];
@@ -1317,7 +1323,7 @@ export function archivedRows(
       continue;
     }
 
-    const item = feedItemOf(message, judgements, imageUrlFor, avatars, ownerId);
+    const item = feedItemOf(message, judgements, imageUrlFor, avatars, mine);
 
     if (!skipLines) {
       item.skipped = 0;
@@ -1441,7 +1447,7 @@ function feedItemOf(
   judgements: Map<number, Judgement[]>,
   imageUrlFor: (chatId: number, messageId: number) => string,
   avatars: AvatarIndex,
-  ownerId: number | null
+  mine: readonly number[]
 ): FeedItem {
   const attachments = message.attachments ?? [];
   const pictured = message.imagePath !== null;
@@ -1462,7 +1468,7 @@ function feedItemOf(
     expressions: shown.expressions,
     fileName: null,
     answerSeconds: message.answerSeconds ?? null,
-    look: lookOf(message, avatars, ownerId, bare),
+    look: lookOf(message, avatars, mine, bare),
     parts: [{ type: "text", text: message.text }],
     judgements: judgements.get(message.messageId) ?? [],
     spend: message.spend ?? null,

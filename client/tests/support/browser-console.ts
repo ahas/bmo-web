@@ -40,6 +40,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["draft-close", "fixture-password-2259"],
   ["prompt-wrap", "fixture-password-1575"],
   ["room-feed", "fixture-password-1457"],
+  ["room-record", "fixture-password-2260"],
   ["skeleton259", "fixture-password-259"],
   ["stepper", "fixture-password-2206"],
   ["title-bar", "fixture-password-2318"],
@@ -50,6 +51,13 @@ const ACCOUNTS: readonly [string, string][] = [
 // The owner's room, which the receiver's stand-in names as theirs and lists, and a room an account meets two behind.
 const OWNER_CHAT = 42;
 const UNREAD_CHAT = 43;
+// A room the console made on the record road, its words standing under no chat service: the owner's under their own
+// sender, the chat agent's under no number at all.
+const RECORD_CHAT = -9_000_000_000_099;
+// The person number the chat agent's own words stand under in the owner's room, whose picture is its face.
+const AGENT_FACE = 501;
+// A picture's bytes: one grey pixel.
+const PIXEL = Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNoAAAAggCBd81ytgAAAABJRU5ErkJggg=="), (c) => c.charCodeAt(0));
 // When that room's line was said, fixed for the harness's life so a mark on it stays where it was made.
 const LINE_AT = Date.now();
 // The base path the console is served under; the tests read theirs off the address they are given.
@@ -324,13 +332,32 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       answerSeconds: null, round: null, album: null, via: null, files: []
     });
     const line = [said(1, LINE_AT - 3_000), said(2, LINE_AT - 2_000), said(3, LINE_AT - 1_000)];
+    const recorded = { ...room, id: RECORD_CHAT, title: "record-room", ownerRoom: false, workRoom: RECORD_CHAT, lastMessageAt: LINE_AT - 4_000 };
+    const kept = (id: number, sentAt: number, over: Record<string, unknown>) => ({
+      id, room: RECORD_CHAT, senderId: 1, senderName: "owner", sentAt, text: `record ${id}`, imagePath: null, replyToMessageId: null,
+      answerSeconds: null, round: null, album: null, via: "record", files: [], ...over
+    });
+    const record = [
+      kept(-1, LINE_AT - 6_000, {}),
+      kept(-2, LINE_AT - 5_000, { senderId: null, senderName: "Agent A", agentName: "agent-a", answerSeconds: 3 }),
+      kept(-3, LINE_AT - 4_000, {})
+    ];
 
     // The receiver's stream stands open and says nothing, so a tab's stream stays open and carries the console's own
     // words between the units' silences.
     if (path === "/events") return silentStream();
     if (path === "/owner") return Response.json({ room: OWNER_CHAT, senderId: 1 });
     if (path === "/live") return Response.json({ at: now, compacting: [], queued: [], turns: [] });
-    if (path === "/rooms") return Response.json({ items: [room, behind], more: false });
+    if (path === "/rooms") return Response.json({ items: [room, behind, recorded], more: false });
+    if (path === `/rooms/${RECORD_CHAT}/messages`) {
+      const after = new URL(request.url).searchParams.get("after");
+
+      return Response.json({ items: after === null ? record : record.filter((one) => one.id > Number(after)), more: false });
+    }
+    if (path === `/rooms/${RECORD_CHAT}/answerers`) return Response.json({ default: "agent-a", items: [{ agentName: "agent-a", companion: false }], more: false, voice: "agent-a" });
+    if (path === `/rooms/${OWNER_CHAT}/own-number`) return Response.json({ number: new URL(request.url).searchParams.get("agentName") === "agent-a" ? AGENT_FACE : null });
+    if (path === "/avatars") return Response.json({ items: [{ kind: "person", id: AGENT_FACE, takenAt: LINE_AT }], more: false });
+    if (path === `/people/${AGENT_FACE}/avatar`) return new Response(PIXEL, { headers: { "content-type": "image/png" } });
     if (path === `/rooms/${UNREAD_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
 

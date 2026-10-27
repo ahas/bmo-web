@@ -1081,8 +1081,12 @@ edit to that file alone, once the guide below carries the word.
 - **Every chat agent stands the same way, wherever it stands.** The chat agents are equal, so each stands as its
   own face on the agents page, in the sidebar's agent branch, in the search, in its own screen's bar, in a room's
   header and beside its bubbles: the picture kept for the person number its words stand under, as the receiver
-  names that number in the owner's room or in a room it is a companion of, or else the picture of a room made for
-  it; failing both, the first letter of its label on its identity's colour. A room's own session wears that
+  names that number in the owner's room, in a room it is a companion of or in any other room it answers, or else
+  the picture of a room made for it; failing both, the first letter of its label on its identity's colour.
+- **An agent's words wear the agent's face in every room.** The receiver names the agent whose words a message is
+  on every send it makes, so each agent that speaks in a room — the chat agent, a companion — stands with its own
+  face beside its lines, on a chat service's road and on the record road alike, where its words stand under no
+  number of their own. A notice the receiver says in a room's voice wears the face of the agent the room answers as. A room's own session wears that
   room's picture. Where a chat agent stands as a mark instead, it is the mark the agency answers for its kind,
   as every other agent's is (「Fonts」).
 - **A place with no message yet carries the same photo as a message.** The line standing while the chat agent thinks
@@ -1160,8 +1164,12 @@ Four groups.
   card board; `/cards` leads there.
   This group does not fold — it is a flat list of screens with no branch to fold, and the fold the sidebar
   remembers is only the agent group's below.
-- **Rooms** — the rooms stand in the order the receiver's room list gives them, the pinned first. A room with no name comes up as a chat
-  number. A room the console made itself — one made for companions — stands from the moment it is made, before any
+- **Rooms** — the rooms stand in the order the receiver's room list gives them, the pinned first. The owner's private
+  chat is the room the receiver's `GET /owner` names — a room the console made on the record road as readily as a chat
+  service's one-to-one — and stands under the chat agent's label; every other room, the owner's chat-service
+  one-to-one among them once it is not that room, stands under its own title. A one-to-one with no title of its own is
+  called by the person whose number it is, as the receiver names that person, and a room with no name either comes up
+  as a chat number. A room the console made itself — one made for companions — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
   conversation.
   - **The 추가 button beside the group's name adds a room,** for the administrator, in a dialog of three choices made in
@@ -3333,8 +3341,12 @@ Four bounds keep it from growing forever.
     agent was written before the receiver named one on its sends, so the server asks once for each agent's number on
     a page whose messages went out in a round whether that number is the owner's, and a message under it that went out
     in no round stands under the account's own name and picture.
-  Where this app is not told the owner's own number
-  there is nobody to stand on the right and the room reads down the left.
+  - **Which messages stand on the right.** A message is the signed-in person's, and stands on the right, when
+    its sender is any of the senders linked to their account on the account service (`docs/accounts.md`, 「Users
+    and senders」), or, for the platform administrator, the sender the receiver names as the owner's (its
+    `GET /owner`), under which the receiver archives every message the owner sends from the console. It holds in
+    every room alike, one a chat service carries and one the console made on the record road. Where no sender is
+    known as theirs the room reads down the left.
   Times are all Seoul time. A date mark goes
   where the date changes, holding to the top while its day is read. Pressing it opens a calendar centred under
   it, and the day chosen there brings the room to the first thing said that day or after it; a day after which
@@ -3356,8 +3368,8 @@ Four bounds keep it from growing forever.
 - **One sender's run is one block.** Messages one after another from the same sender on the same side form a
   run, whatever each carries — words, a picture, an album, a file, a voice — as long as each comes within ten
   minutes of the one before it, on the same day, with nothing standing between them.
-  - Every message stands the same one step from the next, inside a run and between runs alike: a run is told
-    apart by its name, its corners, its tail and its photo, never by room (「The conversation's measures」).
+  - Two messages of a run stand half the step apart that two runs stand, so a run reads as one block beside its
+    name, its corners, its tail and its photo (「The conversation's measures」).
   - The sender's name stands once, at the head of the run's first bubble, inside it. The owner's own runs carry
     no name: the right side is theirs alone.
   - Every corner of a bubble takes the large tier; where two bubbles of a run meet, the corners on the photo's

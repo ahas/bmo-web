@@ -14,15 +14,16 @@ const room = (over: Partial<ListedRoom>): ListedRoom => ({
 
 describe("the name a room list stands a room under", () => {
   test("is the agent answering it, by its own label", () => {
-    expect(roomListName(room({ answeredBy: [KO.kakia] }))).toBe(KO.kakia);
+    expect(roomListName(room({ ownAgents: [KO.kakia] }))).toBe(KO.kakia);
   });
 
-  test("names every agent that answers it, where two do", () => {
-    expect(roomListName(room({ answeredBy: [KO.chat, KO.kakia] }))).toBe(`${KO.chat} · ${KO.kakia}`);
+  test("names every agent the room is for, where two are", () => {
+    expect(roomListName(room({ ownAgents: [KO.chat, KO.kakia] }))).toBe(`${KO.chat} · ${KO.kakia}`);
   });
 
   test("keeps the room's own title where no agent answers it", () => {
+    // The shared chat agent answers every room and names none of them.
     expect(roomListName(room({ title: "a room with nobody" }))).toBe("a room with nobody");
-    expect(roomListName(room({ title: "a room with nobody", answeredBy: [] }))).toBe("a room with nobody");
+    expect(roomListName(room({ title: "a room with nobody", ownAgents: [] }))).toBe("a room with nobody");
   });
 });

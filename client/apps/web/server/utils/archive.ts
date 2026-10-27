@@ -141,7 +141,9 @@ export async function listRooms(): Promise<RoomSummary[]> {
 
   return await Promise.all(
     rooms.map(async (room): Promise<RoomSummary> => {
-      const answered = await answeredBy(room.id, labels);
+      // The agents this room is for: the ones it was made for, by their own labels. The shared chat agent answers every
+      // room and names none of them.
+      const owns = [...new Set(room.companions)].map((name) => labels.get(name) ?? name).filter((label) => label.trim() !== "");
 
       return {
         chatId: room.id,
@@ -149,7 +151,7 @@ export async function listRooms(): Promise<RoomSummary[]> {
         messageCount: room.messageCount,
         lastMessageAt: room.lastMessageAt === null ? null : seconds(room.lastMessageAt),
         pinned: room.pinned,
-        ...(answered.length === 0 ? {} : { answeredBy: answered }),
+        ...(owns.length === 0 ? {} : { ownAgents: owns }),
         ...(room.companions.length > 0 ? { madeForCompanions: true as const, companions: room.companions } : {})
       };
     })
@@ -173,21 +175,6 @@ async function agentLabels(): Promise<ReadonlyMap<string, string>> {
   held.set(chatAgent().name, chatAgent().label);
 
   return held;
-}
-
-/** The agents answering one room, by their own labels, in the order the receiver names them: its answerer, then its
- * voice, then each agent standing in it. A room no agent answers holds none, and keeps its own title. */
-async function answeredBy(chatId: number, labels: ReadonlyMap<string, string>): Promise<string[]> {
-  try {
-    const answerers = await receiverCall(
-      receiver().GET("/rooms/{roomId}/answerers", { params: { path: { roomId: chatId } }, signal: within(2_000) })
-    );
-    const names = [answerers.default, answerers.voice, ...answerers.items.map((answerer) => answerer.agentName)].filter((name) => name.trim() !== "");
-
-    return [...new Set(names)].map((name) => labels.get(name) ?? name).filter((label) => label.trim() !== "");
-  } catch {
-    return [];
-  }
 }
 
 /** One room by the name it is called by, the same name the room list gives it. */

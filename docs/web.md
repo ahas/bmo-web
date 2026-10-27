@@ -1283,11 +1283,12 @@ Four groups.
     person's own label, and a row the record names no agent on falls back to the name it does carry rather than being
     guessed at another agent's. One function names a row for every screen that draws one — the room list's preview, the
     room view, an item's notes, the live screen and a search.
-  - **A room's name in the list is the agent answering it, by that agent's own label.** The room list stands a room
-    under the labels of the agents that answer it, read from the answerers the receiver reports and the labels the
-    catalogue gives them; a room two agents answer names both, in the console's one naming style, and a room no agent
-    answers keeps its own title. The room's own title stays where a room is what is shown: its screen's head, the session
-    row's room, a message's room.
+  - **A room's name in the list is the agent the room is for, by that agent's own label.** A room made for one agent
+    stands under that agent's label — Kakia's room reads 카키아, where the chat service's account name was what stood
+    there — and every other room keeps its own title: the shared chat agent answers every room and renames none of them.
+    A room made for two agents names both, in the console's one naming style. The owner's room is named the chat
+    agent's label as the naming rule says. The room's own title stays where a room is what is shown: its screen's head,
+    the session row's room, a message's room.
   - **A message stands under its name alone.** No marker beside it says which account the words went out in: whoever said
     them is named, and the row's face and colour are the speaker's, so a bubble keeps the width its words and pictures ask
     for.

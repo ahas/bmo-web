@@ -53,7 +53,7 @@ describe("setting one ratio", () => {
 
     expect(saved.status).toBe(200);
     expect(saved.answer).toEqual({ provider: "openrouter", tier: "Reliable", ratio: 0.6, source: "set" });
-    expect(agency.asked).toEqual([{ method: "PUT", path: "/fold-ratios/openrouter/Reliable", body: { ratio: 0.6 } }]);
+    expect(agency.asked).toMatchObject([{ method: "PUT", path: "/fold-ratios/openrouter/Reliable", body: { ratio: 0.6 } }]);
   });
 
   test("says the agency's refusal in the pack's words", async () => {

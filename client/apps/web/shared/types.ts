@@ -2742,6 +2742,30 @@ export interface SentMessage {
   messageId: number;
 }
 
+// What the signed-in person's act on a message answers: the message as the record now holds it, by its number, which
+// the screen reads again rather than trusting the row it acted from.
+export interface MessageAct {
+  messageId: number;
+}
+
+// A room's pinned message as the top bar's button reads it (the receiver's `docs/api.md`, 「Messages」): what it says,
+// who said it, and when it was pinned, in unix seconds.
+export interface PinnedMessage {
+  messageId: number;
+  senderName: string;
+  text: string;
+  pinnedAt: number | null;
+}
+
+export interface RoomPins {
+  items: PinnedMessage[];
+}
+
+// The stickers the record keeps, each by its emoji: the deployment's set, which the console offers as it is.
+export interface StickerSet {
+  items: string[];
+}
+
 // What a send's key came to, as the screen asks for it while it checks a send that ran late: the
 // answer it went out with, the refusal that came instead, a send still going, or no record of it.
 export type SendOutcomeRecord<T> =

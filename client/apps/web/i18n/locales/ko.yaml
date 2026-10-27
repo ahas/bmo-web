@@ -408,6 +408,8 @@ room:
     sent: 보냄
     session_loading: 세션 정보 불러오는 중…
     start_of_talk: 대화의 처음입니다.
+    sticker_none: 보낼 스티커 없음
+    stickers_loading: 스티커 불러오는 중…
     talk_loading: 대화 불러오는 중…
     waiting: 연결되면 보냄
     window_left: "{time} 남음"
@@ -431,7 +433,22 @@ room:
     bad_reply_id: 답장할 메시지 번호가 올바르지 않습니다.
     bad_send_key: 전송 키가 올바르지 않습니다.
     brain_read_failed: 브레인 기록을 불러오지 못했습니다.
+    delete_failed: 메시지를 삭제하지 못했습니다.
     drafts_read_failed: 드래프트 기록을 불러오지 못했습니다.
+    edit_empty: 수정할 메시지를 입력해 주세요.
+    edit_failed: 메시지를 수정하지 못했습니다.
+    message_deleted: 삭제된 메시지입니다.
+    message_forbidden: 이 메시지에는 그 일을 할 수 없습니다.
+    message_unknown: 그 메시지가 기록에 없습니다.
+    no_caller: 이 계정에는 이 방에서 쓸 발신자가 없습니다.
+    pin_message_direction: 메시지를 고정할지 고정 해제할지 정해 주세요.
+    pin_message_failed: 메시지를 고정하지 못했습니다.
+    reaction_empty: 반응할 이모지를 골라 주세요.
+    reaction_failed: 반응을 남기지 못했습니다.
+    sticker_empty: 보낼 스티커를 골라 주세요.
+    sticker_failed: 스티커를 보내지 못했습니다.
+    stickers_read_failed: 스티커를 불러오지 못했습니다.
+    unknown_sticker: 기록이 모르는 스티커입니다.
     file_empty_named: "{name} 파일이 비어 있어 보내지 않았습니다."
     file_not_found: 파일을 찾을 수 없습니다.
     file_too_large_named: "{name}: 한 파일에 50MB까지 보낼 수 있습니다."
@@ -494,6 +511,7 @@ room:
     copy_all: 전체 복사
     copy_ref: 대화번호 복사
     copy_text: 텍스트만 복사
+    edit_message: 수정
     find: 대화에서 찾기
     find_next: 다음 결과
     find_older: 이전 메시지 더 불러오기
@@ -504,12 +522,14 @@ room:
     pin: 고정
     remove_paste: 붙여넣은 텍스트 삭제
     remove_registration: 방 등록 삭제
+    react: 반응
     reply: 답장
     resend: 다시 보내기
     reset_run: 초기화
     select: 선택
     session_only: 새 세션 시작
     show_in_message: 메시지에서 보기
+    sticker: 스티커
     to_latest: 최신 메시지로
     unpin: 고정 해제
     room_add_more: 더 보기
@@ -571,6 +591,7 @@ room:
     earlier_count: "이전 {n}개"
     edited: 수정됨
     edited_at: "{time}에 수정됨"
+    edit_message: 메시지
     elapsed: "{time} 경과"
     empty_message: (빈 메시지)
     find_box: 찾을 말
@@ -754,6 +775,8 @@ room:
     voice_message: 음성 메시지
     voiced_as: "{name} 계정으로 보냄"
   message:
+    delete_ask: 이 메시지를 삭제할까요?
+    delete_note: 메시지의 말은 지워지고, 있던 자리는 남습니다.
     id_copied: 대화번호를 복사했습니다.
     message_ref: "방 {room} (chatId {chatId}) · 메시지 #{messageId}"
     messages_copied: "메시지 {n}개를 복사했습니다."
@@ -779,8 +802,9 @@ room:
     companion_reset: "{name} 초기화"
     providers: 채팅 서비스
     remove_registration: 방 등록 삭제
-    session_info: 세션 정보
+    edit_message: 메시지 수정
     room_add: 방 추가
+    session_info: 세션 정보
   aria:
     avatar_enlarge: "{name} 프로필 사진 크게 보기"
     brain_read_open: "{name} 열기"
@@ -791,6 +815,7 @@ room:
     pinned_open: "고정된 메시지 {n}개"
     reaction: "{emoji} {n}명"
     remove_named: "{name} 삭제"
+    sticker_send: "{emoji} 스티커 보내기"
   placeholder:
     drop_here: 여기에 놓으면 첨부됩니다
 

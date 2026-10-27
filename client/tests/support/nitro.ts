@@ -14,6 +14,8 @@ export interface RouteEvent {
   method?: string;
   headers?: Record<string, string>;
   rawBody?: string | Uint8Array;
+  // What a route keeps of the request while it runs, such as the rooms it may read.
+  context?: Record<string, unknown>;
 }
 
 const globals: Record<string, unknown> = globalThis;
@@ -72,7 +74,7 @@ export async function routeOf<T>(path: string): Promise<(event: RouteEvent) => P
 /** What a route answered, or the status and the sentence it refused with. */
 export async function asked<T>(handler: (event: RouteEvent) => Promise<T>, event: RouteEvent): Promise<{ status: number; message: string; answer: T | null; data: unknown }> {
   try {
-    return { status: 200, message: "", answer: await handler(event), data: null };
+    return { status: 200, message: "", answer: await handler({ ...event, context: event.context ?? {} }), data: null };
   } catch (error) {
     const refused = error as { statusCode?: number; message?: string; data?: unknown };
 

@@ -24,7 +24,7 @@
       "version": "0.1.0-rev.1",
       "dependencies": {
         "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-b88684c.tgz",
-        "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.1.0-rev.1-09214cd.tgz",
+        "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.1.0-rev.1-dd64fc1.tgz",
         "@internationalized/date": "3.12.4",
         "@nuxt/ui": "^4.11.2",
         "@nuxtjs/i18n": "^10.6.0",
@@ -134,7 +134,7 @@
 
     "@babel/types": ["@babel/types@7.29.8", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg=="],
 
-    "@bmo/receiver-client": ["@bmo/receiver-client@../../vendor/bmo-receiver-client-0.1.0-rev.1-09214cd.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-GukDgxyQlxH/v4uiRn2otkPx5ZUSiOytosUksGG7eU3/YtBm/FcLEBFnuzqpGJ7byKj3FSXwefvKYOZOItroZg=="],
+    "@bmo/receiver-client": ["@bmo/receiver-client@../../vendor/bmo-receiver-client-0.1.0-rev.1-dd64fc1.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-9a5eva5xBvVo1LLwn8zn81OtiQeH4avhku+u5KohGFIRruf4sW/4iVpIDOxSIzi4yvGyiFiTfD78P+yES5/eEA=="],
 
     "@bomb.sh/tab": ["@bomb.sh/tab@0.0.19", "", { "peerDependencies": { "cac": "^6.7.14", "citty": "^0.1.6 || ^0.2.0", "commander": "^13.1.0 || ^14.0.0 || ^15.0.0" }, "optionalPeers": ["cac", "citty", "commander"], "bin": { "tab": "dist/bin/cli.mjs" } }, "sha512-dTRfo9Q9B+lbLG3JCu8a/AGQSfD2XXcFcnakQzVjSOX+VvR/s9zpsH8TlqV3iHqazniRn1Ypwd1hcRlXcu/4BA=="],
 

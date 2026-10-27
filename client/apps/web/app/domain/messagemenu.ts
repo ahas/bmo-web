@@ -1,27 +1,81 @@
 import { hasBody } from "./room-copy";
+import { REACTION_EMOJIS } from "./message-acts";
 
 import type { ContextMenuItem } from "@nuxt/ui";
 import type { Said } from "./room-copy";
 import type { Translate } from "#shared/wording";
 
-// What one message's menu offers: answering it, the three ways of taking the message away, and
-// the way into choosing several of them.
+// What one message's menu offers: the answer, the acts on the message — a reaction, a pin, an edit of the reader's own
+// and a delete of it — the three ways of taking the message away, and the way into choosing several of them. What the
+// record would refuse is not offered: a message the reader's own senders did not say carries no edit, and no delete
+// unless the reader is the administrator.
 export interface MessageMenuActions {
   reply: () => void;
+  react: (emoji: string) => void;
+  pin: (on: boolean) => void;
+  edit: () => void;
+  remove: () => void;
   copy: () => void;
   copyBody: () => void;
   copyRef: () => void;
   select: () => void;
 }
 
-export function messageMenu(t: Translate, item: Said & { deleted?: boolean }, actions: MessageMenuActions): ContextMenuItem[][] {
-  // A deleted message has nothing left to answer, copy or choose but the line that points at it.
+// What the menu is built from, beyond the words: whether the message is the reader's, whether the reader is the
+// administrator, and where the message stands in the record.
+export interface MessageMenuState extends Said {
+  deleted?: boolean;
+  // Whether the reader's own senders said it.
+  mine?: boolean;
+  // Whether the reader is the platform administrator, whose delete the record takes on any message.
+  administrator?: boolean;
+  // Whether the record holds a pin on it, and the emoji the reader has put on it where one stands.
+  pinned?: boolean;
+  reaction?: string | null;
+}
+
+// The reaction submenu: every emoji the console offers, the reader's own marked.
+function reactions(t: Translate, state: MessageMenuState, actions: MessageMenuActions): ContextMenuItem {
+  return {
+    label: t("room.action.react"),
+    icon: "i-material-symbols-add-reaction",
+    children: [
+      REACTION_EMOJIS.map((emoji) => ({
+        label: emoji,
+        ...(state.reaction === emoji ? { icon: "i-material-symbols-check" } : {}),
+        onSelect: () => actions.react(emoji)
+      }))
+    ]
+  };
+}
+
+export function messageMenu(t: Translate, item: MessageMenuState, actions: MessageMenuActions): ContextMenuItem[][] {
+  // A deleted message has nothing left to answer, act on, copy or choose but the line that points at it.
   if (item.deleted === true) {
     return [[{ label: t("room.action.copy_ref"), icon: "i-material-symbols-tag", onSelect: () => actions.copyRef() }]];
   }
 
+  const own: ContextMenuItem[] = [];
+
+  if (item.mine === true) {
+    own.push({ label: t("room.action.edit_message"), icon: "i-material-symbols-edit-outline", onSelect: () => actions.edit() });
+  }
+
+  if (item.mine === true || item.administrator === true) {
+    own.push({ label: t("common.action.delete"), icon: "i-material-symbols-delete-outline", onSelect: () => actions.remove() });
+  }
+
   return [
     [{ label: t("room.action.reply"), icon: "i-material-symbols-reply", onSelect: () => actions.reply() }],
+    [
+      reactions(t, item, actions),
+      {
+        label: item.pinned === true ? t("room.action.unpin") : t("room.action.pin"),
+        icon: "i-material-symbols-keep",
+        onSelect: () => actions.pin(item.pinned !== true)
+      }
+    ],
+    ...(own.length === 0 ? [] : [own]),
     [
       { label: t("common.action.copy"), icon: "i-material-symbols-content-copy-outline", onSelect: () => actions.copy() },
       {

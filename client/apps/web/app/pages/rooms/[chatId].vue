@@ -74,7 +74,7 @@
                   color="neutral"
                   variant="ghost"
                   class="min-w-0"
-                  :aria-label="$t('room.aria.pinned_open', { n: countText(pinnedMessages.length) })"
+                  :aria-label="$t('room.aria.pinned_open', { n: countText(pins.length) })"
                   data-pinned-button
                   @click="stepPinned"
                 >
@@ -254,6 +254,7 @@
                   :selected="selected.has(item.key)"
                   :flashed="flashKey === item.key"
                   :roving="item.key === rovingKey"
+                  :administrator="administrator"
                   @select="startAt"
                   @pick="pick"
                   @reply="startReply"
@@ -265,6 +266,10 @@
                   @move="moveFocus"
                   @retry="retry"
                   @discard="discard"
+                  @react="reactToMessage"
+                  @pin="pinMessageAsReader"
+                  @edit="editMessageOf"
+                  @remove="removeMessage"
                 />
               </RoomSenderRun>
 
@@ -368,6 +373,11 @@
             @escape="onEscape"
             @submit="send"
           >
+            <!-- The record's stickers, sent as the reader's own message (docs/web.md, the room screen's input box). -->
+            <template #tools>
+              <RoomStickerPicker :chat-id="chatId" :disabled="!reachable" />
+            </template>
+
             <!-- What the next message answers: who said it and how it began, until it is sent or
                  dropped. -->
             <template v-if="replyTarget !== null" #lead>
@@ -393,6 +403,10 @@
     </template>
   </UDashboardPanel>
   </MotionConfig>
+
+  <!-- A message the reader's own edited: its words in a box, saved to the record (docs/web.md, the room screen's
+       message menu). -->
+  <RoomMessageEditDialog v-model:open="editingOpen" :text="editing?.text ?? ''" :description="editing?.senderName ?? ''" :save="saveEdit" />
 
   <USlideover v-model:open="statsOpen" :title="$t('room.title.session_info')" :description="title">
     <template #close="{ ui }">
@@ -441,6 +455,7 @@ import { removedRoom } from "~/domain/room-removal";
 import { copyText } from "~/domain/copy";
 import { bodyOf, copyChipsOf, messageRef, reportOf } from "~/domain/room-copy";
 import { failureText } from "bmo-ui/app/domain/errors";
+import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, mineReaction, pinMessage, reactTo, readPins as loadPins } from "~/domain/message-acts";
 import { TURN_ENDED, useBotEvents, useLiveRefresh, useReadFailure, useRoomRun } from "~/domain/events";
 import { useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { useIsland } from "bmo-ui/app/domain/island";
@@ -531,6 +546,7 @@ import type { AvatarIndex } from "~/domain/avatars";
 import type { RunState } from "~/domain/events";
 import type { LandedPicture, OutboxItem, SendOutcome } from "~/domain/outbox";
 import type { DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
+import type { PinnedMessage } from "#shared/types";
 import type { Point, Rect } from "~/domain/flight";
 
 // Another room is another screen; the rest of the address is not the room's, and a message it names is
@@ -696,31 +712,127 @@ const { runs, outcome } = useRoomRun(chatId, {
   }
 });
 
-// The room's verdicts by the message they stand under.
-// The room's pinned messages among those it has read, newest pin first, and the one the pinned button stands at,
-// which each press brings into view and steps past (docs/web.md, 「What was done to a message」).
-const pinnedMessages = computed(() =>
-  shownMessages.value
-    .filter((message) => message.pinnedAt != null && message.deletedAt == null)
-    .sort((one, other) => (other.pinnedAt ?? 0) - (one.pinnedAt ?? 0))
-);
+// The room's pinned messages as the receiver lists them (docs/web.md, 「What was done to a message」), newest pin
+// first: read when the room opens, when the record says a message changed and after a pin is set or taken off, so the
+// button steps through the room's pins rather than through the stretch the feed happens to hold.
+const pins = ref<PinnedMessage[]>([]);
 const pinnedAt = ref(0);
-const pinnedShown = computed(() => (pinnedMessages.value.length === 0 ? null : pinnedMessages.value[pinnedAt.value % pinnedMessages.value.length]!));
+const pinnedShown = computed(() => (pins.value.length === 0 ? null : pins.value[pinnedAt.value % pins.value.length]!));
 const pinnedLine = computed(() => (pinnedShown.value?.text ?? "").split("\n").find((line) => line.trim() !== "")?.trim() ?? t("room.label.pinned"));
 const pinnedTip = computed(() =>
-  pinnedMessages.value.length > 1 ? t("room.label.pinned_of", { at: countText((pinnedAt.value % pinnedMessages.value.length) + 1), n: countText(pinnedMessages.value.length), words: pinnedLine.value }) : pinnedLine.value
+  pins.value.length > 1 ? t("room.label.pinned_of", { at: countText((pinnedAt.value % pins.value.length) + 1), n: countText(pins.value.length), words: pinnedLine.value }) : pinnedLine.value
 );
+
+async function readPins(): Promise<void> {
+  try {
+    pins.value = await loadPins(chatId);
+  } catch {
+    // The button stands beside the room, not in it: a read that fails leaves the button as it stood.
+  }
+}
 
 async function stepPinned(): Promise<void> {
   const shown = pinnedShown.value;
 
   if (shown === null) return;
 
-  pinnedAt.value = (pinnedAt.value + 1) % pinnedMessages.value.length;
+  pinnedAt.value = (pinnedAt.value + 1) % pins.value.length;
   await jumpTo(shown.messageId);
 }
 
-// Each verdict under the message it is about, wherever the gate filed it (docs/web.md, the room screen's verdicts).
+// The reader's own act on a message, through this app's server to the receiver (docs/web.md, the room screen's
+// message menu): the record keeps it and the room reads that one row again, which is the same path the record's
+// `message-changed` news takes, so the row is never drawn from what the screen sent. A refusal is said in the pack's
+// sentence for the receiver's code.
+function itemOf(key: string): FeedItem | undefined {
+  return items.value.find((held) => held.key === key);
+}
+
+async function reactToMessage(key: string, emoji: string): Promise<void> {
+  const item = itemOf(key);
+
+  if (item === undefined) return;
+
+  try {
+    await reactTo(chatId, item.messageId, emoji, mineReaction(item) !== emoji);
+    await roomFeed.catchUp(item.messageId);
+  } catch (error) {
+    island.fail(error, t("room.error.reaction_failed"));
+  }
+}
+
+async function pinMessageAsReader(key: string, on: boolean): Promise<void> {
+  const item = itemOf(key);
+
+  if (item === undefined) return;
+
+  try {
+    await pinMessage(chatId, item.messageId, on);
+    await roomFeed.catchUp(item.messageId);
+    await readPins();
+  } catch (error) {
+    island.fail(error, t("room.error.pin_message_failed"));
+  }
+}
+
+// The message being edited, and the box it is edited in. The box is asked for the words it stands on and answers
+// whether the record took them, so a refusal is said inside it rather than over the room.
+const editing = ref<FeedItem | null>(null);
+const editingOpen = computed<boolean>({
+  get: () => editing.value !== null,
+  set: (open: boolean) => {
+    if (!open) editing.value = null;
+  }
+});
+
+function editMessageOf(key: string): void {
+  const item = itemOf(key);
+
+  if (item !== undefined && item.deleted !== true) {
+    editing.value = item;
+  }
+}
+
+async function saveEdit(text: string): Promise<string | null> {
+  const item = editing.value;
+
+  if (item === null) return null;
+
+  try {
+    await editOwnMessage(chatId, item.messageId, text);
+    await roomFeed.catchUp(item.messageId);
+
+    return null;
+  } catch (error) {
+    return failureText(error, t("room.error.edit_failed"));
+  }
+}
+
+// A delete is asked for first in the message pill, as every destructive act of the console is, and the record clears
+// the words and keeps where the message stood.
+async function removeMessage(key: string): Promise<void> {
+  const item = itemOf(key);
+
+  if (item === undefined) return;
+
+  const taken = await island.ask({
+    title: t("room.message.delete_ask"),
+    description: t("room.message.delete_note"),
+    confirm: t("common.action.delete")
+  });
+
+  if (!taken) return;
+
+  try {
+    await deleteOwnMessage(chatId, item.messageId);
+    await roomFeed.catchUp(item.messageId);
+  } catch (error) {
+    island.fail(error, t("room.error.delete_failed"));
+  }
+}
+
+// The room's verdicts by the message they stand under, wherever the gate filed it (docs/web.md, the room screen's
+// verdicts).
 const judgementIndex = computed(() => judgementsByMessage(homedJudgements(roomFeed.messages.value, roomFeed.judgements.value)));
 
 // Which messages of the room are being judged right now, which their verdict mark beats for: none that
@@ -2442,6 +2554,9 @@ onMounted(async () => {
   hidden(false);
   letGoOfAsked();
 
+  // The room's pins stand beside the room, not in the feed, so they are read beside the feed.
+  void readPins();
+
   if (administrator.value) {
     await restoreOutbox();
   }
@@ -2578,7 +2693,18 @@ onBeforeUnmount(() => {
 // down, and the clock only runs while there is no stream at all — so neither of them knows what
 // it is missing, and both read the page.
 useLiveRefresh(
-  (cause, event) => void (cause === "event" ? catchUpFeed(event?.messageId ?? null) : refreshFeed()),
+  (cause, event) => {
+    if (cause !== "event") {
+      void refreshFeed();
+
+      return;
+    }
+
+    void catchUpFeed(event?.messageId ?? null);
+
+    // An act the record kept on a message may have set or taken off its pin, so the room's pins are read again.
+    if (event?.type === "message-changed") void readPins();
+  },
   {
     // A message kept, and an act the record kept on one: a reaction, a pin, an edit or a delete.
     on: ["message", "message-changed"],

@@ -76,6 +76,12 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   "chats-unstarted": "room.error.room_add_unstarted",
   "contact-unknown": "room.error.room_add_contact_unknown",
   "start-refused": "room.error.room_add_start_refused",
+  // A signed-in person's act on a message.
+  "no-caller": "room.error.no_caller",
+  "message-unknown": "room.error.message_unknown",
+  "message-deleted": "room.error.message_deleted",
+  "message-forbidden": "room.error.message_forbidden",
+  "unknown-sticker": "room.error.unknown_sticker",
   // Removing a room.
   "seeded-room": "room.error.removal_seeded_room",
   infrastructure: "room.error.removal_infrastructure",

@@ -53,6 +53,13 @@
   삭제했습니다 and a failure 삭제하지 못했습니다.
 - delete → 삭제: 삭제, 삭제했습니다, 삭제하지 못했습니다, 삭제된, 삭제할까요. Never 지우다, 지우기, 지운,
   지워진, 지움; taking one entry out of a list is 삭제 or 제거, never 빼기.
+- edit a message → 수정: 수정, 수정됨, 수정했습니다, 수정하지 못했습니다. A message's words are 수정 and never
+  편집, which stays for a setting's or an instruction's text where this guide already says so.
+- react, reaction → 반응: 반응, 반응을 남겼습니다, 반응을 뺐습니다, 반응하지 못했습니다. Never 이모지 달기,
+  응답, 리액션.
+- pin a message → 고정, unpin → 고정 해제: 고정됨, 고정했습니다, 고정하지 못했습니다. Never 올리기, 내리기,
+  박아 두기.
+- sticker → 스티커: 스티커, 스티커 보내기, 스티커를 보내지 못했습니다. Never 씰, 붙임, 이모지 그림.
 - retire, take down → 보관; bringing one back → 복원. Switching a piece in or out of use → 켜기, 끄기.
   Never 내리기, 올리기.
 - fold (a work order) → 종료. 접기 is only ever a panel folding away, and is written as below.

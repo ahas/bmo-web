@@ -919,8 +919,9 @@ describe("what the room screen does with each cause", () => {
   });
 
   test("news reads one row and the other two read the page", () => {
-    expect(wiring).toContain('cause === "event" ? catchUpFeed');
-    expect(wiring).toContain("refreshFeed()");
+    expect(wiring).toContain('if (cause !== "event") {');
+    expect(wiring).toContain("void refreshFeed();");
+    expect(wiring).toContain("void catchUpFeed(event?.messageId ?? null);");
   });
 });
 

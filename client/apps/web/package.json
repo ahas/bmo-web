@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-b88684c.tgz",
-    "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.1.0-rev.1-09214cd.tgz",
+    "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.1.0-rev.1-dd64fc1.tgz",
     "@internationalized/date": "3.12.4",
     "@nuxt/ui": "^4.11.2",
     "@nuxtjs/i18n": "^10.6.0",

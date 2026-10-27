@@ -355,6 +355,7 @@ import { messageLinks } from "#shared/links";
 import { fileSizeText } from "~/domain/attachments";
 import { keepFitted } from "~/domain/bubble-fit";
 import { messageMenu } from "~/domain/messagemenu";
+import { mineReaction } from "~/domain/message-acts";
 import { mediaUrl } from "~/domain/player";
 import { asideSlide, bubbleLook, choosingMotion, nameColour, sendMark, sideLayout, wordsWrap } from "~/domain/room";
 import { releaseFocusOutside } from "~/domain/tapfocus";
@@ -387,9 +388,11 @@ interface Props {
   // The day the row stands under, where it stands under one: a row standing at the foot under a later
   // day than its own reads its time with its date.
   day?: string;
+  // Whether the reader is the platform administrator, whose delete the record takes on any message.
+  administrator?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { arriving: false, judging: false });
+const props = withDefaults(defineProps<Props>(), { arriving: false, judging: false, administrator: false });
 
 // Whether this row holds one of the room's own messages. The other kind holds the turn still
 // running: it is a row like any other and wears everything a row wears — the side, the picture,
@@ -617,6 +620,12 @@ const emit = defineEmits<{
   // A message that failed to go: sent once more as it stands, or given up on.
   retry: [key: string];
   discard: [key: string];
+  // The reader's own acts on the message: a reaction by its emoji, a pin set or taken off, an edit of their own
+  // message, and a delete of it.
+  react: [key: string, emoji: string];
+  pin: [key: string, on: boolean];
+  edit: [key: string];
+  remove: [key: string];
 }>();
 
 // Where a menu opened from the keyboard stands: just inside the row it belongs to.
@@ -643,16 +652,35 @@ const menuContent = {
   }
 };
 
+// Whether the message is one of the reader's own: the side the room stands it on, which is the senders the signed-in
+// person acts under (docs/web.md, 「Which messages stand on the right」).
+const mine = computed<boolean>(() => props.item.look.side === "right");
+
 const menuItems = computed<ContextMenuItem[][]>(() =>
-  messageMenu(t, { text: props.item.text, deleted: props.item.deleted === true }, {
-    reply: () => {
-      replying = true;
+  messageMenu(
+    t,
+    {
+      text: props.item.text,
+      deleted: props.item.deleted === true,
+      mine: mine.value,
+      administrator: props.administrator,
+      pinned: props.item.pinnedAt != null,
+      reaction: mineReaction(props.item)
     },
-    copy: () => emit("copy", props.item.key),
-    copyBody: () => emit("copyBody", props.item.key),
-    copyRef: () => emit("copyRef", props.item.key),
-    select: () => emit("select", props.item.key)
-  })
+    {
+      reply: () => {
+        replying = true;
+      },
+      react: (emoji: string) => emit("react", props.item.key, emoji),
+      pin: (on: boolean) => emit("pin", props.item.key, on),
+      edit: () => emit("edit", props.item.key),
+      remove: () => emit("remove", props.item.key),
+      copy: () => emit("copy", props.item.key),
+      copyBody: () => emit("copyBody", props.item.key),
+      copyRef: () => emit("copyRef", props.item.key),
+      select: () => emit("select", props.item.key)
+    }
+  )
 );
 
 // Whether the press now under way came from a finger, and whether the click it ends in was already

@@ -7,6 +7,8 @@ export interface Asked {
   method: string;
   path: string;
   body: Record<string, unknown> | null;
+  // The request's headers, by lower-case name, which a call a person makes carries the owner it acts for in.
+  headers?: Record<string, string>;
 }
 
 export interface StandIn {
@@ -19,8 +21,15 @@ export function answer(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 }
 
+/** What the stand-in keeps of each call beyond its method, path and body. */
+export interface StandInOptions {
+  // Whether each call's headers are kept beside its method, path and body, for a test that reads what a call carried
+  // beyond its shape.
+  headers?: boolean;
+}
+
 /** The unit `name` stood in for until the test file ends, answering each call with what `reply` gives. */
-export function standIn(name: string, reply: (asked: Asked) => Response | Promise<Response>): StandIn {
+export function standIn(name: string, reply: (asked: Asked) => Response | Promise<Response>, options: StandInOptions = {}): StandIn {
   const asked: Asked[] = [];
   const server = Bun.serve({
     hostname: "127.0.0.1",
@@ -28,7 +37,12 @@ export function standIn(name: string, reply: (asked: Asked) => Response | Promis
     async fetch(request) {
       const url = new URL(request.url);
       const text = await request.text();
-      const one: Asked = { method: request.method, path: `${url.pathname}${url.search}`, body: text === "" ? null : (JSON.parse(text) as Record<string, unknown>) };
+      const one: Asked = {
+        method: request.method,
+        path: `${url.pathname}${url.search}`,
+        body: text === "" ? null : (JSON.parse(text) as Record<string, unknown>),
+        ...(options.headers === true ? { headers: Object.fromEntries(request.headers.entries()) } : {})
+      };
 
       asked.push(one);
 

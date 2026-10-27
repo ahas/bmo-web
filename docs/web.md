@@ -4240,9 +4240,26 @@ Four bounds keep it from growing forever.
     width opens nothing, neither this menu nor the browser's own.
   Pressing while holding ctrl (cmd), and pressing the context-menu key or Enter with the line focused, open the same
   menu. The browser's own menu does not pop at the right-click place, and a held finger never opens either menu. An open menu is moved by arrow keys, chosen by Enter and closed by Esc. The conversation
-  enters one tab place — entering first is the last message — and lines are moved by up/down arrows. It holds
-  five.
+  enters one tab place — entering first is the last message — and lines are moved by up/down arrows. What it
+  holds, in order: the answer, the acts on the message, the ways of taking it away, and the way into choosing
+  several.
   - **답장** — starts a reply to that message (「답장」 below).
+  - **반응** — a submenu of six emojis — 👍, ❤️, 😂, 😮, 😢 and 🎉 — each marked where one of the reader's own senders
+    put it on the message. Choosing one they have not put there adds it under the sender the room knows them by;
+    choosing the one they have put there takes it off. One reactor keeps one reaction on a message, so another
+    emoji replaces the one they had (the receiver's `docs/api.md`, 「Messages」). The row gathers the emojis it
+    carries at once, and a refusal is said by the pack's sentence for its code.
+  - **고정** — pins the message to the room, and **고정 해제** on one already pinned; anyone signed in sets or takes
+    a pin off, and the record keeps the moment it was pinned. The room's pinned button reads the room's pins again
+    once the record answers.
+  - **수정** — the reader's own message alone, and never a deleted one: opens a box holding what it says, its words
+    saved with 저장 or left as they were with 취소. A saved edit keeps the message's number and place, carries the
+    moment it changed on its meta line, and is read again by every open tab the record's `message-changed` reaches.
+    The box takes the words a send takes, up to the send's ceiling, and a message the reader's senders did not say
+    has no such item.
+  - **삭제** — the reader's own message, and for the administrator any message in any room: asked first in the
+    message pill, and the record then clears its words and keeps where it stood. A deleted message has its one
+    line and its menu offers nothing but its link.
   - **복사** — the record written in 「What a copy holds」 below.
   - **텍스트만 복사** — only the body written in the bubble. No room name, time, sender or verdict attaches, so it
     is one word to transcribe as is. A wordless message like a photo or sticker has the mark the archive wrote as
@@ -4384,13 +4401,20 @@ Four bounds keep it from growing forever.
   - **A pinned message** wears a pin mark on its meta line, and the room's top bar carries a pinned button beside the
     room's menu while the room holds one: the pin mark and, from the sm width, the first line of the pinned message it
     stands at, cut, with that message's words whole in its tooltip and how many are pinned where there are several.
-    Pressing it brings that message into view and marks it, the way a reply's quote does, and steps the button to the
-    next older pinned message for the next press, the newest again after the oldest. The room's pinned messages are those of the stretch
-    the room has read, since no route names a room's pinned messages apart (`docs/boundary.md`, 「Gaps the console
-    meets」).
-  - **The reader's own acts** — editing their own message, deleting one, pinning, reacting, a sticker from the input
-    box — stand in the message's menu and the input box once the receiver serves them as the reader's own
-    (`docs/boundary.md`, 「Gaps the console meets」); until then no control offers them.
+    The room's pinned messages are the receiver's answer to `GET /rooms/{roomId}/pins` (the receiver's
+    `docs/api.md`, 「Messages」), newest pin first and never a deleted one, read when the room opens, when the record
+    says a message changed, and once a pin is set or taken off. Pressing the button brings that message into view —
+    loading the stretch around it where it stands outside what the feed holds — and marks it, the way a reply's
+    quote does, and steps the button to the next older pinned message for the next press, the newest again after the
+    oldest.
+  - **A message none of the reader's own senders said** carries no 수정 or 삭제, and a deleted message carries only
+    its link: the receiver refuses another person's edit or delete and takes the administrator's delete on any
+    message (the receiver's `docs/api.md`, 「Messages」), so the menu offers what the record would take.
+  - **The input box carries the record's stickers.** A sticker mark beside the clip opens the set the record keeps,
+    as `GET /stickers` names it (the receiver's `docs/api.md`, 「Messages」), each emoji a button: pressing one sends
+    it into the room as a message of the reader's own, under their own sender, and closes the set. The record's set
+    is the deployment's, so the console holds no sticker list of its own; a message a sticker went out as stands as
+    a sticker stands, and a refusal is said by the pack's sentence for its code.
 - **A long paste** — pasting 2,000 or more characters at once does not spill into the input box. A mark —
   `[붙여넣기 1 · 3,210자]` — goes in at the caret, and a one-line entry above the box stands the mark's name, the
   text's head and how many characters. Sending puts each text back where its mark stands, so the pastes and the

@@ -606,6 +606,9 @@ edit to that file alone, once the guide below carries the word.
   mark is the one the agency answers for its kind, so the agents of one kind look alike; the console holds no mark
   of its own for an agent, beyond one for an agent the agency answers no mark for. Where a chat agent stands as its
   face (「Profile photos」), the face takes the mark's place.
+  - **Every icon a screen names is one the set holds.** A name the set lacks draws nothing at all, an empty
+    button with no word to say it failed, so a test holds every Material Symbols name the console's code
+    writes to the set the console installs.
   - **An icon first drawn after the page has loaded never redraws the page's letters.** The icon library
     puts the style of each icon it draws for the first time into the page's head, ahead of every other
     stylesheet. A sheet put in ahead of the others makes the browser rebuild its whole set of fonts, and for
@@ -1051,10 +1054,13 @@ edit to that file alone, once the guide below carries the word.
   alone. Its
   popover is the same as the run's, with the outcome at its head.
 - **A page older than the console being served says so.** Where the build the console server runs
-  differs from the page's own, the mark is a new-release icon button in the accent colour at every width — never a
-  circular arrow, which beside the deployment's spinning mark reads as that mark stopped — the title bar's own icon
-  button, its words 「새 버전 · 새로고침」 in its tooltip and its accessible name;
-  pressing it loads the page again. It is read every time the stream opens, which it does again once
+  differs from the page's own, the mark is the deploy icon, Material Symbols' updated deployed code, as an icon
+  button in the accent colour at every width — the title bar's own icon button, its words 「새 버전 · 새로고침」 in
+  its tooltip and its accessible name; pressing it loads the page again, as the popover's 새로고침 button, which
+  wears the same icon, does. The mark stands in the place the running mark spins in and trades places with it
+  whenever a run of any unit begins or ends, so it is never a circular arrow, which there reads as the spinner
+  turned into an arrow; while a run goes, the mark is the plain spinning progress mark, an arc with no arrowhead.
+  It is read every time the stream opens, which it does again once
   bmo-web is back from a deployment's restart.
 - **It is told live, and stands through the units' restarts.** The console server looks at the progress
   record and the run's process every second and tells every open tab's stream a `deploy` word when

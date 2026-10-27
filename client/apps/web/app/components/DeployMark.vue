@@ -149,7 +149,7 @@
           <div class="flex justify-end gap-2">
             <UButton v-if="view?.hold" class="xl:hidden" color="neutral" variant="outline" size="sm" :label="$t('todo.action.open_todo')" @click="openTodo" />
             <UButton v-if="view?.hold" color="warning" variant="soft" size="sm" :loading="releasing" :label="$t('todo.action.release_hold')" @click="releaseHold" />
-            <UButton v-if="newer" color="primary" variant="soft" size="sm" icon="i-material-symbols-refresh" :label="$t('deploy.action.reload')" @click="reload" />
+            <UButton v-if="newer" color="primary" variant="soft" size="sm" :icon="DEPLOY_ICON" :label="$t('deploy.action.reload')" @click="reload" />
           </div>
         </template>
       </div>
@@ -158,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { ENDING_SHOWN_MS, currentStage, deployMarkOf, holdLimit, stageLabel, stageRows, stepLabel } from "~/domain/deploy";
+import { DEPLOY_ICON, ENDING_SHOWN_MS, currentStage, deployMarkOf, holdLimit, stageLabel, stageRows, stepLabel } from "~/domain/deploy";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { useDeployEvents } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";

@@ -3,20 +3,33 @@ import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
+import { DEPLOY_ICON } from "../../apps/web/app/domain/deploy";
+
 import type { Browser } from "playwright-core";
 import type { DeployView } from "../../apps/web/shared/types";
 
 // The deployment's mark in the title bar through a run (docs/web.md, 「Deployment in the title bar」): while a run
 // is under way the mark is the one spinning progress mark, read after read as the console's word moves it; the run
-// ended stands its outcome; a page older than the console stands the new-release mark, never a circular arrow that
-// would read as the spinning mark stopped. It drives the console tests/support/browser-console.ts stands up; the
-// suite stands up no console, so there it skips.
+// ended stands its outcome; a page older than the console stands the deploy icon, trading places with the spinner as
+// another unit's run begins and ends, and never a circular arrow. What is read is the glyph the browser draws, looked
+// up in the installed set, so a name the set lacks, which draws nothing, fails as surely as the arrow. It drives the
+// console tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "topbar-square", password: "fixture-password-1444" };
 
-const run = (phase: "running" | "ended", stage: string): NonNullable<DeployView["run"]> => ({
-  unitName: "unit-a",
+// Each glyph of the installed set by its outline, so what the browser draws is named by the icon it is.
+const SET = (await import(Bun.resolveSync("@iconify-json/material-symbols/icons.json", new URL("../../apps/web/", import.meta.url).pathname), { with: { type: "json" } })).default as { icons: Record<string, { body: string }> };
+const GLYPHS = new Map<string, string>();
+
+for (const [name, icon] of Object.entries(SET.icons)) {
+  const outline = icon.body.match(/ d="([^"]+)"/)?.[1];
+
+  if (outline !== undefined && !GLYPHS.has(outline)) GLYPHS.set(outline, name);
+}
+
+const run = (phase: "running" | "ended", stage: string, unitName = "unit-a"): NonNullable<DeployView["run"]> => ({
+  unitName,
   phase,
   startedAt: Date.now() - 60_000,
   endedAt: phase === "ended" ? Date.now() : null,
@@ -48,7 +61,7 @@ afterAll(async () => {
 }, BROWSER_HOOK_MS);
 
 describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
-  test("spins one progress mark through a run, stands its outcome, then the new-release mark", async () => {
+  test("spins one progress mark through a run, stands its outcome, then the deploy icon, never an arrow", async () => {
     const context = await browser!.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block" });
     const at = cookie.indexOf("=");
     // What the console answers, read after read: a run moving through its stages and past the console's restart,
@@ -57,6 +70,9 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
       ...["tree", "backup", "build", "restart"].map((stage) => ({ release: "release-old", detailed: true, hold: null, run: run("running", stage) })),
       ...["health", "finish"].map((stage) => ({ release: "release-new", detailed: true, hold: null, run: run("running", stage) })),
       { release: "release-new", detailed: true, hold: null, run: run("ended", "finish") },
+      { release: "release-new", detailed: true, hold: null, run: null },
+      // Another unit's run begins and ends while the page is older.
+      { release: "release-new", detailed: true, hold: null, run: run("running", "build", "unit-b") },
       { release: "release-new", detailed: true, hold: null, run: null }
     ];
     let step = 0;
@@ -75,13 +91,22 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
       await page.locator("[data-title-bar-actions] [data-deploy-mark]").waitFor({ timeout: 20_000 });
 
       const marks: string[] = [];
-      const mark = async (): Promise<string> =>
-        await page.evaluate(() => {
-          const icon = document.querySelector("[data-title-bar-actions] [data-deploy-mark] span[class*='i-material-symbols']");
-          const name = icon?.className.toString().match(/i-material-symbols[:-][a-z0-9-]+/)?.[0] ?? "none";
+      // The glyph drawn, by the outline its mask carries, and a star where it spins; "nothing" where no glyph is drawn.
+      const mark = async (): Promise<string> => {
+        const drawn = await page.evaluate(() => {
+          const icon = document.querySelector<HTMLElement>("[data-title-bar-actions] [data-deploy-mark] .iconify");
 
-          return `${name}${icon?.className.toString().includes("animate-spin") ? "*" : ""}`;
+          if (icon === null) return { mask: "", spins: false };
+
+          const style = getComputedStyle(icon);
+
+          return { mask: style.maskImage || style.webkitMaskImage, spins: style.animationName !== "none" };
         });
+        const outline = decodeURIComponent(drawn.mask).match(/ d='([^']+)'/)?.[1];
+        const name = outline === undefined ? "nothing" : (GLYPHS.get(outline) ?? "unknown");
+
+        return `${name}${drawn.spins ? "*" : ""}`;
+      };
 
       // Each step is read once the stream has said the deployment moved and the console answered it.
       for (step = 0; step < views.length; step++) {
@@ -91,11 +116,13 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
 
       const running = marks.slice(0, 6);
 
-      expect(running.every((one) => /progress-activity\*$/.test(one))).toBe(true);
-      expect(marks[6]).toMatch(/check-circle-outline/);
-      // The page is older than the console after the run: the new-release mark, never a circular arrow.
-      expect(marks[7]).toMatch(/new-releases-outline/);
-      expect(marks.some((one) => /refresh|autorenew|sync/.test(one))).toBe(false);
+      const rest = DEPLOY_ICON.replace("i-material-symbols-", "");
+
+      expect(running).toEqual(Array(6).fill("progress-activity*"));
+      expect(marks[6]).toBe("check-circle-outline");
+      // The page is older than the console after the run: the deploy icon, still, trading places with the spinner.
+      expect(marks.slice(7)).toEqual([rest, "progress-activity*", rest]);
+      expect(marks.some((one) => /refresh|autorenew|sync|cached|nothing|unknown/.test(one))).toBe(false);
     } finally {
       await context.close();
     }

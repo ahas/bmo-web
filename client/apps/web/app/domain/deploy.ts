@@ -11,6 +11,12 @@ import type { DeployPart, DeployStage, DeployStep, DeployStepAhead } from "#shar
 /** How long an ended run stays on the bar. */
 export const ENDING_SHOWN_MS = 120_000;
 
+/**
+ * The deploy icon a page older than the console wears, on the mark and on the popover's reload button. It trades
+ * places with the running mark's spinner, so it is never a circular arrow.
+ */
+export const DEPLOY_ICON = "i-material-symbols-deployed-code-update-outline";
+
 /** Which state the mark stands in: a run under way, the hold, a run just ended, or a page older than the console. */
 export type DeployMarkKind = "running" | "hold" | "ended" | "newer";
 
@@ -245,7 +251,7 @@ export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease:
   }
 
   if (view.release !== pageRelease) {
-    return { kind: "newer", tone: "primary", icon: "i-material-symbols-new-releases-outline", spin: false, label: t("deploy.status.newer"), detail: t("deploy.action.reload") };
+    return { kind: "newer", tone: "primary", icon: DEPLOY_ICON, spin: false, label: t("deploy.status.newer"), detail: t("deploy.action.reload") };
   }
 
   return null;

@@ -11,7 +11,7 @@
       body: `p-0 sm:p-0 pt-(--room-head) pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] sm:pt-(--room-head) sm:pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] ${barGrown ? 'scroll-pt-[calc(var(--room-head)+var(--room-choose))]' : 'scroll-pt-(--room-head)'} scroll-pb-[calc(var(--room-foot)+var(--bmo-foot-lift,0px))] overscroll-none ${STABLE_GUTTER} ${TRACK_BETWEEN_BARS}`
     }"
     :style="{ '--room-head': `${headHeight}px`, '--room-choose': `${chooseHeight}px`, '--room-foot': `${footHeight}px`, '--feed-gutter': `${feedGutter}px` }"
-    @dragover.prevent="dragging = !madeForCompanions"
+    @dragover.prevent="dragging = true"
     @dragleave="dragging = false"
     @drop.prevent="onDrop"
   >
@@ -369,17 +369,13 @@
             :draft-id="chatId"
             split
             inline
-            :attachable="!madeForCompanions"
+            :attachable="true"
             :label="$t('room.label.messages')"
             :placeholder="reachable ? (dragging ? $t('room.placeholder.drop_here') : $t('room.label.messages')) : controlLine($t, controlState)"
             :mention="mentionSources"
             @escape="onEscape"
             @submit="send"
           >
-            <!-- The record's stickers, sent as the reader's own message (docs/web.md, the room screen's input box). -->
-            <template #tools>
-              <RoomStickerPicker :chat-id="chatId" :disabled="!reachable" />
-            </template>
 
             <!-- What the next message answers: who said it and how it began, until it is sent or
                  dropped. -->
@@ -907,8 +903,6 @@ const judged = computed<Set<number>>(() => judgedNow(chatId, live.value, queued.
 // picture Telegram shows for it.
 const roomsInitial = useInitialRead(roomsStatus);
 const title = computed<string>(() => roomsInitial.value ? t("room.status.room_loading") : roomTitle(t, rooms.value, chatId));
-// A room made for companions takes words alone (docs/companions.md), so nothing is offered to attach.
-const madeForCompanions = computed(() => (rooms.value ?? []).some((room) => room.chatId === chatId && room.madeForCompanions === true));
 // The index names every room and person, so a member's feed draws its faces by their initials.
 const avatars = administrator.value ? useAgentAvatars() : computed<AvatarIndex>(() => new Map());
 const roomAvatar = computed(() => avatarFor(avatars.value, "room", chatId, title.value));

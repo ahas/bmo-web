@@ -146,22 +146,15 @@
             @click="picker?.click()"
           />
         </UTooltip>
-        <UTooltip v-if="props.attachable && recordable" :text="$t('room.action.record_voice')">
-          <UButton
-            icon="i-material-symbols-mic"
-            color="neutral"
-            variant="ghost"
-            :aria-label="$t('room.action.record_voice')"
-            :disabled="props.disabled || props.busy || recording || starting || attached.length > 0"
-            @click="startRecording"
-          />
-        </UTooltip>
+        <!-- The clip is the box's one tool (docs/web.md, the room screen's input box): the voice note's own button and
+             every screen's buttons are not shown, while the roads that carry a voice note, a sticker and a room's own
+             tools stay in this code and on their routes. -->
         <slot name="tools" />
       </template>
     </ChatInput>
 
-    <input v-if="props.attachable" ref="picker" type="file" multiple class="hidden" @change="onPick" />
-    <input v-if="props.attachable" ref="mediaPicker" type="file" :accept="MEDIA_ACCEPT" multiple class="hidden" @change="onPick" />
+    <input v-if="props.attachable" ref="picker" data-attach-picker type="file" multiple class="hidden" @change="onPick" />
+    <input v-if="props.attachable" ref="mediaPicker" data-attach-media type="file" :accept="MEDIA_ACCEPT" multiple class="hidden" @change="onPick" />
   </div>
 </template>
 

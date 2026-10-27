@@ -542,7 +542,6 @@ room:
     providers: 채팅 서비스
     pin: 고정
     remove_paste: 붙여넣은 텍스트 삭제
-    record_voice: 음성 메모 녹음
     remove_registration: 방 등록 삭제
     react: 반응
     reply: 답장

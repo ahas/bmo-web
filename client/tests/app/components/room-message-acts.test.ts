@@ -75,9 +75,9 @@ describe("the room screen's acts", () => {
     expect(edit).toContain(":maxlength=\"MAX_SAY_TEXT_LENGTH\"");
   });
 
-  test("carries the record's stickers in the input box", () => {
-    expect(screen).toContain('<template #tools>');
-    expect(screen).toContain('<RoomStickerPicker :chat-id="chatId" :disabled="!reachable" />');
+  test("keeps the record's stickers on their road while the input box shows no button for them", () => {
+    // The box carries the clip alone (docs/web.md, the room screen's input box); the sticker picker and its road stay.
+    expect(screen).not.toContain("<RoomStickerPicker");
     expect(stickers).toContain("stickers.value = await readStickers(props.chatId);");
     expect(stickers).toContain("await sendSticker(props.chatId, emoji);");
   });

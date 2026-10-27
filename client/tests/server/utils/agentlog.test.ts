@@ -207,3 +207,35 @@ describe("how a call shows its tool", () => {
     expect(toolOf({ kind: "tool", name: null })).toBeNull();
   });
 });
+
+import { patchesOf } from "../../../apps/web/server/utils/agentlog";
+
+// The files a shell command changed, as the structured result its program recorded beside the line says: each file
+// with its hunks stands as a command's change, the files past the record's cap and the changed paths it did not lay
+// out are counted, and a change longer than the screen is sent stands as the ordinary result (docs/web.md, 「Agent
+// log」, the file change block).
+describe("the changes a shell command made", () => {
+  const hunk = { oldStart: 3, oldLines: 2, newStart: 3, newLines: 3, lines: [" kept", "-old", "+new", "+more"] };
+
+  test("stand as command patches read off the recorded result", () => {
+    const read = patchesOf({
+      fields: {},
+      metadata: { toolUseResult: { bashEditDiff: { files: [{ filePath: "/repo/a.ts", hunks: [hunk] }], moreFiles: 0, changedFiles: ["/repo/a.ts", "/repo/b.ts"] } } }
+    });
+
+    expect(read.patches).toEqual([{ filePath: "/repo/a.ts", type: null, by: "command", hunks: [hunk], content: null, tooLarge: false }]);
+    expect(read.patchesMore).toBe(1);
+  });
+
+  test("are none on a line whose result recorded no change", () => {
+    expect(patchesOf({ fields: {}, metadata: { toolUseResult: { stdout: "ok" } } })).toEqual({ patches: [], patchesMore: 0 });
+    expect(patchesOf({ fields: {} })).toEqual({ patches: [], patchesMore: 0 });
+  });
+
+  test("stand as the ordinary result past the size the screen is sent", () => {
+    const long = { ...hunk, lines: Array.from({ length: 4_001 }, (_, at) => `+${at}`) };
+    const read = patchesOf({ fields: {}, metadata: { toolUseResult: { bashEditDiff: { files: [{ filePath: "/repo/a.ts", hunks: [long] }], moreFiles: 0, changedFiles: ["/repo/a.ts"] } } } });
+
+    expect(read.patches[0]).toMatchObject({ filePath: "/repo/a.ts", tooLarge: true, hunks: [] });
+  });
+});

@@ -6,7 +6,7 @@ import { agency, agencyCall } from "./agency";
 import { unitFetch } from "./units";
 
 import type { LogLine } from "@agency/client";
-import type { AgentLogLine, AgentLogPage, AgentLogState, AgentLogTool } from "#shared/types";
+import type { AgentLogLine, AgentLogPage, AgentLogPatch, AgentLogState, AgentLogTool } from "#shared/types";
 
 // An agent's log as the agency's fixed API holds it (the agency's `docs/api.md`, 「log-lines」): every line the agent
 // left, across its runs, oldest line first. A screen opens on the agent's newest page, goes back by the id of the
@@ -156,9 +156,88 @@ function asLine(line: LogLine): AgentLogLine {
     state: fieldOf(line, "state", (value) => (typeof value === "string" ? (value as AgentLogState) : null)),
     truncated: fieldOf(line, "truncated", (value) => value === true) === true,
     text: line.text,
-    patches: [],
-    patchesMore: 0
+    ...patchesOf(line)
   };
+}
+
+// The most diff lines one line's changes are sent with; a change past it stands as the ordinary result instead
+// (docs/web.md, 「Agent log」, the file change block).
+const MOST_PATCH_LINES = 4_000;
+
+interface RecordedHunk {
+  oldStart: number;
+  oldLines: number;
+  newStart: number;
+  newLines: number;
+  lines: string[];
+}
+
+function isHunk(value: unknown): value is RecordedHunk {
+  if (typeof value !== "object" || value === null) return false;
+
+  const hunk = value as Record<string, unknown>;
+
+  return (
+    typeof hunk.oldStart === "number" &&
+    typeof hunk.oldLines === "number" &&
+    typeof hunk.newStart === "number" &&
+    typeof hunk.newLines === "number" &&
+    Array.isArray(hunk.lines) &&
+    hunk.lines.every((one) => typeof one === "string")
+  );
+}
+
+/**
+ * The files a shell command changed, as the structured result its program recorded says: Claude Code's Bash result
+ * and a pane program's shell result both carry the changed files with their hunks, the files past the record's own
+ * cap by path alone, and every changed path. The agency keeps that result beside the line, and the screen is sent
+ * the patches alone, each marked as a command's change, so the block under the command reads `Updated <path>`. A
+ * change longer than the screen is sent stands as the ordinary result.
+ */
+export function patchesOf(line: Pick<LogLine, "fields"> & { metadata?: unknown }): Pick<AgentLogLine, "patches" | "patchesMore"> {
+  const none = { patches: [], patchesMore: 0 };
+  const metadata = line.metadata ?? fieldOf(line as LogLine, "metadata", (value) => value);
+
+  if (typeof metadata !== "object" || metadata === null) return none;
+
+  const result = (metadata as Record<string, unknown>).toolUseResult;
+
+  if (typeof result !== "object" || result === null) return none;
+
+  const diff = (result as Record<string, unknown>).bashEditDiff;
+
+  if (typeof diff !== "object" || diff === null) return none;
+
+  const recorded = diff as Record<string, unknown>;
+  const files = Array.isArray(recorded.files) ? recorded.files : [];
+  const patches: AgentLogPatch[] = [];
+  let lines = 0;
+
+  for (const one of files) {
+    if (typeof one !== "object" || one === null) continue;
+
+    const file = one as Record<string, unknown>;
+
+    if (typeof file.filePath !== "string") continue;
+
+    const hunks = Array.isArray(file.hunks) ? file.hunks.filter(isHunk) : [];
+
+    lines += hunks.reduce((sum, hunk) => sum + hunk.lines.length, 0);
+    patches.push({ filePath: file.filePath, type: null, by: "command", hunks, content: null, tooLarge: false });
+  }
+
+  if (patches.length === 0) return none;
+
+  const named = new Set(patches.map((patch) => patch.filePath));
+  const changed = Array.isArray(recorded.changedFiles) ? recorded.changedFiles.filter((path): path is string => typeof path === "string") : [];
+  const more = typeof recorded.moreFiles === "number" ? recorded.moreFiles : Array.isArray(recorded.moreFiles) ? recorded.moreFiles.length : 0;
+  const unnamed = changed.filter((path) => !named.has(path)).length;
+
+  if (lines > MOST_PATCH_LINES) {
+    return { patches: patches.map((patch) => ({ ...patch, hunks: [], tooLarge: true })), patchesMore: Math.max(more, unnamed) };
+  }
+
+  return { patches, patchesMore: Math.max(more, unnamed) };
 }
 
 /**

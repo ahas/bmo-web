@@ -216,10 +216,23 @@ export function agentLabel(t: Translate, name: string, catalogue: readonly Agent
 export function agentNameLabel(t: Translate, agent: { name: string; label?: string | null }): string {
   const chat = chatIdOf(agent.name) !== null || agent.name === chatAgent().name;
 
-  if (chat) return bmoLabel(t);
+  // The chat agent is called what the room calls it: the label of its own row in the catalogue — a session it keeps
+  // for one room carries that room's title, so that row's label is never the agent's name — and failing a row of its
+  // own, the label the deployment gives it.
+  if (chat) {
+    const own = held.value.find((row) => row.name === chatAgent().name && (row.label ?? "").trim() !== "");
+
+    if (own?.label != null) return own.label;
+    const given = agent.label ?? null;
+
+    if (agent.name === chatAgent().name && given !== null && given.trim() !== "") return given;
+
+    return bmoLabel(t);
+  }
+
   if (agent.label === undefined) return agentLabel(t, agent.name);
 
-  return agentLabel(t, agent.name, [{ name: agent.name, label: agent.label } as AgentSummary]);
+  return agentLabel(t, agent.name, [{ name: agent.name, label: agent.label ?? null } as AgentSummary]);
 }
 
 // What the chat agent is called where it answers in a room: the label of the catalogue's chat session that

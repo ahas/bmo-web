@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import KO from "../fixtures/browser/agents-designated.ko.json";
 
 import type { Browser, BrowserContext } from "playwright-core";
 import type { AgentList } from "../../apps/web/shared/types";
@@ -15,6 +16,9 @@ const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "agent-names", password: "fixture-password-2371" };
 const ROOM = -9_000_000_000_099;
 const ROOM_TITLE = "AHAS Lab";
+// What the room calls the chat agent, beside the raw English name the deployment carries.
+// The name the room calls the chat agent, which the archive keeps: a fixture, since the code files hold no Hangul.
+const CHAT_LABEL = KO.chatName;
 
 // Whether what is read comes to hold within the time given.
 async function until<T>(read: () => Promise<T>, holds: (value: T) => boolean, ms = 20_000): Promise<boolean> {
@@ -80,7 +84,7 @@ function catalogue(list: AgentList, chatName: string): AgentList {
     defaultAnswerer: chatName,
     agents: [
       ...list.agents.filter((agent) => agent.name !== chatName && !agent.name.startsWith("chat:")),
-      row(chatName, "Agent A", { defaultAnswerer: true }),
+      row(chatName, CHAT_LABEL, { defaultAnswerer: true }),
       row(`chat:${ROOM}`, ROOM_TITLE, { chatId: ROOM, defaultAnswerer: true })
     ]
   };
@@ -101,7 +105,7 @@ async function open(width: number, height: number): Promise<BrowserContext> {
     const status = (await (await route.fetch()).json()) as Record<string, unknown> & { bot?: Record<string, unknown> };
 
     // The deployment's chat agent, whose own label the console names it by.
-    return await route.fulfill({ json: { ...status, bot: { ...(status.bot ?? {}), agent: "agent-a", label: "Agent A" } } });
+    return await route.fulfill({ json: { ...status, bot: { ...(status.bot ?? {}), agent: "agent-a", label: "BMO" } } });
   });
 
   return context;
@@ -123,11 +127,14 @@ describe.skipIf(!origin || !touchReady())("the designated agents' names", () => 
 
         const told = async () => await page.evaluate(() => document.body.innerText);
 
-        const there = await until(async () => (await told()).includes("Agent A"), (there) => there);
+        const there = await until(async () => (await told()).includes(CHAT_LABEL), (there) => there);
 
         await page.screenshot({ path: `/tmp/agents-names-${width}.png` });
         expect(there).toBe(true);
+        // The room's title and the raw English name stand nowhere, and the agent wears a picture.
         expect((await told()).includes(ROOM_TITLE)).toBe(false);
+        expect((await told()).includes("BMO")).toBe(false);
+        expect(await page.locator("#agents-title").locator("xpath=ancestor::section[1]").locator("img").count()).toBeGreaterThan(0);
         await page.screenshot({ path: `/tmp/agents-names-${width}.png` });
       } finally {
         await context.close();

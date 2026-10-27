@@ -1272,6 +1272,12 @@ Four groups.
   stands only where a room is what is shown: the session row under an agent, a room's header, a message's room. The
   rule holds on this screen's 지정된 에이전트 branch, on the sidebar's agent list, on the live status screen's
   running turns, on the room's session panel, and on the agents an @ offers in a room's box.
+  - **The name is the one the room calls the agent by, and the picture the one the room sees.** A chat agent stands by
+    the label its own catalogue row carries — 비모 where the room calls it so — never by its raw registration name and
+    never by the English word a deployment's settings hold; its picture is the face that row wears, the one the @ list
+    gives it. A session registered for a room is that agent serving that room: it stands as the agent's own name and
+    picture, with the room it serves its own line under it, so the room's supervisor registrations read as 비모 rather
+    than as the room.
 - Workers always stand whether or not the bot answers. An entry carries its name and
   nothing that grows beside it, so the name is never crowded out. A currently running agent gets a spinning circle —
   so that seeing the list alone tells what is alive, it carries a turning mark, not a stopped dot.

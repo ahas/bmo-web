@@ -1,4 +1,6 @@
 import { agentKey, avatarFor, avatarKey, useAvatars } from "./avatars";
+import { chatAgent } from "#shared/agent-names";
+import { chatIdOf } from "./agents";
 
 import type { AgentMeta } from "./agents";
 import type { AvatarIndex } from "./avatars";
@@ -35,7 +37,11 @@ export function agentFace(
   faces: AgentFaces,
   rooms: readonly RoomSummary[]
 ): AvatarProps {
-  if (agent.chatId !== null) return avatarFor(avatars, "room", agent.chatId, agent.label);
+  // The chat agent wears its own face, whichever row of the catalogue it stands in — its own row and a session
+  // registered for a room alike (docs/web.md, 「Profile photos」). A companion's room session wears the room's.
+  const chat = agent.name === chatAgent().name || chatIdOf(agent.name) !== null;
+
+  if (agent.chatId !== null && !chat) return avatarFor(avatars, "room", agent.chatId, agent.label);
 
   const person = faces.get(agent.name) ?? null;
 

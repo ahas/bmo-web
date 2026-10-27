@@ -235,6 +235,20 @@ describe("agentGroups", () => {
     expect(groups[0]?.agents.map((agent) => agent.label)).toEqual([bmoLabel(wording), bmoLabel(wording)]);
   });
 
+  test("the chat agent and its room sessions are called what the room calls them, and wear its face", () => {
+    registerChatAgent({ name: "bmo", label: KO.chat_name });
+
+    const chat = reported("bmo", "chat", -1001, KO.chat_name);
+    const session = reported("chat:-1001", "chat", -1001);
+    const groups = agentGroups(wording, [chat, session], rooms);
+    const designated = groups[0]?.agents ?? [];
+
+    // The name is the one the room calls the agent by, not the raw registration name.
+    expect(designated.map((agent) => agent.label)).toEqual([KO.chat_name, KO.chat_name]);
+
+    registerChatAgent({ name: "", label: "" });
+  });
+
   test("a catalogue with nothing in it has no groups to stand", () => {
     expect(agentGroups(wording, [], rooms)).toEqual([]);
   });

@@ -31,7 +31,7 @@ describe("the room's note as it stands", () => {
     expect(screen).toContain('t("room.action.situation")');
     expect(screen).toContain('<RoomSituationDialog v-model:open="situationOpen"');
     expect(dialog).toContain("`/api/rooms/${props.chatId}/situation`");
-    expect(dialog).toContain("if (standing) void refresh();");
+    expect(dialog).toContain("if (standing) void read();");
   });
 
   test("says the note, when it changed, and that a room with none has none", () => {

@@ -3,7 +3,7 @@
        updates it before it judges a line wrote last, and when it last changed. A room the receiver holds no note for
        says so rather than standing an empty box. -->
   <SettingsDialog v-model:open="open" :title="$t('room.title.situation')" :description="props.title">
-    <ContentSkeleton v-if="status === 'pending'" :rows="3" listClass="flex flex-col gap-2" :label="$t('room.status.situation_loading')">
+    <ContentSkeleton v-if="loading" :rows="3" listClass="flex flex-col gap-2" :label="$t('room.status.situation_loading')">
       <SkeletonBar class="h-4 w-full" />
       <SkeletonBar class="h-4 w-4/5" />
       <SkeletonBar class="h-3 w-24" />
@@ -35,20 +35,32 @@ const props = defineProps<Props>();
 
 const open = defineModel<boolean>("open", { required: true });
 
-const { data, status, error, refresh } = useFetch<RoomSituation>(() => `/api/rooms/${props.chatId}/situation`, {
-  key: () => `room-situation-${props.chatId}`,
-  lazy: true,
-  server: false,
-  immediate: false,
-  default: () => ({ text: null, updatedAt: null })
-});
+const note = ref<RoomSituation | null>(null);
+const loading = ref(false);
+const failed = ref(false);
 
-const failed = computed(() => status.value === "error" || error.value !== null);
-const text = computed<string | null>(() => (data.value?.text ?? "").trim() === "" ? null : data.value!.text);
-const updatedAt = computed<number | null>(() => data.value?.updatedAt ?? null);
+const text = computed<string | null>(() => {
+  const held = note.value?.text ?? "";
+
+  return held.trim() === "" ? null : held;
+});
+const updatedAt = computed<number | null>(() => note.value?.updatedAt ?? null);
+
+async function read(): Promise<void> {
+  loading.value = true;
+  failed.value = false;
+
+  try {
+    note.value = await $fetch<RoomSituation>(`/api/rooms/${props.chatId}/situation`);
+  } catch {
+    failed.value = true;
+  } finally {
+    loading.value = false;
+  }
+}
 
 // Each opening reads the note afresh, since a round may have written it since the last look.
 watch(open, (standing) => {
-  if (standing) void refresh();
+  if (standing) void read();
 });
 </script>

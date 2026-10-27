@@ -1,11 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
 // The briefing's player as it hears the voice engine (docs/web.md, 「Messages」, the briefing's player): only a
-// summary that ended done and is to play by itself plays, one heard late stands waiting for a press, a briefing is
-// played once, and stop-listening ends the one playing and all that wait behind it.
+// summary that ended done and is to come to the player comes, nothing plays by itself, one played to its end goes
+// after a moment unless the reader touched it, a briefing is played once, and stop-listening ends the one playing
+// and all that wait behind it.
 
 
-const { BRIEFING_TRIAL_KEY, BriefingDesk, briefingOfEvent, fresh } = await import("../../../apps/web/app/domain/briefing");
+const { BRIEFING_TRIAL_KEY, BriefingDesk, briefingOfEvent } = await import("../../../apps/web/app/domain/briefing");
 
 import type { BriefingShown, BriefingSound, DeskDeps, SoundHandlers } from "../../../apps/web/app/domain/briefing";
 import type { BotEvent, VoiceBriefing } from "../../../apps/web/shared/types";
@@ -80,35 +81,66 @@ describe("what plays by itself", () => {
     expect(briefingOfEvent(ended({ state: "failed" }))).toBeNull();
     expect(briefingOfEvent({ id: 1, at: NOW, type: "voice-briefing", chatId: 42, messageId: 548, phase: "created", voice: voice() })).toBeNull();
   });
-
-  test("is news for two minutes after it ended", () => {
-    expect(fresh({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 119_000, title: null }, NOW)).toBe(true);
-    expect(fresh({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 121_000, title: null }, NOW)).toBe(false);
-  });
 });
 
 describe("the trial voice", () => {
-  test("plays through the player at once, leading back where it was tried, and once however often it is pressed", () => {
+  test("comes to the player waiting for the play press, leading back where it was tried, and once however often it is pressed", async () => {
     const held = desk();
 
     held.desk.trial("/briefing-trial.ogg", "/rooms/1?settings=briefing");
     held.desk.trial("/briefing-trial.ogg", "/rooms/1?settings=briefing");
 
     expect(held.sounds.map((one) => one.src)).toEqual(["/briefing-trial.ogg"]);
+    expect(held.sounds[0]?.played).toBe(0);
     expect(held.shown()?.key).toBe(BRIEFING_TRIAL_KEY);
+    expect(held.shown()?.phase).toBe("paused");
     expect(held.shown()?.to).toBe("/rooms/1?settings=briefing");
+
+    held.shown()?.play();
+    await Promise.resolve();
+    expect(held.sounds[0]?.played).toBe(1);
   });
 });
 
 describe("the player", () => {
-  test("plays a fresh one at once, from its sound, leading to its line", async () => {
+  test("stands even a fresh one waiting for the play press, from its sound, leading to its line", async () => {
     const held = desk();
 
     await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
     expect(held.sounds[0]?.src).toBe("/api/briefings/7/sound");
-    expect(held.sounds[0]?.played).toBe(1);
+    expect(held.sounds[0]?.played).toBe(0);
     expect(held.shown()?.to).toBe("/rooms/42?at=548");
-    expect(held.shown()?.phase).toBe("playing");
+    expect(held.shown()?.phase).toBe("paused");
+
+    held.shown()?.play();
+    await Promise.resolve();
+    expect(held.sounds[0]?.played).toBe(1);
+  });
+
+  test("goes a moment after it played to its end, and stays where the reader paused or moved it", async () => {
+    const played = desk();
+
+    await played.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+    played.shown()?.play();
+    await Promise.resolve();
+    played.sounds[0]!.paused = true;
+    played.sounds[0]!.on.ended();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(played.shown()).toBeNull();
+
+    const touched = desk();
+
+    await touched.desk.hear({ id: 8, chatId: 42, messageId: 549, endedAt: NOW - 1_000, title: null });
+    touched.shown()?.play();
+    await Promise.resolve();
+    touched.sounds[0]!.on.moved();
+    touched.sounds[0]!.paused = true;
+    touched.sounds[0]!.on.ended();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(touched.shown()?.key).toBe("briefing:8");
+    expect(touched.shown()?.phase).toBe("paused");
   });
 
   test("leaves one heard long after it ended to its line", async () => {

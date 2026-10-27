@@ -1,4 +1,4 @@
-import { BRIEFING_FRESH_MS, BRIEFING_SHOWN_MS } from "#shared/config";
+import { BRIEFING_SHOWN_MS } from "#shared/config";
 import { TAP_FFT, tapOf } from "bmo-ui/app/domain/sound-tap";
 import { useIsland } from "bmo-ui/app/domain/island";
 
@@ -36,13 +36,6 @@ export function briefingOfEvent(event: BotEvent): HeardBriefing | null {
   if (voice.kind !== "summary" || voice.state !== "done" || !voice.plays || !voice.spoken) return null;
 
   return { id: voice.id, chatId: voice.chatId, messageId: voice.messageId, endedAt: voice.finishedAt ?? event.at, title: voice.title };
-}
-
-// Whether it is still news. The stream hands back what it holds when it opens, and a briefing heard more than two
-// minutes after it ended — a tab opened afterwards, a laptop waking — stands in the player waiting for a press
-// rather than speaking over whatever the reader is doing now.
-export function fresh(heard: HeardBriefing, now: number): boolean {
-  return now - heard.endedAt <= BRIEFING_FRESH_MS;
 }
 
 // The key a briefing is known by, so the same briefing heard twice is one.
@@ -134,8 +127,11 @@ export function swellOf(bars: number[]): number {
 // What a sound tells the desk as it goes.
 export interface SoundHandlers {
   playing: () => void;
+  // A pause that came before the end, the reader's or another player's; the pause a sound makes as it ends is none.
   paused: () => void;
   ended: () => void;
+  // The reader moved the sound to another place.
+  moved: () => void;
   failed: () => void;
 }
 
@@ -171,6 +167,10 @@ const EARLY_KEPT = 8;
 
 // The breath between one briefing ending and the next one waiting behind it starting.
 export const BRIEFING_PAUSE_MS = 600;
+
+// How long a briefing played to its end stays in the player before it goes (docs/web.md, 「Messages」, the briefing's
+// player).
+export const BRIEFING_SETTLE_MS = 1_500;
 
 // The tab every tab ranks first, decided the same way in each of them.
 export function claimWinner(claims: Claim[]): string | null {
@@ -218,7 +218,7 @@ export function keptHeard(raw: string | null, now: number): Record<string, numbe
 
   if (typeof read === "object" && read !== null) {
     for (const [key, at] of Object.entries(read)) {
-      if (typeof at === "number" && now - at <= 2 * BRIEFING_FRESH_MS) {
+      if (typeof at === "number" && now - at <= BRIEFING_SHOWN_MS) {
         kept[key] = at;
       }
     }
@@ -244,14 +244,13 @@ export interface DeskDeps {
   failed: (error: unknown, fallback: string) => void;
 }
 
-// One sound the desk plays through the player: where it comes from, where a press on the player leads while it
-// plays, and whether it starts by itself or waits for a press.
+// One sound the desk plays through the player: where it comes from and where a press on the player leads while it
+// plays. Every sound comes to the player waiting for its play press; none starts by itself.
 interface Playable {
   key: string;
   src: string;
   to: string;
   title: string | null;
-  starts: boolean;
 }
 
 // The trial voice the settings play: its key, which no briefing can have.
@@ -261,6 +260,8 @@ interface Current {
   playable: Playable;
   sound: BriefingSound;
   over: boolean;
+  // Whether the reader paused it or moved it along while it played, which keeps it in the player at its end.
+  touched: boolean;
 }
 
 interface Pending {
@@ -321,18 +322,17 @@ export class BriefingDesk {
       key,
       src: this.deps.src(heard.id),
       to: heard.messageId === null ? `/rooms/${heard.chatId}` : `/rooms/${heard.chatId}?at=${heard.messageId}`,
-      title: heard.title,
-      starts: fresh(heard, this.deps.now())
+      title: heard.title
     });
   }
 
-  // The trial voice, played through the same player at a press (docs/web.md, 「Settings」, the voice briefing section): no other tab
-  // claims it or hears of it, nothing keeps it, and it is played once however often it is pressed while it stands
-  // or waits.
+  // The trial voice, brought to the same player at a press (docs/web.md, 「Settings」, the voice briefing section), where
+  // it waits for the play press as a briefing does: no other tab claims it or hears of it, nothing keeps it, and it
+  // stands once however often it is pressed while it stands or waits.
   trial(src: string, to: string): void {
     if (this.current?.playable.key === BRIEFING_TRIAL_KEY || this.waiting.some((one) => one.key === BRIEFING_TRIAL_KEY)) return;
 
-    this.line({ key: BRIEFING_TRIAL_KEY, src, to, title: null, starts: true });
+    this.line({ key: BRIEFING_TRIAL_KEY, src, to, title: null });
   }
 
   // Played now, or behind the one playing and those already waiting.
@@ -424,27 +424,45 @@ export class BriefingDesk {
         this.move(current, "playing");
         playAlone(current.sound, this.deps.players());
       },
-      paused: () => this.move(current, "paused"),
-      ended: () => this.finish(key),
+      paused: () => {
+        current.touched = true;
+        this.move(current, "paused");
+      },
+      ended: () => void this.settle(current),
+      moved: () => {
+        current.touched = true;
+      },
       failed: () => this.fail(current, null)
     });
 
-    current = { playable, sound, over: false };
+    current = { playable, sound, over: false, touched: false };
     this.current = current;
 
     this.deps.shown.write({
       key,
       to: playable.to,
       title: playable.title,
-      phase: playable.starts ? "loading" : "paused",
+      phase: "paused",
       play: () => void this.play(current),
       pause: () => current.sound.pause(),
       stop: () => this.stop(current),
       levels: (into) => current.sound.levels(into),
       position: () => current.sound.position()
     });
+  }
 
-    if (playable.starts) void this.play(current);
+  // Played to its end: gone after a moment unless the reader paused or moved it along, or played it again meanwhile;
+  // one the reader touched stays at its end, waiting for a press or the close mark.
+  private async settle(current: Current): Promise<void> {
+    this.move(current, "paused");
+
+    if (current.touched) return;
+
+    await this.deps.wait(BRIEFING_SETTLE_MS);
+
+    if (current.over || current.touched || !current.sound.paused) return;
+
+    this.finish(current.playable.key);
   }
 
   private move(current: Current, phase: BriefingPhase): void {
@@ -550,8 +568,12 @@ function elementSound(src: string, on: SoundHandlers): BriefingSound {
     },
     options
   );
-  element.addEventListener("pause", () => on.paused(), options);
+  // A sound ending pauses itself on the way; only a pause before the end is one.
+  element.addEventListener("pause", () => {
+    if (!element.ended) on.paused();
+  }, options);
   element.addEventListener("ended", () => on.ended(), options);
+  element.addEventListener("seeking", () => on.moved(), options);
   element.addEventListener("error", () => on.failed(), options);
   document.body.append(element);
 

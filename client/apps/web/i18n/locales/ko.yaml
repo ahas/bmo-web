@@ -2840,13 +2840,13 @@ briefing:
     listen: 재생
     open: 줄로 가기
     pause: 일시정지
-    play_trial: 테스트 재생
+    play_trial: 들어보기
     reset_position: 초기화
     stop: 그만듣기
     stop_trial: 정지
   label:
-    autoplay: 자동 재생
-    autoplay_note: 켜 두면 요약 브리핑이 도착하는 대로 플레이어에서 저절로 재생됩니다.
+    autoplay: 플레이어에 표시
+    autoplay_note: 켜 두면 요약 브리핑이 도착하는 대로 플레이어에 표시되고, 재생을 눌러야 들립니다.
     pixels: px
     played: "{at} / {length}"
     position_side: 위치

@@ -135,7 +135,10 @@ describe("the full reading of the line", () => {
   });
 
   test("asks the receiver for a reading where none stands, and follows the engine's stream to it", () => {
-    expect(spread).toMatch(/<AudioPlayer[^>]*\n\s*autoplay\n/);
+    // The player waits for its play press, and folds itself after the end the reader left untouched.
+    expect(spread).not.toContain("autoplay");
+    expect(spread).toContain('@ended.capture="readingEnded"');
+    expect(script).toContain("if (!readingTouched && !playing) briefingOpen.value = false;");
     expect(script).toContain("`/api/rooms/${props.chatId}/messages/${props.messageId}/reading`, { method: \"POST\" }");
     expect(script).toContain('event.type !== "voice-briefing" || event.voice.kind !== "full"');
   });

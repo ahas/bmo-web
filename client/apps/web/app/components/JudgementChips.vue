@@ -104,16 +104,24 @@
     <div v-if="spreading" data-spread class="flex min-w-0 basis-full flex-col gap-3 border-t border-default pt-2">
       <template v-if="briefingOpen && props.briefing !== null">
         <p v-if="briefingRefused !== ''" role="alert" class="text-sm text-error">{{ briefingRefused }}</p>
-        <AudioPlayer
+        <!-- The player waits for its play press, and folds itself a moment after it played to its end unless the reader
+             paused or moved it along (docs/web.md, the room screen's voice briefing chip). The sound's own events do
+             not bubble, so they are heard on their way down. -->
+        <div
           v-else-if="briefingState === 'ready' && briefingSrc !== null"
           class="w-80 max-w-full"
-          :src="briefingSrc"
-          :download="`${briefingSrc}?as=download`"
-          :name="$t('room.label.chip_briefing')"
-          :size="null"
-          autoplay
-          data-briefing-reading
-        />
+          @pause.capture="readingPaused"
+          @seeking.capture="readingMoved"
+          @ended.capture="readingEnded"
+        >
+          <AudioPlayer
+            :src="briefingSrc"
+            :download="`${briefingSrc}?as=download`"
+            :name="$t('room.label.chip_briefing')"
+            :size="null"
+            data-briefing-reading
+          />
+        </div>
         <p v-else-if="briefingState === 'failed'" class="text-sm text-error">{{ $t("briefing.error.not_made") }}</p>
         <p v-else-if="briefingState === 'ready'" class="text-sm text-dimmed">{{ $t("room.label.unreceivable") }}</p>
         <p v-else class="text-sm text-dimmed">{{ $t("briefing.status.making") }}</p>
@@ -280,6 +288,7 @@
 <script setup lang="ts">
 import { briefingChip, CHIP_ICONS, CHIP_LABELS, verdictChip } from "~/domain/chips";
 import { briefingSoundUrl, mediaUrl } from "~/domain/player";
+import { BRIEFING_SETTLE_MS } from "~/domain/briefing";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useBotEvents } from "~/domain/events";
 import { useTurnActionsFold } from "~/domain/turn-actions-fold";
@@ -401,6 +410,36 @@ async function toggleBriefing(): Promise<void> {
     briefingRefused.value = failureText(error, t("briefing.error.not_made"));
   }
 }
+
+// Whether the reader paused the reading or moved it along while it played, which keeps the player spread at its end,
+// and whether the player is about to go back to its start as it does on ending, the one move that is not the reader's.
+let readingTouched = false;
+let readingRewinding = false;
+
+function readingPaused(event: Event): void {
+  if (!(event.target instanceof HTMLMediaElement) || event.target.ended) return;
+
+  readingTouched = true;
+}
+
+function readingMoved(): void {
+  if (readingRewinding) readingRewinding = false;
+  else readingTouched = true;
+}
+
+function readingEnded(event: Event): void {
+  readingRewinding = true;
+
+  window.setTimeout(() => {
+    const playing = event.target instanceof HTMLMediaElement && !event.target.paused;
+
+    if (!readingTouched && !playing) briefingOpen.value = false;
+  }, BRIEFING_SETTLE_MS);
+}
+
+watch(briefingOpen, (open) => {
+  if (open) readingTouched = false;
+});
 
 // The engine's word on the reading this line waits on: ended done, it is there to play; ended failed, it says so.
 useBotEvents((event) => {

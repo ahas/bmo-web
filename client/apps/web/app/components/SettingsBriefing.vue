@@ -1,8 +1,9 @@
 <template>
   <!-- The voice briefing's two switches, the receiver's (docs/web.md, 「Settings」, the voice briefing section): whether anything is
-       spoken, and whether a summary plays by itself. Each is set on its own as it is pressed; one the receiver
+       spoken, and whether a summary comes to the player. Each is set on its own as it is pressed; one the receiver
        refused springs back, and the refusal stands under the section. Under them, the console's player placed and
-       tried: where it first stands, kept in this browser, and the trial voice played through it. -->
+       tried: where it first stands, kept in this browser, and the trial voice brought to it, waiting for its play
+       press. -->
   <div class="flex flex-col gap-6">
     <ContentSkeleton v-if="switches === null && failure === ''" :rows="2" listClass="flex flex-col divide-y divide-default" :label="$t('briefing.status.settings_loading')">
       <div class="flex items-center gap-4 py-3">
@@ -99,8 +100,9 @@ const top = computed({
   set: (next: number | null | undefined) => keep({ ...position.value, top: next === null || next === undefined ? null : Math.max(0, Math.round(next)) })
 });
 
-// The trial voice through the player: played at a press and stopped by the same button while it stands. The
-// player's own press leads back to the screen it was tried on, with this section open.
+// The trial voice through the player: brought to it at a press, where it waits for the play press, and taken down by
+// the same button while it stands. The player's title leads back to the screen it was tried on, with this section
+// open.
 const shown = briefingState();
 const trialStanding = computed(() => shown.value?.key === BRIEFING_TRIAL_KEY);
 

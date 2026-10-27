@@ -168,10 +168,6 @@ export const DONE_MAX = 500;
 // minute bounds how late a new report reaches a row's mark (docs/boundary.md, 「Gaps the console meets」).
 export const TODO_REPORTS_FRESH_MS = 60_000;
 
-// How long after a summary briefing ended it is still news a listener plays by itself; one heard later stands in the
-// player waiting for a press (the voice engine's docs/boundary-api.md, 「Briefings」).
-export const BRIEFING_FRESH_MS = 120_000;
-
 // How long after it ended a summary the tab hears of late still stands in the player waiting for a press; one older
 // still is left to its line, so a stream handing back what it kept does not queue the day's briefings.
 export const BRIEFING_SHOWN_MS = 30 * 60_000;

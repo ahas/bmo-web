@@ -4140,12 +4140,13 @@ Four bounds keep it from growing forever.
     tooltip: the voice mark before anything is made and once it is there (보이스브리핑), the mark of spinning
     work while it is being made (보이스브리핑 만드는 중), and the voice mark in the error colour where it could not
     be made (보이스브리핑 실패).
-  - **Pressing it spreads the sound's own player**, the one of 「소리 듣기」, and plays it at once where the
-    reading is there; pressing again folds it and the sound stops. Pressed before anything is made, it asks
-    the receiver for the reading (its `docs/api.md`, `POST /rooms/{roomId}/messages/{messageId}/reading`) and
-    spreads one line saying it is being made, and the player takes that line's place and plays the moment the
-    engine's stream says the reading ended done, for as long as the chip stays spread. Pressed after it failed, it
-    asks again. A refusal — the whole briefing switched off, an agent with no voice, a line the receiver does not
+  - **Pressing it spreads the sound's own player**, the one of 「소리 듣기」, which waits for its play press, on
+    opening as on a page loading or a tab coming back; pressing the chip again folds it and the sound stops. Played
+    to its end, the player folds itself after a moment, unless the reader paused or moved it along while it played,
+    or played it again in that moment. Pressed before anything is made, it asks the receiver for the reading (its
+    `docs/api.md`, `POST /rooms/{roomId}/messages/{messageId}/reading`) and spreads one line saying it is being
+    made, and the player takes that line's place the moment the engine's stream says the reading ended done, for as
+    long as the chip stays spread, waiting for its play press. Pressed after it failed, it asks again. A refusal — the whole briefing switched off, an agent with no voice, a line the receiver does not
     hold, a voice engine it could not reach — spreads its sentence in the error colour.
   - **A line read before the engine spoke readings** keeps the voice message the room heard it as, named by the
     engine's row, and its chip plays that voice message.
@@ -5738,18 +5739,20 @@ dialog open at 계정.
 #### 보이스브리핑
 
 - The voice briefing's two switches, the receiver's (its `docs/api.md`, `GET`/`PUT /voice-briefing`): **전체
-  보이스브리핑**, whether anything is spoken at all, and **자동 재생**, whether a summary plays by itself in the
-  console's player. Each is set on its own as it is pressed, and stays switchable while the other is off. A
-  switch the receiver refused springs back, and the refusal stands under the section in one line.
+  보이스브리핑**, whether anything is spoken at all, and **플레이어에 표시**, whether a summary comes to the
+  console's player as it ends, where it waits for a press. Each is set on its own as it is pressed, and stays
+  switchable while the other is off. A switch the receiver refused springs back, and the refusal stands under the
+  section in one line.
 - **The player, placed and tried** (「Messages」, the briefing's player). **위치** chooses 왼쪽 or 오른쪽 and **높이**
   the height in pixels from the top of the page area, a number box with px after it that stands empty, holding
   기본값, where the player keeps its first place — as low as the page area lets it, above whatever bar stands at
   the screen's foot. Both are this viewer's, kept in this browser beside the place a drag leaves the player at, and
   are where the player stands when it next shows; each takes effect as it is changed. **초기화** puts the player
   back at its first place.
-  - **테스트 재생** plays the trial voice — about a minute of the chat agent's voice, shipped with the console as a
-    file, so nothing is synthesised at the press — through the same player, so how it comes out, swells with the
-    voice, is dragged and goes can be watched at any time; the button reads **정지** while it plays and stops it.
+  - **들어보기** brings the trial voice — about a minute of the chat agent's voice, shipped with the console as a
+    file, so nothing is synthesised at the press — to the same player, where it waits for the play press as a
+    briefing does, so how it comes out, swells with the voice, is dragged and goes can be watched at any time; the
+    button reads **정지** while it stands and takes it down.
   - The trial is this tab's alone: no other tab hears of it and nothing keeps it. Pressed while a briefing plays,
     it waits behind it as another briefing would, and the player's press during it leads back to the screen it
     was tried on, with the settings open at 보이스브리핑.
@@ -5809,11 +5812,15 @@ dialog open at 계정.
     shrinking back into it, with no fade; a reader who asked for less movement sees it appear and go at once.
   - **Back stops it,** as Back puts away anything floating over the screen (「Floating things」): the press that
     would have left the page ends the briefing playing and every one waiting, as 그만듣기 does.
-  - **What plays by itself** is what the voice engine's stream says has ended (its `docs/boundary-api.md`,
-    「Events」, 「Briefings」): a `briefing.ended` of a `summary`, `done`, whose `plays` holds. One that ended more
-    than two minutes before the console heard of it stands in the player waiting for a press rather than
-    playing, and one that ended more than half an hour before — a stream handing back what it kept — is left to
-    its line; a full reading never plays by itself, and one that does not play by itself is left to its line.
+  - **Nothing plays by itself.** What comes to the player is what the voice engine's stream says has ended (its
+    `docs/boundary-api.md`, 「Events」, 「Briefings」): a `briefing.ended` of a `summary`, `done`, whose `plays`
+    holds. It stands in the player waiting for the reader's press on play — on opening, on a page loading, on a tab
+    coming back from the background, and behind another that has ended alike. One that ended more than half an
+    hour before — a stream handing back what it kept — is left to its line; a full reading never comes to the
+    player, and one whose `plays` does not hold is left to its line. The settings' trial voice comes the same way.
+  - **Played to its end, it goes.** Once a briefing has played to its end the player stays a moment, then goes,
+    and the next one waiting comes to it; one the reader paused or moved along while it played, or played again in
+    that moment, stays, at its end, until it is closed.
   - **One after another.** A briefing that arrives while another plays waits behind it and plays once it has
     ended, after a short pause. **그만듣기**, the close mark, ends the one playing and every one waiting in this
     tab; a briefing this browser has played or stopped is not played again when the stream hands it back.

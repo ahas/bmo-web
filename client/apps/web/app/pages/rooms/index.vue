@@ -29,8 +29,8 @@
             class="flex items-start gap-3 rounded-lg border border-default px-4 py-3 transition-colors hover:bg-elevated active:bg-accented"
             :to="`/rooms/${room.chatId}`"
           >
-            <UAvatar v-bind="avatarFor(pictures, 'room', room.chatId, roomListName(room))" size="sm" />
-            <p class="min-w-0 grow truncate text-sm font-medium">{{ roomListName(room) }}</p>
+            <UAvatar v-bind="avatarFor(pictures, 'room', room.chatId, room.title)" size="sm" />
+            <p class="min-w-0 grow truncate text-sm font-medium">{{ room.title }}</p>
             <div class="shrink-0 text-right text-sm text-muted">
               <RollingSentence tag="p" :keypath="'common.label.count'" :figures="{ n: room.messageCount }" />
               <p>{{ room.lastMessageAt === null ? $t("common.label.no_record") : formatStamp(room.lastMessageAt) }}</p>
@@ -45,7 +45,6 @@
 <script setup lang="ts">
 import { useAdministrator } from "~/domain/access";
 import { avatarFor, useAvatars } from "~/domain/avatars";
-import { roomListName } from "~/domain/screens";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
 import type { RoomSummary } from "#shared/types";

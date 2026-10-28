@@ -141,17 +141,12 @@ export async function listRooms(): Promise<RoomSummary[]> {
 
   return await Promise.all(
     rooms.map(async (room): Promise<RoomSummary> => {
-      // The agents this room is for: the ones it was made for, by their own labels. The shared chat agent answers every
-      // room and names none of them.
-      const owns = [...new Set(room.companions)].map((name) => labels.get(name) ?? name).filter((label) => label.trim() !== "");
-
       return {
         chatId: room.id,
         title: roomLabel(room.id, untitled(room.title) ? (named.get(room.id) ?? null) : room.title, owner),
         messageCount: room.messageCount,
         lastMessageAt: room.lastMessageAt === null ? null : seconds(room.lastMessageAt),
         pinned: room.pinned,
-        ...(owns.length === 0 ? {} : { ownAgents: owns }),
         ...(room.companions.length > 0 ? { madeForCompanions: true as const, companions: room.companions } : {})
       };
     })

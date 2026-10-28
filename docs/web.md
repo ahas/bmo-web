@@ -1283,12 +1283,14 @@ Four groups.
     person's own label, and a row the record names no agent on falls back to the name it does carry rather than being
     guessed at another agent's. One function names a row for every screen that draws one — the room list's preview, the
     room view, an item's notes, the live screen and a search.
-  - **A room's name in the list is the agent the room is for, by that agent's own label.** A room made for one agent
-    stands under that agent's label — Kakia's room reads 카키아, where the chat service's account name was what stood
-    there — and every other room keeps its own title: the shared chat agent answers every room and renames none of them.
-    A room made for two agents names both, in the console's one naming style. The owner's room is named the chat
-    agent's label as the naming rule says. The room's own title stays where a room is what is shown: its screen's head,
-    the session row's room, a message's room.
+  - **A room's name and picture in the list follow what kind of room it is.** A group room stands under the title it
+    was set with, in the list as everywhere else, and wears the picture set for it; no agent's label replaces either, so
+    a group titled AHAS Lab lists as AHAS Lab. A one-to-one room stands under the other party's name and wears the other
+    party's picture, taken from the messenger the room is connected through — the chat provider's own name and photo for
+    that person, not a name guessed from the archive — with the initials avatar the console already draws standing where
+    the provider hands over no photo. A room the provider says nothing about keeps the title the record holds. An agent
+    answering a room never renames it: only a one-to-one room of that agent's own carries its name, through the
+    counterpart rule.
   - **A message stands under its name alone.** No marker beside it says which account the words went out in: whoever said
     them is named, and the row's face and colour are the speaker's, so a bubble keeps the width its words and pictures ask
     for.

@@ -184,14 +184,6 @@ export function namedWhenFolded(items: NavigationMenuItem[], folded: boolean): N
 
 // A room of the sidebar: its name and picture, and how many of its messages the reader has not read, as a badge
 // spread and a dot folded (docs/web.md, 「Sidebar」).
-/** What the room list calls a room (docs/web.md, the naming rule): the agents answering it, by their own labels, and a
- * room no agent answers under its own title. The room's title stays where a room is what is shown. */
-export function roomListName(room: Pick<ListedRoom, "title" | "ownAgents">): string {
-  const owns = room.ownAgents ?? [];
-
-  return owns.length === 0 ? room.title : owns.join(" · ");
-}
-
 export function roomItems(
   t: Translate,
   rooms: readonly ListedRoom[],
@@ -201,11 +193,10 @@ export function roomItems(
   reading: RoomReading | null = null
 ): NavigationMenuItem[] {
   return rooms.map((room) => {
-    const named = roomListName(room);
     const entry = {
-      label: named,
+      label: room.title,
       to: `/rooms/${room.chatId}`,
-      avatar: avatarFor(avatars, "room", room.chatId, named),
+      avatar: avatarFor(avatars, "room", room.chatId, room.title),
       active: path === `/rooms/${room.chatId}`
     };
     const count = unreadShown(room, reading);

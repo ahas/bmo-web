@@ -283,8 +283,10 @@ describe("the draft chip", () => {
     // Nothing stands in the record's own form: no row's raw question, no milliseconds.
     expect(rowsTemplate).not.toContain("row.question");
     expect(rowsTemplate).not.toContain("ms</span>");
-    // A round's answer spreads under its line on a press of the line, and folds on the next.
-    expect(rowsTemplate).toMatch(/<pre\s+v-if="round\.answer !== null && opened\.has\(round\.key\)"/);
+    // Every round stands open: no fold, its answer whole under its line.
+    expect(rowsTemplate).toMatch(/<pre\s+v-if="round\.answer !== null && round\.diff\.length === 0"/);
+    expect(rowsTemplate).not.toContain("opened.has");
+    expect(rowsTemplate).toContain("data-draft-diff");
   });
 });
 

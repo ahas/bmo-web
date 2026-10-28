@@ -16,22 +16,9 @@
     <template v-else>
       <ol v-if="rounds.length > 0" data-draft-rounds class="flex min-w-0 flex-col">
         <li v-for="round in rounds" :key="round.key" class="min-w-0" :data-draft-round="round.number" :data-slow="round.slow ? '' : undefined">
-          <component
-            :is="round.answer === null ? 'div' : 'button'"
-            :type="round.answer === null ? undefined : 'button'"
-            class="flex w-full min-w-0 flex-wrap items-center gap-x-2 rounded-sm px-1 text-start text-sm text-muted tabular-nums"
-            :class="round.answer === null ? '' : 'hover:bg-current/10 active:bg-current/20'"
-            :aria-expanded="round.answer === null ? undefined : opened.has(round.key)"
-            @click="round.answer === null ? undefined : toggle(round.key)"
-          >
-            <UIcon
-              v-if="round.answer !== null"
-              name="i-material-symbols-chevron-right"
-              aria-hidden="true"
-              class="size-4 shrink-0 text-dimmed transition-transform"
-              :class="opened.has(round.key) ? 'rotate-90' : ''"
-            />
-            <span v-else aria-hidden="true" class="size-4 shrink-0" />
+          <!-- Every round stands open (docs/web.md, the room screen's draft chip): its number, what was asked and
+               what it answered, each readable without a press. -->
+          <div class="flex w-full min-w-0 flex-wrap items-center gap-x-2 rounded-sm px-1 text-start text-sm text-muted tabular-nums">
             <span class="text-dimmed">{{ countText(round.number) }}</span>
             <span class="text-highlighted">{{ round.asked }}</span>
             <span :class="round.failed ? 'text-error' : ''">{{ round.decided }}</span>
@@ -41,13 +28,18 @@
               <UIcon v-if="round.slow" name="i-material-symbols-schedule-outline" class="size-4" :aria-label="$t('room.label.draft_slow')" role="img" />
               {{ secondsText($t, round.ms) }}
             </span>
-          </component>
+          </div>
 
+          <!-- A round that rewrote the message stands its change as a diff: what it dropped, what it brought, and what
+               it kept plain (docs/web.md, the room screen's draft chip). A round that changed nothing stands its answer
+               once, with no marks. -->
           <pre
-            v-if="round.answer !== null && opened.has(round.key)"
+            v-if="round.answer !== null && round.diff.length === 0"
             data-draft-answer
             class="mt-1 mb-2 ms-7 font-sans text-sm whitespace-pre-wrap wrap-anywhere text-muted"
           >{{ round.answer }}</pre>
+          <pre v-else-if="round.diff.length > 0" data-draft-diff class="mt-1 mb-2 ms-7 font-sans text-sm whitespace-pre-wrap wrap-anywhere"><span v-for="(line, at) in round.diff" :key="at" :data-diff="line.kind" :class="line.kind === 'removed' ? 'text-error/80 line-through' : line.kind === 'added' ? 'text-success' : 'text-muted'">{{ line.text }}
+</span></pre>
         </li>
       </ol>
 
@@ -83,7 +75,7 @@ import { formatClock } from "bmo-ui/app/domain/time";
 
 import { CHIP_ICONS, CHIP_LABELS } from "~/domain/chips";
 
-import { endLine, gateRoundLines, roundLines } from "~/domain/draft-process";
+import { draftDiff, endLine, gateRoundLines, roundLines } from "~/domain/draft-process";
 import { stageLabel, verdictWords } from "~/domain/judgements";
 import { countText, secondsText } from "~/domain/numbers";
 
@@ -109,22 +101,21 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 
 const rounds = computed(() => {
-  const logged = props.rows === null ? [] : roundLines(t, props.rows);
+  const logged = props.rows === null ? [] : roundLines(t, props.rows).map((round) => ({ ...round, diff: diffFor(props.rows ?? [], round) }));
 
-  return logged.length > 0 ? logged : gateRoundLines(t, props.drafts);
+  return logged.length > 0 ? logged : gateRoundLines(t, props.drafts).map((round) => ({ ...round, diff: [] }));
 });
+
+// A row's own change, as its diff: the answer it rewrote against what stood before it, where the round rewrote the
+// message. A round that changed nothing has no diff, and stands its answer once.
+function diffFor(rows: readonly DraftRow[], round: { key: string; answer: string | null }) {
+  const row = rows.find((one) => String(one.id) === round.key);
+  const before = row?.before ?? null;
+
+  return row === undefined || before === null || round.answer === null || before === round.answer ? [] : draftDiff(before, round.answer);
+}
 const end = computed(() => endLine(t, props.rows, props.drafts, props.summary));
 
-// Which rounds stand with their answer spread; each folds on its own.
-const opened = ref(new Set<string>());
-
-function toggle(key: string): void {
-  const next = new Set(opened.value);
-
-  if (!next.delete(key)) next.add(key);
-
-  opened.value = next;
-}
 
 const TONE_CLASSES = { success: "text-success", error: "text-error", neutral: "" } as const;
 const SEND_STAGE = "send";

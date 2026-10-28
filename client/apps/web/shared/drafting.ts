@@ -100,6 +100,8 @@ export interface DraftRow {
   ms: number;
   at: number;
   answer: string | null;
+  // What the message stood as before this row rewrote it, where the round rewrote one; null on every other row.
+  before?: string | null;
   // On the end, what the round read from the brain; empty on every other row.
   reads: DraftRead[];
 }

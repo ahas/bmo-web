@@ -386,3 +386,49 @@ export function draftReadsParts(t: Translate, reads: readonly DraftRead[]): stri
     ...(held === 0 ? [] : [t("room.label.brain_read_held", { n: countText(held) })])
   ];
 }
+
+/** One line of a message as it changed: the line as it stood, as it stands, or both where it is unchanged. */
+export interface DraftDiffLine {
+  kind: "same" | "removed" | "added";
+  text: string;
+}
+
+/**
+ * A message's own lines as a change from what stood before it (docs/web.md, the room screen's draft chip): a line the
+ * rewrite kept stands plain, one it dropped stands as removed, and one it brought stands as added. Lines are compared
+ * in order with a small longest-common-subsequence walk, so a repair that moved nothing says so plainly.
+ */
+export function draftDiff(before: string, after: string): DraftDiffLine[] {
+  const was = before.split("\n");
+  const now = after.split("\n");
+  const kept: number[][] = Array.from({ length: was.length + 1 }, () => new Array<number>(now.length + 1).fill(0));
+
+  for (let from = was.length - 1; from >= 0; from -= 1) {
+    for (let to = now.length - 1; to >= 0; to -= 1) {
+      kept[from]![to] = was[from] === now[to] ? kept[from + 1]![to + 1]! + 1 : Math.max(kept[from + 1]![to]!, kept[from]![to + 1]!);
+    }
+  }
+
+  const lines: DraftDiffLine[] = [];
+  let from = 0;
+  let to = 0;
+
+  while (from < was.length && to < now.length) {
+    if (was[from] === now[to]) {
+      lines.push({ kind: "same", text: was[from]! });
+      from += 1;
+      to += 1;
+    } else if (kept[from + 1]![to]! >= kept[from]![to + 1]!) {
+      lines.push({ kind: "removed", text: was[from]! });
+      from += 1;
+    } else {
+      lines.push({ kind: "added", text: now[to]! });
+      to += 1;
+    }
+  }
+
+  for (; from < was.length; from += 1) lines.push({ kind: "removed", text: was[from]! });
+  for (; to < now.length; to += 1) lines.push({ kind: "added", text: now[to]! });
+
+  return lines;
+}

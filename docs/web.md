@@ -4239,9 +4239,15 @@ Four bounds keep it from growing forever.
     「110자」, and how long it took, 「11.8초」. 바뀜 follows where the answer differs from the one before it.
   - **The slow round is marked**: where more than one round ran, the round that took longest, when it took at
     least twice as long as any other, wears a clock mark and its time in the warning colour.
-  - **Pressing a round's line spreads its answer** — the notes that round wrote, or the message in the last —
-    whole as it was written, wrapping at the bubble's width; pressing again folds it. A round with no answer is
-    pressed for nothing.
+  - **Every round stands open.** Its line carries no fold: the round's number, what it asked and what it decided stand
+    as a line, and the answer that round wrote — its notes, or the message in the last — stands under it whole as it was
+    written, wrapping at the bubble's width and keeping the page's ordinary flow. A very long answer is bounded by the
+    same means the rest of the screen uses — the bubble's own scroll and the 지우기/더 보기 pattern where a list needs it —
+    never by folding every round. A round with no answer stands its line alone.
+  - **A round that rewrote the message stands its change as a diff**, where the record carries what stood before it: the
+    lines the rewrite kept stand plain, the ones it dropped stand struck through in the error colour, and the ones it
+    brought stand in the success colour, so what a repair round or an arrived rewrite actually changed is read at once. A
+    round whose answer is what stood before it stands that answer once, with no marks.
   - **Then the end, one line**: what went out — 메시지 보냄, 보내지 않음, 보류, 시간 초과 후 메시지 보냄 or 시간 초과
     후 보내지 않음 — and how long the whole took.
   - **Then what was read before it**: the 브레인 chip's own list (「브레인 · 툴 사용」), in the same look, where the

@@ -9,8 +9,8 @@ import KO from "../../fixtures/app/domain/agent-settings.test.ko.json";
 
 describe("the sections of the agent management screen", () => {
   test("are the general settings first, then each section on its own tab", () => {
-    expect(AGENT_TABS.map((tab) => wording(tab.label))).toEqual([KO.line_11, KO.line_11_2, KO.line_11_3, wording("agents.label.tab_routes"), KO.line_11_4, KO.line_11_5, KO.line_11_6]);
-    expect(isAgentTab("gates")).toBe(true);
+    expect(AGENT_TABS.map((tab) => wording(tab.label))).toEqual([KO.line_11, KO.line_11_2, KO.line_11_3, wording("agents.label.tab_routes"), KO.line_11_5, KO.line_11_6]);
+    expect(isAgentTab("gates")).toBe(false);
     expect(isAgentTab("companions")).toBe(true);
     // The co-worker limits stand in the Models tab, so there is no tab of their own.
     expect(isAgentTab("pool")).toBe(false);
@@ -50,13 +50,13 @@ describe("a tier mapping in a table cell", () => {
 describe("the settings search", () => {
   const entries = [
     { id: "tier-Frontier", tab: "tiers" as const, label: "Frontier", fields: [{ label: KO.line_51, text: "Frontier", shown: true }, { label: "Codex", text: "gpt-5.6-sol max", shown: true }] },
-    { id: "route-sanitizer", tab: "gates" as const, label: KO.line_52, fields: [{ label: KO.line_52_2, text: KO.line_52, shown: true }, { label: KO.line_52_3, text: "sanitizer", shown: false }] }
+    { id: "route-sanitizer", tab: "routes" as const, label: KO.line_52, fields: [{ label: KO.line_52_2, text: KO.line_52, shown: true }, { label: KO.line_52_3, text: "sanitizer", shown: false }] }
   ];
 
   test("finds a row by what it shows and by what it only holds, and names the tab", () => {
     expect(searchSettings(wording, entries, "frontier").map((hit) => hit.entry.id)).toEqual(["tier-Frontier"]);
     expect(searchSettings(wording, entries, "sanitizer")[0]?.match).toEqual({ shown: false, hidden: { label: KO.line_57, snippet: "sanitizer" } });
-    expect(searchSettings(wording, entries, KO.line_58).map((hit) => hit.entry.id)).toEqual(["route-sanitizer"]);
+    expect(searchSettings(wording, entries, wording("agents.label.tab_routes")).map((hit) => hit.entry.id)).toEqual(["route-sanitizer"]);
     expect(searchSettings(wording, entries, "")).toEqual([]);
   });
 

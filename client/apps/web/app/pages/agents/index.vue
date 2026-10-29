@@ -158,11 +158,6 @@
 
         <AgentsRouteTable v-else-if="tab === 'routes'" :query="query" />
 
-        <template v-else-if="tab === 'gates'">
-          <AgentsTurnGates :agents="agents" :reread="refreshAgents" :query="query" />
-          <LayaStatusLine />
-          <AgentsRouteTable gates :query="query" />
-        </template>
 
         <AgentsCompanions v-else-if="tab === 'companions'" ref="companionsRef" :workers="companionWorkers" />
 
@@ -209,7 +204,7 @@ const bodyRef = useTemplateRef<HTMLElement>("body");
 useListPlace("agents", () => bodyRef.value);
 const narrow = useNarrow();
 
-const FULL_TABLE_TABS: readonly AgentTab[] = ["routes", "gates"];
+const FULL_TABLE_TABS: readonly AgentTab[] = ["routes"];
 
 const workersRef = useTemplateRef<{ openAdd: () => void }>("workersRef");
 const companionsRef = useTemplateRef<{ openAdd: () => void }>("companionsRef");
@@ -218,7 +213,7 @@ const generalRef = useTemplateRef<{ openAddAccount: () => void; openAddRegistrat
 const LIST_SECTIONS = ["registry", "catalogue", "base-prompts"];
 // The columns of the agents' settings table, which its skeleton stands under before the settings arrive.
 const AGENT_TABLE_HEADERS = computed(() =>
-  ["agents.label.column_agent", "agents.label.column_role", "agents.label.column_keepalive", "agents.label.column_thinking", "agents.label.column_effort", "agents.label.column_gate"].map((key) => t(key))
+  ["agents.label.column_agent", "agents.label.column_role", "agents.label.column_keepalive", "agents.label.column_thinking", "agents.label.column_effort"].map((key) => t(key))
 );
 
 const generalAddItems = computed(() => [
@@ -309,8 +304,7 @@ const entries = computed<SettingsEntry[]>(() => {
       label: t("agents.title.section_agents"),
       fields: [
         { label: t("agents.label.settings"), text: t("agents.label.find_roles"), shown: true },
-        { label: t("agents.label.settings"), text: t("agents.label.find_reasoning"), shown: true },
-        { label: t("agents.label.settings"), text: t("agents.label.find_agent_gates"), shown: true }
+        { label: t("agents.label.settings"), text: t("agents.label.find_reasoning"), shown: true }
       ]
     },
     { id: "sessions", tab: "general", label: t("agents.title.section_sessions"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_sessions"), shown: true }] }
@@ -434,12 +428,14 @@ const entries = computed<SettingsEntry[]>(() => {
   const gateKeys = new Set((fallback.value?.profiles ?? []).filter((one) => one.kind === "gate").map((one) => one.key));
 
   for (const assignment of tiers.value?.assignments ?? []) {
+    if (gateKeys.has(assignment.key)) continue;
+
     const profile = fallback.value?.profiles.find((one) => one.key === assignment.key);
     const mode = profile === undefined ? null : routeModeText(t, profile);
 
     list.push({
       id: `route-${assignment.key}`,
-      tab: gateKeys.has(assignment.key) ? "gates" : "routes",
+      tab: "routes",
       label: keyLabel(assignment.key),
       fields: [{ label: t("common.label.name"), text: keyLabel(assignment.key), shown: true }, { label: t("agents.label.key"), text: assignment.key, shown: true }, { label: t("agents.label.tier"), text: assignment.tier, shown: true }, { label: t("agents.label.column_provider"), text: mode, shown: true }]
     });

@@ -1,9 +1,9 @@
 import { PAGING } from "#shared/config";
-import { gateConditions, layaModes } from "#shared/types";
+import { gateConditions } from "#shared/types";
 
 import { unitAt, unitFetch } from "./units";
 
-import type { GateCondition, GateOfferRecord, GateOptionsView, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, LayaAgreement, LayaGateView, LayaHealth, LayaMode, LayaModeRefusal, TokenSplit, TurnGateView } from "#shared/types";
+import type { GateCondition, GateOfferRecord, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, TokenSplit } from "#shared/types";
 
 // A room's judgements as the gate's console API holds them (the gate's `docs/api.md`, 「Judgements」): newest
 // first, a page at a time, each road a gate run walked beside it. The gate's address and token stand in the
@@ -151,21 +151,12 @@ export async function judgementsWithin(chatId: number, span: JudgementSpan): Pro
 }
 
 // The gate order as the gate unit serves it (the gate unit's `docs/api.md`, 「Gates」): each gate's part, step and
-// condition, whether its profile lets it be switched off, and its Laya probe.
+// condition, which is where the agent list puts each gate's row.
 interface GateRow {
   gateName: string;
   part: string;
   step: number;
   condition: string | null;
-  switchable: boolean;
-  layaProbe: boolean;
-  defaultLayaMode: string | null;
-}
-
-interface GateOptions {
-  enabled?: boolean;
-  layaMode?: string | null;
-  effective?: { layaMode?: string | null };
 }
 
 const knownCondition = (condition: string | null): GateCondition | null =>
@@ -203,205 +194,4 @@ export async function gateOrderView(): Promise<GatePartView[] | null> {
   const parts: GatePartView[] = [inTurn("pre"), inTurn("post"), { part: "apart", inTurn: false, steps: apart }];
 
   return parts.filter((part) => part.steps.length > 0);
-}
-
-/** The gates a turn passes, each with its Laya mode as it runs and its switch where it has one. */
-export async function turnGates(): Promise<TurnGateView[]> {
-  const rows = (await gateRows()).filter((row) => row.part === "pre" || row.part === "post");
-
-  return await Promise.all(
-    rows.map(async (row): Promise<TurnGateView> => {
-      const options = await unitFetch<GateOptions>("GATE", `/options/${encodeURIComponent(row.gateName)}`).catch((): GateOptions => ({}));
-
-      return {
-        name: row.gateName,
-        part: row.part as "pre" | "post",
-        step: row.step,
-        condition: knownCondition(row.condition),
-        switchable: row.switchable,
-        enabled: options.enabled ?? true,
-        layaProbe: row.layaProbe,
-        layaMode: row.layaProbe ? (options.effective?.layaMode ?? options.layaMode ?? row.defaultLayaMode) : null
-      };
-    })
-  );
-}
-
-/** One gate switched on or off, where its profile lets it be. */
-export async function switchGate(name: string, enabled: boolean): Promise<void> {
-  await unitFetch("GATE", `/options/${encodeURIComponent(name)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled }) });
-}
-
-// The gate unit's refusal codes for a change of a gate's options, each with the pack's key for its sentence (the
-// gate unit's `docs/api.md`, 「Gates」).
-const OPTION_CODES: Readonly<Record<string, string>> = {
-  "own-llm": "agents.error.gate_llm_settings",
-  "no-gate": "agents.error.gate_unknown",
-  "nothing-to-change": "agents.error.gate_nothing_to_change",
-  "timeout-out-of-range": "agents.error.bad_timeout",
-  "switch-not-boolean": "agents.error.bad_gate_switch",
-  "always-on": "agents.error.gate_always_on",
-  "laya-tau-out-of-range": "agents.error.bad_tau",
-  "laya-fallback-unknown": "agents.error.bad_laya_fallback",
-  "no-probe": "agents.error.laya_no_probe",
-  "no-safe-verdict": "agents.error.laya_no_safe_verdict",
-  "no-checkpoint": "agents.error.laya_no_checkpoint",
-  "needs-tau": "agents.error.laya_needs_tau"
-};
-
-const isLayaMode = (value: unknown): value is LayaMode => typeof value === "string" && (layaModes as readonly string[]).includes(value);
-const numberOr = (value: unknown, otherwise: number | null): number | null => (typeof value === "number" && Number.isFinite(value) ? value : otherwise);
-
-// One gate's options as the gate unit answers them, or null where the answer does not read as options.
-function optionsOf(answer: unknown): GateOptionsView | null {
-  if (answer === null || typeof answer !== "object") return null;
-
-  const sent = answer as Record<string, unknown>;
-  const effective = sent.effective as Record<string, unknown> | undefined;
-  const defaults = sent.defaults as Record<string, unknown> | undefined;
-
-  if (typeof sent.timeoutMs !== "number" || effective === undefined || defaults === undefined) return null;
-  if (!isLayaMode(effective.layaMode) || !isLayaMode(defaults.layaMode)) return null;
-
-  return {
-    timeoutMs: sent.timeoutMs,
-    layaMode: isLayaMode(sent.layaMode) ? sent.layaMode : null,
-    layaTau: numberOr(sent.layaTau, null),
-    layaProbe: sent.layaProbe === true,
-    switchable: sent.switchable === true,
-    enabled: sent.enabled !== false,
-    layaFallback: typeof sent.layaFallback === "string" ? sent.layaFallback : null,
-    effective: {
-      thinking: effective.thinking === true,
-      answerTokens: numberOr(effective.answerTokens, 0) ?? 0,
-      timeoutMs: numberOr(effective.timeoutMs, sent.timeoutMs) ?? sent.timeoutMs,
-      layaMode: effective.layaMode,
-      layaTau: numberOr(effective.layaTau, null)
-    },
-    defaults: {
-      thinking: defaults.thinking === true,
-      answerTokens: numberOr(defaults.answerTokens, 0) ?? 0,
-      layaMode: defaults.layaMode,
-      layaTau: numberOr(defaults.layaTau, null)
-    }
-  };
-}
-
-/**
- * The options of each named gate the gate unit lists, by its name: its wait, its switch, its Laya mode, tau and
- * fallback LLM. A name the unit does not list, one whose answer does not read, and every name while the unit is
- * not reached, have none.
- */
-export async function gateOptionsOf(names: readonly string[]): Promise<Map<string, GateOptionsView>> {
-  const held = new Map<string, GateOptionsView>();
-
-  if (unitAt("GATE") === null) return held;
-
-  let listed: Set<string>;
-
-  try {
-    listed = new Set((await gateRows()).map((row) => row.gateName));
-  } catch {
-    return held;
-  }
-
-  await Promise.all(
-    [...new Set(names)].filter((name) => listed.has(name)).map(async (name) => {
-      const options = optionsOf(await unitFetch<unknown>("GATE", `/options/${encodeURIComponent(name)}`).catch(() => null));
-
-      if (options !== null) held.set(name, options);
-    })
-  );
-
-  return held;
-}
-
-/** What a change of a gate's options may name; a Laya field sent null goes back to the gate's default. */
-export interface GateOptionsChange {
-  timeoutMs?: number;
-  enabled?: boolean;
-  layaMode?: LayaMode | null;
-  layaTau?: number | null;
-  layaFallback?: string | null;
-}
-
-/** One gate's options changed in the gate unit, a refusal said in the pack's sentence for its code and its status. */
-export async function setGateOptions(name: string, change: GateOptionsChange): Promise<void> {
-  await unitFetch(
-    "GATE",
-    `/options/${encodeURIComponent(name)}`,
-    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(change) },
-    { codes: OPTION_CODES, passStatus: [422] }
-  );
-}
-
-// The Laya server's last health check and each gate's standing beside it, as the gate unit serves them (the gate
-// unit's `docs/api.md`, 「Laya」), its moments in unix seconds as every screen reads them.
-interface GateLaya {
-  health: {
-    state: string;
-    model: string | null;
-    device: string | null;
-    vramBytes: number | null;
-    loadMs: number | null;
-    versions: Record<string, string>;
-    address: string | null;
-    checkMs: number | null;
-    checkedAt: number | null;
-    answeredAt: number | null;
-  };
-  gates: {
-    gateName: string;
-    mode: LayaMode;
-    tau: number | null;
-    agreement: (Omit<LayaAgreement, "stage"> & { gateName: string }) | null;
-    checkpoint: string | null;
-    refused: LayaGateView["refused"] | { mode: LayaMode; code: LayaModeRefusal }[];
-  }[];
-  modes: LayaMode[];
-  taus: number[];
-}
-
-export interface LayaRead {
-  health: LayaHealth;
-  gates: LayaGateView[];
-  modes: LayaMode[];
-  taus: number[];
-}
-
-const seconds = (ms: number | null): number | null => (ms === null ? null : Math.floor(ms / 1000));
-
-function refusedOf(refused: GateLaya["gates"][number]["refused"]): LayaGateView["refused"] {
-  return Array.isArray(refused) ? Object.fromEntries(refused.map((one) => [one.mode, one.code])) : refused;
-}
-
-/** The Laya server's last health check and every gate's mode, tau, agreement and checkpoint. */
-export async function layaOf(): Promise<LayaRead> {
-  const read = await unitFetch<GateLaya>("GATE", "/laya");
-  const { health } = read;
-
-  return {
-    health: {
-      state: health.state as LayaHealth["state"],
-      model: health.model,
-      device: health.device,
-      vramBytes: health.vramBytes,
-      loadMs: health.loadMs,
-      versions: health.versions ?? {},
-      address: health.address,
-      checkMs: health.checkMs,
-      checkedAt: seconds(health.checkedAt),
-      healthyAt: seconds(health.answeredAt)
-    },
-    gates: read.gates.map((gate) => ({
-      stage: gate.gateName,
-      mode: gate.mode,
-      tau: gate.tau,
-      agreement: gate.agreement === null ? null : { ...gate.agreement, stage: gate.agreement.gateName },
-      checkpoint: gate.checkpoint,
-      refused: refusedOf(gate.refused ?? {})
-    })),
-    modes: read.modes,
-    taus: read.taus
-  };
 }

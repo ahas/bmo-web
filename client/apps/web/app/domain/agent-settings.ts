@@ -13,7 +13,6 @@ export const AGENT_TABS = [
   { value: "workers", label: "agents.label.tab_workers", icon: "i-material-symbols-construction" },
   { value: "tiers", label: "agents.label.tab_tiers", icon: "i-material-symbols-stacks-outline" },
   { value: "routes", label: "agents.label.tab_routes", icon: "i-material-symbols-alt-route" },
-  { value: "gates", label: "agents.label.tab_gates", icon: "i-material-symbols-balance" },
   { value: "companions", label: "agents.label.tab_companions", icon: "i-material-symbols-pets" },
   { value: "research", label: "agents.label.tab_research", icon: "i-material-symbols-travel-explore" }
 ] as const;
@@ -64,13 +63,6 @@ export interface CellChoice {
 // The sizes an own LLM service's answer may be given, and what a blank means.
 export const ANSWER_TOKEN_CHOICES = [1024, 2048, 4096, 8192] as const;
 
-// The waits a gate's time limit offers. The bot takes any whole number of seconds from one to three
-// hundred; these are the ones worth a tap.
-export const GATE_TIMEOUTS = [5_000, 10_000, 15_000, 20_000, 30_000, 45_000, 60_000, 90_000, 120_000, 180_000, 240_000, 300_000] as const;
-
-export function secondsText(t: Translate, ms: number): string {
-  return t("common.label.seconds", { n: Math.round(ms / 1000).toLocaleString("ko-KR") });
-}
 
 export function tokensText(t: Translate, tokens: number | null | undefined): string {
   return tokens === null || tokens === undefined ? t("common.label.default") : tokens.toLocaleString("ko-KR");

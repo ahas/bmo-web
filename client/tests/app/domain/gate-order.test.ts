@@ -1,14 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
 import { GATE_ORDER } from "../../support/gate-order";
-import { packEntries } from "../../../apps/web/shared/wording";
 
-import { GATE_CONDITION_NOTES, GATE_PART_LABELS, gateOrderKeys, gatePlacements } from "../../../apps/web/app/domain/gate-order";
-import KO from "../../fixtures/app/domain/gate-order.test.ko.json";
+import { gateOrderKeys, gatePlacements } from "../../../apps/web/app/domain/gate-order";
 
 // An order as the gate unit serves one.
 const order = GATE_ORDER;
-const pack = new Map(packEntries());
 
 describe("where each gate stands", () => {
   test("is every place of the gate order, part by part and step by step", () => {
@@ -65,20 +62,3 @@ describe("where each gate stands", () => {
   });
 });
 
-describe("the words each part and condition is shown in", () => {
-  test("head the two turn parts with the owner's own names", () => {
-    expect(pack.get(GATE_PART_LABELS.pre)).toBe(KO.line_69);
-    expect(pack.get(GATE_PART_LABELS.post)).toBe(KO.line_70);
-    expect(pack.get(GATE_PART_LABELS.apart)).toBe(KO.line_71);
-  });
-
-  test("stand in the language pack for every part and every condition the order can carry", () => {
-    for (const key of [...Object.values(GATE_PART_LABELS), ...Object.values(GATE_CONDITION_NOTES)]) {
-      expect(pack.get(key)).toBeString();
-    }
-
-    for (const placement of gatePlacements(order).filter((one) => one.condition !== null)) {
-      expect(pack.get(GATE_CONDITION_NOTES[placement.condition!])).toBeString();
-    }
-  });
-});

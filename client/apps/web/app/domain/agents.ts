@@ -4,7 +4,7 @@ import { chatAgent } from "#shared/agent-names";
 import { isLaunchAgent, WORKER_AGENT } from "#shared/config";
 
 import type { LaunchAgent } from "#shared/config";
-import { GATE_PART_LABELS, gateOrderKeys, gatePlacements } from "./gate-order";
+import { gateOrderKeys } from "./gate-order";
 
 import type { AgentSummary, GatePartView, RoomSummary, TurnSpeaker } from "#shared/types";
 import type { Translate } from "#shared/wording";
@@ -440,32 +440,6 @@ export function agentGroups(
   return groups;
 }
 
-// One labelled run of a group's agents, for a screen that stands a group in parts.
-export interface AgentBlock {
-  key: string;
-  // Empty for a run that stands under the group's own title alone.
-  label: string;
-  agents: readonly AgentMeta[];
-}
-
-// The gates as the general screen stands them: one run per part of the gate order, each gate at its
-// first place in that part, then any gate the order does not place under no heading. A gate that
-// runs in two parts stands in both. Before the order has arrived the gates are one run.
-export function gateBlocks(t: Translate, gates: readonly AgentMeta[], gateOrder: readonly GatePartView[]): AgentBlock[] {
-  const placements = gatePlacements(gateOrder);
-  const blocks: AgentBlock[] = gateOrder.map((part) => {
-    const keys = [...new Set(placements.filter((one) => one.part === part.part).map((one) => one.key))];
-
-    return {
-      key: part.part,
-      label: t(GATE_PART_LABELS[part.part]),
-      agents: keys.flatMap((key) => gates.filter((gate) => gate.name === key))
-    };
-  });
-  const unplaced = gates.filter((gate) => !placements.some((one) => one.key === gate.name));
-
-  return [...blocks, { key: "unplaced", label: "", agents: unplaced }].filter((block) => block.agents.length > 0);
-}
 
 function roomRank(agent: AgentMeta, rooms: RoomSummary[]): number {
   const at = rooms.findIndex((room) => room.chatId === agent.chatId);

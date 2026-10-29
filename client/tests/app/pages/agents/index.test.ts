@@ -29,7 +29,7 @@ const catalogue = await read("../../components/AgentsCatalogue.vue");
 const registry = await read("../../components/AgentsRegistry.vue");
 const tiers = await read("../../components/AgentsTierTable.vue");
 const routes = await read("../../components/AgentsRouteTable.vue");
-const gateDialog = await read("../../components/GateSettingsDialog.vue");
+
 const limits = await read("../../components/AgentsCoworkerLimits.vue");
 const folds = await read("../../components/AgentsFoldRatios.vue");
 const dialog = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/SettingsDialog.vue"))).text();
@@ -45,8 +45,12 @@ describe("the screen's sections", () => {
     expect(templateOf(page)).toContain("<UTabs");
     expect(scriptOf(page)).toContain("route.query.tab");
     expect(scriptOf(page)).toContain("router.push({ query: { ...route.query, tab:");
-    for (const part of ["<AgentsGeneral", "<AgentsWorkers", "<AgentsTierTable", "<AgentsFoldRatios", "<AgentsCoworkerLimits", "<AgentsRouteTable", "<template v-else-if=\"tab === 'gates'\">", "<LayaStatusLine />", "<AgentsRouteTable gates", "<ResearchSettings"]) {
+    for (const part of ["<AgentsGeneral", "<AgentsWorkers", "<AgentsTierTable", "<AgentsFoldRatios", "<AgentsCoworkerLimits", "<AgentsRouteTable", "<ResearchSettings"]) {
       expect(templateOf(page)).toContain(part);
+    }
+    // Nothing in agent management leads to a gates page: no tab, no gate table and no Laya band.
+    for (const gone of ["tab === 'gates'", "<AgentsTurnGates", "<LayaStatusLine", "<AgentsRouteTable gates"]) {
+      expect(templateOf(page)).not.toContain(gone);
     }
     expect(page).not.toContain("WHERE_THE_LIST_LIVES");
     for (const key of keysSaying(KO.line_45)) {
@@ -150,9 +154,9 @@ describe("the general tab", () => {
     for (const column of ["agent", "role", "keepalive", "thinking", "effort"]) {
       expect(table).toContain(`#${column}-cell="{ row }"`);
     }
-    // Every value is chosen from a list dropped down from its own cell: the warming, the reasoning and each gate.
+    // Every value is chosen from a list dropped down from its own cell: the warming and the reasoning.
     expect(table).not.toContain("<USwitch");
-    expect(table).toContain('#[`gate-${gate.key}-cell`]="{ row }"');
+    expect(table).not.toContain("gate-");
     expect(scriptOf(agentTable)).toContain("keepaliveMarkOf(t, agent, props.keepalive.stopped)");
     expect(scriptOf(agentTable)).toContain('...(agent.kind === "worker" ? [{ value: PAUSED, label: t("agents.action.pause_until_job")');
     expect(scriptOf(agentTable)).toContain("{ agent: name, pause: true }");
@@ -393,108 +397,34 @@ describe("the model screens", () => {
   });
 });
 
-describe("one gate's settings on its own screens", () => {
-  test("are that gate's row of the same gate table, in a dialog, rather than a second editor", () => {
-    expect(templateOf(gateDialog)).toContain('<AgentsRouteTable gates :only="[props.gate]" />');
-    // Wide enough for the row across its columns, where a form's dialog is not.
-    expect(templateOf(gateDialog)).toContain(":description=\"props.gate\" wide>");
-    expect(dialog).toContain("props.wide ? 'sm:max-w-4xl' : 'sm:max-w-xl'");
-    expect(scriptOf(routes)).toContain("props.only === undefined || props.only.includes(key)");
-    for (const path of ["/api/fallback", "/api/model-tiers"]) {
-      expect(gateDialog).not.toContain(path);
-    }
-  });
-
-  test("read the catalogue again after a save, so the model each screen shows follows a tier change", () => {
-    expect(scriptOf(routes)).toContain('refreshNuxtData(["execution-fallback", "agents"])');
-  });
-});
-
-describe("the route and gate tabs", () => {
-  test("are one table each whose cells edit the key's provider, tier and — for a gate — its wait", () => {
+describe("the route tab", () => {
+  test("is one table whose cells edit the key's provider, account and tier", () => {
     const template = templateOf(routes);
 
-    expect(template).toContain(":layout=\"props.only === undefined ? 'fill' : 'own'\"");
+    expect(template).toContain('layout="fill"');
     expect(template).toContain(`:label="$t('agents.aria.provider_of', { name: row.original.label })"`);
     expect(template).toContain(`:label="$t('agents.aria.tier_of', { name: row.original.label })"`);
-    expect(template).toContain(`:label="$t('agents.aria.timeout_of', { name: row.original.label })"`);
-    // The gate's Laya mode and tau are cells of their own, and its agreement is read, never pressed.
-    expect(template).toContain(":label=\"`${row.original.label} Laya`\"");
-    expect(template).toContain(`:label="$t('agents.aria.tau_of', { name: row.original.label })"`);
-    expect(template).toContain("#agreement-cell");
     expect(template).toContain(`:label="$t('agents.action.previous_confirm')"`);
   });
 
-  // The gate table stands in the parts of the gate order the agent list serves, each gate at its
-  // step (the gate unit's docs/gates.md); one gate's own row, in its dialog, stays one row with no parts.
-  test("stand the whole gate table in the parts of the served gate order, each gate at its step", () => {
-    const template = templateOf(routes);
-    const script = scriptOf(routes);
-
-    expect(script).toContain("const ordered = computed(() => props.gates && props.only === undefined);");
-    expect(template).toContain(':sections="ordered ? sections : undefined"');
-    expect(template).toContain(':section-of="ordered ? partOf : undefined"');
-    // The same gate in two parts is two rows, told apart by part and key, both editing the one key.
-    expect(template).toContain(':row-key="ordered ? keyOf : undefined"');
-    expect(script).toContain("gatePlacements(agents.value.gateOrder ?? [])");
-    expect(script).toContain("t(GATE_PART_LABELS[part.part])");
-    // The step leads the row, with the run-together mark and the condition as its note.
-    expect(script).toContain('...(ordered.value ? [{ id: "step", header: HEADERS.step');
-    expect(template).toContain("#step-cell");
-    expect(script).toContain('t("agents.label.gate_together")');
-    expect(script).toContain("t(GATE_CONDITION_NOTES[row.place.condition])");
-    // A gate the order does not place stands after every placed one rather than dropping off.
-    expect(script).toContain("...unplaced.map((key) => ({ key, place: null }))");
-    // Only a key's first row carries the anchor the settings search jumps to.
-    expect(template).toContain(':id="row.original.first ? settingsAnchor(`route-${row.original.key}`) : undefined"');
-  });
-
-  // The general tab's list of agents stands its gates in the same parts, under the same words, and
-  // a gate in both parts carries the search's anchor on its first row only.
-  test("stand on the general tab the designated agents and the workers alone", () => {
-    expect(scriptOf(general)).toContain("agentGroups(t, designatedAndWorkers(props.agents.agents), props.rooms, props.agents.gateOrder ?? [])");
-    expect(scriptOf(agentTable)).toContain('group.key === "gate" ? gateBlocks(t, group.agents, props.agents.gateOrder ?? [])');
-    expect(general).not.toContain("text-xs");
-    expect(agentTable).not.toContain("text-xs");
-    // A gate in both parts carries the search's anchor on its first row only.
-    expect(templateOf(agentTable)).toContain(':id="row.original.first ? settingsAnchor(`agent-${row.original.meta.name}`) : undefined"');
-    // A worker's warming reads on, off, or off until its next job.
-    expect(scriptOf(agentTable)).toContain("return agent.keepalivePausedAt !== null ? PAUSED : agent.keepaliveStopped ? OFF : ON;");
-  });
-
-  test("name no gate to decide its order or its part", () => {
+  test("name no gate and carry no gate's column", () => {
     for (const key of ["\"session-summary\"", "\"sanitizer\"", "\"content-judge\"", "\"output-format\"", "\"system-documents\""]) {
       expect(routes).not.toContain(key);
     }
+    for (const gone of ["gateOptions", "Laya", "timeout", "agreement", "set-gate-options", "props.gates", "props.only"]) {
+      expect(routes).not.toContain(gone);
+    }
   });
 
-  test("choose a gate's model by tier alone and never write a provider's model or a gate's thinking", () => {
+  test("choose a key's model by tier alone and never write a provider's model", () => {
     const script = scriptOf(routes);
 
     expect(script).toContain('action: "assign", key: row.key, tier, acceptConflicts: acceptConflicts.value');
-    expect(script).toContain('action: "set-gate-options", key: row.key, timeoutMs:');
-    expect(script).toContain('action: "set-gate-options", key: row.key, layaMode:');
-    expect(script).toContain('action: "set-gate-options", key: row.key, layaTau:');
     expect(script).toContain('action: "set-route-mode", key: row.key, mode');
-    // A co-work role is offered only the tiers the bot lets it take.
     expect(script).toContain("row.assignment?.choices");
     for (const retired of ["set-codex", "set-openrouter", "set-claude", "set-local-model", "thinking:", "answerTokens:"]) {
       expect(script).not.toContain(retired);
     }
-  });
-
-  test("give a gate on Laya, in its Laya cell, the LLM it asks where Laya gives none, edited in place", () => {
-    const template = templateOf(routes);
-    const script = scriptOf(routes);
-
-    expect(template).toContain('v-else-if="row.original.profile?.gateOptions && onLaya(row.original)"');
-    expect(template).toContain(':items="layaFallbackItemsOf(row.original)"');
-    expect(script).toContain('action: "set-gate-options", key: row.key, layaFallback: choice === DEFAULT_CHOICE ? null : choice');
-    // The default choice names the provider the road would begin on; none and every provider kept on follow it.
-    expect(script).toContain('t("agents.label.default_with", { value: providerLabelOf(startProvider(row)) })');
-    expect(script).toContain('.filter((one) => one.enabled)');
-    expect(wording("agents.label.laya_fallback_none")).toBe(KO.line_410);
-    expect(types).toContain("layaFallback: string | null;");
   });
 
   test("let a key sit on one Claude login, or walk the account order", () => {
@@ -505,8 +435,7 @@ describe("the route and gate tabs", () => {
     expect(template).toContain("onClaude(row.original)");
     expect(scriptOf(routes)).toContain("accountChoices(t, accounts.value)");
     expect(scriptOf(routes)).toContain('action: "set-route-account", key: row.key, account');
-    // The provider column and the tier grid keep the shape they had, behind the gate table's step.
-    expect(scriptOf(routes)).toContain('HEADERS: Record<DataColumn, string> = { step: t("agents.label.column_step"), provider: t("agents.label.column_provider"), account: t("agents.label.column_account")');
+    expect(scriptOf(routes)).toContain('HEADERS: Record<DataColumn, string> = { provider: t("agents.label.column_provider"), account: t("agents.label.column_account"), tier: t("agents.label.tier")');
   });
 
   test("offer auto or one provider, never a local model first", () => {

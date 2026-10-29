@@ -1252,7 +1252,7 @@ Four groups.
   one more worker, that worker stands in this list under its own name. **It lists the agents a person designates
   and the workers, and nothing else:** a row of the `chat` kind holding a role, and a row of the `worker` kind. The
   rows the agency keeps for the gate unit's sessions — the `gate` kind, and a `chat` row holding no role — and the
-  runners' rows never stand here, whatever the agency lists: a gate stands on the agent management screen's 게이트 tab, a runner the agent
+  runners' rows never stand here, whatever the agency lists: a gate stands on the home screen's gate block, a runner the agent
   screen's 서쳐 tab's. The same holds for the agent management screen's lists of agents. Grouped in branches, one
   per group of kinds, each branch read from the kinds of the rows and naming no agent:
   - **지정된 에이전트** — every designated agent: the chat agent and every companion, side by side, each under
@@ -2501,10 +2501,10 @@ Two ways, split because the running places differ.
 
 - **What it is for.** The agent list itself, the job workers, keepalive, the provider order and
   enablement, the Claude accounts and their order, the shared model tiers, each work key's road and
-  account, each gate's road, wait and Laya mode, the common spawning pool and the searchers. The list is the archive's `agents` table, and everything this
+  account, the common spawning pool and the searchers. The list is the archive's `agents` table, and everything this
   screen edits is written through the bot — the console does not write the bot's tables directly. The
   table itself is read raw as `agents` on the DB screen.
-- **A section to a tab.** The tabs are 일반, 워커, 모델, 실행 경로, 게이트, 대화 상대 and 서쳐. The tab stands in
+- **A section to a tab.** The tabs are 일반, 워커, 모델, 실행 경로, 대화 상대 and 서쳐. The tab stands in
   the address (`?tab=`), so a shared link opens the same section and moving between tabs is a step of the
   history. The tab row stands under the title bar and carries, at its right end, the open section's own
   action (일반's, 워커's and 대화 상대's 추가 — 일반's a menu of Claude 계정, 등록 모델, 모델 파일, 기본 프롬프트 and
@@ -2533,33 +2533,28 @@ Two ways, split because the running places differ.
   reason under the field, or, for a choice, says the reason in a notice. A cell showing what the bot worked
   out — the model a key starts on now, what last answered — is not pressed. Dialogs are left only for what
   is not one cell: adding a worker, a worker's whole settings, and asking once before a reset or a removal.
-- **A table that is the whole section fills it.** 실행 경로 and 게이트 are one table each: the table takes
+- **A table that is the whole section fills it.** 실행 경로 is one table: the table takes
   the section's whole height however few its rows, its header holds to the section's top while the rows
   scroll, and its sideways scrollbar stands on the section's floor. 모델, with its tables, and 서쳐, with its
   table above the sentence of what it cannot show, scroll as a page, and each table there takes only its own height.
 - **The tab row never scrolls vertically**; tabs that do not fit scroll sideways.
 - **No introduction stands above a section.** What a setting does is its label and its place; the
   reasons behind the settings are in the documents named below, not on the screen.
-- **A worker's, a gate's and a room agent's own settings are also edited on their own screens.**
-  This screen stays the whole of every setting; the agent screen and the gate screen open its pieces in
-  place (see those screens), and no second editor exists anywhere:
+- **A worker's and a room agent's own settings are also edited on their own screens.**
+  This screen stays the whole of every setting; the agent screen opens its pieces in
+  place (see that screen), and no second editor exists anywhere:
   - a worker's whole settings are the same dialog the 워커 tab opens for that worker;
-  - a gate's settings are that gate's one row of the 게이트 table, the same cells, shown in a dialog;
-  - the gates of an agent that answers in a room are what that agent's 게이트 cell of 에이전트별 설정 drops down,
-    shown in a dialog;
   - the settings of an agent whose turns its settings' pieces make, a companion's, are its one block of
-    the 대화 상대 tab, shown in a dialog together with its gates as its 게이트 cell holds them; the screen tells such
-    an agent by the turn shape its row carries (the agency's `docs/agents.md`, 「One runner」).
-  - All four save through the same bot paths and meet the same refusals as here, and the console reads the
-    same shared data after a save, so a value changed on one screen is what the other shows. The worker's,
-    the agent's gates' and the companion's dialogs are forms (「Forms」): one 저장 in the footer saves
-    every change made in them, the gate switches included. The gate's dialog is its table row, each cell
-    saving as it is chosen.
-- **What stays on this screen only.** Nothing that belongs to more than one worker or gate is offered on
-  their own screens: the 실행 경로 rows (`job-worker` is every worker's road at once, and a `role:` key is a
+    the 대화 상대 tab, shown in a dialog; the screen tells such an agent by the turn shape its row
+    carries (the agency's `docs/agents.md`, 「One runner」).
+  - Both save through the same bot paths and meet the same refusals as here, and the console reads the
+    same shared data after a save, so a value changed on one screen is what the other shows. The worker's
+    and the companion's dialogs are forms (「Forms」): one 저장 in the footer saves every change made in them.
+- **What stays on this screen only.** Nothing that belongs to more than one worker is offered on
+  its own screen: the 실행 경로 rows (`job-worker` is every worker's road at once, and a `role:` key is a
   co-worker role, not a worker), the shared model tiers, the co-worker limits, the provider order, the
   Claude accounts, the 전체 캐시 유지 switch and the searchers' work keys each belong to the whole bot or to
-  something other than one worker or gate.
+  something other than one worker.
 
 #### 일반
 
@@ -2639,14 +2634,13 @@ Two ways, split because the running places differ.
   about a login is only whether it stands and when it ends.
 
 - **에이전트별 설정.** One table of every agent's own settings, the agents its rows and the settings its columns:
-  every agent in its group — the chat agent, workers, gates, runners — under the group's heading row, one row each, and
-  the columns 에이전트, 롤, 캐시 유지, 생각, Effort and one column for each gate a turn passes, the pre-gate's then the
-  post-gate's, under the gate's name. Every value is edited in its own cell the one way the table edits: pressing
+  every agent in its group — the chat agent, companions and workers — under the group's heading row, one row each, and
+  the columns 에이전트, 롤, 캐시 유지, 생각 and Effort. Every value is edited in its own cell the one way the table edits: pressing
   the cell drops down from it the list of its values, and the one chosen is saved at once, a refusal said in a
   notice. Every agent stands in it exactly once: a worker the agency
   lists both as an agent and as a worker is one row, the worker's own fields on its agent's row, and a row stands in the
-  group its kind names. No other list on the tab repeats the agents for their role, their warming, their thinking or
-  their gates. The table takes its own height among the tab's sections and scrolls sideways inside its own box on a
+  group its kind names. No other list on the tab repeats the agents for their role, their warming or
+  their thinking. The table takes its own height among the tab's sections and scrolls sideways inside its own box on a
   phone, so no cell is cut.
   - **에이전트** is the title column: its mark, its name and key, what last answered on it and, under them, its
     warming mark. Pressing the name opens that agent's own screen.
@@ -2669,9 +2663,6 @@ Two ways, split because the running places differ.
   its user on the account service as `ownerAccount`. A refusal naming a field stands under that field, a name
   already taken under the key; the brain the agency made, kept or could not make is said in a notice. The agent
   stands in the table at once.
-- **The gates stand in the parts of the gate order** (the gate unit's documents) — 프리게이트, 포스트게이트 and
-  턴 밖, each under its own heading and in the turn's order within it, as on 게이트. A gate that runs in
-  both 프리게이트 and 포스트게이트 stands in each, and its two switches are one setting.
 - **다음 Job까지 끄기.** A worker's 캐시 유지 cell also offers 다음 Job까지 끄기, which turns its warming off now, until
   that worker's next job; nothing but that job turns it back on. The cell then reads 다음 Job까지
   꺼짐, and the choice stands disabled while the worker is not being warmed anyway — its warming off, the
@@ -2691,14 +2682,7 @@ Two ways, split because the running places differ.
     pointer rests on it, the levels it does take.
   - While the bot is not answering, the cells show what the archive holds and nothing of what reaches
     a provider.
-  - A support worker is not listed, since it runs on its base's settings, and neither is a gate,
-    whose thinking and effort are its tier's.
-- **A gate's column** holds, for every agent that answers in a room — the chat agent and each companion — its own
-  switch of that gate (the gate unit's documents, 「Each agent's own gates」), 켬 or 끔; an agent whose turn does not
-  pass the gate shows a dash. A gate standing in both parts of a turn has one column, since its switch is one
-  setting for both. Which gates an agent's turn passes is the bot's word, so while the bot is not answering the
-  columns are not drawn. Shown in an agent's own dialog, its gates stand as switches that wait for that dialog's
-  저장.
+  - A support worker is not listed, since it runs on its base's settings.
 - **세션.** Under the table of 에이전트별 설정, every session an agent holds now (the agency's `docs/session-resets.md`), one row
   each in the agent list's order: the agent's face or mark (「Profile photos」), label and key, which session it is — the chat agent's chat
   session, a worker's recorded sessions with their models, a companion's session in one room with its
@@ -2896,65 +2880,6 @@ Two ways, split because the running places differ.
   tier. Where an older per-key setting was kept at the migration, the dropdown lists those settings and
   a checkbox that accepts the chosen tier over them before the tier can be picked.
 
-#### 게이트
-
-- **턴 게이트 heads the tab:** every gate a turn passes, as the gate unit's `GET /gates` lists it — the pre-gate's
-  and the post-gate's, never an off-turn one and never one the unit has shelved — one row each: its name, where it
-  stands (its part and its step), the condition its step runs under, its Laya mode where it has a Laya probe and
-  「Laya 질문 없음」 where it has none, its switch where its profile lets it be turned off, and the switch of its
-  cache warming where the agency holds a session for it. A dash stands where it has neither switch. The console
-  holds no view of a room's verdicts by gate, so a row leads nowhere else.
-- **One table of the gates** — each with a profile, so as gates grow the rows grow — with each gate's
-  provider, its Claude account, its tier (and under it the registration, Token Size and thinking the
-  tier gives it on the registry's provider), its time limit and what last answered on it. The person-book search and summariser and the knowledge
-  classifier are rows here too (the brain's `docs/people-book.md`, the brain's `docs/knowledge.md`).
-- **The table stands in the parts of the gate order** (the gate unit's documents), each under its own heading row:
-  프리게이트, 포스트게이트 and 턴 밖, in that order, one header and one set of columns across all three.
-  - Within a part the rows follow the turn's steps. The first cell is the step's number within its
-    part; the gates of one step share it and carry a mark that they run together.
-  - A step that runs only in some turns names its condition under the number.
-  - A gate that runs in both 프리게이트 and 포스트게이트 has a row in each. Both rows are that one gate's
-    settings, and a cell changed in one reads the same in the other.
-  - A gate's own screen opens its one row alone, without parts.
-- **Each cell edits its own value:** the provider, the account and the tier as on 실행 경로, and the time
-  limit — always the gate's real value in seconds, chosen from the seconds the screen offers from 5 to
-  300 (the bot takes any whole number from 1 to 300). There is no 기본값 choice and no way to empty the
-  cell: the table is the only place a gate's wait is set (the agency's `docs/own-llm.md`, 「Per-gate time limit」).
-  A gate's model is always its tier, never a provider's model, and
-  its thinking and answer room come from that tier, never below the gate's own floor (the agency's `docs/own-llm.md`).
-  A gate has one road and nothing behind it, so the time limit is where it gets or loses its verdict.
-- **A gate whose profile offers Laya** has Laya among its providers (the gate unit's documents, 「A gate whose
-  provider is Laya」). On Laya its tier cell cannot be pressed: it shows 체크포인트 with the checkpoint
-  the Laya server names for that gate in its latest health check, or 확인 전 where the server has
-  named none, and its account and τ cells show a dash, since neither is read. Its time limit cell
-  stays pressable: it is how long the gate waits for Laya, and its fallback LLM again after it. In
-  place of its Laya mode stands the LLM it asks where Laya gives no verdict, 대체 with the provider
-  or 대체 없음, pressed for the provider its road would begin on with 기본값, 대체 없음 and each
-  provider kept on (the gate unit's documents, 「A gate whose provider is Laya」).
-- **Laya stands on this tab too** (the gate unit's documents):
-  - A band above the table gives the Laya server's state from its latest health check, as the gate unit's `GET
-    /laya` answers it — 응답함, 사용 중 where its card was taken for the last call, the failure word, 꺼짐 where no
-    address is set, or 확인 전; where the gate unit is not reached, 연결 안 됨 — with the model, the VRAM it holds
-    (in whole MB below a gigabyte, in GB to one place from there) and how long the check took, in the node screen's state colours. It is pressed for a popover of the
-    details — model, device, VRAM, load time, address, when it was checked and last answered — with
-    노드 보기 to the node whose host the address names, where one does. The band and the table share the
-    page's one gutter: the band's words start where the table's first column does, its button's own inset
-    counted in the gutter rather than added to it.
-  - The table carries each gate's Laya mode and τ as cells that edit their own value like the others.
-    The mode offers the default, named by the mode it stands for with 기본값 (「The default among choices」), and the four modes; τ offers 없음 and the grid the
-    agreement is counted at. A gate that declares no probe shows a dash in both and in the next.
-  - **A gate's options are the gate unit's.** Its time limit, its switch, its Laya mode, τ and fallback LLM
-    are read with the table from the gate unit's `GET /options/{gateName}`, for each gate its `GET /gates`
-    lists, and a cell that changes one writes it with `POST /options/{gateName}`. A row the gate unit does
-    not list, or a table read while the unit is not reached, has no options and shows a dash in their cells.
-  - Read-only beside them, 일치: the gate's agreement with its LLM, over the pairs it rests on and the
-    failures beside them, and at the gate's τ the share Laya would settle and how often it agrees
-    there. A gate Laya settles one question at a time counts questions instead of pairs, and beside
-    them the share of its questions Laya settled (the gate unit's documents, 「Agreement」). It keeps its place with a skeleton until the records are read.
-  - A mode of 필터 or 비대칭 for a gate with no τ is refused by the gate unit, as is a mode the gate cannot
-    run in, and the refusal is said in a notice in the pack's sentence for its code. The whole of it is read from the gate unit's `GET /laya` and read again every half minute while the tab
-    stands, and when a turn ends.
-
 #### 대화 상대
 
 - **A list heads the tab:** every agent that answers in a room — the chat agent and each companion — one row each
@@ -3042,8 +2967,7 @@ Two ways, split because the running places differ.
   account that exists, an account order that does not hold every registered account once each with at
   least one on, an account whose configuration directory or token file is not an absolute path that is
   there, an account under a name another already carries, a registry effort other than empty,
-  `thinking` or `no-thinking`, a Token Size other than the four offered, and a gate time limit that is empty or outside
-  1 to 300 seconds are not saved. Each model is checked against its real list where it is saved.
+  `thinking` or `no-thinking`, and a Token Size other than the four offered are not saved. Each model is checked against its real list where it is saved.
 - The run prompt put into a job, search or gate has nothing to do with the length of one Telegram
   message. A web control request takes up to a million characters, and whether it can enter the model
   is decided by the chosen model's context and that run's system prompt. Words sent to a room and
@@ -3080,19 +3004,17 @@ Two ways, split because the running places differ.
   week's tokens with their names and a bar — and an agent nothing is known about has no mark. While running, 「업타임 00:00:00」 stands beside it. Not
   the start time but the length from start to now, redrawn only in that place every second — not redrawing
   the screen, not asking the bot more. Which agent it is the same header's name already says, so that line
-  carries only the length. A gate's screen also has, beside its name, the button to the place to test that
-  gate alone. The right end of the title bar keeps only what every screen carries.
+  carries only the length. The right end of the title bar keeps only what every screen carries.
 - **At phone width the bar keeps the name readable and folds what stands beside it** (sm, the width every
   title bar folds at). The uptime goes behind the chart mark, standing above the figures when it is pressed,
-  and the mark stands for the uptime alone where the agent has no figures. 중지, the gate's test and 설정
+  and the mark stands for the uptime alone where the agent has no figures. 중지 and 설정
   are one group behind the shared vertical-dots menu, whose button spins while a stop is under way. The
   bar's marks keep the one square every title bar's marks have, and none of them overlaps another.
   `client/tests/browser/agent-topbar.test.ts` measures the bar of a running worker at 360, 390 and 1280 pixels
   wide against a dev console, as the other title bar checks do.
 - **설정** stands beside the name, as an icon button, where the agent has settings of its own: a job
-  worker's opens the worker settings dialog of the agent management screen's 워커 tab, a gate's opens
-  that gate's row of the 게이트 table in a dialog, and an agent that answers in a room — the chat agent, a
-  companion — opens its gates, as its 게이트 cell of 에이전트별 설정 holds them, in a dialog. Every other agent has no such button, since what it runs
+  worker's opens the worker settings dialog of the agent management screen's 워커 tab, and a companion's
+  opens its block of the 대화 상대 tab in a dialog. Every other agent has no such button, since what it runs
   on is either shared or set on the agent management screen alone. Saving here is saving there: the same
   path, the same refusals, and the name, marks and model on this screen read again after a save.
 - A line has a time, a kind and content. There are eight kinds.
@@ -4925,8 +4847,7 @@ Four bounds keep it from growing forever.
   carries the pair for each, named by the companion's label. Nobody else signed in sees them, and the
   console's server refuses either for anyone but the administrator.
 - **모델 설정 opens the companion's settings dialog** — the very component the agent list opens, its
-  대화 상대 block and its gates' block, saved by the one 저장 (「Forms」) — so the two places never
-  differ.
+  대화 상대 block, saved by the one 저장 (「Forms」) — so the two places never differ.
 - **초기화 opens a dialog of its own** (the agency's `docs/companions.md`, 「Starting it afresh」):
   - two checkboxes, 대화 기록 and 인물 기록, each with a line saying what it takes, both unchecked as
     it opens;
@@ -5873,8 +5794,7 @@ dialog open at 계정.
   entered for either change, and 저장 is open only while the name or the password differs; closing
   with a change asks first (「Forms」).
 - A changed name takes everything the account holds with it — the devices it rings, the phones that
-  play its briefings, the tabs each screen stands with, its questions on the gate screen, its theme and
-  its palette.
+  play its briefings, the tabs each screen stands with, its theme and its palette.
 
 #### 테마
 

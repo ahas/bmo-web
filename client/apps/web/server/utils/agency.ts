@@ -10,7 +10,7 @@ import { answered } from "./unit-answer";
 import type { Agent as AgencyAgent, AgencyClient, FoldRatio, Provider, Session, Tier, Worker } from "@agency/client";
 import type { components } from "@agency/client/schema";
 import type { AgentSamplingView, BasePromptView, BasePromptsView, FoldRatiosView, FoldRatioView, GenerationSetting, GenerationValue, SessionView, TierAssignmentView, TierConflict, TierMapping, TierProvider, TierProviderView, TierSettingsView } from "#shared/agency";
-import type { AgentGateView, AgentReasoningView, AgentSummary, RoleView } from "#shared/types";
+import type { AgentReasoningView, AgentSummary, RoleView } from "#shared/types";
 import type { UnitAnswerCall } from "./unit-answer";
 
 type Schemas = components["schemas"];
@@ -89,15 +89,14 @@ const seconds = (ms: number | null): number | null => (ms === null ? null : Math
 // and the session's loads — stands empty (docs/boundary.md, 「Gaps the console meets」).
 // What the agency's answer carries on an agent beside the fields its published type states: the registration row's
 // kind, whether it is the default answerer and the room it answers (docs/boundary.md, 「Gaps the console meets」).
-export function carriedOf(agent: AgencyAgent): { kind: string; defaultAnswerer: boolean; chatId: number | null; reasoning: AgentReasoningView | null; gates: AgentGateView[] | null } {
+export function carriedOf(agent: AgencyAgent): { kind: string; defaultAnswerer: boolean; chatId: number | null; reasoning: AgentReasoningView | null } {
   const row: Record<string, unknown> = Object.fromEntries(Object.entries(agent));
 
   return {
     kind: typeof row.kind === "string" && row.kind !== "" ? row.kind : "chat",
     defaultAnswerer: row.defaultAnswerer === true,
     chatId: typeof row.chatId === "number" ? row.chatId : null,
-    reasoning: reasoningOf(row.reasoning),
-    gates: gatesOf(row.gates)
+    reasoning: reasoningOf(row.reasoning)
   };
 }
 
@@ -119,16 +118,6 @@ function reasoningOf(value: unknown): AgentReasoningView | null {
   };
 }
 
-// The gates an agent's turn passes with its own switch of each, as the agency answers them; none where it names none.
-function gatesOf(value: unknown): AgentGateView[] | null {
-  if (!Array.isArray(value)) return null;
-
-  return value.flatMap((one): AgentGateView[] => {
-    const gate = one as { part?: unknown; key?: unknown; on?: unknown };
-
-    return (gate.part === "pre" || gate.part === "post") && typeof gate.key === "string" ? [{ part: gate.part, key: gate.key, on: gate.on !== false }] : [];
-  });
-}
 
 function agentSummary(agent: AgencyAgent): AgentSummary {
   const carried = carriedOf(agent);
@@ -159,8 +148,7 @@ function agentSummary(agent: AgencyAgent): AgentSummary {
     contextTokens: null,
     keepaliveStopped: false,
     keepalivePausedAt: null,
-    reasoning: carried.reasoning,
-    gates: carried.gates
+    reasoning: carried.reasoning
   };
 }
 

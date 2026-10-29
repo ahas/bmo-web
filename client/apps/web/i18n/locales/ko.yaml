@@ -1618,7 +1618,6 @@ agents:
     drag_reorder: 드래그해서 순서 변경
     effort_of: "{name} Effort"
     fold_ratio_of: "{tier} {provider} 압축 기준"
-    gate_of: "{name} {gate}"
     keepalive_of: "{name} 캐시 유지"
     label_of: "{name} 이름표"
     limit_of: "{mode} {tier} 한도"
@@ -1634,14 +1633,9 @@ agents:
     search_depth: 검색 깊이
     session_reset_of: "{name} 세션 초기화"
     settings_sections: 설정 섹션
-    switch_of: "{name} 사용"
     switch_on: "{name} 켜기"
-    tau_of: "{name} τ"
     thinking_of: "{name} 생각"
     tier_of: "{name} 등급"
-    timeout_of: "{name} 제한시간"
-    turn_gate_keepalive_of: "{gate} 캐시 유지"
-    turn_gate_switch_of: "{gate} 켜기"
     vitals: 에이전트 지표
     worker_name: 워커 이름
   error:
@@ -1657,20 +1651,14 @@ agents:
     agent_add_refused: 에이전트를 등록하지 못했습니다.
     agent_name_taken: 이미 있는 키입니다.
     bad_account_choice: 계정은 자동이거나 계정 하나여야 합니다.
-    bad_agent_gate: 게이트 이름과 켬·끔 값이 필요합니다.
     bad_agent_name: 에이전트 이름이 올바르지 않습니다.
     bad_answer_size: 출력 크기는 1024·2048·4096·8192 중 하나여야 합니다.
     bad_credential_kind: 자격 증명은 설정 디렉터리이거나 토큰 파일입니다.
     bad_depth: 검색 깊이가 올바르지 않습니다.
     bad_effort: Effort는 기본이거나 단계 하나여야 합니다.
-    bad_gate_switch: 사용 여부는 켬·끔 값이어야 합니다.
     bad_launch_agent: 실행할 에이전트가 올바르지 않습니다.
-    bad_laya_fallback: Laya 대체 LLM은 공급자 이름이나 끔이어야 합니다.
-    bad_laya_mode: "Laya 모드는 {modes} 가운데 하나여야 합니다."
     bad_run_mode: 실행 모드는 자동 또는 공급자 하나여야 합니다.
-    bad_tau: τ는 0에서 1 사이의 숫자여야 합니다.
     bad_thinking: 생각은 켬·끔 값이어야 합니다.
-    bad_timeout: 제한시간은 1초에서 300초 사이여야 합니다.
     bad_word_worker: 메시지를 보낼 워커가 올바르지 않습니다.
     base_prompt_action: 기본 프롬프트에 요청한 동작이 올바르지 않습니다.
     base_prompts_read_failed: 기본 프롬프트를 불러오지 못했습니다.
@@ -1703,10 +1691,6 @@ agents:
     field_refused: 받아들여지지 않은 값입니다.
     fold_percent: "압축 기준은 {min}부터 {max}까지의 정수(%)입니다."
     fold_ratios_read_failed: 압축 기준을 불러오지 못했습니다.
-    gate_always_on: 이 게이트는 끌 수 없습니다.
-    gate_llm_settings: 게이트의 생각과 출력 크기는 모델 등급의 자체 LLM 설정에서 정합니다.
-    gate_nothing_to_change: "바꿀 값이 없습니다: 제한시간, Laya 모드, τ, 사용 가운데 하나를 보내 주세요."
-    gate_unknown: 게이트 유닛에 없는 게이트입니다.
     job_prompt_failed: 프롬프트를 불러오지 못했습니다.
     keepalive_direction: 캐시 유지를 멈출지 다시 켤지 정해 주세요.
     keepalive_failed: 캐시 워머가 요청을 처리하지 못했습니다.
@@ -1716,10 +1700,6 @@ agents:
     label_needed: 이름표를 입력해 주세요.
     launch_empty: 작업 지시를 입력해 주세요.
     launch_failed: 실행하지 못했습니다.
-    laya_needs_tau: 필터와 비대칭 모드는 τ를 정한 뒤에 선택할 수 있습니다.
-    laya_no_checkpoint: Laya 서버에 이 게이트의 체크포인트가 없어 이 모드를 쓸 수 없습니다.
-    laya_no_probe: 이 게이트에는 Laya 질문이 없어 Laya 모드를 정할 수 없습니다.
-    laya_no_safe_verdict: 이 게이트에는 안전 판정이 없어 이 모드를 쓸 수 없습니다.
     limits_read_failed: 코워커 한도를 읽지 못했습니다.
     log_read_failed: 로그를 읽지 못했습니다. 잠시 뒤 다시 시도해 주세요.
     model_unlisted: 목록에 없는 모델입니다. 다시 선택해 주세요.
@@ -1745,7 +1725,6 @@ agents:
     settings_read_failed: 설정을 불러오지 못했습니다.
     tier_not_saved: 등급 저장 안 됨
     tiers_read_failed: 등급 설정을 불러오지 못했습니다.
-    turn_gates_read_failed: 게이트를 읽지 못했습니다.
     word_empty: 메시지를 입력해 주세요.
     word_unavailable: 워커에게 말을 전하는 길이 아직 없습니다.
     worker_name_empty: 워커 이름을 입력해 주세요.
@@ -1786,14 +1765,11 @@ agents:
     call_done: 완료
     call_failed: 실패
     characters_unit: 자
-    checkpoint: 체크포인트
     column_account: 계정
     column_agent: 에이전트
-    column_agreement: 일치
     column_auto_job: 자동 Job
     column_cwd: 작업 경로
     column_effort: Effort
-    column_gate: 게이트
     column_keepalive: 캐시 유지
     column_kind: 종류
     column_model: 현재 모델
@@ -1801,11 +1777,7 @@ agents:
     column_recent: 최근
     column_role: 롤
     column_rooms: 방
-    column_step: 순서
-    column_switch: 사용
-    column_tau: τ
     column_thinking: 생각
-    column_timeout: 제한시간
     column_work: 작업
     companion_label: 표시 이름
     companion_room: 방 제목
@@ -1823,7 +1795,6 @@ agents:
     context_tokens: "컨텍스트 {tokens}"
     credential: 자격 증명
     cwd_help: 비우면 자동 생성 · git 아니면 협업 없음
-    default_with: "{value} (기본값)"
     dev_server: 개발서버 명령
     dev_server_help: 한 줄 · 비우면 없음
     diff_added: "{added}줄 추가"
@@ -1856,7 +1827,6 @@ agents:
     exec_node_help: 선택하면 Job 전체가 그 노드에서 실행 · 경로도 그 노드 기준
     find_account: "Claude 계정 · {name}"
     find_account_order: Claude 계정 · 계정 순서
-    find_agent_gates: 에이전트별 게이트 · 프리게이트 · 포스트게이트 · 무해화
     find_draft_process: "드래프트 과정 {key}"
     find_draft_question: "드래프트 질문 {name}"
     find_fallback: 활성 공급자 및 우선순위 · 폴백
@@ -1877,14 +1847,8 @@ agents:
     fold_source_provider: 공급자 기본값
     fold_source_set: 콘솔에서 설정
     free_only: 무료 모델만
-    gate_condition_folding_dialect: 답 축소를 지원하는 방만
-    gate_condition_fresh_session: 세션을 새로 열 때만
     gate_off: 끔
     gate_on: 켬
-    gate_part_apart: 턴 밖
-    gate_part_post: 포스트게이트
-    gate_part_pre: 프리게이트
-    gate_together: 함께 실행
     generation: 생성 파라미터
     generation_of: "{generation}번째 세션"
     group_designated: 지정된 에이전트
@@ -1908,29 +1872,6 @@ agents:
     last_read_list: "마지막으로 읽은 목록 · {time}"
     launch_say: 메시지
     launch_task: 작업 지시
-    laya_address: 주소
-    laya_at_tau: "τ {tau} 커버리지 {coverage} · 일치 {agreement}"
-    laya_checked: 확인
-    laya_device: 장치
-    laya_failures: "실패 {n}"
-    laya_fallback: "대체 {value}"
-    laya_fallback_choice: Laya 대체 LLM
-    laya_fallback_none: 대체 없음
-    laya_last_answer: 마지막 응답
-    laya_last_answer_at: "마지막 응답 {time}"
-    laya_load: 로드 시간
-    laya_mode_asymmetric: 비대칭
-    laya_mode_filter: 필터
-    laya_mode_off: 끔
-    laya_mode_shadow: 섀도
-    laya_mode_unknown: "알 수 없는 모드 {mode}"
-    laya_pairs: "쌍 {n}"
-    laya_questions: "문항 {n}"
-    laya_refused_no_checkpoint: 서버에 체크포인트 없음
-    laya_refused_no_probe: Laya 질문 없음
-    laya_refused_no_safe_verdict: 안전 판정 없음
-    laya_settled: "Laya 판정 {share}"
-    laya_state: 상태
     line_answer: 답
     line_context: 컨텍스트
     line_end: 끝
@@ -2016,8 +1957,6 @@ agents:
     sampling: 샘플링
     search_tab: 탭
     searcher_of: "서쳐 {name}"
-    service_thinking_off: "{service} {tokens} · 생각 끔"
-    service_thinking_on: "{service} {tokens} · 생각 켬"
     serving: 서빙 중
     session_chat: "대화 세션 · {model}"
     session_cleared_at: "{time} 초기화"
@@ -2039,7 +1978,6 @@ agents:
     switch_on: 켬
     system_prompt_sent: 보낼 시스템 프롬프트
     tab_companions: 대화 상대
-    tab_gates: 게이트
     tab_general: 일반
     tab_research: 서쳐
     tab_routes: 실행 경로
@@ -2057,13 +1995,6 @@ agents:
     this_machine: 이 기기
     this_run: 이 실행
     tier: 등급
-    turn_gate: 게이트
-    turn_gate_condition: 조건
-    turn_gate_keepalive: 캐시 유지
-    turn_gate_laya: Laya
-    turn_gate_place: 위치
-    turn_gate_step: "{part} {n}단계"
-    turn_gate_switch: 켜기
     unit_build: "구현 {n}"
     unit_reopened: "{run}차 {label}"
     unit_round: "{label} {round}회차"
@@ -2133,7 +2064,6 @@ agents:
     agent_added_kept: "{name}을 등록했습니다. 있던 브레인을 그대로 씁니다."
     agent_added_made: "{name}을 등록하고 브레인을 만들었습니다."
     agent_added_none: "{name}을 등록했습니다."
-    agreement_loading: 일치율 불러오는 중…
     answering_instead: 대신 답하는 중
     call_running: 실행 중
     check_needed: 확인 필요
@@ -2145,20 +2075,8 @@ agents:
     companions_loading: 대화 상대 설정 불러오는 중…
     draft_processes_loading: 드래프트 과정 불러오는 중…
     fold_ratios_loading: 압축 기준 불러오는 중…
-    gates_loading: 게이트 불러오는 중…
     job_ended: 끝남
     job_running: 실행 중
-    laya_bad_answer: 잘못된 응답
-    laya_busy: 사용 중
-    laya_loading: Laya 상태 불러오는 중…
-    laya_off: 꺼짐
-    laya_refused: 거부됨
-    laya_timeout: 시간 초과
-    laya_too_large: 응답 과다
-    laya_unavailable: 연결 안 됨
-    laya_unchecked: 확인 전
-    laya_unreachable: 연결 안 됨
-    laya_up: 응답함
     limits_loading: 코워커 한도 불러오는 중…
     log_loading: 로그 불러오는 중…
     log_unavailable: 링크가 가리키는 실행을 찾지 못해 그 실행의 로그를 열 수 없습니다.
@@ -2173,7 +2091,6 @@ agents:
     no_registrations: 등록된 모델 없음
     no_sessions: 세션 없음
     no_tier_assignment: 등급 배정 없음
-    no_turn_gates: 턴 게이트가 없습니다.
     older_loading: 이전 줄 불러오는 중…
     registry_loading: 등록 모델 불러오는 중
     road_codex_missing: 이 기기에 Codex 실행 파일이 없어 선택할 수 없습니다.
@@ -2194,7 +2111,6 @@ agents:
     settings_loading: 설정 불러오는 중…
     tier_applied: 등급 적용됨
     tiers_loading: 모델 등급 불러오는 중…
-    turn_gates_loading: 게이트를 불러오는 중
     turn_thinking: 생각 중
     turn_tool: 툴 사용 중
     turn_tool_named: "{tool} 사용 중"
@@ -2229,7 +2145,6 @@ agents:
     section_providers: 활성 공급자 및 우선순위
     section_sessions: 세션
     tiers: 모델 등급
-    turn_gates: 턴 게이트
     work_log: 로그
     work_now: 지금
     work_order: 작업 지시

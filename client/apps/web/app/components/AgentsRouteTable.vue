@@ -1,8 +1,7 @@
 <template>
-  <!-- Every work key's road at once: the provider it runs on, the tier its model comes from and —
-       for a gate — how long it waits. A row opens that key's settings. -->
-  <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="props.gates ? $t('agents.label.column_gate') : $t('agents.label.tab_routes')">
-    <DataTableSkeleton v-if="!ready && !failed" :headers="tableHeaders(columns)" :rows="props.only?.length ?? 8" :label="props.gates ? $t('agents.status.gates_loading') : $t('agents.status.routes_loading')" />
+  <!-- Every work key's road at once: the provider it runs on and the tier its model comes from. -->
+  <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('agents.label.tab_routes')">
+    <DataTableSkeleton v-if="!ready && !failed" :headers="tableHeaders(columns)" :rows="8" :label="$t('agents.status.routes_loading')" />
     <ReadFailure
       v-else-if="failed && !ready"
       class="mx-4 my-4 w-auto"
@@ -12,28 +11,10 @@
       @retry="reread()"
     />
 
-    <!-- The whole table fills its tab; narrowed to a few keys it stands in a dialog and takes only
-         its own height there. -->
-    <!-- The gate table stands in the parts of the gate order, each gate at its step; a gate that runs
-         in both parts of a turn has a row in each, and both rows edit the one key (the gate unit's docs/gates.md). -->
-    <DataTable
-      v-if="ready"
-      :data="rows"
-      :columns="columns"
-      :layout="props.only === undefined ? 'fill' : 'own'"
-      :sections="ordered ? sections : undefined"
-      :section-of="ordered ? partOf : undefined"
-      :row-key="ordered ? keyOf : undefined"
-    >
-      <template #step-cell="{ row }">
-        <span :class="CELL_TEXT" class="ps-4">
-          <SearchText class="tabular-nums text-highlighted" :text="cellText(row.original, 'step')" :query="props.query" />
-          <SearchText v-if="cellNote(row.original, 'step') !== ''" class="text-muted" :text="cellNote(row.original, 'step')" :query="props.query" />
-        </span>
-      </template>
-
+    <!-- The whole table fills its tab. -->
+    <DataTable v-if="ready" :data="rows" :columns="columns" layout="fill">
       <template #label-cell="{ row }">
-        <span :id="row.original.first ? settingsAnchor(`route-${row.original.key}`) : undefined" :class="[CELL_TEXT, ordered ? '' : 'ps-4']">
+        <span :id="settingsAnchor(`route-${row.original.key}`)" :class="[CELL_TEXT, 'ps-4']">
           <span class="flex min-w-0 items-start gap-2">
             <UIcon
               :name="row.original.warning === null ? 'i-material-symbols-check-circle-outline' : 'i-material-symbols-warning-outline'"
@@ -83,14 +64,8 @@
       </template>
 
       <template #tier-cell="{ row }">
-        <!-- A gate on Laya is answered by the checkpoint the server names for it, and reads no
-             tier: the cell shows that checkpoint and is not pressed (the gate unit's docs/laya.md). -->
-        <span v-if="onLaya(row.original)" :class="CELL_TEXT">
-          <SearchText class="break-all text-highlighted" :text="cellText(row.original, 'tier')" :query="props.query" />
-          <span class="text-muted">{{ $t("agents.label.checkpoint") }}</span>
-        </span>
         <SettingsPopoverCell
-          v-else-if="row.original.assignment !== null && unresolvedOf(row.original)"
+          v-if="row.original.assignment !== null && unresolvedOf(row.original)"
           :label="$t('agents.aria.tier_of', { name: row.original.label })"
           :busy="savingTier === row.original.key"
           @update:open="(now: boolean) => now && (acceptConflicts = false)"
@@ -135,88 +110,6 @@
         <span v-else :class="CELL_TEXT" class="text-muted">{{ $t("agents.label.no_assignment") }}</span>
       </template>
 
-      <template #timeout-cell="{ row }">
-        <SettingsChoiceCell
-          v-if="row.original.profile?.gateOptions"
-          :value="row.original.profile.gateOptions.timeoutMs"
-          :items="timeoutItemsOf(row.original)"
-          :label="$t('agents.aria.timeout_of', { name: row.original.label })"
-          :save="(ms) => saveTimeout(row.original, Number(ms))"
-        >
-          <SearchText class="text-highlighted" :text="cellText(row.original, 'timeout')" :query="props.query" />
-        </SettingsChoiceCell>
-        <span v-else :class="CELL_TEXT" class="text-muted">—</span>
-      </template>
-
-      <!-- Whether the gate runs, for a gate whose profile lets the owner switch it off; every other
-           gate always runs and shows a dash (the gate unit's docs/gates.md). -->
-      <template #switch-cell="{ row }">
-        <SettingsChoiceCell
-          v-if="row.original.profile?.gateOptions?.switchable"
-          :value="row.original.profile.gateOptions.enabled ? SWITCH_ON : SWITCH_OFF"
-          :items="switchItems"
-          :label="$t('agents.aria.switch_of', { name: row.original.label })"
-          :save="(choice) => saveSwitch(row.original, choice === SWITCH_ON)"
-        >
-          <SearchText class="text-highlighted" :text="cellText(row.original, 'switch')" :query="props.query" />
-        </SettingsChoiceCell>
-        <span v-else :class="CELL_TEXT" class="text-muted">—</span>
-      </template>
-
-      <!-- The gate's Laya mode and tau, each edited in its own cell; a gate with no Laya probe takes
-           neither (the gate unit's docs/laya.md). -->
-      <template #laya-cell="{ row }">
-        <SettingsChoiceCell
-          v-if="row.original.profile?.gateOptions?.layaProbe && !onLaya(row.original)"
-          :value="row.original.profile.gateOptions.layaMode ?? DEFAULT_CHOICE"
-          :items="layaModeItemsOf(row.original)"
-          :label="`${row.original.label} Laya`"
-          :save="(mode) => saveLayaMode(row.original, String(mode))"
-        >
-          <SearchText class="text-highlighted" :text="cellText(row.original, 'laya')" :query="props.query" />
-          <SearchText v-if="cellNote(row.original, 'laya') !== ''" class="text-muted" :text="cellNote(row.original, 'laya')" :query="props.query" />
-        </SettingsChoiceCell>
-        <!-- A gate on Laya takes no mode; what stands in its place is the LLM it asks where Laya gives
-             no verdict (the gate unit's docs/laya.md, 「A gate whose provider is Laya」). -->
-        <SettingsChoiceCell
-          v-else-if="row.original.profile?.gateOptions && onLaya(row.original)"
-          :value="row.original.profile.gateOptions.layaFallback ?? DEFAULT_CHOICE"
-          :items="layaFallbackItemsOf(row.original)"
-          :label="`${row.original.label} ${$t('agents.label.laya_fallback_choice')}`"
-          :save="(choice) => saveLayaFallback(row.original, String(choice))"
-        >
-          <SearchText class="text-highlighted" :text="cellText(row.original, 'laya')" :query="props.query" />
-        </SettingsChoiceCell>
-        <span v-else :class="CELL_TEXT" class="text-muted">—</span>
-      </template>
-
-      <template #tau-cell="{ row }">
-        <SettingsChoiceCell
-          v-if="row.original.profile?.gateOptions?.layaProbe && !onLaya(row.original)"
-          :value="row.original.profile.gateOptions.layaTau ?? NO_TAU"
-          :items="tauItemsOf(row.original)"
-          :label="$t('agents.aria.tau_of', { name: row.original.label })"
-          :save="(tau) => saveTau(row.original, tau)"
-        >
-          <SearchText class="tabular-nums text-highlighted" :text="cellText(row.original, 'tau')" :query="props.query" />
-        </SettingsChoiceCell>
-        <span v-else :class="CELL_TEXT" class="text-muted">—</span>
-      </template>
-
-      <!-- How often Laya agrees with the gate's LLM, which is read and never pressed; until the
-           records have been read it keeps its place with a skeleton rather than a dash. -->
-      <template #agreement-cell="{ row }">
-        <span v-if="row.original.profile?.gateOptions?.layaProbe && layaInitial" :class="CELL_TEXT" role="status" :aria-label="$t('agents.status.agreement_loading')">
-          <SkeletonLine width="w-12" />
-          <SkeletonLine width="w-24" />
-        </span>
-        <span v-else-if="row.original.profile?.gateOptions?.layaProbe" :class="CELL_TEXT">
-          <SearchText class="tabular-nums text-highlighted" :text="cellText(row.original, 'agreement')" :query="props.query" />
-          <SearchText class="tabular-nums text-muted" :text="cellNote(row.original, 'agreement')" :query="props.query" />
-        </span>
-        <span v-else :class="CELL_TEXT" class="text-muted">—</span>
-      </template>
-
       <template v-for="column in READ_COLUMNS" :key="column" #[`${column}-cell`]="{ row }">
         <!-- The cell keeps a ceiling of its own; a note longer than it — why the key does not resolve on the provider it
              starts on — is cut on one line and stands whole in the tooltip every cut line gets. -->
@@ -230,22 +123,16 @@
 </template>
 
 <script setup lang="ts">
-import { LAYA_ROUTE_MODE } from "#shared/config";
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import {
+  CELL_TEXT,
   emptyFallbackView,
-  GATE_TIMEOUTS,
   mappingText,
   routeModeChoices,
   routeModeText,
-  secondsText,
-  settingsAnchor,
-  CELL_TEXT,
-  tokensText
+  settingsAnchor
 } from "~/domain/agent-settings";
 import { accountCellText, accountChoices } from "~/domain/accounts";
-import { GATE_CONDITION_NOTES, GATE_PART_LABELS, gatePlacements } from "~/domain/gate-order";
-import { agreementNote, agreementOf, agreementText, layaGateOf, layaModeLabel, layaRefusalText, tauText, useLaya } from "~/domain/laya";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useReadFailure } from "~/domain/events";
@@ -255,23 +142,16 @@ import { PROFILE_LABELS, profileLabel } from "~/domain/research";
 import { modeLabel, modelLabel } from "~/domain/status";
 
 import type { CellChoice } from "~/domain/agent-settings";
-import type { GatePlacement } from "~/domain/gate-order";
-import type { TableSection } from "bmo-ui/app/domain/table-sections";
 import type { TierProvider } from "#shared/agency";
 import type { TierSettingsView } from "#shared/agency";
 import type { FallbackProfile, FallbackView } from "#shared/types";
 import type { TableColumn } from "@nuxt/ui";
 
 interface Props {
-  // The gate table rather than the table of every other work key.
-  gates?: boolean;
-  // Only these keys' rows, for the screen of one gate that edits its own row here rather than a
-  // copy of it; left out, every key of the table stands.
-  only?: readonly string[];
   query?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), { gates: false, query: "" });
+const props = withDefaults(defineProps<Props>(), { query: "" });
 const { t } = useI18n();
 
 // One row: a work key with its road, its tier and what last answered on it.
@@ -281,42 +161,23 @@ interface RouteRow {
   profile: FallbackProfile | null;
   assignment: TierSettingsView["assignments"][number] | null;
   warning: string | null;
-  // Where the gate stands in the gate order, for a row of the whole gate table; null for every
-  // other row, and for a gate the order does not place.
-  place: GatePlacement | null;
-  // Whether this is the key's first row, which carries the key's anchor for the settings search.
-  first: boolean;
 }
 
-type DataColumn = "step" | "provider" | "account" | "tier" | "model" | "timeout" | "switch" | "laya" | "tau" | "agreement" | "recent";
+type DataColumn = "provider" | "account" | "tier" | "model" | "recent";
 
-const DATA_COLUMNS = computed<DataColumn[]>(() => (props.gates
-  ? ["provider", "account", "tier", "timeout", "switch", "laya", "tau", "agreement", "recent"]
-  : ["provider", "account", "tier", "model", "recent"]));
+const DATA_COLUMNS: readonly DataColumn[] = ["provider", "account", "tier", "model", "recent"];
 
 // The columns that show what the bot worked out and are not pressed.
 const READ_COLUMNS = ["model", "recent"] as const;
 
-const HEADERS: Record<DataColumn, string> = { step: t("agents.label.column_step"), provider: t("agents.label.column_provider"), account: t("agents.label.column_account"), tier: t("agents.label.tier"), model: t("agents.label.column_model"), timeout: t("agents.label.column_timeout"), switch: t("agents.label.column_switch"), laya: "Laya", tau: t("agents.label.column_tau"), agreement: t("agents.label.column_agreement"), recent: t("agents.label.column_recent") };
-
-// A cell's choice standing for "nothing chosen": the gate's own default mode, and no tau.
-const DEFAULT_CHOICE = "default";
-// What a gate on Laya's fallback setting says where it asks no LLM (the gate unit's docs/laya.md).
-const NO_LAYA_FALLBACK = "none";
-const NO_TAU = "none";
-// The two choices of a gate's switch.
-const SWITCH_ON = "on";
-const SWITCH_OFF = "off";
+const HEADERS: Record<DataColumn, string> = { provider: t("agents.label.column_provider"), account: t("agents.label.column_account"), tier: t("agents.label.tier"), model: t("agents.label.column_model"), recent: t("agents.label.column_recent") };
 
 const columns = computed<TableColumn<RouteRow>[]>(() => [
-  ...(ordered.value ? [{ id: "step", header: HEADERS.step, meta: { class: { th: "w-20" } } }] : []),
-  { accessorKey: "label", header: props.gates ? t("agents.label.column_gate") : t("agents.label.column_work"), meta: { class: { th: "w-full" } } },
-  ...DATA_COLUMNS.value.map((column) => ({ id: column, header: HEADERS[column] }))
+  { accessorKey: "label", header: t("agents.label.column_work"), meta: { class: { th: "w-full" } } },
+  ...DATA_COLUMNS.map((column) => ({ id: column, header: HEADERS[column] }))
 ]);
 
 const { agents } = useAgentCatalogue();
-const { laya, status: layaStatus } = useLaya(t);
-const layaInitial = useInitialRead(layaStatus);
 const { data: fallback, status: fallbackStatus, refresh: rereadFallback } = useFetch<FallbackView>("/api/fallback", { key: "fallback", lazy: true, server: false, default: emptyFallbackView });
 const { data: tiers, status: tiersStatus, refresh: rereadTiers } = useFetch<TierSettingsView>("/api/model-tiers", { key: "model-tiers", lazy: true, server: false });
 
@@ -345,57 +206,20 @@ function keyLabel(key: string): string {
   return fallback.value?.profiles.find((one) => one.key === key)?.label ?? key;
 }
 
-// The whole gate table stands in the parts of the gate order; one gate's own row, and the table of
-// every other key, stand as one list.
-const ordered = computed(() => props.gates && props.only === undefined);
-
-const sections = computed<TableSection[]>(() =>
-  (agents.value.gateOrder ?? []).map((part) => ({ key: part.part, label: t(GATE_PART_LABELS[part.part]) }))
-);
-
-function partOf(row: RouteRow): string | null {
-  return row.place?.part ?? null;
-}
-
-function keyOf(row: RouteRow): string {
-  return row.key;
-}
-
-function rowOf(key: string, place: GatePlacement | null, first: boolean): RouteRow {
+function rowOf(key: string): RouteRow {
   const profile = fallback.value?.profiles.find((one) => one.key === key) ?? null;
   const assignment = tiers.value?.assignments.find((one) => one.key === key) ?? null;
 
-  return { key, label: keyLabel(key), profile, assignment, warning: profile?.noRoute ?? (assignment === null ? t("agents.status.no_tier_assignment") : null), place, first };
-}
-
-// Each gate at every place the gate order gives it, and after them any gate the order does not
-// place, so a gate is never left off the table.
-function orderedGateRows(gateKeys: readonly string[]): RouteRow[] {
-  const placed = gatePlacements(agents.value.gateOrder ?? []).filter((placement) => gateKeys.includes(placement.key));
-  const unplaced = gateKeys.filter((key) => !placed.some((placement) => placement.key === key));
-  const seen = new Set<string>();
-
-  return [...placed.map((placement) => ({ key: placement.key, place: placement })), ...unplaced.map((key) => ({ key, place: null }))].map(({ key, place }) => {
-    const first = !seen.has(key);
-
-    seen.add(key);
-
-    return rowOf(key, place, first);
-  });
+  return { key, label: keyLabel(key), profile, assignment, warning: profile?.noRoute ?? (assignment === null ? t("agents.status.no_tier_assignment") : null) };
 }
 
 const rows = computed<RouteRow[]>(() => {
   const profiles = fallback.value?.profiles ?? [];
   const assignments = tiers.value?.assignments ?? [];
   const gateKeys = profiles.filter((one) => one.kind === "gate").map((one) => one.key);
+  const keys = [...profiles.filter((one) => one.kind !== "gate").map((one) => one.key), ...assignments.map((one) => one.key).filter((key) => !gateKeys.includes(key) && !profiles.some((one) => one.key === key))];
 
-  if (ordered.value) return orderedGateRows(gateKeys);
-
-  const keys = props.gates
-    ? gateKeys
-    : [...profiles.filter((one) => one.kind !== "gate").map((one) => one.key), ...assignments.map((one) => one.key).filter((key) => !gateKeys.includes(key) && !profiles.some((one) => one.key === key))];
-
-  return keys.filter((key) => props.only === undefined || props.only.includes(key)).map((key) => rowOf(key, null, true));
+  return keys.map((key) => rowOf(key));
 });
 
 // The provider a key's run begins on: the one it is set to while that one is on, else the first
@@ -403,7 +227,7 @@ const rows = computed<RouteRow[]>(() => {
 function startProvider(row: RouteRow): TierProvider | null {
   const order = fallback.value?.order ?? [];
   const mode = row.profile?.routeMode ?? "auto";
-  const pinned = mode === "auto" || mode === LAYA_ROUTE_MODE ? undefined : order.find((one) => one.name === mode && one.enabled);
+  const pinned = mode === "auto" ? undefined : order.find((one) => one.name === mode && one.enabled);
 
   return (pinned ?? order.find((one) => one.enabled))?.name ?? null;
 }
@@ -431,22 +255,13 @@ function modeText(row: RouteRow): string {
   return routeModeText(t, row.profile);
 }
 
-// Whether the key stands on Laya, which reads no tier, account, wait, mode or tau of its own.
-function onLaya(row: RouteRow): boolean {
-  return row.profile?.routeMode === LAYA_ROUTE_MODE;
-}
-
 function cellText(row: RouteRow, column: DataColumn): string {
   switch (column) {
-    case "step":
-      return row.place?.step == null ? "—" : String(row.place.step);
     case "provider":
       return modeText(row);
     case "account":
       return accountCellText(t, accounts.value, row.profile?.account ?? null);
     case "tier":
-      if (onLaya(row)) return layaGateOf(laya.value, row.key)?.checkpoint ?? t("agents.status.laya_unchecked");
-
       return row.assignment?.tier ?? t("agents.label.no_assignment");
     case "model": {
       const start = startProvider(row);
@@ -454,43 +269,12 @@ function cellText(row: RouteRow, column: DataColumn): string {
 
       return shown?.model ?? "—";
     }
-    case "timeout": {
-      const options = row.profile?.gateOptions;
-
-      return options ? secondsText(t, options.effective.timeoutMs) : "—";
-    }
-    case "switch": {
-      const options = row.profile?.gateOptions;
-
-      if (!options?.switchable) return "—";
-
-      return options.enabled ? t("agents.label.gate_on") : t("agents.label.gate_off");
-    }
-    case "laya": {
-      const options = row.profile?.gateOptions;
-
-      if (options !== undefined && onLaya(row)) return layaFallbackText(row);
-
-      return options?.layaProbe ? layaModeLabel(laya.value, options.effective.layaMode) : "—";
-    }
-    case "tau":
-      return row.profile?.gateOptions?.layaProbe ? tauText(t, row.profile.gateOptions.layaTau) : "—";
-    case "agreement":
-      return agreementText(agreementOf(laya.value, row.key));
     case "recent":
       return recentOf(row.key) || "—";
   }
 }
 
 function cellNote(row: RouteRow, column: DataColumn): string {
-  // A step that starts other gates with it says so, and a step that runs in some turns only says
-  // which.
-  if (column === "step") {
-    const together = row.place?.together ? t("agents.label.gate_together") : "";
-    const condition = row.place?.condition ? t(GATE_CONDITION_NOTES[row.place.condition]) : "";
-
-    return [together, condition].filter((note) => note !== "").join(" · ");
-  }
   if (column === "provider") return row.warning ?? "";
   // A pinned login that is off walks the order like any other key, which is worth saying on the
   // row rather than leaving the name standing as though it were being used.
@@ -506,23 +290,6 @@ function cellNote(row: RouteRow, column: DataColumn): string {
     if (start === null) return "";
 
     return row.assignment?.effective.find((one) => one.provider === start)?.error ?? modeLabel(t, start);
-  }
-  if (column === "laya") return row.profile?.gateOptions?.layaProbe && row.profile.gateOptions.layaMode === null ? t("common.label.default_choice") : "";
-  if (column === "agreement") return agreementNote(t, agreementOf(laya.value, row.key), row.profile?.gateOptions?.effective.layaTau ?? null);
-  // A gate on a road of requests with no tools asks it for an answer room and thinking; the note
-  // names the registration its tier maps to there. A gate on any other road asks for neither, and
-  // the note says nothing.
-  if (column === "tier" && props.gates && row.profile?.gateOptions) {
-    const start = startProvider(row);
-    const service = fallback.value?.services.find((one) => one.name === start);
-    const effective = row.profile.gateOptions.effective;
-
-    if (service === undefined) return "";
-
-    const registration = row.profile.services.find((one) => one.provider === start)?.model;
-    const figures = { service: registration === undefined || registration === "" ? service.shortLabel : registration, tokens: tokensText(t, effective.answerTokens) };
-
-    return effective.thinking ? t("agents.label.service_thinking_on", figures) : t("agents.label.service_thinking_off", figures);
   }
 
   return "";
@@ -559,73 +326,6 @@ function tierItemsOf(row: RouteRow): CellChoice[] {
   });
 }
 
-// The waits a gate may be given, and the one its row holds where that is none of them, so the cell
-// always offers the value it shows. A wait is never cleared: the row is the only place it is set.
-function timeoutItemsOf(row: RouteRow): CellChoice[] {
-  const held = row.profile?.gateOptions?.timeoutMs;
-  const values = held === undefined || (GATE_TIMEOUTS as readonly number[]).includes(held) ? [...GATE_TIMEOUTS] : [...GATE_TIMEOUTS, held].sort((a, b) => a - b);
-
-  return values.map((value) => ({ value, label: secondsText(t, value) }));
-}
-
-// The modes a gate may take, the gate's own default first under the name of the mode it is. A mode
-// the bot would refuse this gate stands greyed with why under it (the gate unit's docs/laya.md, 「Mode and tau per gate」).
-function layaModeItemsOf(row: RouteRow): CellChoice[] {
-  const fallbackTo = row.profile?.gateOptions?.defaults.layaMode ?? "off";
-  const refused = layaGateOf(laya.value, row.key)?.refused ?? {};
-
-  return [
-    { value: DEFAULT_CHOICE, label: t("agents.label.default_with", { value: layaModeLabel(laya.value, fallbackTo) }) },
-    ...laya.value.modes.map((mode) => {
-      const why = refused[mode.value];
-
-      return why === undefined
-        ? { value: mode.value, label: mode.label }
-        : { value: mode.value, label: mode.label, disabled: true, description: layaRefusalText(t, why) };
-    }),
-  ];
-}
-
-// The LLMs a gate on Laya may ask where Laya gives no verdict: the provider its road would begin on,
-// none, or any provider the owner keeps on.
-function providerLabelOf(name: string | null): string {
-  return fallback.value?.order.find((one) => one.name === name)?.label ?? name ?? "—";
-}
-
-function layaFallbackItemsOf(row: RouteRow): CellChoice[] {
-  return [
-    { value: DEFAULT_CHOICE, label: t("agents.label.default_with", { value: providerLabelOf(startProvider(row)) }) },
-    { value: NO_LAYA_FALLBACK, label: t("agents.label.laya_fallback_none") },
-    ...(fallback.value?.order ?? []).filter((one) => one.enabled).map((one) => ({ value: one.name, label: one.label })),
-  ];
-}
-
-function layaFallbackText(row: RouteRow): string {
-  const chosen = row.profile?.gateOptions?.layaFallback ?? null;
-
-  if (chosen === NO_LAYA_FALLBACK) return t("agents.label.laya_fallback_none");
-
-  return t("agents.label.laya_fallback", { value: providerLabelOf(chosen ?? startProvider(row)) });
-}
-
-const switchItems = computed<CellChoice[]>(() => [
-  { value: SWITCH_ON, label: t("agents.label.gate_on") },
-  { value: SWITCH_OFF, label: t("agents.label.gate_off") },
-]);
-
-// The taus a gate may be given: the grid its agreement is counted at, each with its figure beside it,
-// and the value the row already holds where that is none of them, so the cell always offers what it
-// shows. A tau is cleared only by choosing none.
-function tauItemsOf(row: RouteRow): CellChoice[] {
-  const held = row.profile?.gateOptions?.layaTau ?? null;
-  const values = held === null || laya.value.taus.includes(held) ? [...laya.value.taus] : [...laya.value.taus, held].sort((a, b) => a - b);
-
-  return [
-    { value: NO_TAU, label: tauText(t, null) },
-    ...values.map((tau) => ({ value: tau, label: tauText(t, tau) })),
-  ];
-}
-
 function conflictsOf(row: RouteRow) {
   return tiers.value?.conflicts.filter((one) => one.key === row.key) ?? [];
 }
@@ -659,26 +359,6 @@ async function saveMode(row: RouteRow, mode: string): Promise<string | null> {
 
 async function saveAccount(row: RouteRow, account: string): Promise<string | null> {
   return await send("/api/fallback", { action: "set-route-account", key: row.key, account });
-}
-
-async function saveTimeout(row: RouteRow, ms: number): Promise<string | null> {
-  return await send("/api/fallback", { action: "set-gate-options", key: row.key, timeoutMs: ms });
-}
-
-async function saveSwitch(row: RouteRow, enabled: boolean): Promise<string | null> {
-  return await send("/api/fallback", { action: "set-gate-options", key: row.key, enabled });
-}
-
-async function saveLayaMode(row: RouteRow, mode: string): Promise<string | null> {
-  return await send("/api/fallback", { action: "set-gate-options", key: row.key, layaMode: mode === DEFAULT_CHOICE ? null : mode });
-}
-
-async function saveLayaFallback(row: RouteRow, choice: string): Promise<string | null> {
-  return await send("/api/fallback", { action: "set-gate-options", key: row.key, layaFallback: choice === DEFAULT_CHOICE ? null : choice });
-}
-
-async function saveTau(row: RouteRow, tau: string | number): Promise<string | null> {
-  return await send("/api/fallback", { action: "set-gate-options", key: row.key, layaTau: tau === NO_TAU ? null : Number(tau) });
 }
 
 async function saveTier(row: RouteRow, tier: string): Promise<string | null> {

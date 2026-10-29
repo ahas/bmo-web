@@ -72,9 +72,9 @@
                 @click="stops.ask(stopTarget)"
               />
 
-              <!-- This agent's own settings, where it has any of its own: a worker's whole settings,
-                   a gate's row and a room agent's gates, the very pieces the agent management screen
-                   shows. -->
+              <!-- This agent's own settings, where it has any of its own: a worker's whole settings
+                   and a room agent's block of the Companions tab, the very pieces the agent management
+                   screen shows. -->
               <!-- A chat agent's own picture, set in the console, for the administrator (docs/web.md, 「Profile photos」). -->
               <UTooltip v-if="picturable" :text="$t('picture.label.agent')">
                 <UButton color="neutral" variant="ghost" icon="i-material-symbols-add-photo-alternate-outline" :aria-label="$t('picture.label.agent')" data-agent-picture @click="pictureOpen = true" />
@@ -106,9 +106,7 @@
       <WorkView ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="isJobWorker" :stepper="isJobWorker" :end="opensAtEnd" />
 
       <WorkerSettingsDialog v-if="settingsKind === 'worker'" v-model:open="settingsOpen" :worker="row" :reread="refreshCatalogue" />
-      <GateSettingsDialog v-else-if="settingsKind === 'gate'" v-model:open="settingsOpen" :gate="name" />
       <CompanionSettingsDialog v-else-if="settingsKind === 'companion' && row !== null" v-model:open="settingsOpen" :meta="meta" :agent="row" :reread="refreshCatalogue" />
-      <AgentGatesDialog v-else-if="settingsKind === 'gates' && row !== null" v-model:open="settingsOpen" :meta="meta" :agent="row" :reread="refreshCatalogue" />
       <PictureDialog v-if="picturable" v-model:open="pictureOpen" :title="$t('picture.label.agent')" :description="meta.label" kind="agent" :subject="name" :avatar="agentPicture" />
     </template>
 
@@ -240,16 +238,14 @@ const hasFigures = computed<boolean>(
 
 
 // Which of the agent management screen's own editors this agent has: a job worker its whole
-// settings, a gate its row of the gate table, an agent whose turn is its settings' pieces its block of
-// the Companions tab beside its own gates, an agent whose turn passes gates its own gates. Every other
+// settings, an agent whose turn is its settings' pieces its block of the Companions tab. Every other
 // agent's road is shared or set on that screen alone, so it has none here (docs/web.md).
-const settingsKind = computed<"worker" | "gate" | "companion" | "gates" | null>(() => {
+const settingsKind = computed<"worker" | "companion" | null>(() => {
   const kind = row.value?.kind;
 
-  if (kind === "worker" || kind === "gate") return kind;
-  if (row.value?.turnShape === "pieces") return "companion";
+  if (kind === "worker") return "worker";
 
-  return (row.value?.gates ?? []).length > 0 ? "gates" : null;
+  return row.value?.turnShape === "pieces" ? "companion" : null;
 });
 const settingsOpen = ref(false);
 

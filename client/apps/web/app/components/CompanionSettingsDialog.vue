@@ -1,7 +1,7 @@
 <template>
-  <!-- One companion's settings on its own screen: its block of the Companions tab and its block of
-       the per-agent gates, saving through the same paths, so a companion is set one way wherever it is
-       opened. Both are one form, saved by the one Save button at the foot (docs/web.md, 「Forms」). -->
+  <!-- One companion's settings on its own screen: its block of the Companions tab, saving through the
+       same paths, so a companion is set one way wherever it is opened. It is one form, saved by the
+       one Save button at the foot (docs/web.md, 「Forms」). -->
   <SettingsDialog v-model:open="open" :title="props.meta.label" :description="props.meta.name" :dirty="form.dirty.value">
     <div class="flex flex-col gap-8">
       <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.companions_read_failed") }}</p>
@@ -9,8 +9,6 @@
         <SkeletonBar class="h-8 w-full rounded-md" />
       </ContentSkeleton>
       <CompanionSettingsBlock v-else bare :view="view" @saved="(saved) => (view = saved)" />
-
-      <AgentsGates :agents="[{ meta: props.meta, agent: props.agent }]" :reread="props.reread" />
     </div>
 
     <template #footer="{ close }">

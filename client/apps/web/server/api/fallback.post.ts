@@ -1,11 +1,8 @@
 import { isFallbackRouteMode } from "#shared/config";
-import { layaModes } from "#shared/types";
 import { wording } from "#shared/wording";
 
-import { setGateOptions } from "../utils/gate";
-
 import type { components } from "@agency/client/schema";
-import type { FallbackChanged, LayaMode } from "#shared/types";
+import type { FallbackChanged } from "#shared/types";
 
 type FallbackChange = components["schemas"]["FallbackChange"];
 
@@ -26,21 +23,14 @@ interface FallbackBody {
   enabled?: unknown;
   thinking?: unknown;
   answerTokens?: unknown;
-  timeoutMs?: unknown;
-  layaMode?: unknown;
-  layaFallback?: unknown;
-  layaTau?: unknown;
 }
 
-const keyActions = ["set-claude", "set-local-model", "set-route-mode", "set-route-account", "set-gate-options", "set-codex", "reset-codex", "set-openrouter", "clear-openrouter"];
+const keyActions = ["set-claude", "set-local-model", "set-route-mode", "set-route-account", "set-codex", "reset-codex", "set-openrouter", "clear-openrouter"];
 // What is asked of the Claude account list rather than of one work key.
 const ACCOUNT_ACTIONS = ["set-account-order", "set-account-enabled", "add-account", "update-account", "remove-account", "choose-account", "clear-account-choice"];
-// What the local model's answer may be given, and the seconds a gate's wait may be. The agency checks both
-// again; this only keeps a malformed browser request from travelling.
+// What the local model's answer may be given. The agency checks it again; this only keeps a malformed
+// browser request from travelling.
 const ANSWER_TOKENS = [1024, 2048, 4096, 8192];
-const TIMEOUT_BOUNDS = { minMs: 1000, maxMs: 300_000 };
-const LAYA_MODES: readonly string[] = layaModes;
-const isLayaMode = (sent: unknown): sent is LayaMode => typeof sent === "string" && LAYA_MODES.includes(sent);
 
 // The agency owns and validates every fallback row. This route only rejects malformed browser
 // requests, then carries the stable work key and provider-specific choice over unchanged.
@@ -112,49 +102,6 @@ export default defineEventHandler(async (event): Promise<FallbackChanged> => {
   if (action === "set-local-model") {
     if (body.thinking !== undefined && typeof body.thinking !== "boolean") throw fail(400, wording("agents.error.bad_thinking"));
     if (body.answerTokens !== undefined && !ANSWER_TOKENS.includes(body.answerTokens as number)) throw fail(400, wording("agents.error.bad_answer_size"));
-  }
-
-  // A gate's own wait, its Laya mode and tau, its switch and the LLM it asks on Laya, each sent on its own. Null clears a Laya field back
-  // to the gate's default and is refused for the wait, which is never cleared; a gate's thinking
-  // and answer room are its tier's and are not written here. A gate's options are the gate unit's, and a change
-  // that reads as one is written there (docs/web.md, the agents page's gates tab).
-  if (action === "set-gate-options") {
-    if (body.thinking !== undefined || body.answerTokens !== undefined) throw fail(400, wording("agents.error.gate_llm_settings"));
-    if (body.timeoutMs === undefined && body.layaMode === undefined && body.layaTau === undefined && body.enabled === undefined && body.layaFallback === undefined) {
-      throw fail(400, wording("agents.error.gate_nothing_to_change"));
-    }
-    if (body.enabled !== undefined && typeof body.enabled !== "boolean") throw fail(400, wording("agents.error.bad_gate_switch"));
-    if (body.timeoutMs !== undefined
-      && !(typeof body.timeoutMs === "number" && Number.isInteger(body.timeoutMs) && body.timeoutMs >= TIMEOUT_BOUNDS.minMs && body.timeoutMs <= TIMEOUT_BOUNDS.maxMs)) {
-      throw fail(400, wording("agents.error.bad_timeout"));
-    }
-    if (body.layaMode !== undefined && body.layaMode !== null && !isLayaMode(body.layaMode)) {
-      throw fail(400, wording("agents.error.bad_laya_mode", { modes: LAYA_MODES.join(", ") }));
-    }
-    if (body.layaTau !== undefined && body.layaTau !== null
-      && !(typeof body.layaTau === "number" && Number.isFinite(body.layaTau) && body.layaTau >= 0 && body.layaTau <= 1)) {
-      throw fail(400, wording("agents.error.bad_tau"));
-    }
-
-    if (body.layaFallback !== undefined && body.layaFallback !== null && typeof body.layaFallback !== "string") {
-      throw fail(400, wording("agents.error.bad_laya_fallback"));
-    }
-
-    if (key === "") throw fail(400, wording("common.error.bad_action"));
-
-    // Each field as checked above: absent stays absent, null goes on as null.
-    const nullable = <T>(value: unknown, is: (sent: unknown) => sent is T): T | null | undefined =>
-      value === null ? null : is(value) ? value : undefined;
-
-    await setGateOptions(key, {
-      timeoutMs: typeof body.timeoutMs === "number" ? body.timeoutMs : undefined,
-      enabled: typeof body.enabled === "boolean" ? body.enabled : undefined,
-      layaMode: nullable(body.layaMode, isLayaMode),
-      layaTau: nullable(body.layaTau, (sent): sent is number => typeof sent === "number"),
-      layaFallback: nullable(body.layaFallback, (sent): sent is string => typeof sent === "string")
-    });
-
-    return { ok: true };
   }
 
   // Which Claude login a key runs on: `auto`, or one account by its id. The agency checks that the

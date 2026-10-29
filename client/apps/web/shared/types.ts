@@ -1448,17 +1448,6 @@ export interface AgentSummary {
   // and effort」). Null for an agent no choice of its own reaches — a gate, a support worker — and
   // absent where the list was read from the archive while the bot was not answering.
   reasoning?: AgentReasoningView | null;
-  // The gates the agent's turn passes, each with the agent's own switch (the gate unit's docs/gates.md, 「Each
-  // agent's own gates」). Null for an agent that answers in no room, and absent where the list was
-  // read from the archive while the bot was not answering.
-  gates?: AgentGateView[] | null;
-}
-
-// One gate an agent's turn passes, in the first part of the turn it stands in.
-export interface AgentGateView {
-  part: "pre" | "post";
-  key: string;
-  on: boolean;
 }
 
 // What an agent's row names of its own thinking and effort, each null where its tier and its line
@@ -1777,10 +1766,6 @@ export interface FallbackProfile {
   claudeModel: string;
   // What the key asks each own LLM service for, one entry per service; a gate's is held to its floor.
   services: OwnLlmSettingsView[];
-  // A gate's options as the gate unit holds them — its wait, switch, Laya mode, tau and fallback LLM as the owner
-  // chose them, beside what the gate runs on and its defaults. Absent on every key that is not a gate the gate
-  // unit lists, and on every key while the gate unit is not reached.
-  gateOptions?: GateOptionsView;
   noRoute: string | null;
   openrouterModel: string | null;
   routeMode: FallbackRouteMode;
@@ -1790,23 +1775,6 @@ export interface FallbackProfile {
   offered: OfferedProvider[];
 }
 
-// One gate's request options as a screen reads them.
-export interface GateOptionsView {
-  timeoutMs: number;
-  // What the owner chose for the gate's Laya mode and tau, null where nothing, and whether the gate
-  // has a Laya probe at all (the gate unit's docs/laya.md).
-  layaMode: LayaMode | null;
-  layaTau: number | null;
-  layaProbe: boolean;
-  // Whether the owner may switch the gate off, and whether it runs (the gate unit's docs/gates.md).
-  switchable: boolean;
-  enabled: boolean;
-  // The LLM the gate asks while it stands on Laya and Laya gives no verdict: a provider's name, `none`,
-  // or null for the provider its road would begin on (the gate unit's docs/laya.md).
-  layaFallback: string | null;
-  effective: { thinking: boolean; answerTokens: number; timeoutMs: number; layaMode: LayaMode; layaTau: number | null };
-  defaults: { thinking: boolean; answerTokens: number; layaMode: LayaMode; layaTau: number | null };
-}
 
 // What the console may know about the ordered fallback. The OpenRouter secret is not here and
 // never will be: the screen gets only whether it exists. `key` inside a profile is a route name,
@@ -1996,106 +1964,6 @@ export type NodeState = (typeof NODE_STATES)[number];
 // How a state reads at a glance: reached, not reached, or not yet asked.
 export type NodeTone = "good" | "bad" | "unknown";
 
-// The gate unit's shapes, which the agency screens show of the gates.
-
-export interface LayaHealthView extends LayaHealth {
-  stateWord: string;
-  tone: NodeTone;
-  // The node of the node list the server's address stands on, where one does: its screen is the page
-  // the state leads to.
-  node: string | null;
-}
-
-// One gate that declares a Laya probe: the mode and tau it runs on, and its agreement with its LLM, or
-// none where no pair is recorded yet.
-export interface LayaGateView {
-  stage: string;
-  mode: LayaMode;
-  tau: number | null;
-  agreement: LayaAgreement | null;
-  // The checkpoint the server named for this gate in its latest health check, where it named one:
-  // what answers the gate on Laya (the gate unit's docs/laya.md, 「A gate whose provider is Laya」).
-  checkpoint: string | null;
-  // The modes the bot would refuse this gate, each with why (the gate unit's docs/laya.md, 「Mode and tau per gate」),
-  // so the screen offers them greyed rather than letting a choice be turned away.
-  refused: Partial<Record<LayaMode, LayaModeRefusal>>;
-}
-
-export interface LayaView {
-  health: LayaHealthView;
-  gates: LayaGateView[];
-  // The modes in the words a screen shows them in, and the tau a gate may be given — the grid its
-  // agreement is counted at, so every tau offered has a figure beside it.
-  modes: { value: LayaMode; label: string }[];
-  taus: readonly number[];
-}
-
-// What the archive keeps of Laya: the modes a gate may stand beside it in, the verdict record and the
-// bounds on it (the gate unit's docs/laya.md, 「The verdict record」). The archive stores and sweeps these rows, so
-// their shape stands with it; the Laya client is the gate base's (`laya.ts`).
-
-// How a gate runs beside Laya (the gate unit's docs/laya.md, 「Modes」): alone, with Laya recorded beside it, with
-// Laya settling what it is sure of, or with Laya settling only the gate's safe verdict.
-export const layaModes = ["off", "shadow", "filter", "asymmetric"] as const;
-
-export type LayaMode = (typeof layaModes)[number];
-
-// How a call to Laya failed, as the record and the health row keep it.
-export type LayaFailure = "unreachable" | "timeout" | "refused" | "bad-answer" | "too-large";
-
-// Why the bot would not put a gate in a Laya mode, or null where it runs in it (the gate unit's docs/laya.md, 「Mode
-// and tau per gate」): no probe to ask with, no safe verdict for asymmetric, or no checkpoint on the
-// server for a mode in which Laya decides. `checkpoints` are the gates the last health check named.
-export type LayaModeRefusal = "no-probe" | "no-safe-verdict" | "no-checkpoint";
-
-export interface LayaAgreementAt {
-  tau: number;
-  // The share of pairs Laya would settle at this tau, and how often it agrees with the LLM on them.
-  coverage: number | null;
-  agreement: number | null;
-  // For a gate with a safe verdict: how many pairs Laya called safe at this tau, and how often the LLM
-  // called them safe too.
-  safeCount: number | null;
-  safeAgreement: number | null;
-}
-
-export interface LayaAgreement {
-  stage: string;
-  // What the figures are counted over: pairs, or for a gate settled one question at a time its
-  // questions, in which case `pairs` is how many questions were compared.
-  unit: "pair" | "question";
-  pairs: number;
-  failures: number;
-  agreement: number | null;
-  byTau: LayaAgreementAt[];
-  // For a gate counted by question: the share of the questions Laya answered that it settled for the
-  // gate. Null for a gate counted by pair.
-  settled: number | null;
-}
-
-// The Laya server's last health check, kept as one row (the gate unit's docs/laya.md, 「The health watcher」). The
-// archive settles and keeps the row, so its store stands with it; the watcher that asks the server
-// is the gate base's (`laya-health.ts`).
-
-// `up` is a server that answered; `off` is a bot with no address set, which asks nothing; `unknown`
-// is a server nobody has checked yet; every other word is the failure the last check met.
-export type LayaHealthState = "up" | "off" | "unknown" | LayaFailure;
-
-export interface LayaHealth {
-  state: LayaHealthState;
-  model: string | null;
-  device: string | null;
-  vramBytes: number | null;
-  loadMs: number | null;
-  versions: Record<string, string>;
-  // The address the check asked, so a screen can say which machine the server stands on.
-  address: string | null;
-  // How long the last check took in milliseconds, and when it was made and when the server last
-  // answered one, in unix seconds.
-  checkMs: number | null;
-  checkedAt: number | null;
-  healthyAt: number | null;
-}
 
 // What a gate order is: where each gate stands against a chat turn (`the gate unit's docs/gates.md`). The pre-gate
 // and post-gate parts are steps in the order a turn passes them, a step holding the gates the turn
@@ -2136,19 +2004,6 @@ export interface GatePartView {
   steps: GateStepView[];
 }
 
-// One gate of a turn as the agents page lists it (docs/web.md, the agents page's gates tab): where it stands in the
-// turn, under what condition, its Laya mode where it has a probe, and its switch where its profile lets it be
-// turned off.
-export interface TurnGateView {
-  name: string;
-  part: "pre" | "post";
-  step: number;
-  condition: GateCondition | null;
-  switchable: boolean;
-  enabled: boolean;
-  layaProbe: boolean;
-  layaMode: string | null;
-}
 
 // The job screens' shapes, as bmo-job answers them (bmo-job's `docs/api.md`).
 

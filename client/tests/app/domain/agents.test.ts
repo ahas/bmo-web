@@ -17,7 +17,7 @@ import {
   chatAgentMeta,
   chatIdOf,
   findAgent,
-  gateBlocks,
+
   groupAgents,
   GROUP_ORDER,
   groupIcon,
@@ -573,48 +573,6 @@ describe("the gate group", () => {
   });
 });
 
-describe("the gates on the general screen", () => {
-  const order = GATE_ORDER;
-  const gates = (names: string[]): readonly AgentMeta[] =>
-    agentGroups(wording, names.map((name) => reported(name, "gate", null)), [], order).find((group) => group.key === "gate")?.agents ?? [];
-
-  test("stand in the parts of the gate order, under the owner's names for them", () => {
-    const blocks = gateBlocks(wording, gates(gateOrderKeys(order)), order);
-
-    expect(blocks.map((block) => block.label)).toEqual([wording("agents.label.gate_part_pre"), wording("agents.label.gate_part_post"), wording("agents.label.gate_part_apart")]);
-
-    for (const block of blocks) {
-      const part = order.find((one) => one.part === block.key)!;
-      const keys = [...new Set(part.steps.flatMap((step) => step.places.map((place) => place.key)))];
-
-      expect(block.agents.map((agent) => agent.name)).toEqual(keys);
-    }
-  });
-
-  test("stand a gate that runs in both parts of a turn in both", () => {
-    const blocks = gateBlocks(wording, gates(gateOrderKeys(order)), order);
-    const twice = gateOrderKeys(order).filter((key) => blocks.filter((block) => block.agents.some((agent) => agent.name === key)).length > 1);
-
-    expect(twice.length).toBeGreaterThan(0);
-
-    for (const key of twice) {
-      expect(blocks.filter((block) => block.agents.some((agent) => agent.name === key)).map((block) => block.key)).toEqual(["pre", "post"]);
-    }
-  });
-
-  test("put a gate the order does not place last, under no heading", () => {
-    const blocks = gateBlocks(wording, gates([...gateOrderKeys(order), "a-new-gate"]), order);
-
-    expect(blocks.at(-1)).toMatchObject({ label: "" });
-    expect(blocks.at(-1)?.agents.map((agent) => agent.name)).toEqual(["a-new-gate"]);
-  });
-
-  test("stand as one list before the order has arrived", () => {
-    const shown = gates(["content-judge", "sanitizer"]);
-
-    expect(gateBlocks(wording, shown, [])).toEqual([{ key: "unplaced", label: "", agents: shown }]);
-  });
-});
 
 // The rows a list of agents stands (docs/web.md, 「Sidebar」): a chat row holding a role and a worker row, never the
 // gate unit's session rows or a runner's.

@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import KO from "../../../fixtures/app/pages/agents/[name].test.ko.json";
 
 // What an agent's own title bar carries about that agent. The week's four kinds stand on the bar
 // itself, in the short hand the owner reads them in, and the mark they stand on opens the rest.
@@ -74,31 +73,28 @@ describe("what an agent's title bar says about that agent", () => {
   });
 });
 
-// A worker's, a gate's and a room agent's own settings are edited from their own screen, through the very dialogs
+// A worker's and a room agent's own settings are edited from their own screen, through the very dialogs
 // the agent management screen opens, so a setting has one editor and one road wherever it is met.
 describe("this agent's own settings", () => {
   const script = source.slice(source.indexOf("<script"));
 
-  test("stand behind one button beside the name, for a worker, a gate and an agent whose turn passes gates", () => {
+  test("stand behind one button beside the name, for a worker and an agent whose turn is its settings' pieces", () => {
     expect(template).toContain(`<UTooltip v-if="settingsKind !== null" :text="$t('agents.action.settings')">`);
     expect(template).toContain(`:aria-label="$t('agents.action.settings')"`);
-    expect(script).toContain('if (kind === "worker" || kind === "gate") return kind;');
-    expect(script).toContain('if (row.value?.turnShape === "pieces") return "companion";');
-    expect(script).toContain('return (row.value?.gates ?? []).length > 0 ? "gates" : null;');
+    expect(script).toContain('if (kind === "worker") return "worker";');
+    expect(script).toContain('return row.value?.turnShape === "pieces" ? "companion" : null;');
   });
 
-  // The bot names the gates an agent's turn passes, so no kind of agent is named here.
-  test(KO.line_90, () => {
-    expect(template).toContain(`<AgentGatesDialog v-else-if="settingsKind === 'gates' && row !== null" v-model:open="settingsOpen" :meta="meta" :agent="row" :reread="refreshCatalogue" />`);
+  test("open no gate editor, which has no place on this screen", () => {
+    for (const gone of ["<AgentGatesDialog", "<GateSettingsDialog", "settingsKind === 'gate'", "settingsKind === 'gates'", "row.value?.gates"]) {
+      expect(template).not.toContain(gone);
+      expect(script).not.toContain(gone);
+    }
   });
 
   test("open the worker's own dialog on its catalogue row, which is read again after a save", () => {
     expect(template).toContain('<WorkerSettingsDialog v-if="settingsKind === \'worker\'" v-model:open="settingsOpen" :worker="row" :reread="refreshCatalogue" />');
     expect(script).toContain("refresh: refreshCatalogue } = useAgentCatalogue()");
-  });
-
-  test("open a gate's row of the gate table", () => {
-    expect(template).toContain('<GateSettingsDialog v-else-if="settingsKind === \'gate\'" v-model:open="settingsOpen" :gate="name" />');
   });
 
   test("never put the button at the right end, which keeps what every screen carries", () => {

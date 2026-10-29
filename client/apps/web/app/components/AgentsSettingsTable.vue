@@ -76,37 +76,21 @@
         </SettingsChoiceCell>
         <span v-else :class="CELL_TEXT" class="text-sm text-muted">—</span>
       </template>
-
-      <!-- Each gate a turn passes is a column of its own, and an agent that answers in a room chooses its own switch of it
-           in its cell, on or off; an agent whose turn does not pass the gate shows a dash. -->
-      <template v-for="gate in gateColumns" :key="gate.key" #[`gate-${gate.key}-cell`]="{ row }">
-        <SettingsChoiceCell
-          v-if="gateOf(row.original.agent, gate.key) !== null"
-          :value="gateOf(row.original.agent, gate.key)!.on ? ON : OFF"
-          :items="switchItems"
-          :label="$t('agents.aria.gate_of', { name: row.original.meta.label, gate: gate.label })"
-          :save="(value) => saveGate(row.original.meta.name, gate.key, value === ON)"
-        >
-          <span class="text-sm text-highlighted">{{ gateOf(row.original.agent, gate.key)!.on ? $t("agents.label.gate_on") : $t("agents.label.gate_off") }}</span>
-        </SettingsChoiceCell>
-        <span v-else :class="CELL_TEXT" class="text-sm text-muted">—</span>
-      </template>
     </DataTable>
-
   </section>
 </template>
 
 <script setup lang="ts">
 import { matchFields } from "bmo-ui/shared/search";
 import { settingsAnchor } from "~/domain/agent-settings";
-import { agentLabel, gateBlocks, generalSectionTitle, keepaliveMarkOf } from "~/domain/agents";
+import { generalSectionTitle, keepaliveMarkOf } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { CELL_TEXT } from "~/domain/settings-cells";
 import { modeLabel, modelLabel } from "~/domain/status";
 
 import type { TableColumn } from "@nuxt/ui";
-import type { AgentGateView, AgentList, AgentReasoningView, AgentSummary, KeepaliveView } from "#shared/types";
-import type { AgentBlock, AgentGroup, AgentMeta, GeneralPart } from "~/domain/agents";
+import type { AgentList, AgentReasoningView, AgentSummary, KeepaliveView } from "#shared/types";
+import type { AgentGroup, AgentMeta, GeneralPart } from "~/domain/agents";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { TableSection } from "bmo-ui/app/domain/table-sections";
 
@@ -143,63 +127,16 @@ const columns = computed<TableColumn<Row>[]>(() => [
   { id: "role", header: t("agents.label.column_role") },
   { id: "keepalive", header: t("agents.label.column_keepalive") },
   { id: "thinking", header: t("agents.label.column_thinking") },
-  { id: "effort", header: t("agents.label.column_effort") },
-  ...gateColumns.value.map((gate) => ({ id: `gate-${gate.key}`, header: gate.label }))
+  { id: "effort", header: t("agents.label.column_effort") }
 ]);
 
-// The gates a turn passes, in the turn's order — the pre-gate's, then the post-gate's — each once, as the agents' rows
-// name them.
-const gateColumns = computed(() => {
-  const keys: { key: string; part: "pre" | "post" }[] = [];
-
-  for (const agent of props.agents.agents) {
-    for (const gate of agent.gates ?? []) {
-      if (!keys.some((one) => one.key === gate.key)) keys.push({ key: gate.key, part: gate.part });
-    }
-  }
-
-  return [...keys.filter((one) => one.part === "pre"), ...keys.filter((one) => one.part === "post")].map((one) => ({ key: one.key, label: agentLabel(t, one.key) }));
-});
-
-function gateOf(agent: AgentSummary, key: string): AgentGateView | null {
-  return agent.gates?.find((gate) => gate.key === key) ?? null;
-}
-
-const switchItems = computed<CellChoice[]>(() => [
-  { value: ON, label: t("agents.label.gate_on") },
-  { value: OFF, label: t("agents.label.gate_off") }
-]);
-
-// A switch of one of an agent's own gates, saved as it is chosen; the bot's refusal is said in a notice.
-async function saveGate(agent: string, gate: string, on: boolean): Promise<string | null> {
-  try {
-    await $fetch("/api/agent-gate", { method: "POST", body: { agent, gate, on } });
-    await props.reread("agents");
-
-    return null;
-  } catch (error) {
-    return failureText(error, t("common.error.save_failed"));
-  }
-}
-
-// A group as it stands: the gates in the parts of the gate order, every other group as one run under its title.
-function blocksOf(group: AgentGroup): AgentBlock[] {
-  return group.key === "gate" ? gateBlocks(t, group.agents, props.agents.gateOrder ?? []) : [{ key: group.key, label: "", agents: group.agents }];
-}
-
-const parts = computed(() =>
-  props.groups.flatMap((group) =>
-    blocksOf(group).map((block) => ({ key: `${group.key}:${block.key}`, label: block.label === "" ? group.label : `${group.label} · ${block.label}`, block }))
-  )
-);
-
-const sections = computed<TableSection[]>(() => parts.value.map(({ key, label }) => ({ key, label })));
+const sections = computed<TableSection[]>(() => props.groups.map((group) => ({ key: group.key, label: group.label })));
 
 const rows = computed<Row[]>(() => {
   const seen = new Set<string>();
 
-  return parts.value.flatMap((part) =>
-    part.block.agents.flatMap((meta) => {
+  return props.groups.flatMap((group) =>
+    group.agents.flatMap((meta) => {
       const agent = props.agents.agents.find((one) => one.name === meta.name);
 
       if (agent === undefined) return [];
@@ -208,7 +145,7 @@ const rows = computed<Row[]>(() => {
 
       seen.add(meta.name);
 
-      return [{ meta, agent, section: part.key, first }];
+      return [{ meta, agent, section: group.key, first }];
     })
   );
 });

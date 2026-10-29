@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-// The room's situation note as a person reads it (docs/web.md, the room screen's verdicts and its situation entry):
-// the note a judged message's round read it under, marked where that round wrote it afresh, and the room's note as it
-// stands now, in the room's own menu.
+// The room's situation note as a person reads it (docs/web.md, the room screen's record and its situation entry):
+// the note a round read as that round's answer record stands it, marked where the round wrote it afresh, and the
+// room's note as it stands now, in the room's own menu.
 
 const read = async (name: string) => await Bun.file(new URL(`../../../apps/web/app/${name}`, import.meta.url)).text();
 
@@ -11,18 +11,20 @@ const message = await read("components/RoomMessage.vue");
 const screen = await read("pages/rooms/[chatId].vue");
 const dialog = await read("components/RoomSituationDialog.vue");
 
-describe("the note beside a judged message", () => {
-  test("stands in the verdicts' spread, with the mark a round's own change wears", () => {
-    expect(chips).toContain('data-situation');
-    expect(chips).toContain("{{ props.situation.text }}");
+describe("the note in the answer's record", () => {
+  test("stands last in the record, with the mark a round's own change wears", () => {
+    expect(chips).toContain("data-situation");
+    expect(chips).toContain("{{ entry.situation.text }}");
     expect(chips).toContain('$t("room.label.situation")');
-    expect(chips).toContain('<UBadge v-if="props.situation.changed"');
+    expect(chips).toContain('<UBadge v-if="entry.situation.changed"');
     expect(chips).toContain('$t("room.label.situation_changed")');
   });
 
-  test("is handed down from the message it belongs to, and no message without one draws it", () => {
-    expect(message).toContain(':situation="props.item.situation ?? null"');
-    expect(chips).toContain('v-if="props.situation !== null && props.situation !== undefined"');
+  test("is handed to the answer by the round the page read, and the answer's record alone draws it", () => {
+    expect(message).toContain(':round-situation="props.roundSituation"');
+    expect(screen).toContain("const situationByRound = computed(() => {");
+    expect(screen).toContain(':round-situation="roundSituationOf(item)"');
+    expect(chips).toContain('tail.push({ kind: "situation", situation: props.roundSituation });');
   });
 });
 

@@ -277,10 +277,30 @@ export interface PoolBoard {
 
 export interface ModelView {
   key: string;
+  // The registration's own name, which a supervisor's fixed model holds.
+  name?: string;
   provider: string;
   model: string;
   tier: string | null;
   healthy: boolean | null;
+  // When the engine last answered a health probe, in unix seconds, where it ever has; absent from a
+  // registration answered before the agency kept it.
+  lastAnsweredAt?: number | null;
+}
+
+// One of the chat agent's own documents the owner may keep a text of (the agency's `docs/api.md`,
+// 「chat-documents」): the text it stands as now, where that text comes from, and when it was last saved.
+export interface ChatDocumentView {
+  name: string;
+  kind: "chat";
+  source: "stored" | "file";
+  version: number | null;
+  text: string;
+}
+
+export interface ChatDocumentsView {
+  items: ChatDocumentView[];
+  more: boolean;
 }
 
 // A page of the registered models; the list is not paged, so `more` is false.
@@ -296,6 +316,11 @@ export interface CompanionView {
   // Whether the deployment seeds it, so the console offers no removal: it would stand again at the
   // next start.
   builtin: boolean;
+  // The model method it stands on — the supervisor route or a fixed model — and the provider and model
+  // it answers on now.
+  method?: "route" | "fixed";
+  provider?: string | null;
+  model?: string | null;
   // The registration it is pinned to, and every registration with an address it may be pinned to.
   registration: string | null;
   registrations: { name: string; label: string }[];

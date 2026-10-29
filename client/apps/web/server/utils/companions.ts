@@ -30,16 +30,20 @@ export function companionViewOf(companion: ListedCompanion | Record<string, unkn
   const settings = (held.settings ?? {}) as Record<string, unknown>;
   const provider = text(held.provider);
   const model = text(held.model);
+  const method = held.method === "route" ? "route" : "fixed";
 
   return {
     agent,
     label: text(held.label) ?? agent,
     icon: text(held.icon),
     builtin: held.builtin === true,
-    registration: text(held.registration) ?? (provider === null || model === null ? null : `${provider}::${model}`),
+    method,
+    provider,
+    model,
+    registration: method === "route" ? null : (text(held.registration) ?? (provider === null || model === null ? null : `${provider}::${model}`)),
     registrations: list(held.registrations),
     entries: list(held.entries),
-    serving: text(held.serving) ?? model,
+    serving: text(held.serving) ?? (method === "fixed" ? model : null),
     modelUse: (held.modelUse ?? null) as CompanionView["modelUse"],
     settings: {
       agent,

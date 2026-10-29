@@ -294,7 +294,8 @@
                         :spend="props.item.spend"
                         :actions-at="props.item.actions"
                         :drafts="props.item.drafts"
-                        :situation="props.item.situation ?? null"
+                        :round-judgements="props.roundJudgements"
+                        :round-situation="props.roundSituation"
                         :live="live"
                         :chat-id="props.chatId"
                         :message-id="props.item.messageId"
@@ -379,7 +380,7 @@ import { countText } from "~/domain/numbers";
 import { liveChip } from "~/domain/turns";
 
 import type { ContextMenuItem, DropdownMenuItem } from "@nuxt/ui";
-import type { MessageAttachment } from "#shared/types";
+import type { Judgement, MessageAttachment, Situation } from "#shared/types";
 import type { FeedItem, RunPlace, SendMark } from "~/domain/room";
 import type { LiveTurn } from "~/domain/working";
 
@@ -405,9 +406,14 @@ interface Props {
   day?: string;
   // Whether the reader is the platform administrator, whose delete the record takes on any message.
   administrator?: boolean;
+  // The round's whole record as the page reads it, for the answer's one record press: the gates that read the
+  // person's message and the send and checks of the answer alike (docs/web.md, the room screen's chip line).
+  roundJudgements?: Judgement[];
+  // The room's situation note as that round read it.
+  roundSituation?: Situation | null;
 }
 
-const props = withDefaults(defineProps<Props>(), { arriving: false, judging: false, administrator: false });
+const props = withDefaults(defineProps<Props>(), { arriving: false, judging: false, administrator: false, roundJudgements: () => [], roundSituation: null });
 
 // Whether this row holds one of the room's own messages. The other kind holds the turn still
 // running: it is a row like any other and wears everything a row wears — the side, the picture,

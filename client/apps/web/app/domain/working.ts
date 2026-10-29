@@ -1,17 +1,15 @@
 import { ref } from "vue";
 
 import { isBrainCall, mcpCallOf } from "#shared/mcp-names";
-import { agentLabel, agentNameLabel, bmoLabel } from "./agents";
+import { agentNameLabel, bmoLabel } from "./agents";
 import { subjectOf as joinedSubject } from "#shared/particles";
 
 import { contextStateLook, lineLook, toolCall, toolChip } from "./log";
 import { countText } from "./numbers";
 import { toolFace } from "./spans";
-import { agentLink, depthLabel, launcherLabel, modelLabel, runningWorkLabel } from "./status";
 import { timerClock } from "bmo-ui/app/domain/time";
-import { watchOfRun, watchTitle } from "./watches";
 
-import type { AgentLogLine, LiveRun, RoomSummary, RunProgress, TurnAction, TurnReceived, TurnSpeaker, WatchView } from "#shared/types";
+import type { AgentLogLine, LiveRun, RunProgress, TurnAction, TurnReceived, TurnSpeaker } from "#shared/types";
 import type { ComputedRef, Ref } from "vue";
 import type { DraftStep, RoomOutcome } from "./events";
 import type { ContextStateLook, KindLook, ToolChip } from "./log";
@@ -39,28 +37,6 @@ export interface LiveTurn {
   chip: SpendChip;
 }
 
-// One thing running for this room that is not the room's own turn: a search, a browse, a job.
-export interface RoomRunLine {
-  key: string;
-  label: string;
-  // Which count of the room's run line it falls in: a job, a watch's check, a search, or the rest.
-  sort: "job" | "watch" | "search" | "other";
-  // Who set it off, in the words the room reads; null where nobody launched it.
-  launcher: string | null;
-  startedAt: number;
-  // Which agent is at work, and where its log is read: the room opens the log over the
-  // conversation when the line is pressed, and the same name is what its own page is under.
-  agent: string;
-  to: string;
-  // The standing watch this run is a check of, where it is one. The line is then named after the
-  // watch rather than after the agent running it, and pressing it opens the watch itself — what it
-  // promised, its condition, how often it looks and how the last look went — above the log, which
-  // for a check that wrote nothing is the whole of what there is to read.
-  watch: WatchView | null;
-  // The item a job's line is a run of, which the line names on hover; null on every other line.
-  todoId: number | null;
-}
-
 // A name joined to the subject particle its last sound asks for, which the pack takes as {subject}: the name comes
 // from another unit, so no key of the pack can carry the particle itself.
 export function subjectOf(name: string): string {
@@ -86,6 +62,32 @@ export function phaseLook(t: Translate, name: string, progress: RunProgress | nu
   const what = draft.number >= draft.count ? t("room.status.draft_writing") : draftQuestionFace(t, draft.question);
 
   return { label: t("room.status.draft_step", { step, what }) };
+}
+
+// What a running turn is at now, without the agent's name: the reasoning block's face carries the name, and the
+// detail under it says the state. Null while it only thinks, since the face already says that, and null where the
+// pack has no word for a phase the stream named.
+export function phaseDetail(t: Translate, progress: RunProgress | null, draft: DraftStep | null = null): string | null {
+  if (draft !== null) {
+    const step = t("room.status.draft_step_round", { n: countText(draft.number), count: countText(draft.count) });
+    const what = draft.number >= draft.count ? t("room.status.draft_writing") : draftQuestionFace(t, draft.question);
+
+    return t("room.status.draft_step", { step, what });
+  }
+
+  if (progress === null || progress.phase === "thinking") return null;
+
+  if (progress.phase === "writing") return t("room.status.step_writing");
+
+  if (progress.phase === "waiting") {
+    const item = progress.waitingFor?.todoId ?? null;
+
+    return item === null ? t("room.status.step_waiting") : t("room.status.step_waiting_item", { item: countText(item) });
+  }
+
+  const named = progress.tool === null ? null : toolFace(t, progress.tool);
+
+  return named === null ? t("room.status.step_tool") : t("room.status.step_tool_named", { tool: named });
 }
 
 // The words the pack has for each question of the draft process's catalogue (the receiver's docs/drafting.md, 「The
@@ -378,65 +380,3 @@ export function useHeldRuns(settleMs: number = WORK_SETTLE_MS): { runs: Ref<Live
   return { runs, take, stop };
 }
 
-// What is running for this room besides its own turn. A gate belongs to the turn it judges and
-// stands under the message it judged, so it is not doubled here.
-export function roomRuns(
-  t: Translate,
-  live: LiveRun[],
-  chatId: number,
-  rooms: RoomSummary[],
-  watches: readonly WatchView[] = []
-): RoomRunLine[] {
-  return live
-    .filter((run) => run.kind !== "gate" && run.chatId === chatId)
-    .map((run): RoomRunLine => {
-      const watch = watchOfRun(watches, run);
-
-      return {
-        key: `${run.kind}:${run.id}`,
-        label: watch === null ? runLabel(t, run) : watchTitle(t, watch),
-        sort: watch !== null ? "watch" : run.kind === "worker" ? "job" : run.depth !== null ? "search" : "other",
-        launcher: launcherLabel(t, run, rooms),
-        startedAt: run.startedAt,
-        agent: run.agent,
-        to: agentLink(run.agent),
-        watch,
-        todoId: watch === null ? run.todoId : null
-      };
-    });
-}
-
-// A search wears its rung and a job the item it is a run of; a browse has neither and stands as
-// its name. A job with no item behind it wears why it was launched, and only one written before
-// launches had to say wears its model, since there is nothing else to give.
-function runLabel(t: Translate, run: LiveRun): string {
-  const name = agentLabel(t, run.agent);
-
-  if (run.depth !== null) {
-    return `${name} · ${depthLabel(t, run.depth)}`;
-  }
-
-  const work = runningWorkLabel(t, run);
-
-  if (work !== null) {
-    return `${name} · ${work}`;
-  }
-
-  return run.model === null ? name : `${name} · ${modelLabel(run.model)}`;
-}
-
-// The one line of counts a room stands for what else runs for it (docs/web.md, the room screen's section on what runs
-// for the room): each sort of run counted. A part with nothing in it does not stand.
-export function runSummary(t: Translate, lines: readonly RoomRunLine[]): string {
-  const count = (sort: RoomRunLine["sort"]) => lines.filter((line) => line.sort === sort).length;
-  const parts = [
-    { n: count("job"), key: "room.label.summary_jobs" },
-    { n: count("watch"), key: "room.label.summary_watches" },
-    { n: count("search"), key: "room.label.summary_searches" },
-    { n: count("other"), key: "room.label.summary_others" }
-  ]
-    .filter((part) => part.n > 0)
-    .map((part) => t(part.key, { n: countText(part.n) }));
-
-  return parts.join(" · ");
-}

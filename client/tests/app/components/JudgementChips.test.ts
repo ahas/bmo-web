@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 // The chip line under a message, read from the file that ships. What makes it open the way it does
 // is what a rendered screen would not name: which rule the opening runs, which chip stands where,
-// and that nothing but the chips folds.
+// and what the turn's one record press holds.
 
 const source = await Bun.file(new URL("../../../apps/web/app/components/JudgementChips.vue", import.meta.url)).text();
 const template = source.slice(0, source.indexOf("<script"));
@@ -13,53 +13,141 @@ const row = template.slice(template.indexOf("data-meta"), template.indexOf("data
 const lead = row.slice(row.indexOf("data-meta-lead"), row.indexOf("data-meta-trail"));
 const trail = row.slice(row.indexOf("data-meta-trail"));
 
-describe("opening the row", () => {
-  test("runs the one rule that says what stands open, rather than a rule of its own", () => {
-    expect(script).toContain("openedCards(verdicts.value, expanded.value && detailsOpen.value)");
-    expect(script).toContain("splitDraftJudgements(props.judgements)");
+// The record's panel, from the press to what stands under the same spread apart from it.
+const record = template.slice(template.indexOf('<div v-if="recordOpen" data-record'), template.indexOf("<TurnRecords"));
+
+describe("the row and its record press", () => {
+  test("the turn's brain, calls, drafts and judgement are one press, in place of three chips and a verdict button", () => {
+    expect(row).toContain('<LineChip v-if="recorded" data-record-chip');
+    expect(row).toContain('@toggle="toggleRecord"');
+    expect(row).not.toContain("openActions(");
+    expect(script).not.toContain("const ACTION_KINDS");
+    expect(script).not.toContain("openDrafts");
   });
 
-  test("is the chips' alone: nothing spread below folds on its own but the outcome line's details", () => {
-    // Every control of this row is one of its chips, and they all stand on the row itself: what
-    // they spread below — a stage's card, the figures, what the turn did or wrote down — carries none,
-    // but the outcome line's press for the gates' cards and its link to the message it names.
-    const controls = [...template.matchAll(/<button|<LineChip|<TokenChip/g)].map((found) => found.index ?? 0);
-    const spread = template.indexOf('<template v-if="briefingOpen');
+  test("the one button carries each part's own mark and word", () => {
+    expect(row).toContain('data-record-brain class="inline-flex items-center gap-1"');
+    expect(row).toContain("{{ $t(CHIP_LABELS.brain) }}");
+    expect(row).toContain('data-record-tools class="inline-flex items-center gap-1"');
+    expect(row).toContain("{{ $t(CHIP_LABELS.tools) }}");
+    expect(row).toContain('data-record-drafts class="inline-flex items-center gap-1"');
+    expect(row).toContain("{{ $t(CHIP_LABELS.drafts) }}");
+    expect(row).toContain('data-record-verdicts class="inline-flex items-center gap-1"');
+    expect(row).toContain("{{ $t(CHIP_LABELS.verdicts) }}");
+    expect(script).toContain('const RECORD_ICON = "i-material-symbols-receipt-long";');
+  });
 
-    expect(controls).toHaveLength(7);
-    expect(Math.max(...controls)).toBeLessThan(spread);
-    expect(template.slice(spread)).not.toContain("<button");
+  test("stands only while it holds something, and opens on one press", () => {
+    expect(script).toContain("const brainCounted = computed<boolean>(() => counts.value.documents + counts.value.held + counts.value.brain > 0);");
+    expect(script).toContain("const judgedRecorded = computed<boolean>(() => props.answer && (recordCards.value.length > 0 || props.roundSituation != null));");
+    expect(script).toContain("const recorded = computed<boolean>(() => brainCounted.value || counts.value.tools > 0 || drafted.value || judgedRecorded.value);");
+    expect(script).toContain("const recordOpen = ref(false);");
+    expect(script).toContain("recordOpen.value = !recordOpen.value;");
+    expect(script).toContain("    recordOpen.value ||");
   });
 });
 
-describe("the chips of the row", () => {
-  test("each is a mark with a figure or nothing, and none carries a word of its own", () => {
-    expect(row).toContain(':icon="CHIP_ICONS.brain" :label="brainLabel"');
-    expect(row).toContain(':icon="CHIP_ICONS.tools" :label="$t(CHIP_LABELS.tools)"');
-    expect(row).toContain(':icon="CHIP_ICONS.records" :label="$t(CHIP_LABELS.records)"');
+describe("the record, in the order the turn made it", () => {
+  test("is one timeline, sorted by the moment each line happened", () => {
+    expect(script).toContain("const timeline = computed<RecordEntry[]>(() => {");
+    expect(script).toContain("timed.sort((left, right) => (left.at ?? 0) - (right.at ?? 0) || left.seq - right.seq);");
+    expect(script).toContain("return [...head, ...timed.map((one) => one.entry), ...tail];");
+  });
+
+  test("what the round read from the brain stands first, on a turn that has ended", () => {
+    expect(script).toContain('head.push({ kind: "reads", reads: reads.value });');
+    expect(record.indexOf('<BrainReads v-if="entry.kind === \'reads\'"')).toBeGreaterThan(-1);
+  });
+
+  test("a turn still running stands what it has done so far, in its own order", () => {
+    expect(script).toContain('if (props.live.actions.length > 0) push(null, { kind: "actions", actions: props.live.actions });');
+    expect(record).toContain(`<TurnActions v-else-if="entry.kind === 'actions'" :actions="entry.actions" />`);
+  });
+
+  test("every call stands as the agent's own log draws it, its result under the call", () => {
+    expect(script).toContain('push(row.line.at, { kind: "call", row });');
+    expect(script).toContain('one.kind === "tool-result" && one.ref !== null && one.ref === line.ref');
+    expect(record).toContain(`<AgentToolCall v-else-if="entry.kind === 'call'" :row="entry.row" />`);
+  });
+
+  test("each question of the draft process stands at its own moment, its answer or change whole", () => {
+    expect(script).toContain('push(row.at, {');
+    expect(script).toContain("draftDiff(before, line.answer)");
+    expect(record.indexOf("data-record-draft")).toBeGreaterThan(-1);
+    expect(record.indexOf("data-record-draft")).toBeLessThan(record.indexOf("data-draft-end"));
+    expect(record).toContain("data-draft-diff");
+    expect(record).toContain("data-draft-answer");
+  });
+
+  test("the end of the process and each gate's card follow, cards by their own moment", () => {
+    expect(script).toContain("const end = endLine(t, rows, recordSplit.value.drafts, props.drafts);");
+    expect(script).toContain("push(endRow?.at ?? null, { kind: \"end\", ...end,");
+    expect(script).toContain('push(judgement.createdAt, {\n        kind: "judgement",');
+    expect(record.indexOf("data-draft-end")).toBeLessThan(record.indexOf("data-record-card"));
+  });
+
+  test("what opened a turn stands once, before its first card", () => {
+    expect(script).toContain("if (!seen.has(round)) {");
+    expect(script).toContain('push(judgement.createdAt, { kind: "opening", opening: judgement.opening });');
+    expect(record).toContain(`<TurnOpening v-else-if="entry.kind === 'opening'"`);
+  });
+
+  test("the situation note as the round read it stands last", () => {
+    expect(script).toContain('tail.push({ kind: "situation", situation: props.roundSituation });');
+    expect(record.indexOf("data-situation")).toBeGreaterThan(record.indexOf("data-record-card"));
+  });
+
+  test("nothing of it is cut on a line and nothing scrolls in a box of its own", () => {
+    expect(record).not.toContain("truncate");
+    expect(record).not.toContain("line-clamp");
+    expect(record).not.toContain("max-h-");
+    expect(record).not.toContain("overflow-y");
+  });
+});
+
+describe("reading what the record needs", () => {
+  test("a finished turn reads the log's lines once, from every run of the round", () => {
+    expect(script).toContain("const lines = await Promise.all(at.runs.map((run) => readRunLines(at.agent, run)));");
+    expect(script).toContain("loadedLines.value = lines.flat();");
+    expect(script).toContain("actions.value = turnActions(loadedLines.value);");
+    expect(script).toContain("const needLines = at !== null && loadedLines.value.length === 0;");
+  });
+
+  test("the round log's rows are read once, from the room's own route", () => {
+    expect(script).toContain("`/api/rooms/${props.chatId}/drafts`, { query: { round } }");
+    expect(script).toContain("const needDrafts = drafted.value && round !== null && draftRows.value === null;");
+  });
+
+  test("where the round log holds no row, the gate's own rounds stand in their place", () => {
+    expect(script).toContain("gateRoundLines(t, recordSplit.value.drafts)");
+    expect(record).toContain("entry.line.asked");
+    expect(record).toContain("entry.line.decided");
+  });
+});
+
+describe("the judgement", () => {
+  test("is the round's whole record: the gates that read the person's message and the answer's send and checks", () => {
+    expect(script).toContain("const recordSplit = computed(() => splitDraftJudgements(props.roundJudgements));");
+    expect(script).toContain("const recordCards = computed<Judgement[]>(() => recordSplit.value.verdicts.filter((one) => !decidesMessage(one)));");
+    expect(script).toContain("narrowed: narrowedOffer(judgement), kept: keptOffer(judgement), words: verdictWords(t, judgement)");
+  });
+
+  test("a person's message keeps its mark and one line of outcome, and no press of its own for the cards", () => {
     expect(trail).toContain(':icon="CHIP_ICONS.verdicts"');
-    expect(row).not.toContain("room.label.");
-  });
-
-  test("the verdicts' chip is its mark alone, saying the whole of them by its colour and name", () => {
-    const verdicts = row.slice(row.indexOf("<LineChip\n          v-if=\"marked\""), row.indexOf("<slot name=\"clock\" />"));
-
-    expect(verdicts).toContain(':icon-class="markClass"');
-    expect(verdicts).toContain(':label="$t(markLook.label)"');
-    expect(verdicts).not.toContain("v-for");
-    expect(verdicts).not.toContain("countText");
+    expect(script).toContain("const verdicts = computed<Judgement[]>(() => (props.answer ? [] :");
     expect(script).toContain("verdictChip(verdictState(verdicts.value, props.judging))");
+    expect(template).toContain('<div v-if="expanded && marked" data-outcome');
+    expect(template).not.toContain("data-outcome-details");
   });
 
-  test("stand how full the session stood first, then in the order their own clock decides", () => {
-    // How full the session stood stands first, where it was placed. After it, the documents and the
-    // figure stand from the turn's first second, a call joins them when it is made, and what the
-    // turn wrote down arrives with the answer. A chip that arrives late standing first would push
-    // every chip beside it sideways the moment it landed. The briefing that speaks the answer comes
-    // after the answer has gone out, so it stands last.
-    const order = ["<ContextChip", "CHIP_ICONS.brain", "<TokenChip", "CHIP_ICONS.tools", "CHIP_ICONS.records", "CHIP_ICONS.drafts", ':icon="briefingLook.icon"'].map((one) =>
-      lead.indexOf(one)
-    );
+  test("an answer carries no mark of its own", () => {
+    expect(script).toContain("const marked = computed<boolean>(() => !props.answer && (props.judging || verdicts.value.length > 0));");
+  });
+});
+
+describe("the chips that stay their own", () => {
+  test("how full the session stood stands first, and the rest in the order their clock decides", () => {
+    const order = ["<ContextChip", "data-record-chip", "<TokenChip", "CHIP_ICONS.records", ':icon="briefingLook.icon"'].map((one) => lead.indexOf(one));
 
     expect(order.every((at) => at > -1)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
@@ -75,14 +163,15 @@ describe("the chips of the row", () => {
     expect(trail.indexOf("CHIP_ICONS.verdicts")).toBeGreaterThan(-1);
     expect(trail.indexOf("CHIP_ICONS.verdicts")).toBeLessThan(trail.indexOf('<slot name="clock" />'));
     expect(trail).toContain('v-else-if="roomForMark && props.clock"');
-    // The kept room is the chip's own width: its two sides and its 16px mark.
     expect(trail).toContain("invisible h-(--chat-meta-line) w-6");
   });
+});
 
-  // The line breaks only between its two ends: where they do not fit on one line the trailing end
-  // takes the line under the chips, and the chips wrap among themselves only where they alone are
-  // wider than the bubble. On one line the two ends stand on its foot alike.
-  test("the line breaks between its two ends, and the chips wrap among themselves only past the bubble's width", () => {
+// The line breaks only between its two ends: where they do not fit on one line the trailing end
+// takes the line under the chips, and the chips wrap among themselves only where they alone are
+// wider than the bubble. On one line the two ends stand on its foot alike.
+describe("the line itself", () => {
+  test("breaks between its two ends, and the chips wrap among themselves only past the bubble's width", () => {
     const line = row.slice(0, row.indexOf(">"));
 
     expect(line).toContain("flex min-w-0 flex-wrap items-end");
@@ -90,10 +179,7 @@ describe("the chips of the row", () => {
     expect(lead.slice(0, lead.indexOf(">"))).toContain("flex-wrap");
   });
 
-  // A sent bubble's flight copies the bubble in the update that puts it in, before any observer has
-  // reported: the trailing end's width is read then too, so the line already stands at the end of the
-  // words in the copy, and only a later change of its width waits for the observer.
-  test("the trailing end's width is read the moment it is put in, not first when the observer reports", () => {
+  test("reads the trailing end's width the moment it is put in", () => {
     const watcher = script.slice(script.indexOf("watch(\n  trail,"), script.indexOf("const inline"));
 
     expect(watcher).toContain("const observer = new ResizeObserver(measure);");
@@ -101,31 +187,23 @@ describe("the chips of the row", () => {
     expect(watcher.indexOf("    measure();")).toBeLessThan(watcher.indexOf("observer.observe(element)"));
   });
 
-  // A mark that came beating has said it came; only one that comes with its verdicts settled pops.
-  test("the mark pops only where it comes settled, never where it stood or came beating", () => {
+  test("a mark that came beating has said it came; only one that comes settled pops", () => {
     expect(script).toContain("const markStood = marked.value;");
-    expect(script).toContain("!markStood && !beaten.value ? \"verdict-pop\" : \"\"");
+    expect(script).toContain('!markStood && !beaten.value ? "verdict-pop" : ""');
   });
 
-  test("each stands exactly when its own thing is there, and the row when any of them is", () => {
+  test("each chip stands exactly when its own thing is there, and the row when any of them is", () => {
     expect(template).toContain('<div v-if="shown || spreading" :class="frame">');
     expect(script).toContain("const shown = computed<boolean>(() => full.value || marked.value || props.clock);");
-    expect(script).toContain("const marked = computed<boolean>(() => !props.answer && (props.judging || verdicts.value.length > 0));");
-    // How full the session stood stands only once the turn has ended and its round reported it.
     expect(row).toContain('<ContextChip v-if="context !== null" :ratio="context" />');
     expect(script).toContain("props.live === null ? (props.spend?.context ?? null) : null");
-    // A turn whose every document was already held still stands its chip, at nought, to open the list.
-    expect(row).toContain('<LineChip v-if="counts.documents + counts.held + counts.brain > 0"');
-    expect(row).toContain('<LineChip v-if="counts.tools > 0"');
     expect(row).toContain('<LineChip v-if="records.length > 0"');
-    expect(row).toContain('<LineChip v-if="drafted"');
-    expect(trail).toMatch(/<LineChip\s+v-if="marked"/);
     expect(row).toMatch(/<LineChip\s+v-if="props\.briefing !== null"/);
   });
 });
 
 describe("the full reading of the line", () => {
-  const spread = template.slice(template.indexOf('<template v-if="briefingOpen'), template.indexOf('<template v-for="kind in ACTION_KINDS"'));
+  const spread = template.slice(template.indexOf('<template v-if="briefingOpen'), template.indexOf('<div v-if="recordOpen" data-record'));
 
   test("is a chip of the row named by where it stands, and spreads the sound's own player from the engine or the old voice message", () => {
     expect(row).toContain(':label="$t(briefingLook.label)"');
@@ -135,7 +213,6 @@ describe("the full reading of the line", () => {
   });
 
   test("asks the receiver for a reading where none stands, and follows the engine's stream to it", () => {
-    // The player waits for its play press, and folds itself after the end the reader left untouched.
     expect(spread).not.toContain("autoplay");
     expect(spread).toContain('@ended.capture="readingEnded"');
     expect(script).toContain("if (!readingTouched && !playing) briefingOpen.value = false;");
@@ -150,84 +227,10 @@ describe("the full reading of the line", () => {
   });
 });
 
-describe("what the turn read and called", () => {
-  test("are two chips and two lists, one of each sort of action", () => {
-    expect(script).toContain('const ACTION_KINDS: readonly ActionKind[] = ["context", "tool"];');
-    expect(row).toContain("@toggle=\"openActions('context')\"");
-    expect(row).toContain("@toggle=\"openActions('tool')\"");
-    expect(script).toContain("return listOf(kind, actions.value);");
-  });
-
-  test("a running turn counts each sort whole, what fell off the front of its block included", () => {
-    expect(script).toContain('const held = handed.filter((action) => action.state === "held").length;');
-    expect(script).toContain("const documents = handed.length - held + live.droppedContext;");
-    expect(script).toContain("tools: live.actions.length + live.dropped - handed.length - live.droppedContext");
-    expect(template).toContain(':actions="liveOf(kind)" :dropped="liveDropped(kind)"');
-  });
-
-  test("a document the session already held is listed but not counted as read", () => {
-    expect(script).toContain("held: named ? held : (done.value?.held ?? 0)");
-    expect(script).toContain("counts.value.documents + counts.value.held + counts.value.brain;");
-  });
-
-  test("what the round's end names as read stands in place of the log's documents, and is counted but for the held", () => {
-    expect(script).toContain('const reads = computed<DraftRead[]>(() => (props.live === null ? (props.drafts?.reads ?? []) : []));');
-    expect(script).toContain("documents: named ? reads.value.length - held : (done.value?.documents ?? 0)");
-    expect(script).toContain('return reads.value.length > 0 ? brain.filter((action) => action.kind === "tool") : brain;');
-    expect(template).toContain(`<BrainReads v-if="kind === 'context' && reads.length > 0" :reads="reads"`);
-  });
-
-  test("a finished turn reads its lines out of the log once, when a list is first opened", () => {
-    expect(script).toContain("at.runs.map((run) => readRunLines(at.agent, run))");
-    expect(script).toContain("loadedLines.value = lines.flat();");
-    expect(script).toContain("actions.value = turnActions(loadedLines.value);");
-    expect(script).toContain("if (!next || at === null || actions.value.length > 0 || loadingActions.value || !logListed(kind))");
-    expect(template).toContain('v-if="restOf(kind) > 0"');
-  });
-
-  test("each spread on its own row alone, a running turn's starting where the browser last left that sort", () => {
-    // A press sets the one list it was made on, on this row; what the browser keeps only says where
-    // a running turn's list starts, and an answer's never reads it.
-    expect(script).toContain("const pressed = reactive<Record<ActionKind, boolean | null>>({ context: null, tool: null });");
-    expect(script).toContain("return pressed[kind] ?? (props.live !== null && !folded.value[kind]);");
-
-    const opening = script.slice(script.indexOf("async function openActions"), script.indexOf("const chip = computed"));
-
-    expect(opening).toContain("pressed[kind] = next;");
-    expect(opening).toContain("setFolded(kind, !next);");
-    expect(opening.match(/setFolded\(/g)).toHaveLength(1);
-    expect(opening).not.toMatch(/pressed\[(?!kind\])/);
-    expect(script).not.toContain("folded.value =");
-  });
-});
-
 describe("what the turn wrote down", () => {
   test("is carried on the answer whole and spreads without a read", () => {
     expect(script).toContain("done.value?.records ?? []");
     expect(template).toContain('<TurnRecords v-if="recordsOpen" :records="records"');
-  });
-});
-
-describe("what opened the turn", () => {
-  const cards = template.slice(template.indexOf('<template v-for="turn in turns"'));
-
-  test("stands once above each turn's cards, whichever gates the turn ran", () => {
-    expect(script).toContain("openedTurns(opened.value)");
-    expect(cards.indexOf("<TurnOpening")).toBeGreaterThan(-1);
-    expect(cards.indexOf("<TurnOpening")).toBeLessThan(cards.indexOf('v-for="{ judgement, narrowed, kept, words } in turn.cards"'));
-    expect(cards).toContain('v-if="turn.opening !== null && turn.opening.instructions.length > 0"');
-  });
-
-  test("a gate asked about none says what it narrowed from and left, and the item rule where it kept by that alone", () => {
-    expect(script).toContain("narrowed: narrowedOffer(judgement)");
-    expect(cards).toContain('<p v-if="narrowed.itemRule"');
-    expect(cards).toContain('room.label.offer_counts", { held: countText(narrowed.held), left: countText(narrowed.left) }');
-  });
-
-  test("a gate's card says what each of its rules kept, wherever its round's record holds a row for the gate", () => {
-    expect(script).toContain("kept: keptOffer(judgement)");
-    expect(cards).toContain('<p v-if="kept !== null" data-kept');
-    expect(cards).toContain('room.label.offer_kept", { item: countText(kept.item), keyword: countText(kept.keyword), word: countText(kept.word), person: countText(kept.person), recent: countText(kept.recent) }');
   });
 });
 
@@ -241,73 +244,10 @@ describe("what the answer spent", () => {
 });
 
 describe("what the chips spread", () => {
-  // The spread is an item of the bubble's wrapping row, and the bubble cuts what it holds at its own
-  // edge. Without its least width given up, the longest unbroken word in a card or an instruction's
-  // text sets that width, the spread stands wider than the bubble and its trailing side is cut.
   const spread = /<div v-if="spreading" data-spread class="([^"]*)"/.exec(template)?.[1]?.split(" ") ?? [];
 
   test("stands at the bubble's own width, never at its longest word's", () => {
     expect(spread).toContain("basis-full");
     expect(spread).toContain("min-w-0");
-  });
-});
-
-// How the round's draft process made the answer (docs/web.md, the room screen's draft chip): a count on the answer's
-// last message, the summary and the round log's rows spread under it, read once from the room's own route.
-const draftRows = await Bun.file(new URL("../../../apps/web/app/components/DraftRows.vue", import.meta.url)).text();
-const rowsTemplate = draftRows.slice(0, draftRows.indexOf("<script"));
-
-describe("the draft chip", () => {
-
-  test("stands on a turn that has ended, where the page read the round's process or the gate wrote of it", () => {
-    expect(script).toContain("props.live === null && roundOfDrafts.value !== null && (props.drafts !== null || split.value.drafts.length > 0)");
-    expect(row).toContain('<LineChip v-if="drafted" :icon="CHIP_ICONS.drafts" :label="$t(CHIP_LABELS.drafts)" :open="draftsOpen" @toggle="openDrafts">');
-    expect(row).toContain('<RollingNumber :value="draftCount" />');
-  });
-
-  test("reads the round's rows the first time it opens and never again once they are in", () => {
-    expect(script).toContain("`/api/rooms/${props.chatId}/drafts`, { query: { round } }");
-    expect(script).toContain("if (!draftsOpen.value || round === null || draftRows.value !== null || loadingDrafts.value) return;");
-    expect(template).toMatch(/<DraftRows\s+v-if="draftsOpen && drafted"\s+:rows="draftRows"\s+:loading="loadingDrafts"\s+:failure="draftsFailure"/);
-  });
-
-  test("spreads the rounds, the end, what was read and the send, each in a person's words", () => {
-    const at = ["data-draft-rounds", "data-draft-end", "data-draft-reads", "data-draft-sent"].map((one) => rowsTemplate.indexOf(one));
-
-    expect(at.every((one) => one > -1)).toBe(true);
-    expect([...at].sort((one, other) => one - other)).toEqual(at);
-
-    for (const fact of ["countText(round.number)", "round.asked", "round.decided", "room.label.draft_chars", "room.label.draft_changed", "secondsText($t, round.ms)", "round.slow"]) {
-      expect({ fact, stood: rowsTemplate.includes(fact) }).toEqual({ fact, stood: true });
-    }
-    // Nothing stands in the record's own form: no row's raw question, no milliseconds.
-    expect(rowsTemplate).not.toContain("row.question");
-    expect(rowsTemplate).not.toContain("ms</span>");
-    // Every round stands open: no fold, its answer whole under its line.
-    expect(rowsTemplate).toMatch(/<pre\s+v-if="round\.answer !== null && round\.diff\.length === 0"/);
-    expect(rowsTemplate).not.toContain("opened.has");
-    expect(rowsTemplate).toContain("data-draft-diff");
-  });
-});
-
-// What became of a person's message (docs/web.md, the room screen's verdicts): one line under its mark, a link to the
-// message it names, and a press for the gates' cards; an answer carries no mark of its own.
-describe("the outcome line", () => {
-  test("stands under a person's message's mark alone, and links the message it names", () => {
-    expect(template).toContain('<div v-if="expanded && marked" data-outcome');
-    expect(template).toContain("@click.stop=\"emit('jump', props.outcome.target.messageId)\"");
-    expect(template).toContain('v-if="cardsHeld"');
-    expect(script).toContain("const verdicts = computed<Judgement[]>(() => (props.answer ? [] :");
-  });
-});
-
-// An ended turn's calls stand as the agent's own log draws a tool call (docs/web.md, the room screen's tool chip):
-// the command under its prompt and its result under it, whatever program the turn ran on.
-describe("the tool chip of an ended turn", () => {
-  test("draws each call as the log's tool call, its results by the call's reference", async () => {
-    const source = await Bun.file(new URL("../../../apps/web/app/components/JudgementChips.vue", import.meta.url)).text();
-
-    expect(source).toContain('<AgentToolCall v-for="row in callRows" :key="row.key" :row="row" />');
-    expect(source).toContain('one.kind === "tool-result" && one.ref !== null && one.ref === line.ref');
   });
 });

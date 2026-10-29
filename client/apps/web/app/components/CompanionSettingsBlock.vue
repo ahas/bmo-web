@@ -22,33 +22,51 @@
       <PictureSetting kind="agent" :subject="view.agent" :avatar="picture" />
     </div>
 
-    <!-- The model: the registration it is pinned to, and the file its engine serves. -->
+    <!-- The model, every supervisor's the same two ways: the agency's route, or a registration kept as its
+         fixed model with the file its engine serves. -->
     <div class="flex flex-col gap-2">
       <h3 class="text-sm font-medium text-highlighted">{{ $t("common.label.model") }}</h3>
-      <div class="grid gap-2 sm:grid-cols-2">
-        <USelect
-          :model-value="draft.registration ?? undefined"
-          :items="registrationItems"
-          value-key="value"
-          class="w-full"
-          :disabled="busy"
-          :aria-label="$t('agents.title.registry')"
-          @update:model-value="(value: string) => (draft.registration = value)"
-        />
-        <!-- The files offered are those of the registration saved, so another registration chosen
-             holds this list still until it is saved. -->
-        <USelect
-          v-if="view.entries.length > 0"
-          :model-value="draft.entry ?? undefined"
-          :items="entryItems"
-          value-key="value"
-          class="w-full"
-          :placeholder="$t('agents.label.engine_model_unknown')"
-          :disabled="busy || running || draft.registration !== saved.registration"
-          :aria-label="$t('agents.label.engine_model')"
-          @update:model-value="(value: string) => (draft.entry = value)"
-        />
-      </div>
+      <USelect
+        :model-value="draft.method"
+        :items="methodItems"
+        value-key="value"
+        class="w-full sm:w-64"
+        :disabled="busy"
+        :aria-label="$t('agents.label.supervisor_model_method')"
+        @update:model-value="(value: string) => (draft.method = value === 'route' ? 'route' : 'fixed')"
+      />
+      <template v-if="draft.method === 'fixed'">
+        <div class="grid gap-2 sm:grid-cols-2">
+          <USelect
+            :model-value="draft.registration ?? undefined"
+            :items="registrationItems"
+            value-key="value"
+            class="w-full"
+            :disabled="busy"
+            :aria-label="$t('agents.title.registry')"
+            @update:model-value="(value: string) => (draft.registration = value)"
+          />
+          <!-- The files offered are those of the registration saved, so another registration chosen
+               holds this list still until it is saved. -->
+          <USelect
+            v-if="view.entries.length > 0"
+            :model-value="draft.entry ?? undefined"
+            :items="entryItems"
+            value-key="value"
+            class="w-full"
+            :placeholder="$t('agents.label.engine_model_unknown')"
+            :disabled="busy || running || draft.registration !== saved.registration"
+            :aria-label="$t('agents.label.engine_model')"
+            @update:model-value="(value: string) => (draft.entry = value)"
+          />
+        </div>
+        <p v-if="draft.registration === null" class="text-sm text-muted">{{ $t("agents.label.supervisor_model_pick") }}</p>
+      </template>
+      <template v-else>
+        <p class="text-sm text-highlighted" data-companion-model-route>{{ $t("agents.label.supervisor_model_route", { model: view.model ?? "—" }) }}</p>
+        <p class="text-sm text-dimmed">{{ $t("agents.label.supervisor_model_route_help") }}</p>
+        <NuxtLink to="/agents?tab=routes" class="text-sm text-primary">{{ $t("agents.action.open_routes") }}</NuxtLink>
+      </template>
       <p v-if="view.modelUse !== null && view.modelUse.state !== 'done'" class="text-sm" :class="view.modelUse.state === 'failed' ? 'text-error' : 'text-muted'" role="status">
         {{ useText($t, view.modelUse) }}
       </p>
@@ -188,6 +206,10 @@ const { t } = useI18n();
 const view = computed(() => props.view);
 const running = computed(() => view.value.modelUse?.state === "running");
 const registrationItems = computed(() => view.value.registrations.map((one) => ({ label: one.label, value: one.name, description: one.name })));
+const methodItems = computed(() => [
+  { label: t("agents.label.supervisor_model_method_route"), value: "route" },
+  { label: t("agents.label.supervisor_model_method_fixed"), value: "fixed" },
+]);
 const entryItems = computed(() => view.value.entries.map((one) => ({ label: one.label, value: one.name, description: one.file })));
 const baseItems = computed(() => basePromptChoices(t, view.value.basePrompts));
 const thinkingItems = computed(() => [

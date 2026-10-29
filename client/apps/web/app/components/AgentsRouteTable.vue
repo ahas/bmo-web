@@ -213,11 +213,15 @@ function rowOf(key: string): RouteRow {
   return { key, label: keyLabel(key), profile, assignment, warning: profile?.noRoute ?? (assignment === null ? t("agents.status.no_tier_assignment") : null) };
 }
 
+// The translator's road is fixed and is reached as a tool, not a road the owner routes (docs/web.md, the route
+// table); its profile and any tier assignment it holds stand no row.
+const FIXED_LINES: readonly string[] = ["translate"];
+
 const rows = computed<RouteRow[]>(() => {
   const profiles = fallback.value?.profiles ?? [];
   const assignments = tiers.value?.assignments ?? [];
-  const gateKeys = profiles.filter((one) => one.kind === "gate").map((one) => one.key);
-  const keys = [...profiles.filter((one) => one.kind !== "gate").map((one) => one.key), ...assignments.map((one) => one.key).filter((key) => !gateKeys.includes(key) && !profiles.some((one) => one.key === key))];
+  const hidden = new Set(profiles.filter((one) => one.kind === "gate" || FIXED_LINES.includes(one.line)).map((one) => one.key));
+  const keys = [...profiles.filter((one) => !hidden.has(one.key)).map((one) => one.key), ...assignments.map((one) => one.key).filter((key) => !hidden.has(key) && !profiles.some((one) => one.key === key))];
 
   return keys.map((key) => rowOf(key));
 });

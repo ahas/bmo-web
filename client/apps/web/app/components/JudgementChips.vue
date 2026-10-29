@@ -7,53 +7,59 @@
        it stands on a ground of its own. -->
   <div v-if="shown || spreading" :class="frame">
     <!-- Everything on the line is one size, one line height and one colour on one middle line, and
-         its figures are tabular. What the turn did, spent and wrote down stands at the leading end;
-         how long the room waited, the verdicts, the time and the send mark at the trailing end. The
-         line breaks between its two ends before it breaks among the chips: where they do not fit on one line, the chips keep a
-         line of their own and the trailing end takes the line under them, and the chips wrap among
-         themselves only where they alone are wider than the bubble.
-         Each chip is a mark with a figure or nothing beside it, named by its tooltip. How full the
-         session stood stands first, where it was placed, and arrives with the answer; the rest stand
-         in the order their own clock puts them in: the documents the turn was handed and what it
-         spends stand from its first second, a call joins them the moment it is made, and what it
-         wrote down and the full reading arrive with the answer, so they stand last. A chip that
-         arrives late standing first would push every chip already there sideways the moment it
-         landed, and a reader watching a turn would see the line taken away and built again rather
-         than filled. -->
+         its figures are tabular. The turn's record, what it spent and what it wrote down stand at the
+         leading end; how long the room waited, the verdict mark, the time and the send mark at the
+         trailing end. The line breaks between its two ends before it breaks among the chips: where
+         they do not fit on one line, the chips keep a line of their own and the trailing end takes the
+         line under them, and the chips wrap among themselves only where they alone are wider than the
+         bubble.
+         How full the session stood stands first, where it was placed, and arrives with the answer; the
+         turn's record stands beside it, its parts a mark and a word each; what the turn spends and
+         writes down follows, and the full reading arrives last. A chip that arrives late standing
+         first would push every chip already there sideways the moment it landed, and a reader watching
+         a turn would see the line taken away and built again rather than filled. -->
     <div data-meta :data-meta-inline="inline ? '' : undefined" class="flex min-w-0 flex-wrap items-end gap-(--chat-meta-gap) text-sm leading-(--chat-meta-line) whitespace-nowrap tabular-nums" :class="lineLook">
       <span v-if="chipped" data-meta-lead class="flex min-w-0 flex-wrap items-center gap-(--chat-meta-gap)">
-        <!-- What the turn was handed and what it called, each a count that opens its own list: on a
-             turn that has ended the lines are read out of the log the moment one is opened, and on
-             one still running they are what its stream has said so far. A document the session
-             already held went as a mark and is listed but not counted, so a turn that read nothing
-             new still opens its list from a chip standing at nought. How full the session stood stands
-             before them, once the turn has ended and only where the session reported it. -->
+        <!-- How full the session stood, once the turn has ended and only where the session reported it. It spreads
+             nothing, so it stands where the owner placed it, before the record. -->
         <ContextChip v-if="context !== null" :ratio="context" />
 
-        <!-- What the session holds read, and what this round read new as a green plus (docs/web.md, the room screen's brain chip). -->
-        <LineChip v-if="counts.documents + counts.held + counts.brain > 0" :icon="CHIP_ICONS.brain" :label="brainLabel" :open="listOpen('context')" @toggle="openActions('context')">
-          <span data-brain-figure class="inline-flex items-center">
-            <RollingNumber v-if="counts.held > 0 || fresh === 0" :value="counts.held" />
-            <span v-if="fresh > 0" data-brain-new class="inline-flex items-center text-success">+<RollingNumber :value="fresh" /></span>
+        <!-- The turn's own record, as one press: what it read from the brain, what it called, how its answer was
+             drafted and how the round was judged, each a mark and a word in the one button (docs/web.md, the room
+             screen's chip line). Pressing it spreads the whole record in the order the turn made it. -->
+        <LineChip v-if="recorded" data-record-chip class="h-auto!" :icon="RECORD_ICON" :label="$t('room.label.chip_record')" :open="recordOpen" @toggle="toggleRecord">
+          <span class="inline-flex flex-wrap items-center gap-2">
+            <span v-if="brainCounted" data-record-brain class="inline-flex items-center gap-1">
+              <UIcon :name="CHIP_ICONS.brain" aria-hidden="true" class="size-4" />
+              <span>{{ $t(CHIP_LABELS.brain) }}</span>
+              <span class="inline-flex items-center">
+                <RollingNumber v-if="counts.held > 0 || fresh === 0" :value="counts.held" />
+                <span v-if="fresh > 0" data-brain-new class="inline-flex items-center text-success">+<RollingNumber :value="fresh" /></span>
+              </span>
+            </span>
+            <span v-if="counts.tools > 0" data-record-tools class="inline-flex items-center gap-1">
+              <UIcon :name="CHIP_ICONS.tools" aria-hidden="true" class="size-4" />
+              <span>{{ $t(CHIP_LABELS.tools) }}</span>
+              <RollingNumber :value="counts.tools" />
+            </span>
+            <span v-if="drafted" data-record-drafts class="inline-flex items-center gap-1">
+              <UIcon :name="CHIP_ICONS.drafts" aria-hidden="true" class="size-4" />
+              <span>{{ $t(CHIP_LABELS.drafts) }}</span>
+              <RollingNumber :value="draftCount" />
+            </span>
+            <span v-if="judgedRecorded" data-record-verdicts class="inline-flex items-center gap-1">
+              <UIcon :name="CHIP_ICONS.verdicts" aria-hidden="true" class="size-4" />
+              <span>{{ $t(CHIP_LABELS.verdicts) }}</span>
+            </span>
           </span>
         </LineChip>
 
         <!-- What the answer wrote, filling while the turn runs and the round's own figure afterwards. -->
         <TokenChip v-if="chip !== null" :chip="chip" :open="spendOpen" @toggle="spendOpen = !spendOpen" />
 
-        <LineChip v-if="counts.tools > 0" :icon="CHIP_ICONS.tools" :label="$t(CHIP_LABELS.tools)" :open="listOpen('tool')" @toggle="openActions('tool')">
-          <RollingNumber :value="counts.tools" />
-        </LineChip>
-
         <!-- What the turn wrote down, carried whole on the answer, so it spreads without a read. -->
         <LineChip v-if="records.length > 0" :icon="CHIP_ICONS.records" :label="$t(CHIP_LABELS.records)" :open="recordsOpen" @toggle="recordsOpen = !recordsOpen">
           <RollingNumber :value="records.length" />
-        </LineChip>
-
-        <!-- How the round's draft process made the answer, which arrives with it: the count of the rounds it asked,
-             spreading the summary and the round log's rows, read the first time it opens. -->
-        <LineChip v-if="drafted" :icon="CHIP_ICONS.drafts" :label="$t(CHIP_LABELS.drafts)" :open="draftsOpen" @toggle="openDrafts">
-          <RollingNumber :value="draftCount" />
         </LineChip>
 
         <!-- The line's full reading, where one stands. It comes after the answer has gone out, so it
@@ -127,59 +133,125 @@
         <p v-else class="text-sm text-dimmed">{{ $t("briefing.status.making") }}</p>
       </template>
 
-      <template v-for="kind in ACTION_KINDS" :key="kind">
-        <!-- A turn still running has its lines already and stands them bare, the way it did while it
-             was the only thing there was to read; a turn that has ended reads them out of the log. -->
-        <TurnActions v-if="listOpen(kind) && props.live !== null" :actions="liveOf(kind)" :dropped="liveDropped(kind)" />
+      <!-- The turn's whole record, in the order the turn made it: what it was handed from the brain, every call it
+           made and what came back, each question of its draft process, the round's judgement, and the situation note
+           as that round read it. Nothing here is cut on a line and nothing scrolls in a box of its own; the bubble's
+           width wraps what is long and the panel grows by what it holds. -->
+      <div v-if="recordOpen" data-record class="flex w-full min-w-0 flex-col gap-3">
+        <ContentSkeleton v-if="loadingRecord" :rows="3" listClass="flex flex-col gap-1" :label="$t('room.status.records_loading')">
+          <div class="flex h-5 items-center gap-2">
+            <SkeletonBar class="size-4 shrink-0 rounded-sm" />
+            <SkeletonBar class="h-4 min-w-0 flex-1" />
+          </div>
+        </ContentSkeleton>
+        <p v-else-if="recordFailure !== null" class="text-sm text-dimmed">{{ recordFailure }}</p>
+        <template v-else>
+          <p v-if="timeline.length === 0" class="text-sm text-dimmed">{{ $t("room.status.no_records_left") }}</p>
 
-        <div v-else-if="listOpen(kind)" class="w-full min-w-0">
-          <!-- What the round's end names as read from the brain stands with the page; the brain calls the log holds
-               follow it, read the first time the list opens. -->
-          <BrainReads v-if="kind === 'context' && reads.length > 0" :reads="reads" :chat-id="props.chatId" :agent="done?.agent ?? null" :class="logListed(kind) ? 'mb-2' : ''" />
+          <template v-for="(entry, index) in timeline" :key="index">
+            <BrainReads v-if="entry.kind === 'reads'" :reads="entry.reads" :chat-id="props.chatId" :agent="done?.agent ?? null" class="w-full" />
 
-          <template v-if="logListed(kind)">
-            <ContentSkeleton v-if="loadingActions" :rows="3" listClass="flex flex-col gap-1" :label="$t('room.status.records_loading')">
-              <div class="flex h-5 items-center gap-2">
-                <SkeletonBar class="size-4 shrink-0 rounded-sm" />
-                <SkeletonBar class="h-4 min-w-0 flex-1" />
+            <TurnActions v-else-if="entry.kind === 'actions'" :actions="entry.actions" />
+
+            <AgentToolCall v-else-if="entry.kind === 'call'" :row="entry.row" />
+
+            <TurnOpening v-else-if="entry.kind === 'opening'" :instructions="entry.opening.instructions" :chat-id="props.chatId" class="w-full" />
+
+            <!-- One question of the round's draft process, with what it was asked, what it answered, and the answer
+                 or the change it wrote, whole. -->
+            <div v-else-if="entry.kind === 'draft'" data-record-draft class="flex w-full min-w-0 flex-col gap-1">
+              <div class="flex w-full min-w-0 flex-wrap items-center gap-x-2 px-1 text-sm text-muted tabular-nums">
+                <span class="text-dimmed">{{ countText(entry.line.number) }}</span>
+                <span class="text-highlighted">{{ entry.line.asked }}</span>
+                <span :class="entry.line.failed ? 'text-error' : ''">{{ entry.line.decided }}</span>
+                <span v-if="entry.line.chars !== null">{{ $t("room.label.draft_chars", { n: countText(entry.line.chars) }) }}</span>
+                <span v-if="entry.line.changed">{{ $t("room.label.draft_changed") }}</span>
+                <span v-if="entry.line.ms !== null" class="inline-flex items-center gap-1" :class="entry.line.slow ? 'text-warning' : ''">
+                  <UIcon v-if="entry.line.slow" name="i-material-symbols-schedule-outline" class="size-4" :aria-label="$t('room.label.draft_slow')" role="img" />
+                  {{ secondsText($t, entry.line.ms) }}
+                </span>
+                <time class="ms-auto text-dimmed">{{ formatClock(entry.at) }}</time>
               </div>
-            </ContentSkeleton>
-            <p v-else-if="actionsFailure !== null" class="text-sm text-dimmed">{{ actionsFailure }}</p>
-            <p v-else-if="loadedOf(kind).length === 0" class="text-sm text-dimmed">{{ $t("room.status.no_records_left") }}</p>
-            <!-- An ended turn's calls stand as the agent's log draws them, the command under its prompt. -->
-            <div v-else-if="kind === 'tool'" class="flex min-w-0 flex-col gap-2">
-              <AgentToolCall v-for="row in callRows" :key="row.key" :row="row" />
-              <RollingSentence v-if="restOf(kind) > 0" tag="p" class="mt-1 text-sm text-dimmed" :keypath="'room.status.more_records'" :figures="{ n: restOf(kind) }" />
+              <pre v-if="entry.diff.length === 0 && entry.line.answer !== null" data-draft-answer class="mb-1 ms-7 font-sans text-sm whitespace-pre-wrap wrap-anywhere text-muted">{{ entry.line.answer }}</pre>
+              <pre v-else-if="entry.diff.length > 0" data-draft-diff class="mb-1 ms-7 font-sans text-sm whitespace-pre-wrap wrap-anywhere"><span v-for="(line, at) in entry.diff" :key="at" :data-diff="line.kind" :class="line.kind === 'removed' ? 'text-error/80 line-through' : line.kind === 'added' ? 'text-success' : 'text-muted'">{{ line.text }}
+</span></pre>
             </div>
-            <template v-else>
-              <TurnActions :actions="loadedOf(kind)" />
-              <!-- A turn longer than one page of the log comes back short of its own count, and the rest
-                   stands on the agent's own screen rather than being quietly left out here. -->
-              <RollingSentence v-if="restOf(kind) > 0" tag="p" class="mt-1 text-sm text-dimmed" :keypath="'room.status.more_records'" :figures="{ n: restOf(kind) }" />
-            </template>
+
+            <p v-else-if="entry.kind === 'end'" data-draft-end class="flex flex-wrap items-center gap-x-2 px-1 text-sm text-muted tabular-nums">
+              <UIcon name="i-material-symbols-flag-outline" aria-hidden="true" class="size-4 shrink-0 text-dimmed" />
+              <span class="text-highlighted" :class="entry.withheld ? 'text-error' : ''">{{ entry.outcome }}</span>
+              <span v-if="entry.ms !== null">{{ secondsText($t, entry.ms) }}</span>
+              <time v-if="entry.at !== null" class="ms-auto text-dimmed">{{ formatClock(entry.at) }}</time>
+            </p>
+
+            <!-- One gate's card, as it judged the round: what it decided, the names it chose, each line its model
+                 read, what it narrowed and kept, the roads it walked, and its original verdict whole. -->
+            <div v-else-if="entry.kind === 'judgement'" class="w-full" data-record-card>
+              <div class="flex flex-wrap items-center gap-2 text-sm">
+                <span class="font-medium text-highlighted">{{ stageLabel($t, entry.judgement.stage) }}</span>
+                <time class="text-dimmed">{{ formatStamp(entry.judgement.createdAt) }}</time>
+                <span v-if="tookOf(entry.judgement) !== ''" class="text-dimmed tabular-nums">{{ tookOf(entry.judgement) }}</span>
+              </div>
+
+              <p data-card-words class="mt-1 flex flex-wrap items-baseline gap-x-2 text-sm break-words">
+                <span :class="TONE_CLASSES[entry.view.words.tone]">{{ entry.view.words.words }}</span>
+                <span v-if="entry.view.words.names.length > 0" class="font-mono break-all text-muted">{{ entry.view.words.names.join(", ") }}</span>
+              </p>
+
+              <ol v-if="(entry.judgement.lines ?? []).length > 0" data-judgement-lines class="mt-2 flex flex-col gap-1">
+                <li v-for="(one, at) in entry.judgement.lines" :key="at" class="flex min-w-0 flex-wrap items-baseline gap-x-2 text-sm">
+                  <span class="min-w-0 flex-1 font-mono break-words whitespace-pre-wrap text-muted">{{ one.line }}</span>
+                  <span class="shrink-0" :class="lineKept(one.answer) ? 'text-success' : 'text-dimmed'" data-line-answer>{{ lineAnswer($t, one.answer) }}</span>
+                </li>
+              </ol>
+
+              <template v-if="entry.view.narrowed !== null">
+                <p v-if="entry.view.narrowed.itemRule" class="mt-1 text-sm text-dimmed">{{ $t("room.label.offer_item_rule") }}</p>
+                <p class="mt-1 text-sm text-dimmed tabular-nums">
+                  {{ $t("room.label.offer_counts", { held: countText(entry.view.narrowed.held), left: countText(entry.view.narrowed.left) }) }}
+                </p>
+              </template>
+
+              <p v-if="entry.view.kept !== null" data-kept class="mt-1 text-sm text-dimmed tabular-nums">
+                {{ $t("room.label.offer_kept", { item: countText(entry.view.kept.item), keyword: countText(entry.view.kept.keyword), word: countText(entry.view.kept.word), person: countText(entry.view.kept.person), recent: countText(entry.view.kept.recent) }) }}
+              </p>
+
+              <ul v-if="roadsOf(entry.judgement).length > 0" class="mt-2 flex flex-col gap-1">
+                <li v-for="road in roadsOf(entry.judgement)" :key="road.id" class="flex flex-wrap items-baseline gap-2 text-sm text-dimmed">
+                  <span class="font-mono break-all text-muted">{{ roadName(road) }}</span>
+                  <span class="flex items-baseline gap-2 whitespace-nowrap">
+                    <span>{{ roadOutcome($t, road.outcome) }}</span>
+                    <span class="tabular-nums">{{ secondsText($t, road.ms) }}</span>
+                  </span>
+                </li>
+              </ul>
+
+              <UChatTool :text="$t('common.label.original')" chevron="leading" data-card-original class="mt-1">
+                <pre class="font-mono text-sm whitespace-pre-wrap wrap-anywhere text-dimmed">{{ originalOf(entry.judgement) }}</pre>
+              </UChatTool>
+            </div>
+
+            <!-- The room's situation note as the round read it, and whether the round wrote it afresh. -->
+            <p v-else-if="entry.kind === 'situation'" data-situation class="flex min-w-0 flex-wrap items-baseline gap-x-2 text-sm">
+              <span class="shrink-0 text-muted">{{ $t("room.label.situation") }}</span>
+              <span class="min-w-0 break-words text-highlighted">{{ entry.situation.text }}</span>
+              <UBadge v-if="entry.situation.changed" color="primary" variant="subtle" size="sm" data-situation-changed>{{ $t("room.label.situation_changed") }}</UBadge>
+            </p>
           </template>
-        </div>
-      </template>
+
+          <!-- A turn longer than the page the log answers, or than the picture the bot holds, comes back short of its
+               own count; the rest stands on the agent's own screen rather than being quietly left out here. -->
+          <RollingSentence v-if="missed > 0" tag="p" class="text-sm text-dimmed" :keypath="'room.status.more_records'" :figures="{ n: missed }" />
+        </template>
+      </div>
 
       <TurnRecords v-if="recordsOpen" :records="records" class="w-full" />
 
-      <DraftRows
-        v-if="draftsOpen && drafted"
-        :rows="draftRows"
-        :loading="loadingDrafts"
-        :failure="draftsFailure"
-        :drafts="split.drafts"
-        :checks="checks"
-        :summary="props.drafts"
-        :reads="reads"
-        :chat-id="props.chatId"
-        :agent="done?.agent ?? null"
-      />
-
       <AgentTurnFigures v-if="chip !== null && spendOpen" :lines="chip.lines" :boxed="false" class="w-full" />
 
-      <!-- What became of the message, one line: its outcome in words, the message it links to by that message's
-           time, and a press for the gates' cards where there are any (docs/web.md, the room screen's verdicts). -->
+      <!-- What became of a person's message, one line: its outcome in words and the message it links to by that
+           message's time (docs/web.md, the room screen's verdicts). What judged the round stands in the answer's
+           own record press, not here. -->
       <div v-if="expanded && marked" data-outcome class="flex w-full min-w-0 flex-wrap items-center gap-x-2 text-sm">
         <span data-outcome-kind :data-outcome="outcomeKind" class="text-highlighted" :class="outcomeKind === 'failed' ? 'text-error' : ''">{{ outcomeWords }}</span>
         <UButton
@@ -192,103 +264,8 @@
           :label="$t(outcomeKind === 'read-with' ? 'room.label.outcome_with_message' : 'room.label.outcome_answer_at', { time: formatClock(props.outcome.target.sentAt) })"
           @click.stop="emit('jump', props.outcome.target.messageId)"
         />
-        <UButton
-          v-if="cardsHeld"
-          size="xs"
-          color="neutral"
-          variant="ghost"
-          trailing-icon="i-material-symbols-chevron-right"
-          :ui="{ trailingIcon: detailsOpen ? 'rotate-90 transition-transform' : 'transition-transform' }"
-          :label="$t('room.action.outcome_details')"
-          :aria-expanded="detailsOpen"
-          data-outcome-details
-          class="ms-auto"
-          @click.stop="detailsOpen = !detailsOpen"
-        />
       </div>
 
-      <!-- The room's situation note as the round that judged this line read it, and whether that round wrote it
-           afresh (docs/web.md, the room screen's verdicts). -->
-      <p v-if="props.situation !== null && props.situation !== undefined" data-situation class="flex min-w-0 flex-wrap items-baseline gap-x-2 text-sm">
-        <span class="shrink-0 text-muted">{{ $t("room.label.situation") }}</span>
-        <span class="min-w-0 break-words text-highlighted">{{ props.situation.text }}</span>
-        <UBadge v-if="props.situation.changed" color="primary" variant="subtle" size="sm" data-situation-changed>{{ $t("room.label.situation_changed") }}</UBadge>
-      </p>
-
-      <!-- Each turn's cards stand under what opened it, said once for the turn whichever gates it
-           ran. Inside the bubble they are parted by its own step, never boxed a second time. -->
-      <template v-for="turn in turns" :key="turn.key">
-        <TurnOpening
-          v-if="turn.opening !== null && turn.opening.instructions.length > 0"
-          :instructions="turn.opening.instructions"
-          :chat-id="props.chatId"
-          class="w-full"
-        />
-
-        <div
-          v-for="{ judgement, narrowed, kept, words } in turn.cards"
-          :key="judgement.id"
-          class="w-full"
-        >
-          <div class="flex flex-wrap items-center gap-2 text-sm">
-            <span class="font-medium text-highlighted">{{ stageLabel($t, judgement.stage) }}</span>
-            <time class="text-dimmed">{{ formatStamp(judgement.createdAt) }}</time>
-            <span v-if="tookOf(judgement) !== ''" class="text-dimmed tabular-nums">{{ tookOf(judgement) }}</span>
-          </div>
-
-          <!-- The verdict in words, with the names it chose as the records' own names (docs/web.md, the room screen's verdicts). -->
-          <p data-card-words class="mt-1 flex flex-wrap items-baseline gap-x-2 text-sm break-words">
-            <span :class="TONE_CLASSES[words.tone]">{{ words.words }}</span>
-            <span v-if="words.names.length > 0" class="font-mono break-all text-muted">{{ words.names.join(", ") }}</span>
-          </p>
-          <!-- What a picker's model was asked of its candidates, each line as it read it with its answer beside it, in
-               place of the list of picked names the detail holds. -->
-          <ol v-if="(judgement.lines ?? []).length > 0" data-judgement-lines class="mt-2 flex flex-col gap-1">
-            <li v-for="(one, at) in judgement.lines" :key="at" class="flex min-w-0 flex-wrap items-baseline gap-x-2 text-sm">
-              <span class="min-w-0 flex-1 font-mono break-words whitespace-pre-wrap text-muted">{{ one.line }}</span>
-              <span class="shrink-0" :class="lineKept(one.answer) ? 'text-success' : 'text-dimmed'" data-line-answer>{{ lineAnswer($t, one.answer) }}</span>
-            </li>
-          </ol>
-
-          <!-- A gate asked about none says what its narrowing started from and left, and that it kept
-               by the item rule alone where it did. -->
-          <template v-if="narrowed !== null">
-            <p v-if="narrowed.itemRule" class="mt-1 text-sm text-dimmed">{{ $t("room.label.offer_item_rule") }}</p>
-            <p class="mt-1 text-sm text-dimmed tabular-nums">
-              {{ $t("room.label.offer_counts", { held: countText(narrowed.held), left: countText(narrowed.left) }) }}
-            </p>
-          </template>
-
-          <!-- What each of the gate's rules kept, where its round's offers record holds a row for the gate. -->
-          <p v-if="kept !== null" data-kept class="mt-1 text-sm text-dimmed tabular-nums">
-            {{ $t("room.label.offer_kept", { item: countText(kept.item), keyword: countText(kept.keyword), word: countText(kept.word), person: countText(kept.person), recent: countText(kept.recent) }) }}
-          </p>
-
-          <!-- Which road the answer came by, and what was waited out before it. The provider and the
-               model stand as the record wrote them, so they are monospaced the way every other
-               recorded name on this screen is. -->
-          <ul v-if="roadsOf(judgement).length > 0" class="mt-2 flex flex-col gap-1">
-            <li
-              v-for="road in roadsOf(judgement)"
-              :key="road.id"
-              class="flex flex-wrap items-baseline gap-2 text-sm text-dimmed"
-            >
-              <span class="font-mono break-all text-muted">{{ roadName(road) }}</span>
-              <!-- How it ended and how long it took are one fact, so a narrow screen wraps after the
-                   name rather than between them. -->
-              <span class="flex items-baseline gap-2 whitespace-nowrap">
-                <span>{{ roadOutcome($t, road.outcome) }}</span>
-                <span class="tabular-nums">{{ secondsText($t, road.ms) }}</span>
-              </span>
-            </li>
-          </ul>
-
-          <!-- What the gate wrote, as it wrote it, folded under the original and never spread with the card. -->
-          <UChatTool :text="$t('common.label.original')" chevron="leading" data-card-original class="mt-1">
-            <pre class="font-mono text-sm whitespace-pre-wrap wrap-anywhere text-dimmed">{{ originalOf(judgement) }}</pre>
-          </UChatTool>
-        </div>
-      </template>
     </div>
   </div>
 </template>
@@ -299,17 +276,17 @@ import { briefingSoundUrl, mediaUrl } from "~/domain/player";
 import { BRIEFING_SETTLE_MS } from "~/domain/briefing";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useBotEvents } from "~/domain/events";
-import { useTurnActionsFold } from "~/domain/turn-actions-fold";
 import { readRunLines } from "~/domain/log";
 import { countText, secondsText } from "~/domain/numbers";
-import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, outcomeText, readingCards, roadName, roadOutcome, stageLabel, verdictState, verdictWords } from "~/domain/judgements";
+import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowedOffer, outcomeText, roadName, roadOutcome, stageLabel, verdictState, verdictWords } from "~/domain/judgements";
 import { brainActions, turnActions } from "~/domain/working";
 import { formatClock, formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
-import { draftAsked, draftRound, splitDraftJudgements } from "~/domain/draft-process";
+import { draftAsked, draftDiff, draftRound, endLine, gateRoundLines, roundLines, splitDraftJudgements } from "~/domain/draft-process";
 
 import type { AgentLogLine, BriefingReading, Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
 import type { LogRow } from "~/domain/log";
+import type { DraftDiffLine, RoundLine } from "~/domain/draft-process";
 import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
 import type { BriefingChip, VerdictChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
@@ -326,8 +303,11 @@ interface Props {
   actionsAt?: TurnActionsRef | null;
   // How the round's draft process made the answer, on the same message.
   drafts?: DraftSummary | null;
-  // The room's situation note as the round that judged this line read it, and whether it changed it.
-  situation?: Situation | null;
+  // The round's whole record as the page reads it, for the answer's one record press: the gates that read the
+  // person's message and the send and checks of the answer alike.
+  roundJudgements?: Judgement[];
+  // The room's situation note as that round read it, spread in the answer's record press.
+  roundSituation?: Situation | null;
   // The turn still running, where this line belongs to one: what it has done so far and what it
   // has spent so far, both of which it carries itself rather than leaving in a record to read.
   live?: LiveTurn | null;
@@ -361,6 +341,8 @@ const props = withDefaults(defineProps<Props>(), {
   spend: null,
   actionsAt: null,
   drafts: null,
+  roundJudgements: () => [],
+  roundSituation: null,
   live: null,
   chatId: 0,
   messageId: 0,
@@ -462,22 +444,18 @@ useBotEvents((event) => {
   briefingHeld.value = { id: voice.id, state, source: voice.spoken ? "kept" : voice.voiceMessageId === null ? null : "voice", voiceMessageId: voice.voiceMessageId };
 });
 
-// The two sorts of action a turn has, each a chip and a list of its own.
-type ActionKind = TurnAction["kind"];
-
-const ACTION_KINDS: readonly ActionKind[] = ["context", "tool"];
-
-// Whether this one message's lists stand spread, each on its own. Until the reader presses a chip
-// here, a turn still running stands each list as the browser last saw a running turn's left — it
-// is being watched, so a browser never told stands both spread — and a turn that has ended stands
-// both folded. A press sets that one list on this row and nothing else.
-const pressed = reactive<Record<ActionKind, boolean | null>>({ context: null, tool: null });
-const { folded, setFolded } = useTurnActionsFold();
-const loadingActions = ref(false);
-const actionsFailure = ref<string | null>(null);
+// The turn's record, spread as one panel in the order the turn made it (docs/web.md, the room screen's chip line):
+// what it read from the brain, every call and what came back, each question of its draft process, the round's
+// judgement, and the situation note as that round read it.
+const RECORD_ICON = "i-material-symbols-receipt-long";
+const recordOpen = ref(false);
+const loadingRecord = ref(false);
+const recordFailure = ref<string | null>(null);
 const actions = ref<TurnAction[]>([]);
 // The lines the record holds of the turn's runs, which its calls stand on as the agent's log draws them.
 const loadedLines = ref<AgentLogLine[]>([]);
+// The round log's rows, read the first time the record opens.
+const draftRows = ref<DraftRow[] | null>(null);
 const callRows = computed<LogRow[]>(() =>
   loadedLines.value
     .filter((line) => line.kind === "tool")
@@ -488,10 +466,6 @@ const callRows = computed<LogRow[]>(() =>
       depth: 0
     }))
 );
-
-function listOpen(kind: ActionKind): boolean {
-  return pressed[kind] ?? (props.live !== null && !folded.value[kind]);
-}
 
 const done = computed<TurnActionsRef | null>(() => props.actionsAt ?? null);
 
@@ -529,82 +503,172 @@ const counts = computed<{ documents: number; held: number; tools: number; brain:
 const records = computed<TurnRecord[]>(() => done.value?.records ?? []);
 
 // What the round read new: the pieces handed whole or read by the agent itself, and the brain calls; what the session
-// already held stands as the chip's plain figure before it.
+// already held stands as the record button's plain figure before it.
 const fresh = computed<number>(() => counts.value.documents + counts.value.brain);
-const brainLabel = computed<string>(() => (fresh.value > 0 ? t("room.label.chip_brain_new", { n: countText(fresh.value) }) : t(CHIP_LABELS.brain)));
 
-// One chip's list: the brain's — the documents handed and the calls that read the brain — or every call.
-function listOf(kind: ActionKind, actions: readonly TurnAction[]): TurnAction[] {
-  if (kind === "tool") return actions.filter((action) => action.kind === "tool");
+// The round's judgement as the record stands it: the gates that read the person's message and the answer's send and
+// checks alike.
+const recordSplit = computed(() => splitDraftJudgements(props.roundJudgements));
+const recordCards = computed<Judgement[]>(() => recordSplit.value.verdicts.filter((one) => !decidesMessage(one)));
 
-  const brain = brainActions(actions);
+// One line of the record, in the order the turn made it.
+type RecordEntry =
+  | { kind: "reads"; reads: DraftRead[] }
+  | { kind: "actions"; actions: TurnAction[] }
+  | { kind: "call"; row: LogRow }
+  | { kind: "draft"; line: RoundLine; diff: DraftDiffLine[]; at: number }
+  | { kind: "end"; outcome: string; withheld: boolean; ms: number | null; at: number | null }
+  | { kind: "opening"; opening: NonNullable<Judgement["opening"]> }
+  | {
+      kind: "judgement";
+      judgement: Judgement;
+      view: { narrowed: ReturnType<typeof narrowedOffer>; kept: ReturnType<typeof keptOffer>; words: ReturnType<typeof verdictWords> };
+    }
+  | { kind: "situation"; situation: Situation };
 
-  return reads.value.length > 0 ? brain.filter((action) => action.kind === "tool") : brain;
-}
+const timeline = computed<RecordEntry[]>(() => {
+  const head: RecordEntry[] = [];
+  const tail: RecordEntry[] = [];
+  const timed: { at: number | null; seq: number; entry: RecordEntry }[] = [];
+  let seq = 0;
 
-// Whether a list stands what the log holds: every list but the brain's where the round's end names its documents
-// and the round made no brain call.
-function logListed(kind: ActionKind): boolean {
-  return kind === "tool" || reads.value.length === 0 || counts.value.brain > 0;
-}
+  const push = (at: number | null, entry: RecordEntry): void => {
+    timed.push({ at, seq: seq++, entry });
+  };
 
-function liveOf(kind: ActionKind): TurnAction[] {
-  return listOf(kind, props.live?.actions ?? []);
-}
+  if (props.live !== null) {
+    // A turn still running carries what it has done so far already, in the order it did it.
+    if (props.live.actions.length > 0) push(null, { kind: "actions", actions: props.live.actions });
+  } else {
+    // What the round's end names as read from the brain stands first; without it, the documents the log says the turn
+    // was handed.
+    if (reads.value.length > 0) {
+      head.push({ kind: "reads", reads: reads.value });
+    } else {
+      const read = actions.value.filter((action) => action.kind === "context");
 
-function liveDropped(kind: ActionKind): number {
+      if (read.length > 0) head.push({ kind: "actions", actions: read });
+    }
+
+    // Every call, as the agent's log draws it, the result under the call.
+    for (const row of callRows.value) push(row.line.at, { kind: "call", row });
+
+    // Each question of the round's draft process, with the answer or the change it wrote.
+    const rows = draftRows.value;
+
+    if (rows !== null && rows.length > 0) {
+      const lines = new Map(roundLines(t, rows).map((line) => [line.key, line]));
+
+      for (const row of rows) {
+        if (row.kind === "end") continue;
+
+        const line = lines.get(`row:${row.id}`);
+
+        if (line === undefined) continue;
+
+        const before = row.before ?? null;
+
+        push(row.at, {
+          kind: "draft",
+          line,
+          diff: before !== null && line.answer !== null && before !== line.answer ? draftDiff(before, line.answer) : [],
+          at: row.at
+        });
+      }
+    } else {
+      // The gate wrote the round's questions where the round log holds none; they stand as the rounds they name.
+      for (const line of gateRoundLines(t, recordSplit.value.drafts)) {
+        const judgement = props.roundJudgements.find((one) => `judgement:${one.id}` === line.key);
+
+        if (judgement !== undefined) push(judgement.createdAt, { kind: "draft", line, diff: [], at: judgement.createdAt });
+      }
+    }
+
+    const endRow = rows?.findLast((row) => row.kind === "end") ?? null;
+    const end = endLine(t, rows, recordSplit.value.drafts, props.drafts);
+
+    if (end !== null) push(endRow?.at ?? null, { kind: "end", ...end, at: endRow?.at ?? null });
+
+    // What judged the round, each card at its own moment; what opened a turn stands once, before its first card.
+    const seen = new Set<string>();
+
+    for (const judgement of recordCards.value) {
+      const round = judgement.round ?? `judgement:${judgement.id}`;
+
+      if (!seen.has(round)) {
+        seen.add(round);
+
+        if (judgement.opening !== undefined && judgement.opening.instructions.length > 0) push(judgement.createdAt, { kind: "opening", opening: judgement.opening });
+      }
+
+      push(judgement.createdAt, {
+        kind: "judgement",
+        judgement,
+        view: { narrowed: narrowedOffer(judgement), kept: keptOffer(judgement), words: verdictWords(t, judgement) }
+      });
+    }
+
+    if (props.roundSituation != null) tail.push({ kind: "situation", situation: props.roundSituation });
+  }
+
+  timed.sort((left, right) => (left.at ?? 0) - (right.at ?? 0) || left.seq - right.seq);
+
+  return [...head, ...timed.map((one) => one.entry), ...tail];
+});
+
+// How much of the turn the record could not stand: a page of a run's log holds only so many lines, and the bot's
+// picture of a running turn keeps only the newest actions.
+const missed = computed<number>(() => {
   const live = props.live;
 
-  return live === null ? 0 : kind === "context" ? live.droppedContext : live.dropped - live.droppedContext;
-}
+  return live !== null ? live.dropped + live.droppedContext : Math.max(0, counts.value.tools - callRows.value.length);
+});
 
-function loadedOf(kind: ActionKind): TurnAction[] {
-  return listOf(kind, actions.value);
-}
+// What the record button says it holds: each part stands a mark and a word while it holds anything, and the press is
+// there only where one of them does.
+const brainCounted = computed<boolean>(() => counts.value.documents + counts.value.held + counts.value.brain > 0);
+const judgedRecorded = computed<boolean>(() => props.answer && (recordCards.value.length > 0 || props.roundSituation != null));
+const recorded = computed<boolean>(() => brainCounted.value || counts.value.tools > 0 || drafted.value || judgedRecorded.value);
 
-// How many of the turn's actions of one sort the list did not get: the record counted them all,
-// and a page of the log holds only so many lines.
-function restOf(kind: ActionKind): number {
-  const listed = kind === "tool" ? counts.value.tools : reads.value.length > 0 ? counts.value.brain : counts.value.documents + counts.value.held + counts.value.brain;
+// Opening the record reads the round's log and its draft rows once; a read that failed is asked again on the next
+// opening. A turn still running holds its lines already.
+async function toggleRecord(): Promise<void> {
+  recordOpen.value = !recordOpen.value;
 
-  return Math.max(0, listed - loadedOf(kind).length);
-}
-
-// Opening asks the log for that run's lines, once, and each list stands its own sort of them. They
-// are the archive's own answer, so a reader who closes a list and opens either again is shown the
-// same lines without asking for them twice.
-async function openActions(kind: ActionKind): Promise<void> {
-  const next = !listOpen(kind);
-
-  pressed[kind] = next;
-
-  // A turn still running has its lines already. How the reader left this list is where the next
-  // running turn's starts, and no row already standing moves with it.
-  if (props.live !== null) {
-    setFolded(kind, !next);
-
-    return;
-  }
+  if (!recordOpen.value || props.live !== null || loadingRecord.value) return;
 
   const at = done.value;
+  const round = roundOfDrafts.value;
+  const needLines = at !== null && loadedLines.value.length === 0;
+  const needDrafts = drafted.value && round !== null && draftRows.value === null;
 
-  if (!next || at === null || actions.value.length > 0 || loadingActions.value || !logListed(kind)) {
-    return;
-  }
+  if (!needLines && !needDrafts) return;
 
-  loadingActions.value = true;
-  actionsFailure.value = null;
+  loadingRecord.value = true;
+  recordFailure.value = null;
 
   try {
-    // Every run of the round, its own turn first and then each question its draft process asked, read as one.
-    const lines = await Promise.all(at.runs.map((run) => readRunLines(at.agent, run)));
+    if (needLines && at !== null) {
+      // Every run of the round, its own turn first and then each question its draft process asked, read as one.
+      try {
+        const lines = await Promise.all(at.runs.map((run) => readRunLines(at.agent, run)));
 
-    loadedLines.value = lines.flat();
-    actions.value = turnActions(loadedLines.value);
-  } catch (error) {
-    actionsFailure.value = failureText(error, t("room.error.actions_read_failed"));
+        loadedLines.value = lines.flat();
+        actions.value = turnActions(loadedLines.value);
+      } catch (error) {
+        recordFailure.value = failureText(error, t("room.error.actions_read_failed"));
+      }
+    }
+
+    if (needDrafts && round !== null) {
+      try {
+        draftRows.value = (await $fetch<{ rows: DraftRow[] }>(`/api/rooms/${props.chatId}/drafts`, { query: { round } })).rows;
+      } catch (error) {
+        recordFailure.value ??= failureText(error, t("room.error.drafts_read_failed"));
+      }
+    }
   } finally {
-    loadingActions.value = false;
+    loadingRecord.value = false;
   }
 }
 
@@ -612,64 +676,20 @@ const chip = computed<SpendChip | null>(() =>
   props.live !== null ? props.live.chip : props.spend === null ? null : roundChip(t, props.spend)
 );
 
-// The gate's rows of the round's draft process stand in the answer's draft spread, with the answer's send and checks;
-// every other verdict is a person's message's own.
+// The message's own verdicts: a person's message carries the gates that read it, and an answer carries none here,
+// since what judged the round stands in its record press.
 const split = computed(() => splitDraftJudgements(props.judgements));
 // A person's message's own verdicts, which its mark is coloured by; an answer carries none (docs/web.md, the room screen's verdicts).
 const verdicts = computed<Judgement[]>(() => (props.answer ? [] : split.value.verdicts.filter((one) => !judgesAnswer(one))));
-// The answer's send and checks, which stand in its draft spread.
-const checks = computed<Judgement[]>(() => (props.answer ? split.value.verdicts.filter(judgesAnswer) : []));
-// The gates' cards under a person's message's outcome, spread by its details press.
-const cards = computed<Judgement[]>(() => readingCards(verdicts.value));
-const detailsOpen = ref(false);
-// Whether the outcome line has more behind it: a gate's card, or an instruction the turn carried.
-const cardsHeld = computed<boolean>(() => cards.value.length > 0 || verdicts.value.some((one) => (one.opening?.instructions.length ?? 0) > 0));
-
-const opened = computed<Judgement[]>(() => openedCards(verdicts.value, expanded.value && detailsOpen.value));
-
 // What became of the message, or that it is still being judged.
 const outcomeKind = computed<OutcomeKind | "judging">(() => (props.judging ? "judging" : (props.outcome?.kind ?? "undecided")));
 const outcomeWords = computed<string>(() => (props.judging ? t("room.label.chip_verdicts_judging") : outcomeText(t, props.outcome?.kind ?? "undecided")));
 
-// The draft chip stands on a turn that has ended and whose round's process the page read or the gate wrote of.
-const draftsOpen = ref(false);
-const loadingDrafts = ref(false);
-const draftsFailure = ref<string | null>(null);
-const draftRows = ref<DraftRow[] | null>(null);
+// The record's draft part stands on a turn that has ended and whose round's process the page read or the gate wrote of.
 const roundOfDrafts = computed<string | null>(() => draftRound(props.drafts, split.value.drafts));
 const drafted = computed<boolean>(() => props.answer && props.live === null && roundOfDrafts.value !== null && (props.drafts !== null || split.value.drafts.length > 0));
-const draftCount = computed<number>(() => draftAsked(props.drafts, split.value.drafts));
+const draftCount = computed<number>(() => drafted.value ? draftAsked(props.drafts, split.value.drafts) : 0);
 
-// Opening reads the round's rows from the receiver's round log, once; a read that failed is asked again on the next
-// opening.
-async function openDrafts(): Promise<void> {
-  draftsOpen.value = !draftsOpen.value;
-
-  const round = roundOfDrafts.value;
-
-  if (!draftsOpen.value || round === null || draftRows.value !== null || loadingDrafts.value) return;
-
-  loadingDrafts.value = true;
-  draftsFailure.value = null;
-
-  try {
-    draftRows.value = (await $fetch<{ rows: DraftRow[] }>(`/api/rooms/${props.chatId}/drafts`, { query: { round } })).rows;
-  } catch (error) {
-    draftsFailure.value = failureText(error, t("room.error.drafts_read_failed"));
-  } finally {
-    loadingDrafts.value = false;
-  }
-}
-
-// The spread cards by the turn they belong to, each with what its narrowing says where it says
-// anything.
-const turns = computed(() =>
-  openedTurns(opened.value).map((turn) => ({
-    key: turn.key,
-    opening: turn.opening,
-    cards: turn.judgements.filter((judgement) => !decidesMessage(judgement)).map((judgement) => ({ judgement, narrowed: narrowedOffer(judgement), kept: keptOffer(judgement), words: verdictWords(t, judgement) })),
-  }))
-);
 // How full the session stood once the turn ended, on a turn that has ended and whose round reported it.
 const context = computed<number | null>(() => (props.live === null ? (props.spend?.context ?? null) : null));
 
@@ -683,6 +703,7 @@ const chipped = computed<boolean>(
     counts.value.tools > 0 ||
     records.value.length > 0 ||
     drafted.value ||
+    judgedRecorded.value ||
     props.briefing !== null
 );
 
@@ -703,9 +724,8 @@ const shown = computed<boolean>(() => full.value || marked.value || props.clock)
 const spreading = computed<boolean>(
   () =>
     (briefingOpen.value && props.briefing !== null) ||
-    ACTION_KINDS.some((kind) => listOpen(kind)) ||
+    recordOpen.value ||
     recordsOpen.value ||
-    (draftsOpen.value && drafted.value) ||
     (chip.value !== null && spendOpen.value) ||
     (expanded.value && marked.value)
 );

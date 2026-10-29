@@ -47,9 +47,11 @@ describe("the wait a row wears", () => {
     // before the verdicts, and the clock after them.
     expect(slotOf("took")).toContain(mark);
     expect(slotOf("clock")).toContain("{{ clock }}");
+    const trail = line.slice(line.indexOf("data-meta-trail"));
+
     expect(line.indexOf('<slot name="took" />')).toBeGreaterThan(line.indexOf("data-meta-trail"));
-    expect(line.indexOf('<slot name="took" />')).toBeLessThan(line.indexOf("CHIP_ICONS.verdicts"));
-    expect(line.indexOf('<slot name="clock" />')).toBeGreaterThan(line.indexOf("CHIP_ICONS.verdicts"));
+    expect(trail.indexOf('<slot name="took" />')).toBeLessThan(trail.indexOf("CHIP_ICONS.verdicts"));
+    expect(trail.indexOf('<slot name="clock" />')).toBeGreaterThan(trail.indexOf("CHIP_ICONS.verdicts"));
     expect(template.slice(template.indexOf("data-words"), template.indexOf("<JudgementChips"))).not.toContain(mark);
   });
 

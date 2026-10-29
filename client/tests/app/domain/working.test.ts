@@ -3,14 +3,12 @@ import { conversationOf } from "../../support/conversation";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-// The owner's own room as the room list names it.
-const OWNER_ROOM_TITLE = "Owner room";
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { GENERIC_TOOL_ICON } from "../../../apps/web/app/domain/log";
-import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, receivedLine, roomRuns, runSummary, subjectOf, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
+import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, receivedLine, subjectOf, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
 
-import type { AgentLogLine, AgentSummary, LiveRun, RoomSummary, RunProgress, TurnAction, WatchView } from "../../../apps/web/shared/types";
-import type { RoomRunLine } from "../../../apps/web/app/domain/working";
+import type { AgentLogLine, AgentSummary, LiveRun, RunProgress, TurnAction } from "../../../apps/web/shared/types";
+
 import KO from "../../fixtures/app/domain/working.test.ko.json";
 
 // Every screen reads an agent's name out of the catalogue the archive answered with, so a test
@@ -55,32 +53,8 @@ beforeEach(() =>
 );
 
 
-const rooms: RoomSummary[] = [
-  { chatId: -1003, title: "Alpha Room", messageCount: 12, lastMessageAt: null, pinned: false },
-  { chatId: 10000001, title: OWNER_ROOM_TITLE, messageCount: 3, lastMessageAt: null, pinned: false }
-];
-
 function progress(over: Partial<RunProgress> = {}): RunProgress {
   return { phase: "thinking", tool: null, thinkingTokens: null, contextTokens: null, cacheReadTokens: null, requestId: null, spent: null, writtenTokens: null, actions: [], droppedActions: 0, droppedContext: 0, ...over };
-}
-
-function run(over: Partial<LiveRun> = {}): LiveRun {
-  return {
-    id: 7,
-    kind: "runner",
-    agent: "search",
-    chatId: -1003,
-    messageId: null,
-    unit: "bmo-run-1",
-    startedAt: 1_788_000_000,
-    capSeconds: 180,
-    depth: "thorough",
-    model: null,
-    startedBy: null,
-    todoId: null,
-    progress: null,
-    ...over
-  };
 }
 
 describe("what the room says the answering agent is doing", () => {
@@ -201,159 +175,6 @@ describe("what the room says the turn was handed", () => {
 
   test("a turn the bot has said nothing about is not worked out from anything else", () => {
     expect(receivedLine(null)).toBeNull();
-  });
-});
-
-describe("what else is running for a room", () => {
-  test("only what belongs to that room, and never a gate — the steps already tell those", () => {
-    const live = [run(), run({ id: 8, chatId: -1002 }), run({ id: 9, kind: "gate", agent: "content-judge" })];
-
-    expect(roomRuns(wording, live, -1003, rooms).map((line) => line.key)).toEqual(["runner:7"]);
-  });
-
-  test("each run falls in the one count the room's line keeps for its sort", () => {
-    const live = [run(), run({ id: 8, kind: "worker", agent: "worker", depth: null, todoId: 26 }), run({ id: 9, depth: null, unit: "bmo-watch-1" }), run({ id: 10, agent: "digest", depth: null, unit: null })];
-    const watch = { id: 3, unit: "bmo-watch-1", name: KO.line_200, note: "" } as WatchView;
-
-    expect(roomRuns(wording, live, -1003, rooms, [watch]).map((line) => line.sort)).toEqual(["search", "job", "watch", "other"]);
-  });
-
-  test("a run wears what it is: a search its rung, a job the item it is a run of", () => {
-    expect(roomRuns(wording, [run()], -1003, rooms)[0]?.label).toBe(KO.line_206);
-    expect(
-      roomRuns(
-        wording,
-        [run({ kind: "worker", agent: "worker", depth: null, model: "claude-opus-5", todoId: 26, progress: null })],
-        -1003,
-        rooms
-      )[0]?.label
-    ).toBe(KO.line_214);
-  });
-
-  test("a work order's own run says where in the order it stands, never its unit name", () => {
-    const line = roomRuns(
-      wording,
-      [run({ kind: "worker", agent: "work-order-257-stage-0-0-1", depth: null, todoId: 257, progress: KO.line_220 })],
-      -1003,
-      rooms
-    )[0];
-
-    // How far the order has come, never which run of the item this is.
-    expect(line?.label).toBe(KO.line_226);
-    // The identifier itself is what the log is kept under, so shortening the name must not
-    // touch where the line leads.
-    expect(line?.agent).toBe("work-order-257-stage-0-0-1");
-    expect(line?.to).toBe("/agents/work-order-257-stage-0-0-1");
-  });
-
-  test("a job with no item behind it wears its model, since there is no number to give", () => {
-    expect(
-      roomRuns(wording, [run({ kind: "worker", agent: "worker", depth: null, model: "claude-opus-5" })], -1003, rooms)[0]?.label
-    ).toBe(KO.line_236);
-  });
-
-  test("a watch's check is named after the watch it is a check of, and carries the watch itself", () => {
-    const watch: WatchView = {
-      id: 12,
-      kind: "condition",
-      chatId: -1003,
-      name: KO.line_244,
-      note: KO.line_245,
-      condition: "test -f /srv/build/done",
-      dueAt: null,
-      deadlineAt: 1_788_003_600,
-      intervalSeconds: 600,
-      lastCheckedAt: 1_788_000_300,
-      lastExit: 1,
-      unit: "bmo-run-1",
-      memoryId: 308
-    };
-    const line = roomRuns(wording, [run({ agent: "watch" })], -1003, rooms, [watch])[0];
-
-    // The number and the short name, rather than the name of whatever agent does the looking, and
-    // never the whole of what it promised.
-    expect(line?.label).toBe(KO.line_259);
-    expect(line?.watch).toBe(watch);
-  });
-
-  test("a run no standing watch names is left as the run it is, and carries no watch", () => {
-    const other: WatchView = {
-      id: 12, kind: "timer", chatId: -1003, name: null, note: KO.line_265, condition: null, dueAt: 1_788_003_600,
-      deadlineAt: 1_788_003_600, intervalSeconds: null, lastCheckedAt: null, lastExit: null, unit: "bmo-run-9",
-      memoryId: null
-    };
-
-    expect(roomRuns(wording, [run()], -1003, rooms, [other])[0]?.label).toBe(KO.line_270);
-    expect(roomRuns(wording, [run()], -1003, rooms, [other])[0]?.watch).toBeNull();
-    expect(roomRuns(wording, [run({ unit: null })], -1003, rooms, [other])[0]?.watch).toBeNull();
-  });
-
-  test("a room's own the chat agent launched it, and the room is told so", () => {
-    expect(roomRuns(wording, [run({ startedBy: "chat:-1003" })], -1003, rooms)[0]?.launcher).toBe(wording("live.label.launcher_room", { title: "Alpha Room" }));
-  });
-
-  test("a run nobody wrote a launcher on claims none, rather than guessing at the room", () => {
-    expect(roomRuns(wording, [run()], -1003, rooms)[0]?.launcher).toBeNull();
-  });
-
-  test("the owner's console says so instead of naming a room", () => {
-    expect(roomRuns(wording, [run({ startedBy: "console" })], -1003, rooms)[0]?.launcher).toBe(wording("live.label.launcher_console"));
-  });
-
-  test("a line names the agent at work and where its log is read", () => {
-    const line = roomRuns(wording, [run({ agent: "search" })], -1003, rooms)[0];
-
-    // Pressing the line opens this agent's log over the room, and the button inside it goes to
-    // the same place the sidebar would have gone.
-    expect(line?.agent).toBe("search");
-    expect(line?.to).toBe("/agents/search");
-  });
-
-  test("each worker's job stands under that worker's own name, with its own log behind it", () => {
-    holdCatalogue([catalogued("worker", "worker", KO.line_297), catalogued("infra", "worker", KO.line_297_2)]);
-
-    const lines = roomRuns(
-      wording,
-      [
-        run({ id: 11, kind: "worker", agent: "worker", depth: null, todoId: 26, progress: null }),
-        run({ id: 12, kind: "worker", agent: "infra", depth: null, todoId: 27, progress: null })
-      ],
-      -1003,
-      rooms
-    );
-
-    expect(lines.map((line) => line.label)).toEqual([KO.line_309, KO.line_309_2]);
-    // The name and the log go together: a line under the right name that opens the wrong log
-    // is the same mistake read a second later.
-    expect(lines.map((line) => line.to)).toEqual(["/agents/worker", "/agents/infra"]);
-  });
-
-  test("a chat agent's own name survives being put in a path", () => {
-    const line = roomRuns(wording, [run({ kind: "worker", agent: "chat:-1003" })], -1003, rooms)[0];
-
-    expect(line?.agent).toBe("chat:-1003");
-    expect(line?.to).toBe("/agents/chat%3A-1003");
-  });
-
-  test("another room's the chat agent is named where its work lands", () => {
-    const sent = roomRuns(wording, [run({ startedBy: "chat:10000001" })], -1003, rooms)[0];
-
-    expect(sent?.launcher).toBe(wording("live.label.launcher_room", { title: OWNER_ROOM_TITLE }));
-  });
-});
-
-describe("the room's one line of counts", () => {
-  const line = (sort: RoomRunLine["sort"], at: number) => ({ key: `${sort}:${at}`, sort }) as RoomRunLine;
-
-  test("counts each sort that runs, and a deployment is none of them", () => {
-    const lines = [...[1, 2, 3, 4, 5, 6, 7].map((at) => line("job", at)), line("watch", 1), line("watch", 2), line("watch", 3)];
-
-    expect(runSummary(wording, lines)).toBe(KO.line_335);
-    expect(runSummary(wording, [line("search", 1), line("other", 2)])).toBe(KO.line_336);
-  });
-
-  test("says nothing where nothing runs", () => {
-    expect(runSummary(wording, [])).toBe("");
   });
 });
 

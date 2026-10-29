@@ -92,7 +92,7 @@ const REGISTRY_WAITING = GENERAL_SECTIONS.find((one) => one.id === "registry")?.
 const rows = computed(() => (props.models?.items ?? []).map((one) => {
   const mark = healthMark(one.healthy);
 
-  return { model: one, name: registrationName(one.key), health: mark === null ? null : { ...mark, text: healthText(t, one.healthy) } };
+  return { model: one, name: registrationName(one.key), health: mark === null ? null : { ...mark, text: healthText(t, one.healthy, one.lastAnsweredAt ?? null) } };
 }));
 
 const busy = ref(false);

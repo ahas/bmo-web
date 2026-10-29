@@ -1,6 +1,7 @@
 <template>
-  <!-- The Companions tab: one block for each companion, in the agent list's order (docs/web.md,
-       「Agent management screen」), and the whole tab one form, saved from its foot (「Forms」). -->
+  <!-- The supervisors tab: every supervisor listed — the chat agent and each companion alike — with a block for
+       each companion's own settings, in the agent list's order (docs/web.md, 「Agent management screen」), and
+       the blocks one form, saved from its foot (「Forms」). -->
   <div class="flex flex-1 flex-col">
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-10 p-4 sm:p-6">
       <ReadFailure v-if="error && companions === undefined" :failure="readFailure" :message="$t('agents.error.companions_read_failed')" :reading="status === 'pending'" @retry="refresh()" />
@@ -25,14 +26,12 @@
       <p v-else-if="companions.length === 0" class="text-sm text-muted">{{ $t("agents.status.no_companions") }}</p>
 
       <template v-else>
-        <!-- Every agent that answers in a room, with what it is, its model and the rooms it answers; a companion's row
-             brings its block into view, the chat agent's opens its own screen. -->
+        <!-- Every supervisor, with its model and the rooms it answers; every row opens the agent's own screen.
+             No row says which of the two it is. -->
         <DataTable :data="listRows" :columns="listColumns" layout="own" data-companion-list>
           <template #agent-cell="{ row }">
-            <component
-              :is="row.original.companion ? 'a' : NuxtLink"
-              :href="row.original.companion ? `#${settingsAnchor(`companion-${row.original.name}`)}` : undefined"
-              :to="row.original.companion ? undefined : `/agents/${encodeURIComponent(row.original.name)}`"
+            <NuxtLink
+              :to="`/agents/${encodeURIComponent(row.original.name)}`"
               :class="CELL_TEXT"
               class="flex-row items-start justify-start gap-2 ps-4 transition-colors hover:bg-elevated active:bg-accented"
             >
@@ -41,10 +40,7 @@
                 <span class="text-sm font-medium text-highlighted">{{ row.original.label }}</span>
                 <span class="font-mono text-sm text-muted">{{ row.original.name }}</span>
               </span>
-            </component>
-          </template>
-          <template #kind-cell="{ row }">
-            <span :class="CELL_TEXT" class="text-sm text-highlighted">{{ row.original.companion ? $t("agents.label.kind_companion") : $t("agents.label.kind_chat_agent") }}</span>
+            </NuxtLink>
           </template>
           <template #model-cell="{ row }">
             <span :class="[CELL_TEXT, row.original.model === null ? 'text-muted' : 'text-highlighted']" class="text-sm">{{ row.original.model ?? "—" }}</span>
@@ -152,7 +148,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { workers: () => [] });
 const { t } = useI18n();
-const NuxtLink = resolveComponent("NuxtLink");
 const island = useIsland(t);
 const { data: companions, error, refresh, status } = useFetch<CompanionView[]>("/api/companions", { key: "companions", lazy: true, server: false });
 const readFailure = useReadFailure({ failed: () => !!error.value && companions.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
@@ -178,8 +173,8 @@ onBeforeUnmount(() => {
   if (poll !== null) clearInterval(poll);
 });
 
-// The list heading the tab: every agent that answers in a room, the chat agent and each companion, in the agent
-// list's order.
+// The list heading the tab: every supervisor, the chat agent and each companion, in the agent list's order. A
+// companion's model is its registration; the chat agent's is what its work key resolves to on the routes tab.
 interface ListRow {
   name: string;
   label: string;
@@ -193,7 +188,6 @@ const { agents: catalogue } = useAgentCatalogue();
 const { data: roomList } = useRoomList();
 const listColumns = computed<TableColumn<ListRow>[]>(() => [
   { id: "agent", header: t("agents.label.column_agent"), meta: { class: { th: "w-full" } } },
-  { id: "kind", header: t("agents.label.column_kind") },
   { id: "model", header: t("common.label.model") },
   { id: "rooms", header: t("agents.label.column_rooms") }
 ]);
@@ -217,7 +211,7 @@ const listRows = computed<ListRow[]>(() => {
       label: companion?.label ?? agent.label ?? agent.name,
       icon: companion?.icon ?? agentIcon(agent.name),
       companion: companion !== undefined,
-      model: companion === undefined ? null : (registration?.label ?? companion.registration),
+      model: companion === undefined ? agent.model : companion.method === "route" ? (companion.model ?? null) : (registration?.label ?? companion.registration),
       rooms: companion === undefined ? [titleOf(agent.chatId)].filter((one): one is string => one !== null) : roomsOf(companion)
     };
   });

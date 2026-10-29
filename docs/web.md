@@ -2504,10 +2504,10 @@ Two ways, split because the running places differ.
   account, the common spawning pool and the searchers. The list is the archive's `agents` table, and everything this
   screen edits is written through the bot — the console does not write the bot's tables directly. The
   table itself is read raw as `agents` on the DB screen.
-- **A section to a tab.** The tabs are 일반, 워커, 모델, 실행 경로, 대화 상대 and 서쳐. The tab stands in
+- **A section to a tab.** The tabs are 일반, 감독관, 워커, 모델, 실행 경로 and 서쳐. The tab stands in
   the address (`?tab=`), so a shared link opens the same section and moving between tabs is a step of the
   history. The tab row stands under the title bar and carries, at its right end, the open section's own
-  action (일반's, 워커's and 대화 상대's 추가 — 일반's a menu of Claude 계정, 등록 모델, 모델 파일, 기본 프롬프트 and
+  action (일반's, 워커's and 감독관's 추가 — 일반's a menu of Claude 계정, 등록 모델, 모델 파일, 기본 프롬프트 and
   에이전트, since that tab adds all five), the settings search and the one button that reads every section again, which
   spins while it reads. The title bar keeps only what every page carries, and no section repeats its tab's
   name as a title of its own.
@@ -2545,7 +2545,7 @@ Two ways, split because the running places differ.
   place (see that screen), and no second editor exists anywhere:
   - a worker's whole settings are the same dialog the 워커 tab opens for that worker;
   - the settings of an agent whose turns its settings' pieces make, a companion's, are its one block of
-    the 대화 상대 tab, shown in a dialog; the screen tells such an agent by the turn shape its row
+    the 감독관 tab, shown in a dialog; the screen tells such an agent by the turn shape its row
     carries (the agency's `docs/agents.md`, 「One runner」).
   - Both save through the same bot paths and meet the same refusals as here, and the console reads the
     same shared data after a save, so a value changed on one screen is what the other shows. The worker's
@@ -2581,7 +2581,8 @@ Two ways, split because the running places differ.
 - **등록 모델.** Under the provider order, every registered model the agency serves at `/models` (its
   `docs/api.md`, 「providers, models, pin-checks, tiers and fallback」), one row each: its name, the model
   behind it, the first tier it is mapped at, and a mark beside its name saying whether its addresses
-  answer — 응답함 or 응답 안 함. 추가 in the tab row opens a box for a new registration's name, fixed
+  answer — 응답함, or **마지막 응답** with the moment the engine last answered where it does not answer now
+  and has ever answered, and 응답 안 함 where it has never answered. 추가 in the tab row opens a box for a new registration's name, fixed
   once made and written with lowercase letters, digits and hyphens beginning with a letter, and the model
   its addresses serve; the agency starts it at the registry's smallest window, answer and wait, and with no
   address. A row's more-menu opens the same box to change the model behind the registration, the name
@@ -2848,8 +2849,9 @@ Two ways, split because the running places differ.
 
 #### 실행 경로
 
-- **One table of the work keys that are not gates** — the chat agent, the job worker, the two editors, the
-  co-work roles (`role:*`), the search depths and browse — with each key's provider, its Claude account,
+- **One table of the work keys that are not gates and are not fixed** — the chat agent, the job worker, the
+  two editors, the co-work roles (`role:*`), the search depths and browse; the translator stands no row, its
+  road being fixed and reached as a tool rather than routed here — with each key's provider, its Claude account,
   its tier, the model its run now starts on (and on which provider), and what last answered on it. A key whose
   enabled providers leave it no road carries a warning mark and says why. Workers share `job-worker`.
   - **Each key's tier and what it resolves to** are the agency's `GET /work-keys`: the tier, the tiers it may take
@@ -2880,23 +2882,27 @@ Two ways, split because the running places differ.
   tier. Where an older per-key setting was kept at the migration, the dropdown lists those settings and
   a checkbox that accepts the chosen tier over them before the tier can be picked.
 
-#### 대화 상대
+#### 감독관
 
-- **A list heads the tab:** every agent that answers in a room — the chat agent and each companion — one row each
-  in the agent list's order, with its mark, its label and its name, whether it is the chat agent or a companion,
-  the model it is pinned to (a companion's registration by its label; a dash for the chat agent, whose model is its
-  tier's on 실행 경로) and the rooms it answers — the chat agent's room, and each room a companion holds a session in
-  or was made for. Pressing a companion's row brings its block below into view; pressing the chat agent's opens its
-  own screen. A companion for a model of the deployment's own is added from the tab row's 추가 menu (below).
+- **A list heads the tab:** every supervisor — every agent that answers in a room, the chat agent and each companion
+  alike, for all supervisors are equal — one row each in the agent list's order, with its mark, its label and its
+  name, the model it answers on (a supervisor kept on a fixed model, its registration by its label; one on the
+  agency's route, the model its work key resolves to on 실행 경로) and the rooms it answers — the chat agent's
+  room, and each room a companion holds a session in or was made for. No row says which of the two an agent is.
+  Every row opens that agent's own screen, where its settings stand. A supervisor for a model of the
+  deployment's own is added from the tab row's 추가 menu (below).
 - **One block for each companion** (the agency's `docs/companions.md`, 「Its settings」), in the agent list's order — a
   companion's system prompt is its base prompt, the fixed companion role and its persona, so what a block sets of it is
   the base prompt and the persona —
   headed by its picture, its label and its name, and the tab is one form (「Forms」): every block's
   changes wait for the one 저장 in the footer at the tab's foot. A block holds, top to bottom:
-  - **모델:** its registration, a list of the registrations that have an address; and, where the
-    catalogue holds entries for that registration, 엔진 모델, a list of them with the one its engine
-    serves now marked 서빙 중. Another entry, once saved, starts the choice, whose progress stands under
-    the list as the 일반 tab's 모델 파일 shows it (the agency's `docs/model-catalogue.md`).
+  - **모델:** the method it answers on, 실행 경로 or 고정 모델, the same choice every supervisor has
+    (the agency's `docs/model-tiers.md`, 「A supervisor's own model」). On 고정 모델, its registration, a list of the
+    registrations that have an address; and, where the catalogue holds entries for that registration,
+    엔진 모델, a list of them with the one its engine serves now marked 서빙 중. Another entry, once
+    saved, starts the choice, whose progress stands under the list as the 일반 tab's 모델 파일 shows it
+    (the agency's `docs/model-catalogue.md`). On 실행 경로, the model the supervisor route resolves to
+    now and the link to that tab's rows; a save moves the companion to the route.
   - **기본 프롬프트:** its base prompt (the agency's `docs/base-prompts.md`), a list of 없음 and every base prompt
     by its label.
   - **생성 파라미터:** the generation settings (the agency's `docs/companions.md`, 「Its generation settings」), one
@@ -2915,7 +2921,7 @@ Two ways, split because the running places differ.
     last changed, or a dash, and an 초기화 button asking the same as the 일반 tab's 세션 does; a waiting
     reset stands as 초기화 대기. A reset is an action rather than a setting, and goes as it is asked.
   - A save overwrites what it changes, and the block shows no earlier value of any setting.
-- **대화 상대 추가** is the tab's 추가 on the tab row (the agency's `docs/companions.md`, 「Where a companion and its
+- **감독관 추가** is the tab's 추가 on the tab row (the agency's `docs/companions.md`, 「Where a companion and its
   rooms come from」): a dialog of 이름, 표시 이름, 모델 — the registrations that have an address — 작업
   워커 — the workers but support workers — and 방 제목, with 취소 and 추가. The bot checks every field and
   a refusal stands under the field it names; an added companion stands as a block at once, with a room
@@ -3013,10 +3019,14 @@ Two ways, split because the running places differ.
   `client/tests/browser/agent-topbar.test.ts` measures the bar of a running worker at 360, 390 and 1280 pixels
   wide against a dev console, as the other title bar checks do.
 - **설정** stands beside the name, as an icon button, where the agent has settings of its own: a job
-  worker's opens the worker settings dialog of the agent management screen's 워커 tab, and a companion's
-  opens its block of the 대화 상대 tab in a dialog. Every other agent has no such button, since what it runs
-  on is either shared or set on the agent management screen alone. Saving here is saving there: the same
-  path, the same refusals, and the name, marks and model on this screen read again after a save.
+  worker's opens the worker settings dialog of the agent management screen's 워커 tab, a companion's
+  opens its block of the 감독관 tab in a dialog, and the chat agent's opens its own: its model, kept on the
+  agency's route — the model its work key resolves to there, linked to that row — or on a fixed registered
+  model chosen from the registry, and the texts its system prompt is composed of — its
+  opening, the absolute rules and the manual — each saved as the owner's own text or put back to its
+  file, applied from the next turn. Every other agent has no such button, since what it runs on is
+  either shared or set on the agent management screen alone. Saving here is saving there: the same path,
+  the same refusals, and the name, marks and model on this screen read again after a save.
 - A line has a time, a kind and content. There are eight kinds.
   - **시작** — a run opened. Which room's work, and which model and depth it runs at, attach.
   - **생각** — the thinking the run wrote itself.
@@ -3464,7 +3474,7 @@ Four bounds keep it from growing forever.
   | Bubble corner | 8px, the large tier; 4px where two bubbles of a run meet; the tail's corner square | 15–16px, 5px |
   | A run's join time | 10 minutes between one message and the next | |
   | Bubble inner room | 8px top and foot, 12px sides | 8px and 11px |
-  | Step between messages | 4px between two messages of one run, whoever sent it — a person, the chat agent or a companion — so the run reads as one; 8px between runs: a quarter of the 8px is each row's own room round its box and a quarter each run's round its rows. Only a day mark, a passed-over line, a passing word and the running work keep room of their own round them | 2px within a run, 6–8px between runs |
+  | Step between messages | 4px between two messages of one run, whoever sent it — a person, the chat agent or a companion — so the run reads as one; 8px between runs: a quarter of the 8px is each row's own room round its box and a quarter each run's round its rows. Only a day mark, a passed-over line and a passing word keep room of their own round them | 2px within a run, 6–8px between runs |
   | Day mark | centred, 32px from the bubble above it and 32px from the one below, the same on both sides wherever it stands | |
   | Photo | 32px, a circle | 33px |
   | Photo to bubble | 8px | 7px |
@@ -3490,7 +3500,7 @@ Four bounds keep it from growing forever.
   bars are translucent: every other page's top bar stays opaque.
   - What the conversation holds to its top — a date mark, a new part's first line — is held under the top bar,
     and its end stands above the input bar: the conversation keeps the measured height of each bar as room at
-    its top and foot, so nothing — the last message, the line of running work — is left behind either bar when
+    its top and foot, so nothing — the last message — is left behind either bar when
     the reader stands at the top or the end.
   - The input box in the bar is one box: the words have no ground or corners of their own, the attach button
     stands before them and the send button after them, both on the words' last line — level with a single
@@ -3841,7 +3851,7 @@ Four bounds keep it from growing forever.
     not a page to visit, and gets no card. An address in the words around it keeps its card.
 - **메타 줄** — the foot of every bubble is one line, the same for a message and for the turn still running
   (「지금 하는 일」), drawn by one component.
-  - At its leading end stand the chips of what the turn did, what it spent and what it wrote down; at its
+  - At its leading end stand the turn's record and the chips of what it spent and what it wrote down; at its
     trailing end the answer's waiting time (「답까지 걸린 시간」), the verdict mark, the time and the owner's
     send mark (「보내는 중」), the trailing end standing the bubble's inner room from its edge.
   - Every message carries its own time, whatever place it holds in its run and whoever sent it — a notice the chat agent
@@ -3854,9 +3864,9 @@ Four bounds keep it from growing forever.
     at the bubble's trailing edge. The chips wrap among themselves only where they alone are wider than the
     bubble's widest, and the trailing end then still stands under them. The owner's bubbles and every other
     sender's keep their time there by the same rule.
-    - At a phone's 360px the bubble's widest leaves the line 240px: the chips alone fit there, and a
-      turn with few chips stands its whole line on one, while one carrying every chip and its waiting time
-      needs about 330px and so stands its trailing end under the chips.
+    - At a phone's 360px the bubble's widest leaves the line 240px: the record's parts wrap inside the button,
+      so it takes the line's whole width on two rows where it needs to, and a turn carrying every chip and its
+      waiting time stands its trailing end under them.
   - A line carrying nothing but its verdict mark, its time and its send mark, and standing
     straight after the words stands at the end of the words' last line, as Telegram lays it, wherever that line
     leaves it room, and drops to a line of its own under the words only where it does not; so a short message's
@@ -3887,33 +3897,50 @@ Four bounds keep it from growing forever.
     picture and the mark and the picture stay read.
   - A tooltip of one of its parts comes up above it, clear of it, and nothing in it is picked up or dragged by a
     held finger.
-- **칩 줄** — how full the session stood, a verdict, what the turn did, what it spent, what it wrote down, how its
-  answer was drafted and the voice briefing that speaks it stand as chips on the meta line, inside the bubble, and what a chip spreads stands inside the bubble under that
-  line, at the bubble's own width, parted from it by the bubble's own step and never boxed a second time.
+- **칩 줄** — how full the session stood, the turn's record, what it spent, what it wrote down and the voice
+  briefing that speaks it stand as chips on the meta line, inside the bubble, and what a chip spreads stands
+  inside the bubble under that line, at the bubble's own width, parted from it by the bubble's own step and
+  never boxed a second time.
   A person's message and an agent's answer carry different chips, each only what is its own: a person's message
-  carries its 판정 alone, what became of it; an agent's answer carries what its round did and sent — 컨텍스트, 브레인,
-  사용 토큰, 툴 사용, 기록함, 드래프트 and 보이스브리핑 — and no 판정 of its own.
+  carries its 판정 alone, what became of it; an agent's answer carries what its round did and sent — 컨텍스트,
+  기록, 사용 토큰, 기록함 and 보이스브리핑 — and no 판정 of its own.
   Nothing spread is wider than the bubble, so the bubble's edge never cuts it: a long word, address or name
   wraps at that width, and a fenced code block or a table scrolls sideways inside its own box. A
   message carries no button of its own anywhere else; what is done to one message is in its menu. The room's top
   bar holds no verdict setting.
-  - **Every chip is a mark with a figure or nothing** — no chip carries a word. What it is, is its tooltip and
-    the name a screen reader hears, with 축소 or 확장 after it: 컨텍스트, 브레인, 사용 토큰, 툴 사용, 기록함, 드래프트, 판정, 보이스브리핑.
-    컨텍스트 spreads nothing, so it is heard by its name and figure alone, with neither word after it.
+  - **Every chip but the record is a mark with a figure or nothing** — no such chip carries a word. What it is, is
+    its tooltip and the name a screen reader hears, with 축소 or 확장 after it: 컨텍스트, 사용 토큰, 기록함,
+    보이스브리핑, 판정. 컨텍스트 spreads nothing, so it is heard by its name and figure alone, with neither word after
+    it. The record carries its parts' words in sight, and its own tooltip names it 판정 기록.
   - **One look for every chip** — they wear one look, one height and one padding, and every chip that spreads answers a
     pointer alike: a chip standing open carries a background of its own, and each state walks its own three
     colours — resting, under the pointer, pressed — so no press and no hover ever lands on the colour the chip
     already wears. 컨텍스트 is pressed for nothing, so it rests in the closed chip's colours and takes no
     hover or press colour; a tap or a resting pointer brings up its tooltip.
-  - **The order the chips stand in** — on an answer, 컨텍스트, 브레인, 사용 토큰, 툴 사용, 기록함, 드래프트, 보이스브리핑; on a
+  - **The order the chips stand in** — on an answer, 컨텍스트, 기록, 사용 토큰, 기록함, 보이스브리핑; on a
     person's message, 판정 alone, just before the time. 컨텍스트 stands first, where the owner
-    placed it. After it, the order is what the turn's own clock decides rather than a taste: the documents
-    handed to the turn and what it spends stand from its first second, a call joins them the moment it is
-    made, what the turn wrote down and how the answer was drafted arrive with the answer, and the full reading is asked for
-    only once the answer is there to read. A chip that arrives late stands after those already there, so
+    placed it; the record stands next, holding what the turn read, called and drafted and how its round was judged.
+    After it, the order is what the turn's own clock decides rather than a taste: what the turn spends stands from
+    its first second, what it wrote down arrives with the answer, and the full reading is asked for only once the
+    answer is there to read. A chip that arrives late stands after those already there, so
     nothing standing is pushed sideways when it lands, and the reader's pointer is still over the chip it was
     over. 컨텍스트 alone is read once the turn has ended, so the running block carries none and the answer's
     chips stand that one chip's width further along than the running block's did.
+  - **기록** — the turn's own account, as one button on the answer: 브레인, 툴 사용, 드래프트 and 판정 stand inside
+    it, each a mark and a word beside it, a figure where it counts something, and each only where there is
+    anything under it. Pressing it spreads one panel inside the bubble:
+    - **The panel stands in the order the turn made it.** The documents the round's end names as read from the
+      brain stand first; then every line of the turn at its own moment — each call as the agent's log draws it,
+      with its result under it, each question of the draft process with the answer or the change it wrote, the
+      process's end, and each gate's card — with what opened the turn once before its first card, and last the
+      room's situation note as that round read it. A line the stream gave no moment to stands in the order it
+      came.
+    - **Nothing on the panel is cut on a line and nothing scrolls in a box of its own**: a long word, path, command
+      or verdict wraps at the bubble's width, and the panel grows by what it holds.
+    - **A turn still running spreads what it has done so far**, in the order it did it; its judgement arrives with
+      the answer.
+    - The panel is read the first time it opens: the round's log lines and the round log's rows are asked for once,
+      and a read that failed is asked again on the next opening.
   - **컨텍스트** — how full the session's context window stood once the turn that sent the answer ended, as one
     whole percentage, 「42%」: what that turn's last request carried against the window of the model it ran
     on, as the session itself reported it. It stands on the message that carries the round's spend, read
@@ -3928,19 +3955,18 @@ Four bounds keep it from growing forever.
     keyboard again on the tap. Only a tap on the input box itself brings the keyboard.
 - **판정** — a person's message carries what became of it, and nothing else of the round that read it. The
   verdict chip is the verdict mark alone, with no dot and no count, standing just before the time; its tooltip
-  names it and what it says. An agent's answer carries no verdict chip: what drafted and sent it stands in its
-  드래프트.
+  names it and what it says. An agent's answer carries no verdict mark: what judged the round and what drafted
+  and sent it stand in its record, under 판정.
   - **Pressing the mark spreads one line, the message's outcome, in words**: 답함 with the answer it drew,
     답하지 않음, 기다림, 함께 읽음 with the message it was read with, 실패, or 판정 중 while it is being judged; a
     message whose gates spoke and whose round has decided nothing yet reads 결정 전. The answer, and the message it
     was read with, stand on the line by their time as a link that jumps to that message and lands on it, the way
     a reply's quote does (「답장 인용」); one the page does not carry stands as the word alone. Pressing the mark
     again folds the line.
-  - **The line carries a 자세히 press only where there is more than the outcome**: the cards of the gates that
-    read the message, and the instructions its turn carried. Pressing it spreads them under the line and pressing
-    again folds them. It is the cards' only fold: no card opens or closes on its own, so a verdict arriving while
-    they are open stands open with the rest, and one arriving while they are closed stays folded. The browser
-    does not remember which message was left open.
+  - **The gates' cards and the situation note stand in the answer's record**, not under this line: each card at the
+    moment its gate wrote it, the instructions the turn carried once before its first card, and the note the round
+    read last. A message whose round left no answer carries its outcome line alone; a round that answered carries
+    the rest in its answer's record.
   - **The outcome is read off the latest round that read the message**: the verdict of the round's own turn — the
     chat agent's or a companion's `REPLY`, `SKIP`, `WAIT`, `FAILED` — a round that went silent (`skipped`), and a
     verdict naming the message the turn read last (`read-with`), whose link goes to the message of the same round
@@ -3948,7 +3974,7 @@ Four bounds keep it from growing forever.
   - **Which verdicts are a person's message's and which an answer's.** The verdicts of the round's draft process
     (`draft`), of its send (`send`), and of the checks and rewrites the answer went through on its way out — 출력
     형식, the content gate and its rewrite and addition, and every second asking (`…-again`) — are the answer's, and
-    stand in the 드래프트 of the round's answer on the page, its last message. Every other verdict is the
+    stand under 판정 in the round's answer's record, its last message. Every other verdict is the
     message's that the round read. The gate files a round's verdicts under the message the round read last and
     its send under the answer, and a round the agent opened itself — a follow-up, a line after a restart — files
     them all under its answer: a verdict filed under an agent's message that is not the answer's stands under the
@@ -4613,7 +4639,7 @@ Four bounds keep it from growing forever.
   disappears — when it waited expecting more words, when the run failed, when somebody stopped it. The reason
   names the agent whose turn it was, by the same name its running row wore, so a companion's failed turn says
   the companion failed. That reason is not a bubble but a line standing centred like a date mark, with no photo,
-  so the agent does not appear to have said what it did not. It stands above the lines of running work, which stay at the foot for as long as they run.
+  so the agent does not appear to have said what it did not. It stands at the conversation's foot.
 - **A turn the chat agent chose not to answer stays in the owner's own chat.** There a turn that ended in silence — the
   session answered `<<SKIP>>` — leaves a line 「〈이름〉가 이번에는 답하지 않았습니다.」
   under the last message that turn read, and it stands there for good rather than fading. Only the chat agent's turns end
@@ -4646,9 +4672,6 @@ Four bounds keep it from growing forever.
     any row.
   - It is not an agent's answer: it carries no chip line and no full reading, since it is never read
     in the chat agent's voice.
-- **The running work is a group of its own** at the conversation's foot: a line per search, browse or job running
-  for this room, each opening its log. Its lines stand close together, and the group is spaced from the
-  conversation as the conversation's own rows are.
 - **A screen opened mid-turn sees that line too.** The notice standing the line goes out once at turn start, so
   one not watching then cannot hear it, and if that notice was pushed out of what the bot holds while the stream
   broke and resumed, it does not come again. So this line is read not only from the notice but from the picture the
@@ -4659,15 +4682,21 @@ Four bounds keep it from growing forever.
 - **The line belongs to the room, not to the screen showing it.** The tab keeps one record of every room's running
   turns, moved by the same notices and pictures whichever room is on screen, and a room's screen reads its turns
   out of that record. So going to another room and coming back finds the line standing where it was, with what the
-  turn has done so far; the running work group and the home screen's 〈이름〉가 답변 중 on a room's line stand the same way. A reload or another device reads the
+  turn has done so far; the home screen's 〈이름〉가 답변 중 on a room's line stands the same way. A reload or another device reads the
   picture the stream opens with, which is the same record from the bot's side.
-- **Thinking, and using a tool** — that one line stands differently by what the answering agent is doing now. While
-  thinking it is a blinking line saying "〈이름〉가 생각하는 중". When it starts writing the answer that place says
-  "〈이름〉가 답을 쓰는 중", and while a tool is being worked it says "〈이름〉가 〈툴 이름〉 사용 중" — so a wait is
-  not all seen as the same wait, and the wait that is a tool says which tool. A companion's turn whose engine a
-  Job holds says "〈이름〉가 같은 모델을 쓰는 #〈항목〉 Job이 끝나기를 기다리는 중" until the Job ends
-  (the agency's `docs/companions.md`, 「The engine it shares」), read off the bot's picture as well as its events, so a screen
-  opened in the middle of the wait shows it; the agents list's row says "Job 종료 대기 중".
+- **Thinking, and using a tool** — that one line is the turn's own account of what it is at: the answering agent's
+  name, then a pressable "생각하는 중…" that shimmers while the turn runs, and under it, spread open while it runs,
+  the turn's detail.
+  - **The detail stands in the order the turn made it**, oldest first: the state it is in now — writing the answer,
+    working a named tool, or waiting on the Job that holds its engine — and then every document handed to it and
+    every call it has made so far, each with what it was about as the agent's log keeps it. Nothing on the list is
+    cut on a line, and nothing of it scrolls in a box of its own: a long word, path or command wraps at the row's
+    width, and the row grows by what it holds.
+  - **The state names the tool as a person calls it** — 셸, 읽기, 편집, 웹 · web_search — and never by the name the
+    CLI sends; a tool the vocabulary does not carry stands under the name it came with. A phase whose stream named
+    no tool says 툴 사용 중. A companion's turn whose engine a Job holds names the item whose Job it waits on until
+    that Job ends (the agency's `docs/companions.md`, 「The engine it shares」), read off the bot's picture as well
+    as its events, so a screen opened in the middle of the wait shows it; the agents list's row says "Job 종료 대기 중".
   - **The chat agent's line says which question of the draft process it is on** (the receiver's `docs/drafting.md`).
     The receiver tells each question just before it goes out, as a `draft` event of kind `start` naming its place
     in the process from 1, how many questions the process asks and the question's name, and from that event the
@@ -4695,11 +4724,8 @@ Four bounds keep it from growing forever.
     registration name the event carries: a companion's from its own row, the chat agent's from the row of the
     session answering every room, and only before the catalogue has arrived does a row fall back — the chat
     agent's to the language pack's word for it, a companion's to its registration name. The particle after the name, 가 or
-    이, follows the name's last sound. The tool is named by the word a person calls it by — 셸, 읽기, 편집,
-  웹 · web_search — and never by the name the CLI sends; a tool the vocabulary does not carry stands under the
-  name it came with, which says more than 툴 alone. The line reads the tool's name and nothing else the call
-  carried, so no argument of a call can reach it. A phase whose stream named no tool stands "〈이름〉가 툴 사용 중".
-  The shimmer of that line is the whole sign that the turn is going, in every phase; no mark spins beside it.
+    이, follows the name's last sound. The shimmer of the block's face is the whole sign that the turn is going, in
+  every phase; no mark spins beside it.
 - **The listening row** — in a group room, while the chat agent's window there is open and no turn of its is running, its running row
   stands as four plain lines: its name, at its head wherever the row opens a run of its own as on any row; "채팅 활성화";
   "〈이름〉가 듣는 중"; and "앞으로 2:41 동안". So the room reads it as present for the whole conversation rather
@@ -4712,10 +4738,11 @@ Four bounds keep it from growing forever.
   - **It is the same row as its turn's.** A turn beginning there changes the row's lines to the turn's own words in
     place, and a turn ending with the window still open changes it back, so between turns nothing comes, goes or
     moves. An answer still takes the turn's place as above, and the listening row then stands again under it.
-  - **It is a turn row's height.** Its lines are each a meta line tall and one step apart, as a turn's name, the
-    line of what it was handed, its state and its chip line are: "채팅 활성화" stands where the line of what a turn was
-    handed stands, "〈이름〉가 듣는 중" where its state stands, and the time left where its chip line stands. So
-    the row is one height listening and working, and the conversation above it never moves as a turn begins or ends.
+  - **It stands where a turn's lines stand.** Its lines are each a meta line tall and one step apart, as a turn's
+    name, the line of what it was handed, its state and its chip line are: "채팅 활성화" stands where the line of what
+    a turn was handed stands, "〈이름〉가 듣는 중" where its state stands, and the time left where its chip line
+    stands. So nothing above it moves as a turn begins or ends; the turn's own detail may stand taller than the
+    listening row while it is open.
   - **It is still, with no shimmer and no chips.** The shimmer says a turn is going and the chips say what a turn
     spent; listening is no turn, so neither stands.
   - **The window is the receiver's,** as the receiver and the conversation write it for the chat agent's own agent
@@ -4734,43 +4761,33 @@ Four bounds keep it from growing forever.
   listens. It counts down from the same answer the listening row counts from and is read on the same occasions
   (above); it goes once the time it counts reaches nought, and stands nowhere while the window is shut, so the
   owner's own chat never carries it.
-- **What the turn did** — spread from the meta line, inside the bubble, stand the things the turn has done, oldest first, one line each, as
-  two lists: the documents put in front of it and the stretch of the room it read back, and every tool it has
-  called. They wear the same badges the agent's own log wears — 방 문맥, 기억, 인물북, 참조 문서, 룰, 지식,
-  지난 대화 — with a reference document's full-or-held mark left of its badge as the log wears it, and a
-  call wears the same chip the log gives it — the tool's own name with its icon — beside what the call was
-  about: its file for a file tool, its command for a shell. A credential in those arguments stands masked, the way the record holds it. A
+- **What the turn did** — spread from the record press on the running block's meta line, inside the bubble, stand
+  the things the turn has done, oldest first, one line each, as the agent's log draws them: what it was handed —
+  the documents put in front of it, the stretch of the room it read back — and every tool it has called. They
+  wear the same badges the agent's own log wears — 방 문맥, 기억, 인물북, 참조 문서, 룰, 지식, 지난 대화 — with
+  a reference document's full-or-held mark left of its badge as the log wears it, and a call wears the same chip
+  the log gives it — the tool's own name with its icon — beside what the call was about: its file for a file
+  tool, its command for a shell. A credential in those arguments stands masked, the way the record holds it. A
   call that came back a failure carries 실패; one still out and one that came back well stand plainly.
-  - The block carries the newest few and each list says 이전 n개 above its own, so a turn of a hundred calls
-    neither grows the block without end nor sends the whole of itself again on every call.
-  - The lists spread inside the bubble, under its meta line, from the 브레인 and 툴 사용 chips the finished
-    answer wears — the same ones, drawn by the one component that draws the meta line of every row — and each
-    counts its sort for the whole turn, what the block could not stand included. Pressing either folds or
-    spreads its own list and nothing else: the other list stays as it stood, and no answer's list moves with it.
-  - When the answer takes the row's place, everything the running bubble had spread is folded: the answer stands
+  - The block stands what the bot's picture holds of the turn and no more; a turn longer than the picture grows
+    no further there.
+  - The list spreads from the record press the running block wears — the same one button the answer wears, drawn
+    by the one component that draws the meta line of every row — and the record's parts count the whole turn,
+    what the picture could not stand included.
+  - When the answer takes the row's place, everything the running block had spread is folded: the answer stands
     as its words and its meta line, and nothing of the turn's work stays under it unless the reader spreads it
-    again from the answer's own chips.
-- **활동 표시의 접힘** — what the browser remembers is how the reader last left each of the running block's two
-  lists, one choice per sort, so a turn whose 툴 사용 was folded away starts the turns after it with 툴 사용
-  folded and 브레인 as it was left.
-  - **A browser that was never told stands both folded**: what a call carried — a command, a file — is read
-    only by spreading it, never shown in the conversation unasked.
-  - **It is the running block's alone.** A finished answer's lists start folded whatever the running block's
-    choice, and pressing an answer's chip writes nothing into it; pressing a running block's chip moves that
-    one list on that row and remembers the choice for the next turn, never reaching a row already standing.
-  - **The lists are read from the log when one is first spread and not before**, so a room standing open costs
-    no reading of a log it does not show.
+    again from the answer's own record.
 - **One run with its answer** — the running turn stands in its answer's place, in the same run, with the same name at its head and
   the same photo beside its foot, but on no bubble ground, with no tail and no time (「지금 하는 일」); its meta line
-  carries the chips on its leading end as the answer's does. What the turn received and the state line are both at
+  carries the record and what it has spent on its leading end as the answer's does. What the turn received and the state line are both at
   the meta line's size, line height and colour, each alone on its own line, so the block reads at one size. The
   two stand one step apart — the bubble's own step, the same one between the name above them and the meta line
   below, so the whole bubble reads at one rhythm rather than at two. The state line
   stands directly under what the turn received, at the head of the block: it is the one line of the block that
   is read over and over while the turn runs, and standing it under the stack would move it down the screen on
   every call that lands, leaving a reader to find it again each time. Under the words comes the meta line —
-  브레인, 사용 토큰 and 툴 사용 at its leading end, the time at its trailing end — and what the turn has done
-  grows downwards from under it when spread, which is where a finished answer spreads the same lists.
+  기록 and 사용 토큰 at its leading end, the time at its trailing end — and what the record spreads grows
+  downwards from under it, which is where a finished answer spreads the same panel.
 - **사용 토큰** — the meta line always carries the token chip the answer will carry, in the place it will carry it,
   filling as the turn runs: 「\~48K」, what the turn has written so far. Its mark is the same token mark a finished
   chip wears — the 「\~」 on the estimate and the shimmering line above say the figure is still moving — and
@@ -4786,10 +4803,10 @@ Four bounds keep it from growing forever.
     (「사용 토큰」 under the room's messages), so the estimate never outlives the run. The chip does not move as it
     changes: it stood where it stands on the answer, and what arrives with the answer stands after it
     (「The order the chips stand in」).
-- **A message a round judged carries the room's situation note as that round read it**, under the verdicts its detail
-  spreads: the note's words, and a 갱신 mark beside them where that round wrote it afresh (the receiver's
-  `docs/drafting.md`, 「The situation note」). The note is the room's live state and not the agent's memory, so it is
-  read beside the verdicts and never as a verdict; a message no round judged under a note stands none.
+- **A round's situation note stands in its answer's record** as that round read it, last in the panel: the note's
+  words, and a 갱신 mark beside them where that round wrote it afresh (the receiver's `docs/drafting.md`, 「The
+  situation note」). The note is the room's live state and not the agent's memory, so it is read beside the verdicts
+  and never as a verdict; a round that left no answer stands no note there.
 - **The room's situation as it stands now** is the room menu's 상황, which opens a small dialog of the note and the
   moment it last changed, read from the receiver each time it opens (`GET /rooms/{roomId}/situation`); a room with no
   note yet says so rather than standing an empty box.
@@ -4847,7 +4864,7 @@ Four bounds keep it from growing forever.
   carries the pair for each, named by the companion's label. Nobody else signed in sees them, and the
   console's server refuses either for anyone but the administrator.
 - **모델 설정 opens the companion's settings dialog** — the very component the agent list opens, its
-  대화 상대 block, saved by the one 저장 (「Forms」) — so the two places never differ.
+  감독관 block, saved by the one 저장 (「Forms」) — so the two places never differ.
 - **초기화 opens a dialog of its own** (the agency's `docs/companions.md`, 「Starting it afresh」):
   - two checkboxes, 대화 기록 and 인물 기록, each with a line saying what it takes, both unchecked as
     it opens;
@@ -5219,7 +5236,7 @@ Four bounds keep it from growing forever.
   - **The original, and its translation under it.** A text a worker or a job wrote is read in the language it was
     written in and in the reader's own: the brief and each change to it, the running work order's purpose and
     instruction, each report, and a co-work task's work order and result — and a brain memory opened from a room's
-    brain chip, where the reading is asked by the modal's 번역 action rather than as the text opens. Each stands as
+    record, where the reading is asked by the modal's 번역 action rather than as the text opens. Each stands as
     it was written, and under it, headed by the language it is in, its reading in the language the console speaks to
     its reader — 한국어 번역. The original is never hidden, folded or replaced by its reading, and no press is
     needed to read what the text says.
@@ -5296,13 +5313,14 @@ Four bounds keep it from growing forever.
   - **결재 대기** — the items in the `draft` state, requests another room's chat agent received from a room's person and filed,
     gather at the top. The only group asking the owner something, so first. Who asked in which room stands, and it does not enter the queue before approval.
   - **대기열** — approved unfinished items stand. With several workers this one line splits into per-worker lines to run, but
-    what stands on screen is one list and each line's worker tag says which line it belongs to. **Every line a job is still going on for stands at the top** — 진행 중,
-    중단 대기 중, 중지 중, 마무리 중 and 완료 보고 중 alike — and below them the rest by priority, then by item number for the
+    what stands on screen is one list and each line's worker tag says which line it belongs to. **Every line a job is still going on for stands at the top** — 시작 중,
+    진행 중, 중단 대기 중, 중지 중, 마무리 중 and 완료 보고 중 alike — and below them the rest by priority, then by item number for the
     same priority. Whether a job is still going on for a line is one judgement of the panel's, the same one that answers an
     item with an unfinished job line, so the pin, the 진행 중 filter and its badge never disagree about a line. Each line has a number, title and state;
     under the title stand the lines the row says in words, and its chips — the state, the model, the worker and every other tag —
     stand last, at the row's foot,
-    and an item nobody has taken yet is **대기**, a running item **진행 중**, a work-order-stopped item **멈춤**. A stopped
+    and an item nobody has taken yet is **대기**, an item whose job is still launching its worker **시작 중**, one its job
+    is working **진행 중**, a work-order-stopped item **멈춤**. A stopped
     item does not leave the line but stands in its priority place, and standing first in its worker line it carries under its
     title, above its chips, the first line of the stop reason, the reason not yet resumed and the counted failure count — reading the bot's
     judgement as is and not guessing separately (bmo-job's `docs/work-orders.md`, 「A stopped work order's turn」). Which of 대기 and
@@ -5320,8 +5338,8 @@ Four bounds keep it from growing forever.
     chat all use that one set. The panel re-reads each time the work order takes a step. An item with a set model attaches
     that model too. An item with an assigned worker attaches that worker name too — a line with no assignment stands no tag,
     and such a line is taken by the Built-in worker. An item to run as co-work carries a **협업** tag — standing only on
-    lines turned on, and the rest run as one session. A job turns the item to complete then writes the report, so an item in
-    between is complete while the job still runs, and that line is **완료 보고 중**. A reporting line stays at the top with
+    lines turned on, and the rest run as one session. An item marked done lately whose final report has not arrived stands
+    **완료 보고 중** until that report is written or its window passes. A reporting line stays at the top with
     the running ones, where it stood while running, until its job has ended; the 진행 중 filter shows it and its badge counts
     it. Being unfinished work its tag colour is like 진행 중's, and being a completed line it carries no drag handle, has no
     place in the order a drop saves, and opening it has no button to press.

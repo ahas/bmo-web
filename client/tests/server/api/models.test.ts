@@ -9,7 +9,7 @@ import { answer, standIn } from "../../support/units";
 // a take-away on `/models/{modelKey}`. What the console refuses is only a request that names no key or no
 // model, since the agency would refuse it the same.
 
-const held = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", tier: "large", healthy: true };
+const held = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", tier: "large", healthy: true, lastAnsweredAt: null };
 
 const agency = standIn("AGENCY", (call) =>
   call.method === "POST" && call.body?.name === "registered::taken"

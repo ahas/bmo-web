@@ -53,7 +53,6 @@ const ACCOUNTS: readonly [string, string][] = [
   ["voice-transcript", "fixture-password-2361"],
   ["room-attach", "fixture-password-2364"],
   ["agent-names", "fixture-password-2371"],
-  ["job-chip", "fixture-password-2300"],
   ["todo-models", "fixture-password-2298"],
   ["work-view", "fixture-password-2311"]
 ];
@@ -170,8 +169,8 @@ function catalogueEntry(name: string, engine: string, registration: string): Rec
 // The registered models and model files the agency's stand-in holds, so the two model sections of the
 // agents screen render their lists and their changes as they would against the service.
 const models = new Map<string, Record<string, unknown>>([
-  ["model-a", { key: "registered::model-a", provider: "registered", model: "model-a-7b", tier: "large", healthy: true }],
-  ["model-b", { key: "registered::model-b", provider: "registered", model: "model-b-7b", tier: null, healthy: false }]
+  ["model-a", { key: "registered::model-a", provider: "registered", model: "model-a-7b", tier: "large", healthy: true, lastAnsweredAt: null }],
+  ["model-b", { key: "registered::model-b", provider: "registered", model: "model-b-7b", tier: null, healthy: false, lastAnsweredAt: null }]
 ]);
 const entries = new Map<string, Record<string, unknown>>([
   ["entry-a", catalogueEntry("entry-a", "engine-a", "model-a")],
@@ -272,7 +271,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       if (models.has(name)) return Response.json({ code: "conflict", error: "a model is already registered" }, { status: 409 });
 
-      const made = { key, provider: "registered", model: body.model ?? "", tier: null, healthy: false };
+      const made = { key, provider: "registered", model: body.model ?? "", tier: null, healthy: false, lastAnsweredAt: null };
 
       models.set(name, made);
 

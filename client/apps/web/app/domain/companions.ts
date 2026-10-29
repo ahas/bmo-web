@@ -86,6 +86,7 @@ export function generationChange(draft: Readonly<Record<string, string | number 
 // (docs/web.md, 「Forms」). The persona is null where the companion keeps none of its own and its
 // file's text is shown.
 export interface CompanionDraft {
+  method: "route" | "fixed";
   registration: string | null;
   entry: string | null;
   base: string;
@@ -105,6 +106,7 @@ export function thinkingOf(value: boolean | null): Thinking {
 // runs, since that is what was saved.
 export function companionDraft(view: CompanionView, base: string): CompanionDraft {
   return {
+    method: view.method ?? (view.registration === null ? "route" : "fixed"),
     registration: view.registration,
     entry: view.modelUse?.state === "running" ? view.modelUse.entry : view.serving,
     base,
@@ -115,9 +117,13 @@ export function companionDraft(view: CompanionView, base: string): CompanionDraf
   };
 }
 
-// Whether a field differs from what is saved.
+// Whether a field differs from what is saved. The model's method and the registration it pins are one
+// choice: either way of answering against the other is a change, and so is another registration.
 export function draftDiffers(key: keyof CompanionDraft, draft: CompanionDraft, saved: CompanionDraft): boolean {
   if (key === "generation") return Object.keys(generationChange(draft.generation, savedGeneration(saved.generation))).length > 0;
+  if (key === "registration" || key === "method") {
+    return draft.method !== saved.method || draft.registration !== saved.registration;
+  }
 
   return JSON.stringify(draft[key]) !== JSON.stringify(saved[key]);
 }
@@ -135,8 +141,15 @@ function savedGeneration(boxes: Readonly<Record<string, string>>): Record<string
 export function companionChange(draft: CompanionDraft, saved: CompanionDraft): Record<string, unknown> {
   const differs = (key: keyof CompanionDraft): boolean => draftDiffers(key, draft, saved);
 
+  const registrationChange = (): Record<string, unknown> => {
+    if (!differs("registration")) return {};
+    if (draft.method === "route") return saved.method === "fixed" ? { registration: null } : {};
+
+    return draft.registration === null ? {} : { registration: draft.registration };
+  };
+
   return {
-    ...(differs("registration") && draft.registration !== null ? { registration: draft.registration } : {}),
+    ...registrationChange(),
     ...(differs("referenceOn") ? { referenceOn: draft.referenceOn } : {}),
     ...(differs("persona") ? { persona: draft.persona } : {}),
     ...(differs("generation") ? { generation: generationChange(draft.generation, savedGeneration(saved.generation)) } : {}),

@@ -52,7 +52,7 @@ export function agency(): AgencyClient {
  * One call on an agency route the published client the console vendors names no type for, by the path the agency's
  * `docs/api.md` documents, answered and refused as every other agency call is.
  */
-export async function agencyRoute<T>(method: "GET" | "PUT", path: string, body?: unknown): Promise<T> {
+export async function agencyRoute<T>(method: "GET" | "PUT" | "PATCH", path: string, body?: unknown): Promise<T> {
   const unit = unitAt("AGENCY");
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));

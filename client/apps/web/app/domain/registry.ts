@@ -1,3 +1,5 @@
+import { formatStamp } from "bmo-ui/app/domain/time";
+
 import type { ModelView } from "#shared/agency";
 import type { Translate } from "#shared/wording";
 
@@ -21,9 +23,13 @@ export function registrationKey(name: string): string {
   return `${REGISTRY_PROVIDER}::${name}`;
 }
 
-// What a row says of a registration: whether its addresses answer, or nothing where that is not known.
-export function healthText(t: Translate, healthy: boolean | null): string {
-  return healthy === null ? "" : t(healthy ? "agents.label.registry_healthy" : "agents.label.registry_unhealthy");
+// What a row says of a registration: whether its addresses answer, or nothing where that is not known. One
+// that does not answer now says when it last did, where it ever has.
+export function healthText(t: Translate, healthy: boolean | null, lastAnsweredAt: number | null = null): string {
+  if (healthy === null) return "";
+  if (healthy) return t("agents.label.registry_healthy");
+
+  return lastAnsweredAt === null ? t("agents.label.registry_unhealthy") : t("agents.label.registry_last_answered", { time: formatStamp(lastAnsweredAt) });
 }
 
 export function healthMark(healthy: boolean | null): { icon: string; tone: string } | null {

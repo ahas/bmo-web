@@ -68,6 +68,7 @@ describe("the form a block holds", () => {
     label: "tester-chat",
     icon: null,
     builtin: false,
+    method: "fixed" as const,
     registration: "tester-model",
     registrations: [],
     entries: [],
@@ -101,6 +102,20 @@ describe("the form a block holds", () => {
       thinking: false,
     });
     expect(draftDiffers("base", draft, saved) && draftDiffers("entry", draft, saved)).toBe(true);
+  });
+
+  test("hold the model's method, a route returned to sending the pin away and a fixed model keeping its registration", () => {
+    expect(saved.method).toBe("fixed");
+
+    const route = { ...saved, method: "route" as const };
+
+    expect(draftDiffers("registration", route, saved)).toBe(true);
+    expect(companionChange(route, saved)).toEqual({ registration: null });
+
+    const fixed = { ...saved, registration: "other-model" };
+
+    expect(companionChange(fixed, saved)).toEqual({ registration: "other-model" });
+    expect(companionChange({ ...saved, method: "route" as const, registration: null }, { ...saved, method: "route" as const, registration: null })).toEqual({});
   });
 
   test("an engine file being put on reads as the saved one", () => {

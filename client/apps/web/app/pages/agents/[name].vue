@@ -107,6 +107,7 @@
 
       <WorkerSettingsDialog v-if="settingsKind === 'worker'" v-model:open="settingsOpen" :worker="row" :reread="refreshCatalogue" />
       <CompanionSettingsDialog v-else-if="settingsKind === 'companion' && row !== null" v-model:open="settingsOpen" :meta="meta" :agent="row" :reread="refreshCatalogue" />
+      <SupervisorSettingsDialog v-else-if="settingsKind === 'supervisor' && row !== null" v-model:open="settingsOpen" :meta="meta" :agent="row" :reread="refreshCatalogue" />
       <PictureDialog v-if="picturable" v-model:open="pictureOpen" :title="$t('picture.label.agent')" :description="meta.label" kind="agent" :subject="name" :avatar="agentPicture" />
     </template>
 
@@ -238,12 +239,14 @@ const hasFigures = computed<boolean>(
 
 
 // Which of the agent management screen's own editors this agent has: a job worker its whole
-// settings, an agent whose turn is its settings' pieces its block of the Companions tab. Every other
-// agent's road is shared or set on that screen alone, so it has none here (docs/web.md).
-const settingsKind = computed<"worker" | "companion" | null>(() => {
+// settings, a supervisor whose turn is its settings' pieces its block of the supervisors tab, and the chat agent
+// its own model summary and system-prompt texts. Every other agent's road is shared or set on that screen
+// alone, so it has none here (docs/web.md).
+const settingsKind = computed<"worker" | "companion" | "supervisor" | null>(() => {
   const kind = row.value?.kind;
 
   if (kind === "worker") return "worker";
+  if (row.value?.turnShape === "window") return "supervisor";
 
   return row.value?.turnShape === "pieces" ? "companion" : null;
 });

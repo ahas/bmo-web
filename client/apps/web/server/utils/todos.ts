@@ -1,7 +1,8 @@
-import { DONE_MAX, DONE_PAGE_SIZE, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, WORKER_AGENT } from "#shared/config";
+import { DONE_MAX, DONE_PAGE_SIZE, REPORTING_WINDOW_SECONDS, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, WORKER_AGENT } from "#shared/config";
 import { filterRecords } from "bmo-ui/shared/search";
 import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields } from "../../app/domain/todos";
+import { agency, agencyCall } from "./agency";
 import { job, jobCall, JOB_TIMEOUT_MS } from "./job";
 import { within } from "./unit-answer";
 
@@ -133,9 +134,12 @@ function pinnedModel(labels: Record<string, string>): string | null {
   return named === "" || named === "auto" ? null : named;
 }
 
-// One item as the row the panel shows, with its reports where they were read and the last note where a screen opens it.
-function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null): TodoItem {
+// One item as the row the panel shows, with its reports where they were read, the last note where a screen opens
+// it, and the state the job of it stands in where one is under way.
+function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null, liveState: TodoItem["liveState"] = null, stopped = false): TodoItem {
   const said = reportsOf(reports);
+  const closing = reports.some((report) => report.kind === "final");
+  const doneFor = item.endedAt === null ? null : Math.max(0, Math.floor(Date.now() / 1000) - Math.floor(item.endedAt / 1000));
 
   return {
     id: item.id,
@@ -150,6 +154,8 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     recommended: item.approvals.some((approval) => approval.kind === "recommendation"),
     done: item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null,
     running: item.state === "leased",
+    liveState,
+    reporting: item.state === "done" && !closing && doneFor !== null && doneFor <= REPORTING_WINDOW_SECONDS,
     priority: item.priority,
     status: item.state,
     model: pinnedModel(item.labels),
@@ -162,9 +168,8 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     holding: null,
     waiting: null,
     deployWaits: false,
-    // The job service holds an item by its state, and a lease it had on the item has already ended
-    // where the state says held, so none is still on its way there.
-    holdPending: false,
+    // A held item with a stop note stands in front of a job that is still winding down until that job ends.
+    holdPending: stopped && liveState !== null,
     orderActive: false,
     seconds: null,
     spans: [],
@@ -175,7 +180,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     unfinishedResolution: null,
     heldAt: said.heldAt,
     heldReason: said.heldReason,
-    heldKind: item.state === "held" ? "pause" : null,
+    heldKind: item.state === "held" ? (stopped ? "stop" : "pause") : null,
     mergedInto: item.mergedInto,
     mergedAt: null,
     mergedIntoTitle: null,
@@ -185,18 +190,48 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
   };
 }
 
+// The state every item's own job stands in while one is under way: a job is `starting` while its worker is
+// launched and `running` while its turn goes, and both are asked in one list.
+async function liveStates(): Promise<Map<number, TodoItem["liveState"]>> {
+  try {
+    const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { state: "starting,running", limit: 500 } } }));
+
+    return new Map(
+      jobs.items
+        .filter((job) => job.itemId > 0 && (job.state === "starting" || job.state === "running"))
+        .map((job) => [job.itemId, job.state as "starting" | "running"])
+    );
+  } catch {
+    // The item list reads either way; a job nothing says of stands no state of its own.
+    return new Map();
+  }
+}
+
+/** The state the job of one item stands in, or null where no job of it is under way. */
+async function liveStateOf(id: number): Promise<TodoItem["liveState"]> {
+  try {
+    const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { itemId: id, state: "starting,running", limit: 5 } } }));
+    const job = jobs.items.find((one) => one.itemId === id && (one.state === "starting" || one.state === "running"));
+
+    return job === undefined ? null : (job.state as "starting" | "running");
+  } catch {
+    return null;
+  }
+}
+
 /** One item by its number, or null where there is no such item. */
 export async function readTodoItem(id: number): Promise<TodoItem | null> {
   try {
-    const [item, notes, reports] = await Promise.all([
+    const [item, notes, reports, liveState] = await Promise.all([
       jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } }, signal: within(JOB_TIMEOUT_MS) })),
       notesOf(id),
-      reportsOfItem(id)
+      reportsOfItem(id),
+      liveStateOf(id)
     ]);
 
     keptReports.set(id, { changedAt: item.changedAt, readAt: Date.now(), reports });
 
-    return itemOf(item, reports, notes.map((note) => note.text).at(-1) ?? null);
+    return itemOf(item, reports, notes.map((note) => note.text).at(-1) ?? null, liveState, notes.at(-1)?.labels.kind === "stop");
   } catch (error) {
     if ((error as { statusCode?: number }).statusCode === 404) return null;
     throw error;
@@ -322,15 +357,22 @@ export async function readTodoBoard(
   const limit = input.limit ?? DONE_PAGE_SIZE;
   const query = input.query ?? null;
   const conditions = input.conditions ?? NO_CONDITIONS;
-  const [items, queues] = await Promise.all([allItems(), readQueues()]);
+  const [items, queues, live] = await Promise.all([allItems(), readQueues(), liveStates()]);
   const matching = items.filter((item) => meets(item, conditions));
   const finished = matching.filter((item) => listOf(item) === "done").sort((one, other) => other.id - one.id);
   const finishedFound = query === null
     ? finished
     : filterRecords(finished, (item) => [{ label: "", text: `#${item.id} ${item.title} ${item.state}`, shown: true }], query);
   const page = finishedFound.slice(0, limit);
-  const reports = await boardReports([...page, ...matching.filter((item) => listOf(item) === "held")]);
-  const rows = new Map(matching.map((item) => [item.id, itemOf(item, reports.get(item.id) ?? [])]));
+  const held = matching.filter((item) => listOf(item) === "held");
+  const reports = await boardReports([...page, ...held]);
+  // A held row says why it was set aside by its last note: the owner's stop, or a plain hold.
+  const stopped = new Map(
+    await Promise.all(held.map(async (item) => [item.id, (await notesOf(item.id)).at(-1)?.labels.kind === "stop"] as const))
+  );
+  const rows = new Map(
+    matching.map((item) => [item.id, itemOf(item, reports.get(item.id) ?? [], null, live.get(item.id) ?? null, stopped.get(item.id) ?? false)])
+  );
   const found = (row: TodoItem) => query === null || filterRecords([row], (one) => todoSearchFields(wording, one, []), query).length > 0;
   const listed = (name: "queue" | "pending" | "held", from: readonly Item[]) =>
     from.filter((item) => listOf(item) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);

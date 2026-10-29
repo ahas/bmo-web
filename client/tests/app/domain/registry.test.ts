@@ -26,7 +26,7 @@ import KO from "../../fixtures/app/domain/registry.test.ko.json";
 
 const t = wording;
 
-const model: ModelView = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", tier: "large", healthy: true };
+const model: ModelView = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", tier: "large", healthy: true, lastAnsweredAt: null };
 
 describe("what a row says", () => {
   test("a registration is named by the part of its key after the provider", () => {

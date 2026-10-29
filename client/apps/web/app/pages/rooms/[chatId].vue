@@ -250,6 +250,8 @@
                   :place="runPlace(at === 0, at === run.rows.length - 1)"
                   :arriving="arrivals.has(item.key)"
                   :judging="judged.has(item.messageId)"
+                  :round-judgements="roundJudgementsOf(item)"
+                  :round-situation="roundSituationOf(item)"
                   :chat-id="chatId"
                   :selecting="selecting"
                   :selected="selected.has(item.key)"
@@ -289,12 +291,9 @@
           <RoomMessageSkeleton />
           </ContentSkeleton>
 
-          <!-- A passing word about the turn stands over the running work, which stays at the foot
-               for as long as it runs. The word and the work are no messages, so each keeps room of
-               its own from the conversation above it. -->
+          <!-- A passing word about the turn stands at the conversation's foot. The word is no
+               message, so it keeps room of its own from the conversation above it. -->
           <p v-if="passing !== null" class="mt-4 self-center text-sm text-muted">{{ outcomeLine(t, passing) }}</p>
-
-          <RoomWork class="mt-7":lines="workLines" :rooms="rooms ?? []" />
         </UChatMessages>
 
         <!-- Where a flight is put: the layer's last child, of no box of its own, so a flight coming
@@ -520,10 +519,10 @@ import {
   useRoomFeed,
   withLives
 } from "~/domain/room";
-import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX, usePolling } from "~/domain/polling";
+import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX } from "~/domain/polling";
 import { formatClock, toUnixSeconds } from "bmo-ui/app/domain/time";
 import { imageUrl } from "~/domain/urls";
-import { outcomeLine, roomRuns, useHeldRuns } from "~/domain/working";
+import { outcomeLine, useHeldRuns } from "~/domain/working";
 import { groupRoom, listeningRuns, shownOutcome, useRoomWindow } from "~/domain/room-window";
 import { clearFound, foundMessages, markFound, steppedHit } from "~/domain/room-find";
 import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
@@ -542,8 +541,8 @@ import type {
   SendOutcomeRecord,
   SentAttachments,
   SentMessage,
-  StatusView,
-  WatchView
+  Situation,
+  StatusView
 } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { ComposedMessage, PickedFile } from "~/domain/attachments";
@@ -709,7 +708,6 @@ const focusedKey = ref<string | null>(null);
 const { runs: live, take: takeLive, stop: stopLive } = useHeldRuns();
 
 onBeforeUnmount(stopLive);
-const watches = ref<WatchView[]>([]);
 // The messages the bot holds queued for a turn of the chat agent's, which are waiting to be judged.
 const queued = ref<QueuedMessage[]>([]);
 
@@ -894,6 +892,63 @@ async function saveForward(to: number): Promise<string | null> {
 // The room's verdicts by the message they stand under, wherever the gate filed it (docs/web.md, the room screen's
 // verdicts).
 const judgementIndex = computed(() => judgementsByMessage(homedJudgements(roomFeed.messages.value, roomFeed.judgements.value)));
+
+// The round's whole record, by the round it belongs to: the gates that read the person's message and the send and
+// checks of the answer alike. An answer's record press spreads this, so what judged the round stands on the answer
+// rather than under the message it read (docs/web.md, the room screen's chip line).
+const roundIndex = computed(() => {
+  const index = new Map<string, Judgement[]>();
+
+  for (const bucket of judgementIndex.value.values()) {
+    for (const judgement of bucket) {
+      const round = judgement.round ?? null;
+
+      if (round === null) continue;
+
+      const held = index.get(round);
+
+      if (held === undefined) index.set(round, [judgement]);
+      else held.push(judgement);
+    }
+  }
+
+  for (const bucket of index.values()) bucket.sort((left, right) => left.createdAt - right.createdAt || left.id - right.id);
+
+  return index;
+});
+
+// The room's situation note as each round read it, by that round: the note stands on the message the round read, and
+// the answer's record press shows it where the rest of the round's judgement stands.
+const situationByRound = computed(() => {
+  const index = new Map<string, Situation>();
+
+  for (const message of roomFeed.messages.value) {
+    if (message.situation == null) continue;
+
+    const round = judgementIndex.value.get(message.messageId)?.find((one) => one.round != null)?.round ?? null;
+
+    if (round !== null) index.set(round, message.situation);
+  }
+
+  return index;
+});
+
+// Which round a row belongs to, and that round's record and situation as the answer's record press spreads them.
+function roundOf(item: FeedItem): string | null {
+  return item.judgements.find((one) => one.round != null)?.round ?? null;
+}
+
+function roundJudgementsOf(item: FeedItem): Judgement[] {
+  const round = roundOf(item);
+
+  return round === null ? [] : (roundIndex.value.get(round) ?? []);
+}
+
+function roundSituationOf(item: FeedItem): Situation | null {
+  const round = roundOf(item);
+
+  return round === null ? null : (situationByRound.value.get(round) ?? null);
+}
 
 // Which messages of the room are being judged right now, which their verdict mark beats for: none that
 // already holds a final verdict written since its judging began.
@@ -1089,8 +1144,6 @@ const speaker = computed<Speaker>(() => {
 
   return { id: own, name: said?.senderName ?? t("room.label.me") };
 });
-
-const workLines = computed(() => roomRuns(t, live.value, chatId, rooms.value, watches.value));
 
 // The mode the screen goes into to pick messages is a layer of the back gesture like anything
 // floating over the room, which registers on its own: one press apiece, and only when none of
@@ -2697,22 +2750,6 @@ function letGoOfAsked(): void {
   }
 }
 
-// The standing watches do not ride the live stream, so they are read again on the two occasions
-// they can have changed: something else started or stopped running here — the new run may be a
-// check of a watch this screen has never seen — and, while a watch line actually stands, the pace
-// the rest of the console keeps, since its last look and its deadline move on their own. A room
-// with nothing running under it asks for nothing.
-watch(
-  () => workLines.value.map((line) => line.key).join(","),
-  () => void readLive(),
-);
-
-usePolling(() => {
-  if (workLines.value.some((line) => line.watch !== null)) {
-    void readLive();
-  }
-}, POLL_INTERVAL_MS);
-
 // A job beside the chat is the agency's, not the receiver's, so the live picture the receiver sends says nothing
 // of one starting or ending. The agency's job events name it, and the board is read again when one comes.
 useLiveRefresh(() => void readLive(), { on: ["worker-run"], everyMs: POLL_INTERVAL_MS });
@@ -2727,9 +2764,8 @@ async function readLive(): Promise<void> {
     const status = await $fetch<StatusView>("/api/status");
 
     takeLive(status.live);
-    watches.value = status.watches ?? [];
   } catch {
-    // The room reads either way; without the picture it simply shows no other work.
+    // The room reads either way; without the picture it simply shows no running turn.
   }
 }
 

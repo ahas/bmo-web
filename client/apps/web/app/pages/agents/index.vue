@@ -31,7 +31,7 @@
           <UButton class="shrink-0" size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('agents.title.worker_add')" @click="workersRef?.openAdd()" />
         </UTooltip>
 
-        <UTooltip v-else-if="tab === 'companions'" :text="$t('agents.title.companion_add')">
+        <UTooltip v-else-if="tab === 'supervisors'" :text="$t('agents.title.companion_add')">
           <UButton class="shrink-0" size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('agents.title.companion_add')" @click="companionsRef?.openAdd()" />
         </UTooltip>
 
@@ -159,7 +159,7 @@
         <AgentsRouteTable v-else-if="tab === 'routes'" :query="query" />
 
 
-        <AgentsCompanions v-else-if="tab === 'companions'" ref="companionsRef" :workers="companionWorkers" />
+        <AgentsCompanions v-else-if="tab === 'supervisors'" ref="companionsRef" :workers="companionWorkers" />
 
         <ResearchSettings v-else :query="query" />
       </div>

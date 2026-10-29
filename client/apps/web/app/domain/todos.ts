@@ -24,14 +24,14 @@ export interface TodoSection {
 }
 
 // Where one item stands, in the words the panel speaks: waiting on the owner, waiting in the
-// queue, being done by a job, held while its run still goes, done but still being reported, set
-// aside, merged into another item and waiting for it, or done.
-export type TodoState = "pending" | "waiting" | "running" | "stopping" | "reporting" | "held" | "merged" | "done";
+// queue, being launched, being done by a job, held while its run still goes, done but still being
+// reported, set aside, merged into another item and waiting for it, or done.
+export type TodoState = "pending" | "waiting" | "starting" | "running" | "stopping" | "reporting" | "held" | "merged" | "done";
 
 // What the filter chips name. Reporting and waiting-to-stop are not among them: each is a state a
 // row wears on its way out, not one anybody would sit and watch a list of. A job is still going on
-// for a row in either, so the running chip shows both.
-export type TodoFilter = "all" | Exclude<TodoState, "reporting" | "stopping">;
+// for a row in either, so the running chip shows both; starting is a moment of that same job.
+export type TodoFilter = "all" | Exclude<TodoState, "reporting" | "stopping" | "starting">;
 
 export interface TodoView {
   filter: TodoFilter;
@@ -70,6 +70,7 @@ export const DEFAULT_VIEW: TodoView = { filter: "all", conditions: NO_CONDITIONS
 const STATE_LABELS: Record<Exclude<TodoState, "stopping">, string> = {
   pending: "todo.label.state_pending",
   waiting: "todo.label.state_waiting",
+  starting: "todo.label.state_starting",
   running: "todo.label.state_running",
   reporting: "todo.label.state_reporting",
   held: "todo.label.state_held",
@@ -155,7 +156,7 @@ export const PANEL_DEFAULT_WIDTH = 320;
 // item would otherwise never come to rest.
 export function todoState(item: TodoItem, now: number = toUnixSeconds(Date.now())): TodoState {
   if (item.done) {
-    return item.running && reportingWindowOpen(item, now) ? "reporting" : "done";
+    return item.reporting || (item.running && reportingWindowOpen(item, now)) ? "reporting" : "done";
   }
 
   // Merged is what a row is before anything else it could be: its work is carried by the item it
@@ -176,6 +177,11 @@ export function todoState(item: TodoItem, now: number = toUnixSeconds(Date.now()
     return "pending";
   }
 
+  // A job whose worker is still being launched has started but is not doing the work yet.
+  if (item.liveState === "starting") {
+    return "starting";
+  }
+
   return item.running ? "running" : "waiting";
 }
 
@@ -184,7 +190,7 @@ export function todoState(item: TodoItem, now: number = toUnixSeconds(Date.now()
 // the head of the queue, the running chip and its count all ask it — and it is the same fact
 // `running.ts` reads, an item with a job line not yet ended.
 export function jobGoingOn(state: TodoState): boolean {
-  return state === "running" || state === "stopping" || state === "reporting";
+  return state === "starting" || state === "running" || state === "stopping" || state === "reporting";
 }
 
 // The model a row wears, short, or whole where `whole` asks for its tooltip (docs/web.md, the TODO panel's section): the model
@@ -239,6 +245,7 @@ export function stateLabel(t: Translate, item: TodoItem, now: number = toUnixSec
 const STATE_ICONS: Record<TodoState, string> = {
   pending: "i-material-symbols-approval-outline",
   waiting: "i-material-symbols-schedule-outline",
+  starting: "i-material-symbols-progress-activity",
   running: "i-material-symbols-progress-activity",
   stopping: "i-material-symbols-pause-circle-outline",
   reporting: "i-material-symbols-progress-activity",

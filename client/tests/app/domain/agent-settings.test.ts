@@ -9,9 +9,10 @@ import KO from "../../fixtures/app/domain/agent-settings.test.ko.json";
 
 describe("the sections of the agent management screen", () => {
   test("are the general settings first, then each section on its own tab", () => {
-    expect(AGENT_TABS.map((tab) => wording(tab.label))).toEqual([KO.line_11, KO.line_11_2, KO.line_11_3, wording("agents.label.tab_routes"), KO.line_11_5, KO.line_11_6]);
+    expect(AGENT_TABS.map((tab) => wording(tab.label))).toEqual([KO.line_11, KO.line_11_5, KO.line_11_2, KO.line_11_3, wording("agents.label.tab_routes"), KO.line_11_6]);
     expect(isAgentTab("gates")).toBe(false);
-    expect(isAgentTab("companions")).toBe(true);
+    expect(isAgentTab("supervisors")).toBe(true);
+    expect(isAgentTab("companions")).toBe(false);
     // The co-worker limits stand in the Models tab, so there is no tab of their own.
     expect(isAgentTab("pool")).toBe(false);
     expect(isAgentTab("fallback")).toBe(false);

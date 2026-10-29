@@ -26,15 +26,14 @@ describe("what the block stands while a turn runs", () => {
     expect(template.length).toBeGreaterThan(500);
   });
 
-  test("what the turn is at stands under what opened it", () => {
+  test("the turn's detail stands under what opened it", () => {
     const received = at("<RollingSentence");
-    const shimmer = at("<UChatShimmer");
+    const reasoning = at("<UChatReasoning");
 
-    // What opened the turn, then what it is at right now. The state line is the one that is
+    // What opened the turn, then what it is at right now. The reasoning block is the one that is
     // reread while the turn runs, so it is held still rather than pushed down the screen by every
-    // call that lands under it — and what the turn has done lands under the chip line below,
-    // outside this block entirely.
-    expect(received).toBeLessThan(shimmer);
+    // call that lands under it.
+    expect(received).toBeLessThan(reasoning);
   });
 
   test("the count of what the turn was handed is still there", () => {
@@ -42,24 +41,30 @@ describe("what the block stands while a turn runs", () => {
     expect(source).toContain("receivedLine(props.run.received)");
   });
 
-  test("the state line breaks at its spaces, so a tool's name never folds the in-use word in half", () => {
-    const shimmer = template.slice(at("<UChatShimmer"));
+  test("the block's face names the agent and shimmers, and its body is the turn's own list", () => {
+    const block = template.slice(at("<UChatReasoning"));
+
+    // The face is the agent's name beside the library's thinking word, which the block shimmers for
+    // as long as the turn runs; nothing spins beside it.
+    expect(template).toContain("{{ subject }}");
+    expect(template).toContain(':streaming="true"');
+    expect(template).not.toContain("animate-spin");
+
+    // The detail is the state in the pack's words and every call the turn has made so far, oldest
+    // first, at its whole length. Nothing of it is cut on a line, and nothing scrolls in a box of
+    // its own: the library's truncating label and its bounded body are overridden.
+    expect(block).toContain("whitespace-normal overflow-visible text-clip");
+    expect(block).toContain("max-h-none overflow-visible whitespace-normal");
+    expect(block).toContain("<TurnActions");
+  });
+
+  test("the detail line breaks at its spaces, so a tool's name never folds the in-use word in half", () => {
+    const block = template.slice(at("<UChatReasoning"));
 
     // keep-all is what holds a Korean phrase together; anywhere is what lets one long identifier
     // break inside itself rather than run off a phone's width.
-    expect(shimmer).toContain("break-keep");
-    // It reads at the size, line height and colour of the line over it, so the block is one size.
-    expect(shimmer).toContain("text-sm leading-(--chat-meta-line)");
-    expect(shimmer).toContain("wrap-anywhere");
-  });
-
-  test("the shimmer is the whole of the sign that the turn is going, and it says the state alone", () => {
-    const shimmer = template.slice(at("<UChatShimmer"));
-
-    expect(shimmer).toContain(':text="look.label"');
-    // Nothing spins beside it, and no second thing shimmers above it.
-    expect(template).not.toContain("animate-spin");
-    expect(template.match(/<UChatShimmer/g)).toHaveLength(1);
+    expect(block).toContain("break-keep");
+    expect(block).toContain("wrap-anywhere");
   });
 
   test("it is the row's words and nothing else: no picture, no header, no chip of its own", () => {
@@ -69,7 +74,6 @@ describe("what the block stands while a turn runs", () => {
     expect(template).not.toContain("<LineChip");
     expect(template).not.toContain("<TokenChip");
     expect(template).not.toContain("<RunSpend");
-    expect(template).not.toContain("<TurnActions");
     expect(source).not.toContain("avatar");
   });
 });
@@ -107,6 +111,6 @@ describe("the draft step on the line", () => {
   test("is handed the question the turn is on where the turn is the chat agent's, and none where it is a companion's", async () => {
     const shipped = await Bun.file(new URL("../../../apps/web/app/components/RunProgress.vue", import.meta.url)).text();
 
-    expect(shipped).toContain("phaseLook(t, name.value, props.run.progress, companionOf(props.run.speaker) === undefined ? props.run.draft ?? null : null)");
+    expect(shipped).toContain("phaseDetail(t, props.run.progress, companionOf(props.run.speaker) === undefined ? props.run.draft ?? null : null)");
   });
 });

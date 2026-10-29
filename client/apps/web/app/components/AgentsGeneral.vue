@@ -71,7 +71,7 @@
                 :class="!one.enabled ? 'text-muted' : one.reason === null ? 'text-success' : 'text-warning'"
               />
               <SearchText class="truncate text-sm font-medium" :class="one.enabled ? 'text-highlighted' : 'text-muted'" :text="one.label" :query="props.query" />
-              <UBadge v-if="answering(one.name)" color="warning" variant="subtle" size="sm" :label="$t('agents.status.answering_instead')" />
+              <UBadge v-if="answering(one.name)" color="success" variant="subtle" size="sm" :label="$t('agents.status.active')" />
             </span>
             <!-- Why it cannot be taken, in the pack's words; the agency's own sentence is its tooltip. -->
             <HintTip v-if="one.reason !== null" :text="one.reasonEnglish ?? undefined" :disabled="one.reasonEnglish === null" class="min-w-0">

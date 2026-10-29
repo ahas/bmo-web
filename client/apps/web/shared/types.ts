@@ -649,6 +649,12 @@ export interface TodoItem {
   // Whether a job of this item is under way, read from the run itself: the item has a job row
   // that has not finished. The state line is a word somebody typed, so it is not asked.
   running: boolean;
+  // The state the job of this item stands in right now, as the agency names it: `starting` while its worker is
+  // launched, `running` while its turn goes. Null or absent where no job of it is under way.
+  liveState?: "starting" | "running" | null;
+  // Whether the item was marked done lately and its closing report has not arrived: the run's report is still
+  // being written for it.
+  reporting?: boolean;
   priority: number;
   status: string;
   model: string | null;

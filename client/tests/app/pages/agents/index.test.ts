@@ -365,12 +365,14 @@ describe("the supervisors tab", () => {
     expect(templateOf(companions)).not.toContain("sticky bottom-0");
   });
 
-  test("keeps the settings a press of its own at the row's end, apart from the row that opens the screen", () => {
+  test("keeps the settings a press of its own at the row's end, opening them here rather than a screen", () => {
     const actions = templateOf(companions).slice(templateOf(companions).indexOf("#actions-cell"));
 
-    expect(actions).toContain("?edit=1");
     expect(actions).toContain("data-supervisor-settings");
-    expect(templateOf(companions)).not.toContain("row.original.name)}?edit=1\"` :class");
+    expect(actions).toContain('@click="edit(row.original.name)"');
+    expect(actions).not.toContain("?edit=1");
+    expect(templateOf(companions)).toContain("<SupervisorSettingsDialog");
+    expect(templateOf(companions)).toContain("<CompanionSettingsDialog");
   });
 
   test("removes a companion the console added from its own row, and the deployment's seeds from none", () => {

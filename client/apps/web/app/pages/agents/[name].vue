@@ -164,7 +164,6 @@ const { t } = useI18n();
 const viewRef = useTemplateRef<{ follow: () => Promise<void> }>("view");
 
 const route = useRoute();
-const router = useRouter();
 
 // A name carries a colon and may carry a minus sign, so the sidebar encodes it for the URL
 // and the screen reads it back.
@@ -252,17 +251,6 @@ const settingsKind = computed<"worker" | "companion" | "supervisor" | null>(() =
   return row.value?.turnShape === "pieces" ? "companion" : null;
 });
 const settingsOpen = ref(false);
-
-// The supervisors list opens an agent's screen to change it: the screen whose settings stand behind the settings
-// button opens them as it arrives, and the address keeps no mark of the ask once they are open, so closing them
-// leaves the screen the log's as any other visit does. The ask waits for the agent's row, which says which
-// settings it has.
-watch([() => route.query.edit, settingsKind], ([asked, kind]) => {
-  if (asked !== "1" || kind === null) return;
-
-  settingsOpen.value = true;
-  void router.replace({ query: { ...route.query, edit: undefined } });
-}, { immediate: true });
 
 // A chat agent stands as its face, so its picture is set here, by the administrator alone (docs/web.md, 「Profile
 // photos」): the one standing now, or its letter.

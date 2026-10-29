@@ -18,7 +18,7 @@ describe("the chat agent's settings", () => {
   test("stand on the agent screen of the agent whose turn is the window's, opened by the list's own row", () => {
     expect(page).toContain('row.value?.turnShape === "window") return "supervisor"');
     expect(page).toContain("<SupervisorSettingsDialog");
-    expect(companions).toContain("?edit=1");
+    expect(companions).toContain("<SupervisorSettingsDialog");
   });
 
   test("name the model the work key resolves to and open its road on the routes tab", () => {

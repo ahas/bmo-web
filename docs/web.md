@@ -2889,9 +2889,9 @@ Two ways, split because the running places differ.
   name, the model it answers on (a supervisor kept on a fixed model, its registration by its label; one on the
   agency's route, the model its work key resolves to on 실행 경로) and every room it answers — each room its
   session holds, as the agency lists them, the chat agent's among them. No row says which of the two an agent is.
-  The row opens that agent's own screen, and the row's own settings press (`?edit=1`) opens that screen with the
-  settings, the piece the owner came to change; closing them leaves the screen the log's. A supervisor for a
-  model of the deployment's own is added from the tab row's 추가 menu (below).
+  The row opens that agent's own screen; the row's own settings press opens its settings here, in the very
+  dialog that screen opens, so a supervisor is set without the tab moving under the owner's hand. A supervisor
+  for a model of the deployment's own is added from the tab row's 추가 menu (below).
 - **A companion's own settings stand on its screen** (the agency's `docs/companions.md`, 「Its settings」), in the
   dialog its 설정 opens — its system prompt is its base prompt, the fixed companion role and its persona, so what
   the dialog sets of it is the base prompt and the persona. The dialog is one form (「Forms」): every change waits
@@ -3018,8 +3018,7 @@ Two ways, split because the running places differ.
   bar's marks keep the one square every title bar's marks have, and none of them overlaps another.
   `client/tests/browser/agent-topbar.test.ts` measures the bar of a running worker at 360, 390 and 1280 pixels
   wide against a dev console, as the other title bar checks do.
-- **설정** stands beside the name, as an icon button, where the agent has settings of its own, and the
-  supervisors row's settings press opens it as the screen arrives (`?edit=1`): a job
+- **설정** stands beside the name, as an icon button, where the agent has settings of its own: a job
   worker's opens the worker settings dialog of the agent management screen's 워커 tab, a companion's
   opens its settings dialog, and the chat agent's opens its own: its model, kept on the
   agency's route — the model its work key resolves to there, linked to that row — or on a fixed registered

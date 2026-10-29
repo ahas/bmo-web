@@ -1,24 +1,18 @@
 <template>
-  <!-- The supervisors tab: every supervisor listed — the chat agent and each companion alike — with a block for
-       each companion's own settings, in the agent list's order (docs/web.md, 「Agent management screen」), and
-       the blocks one form, saved from its foot (「Forms」). -->
-  <div class="flex flex-1 flex-col">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-10 p-4 sm:p-6">
+  <!-- The supervisors: every agent that answers in a room, the chat agent and each companion alike, one list in
+       the agent list's order (docs/web.md, 「Agent management screen」). A row opens that agent's own screen; the
+       row's own settings press opens its settings here, in the very dialog its screen opens, so a supervisor is
+       set without leaving the tab; a companion the console added is removed from its row. -->
+  <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.tab_supervisors')">
+    <div class="flex min-w-0 flex-col gap-4">
       <ReadFailure v-if="error && companions === undefined" :failure="readFailure" :message="$t('agents.error.companions_read_failed')" :reading="status === 'pending'" @retry="refresh()" />
 
-      <!-- A block before it arrives: its header row and the shape of its first two groups. -->
+      <!-- The list before it arrives: the shape of its rows. -->
       <ContentSkeleton v-else-if="companions === undefined" :rows="1" :label="$t('agents.status.companions_loading')">
-        <div class="flex flex-col gap-6">
-          <div class="flex min-h-8 items-center gap-2">
-            <SkeletonBar class="size-5 shrink-0 rounded-sm" />
-            <SkeletonBar class="h-5 w-24" />
-          </div>
-          <SkeletonBar class="h-8 w-full rounded-md" />
-          <div class="flex flex-col divide-y divide-default rounded-lg border border-default">
-            <div v-for="n in 5" :key="n" class="flex min-h-10 items-center gap-2 ps-3 pe-1">
-              <SkeletonBar class="size-4 shrink-0 rounded-sm" />
-              <SkeletonBar class="h-4 w-1/3" />
-            </div>
+        <div class="flex flex-col divide-y divide-default rounded-lg border border-default">
+          <div v-for="n in 5" :key="n" class="flex min-h-10 items-center gap-2 ps-3 pe-1">
+            <SkeletonBar class="size-4 shrink-0 rounded-sm" />
+            <SkeletonBar class="h-4 w-1/3" />
           </div>
         </div>
       </ContentSkeleton>
@@ -26,9 +20,9 @@
       <p v-else-if="companions.length === 0" class="text-sm text-muted">{{ $t("agents.status.no_companions") }}</p>
 
       <template v-else>
-        <!-- Every supervisor, with its model and the rooms it answers; the row opens the agent's own screen, and
-             the row's own settings press opens that screen with the settings. No row says which of the two an
-             agent is. -->
+        <!-- Every supervisor, with its model and the rooms it answers; the row opens the agent's own screen, the
+             settings press opens its settings in place, and removal stands beside it. No row says which of the
+             two an agent is. -->
         <DataTable :data="listRows" :columns="listColumns" layout="own" data-companion-list>
           <template #agent-cell="{ row }">
             <NuxtLink
@@ -49,20 +43,20 @@
           <template #rooms-cell="{ row }">
             <span :class="[CELL_TEXT, row.original.rooms.length === 0 ? 'text-muted' : 'text-highlighted']" class="max-w-72 text-sm">{{ row.original.rooms.length === 0 ? "—" : row.original.rooms.join(" · ") }}</span>
           </template>
-          <!-- Two presses of its own at the row's end, apart from the row's own: the settings, which opens the
-               agent's screen with them open, and, for a companion the console added, its removal — one the
-               deployment seeds stands again at the next start, so it offers none. -->
+          <!-- Two presses of its own at the row's end, apart from the row's own: the settings, opened on this
+               screen in the dialog the agent's own screen opens, and, for a companion the console added, its
+               removal — one the deployment seeds stands again at the next start, so it offers none. -->
           <template #actions-cell="{ row }">
             <span class="flex items-center justify-end gap-1 pe-2">
-              <UTooltip :text="$t('agents.action.settings')">
+              <UTooltip v-if="row.original.editable" :text="$t('agents.action.settings')">
                 <UButton
                   color="neutral"
                   variant="ghost"
                   size="sm"
                   icon="i-material-symbols-settings-outline"
                   :aria-label="$t('agents.action.settings')"
-                  :to="`/agents/${encodeURIComponent(row.original.name)}?edit=1`"
                   data-supervisor-settings
+                  @click="edit(row.original.name)"
                 />
               </UTooltip>
               <UTooltip v-if="row.original.companion && !row.original.builtin" :text="$t('common.title.delete_named', { name: row.original.label })">
@@ -84,10 +78,28 @@
 
       <p v-if="removeFailed !== ''" role="alert" class="break-words text-sm text-error">{{ removeFailed }}</p>
     </div>
+  </section>
 
-    <!-- A companion added with a room of the console's own that it answers alone; the bot checks every
-         field, and a refusal stands under the field it names. -->
-    <SettingsDialog v-model:open="adding" :title="$t('agents.title.companion_add')" :dirty="addDirty">
+  <!-- A supervisor's settings, in the dialog its own screen opens: the chat agent's its model method and the
+       texts its system prompt is composed of, a companion's its block of settings. -->
+  <SupervisorSettingsDialog
+    v-if="editingMeta !== null && editing !== null && editing.turnShape === 'window'"
+    v-model:open="editingOpen"
+    :meta="editingMeta"
+    :agent="editing"
+    :reread="rereadAll"
+  />
+  <CompanionSettingsDialog
+    v-else-if="editingMeta !== null && editing !== null && editing.turnShape === 'pieces'"
+    v-model:open="editingOpen"
+    :meta="editingMeta"
+    :agent="editing"
+    :reread="rereadAll"
+  />
+
+  <!-- A companion added with a room of the console's own that it answers alone; the bot checks every
+       field, and a refusal stands under the field it names. -->
+  <SettingsDialog v-model:open="adding" :title="$t('agents.title.companion_add')" :dirty="addDirty">
       <form id="companion-add-form" class="flex flex-col gap-4" @submit.prevent="void add()">
         <div class="grid gap-4 sm:grid-cols-2">
           <UFormField :label="$t('common.label.name')" name="name" :error="addErrorAt('name')">
@@ -114,12 +126,11 @@
         <p v-if="addRefusal !== null && !ADD_FIELDS.has(addRefusal.field)" role="alert" class="break-words text-sm text-error">{{ addRefusal.text }}</p>
       </form>
 
-      <template #footer="{ close }">
-        <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="addBusy" @click="close()" />
-        <UButton type="submit" form="companion-add-form" :label="$t('common.action.add')" :loading="addBusy" :disabled="addBusy || !addDirty" />
-      </template>
-    </SettingsDialog>
-  </div>
+    <template #footer="{ close }">
+      <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="addBusy" @click="close()" />
+      <UButton type="submit" form="companion-add-form" :label="$t('common.action.add')" :loading="addBusy" :disabled="addBusy || !addDirty" />
+    </template>
+  </SettingsDialog>
 </template>
 
 <script setup lang="ts">
@@ -127,7 +138,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useReadFailure } from "~/domain/events";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { answeringModels, REGISTRY_PROVIDER, registrationName } from "~/domain/registry";
-import { agentIcon } from "~/domain/agents";
+import { agentIcon, agentMetaOf, catalogueAgents } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useRoomList } from "~/domain/room-list";
 import { CELL_TEXT } from "~/domain/settings-cells";
@@ -135,6 +146,8 @@ import { CELL_TEXT } from "~/domain/settings-cells";
 import type { TableColumn } from "@nuxt/ui";
 
 import type { CompanionAdded, CompanionView, ModelPage } from "#shared/agency";
+import type { AgentMeta } from "~/domain/agents";
+import type { AgentSummary } from "#shared/types";
 
 interface Props {
   // The workers a companion's items may go to, as the page lists them.
@@ -156,11 +169,13 @@ interface ListRow {
   icon: string;
   companion: boolean;
   builtin: boolean;
+  // Whether the catalogue holds the agent's row, which its settings dialog is opened on.
+  editable: boolean;
   model: string | null;
   rooms: string[];
 }
 
-const { agents: catalogue } = useAgentCatalogue();
+const { agents: catalogue, refresh: refreshCatalogue } = useAgentCatalogue();
 const { data: roomList } = useRoomList();
 const listColumns = computed<TableColumn<ListRow>[]>(() => [
   { id: "agent", header: t("agents.label.column_agent"), meta: { class: { th: "w-full" } } },
@@ -192,6 +207,7 @@ const listRows = computed<ListRow[]>(() => {
       icon: companion?.icon ?? agentIcon(agent.name),
       companion: companion !== undefined,
       builtin: companion?.builtin ?? false,
+      editable: true,
       model: companion === undefined ? agent.model : companion.method === "route" ? (companion.model ?? null) : (registration?.label ?? companion.registration),
       rooms: companion === undefined ? roomsOfAgent(agent) : roomsOf(companion)
     };
@@ -207,11 +223,34 @@ const listRows = computed<ListRow[]>(() => {
       icon: one.icon ?? agentIcon(one.agent),
       companion: true,
       builtin: one.builtin,
+      editable: false,
       model: one.registrations.find((reg) => reg.name === one.registration)?.label ?? one.registration,
       rooms: roomsOf(one)
     }))
   ];
 });
+
+// The supervisor whose settings stand open, and the ask that opens them: the row's own press opens the dialog
+// its screen opens, on this screen, so nothing moves under the owner's hand.
+const editing = ref<AgentSummary | null>(null);
+const editingOpen = ref(false);
+const editingMeta = computed<AgentMeta | null>(() =>
+  editing.value === null ? null : agentMetaOf(t, editing.value.name, catalogueAgents(), [])
+);
+
+function edit(name: string): void {
+  const agent = catalogue.value.agents.find((one) => one.name === name);
+
+  if (agent === undefined) return;
+
+  editing.value = agent;
+  editingOpen.value = true;
+}
+
+// The list a dialog saves into: the catalogue its row stands on, and the companions' own answer.
+async function rereadAll(): Promise<void> {
+  await Promise.all([refreshCatalogue(), refresh()]);
+}
 
 // The fields the dialog shows a refusal under; any other stands at its end.
 const ADD_FIELDS = new Set(["name", "label", "model", "provider", "worker", "room"]);

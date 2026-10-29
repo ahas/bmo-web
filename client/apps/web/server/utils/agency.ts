@@ -139,6 +139,15 @@ function agentSummary(agent: AgencyAgent): AgentSummary {
   };
   const scope = row.sessionScope === "agent" || row.sessionScope === "room" ? row.sessionScope : null;
   const shape = row.turnShape === "window" || row.turnShape === "pieces" ? row.turnShape : null;
+  // The rooms its sessions hold, each with the moment its log last took a line there; none where the
+  // answer names none.
+  const sessions = Array.isArray(row.sessions)
+    ? (row.sessions as unknown[]).flatMap((held): { chatId: number; lastAt: number | null }[] => {
+        const one = held as { chatId?: unknown; lastAt?: unknown };
+
+        return typeof one.chatId === "number" ? [{ chatId: one.chatId, lastAt: typeof one.lastAt === "number" ? one.lastAt : null }] : [];
+      })
+    : [];
 
   return {
     name: agent.name,
@@ -168,6 +177,7 @@ function agentSummary(agent: AgencyAgent): AgentSummary {
     keepalivePausedAt: number("keepalivePausedAt"),
     pinnedProvider: provider("pinnedProvider"),
     pinnedModel: text("pinnedModel"),
+    sessions: sessions.length === 0 ? undefined : sessions,
     reasoning: carried.reasoning
   };
 }

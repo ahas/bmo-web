@@ -357,6 +357,25 @@ describe("the model tab", () => {
   });
 });
 
+describe("the supervisors tab", () => {
+  test("lists every supervisor and opens each one's own screen with its settings, holding no editor of its own", () => {
+    expect(templateOf(companions)).toContain("?edit=1");
+    expect(templateOf(companions)).toContain("data-companion-list");
+    expect(templateOf(companions)).not.toContain("<CompanionSettingsBlock");
+    expect(templateOf(companions)).not.toContain("sticky bottom-0");
+  });
+
+  test("removes a companion the console added from its own row, and the deployment's seeds from none", () => {
+    expect(templateOf(companions)).toContain('actions-cell');
+    expect(templateOf(companions)).toContain("row.original.companion && !row.original.builtin");
+  });
+
+  test("names every room a supervisor answers, out of the sessions the agency lists", () => {
+    expect(scriptOf(companions)).toContain("agent.sessions");
+    expect(scriptOf(companions)).toContain("roomsOfAgent(agent)");
+  });
+});
+
 describe("the model screens", () => {
   test("ask the agency for model files at /model-catalogue and registered models at /models, and nothing at /registry", () => {
     expect(scriptOf(page)).toContain('useFetch<ModelPage>("/api/models"');

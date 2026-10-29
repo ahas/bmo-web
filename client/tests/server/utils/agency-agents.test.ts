@@ -65,7 +65,8 @@ test("read what the agent's answer states beyond its published type: its shape, 
         lastKeepaliveAt: 1_600,
         contextTokens: 123,
         keepaliveStopped: true,
-        keepalivePausedAt: 1_500
+        keepalivePausedAt: 1_500,
+        sessions: [{ chatId: -1, lastAt: 1_800 }, { chatId: -2 }]
       })
     ],
     []
@@ -92,7 +93,8 @@ test("read what the agent's answer states beyond its published type: its shape, 
     lastKeepaliveAt: 1_600,
     contextTokens: 123,
     keepaliveStopped: true,
-    keepalivePausedAt: 1_500
+    keepalivePausedAt: 1_500,
+    sessions: [{ chatId: -1, lastAt: 1_800 }, { chatId: -2, lastAt: null }]
   });
 });
 

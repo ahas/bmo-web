@@ -257,11 +257,11 @@ const settingsOpen = ref(false);
 // button opens them as it arrives, and the address keeps no mark of the ask once they are open, so closing them
 // leaves the screen the log's as any other visit does. The ask waits for the agent's row, which says which
 // settings it has.
-watch([() => route.query.settings, settingsKind], ([asked, kind]) => {
+watch([() => route.query.edit, settingsKind], ([asked, kind]) => {
   if (asked !== "1" || kind === null) return;
 
   settingsOpen.value = true;
-  void router.replace({ query: { ...route.query, settings: undefined } });
+  void router.replace({ query: { ...route.query, edit: undefined } });
 }, { immediate: true });
 
 // A chat agent stands as its face, so its picture is set here, by the administrator alone (docs/web.md, 「Profile

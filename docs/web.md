@@ -2544,9 +2544,9 @@ Two ways, split because the running places differ.
   This screen stays the whole of every setting; the agent screen opens its pieces in
   place (see that screen), and no second editor exists anywhere:
   - a worker's whole settings are the same dialog the 워커 tab opens for that worker;
-  - the settings of an agent whose turns its settings' pieces make, a companion's, are its one block of
-    the 감독관 tab, shown in a dialog; the screen tells such an agent by the turn shape its row
-    carries (the agency's `docs/agents.md`, 「One runner」).
+  - the settings of an agent whose turns its settings' pieces make, a companion's, are its settings dialog on
+    its own screen; the screen tells such an agent by the turn shape its row carries (the agency's
+    `docs/agents.md`, 「One runner」).
   - Both save through the same bot paths and meet the same refusals as here, and the console reads the
     same shared data after a save, so a value changed on one screen is what the other shows. The worker's
     and the companion's dialogs are forms (「Forms」): one 저장 in the footer saves every change made in them.
@@ -2887,16 +2887,15 @@ Two ways, split because the running places differ.
 - **A list heads the tab:** every supervisor — every agent that answers in a room, the chat agent and each companion
   alike, for all supervisors are equal — one row each in the agent list's order, with its mark, its label and its
   name, the model it answers on (a supervisor kept on a fixed model, its registration by its label; one on the
-  agency's route, the model its work key resolves to on 실행 경로) and the rooms it answers — the chat agent's
-  room, and each room a companion holds a session in or was made for. No row says which of the two an agent is.
-  Every row opens that agent's own screen with its settings open (`?settings=1`), the piece the owner came to
+  agency's route, the model its work key resolves to on 실행 경로) and every room it answers — each room its
+  session holds, as the agency lists them, the chat agent's among them. No row says which of the two an agent is.
+  Every row opens that agent's own screen with its settings open (`?edit=1`), the piece the owner came to
   change; closing them leaves the screen the log's. A supervisor for a model of the deployment's own is added
   from the tab row's 추가 menu (below).
-- **One block for each companion** (the agency's `docs/companions.md`, 「Its settings」), in the agent list's order — a
-  companion's system prompt is its base prompt, the fixed companion role and its persona, so what a block sets of it is
-  the base prompt and the persona —
-  headed by its picture, its label and its name, and the tab is one form (「Forms」): every block's
-  changes wait for the one 저장 in the footer at the tab's foot. A block holds, top to bottom:
+- **A companion's own settings stand on its screen** (the agency's `docs/companions.md`, 「Its settings」), in the
+  dialog its 설정 opens — its system prompt is its base prompt, the fixed companion role and its persona, so what
+  the dialog sets of it is the base prompt and the persona. The dialog is one form (「Forms」): every change waits
+  for the one 저장 at its foot. It holds, top to bottom:
   - **모델:** the method it answers on, 실행 경로 or 고정 모델, the same choice every supervisor has
     (the agency's `docs/model-tiers.md`, 「A supervisor's own model」). On 고정 모델, its registration, a list of the
     registrations that have an address; and, where the catalogue holds entries for that registration,
@@ -2925,14 +2924,14 @@ Two ways, split because the running places differ.
 - **감독관 추가** is the tab's 추가 on the tab row (the agency's `docs/companions.md`, 「Where a companion and its
   rooms come from」): a dialog of 이름, 표시 이름, 모델 — the registrations that have an address — 작업
   워커 — the workers but support workers — and 방 제목, with 취소 and 추가. The bot checks every field and
-  a refusal stands under the field it names; an added companion stands as a block at once, with a room
+  a refusal stands under the field it names; an added companion stands as a row at once, with a room
   of the console's own that it answers alone. Where a console room already stood under its name, the
   companion takes that room back with its record, and the notice after the add says so.
-- **삭제** stands in the header of a block the console added, never of one the deployment seeds. It
+- **삭제** stands at the end of a companion's row the console added, never of one the deployment seeds. It
   asks first, naming what goes — the companion's settings, sessions and person records — and saying
   that the rooms it answered stay with their messages and documents, and goes as it is asked, as a
   reset does. A room goes only by its own 방 등록 삭제 (「방 등록 삭제」).
-- **The save** sends each block's changed settings as one change the bot checks whole, then another
+- **The save** sends the dialog's changed settings as one change the bot checks whole, then another
   base prompt, then another engine entry, at once (「Forms」). What a change sets off stands under the
   field it is about while it differs from what is saved: another 툴 or 기본 프롬프트 opening a new
   session in every room, 생성 파라미터 or 생각 starting each room session the companion holds afresh,
@@ -3020,9 +3019,9 @@ Two ways, split because the running places differ.
   `client/tests/browser/agent-topbar.test.ts` measures the bar of a running worker at 360, 390 and 1280 pixels
   wide against a dev console, as the other title bar checks do.
 - **설정** stands beside the name, as an icon button, where the agent has settings of its own, and the
-  supervisors list opens it as the screen arrives beyond that press: a job
+  supervisors list opens it as the screen arrives beyond that press (`?edit=1`): a job
   worker's opens the worker settings dialog of the agent management screen's 워커 tab, a companion's
-  opens its block of the 감독관 tab in a dialog, and the chat agent's opens its own: its model, kept on the
+  opens its settings dialog, and the chat agent's opens its own: its model, kept on the
   agency's route — the model its work key resolves to there, linked to that row — or on a fixed registered
   model chosen from the registry, and the texts its system prompt is composed of — its
   opening, the absolute rules and the manual — each saved as the owner's own text or put back to its
@@ -4865,8 +4864,8 @@ Four bounds keep it from growing forever.
   모델 설정 and 초기화, in a group of their own under 세션 정보, 메시지 고르기, 전체 복사 and 고정. A room with more than one companion
   carries the pair for each, named by the companion's label. Nobody else signed in sees them, and the
   console's server refuses either for anyone but the administrator.
-- **모델 설정 opens the companion's settings dialog** — the very component the agent list opens, its
-  감독관 block, saved by the one 저장 (「Forms」) — so the two places never differ.
+- **모델 설정 opens the companion's settings dialog** — the very dialog its own screen opens, saved by the one
+  저장 (「Forms」) — so the two places never differ.
 - **초기화 opens a dialog of its own** (the agency's `docs/companions.md`, 「Starting it afresh」):
   - two checkboxes, 대화 기록 and 인물 기록, each with a line saying what it takes, both unchecked as
     it opens;

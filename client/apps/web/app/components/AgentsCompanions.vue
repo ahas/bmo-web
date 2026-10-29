@@ -31,7 +31,7 @@
         <DataTable :data="listRows" :columns="listColumns" layout="own" data-companion-list>
           <template #agent-cell="{ row }">
             <NuxtLink
-              :to="`/agents/${encodeURIComponent(row.original.name)}?settings=1`"
+              :to="`/agents/${encodeURIComponent(row.original.name)}?edit=1`"
               :class="CELL_TEXT"
               class="flex-row items-start justify-start gap-2 ps-4 transition-colors hover:bg-elevated active:bg-accented"
             >
@@ -48,43 +48,28 @@
           <template #rooms-cell="{ row }">
             <span :class="[CELL_TEXT, row.original.rooms.length === 0 ? 'text-muted' : 'text-highlighted']" class="max-w-72 text-sm">{{ row.original.rooms.length === 0 ? "—" : row.original.rooms.join(" · ") }}</span>
           </template>
-        </DataTable>
-
-        <CompanionSettingsBlock
-          v-for="one in companions"
-          :id="settingsAnchor(`companion-${one.agent}`)"
-          :key="one.agent"
-          :view="one"
-          @saved="replaced"
-        >
-          <!-- A companion the console added is removed here; one the deployment seeds stands again
-               at the next start, so it offers none. -->
-          <template v-if="!one.builtin" #actions>
-            <UTooltip :text="$t('common.title.delete_named', { name: one.label })">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                icon="i-material-symbols-delete-outline"
-                :aria-label="$t('common.title.delete_named', { name: one.label })"
-                :loading="removing === one.agent"
-                :disabled="removing !== ''"
-                @click="void remove(one)"
-              />
-            </UTooltip>
+          <!-- A companion the console added is removed here; one the deployment seeds stands again at
+               the next start, so it offers none. -->
+          <template #actions-cell="{ row }">
+            <span class="flex justify-end pe-2">
+              <UTooltip v-if="row.original.companion && !row.original.builtin" :text="$t('common.title.delete_named', { name: row.original.label })">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  icon="i-material-symbols-delete-outline"
+                  :aria-label="$t('common.title.delete_named', { name: row.original.label })"
+                  :loading="removing === row.original.name"
+                  :disabled="removing !== ''"
+                  @click="void remove(row.original.name)"
+                />
+              </UTooltip>
+            </span>
           </template>
-        </CompanionSettingsBlock>
+        </DataTable>
       </template>
 
       <p v-if="removeFailed !== ''" role="alert" class="break-words text-sm text-error">{{ removeFailed }}</p>
-    </div>
-
-    <!-- The form's one save, at the foot of the tab while the blocks scroll under it. The band
-         reaches the section's edges and its button stands on the blocks' column. -->
-    <div v-if="(companions?.length ?? 0) > 0" class="sticky bottom-0 mt-auto shrink-0 border-t border-default bg-default px-4 py-3 sm:px-6">
-      <div class="mx-auto flex w-full max-w-3xl justify-end">
-        <UButton :label="$t('common.action.save')" :loading="form.saving.value" :disabled="!form.dirty.value || form.saving.value" @click="void form.save()" />
-      </div>
     </div>
 
     <!-- A companion added with a room of the console's own that it answers alone; the bot checks every
@@ -125,11 +110,8 @@
 </template>
 
 <script setup lang="ts">
-import { settingsAnchor } from "~/domain/agent-settings";
-import { anyRunning } from "~/domain/catalogue-models";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useReadFailure } from "~/domain/events";
-import { useFormSave, useLeaveGuard } from "bmo-ui/app/domain/form-save";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { answeringModels, REGISTRY_PROVIDER, registrationName } from "~/domain/registry";
 import { agentIcon } from "~/domain/agents";
@@ -152,26 +134,6 @@ const island = useIsland(t);
 const { data: companions, error, refresh, status } = useFetch<CompanionView[]>("/api/companions", { key: "companions", lazy: true, server: false });
 const readFailure = useReadFailure({ failed: () => !!error.value && companions.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
-const form = useFormSave(t);
-
-useLeaveGuard(form.dirty, t);
-
-// While a model choice for an engine runs, the blocks are read again every few seconds, so its step
-// and its end show where it was started.
-const POLL_MS = 3_000;
-let poll: ReturnType<typeof setInterval> | null = null;
-
-watch(() => anyRunning((companions.value ?? []).flatMap((one) => (one.modelUse === null ? [] : [one.modelUse]))), (running) => {
-  if (running && poll === null) poll = setInterval(() => void refresh(), POLL_MS);
-  if (!running && poll !== null) {
-    clearInterval(poll);
-    poll = null;
-  }
-}, { immediate: true });
-
-onBeforeUnmount(() => {
-  if (poll !== null) clearInterval(poll);
-});
 
 // The list heading the tab: every supervisor, the chat agent and each companion, in the agent list's order. A
 // companion's model is its registration; the chat agent's is what its work key resolves to on the routes tab.
@@ -180,6 +142,7 @@ interface ListRow {
   label: string;
   icon: string;
   companion: boolean;
+  builtin: boolean;
   model: string | null;
   rooms: string[];
 }
@@ -189,12 +152,16 @@ const { data: roomList } = useRoomList();
 const listColumns = computed<TableColumn<ListRow>[]>(() => [
   { id: "agent", header: t("agents.label.column_agent"), meta: { class: { th: "w-full" } } },
   { id: "model", header: t("common.label.model") },
-  { id: "rooms", header: t("agents.label.column_rooms") }
+  { id: "rooms", header: t("agents.label.column_rooms") },
+  { id: "actions", header: "", meta: { class: { th: "w-12" } } }
 ]);
 const listRows = computed<ListRow[]>(() => {
   const held = companions.value ?? [];
   const titleOf = (chatId: number | null): string | null => (chatId === null ? null : (roomList.value.find((room) => room.chatId === chatId)?.title ?? String(chatId)));
-  // The rooms a companion answers: each it holds a session in, and each made for companions that names it.
+  // The rooms a supervisor answers: each room its session holds, from the agency's own answer, and each
+  // made for companions that names it.
+  const roomsOfAgent = (agent: { chatId: number | null; sessions?: { chatId: number }[] }): string[] =>
+    [...new Set([...(agent.sessions ?? []).map((one) => one.chatId), ...(agent.chatId === null ? [] : [agent.chatId])])].map((chatId) => titleOf(chatId) ?? String(chatId));
   const roomsOf = (one: CompanionView): string[] => [
     ...new Set([
       ...one.sessions.map((session) => session.title ?? titleOf(session.chatId) ?? String(session.chatId)),
@@ -211,8 +178,9 @@ const listRows = computed<ListRow[]>(() => {
       label: companion?.label ?? agent.label ?? agent.name,
       icon: companion?.icon ?? agentIcon(agent.name),
       companion: companion !== undefined,
+      builtin: companion?.builtin ?? false,
       model: companion === undefined ? agent.model : companion.method === "route" ? (companion.model ?? null) : (registration?.label ?? companion.registration),
-      rooms: companion === undefined ? [titleOf(agent.chatId)].filter((one): one is string => one !== null) : roomsOf(companion)
+      rooms: companion === undefined ? roomsOfAgent(agent) : roomsOf(companion)
     };
   });
   // A companion the catalogue does not list yet still stands, after the rest.
@@ -225,17 +193,12 @@ const listRows = computed<ListRow[]>(() => {
       label: one.label,
       icon: one.icon ?? agentIcon(one.agent),
       companion: true,
+      builtin: one.builtin,
       model: one.registrations.find((reg) => reg.name === one.registration)?.label ?? one.registration,
       rooms: roomsOf(one)
     }))
   ];
 });
-
-// A block stands as the bot answered its save; the list is replaced whole, since the fetched value
-// is not watched deeply.
-function replaced(saved: CompanionView): void {
-  companions.value = (companions.value ?? []).map((one) => (one.agent === saved.agent ? saved : one));
-}
 
 // The fields the dialog shows a refusal under; any other stands at its end.
 const ADD_FIELDS = new Set(["name", "label", "model", "provider", "worker", "room"]);
@@ -305,8 +268,12 @@ const removeFailed = ref("");
 
 // A removal is asked first, naming what goes with the companion — its settings, its sessions and what it
 // remembers — and that the rooms it answered stay with their messages and documents. What the bot refuses it
-// for stands under the blocks.
-async function remove(companion: CompanionView): Promise<void> {
+// for stands under the list.
+async function remove(name: string): Promise<void> {
+  const companion = (companions.value ?? []).find((one) => one.agent === name);
+
+  if (companion === undefined) return;
+
   const taken = await island.ask({
     title: t("agents.message.companion_delete_confirm", { name: companion.label }),
     description: t("agents.message.companion_delete_takes"),
@@ -316,11 +283,11 @@ async function remove(companion: CompanionView): Promise<void> {
 
   if (!taken) return;
 
-  removing.value = companion.agent;
+  removing.value = name;
   removeFailed.value = "";
 
   try {
-    companions.value = await $fetch<CompanionView[]>("/api/companions/remove", { method: "POST", body: { agent: companion.agent } });
+    companions.value = await $fetch<CompanionView[]>("/api/companions/remove", { method: "POST", body: { agent: name } });
   } catch (error) {
     removeFailed.value = failureText(error, t("common.error.save_failed"));
   } finally {

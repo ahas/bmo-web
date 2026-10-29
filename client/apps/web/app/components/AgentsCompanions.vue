@@ -26,12 +26,12 @@
       <p v-else-if="companions.length === 0" class="text-sm text-muted">{{ $t("agents.status.no_companions") }}</p>
 
       <template v-else>
-        <!-- Every supervisor, with its model and the rooms it answers; every row opens the agent's own screen.
-             No row says which of the two it is. -->
+        <!-- Every supervisor, with its model and the rooms it answers; every row opens the agent's own screen
+             with its settings open, the piece the owner came to change. No row says which of the two it is. -->
         <DataTable :data="listRows" :columns="listColumns" layout="own" data-companion-list>
           <template #agent-cell="{ row }">
             <NuxtLink
-              :to="`/agents/${encodeURIComponent(row.original.name)}`"
+              :to="`/agents/${encodeURIComponent(row.original.name)}?settings=1`"
               :class="CELL_TEXT"
               class="flex-row items-start justify-start gap-2 ps-4 transition-colors hover:bg-elevated active:bg-accented"
             >

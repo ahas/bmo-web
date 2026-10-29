@@ -316,12 +316,13 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 What the console needs and no unit serves stands empty in the console until a unit's document states a route
 for it, and no file or table of that unit is read meanwhile.
 
-- **An agent's kind and the room it answers.** The agency's published `Agent` states its name, label, role,
-  gates, reasoning, voice, reset point, stand-in and owner, and no kind; its answer carries the registration row's
-  `kind`, `defaultAnswerer` and `chatId` beside them. The console reads those three where the row carries them,
-  an agent whose row names no kind standing as a conversational one. A worker is one row however the agency
-  lists it: the agents' answer and the workers' both name it, and the console lays the worker's own fields over
-  its agent's row rather than listing it twice.
+- **An agent's kind, its turn's shape and the room it answers.** The agency's published `Agent` states its name,
+  label, role, gates, reasoning, voice, reset point, stand-in and owner, and none of the registration row's own
+  fields; its answer carries `kind`, `sessionScope`, `turnShape`, `defaultAnswerer`, `chatId`, the model it is
+  configured on and its pin beside them. The console reads those where the row carries them, an agent whose row
+  names no kind standing as a conversational one and a provider it does not carry standing as none. A worker is
+  one row however the agency lists it: the agents' answer and the workers' both name it, and the console lays
+  the worker's own fields over its agent's row rather than listing it twice.
 - **What a chat turn was handed, once it has ended.** The receiver composes the reference documents a turn goes out
   with, each in full or as an already-loaded mark, and tells them in its live picture of the running turn only: the
   turn it sends the agency (`POST /sessions/{sessionId}/turns`) carries no list of them, so the agency's log of the

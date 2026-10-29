@@ -41,12 +41,14 @@ describe("what the block stands while a turn runs", () => {
     expect(source).toContain("receivedLine(props.run.received)");
   });
 
-  test("the block's face names the agent and shimmers, and its body is the turn's own list", () => {
+  test("the block's face shimmers at the row's edge, and its body is the turn's own list", () => {
     const block = template.slice(at("<UChatReasoning"));
 
-    // The face is the agent's name beside the library's thinking word, which the block shimmers for
-    // as long as the turn runs; nothing spins beside it.
-    expect(template).toContain("{{ subject }}");
+    // The face is the library's thinking word alone, which the block shimmers for as long as the turn
+    // runs, and it stands at the row's left edge: the row's header names the agent, and a name column
+    // beside the block pushed the detail right. Nothing spins beside it.
+    expect(template).not.toContain("{{ subject }}");
+    expect(template).not.toContain("subjectOf");
     expect(template).toContain(':streaming="true"');
     expect(template).not.toContain("animate-spin");
 

@@ -20,19 +20,20 @@
          where a turn's handed line, state and chip line stand, so a turn beginning or ending moves
          nothing above it. -->
     <ListeningLine v-if="props.run.listening" :name="name" :closes-at="props.run.listening.closesAt" />
-    <!-- The state, under the answering agent's own name, is the face of the turn's reasoning block:
-         a shimmering press that says the agent is thinking, and under it the turn's own detail — the
-         state it is at and every document and call it has taken so far, oldest first. The shimmer is
-         the whole of the sign that the turn is going: no mark spins beside it.
+    <!-- The state is the face of the turn's reasoning block: a shimmering press at the row's left
+         edge that says the agent is thinking, and under it the turn's own detail — the state it is at
+         and every document and call it has taken so far, oldest first. The row's own header already
+         names the agent, so no name column stands beside the block and the detail reads from the
+         row's edge. The shimmer is the whole of the sign that the turn is going: no mark spins
+         beside it.
 
          The detail is the turn's own list, so nothing on it is cut on a line and nothing scrolls in a
          box of its own: a long word, path or command wraps at the row's width, and the row grows by
          what it holds (docs/web.md, the room screen's running line). -->
-    <ItemTip v-else :id="waitingItem" as="div" class="flex min-w-0 items-baseline gap-1 text-sm leading-(--chat-meta-line)">
-      <span class="shrink-0 text-muted">{{ subject }}</span>
+    <ItemTip v-else :id="waitingItem" as="div" class="flex min-w-0 flex-col text-sm leading-(--chat-meta-line)">
       <UChatReasoning
         :streaming="true"
-        class="min-w-0 flex-1"
+        class="min-w-0"
         :ui="{
           trigger: 'w-auto',
           label: 'whitespace-normal overflow-visible text-clip',
@@ -50,7 +51,7 @@
 
 <script setup lang="ts">
 import { companionOf } from "~/domain/agents";
-import { phaseDetail, receivedLine, subjectOf, turnName } from "~/domain/working";
+import { phaseDetail, receivedLine, turnName } from "~/domain/working";
 
 import type { RunState } from "~/domain/events";
 
@@ -63,8 +64,6 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 // The line names whoever this row is the turn of, which is the name the answer will stand under.
 const name = computed(() => turnName(t, companionOf(props.run.speaker)));
-// The agent's name as the sentence's subject, with the particle its last sound takes.
-const subject = computed(() => subjectOf(name.value));
 // What the chat agent's draft process is on, which a companion's turn runs none of; the detail says it in place of
 // the state.
 const detail = computed(() => phaseDetail(t, props.run.progress, companionOf(props.run.speaker) === undefined ? props.run.draft ?? null : null));

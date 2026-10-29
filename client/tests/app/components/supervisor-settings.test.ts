@@ -12,11 +12,13 @@ const dialog = await read("components/SupervisorSettingsDialog.vue");
 const listing = await server("api/chat-documents.get.ts");
 const changing = await server("api/chat-documents/[documentName].patch.ts");
 const model = await server("api/agent-model.post.ts");
+const companions = await read("components/AgentsCompanions.vue");
 
 describe("the chat agent's settings", () => {
-  test("stand on the agent screen of the agent whose turn is the window's", () => {
+  test("stand on the agent screen of the agent whose turn is the window's, opened by the list's own row", () => {
     expect(page).toContain('row.value?.turnShape === "window") return "supervisor"');
     expect(page).toContain("<SupervisorSettingsDialog");
+    expect(companions).toContain("?settings=1");
   });
 
   test("name the model the work key resolves to and open its road on the routes tab", () => {

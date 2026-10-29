@@ -10,7 +10,9 @@ import { answered } from "./unit-answer";
 import type { Agent as AgencyAgent, AgencyClient, FoldRatio, Provider, Session, Tier, Worker } from "@agency/client";
 import type { components } from "@agency/client/schema";
 import type { AgentSamplingView, BasePromptView, BasePromptsView, FoldRatiosView, FoldRatioView, GenerationSetting, GenerationValue, SessionView, TierAssignmentView, TierConflict, TierMapping, TierProvider, TierProviderView, TierSettingsView } from "#shared/agency";
-import type { AgentReasoningView, AgentSummary, RoleView } from "#shared/types";
+import { agentProviderNames } from "#shared/types";
+
+import type { AgentMode, AgentReasoningView, AgentSummary, RoleView } from "#shared/types";
 import type { UnitAnswerCall } from "./unit-answer";
 
 type Schemas = components["schemas"];
@@ -85,12 +87,16 @@ export async function agencyCall<T, E extends { code?: string; error?: string; f
 
 const seconds = (ms: number | null): number | null => (ms === null ? null : Math.floor(ms / 1000));
 
-// The row an agent's screen stands on: what the agency's own agent list does not carry — its runs, its checkout
-// and the session's loads — stands empty (docs/boundary.md, 「Gaps the console meets」).
+// The agency's answer on an agent as it arrives, the vendored type naming only part of what the route answers
+// (docs/boundary.md, 「Gaps the console meets」).
+function rowOf(agent: AgencyAgent): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(agent));
+}
+
 // What the agency's answer carries on an agent beside the fields its published type states: the registration row's
 // kind, whether it is the default answerer and the room it answers (docs/boundary.md, 「Gaps the console meets」).
 export function carriedOf(agent: AgencyAgent): { kind: string; defaultAnswerer: boolean; chatId: number | null; reasoning: AgentReasoningView | null } {
-  const row: Record<string, unknown> = Object.fromEntries(Object.entries(agent));
+  const row = rowOf(agent);
 
   return {
     kind: typeof row.kind === "string" && row.kind !== "" ? row.kind : "chat",
@@ -121,33 +127,47 @@ function reasoningOf(value: unknown): AgentReasoningView | null {
 
 function agentSummary(agent: AgencyAgent): AgentSummary {
   const carried = carriedOf(agent);
+  const row = rowOf(agent);
+  // A field the route answers and the vendored type does not name, read as it stands: text and numbers as
+  // they are, the providers checked against the words the bot carries so an unknown one reads as none.
+  const text = (name: string): string | null => (typeof row[name] === "string" && row[name] !== "" ? (row[name] as string) : null);
+  const number = (name: string): number | null => (typeof row[name] === "number" ? (row[name] as number) : null);
+  const provider = (name: string): AgentMode | null => {
+    const held = row[name];
+
+    return typeof held === "string" ? (agentProviderNames as readonly string[]).includes(held) ? (held as AgentMode) : null : null;
+  };
+  const scope = row.sessionScope === "agent" || row.sessionScope === "room" ? row.sessionScope : null;
+  const shape = row.turnShape === "window" || row.turnShape === "pieces" ? row.turnShape : null;
 
   return {
     name: agent.name,
     kind: carried.kind,
     role: agent.role,
-    sessionScope: null,
-    turnShape: null,
+    sessionScope: scope,
+    turnShape: shape,
     defaultAnswerer: carried.defaultAnswerer,
-    model: null,
-    configuredMode: null,
-    configuredLabel: null,
-    modelLabel: null,
-    lastMode: null,
-    lastModel: null,
-    lastEffort: null,
+    model: text("model"),
+    configuredMode: provider("configuredMode"),
+    configuredLabel: text("configuredLabel"),
+    modelLabel: text("modelLabel"),
+    lastMode: provider("lastMode"),
+    lastModel: text("lastModel"),
+    lastEffort: text("lastEffort"),
     label: agent.label,
-    aliases: null,
-    icon: null,
-    cwd: null,
-    builtin: false,
+    aliases: text("aliases"),
+    icon: text("icon"),
+    cwd: text("cwd"),
+    builtin: row.builtin === true,
     chatId: carried.chatId,
-    runs: 0,
-    lastRunAt: null,
-    lastKeepaliveAt: null,
-    contextTokens: null,
-    keepaliveStopped: false,
-    keepalivePausedAt: null,
+    runs: number("runs") ?? 0,
+    lastRunAt: number("lastRunAt"),
+    lastKeepaliveAt: number("lastKeepaliveAt"),
+    contextTokens: number("contextTokens"),
+    keepaliveStopped: row.keepaliveStopped === true,
+    keepalivePausedAt: number("keepalivePausedAt"),
+    pinnedProvider: provider("pinnedProvider"),
+    pinnedModel: text("pinnedModel"),
     reasoning: carried.reasoning
   };
 }

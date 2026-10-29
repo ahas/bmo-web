@@ -85,6 +85,12 @@ describe("this agent's own settings", () => {
     expect(script).toContain('return row.value?.turnShape === "pieces" ? "companion" : null;');
   });
 
+  test("open the settings the supervisors list asked for as the screen arrives, and keep no ask in the address", () => {
+    expect(script).toContain("route.query.settings");
+    expect(script).toContain("settingsOpen.value = true");
+    expect(script).toContain("void router.replace({ query: { ...route.query, settings: undefined } })");
+  });
+
   test("open no gate editor, which has no place on this screen", () => {
     for (const gone of ["<AgentGatesDialog", "<GateSettingsDialog", "settingsKind === 'gate'", "settingsKind === 'gates'", "row.value?.gates"]) {
       expect(template).not.toContain(gone);

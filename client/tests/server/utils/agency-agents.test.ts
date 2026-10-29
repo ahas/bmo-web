@@ -39,3 +39,68 @@ test("lists a worker both answers name once, its worker's fields on its agent's 
 test("an agent whose row names no kind stands as a conversational one", () => {
   expect(agentSummaries([agent("agent-b")], [])[0]).toMatchObject({ kind: "chat", defaultAnswerer: false, chatId: null });
 });
+
+test("read what the agent's answer states beyond its published type: its shape, its model and its pin", () => {
+  const listed = agentSummaries(
+    [
+      agent("agent-a", {
+        kind: "chat",
+        sessionScope: "agent",
+        turnShape: "window",
+        model: "deepseek-flash",
+        configuredMode: "deepseek",
+        configuredLabel: "DeepSeek",
+        modelLabel: "DeepSeek Flash",
+        lastMode: "registered",
+        lastModel: "local-model",
+        lastEffort: "high",
+        pinnedProvider: "registered",
+        pinnedModel: "local-model",
+        aliases: "a",
+        icon: "i-mark",
+        cwd: "/srv/agent-a",
+        builtin: true,
+        runs: 7,
+        lastRunAt: 1_700,
+        lastKeepaliveAt: 1_600,
+        contextTokens: 123,
+        keepaliveStopped: true,
+        keepalivePausedAt: 1_500
+      })
+    ],
+    []
+  );
+
+  expect(listed[0]).toMatchObject({
+    sessionScope: "agent",
+    turnShape: "window",
+    model: "deepseek-flash",
+    configuredMode: "deepseek",
+    configuredLabel: "DeepSeek",
+    modelLabel: "DeepSeek Flash",
+    lastMode: "registered",
+    lastModel: "local-model",
+    lastEffort: "high",
+    pinnedProvider: "registered",
+    pinnedModel: "local-model",
+    aliases: "a",
+    icon: "i-mark",
+    cwd: "/srv/agent-a",
+    builtin: true,
+    runs: 7,
+    lastRunAt: 1_700,
+    lastKeepaliveAt: 1_600,
+    contextTokens: 123,
+    keepaliveStopped: true,
+    keepalivePausedAt: 1_500
+  });
+});
+
+test("a provider the bot does not carry, and a shape it does not know, read as none", () => {
+  const listed = agentSummaries(
+    [agent("agent-c", { kind: "chat", configuredMode: "nowhere", lastMode: "nowhere", pinnedProvider: "nowhere", turnShape: "other", sessionScope: "everywhere" })],
+    []
+  );
+
+  expect(listed[0]).toMatchObject({ configuredMode: null, lastMode: null, pinnedProvider: null, turnShape: null, sessionScope: null });
+});

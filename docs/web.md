@@ -2889,8 +2889,9 @@ Two ways, split because the running places differ.
   name, the model it answers on (a supervisor kept on a fixed model, its registration by its label; one on the
   agency's route, the model its work key resolves to on 실행 경로) and the rooms it answers — the chat agent's
   room, and each room a companion holds a session in or was made for. No row says which of the two an agent is.
-  Every row opens that agent's own screen, where its settings stand. A supervisor for a model of the
-  deployment's own is added from the tab row's 추가 menu (below).
+  Every row opens that agent's own screen with its settings open (`?settings=1`), the piece the owner came to
+  change; closing them leaves the screen the log's. A supervisor for a model of the deployment's own is added
+  from the tab row's 추가 menu (below).
 - **One block for each companion** (the agency's `docs/companions.md`, 「Its settings」), in the agent list's order — a
   companion's system prompt is its base prompt, the fixed companion role and its persona, so what a block sets of it is
   the base prompt and the persona —
@@ -3018,7 +3019,8 @@ Two ways, split because the running places differ.
   bar's marks keep the one square every title bar's marks have, and none of them overlaps another.
   `client/tests/browser/agent-topbar.test.ts` measures the bar of a running worker at 360, 390 and 1280 pixels
   wide against a dev console, as the other title bar checks do.
-- **설정** stands beside the name, as an icon button, where the agent has settings of its own: a job
+- **설정** stands beside the name, as an icon button, where the agent has settings of its own, and the
+  supervisors list opens it as the screen arrives beyond that press: a job
   worker's opens the worker settings dialog of the agent management screen's 워커 tab, a companion's
   opens its block of the 감독관 tab in a dialog, and the chat agent's opens its own: its model, kept on the
   agency's route — the model its work key resolves to there, linked to that row — or on a fixed registered
@@ -4684,9 +4686,9 @@ Four bounds keep it from growing forever.
   out of that record. So going to another room and coming back finds the line standing where it was, with what the
   turn has done so far; the home screen's 〈이름〉가 답변 중 on a room's line stands the same way. A reload or another device reads the
   picture the stream opens with, which is the same record from the bot's side.
-- **Thinking, and using a tool** — that one line is the turn's own account of what it is at: the answering agent's
-  name, then a pressable "생각하는 중…" that shimmers while the turn runs, and under it, spread open while it runs,
-  the turn's detail.
+- **Thinking, and using a tool** — that one line is the turn's own account of what it is at: a pressable
+  "생각하는 중…" that shimmers while the turn runs, standing at the row's left edge with no name beside it — the
+  row's header already names the agent — and under it, spread open while it runs, the turn's detail.
   - **The detail stands in the order the turn made it**, oldest first: the state it is in now — writing the answer,
     working a named tool, or waiting on the Job that holds its engine — and then every document handed to it and
     every call it has made so far, each with what it was about as the agent's log keeps it. Nothing on the list is

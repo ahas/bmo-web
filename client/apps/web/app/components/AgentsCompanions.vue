@@ -26,12 +26,13 @@
       <p v-else-if="companions.length === 0" class="text-sm text-muted">{{ $t("agents.status.no_companions") }}</p>
 
       <template v-else>
-        <!-- Every supervisor, with its model and the rooms it answers; every row opens the agent's own screen
-             with its settings open, the piece the owner came to change. No row says which of the two it is. -->
+        <!-- Every supervisor, with its model and the rooms it answers; the row opens the agent's own screen, and
+             the row's own settings press opens that screen with the settings. No row says which of the two an
+             agent is. -->
         <DataTable :data="listRows" :columns="listColumns" layout="own" data-companion-list>
           <template #agent-cell="{ row }">
             <NuxtLink
-              :to="`/agents/${encodeURIComponent(row.original.name)}?edit=1`"
+              :to="`/agents/${encodeURIComponent(row.original.name)}`"
               :class="CELL_TEXT"
               class="flex-row items-start justify-start gap-2 ps-4 transition-colors hover:bg-elevated active:bg-accented"
             >
@@ -48,10 +49,22 @@
           <template #rooms-cell="{ row }">
             <span :class="[CELL_TEXT, row.original.rooms.length === 0 ? 'text-muted' : 'text-highlighted']" class="max-w-72 text-sm">{{ row.original.rooms.length === 0 ? "—" : row.original.rooms.join(" · ") }}</span>
           </template>
-          <!-- A companion the console added is removed here; one the deployment seeds stands again at
-               the next start, so it offers none. -->
+          <!-- Two presses of its own at the row's end, apart from the row's own: the settings, which opens the
+               agent's screen with them open, and, for a companion the console added, its removal — one the
+               deployment seeds stands again at the next start, so it offers none. -->
           <template #actions-cell="{ row }">
-            <span class="flex justify-end pe-2">
+            <span class="flex items-center justify-end gap-1 pe-2">
+              <UTooltip :text="$t('agents.action.settings')">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  icon="i-material-symbols-settings-outline"
+                  :aria-label="$t('agents.action.settings')"
+                  :to="`/agents/${encodeURIComponent(row.original.name)}?edit=1`"
+                  data-supervisor-settings
+                />
+              </UTooltip>
               <UTooltip v-if="row.original.companion && !row.original.builtin" :text="$t('common.title.delete_named', { name: row.original.label })">
                 <UButton
                   color="neutral"
@@ -153,7 +166,7 @@ const listColumns = computed<TableColumn<ListRow>[]>(() => [
   { id: "agent", header: t("agents.label.column_agent"), meta: { class: { th: "w-full" } } },
   { id: "model", header: t("common.label.model") },
   { id: "rooms", header: t("agents.label.column_rooms") },
-  { id: "actions", header: "", meta: { class: { th: "w-12" } } }
+  { id: "actions", header: "", meta: { class: { th: "w-20" } } }
 ]);
 const listRows = computed<ListRow[]>(() => {
   const held = companions.value ?? [];

@@ -358,11 +358,19 @@ describe("the model tab", () => {
 });
 
 describe("the supervisors tab", () => {
-  test("lists every supervisor and opens each one's own screen with its settings, holding no editor of its own", () => {
-    expect(templateOf(companions)).toContain("?edit=1");
+  test("lists every supervisor and opens each one's own screen, holding no editor of its own", () => {
+    expect(templateOf(companions)).toContain("`/agents/${encodeURIComponent(row.original.name)}`");
     expect(templateOf(companions)).toContain("data-companion-list");
     expect(templateOf(companions)).not.toContain("<CompanionSettingsBlock");
     expect(templateOf(companions)).not.toContain("sticky bottom-0");
+  });
+
+  test("keeps the settings a press of its own at the row's end, apart from the row that opens the screen", () => {
+    const actions = templateOf(companions).slice(templateOf(companions).indexOf("#actions-cell"));
+
+    expect(actions).toContain("?edit=1");
+    expect(actions).toContain("data-supervisor-settings");
+    expect(templateOf(companions)).not.toContain("row.original.name)}?edit=1\"` :class");
   });
 
   test("removes a companion the console added from its own row, and the deployment's seeds from none", () => {

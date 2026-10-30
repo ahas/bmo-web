@@ -646,6 +646,9 @@ room:
     offer_kept: "항목 {item} · 키워드 {keyword} · 단어 {word} · 인물 {person} · 최근 {recent}"
     open_sessions: 열린 세션
     opening_title: 턴을 시작한 지시
+    outcome_answered: 답함
+    outcome_read_with: 함께 읽음
+    outcome_waiting: 기다림
     paste_name: "붙여넣기 {n}"
     paste_size: "{n}자"
     peak_hour: "{hour}시대"

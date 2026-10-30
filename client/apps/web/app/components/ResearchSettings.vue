@@ -179,7 +179,8 @@ import { useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
 import { engineLook, gapOf, gapText, profileLabel, researchKeys, STRATEGY_LABELS, strategyLabel } from "~/domain/research";
 
-import type { ResearchKeySettings, ResearchSettingsChange, ResearchSettingsView, SearchEngineState, TierSettingsView } from "#shared/agency";
+import type { TierSettingsView } from "#shared/agency";
+import type { ResearchKeySettings, ResearchSettingsChange, ResearchSettingsView, SearchEngineState } from "#shared/research";
 import type { FallbackView } from "#shared/types";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { TableColumn } from "@nuxt/ui";
@@ -238,7 +239,7 @@ const engineColumns = computed<TableColumn<SearchEngineState>[]>(() => [
   { accessorKey: "suspendedUntil", header: t("research.label.suspended_until") }
 ]);
 
-// One setting changed, the settings standing as the agency answered them; its refusal, in the pack's words,
+// One setting changed, the settings standing as the research unit answered them; its refusal, in the pack's words,
 // stays under the box.
 async function save(change: ResearchSettingsChange): Promise<string | null> {
   try {

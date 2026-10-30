@@ -2979,9 +2979,11 @@ Two ways, split because the running places differ.
   answered on it. Each cell saves through the same road and tier assignment as there and meets the same refusals;
   a read that fails is that table's, with its reread.
 - **Where the agency holds no research key,** one sentence says so in place of the table.
-- **What every research run is held to** stands under it, as the agency's research settings hold it (the agency's
-  `docs/research-runs.md`, 「What a run is held to: the research settings」), each value in a cell of its own that
-  saves that one value at once as the road table's cells do, and meets the agency's refusal under its box:
+- **What every research run is held to** stands under it, as the research unit, bmo-research, holds it (its
+  `docs/runner.md`, 「What a run is held to: the research settings」, and its `docs/api.md`, 「research-settings」),
+  each value in a cell of its own that saves that one value at once as the road table's cells do, and meets the
+  research unit's refusal under its box: a value it did not take, or a failure on its side. A save sends only the
+  value it changes, and the unit keeps every other, a key's page budgets among them.
   - **키별 한도** — a research key to a row, under the name the road table gives it: **브랜치**, how many pooled
     branches a run of it may open, and **시간**, for how many minutes its web tools stay open.
   - **가져오기** — one row of the four settings every key shares: **브랜치 역할**, the co-worker role whose tier a
@@ -2994,6 +2996,10 @@ Two ways, split because the running places differ.
   as a mark and a word — 정상, 저하, 중단 — and where they are known why, when it was last seen and, for one
   suspended, how long it stays so. Where the engines could not be read, one line says why in their place. The
   table is read again with the settings.
+- **Where the research unit does not answer,** or the console names no address for it, the settings and the
+  engines stand as one failure that says the research unit does not answer, with a way to ask again; the research
+  keys above still stand, read off the agency. The settings and the engines are read again every fifteen seconds
+  while the tab is seen.
 
 #### Around the tabs
 

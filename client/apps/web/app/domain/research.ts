@@ -45,8 +45,8 @@ export function researchKeys(profiles: readonly Pick<FallbackProfile, "key" | "l
   return keys;
 }
 
-// The fetch strategies the agency holds a research run to, in the order the choice offers them, each by the key of
-// the words it is said in (the agency's `docs/research-runs.md`, 「What a run is held to: the research settings」).
+// The fetch strategies the research unit holds a research run to, in the order the choice offers them, each by the
+// key of the words it is said in (bmo-research's `docs/runner.md`, 「What a run is held to: the research settings」).
 export const STRATEGY_LABELS: Record<string, string> = {
   "direct-then-browser": "research.label.strategy_direct_then_browser",
   "browser-first": "research.label.strategy_browser_first",

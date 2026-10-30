@@ -1,0 +1,62 @@
+diff --git a/dist/runtime/components/css.js b/dist/runtime/components/css.js
+index b029f8641684766e4a9d5b5155bd4eeb9be1ed59..d09143af9cef5c3203eaf15bdcf0a1e157395901 100644
+--- a/dist/runtime/components/css.js
++++ b/dist/runtime/components/css.js
+@@ -82,8 +82,8 @@ export const NuxtIconCss = /* @__PURE__ */ defineComponent({
+       }
+     }
+     const selector = computed(() => "." + escapeCssSelector(cssClass.value));
+-    function getCSS(icon, withLayer = true) {
+-      let iconSelector = selector.value;
++    function getCSS(icon, withLayer = true, target = selector.value) {
++      let iconSelector = target;
+       if (options.cssWherePseudo) {
+         iconSelector = `:where(${iconSelector})`;
+       }
+@@ -99,13 +99,13 @@ export const NuxtIconCss = /* @__PURE__ */ defineComponent({
+     }
+     if (import.meta.client) {
+       const selectors = getAllSelectors();
+-      async function mountCSS(icon) {
+-        if (selectors.has(selector.value))
++      async function mountCSS(icon, target) {
++        if (selectors.has(target))
+           return;
+         if (typeof document === "undefined")
+           return;
+         const style = document.createElement("style");
+-        style.textContent = getCSS(icon);
++        style.textContent = getCSS(icon, true, target);
+         if (import.meta.dev) {
+           style.dataset.nuxtIconDev = props.name;
+         }
+@@ -114,21 +114,22 @@ export const NuxtIconCss = /* @__PURE__ */ defineComponent({
+           document.head.insertBefore(style, firstStyle);
+         else
+           document.head.appendChild(style);
+-        selectors.add(selector.value);
++        selectors.add(target);
+       }
+       watch(
+         () => props.name,
+-        () => {
+-          if (selectors.has(selector.value)) {
++        (name) => {
++          const target = selector.value;
++          if (selectors.has(target)) {
+             return;
+           }
+-          const data = getIcon(props.name);
++          const data = getIcon(name);
+           if (data) {
+-            mountCSS(data);
++            mountCSS(data, target);
+           } else {
+-            loadIcon(props.name, import.meta.server ? options.fetchTimeout : -1).then((data2) => {
++            loadIcon(name, import.meta.server ? options.fetchTimeout : -1).then((data2) => {
+               if (data2)
+-                mountCSS(data2);
++                mountCSS(data2, target);
+             }).catch(() => null);
+           }
+         },

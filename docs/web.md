@@ -5142,9 +5142,12 @@ Four bounds keep it from growing forever.
   4. The file's name is the player's accessible name and is said in the download's tooltip; it is not written on
      the player.
 - **The waveform is read from the sound itself.**
-  1. The file is fetched and decoded in the browser once the player comes near the screen, and each bar is the
-     loudest stretch of the sound under it. As many bars stand as fit the width the player is given.
-  2. Until that reading lands, and for a file too large to fetch for it, the bars stand low and even.
+  1. The file is fetched and decoded in the browser once the player comes near the screen, and each bar is how
+     loud the sound is under it, run from the sound's quiet end to its loudest, so a voice spoken at an even
+     loudness shows its words and pauses (bmo-ui's `docs/components.md`). As many bars stand as fit the width the
+     player is given.
+  2. Until that reading lands, and for a file too large to fetch for it or one the browser cannot decode, the bars
+     stand low and even.
   3. The played stretch is in the accent and the rest dimmed, so the waveform is the progress bar. The accent
      follows the sound frame by frame while it plays, for every reader, since it says where the sound is rather
      than decorating it. Both are solid colours with no gradient between them: the accent ends at a hard edge
@@ -5173,6 +5176,9 @@ Four bounds keep it from growing forever.
   2. From then until it stops, the button is the pause button, and a press stops it at once. A stall
      for bytes while it plays, a seek into a stretch not yet fetched among them, leaves the button as
      it is: the waveform's accent standing still and the aura falling to its quiet ring say it.
+     The console carries bmo-ui's patch of `@nuxt/icon`, under `client/patches/`, by which an icon's stylesheet
+     rule is written under the name it was loaded for, so the spinner's drawing arriving after the sound is heard
+     never stands in the pause mark's place.
   3. A sound the browser cannot play says so in place of the meta line, the waveform dims, and the download stays.
   A line whose file is gone stands no player — a fact the archive answers, so nothing offers to play what only
   pressing would reveal is not there; it stays the dim file line of 「첨부와 Telegram 표현」.

@@ -10,7 +10,7 @@
     "check": "bun run typecheck && bun test"
   },
   "dependencies": {
-    "bmo-ui": "file:./vendor/bmo-ui-0.1.0-rev.12-ae1dfe5.tgz"
+    "bmo-ui": "file:./vendor/bmo-ui-0.1.0-rev.13-950f90e.tgz"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "20.14.5",
@@ -24,6 +24,7 @@
     "vue-router": "^5.2.0"
   },
   "patchedDependencies": {
-    "reka-ui@2.10.4": "patches/reka-ui@2.10.4.patch"
+    "reka-ui@2.10.4": "patches/reka-ui@2.10.4.patch",
+    "@nuxt/icon@2.5.1": "patches/@nuxt%2Ficon@2.5.1.patch"
   }
 }

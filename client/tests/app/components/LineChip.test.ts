@@ -15,7 +15,7 @@ describe("a chip of the thin line", () => {
   test("is a mark named by its tooltip, and says which way it goes for a reader who cannot see it", () => {
     // Its name is said by the console's one tooltip, which a finger reaches by holding it.
     expect(chip).toMatch(/<HintTip\s+:text="props\.label"\s+press\s+as="button"/);
-    expect(chip).toContain('<UIcon v-if="props.icon !== ''" :name="props.icon" class="size-4 shrink-0" :class="props.iconClass" />');
+    expect(chip).toContain(`<UIcon v-if="props.icon !== ''" :name="props.icon" class="size-4 shrink-0" :class="props.iconClass" />`);
     expect(chip).toContain("`${props.label} ${props.open ? $t('common.action.collapse') : $t('common.action.expand')}`");
     expect(chip).toContain(':aria-expanded="props.open"');
   });

@@ -307,9 +307,7 @@
                         :clock="message"
                         :after-words="wordsLast || playerLast"
                         :answer="props.item.look.role === 'assistant'"
-                        :outcome="props.item.outcome ?? null"
                         @room="metaRoom = $event"
-                        @jump="emit('jump', $event)"
                       >
                         <!-- How long the room waited for this answer; a message the archive holds no
                              measurement of says nothing at all. -->

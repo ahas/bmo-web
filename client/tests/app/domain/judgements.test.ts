@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 import { secondsText } from "../../../apps/web/app/domain/numbers";
 
-import { endsJudging, homedJudgements, instructionParts, judgedNow, messageOutcome, outcomeTarget, readingCards, roundPlaces, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
+import { endsJudging, homedJudgements, instructionParts, judgedNow, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
 
 import type { GateOfferRecord, Judgement, LiveRun, RoundOpening } from "../../../apps/web/shared/types";
 import { WORKER } from "../../support/ids";
@@ -54,7 +54,6 @@ describe("judgementText", () => {
     expect(verdictTone(KO.line_46)).toBe("neutral");
   });
 });
-
 
 
 // Opening a message's judgements is one press, and the summary is the only thing that folds.
@@ -292,20 +291,6 @@ describe("where each verdict stands", () => {
     const homed = homedJudgements(messages, [at(7, 20, "chat", "REPLY: later", "r2"), at(8, 20, "draft", "END: message", "r2"), at(9, 10, "draft", "END: message", "r9")]);
 
     expect(homed.map((one) => [one.id, one.messageId])).toEqual([[8, 20]]);
-  });
-
-  test("says what became of a message, off its latest round, and links the answer it drew", () => {
-    const judged = [at(1, 10, "sanitizer", "CLEAN"), at(3, 10, "chat", "REPLY: hi")];
-    const outcome = messageOutcome(judged);
-
-    expect(outcome).toEqual({ kind: "answered", round: "r1" });
-    expect(outcomeTarget(outcome, roundPlaces(messages, judged))).toBe(11);
-    expect(messageOutcome([at(1, 10, "chat", "SKIP"), at(2, 10, "skipped", "SKIP")])?.kind).toBe("skipped");
-    expect(messageOutcome([at(1, 10, "chat", "WAIT")])?.kind).toBe("waiting");
-    expect(messageOutcome([at(1, 9, "read-with", "READ: #10")])?.kind).toBe("read-with");
-    expect(messageOutcome([at(1, 10, "sanitizer", "CLEAN")])?.kind).toBe("undecided");
-    expect(messageOutcome([])).toBeNull();
-    expect(readingCards(judged).map((one) => one.id)).toEqual([1]);
   });
 
   test("words a verdict for a person, never in the gate's own tokens", () => {

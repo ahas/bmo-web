@@ -80,22 +80,23 @@
              it travels with the time it is measured to. -->
         <slot name="took" />
 
-        <!-- The one place the verdicts open and close from: the mark alone, beating while the message
-             is being judged and then coloured by how the whole of it went, named by its tooltip.
-             Opening it spreads every stage's card at once, and a stage that arrives while it is open
-             stands open with the rest; closing it puts them all away. A mark that comes with its
-             verdicts already settled while the message is on screen pops in; a message read in with
-             it stands it at once. A message sent a moment ago keeps the mark's room, so the time
+        <!-- The verdict mark alone, beating while the message is being judged and then coloured by how
+             the whole of it went, named by its tooltip; it presses nothing, since what judged the round
+             stands in the answer's record (docs/web.md, the room screen's verdicts). A mark that comes
+             with its verdicts already settled while the message is on screen pops in; a message read in
+             with it stands it at once. A message sent a moment ago keeps the mark's room, so the time
              beside it does not move when it comes. -->
-        <LineChip
+        <HintTip
           v-if="marked"
-          :icon="CHIP_ICONS.verdicts"
-          :icon-class="markClass"
-          :label="$t(markLook.label)"
-          :open="expanded"
-          :over="over"
-          @toggle="expanded = !expanded"
-        />
+          data-verdict-mark
+          :text="$t(markLook.label)"
+          :side="over ? 'top' : undefined"
+          class="flex h-(--chat-meta-line) items-center"
+          role="img"
+          :aria-label="$t(markLook.label)"
+        >
+          <UIcon :name="CHIP_ICONS.verdicts" class="size-4 shrink-0" :class="markClass" />
+        </HintTip>
         <span v-else-if="roomForMark && props.clock" aria-hidden="true" class="invisible h-(--chat-meta-line) w-6" />
 
         <!-- The time and the send mark, which are the message's own. -->
@@ -248,24 +249,6 @@
       <TurnRecords v-if="recordsOpen" :records="records" class="w-full" />
 
       <AgentTurnFigures v-if="chip !== null && spendOpen" :lines="chip.lines" :boxed="false" class="w-full" />
-
-      <!-- What became of a person's message, one line: its outcome in words and the message it links to by that
-           message's time (docs/web.md, the room screen's verdicts). What judged the round stands in the answer's
-           own record press, not here. -->
-      <div v-if="expanded && marked" data-outcome class="flex w-full min-w-0 flex-wrap items-center gap-x-2 text-sm">
-        <span data-outcome-kind :data-outcome="outcomeKind" class="text-highlighted" :class="outcomeKind === 'failed' ? 'text-error' : ''">{{ outcomeWords }}</span>
-        <UButton
-          v-if="props.outcome?.target != null"
-          size="xs"
-          color="primary"
-          variant="link"
-          data-outcome-target
-          class="px-0 tabular-nums"
-          :label="$t(outcomeKind === 'read-with' ? 'room.label.outcome_with_message' : 'room.label.outcome_answer_at', { time: formatClock(props.outcome.target.sentAt) })"
-          @click.stop="emit('jump', props.outcome.target.messageId)"
-        />
-      </div>
-
     </div>
   </div>
 </template>
@@ -278,7 +261,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useBotEvents } from "~/domain/events";
 import { readRunLines } from "~/domain/log";
 import { countText, secondsText } from "~/domain/numbers";
-import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowedOffer, outcomeText, roadName, roadOutcome, stageLabel, verdictState, verdictWords } from "~/domain/judgements";
+import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowedOffer, roadName, roadOutcome, stageLabel, verdictState, verdictWords } from "~/domain/judgements";
 import { brainActions, turnActions } from "~/domain/working";
 import { formatClock, formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
@@ -290,8 +273,6 @@ import type { DraftDiffLine, RoundLine } from "~/domain/draft-process";
 import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
 import type { BriefingChip, VerdictChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
-import type { OutcomeKind } from "~/domain/judgements";
-import type { OutcomeView } from "~/domain/room";
 import type { Situation } from "#shared/types";
 import type { LiveTurn } from "~/domain/working";
 
@@ -333,8 +314,6 @@ interface Props {
   // Whether the message is an agent's answer, which carries no verdict chip of its own: what judged it stands in its
   // draft spread (docs/web.md, the room screen's verdicts).
   answer?: boolean;
-  // What became of a person's message, and the message its line links to.
-  outcome?: OutcomeView | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -353,17 +332,15 @@ const props = withDefaults(defineProps<Props>(), {
   besidePicture: false,
   clock: true,
   afterWords: false,
-  answer: false,
-  outcome: null
+  answer: false
 });
 
 // How wide the line stands at the end of the words' last line, which the words keep blank for it;
 // null while it stands on a line of its own.
-const emit = defineEmits<{ room: [width: number | null]; jump: [messageId: number] }>();
+const emit = defineEmits<{ room: [width: number | null] }>();
 const { t } = useI18n();
 const slots = useSlots();
 
-const expanded = ref(false);
 const spendOpen = ref(false);
 const recordsOpen = ref(false);
 const briefingOpen = ref(false);
@@ -681,9 +658,6 @@ const chip = computed<SpendChip | null>(() =>
 const split = computed(() => splitDraftJudgements(props.judgements));
 // A person's message's own verdicts, which its mark is coloured by; an answer carries none (docs/web.md, the room screen's verdicts).
 const verdicts = computed<Judgement[]>(() => (props.answer ? [] : split.value.verdicts.filter((one) => !judgesAnswer(one))));
-// What became of the message, or that it is still being judged.
-const outcomeKind = computed<OutcomeKind | "judging">(() => (props.judging ? "judging" : (props.outcome?.kind ?? "undecided")));
-const outcomeWords = computed<string>(() => (props.judging ? t("room.label.chip_verdicts_judging") : outcomeText(t, props.outcome?.kind ?? "undecided")));
 
 // The record's draft part stands on a turn that has ended and whose round's process the page read or the gate wrote of.
 const roundOfDrafts = computed<string | null>(() => draftRound(props.drafts, split.value.drafts));
@@ -726,8 +700,7 @@ const spreading = computed<boolean>(
     (briefingOpen.value && props.briefing !== null) ||
     recordOpen.value ||
     recordsOpen.value ||
-    (chip.value !== null && spendOpen.value) ||
-    (expanded.value && marked.value)
+    (chip.value !== null && spendOpen.value)
 );
 
 // The line stands over a picture's foot, or beside a sticker's, only where it is the time and its marks

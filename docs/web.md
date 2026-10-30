@@ -1540,7 +1540,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 - **TODO item** — the original instruction, approval comments, completion report, an unfinished item and its
   resolution reason, appended words, the turns of that item's talk, and what a job asked.
 - **Work order** — the intent and instruction, and the instruction and result of a window opening one task.
-- **Verdicts** — where a room's verdict chip is expanded, and the full verdict standing in the verdict-display
+- **Verdicts** — the gates' cards in an answer's record, and the full verdict standing in the verdict-display
   setting's unclassified.
 - **A job's question** — the question and its reason on a question card, and the question bar's question over
   every screen.
@@ -3953,24 +3953,12 @@ Four bounds keep it from growing forever.
     tap on a chip, or on any control a message carries, therefore takes the focus off wherever it stood
     outside that message, so the input box left focused by a send gives it up and a phone does not raise its
     keyboard again on the tap. Only a tap on the input box itself brings the keyboard.
-- **판정** — a person's message carries what became of it, and nothing else of the round that read it. The
-  verdict chip is the verdict mark alone, with no dot and no count, standing just before the time; its tooltip
-  names it and what it says. An agent's answer carries no verdict mark: what judged the round and what drafted
-  and sent it stand in its record, under 판정.
-  - **Pressing the mark spreads one line, the message's outcome, in words**: 답함 with the answer it drew,
-    답하지 않음, 기다림, 함께 읽음 with the message it was read with, 실패, or 판정 중 while it is being judged; a
-    message whose gates spoke and whose round has decided nothing yet reads 결정 전. The answer, and the message it
-    was read with, stand on the line by their time as a link that jumps to that message and lands on it, the way
-    a reply's quote does (「답장 인용」); one the page does not carry stands as the word alone. Pressing the mark
-    again folds the line.
-  - **The gates' cards and the situation note stand in the answer's record**, not under this line: each card at the
-    moment its gate wrote it, the instructions the turn carried once before its first card, and the note the round
-    read last. A message whose round left no answer carries its outcome line alone; a round that answered carries
-    the rest in its answer's record.
-  - **The outcome is read off the latest round that read the message**: the verdict of the round's own turn — the
-    chat agent's or a companion's `REPLY`, `SKIP`, `WAIT`, `FAILED` — a round that went silent (`skipped`), and a
-    verdict naming the message the turn read last (`read-with`), whose link goes to the message of the same round
-    that carries the turn's own verdict.
+- **판정** — a person's message carries the verdict mark alone, with no dot and no count, standing just before the
+  time: it beats while the message is being judged, then takes the colour of how the whole of it went, and its
+  tooltip names it and what it says. The mark presses nothing and spreads nothing. An agent's answer carries no
+  verdict mark: what judged the round, what drafted and sent the answer, the gates' cards and the situation note
+  the round read last all stand in the answer's record, under 판정 기록, and a round that left no answer leaves
+  nothing to open.
   - **Which verdicts are a person's message's and which an answer's.** The verdicts of the round's draft process
     (`draft`), of its send (`send`), and of the checks and rewrites the answer went through on its way out — 출력
     형식, the content gate and its rewrite and addition, and every second asking (`…-again`) — are the answer's, and

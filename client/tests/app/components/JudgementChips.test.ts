@@ -132,12 +132,13 @@ describe("the judgement", () => {
     expect(script).toContain("narrowed: narrowedOffer(judgement), kept: keptOffer(judgement), words: verdictWords(t, judgement)");
   });
 
-  test("a person's message keeps its mark and one line of outcome, and no press of its own for the cards", () => {
-    expect(trail).toContain(':icon="CHIP_ICONS.verdicts"');
+  test("a person's message keeps its mark alone, which presses nothing and spreads nothing", () => {
+    expect(trail).toContain('<HintTip\n          v-if="marked"\n          data-verdict-mark');
+    expect(trail).toContain(':name="CHIP_ICONS.verdicts"');
     expect(script).toContain("const verdicts = computed<Judgement[]>(() => (props.answer ? [] :");
     expect(script).toContain("verdictChip(verdictState(verdicts.value, props.judging))");
-    expect(template).toContain('<div v-if="expanded && marked" data-outcome');
-    expect(template).not.toContain("data-outcome-details");
+    expect(template).not.toContain("data-outcome");
+    expect(script).not.toContain("expanded");
   });
 
   test("an answer carries no mark of its own", () => {

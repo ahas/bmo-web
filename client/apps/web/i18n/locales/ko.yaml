@@ -102,6 +102,7 @@ common:
     toc: 목차
     unplayable: 재생할 수 없음
     view: 보기
+    volume: 볼륨
     worker: 워커
   action:
     translate: 번역
@@ -126,6 +127,7 @@ common:
     more: 더보기
     move_down: 아래로
     move_up: 위로
+    mute: 음소거
     next_picture: 다음 사진
     pause: 일시정지
     pin: 고정
@@ -134,6 +136,7 @@ common:
     refresh: 새로고침
     retry_translation: 다시 요청
     save: 저장
+    unmute: 음소거 해제
     unpin: 고정 해제
     unshare: 공유 해제
     zoom_in: 확대
@@ -143,7 +146,7 @@ common:
     column_width: "{name} 너비"
     decrease: 감소
     document_menu: 문서 메뉴
-    download_named: "{name} 내려받기"
+    download_named: "{name} 다운로드"
     enlarge_named: "{name} 크게 보기"
     image_zoom: "{title}, 휠이나 두 손가락으로 확대"
     increase: 증가
@@ -1982,7 +1985,7 @@ agents:
     session_room: "{room} · {generation}번째 세션"
     settings: 설정
     shown: 표시
-    source_fetch: 내려받기
+    source_fetch: 다운로드
     source_none: 다운로드 주소 없음
     stopped_agents: "꺼진 에이전트 {n}개"
     support: 추가지원

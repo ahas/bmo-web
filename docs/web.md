@@ -2672,7 +2672,7 @@ Two ways, split because the running places differ.
 - **모델 파일.** Under 등록 모델, every entry of the model catalogue, which the agency serves at
   `/model-catalogue` (its `docs/model-catalogue.md`), one
   row each: its label and name, its file, its size in GB with one decimal, the first twelve characters
-  of its SHA-256, its source — 내려받기 for an `https` address, the run's path for a training's — its
+  of its SHA-256, its source — 다운로드 for an `https` address, the run's path for a training's — its
   engine and registration, its nodes as chips, its defaults (생각, temperature, top_p,
   presence_penalty, max_tokens, each a dash where empty), its note, and 서빙 중 on the entry whose file
   its engine serves now. Above the list, the latest choice of a model for each engine: the entry, who
@@ -5130,11 +5130,15 @@ Four bounds keep it from growing forever.
   1. A round play and pause button at its leading edge, in the accent, centred on the player.
   2. Beside it, as one group with it, the sound's own waveform as a row of upright bars running to the player's
      trailing edge, and under it one small muted meta line.
-  3. The download button, an icon button with its tooltip, stands at the trailing end of that meta line and takes
-     no more height than the line. A player that is the last thing in its bubble keeps a blank at the line's end
-     for the bubble's own meta line, which stands there (「메타 줄」). The line's parts stand the meta line's step
-     apart, so a phone's narrowest player keeps the place, the download and the time on one line while it plays;
-     the clock itself never breaks, and where a longer clock leaves no room, what follows it takes the line under.
+  3. The volume button and the download button, icon buttons with their tooltips, stand at the trailing end of
+     that meta line, the volume first, and take no more height than the line. The volume button's icon says how
+     loud the players play, and it opens a popover holding a mute toggle (음소거, 음소거 해제) and a volume slider
+     (볼륨); the volume is one for the page, so moving it on one player moves every player, and the reader's
+     browser keeps it (bmo-ui's `docs/components.md`). A player that is the last thing in its bubble keeps a
+     blank at the line's end for the bubble's own meta line, which stands there (「메타 줄」). The line's parts
+     stand the meta line's step apart, so a phone's narrowest player keeps the place, the two buttons and the
+     time on one line while it plays; the clock itself never breaks, and where a longer clock leaves no room,
+     what follows it takes the line under.
   4. The file's name is the player's accessible name and is said in the download's tooltip; it is not written on
      the player.
 - **The waveform is read from the sound itself.**

@@ -78,6 +78,9 @@
 - fold (a work order) → 종료. 접기 is only ever a panel folding away, and is written as below.
 - file, stand up (an item) → 만들기: 항목 만들기, 만든 항목, 만들지 못했습니다. Never 세우기, 올리기.
 - ask (a job's question) → 질문, 질문하다: Job의 질문. Never 물다, 물어본 것, 묻기.
+- download → 다운로드: 다운로드, {name} 다운로드, 다운로드 주소. Never 내려받기. This is the owner's own choice of
+  the word.
+- volume → 볼륨; mute, unmute → 음소거, 음소거 해제.
 - machine → 기기: 이 기기, 기기 여유. Never 기계.
 - render → 렌더링: 렌더링하지 않는 기간. Never 그리다.
 - message, words → 메시지: 메시지를 보내다, 보낼 메시지. A conversation is 대화, an instruction added

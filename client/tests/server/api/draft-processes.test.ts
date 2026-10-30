@@ -16,8 +16,8 @@ globals.requireReadableRoom = async () => undefined;
 globals.readableRooms = async () => "all";
 
 const ROWS = [
-  { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, turnSeconds: 120, pastCeiling: "send", source: "default" },
-  { provider: "claude-code", tier: "*", agentName: "*", rounds: ["final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, turnSeconds: 120, pastCeiling: "skip", source: "set" }
+  { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default" },
+  { provider: "claude-code", tier: "*", agentName: "*", rounds: ["final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "skip", source: "set" }
 ];
 const QUESTIONS = [{ name: "intent", text: "Why?", source: "default" }, { name: "final", text: "Write it.", source: "set" }];
 const DRAFT_ROWS = [
@@ -67,7 +67,7 @@ const remove = await routeOf<{ ok: true }>("../../apps/web/server/api/draft-proc
 const question = await routeOf<DraftQuestionView>("../../apps/web/server/api/draft-questions.post");
 const drafts = await routeOf<{ rows: DraftRow[] }>("../../apps/web/server/api/rooms/[chatId]/drafts.get");
 
-const VALUES = { rounds: ["information", "final"], sendFrom: "final", light: ["final"], lightChars: 20, ceilingSeconds: 90, turnSeconds: 60, pastCeiling: "skip" };
+const VALUES = { rounds: ["information", "final"], sendFrom: "final", light: ["final"], lightChars: 20, ceilingSeconds: 90, pastCeiling: "skip" };
 
 describe("reading the table", () => {
   test("answers every row with its source and every question, read together", async () => {
@@ -138,15 +138,16 @@ describe("setting a question", () => {
 });
 
 describe("a round's summary", () => {
-  test("counts the questions, items and checks, never the agent's judgement before the round, and carries the end's reads", async () => {
+  test("counts the questions, items and checks, never the agent's judgement before the round, and carries the end's reads and running count", async () => {
     const { draftSummaryOf } = await import("../../../apps/web/server/utils/drafting");
     const row = (id: number, kind: string, outcome = "answered"): DraftRow => ({
       id, number: id, question: kind, kind, answerChars: 0, changed: false, outcome, detail: null, ms: 0, at: 0, answer: null,
-      reads: kind === "end" ? [{ path: "core/facts.md", holds: null, how: "attached" }] : []
+      reads: kind === "end" ? [{ path: "core/facts.md", holds: null, how: "attached" }] : [],
+      ...(kind === "end" ? { session: "session-a", loaded: 2 } : {})
     });
 
     expect(draftSummaryOf("round-1", [row(0, "supervisor"), row(1, "question"), row(2, "check"), row(3, "end", "message")])).toEqual({
-      round: "round-1", asked: 2, end: "message", reads: [{ path: "core/facts.md", holds: null, how: "attached" }]
+      round: "round-1", asked: 2, end: "message", reads: [{ path: "core/facts.md", holds: null, how: "attached" }], loaded: 2
     });
     expect(draftSummaryOf("round-2", [row(0, "supervisor", "skip")])).toBeNull();
   });

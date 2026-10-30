@@ -446,9 +446,10 @@ const done = computed<TurnActionsRef | null>(() => props.actionsAt ?? null);
 const reads = computed<DraftRead[]>(() => (props.live === null ? (props.drafts?.reads ?? []) : []));
 
 // What each chip counts: the whole round either way — for a turn still running, what its stream has
-// said plus what fell off the front of its block. A reference document the session already held is
-// counted apart, since it went as a mark and nothing of it was read on this turn. The brain chip counts
-// the documents handed and the calls that read the brain; the tool chip counts every call, those among them.
+// said plus what fell off the front of its block. The brain chip's held figure is the running count the
+// round's end carries — what this room's earlier rounds of the session read in full — and falls back to the
+// pieces that went as a mark on this turn where the end carries none; its new figure is the documents
+// handed in full and the calls that read the brain. The tool chip counts every call, those among them.
 const counts = computed<{ documents: number; held: number; tools: number; brain: number }>(() => {
   const live = props.live;
 
@@ -458,7 +459,7 @@ const counts = computed<{ documents: number; held: number; tools: number; brain:
 
     return {
       documents: named ? reads.value.length - held : (done.value?.documents ?? 0),
-      held: named ? held : (done.value?.held ?? 0),
+      held: named ? (props.drafts?.loaded ?? held) : (done.value?.held ?? 0),
       tools: done.value?.tools ?? 0,
       brain: done.value?.brain ?? 0
     };

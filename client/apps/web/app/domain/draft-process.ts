@@ -126,7 +126,6 @@ export function draftValues(row: DraftProcessValues): DraftProcessValues {
     light: [...row.light],
     lightChars: row.lightChars,
     ceilingSeconds: row.ceilingSeconds,
-    turnSeconds: row.turnSeconds,
     pastCeiling: row.pastCeiling
   };
 }

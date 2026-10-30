@@ -4103,12 +4103,16 @@ Four bounds keep it from growing forever.
     log」), those pieces are the brain's documents in place of the ones the agency's log says the turn was handed.
     They come with the page, read with the round's summary, and stand at the head of the list before anything is
     read.
-  - **The 브레인 chip's figure is what the session holds read, and what this round read new**: the count of the
-    pieces that went as a mark of a version the session already held, then a plus and, in the success colour,
-    the count of what the round read new — the pieces that went whole, those the agent read itself through the
-    index, and the brain calls. 「1+3」 is one held and three new; a round that read nothing new stands the plain
-    count, and one that held nothing stands 「+3」. A screen reader hears 브레인, the held count, and 새로 읽음 with
-    the new count. A turn still running counts the same way off what its stream has said.
+  - **The 브레인 chip's figure is a running count, per room and per session**: first what this room's earlier
+    rounds of the same session had read in full before this round, as the round's end carries it, then a plus
+    and, in the success colour, what this round read new — the pieces that went whole, those the agent read
+    itself through the index, and the brain calls. 「2+1」 is two read before and one new, and the next round of
+    that session in the room opens on 3; a round that read nothing new stands the plain count, and the
+    session's first round in the room stands 「+2」. A piece sent in full again because its text changed counts
+    as new again, and a session that starts afresh counts from nothing. A screen reader hears 브레인, the count
+    read before, and 새로 읽음 with the new count. A turn still running counts, until its end comes, the pieces
+    that went as a mark on this turn in place of the running count, off what its stream has said, and a round
+    whose end carries no running count stands the same way.
   - **Spread, it is one list, read like a diff**: each new piece a line in the success colour on its own wash
     with a leading plus, as an added line, and each held one plain under them, in the muted colour with the
     plus's room kept blank. A piece stands by the index's words for it; the room's own due memories, the entry

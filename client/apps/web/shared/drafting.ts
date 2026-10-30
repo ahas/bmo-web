@@ -30,9 +30,6 @@ export interface DraftProcessValues {
   light: string[];
   lightChars: number;
   ceilingSeconds: number;
-  // How long one turn runs before the room is told the agent is still at work, null for the policy's; carried as
-  // it stands.
-  turnSeconds: number | null;
   pastCeiling: PastCeiling;
 }
 
@@ -104,6 +101,10 @@ export interface DraftRow {
   before?: string | null;
   // On the end, what the round read from the brain; empty on every other row.
   reads: DraftRead[];
+  // On the end, the session the round's turn ran on, and how many pieces this room's earlier rounds of that
+  // session read in full before this round; null on every other row and on a row kept before they were counted.
+  session?: string | null;
+  loaded?: number | null;
 }
 
 /** What a round's draft process did, on the round's last message: the round, how many rounds it asked, how it
@@ -113,4 +114,7 @@ export interface DraftSummary {
   asked: number;
   end: string | null;
   reads: DraftRead[];
+  // How many pieces this room's earlier rounds of the same session read in full before this one; null where the
+  // end does not say.
+  loaded?: number | null;
 }

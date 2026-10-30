@@ -33,7 +33,7 @@ import type { Judgement } from "../../../apps/web/shared/types";
 const CATALOGUE = ["intent", "information", "facts", "promises", "fit", "final"];
 
 function row(over: Partial<DraftProcessView>): DraftProcessView {
-  return { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, turnSeconds: null, pastCeiling: "send", source: "default", ...over };
+  return { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default", ...over };
 }
 
 function judgement(id: number, verdict: string, stage = "draft"): Judgement {

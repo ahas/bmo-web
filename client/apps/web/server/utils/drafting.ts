@@ -29,7 +29,6 @@ function processOf(row: Schemas["DraftProcess"]): DraftProcessView {
     light: row.light,
     lightChars: row.lightChars,
     ceilingSeconds: row.ceilingSeconds,
-    turnSeconds: row.turnSeconds,
     pastCeiling: row.pastCeiling === "skip" ? "skip" : "send",
     source: sourceOf(row.source)
   };
@@ -52,7 +51,9 @@ function rowOf(row: Schemas["DraftRound"]): DraftRow {
     ms: row.ms,
     at: row.at,
     answer: row.answer,
-    reads: (row.reads ?? []).flatMap(readOf)
+    reads: (row.reads ?? []).flatMap(readOf),
+    session: row.session ?? null,
+    loaded: row.loaded ?? null
   };
 }
 
@@ -117,7 +118,7 @@ export function draftSummaryOf(round: string, rows: readonly DraftRow[]): DraftS
 
   const end = past.findLast((row) => row.kind === "end");
 
-  return { round, asked: past.filter((row) => row.kind !== "end").length, end: end?.outcome ?? null, reads: end?.reads ?? [] };
+  return { round, asked: past.filter((row) => row.kind !== "end").length, end: end?.outcome ?? null, reads: end?.reads ?? [], loaded: end?.loaded ?? null };
 }
 
 /** The summaries of a page's rounds; a receiver that does not answer in time leaves the page without them. */
@@ -155,12 +156,10 @@ export function draftValuesOf(body: Record<string, unknown> | null | undefined):
   const lightChars = whole(body?.lightChars);
   const ceilingSeconds = whole(body?.ceilingSeconds);
   const pastCeiling = body?.pastCeiling === "send" || body?.pastCeiling === "skip" ? (body.pastCeiling as PastCeiling) : null;
-  // The two values the table carries unshown: absent from an older body, the first question and the policy's time.
+  // The value the table carries unshown: absent from an older body, the first question.
   const sendFrom = body?.sendFrom === undefined ? "" : typeof body.sendFrom === "string" ? body.sendFrom : null;
-  const turnSeconds = body?.turnSeconds === undefined || body.turnSeconds === null ? null : whole(body.turnSeconds);
 
   if (rounds === null || light === null || lightChars === null || ceilingSeconds === null || pastCeiling === null || sendFrom === null) return null;
-  if (body?.turnSeconds !== undefined && body.turnSeconds !== null && turnSeconds === null) return null;
 
-  return { rounds, sendFrom, light, lightChars, ceilingSeconds, turnSeconds, pastCeiling };
+  return { rounds, sendFrom, light, lightChars, ceilingSeconds, pastCeiling };
 }

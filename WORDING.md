@@ -63,6 +63,8 @@
 - forward a message → 전달: 전달, 전달됨, 전달했습니다, 전달하지 못했습니다, 전달할 방. Never 포워딩, 넘기기,
   옮기기 — 옮기기 is moving a message's place, which this console does not do.
 - mention → 멘션: 멘션, 멘션 후보, 멘션할 이름. Never 호출, 부르기, 지칭.
+- an agent's role, which gives its function bundles → 롤: 롤, 롤 추가, 롤 프롬프트, 종류 기본. A co-work role a work
+  key names stays 역할. A function bundle → 기능 묶음; how many turns run at once → 동시 실행 한도.
 - supervisor → 감독관: 감독관, 감독관 추가, 감독관의 설정, 감독관 없음. Every chat agent is a supervisor, the
   chat agent and every companion alike; a screen never calls one 채팅 에이전트 or 대화 상대.
 - a supervisor's model method → 실행 경로 (the agency's route) and 고정 모델 (a registered model kept as its

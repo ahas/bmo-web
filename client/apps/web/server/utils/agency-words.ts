@@ -64,6 +64,24 @@ function labelOf(table: Readonly<Record<string, string>>, code: unknown, name: s
   return key === undefined ? wording("agents.label.unknown_code", { code: named }) : wording(key);
 }
 
+// A code the pack holds words for is said in them; any other is said by the label the agency keeps for it.
+function wordOr(table: Readonly<Record<string, string>>, code: unknown, name: string, label: string): string {
+  const named = typeof code === "string" && code !== "" ? code : name;
+  const key = table[named];
+
+  return key === undefined ? (label === "" ? named : label) : wording(key);
+}
+
+/** A role the screen names, in the pack's words where the pack holds them, by its agency label otherwise. */
+export function roleWordOf(code: unknown, name: string, label: string): string {
+  return wordOr(ROLE_LABELS, code, name, label);
+}
+
+/** A bundle the screen names, in the pack's words where the pack holds them, by its agency label otherwise. */
+export function bundleWordOf(code: unknown, name: string, label: string): string {
+  return wordOr(BUNDLE_LABELS, code, name, label);
+}
+
 /** A role's name in the pack's words, by its code. */
 export function roleLabelOf(code: unknown, name: string): string {
   return labelOf(ROLE_LABELS, code, name);

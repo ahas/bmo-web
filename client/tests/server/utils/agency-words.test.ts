@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 
-import { bundleLabelOf, providerLabelOf, roadReasonOf, roleLabelOf } from "../../../apps/web/server/utils/agency-words";
+import { bundleLabelOf, bundleWordOf, providerLabelOf, roadReasonOf, roleLabelOf, roleWordOf } from "../../../apps/web/server/utils/agency-words";
 import { wording } from "../../../apps/web/shared/wording";
 
 // The agency's codes said in the pack's words (docs/web.md, the agents page's general tab): a road's reason with
@@ -21,6 +21,14 @@ test("a role and a bundle are named by their codes", () => {
   expect(bundleLabelOf("web-read", "web.read")).toBe(wording("agents.label.bundle_web_read"));
   expect(bundleLabelOf(undefined, "room-send")).toBe(wording("agents.label.bundle_room_send"));
   expect(roleLabelOf("pilot", "pilot")).toBe(wording("agents.label.unknown_code", { code: "pilot" }));
+});
+
+test("a role and a bundle the pack holds no words for are named by the agency's label, or by the name where it gives none", () => {
+  expect(roleWordOf(undefined, "worker", "Worker")).toBe(wording("agents.label.role_worker"));
+  expect(roleWordOf(undefined, "role-a", "Role A")).toBe("Role A");
+  expect(roleWordOf(undefined, "role-a", "")).toBe("role-a");
+  expect(bundleWordOf("queue-read", "queue.read", "Queue read")).toBe(wording("agents.label.bundle_queue_read"));
+  expect(bundleWordOf(undefined, "bundle.a", "Bundle A")).toBe("Bundle A");
 });
 
 test("a provider is named by its code, a product by its own name and the registry in the pack's word", () => {

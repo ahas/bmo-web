@@ -1,6 +1,7 @@
 <template>
   <!-- How many co-workers of each tier may be alive on each provider, as the agency's pool holds them: a
-       co-worker tier to a row, a provider to a column, only those the pool has places for. -->
+       co-worker tier to a row, a provider to a column, only those the pool has places for. A cell's number box
+       sets that one limit. -->
   <section class="flex min-w-0 flex-col" aria-labelledby="coworker-limits-title">
     <div class="flex min-h-12 items-center gap-2 border-y border-default px-4 py-2">
       <h2 id="coworker-limits-title" class="text-base font-semibold text-highlighted">{{ $t("agents.title.coworker_limits") }}</h2>
@@ -23,7 +24,15 @@
         </template>
 
         <template v-for="name in providerColumns" :key="name" #[`${name}-cell`]="{ row }">
-          <span v-if="bucketOf(row.original.tier, name) !== null" :class="CELL_TEXT" :aria-label="$t('agents.aria.limit_of', { mode: modeLabel($t, name), tier: row.original.tier })">
+          <SettingsInputCell
+            v-if="bucketOf(row.original.tier, name) !== null"
+            :value="bucketOf(row.original.tier, name)!.capacity"
+            :label="$t('agents.aria.limit_of', { mode: modeLabel($t, name), tier: row.original.tier })"
+            :min="0"
+            :step="1"
+            :check="limitFault"
+            :save="(text: string) => save(name, row.original.tier, text)"
+          >
             <span class="flex items-center gap-2">
               <UIcon
                 :name="bucketOf(row.original.tier, name)!.capacity === 0 ? 'i-material-symbols-block' : 'i-material-symbols-check-circle-outline'"
@@ -33,19 +42,18 @@
               <span class="font-medium tabular-nums text-highlighted">{{ bucketOf(row.original.tier, name)!.capacity.toLocaleString("ko-KR") }}</span>
             </span>
             <span class="tabular-nums text-muted">{{ countsText(bucketOf(row.original.tier, name)!) }}</span>
-          </span>
+          </SettingsInputCell>
           <span v-else :class="CELL_TEXT" class="text-muted">—</span>
         </template>
       </DataTable>
-
-      <p class="px-4 py-2 text-sm text-muted">{{ $t("agents.message.limits_read_only") }}</p>
     </template>
   </section>
 </template>
 
 <script setup lang="ts">
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
-import { CELL_TEXT, PROVIDER_COLUMNS, settingsAnchor } from "~/domain/agent-settings";
+import { failureText } from "bmo-ui/app/domain/errors";
+import { CELL_TEXT, PROVIDER_COLUMNS, ROLE_POOL_READS, settingsAnchor } from "~/domain/agent-settings";
 import { useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
 import { modeLabel } from "~/domain/status";
@@ -93,5 +101,23 @@ function countsText(bucket: PoolBoardBucket): string {
     reserved: bucket.tiles.filter((tile) => tile.state === "held").length.toLocaleString("ko-KR"),
     waiting: bucket.waiting.length.toLocaleString("ko-KR")
   });
+}
+
+// A limit is a whole number from 0; 0 closes the place.
+function limitFault(text: string): string | null {
+  return /^\d+$/.test(text.trim()) ? null : t("agents.error.limit_whole");
+}
+
+// One place's limit set, then the pool, the roles, the agent list and the tiers read again; the agency's refusal,
+// in the pack's words, stays under the box.
+async function save(provider: TierProvider, tier: CoworkerTier, text: string): Promise<string | null> {
+  try {
+    await $fetch("/api/agency/pool/limits", { method: "PATCH", body: { provider, tier, capacity: Number(text.trim()) } });
+    await refreshNuxtData(ROLE_POOL_READS);
+
+    return null;
+  } catch (failure) {
+    return failureText(failure, t("common.error.save_failed"));
+  }
 }
 </script>

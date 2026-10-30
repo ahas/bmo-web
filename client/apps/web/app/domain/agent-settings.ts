@@ -12,6 +12,7 @@ export const AGENT_TABS = [
   { value: "general", label: "agents.label.tab_general", icon: "i-material-symbols-tune" },
   { value: "supervisors", label: "agents.label.tab_supervisors", icon: "i-material-symbols-supervisor-account" },
   { value: "workers", label: "agents.label.tab_workers", icon: "i-material-symbols-construction" },
+  { value: "roles", label: "agents.label.tab_roles", icon: "i-material-symbols-badge-outline" },
   { value: "tiers", label: "agents.label.tab_tiers", icon: "i-material-symbols-stacks-outline" },
   { value: "routes", label: "agents.label.tab_routes", icon: "i-material-symbols-alt-route" },
   { value: "research", label: "agents.label.tab_research", icon: "i-material-symbols-travel-explore" }
@@ -43,6 +44,10 @@ export function emptyKeepaliveView(): KeepaliveView {
 export const PROVIDER_COLUMNS: readonly AgentMode[] = agentProviderNames;
 
 export const AUTO_LABEL = "common.label.auto";
+
+// What a change to a role or to a co-worker limit reads again: the roles, the agent list whose add form offers
+// them, the pool and the tier table.
+export const ROLE_POOL_READS = ["agent-roles", "agents", "coworker-pool", "model-tiers"];
 
 // A settings cell that is pressed: it fills its cell, so the whole cell is what is pressed, and it
 // says so on hover and on press.

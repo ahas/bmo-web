@@ -2499,22 +2499,23 @@ Two ways, split because the running places differ.
 
 ### Agent management screen
 
-- **What it is for.** The agent list itself, the job workers, keepalive, the provider order and
-  enablement, the Claude accounts and their order, the shared model tiers, each work key's road and
+- **What it is for.** The agent list itself, the job workers, the roles agents hold, keepalive, the provider
+  order and enablement, the Claude accounts and their order, the shared model tiers, each work key's road and
   account, the common spawning pool and the searchers. The list is the archive's `agents` table, and everything this
   screen edits is written through the bot — the console does not write the bot's tables directly. The
   table itself is read raw as `agents` on the DB screen.
-- **A section to a tab.** The tabs are 일반, 감독관, 워커, 모델, 실행 경로 and 서쳐. The tab stands in
+- **A section to a tab.** The tabs are 일반, 감독관, 워커, 롤, 모델, 실행 경로 and 서쳐. The tab stands in
   the address (`?tab=`), so a shared link opens the same section and moving between tabs is a step of the
   history. The tab row stands under the title bar and carries, at its right end, the open section's own
-  action (일반's, 워커's and 감독관's 추가 — 일반's a menu of Claude 계정, 등록 모델, 모델 파일, 기본 프롬프트 and
+  action (일반's, 워커's, 롤's and 감독관's 추가 — 일반's a menu of Claude 계정, 등록 모델, 모델 파일, 기본 프롬프트 and
   에이전트, since that tab adds all five), the settings search and the one button that reads every section again, which
   spins while it reads. The title bar keeps only what every page carries, and no section repeats its tab's
   name as a title of its own.
 - **The settings search** looks over every section at once: section names, agent and work-key names
   and keys, the names the owner calls an agent by, providers and their reasons, Claude accounts by the
   names they gave them and by the path each is reached by, registered model names and the models behind
-  them, tiers and the models they map to, co-worker limits and the searchers' work keys. It uses the console's shared list
+  them, tiers and the models they map to, roles by their names, labels and bundles, co-worker limits and the
+  searchers' work keys. It uses the console's shared list
   search, so a hit on what a row shows is marked there and a hit only in what the row holds stands as
   one line under the result. Where the tab row has room the search is a box beside the tabs with its
   results under it; where it does not (a phone) it is a button opening the same search in a centred modal.
@@ -2532,7 +2533,8 @@ Two ways, split because the running places differ.
   was. While a value is being saved the cell spins, and a refused one keeps the dropdown open with the bot's
   reason under the field, or, for a choice, says the reason in a notice. A cell showing what the bot worked
   out — the model a key starts on now, what last answered — is not pressed. Dialogs are left only for what
-  is not one cell: adding a worker, a worker's whole settings, and asking once before a reset or a removal.
+  is not one cell: adding a worker, a worker's whole settings, a role's whole definition, and asking once before
+  a reset or a removal.
 - **A table that is the whole section fills it.** 실행 경로 is one table: the table takes
   the section's whole height however few its rows, its header holds to the section's top while the rows
   scroll, and its sideways scrollbar stands on the section's floor. 모델, with its tables, and 서쳐, with its
@@ -2552,8 +2554,8 @@ Two ways, split because the running places differ.
     and the companion's dialogs are forms (「Forms」): one 저장 in the footer saves every change made in them.
 - **What stays on this screen only.** Nothing that belongs to more than one worker is offered on
   its own screen: the 실행 경로 rows (`job-worker` is every worker's road at once, and a `role:` key is a
-  co-worker role, not a worker), the shared model tiers, the co-worker limits, the provider order, the
-  Claude accounts, the 전체 캐시 유지 switch and the searchers' work keys each belong to the whole bot or to
+  co-worker role, not a worker), the roles, the shared model tiers, the co-worker limits, the provider order,
+  the Claude accounts, the 전체 캐시 유지 switch and the searchers' work keys each belong to the whole bot or to
   something other than one worker.
 
 #### 일반
@@ -2652,11 +2654,12 @@ Two ways, split because the running places differ.
       no target of, so an agent nobody turned on reads off. Throwing it throws the agent's subject under every
       consumer that holds a target for it. A row with its switch down carries 멈춤; while the whole round is off every row
       still on carries 전체 멈춤, and the switch is then the setting to use when the round comes back on.
-  - **롤** is read, not chosen, and its cell is not pressable: an agent's role is set when it is registered (the agency's
-    `docs/agent-roles.md`). The row names it by the pack's word for the code the bot declares it under — 채팅,
-    워커, 서쳐, 번역기, 게이트 — and, beside it, what it gives, the bundles by the pack's short Korean names for their
-    codes, or 기능 묶음 없음; a code the pack holds no word for is said as the code, and a role the bot no longer
-    declares, or any while the bot is not answering, stands as the role's own name.
+  - **롤** is read, not chosen, and its cell is not pressable: an agent's role is set when it is registered (the
+    agency's `docs/agent-roles.md`), and what a role gives is set on the 롤 tab. The row names it by the pack's word
+    for the code the bot declares it under — 채팅, 워커, 서쳐, 번역기, 게이트 — and, beside it, what it gives, the bundles by
+    the pack's short Korean names for their codes, or 기능 묶음 없음; a code the pack holds no word for is said as the
+    code, and a role the bot no longer declares, or any while the bot is not answering, stands as the role's own
+    name.
 - **에이전트 추가.** 에이전트 in the tab row's 추가 menu opens a form registering an agent of any kind through the agency's
   `POST /agents` (its `docs/api.md`, 「agents」): its key and label, its kind — 대화, 워커, 러너 or 게이트 — its role
   among those the bot declares, the kind's own where none is chosen, and for a 대화 agent the model
@@ -2769,6 +2772,31 @@ Two ways, split because the running places differ.
   input box on its own screen, and what is typed there is said to that worker and to no other. A job is not
   launched from there at all: the console's road to a worker is the word, and jobs come from the TODO.
 
+#### 롤
+
+- **One table of the roles the agency holds** (the agency's `docs/agent-roles.md`), one row each in the order the
+  agency lists them, read from its `GET /agent-roles`: the role, named by the pack's word for its name where the pack
+  holds one and by the label the agency keeps otherwise, with its name under it; the bundles it gives as chips, each
+  by the pack's short name for its code and by the agency's label where the pack holds none, or 기능 묶음 없음; how
+  many of its agents' turns may run at once, or 제한 없음; the tier its agents' runs take, or 기본값 where it names
+  none; and how many agents hold it, with 종류 기본 beside the count where it is a kind's own role. The table takes
+  its own height and scrolls sideways inside its own box.
+- **Pressing a row opens the role's dialog,** one form (「Forms」) with one 저장 at its foot: 이름 (fixed once made),
+  이름표, 기능 묶음 as a checkbox for every bundle the agency declares, 동시 실행 한도 as a number box whose empty
+  value is no limit, 등급 as a choice of 기본값 and every tier of the model ladder, and 롤 프롬프트, a text area as
+  tall as its text, which stands before the own documents of every agent holding the role, empty for none. The save
+  sends what changed through `PATCH /agent-roles/{roleName}`; an emptied limit or prompt is cleared.
+- **추가** in the tab row opens the same dialog for a new role, sent through `POST /agent-roles`. The agency checks
+  the name, the bundles and the tier, and a refused save keeps every field as written with the pack's sentence for
+  the agency's code under the field it names.
+- **삭제** stands at the end of each row, asked first in the message pill, and goes through `DELETE
+  /agent-roles/{roleName}`. It stands disabled while any agent holds the role or the role is a kind's own, its
+  tooltip saying which; a removal the agency refuses all the same says the pack's sentence under the table.
+- **What a change reaches** is the agency's to say: an agent's next record takes what its role gives then, and
+  nothing running is stopped (the agency's `docs/agent-roles.md`, 「Changing a role」). A save reads the roles, the
+  agent list — whose 에이전트 추가 offers every role at once — the pool and the tier table again.
+- **A read that fails** says so with a reread; while the agency is not answering, the tab offers nothing to change.
+
 #### 모델
 
 - **The tier table:** a row per tier — the chat agent, Frontier, Reliable, Fine, Light, Simple — and a column per
@@ -2807,9 +2835,11 @@ Two ways, split because the running places differ.
   there are workers (the agency's `docs/model-tiers.md`). A cell shows the limit with a status mark (0 is 막힘) and,
   under it, how many places run, how many are held and how many wait. It is a different question from
   how many tasks a co-work's stage holds, which its plan alone sets.
-- **The table only reads.** The agency serves no route that changes a limit, so no cell is pressed and a sentence
-  under the table says so (`docs/boundary.md`, 「Gaps the console meets」). A first read that fails says so with a
-  reread; a later one that fails keeps what was read.
+- **A cell's box sets that one limit:** a number box taking a whole number from 0, saved with Enter or the check
+  button, through the agency's `PATCH /pool/limits` (its `docs/api.md`, 「pool, seat-requests, reservations and
+  roles」); 0 closes the place. A refused value stays in the box with the pack's sentence for the agency's code under
+  it. A save reads the pool, the agent list and the tier table again. A first read that fails says so with a reread;
+  a later one that fails keeps what was read.
 - The counts are read again every few seconds while the tab stands. Which role is on which tier is chosen
   on the 실행 경로 tab as its `role:` key; a role is never switched on or off from the screen.
 - **The draft-process table** (드래프트 과정) stands under the co-worker table: what a round's answer is asked

@@ -31,6 +31,7 @@ const tiers = await read("../../components/AgentsTierTable.vue");
 const routes = await read("../../components/AgentsRouteTable.vue");
 
 const limits = await read("../../components/AgentsCoworkerLimits.vue");
+const roles = await read("../../components/AgentsRoles.vue");
 const folds = await read("../../components/AgentsFoldRatios.vue");
 const dialog = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/SettingsDialog.vue"))).text();
 const table = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/DataTable.vue"))).text();
@@ -45,7 +46,7 @@ describe("the screen's sections", () => {
     expect(templateOf(page)).toContain("<UTabs");
     expect(scriptOf(page)).toContain("route.query.tab");
     expect(scriptOf(page)).toContain("router.push({ query: { ...route.query, tab:");
-    for (const part of ["<AgentsGeneral", "<AgentsWorkers", "<AgentsTierTable", "<AgentsFoldRatios", "<AgentsCoworkerLimits", "<AgentsRouteTable", "<ResearchSettings"]) {
+    for (const part of ["<AgentsGeneral", "<AgentsWorkers", "<AgentsRoles", "<AgentsTierTable", "<AgentsFoldRatios", "<AgentsCoworkerLimits", "<AgentsRouteTable", "<ResearchSettings"]) {
       expect(templateOf(page)).toContain(part);
     }
     // Nothing in agent management leads to a gates page: no tab, no gate table and no Laya band.
@@ -88,6 +89,9 @@ describe("the screen's sections", () => {
     expect(scriptOf(page)).toContain("generalRef.value?.openAddBasePrompt()");
     expect(templateOf(page)).toContain('v-else-if="tab === \'workers\'"');
     expect(templateOf(page)).toContain('workersRef?.openAdd()');
+    expect(templateOf(page)).toContain('v-else-if="tab === \'roles\'"');
+    expect(templateOf(page)).toContain("rolesRef?.openAdd()");
+    expect(scriptOf(roles)).toContain("defineExpose({ openAdd, refresh })");
     expect(scriptOf(workers)).toContain("defineExpose({ openAdd })");
     expect(scriptOf(page)).toContain("generalRef.value?.openAddAgent()");
     expect(scriptOf(general)).toContain("defineExpose({ openAddAccount, openAddRegistration, openAddCatalogue, openAddBasePrompt, openAddAgent })");
@@ -97,7 +101,7 @@ describe("the screen's sections", () => {
 
 describe("every table of the screen", () => {
   test("is the one shared table, and no section draws its own", () => {
-    for (const source of [workers, tiers, routes, limits, folds]) {
+    for (const source of [workers, roles, tiers, routes, limits, folds]) {
       expect(templateOf(source)).toContain("<DataTable");
       expect(templateOf(source)).not.toContain("<UTable");
       // A section never repeats its tab's name as a title of its own.
@@ -285,6 +289,40 @@ describe("the worker tab", () => {
   });
 });
 
+describe("the role tab", () => {
+  test("is one table of the roles, whose row opens the role's dialog and whose delete stands disabled while the role is held", () => {
+    const template = templateOf(roles);
+
+    expect(template).toContain('<DataTable v-if="view" :data="view.roles" :columns="columns" selectable @select="openEdit">');
+    for (const column of ["role", "bundles", "maxConcurrent", "tier", "agents", "actions"]) {
+      expect(template).toContain(`#${column}-cell="{ row }"`);
+    }
+    expect(template).toContain(':disabled="roleRemovalBlock(row.original) !== null || removing !== \'\'"');
+    expect(template).toContain(':text="removalText(row.original)"');
+    expect(scriptOf(roles)).toContain('useFetch<AgentRolesView>("/api/agent-roles", { key: "agent-roles"');
+    expect(scriptOf(page)).toContain('useFetch<AgentRolesView>("/api/agent-roles", { key: "agent-roles"');
+    expect(scriptOf(page)).toContain("rereadRoles()");
+    expect(scriptOf(page)).toContain('tab: "roles"');
+  });
+
+  test("keeps the whole of a role in one form, saved once and reading the roles, the agents, the pool and the tiers again", () => {
+    const template = templateOf(roles);
+
+    expect(template).toContain('<SettingsDialog v-model:open="editing" wide');
+    expect(template).toContain(':dirty="formDirty"');
+    expect(template).toContain('v-for="bundle in view?.bundles ?? []"');
+    expect(template).toContain('<NumberInput v-model="form.maxConcurrent"');
+    expect(template).toContain('<USelect v-model="form.tier" :items="tierItems"');
+    expect(template).toContain('<GrowingTextarea v-model="form.prompt"');
+    expect(template).toContain(':disabled="!adding"');
+    expect(scriptOf(roles)).toContain('$fetch("/api/agent-roles", { method: "POST", body })');
+    expect(scriptOf(roles)).toContain('{ method: "PATCH", body }');
+    expect(scriptOf(roles)).toContain('{ method: "DELETE" }');
+    expect(scriptOf(roles)).toContain("refreshNuxtData(ROLE_POOL_READS)");
+    expect(templateOf(page)).toContain(':tiers="tiers?.tiers ?? []"');
+  });
+});
+
 describe("the model tab", () => {
   test("is the tier table, a tier to a row and a provider to a column, whose cell sets that mapping in place", () => {
     const template = templateOf(tiers);
@@ -336,16 +374,20 @@ describe("the model tab", () => {
     expect(scriptOf(page)).toContain('refreshNuxtData("fold-ratios")');
   });
 
-  test("holds the co-worker limits under it, read from the agency's pool on the providers it has places for, with no role switch and nothing saved", () => {
+  test("holds the co-worker limits under it, read from the agency's pool on the providers it has places for, each cell setting that one limit", () => {
     const template = templateOf(limits);
 
     expect(template).toContain('>{{ $t("agents.title.coworker_limits") }}<');
     expect(template).toContain('v-for="name in providerColumns"');
     expect(scriptOf(limits)).toContain('useFetch<PoolBoard>("/api/agency/pool", { key: "coworker-pool"');
     expect(scriptOf(limits)).toContain("board.value.buckets.map((bucket) => bucket.provider)");
-    // The agency serves no route that changes a limit, so the table reads and says so.
-    expect(template).toContain('$t("agents.message.limits_read_only")');
-    for (const gone of ["<SettingsInputCell", "<SettingsDialog", "set-pool-limit", "reset-pool-limits", "set-role-enabled"]) {
+    // A cell's number box sets that one limit through the agency's pool route, and the screen reads what it touches again.
+    expect(template).toContain("<SettingsInputCell");
+    expect(template).toContain(':save="(text: string) => save(name, row.original.tier, text)"');
+    expect(scriptOf(limits)).toContain('$fetch("/api/agency/pool/limits", { method: "PATCH"');
+    expect(scriptOf(limits)).toContain("refreshNuxtData(ROLE_POOL_READS)");
+    expect(limits).not.toContain("limits_read_only");
+    for (const gone of ["<SettingsDialog", "set-pool-limit", "reset-pool-limits", "set-role-enabled"]) {
       expect(limits).not.toContain(gone);
     }
     for (const key of keysSaying(KO.line_305)) {

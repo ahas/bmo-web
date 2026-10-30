@@ -31,6 +31,10 @@
           <UButton class="shrink-0" size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('agents.title.worker_add')" @click="workersRef?.openAdd()" />
         </UTooltip>
 
+        <UTooltip v-else-if="tab === 'roles'" :text="$t('agents.title.role_add')">
+          <UButton class="shrink-0" size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('agents.title.role_add')" @click="rolesRef?.openAdd()" />
+        </UTooltip>
+
         <UTooltip v-else-if="tab === 'supervisors'" :text="$t('agents.title.companion_add')">
           <UButton class="shrink-0" size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('agents.title.companion_add')" @click="companionsRef?.openAdd()" />
         </UTooltip>
@@ -149,6 +153,8 @@
 
         <AgentsWorkers v-else-if="tab === 'workers'" ref="workersRef" :workers="workers" :reread="refreshAgents" :query="query" />
 
+        <AgentsRoles v-else-if="tab === 'roles'" ref="rolesRef" :tiers="tiers?.tiers ?? []" :query="query" />
+
         <template v-else-if="tab === 'tiers'">
           <AgentsTierTable :query="query" />
           <AgentsFoldRatios :query="query" />
@@ -191,7 +197,7 @@ import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
 import type { AgentSummary, FallbackView, KeepaliveView, RoomSummary } from "#shared/types";
 import type { GeneralPart } from "~/domain/agents";
-import type { FoldRatiosView, ModelPage, PoolBoard, TierSettingsView } from "#shared/agency";
+import type { AgentRolesView, FoldRatiosView, ModelPage, PoolBoard, TierSettingsView } from "#shared/agency";
 import type { DraftProcessesView } from "#shared/drafting";
 
 const route = useRoute();
@@ -208,6 +214,7 @@ const FULL_TABLE_TABS: readonly AgentTab[] = ["routes"];
 
 const workersRef = useTemplateRef<{ openAdd: () => void }>("workersRef");
 const companionsRef = useTemplateRef<{ openAdd: () => void }>("companionsRef");
+const rolesRef = useTemplateRef<{ openAdd: () => void }>("rolesRef");
 const generalRef = useTemplateRef<{ openAddAccount: () => void; openAddRegistration: () => void; openAddCatalogue: () => void; openAddBasePrompt: () => void; openAddAgent: () => void }>("generalRef");
 // The sections that wait in their own list's rows rather than a card's.
 const LIST_SECTIONS = ["registry", "catalogue", "base-prompts"];
@@ -251,6 +258,8 @@ const { data: draftProcesses } = useFetch<DraftProcessesView>("/api/draft-proces
 const { data: models, error: modelsError, refresh: rereadModels, status: modelsStatus } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
 // The co-worker pool, read here too so the search looks over the limits before their tab was opened.
 const { data: pool, refresh: rereadPool } = useFetch<PoolBoard>("/api/agency/pool", { key: "coworker-pool", lazy: true, server: false });
+// The roles, read here too so the search looks over them before their tab was opened.
+const { data: roles, refresh: rereadRoles } = useFetch<AgentRolesView>("/api/agent-roles", { key: "agent-roles", lazy: true, server: false });
 
 const fallbackInitial = useInitialRead(fallbackStatus);
 const keepaliveInitial = useInitialRead(keepaliveStatus);
@@ -275,7 +284,7 @@ async function reread(): Promise<void> {
   rereading.value = true;
 
   try {
-    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), refreshNuxtData("model-tiers"), refreshNuxtData("fold-ratios"), rereadPool(), rereadModels()]);
+    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), refreshNuxtData("model-tiers"), refreshNuxtData("fold-ratios"), rereadPool(), rereadRoles(), rereadModels()]);
   } finally {
     rereading.value = false;
   }
@@ -376,6 +385,20 @@ const entries = computed<SettingsEntry[]>(() => {
         { label: t("common.label.path"), text: worker.cwd, shown: true },
         { label: t("agents.label.shown"), text: worker.checkout === false ? t(NOT_CHECKOUT_LABEL) : null, shown: true },
         { label: t("agents.label.preamble"), text: worker.preamble, shown: false }
+      ]
+    });
+  }
+
+  for (const role of roles.value?.roles ?? []) {
+    list.push({
+      id: `role-${role.name}`,
+      tab: "roles",
+      label: t("agents.label.find_role", { name: role.shown }),
+      fields: [
+        { label: t("common.label.name"), text: role.shown, shown: true },
+        { label: t("agents.label.key"), text: role.name, shown: true },
+        { label: t("agents.label.column_bundles"), text: role.bundles.map((one) => one.label).join(" "), shown: true },
+        { label: t("agents.label.worker_label"), text: role.label, shown: false }
       ]
     });
   }

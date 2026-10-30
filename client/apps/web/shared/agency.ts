@@ -270,6 +270,13 @@ export interface PoolBoard {
   workers: PoolBoardWorker[];
 }
 
+// One place's limit as the agency's `PATCH /pool/limits` takes and answers it.
+export interface PoolLimitView {
+  provider: TierProvider;
+  tier: CoworkerTier;
+  capacity: number;
+}
+
 // One registered model as the agency's model resource serves it (the agency's docs/api.md,
 // 「providers, models, pin-checks, tiers and fallback」): its key names the registry's provider and the
 // registration apart, `tier` is the first tier the registration is mapped at, and `healthy` says
@@ -470,3 +477,42 @@ export type ResearchSettingsChange =
   | { hostIntervalMs: number | null }
   | { engineIntervalMs: number | null }
   | { keys: ResearchKeySettings[] };
+
+// A bundle a role gives, by the name the agency takes it under and the words the screen says it in.
+export interface AgentRoleBundleView {
+  name: string;
+  label: string;
+}
+
+// One role as the agency holds it (the agency's `docs/agent-roles.md`): `shown` is what the screen names it by,
+// `label` the label the agency keeps, which the role's dialog edits.
+export interface AgentRoleView {
+  name: string;
+  shown: string;
+  label: string;
+  bundles: AgentRoleBundleView[];
+  // How many of its agents' turns may run at once; none is no bound.
+  maxConcurrent: number | null;
+  prompt: string | null;
+  tier: ModelTier | null;
+  // How many agents hold it, and whether it is the role a kind is registered with where none is chosen.
+  agents: number;
+  kindDefault: boolean;
+}
+
+// Every role in the agency's order, and every bundle a role may give.
+export interface AgentRolesView {
+  roles: AgentRoleView[];
+  bundles: AgentRoleBundleView[];
+}
+
+// What a role's dialog sends: every field on a new role, the changed ones on a role being edited, a cleared
+// bound, prompt or tier as null.
+export interface AgentRoleChange {
+  name?: string;
+  label?: string;
+  bundles?: string[];
+  maxConcurrent?: number | null;
+  prompt?: string | null;
+  tier?: ModelTier | null;
+}

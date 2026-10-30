@@ -54,7 +54,7 @@ export function agency(): AgencyClient {
  * One call on an agency route the published client the console vendors names no type for, by the path the agency's
  * `docs/api.md` documents, answered and refused as every other agency call is.
  */
-export async function agencyRoute<T>(method: "GET" | "PUT" | "PATCH", path: string, body?: unknown): Promise<T> {
+export async function agencyRoute<T>(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown, call: UnitAnswerCall = {}): Promise<T> {
   const unit = unitAt("AGENCY");
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
@@ -70,16 +70,17 @@ export async function agencyRoute<T>(method: "GET" | "PUT" | "PATCH", path: stri
     return response.ok ? { data: parsed as T, response } : { error: (parsed ?? {}) as { code?: string; error?: string; field?: string }, response };
   });
 
-  return await agencyCall<T, { code?: string; error?: string; field?: string }>(asked);
+  return await agencyCall<T, { code?: string; error?: string; field?: string }>(asked, call);
 }
 
-/** One call on the agency, its refusals said in the pack's words and a refused field said under that field. */
+/** One call on the agency, its refusals said in the pack's words — a call's own codes before the agency's common
+ * ones — and a refused field said under that field. */
 export async function agencyCall<T, E extends { code?: string; error?: string; field?: string }>(
   asked: Promise<{ data?: T; error?: E; response: Response }>,
   call: UnitAnswerCall = {}
 ): Promise<T> {
   try {
-    return await answered(asked, { ...call, codes: AGENCY_CODES });
+    return await answered(asked, { ...call, codes: { ...AGENCY_CODES, ...call.codes } });
   } catch (error) {
     throw error instanceof Error ? fieldRefusal(error) : error;
   }

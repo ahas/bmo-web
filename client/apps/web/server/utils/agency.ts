@@ -54,7 +54,7 @@ export function agency(): AgencyClient {
  * One call on an agency route the published client the console vendors names no type for, by the path the agency's
  * `docs/api.md` documents, answered and refused as every other agency call is.
  */
-export async function agencyRoute<T>(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown, call: UnitAnswerCall = {}): Promise<T> {
+export async function agencyRoute<T>(method: "GET" | "PUT" | "PATCH", path: string, body?: unknown): Promise<T> {
   const unit = unitAt("AGENCY");
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
@@ -70,7 +70,7 @@ export async function agencyRoute<T>(method: "GET" | "POST" | "PUT" | "PATCH" | 
     return response.ok ? { data: parsed as T, response } : { error: (parsed ?? {}) as { code?: string; error?: string; field?: string }, response };
   });
 
-  return await agencyCall<T, { code?: string; error?: string; field?: string }>(asked, call);
+  return await agencyCall<T, { code?: string; error?: string; field?: string }>(asked);
 }
 
 /** One call on the agency, its refusals said in the pack's words — a call's own codes before the agency's common

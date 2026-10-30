@@ -2777,9 +2777,9 @@ Two ways, split because the running places differ.
 - **One table of the roles the agency holds** (the agency's `docs/agent-roles.md`), one row each in the order the
   agency lists them, read from its `GET /agent-roles`: the role, named by the pack's word for its name where the pack
   holds one and by the label the agency keeps otherwise, with its name under it; the bundles it gives as chips, each
-  by the pack's short name for its code and by the agency's label where the pack holds none, or 기능 묶음 없음; how
-  many of its agents' turns may run at once, or 제한 없음; the tier its agents' runs take, or 기본값 where it names
-  none; and how many agents hold it, with 종류 기본 beside the count where it is a kind's own role. The table takes
+  by the pack's short name for its code — its name with each dot a hyphen — and by the agency's label where the pack
+  holds none, or 기능 묶음 없음; how many of its agents' turns may run at once, or 제한 없음; the tier its work key
+  `role:<name>` is assigned, or 기본값 where none is; and how many agents hold it, with 종류 기본 beside the count where it is a kind's own role. The table takes
   its own height and scrolls sideways inside its own box.
 - **Pressing a row opens the role's dialog,** one form (「Forms」) with one 저장 at its foot: 이름 (fixed once made),
   이름표, 기능 묶음 as a checkbox for every bundle the agency declares, 동시 실행 한도 as a number box whose empty
@@ -2788,7 +2788,7 @@ Two ways, split because the running places differ.
   sends what changed through `PATCH /agent-roles/{roleName}`; an emptied limit or prompt is cleared.
 - **추가** in the tab row opens the same dialog for a new role, sent through `POST /agent-roles`. The agency checks
   the name, the bundles and the tier, and a refused save keeps every field as written with the pack's sentence for
-  the agency's code under the field it names.
+  the agency's code under the field it names, or under the form where it names none.
 - **삭제** stands at the end of each row, asked first in the message pill, and goes through `DELETE
   /agent-roles/{roleName}`. It stands disabled while any agent holds the role or the role is a kind's own, its
   tooltip saying which; a removal the agency refuses all the same says the pack's sentence under the table.
@@ -2835,11 +2835,11 @@ Two ways, split because the running places differ.
   there are workers (the agency's `docs/model-tiers.md`). A cell shows the limit with a status mark (0 is 막힘) and,
   under it, how many places run, how many are held and how many wait. It is a different question from
   how many tasks a co-work's stage holds, which its plan alone sets.
-- **A cell's box sets that one limit:** a number box taking a whole number from 0, saved with Enter or the check
-  button, through the agency's `PATCH /pool/limits` (its `docs/api.md`, 「pool, seat-requests, reservations and
-  roles」); 0 closes the place. A refused value stays in the box with the pack's sentence for the agency's code under
-  it. A save reads the pool, the agent list and the tier table again. A first read that fails says so with a reread;
-  a later one that fails keeps what was read.
+- **A cell's box sets that one limit:** a number box taking a whole number from 0 up to the most the agency's policy
+  allows, which the agency judges, saved with Enter or the check button, through the agency's `PATCH /pool/limits`
+  (its `docs/api.md`, 「pool, seat-requests, reservations and roles」); 0 closes the place. A refused value stays in
+  the box with the pack's sentence for the agency's code under it. A save reads the pool, the agent list and the
+  tier table again. A first read that fails says so with a reread; a later one that fails keeps what was read.
 - The counts are read again every few seconds while the tab stands. Which role is on which tier is chosen
   on the 실행 경로 tab as its `role:` key; a role is never switched on or off from the screen.
 - **The draft-process table** (드래프트 과정) stands under the co-worker table: what a round's answer is asked

@@ -1,9 +1,13 @@
 import { wording } from "#shared/wording";
 
-import { agencyRoute } from "./agency";
+import { AGENCY_TIMEOUT_MS, agency, agencyCall } from "./agency";
 import { bundleWordOf, roleWordOf } from "./agency-words";
+import { within } from "./unit-answer";
 
+import type { components } from "@agency/client/schema";
 import type { AgentRoleBundleView, AgentRoleChange, AgentRoleView, AgentRolesView } from "#shared/agency";
+
+type Schemas = components["schemas"];
 
 // The roles the agency holds and every bundle a role may give, read, added, changed and removed through its
 // `/agent-roles` routes (the agency's `docs/agent-roles.md` and `docs/api.md`). The agency's labels are English for
@@ -12,44 +16,29 @@ import type { AgentRoleBundleView, AgentRoleChange, AgentRoleView, AgentRolesVie
 // The agency's codes these routes answer beyond the common ones: a role still held, or a kind's own, is not removed.
 const REMOVAL_CODES: Readonly<Record<string, string>> = { conflict: "agents.error.role_delete_refused" };
 
-const text = (value: unknown): string => (typeof value === "string" ? value : "");
-const list = (value: unknown): Record<string, unknown>[] =>
-  Array.isArray(value) ? value.filter((one): one is Record<string, unknown> => one !== null && typeof one === "object") : [];
-
-function bundleOf(held: Record<string, unknown>): AgentRoleBundleView[] {
-  const name = text(held.name);
-
-  return name === "" ? [] : [{ name, label: bundleWordOf(held.code, name, text(held.label)) }];
+// A bundle is worded by its code, which is its name with each dot a hyphen (the agency's `docs/api.md`, 「agents」).
+function bundleOf(bundle: Schemas["AgentRoleBundle"]): AgentRoleBundleView {
+  return { name: bundle.name, label: bundleWordOf(bundle.name.replaceAll(".", "-"), bundle.name, bundle.label) };
 }
 
-/** One role as the agency answers it, in the screen's shape; a member that does not read as one is left out. */
-export function agentRoleOf(held: Record<string, unknown>): AgentRoleView[] {
-  const name = text(held.name);
-
-  if (name === "") return [];
-
-  const label = text(held.label);
-
-  return [
-    {
-      name,
-      shown: roleWordOf(held.code, name, label),
-      label,
-      bundles: list(held.bundles).flatMap(bundleOf),
-      maxConcurrent: typeof held.maxConcurrent === "number" ? held.maxConcurrent : null,
-      prompt: typeof held.prompt === "string" && held.prompt !== "" ? held.prompt : null,
-      tier: typeof held.tier === "string" && held.tier !== "" ? held.tier : null,
-      agents: typeof held.agents === "number" ? held.agents : 0,
-      kindDefault: held.kindDefault === true
-    }
-  ];
+/** One role as the agency answers it, in the screen's shape; a role's code is its name. */
+export function agentRoleOf(role: Schemas["AgentRole"]): AgentRoleView {
+  return {
+    name: role.name,
+    shown: roleWordOf(role.name, role.name, role.label),
+    label: role.label,
+    bundles: role.bundles.map(bundleOf),
+    maxConcurrent: role.maxConcurrent,
+    prompt: role.prompt === "" ? null : role.prompt,
+    tier: role.tier === "" ? null : role.tier,
+    agents: role.agents,
+    kindDefault: role.kindDefault
+  };
 }
 
 /** The agency's roles and bundles, in the screen's shape. */
-export function agentRolesOfAnswer(answer: unknown): AgentRolesView {
-  const held = (answer ?? {}) as { roles?: unknown; bundles?: unknown };
-
-  return { roles: list(held.roles).flatMap(agentRoleOf), bundles: list(held.bundles).flatMap(bundleOf) };
+export function agentRolesOfAnswer(answer: Schemas["AgentRoleList"]): AgentRolesView {
+  return { roles: answer.roles.map(agentRoleOf), bundles: answer.bundles.map(bundleOf) };
 }
 
 const whole = (value: unknown): boolean => typeof value === "number" && Number.isInteger(value) && value >= 1;
@@ -110,30 +99,30 @@ export function agentRoleChangeOf(body: unknown, adding: boolean): AgentRoleChan
 
 /** Every role and bundle the agency holds. */
 export async function agentRoles(): Promise<AgentRolesView> {
-  return agentRolesOfAnswer(await agencyRoute<unknown>("GET", "/agent-roles"));
+  return agentRolesOfAnswer(await agencyCall(agency().GET("/agent-roles", { signal: within(AGENCY_TIMEOUT_MS) })));
 }
 
 /** A new role; on a new role the agency is sent no bound, prompt or tier it was not given. */
 export async function addAgentRole(change: AgentRoleChange): Promise<AgentRoleView> {
-  const body = Object.fromEntries(Object.entries(change).filter(([, value]) => value !== null));
+  if (change.name === undefined || change.label === undefined || change.bundles === undefined) throw fail(400, wording("common.error.bad_action"));
 
-  return roleAnswered(await agencyRoute<unknown>("POST", "/agent-roles", body));
+  const body: Schemas["AgentRoleAsk"] = { name: change.name, label: change.label, bundles: change.bundles };
+
+  if (change.maxConcurrent != null) body.maxConcurrent = change.maxConcurrent;
+  if (change.prompt != null) body.prompt = change.prompt;
+  if (change.tier != null) body.tier = change.tier;
+
+  return agentRoleOf(await agencyCall(agency().POST("/agent-roles", { body, signal: within(AGENCY_TIMEOUT_MS) })));
 }
 
 /** One role's change, the fields it names and no other. */
 export async function changeAgentRole(name: string, change: AgentRoleChange): Promise<AgentRoleView> {
-  return roleAnswered(await agencyRoute<unknown>("PATCH", `/agent-roles/${encodeURIComponent(name)}`, change));
+  const { name: _name, ...body } = change;
+
+  return agentRoleOf(await agencyCall(agency().PATCH("/agent-roles/{roleName}", { params: { path: { roleName: name } }, body, signal: within(AGENCY_TIMEOUT_MS) })));
 }
 
 /** One role removed; a role still held, or a kind's own, is refused in the pack's words. */
 export async function removeAgentRole(name: string): Promise<void> {
-  await agencyRoute<unknown>("DELETE", `/agent-roles/${encodeURIComponent(name)}`, undefined, { codes: REMOVAL_CODES });
-}
-
-function roleAnswered(answer: unknown): AgentRoleView {
-  const [role] = answer !== null && typeof answer === "object" ? agentRoleOf(answer as Record<string, unknown>) : [];
-
-  if (role === undefined) throw fail(502, wording("agents.error.agency_failed"));
-
-  return role;
+  await agencyCall(agency().DELETE("/agent-roles/{roleName}", { params: { path: { roleName: name } }, signal: within(AGENCY_TIMEOUT_MS) }), { codes: REMOVAL_CODES });
 }

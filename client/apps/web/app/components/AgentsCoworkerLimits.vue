@@ -103,7 +103,8 @@ function countsText(bucket: PoolBoardBucket): string {
   });
 }
 
-// A limit is a whole number from 0; 0 closes the place.
+// A limit is a whole number from 0, which closes the place; the most it may be is the agency's policy's to say, and a
+// number past it is the agency's refusal under the box.
 function limitFault(text: string): string | null {
   return /^\d+$/.test(text.trim()) ? null : t("agents.error.limit_whole");
 }

@@ -1,0 +1,415 @@
+import { wording } from "#shared/wording";
+
+import { unitFetch } from "./units";
+
+import type {
+  ResearchAsk,
+  ResearchCategoryView,
+  ResearchFilter,
+  ResearchHold,
+  ResearchItem,
+  ResearchLogLine,
+  ResearchNewSource,
+  ResearchQueuePage,
+  ResearchRunDetail,
+  ResearchRunView,
+  ResearchSource,
+  ResearchSourceChange,
+  ResearchStateChange,
+  ResearchStateView
+} from "#shared/research";
+
+// The research unit, bmo-research, as the console reaches it: its state, its categories, its queue and an item's
+// research run and its sources, for the research screen (its `docs/api.md`; docs/web.md, 「Research screen」). The unit publishes no
+// TypeScript client, so it is called by its documented paths, at the address and with the token `RESEARCH_ADDRESS`
+// and `RESEARCH_TOKEN` name.
+
+const UNIT = "RESEARCH";
+
+// The unit's codes that say nothing a person acts on, each said as a failure on its side.
+const FAILED: Readonly<Record<string, string>> = {
+  "bad-request": "research.error.failed",
+  unauthorized: "research.error.failed",
+  "no-route": "research.error.failed",
+  failed: "research.error.failed",
+  "upstream-failed": "research.error.failed",
+  unavailable: "research.error.failed"
+};
+
+// What each call's refusals say, by what was asked.
+const READ = { ...FAILED, "not-found": "research.error.no_item" };
+const STATE = { ...FAILED, "not-found": "research.error.no_category" };
+const ASK = { ...FAILED, "bad-request": "research.error.ask_refused", "not-found": "research.error.no_category", conflict: "research.error.ask_conflict" };
+const DISMISS = { ...FAILED, "not-found": "research.error.no_item", conflict: "research.error.dismiss_conflict" };
+const RUN = { ...FAILED, "not-found": "research.error.no_run" };
+const SOURCE_READ = FAILED;
+const SOURCE_ADD = { ...FAILED, "bad-request": "research.error.source_refused", "not-found": "research.error.no_category" };
+const SOURCE_CHANGE = { ...FAILED, "bad-request": "research.error.source_refused", "not-found": "research.error.no_source" };
+
+/** A call on the research unit, its refusals said in the pack's words by the table given; a unit not reached — no address named, or nothing took the call — is said as the research unit not answering. */
+export async function researchFetch<T>(path: string, init: RequestInit | undefined, codes: Readonly<Record<string, string>>): Promise<T> {
+  try {
+    return await unitFetch<T>(UNIT, path, init, { codes });
+  } catch (error) {
+    throw unreached(error) ? fail(503, wording("research.error.unreachable")) : error;
+  }
+}
+
+// A refusal the unit answered carries what it said; a call that never reached it carries nothing.
+function unreached(error: unknown): boolean {
+  const failure = error as { statusCode?: unknown; data?: unknown } | null;
+
+  return failure?.statusCode === 503 && failure.data === undefined;
+}
+
+const json = (method: string, body: unknown): RequestInit => ({ method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+
+interface UnitCategoryState {
+  categoryName: string;
+  state: string;
+  waitingCount: number;
+  runningCount: number;
+  cap: number;
+}
+
+interface UnitState {
+  state: string;
+  changedAt: number | null;
+  categories: UnitCategoryState[];
+  holds: ResearchHold[];
+}
+
+interface UnitCategory {
+  name: string;
+  purpose: string;
+  shape: string;
+  cap: number;
+  cadenceMinutes: number;
+  gatherMinutes: number | null;
+  provider: string | null;
+  model: string | null;
+  state: string;
+  stateAt: number | null;
+}
+
+// Every category the unit holds, in its order, with the state and the part of the queue the state names for it.
+function stateOf(state: UnitState, categories: readonly UnitCategory[]): ResearchStateView {
+  const counted = new Map(state.categories.map((one) => [one.categoryName, one]));
+
+  return {
+    state: state.state,
+    changedAt: state.changedAt ?? null,
+    categories: categories.map((category): ResearchCategoryView => {
+      const standing = counted.get(category.name);
+
+      return {
+        name: category.name,
+        purpose: category.purpose,
+        shape: category.shape,
+        cap: standing?.cap ?? category.cap,
+        cadenceMinutes: category.cadenceMinutes,
+        gatherMinutes: category.gatherMinutes ?? null,
+        provider: category.provider ?? null,
+        model: category.model ?? null,
+        state: standing?.state ?? category.state,
+        stateAt: category.stateAt ?? null,
+        waitingCount: standing?.waitingCount ?? 0,
+        runningCount: standing?.runningCount ?? 0
+      };
+    }),
+    holds: (state.holds ?? []).map((hold) => ({ registration: hold.registration, reason: hold.reason, nodeName: hold.nodeName ?? null, since: hold.since, reported: hold.reported, categoryNames: hold.categoryNames ?? [] }))
+  };
+}
+
+// The categories page holds every one the unit keeps: it registers a handful, never past one page's most.
+async function categories(): Promise<UnitCategory[]> {
+  return (await researchFetch<{ items: UnitCategory[] }>("/categories?limit=200", undefined, READ)).items;
+}
+
+export async function readResearchState(): Promise<ResearchStateView> {
+  const [state, held] = await Promise.all([researchFetch<UnitState>("/state", undefined, READ), categories()]);
+
+  return stateOf(state, held);
+}
+
+// The state as the unit answers the change, with the categories read again for the state each now stands in.
+export async function changeResearchState(change: ResearchStateChange): Promise<ResearchStateView> {
+  const state = await researchFetch<UnitState>("/state", json("PATCH", change), STATE);
+
+  return stateOf(state, await categories());
+}
+
+/** A state change the console sends, read off a body: a state of the two, and a category's name where it names one. */
+export function researchStateChangeOf(body: unknown): ResearchStateChange | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  const fields = body as Record<string, unknown>;
+
+  if (fields.state !== "running" && fields.state !== "stopped") return null;
+  if (fields.categoryName === undefined || fields.categoryName === null) return { state: fields.state };
+
+  return typeof fields.categoryName === "string" && fields.categoryName !== "" ? { state: fields.state, categoryName: fields.categoryName } : null;
+}
+
+type UnitItem = ResearchItem & Record<string, unknown>;
+
+function itemOf(item: UnitItem): ResearchItem {
+  return {
+    id: item.id,
+    categoryName: item.categoryName,
+    name: item.name,
+    maker: item.maker ?? null,
+    address: item.address ?? null,
+    kind: item.kind,
+    shape: item.shape,
+    asked: item.asked === true,
+    state: item.state,
+    tries: item.tries,
+    retryAt: item.retryAt ?? null,
+    runId: item.runId ?? null,
+    documentId: item.documentId ?? null,
+    title: item.title ?? null,
+    shareUrl: item.shareUrl ?? null,
+    languages: item.languages ?? [],
+    narrations: item.narrations ?? [],
+    fit: item.fit === true,
+    fitNodes: item.fitNodes ?? [],
+    error: item.error ?? null,
+    createdAt: item.createdAt,
+    changedAt: item.changedAt
+  };
+}
+
+/** How the queue is narrowed and paged: by a category, by states, past an item, at most so many. */
+export interface ResearchQueueQuery {
+  categoryName: string | null;
+  states: string[];
+  after: number | null;
+  limit: number | null;
+}
+
+const ITEM_STATES = new Set(["waiting", "running", "reported", "fit", "failed", "taken", "dismissed"]);
+const QUEUE_LIMIT = 200;
+
+const wholeOf = (value: unknown): number | null => (typeof value === "string" && /^\d+$/.test(value) ? Number(value) : null);
+
+/** A queue query read off the console's own query; a part that is not of its shape is no query at all. */
+export function researchQueueQueryOf(query: Record<string, unknown>): ResearchQueueQuery | null {
+  const categoryName = typeof query.categoryName === "string" && query.categoryName !== "" ? query.categoryName : null;
+  const states = typeof query.state === "string" && query.state !== "" ? query.state.split(",") : [];
+  const after = query.after === undefined ? null : wholeOf(query.after);
+  const limit = query.limit === undefined ? null : wholeOf(query.limit);
+
+  if (states.some((state) => !ITEM_STATES.has(state))) return null;
+  if ((query.after !== undefined && after === null) || (query.limit !== undefined && (limit === null || limit < 1 || limit > QUEUE_LIMIT))) return null;
+
+  return { categoryName, states, after, limit };
+}
+
+export async function readResearchQueue(query: ResearchQueueQuery): Promise<ResearchQueuePage> {
+  const params = new URLSearchParams();
+
+  if (query.categoryName !== null) params.set("categoryName", query.categoryName);
+  if (query.states.length > 0) params.set("state", query.states.join(","));
+  if (query.after !== null) params.set("after", String(query.after));
+  if (query.limit !== null) params.set("limit", String(query.limit));
+
+  const asked = params.size === 0 ? "" : `?${params.toString()}`;
+  const page = await researchFetch<{ items: UnitItem[]; more: boolean }>(`/queue${asked}`, undefined, READ);
+
+  return { items: page.items.map(itemOf), more: page.more === true };
+}
+
+/** An ask the console sends, read off a body: a category, a name and an address, each a word. */
+export function researchAskOf(body: unknown): ResearchAsk | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  const fields = body as Record<string, unknown>;
+  const word = (value: unknown): string | null => (typeof value === "string" && value.trim() !== "" ? value.trim() : null);
+  const categoryName = word(fields.categoryName);
+  const name = word(fields.name);
+  const address = word(fields.address);
+
+  return categoryName === null || name === null || address === null ? null : { categoryName, name, address };
+}
+
+export async function askResearch(ask: ResearchAsk): Promise<ResearchItem> {
+  return itemOf(await researchFetch<UnitItem>("/queue", json("POST", ask), ASK));
+}
+
+// A dismissal alone: the console marks nothing taken and moves nothing to the front.
+export async function dismissResearchItem(itemId: number): Promise<ResearchItem> {
+  return itemOf(await researchFetch<UnitItem>(`/queue/${itemId}`, json("PATCH", { state: "dismissed" }), DISMISS));
+}
+
+type UnitRun = ResearchRunView & Record<string, unknown>;
+
+function runOf(run: UnitRun): ResearchRunView {
+  return {
+    runId: run.runId,
+    key: run.key,
+    query: run.query,
+    provider: run.provider,
+    model: run.model,
+    state: run.state,
+    outcome: run.outcome ?? null,
+    startedAt: run.startedAt,
+    closesAt: run.closesAt ?? null,
+    finishedAt: run.finishedAt ?? null,
+    documentId: run.documentId ?? null,
+    link: run.link ?? null,
+    error: run.error ?? null,
+    branches: run.branches ?? 0
+  };
+}
+
+export async function readResearchRun(runId: number): Promise<ResearchRunDetail> {
+  const [run, log] = await Promise.all([
+    researchFetch<UnitRun>(`/research-runs/${runId}`, undefined, RUN),
+    researchFetch<{ items: ResearchLogLine[] }>(`/research-runs/${runId}/log-lines`, undefined, RUN)
+  ]);
+
+  return { run: runOf(run), lines: log.items.map((line) => ({ id: line.id, at: line.at, kind: line.kind, text: line.text })) };
+}
+
+/** A whole number a path's segment names, or null where it names none. */
+export function researchIdOf(segment: string | undefined): number | null {
+  return wholeOf(segment);
+}
+
+type UnitSource = ResearchSource & Record<string, unknown>;
+
+function sourceOf(source: UnitSource): ResearchSource {
+  return {
+    id: source.id,
+    categoryName: source.categoryName,
+    kind: source.kind,
+    address: source.address,
+    query: source.query ?? null,
+    filter: { require: source.filter?.require ?? [], exclude: source.filter?.exclude ?? [] },
+    everyMinutes: source.everyMinutes ?? null,
+    limit: source.limit,
+    failureCount: source.failureCount ?? 0,
+    lastError: source.lastError ?? null,
+    readAt: source.readAt ?? null,
+    createdAt: source.createdAt,
+    changedAt: source.changedAt
+  };
+}
+
+// How many pages of sources one read walks at most: a deployment registers a few dozen.
+const SOURCE_PAGES = 10;
+
+/** Every registered source, by id, read page after page. */
+export async function readResearchSources(): Promise<ResearchSource[]> {
+  const sources: ResearchSource[] = [];
+  let after: number | null = null;
+
+  for (let page = 0; page < SOURCE_PAGES; page += 1) {
+    const asked: string = after === null ? "/sources?limit=200" : `/sources?limit=200&after=${after}`;
+    const answered: { items: UnitSource[]; more: boolean } = await researchFetch(asked, undefined, SOURCE_READ);
+
+    sources.push(...answered.items.map(sourceOf));
+
+    if (answered.more !== true || answered.items.length === 0) break;
+
+    after = answered.items.at(-1)?.id ?? null;
+  }
+
+  return sources;
+}
+
+const wordOf = (value: unknown): string | null => (typeof value === "string" && value.trim() !== "" ? value.trim() : null);
+const countOf = (value: unknown): number | null => (typeof value === "number" && Number.isSafeInteger(value) ? value : null);
+
+// A list of words, each a word; anything else is no list.
+function wordsOf(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const words = value.map(wordOf);
+
+  return words.every((word): word is string => word !== null) ? words : null;
+}
+
+function filterOf(value: unknown): ResearchFilter | null {
+  if (typeof value !== "object" || value === null) return null;
+
+  const fields = value as Record<string, unknown>;
+  const required = wordsOf(fields.require ?? []);
+  const excluded = wordsOf(fields.exclude ?? []);
+
+  return required === null || excluded === null ? null : { require: required, exclude: excluded };
+}
+
+// The fields a source's change and its registration share, each of its own shape where it stands; null where one
+// that stands is not.
+function sourceFieldsOf(fields: Record<string, unknown>): ResearchSourceChange | null {
+  const change: ResearchSourceChange = {};
+
+  for (const name of ["address", "query"] as const) {
+    if (fields[name] === undefined) continue;
+
+    const word = wordOf(fields[name]);
+
+    if (word === null) return null;
+
+    change[name] = word;
+  }
+
+  for (const name of ["everyMinutes", "limit"] as const) {
+    if (fields[name] === undefined) continue;
+
+    const count = countOf(fields[name]);
+
+    if (count === null) return null;
+
+    change[name] = count;
+  }
+
+  if (fields.filter !== undefined) {
+    const filter = filterOf(fields.filter);
+
+    if (filter === null) return null;
+
+    change.filter = filter;
+  }
+
+  return change;
+}
+
+/** A source to register, read off a body: a category, a kind and the fields of their shapes; anything else is none. */
+export function researchNewSourceOf(body: unknown): ResearchNewSource | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  const fields = body as Record<string, unknown>;
+  const categoryName = wordOf(fields.categoryName);
+  const kind = wordOf(fields.kind);
+  const rest = sourceFieldsOf(fields);
+
+  return categoryName === null || kind === null || rest === null ? null : { categoryName, kind, ...rest };
+}
+
+/** A source's change, read off a body: at least one field the change takes, each of its own shape. */
+export function researchSourceChangeOf(body: unknown): ResearchSourceChange | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  const fields = body as Record<string, unknown>;
+
+  if (Object.keys(fields).some((name) => !["address", "query", "filter", "everyMinutes", "limit"].includes(name))) return null;
+
+  const change = sourceFieldsOf(fields);
+
+  return change === null || Object.keys(change).length === 0 ? null : change;
+}
+
+export async function addResearchSource(source: ResearchNewSource): Promise<ResearchSource> {
+  return sourceOf(await researchFetch<UnitSource>("/sources", json("POST", source), SOURCE_ADD));
+}
+
+export async function changeResearchSource(sourceId: number, change: ResearchSourceChange): Promise<ResearchSource> {
+  return sourceOf(await researchFetch<UnitSource>(`/sources/${sourceId}`, json("PATCH", change), SOURCE_CHANGE));
+}
+
+export async function removeResearchSource(sourceId: number): Promise<void> {
+  await researchFetch<null>(`/sources/${sourceId}`, { method: "DELETE" }, SOURCE_CHANGE);
+}

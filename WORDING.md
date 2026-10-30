@@ -106,6 +106,8 @@
 - stop a run → 중지; pause and resume a timer → 정지, 재개; run out of time → 시간 초과. Never 멈추기,
   다시 흐르게, 때를 놓침.
 - leave the queue → 대기열에서 제외. Never 대기열에서 빠지다.
+- the research unit's words → 리서치, 분류 (a category), 대기열 (its queue), 제외 (dismissing an item), 보류 (a hold on its
+  runs), 해당 (a document marked for the owner's word), 브리핑 (a brief), 보안 권고 (an advisory). Never 카테고리, 큐, 기각.
 - set by hand → 수동 지정. Never 손으로 정함.
 - **One screen speaks in one style.** A notice, a guidance line and an error end in 합니다 and
   했습니다 throughout; 어요 is never mixed into them.

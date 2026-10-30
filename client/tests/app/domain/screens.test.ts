@@ -11,13 +11,13 @@ import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 // from the pack, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen standing in this console is listed, named from the pack", () => {
-  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/code", "/agents", "/monitor", "/remote"]);
+  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/code", "/agents", "/research", "/monitor", "/remote"]);
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
 });
 
 test("the console's own screens stand always, and a screen a unit brings only while its manifest names it", () => {
-  expect(SCREENS.filter((screen) => screen.brought !== true).map((screen) => screen.to)).toEqual(["/live", "/siren", "/db", "/documents", "/agents", "/monitor"]);
-  expect(screensWithBundles([]).map((screen) => screen.to)).toEqual(["/live", "/siren", "/db", "/documents", "/agents", "/monitor"]);
+  expect(SCREENS.filter((screen) => screen.brought !== true).map((screen) => screen.to)).toEqual(["/live", "/siren", "/db", "/documents", "/agents", "/research", "/monitor"]);
+  expect(screensWithBundles([]).map((screen) => screen.to)).toEqual(["/live", "/siren", "/db", "/documents", "/agents", "/research", "/monitor"]);
 });
 
 // A screen a unit brings, as the console's list hands it to the browser.

@@ -1,7 +1,5 @@
-import { wording } from "#shared/wording";
-
 import { agencyRoute } from "./agency";
-import { unitFetch } from "./units";
+import { researchFetch } from "./research";
 
 import type { ResearchKeySettings, ResearchSettingsChange, ResearchSettingsView, SearchEngineState } from "#shared/research";
 
@@ -9,8 +7,6 @@ import type { ResearchKeySettings, ResearchSettingsChange, ResearchSettingsView,
 // 「research-settings」; docs/web.md, the searcher tab), with the co-worker roles a search's branches may go out on
 // beside them, read off the agency's pool. The research unit publishes no TypeScript client, so it is called by its
 // documented paths, at the address and with the token `RESEARCH_ADDRESS` and `RESEARCH_TOKEN` name.
-
-const UNIT = "RESEARCH";
 
 // The research unit's codes, each with the pack's key for its sentence: a value it did not take, or a failure on
 // its side.
@@ -21,8 +17,6 @@ const RESEARCH_CODES: Readonly<Record<string, string>> = {
   failed: "research.error.failed",
   "upstream-failed": "research.error.failed"
 };
-
-const CALL = { codes: RESEARCH_CODES };
 
 // One research key as the unit answers it, its page budgets among what it holds.
 interface UnitKeySettings extends ResearchKeySettings {
@@ -65,21 +59,9 @@ async function coworkerRoles(): Promise<string[]> {
   return answer.items.map((role) => role.name);
 }
 
-// A call on the research unit, its refusals said in the pack's words; a unit not reached — no address named, or
-// nothing took the call — is said as the research unit not answering.
+// A call on the research unit, its refusals said in the pack's words.
 async function research<T>(path: string, init?: RequestInit): Promise<T> {
-  try {
-    return await unitFetch<T>(UNIT, path, init, CALL);
-  } catch (error) {
-    throw unreached(error) ? fail(503, wording("research.error.unreachable")) : error;
-  }
-}
-
-// A refusal the unit answered carries what it said; a call that never reached it carries nothing.
-function unreached(error: unknown): boolean {
-  const failure = error as { statusCode?: unknown; data?: unknown } | null;
-
-  return failure?.statusCode === 503 && failure.data === undefined;
+  return await researchFetch<T>(path, init, RESEARCH_CODES);
 }
 
 export async function readResearchSettings(): Promise<ResearchSettingsView> {

@@ -86,7 +86,7 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
   edge. So the box fills the screen — up to the TODO panel on the right in a room screen — and what
   stands inside it stops at 768.
   - Which box carries the scroll differs per screen. On list screens (home, live status, cache siren,
-    archive, search list) the panel body flows as is; on agent management the section box under the tab
+    research, archive, search list) the panel body flows as is; on agent management the section box under the tab
     row flows; on room, gate and agent-log screens the container
     inside the body holds the width and the body flows; on the DB screen the body releases the width and
     the table box flows within itself horizontally and vertically. Either way the flowing box fills the
@@ -1179,9 +1179,9 @@ edit to that file alone, once the guide below carries the word.
 Four groups.
 
 - **Live status** — always one at the top. Below it stand, in this order, **mail**, **cache siren**, **DB**,
-  **파일**, **아티팩트**, **document viewer**, **code review**, **agent management**, **monitor**, **게이트** and
-  **remote**, and after them any other screen a unit brings, the brain's among them. Live status, cache siren, DB,
-  document viewer, agent management and monitor are the console's own and always stand; mail, 파일, 아티팩트, code
+  **파일**, **아티팩트**, **document viewer**, **code review**, **agent management**, **리서치**, **monitor**, **게이트**
+  and **remote**, and after them any other screen a unit brings, the brain's among them. Live status, cache siren,
+  DB, document viewer, agent management, 리서치 and monitor are the console's own and always stand; mail, 파일, 아티팩트, code
   review, 게이트 and remote, and the screens after them, are the units' own and stand only while their unit answers
   its manifest, under the manifest's own name and icon (「Screens a unit brings」). The monitor's second tab is the
   card board; `/cards` leads there.
@@ -2496,6 +2496,84 @@ Two ways, split because the running places differ.
 - **The events** stand last, newest first: what the master saw change and what it ordered, in its own words.
 - Every figure carries thousands separators and stands in tabular figures, and a value the master could not read
   reads 읽지 못함.
+
+### Research screen
+
+- **`/research`, 리서치, is where the research unit, bmo-research, is watched at work** (its `docs/api.md`,
+  「state」, 「categories」, 「queue」 and 「research runs」). It is the console's own screen, reading the unit
+  through the console's server at the address `RESEARCH_ADDRESS` names, and it stands in the reading column as a
+  list screen, its panel body the one scroll. It reads and changes nothing else of the unit: the categories' own
+  settings, the recipients and the stack stay the unit's routes.
+- **분류** stands first.
+  - Its head says whether the loop runs — 실행 중 while any category runs, 모두 중지됨 where every one is
+    stopped — with when a category's state last changed, and one button that changes every category at once:
+    전체 중지 while any runs, 전체 재개 once none does.
+  - Each category stands as a block in the order the unit names them: its name, its state as a chip (실행 중 or
+    중지됨, and 보류 beside it while a hold names it), its purpose, and its figures — its shape (매뉴얼·조사, 보안
+    권고 or 브리핑), its waiting and running items against its cap, how often its sources are read, for a brief
+    how often it gathers, and its road, the provider and model it names, or 기본 경로 where the settings' road
+    stands — with a 중지 or 재개 button that changes that category alone.
+  - A hold the unit reports stands under each category it names, in the warning colour: the model it waits on,
+    why — 벤치, with the node the bench stands on, or 복구 대기 while the model's health is awaited — since when,
+    and 보고됨 once the owner's room was told the model stays down.
+  - A change goes as it is pressed; the button spins while it goes, the blocks stand as the unit answers, and a
+    refusal is said in a notice.
+- **대기열** stands under it.
+  - Its head carries two choices, the category (전체 분류, then each category) and the state (전체 상태, then
+    each of the seven: 대기, 실행 중, 보고됨, 검토 요청, 실패, 처리됨, 제외됨), which the unit narrows the queue by,
+    and 요청.
+  - The items stand newest first, by when each was made. The unit answers its queue in the order runs are taken
+    in, so the screen orders what it has read; a page is fifty items, and 더보기 under the list reads the next.
+    Where nothing matches, 항목 없음 stands in the list's place.
+  - Each item carries its name, 해당 where the reading of its document marks it for the owner's word (with the
+    nodes a manual's fit names), 요청 where the owner asked it, and its state as a chip; under them its maker
+    linked to the address it was found at (the address's host where no maker is known), its shape, its category,
+    how many tries it took, and while it waits on a retry when the next try is due; the error sentence, where one
+    stands, in the error colour; and once a document is filed, the document's title linked to its share link in a
+    new tab, with the languages its page holds and the languages its narration plays as chips — 한국어, 영어,
+    and any other as the code the unit gave.
+  - **제외** stands on every item the unit still takes it for — every state but 처리됨 and 제외됨 — and asks once
+    in the message pill first, since a dismissed item's address stays seen and nothing turns it up again. The
+    item stands as the unit answers it; a refusal is said in a notice.
+- **요청** opens a dialog asking the unit for one thing by its category, its name and the address of its maker's
+  page; the category is chosen from the unit's, its first one chosen as the dialog opens. The unit queues it at once, ahead of
+  what a scan took in, and the queue is read again. A refusal stands under the dialog in the pack's words: a name
+  or an address it did not take, a category it does not hold, or the same thing already waiting or running.
+- **An item's run.** An item whose latest try went out as a research run is pressed by its name, and the run
+  opens in a sheet from the side over the list, so the list stays where it was.
+  - The sheet carries the run's facts — its depth by the searcher's name, its state (대기, 실행 중 or 종료), how it
+    ended (답변, 실패 or 중단) once it has, its provider and model, when it started, when its web tools close and
+    when it finished, how many branches it opened, the filed document's link and the error where one stands —
+    and the question it was asked, in a block of its own.
+  - Under them stands the run's log, oldest first: each line's time, its kind as a chip — 요청, 배정, 답변,
+    라운드, 브랜치, 등록, 알림, 종료 — and its text. A run whose log holds nothing yet says 로그 없음.
+- **출처** stands last: every source the unit reads its categories' candidates from (its `docs/sources.md`), in one
+  table of the shared settings table's look, one row each by its number, scrolling sideways inside its own box
+  where the reading column is too narrow for it.
+  - A row carries the source's number, its category, its kind — Hugging Face 트렌딩, Hugging Face 검색, arXiv,
+    GitHub 릴리스, RSS, and any other as a sentence naming it — its address with its search words under it where
+    the kind takes some, its filter (포함 and 제외 with their words, or 없음), how often it is read (its own cadence,
+    or 분류 주기 with its category's where it names none), how many items one reading asks for, when it was last
+    read, and how many readings failed since the last that did not, with the last failure's sentence, in the error
+    colour.
+  - The columns are those the unit answers a source with; a figure it comes to answer stands as one more column.
+  - 추가 in the section's head opens a form registering one: its category and kind, then its address (left empty
+    for the kind's own), its search words, the words its filter requires and excludes, each a comma-separated
+    list, its cadence (left empty for its category's) and how many items one reading asks for (left empty for the
+    unit's own).
+  - Each row's 편집 opens the same form without the category and the kind, which a source keeps, and sends only
+    what differs from the source as it stands; a cadence once set is changed but not given back to the category,
+    since the unit keeps every field a change leaves out. Its 삭제 asks once in the message pill first, and what
+    the source turned up stays.
+  - A refusal stands under the form in the pack's words: a source the unit did not take as written, a category or a
+    source it does not hold.
+- **How it reads.** The unit serves no event stream, so the screen asks on its own clock: the state, the
+  categories, the queue and the sources on opening and every ten seconds while the tab is seen, and an open run and its log
+  every three seconds while the run has not closed. A closed run is read once.
+- **Where the research unit does not answer,** or the console names no address for it, the body is one failure
+  that says the research unit does not answer, with a way to ask again. Once something has been read, a read that
+  fails stands as that failure above what was read, which stays. The sources, read apart, say a failure of their own
+  in their section only while the rest of the screen reads.
 
 ### Agent management screen
 
@@ -6474,7 +6552,8 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   reached for the session, the users and the grants; the agency for agents, sessions, runs and roads; bmo-job for
   the TODO queue, its work orders, its questions and its workers; the receiver for rooms, their messages, the
   owner's words and the live board; each console bundle for its own
-  screen, its share page and its notices; the cache siren and the cache warmer for their screens.
+  screen, its share page and its notices; the cache siren and the cache warmer for their screens; bmo-research for
+  the searcher tab's settings and the research screen.
 - **A bundle's screen reaches its service through one relay.** The bundle calls the console's relay base, the
   service's name and the path the service's own API writes; the console hands it on to the address of the
   unit that answered the bundle's manifest with the service's token and the owner key and role of the person signed in — their

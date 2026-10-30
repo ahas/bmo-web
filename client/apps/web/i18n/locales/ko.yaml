@@ -1031,6 +1031,7 @@ screens:
     mail: 메일
     monitor: 모니터
     remote: 원격
+    research: 리서치
     search: 검색
     siren: 캐시 사이렌
     todo_description: 대기열과 결재 대기
@@ -2348,53 +2349,195 @@ live:
 research:
   aria:
     branches_of: "{key} 브랜치"
+    category_filter: 분류 필터
+    delete_source_named: "출처 #{id} 삭제"
+    dismiss_named: "{name} 제외"
+    edit_source_named: "출처 #{id} 편집"
+    log: 실행 로그
     minutes_of: "{key} 시간"
+    open_run_named: "{name} 실행 기록 열기"
+    resume_named: "{name} 재개"
+    state_filter: 상태 필터
+    stop_named: "{name} 중지"
   error:
+    ask_conflict: 같은 항목이 이미 대기 중이거나 실행 중입니다.
+    ask_failed: 요청하지 못했습니다.
+    ask_refused: 리서치 유닛이 이 이름이나 주소를 받아들이지 않았습니다.
+    dismiss_conflict: 이 항목은 지금 상태에서 제외할 수 없습니다.
+    dismiss_failed: 제외하지 못했습니다.
     engines_unread: "검색 엔진 상태를 읽지 못했습니다: {reason}"
     failed: 리서치 유닛이 요청을 처리하지 못했습니다.
+    no_category: 리서치 유닛에 이 분류가 없습니다.
+    no_item: 리서치 유닛에 이 항목이 없습니다.
+    no_run: 리서치 유닛에 이 실행 기록이 없습니다.
+    no_source: 리서치 유닛에 이 출처가 없습니다.
+    queue_read_failed: 대기열을 읽지 못했습니다.
     refused: 리서치 유닛이 이 값을 받아들이지 않았습니다.
+    run_read_failed: 실행 기록을 읽지 못했습니다.
     settings_read_failed: 리서치 설정을 읽지 못했습니다.
+    source_delete_failed: 출처를 삭제하지 못했습니다.
+    source_refused: 리서치 유닛이 이 출처를 받아들이지 않았습니다.
+    source_save_failed: 출처를 저장하지 못했습니다.
+    sources_read_failed: 출처를 읽지 못했습니다.
+    state_change_failed: 상태를 바꾸지 못했습니다.
+    state_read_failed: 리서치 상태를 읽지 못했습니다.
     unreachable: 리서치 유닛이 응답하지 않습니다.
   message:
+    asked: 요청했습니다.
+    dismiss_confirm: 이 항목을 대기열에서 제외할까요?
+    dismiss_note: 제외한 항목은 다시 찾지 않습니다.
+    dismissed: 대기열에서 제외했습니다.
+    every_help: 비우면 분류 주기
     gap_help: 비우면 기본값
+    source_added: 출처를 추가했습니다.
+    source_delete_confirm: "출처 #{id}를 삭제할까요?"
+    source_delete_note: 이 출처가 찾은 항목은 그대로 남습니다.
+    source_deleted: 출처를 삭제했습니다.
+    source_saved: 출처를 저장했습니다.
+    words_help: 쉼표로 구분
   label:
+    address: 주소
+    all_categories: 전체 분류
+    all_states: 전체 상태
+    asked: 요청
     branch_role: 브랜치 역할
     branches: 브랜치
+    cadence: "{n}분마다 읽음"
+    cap_counts: "대기 {waiting} · 실행 {running} / 상한 {cap}"
     category: 분류
+    closes: 웹 도구 종료
     default: 기본값
+    default_road: 기본 경로
+    depth: 깊이
+    document: 문서
     engine: 엔진
     engine_gap: 엔진 간격
+    every: 주기
+    every_category: "분류 주기 {n}분"
+    every_value: "{n}분마다"
+    exclude_words: 제외할 단어
+    failure_count: "연속 실패 {n}회"
+    failures: 실패
+    filter: 필터
+    filter_exclude: "제외 {words}"
+    filter_require: "포함 {words}"
+    finished: 끝남
+    fit: 해당
+    fit_nodes: "해당 · {nodes}"
     gap_value: "{n}ms"
+    gather: "{n}분마다 모음"
+    held: 보류
+    hold_bench: "벤치 · {node}"
+    hold_reported: 보고됨
+    hold_restore: 복구 대기
+    hold_since: "{time}부터"
     host_gap: 호스트 간격
+    item_state_dismissed: 제외됨
+    item_state_failed: 실패
+    item_state_fit: 검토 요청
+    item_state_reported: 보고됨
+    item_state_running: 실행 중
+    item_state_taken: 처리됨
+    item_state_waiting: 대기
     key: 키
+    kind: 종류
+    kind_arxiv: arXiv
+    kind_github_releases: GitHub 릴리스
+    kind_huggingface_search: Hugging Face 검색
+    kind_huggingface_trending: Hugging Face 트렌딩
+    kind_rss: RSS
+    language_en: 영어
+    language_ko: 한국어
+    limit: 한 번에
+    limit_value: "{n}건"
+    log_kind_answer: 답변
+    log_kind_asked: 요청
+    log_kind_branch: 브랜치
+    log_kind_ended: 종료
+    log_kind_filed: 등록
+    log_kind_round: 라운드
+    log_kind_seated: 배정
+    log_kind_told: 알림
+    loop_changed: "{time} 변경"
+    loop_running: 실행 중
+    loop_stopped: 모두 중지됨
+    minute_unit: 분
     minutes: 시간
     minutes_value: "{n}분"
+    narration: "낭독 {language}"
     observed: 확인
+    outcome: 결과
+    outcome_answered: 답변
+    outcome_cut: 중단
+    outcome_failed: 실패
     profile_browse: 브라우즈
     profile_search_basic: 기본 검색
     profile_search_exhaustive: 초정밀 검색
     profile_search_thorough: 정밀 검색
+    query: 질문
+    read_at: 마지막 읽음
     reason: 이유
+    require_words: 포함할 단어
+    retry_at: "{time} 재시도"
+    road: 경로
+    run_error: 오류
+    run_state_closed: 종료
+    run_state_running: 실행 중
+    run_state_waiting: 대기
+    search_words: 검색어
+    shape_advisory: 보안 권고
+    shape_brief: 브리핑
+    shape_investigation: 조사
+    shape_manual: 매뉴얼
+    shape_manual_or_investigation: 매뉴얼·조사
     source_default: 기본값
+    source_id: 번호
     source_set: 수동 지정
+    source_target: 주소·검색어
+    started: 시작
     state: 상태
     state_degraded: 저하
     state_healthy: 정상
+    state_running: 실행 중
+    state_stopped: 중지됨
     state_suspended: 중단
     strategy: 가져오기 전략
     strategy_browser_first: 브라우저 먼저
     strategy_direct_only: 직접만
     strategy_direct_then_browser: 직접 먼저
     suspended_until: 중단 해제
+    tries: "시도 {n}회"
     unknown_value: "알 수 없는 값 {value}"
   status:
+    no_categories: 분류 없음
     no_engines: 검색 엔진이 없습니다.
+    no_items: 항목 없음
     no_keys: 에이전시에 서쳐의 작업 키가 없습니다.
+    no_log: 로그 없음
+    no_sources: 등록된 출처 없음
+    queue_loading: 대기열을 불러오는 중
+    run_loading: 실행 기록을 불러오는 중
     settings_loading: 리서치 설정을 불러오는 중
+    sources_loading: 출처를 불러오는 중
+    state_loading: 리서치 상태를 불러오는 중
   title:
+    ask: 항목 요청
+    categories: 분류
     engines: 검색 엔진
     fetching: 가져오기
     limits: 키별 한도
+    queue: 대기열
+    run: 실행 기록
+    source_add: 출처 추가
+    source_edit: "출처 #{id} 편집"
+    sources: 출처
+  action:
+    ask: 요청
+    dismiss: 제외
+    resume: 재개
+    resume_all: 전체 재개
+    stop: 중지
+    stop_all: 전체 중지
 tool:
   label:
     bash: 셸

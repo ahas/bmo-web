@@ -337,7 +337,22 @@ describe("the relay of a share read", () => {
     hostname: "127.0.0.1",
     port: 0,
     fetch(request) {
-      heard.push({ path: new URL(request.url).pathname, key: request.headers.get("owner-key"), role: request.headers.get("owner-role") });
+      const path = new URL(request.url).pathname;
+
+      heard.push({ path, key: request.headers.get("owner-key"), role: request.headers.get("owner-role") });
+
+      if (path === "/links/Ab3_x/files/5") {
+        return new Response("bytes", {
+          status: 206,
+          headers: { "content-range": "bytes 0-4/40", "accept-ranges": "bytes", "access-control-allow-origin": "*", "set-cookie": "kept=no" }
+        });
+      }
+
+      if (path === "/links/Ab3_x/page") {
+        return new Response("<p>page</p>", {
+          headers: { "content-type": "text/html", "content-security-policy": "default-src 'none'", "referrer-policy": "no-referrer", "x-powered-by": "unit" }
+        });
+      }
 
       return Response.json({ ok: true });
     }
@@ -348,7 +363,7 @@ describe("the relay of a share read", () => {
     words: {}
   });
 
-  beforeAll(() => attachBundles([named("linked", "administrator", ["/links/{token}", "/links/{token}/files/{fileId}"]), named("plain", "member")]));
+  beforeAll(() => attachBundles([named("linked", "administrator", ["/links/{token}", "/links/{token}/files/{fileId}", "/links/{token}/page"]), named("plain", "member")]));
   afterAll(() => {
     attachBundles([]);
     void served.stop(true);
@@ -392,6 +407,24 @@ describe("the relay of a share read", () => {
 
     expect(await call("plain/items")).toBe(200);
     expect(heard.at(-1)).toEqual({ path: "/items", key: "1", role: "administrator" });
+  });
+
+  test("hands on a ranged read's ranges and the origins it lets read it, and a hosted page's policy, and no other header", async () => {
+    await signedOut(async () => {
+      const ranged = (await handler({ params: { path: "linked/links/Ab3_x/files/5" }, method: "GET", node: {} } as RouteEvent)) as Response;
+
+      expect(ranged.status).toBe(206);
+      expect(ranged.headers.get("content-range")).toBe("bytes 0-4/40");
+      expect(ranged.headers.get("accept-ranges")).toBe("bytes");
+      expect(ranged.headers.get("access-control-allow-origin")).toBe("*");
+      expect(ranged.headers.get("set-cookie")).toBeNull();
+
+      const page = (await handler({ params: { path: "linked/links/Ab3_x/page" }, method: "GET", node: {} } as RouteEvent)) as Response;
+
+      expect(page.headers.get("content-security-policy")).toBe("default-src 'none'");
+      expect(page.headers.get("referrer-policy")).toBe("no-referrer");
+      expect(page.headers.get("x-powered-by")).toBeNull();
+    });
   });
 
   test("is none of a manifest that names none", async () => {

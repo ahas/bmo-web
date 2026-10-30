@@ -52,7 +52,12 @@ const ANSWERED_HEADERS = [
   "last-modified",
   "accept-ranges",
   "content-range",
-  "retry-after"
+  "retry-after",
+  // The lines a service sets ahead of a page it hosts and of a read another origin makes: a hosted page reaches the
+  // browser under its own policy, and a sandboxed page's own fetch of the service's bytes is let through.
+  "content-security-policy",
+  "referrer-policy",
+  "access-control-allow-origin"
 ];
 
 // How long a service has to begin answering; the bytes themselves, a file or a stream, may take longer.

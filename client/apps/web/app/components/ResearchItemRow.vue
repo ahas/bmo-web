@@ -50,7 +50,7 @@
     <div v-if="documentLink !== null || props.item.languages.length > 0 || props.item.narrations.length > 0" class="flex min-w-0 flex-wrap items-center gap-2 text-sm">
       <a v-if="documentLink !== null" :href="documentLink" target="_blank" rel="noopener noreferrer" class="flex min-w-0 items-center gap-1 text-primary underline-offset-2 hover:underline">
         <UIcon name="i-material-symbols-description-outline" class="size-4 shrink-0" />
-        <span class="min-w-0 break-words">{{ props.item.title ?? $t("research.label.document") }}</span>
+        <span class="line-clamp-2 min-w-0 break-words">{{ props.item.title ?? $t("research.label.document") }}</span>
         <span class="sr-only">{{ $t("common.aria.opens_new_tab") }}</span>
       </a>
       <UBadge v-for="language in props.item.languages" :key="`language-${language}`" color="neutral" variant="subtle" size="sm" icon="i-material-symbols-translate" :label="languageLabel($t, language)" />

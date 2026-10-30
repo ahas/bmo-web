@@ -65,7 +65,7 @@
           <span>{{ $t("research.label.cap_counts", { waiting: countText(category.waitingCount), running: countText(category.runningCount), cap: countText(category.cap) }) }}</span>
           <span>{{ $t("research.label.cadence", { n: countText(category.cadenceMinutes) }) }}</span>
           <span v-if="category.gatherMinutes !== null">{{ $t("research.label.gather", { n: countText(category.gatherMinutes) }) }}</span>
-          <span class="min-w-0 break-all font-mono">{{ roadText($t, category) }}</span>
+          <span class="min-w-0 break-all" :class="{ 'font-mono': category.provider !== null || category.model !== null }">{{ roadText($t, category) }}</span>
         </p>
 
         <p

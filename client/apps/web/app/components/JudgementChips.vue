@@ -27,29 +27,25 @@
         <!-- The turn's own record, as one press: what it read from the brain, what it called, how its answer was
              drafted and how the round was judged, each a mark and a word in the one button (docs/web.md, the room
              screen's chip line). Pressing it spreads the whole record in the order the turn made it. -->
-        <LineChip v-if="recorded" data-record-chip class="h-auto!" :icon="RECORD_ICON" :label="$t('room.label.chip_record')" :open="recordOpen" @toggle="toggleRecord">
+        <LineChip v-if="recorded" data-record-chip class="h-auto!" :label="$t('room.label.chip_record')" :open="recordOpen" @toggle="toggleRecord">
           <span class="inline-flex flex-wrap items-center gap-2">
             <span v-if="brainCounted" data-record-brain class="inline-flex items-center gap-1">
-              <UIcon :name="CHIP_ICONS.brain" aria-hidden="true" class="size-4" />
-              <span>{{ $t(CHIP_LABELS.brain) }}</span>
+              <UIcon :name="CHIP_ICONS.brain" role="img" :aria-label="$t(CHIP_LABELS.brain)" class="size-4" />
               <span class="inline-flex items-center">
                 <RollingNumber v-if="counts.held > 0 || fresh === 0" :value="counts.held" />
                 <span v-if="fresh > 0" data-brain-new class="inline-flex items-center text-success">+<RollingNumber :value="fresh" /></span>
               </span>
             </span>
             <span v-if="counts.tools > 0" data-record-tools class="inline-flex items-center gap-1">
-              <UIcon :name="CHIP_ICONS.tools" aria-hidden="true" class="size-4" />
-              <span>{{ $t(CHIP_LABELS.tools) }}</span>
+              <UIcon :name="CHIP_ICONS.tools" role="img" :aria-label="$t(CHIP_LABELS.tools)" class="size-4" />
               <RollingNumber :value="counts.tools" />
             </span>
             <span v-if="drafted" data-record-drafts class="inline-flex items-center gap-1">
-              <UIcon :name="CHIP_ICONS.drafts" aria-hidden="true" class="size-4" />
-              <span>{{ $t(CHIP_LABELS.drafts) }}</span>
+              <UIcon :name="CHIP_ICONS.drafts" role="img" :aria-label="$t(CHIP_LABELS.drafts)" class="size-4" />
               <RollingNumber :value="draftCount" />
             </span>
             <span v-if="judgedRecorded" data-record-verdicts class="inline-flex items-center gap-1">
-              <UIcon :name="CHIP_ICONS.verdicts" aria-hidden="true" class="size-4" />
-              <span>{{ $t(CHIP_LABELS.verdicts) }}</span>
+              <UIcon :name="CHIP_ICONS.verdicts" role="img" :aria-label="$t(CHIP_LABELS.verdicts)" class="size-4" />
             </span>
           </span>
         </LineChip>
@@ -424,7 +420,6 @@ useBotEvents((event) => {
 // The turn's record, spread as one panel in the order the turn made it (docs/web.md, the room screen's chip line):
 // what it read from the brain, every call and what came back, each question of its draft process, the round's
 // judgement, and the situation note as that round read it.
-const RECORD_ICON = "i-material-symbols-receipt-long";
 const recordOpen = ref(false);
 const loadingRecord = ref(false);
 const recordFailure = ref<string | null>(null);

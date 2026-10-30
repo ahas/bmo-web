@@ -15,7 +15,7 @@
     :aria-label="`${props.label} ${props.open ? $t('common.action.collapse') : $t('common.action.expand')}`"
     @click="emit('toggle')"
   >
-    <UIcon :name="props.icon" class="size-4 shrink-0" :class="props.iconClass" />
+    <UIcon v-if="props.icon !== ''" :name="props.icon" class="size-4 shrink-0" :class="props.iconClass" />
     <slot />
   </HintTip>
 </template>
@@ -24,7 +24,8 @@
 import { chipLook } from "~/domain/chips";
 
 interface Props {
-  icon: string;
+  // The chip's own mark; a chip whose slot carries its marks has none.
+  icon?: string;
   // What the mark says beyond its shape: a spin while the thing it stands for is being made, the
   // error colour once making it failed.
   iconClass?: string;
@@ -35,7 +36,7 @@ interface Props {
   over?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { iconClass: "", over: false });
+const props = withDefaults(defineProps<Props>(), { icon: "", iconClass: "", over: false });
 
 const emit = defineEmits<{ toggle: [] }>();
 </script>

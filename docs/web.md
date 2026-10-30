@@ -3927,8 +3927,9 @@ Four bounds keep it from growing forever.
     over. 컨텍스트 alone is read once the turn has ended, so the running block carries none and the answer's
     chips stand that one chip's width further along than the running block's did.
   - **기록** — the turn's own account, as one button on the answer: 브레인, 툴 사용, 드래프트 and 판정 stand inside
-    it, each a mark and a word beside it, a figure where it counts something, and each only where there is
-    anything under it. Pressing it spreads one panel inside the bubble:
+    it, each a mark alone, a figure beside it where it counts something, and each only where there is anything
+    under it; the button carries no mark of its own before them, and the words stand only in the button's
+    tooltip and in what a screen reader hears of each mark. Pressing it spreads one panel inside the bubble:
     - **The panel stands in the order the turn made it.** The documents the round's end names as read from the
       brain stand first; then every line of the turn at its own moment — each call as the agent's log draws it,
       with its result under it, each question of the draft process with the answer or the change it wrote, the

@@ -25,16 +25,17 @@ describe("the row and its record press", () => {
     expect(script).not.toContain("openDrafts");
   });
 
-  test("the one button carries each part's own mark and word", () => {
+  test("the one button carries each part's own mark alone, and no mark of its own", () => {
     expect(row).toContain('data-record-brain class="inline-flex items-center gap-1"');
-    expect(row).toContain("{{ $t(CHIP_LABELS.brain) }}");
+    expect(row).toContain(':aria-label="$t(CHIP_LABELS.brain)"');
     expect(row).toContain('data-record-tools class="inline-flex items-center gap-1"');
-    expect(row).toContain("{{ $t(CHIP_LABELS.tools) }}");
+    expect(row).toContain(':aria-label="$t(CHIP_LABELS.tools)"');
     expect(row).toContain('data-record-drafts class="inline-flex items-center gap-1"');
-    expect(row).toContain("{{ $t(CHIP_LABELS.drafts) }}");
+    expect(row).toContain(':aria-label="$t(CHIP_LABELS.drafts)"');
     expect(row).toContain('data-record-verdicts class="inline-flex items-center gap-1"');
-    expect(row).toContain("{{ $t(CHIP_LABELS.verdicts) }}");
-    expect(script).toContain('const RECORD_ICON = "i-material-symbols-receipt-long";');
+    expect(row).toContain(':aria-label="$t(CHIP_LABELS.verdicts)"');
+    expect(row).toContain('<LineChip v-if="recorded" data-record-chip class="h-auto!" :label=');
+    expect(row).not.toContain("{{ $t(CHIP_LABELS.");
   });
 
   test("stands only while it holds something, and opens on one press", () => {

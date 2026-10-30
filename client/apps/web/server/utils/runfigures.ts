@@ -109,8 +109,12 @@ export async function figuresOf(round: string): Promise<RoundFigures | null> {
     };
   };
 
-  for (const run of runs) {
-    const lines = await linesOf(run.id, run.agentName);
+  // The runs' lines are read side by side and counted in the runs' own order, since the last run that reports how full
+  // its session stood is the one the round stands at.
+  const read = await Promise.all(runs.map((run) => linesOf(run.id, run.agentName)));
+
+  for (const [at, run] of runs.entries()) {
+    const lines = read[at]!;
     const called = lines.filter((line) => line.kind === "tool");
     // A pane program's progress lines name a call only where the run left no call line of its own.
     const named = called.length > 0 ? called : lines.filter((line) => line.kind === "progress" && nameOf(line, recordOf(line)) !== null);

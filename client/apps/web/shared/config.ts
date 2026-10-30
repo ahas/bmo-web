@@ -12,6 +12,9 @@ export interface PagingLimits {
 
 export const PAGING: PagingLimits = { defaultSize: 30, maxSize: 500 };
 
+// The most answers one read of round figures names; a room asking about more asks again for the rest.
+export const ROUND_FIGURES_AT_ONCE = 100;
+
 // How often a screen reads again on its own. The live stream carries the news as it happens;
 // this clock is what a screen falls back to for as long as the stream is down.
 export const POLL_INTERVAL_MS = 10_000;

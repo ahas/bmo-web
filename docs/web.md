@@ -3650,8 +3650,10 @@ Four bounds keep it from growing forever.
   room has taken its opening place (「Sidebar」, 「Unread messages」).
 - **Where a room opens is settled before it is drawn** (「Motion」). A room its address opens at a
   message reads the stretch around that message as its first read, the way a message far back is
-  read, and never the end first. Any other room asks for its end at once, beside the room list that
-  carries the reader's read mark, and neither read waits for the other to begin; once both have
+  read, and never the end first. Any other room asks for its end at once. The reader's read mark comes
+  from the room list the sidebar holds, which a room switch takes as it stands, kept current by the
+  live news and the marks this tab made, rather than reading it again; only a room opened before that
+  list has first answered waits for it, and neither read waits for the other to begin. Once both have
   answered, the room opens at its first unread message within the end's page where that page holds
   it, reads the stretch around it where the page does not — the end's answer is then let go without
   being drawn — and opens at its end where nothing is unread. While the skeleton stands nothing of
@@ -3659,6 +3661,11 @@ Four bounds keep it from growing forever.
   conversation is unseen, and only then shown, so the room's skeleton gives way to the conversation
   already standing where it opens, and nothing is seen scrolling. A message the stretch cannot be
   read around opens the room at its end.
+  - **The first frame waits on the messages alone.** A page of the room carries its messages, their verdicts,
+    the draft counts of its rounds and its voice briefings, each read side by side, and nothing else; what a
+    round spent and did — 컨텍스트, the record's brain and tool counts and 사용 토큰 — is read once the page
+    has landed (「칩 줄」), and the room's header, its pins, its answerers, its window and the work running
+    for it fill in beside the conversation as each arrives.
   - **The first frame shown is the whole conversation.** The rows, the day marks heading them and
     the words an answer wrote in markdown are shown in one frame: the day marks are drawn from the
     same rows in the same update, never before them and never after them, and the markdown renderer
@@ -3985,6 +3992,14 @@ Four bounds keep it from growing forever.
     the agency's `docs/own-llm.md`). A message whose round reported no such figure — one sent before it was kept, a run
     on a road that reports none, a turn that failed — carries no 컨텍스트 chip.
   - Each chip folds and spreads what is under it on its own, apart from the others.
+  - **What a round spent and did is read after its page.** The page a room reads carries no round's figures:
+    once a page has landed, the round of each answer that ends a round in the conversation is asked for what it
+    spent and did, the rounds a page brings asked about together, each round's runs read side by side. A round is asked once,
+    and again only when a newer message of it arrives, so reading the room's end again or a message being edited
+    asks nothing. Until a round's figures arrive, its last answer stands one chip-sized placeholder at the
+    leading end of its line, where 컨텍스트 stands, and the chips that came with the page stand after it; the
+    placeholder gives way to the round's chips when they land, and to nothing where the round reported none or
+    the read failed.
   - **A chip never brings up the keyboard.** A finger's press on a message is the row's own, held from the
     browser so a hold chooses rather than selects, and with it goes the focus the press would have moved; a
     tap on a chip, or on any control a message carries, therefore takes the focus off wherever it stood

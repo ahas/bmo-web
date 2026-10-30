@@ -454,7 +454,7 @@ import { loadMarkdownRenderer } from "~/domain/markdown-load";
 import { useFootInView, useOverlaid } from "~/domain/overlay";
 import { keepPlace } from "bmo-ui/app/domain/fullscreen";
 import { useReadMarks } from "~/domain/read-marks";
-import { useNewestReads } from "~/domain/room-list";
+import { useHeldRoomList, useNewestReads } from "~/domain/room-list";
 import { removedRoom } from "~/domain/room-removal";
 import { copyText } from "~/domain/copy";
 import { bodyOf, copyChipsOf, messageRef, reportOf } from "~/domain/room-copy";
@@ -531,7 +531,6 @@ import type {
   ArchivedMessage,
   Judgement,
   RoomStats,
-  ListedRoom,
   LiveRun,
   LiveSnapshot,
   OwnerChat,
@@ -577,12 +576,7 @@ const administrator = useAdministrator();
 const chatId = Number(route.params.chatId);
 const roomFeed = useRoomFeed(t, chatId);
 
-const { data: listedRooms, status: roomsStatus } = useFetch<ListedRoom[]>("/api/rooms", {
-  key: "rooms",
-  lazy: true,
-  server: false,
-  default: () => []
-});
+const { data: listedRooms, status: roomsStatus } = useHeldRoomList();
 // The counts as the sidebar shows them, so the room opens at the first message unread by the newest count.
 const rooms = useNewestReads(listedRooms);
 

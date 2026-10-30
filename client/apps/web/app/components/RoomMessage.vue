@@ -300,6 +300,7 @@
                         :chat-id="props.chatId"
                         :message-id="props.item.messageId"
                         :briefing="props.item.briefing"
+                        :figuring="props.item.figuring"
                         :sent-at="props.item.sentAt"
                         :judging="message && props.judging"
                         :over-picture="overPicture"

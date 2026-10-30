@@ -1,4 +1,3 @@
-import { chatAgent } from "#shared/agent-names";
 import { PAGING, roomLabel } from "#shared/config";
 import { isSystemNotice } from "#shared/text-marks";
 import { wording } from "#shared/wording";
@@ -7,13 +6,12 @@ import { draftSummaries } from "./drafting";
 import { roomBriefings } from "./voice";
 import { figuresOf } from "./runfigures";
 import { judgementsOf, judgementsWithin } from "./gate";
-import { agency, agencyCall } from "./agency";
 import { ownerChat } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
 import { within } from "./unit-answer";
 
-import type { ArchivedMessage, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, Situation, TelegramExpression, VoiceBriefing } from "#shared/types";
+import type { ArchivedMessage, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, VoiceBriefing } from "#shared/types";
 import type { ReceiverMessage, ReceiverRoom } from "./receiver";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
@@ -132,12 +130,11 @@ async function peopleNamed(ids: readonly number[]): Promise<Map<number, string>>
 
 const untitled = (title: string | null): boolean => title === null || title.trim() === "";
 
-/** Every room, the pinned ones first in the owner's order, each under the name it is called by and the agents that
- * answer it — the agents' own labels, which is what the list names a room by (docs/web.md, the naming rule). */
+/** Every room, the pinned ones first in the owner's order, each under the name it is called by (docs/web.md, the naming
+ * rule) and with the companions made for it. */
 export async function listRooms(): Promise<RoomSummary[]> {
   const [rooms, owner] = await Promise.all([everyRoom(), ownerChat()]);
   const named = await peopleNamed(rooms.filter((room) => untitled(room.title) && room.id !== owner).map((room) => room.id));
-  const labels = await agentLabels();
 
   return await Promise.all(
     rooms.map(async (room): Promise<RoomSummary> => {
@@ -151,25 +148,6 @@ export async function listRooms(): Promise<RoomSummary[]> {
       };
     })
   );
-}
-
-/** Every agent the catalogue labels, by its registration name, and the chat agent's own label under its name. */
-async function agentLabels(): Promise<ReadonlyMap<string, string>> {
-  const held = new Map<string, string>();
-
-  try {
-    const agents = await agencyCall(agency().GET("/agents")).then((answer) => answer.items);
-
-    for (const agent of agents) {
-      if (agent.label !== null && agent.label.trim() !== "") held.set(agent.name, agent.label);
-    }
-  } catch {
-    // A catalogue that cannot be read leaves the rooms under their own titles.
-  }
-
-  held.set(chatAgent().name, chatAgent().label);
-
-  return held;
 }
 
 /** One room by the name it is called by, the same name the room list gives it. */
@@ -425,31 +403,16 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
     })
   );
 
-  // What a round cost and what it did stands on the round's last message (docs/web.md, the room screen's
-  // meta line): the runs behind the page's rounds are read once each, and a run the agency no longer holds
-  // leaves the message as it stood.
+  // How the round's draft process made its answer stands on the round's last message (docs/web.md, the room screen's
+  // draft chip): the page's rounds are read from the receiver's round log at once. What the round cost and did is
+  // not read with the page; the room asks for it once the page has landed (roundFigures).
   const last = new Map<string, number>();
 
   built.forEach((message, index) => {
     if (message.round != null && message.agent === true) last.set(message.round, index);
   });
 
-  // How the round's draft process made its answer stands there too (docs/web.md, the room screen's draft chip): the
-  // page's rounds are read from the receiver's round log at once.
-  const [, drafts, briefings] = await Promise.all([
-    Promise.all(
-      [...last].map(async ([round, index]) => {
-        const figures = await figuresOf(round).catch(() => null);
-
-        if (figures !== null && built[index] !== undefined) {
-          built[index]!.spend = figures.spend;
-          built[index]!.actions = figures.actions;
-        }
-      })
-    ),
-    draftSummaries(chatId, [...last.keys()]),
-    roomBriefings(chatId)
-  ]);
+  const [drafts, briefings] = await Promise.all([draftSummaries(chatId, [...last.keys()]), roomBriefings(chatId)]);
 
   // Each agent line carries its voice briefing chip, standing where the voice engine says the line's full reading
   // stands (docs/web.md, the room screen's voice briefing chip).
@@ -495,18 +458,55 @@ export function placedJudgements(messages: readonly ArchivedMessage[], judgement
   });
 }
 
+/**
+ * What the rounds of a room's answers spent and did, each answer read from the room so a round of another room is
+ * never asked by this one, and each round read once, side by side (docs/web.md, the room screen's chip line). An
+ * answer the room does not hold, one in no round, and a round the agency holds no run of are left out.
+ */
+export async function roundFigures(chatId: number, messageIds: readonly number[]): Promise<RoundFiguresOf[]> {
+  const rounds = new Map<string, number>();
+
+  await Promise.all(
+    messageIds.map(async (messageId) => {
+      try {
+        const message = await receiverCall(
+          receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId: chatId, messageId } }, signal: within(5_000) })
+        );
+
+        if (message.round != null && !rounds.has(message.round)) rounds.set(message.round, messageId);
+      } catch {
+        // An answer the receiver does not hand over has no round to ask about.
+      }
+    })
+  );
+
+  const read = await Promise.all(
+    [...rounds].map(async ([round, messageId]): Promise<RoundFiguresOf | null> => {
+      const figures = await figuresOf(round).catch(() => null);
+
+      return figures === null ? null : { messageId, round, spend: figures.spend, actions: figures.actions };
+    })
+  );
+
+  return read.filter((one) => one !== null);
+}
+
 // A page with the judgements standing under its messages, read for the stretch of time the page covers: from a
 // little before its first message to now for the room's end, and to a while past its last message otherwise. The
 // room is the receiver's, so a gate that does not answer leaves the page without verdicts rather than unread.
 async function pageOf(chatId: number, page: { items: ReceiverMessage[]; more: boolean }, end: boolean): Promise<MessagePage> {
-  const messages = await messagesOf(chatId, page.items.map(receivedOf));
-  const times = messages.map((message) => message.sentAt);
-  const judgements = times.length === 0
-    ? []
-    : await judgementsWithin(chatId, {
-        from: Math.min(...times) - JUDGED_BEFORE_SECONDS,
-        to: end ? null : Math.max(...times) + JUDGED_AFTER_SECONDS
-      }).catch(() => []);
+  const received = page.items.map(receivedOf);
+  const times = received.map((message) => message.sentAt);
+  // The verdicts are asked for beside the messages, the stretch they cover being known from the receiver's page.
+  const [messages, judgements] = await Promise.all([
+    messagesOf(chatId, received),
+    times.length === 0
+      ? Promise.resolve([])
+      : judgementsWithin(chatId, {
+          from: Math.min(...times) - JUDGED_BEFORE_SECONDS,
+          to: end ? null : Math.max(...times) + JUDGED_AFTER_SECONDS
+        }).catch(() => [])
+  ]);
 
   return { messages, judgements: placedJudgements(messages, judgements), hasMore: page.more };
 }

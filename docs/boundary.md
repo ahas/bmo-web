@@ -343,7 +343,8 @@ for it, and no file or table of that unit is read meanwhile.
   record of its round, the gate's `draft`
   verdicts among them, which stand in the answer's 드래프트 when the round log holds no row of it; what the round behind
   a message cost and called from the agency's `GET /runs` and its log lines — the answer line's usage and every
-  line naming a tool; and how the round's answer was drafted from the receiver's `GET /rounds/drafts`, read once
+  line naming a tool — read after the page, for the rounds the room asks about, each round's runs side by side;
+  and how the round's answer was drafted from the receiver's `GET /rounds/drafts`, read once
   for the page's rounds for the draft chip's count, and again for one round, its answers whole, when the chip is
   opened; and each line's voice briefings from the voice engine's `GET /briefings?chatId=`, read once for the page's
   room, the newest first, for the chip each line carries. The metadata a message arrived with is read only for a message

@@ -386,6 +386,9 @@ export interface ArchivedMessage {
   actions?: TurnActionsRef | null;
   // The voice briefing that speaks this line, where one was asked for it.
   briefing?: MessageBriefing | null;
+  // Whether the room is still reading what this line's round spent and did, on the round's last answer: the room's own
+  // mark while its read of the round's figures is on its way, never one the server sets.
+  figuring?: boolean;
   // On a voice briefing that speaks a line standing in the room, that line: the room stands the
   // voice on it rather than as a row of its own.
   briefs?: number | null;
@@ -2590,6 +2593,19 @@ export interface MessagePage {
   messages: ArchivedMessage[];
   judgements: Judgement[];
   hasMore: boolean;
+}
+
+// What one round of a room spent and did, read once the page carrying its last answer has landed (docs/web.md, the
+// room screen's chip line): the answer the room asked about it by, and the round's figures.
+export interface RoundFiguresOf {
+  messageId: number;
+  round: string;
+  spend: RoundSpend | null;
+  actions: TurnActionsRef | null;
+}
+
+export interface RoomRoundFigures {
+  items: RoundFiguresOf[];
 }
 
 // One picture a room holds, as the picture viewer walks the room's pictures.

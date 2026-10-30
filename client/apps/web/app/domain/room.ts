@@ -1,5 +1,5 @@
 import { markWords, MEDIA_MARKS, VOICE_MARK } from "#shared/text-marks";
-import { PAGING, POLL_INTERVAL_MS } from "#shared/config";
+import { PAGING, POLL_INTERVAL_MS, ROUND_FIGURES_AT_ONCE } from "#shared/config";
 import { chatAgent } from "#shared/agent-names";
 import { agentRowName, bmoLabel, companionOf, defaultAnswererName } from "./agents";
 import { agentKey, avatarFor, hueOf } from "./avatars";
@@ -19,6 +19,8 @@ import type {
   MessagePage,
   MessageReaction,
   ReplyQuote,
+  RoomRoundFigures,
+  RoundFiguresOf,
   RoundSpend,
   TelegramExpression,
   TurnActionsRef
@@ -292,6 +294,8 @@ export interface FeedItem {
   drafts: DraftSummary | null;
   // The voice briefing that speaks this line, which stands on its chip line rather than as a row.
   briefing: MessageBriefing | null;
+  // Whether what the round this row ends spent and did is still being read, on that same row.
+  figuring: boolean;
   // Null for everything the archive holds; set while a message of the owner's own is still on
   // its way, or once it has failed to go.
   pending: PendingMark | null;
@@ -687,6 +691,38 @@ function lastSpends(messages: ArchivedMessage[]): ArchivedMessage[] {
   );
 }
 
+// The last answer each round sent among the rows held, by round: the row a round's figures stand on.
+export function roundEnds(messages: readonly ArchivedMessage[]): Map<string, number> {
+  const ends = new Map<string, number>();
+
+  for (const message of messages) {
+    if (message.round != null && message.agent === true) ends.set(message.round, message.messageId);
+  }
+
+  return ends;
+}
+
+// The rows with each round's figures standing on its last answer and on no other row, and that answer marked as still
+// being read while its round's figures are on their way (docs/web.md, the room screen's chip line). A row that already
+// stands as it should is kept as it is.
+export function withRoundFigures(messages: ArchivedMessage[], figures: ReadonlyMap<string, RoundFiguresOf>, reading: ReadonlySet<string>): ArchivedMessage[] {
+  const ends = roundEnds(messages);
+
+  return messages.map((message) => {
+    if (message.round == null) return message;
+
+    const end = ends.get(message.round) === message.messageId;
+    const held = end ? figures.get(message.round) : undefined;
+    const spend = held?.spend ?? null;
+    const actions = held?.actions ?? null;
+    const figuring = end && reading.has(message.round);
+
+    return (message.spend ?? null) === spend && (message.actions ?? null) === actions && (message.figuring === true) === figuring
+      ? message
+      : { ...message, spend, actions, figuring };
+  });
+}
+
 // One room's messages and the judgements made about them. The archive only ever gains rows,
 // so a page that comes back is merged in by id rather than replacing what is already held.
 export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
@@ -708,10 +744,70 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
   // steps aside the moment that row arrives.
   const live = ref<Judgement[]>([]);
 
+  // What each round spent and did, read once the page carrying its last answer has landed (docs/web.md, the room
+  // screen's chip line); the answer each round was last asked about by, and the rounds whose read is on its way. They
+  // outlive the rows, so a feed replaced by another stretch of the room asks again only about a round it has not.
+  const figures = new Map<string, RoundFiguresOf>();
+  const asked = new Map<string, number>();
+  const reading = new Set<string>();
+  let figuresDue = false;
+
+  function placeFigures(): void {
+    messages.value = withRoundFigures(messages.value, figures, reading);
+  }
+
+  // The rounds whose last answer the room has not asked about yet, asked about together. Pages merged one after
+  // another in one go are asked about once, after the last of them.
+  function askFigures(): void {
+    if (figuresDue) return;
+
+    figuresDue = true;
+    queueMicrotask(() => {
+      figuresDue = false;
+
+      const wanted = [...roundEnds(messages.value)].filter(([round, messageId]) => asked.get(round) !== messageId);
+
+      if (wanted.length === 0) return;
+
+      for (const [round, messageId] of wanted) {
+        asked.set(round, messageId);
+        reading.add(round);
+      }
+
+      placeFigures();
+
+      for (let at = 0; at < wanted.length; at += ROUND_FIGURES_AT_ONCE) {
+        void readFigures(wanted.slice(at, at + ROUND_FIGURES_AT_ONCE));
+      }
+    });
+  }
+
+  async function readFigures(wanted: readonly [string, number][]): Promise<void> {
+    try {
+      const answer = await $fetch<RoomRoundFigures>(`/api/rooms/${chatId}/round-figures`, {
+        query: { messages: wanted.map(([, messageId]) => messageId).join(",") }
+      });
+
+      // A round asked about again by a newer answer since is that read's to fill.
+      for (const one of answer.items) {
+        if (asked.get(one.round) === one.messageId) figures.set(one.round, one);
+      }
+    } catch {
+      // A round whose figures could not be read stands without them until a newer answer of it is asked about.
+    } finally {
+      for (const [round, messageId] of wanted) {
+        if (asked.get(round) === messageId) reading.delete(round);
+      }
+
+      placeFigures();
+    }
+  }
+
   function merge(page: MessagePage, placement: "older" | "newer" = "newer"): number {
     const before = messages.value.length;
 
-    messages.value = mergedMessages(messages.value, page.messages, placement);
+    messages.value = withRoundFigures(mergedMessages(messages.value, page.messages, placement), figures, reading);
+    askFigures();
 
     const added = messages.value.length - before;
 
@@ -1157,6 +1253,7 @@ function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): 
     actions: null,
     drafts: null,
     briefing: null,
+    figuring: false,
     pending: { state: held.state, reason: held.reason, sent: held.messageId !== null },
     run: null,
     skipped: 0,
@@ -1219,6 +1316,7 @@ export function runItem(run: RunState, speaker: Speaker, avatar: AvatarProps): F
     actions: null,
     drafts: null,
     briefing: null,
+    figuring: false,
     pending: null,
     run,
     skipped: 0,
@@ -1538,6 +1636,7 @@ function feedItemOf(
     actions: deleted ? null : (message.actions ?? null),
     drafts: deleted ? null : (message.drafts ?? null),
     briefing: deleted ? null : (message.briefing ?? null),
+    figuring: !deleted && message.figuring === true,
     deleted,
     ...(deleted || message.forwardedFrom == null ? {} : { forwarded: message.forwardedFrom }),
     ...(deleted || message.situation == null ? {} : { situation: message.situation }),

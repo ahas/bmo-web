@@ -20,6 +20,12 @@
          a turn would see the line taken away and built again rather than filled. -->
     <div data-meta :data-meta-inline="inline ? '' : undefined" class="flex min-w-0 flex-wrap items-end gap-(--chat-meta-gap) text-sm leading-(--chat-meta-line) whitespace-nowrap tabular-nums" :class="lineLook">
       <span v-if="chipped" data-meta-lead class="flex min-w-0 flex-wrap items-center gap-(--chat-meta-gap)">
+        <!-- What the round spent and did is read after the page, and its place at the leading end is kept by one
+             chip-sized placeholder until it lands (docs/web.md, the room screen's chip line). -->
+        <SkeletonStatus v-if="props.figuring" data-figures-loading class="inline-flex" :label="$t('room.status.figures_loading')">
+          <SkeletonBar class="h-(--chat-meta-line) w-14 rounded-sm" />
+        </SkeletonStatus>
+
         <!-- How full the session stood, once the turn has ended and only where the session reported it. It spreads
              nothing, so it stands where the owner placed it, before the record. -->
         <ContextChip v-if="context !== null" :ratio="context" />
@@ -310,6 +316,8 @@ interface Props {
   // Whether the message is an agent's answer, which carries no verdict chip of its own: what judged it stands in its
   // draft spread (docs/web.md, the room screen's verdicts).
   answer?: boolean;
+  // Whether what the round this message ends spent and did is still being read.
+  figuring?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -328,6 +336,7 @@ const props = withDefaults(defineProps<Props>(), {
   besidePicture: false,
   clock: true,
   afterWords: false,
+  figuring: false,
   answer: false
 });
 
@@ -674,7 +683,8 @@ const chipped = computed<boolean>(
     records.value.length > 0 ||
     drafted.value ||
     judgedRecorded.value ||
-    props.briefing !== null
+    props.briefing !== null ||
+    props.figuring
 );
 
 // Whether the line is more than the time and its marks: a chip, or how long the room waited. Such a

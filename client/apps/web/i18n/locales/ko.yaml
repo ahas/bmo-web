@@ -389,6 +389,7 @@ room:
     draft_writing: 메시지 작성 중
     earlier_loading: 이전 대화를 불러오는 중…
     failed: 실패
+    figures_loading: 기록과 사용 토큰 불러오는 중…
     find_count: "{at}/{n}"
     find_loaded_only: 불러온 메시지에서만 찾음
     find_none: 찾은 메시지 없음

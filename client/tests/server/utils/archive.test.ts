@@ -122,12 +122,37 @@ const receiver = standIn("RECEIVER", (one) => {
     return answer(after === null ? { items: page, more: true } : { items: [message(5)], more: false });
   }
   if (path === "/rooms/-7/messages/1") return answer(page[0]);
+  if (path === "/rooms/-7/messages/2") return answer(page[1]);
   if (path === "/rooms/-7/day-start") return answer({ messageId: 2 });
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
 
-const { listRooms, readDayStart, readMessagePage, readMessagesAfter, readJudgementPage, roomTitleOf } = await import("../../../apps/web/server/utils/archive");
+// The agency holding the two runs of the room's one round: its own turn, which called a tool, and a question its draft
+// process asked, each with what it spent.
+const usage = (inputTokens: number) => ({ inputTokens, outputTokens: 2, cacheReadTokens: 0, cacheWriteTokens: 0 });
+const agency = standIn("AGENCY", (one) => {
+  const url = new URL(one.path, "http://agency");
+
+  if (url.pathname === "/runs" && url.searchParams.get("names") === "round:-7:1:1") {
+    return answer({
+      items: [
+        { id: 41, agentName: "agent-a", unitName: "chat:-7:1", usage: usage(10) },
+        { id: 42, agentName: "agent-a", unitName: "chat:-7:2", usage: usage(5) }
+      ],
+      more: false
+    });
+  }
+  if (url.pathname === "/runs") return answer({ items: [], more: false });
+  if (url.pathname === "/log-lines" && url.searchParams.get("runId") === "41") {
+    return answer({ items: [{ id: 1, runId: 41, kind: "tool", text: "read a file", fields: { name: "read" }, at: 1 }], more: false });
+  }
+  if (url.pathname === "/log-lines") return answer({ items: [], more: false });
+
+  return answer({ code: "no-route", error: "no route" }, 404);
+});
+
+const { listRooms, readDayStart, readMessagePage, readMessagesAfter, readJudgementPage, roundFigures, roomTitleOf } = await import("../../../apps/web/server/utils/archive");
 const { registerChatAgent } = await import("../../../apps/web/shared/agent-names");
 
 registerChatAgent({ name: "agent-a", label: "Agent A" });
@@ -168,6 +193,8 @@ describe("a page of a room", () => {
       [4, false, false]
     ]);
     expect(read.messages[1]).toMatchObject({ answerSeconds: 4, round: "round:-7:1:1", spend: null, actions: null });
+    // What the round spent and did is read apart from the page, so the page asks the agency nothing.
+    expect(agency.asked).toEqual([]);
     // The agent's number is not the owner's here, so no answer is said to have gone out in the owner's account.
     expect(read.messages.some((one) => one.voicedBy !== undefined)).toBe(false);
     // Where a forwarded message came from, on the row the record marks and no other.
@@ -225,5 +252,19 @@ describe("a page of a room", () => {
     expect((await readMessagesAfter(-7, 4, 20)).messages.map((one) => one.messageId)).toEqual([5]);
     expect(await readDayStart(-7, 1_790_000_000)).toEqual({ messageId: 2 });
     expect(await readJudgementPage(-7, null, 20)).toEqual({ judgements: [], hasMore: false });
+  });
+});
+
+describe("a round's figures", () => {
+  test("are read for the rounds of the room's own answers, each round once with its runs side by side", async () => {
+    agency.asked.length = 0;
+
+    const read = await roundFigures(-7, [2, 1, 99]);
+
+    expect(read).toHaveLength(1);
+    expect(read[0]).toMatchObject({ messageId: 2, round: "round:-7:1:1", spend: { inputTokens: 15, outputTokens: 4, measured: 2 } });
+    expect(read[0]!.actions).toMatchObject({ agent: "agent-a", runs: ["chat:-7:1", "chat:-7:2"], tools: 1 });
+    expect(agency.asked.filter((one) => one.path.startsWith("/runs?")).map((one) => one.path)).toEqual(["/runs?names=round%3A-7%3A1%3A1&limit=50"]);
+    expect(agency.asked.filter((one) => one.path.startsWith("/log-lines?")).map((one) => new URL(one.path, "http://agency").searchParams.get("runId")).sort()).toEqual(["41", "42"]);
   });
 });

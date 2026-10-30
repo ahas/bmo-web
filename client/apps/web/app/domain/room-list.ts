@@ -87,6 +87,27 @@ export function useRoomList() {
 }
 
 /**
+ * The room list as the sidebar holds it, taken as it stands rather than read again: a room switch opens at the read mark
+ * the list already carries, which the sidebar keeps current from the live news and this tab's own marks (docs/web.md,
+ * 「Room screen」). The sidebar's read fills it; where no read has begun by the time the screen stands, this one asks.
+ */
+export function useHeldRoomList() {
+  const { data, status } = useFetch<ListedRoom[]>("/api/rooms", {
+    key: "rooms",
+    lazy: true,
+    server: false,
+    immediate: false,
+    default: () => []
+  });
+
+  onMounted(() => {
+    if (status.value === "idle") void refreshNuxtData("rooms");
+  });
+
+  return { data, status };
+}
+
+/**
  * What marks a room read up to one of its messages: on the server, and at once in the counts on the
  * screen, which take the one the server answers with. Taken in a screen's setup.
  */

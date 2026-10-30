@@ -22,6 +22,7 @@ import {
   needsPage,
   pendingItems,
   quoteText,
+  roundEnds,
   rowWidth,
   RUN_JOIN_SECONDS,
   runItem,
@@ -34,6 +35,7 @@ import {
   sideOf,
   skippedLine,
   withoutMediaMark,
+  withRoundFigures,
   atFoot
 } from "../../../apps/web/app/domain/room";
 import { outboxOf, withChecking, withFailed, withSent } from "../../../apps/web/app/domain/outbox";
@@ -498,6 +500,40 @@ describe("the feed the room walks", () => {
 // numbers say nothing about which was said first. The archive hands every page back in the room's
 // own order — by the moment each was said, and by the order it stored the two said in one second —
 // and the feed's job is to keep that order rather than to invent one.
+// What a round spent and did is read after the page and stands on the round's last answer alone (docs/web.md, the room
+// screen's chip line).
+describe("a round's figures", () => {
+  const inRound = (messageId: number, senderName: string, round: string | null): ArchivedMessage => ({ ...archived(messageId, "words", senderName), round });
+  const rows = [inRound(1, "owner", null), inRound(2, "agent-a", "round-a"), inRound(3, "agent-a", "round-a"), inRound(4, "agent-a", "round-b")];
+  const spend = { inputTokens: 10, outputTokens: 2, cacheReadTokens: 0, cacheWriteTokens: 0, measured: 1, unmeasured: 0, roads: [], context: null };
+  const actions = { agent: "agent-a", runs: ["run-a"], documents: 0, held: 0, tools: 1, brain: 0, records: [] };
+
+  test("are asked by each round's last answer", () => {
+    expect([...roundEnds(rows)]).toEqual([["round-a", 3], ["round-b", 4]]);
+  });
+
+  test("stand on the round's last answer, which is marked while they are on their way", () => {
+    const figures = new Map([["round-a", { messageId: 3, round: "round-a", spend, actions }]]);
+    const placed = withRoundFigures(rows, figures, new Set(["round-b"]));
+
+    expect(placed.map((one) => [one.messageId, one.spend ?? null, one.actions ?? null, one.figuring ?? false])).toEqual([
+      [1, null, null, false],
+      [2, null, null, false],
+      [3, spend, actions, false],
+      [4, null, null, true]
+    ]);
+    // A row already standing as it should is kept as it is.
+    expect(withRoundFigures(placed, figures, new Set(["round-b"]))[3]).toBe(placed[3]);
+  });
+
+  test("move to a newer answer of the round when it arrives", () => {
+    const figures = new Map([["round-b", { messageId: 4, round: "round-b", spend, actions }]]);
+    const placed = withRoundFigures([...withRoundFigures(rows, figures, new Set()), inRound(5, "agent-a", "round-b")], figures, new Set());
+
+    expect(placed.filter((one) => one.spend != null).map((one) => one.messageId)).toEqual([5]);
+  });
+});
+
 describe("the order a page keeps", () => {
   const said = (messageId: number, sentAt: number, text: string): ArchivedMessage => ({
     ...archived(messageId, text),

@@ -35,6 +35,7 @@ app:
 common:
   title:
     delete_named: "{name} 삭제"
+    discard_changes: 저장하지 않은 변경을 버릴까요?
     share_link: 공유 링크
   label:
     all: 전체
@@ -176,7 +177,6 @@ common:
   message:
     translator_absent: 번역기가 없어 번역할 수 없습니다.
     translator_busy: 번역기가 바빠 지금은 번역할 수 없습니다.
-    discard_confirm: 저장하지 않은 변경을 버릴까요?
     link_copied: 링크를 복사했습니다.
     preview_badge: 진행 중
     preview_field: 검색

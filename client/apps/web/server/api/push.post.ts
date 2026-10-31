@@ -22,7 +22,12 @@ export default defineEventHandler(async (event): Promise<PushState> => {
     throw fail(400, wording("push.error.bad_subscription"));
   }
 
-  await saveDevice({
+  // The console sends wherever the endpoint points, so it is held to where a push service stands.
+  if (!pushEndpointAllowed(endpoint)) {
+    throw fail(400, wording("push.error.bad_endpoint"));
+  }
+
+  const saved = await saveDevice({
     user: session.user.name,
     endpoint,
     p256dh,
@@ -30,6 +35,11 @@ export default defineEventHandler(async (event): Promise<PushState> => {
     kinds: askedKinds(body.kinds),
     now: Math.floor(Date.now() / 1000)
   });
+
+  // A subscription another account holds stays that account's until it lets it go.
+  if (!saved) {
+    throw fail(409, wording("push.error.device_taken"));
+  }
 
   return { configured: pushPublicKey() !== null, publicKey: pushPublicKey(), devices: await devicesOf(session.user.name) };
 });

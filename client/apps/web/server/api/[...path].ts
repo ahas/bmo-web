@@ -7,7 +7,7 @@ import { wording } from "#shared/wording";
 import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
 import { shareRead } from "bmo-ui/shared/console-manifest";
 
-import { relayedSegment, socketRelay } from "../utils/bundle-relay";
+import { relayedRest, socketRelay } from "../utils/bundle-relay";
 import { attachedService, bundleFile, bundleOfPage, pageReaches, readerMay, readerOf, relayedCall } from "../utils/console-manifests";
 import { ownerHeaders } from "../utils/owner-key";
 import { unitAt } from "../utils/units";
@@ -60,6 +60,9 @@ const ANSWERED_HEADERS = [
   "access-control-allow-origin"
 ];
 
+// The policy a relayed answer carries where its unit set none.
+const RELAYED_FRAMING = "frame-ancestors 'self'";
+
 // How long a service has to begin answering; the bytes themselves, a file or a stream, may take longer.
 const BEGIN_MS = 30_000;
 
@@ -95,10 +98,15 @@ function queryOf(event: Parameters<typeof getQuery>[0]): string {
 
 async function relayed(event: H3Event): Promise<Response> {
   // The path is split where the request wrote a slash and nowhere else: a slash a segment carries escaped is that
-  // segment's own, and the segment is handed on still escaped, so the service reads the segment the bundle wrote.
+  // segment's own, and the segment is handed on still escaped, so the service reads the segment the bundle wrote. A
+  // segment that reads as `.` or `..` would walk out of the path once the unit's address resolves it, and is refused
+  // before any unit is asked.
   const path = (getRouterParam(event, "path") ?? "").split("/").filter((part) => part !== "");
   const service = path.shift() ?? "";
-  const rest = path.map(relayedSegment).join("/");
+  const rest = relayedRest(path);
+
+  if (rest === null) throw createError({ statusCode: 400, statusMessage: "Bad Request" });
+
   const attached = attachedService(service);
   const unit = attached?.unit ?? unitAt(service.replaceAll("-", "_").toUpperCase());
   const method = getMethod(event).toUpperCase();
@@ -171,6 +179,10 @@ async function relayed(event: H3Event): Promise<Response> {
 
     if (value !== null) answered.set(header, value);
   }
+
+  // A unit that sets no policy of its own is framed by the console's screens and by no other site, in place of the
+  // console's own answers' `frame-ancestors 'none'` (docs/web.md, 「Access」).
+  if (!answered.has("content-security-policy")) answered.set("content-security-policy", RELAYED_FRAMING);
 
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers: answered });
 }

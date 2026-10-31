@@ -1,11 +1,11 @@
 import { defineWebSocket, unsealSession } from "h3";
 
-import { signedInOf } from "./accounts";
+import { proxiedAddress, sealState, signedInOf } from "./accounts";
 import { attachedService, readerMay, readerOf, relayedPath } from "./console-manifests";
 import { ownerHeaders } from "./owner-key";
 import { unitHeaders } from "./units";
 
-import type { SignedIn } from "./accounts";
+import type { Sealed, SignedIn } from "./accounts";
 import type { AttachedBundle } from "./console-manifests";
 
 // The relay of a unit's own paths (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」; `docs/boundary.md`,
@@ -23,6 +23,15 @@ export function relayedSegment(raw: string): string {
   } catch {
     return raw;
   }
+}
+
+/** The segments a relayed path names past the service, each as `relayedSegment` hands it on, joined; or null where
+ * one of them reads, its escapes undone, as `.` or `..`, which the unit's address would resolve out of the path the
+ * manifest lets through (docs/web.md, 「Screens a unit brings」). The empty segments two slashes leave are none. */
+export function relayedRest(segments: readonly string[]): string | null {
+  const rest = segments.filter((part) => part !== "").map(relayedSegment);
+
+  return rest.some((part) => part === "." || part === "..") ? null : rest.join("/");
 }
 
 type Frame = string | ArrayBuffer | Uint8Array;
@@ -50,6 +59,10 @@ function heldOf(peer: { context: Record<string, unknown> }): Held {
 
 const OPEN = 1;
 
+// The close a socket is given where the account service cannot say whether its login stands: the server's own
+// "try again later", since nothing is wrong with the socket or the login.
+const TRY_AGAIN = 1013;
+
 // The codes a close frame never carries, which each side reports for a close that carried none (1005) or a socket
 // that broke (1006, 1015); handed on, they read as the plain close and as the service failing.
 const NO_STATUS = 1005;
@@ -60,9 +73,10 @@ function browserClose(code: number | undefined): number | undefined {
   return code === 1000 || (code !== undefined && code >= 3000 && code <= 4999) ? code : undefined;
 }
 
-// Who the upgrade's session says is signed in, or null where it carries no live session. The upgrade never reaches
-// the console's own middleware, so the seal is read here through the same module the routes read it with.
-async function signedIn(request: { headers: Headers }): Promise<SignedIn | null> {
+// Who the upgrade's session says is signed in: null where it carries no login that stands, and `unanswered` where the
+// account service cannot say. The upgrade never reaches the console's own middleware, so the seal is read here
+// through the same module the routes read it with and asked about as a request's is (docs/web.md, 「Access」).
+async function signedIn(request: { headers: Headers }): Promise<SignedIn | null | "unanswered"> {
   const config = useRuntimeConfig();
   const name = config.session?.name ?? "nuxt-session";
   // The cookie is read as the session layer reads it on every other request: split at its first equals sign, and
@@ -82,9 +96,15 @@ async function signedIn(request: { headers: Headers }): Promise<SignedIn | null>
 
   try {
     const unsealed = await unsealSession(undefined as never, config.session as never, decodeURIComponent(sealed));
-    const data = (unsealed.data ?? {}) as { user?: unknown };
+    const data = (unsealed.data ?? {}) as Partial<Sealed>;
 
-    return typeof data.user === "object" && data.user !== null ? await signedInOf(data as Parameters<typeof signedInOf>[0]) : null;
+    if (typeof data.user !== "object" || data.user === null) return null;
+
+    const state = await sealState(data, proxiedAddress(request.headers.get("x-real-ip")));
+
+    if (state === "unanswered") return state;
+
+    return state === "stands" ? await signedInOf(data as Sealed) : null;
   } catch {
     return null;
   }
@@ -102,9 +122,9 @@ function socketOf(url: string): { bundle: AttachedBundle; rest: string; search: 
   const parts = asked.pathname.slice(base.length).split("/").filter((part) => part !== "");
   const service = parts.shift() ?? "";
   const bundle = attachedService(service);
-  const rest = parts.map(relayedSegment).join("/");
+  const rest = relayedRest(parts);
 
-  return bundle === null || !bundle.manifest.websocket || !relayedPath(bundle.manifest, `/${rest}`) ? null : { bundle, rest, search: asked.search };
+  return bundle === null || rest === null || !bundle.manifest.websocket || !relayedPath(bundle.manifest, `/${rest}`) ? null : { bundle, rest, search: asked.search };
 }
 
 /** The socket hooks of the relay: the service's socket opened at the path the browser's names, and every frame and
@@ -121,6 +141,12 @@ export const socketRelay = defineWebSocket({
     }
 
     const signed = await signedIn(peer.request);
+
+    if (signed === "unanswered") {
+      peer.close(TRY_AGAIN, "the accounts do not answer");
+
+      return;
+    }
 
     if (signed === null || !readerMay(readerOf(signed), asked.bundle.manifest)) {
       peer.close(1008, "unauthorized");

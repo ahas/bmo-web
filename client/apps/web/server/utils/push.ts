@@ -86,9 +86,67 @@ export async function devicesOf(user: string): Promise<PushDevice[]> {
   }));
 }
 
+// The names a push service never stands under: this machine's own, and the suffixes a home or a cloud network
+// keeps for itself.
+const LOCAL_NAMES = ["localhost"];
+const LOCAL_SUFFIXES = [".localhost", ".local", ".internal", ".home.arpa"];
+
+// Whether a dotted IPv4 address is one the open internet does not route to anybody: unspecified, private, shared,
+// loopback, link-local, multicast or reserved.
+function closedIpv4(address: string): boolean {
+  const [a = 0, b = 0] = address.split(".").map(Number);
+
+  return a === 0 || a === 10 || a === 127 || a >= 224 || (a === 100 && b >= 64 && b < 128) || (a === 169 && b === 254) || (a === 172 && b >= 16 && b < 32) || (a === 192 && b === 168);
+}
+
+// The eight groups of an IPv6 address as the address parser writes it, its `::` spelled out.
+function ipv6Groups(address: string): number[] {
+  const [head = "", tail] = address.split("::");
+  const groups = (part: string) => (part === "" ? [] : part.split(":").map((group) => Number.parseInt(group, 16)));
+  const front = groups(head);
+  const back = tail === undefined ? [] : groups(tail);
+
+  return [...front, ...Array<number>(8 - front.length - back.length).fill(0), ...back];
+}
+
+// Whether an IPv6 address is one the open internet does not route to anybody: unspecified, loopback, an IPv4
+// address carried inside one, unique-local, link-local or multicast.
+function closedIpv6(address: string): boolean {
+  const groups = ipv6Groups(address);
+  const first = groups[0] ?? 0;
+  const zeroes = groups.slice(0, 5).every((group) => group === 0);
+
+  return (zeroes && (groups[5] === 0 || groups[5] === 0xffff)) || (first & 0xfe00) === 0xfc00 || (first & 0xffc0) === 0xfe80 || (first & 0xff00) === 0xff00;
+}
+
+/**
+ * Whether an endpoint is one the console may send to (docs/web.md, 「Notifications」): an `https:` address naming no
+ * user, on a host that is a dotted name outside the local ones or an address on the open internet. The console
+ * sends wherever a subscription points, so an endpoint is held to where a push service can stand.
+ */
+export function pushEndpointAllowed(endpoint: string): boolean {
+  let url: URL;
+
+  try {
+    url = new URL(endpoint);
+  } catch {
+    return false;
+  }
+
+  if (url.protocol !== "https:" || url.username !== "" || url.password !== "") return false;
+
+  const host = url.hostname.replace(/\.$/, "");
+
+  if (host.startsWith("[")) return !closedIpv6(host.slice(1, -1));
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) return !closedIpv4(host);
+
+  return host.includes(".") && !LOCAL_NAMES.includes(host) && !LOCAL_SUFFIXES.some((suffix) => host.endsWith(suffix));
+}
+
 // A device subscribing, or the same device saying it wants different news. The endpoint is the
 // browser's own name for it, so subscribing twice from one browser moves the one row rather
-// than leaving a stale twin behind to be rung for ever.
+// than leaving a stale twin behind to be rung for ever. A row stays with the account that made
+// it: an endpoint another account holds is left as it stands, and the answer is false.
 export async function saveDevice(input: {
   user: string;
   endpoint: string;
@@ -96,11 +154,13 @@ export async function saveDevice(input: {
   auth: string;
   kinds: PushKind[];
   now: number;
-}): Promise<void> {
-  await useWebSql().run(`INSERT INTO web_push_devices (endpoint, user_name, p256dh, auth, kinds, refused, created_at)
+}): Promise<boolean> {
+  const written = await useWebSql().run(`INSERT INTO web_push_devices (endpoint, user_name, p256dh, auth, kinds, refused, created_at)
        VALUES ($1, $2, $3, $4, '', $5, $6)
-       ON CONFLICT(endpoint) DO UPDATE SET user_name = excluded.user_name, p256dh = excluded.p256dh,
-         auth = excluded.auth, refused = excluded.refused`, input.endpoint, input.user, input.p256dh, input.auth, refusedKinds(input.kinds).join(","), input.now);
+       ON CONFLICT(endpoint) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth, refused = excluded.refused
+         WHERE web_push_devices.user_name = excluded.user_name`, input.endpoint, input.user, input.p256dh, input.auth, refusedKinds(input.kinds).join(","), input.now);
+
+  return written.changes > 0;
 }
 
 export async function forgetDevice(user: string, endpoint: string): Promise<void> {

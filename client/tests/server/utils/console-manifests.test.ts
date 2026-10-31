@@ -105,3 +105,16 @@ test("the relay lets through a route the manifest relays by its method and path,
   expect(relayedCall(manifest, "POST", "/readings/kept")).toBe(false);
   expect(relayedCall(manifest, "GET", "/screen/items")).toBe(true);
 });
+
+test("the relay lets through no path that names a `.` or `..` segment or two slashes in a row", () => {
+  const manifest = consoleManifest(manifestOf({ apiPrefix: "/screen", relays: [{ method: "POST", path: "/readings" }] }));
+  const whole = consoleManifest(manifestOf({ apiPrefix: "/" }));
+
+  expect(relayedPath(manifest, "/screen/../secrets")).toBe(false);
+  expect(relayedPath(manifest, "/screen/./items")).toBe(false);
+  expect(relayedPath(manifest, "/screen//items")).toBe(false);
+  expect(relayedPath(manifest, "/screen/items/")).toBe(true);
+  expect(relayedPath(whole, "/../elsewhere")).toBe(false);
+  expect(relayedPath(whole, "/")).toBe(true);
+  expect(relayedCall(manifest, "POST", "/screen/../readings")).toBe(false);
+});

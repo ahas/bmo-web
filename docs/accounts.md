@@ -59,8 +59,15 @@ flowchart TD
 The service mounts sumida's router as sumida builds it, under `/sumida`, so sumida's own paths (its users
 among them) never take one other units name; these are the ones the console calls.
 
-- **Every request carries the browser's address in `X-Real-IP`,** which sumida's bans read; the console hands
-  on its own caller's.
+- **Every request carries the browser's address in `X-Real-IP`,** which sumida's bans and its login lockout
+  read, so the address must be one the browser cannot choose.
+  - **The console hands on the address its reverse proxy names.** The proxy in front of the console sets its own
+    `X-Real-IP` to the address it took the connection from, after undoing the hops it trusts, and the console
+    hands that header on as it came. A request carrying none is handed on as the loopback address.
+  - **`X-Forwarded-For` is never read.** Its entries are whatever the browser wrote, with the proxies' own
+    appended behind them, so taking any of them would let a browser name a fresh address at every attempt.
+  - **The console's port is reached through the proxy alone.** A request reaching the port directly writes its
+    own `X-Real-IP`, so the deployment keeps the port off every network but the proxy's.
 - **Sign-in:** `POST /sumida/auth/session` with the name and the password. The console always asks for the ordinary
   window, an idle one of seven days which the service extends at every request a session is read on, so
   staying signed in stays the console's own seal (`docs/web.md`, 「Access」). The answer carries the session

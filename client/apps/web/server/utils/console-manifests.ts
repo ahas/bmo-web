@@ -175,8 +175,18 @@ export function sharePage(manifest: ConsoleManifest, path: string): boolean {
   return path.startsWith(`${manifest.screenPath}/share/`);
 }
 
+// Whether a path names a `.` or `..` segment, or two slashes in a row, any of which the unit's address would resolve
+// to a path other than the one written, and so stands under nothing a manifest lets through.
+function walksOut(path: string): boolean {
+  const parts = path.split("/").slice(1);
+
+  return parts.some((part, at) => part === "." || part === ".." || (part === "" && at < parts.length - 1));
+}
+
 /** Whether a path of a service's API is one the relay hands on: under its API prefix, or its module or stylesheet. */
 export function relayedPath(manifest: ConsoleManifest, path: string): boolean {
+  if (walksOut(path)) return false;
+
   if (path === manifest.bundle || path === manifest.stylesheet) return true;
 
   const prefix = manifest.apiPrefix.replace(/\/+$/, "");
@@ -187,7 +197,7 @@ export function relayedPath(manifest: ConsoleManifest, path: string): boolean {
 /** Whether a call of a service's API is one the relay hands on: a path `relayedPath` lets through, or a route the
  * manifest names under `relays` by its method and path. */
 export function relayedCall(manifest: ConsoleManifest, method: string, path: string): boolean {
-  return relayedPath(manifest, path) || relaysRoute(manifest, method, path);
+  return relayedPath(manifest, path) || (!walksOut(path) && relaysRoute(manifest, method, path));
 }
 
 /** The bundle whose screen path a page address stands under, read from the console's base path, or null where none. */

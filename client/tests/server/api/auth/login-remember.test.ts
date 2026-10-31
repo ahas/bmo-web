@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { REMEMBER_LOGIN_SECONDS } from "../../../../apps/web/shared/config";
+import { BROWSER_LOGIN_SECONDS, REMEMBER_LOGIN_SECONDS } from "../../../../apps/web/shared/config";
 import { standInHandler } from "../../../support/route-handler";
 
 // What the login and the account change do with the life of the session, with the Nuxt
@@ -14,7 +14,7 @@ interface FakeEvent {
 
 interface Written {
   data: Record<string, unknown>;
-  life: { maxAge?: number; cookie?: { expires: Date } } | undefined;
+  life: { maxAge?: number; cookie?: { expires: Date }; seal?: { ttl?: number } } | undefined;
 }
 
 const globals: Record<string, unknown> = globalThis;
@@ -35,7 +35,7 @@ globals.requireUserSession = async () => standing;
 // The console's own login, as it stands where the archive is the file and no user of sumida's is.
 globals.consoleModel = async () => "off";
 globals.signedInUser = async () => ({ name: (standing.user as { name: string }).name, id: null, administrator: true });
-globals.setUserSession = async (event: FakeEvent, data: Record<string, unknown>, life: { maxAge?: number; cookie?: { expires: Date } } | undefined) => {
+globals.setUserSession = async (event: FakeEvent, data: Record<string, unknown>, life: Written["life"]) => {
   written = { data, life };
 };
 globals.replaceUserSession = globals.setUserSession;
@@ -54,18 +54,18 @@ beforeEach(() => {
 });
 
 describe("logging in", () => {
-  test("the switch off writes a session with no age, which is the browser's own", async () => {
+  test("the switch off writes a session with no age, which is the browser's own, sealed to end 12 hours on", async () => {
     await login({ body: { name: "owner", password: "right", remember: false } });
 
     expect(written?.data.remember).toBe(false);
-    expect(written?.life).toEqual({});
+    expect(written?.life).toEqual({ seal: { ttl: BROWSER_LOGIN_SECONDS * 1000 } });
   });
 
   test("a request that says nothing about the switch is not a kept login", async () => {
     await login({ body: { name: "owner", password: "right" } });
 
     expect(written?.data.remember).toBe(false);
-    expect(written?.life).toEqual({});
+    expect(written?.life).toEqual({ seal: { ttl: BROWSER_LOGIN_SECONDS * 1000 } });
   });
 
   test("the switch on writes the span onto the session and onto the cookie", async () => {
@@ -97,6 +97,6 @@ describe("changing the account", () => {
     await account({ body: { currentPassword: "right", name: "owner", password: "" } });
 
     expect(written?.data.remember).toBe(false);
-    expect(written?.life).toEqual({});
+    expect(written?.life).toEqual({ seal: { ttl: BROWSER_LOGIN_SECONDS * 1000 } });
   });
 });

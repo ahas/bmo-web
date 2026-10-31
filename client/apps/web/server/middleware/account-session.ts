@@ -1,11 +1,12 @@
 import { wording } from "#shared/wording";
 
-// A seal holding a sumida session is good only while that session stands on the account service
-// (docs/web.md, 「Access」): asked about at most once a window, and a session the service no longer
-// knows is ended, so the rest of the request is refused as one nobody signed. A service that does not
-// answer ends nothing: the request is refused as the service being down and the seal stays for the
-// next one. A websocket upgrade and a request with no session cookie are left alone, as the slide
-// leaves them.
+// A seal is good only while the login it holds stands (docs/web.md, 「Access」): one past its span is
+// ended; one holding a sumida session stands while that session stands on the account service, asked
+// about at most once a window; and one holding none stands only while the model is not in force. A seal
+// no longer good is ended, so the rest of the request is refused as one nobody signed. A service that
+// does not answer ends nothing: the request is refused as the service being down and the seal stays for
+// the next one. A request with no session cookie is left alone, as the slide leaves it, and so is a
+// websocket upgrade, which the relay's socket asks about itself as it opens.
 export default defineEventHandler(async (event) => {
   if (getRequestHeader(event, "upgrade") !== undefined || !carriesSession(event)) {
     return;
@@ -13,11 +14,11 @@ export default defineEventHandler(async (event) => {
 
   const session = await getUserSession(event);
 
-  if (session.sid === undefined) {
+  if (session.user === undefined) {
     return;
   }
 
-  const state = await sessionState(session.sid, browserAddress(event));
+  const state = await sealState(session, browserAddress(event));
 
   if (state === "unanswered") {
     throw fail(503, wording("app.error.accounts_down"));

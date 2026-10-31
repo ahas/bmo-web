@@ -4,14 +4,18 @@ import { dirname } from "node:path";
 import { consoleManifest } from "bmo-ui/shared/console-manifest";
 import { createApp, createRouter, defineEventHandler, sealSession } from "h3";
 
+import { signIn } from "../../../apps/web/server/utils/account-service";
 import { attachBundles } from "../../../apps/web/server/utils/console-manifests";
+import { standInAccountService } from "../../support/account-service";
 
 import type { Server, WebSocketHandler } from "bun";
 
 // A bundle's socket through the console (docs/boundary.md, 「Calls the console makes」): the console's routes
 // stood as the server stands them — its middleware at the base path ahead of the routes, the routes under it —
 // with the socket plugin applied, served by the socket adapter the server serves with, and a stand-in unit with a
-// socket of its own. A frame goes each way as it came, and the close code each side gives reaches the other.
+// socket of its own. A frame goes each way as it came, and the close code each side gives reaches the other. The
+// socket opens only on a login that stands, asked of a stand-in account service as a request's is (docs/web.md,
+// 「Access」).
 
 const BASE = "/console/";
 const SESSION = { name: "nuxt-session", password: "relay-socket-test-password-0123456789" };
@@ -58,6 +62,10 @@ const unit = Bun.serve<UnitSocket, never>({
   }
 });
 
+const accounts = standInAccountService({ users: [{ id: 7, name: "tester", password: "a password" }] });
+
+process.env.WEB_SERVER_ADDRESS = accounts.address;
+process.env.WEB_SERVER_TOKEN = accounts.token;
 process.env.RELAYED_ADDRESS = `http://127.0.0.1:${unit.port}`;
 process.env.RELAYED_TOKEN = TOKEN;
 process.env.PLAIN_ADDRESS = `http://127.0.0.1:${unit.port}`;
@@ -108,19 +116,28 @@ const console_ = Bun.serve({
 afterAll(() => {
   void console_.stop(true);
   void unit.stop(true);
+  accounts.stop();
+  delete process.env.WEB_SERVER_ADDRESS;
+  delete process.env.WEB_SERVER_TOKEN;
   delete process.env.RELAYED_ADDRESS;
   delete process.env.RELAYED_TOKEN;
   delete process.env.PLAIN_ADDRESS;
 });
 
-const signedIn = await sealSession(
-  { context: { sessions: { [SESSION.name]: { id: "session-a", createdAt: Date.now(), data: { sid: "sid-a", administrator: false, user: { id: 7, name: "tester" } } } } } } as never,
-  SESSION
-);
+// A seal as the login writes it, holding what `data` adds to a login made now.
+async function sealOf(data: Record<string, unknown>): Promise<string> {
+  const session = { id: crypto.randomUUID(), createdAt: Date.now(), data: { administrator: false, user: { id: 7, name: "tester" }, remember: false, loggedInAt: Date.now(), ...data } };
+
+  return await sealSession({ context: { sessions: { [SESSION.name]: session } } } as never, SESSION);
+}
+
+const signedIn = await sealOf({ sid: await signIn("tester", "a password", "127.0.0.1") });
+
+const cookieOf = (sealed: string): string => `${SESSION.name}=${encodeURIComponent(sealed)}`;
 
 // A browser's socket on the console at `path`, with what it heard and how it closed.
 // The browser's own `Owner-Key` is one it cannot choose, so every socket here sends one the console must replace.
-function opened(path: string, cookie: string | null = `${SESSION.name}=${encodeURIComponent(signedIn)}`) {
+function opened(path: string, cookie: string | null = cookieOf(signedIn)) {
   // bun's WebSocket takes a `headers` option, but the checker reads the web platform's constructor, which takes protocols.
   const SocketWith = WebSocket as new (url: string, options: string | string[] | Bun.WebSocketOptions) => WebSocket;
   const headers: Record<string, string> = { "owner-key": "browser-chosen", "owner-role": "administrator", ...(cookie === null ? {} : { cookie }) };
@@ -190,6 +207,41 @@ describe("a bundle's socket through the console", () => {
     const { closed } = opened("relayed/sessions/three", null);
 
     expect(await closed).toEqual({ code: 1008, reason: "unauthorized" });
+  });
+
+  test("closes a socket whose sumida session is gone before the unit hears of it", async () => {
+    const before = unitHeard.opened.length;
+    const { closed } = opened("relayed/sessions/seven", cookieOf(await sealOf({ sid: "bmo.sid=signed-out" })));
+
+    expect(await closed).toEqual({ code: 1008, reason: "unauthorized" });
+    expect(unitHeard.opened.length).toBe(before);
+  });
+
+  test("closes a socket whose seal holds no sumida session once the model is in force", async () => {
+    const { closed } = opened("relayed/sessions/eight", cookieOf(await sealOf({})));
+
+    expect(await closed).toEqual({ code: 1008, reason: "unauthorized" });
+  });
+
+  test("closes a socket whose seal is past its span", async () => {
+    const sid = await signIn("tester", "a password", "127.0.0.1");
+    const { closed } = opened("relayed/sessions/nine", cookieOf(await sealOf({ sid, loggedInAt: Date.now() - 13 * 60 * 60 * 1000 })));
+
+    expect(await closed).toEqual({ code: 1008, reason: "unauthorized" });
+  });
+
+  test("closes a socket to be tried again where the account service does not answer", async () => {
+    const sid = await signIn("tester", "a password", "127.0.0.1");
+
+    process.env.WEB_SERVER_ADDRESS = "";
+
+    try {
+      const { closed } = opened("relayed/sessions/ten", cookieOf(await sealOf({ sid })));
+
+      expect(await closed).toEqual({ code: 1013, reason: "the accounts do not answer" });
+    } finally {
+      process.env.WEB_SERVER_ADDRESS = accounts.address;
+    }
   });
 
   test("closes a socket on a screen the reader's role does not open", async () => {

@@ -1,16 +1,15 @@
-import { getRequestIP } from "h3";
+import { getRequestHeader } from "h3";
 
 import { AccountServiceDown, modelState, sessionUser } from "./account-service";
+import { sessionLapsed } from "./session-life";
 import { wording } from "#shared/wording";
-
-import { useWebSql } from "./db";
 
 import type { H3Event } from "h3";
 
 // The signed-in user as the multi-user model reads them (docs/accounts.md; docs/web.md, 「Access」).
-// Before the model is in force the console's own accounts are the administrator's, as they always were;
-// once it is, a sign-in is sumida's, its session is held inside the console's own seal and asked about on
-// every request, and a seal written before the model stays readable as the administrator's own.
+// Before the model is in force the console's own accounts are the administrator's; once it is, a sign-in
+// is sumida's, its session is held inside the console's own seal and asked about on every request and
+// every socket, and a seal holding no sumida session signs nobody in.
 
 /** Where the model stands for the console: `off` before the data move, `on` once it is in force, `down` where the server does not answer. */
 export type ConsoleModel = "off" | "on" | "down";
@@ -30,9 +29,21 @@ export async function consoleModel(now: number = Date.now()): Promise<ConsoleMod
   return model;
 }
 
-/** The address of the browser a request came from, which a ban on the service reads. */
+/**
+ * The browser's address as the reverse proxy in front of the console names it in `X-Real-IP`, which a ban
+ * and the login lockout on the service read (docs/accounts.md, 「sumida's own routes」). `X-Forwarded-For` is
+ * never read: its first entries are whatever the browser wrote. Where the proxy named none, the address is
+ * the loopback one.
+ */
+export function proxiedAddress(realIp: string | null | undefined): string {
+  const named = realIp?.trim() ?? "";
+
+  return named === "" ? "127.0.0.1" : named;
+}
+
+/** The address of the browser a request came from, as `proxiedAddress` reads it. */
 export function browserAddress(event: H3Event): string {
-  return getRequestIP(event, { xForwardedFor: true }) ?? "127.0.0.1";
+  return proxiedAddress(getRequestHeader(event, "x-real-ip"));
 }
 
 /** Who is signed in: their name, their user where the model names one, and whether they are the administrator. */
@@ -42,29 +53,32 @@ export interface SignedIn {
   administrator: boolean;
 }
 
-/** The user a console account's name is on the model, read off sumida's own rows in the server's database. */
-export async function userNamed(name: string): Promise<number | null> {
-  const row = await useWebSql().get("SELECT id FROM users WHERE username = $1", name) as { id: number } | null;
-
-  return row === null ? null : Number(row.id);
-}
-
 /** The signed-in user of a request, refused as anywhere where nobody is signed in. */
 export async function signedInUser(event: H3Event): Promise<SignedIn> {
   return await signedInOf(await requireUserSession(event));
 }
 
-/** Who a session's seal says is signed in, read the same way wherever the seal is opened. */
-export async function signedInOf(session: { sid?: string; administrator?: boolean; user: { name: string; id?: number } }): Promise<SignedIn> {
+/** What a session's seal holds of the one signed in, as every reader of the seal opens it. */
+export interface Sealed {
+  sid?: string;
+  administrator?: boolean;
+  user: { name: string; id?: number };
+  remember?: unknown;
+  loggedInAt?: unknown;
+  touchedAt?: unknown;
+}
+
+/**
+ * Who a session's seal says is signed in, read the same way wherever the seal is opened. A seal holding no
+ * sumida session is a console login, the administrator's. Whether the seal still stands is `sealState`'s to
+ * say, asked before the seal is read: by the session middleware for a request, by the relay for a socket.
+ */
+export async function signedInOf(session: Sealed): Promise<SignedIn> {
   if (session.sid !== undefined) {
     return { name: session.user.name, id: session.user.id ?? null, administrator: session.administrator === true };
   }
 
-  // A console login: the administrator's before the model, and on the model a seal written before it,
-  // which only the administrator's own account could have signed.
-  if (await consoleModel() !== "on") return { name: session.user.name, id: null, administrator: true };
-
-  return { name: session.user.name, id: await userNamed(session.user.name), administrator: true };
+  return { name: session.user.name, id: null, administrator: true };
 }
 
 /** The signed-in user where they are the platform administrator; anyone else is refused. */
@@ -105,6 +119,21 @@ export async function sessionState(cookie: string, address: string, now: number 
   asked.set(cookie, { at: now, user });
 
   return user !== null ? "stands" : "gone";
+}
+
+/**
+ * Whether the login a seal holds still stands, as a request and a socket both ask it: a seal past its span
+ * is gone; one holding a sumida session stands while the service says it does; one holding none stands
+ * only while the model is not in force, and a service that cannot say whether it is gives no answer.
+ */
+export async function sealState(session: Omit<Sealed, "user">, address: string, now: number = Date.now()): Promise<SessionState> {
+  if (sessionLapsed(session, now)) return "gone";
+
+  if (session.sid !== undefined) return await sessionState(session.sid, address, now);
+
+  const model = await consoleModel(now);
+
+  return model === "off" ? "stands" : model === "on" ? "gone" : "unanswered";
 }
 
 /** A session the console signed out of, forgotten at once. */

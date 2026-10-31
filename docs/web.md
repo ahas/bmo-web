@@ -349,13 +349,31 @@ this rule alone and goes nowhere else.
   body is refused 413 and nothing is handed on; an agency that does not answer is 502. Each delivery leaves one
   line in the console's log: its event, its delivery id and the status it was answered with.
 
+**Every answer carries the browser's guards.** `X-Content-Type-Options: nosniff`, so a file is read as the
+type it is answered as and never sniffed into a script; `Referrer-Policy: same-origin`, so an address of the
+console reaches no other site; and `Content-Security-Policy: frame-ancestors 'none'`, so no page frames a
+console page. No answer says which framework drew it. Strict transport is the reverse proxy's to set.
+
+- **A relayed answer keeps what its unit set of these.** A unit's own `X-Content-Type-Options`,
+  `Referrer-Policy` and `Content-Security-Policy` reach the browser in place of the console's, so a page a
+  unit hosts stands under its own policy.
+- **A relayed answer whose unit sets no policy may be framed by the console alone.** It carries
+  `frame-ancestors 'self'` in place of `'none'`, since a bundle's screen frames what its unit serves — a
+  document's preview, a hosted page — and no other site may.
+
 **Once the multi-user model is in force, the sign-in is the account service's**
 (`docs/accounts.md`).
 
 - **Signing in** posts the name and the password to the service, and the seal this app keeps holds
   the sumida session it is handed, the user and whether that user is the platform administrator.
   Every request carrying such a seal asks the service whether its session still stands, at most once
-  every thirty seconds, and a session gone clears the seal.
+  every thirty seconds, and a session gone clears the seal. A relayed call is such a request like any
+  other.
+- **A socket asks too.** A bundle's socket never passes through the checks a request does, so the relay
+  asks the same question itself as the socket opens, of the session its seal holds: a session gone, or
+  a seal no longer good, closes the socket as unauthorized before anything reaches the unit, and a
+  service that does not answer closes it as one to try again later. A socket that stands open is not
+  asked again; the session's end reaches it at the next socket it opens.
 - **A service that does not answer that question ends no session.** The request is refused with this
   app's 503 of the service not answering and the seal stays, so a deployment restarting the service
   signs nobody out: the next request asks again, and a send refused meanwhile waits (the room
@@ -366,8 +384,11 @@ this rule alone and goes nowhere else.
 - **An empty session cookie is no session.** The checks on a request read one as they read a request
   with no cookie.
 - **A service that does not answer signs nobody in,** and says so in the login screen's error line.
-- **A seal this app wrote before the model** stays readable as the administrator's until the
-  contraction, since only their account could have signed it.
+- **A seal that holds no sumida session is a console login, and stands only while the model is not in
+  force.** Once the model is in force such a seal signs nobody in: the request that carries it finds it
+  ended, as one whose session is gone, and the next login is the service's. Where the service does not
+  answer whether the model is in force, the request is refused as the service being down and the seal
+  stays.
 - **The administrator reaches every screen and route.** Anyone else reaches only the routes opened
   to them, each read under its scope: their own account, their phones and their tabs, and the rooms
   they are a member of and hold the console grant in. Every other route answers them as if nothing
@@ -381,7 +402,7 @@ nothing.
 
 - **Whether the one signed in is the administrator is read off the session the browser already
   holds.** A sign-in on the service writes it into the seal; a seal that does not name it is a console
-  login or one written before the model, and both are the administrator's, as the routes read them.
+  login, which stands only before the model and is the administrator's, as the routes read it.
 - **Each screen says whether a member may open it.** A member opens home, the settings, the rooms they may
   read and the screens units bring whose manifest's role is `member` — and, where the manifest asks for the
   owner key, only when their login has a user; asking for any other address takes them home.
@@ -433,10 +454,18 @@ nothing.
   own; an address outside this app is never followed, and with none the login goes home.
 
 **A login stands for one of two spans, and the login screen picks between them.** The switch there —
-로그인 유지 — is off unless it is asked for, and off is what the console has always done: the cookie
-carries no expiry at all, which is what makes it the browser's own session cookie and gone as soon as the
-browser closes.
+로그인 유지 — is off unless it is asked for. Every seal carries an end of its own either way, past which the
+server refuses it, so no copy of a cookie opens the console for ever.
 
+- **Switched off, the login stands until the browser closes or 12 hours pass from the login, whichever
+  comes first.** The cookie carries no expiry, which is what makes it the browser's own session cookie;
+  the seal inside it carries the 12 hours, so a copy of the cookie kept past them opens nothing. The span
+  does not slide: a console kept open past it asks for the password again. The 12 hours are one number in
+  the shared config.
+- **A seal older than its span is ended whatever it carries.** Every request, and every socket as it opens,
+  reads when the login was made — for a kept login, when it was last resealed — and a seal standing longer
+  than its span is a session gone (above), so a seal that names no end of its own is held to the span all
+  the same.
 - **Switched on, the login stands until 7 days pass with no visit.** The span is one number in the
   shared config, and it is the cookie's expiry and the age past which the server refuses the seal both at
   once, so a copy of the cookie kept past it opens nothing either. A kept login is a cookie sitting on a
@@ -6477,6 +6506,15 @@ dialog open at 계정.
   What a notification carries is only a question a job put to them, the first line an agent said in a room with the room and the speaker, and for mail the account, the sender and the subject — never a mail's
   body, this machine's paths, tokens or an agent's insides. The carried content itself is sealed with a key the browser made so the push service in
   between cannot read it.
+- **A subscription another account holds stays that account's.** Subscribing with an endpoint already bound to
+  another account is refused 409 and the line is left where it stands; it moves only once its own account lets it
+  go, from the settings' 알림 section or by the push service answering it gone.
+- **An endpoint is a push service's address on the open internet.** The console sends to whatever address a
+  subscription names, so it takes only an `https:` address naming no user or password, whose host is a name with a
+  dot in it or an address on the public internet: never `localhost` or a name under `.localhost`, `.local`,
+  `.internal` or `.home.arpa`, and never a loopback, private, link-local, shared, multicast, reserved or
+  unspecified address of either family, an IPv4 address carried in an IPv6 one among them. Any other is refused
+  400 and stored nowhere. What a public name resolves to is not read.
 - **One pile of the same notice is read once.** The bot's todo event carries only the fact that the table moved, so what
   to notify must be read from the archive each time. So the same event coming in a row repeats the same read that many
   times and the answer is each time the same. Not a rare place — the bot hands a stream that lost its place all it has in
@@ -6531,6 +6569,10 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   seconds by default; a service that has not begun by then is a 504. Its
   event stream and its socket are relayed where the manifest asks for them, and the notices it names under
   `pushKinds` are rung (「Notifications」).
+- **A relayed path never walks out of itself.** A path one of whose segments reads, once its escapes are
+  undone, as `.` or `..` is refused 400 and reaches no unit — a bundle's service or a unit the console calls
+  directly — and a socket at such a path is closed as no relay, so what a manifest lets through is all a
+  path can reach.
 - **A bundle calls the services it names.** A manifest's `calls` names the other services its screens call
   through the relay, each by the service name that service's own manifest gives it. A call from a bundle's page,
   told by the page address the browser sends as the call's referrer, to a service another manifest names is

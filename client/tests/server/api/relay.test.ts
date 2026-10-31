@@ -51,6 +51,33 @@ describe("the relay's path", () => {
 
     expect(unit.asked.at(-1)?.path).toBe("/places/100%/entries");
   });
+
+  test("refuses a segment that reads as `.` or `..`, bare or escaped, and asks no unit", async () => {
+    const before = unit.asked.length;
+
+    for (const path of ["places/../secrets", "places/%2e%2e/secrets", "places/%2E%2e/secrets", "places/.%2e/secrets", "places/./entries", "places/%2e/entries", "%2e%2e"]) {
+      const refused = await handler(asking(path)).then(
+        () => null,
+        (error: { statusCode?: number }) => error.statusCode
+      );
+
+      expect(refused).toBe(400);
+    }
+
+    expect(unit.asked.length).toBe(before);
+  });
+
+  test("hands on a segment that only holds dots among other letters", async () => {
+    await handler(asking("places/..hidden/a.b/..."));
+
+    expect(unit.asked.at(-1)?.path).toBe("/places/..hidden/a.b/...");
+  });
+
+  test("lets the console's screens alone frame an answer whose unit set no policy", async () => {
+    const response = await handler(asking("places"));
+
+    expect(response.headers.get("content-security-policy")).toBe("frame-ancestors 'self'");
+  });
 });
 
 // The owner a unit acts for and the role they act in: the console's to say, from the person signed in, whatever the
@@ -422,6 +449,7 @@ describe("the relay of a share read", () => {
       const page = (await handler({ params: { path: "linked/links/Ab3_x/page" }, method: "GET", node: {} } as RouteEvent)) as Response;
 
       expect(page.headers.get("content-security-policy")).toBe("default-src 'none'");
+      expect(ranged.headers.get("content-security-policy")).toBe("frame-ancestors 'self'");
       expect(page.headers.get("referrer-policy")).toBe("no-referrer");
       expect(page.headers.get("x-powered-by")).toBeNull();
     });

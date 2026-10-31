@@ -155,6 +155,12 @@ export const PUSH_NO_WORKER = "push.error.no_worker";
 export const REMEMBER_LOGIN_DAYS = 7;
 export const REMEMBER_LOGIN_SECONDS = REMEMBER_LOGIN_DAYS * 24 * 60 * 60;
 
+// How long a login the reader did not ask to keep stands at most, counted from the login. Its cookie is
+// the browser's own session and goes when the browser closes; the seal inside it ends here all the same,
+// so a copy of the cookie lifted off a browser left open opens nothing past it.
+export const BROWSER_LOGIN_HOURS = 12;
+export const BROWSER_LOGIN_SECONDS = BROWSER_LOGIN_HOURS * 60 * 60;
+
 // How many finished items come over at a time. The queue and the requests waiting on them are
 // their working set and come whole — a queue with rows missing could not be dragged into order —
 // but the finished ones only grow, so the panel takes them a page at a time and asks for the

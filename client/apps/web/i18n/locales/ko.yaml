@@ -2487,6 +2487,7 @@ research:
     hold_since: "{time}부터"
     host_gap: 호스트 간격
     item_state_dismissed: 제외됨
+    item_state_finishing: 마무리 중
     item_state_fit: 검토 요청
     item_state_reported: 보고됨
     item_state_running: 실행 중

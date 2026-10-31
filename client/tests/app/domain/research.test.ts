@@ -78,12 +78,16 @@ describe("the queue's words", () => {
   });
 
   test("offers dismissal in every state but taken and dismissed", () => {
-    expect(ITEM_STATES.filter(dismissible)).toEqual(["waiting", "running", "reported", "fit", "stuck"]);
+    expect(ITEM_STATES.filter(dismissible)).toEqual(["waiting", "running", "finishing", "reported", "fit", "stuck"]);
   });
 
   test("knows no failed state, and says a stuck item in its own words and in the error colour", () => {
     expect(ITEM_STATES).not.toContain("failed");
     expect(itemStateLook(wording, "stuck")).toEqual({ label: wording("research.label.item_state_stuck"), color: "error" });
+  });
+
+  test("says a finishing item in its own words and in the colour a running one wears", () => {
+    expect(itemStateLook(wording, "finishing")).toEqual({ label: wording("research.label.item_state_finishing"), color: itemStateLook(wording, "running").color });
   });
 
   test("offers asking again and moving to the front on a stuck item alone", () => {

@@ -2558,10 +2558,10 @@ Two ways, split because the running places differ.
     refusal is said in a notice.
 - **대기열** stands under it.
   - Its head carries two choices, the category (전체 분류, then each category) and the state (전체 상태, then
-    each of the seven: 대기, 실행 중, 보고됨, 검토 요청, 막힘, 처리됨, 제외됨), which the unit narrows the queue by.
+    each of the eight: 대기, 실행 중, 마무리 중, 보고됨, 검토 요청, 막힘, 처리됨, 제외됨), which the unit narrows the queue by.
   - The items stand in the queue's order: every running item first, in the order they started; then every stuck
     item, the oldest made first, so what needs the owner's eye stands near the top; then every item no longer
-    waiting, running or stuck — 보고됨, 검토 요청, 처리됨, 제외됨 and any state the unit adds — the one whose state
+    waiting, running or stuck — 마무리 중, 보고됨, 검토 요청, 처리됨, 제외됨 and any state the unit adds — the one whose state
     last changed first; then the waiting, the oldest made first, the order they run in. A choice narrowing the
     queue keeps that order within what it leaves. The unit answers its queue in its own order, so the screen
     orders what it has read.
@@ -2584,6 +2584,8 @@ Two ways, split because the running places differ.
     with none; a follow-up as the follow-up of its parent, named by the parent document's title, else by its
     number, linked to the parent's share link in a new tab, with the words it was asked with after it. The same
     line stands in the item's run sheet.
+  - **A finishing item** is one whose run has filed its document while its page is not yet whole, so nobody has
+    been told of it yet. Its state chip is 마무리 중 in the colour 실행 중 wears, since the unit is still at work on it.
   - **A stuck item** is one whose failed tries passed the unit's retries. The unit keeps asking it on its retry
     wait and has filed a repair job for the helper; only the owner's dismissal takes it out of the queue. Its
     state chip is 막힘 in the error colour, and two buttons stand on it beside 제외: **다시 요청**, which asks it

@@ -126,11 +126,12 @@ export function isResearchTab(value: unknown): value is ResearchTab {
 }
 
 // An item's states, in the order the state choice offers them.
-export const ITEM_STATES: readonly string[] = ["waiting", "running", "reported", "fit", "stuck", "taken", "dismissed"];
+export const ITEM_STATES: readonly string[] = ["waiting", "running", "finishing", "reported", "fit", "stuck", "taken", "dismissed"];
 
 const ITEM_STATE_LOOKS: Record<string, { key: string; color: ChipColor }> = {
   waiting: { key: "research.label.item_state_waiting", color: "neutral" },
   running: { key: "research.label.item_state_running", color: "info" },
+  finishing: { key: "research.label.item_state_finishing", color: "info" },
   reported: { key: "research.label.item_state_reported", color: "success" },
   fit: { key: "research.label.item_state_fit", color: "primary" },
   stuck: { key: "research.label.item_state_stuck", color: "error" },

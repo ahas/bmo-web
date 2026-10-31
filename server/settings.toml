@@ -17,6 +17,11 @@ valkey = "redis://127.0.0.1:6379/13"
 # deployment sets them.
 [receiver]
 
+# The folder the secret store writes: the data root's env/, where every unit reads a secret by its file name. A
+# leading ~/ stands for the home of the user the server runs as.
+[secrets]
+dir = "~/.local/share/bmo/data/env"
+
 # The names the language pack's lines are filled with: `chat_agent`, the name the chat agent goes by in a room,
 # without which the server does not stand; a deployment sets it.
 [names]

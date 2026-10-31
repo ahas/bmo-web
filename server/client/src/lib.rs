@@ -12,7 +12,7 @@ mod openapi;
 mod types;
 mod wire;
 
-pub use client::AccountClient;
+pub use client::{AccountClient, OWNER_ROLE};
 pub use openapi::{openapi, openapi_json};
 pub use types::*;
 pub use wire::{Answer, ClientFailure, SessionError, WireError};

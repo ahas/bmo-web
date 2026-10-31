@@ -16,6 +16,7 @@ pub mod phones;
 pub mod receiver;
 pub mod routes;
 pub mod rules;
+pub mod secrets;
 pub mod settings;
 pub mod store;
 pub mod users;
@@ -50,6 +51,16 @@ pub struct Service {
   pub seen_in_force: Arc<AtomicBool>,
   /// The rooms the console reported open, which the receiver reads as it starts.
   pub watching: Arc<Mutex<watching::Watching>>,
+  /// The secret store's folder, none where the settings name none.
+  pub secrets: Option<Arc<secrets::Store>>,
+}
+
+impl Service {
+  /// The same service with its secret store on `store`.
+  pub fn keeping_secrets(mut self, store: secrets::Store) -> Self {
+    self.secrets = Some(Arc::new(store));
+    self
+  }
 }
 
 impl SumidaState for Service {

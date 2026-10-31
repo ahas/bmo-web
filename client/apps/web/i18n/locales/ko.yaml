@@ -1575,9 +1575,44 @@ settings:
     briefing: 보이스브리핑
     notifications: 알림
     palette: 대화방
+    secrets: 비밀 보관함
     theme: 테마
   action:
     back: 뒤로
+secrets:
+  title:
+    add: 비밀 추가
+    replace: 비밀 교체
+  label:
+    kept: 보관된 비밀
+    name: 이름
+    name_hint: 영문, 숫자, 점, 밑줄, 하이픈
+    none: 보관된 비밀 없음
+    note: 에이전트와 각 서비스의 설정에는 이름만 전합니다. 값은 보관함의 파일에만 남고 대화와 로그에는 남지 않습니다.
+    replace: 기존 값 교체
+    replace_note: "이전 값은 {name}.previous 파일로 남습니다."
+    row: "{bytes}바이트 · {time} 변경"
+    value: 값
+  action:
+    add: 비밀 추가
+    replace: 교체
+  status:
+    loading: 비밀 목록 불러오는 중…
+  message:
+    delete_confirm: 비밀을 삭제할까요?
+    delete_effect: "값은 {name}.previous 파일로 남고, 이 이름을 읽는 서비스는 더 이상 값을 찾지 못합니다."
+  error:
+    bad_name: "이름은 {max}자 이내의 영문, 숫자, 점, 밑줄, 하이픈이어야 하며, 점으로 시작하거나 .previous로 끝날 수 없습니다."
+    delete_failed: 비밀을 삭제하지 못했습니다.
+    empty_value: 값을 입력해 주세요.
+    exists: 같은 이름의 비밀이 이미 있습니다. 기존 값 교체를 켜 주세요.
+    no_store: 서버 설정에 비밀 보관함 폴더가 지정되지 않았습니다.
+    not_a_file: 이 이름은 보관함 폴더에 파일이 아닌 항목으로 있어 쓸 수 없습니다.
+    not_found: 이 이름의 비밀이 없습니다.
+    not_in_force: 계정 모델이 쓰이기 전에는 비밀 보관함을 쓸 수 없습니다.
+    read_failed: 비밀 목록을 불러오지 못했습니다.
+    save_failed: 비밀을 저장하지 못했습니다.
+    unreachable: 계정 서비스에 연결되지 않았습니다.
 agents:
   action:
     default_order: 기본 순서로

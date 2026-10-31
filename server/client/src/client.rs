@@ -7,6 +7,9 @@ use serde::de::DeserializeOwned;
 use crate::types::*;
 use crate::wire::{Answer, ClientFailure};
 
+/// The header a call names the role of the login it is made for in, as the console hands it on.
+pub const OWNER_ROLE: &str = "owner-role";
+
 /// The account service at one base address, called with one bearer token.
 #[derive(Debug, Clone)]
 pub struct AccountClient {
@@ -210,6 +213,21 @@ impl AccountClient {
   /// `GET /rooms/{chat}/holdings`.
   pub async fn room_holdings(&self, chat: i64) -> Answer<Holdings> {
     Self::answered(self.request(Method::GET, &["rooms", &chat.to_string(), "holdings"])).await
+  }
+
+  /// `GET /secrets`, asked in `role`, the role the console's login acts in.
+  pub async fn secrets(&self, role: &str) -> Answer<Secrets> {
+    Self::answered(self.request(Method::GET, &["secrets"]).header(OWNER_ROLE, role)).await
+  }
+
+  /// `PUT /secrets/{name}`, asked in `role`.
+  pub async fn put_secret(&self, name: &str, ask: &SecretAsk, role: &str) -> Answer<Secret> {
+    Self::answered(self.send(Method::PUT, &["secrets", name], ask).header(OWNER_ROLE, role)).await
+  }
+
+  /// `DELETE /secrets/{name}`, asked in `role`.
+  pub async fn delete_secret(&self, name: &str, role: &str) -> Answer<()> {
+    Self::nothing(self.request(Method::DELETE, &["secrets", name]).header(OWNER_ROLE, role)).await
   }
 
   /// `POST /words/render`.

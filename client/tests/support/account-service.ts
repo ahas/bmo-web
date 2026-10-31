@@ -64,6 +64,15 @@ interface StandInBody {
   words?: string;
   key?: string;
   token?: string;
+  // A secret's value and whether it replaces the one its name holds.
+  value?: unknown;
+  replace?: boolean;
+}
+
+// A secret the stand-in's store holds: the value a test reads back to see it arrived, and when it was written.
+export interface StandInSecret {
+  value: string;
+  changedAt: number;
 }
 
 export interface StandIn {
@@ -74,6 +83,9 @@ export interface StandIn {
   keys: Map<string, { user: number; key: string }>;
   moves: StandInMove[];
   state: { inForce: boolean };
+  // The secret store's files by name, and the role each call on the store was made in.
+  secrets: Map<string, StandInSecret>;
+  secretRoles: (string | null)[];
   stop(): void;
 }
 
@@ -93,6 +105,8 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const keys = new Map<string, { user: number; key: string }>();
   const moves: StandInMove[] = [];
   const state = { inForce: seed.inForce ?? true };
+  const secrets = new Map<string, StandInSecret>();
+  const secretRoles: (string | null)[] = [];
   const userOfSender = (sender: number | null): StandInUser | undefined =>
     sender === null ? undefined : users.find((user) => (user.senders ?? []).includes(sender));
   const holds = (kind: string, object: string, relation: string, subjects: string[]): boolean =>
@@ -296,6 +310,41 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
           : json({ user: String(user.id), name: user.name, hash });
       }
 
+      // The secret store, as the server's own tests hold it: the administrator's alone, a plain name, and no value
+      // ever answered.
+      const secret = path.match(/^\/secrets(?:\/([^/]+))?$/);
+
+      if (secret !== null) {
+        const role = request.headers.get("owner-role");
+        const name = secret[1] === undefined ? null : decodeURIComponent(secret[1]);
+        const kept = (one: string) => ({ name: one, bytes: Buffer.byteLength(secrets.get(one)!.value), changedAt: secrets.get(one)!.changedAt });
+
+        secretRoles.push(role);
+
+        if (role !== "administrator") return refused(403, "forbidden", "the secret store is the administrator's");
+        if (name === null) return json({ secrets: [...secrets.keys()].sort().map(kept) });
+        if (!/^[A-Za-z0-9._-]{1,200}$/.test(name) || name.startsWith(".") || name.endsWith(".previous")) {
+          return refused(400, "bad-name", "the name is no secret's");
+        }
+
+        if (request.method === "PUT") {
+          if (typeof body?.value !== "string") return refused(400, "bad-request", "the body does not read as a secret's");
+          if (body.value === "") return refused(400, "empty-value", "the value is empty");
+
+          const standing = secrets.has(name);
+
+          if (standing && body.replace !== true) return refused(409, "secret-exists", "a secret stands under the name");
+
+          secrets.set(name, { value: body.value, changedAt: Date.now() });
+
+          return json(kept(name), standing ? 200 : 201);
+        }
+
+        if (!secrets.delete(name)) return refused(404, "not-found", "no secret stands under the name");
+
+        return done();
+      }
+
       const phone = path.match(/^\/phones\/(.+)$/);
 
       if (phone !== null && request.method === "DELETE") {
@@ -316,6 +365,8 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     keys,
     moves,
     state,
+    secrets,
+    secretRoles,
     stop() {
       server.stop(true);
     }

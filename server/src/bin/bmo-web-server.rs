@@ -16,7 +16,7 @@ use bmo_web_server::routes::{in_force, stand};
 use bmo_web_server::settings::Settings;
 use bmo_web_server::users::set_sign_in;
 use bmo_web_server::wording::document_wording;
-use bmo_web_server::{holdings, migration, store};
+use bmo_web_server::{holdings, migration, secrets, store};
 use clap::{Parser, Subcommand};
 use tokio::net::TcpListener;
 use tokio::signal::unix::{SignalKind, signal};
@@ -172,6 +172,10 @@ async fn serve(settings: Settings) -> Result<(), String> {
   let service = stand(db, receiver.clone(), settings.names.clone())
     .await
     .map_err(|why| format!("the rules do not stand on the service's database: {why}"))?;
+  let service = match settings.secrets.folder() {
+    Some(folder) => service.keeping_secrets(secrets::Store::at(folder)),
+    None => service,
+  };
   let app = in_force(service, token).await.map_err(|why| why.to_string())?;
   let address = settings.server.address();
 

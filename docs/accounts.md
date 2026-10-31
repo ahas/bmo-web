@@ -9,6 +9,8 @@
   a unit does with a refusal are the console's and that unit's.
 - **It stands on its own PostgreSQL database** and on a Valkey for sumida's sessions. Its tables are its own:
   sumida's, and the ones its migrations make (「The tables」 below). No other unit's table is read or written.
+- **Beside its database it writes one folder:** the data root's `env/`, where the secret store keeps the files every
+  unit reads its secrets from (「The secret store」 below).
 - **It answers on a runtime of its own, two threads named `account-service`.** sumida reads the operating
   system and the device out of the user agent of every request that reads a session, through about a thousand
   patterns built ASCII-only, and keeps what it read for the last 256 user agents. Each thread that runs the
@@ -21,8 +23,10 @@ flowchart TD
   Units[other units: the receiver, bmo-job] --> Server
   Server --> Sumida[sumida: users, sessions, keys, grants]
   Server --> Own[the deployment's routes: model, checks, grants, phones, holdings, fixed lines]
+  Server --> Store[the secret store]
   Sumida --> PG[(the server's database)]
   Own --> PG
+  Store --> Env[(the data root's env/)]
   Sumida --> Valkey[(Valkey)]
 ```
 
@@ -139,6 +143,25 @@ section states what each does.
   `room_grants`, which the receiver warns of, and `room_senders`, which stay. A declaration that does not land
   is said on the service's error stream, and the service declares again at its next start.
 
+### The secret store
+
+- **The store is the data root's `env/` folder,** the one the server's `secrets.dir` setting names. Every unit of the
+  platform reads a secret from a file there, by the file's name its own settings carry, so the store's whole work is
+  to write a file under a name; agents and settings are then given the name, never the value.
+- **It is the administrator's.** The console hands on the signed-in login's role in `Owner-Role`, and every route of
+  the store refuses any role but `administrator`.
+- **`GET /secrets`** lists the names standing there, each with its size and the time it last changed, and never
+  what a file holds.
+- **`PUT /secrets/{name}`** writes a value under a name: whole, to a hidden file of mode 600 beside it, then moved
+  onto the name, so a reader never meets half a value. A name that stands already is replaced only where the call
+  says so; the value replaced stays as `<name>.previous`, mode 600. It answers the name, the size and the time alone.
+- **`DELETE /secrets/{name}`** moves the file to `<name>.previous`, in place of any earlier one.
+- **No route reads a value back.** The value goes into the file and nowhere else: the server logs no request and no
+  body, and no answer, refusal or line on its error stream carries it.
+- **A name is a plain file name,** with no slash and no leading dot, and not ending in `.previous`, the suffix the
+  store keeps the value before for; a name standing as a folder or a link is no secret's, and is refused
+  (`docs/boundary.md`, 「The secret store」).
+
 ## The account command
 
 - **The server's binary makes the user a name signs in as, or gives one standing a new password,** with the
@@ -184,5 +207,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   grant refuses as an absent one; every room's member grant after the data move is the deployment's default;
   the administrator passes every check in every room.
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**
+- **The secret store's tests stand on a temporary folder** in place of the data root's `env/`: the modes a write
+  leaves, the value kept before, the names refused, and that no answer and no refusal carries a value.
 - **The console's side tests against a stand-in** answering these routes, so a console test needs neither the
   binary nor Valkey.

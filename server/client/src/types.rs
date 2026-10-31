@@ -79,6 +79,40 @@ pub struct WatchingAsk {
   pub rooms: Vec<i64>,
 }
 
+/// A secret the store holds, by its name: its size and when it last changed, never its value.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Secret {
+  pub name: String,
+  pub bytes: i64,
+  pub changed_at: i64,
+}
+
+/// Every secret the store holds, in the order of their names.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Secrets {
+  pub secrets: Vec<Secret>,
+}
+
+/// A value written under a name, replacing the one the name holds only where `replace` says so.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SecretAsk {
+  pub value: String,
+  #[serde(default)]
+  pub replace: bool,
+}
+
+// The value never reaches a log line through a debug print.
+impl std::fmt::Debug for SecretAsk {
+  fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    formatter
+      .debug_struct("SecretAsk")
+      .field("value", &format_args!("({} bytes)", self.value.len()))
+      .field("replace", &self.replace)
+      .finish()
+  }
+}
+
 /// The senders linked to a user.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Senders {

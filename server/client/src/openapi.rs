@@ -17,7 +17,8 @@ const SCHEMAS: &str = "/components/schemas";
 
 const DESCRIPTION: &str = "The web console's server: the account service on sumida, which holds the users, the \
   senders linked to them, the grants they hold, the account model they stand in, the room holdings the \
-  receiver asks about, and the fixed lines a room says. Its own routes answer in the common wire format: \
+  receiver asks about, the fixed lines a room says, and the secret store, which writes the files every unit \
+  reads its secrets from and answers no value. Its own routes answer in the common wire format: \
   camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as \
   a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the \
   session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as \
@@ -72,6 +73,17 @@ fn string_path(name: &str) -> Value {
   })
 }
 
+/// The role of the login a call is made for, which the console hands on.
+fn owner_role() -> Value {
+  json!({
+    "name": "Owner-Role",
+    "in": "header",
+    "required": true,
+    "description": "The role of the login the call is made for; the store answers `administrator` alone.",
+    "schema": { "type": "string", "enum": ["administrator", "member"] },
+  })
+}
+
 fn json_answer<Answer: JsonSchema>(generator: &mut SchemaGenerator) -> Option<Value> {
   Some(json!({ "application/json": { "schema": generator.subschema_for::<Answer>() } }))
 }
@@ -108,6 +120,7 @@ impl Route {
     for (status, content) in self.answers {
       let description = match status {
         200 => "Answered.",
+        201 => "Made.",
         204 => "Done; no content.",
         _ => "Answered.",
       };
@@ -481,6 +494,45 @@ pub fn openapi() -> Value {
     body: None,
     answers: vec![(200, json_answer::<Holdings>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/secrets",
+    "secrets",
+    "Secret store",
+    "Every secret the store holds, by its name, with its size and when it last changed; never a value.",
+    params: vec![owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<Secrets>(&mut generator))],
+    codes: vec!["unauthorized", "forbidden", "no-secret-store", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/secrets/{name}",
+    "putSecret",
+    "Secret store",
+    "Writes a value under a name, atomically and with mode 600, keeping the value it replaces as <name>.previous; answers the name, its size and its time alone.",
+    params: vec![string_path("name"), owner_role()],
+    body: Some(json!(generator.subschema_for::<SecretAsk>())),
+    answers: vec![(200, json_answer::<Secret>(&mut generator)), (201, json_answer::<Secret>(&mut generator))],
+    codes: vec!["bad-request", "bad-name", "empty-value", "unauthorized", "forbidden", "secret-exists", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/secrets/{name}",
+    "deleteSecret",
+    "Secret store",
+    "Moves a secret's file to <name>.previous.",
+    params: vec![string_path("name"), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-name", "unauthorized", "forbidden", "not-found", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

@@ -11,6 +11,9 @@ import {
   checkObject,
   checkRoom,
   deletePhoneKey,
+  dropSecret,
+  keepSecret,
+  listSecrets,
   makePhoneKey,
   modelState,
   phoneHolder,
@@ -145,5 +148,37 @@ describe("phone keys", () => {
     const hash = await adoptPhone("an earlier token", 2, options);
 
     expect(await phoneHolder("an earlier token", options)).toEqual({ user: "2", name: "member-b", hash });
+  });
+});
+
+describe("the secret store", () => {
+  const VALUE = "a value no answer carries";
+
+  test("a value is written under a name in the login's role, and the answers name it without the value", async () => {
+    const kept = await keepSecret("unit-a.token", VALUE, false, "administrator", options);
+
+    expect(kept).toEqual({ name: "unit-a.token", bytes: VALUE.length, changedAt: expect.any(Number) });
+    expect(service.secrets.get("unit-a.token")?.value).toBe(VALUE);
+    expect(await listSecrets("administrator", options)).toEqual([kept]);
+    expect(JSON.stringify(await listSecrets("administrator", options))).not.toContain(VALUE);
+    expect(service.secretRoles.at(-1)).toBe("administrator");
+  });
+
+  test("a name that stands is replaced only where asked, and a delete takes it out of the list", async () => {
+    await keepSecret("unit-b.token", VALUE, false, "administrator", options);
+
+    await expect(keepSecret("unit-b.token", "another", false, "administrator", options)).rejects.toMatchObject({ status: 409, code: "secret-exists" });
+    expect((await keepSecret("unit-b.token", "another", true, "administrator", options)).bytes).toBe("another".length);
+
+    await dropSecret("unit-b.token", "administrator", options);
+
+    expect((await listSecrets("administrator", options)).map((one) => one.name)).not.toContain("unit-b.token");
+    await expect(dropSecret("unit-b.token", "administrator", options)).rejects.toMatchObject({ status: 404, code: "not-found" });
+  });
+
+  test("a member's role is refused by the server", async () => {
+    await expect(listSecrets("member", options)).rejects.toMatchObject({ status: 403, code: "forbidden" });
+    await expect(keepSecret("unit-c.token", VALUE, false, "member", options)).rejects.toMatchObject({ status: 403 });
+    expect(service.secrets.has("unit-c.token")).toBe(false);
   });
 });

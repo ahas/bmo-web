@@ -5934,21 +5934,22 @@ dialog open at 계정.
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 테마 and 대화방; 알림
-    and 보이스브리핑 are the administrator's.
+  - The sections are 계정, 테마, 대화방, 알림, 보이스브리핑 and 비밀 보관함. A member is shown 계정, 테마 and
+    대화방; 알림, 보이스브리핑 and 비밀 보관함 are the administrator's.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
     list, an on-off a switch, an action a button. A row whose control does not fit beside its name
     puts the control under it, at the right.
   - Everything in it takes effect as it is changed: a choice, a switch. Nothing
-    waits for a save, and the dialog closes at once. The one form, the name and the password, is a
-    dialog of its own opened from 계정, with its own 저장 at its foot.
+    waits for a save, and the dialog closes at once. Its two forms, the name and the password opened
+    from 계정 and a secret opened from 비밀 보관함, are each a dialog of its own, with its own 저장 at its
+    foot.
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
 - **An address opens it at one section:** `?settings=` and a section's key — `account`, `theme`,
-  `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
+  `palette`, `notifications`, `briefing`, `secrets` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. The key is taken off the address as the dialog opens: what is open over a screen
   is not a place (「Floating things」), so the back gesture closes the dialog, or leaves the section on a
@@ -6016,6 +6017,39 @@ dialog open at 계정.
   - The trial is this tab's alone: no other tab hears of it and nothing keeps it. Pressed while a briefing plays,
     it waits behind it as another briefing would, and the player's press during it leads back to the screen it
     was tried on, with the settings open at 보이스브리핑.
+
+#### 비밀 보관함
+
+The way the owner hands the platform a secret — an API key, a token, a password a unit reads — without the value
+passing through a room, a transcript or a log. A value saved here is a file under the data root's `env/`, the
+folder every unit reads its secrets from by file name, written by the server's secret store (`docs/accounts.md`,
+「The secret store」); from then on an agent or a unit's settings is given the name alone.
+
+- **The section opens on one muted line** saying so: agents are given the name, never the value.
+- **보관된 비밀** lists every secret the store holds, one row each: its name as the row's label, and under it its size
+  in bytes and when it last changed. Nothing of a value is read or shown: no route of the console or the server
+  answers one. A store holding none says 보관된 비밀 없음.
+  - Each row carries 교체, which opens the form on that name with replacing already chosen, and 삭제, which asks
+    first, naming the secret and that its value is kept as `<name>.previous`; a delete that goes through takes the
+    row away.
+- **비밀 추가** opens the form, a dialog of its own (「Forms」): 이름 and 값.
+  - 이름 takes a plain file name, English letters, digits, `.`, `_` and `-`, beginning with no dot and not ending in
+    `.previous`; another is said under the field and 저장 stays off.
+  - 값 is a password box with the browser's filling turned off: what is pasted is shown as dots alone, and it is sent
+    as it was pasted.
+  - A name the list holds already shows 기존 값 교체 under 이름, a switch that starts off, and 저장 stays off until it
+    is on; a name new to the list shows nothing there.
+  - 저장 sends the name, the value and whether to replace. The value box is emptied as soon as the answer comes,
+    whether the save went through or was refused. A save that went through closes the dialog and the row stands with
+    its new size and time; a refusal stays in the dialog with its reason under the form.
+- **The value goes nowhere but the store.** It is never put in the address, the tab's kept state, the browser's
+  storage or a draft (「Unsent words」). The console's route that writes takes the name and the value in its body,
+  never in its address, so nothing typed into the form stands in an address a proxy logs; it hands them to the server
+  and answers what the server answered, the name, the size and the time, and neither the route nor the server logs a
+  body. A delete names in its address only a name the list already shows.
+- **The administrator's alone.** A member is not shown the section, and the console's routes for it answer them as
+  if nothing stood there (「Access」); the console hands each call on with the login's role, which the server holds
+  to `administrator` itself.
 
 ### Messages
 
@@ -6359,7 +6393,8 @@ dialog open at 계정.
   so words written elsewhere do not mix. Once sent it clears. The room's input box empties where send was pressed,
   because that word already stands as a line at the conversation's end. An unsent word too stays not in the input box
   but on that line awaiting resend. The gate and instruction boxes keep the word in place if it could not be sent.
-  What is put into the login screen and the settings' login form is credentials not unsent words, so nothing is kept.
+  What is put into the login screen, the settings' login form and 비밀 보관함's form is credentials not unsent words,
+  so nothing is kept.
 
 ## Installing on a phone
 

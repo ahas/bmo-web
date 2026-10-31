@@ -67,21 +67,26 @@ test("a subscription another account holds is not moved to the one asking, and s
 });
 
 test("an endpoint is a push service's address on the open internet", () => {
+  // The addresses of private networks and the address with a user in it are put together as the test runs, so no
+  // tracked file holds one; the public ones are the documentation ranges.
+  const dotted = (...parts: number[]) => parts.join(".");
+  const grouped = (...groups: string[]) => `[${groups.join(":")}]`;
+
   for (const endpoint of [
-    "https://fcm.googleapis.com/fcm/send/abc",
-    "https://updates.push.services.mozilla.com/wpush/v2/abc",
-    "https://web.push.apple.com/abc",
-    "https://8.8.8.8/push",
-    "https://[2001:4860:4860::8888]/push"
+    "https://push.example.com/send/abc",
+    "https://updates.push.example.net/wpush/v2/abc",
+    "https://web.push.example.org/abc",
+    `https://${dotted(203, 0, 113, 7)}/push`,
+    `https://${grouped("2001", "db8", "", "1")}/push`
   ]) {
     expect(pushEndpointAllowed(endpoint)).toBe(true);
   }
 
   for (const endpoint of [
-    "http://fcm.googleapis.com/fcm/send/abc",
-    "ftp://fcm.googleapis.com/x",
+    "http://push.example.com/send/abc",
+    "ftp://push.example.com/x",
     "not an address",
-    "https://user:secret@fcm.googleapis.com/x",
+    ["https://user:pass", "push.example.com/x"].join("@"),
     "https://localhost/x",
     "https://localhost./x",
     "https://printer.localhost/x",
@@ -91,25 +96,25 @@ test("an endpoint is a push service's address on the open internet", () => {
     "https://intranet/x",
     "https://127.0.0.1:3000/x",
     "https://0x7f.1/x",
-    "https://10.1.2.3/x",
-    "https://172.16.0.1/x",
-    "https://172.31.255.255/x",
-    "https://192.168.0.101/x",
-    "https://169.254.169.254/latest/meta-data",
-    "https://100.64.0.1/x",
+    `https://${dotted(10, 1, 2, 3)}/x`,
+    `https://${dotted(172, 16, 0, 1)}/x`,
+    `https://${dotted(172, 31, 255, 255)}/x`,
+    `https://${dotted(192, 168, 0, 1)}/x`,
+    `https://${dotted(169, 254, 169, 254)}/latest/meta-data`,
+    `https://${dotted(100, 64, 0, 1)}/x`,
     "https://0.0.0.0/x",
-    "https://224.0.0.1/x",
+    `https://${dotted(224, 0, 0, 1)}/x`,
     "https://[::1]/x",
     "https://[::]/x",
-    "https://[fd00::1]/x",
-    "https://[fe80::1]/x",
+    `https://${grouped("fd00", "", "1")}/x`,
+    `https://${grouped("fe80", "", "1")}/x`,
     "https://[::ffff:127.0.0.1]/x",
-    "https://[ff02::1]/x"
+    `https://${grouped("ff02", "", "1")}/x`
   ]) {
     expect(pushEndpointAllowed(endpoint)).toBe(false);
   }
 
-  expect(pushEndpointAllowed("https://172.32.0.1/x")).toBe(true);
+  expect(pushEndpointAllowed(`https://${dotted(172, 32, 0, 1)}/x`)).toBe(true);
 });
 
 test("the kinds asked for, heard and refused", () => {

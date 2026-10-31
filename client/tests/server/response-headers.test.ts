@@ -9,8 +9,7 @@ const globals: Record<string, unknown> = globalThis;
 
 globals.defineNitroPlugin = (plugin: unknown) => plugin;
 
-const plugin = await import("../../apps/web/server/plugins/response-headers");
-const { CONSOLE_HEADERS, dropPoweredBy, standConsoleHeaders } = plugin;
+const { CONSOLE_HEADERS, dropPoweredBy, standConsoleHeaders, standResponseHeaders } = await import("../../apps/web/server/plugins/response-headers");
 
 const router = createRouter()
   .get(
@@ -59,7 +58,7 @@ describe("the console's answers", () => {
   test("stand on the server's request and response hooks", () => {
     const hooked: Record<string, unknown> = {};
 
-    (plugin.default as unknown as (nitro: { hooks: { hook: (name: string, run: unknown) => void } }) => void)({ hooks: { hook: (name, run) => (hooked[name] = run) } });
+    standResponseHeaders({ hooks: { hook: (name, run) => (hooked[name] = run) } });
 
     expect(hooked).toEqual({ request: standConsoleHeaders, beforeResponse: dropPoweredBy });
   });

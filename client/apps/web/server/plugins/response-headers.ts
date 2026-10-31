@@ -24,7 +24,15 @@ export function dropPoweredBy(event: H3Event): void {
   removeResponseHeader(event, "x-powered-by");
 }
 
-export default defineNitroPlugin((nitro) => {
+/** The hooks the two lines stand on, as the server's app carries them. */
+export interface ResponseHooks {
+  hook(name: "request" | "beforeResponse", run: (event: H3Event) => void): unknown;
+}
+
+/** Stands the console's lines on the server's request hook and the framework's name's removal on its response hook. */
+export function standResponseHeaders(nitro: { hooks: ResponseHooks }): void {
   nitro.hooks.hook("request", standConsoleHeaders);
   nitro.hooks.hook("beforeResponse", dropPoweredBy);
-});
+}
+
+export default defineNitroPlugin(standResponseHeaders);

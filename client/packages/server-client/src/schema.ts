@@ -210,6 +210,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/secrets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every secret the store holds, by its name, with its size and when it last changed; never a value. */
+        get: operations["secrets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/secrets/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Writes a value under a name, atomically and with mode 600, keeping the value it replaces as <name>.previous; answers the name, its size and its time alone. */
+        put: operations["putSecret"];
+        post?: never;
+        /** Moves a secret's file to <name>.previous. */
+        delete: operations["deleteSecret"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/senders/{sender}/user": {
         parameters: {
             query?: never;
@@ -678,6 +713,24 @@ export interface components {
             /** Format: int64 */
             subject: number;
             words: string;
+        };
+        /** @description A secret the store holds, by its name: its size and when it last changed, never its value. */
+        Secret: {
+            /** Format: int64 */
+            bytes: number;
+            /** Format: int64 */
+            changedAt: number;
+            name: string;
+        };
+        /** @description A value written under a name, replacing the one the name holds only where `replace` says so. */
+        SecretAsk: {
+            /** @default false */
+            replace: boolean;
+            value: string;
+        };
+        /** @description Every secret the store holds, in the order of their names. */
+        Secrets: {
+            secrets: components["schemas"]["Secret"][];
         };
         /** @description The user a sender is linked to. */
         SenderUser: {
@@ -1176,6 +1229,117 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    secrets: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The role of the login the call is made for; the store answers `administrator` alone. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secrets"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, forbidden, no-secret-store, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    putSecret: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The role of the login the call is made for; the store answers `administrator` alone. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecretAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secret"];
+                };
+            };
+            /** @description Made. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secret"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-name, empty-value, unauthorized, forbidden, secret-exists, not-a-file, no-secret-store, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    deleteSecret: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The role of the login the call is made for; the store answers `administrator` alone. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-name, unauthorized, forbidden, not-found, not-a-file, no-secret-store, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

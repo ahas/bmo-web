@@ -439,6 +439,19 @@ export interface VoiceBriefing {
   finishedAt: number | null;
 }
 
+// A secret the server's store holds, by its name (docs/web.md, 「Settings」, the secret store section): its size and
+// when it last changed. No type of the console carries a secret's value back.
+export interface KeptSecret {
+  name: string;
+  bytes: number;
+  changedAt: number;
+}
+
+// Every secret the store holds, in the order of their names.
+export interface SecretList {
+  secrets: KeptSecret[];
+}
+
 // The voice briefing's one switch, the receiver's: whether anything is spoken at all. A briefing it speaks plays as
 // it arrives, so nothing else stands beside it.
 export interface BriefingSwitches {

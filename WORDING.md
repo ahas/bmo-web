@@ -75,6 +75,8 @@
   brain, calls, drafts and judgement; its parts say 브레인, 툴 사용, 드래프트, 판정.
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,
   상태 노트, 컨텍스트 노트.
+- secret, a value a unit reads by its file name → 비밀; the console's store of them → 비밀 보관함; putting a value in
+  place of the one a name holds → 교체. Never 시크릿, 키 보관소.
 - retire, take down → 보관; bringing one back → 복원. Switching a piece in or out of use → 켜기, 끄기.
   Never 내리기, 올리기.
 - fold (a work order) → 종료. 접기 is only ever a panel folding away, and is written as below.

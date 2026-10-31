@@ -11,6 +11,8 @@ import {
   type WireError
 } from "@web/server-client";
 
+import type { KeptSecret } from "#shared/types";
+
 /** The server's base address; `WEB_SERVER_ADDRESS` where none is given. */
 export interface ServiceOptions {
   address?: string;
@@ -398,4 +400,57 @@ export async function runMove(
   const said = answered(reply);
 
   return { done: said.done, written: said.written, administrator: said.administrator ?? null };
+}
+
+/** The role a login acts in, as the console hands it on in `Owner-Role` (docs/boundary.md, 「Calls the console makes」). */
+export type OwnerRole = "administrator" | "member";
+
+/** Every secret the store holds, in the order of their names, asked in the login's role. */
+export async function listSecrets(role: OwnerRole, options: ServiceOptions = {}): Promise<KeptSecret[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/secrets", { params: { header: { "Owner-Role": role } }, signal: signalOf(options) })
+  );
+
+  return answered(reply).secrets.map(({ name, bytes, changedAt }) => ({ name, bytes, changedAt }));
+}
+
+/**
+ * A value written under a name, replacing the one the name holds only where `replace` says so; the name, its
+ * size and its time, never the value. A refusal is the server's code, which never carries the value either.
+ */
+export async function keepSecret(
+  name: string,
+  value: string,
+  replace: boolean,
+  role: OwnerRole,
+  options: ServiceOptions = {}
+): Promise<KeptSecret> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/secrets/{name}", {
+      params: { path: { name }, header: { "Owner-Role": role } },
+      body: { value, replace },
+      signal: signalOf(options)
+    })
+  );
+  const kept = answered(reply);
+
+  return { name: kept.name, bytes: kept.bytes, changedAt: kept.changedAt };
+}
+
+/** The secret under a name moved aside to `<name>.previous`. */
+export async function dropSecret(name: string, role: OwnerRole, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.DELETE("/secrets/{name}", {
+      params: { path: { name }, header: { "Owner-Role": role } },
+      signal: signalOf(options)
+    })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }

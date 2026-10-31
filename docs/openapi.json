@@ -1066,6 +1066,60 @@
         ],
         "type": "object"
       },
+      "Secret": {
+        "description": "A secret the store holds, by its name: its size and when it last changed, never its value.",
+        "properties": {
+          "bytes": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "changedAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "bytes",
+          "changedAt"
+        ],
+        "type": "object"
+      },
+      "SecretAsk": {
+        "description": "A value written under a name, replacing the one the name holds only where `replace` says so.",
+        "properties": {
+          "replace": {
+            "default": false,
+            "type": "boolean"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "replace"
+        ],
+        "type": "object"
+      },
+      "Secrets": {
+        "description": "Every secret the store holds, in the order of their names.",
+        "properties": {
+          "secrets": {
+            "items": {
+              "$ref": "#/components/schemas/Secret"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "secrets"
+        ],
+        "type": "object"
+      },
       "SenderUser": {
         "description": "The user a sender is linked to.",
         "properties": {
@@ -1287,7 +1341,7 @@
     }
   },
   "info": {
-    "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the room holdings the receiver asks about, and the fixed lines a room says. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
+    "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the room holdings the receiver asks about, the fixed lines a room says, and the secret store, which writes the files every unit reads its secrets from and answers no value. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
     "title": "bmo-web-server",
     "version": "0.1.0-rev.1"
   },
@@ -1989,6 +2043,218 @@
         "x-codes": [
           "bad-request",
           "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/secrets": {
+      "get": {
+        "operationId": "secrets",
+        "parameters": [
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Secrets"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized, forbidden, no-secret-store, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every secret the store holds, by its name, with its size and when it last changed; never a value.",
+        "tags": [
+          "Secret store"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "forbidden",
+          "no-secret-store",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/secrets/{name}": {
+      "delete": {
+        "operationId": "deleteSecret",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-name, unauthorized, forbidden, not-found, not-a-file, no-secret-store, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Moves a secret's file to <name>.previous.",
+        "tags": [
+          "Secret store"
+        ],
+        "x-codes": [
+          "bad-name",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-a-file",
+          "no-secret-store",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "putSecret",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Secret"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Secret"
+                }
+              }
+            },
+            "description": "Made."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-name, empty-value, unauthorized, forbidden, secret-exists, not-a-file, no-secret-store, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Writes a value under a name, atomically and with mode 600, keeping the value it replaces as <name>.previous; answers the name, its size and its time alone.",
+        "tags": [
+          "Secret store"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-name",
+          "empty-value",
+          "unauthorized",
+          "forbidden",
+          "secret-exists",
+          "not-a-file",
+          "no-secret-store",
           "not-in-force",
           "database",
           "failed"

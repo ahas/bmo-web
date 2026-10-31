@@ -23,6 +23,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "palette", label: "settings.label.palette", icon: "i-material-symbols-chat-bubble-outline", administrator: false, load: () => import("~/components/SettingsPalette.vue") },
   { key: "notifications", label: "settings.label.notifications", icon: "i-material-symbols-notifications-outline", administrator: true, load: () => import("~/components/SettingsNotifications.vue") },
   { key: "briefing", label: "settings.label.briefing", icon: "i-material-symbols-record-voice-over-outline", administrator: true, load: () => import("~/components/SettingsBriefing.vue") },
+  { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: true, load: () => import("~/components/SettingsSecrets.vue") },
 
 ];
 

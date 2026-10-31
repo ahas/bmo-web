@@ -24,6 +24,31 @@ pub struct Settings {
   pub receiver: Unit,
   #[serde(default)]
   pub names: Names,
+  /// Nothing set here leaves the secret store standing on no folder.
+  #[serde(default)]
+  pub secrets: SecretStore,
+}
+
+/// The folder the secret store writes (docs/accounts.md, 「The secret store」).
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct SecretStore {
+  /// The data root's `env/`; a leading `~/` stands for the home of the user the server runs as.
+  pub dir: Option<String>,
+}
+
+impl SecretStore {
+  /// The folder as a path, a leading `~/` read against `HOME`; none where nothing is set, or where it names the
+  /// home and no home is known.
+  pub fn folder(&self) -> Option<std::path::PathBuf> {
+    let dir = self.dir.as_deref().map(str::trim).filter(|dir| !dir.is_empty())?;
+
+    match dir.strip_prefix("~/") {
+      Some(rest) => std::env::var_os("HOME")
+        .filter(|home| !home.is_empty())
+        .map(|home| std::path::PathBuf::from(home).join(rest)),
+      None => Some(dir.into()),
+    }
+  }
 }
 
 /// The names the pack's lines are filled with where a line names one, since no name stands in the pack.

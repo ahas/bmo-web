@@ -803,7 +803,8 @@ edit to that file alone, once the guide below carries the word.
   page, the settings' list and every contrast check read the list, so a theme added there is offered,
   drawn and checked with nothing else changed.
 - **The screen mode stands beside the theme and apart from it:** 시스템, 밝게 or 어둡게, kept in a cookie
-  of the browser (「Sidebar」), and every theme is drawn in both modes.
+  of the browser (「Sidebar」), and every theme is drawn in both modes. The cookie lasts a year from the
+  last time the mode was written to it, so the mode is kept across browser sessions.
 
 ### Palettes
 
@@ -1386,7 +1387,7 @@ Four groups.
 - The drawer closes on an outside press. Swiping horizontally does not drag the drawer along — a panel dragged whenever a
   hand skimming the list flows sideways cannot be read. At the bottom is the user menu: open the settings
   (「Settings」), change the screen mode to light, dark or system, or log out. A reader who never chose a mode reads dark, and the mode is
-  kept in a cookie, so the server paints the first frame in it and knows it for a page it sends (bmo-artifact's `docs/archive.md`, 「How a
+  kept in a cookie for a year (「Themes」), so the server paints the first frame in it and knows it for a page it sends (bmo-artifact's `docs/archive.md`, 「How a
   document is drawn」). The menu opens above its button, aligned to
   the button's left edge and as wide as it. Above the menu, while the bot's stream is not carrying anything, a line
   says so; it leads to the live status screen.

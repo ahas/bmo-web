@@ -41,7 +41,7 @@ describe("the table", () => {
 
   test("takes away only the console's own rows, asked first", () => {
     expect(template).toContain('<UTooltip v-if="row.original.source === \'set\'" :text="$t(\'common.action.delete\')">');
-    expect(script).toContain('await island.ask({ title: t("agents.message.draft_process_remove_confirm")');
+    expect(script).toContain('await askFirst({ title: t("agents.message.draft_process_remove_confirm"), item: keyText(row), confirm: t("common.action.delete") });');
     expect(script).toContain('$fetch("/api/draft-processes", { method: "DELETE", body: { provider: row.provider, tier: row.tier, agentName: row.agentName } })');
   });
 

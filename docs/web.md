@@ -1209,7 +1209,9 @@ Four groups.
     - **A chat service:** every one the receiver names that takes a mode, each with the modes it states said
       under the choice. One that neither lists its account's rooms (`listsRooms`) nor its contacts
       (`listsContacts`) is still offered, and says in one sentence that nothing can be added from it here.
-    - **A room, in one of two tabs.** 기존 방, where the service lists its rooms, holds them page by page, each
+    - **A room, in one of two tabs.** 기존 방, where the service lists its rooms, holds them page by page, the
+      next page read as the reader reaches the list's end inside its own scroll — skeleton rows where it will land
+      while it comes, and 방 목록 끝 once a list that took more than one page has no more — each
       with its title or number and kind; a room the receiver already holds is marked, by its mode where it was
       added (and not chosen again) and as 이미 있는 방 where it was never added. 새 대화, where the service lists
       its contacts, holds every contact with a search over their names, each marked 사람 or 봇 and, where the
@@ -2504,7 +2506,12 @@ Two ways, split because the running places differ.
   through the console's server at the address `RESEARCH_ADDRESS` names, and it stands in the reading column as a
   list screen, its panel body the one scroll. It reads and changes nothing else of the unit: the categories' own
   settings, the recipients and the stack stay the unit's routes.
-- **분류** stands first.
+- **Two tabs,** Nuxt UI's link tabs in a row under the title bar as the agent management screen's: **대기열** first,
+  holding the categories, the queue and an item's run, and **출처**, holding the sources. The tab stands in the
+  address, the first standing where it names none, and moving to another is a step of the history. The open tab's
+  own add stands at the right end of the row as an icon button naming itself in a tooltip: 항목 요청 on 대기열, 출처
+  추가 on 출처. The one failure for the whole unit stands over either.
+- **분류** stands first on 대기열.
   - Its head says whether the loop runs — 실행 중 while any category runs, 모두 중지됨 where every one is
     stopped — with when a category's state last changed, and one button that changes every category at once:
     전체 중지 while any runs, 전체 재개 once none does.
@@ -2520,11 +2527,16 @@ Two ways, split because the running places differ.
     refusal is said in a notice.
 - **대기열** stands under it.
   - Its head carries two choices, the category (전체 분류, then each category) and the state (전체 상태, then
-    each of the seven: 대기, 실행 중, 보고됨, 검토 요청, 실패, 처리됨, 제외됨), which the unit narrows the queue by,
-    and 요청.
-  - The items stand newest first, by when each was made. The unit answers its queue in the order runs are taken
-    in, so the screen orders what it has read; a page is fifty items, and 더보기 under the list reads the next.
-    Where nothing matches, 항목 없음 stands in the list's place.
+    each of the seven: 대기, 실행 중, 보고됨, 검토 요청, 실패, 처리됨, 제외됨), which the unit narrows the queue by.
+  - The items stand in the queue's order: every running item first, in the order they started; then every item
+    no longer waiting or running — 보고됨, 검토 요청, 실패, 처리됨, 제외됨 and any state the unit adds — the one whose state
+    last changed first; then the waiting, the oldest made first, the order they run in. A choice narrowing the
+    queue keeps that order within what it leaves. The unit answers its queue in its own order, so the screen
+    orders what it has read.
+  - A page is fifty items, and the list reads its next page itself as the reader reaches its end, two skeleton
+    items standing where the page will land while it comes; no button asks for more. Once the unit holds no more,
+    a list that took more than one page ends in a quiet 대기열 끝, and one that came whole says nothing. Where
+    nothing matches, 항목 없음 stands in the list's place.
   - Each item carries its name, 해당 where the reading of its document marks it for the owner's word (with the
     nodes a manual's fit names), 요청 where the owner asked it, and its state as a chip; under them its maker
     linked to the address it was found at (the address's host where no maker is known), its shape, its category,
@@ -2533,9 +2545,9 @@ Two ways, split because the running places differ.
     new tab, with the languages its page holds and the languages its narration plays as chips — 한국어, 영어,
     and any other as the code the unit gave.
   - **제외** stands on every item the unit still takes it for — every state but 처리됨 and 제외됨 — and asks once
-    in the message pill first, since a dismissed item's address stays seen and nothing turns it up again. The
+    in a dialog first, naming the item, since a dismissed item's address stays seen and nothing turns it up again. The
     item stands as the unit answers it; a refusal is said in a notice.
-- **요청** opens a dialog asking the unit for one thing by its category, its name and the address of its maker's
+- **항목 요청** opens a dialog asking the unit for one thing by its category, its name and the address of its maker's
   page; the category is chosen from the unit's, its first one chosen as the dialog opens. The unit queues it at once, ahead of
   what a scan took in, and the queue is read again. A refusal stands under the dialog in the pack's words: a name
   or an address it did not take, a category it does not hold, or the same thing already waiting or running.
@@ -2547,7 +2559,7 @@ Two ways, split because the running places differ.
     and the question it was asked, in a block of its own.
   - Under them stands the run's log, oldest first: each line's time, its kind as a chip — 요청, 배정, 답변,
     라운드, 브랜치, 등록, 알림, 종료 — and its text. A run whose log holds nothing yet says 로그 없음.
-- **출처** stands last: every source the unit reads its categories' candidates from (its `docs/sources.md`), in one
+- **출처**, its own tab, which names it, so the table stands with no head of its own: every source the unit reads its categories' candidates from (its `docs/sources.md`), in one
   table of the shared settings table's look, one row each by its number, scrolling sideways inside its own box
   where the reading column is too narrow for it.
   - A row carries the source's number, its category, its kind — Hugging Face 트렌딩, Hugging Face 검색, arXiv,
@@ -2557,18 +2569,19 @@ Two ways, split because the running places differ.
     read, and how many readings failed since the last that did not, with the last failure's sentence, in the error
     colour.
   - The columns are those the unit answers a source with; a figure it comes to answer stands as one more column.
-  - 추가 in the section's head opens a form registering one: its category and kind, then its address (left empty
+  - 출처 추가 in the tab row opens a form registering one: its category and kind, then its address (left empty
     for the kind's own), its search words, the words its filter requires and excludes, each a comma-separated
     list, its cadence (left empty for its category's) and how many items one reading asks for (left empty for the
     unit's own).
   - Each row's 편집 opens the same form without the category and the kind, which a source keeps, and sends only
     what differs from the source as it stands; a cadence once set is changed but not given back to the category,
-    since the unit keeps every field a change leaves out. Its 삭제 asks once in the message pill first, and what
+    since the unit keeps every field a change leaves out. Its 삭제 asks once in a dialog first, and what
     the source turned up stays.
   - A refusal stands under the form in the pack's words: a source the unit did not take as written, a category or a
     source it does not hold.
 - **How it reads.** The unit serves no event stream, so the screen asks on its own clock: the state, the
-  categories, the queue and the sources on opening and every ten seconds while the tab is seen, and an open run and its log
+  categories and the queue on opening and every ten seconds while the browser tab is seen, and the sources the same
+  while their own tab stands, and an open run and its log
   every three seconds while the run has not closed. A closed run is read once.
 - **Where the research unit does not answer,** or the console names no address for it, the body is one failure
   that says the research unit does not answer, with a way to ask again. Once something has been read, a read that
@@ -2582,10 +2595,10 @@ Two ways, split because the running places differ.
   account, the common spawning pool and the searchers. The list is the archive's `agents` table, and everything this
   screen edits is written through the bot — the console does not write the bot's tables directly. The
   table itself is read raw as `agents` on the DB screen.
-- **A section to a tab.** The tabs are 일반, 감독관, 워커, 롤, 모델, 실행 경로 and 서쳐. The tab stands in
+- **A section to a tab.** The tabs are 일반, 감독관, 워커, 역할, 모델, 실행 경로 and 서쳐. The tab stands in
   the address (`?tab=`), so a shared link opens the same section and moving between tabs is a step of the
   history. The tab row stands under the title bar and carries, at its right end, the open section's own
-  action (일반's, 워커's, 롤's and 감독관's 추가 — 일반's a menu of Claude 계정, 등록 모델, 모델 파일, 기본 프롬프트 and
+  action (일반's, 워커's, 역할's and 감독관's 추가 — 일반's a menu of Claude 계정, 등록 모델, 모델 파일, 기본 프롬프트 and
   에이전트, since that tab adds all five), the settings search and the one button that reads every section again, which
   spins while it reads. The title bar keeps only what every page carries, and no section repeats its tab's
   name as a title of its own.
@@ -2666,7 +2679,7 @@ Two ways, split because the running places differ.
   once made and written with lowercase letters, digits and hyphens beginning with a letter, and the model
   its addresses serve; the agency starts it at the registry's smallest window, answer and wait, and with no
   address. A row's more-menu opens the same box to change the model behind the registration, the name
-  staying, or removes it, a removal asked first in the message pill and a removal the bot refuses showing
+  staying, or removes it, a removal asked first in a dialog naming the registration and a removal the bot refuses showing
   the bot's reason under the list. A save the bot refuses keeps the box open with the reason under the
   field it names.
 - **모델 파일.** Under 등록 모델, every entry of the model catalogue, which the agency serves at
@@ -2679,7 +2692,7 @@ Two ways, split because the running places differ.
   chose it and when, and 진행 중 with the step it is at, 완료, or 실패 with its reason, with the last
   lines of its log under it while it runs or where it failed; it is read again every few seconds while
   one runs. 추가 in the tab row opens a box for a new entry; a row's more-menu opens the same box to
-  change it, 이 모델로 바꾸기 to choose it for its engine — asked first in the message pill, naming the
+  change it, 이 모델로 바꾸기 to choose it for its engine — asked first in a dialog, naming the
   engine and the entry and saying the registration answers nothing until the engine is up again — and 삭제, asked first, a removal the bot
   refuses showing its reason under the list. The box holds every field of an entry, the name fixed once
   made, each default with 기본값 for empty.
@@ -2687,8 +2700,8 @@ Two ways, split because the running places differ.
   row each: its label and name, its length in characters, the agents that choose it by their
   labels, or 쓰는 에이전트 없음, and when and by whom it was last saved. 추가 in the tab row opens a
   modal for a new one — the name, the label and the text, pasted whole; a row's more-menu opens the
-  same modal on that prompt to read and change it (its name fixed), and 삭제, asked first in the
-  message pill. The text area grows with its text
+  same modal on that prompt to read and change it (its name fixed), and 삭제, asked first in a
+  dialog naming the prompt. The text area grows with its text
   and the modal's body scrolls; under it stand the value names a prompt may carry
   (`{{cwd}}` and the rest). Saving a text that agents choose asks first in the modal, naming the
   agents whose sessions start afresh, with 취소 and 저장. A save or a removal the bot refuses keeps
@@ -2716,7 +2729,7 @@ Two ways, split because the running places differ.
 
 - **에이전트별 설정.** One table of every agent's own settings, the agents its rows and the settings its columns:
   every agent in its group — the chat agent, companions and workers — under the group's heading row, one row each, and
-  the columns 에이전트, 롤, 캐시 유지, 생각 and Effort. Every value is edited in its own cell the one way the table edits: pressing
+  the columns 에이전트, 역할, 캐시 유지, 생각 and Effort. Every value is edited in its own cell the one way the table edits: pressing
   the cell drops down from it the list of its values, and the one chosen is saved at once, a refusal said in a
   notice. Every agent stands in it exactly once: a worker the agency
   lists both as an agent and as a worker is one row, the worker's own fields on its agent's row, and a row stands in the
@@ -2732,8 +2745,8 @@ Two ways, split because the running places differ.
       no target of, so an agent nobody turned on reads off. Throwing it throws the agent's subject under every
       consumer that holds a target for it. A row with its switch down carries 멈춤; while the whole round is off every row
       still on carries 전체 멈춤, and the switch is then the setting to use when the round comes back on.
-  - **롤** is read, not chosen, and its cell is not pressable: an agent's role is set when it is registered (the
-    agency's `docs/agent-roles.md`), and what a role gives is set on the 롤 tab. The row names it by the pack's word
+  - **역할** is read, not chosen, and its cell is not pressable: an agent's role is set when it is registered (the
+    agency's `docs/agent-roles.md`), and what a role gives is set on the 역할 tab. The row names it by the pack's word
     for the code the bot declares it under — 채팅, 워커, 서쳐, 번역기, 게이트 — and, beside it, what it gives, the bundles by
     the pack's short Korean names for their codes, or 기능 묶음 없음; a code the pack holds no word for is said as the
     code, and a role the bot no longer declares, or any while the bot is not answering, stands as the role's own
@@ -2850,7 +2863,7 @@ Two ways, split because the running places differ.
   input box on its own screen, and what is typed there is said to that worker and to no other. A job is not
   launched from there at all: the console's road to a worker is the word, and jobs come from the TODO.
 
-#### 롤
+#### 역할
 
 - **One table of the roles the agency holds** (the agency's `docs/agent-roles.md`), one row each in the order the
   agency lists them, read from its `GET /agent-roles`: the role, named by the pack's word for its name where the pack
@@ -2861,13 +2874,13 @@ Two ways, split because the running places differ.
   its own height and scrolls sideways inside its own box.
 - **Pressing a row opens the role's dialog,** one form (「Forms」) with one 저장 at its foot: 이름 (fixed once made),
   이름표, 기능 묶음 as a checkbox for every bundle the agency declares, 동시 실행 한도 as a number box whose empty
-  value is no limit, 등급 as a choice of 기본값 and every tier of the model ladder, and 롤 프롬프트, a text area as
+  value is no limit, 등급 as a choice of 기본값 and every tier of the model ladder, and 역할 프롬프트, a text area as
   tall as its text, which stands before the own documents of every agent holding the role, empty for none. The save
   sends what changed through `PATCH /agent-roles/{roleName}`; an emptied limit or prompt is cleared.
 - **추가** in the tab row opens the same dialog for a new role, sent through `POST /agent-roles`. The agency checks
   the name, the bundles and the tier, and a refused save keeps every field as written with the pack's sentence for
   the agency's code under the field it names, or under the form where it names none.
-- **삭제** stands at the end of each row, asked first in the message pill, and goes through `DELETE
+- **삭제** stands at the end of each row, asked first in a dialog naming the role, and goes through `DELETE
   /agent-roles/{roleName}`. It stands disabled while any agent holds the role or the role is a kind's own, its
   tooltip saying which; a removal the agency refuses all the same says the pack's sentence under the table.
 - **What a change reaches** is the agency's to say: an agent's next record takes what its role gives then, and
@@ -2997,7 +3010,10 @@ Two ways, split because the running places differ.
   name, the model it answers on (a supervisor kept on a fixed model, its registration by its label; one on the
   agency's route, the model its work key resolves to on 실행 경로) and every room it answers — each room its
   session holds, as the agency lists them, the chat agent's among them. No row says which of the two an agent is.
-  The row opens that agent's own screen; the row's own settings press opens its settings here, in the very
+  The agent's column is the one that takes the width left over; the rooms stand on one line under a ceiling of their
+  own, cut inside their cell where longer, and once a column is widened by hand they take the width it was given.
+  The row's own presses stand centred on the row at the trailing edge, as every table's do. The row opens that
+  agent's own screen; the row's own settings press opens its settings here, in the very
   dialog that screen opens, so a supervisor is set without the tab moving under the owner's hand. A supervisor
   for a model of the deployment's own is added from the tab row's 추가 menu (below).
 - **A companion's own settings stand on its screen** (the agency's `docs/companions.md`, 「Its settings」), in the
@@ -3117,8 +3133,9 @@ Two ways, split because the running places differ.
   does not follow. Only the reader takes it off the bottom: the window growing shorter under the input box
   that arrives at the foot of a worker's screen, or the lines reflowing, leaves a reader at the bottom there.
 - Entering by pressing a line in live status opens not at the log's end but where that run started. Then
-  **이전 줄 더 보기** and **다음 줄 더 보기** stand together to go both ways, and new lines are not followed
-  automatically. Pressing 다음 줄 to catch up to the log's end resumes following from there.
+  the log reads on both ways as the reader reaches either end — the lines above as the head comes into view, the
+  lines past what is held as the tail does, skeleton lines standing where they will land — and no button asks
+  for more. New lines are not followed automatically; reading on to the log's end resumes following from there.
 - Beside the agent's name in the title bar stand its branch and a chart mark. The mark carries no
   figure; pressing it spreads this agent's figures — its model, the context its session holds and the
   week's tokens with their names and a bar — and an agent nothing is known about has no mark. While running, 「업타임 00:00:00」 stands beside it. Not
@@ -4402,8 +4419,8 @@ Four bounds keep it from growing forever.
     moment it changed on its meta line, and is read again by every open tab the record's `message-changed` reaches.
     The box takes the words a send takes, up to the send's ceiling, and a message the reader's senders did not say
     has no such item.
-  - **삭제** — the reader's own message, and for the administrator any message in any room: asked first in the
-    message pill, and the record then clears its words and keeps where it stood. A deleted message has its one
+  - **삭제** — the reader's own message, and for the administrator any message in any room: asked first in a
+    dialog that shows its words, and the record then clears its words and keeps where it stood. A deleted message has its one
     line and its menu offers nothing but its link.
   - **복사** — the record written in 「What a copy holds」 below.
   - **텍스트만 복사** — only the body written in the bubble. No room name, time, sender or verdict attaches, so it
@@ -5316,8 +5333,8 @@ Four bounds keep it from growing forever.
   7. **결재 취소** on an approved line, or **버리기** on a request or a set-aside line — the acts that take something
      away, standing apart at the menu's end, and each asks once more before it goes. 결재 취소 asks as a step the
      line grows under its badges — the question, that the item leaves the queue and its work order launches no
-     further step, then **취소** and **결재 취소**; 버리기, the one act here that cannot be taken back, asks in the
-     message pill.
+     further step, then **취소** and **결재 취소**; 버리기, the one act here that cannot be taken back, asks first in
+     a dialog naming the item.
   - An act the line's state does not allow is not in the menu at all, and a finished or merged line opens no menu.
   - Every other act goes through the same road as the opened item's buttons, and what it did, or why it was
     refused, stands in the line under the list.
@@ -5510,7 +5527,7 @@ Four bounds keep it from growing forever.
   - **완료** — items whose report is done. Completion is marking not deleting, so what has been done stays here.
     - **The most recently filed stands first,** by item number, highest first: bmo-job's lines carry no moment an item
       was closed, and the number is the order items were filed in.
-    - **The server sorts it,** so the page in hand and every 더 보기 after it continue one order, and a search
+    - **The server sorts it,** so the page in hand and every page read after it continue one order, and a search
       narrows that order without rearranging it.
     - If bmo-job keeps a report of the item, that line stands a document mark, and with more than one report it
       carries how many; the mark's tooltip names them by kind. The board reads the reports of each finished and held
@@ -5539,7 +5556,7 @@ Four bounds keep it from growing forever.
   runners cannot survive (the testbed's `docs/deploy.md`), a band under the header reads what the title bar's mark reads — 「배포 대기 ·
   #1389 끝나면 올라감」 — and a folded panel carries the word too. Pressing the band opens the title bar's deployment
   popover, the one place the hold stands whole; the panel keeps no window of its own repeating it, and a panel standing
-  as a drawer steps aside for the popover. The popover's 해제 button asks first in the message pill what letting it go does — the deployment deploys nothing and the commits
+  as a drawer steps aside for the popover. The popover's 해제 button asks first in a dialog what letting it go does — the deployment deploys nothing and the commits
   stay waiting, since restarting now could break the jobs running across the restart — and then goes to bmo-job. The hold
   is read from bmo-job's holds with the board.
 - **A line reads first by its tag colour.** Completion wears the finished colour, told at a glance from states beside it. 대기
@@ -6001,11 +6018,22 @@ dialog open at 계정.
 
 ### Messages
 
-- **The console says everything it has to say in one place.** A notice of something that arrived, the word that an
-  action went through or did not, and the question a press that cannot be taken back asks first all stand on one
-  pill at the top of the screen, centred. There is no second road: the component library's own toaster is not stood
-  up at all, and the browser's own dialogs are not used, so nothing can speak into a corner nobody watches. A test
-  sweeps the console's files for either and fails on one.
+- **The console tells everything it has to tell in one place.** The message pill, the island at the top of the
+  screen, centred, is the console's own toast: it stands in place of the component library's Toast and is for
+  notifications alone — a notice of something that arrived, the word that an action went through or did not. There is
+  no second road: the component library's own toaster is not stood up at all, and the browser's own dialogs are not
+  used, so nothing can speak into a corner nobody watches. A test sweeps the console's files for either and fails on
+  one.
+- **The pill tells and never asks.** A question the reader must answer before an action — a yes-or-no confirmation
+  included — is a dialog, the component library's own (`UModal`), a small one in the middle of the screen
+  (「Floating things」), never the pill. It names the item and the action: the question as its title, the item it is
+  taken on under it where the question does not already name it, and what going through does where that is more than
+  the question says. Its foot holds the way out first, 취소, and the way through last, in the error colour, under the
+  action's own verb — 삭제, 제외, 해제, the act's own word, never a bare 확인. Only the way through takes the action;
+  the way out, the dialog's close, Esc, a press outside and the back gesture close it and take nothing.
+  `ConfirmDialog` is that dialog, once for every question, opened through Nuxt UI's overlay and answering whether
+  the reader went through. Every other need the pill does not meet takes the component library's component for it,
+  never the pill.
 - **It is a pill of one radius at every size.** With a line to say it stands as a narrow line; with a description or
   something to press under it, it widens into a card of the same rounding. It is measured and given that size rather
   than told to fit its content, so it moves between one shape and the next instead of jumping.
@@ -6023,12 +6051,8 @@ dialog open at 계정.
   next takes its place the moment it goes, so the pill morphs from one to the next rather than going away and coming
   back. The same thing said twice replaces itself where it stands. The line is held to five, and what is dropped is
   its oldest end.
-- **A question holds the island until it is answered.** Its words are not a press, it has no time of its own, and it
-  takes the pill at once from whatever notice was standing, which goes to the head of the line. The back gesture
-  takes it back the way it takes back everything drawn over the screen; a notice is not registered that way, since a
-  notice goes on its own and a press of back spent on one is a press the reader has to make twice. A question asked
-  while the page is already being left takes no entry of its own: it is holding that navigation, and the navigation
-  moves the history itself.
+- **Back does not take a notice.** A notice goes on its own, and a press of back spent on one is a press the reader
+  has to make twice, so the pill is not registered with the back gesture.
 - **A voice briefing playing is not news and does not stand on it.** It stands as a small player of its own,
   floating over the page area the way a picture-in-picture window does, while the island goes on carrying the news
   beside it. The layout holds it, so it stays as the reader moves between screens, and it stands over everything the
@@ -6086,8 +6110,7 @@ dialog open at 계정.
   of whatever a device puts at the top of its own screen. On a phone it stands inside the panel's own gutter, and
   while it stands it is over the screen's own title row.
 - **What is not this.** A confirmation that belongs to the row or the item it acts on stays where that item is, as a
-  step the row grows rather than a thing floating over the screen — the question at the top says nothing about which
-  row it is about. A form's own refusal stays in the form, beside the field that was refused. Both are states of a
+  step the row grows rather than a thing floating over the screen. A form's own refusal stays in the form, beside the field that was refused. Both are states of a
   screen rather than news.
 
 ### Forms
@@ -6105,8 +6128,8 @@ dialog open at 계정.
   its new saved values, every field it sent among them, so the form holds no change the moment the
   save is done: 저장 goes back to disabled, and closing or leaving asks nothing.
 - **Leaving with changes asks first.** Closing a dialog whose form holds changes — its close button,
-  Esc, a press outside, the back gesture — and leaving a page or a tab that holds them ask in the
-  message pill whether to throw them away: 버리기 drops them and goes, 취소 stays with them. With
+  Esc, a press outside, the back gesture — and leaving a page or a tab that holds them ask first, in
+  a dialog, whether to throw them away: 버리기 drops them and goes, 취소 stays with them. With
   nothing changed it goes at once.
 - **A refused save keeps every change as written,** with the reason under the field it names. A save
   that goes to the bot by several paths stops at the first refusal, and what went through before it

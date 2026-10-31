@@ -112,6 +112,18 @@ export interface ChipLook {
   color: ChipColor;
 }
 
+// The research screen's tabs, the queue first (docs/web.md, 「Research screen」).
+export const RESEARCH_TABS = [
+  { value: "queue", label: "research.label.tab_queue", icon: "i-material-symbols-format-list-bulleted" },
+  { value: "sources", label: "research.label.tab_sources", icon: "i-material-symbols-rss-feed" }
+] as const;
+
+export type ResearchTab = (typeof RESEARCH_TABS)[number]["value"];
+
+export function isResearchTab(value: unknown): value is ResearchTab {
+  return RESEARCH_TABS.some((tab) => tab.value === value);
+}
+
 // An item's states, in the order the state choice offers them.
 export const ITEM_STATES: readonly string[] = ["waiting", "running", "reported", "fit", "failed", "taken", "dismissed"];
 
@@ -259,9 +271,29 @@ export function openableAddress(address: string | null): string | null {
   }
 }
 
-/** The items read, newest first by when each was made, and by id among those made at once. */
-export function newestFirst<T extends { id: number; createdAt: number }>(items: readonly T[]): T[] {
-  return [...items].sort((one, other) => other.createdAt - one.createdAt || other.id - one.id);
+// Where an item stands in the queue's order: what runs, then what is done with, then what still waits.
+function queueGroup(state: string): number {
+  if (state === "running") return 0;
+  if (state === "waiting") return 2;
+
+  return 1;
+}
+
+/**
+ * The items read in the queue's order (docs/web.md, 「Research screen」): the running first, in the order they started;
+ * then every item no longer waiting or running, the one that last changed first; then the waiting, the oldest made
+ * first, the order they run in. An id breaks a tie, the older first except among the finished.
+ */
+export function queueOrder<T extends { id: number; state: string; createdAt: number; changedAt: number }>(items: readonly T[]): T[] {
+  return [...items].sort((one, other) => {
+    const group = queueGroup(one.state) - queueGroup(other.state);
+
+    if (group !== 0) return group;
+    if (one.state === "running") return one.changedAt - other.changedAt || one.id - other.id;
+    if (one.state === "waiting") return one.createdAt - other.createdAt || one.id - other.id;
+
+    return other.changedAt - one.changedAt || other.id - one.id;
+  });
 }
 
 /** Pages read one after the other, an item read again standing once, as its latest page has it. */

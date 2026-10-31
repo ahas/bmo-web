@@ -55,8 +55,15 @@
               <UBadge v-if="heldLabel(room) !== null" color="neutral" variant="subtle" size="sm" :label="heldLabel(room) ?? ''" />
             </button>
           </li>
+          <!-- The foot: reaching it reads the next page, its rows standing as skeletons while it comes, and once the
+               service holds no more a list that took more than one page says it has ended. -->
+          <li ref="roomsFoot" role="presentation">
+            <ContentSkeleton v-if="adding" :rows="2" listClass="flex flex-col gap-1 px-3 py-2" :label="$t('room.status.room_add_more_loading')">
+              <SkeletonBar class="h-9 w-full rounded-md" />
+            </ContentSkeleton>
+            <p v-else-if="!more && roomPages > 1" class="px-3 py-2 text-center text-sm text-muted">{{ $t("room.status.room_add_end") }}</p>
+          </li>
         </ul>
-        <UButton v-if="more" class="mt-2" size="sm" color="neutral" variant="ghost" :label="$t('room.action.room_add_more')" :loading="roomsReading" @click="void readRooms()" />
         <p v-if="roomsFailed !== ''" role="alert" class="mt-2 text-sm text-error">{{ roomsFailed }}</p>
       </UFormField>
 
@@ -106,6 +113,8 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useFootInView } from "bmo-ui/app/domain/foot";
+import { useNextPages } from "~/domain/next-pages";
 
 import type { RoomAddCandidate, RoomAddContact, RoomAddContactPage, RoomAddMode, RoomAddPage, RoomAddService, RoomAdded } from "#shared/types";
 
@@ -127,6 +136,8 @@ const tab = ref<Tab>("rooms");
 const rooms = ref<RoomAddCandidate[]>([]);
 const more = ref(false);
 const roomsReading = ref(false);
+// How many pages of rooms have landed, so the end is said only of a list that took more than one.
+const roomPages = ref(0);
 const roomsFailed = ref("");
 const roomId = ref<number | null>(null);
 const contacts = ref<RoomAddContact[]>([]);
@@ -237,6 +248,7 @@ watch(open, async (opened) => {
 watch(serviceKey, () => {
   rooms.value = [];
   more.value = false;
+  roomPages.value = 0;
   roomId.value = null;
   roomsFailed.value = "";
   contacts.value = [];
@@ -260,6 +272,21 @@ watch(tab, () => {
   title.value = "";
 });
 
+// The foot of the rooms standing in view, inside the list's own scroll, reads the next page. A read that failed asks
+// for no further page; the failure under the list says why.
+const roomsFoot = useTemplateRef<HTMLElement>("roomsFoot");
+const atRoomsFoot = useFootInView(roomsFoot, roomsReading, { rootMargin: "100px" });
+const { adding } = useNextPages({
+  atFoot: atRoomsFoot,
+  more: () => more.value && roomsFailed.value === "",
+  busy: () => roomsReading.value,
+  next: async () => {
+    await readRooms();
+
+    return roomsFailed.value === "";
+  }
+});
+
 async function readRooms(): Promise<void> {
   const key = serviceKey.value;
 
@@ -276,6 +303,7 @@ async function readRooms(): Promise<void> {
 
     rooms.value = [...rooms.value, ...page.items];
     more.value = page.more;
+    roomPages.value += 1;
   } catch (error) {
     roomsFailed.value = failureText(error, t("room.error.room_add_rooms_failed"));
   } finally {

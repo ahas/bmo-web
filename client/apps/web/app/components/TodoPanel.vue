@@ -513,6 +513,7 @@ import { useTodoPanelLayout, useTodoView } from "~/domain/todo-settings";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { holdWaits } from "~/domain/queue-place";
 import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 import { matchFields } from "bmo-ui/shared/search";
 import {
   boardInOrder,
@@ -1082,6 +1083,7 @@ async function switchPause(paused: boolean): Promise<void> {
 // after, and pressing it opens the title bar's deployment popover, which shows the hold whole and
 // lets it go. A panel that stands as a drawer over the screen steps aside for the popover.
 const island = useIsland(t);
+const askFirst = useConfirm();
 const deployOpen = useState<boolean>("deploy-open", () => false);
 const todoOpen = useState<boolean>("todo-open", () => false);
 const holdSummary = computed(() => {
@@ -1238,11 +1240,11 @@ async function runRowVerb(item: TodoItem, verb: RowVerb): Promise<void> {
 
   // Throwing a row out is the one act here that cannot be taken back, so it is asked once more.
   if (verb === "drop") {
-    const sure = await island.ask({
+    const sure = await askFirst({
       title: t("todo.message.discard_confirm", { id: item.id }),
-      description: t("todo.message.discard_effect"),
-      confirm: t("todo.action.discard"),
-      tone: "error"
+      item: item.title,
+      effect: t("todo.message.discard_effect"),
+      confirm: t("todo.action.discard")
     });
 
     if (!sure) return;

@@ -64,10 +64,14 @@ async function openMenu(page: Page, row: string, name: string): Promise<void> {
   await page.getByRole("menuitem", { name: wording("common.action.edit") }).waitFor();
 }
 
-// A removal asked first in the message pill.
+// A removal asked first in a dialog, answered with its way through.
 async function removeAsked(page: Page): Promise<void> {
   await page.getByRole("menuitem", { name: wording("common.action.delete") }).click();
-  await page.getByRole("alertdialog").getByRole("button", { name: wording("common.action.delete") }).click();
+
+  const asked = page.getByRole("dialog");
+
+  await asked.getByRole("button", { name: wording("common.action.delete") }).click();
+  await asked.waitFor({ state: "detached" });
 }
 
 describe.skipIf(!origin || !touchReady())("the agents screen's model sections", () => {

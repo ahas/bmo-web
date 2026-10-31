@@ -66,7 +66,7 @@ import { GENERAL_SECTIONS, generalSectionTitle } from "~/domain/agents";
 import { basePromptForm, basePromptRefusalPlace, basePromptSave, charactersText, choosersText, emptyBasePromptForm, savedText, savingResets } from "~/domain/base-prompts";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useReadFailure } from "~/domain/events";
-import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 
 import type { BasePromptView, BasePromptsView } from "#shared/agency";
 import type { DropdownMenuItem } from "@nuxt/ui";
@@ -74,7 +74,7 @@ import type { BasePromptForm } from "~/domain/base-prompts";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
-const island = useIsland(t);
+const askFirst = useConfirm();
 const WAITING = GENERAL_SECTIONS.find((one) => one.id === "base-prompts")?.waiting ?? 1;
 
 const { data: view, error, refresh, status } = useFetch<BasePromptsView>("/api/base-prompts", { key: "base-prompts", lazy: true, server: false });
@@ -155,10 +155,10 @@ async function save(): Promise<void> {
   }
 }
 
-// A removal is asked in the message pill; one the bot refuses — an agent still choosing the prompt —
+// A removal is asked first in a dialog; one the bot refuses — an agent still choosing the prompt —
 // says why under the list.
 async function remove(prompt: BasePromptView): Promise<void> {
-  const taken = await island.ask({ title: t("agents.message.base_prompt_delete_confirm"), description: prompt.label, confirm: t("common.action.delete"), tone: "warning" });
+  const taken = await askFirst({ title: t("agents.message.base_prompt_delete_confirm"), item: prompt.label, confirm: t("common.action.delete") });
 
   if (!taken) return;
 

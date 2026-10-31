@@ -129,7 +129,7 @@
 <script setup lang="ts">
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 import { CELL_TEXT, ROLE_POOL_READS, settingsAnchor } from "~/domain/agent-settings";
 import { emptyRoleForm, roleChange, roleForm, roleRefusalPlace, roleRemovalBlock } from "~/domain/agent-roles";
 import { useReadFailure } from "~/domain/events";
@@ -147,7 +147,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { query: "" });
 const { t } = useI18n();
-const island = useIsland(t);
+const askFirst = useConfirm();
 
 // The page's search reads the same answer under the same key.
 const { data: view, error, refresh, status } = useFetch<AgentRolesView>("/api/agent-roles", { key: "agent-roles", lazy: true, server: false });
@@ -234,9 +234,9 @@ async function save(): Promise<void> {
   }
 }
 
-// A removal is asked in the message pill; one the agency refuses all the same says why under the table.
+// A removal is asked first in a dialog; one the agency refuses all the same says why under the table.
 async function remove(role: AgentRoleView): Promise<void> {
-  const taken = await island.ask({ title: t("agents.message.role_delete_confirm"), description: role.shown, confirm: t("common.action.delete"), tone: "warning" });
+  const taken = await askFirst({ title: t("agents.message.role_delete_confirm"), item: role.shown, confirm: t("common.action.delete") });
 
   if (!taken) return;
 

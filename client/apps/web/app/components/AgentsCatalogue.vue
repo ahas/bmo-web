@@ -139,7 +139,7 @@ import { settingsAnchor } from "~/domain/agent-settings";
 import { GENERAL_SECTIONS, generalSectionTitle } from "~/domain/agents";
 import { anyRunning, catalogueForm, catalogueRefusalPlace, catalogueSave, defaultsText, emptyCatalogueForm, GENERATION_FIELDS, sizeText, sourceText, useText } from "~/domain/catalogue-models";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 
 import type { CatalogueEntryView, CatalogueView } from "#shared/agency";
 import type { DropdownMenuItem } from "@nuxt/ui";
@@ -147,7 +147,7 @@ import type { CatalogueForm } from "~/domain/catalogue-models";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
-const island = useIsland(t);
+const askFirst = useConfirm();
 const CATALOGUE_WAITING = GENERAL_SECTIONS.find((one) => one.id === "catalogue")?.waiting ?? 1;
 const WHOLE_NUMBER = { step: 1, formatOptions: { useGrouping: true, maximumFractionDigits: 0 }, locale: "en-US" } as const;
 
@@ -247,11 +247,10 @@ async function save(): Promise<void> {
 
 // Choosing an entry for its engine moves every agent on its registration, so it is asked first.
 async function use(entry: CatalogueEntryView): Promise<void> {
-  const taken = await island.ask({
+  const taken = await askFirst({
     title: t("agents.message.use_model_confirm", { engine: entry.engine ?? "", model: entry.label }),
-    description: t("agents.message.use_model_moves", { registration: entry.registration ?? "—" }),
-    confirm: t("agents.action.use_model"),
-    tone: "warning"
+    effect: t("agents.message.use_model_moves", { registration: entry.registration ?? "—" }),
+    confirm: t("agents.action.use_model")
   });
 
   if (!taken) return;
@@ -266,7 +265,7 @@ async function use(entry: CatalogueEntryView): Promise<void> {
 }
 
 async function remove(entry: CatalogueEntryView): Promise<void> {
-  const taken = await island.ask({ title: t("agents.message.catalogue_delete_confirm"), description: entry.label, confirm: t("common.action.delete"), tone: "warning" });
+  const taken = await askFirst({ title: t("agents.message.catalogue_delete_confirm"), item: entry.label, confirm: t("common.action.delete") });
 
   if (!taken) return;
 

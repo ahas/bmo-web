@@ -51,3 +51,22 @@ describe("what keeps a reader at the end of a log", () => {
     expect(source).toContain("grewWatch?.disconnect()");
   });
 });
+
+describe("reading on past either end of a log", () => {
+  test("reads the lines above as its head comes into view and those past what is held as its tail does, with no button", () => {
+    expect(source).not.toContain("agents.action.older_lines");
+    expect(source).not.toContain("agents.action.newer_lines");
+    expect(source).toContain('<div ref="head" class="min-h-1 self-center">');
+    expect(source).toContain('<div ref="tail" class="min-h-1" />');
+    expect(source).toContain('const atHead = useFootInView(head, headBusy, { rootMargin: "200px" });');
+    expect(source).toContain('const atTail = useFootInView(tail, tailBusy, { rootMargin: "200px" });');
+    expect(source).toContain("more: () => log.older.value && !log.failure.value,");
+    expect(source).toContain("more: () => log.newer.value && !log.failure.value,");
+  });
+
+  test("keeps the reader's place as lines land above, and says where the log starts", () => {
+    expect(source).toContain("next: async () => (await loadOlder()) > 0");
+    expect(source).toContain("element.scrollTop += element.scrollHeight - height;");
+    expect(source).toContain('<p v-if="!log.older.value && shownRows.length > 0" class="text-sm text-dimmed">');
+  });
+});

@@ -2,17 +2,9 @@
   <UContainer ref="feed" class="flex min-h-full flex-1 flex-col gap-3 py-4 sm:py-6">
     <UAlert v-if="log.failure.value" color="error" variant="subtle" :description="log.failure.value" />
 
-    <div class="self-center">
-      <UButton
-        v-if="log.older.value"
-        :loading="log.loadingOlder.value"
-        size="sm"
-        color="neutral"
-        variant="subtle"
-        :label="$t('agents.action.older_lines')"
-        @click="loadOlder"
-      />
-      <p v-else-if="shownRows.length > 0" class="text-sm text-dimmed">{{ $t("agents.message.log_start") }}</p>
+    <!-- The head: reaching it reads the lines above, and once none stand above it says the log starts here. -->
+    <div ref="head" class="min-h-1 self-center">
+      <p v-if="!log.older.value && shownRows.length > 0" class="text-sm text-dimmed">{{ $t("agents.message.log_start") }}</p>
     </div>
 
     <ContentSkeleton v-if="log.loading.value && rows.length === 0" :rows="3" listClass="flex flex-col gap-3" :label="$t('agents.status.log_loading')">
@@ -50,9 +42,8 @@
     <ContentSkeleton v-if="following" listClass="flex flex-col gap-3" :label="$t('agents.status.newer_loading')">
       <ProgressStepSkeleton />
     </ContentSkeleton>
-    <div v-if="log.newer.value" class="self-center">
-      <UButton size="sm" color="neutral" variant="subtle" :label="$t('agents.action.newer_lines')" @click="followRequested" />
-    </div>
+    <!-- The tail: reaching it, where lines stand past what is held, reads them. -->
+    <div ref="tail" class="min-h-1" />
 
     <!-- Once the reader has scrolled up off the end, a way back to it that follows the end again. -->
     <div v-if="!stick && shownRows.length > 0" class="pointer-events-none sticky bottom-4 z-10 flex justify-end">
@@ -80,6 +71,8 @@
 import { AGENT_LOG_POLL_MS } from "#shared/config";
 import { useLiveRefresh } from "~/domain/events";
 import { useAgentLog } from "~/domain/log";
+import { useNextPages } from "~/domain/next-pages";
+import { useFootInView } from "bmo-ui/app/domain/foot";
 import { SCROLL_BOTTOM_THRESHOLD_PX, usePolling } from "~/domain/polling";
 import { liveChip, runEnds, useRunChips } from "~/domain/turns";
 
@@ -204,27 +197,60 @@ function onContentGrew(): void {
 let grewWatch: ResizeObserver | null = null;
 
 // Reading upward: the older page is prepended, so the log is nudged back down by exactly
-// what grew above the reader.
-async function loadOlder(): Promise<void> {
+// what grew above the reader. Answers how many lines it brought.
+async function loadOlder(): Promise<number> {
   const element = scroller();
   const height = element?.scrollHeight ?? 0;
   const added = await log.loadOlder();
 
   if (element === null || added === 0) {
-    return;
+    return added;
   }
 
   await nextTick();
   element.scrollTop += element.scrollHeight - height;
+
+  return added;
 }
 
-// What arrived after the last line held. The archive is what is asked, not the bot.
+// What arrived after the last line held, read as the reader reaches the tail. The archive is what is asked, not the bot.
 const following = ref(false);
-async function followRequested(): Promise<void> {
-  if (following.value) return;
-  following.value = true;
-  try { await follow(); } finally { following.value = false; }
-}
+
+// The log's two ends read on as the reader reaches them, a page ahead so the next is already coming: the head the
+// lines above, the tail the lines past what is held. Neither reads while the first read is going or after a read
+// failed; the failure above the log says why.
+const head = useTemplateRef<HTMLElement>("head");
+const tail = useTemplateRef<HTMLElement>("tail");
+const headBusy = computed(() => log.loading.value || log.loadingOlder.value);
+const tailBusy = computed(() => log.loading.value || following.value);
+const atHead = useFootInView(head, headBusy, { rootMargin: "200px" });
+const atTail = useFootInView(tail, tailBusy, { rootMargin: "200px" });
+
+useNextPages({
+  atFoot: atHead,
+  more: () => log.older.value && !log.failure.value,
+  busy: () => headBusy.value,
+  next: async () => (await loadOlder()) > 0
+});
+
+useNextPages({
+  atFoot: atTail,
+  more: () => log.newer.value && !log.failure.value,
+  busy: () => tailBusy.value,
+  next: async () => {
+    following.value = true;
+
+    try {
+      const added = await log.follow();
+
+      if (added > 0 && stick.value) await scrollToBottom();
+
+      return added > 0;
+    } finally {
+      following.value = false;
+    }
+  }
+});
 
 async function follow(): Promise<void> {
   const added = await log.follow();

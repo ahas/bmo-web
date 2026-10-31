@@ -64,7 +64,7 @@ import { settingsAnchor } from "~/domain/agent-settings";
 import { GENERAL_SECTIONS, generalSectionTitle } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useReadFailure } from "~/domain/events";
-import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 import { emptyModelForm, healthMark, healthText, modelChange, modelCreate, modelForm, modelRefusalPlace, registrationName } from "~/domain/registry";
 
 import type { ModelPage, ModelView } from "#shared/agency";
@@ -85,7 +85,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), { failed: false, reading: false, query: "" });
 const { t } = useI18n();
 const readFailure = useReadFailure({ failed: () => props.failed && props.models === null, reading: () => props.reading, reread: () => void props.reread() });
-const island = useIsland(t);
+const askFirst = useConfirm();
 // As many waiting rows as the page's own waiting shape stood with.
 const REGISTRY_WAITING = GENERAL_SECTIONS.find((one) => one.id === "registry")?.waiting ?? 1;
 
@@ -165,15 +165,14 @@ async function save(): Promise<void> {
   }
 }
 
-// A removal is asked in the message pill; what the bot refuses it for — a tier or a pin still naming the
+// A removal is asked first in a dialog; what the bot refuses it for — a tier or a pin still naming the
 // registration — stands under the list.
 async function remove(model: ModelView): Promise<void> {
   const name = registrationName(model.key);
-  const taken = await island.ask({
+  const taken = await askFirst({
     title: t("agents.message.registry_delete_confirm"),
-    description: name,
-    confirm: t("common.action.delete"),
-    tone: "warning"
+    item: name,
+    confirm: t("common.action.delete")
   });
 
   if (!taken) return;

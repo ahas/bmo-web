@@ -364,9 +364,9 @@ describe("the deployment's hold", () => {
     expect(mark).toContain('const open = useState<boolean>("deploy-open", () => false);');
   });
 
-  test("is let go in the popover, asked first in the message pill, and never by the resume", () => {
-    expect(mark).toContain("await island.ask({");
-    expect(mark).toContain('description: t("todo.message.release_hold_effect")');
+  test("is let go in the popover, asked first in a dialog, and never by the resume", () => {
+    expect(mark).toContain("await askFirst({");
+    expect(mark).toContain('effect: t("todo.message.release_hold_effect")');
     expect(mark).toContain('$fetch("/api/deploy-hold-release", { method: "POST" })');
     expect(mark).toContain('@click="releaseHold"');
     expect(template).not.toContain("releaseHold");

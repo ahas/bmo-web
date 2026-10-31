@@ -62,9 +62,11 @@ describe("the room screen's acts", () => {
     expect(screen.match(/await roomFeed\.catchUp\(item\.messageId\);/g)?.length).toBe(4);
   });
 
-  test("asks before a delete, in the message pill", () => {
+  test("asks before a delete, in a dialog showing the message's words", () => {
+    expect(screen).toContain("const taken = await askFirst({");
     expect(screen).toContain('title: t("room.message.delete_ask")');
-    expect(screen).toContain('t("room.message.delete_note")');
+    expect(screen).toContain('item: item.shownText.trim() === "" ? item.fileName : item.shownText,');
+    expect(screen).toContain('effect: t("room.message.delete_note")');
     expect(screen).toContain('confirm: t("common.action.delete")');
   });
 

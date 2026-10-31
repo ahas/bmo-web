@@ -34,17 +34,41 @@ describe("the research screen", () => {
 
   test("says a unit that does not answer as one failure with its reread, and draws nothing else before a first read", () => {
     expect(templateOf(page)).toContain('<ReadFailure :failure="readFailure" :message="failureMessage" :reading="reading" @retry="rereadAll()" />');
-    expect(templateOf(page)).toContain('<template v-if="!failedFirst">');
+    expect(templateOf(page)).toContain("<template v-if=\"!failedFirst && tab === 'queue'\">");
   });
 
-  test("narrows the queue by category and state, and stands what it read newest first", () => {
+  test("narrows the queue by category and state, and stands what it read in the queue's order", () => {
     expect(templateOf(page)).toContain(':aria-label="$t(\'research.aria.category_filter\')"');
     expect(templateOf(page)).toContain(':aria-label="$t(\'research.aria.state_filter\')"');
-    expect(scriptOf(page)).toContain("const shown = computed(() => newestFirst(items.value ?? []));");
+    expect(scriptOf(page)).toContain("const shown = computed(() => queueOrder(items.value ?? []));");
   });
 
-  test("asks once in the message pill before a dismissal", () => {
-    expect(scriptOf(page)).toContain('island.ask({ title: t("research.message.dismiss_confirm")');
+  test("stands the queue and the sources on two tabs, the tab in the address and its add at the row's end", () => {
+    expect(templateOf(page)).toContain('<UTabs\n          :model-value="tab"\n          :items="tabItems"');
+    expect(templateOf(page)).toContain("<template v-if=\"!failedFirst && tab === 'queue'\">");
+    expect(templateOf(page)).toContain("<ResearchSources v-if=\"!failedFirst && tab === 'sources'\" ref=\"sourcesRef\"");
+    expect(templateOf(page)).toContain('@click="sourcesRef?.openAdd()"');
+    expect(templateOf(page)).toContain(':aria-label="$t(\'research.title.ask\')"');
+    expect(scriptOf(page)).toContain('void router.push({ query: { ...route.query, tab: next === "queue" ? undefined : next } });');
+    expect(templateOf(sources)).not.toContain("research-sources-title");
+  });
+
+  test("reads the queue's next page as its foot comes into view, with no button asking for more", () => {
+    expect(templateOf(page)).not.toContain("common.action.more");
+    expect(templateOf(page)).toContain('<div v-if="items !== null" ref="foot">');
+    expect(templateOf(page)).toContain('<ContentSkeleton v-if="adding" :rows="2"');
+    expect(scriptOf(page)).toContain('const atFoot = useFootInView(foot, queueReading, { rootMargin: "200px" });');
+    expect(scriptOf(page)).toContain("more: () => more.value && queueError.value === null,");
+    expect(scriptOf(page)).toContain("busy: () => queueReading.value,");
+  });
+
+  test("says the queue has ended only once it took more than one page", () => {
+    expect(templateOf(page)).toContain('<p v-else-if="!more && wanted > PAGE && shown.length > 0"');
+    expect(templateOf(page)).toContain('$t("research.status.queue_end")');
+  });
+
+  test("asks once in a dialog naming the item before a dismissal", () => {
+    expect(scriptOf(page)).toContain('await askFirst({ title: t("research.message.dismiss_confirm"), item: item.name, effect: t("research.message.dismiss_note"), confirm: t("research.action.dismiss") });');
     expect(scriptOf(page)).toContain('{ method: "PATCH", body: { state: "dismissed" } }');
   });
 });
@@ -94,8 +118,8 @@ describe("the ask", () => {
 });
 
 describe("the sources", () => {
-  test("stand last on the screen, the table the unit answers them in", () => {
-    expect(templateOf(page)).toContain('<ResearchSources :categories="stateView?.categories ?? []" :quiet="failing" />');
+  test("stand on a tab of their own, the table the unit answers them in", () => {
+    expect(templateOf(page)).toContain('ref="sourcesRef" :categories="stateView?.categories ?? []" :quiet="failing" />');
     expect(scriptOf(sources)).toContain('useFetch<{ items: ResearchSource[] }>("/api/research/sources"');
 
     for (const column of ["#target-cell", "#filter-cell", "#everyMinutes-cell", "#limit-cell", "#readAt-cell", "#failureCount-cell", "#actions-cell"]) {
@@ -103,7 +127,8 @@ describe("the sources", () => {
     }
   });
 
-  test("ask once before a source is taken away", () => {
+  test("ask once in a dialog before a source is taken away", () => {
+    expect(scriptOf(sources)).toContain("const taken = await askFirst({");
     expect(scriptOf(sources)).toContain('title: t("research.message.source_delete_confirm", { id: source.id })');
     expect(scriptOf(sources)).toContain('{ method: "DELETE" }');
   });

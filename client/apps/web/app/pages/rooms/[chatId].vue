@@ -463,6 +463,7 @@ import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, forwa
 import { TURN_ENDED, useBotEvents, useLiveRefresh, useReadFailure, useRoomRun } from "~/domain/events";
 import { useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 import { homedJudgements, judgedNow, judgementsByMessage } from "~/domain/judgements";
 import { CHOOSE_GUTTER, chosenRuns } from "bmo-ui/app/domain/chooseall";
 import { NARROW_MAX_PX, STABLE_GUTTER, useScrollGutter } from "bmo-ui/app/domain/screen";
@@ -568,6 +569,7 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const island = useIsland(t);
+const askFirst = useConfirm();
 
 // A member reads the conversation; writing to it, its session information and the bar's tools are the
 // administrator's (docs/web.md, 「Access」).
@@ -813,16 +815,17 @@ async function saveEdit(text: string): Promise<string | null> {
   }
 }
 
-// A delete is asked for first in the message pill, as every destructive act of the console is, and the record clears
+// A delete is asked for first in a dialog, as every destructive act of the console is, and the record clears
 // the words and keeps where the message stood.
 async function removeMessage(key: string): Promise<void> {
   const item = itemOf(key);
 
   if (item === undefined) return;
 
-  const taken = await island.ask({
+  const taken = await askFirst({
     title: t("room.message.delete_ask"),
-    description: t("room.message.delete_note"),
+    item: item.shownText.trim() === "" ? item.fileName : item.shownText,
+    effect: t("room.message.delete_note"),
     confirm: t("common.action.delete")
   });
 

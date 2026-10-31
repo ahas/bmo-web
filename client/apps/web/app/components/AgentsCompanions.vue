@@ -40,14 +40,18 @@
           <template #model-cell="{ row }">
             <span :class="[CELL_TEXT, row.original.model === null ? 'text-muted' : 'text-highlighted']" class="text-sm">{{ row.original.model ?? "—" }}</span>
           </template>
-          <template #rooms-cell="{ row }">
-            <span :class="[CELL_TEXT, row.original.rooms.length === 0 ? 'text-muted' : 'text-highlighted']" class="max-w-72 text-sm">{{ row.original.rooms.length === 0 ? "—" : row.original.rooms.join(" · ") }}</span>
+          <!-- The rooms keep a ceiling of their own until a column's width is held by hand, then take that width; a
+               line longer than either is cut inside the cell, never run under the next one. -->
+          <template #rooms-cell="{ row, held }">
+            <span :class="[CELL_TEXT, held ? '' : 'max-w-72', row.original.rooms.length === 0 ? 'text-muted' : 'text-highlighted']" class="text-sm">
+              <span class="truncate">{{ row.original.rooms.length === 0 ? "—" : row.original.rooms.join(" · ") }}</span>
+            </span>
           </template>
           <!-- Two presses of its own at the row's end, apart from the row's own: the settings, opened on this
                screen in the dialog the agent's own screen opens, and, for a companion the console added, its
                removal — one the deployment seeds stands again at the next start, so it offers none. -->
           <template #actions-cell="{ row }">
-            <span class="flex items-center justify-end gap-1 pe-2">
+            <span class="flex min-h-12 items-center justify-end gap-1 pe-2">
               <UTooltip v-if="row.original.editable" :text="$t('agents.action.settings')">
                 <UButton
                   color="neutral"
@@ -137,6 +141,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useReadFailure } from "~/domain/events";
 import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 import { answeringModels, REGISTRY_PROVIDER, registrationName } from "~/domain/registry";
 import { agentIcon, agentMetaOf, catalogueAgents } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
@@ -157,6 +162,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), { workers: () => [] });
 const { t } = useI18n();
 const island = useIsland(t);
+const askFirst = useConfirm();
 const { data: companions, error, refresh, status } = useFetch<CompanionView[]>("/api/companions", { key: "companions", lazy: true, server: false });
 const readFailure = useReadFailure({ failed: () => !!error.value && companions.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
@@ -326,11 +332,10 @@ async function remove(name: string): Promise<void> {
 
   if (companion === undefined) return;
 
-  const taken = await island.ask({
+  const taken = await askFirst({
     title: t("agents.message.companion_delete_confirm", { name: companion.label }),
-    description: t("agents.message.companion_delete_takes"),
-    confirm: t("common.action.delete"),
-    tone: "warning"
+    effect: t("agents.message.companion_delete_takes"),
+    confirm: t("common.action.delete")
   });
 
   if (!taken) return;

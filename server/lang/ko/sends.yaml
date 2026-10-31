@@ -28,7 +28,7 @@ verb_refused: "{road}에서는 {what} 수 없어요."
 another_agents_room: "이 방은 다른 에이전트가 답하는 방이라 {subject} 보낼 수 없어요."
 
 # An agent sending in its own turn where its role gives no sending, {name} its name.
-role_without_sends: "{name}의 롤에는 보내기 기능이 없어 보낼 수 없어요."
+role_without_sends: "{name}의 역할에는 보내기 기능이 없어 보낼 수 없어요."
 
 # A sticker the set does not carry: the road's own {refusal}, then where to look.
 sticker_list: "{refusal} --list을 보면 무엇이 있는지 알 수 있어요."

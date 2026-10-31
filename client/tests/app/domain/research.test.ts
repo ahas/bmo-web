@@ -13,9 +13,9 @@ import {
   logKindLook,
   makerText,
   mergedPages,
-  newestFirst,
   openableAddress,
   profileLabel,
+  queueOrder,
   researchKeys,
   roadText,
   runOpen,
@@ -88,12 +88,36 @@ describe("the queue's words", () => {
     expect(openableAddress("javascript:void(0)")).toBeNull();
   });
 
-  test("stands the items newest first, and an item read on two pages once, as the later page has it", () => {
-    const pages = [[{ id: 1, createdAt: 10, state: "waiting" }, { id: 2, createdAt: 30, state: "waiting" }], [{ id: 1, createdAt: 10, state: "running" }, { id: 3, createdAt: 20, state: "reported" }]];
+  test("stands an item read on two pages once, as the later page has it", () => {
+    const pages = [[{ id: 1, state: "waiting" }, { id: 2, state: "waiting" }], [{ id: 1, state: "running" }, { id: 3, state: "reported" }]];
     const merged = mergedPages(pages);
 
-    expect(newestFirst(merged).map((item) => item.id)).toEqual([2, 3, 1]);
+    expect(merged.map((item) => item.id)).toEqual([1, 2, 3]);
     expect(merged.find((item) => item.id === 1)?.state).toBe("running");
+  });
+
+  test("stands the running first, then the finished newest first, then the waiting oldest first", () => {
+    const item = (id: number, state: string, createdAt: number, changedAt: number) => ({ id, state, createdAt, changedAt });
+    const items = [
+      item(1, "waiting", 30, 30),
+      item(2, "reported", 10, 50),
+      item(3, "running", 40, 70),
+      item(4, "waiting", 20, 20),
+      item(5, "failed", 15, 60),
+      item(6, "dismissed", 5, 40),
+      item(7, "running", 35, 65),
+      item(8, "fit", 12, 55),
+      item(9, "taken", 8, 45),
+      item(10, "waiting", 20, 20)
+    ];
+
+    expect(queueOrder(items).map((one) => one.id)).toEqual([7, 3, 5, 8, 2, 9, 6, 4, 10, 1]);
+  });
+
+  test("keeps the order within what a choice narrowed the queue to", () => {
+    const narrowed = [{ id: 1, state: "waiting", createdAt: 30, changedAt: 30 }, { id: 2, state: "waiting", createdAt: 10, changedAt: 10 }];
+
+    expect(queueOrder(narrowed).map((one) => one.id)).toEqual([2, 1]);
   });
 });
 

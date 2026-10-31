@@ -1,10 +1,53 @@
-<!-- The research screen (docs/web.md, 「Research screen」): the research unit, bmo-research, watched at work — whether
-     its loop runs, each category with its state and its stop and resume, its queue newest first, narrowed by category
-     and state, each item's run opening in a sheet over the list, and the sources its categories are read from. -->
+<!-- The research screen (docs/web.md, 「Research screen」): the research unit, bmo-research, watched at work, a tab to
+     each part. The queue's tab holds whether its loop runs, each category with its state and its stop and resume, and
+     its queue in the queue's order, narrowed by category and state, each item's run opening in a sheet over the list;
+     the sources' tab holds the sources its categories are read from. -->
 <template>
   <UDashboardPanel id="research">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.research')" icon="i-material-symbols-travel-explore" />
+
+      <div :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]">
+        <UTabs
+          :model-value="tab"
+          :items="tabItems"
+          :content="false"
+          color="neutral"
+          variant="link"
+          size="sm"
+          class="min-w-0 flex-1 self-stretch"
+          :ui="TAB_ROW_UI"
+          :aria-label="$t('research.aria.sections')"
+          @update:model-value="(value: string | number) => setTab(String(value))"
+        />
+
+        <!-- The open tab's own action stands at the right end of the row. -->
+        <UTooltip v-if="tab === 'queue'" :text="$t('research.title.ask')">
+          <UButton
+            class="shrink-0"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            icon="i-material-symbols-add"
+            :aria-label="$t('research.title.ask')"
+            :disabled="(stateView?.categories.length ?? 0) === 0"
+            @click="asking = true"
+          />
+        </UTooltip>
+
+        <UTooltip v-else :text="$t('research.title.source_add')">
+          <UButton
+            class="shrink-0"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            icon="i-material-symbols-add"
+            :aria-label="$t('research.title.source_add')"
+            :disabled="(stateView?.categories.length ?? 0) === 0"
+            @click="sourcesRef?.openAdd()"
+          />
+        </UTooltip>
+      </div>
     </template>
 
     <template #body>
@@ -14,7 +57,7 @@
              above it, and what was read stays. -->
         <ReadFailure :failure="readFailure" :message="failureMessage" :reading="reading" @retry="rereadAll()" />
 
-        <template v-if="!failedFirst">
+        <template v-if="!failedFirst && tab === 'queue'">
           <ResearchCategories :view="stateView" :changing="changing" @change="(name, next) => void changeState(name, next)" />
 
           <section class="flex min-w-0 flex-col gap-3" aria-labelledby="research-queue-title">
@@ -46,14 +89,6 @@
                 :aria-label="$t('research.aria.state_filter')"
                 @update:model-value="(value: string) => setItemState(value)"
               />
-
-              <UButton
-                icon="i-material-symbols-add"
-                size="sm"
-                :label="$t('research.action.ask')"
-                :disabled="(stateView?.categories.length ?? 0) === 0"
-                @click="asking = true"
-              />
             </div>
 
             <SkeletonStatus v-if="items === null" as="div" class="flex flex-col gap-3" :label="$t('research.status.queue_loading')">
@@ -76,13 +111,21 @@
               </li>
             </ul>
 
-            <div v-if="items !== null && more" class="flex justify-center">
-              <UButton color="neutral" variant="subtle" size="sm" :label="$t('common.action.more')" :loading="queueReading" @click="readMore()" />
+            <!-- The foot: reaching it reads the next page, its rows standing as skeletons while it comes, and once
+                 the unit holds no more a list that took more than one page says it has ended. -->
+            <div v-if="items !== null" ref="foot">
+              <ContentSkeleton v-if="adding" :rows="2" listClass="flex flex-col gap-3" :label="$t('research.status.queue_more_loading')">
+                <div class="rounded-md border border-default p-3">
+                  <SkeletonLine size="base" width="w-1/2" />
+                  <SkeletonLine width="w-4/5" />
+                </div>
+              </ContentSkeleton>
+              <p v-else-if="!more && wanted > PAGE && shown.length > 0" class="py-1 text-center text-sm text-muted">{{ $t("research.status.queue_end") }}</p>
             </div>
           </section>
-
-          <ResearchSources :categories="stateView?.categories ?? []" :quiet="failing" />
         </template>
+
+        <ResearchSources v-if="!failedFirst && tab === 'sources'" ref="sourcesRef" :categories="stateView?.categories ?? []" :quiet="failing" />
       </div>
 
       <ResearchAskDialog v-model:open="asking" :categories="categoryNames" @asked="asked" />
@@ -94,14 +137,33 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
-import { ITEM_STATES, itemStateLook, mergedPages, newestFirst } from "~/domain/research";
+import { useNextPages } from "~/domain/next-pages";
+import { ITEM_STATES, RESEARCH_TABS, isResearchTab, itemStateLook, mergedPages, queueOrder } from "~/domain/research";
+import { useFootInView } from "bmo-ui/app/domain/foot";
+import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import type { ResearchItem, ResearchQueuePage, ResearchStateChange, ResearchStateView } from "#shared/research";
+import type { ResearchTab } from "~/domain/research";
 
 const { t } = useI18n();
 const island = useIsland(t);
+const askFirst = useConfirm();
+const route = useRoute();
+const router = useRouter();
+
+const tab = computed<ResearchTab>(() => (isResearchTab(route.query.tab) ? route.query.tab : "queue"));
+const tabItems = RESEARCH_TABS.map((one) => ({ ...one, label: t(one.label) }));
+const sourcesRef = useTemplateRef<{ openAdd: () => void }>("sourcesRef");
+
+// The tab stands in the address, and moving to another is a step of the history.
+function setTab(next: string): void {
+  if (!isResearchTab(next) || next === tab.value) return;
+
+  void router.push({ query: { ...route.query, tab: next === "queue" ? undefined : next } });
+}
 
 // A page of the queue, and the most one read asks for.
 const PAGE = 50;
@@ -135,7 +197,7 @@ const asking = ref(false);
 const runShown = ref<ResearchItem | null>(null);
 const runOpened = ref(false);
 
-const shown = computed(() => newestFirst(items.value ?? []));
+const shown = computed(() => queueOrder(items.value ?? []));
 const categoryNames = computed(() => stateView.value?.categories.map((one) => one.name) ?? []);
 const categoryChoices = computed(() => [{ value: ALL, label: t("research.label.all_categories") }, ...categoryNames.value.map((name) => ({ value: name, label: name }))]);
 const stateChoices = computed(() => [{ value: ALL, label: t("research.label.all_states") }, ...ITEM_STATES.map((state) => ({ value: state, label: itemStateLook(t, state).label }))]);
@@ -190,10 +252,21 @@ function rereadAll(): void {
   void readQueue();
 }
 
-function readMore(): void {
-  wanted.value += PAGE;
-  void readQueue();
-}
+// The foot of the queue standing in view reads its next page, a page ahead of the end so the next is already
+// coming as the last items are read. A read that failed asks for no further page until the queue answers again.
+const foot = useTemplateRef<HTMLElement>("foot");
+const atFoot = useFootInView(foot, queueReading, { rootMargin: "200px" });
+const { adding } = useNextPages({
+  atFoot,
+  more: () => more.value && queueError.value === null,
+  busy: () => queueReading.value,
+  next: async () => {
+    wanted.value += PAGE;
+    await readQueue();
+
+    return queueError.value === null;
+  }
+});
 
 // A filter changed reads the queue afresh from its first page, its place held until the answer lands.
 function narrowed(): void {
@@ -235,9 +308,9 @@ async function changeState(categoryName: string | null, state: ResearchStateChan
   }
 }
 
-// An item dismissed once the message pill is answered; the item stands as the unit answers it.
+// An item dismissed once its dialog is answered; the item stands as the unit answers it.
 async function dismiss(item: ResearchItem): Promise<void> {
-  const taken = await island.ask({ title: t("research.message.dismiss_confirm"), description: t("research.message.dismiss_note"), confirm: t("research.action.dismiss"), tone: "warning" });
+  const taken = await askFirst({ title: t("research.message.dismiss_confirm"), item: item.name, effect: t("research.message.dismiss_note"), confirm: t("research.action.dismiss") });
 
   if (!taken) return;
 

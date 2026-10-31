@@ -160,6 +160,7 @@
 <script setup lang="ts">
 import { DEPLOY_ICON, ENDING_SHOWN_MS, currentStage, deployMarkOf, holdLimit, stageLabel, stageRows, stepLabel } from "~/domain/deploy";
 import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 import { useDeployEvents } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { spanClock } from "bmo-ui/app/domain/time";
@@ -217,6 +218,7 @@ watch(shown, async (now) => {
 
 const todoOpen = useState<boolean>("todo-open", () => false);
 const island = useIsland(t);
+const askFirst = useConfirm();
 const releasing = ref(false);
 
 // The build this page was loaded from, which the console server's own is compared with.
@@ -326,11 +328,10 @@ function openTodo(): void {
 
 // Letting the hold go, asked first with what it does: the batch stays waiting, and the queue moves.
 async function releaseHold(): Promise<void> {
-  const taken = await island.ask({
+  const taken = await askFirst({
     title: t("todo.message.release_hold_confirm"),
-    description: t("todo.message.release_hold_effect"),
-    confirm: t("todo.action.release_hold"),
-    tone: "warning"
+    effect: t("todo.message.release_hold_effect"),
+    confirm: t("todo.action.release_hold")
   });
 
   if (!taken) return;

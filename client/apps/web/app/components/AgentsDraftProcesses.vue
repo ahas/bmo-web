@@ -184,7 +184,7 @@
 <script setup lang="ts">
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 import { ANY_KEY } from "#shared/drafting";
 import { CELL_TEXT, PROVIDER_COLUMNS, settingsAnchor } from "~/domain/agent-settings";
 import { useAgentCatalogue } from "~/domain/catalogue";
@@ -220,7 +220,7 @@ import type { TableColumn } from "@nuxt/ui";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
-const island = useIsland(t);
+const askFirst = useConfirm();
 
 // The two lists a row holds, each a cell of the same kind named by its own words.
 const LIST_FIELDS = ["rounds", "light"] as const;
@@ -279,10 +279,10 @@ async function saveChoice(row: DraftProcessView, value: string): Promise<string 
   return value === "send" || value === "skip" ? await save(row, { pastCeiling: value as PastCeiling }) : t("common.error.bad_action");
 }
 
-// A console's row taken away, asked first in the message pill; the policy's row of the key stands again where it
+// A console's row taken away, asked first in a dialog; the policy's row of the key stands again where it
 // holds one.
 async function remove(row: DraftProcessView): Promise<void> {
-  const taken = await island.ask({ title: t("agents.message.draft_process_remove_confirm"), description: keyText(row), confirm: t("common.action.delete"), tone: "warning" });
+  const taken = await askFirst({ title: t("agents.message.draft_process_remove_confirm"), item: keyText(row), confirm: t("common.action.delete") });
 
   if (!taken) return;
 

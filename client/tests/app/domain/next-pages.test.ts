@@ -83,6 +83,47 @@ describe("a list's next pages", () => {
     expect(list.shown).toEqual([true, false]);
   });
 
+  test("the foot coming into view asks the next page once, and nothing more while that page is on its way", async () => {
+    let land: () => void = () => undefined;
+    const arrived = new Promise<void>((resolve) => {
+      land = resolve;
+    });
+    let asked = 0;
+    const atFoot = ref(false);
+    const { adding } = useNextPages({
+      atFoot,
+      more: () => asked < 3,
+      busy: () => false,
+      next: async () => {
+        asked += 1;
+        await arrived;
+        atFoot.value = false;
+
+        return true;
+      },
+      settled: async () => {
+        await Promise.resolve();
+      }
+    });
+
+    atFoot.value = true;
+    await settle();
+    // The foot leaving and coming back while the page is on its way asks nothing more.
+    atFoot.value = false;
+    await settle();
+    atFoot.value = true;
+    await settle();
+
+    expect(asked).toBe(1);
+    expect(adding.value).toBe(true);
+
+    land();
+    await settle();
+
+    expect(asked).toBe(1);
+    expect(adding.value).toBe(false);
+  });
+
   test("a read already going is waited out, and nothing is asked while it goes", async () => {
     const list = source(2, (page) => (page === 1 ? { atFoot: false } : {}));
 

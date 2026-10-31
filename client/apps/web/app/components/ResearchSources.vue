@@ -1,20 +1,8 @@
 <template>
   <!-- The sources the research unit reads its categories' candidates from (docs/web.md, 「Research screen」), one row
        each, with the source added, changed and taken away. -->
-  <section class="flex min-w-0 flex-col gap-3" aria-labelledby="research-sources-title">
-    <div class="flex flex-wrap items-center gap-2">
-      <h2 id="research-sources-title" class="me-auto text-base font-semibold text-highlighted">{{ $t("research.title.sources") }}</h2>
-
-      <UButton
-        icon="i-material-symbols-add"
-        size="sm"
-        color="neutral"
-        variant="subtle"
-        :label="$t('common.action.add')"
-        :disabled="props.categories.length === 0"
-        @click="openDialog(null)"
-      />
-    </div>
+  <!-- The sources are a tab of their own, which names them and holds their add, so the section carries no head. -->
+  <section class="flex min-w-0 flex-col gap-3" :aria-label="$t('research.title.sources')">
 
     <ReadFailure
       v-if="!props.quiet"
@@ -111,6 +99,7 @@
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
+import { useConfirm } from "~/domain/confirm";
 import { countText } from "bmo-ui/app/domain/numbers";
 import { formatDayClock, toUnixSeconds } from "bmo-ui/app/domain/time";
 import { CELL_TEXT } from "~/domain/agent-settings";
@@ -130,6 +119,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const island = useIsland(t);
+const askFirst = useConfirm();
 
 // How often the sources are read again while the tab is seen: the clock the rest of the screen reads on.
 const POLL_MS = 10_000;
@@ -169,18 +159,24 @@ function openDialog(source: ResearchSource | null): void {
   dialogOpen.value = true;
 }
 
+// A new source, from the add the tab row holds.
+function openAdd(): void {
+  openDialog(null);
+}
+
+defineExpose({ openAdd });
+
 function saved(added: boolean): void {
   island.say({ tone: "success", title: t(added ? "research.message.source_added" : "research.message.source_saved") });
   void refresh();
 }
 
-// A source taken away once the message pill is answered; what it turned up stays.
+// A source taken away once its dialog is answered; what it turned up stays.
 async function remove(source: ResearchSource): Promise<void> {
-  const taken = await island.ask({
+  const taken = await askFirst({
     title: t("research.message.source_delete_confirm", { id: source.id }),
-    description: t("research.message.source_delete_note"),
-    confirm: t("common.action.delete"),
-    tone: "warning"
+    effect: t("research.message.source_delete_note"),
+    confirm: t("common.action.delete")
   });
 
   if (!taken) return;

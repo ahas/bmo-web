@@ -1,8 +1,9 @@
 <!-- The research screen (docs/web.md, 「Research screen」): the research unit, bmo-research, watched at work, a tab to
      each part. The queue's tab holds whether its loop runs, each category with its state and its stop and resume, and
-     its queue in the queue's order, narrowed by category and state, each item's run opening in a sheet over the list
-     and each item that filed a document asked a follow-up of; the sources' tab holds the sources its categories are read
-     from. An address naming a document's number opens the ask as a follow-up of that document. -->
+     its queue in the queue's order, narrowed by category and state, each item's run opening in a sheet over the list,
+     each item that filed a document asked a follow-up of and each stuck item asked again or moved to the front; the
+     sources' tab holds the sources its categories are read from. An address naming a document's number opens the ask
+     as a follow-up of that document. -->
 <template>
   <UDashboardPanel id="research">
     <template #header>
@@ -105,10 +106,12 @@
               <li v-for="item in shown" :key="item.id">
                 <ResearchItemRow
                   :item="item"
-                  :dismissing="dismissing === item.id"
+                  :changing="changingItem?.id === item.id ? changingItem.change : null"
                   @open-run="openRun(item)"
                   @follow-up="openAsk(followOfItem(item))"
                   @dismiss="void dismiss(item)"
+                  @reask="void changeItem(item, 'reask')"
+                  @front="void changeItem(item, 'front')"
                 />
               </li>
             </ul>
@@ -143,12 +146,12 @@ import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
 import { useNextPages } from "~/domain/next-pages";
-import { ITEM_STATES, RESEARCH_TABS, followOfAddress, followOfItem, isResearchTab, itemStateLook, mergedPages, queueOrder } from "~/domain/research";
+import { ITEM_CHANGES, ITEM_STATES, RESEARCH_TABS, followOfAddress, followOfItem, isResearchTab, itemStateLook, mergedPages, queueOrder } from "~/domain/research";
 import { useFootInView } from "bmo-ui/app/domain/foot";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import type { ResearchItem, ResearchQueuePage, ResearchStateChange, ResearchStateView } from "#shared/research";
-import type { ResearchFollow, ResearchTab } from "~/domain/research";
+import type { ItemChange, ResearchFollow, ResearchTab } from "~/domain/research";
 
 const { t } = useI18n();
 const island = useIsland(t);
@@ -194,7 +197,8 @@ const queueReading = ref(false);
 let queueRead = 0;
 
 const changing = ref<string | null>(null);
-const dismissing = ref<number | null>(null);
+// The item whose change is going, and which change it is.
+const changingItem = ref<{ id: number; change: ItemChange } | null>(null);
 const asking = ref(false);
 // The research the open ask follows from, null for an ask of its own.
 const follows = ref<ResearchFollow | null>(null);
@@ -312,24 +316,30 @@ async function changeState(categoryName: string | null, state: ResearchStateChan
   }
 }
 
-// An item dismissed once its dialog is answered; the item stands as the unit answers it.
+// An item dismissed once its dialog is answered.
 async function dismiss(item: ResearchItem): Promise<void> {
   const taken = await askFirst({ title: t("research.message.dismiss_confirm"), item: item.name, effect: t("research.message.dismiss_note"), confirm: t("research.action.dismiss") });
 
-  if (!taken) return;
+  if (taken) await changeItem(item, "dismiss");
+}
 
-  dismissing.value = item.id;
+// An item changed as it is pressed: dismissed, or a stuck one asked again or moved to the front. The item stands as the
+// unit answers it and the queue is read again; a refusal is said in a notice.
+async function changeItem(item: ResearchItem, change: ItemChange): Promise<void> {
+  const move = ITEM_CHANGES[change];
+
+  changingItem.value = { id: item.id, change };
 
   try {
-    const changed = await $fetch<ResearchItem>(`/api/research/queue/${item.id}`, { method: "PATCH", body: { state: "dismissed" } });
+    const changed = await $fetch<ResearchItem>(`/api/research/queue/${item.id}`, { method: "PATCH", body: move.body });
 
     items.value = (items.value ?? []).map((one) => (one.id === changed.id ? changed : one));
-    island.say({ tone: "success", title: t("research.message.dismissed") });
+    island.say({ tone: "success", title: t(move.done) });
     void readQueue();
   } catch (error) {
-    island.fail(error, t("research.error.dismiss_failed"));
+    island.fail(error, t(move.failed));
   } finally {
-    dismissing.value = null;
+    changingItem.value = null;
   }
 }
 

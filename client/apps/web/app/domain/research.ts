@@ -1,4 +1,4 @@
-import type { ResearchAsk, ResearchItem, ResearchOrigin } from "#shared/research";
+import type { ResearchAsk, ResearchItem, ResearchItemChange, ResearchOrigin } from "#shared/research";
 import type { FallbackProfile } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
@@ -126,14 +126,14 @@ export function isResearchTab(value: unknown): value is ResearchTab {
 }
 
 // An item's states, in the order the state choice offers them.
-export const ITEM_STATES: readonly string[] = ["waiting", "running", "reported", "fit", "failed", "taken", "dismissed"];
+export const ITEM_STATES: readonly string[] = ["waiting", "running", "reported", "fit", "stuck", "taken", "dismissed"];
 
 const ITEM_STATE_LOOKS: Record<string, { key: string; color: ChipColor }> = {
   waiting: { key: "research.label.item_state_waiting", color: "neutral" },
   running: { key: "research.label.item_state_running", color: "info" },
   reported: { key: "research.label.item_state_reported", color: "success" },
   fit: { key: "research.label.item_state_fit", color: "primary" },
-  failed: { key: "research.label.item_state_failed", color: "error" },
+  stuck: { key: "research.label.item_state_stuck", color: "error" },
   taken: { key: "research.label.item_state_taken", color: "success" },
   dismissed: { key: "research.label.item_state_dismissed", color: "neutral" }
 };
@@ -148,6 +148,26 @@ export function itemStateLook(t: Translate, state: string): ChipLook {
 export function dismissible(state: string): boolean {
   return state !== "taken" && state !== "dismissed";
 }
+
+/** Whether an item is stuck past its retries, so the unit takes it asked again afresh or moved to the front. */
+export function isStuck(state: string): boolean {
+  return state === "stuck";
+}
+
+/** When an item's next try is due on its retry wait: a waiting or a stuck item's, null for any other or where none stands. */
+export function retryDue(item: { state: string; retryAt: number | null }): number | null {
+  return item.state === "waiting" || isStuck(item.state) ? item.retryAt : null;
+}
+
+/** A change the screen makes on an item: its dismissal, a stuck one asked again, or a stuck one moved to the front. */
+export type ItemChange = "dismiss" | "reask" | "front";
+
+/** Each change as the unit is asked it (bmo-research's `docs/api.md`, 「queue」), with the pack's words for it done and failed. */
+export const ITEM_CHANGES: Readonly<Record<ItemChange, { body: ResearchItemChange; done: string; failed: string }>> = {
+  dismiss: { body: { state: "dismissed" }, done: "research.message.dismissed", failed: "research.error.dismiss_failed" },
+  reask: { body: { state: "waiting" }, done: "research.message.reasked", failed: "research.error.reask_failed" },
+  front: { body: { front: true }, done: "research.message.fronted", failed: "research.error.front_failed" }
+};
 
 const SHAPE_LABELS: Record<string, string> = {
   manual: "research.label.shape_manual",
@@ -339,18 +359,21 @@ export function followFields(follow: ResearchFollow | null, because: string): Pi
   return fields;
 }
 
-// Where an item stands in the queue's order: what runs, then what is done with, then what still waits.
+// Where an item stands in the queue's order: what runs, then what is stuck, then what is done with, then what still
+// waits.
 function queueGroup(state: string): number {
   if (state === "running") return 0;
-  if (state === "waiting") return 2;
+  if (isStuck(state)) return 1;
+  if (state === "waiting") return 3;
 
-  return 1;
+  return 2;
 }
 
 /**
  * The items read in the queue's order (docs/web.md, 「Research screen」): the running first, in the order they started;
- * then every item no longer waiting or running, the one that last changed first; then the waiting, the oldest made
- * first, the order they run in. An id breaks a tie, the older first except among the finished.
+ * then the stuck, the oldest made first; then every item no longer waiting, running or stuck, the one that last changed
+ * first; then the waiting, the oldest made first, the order they run in. An id breaks a tie, the older first except
+ * among the finished.
  */
 export function queueOrder<T extends { id: number; state: string; createdAt: number; changedAt: number }>(items: readonly T[]): T[] {
   return [...items].sort((one, other) => {
@@ -358,7 +381,7 @@ export function queueOrder<T extends { id: number; state: string; createdAt: num
 
     if (group !== 0) return group;
     if (one.state === "running") return one.changedAt - other.changedAt || one.id - other.id;
-    if (one.state === "waiting") return one.createdAt - other.createdAt || one.id - other.id;
+    if (one.state === "waiting" || isStuck(one.state)) return one.createdAt - other.createdAt || one.id - other.id;
 
     return other.changedAt - one.changedAt || other.id - one.id;
   });

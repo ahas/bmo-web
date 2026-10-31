@@ -2547,9 +2547,10 @@ Two ways, split because the running places differ.
     전체 중지 while any runs, 전체 재개 once none does.
   - Each category stands as a block in the order the unit names them: its name, its state as a chip (실행 중 or
     중지됨, and 보류 beside it while a hold names it), its purpose, and its figures — its shape (매뉴얼·조사, 보안
-    권고 or 브리핑), its waiting and running items against its cap, how often its sources are read, for a brief
-    how often it gathers, and its road, the provider and model it names, or 기본 경로 where the settings' road
-    stands — with a 중지 or 재개 button that changes that category alone.
+    권고 or 브리핑), its waiting and running items against its cap, how many of its items are stuck (막힘, in the
+    error colour while any is), how often its sources are read, for a brief how often it gathers, and its road,
+    the provider and model it names, or 기본 경로 where the settings' road stands — with a 중지 or 재개 button that
+    changes that category alone.
   - A hold the unit reports stands under each category it names, in the warning colour: the model it waits on,
     why — 벤치, with the node the bench stands on, or 복구 대기 while the model's health is awaited — since when,
     and 보고됨 once the owner's room was told the model stays down.
@@ -2557,9 +2558,10 @@ Two ways, split because the running places differ.
     refusal is said in a notice.
 - **대기열** stands under it.
   - Its head carries two choices, the category (전체 분류, then each category) and the state (전체 상태, then
-    each of the seven: 대기, 실행 중, 보고됨, 검토 요청, 실패, 처리됨, 제외됨), which the unit narrows the queue by.
-  - The items stand in the queue's order: every running item first, in the order they started; then every item
-    no longer waiting or running — 보고됨, 검토 요청, 실패, 처리됨, 제외됨 and any state the unit adds — the one whose state
+    each of the seven: 대기, 실행 중, 보고됨, 검토 요청, 막힘, 처리됨, 제외됨), which the unit narrows the queue by.
+  - The items stand in the queue's order: every running item first, in the order they started; then every stuck
+    item, the oldest made first, so what needs the owner's eye stands near the top; then every item no longer
+    waiting, running or stuck — 보고됨, 검토 요청, 처리됨, 제외됨 and any state the unit adds — the one whose state
     last changed first; then the waiting, the oldest made first, the order they run in. A choice narrowing the
     queue keeps that order within what it leaves. The unit answers its queue in its own order, so the screen
     orders what it has read.
@@ -2570,16 +2572,25 @@ Two ways, split because the running places differ.
   - Each item carries its name, 해당 where the reading of its document marks it for the owner's word (with the
     nodes a manual's fit names), 요청 where the owner asked it, and its state as a chip; under them its maker
     linked to the address it was found at (the address's host where no maker is known), its shape, its category,
-    how many tries it took, and while it waits on a retry when the next try is due; the error sentence, where one
-    stands, in the error colour; and once a document is filed, the document's title linked to its share link in a
-    new tab, with the languages its page holds and the languages its narration plays as chips — 한국어, 영어,
-    and any other as the code the unit gave.
+    how many tries it took, and while it waits on a retry, waiting or stuck, when the next try is due; the error
+    sentence of its latest try, where one stands, in the error colour; the repair job filed for it while it was
+    stuck, as 수리 with the job item's number, which opens that item on the TODO panel, the screen standing as it
+    was; and once a document is filed, the document's title linked to its share link in a new tab, with the
+    languages its page holds and the languages its narration plays as chips — 한국어, 영어, and any other as the
+    code the unit gave.
   - **Where an item came from** stands as one line under its name, read off the origin the unit answers it with: a
     scanned item's 출처 and the source that found it, as the unit names it, or 출처 with a word that the source no
     longer stands; an ask's 요청 with the words it was asked with, and nothing beyond the 요청 chip where it was asked
     with none; a follow-up as the follow-up of its parent, named by the parent document's title, else by its
     number, linked to the parent's share link in a new tab, with the words it was asked with after it. The same
     line stands in the item's run sheet.
+  - **A stuck item** is one whose failed tries passed the unit's retries. The unit keeps asking it on its retry
+    wait and has filed a repair job for the helper; only the owner's dismissal takes it out of the queue. Its
+    state chip is 막힘 in the error colour, and two buttons stand on it beside 제외: **다시 요청**, which asks it
+    again afresh once its cause is fixed — it waits with its tries counted from none, no retry wait and no repair
+    job — and **맨 앞으로**, which makes it its category's next, its retry wait cleared. Each goes as it is pressed,
+    with no dialog, its button spinning while it goes; the item stands as the unit answers it and the queue is read
+    again, and a refusal, an item no longer stuck, is said in a notice.
   - **후속 조사** stands on every item that has filed a document, and opens the ask as a follow-up of that item
     (「항목 요청」 below).
   - **제외** stands on every item the unit still takes it for — every state but 처리됨 and 제외됨 — and asks once
@@ -2590,7 +2601,7 @@ Two ways, split because the running places differ.
   box, 왜/무엇을 알고 싶은지, takes the owner's words, which the ask carries as why it is made, and an ask sent with
   the box empty carries none. The unit queues it at once, ahead of what a scan took in, and the queue is read
   again. A refusal stands under the dialog in the pack's words: a name or an address it did not take, a category
-  it does not hold, or the same thing already waiting or running.
+  it does not hold, or the same thing already waiting, running or stuck.
   - **A follow-up** is the same dialog, titled 후속 조사 요청, naming above its fields the research it follows from.
     Opened from an item's 후속 조사 it follows that item, its category and its maker's address filled in from the
     item; opened by the screen's address naming a document's number (`/research?follows=<number>`, which another

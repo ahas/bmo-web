@@ -8,7 +8,8 @@ import type { ResearchItem, ResearchQueuePage, ResearchRunDetail, ResearchSource
 
 // The research screen's reads and changes (docs/web.md, 「Research screen」): the research unit's state with its
 // categories, a category stopped and started again, its queue narrowed and paged with where each item came from, a
-// thing asked for with its words and, for a follow-up, its parent, an item dismissed, an item's research run with its log, and the sources registered, changed and taken away, each refusal
+// thing asked for with its words and, for a follow-up, its parent, an item dismissed, a stuck item asked again or moved to
+// the front, an item's research run with its log, and the sources registered, changed and taken away, each refusal
 // said in the pack's words (bmo-research's docs/api.md, 「state」, 「categories」, 「queue」, 「research runs」 and
 // 「sources」).
 
@@ -24,7 +25,7 @@ function stateOf(states: Record<string, string>) {
     state: Object.values(states).includes("running") ? "running" : "stopped",
     changedAt: 9,
     categories: [
-      { categoryName: "category-a", state: states["category-a"], waitingCount: 2, runningCount: 1, cap: 5 },
+      { categoryName: "category-a", state: states["category-a"], waitingCount: 2, runningCount: 1, finishingCount: 0, stuckCount: 3, cap: 5 },
       { categoryName: "category-b", state: states["category-b"], waitingCount: 0, runningCount: 0, cap: 30 }
     ],
     holds: [HOLD]
@@ -35,7 +36,7 @@ function itemOf(id: number, state: string, extra: Record<string, unknown> = {}) 
   return {
     id, categoryName: "category-a", key: `key-${id}`, name: `item-${id}`, maker: null, address: `https://example.com/${id}`, kind: "model", shape: "manual",
     sourceId: null, asked: false, priority: 0, state, tries: 0, retryAt: null, runId: null, documentId: null, title: null, description: null, shareUrl: null,
-    languages: [], narrations: [], fit: false, fitNodes: [], touches: null, plan: null, jobItemId: null, error: null, foundAt: id, createdAt: id, changedAt: id, ...extra
+    languages: [], narrations: [], fit: false, fitNodes: [], touches: null, plan: null, jobItemId: null, repairItemId: null, error: null, foundAt: id, createdAt: id, changedAt: id, ...extra
   };
 }
 
@@ -75,7 +76,8 @@ const research = standIn("RESEARCH", (call) => {
       items: [
         itemOf(3, "running"),
         itemOf(1, "reported", { shareUrl: "https://example.com/doc", languages: ["ko", "en"], fit: true, origin: { kind: "source", source: "rss https://example.com/feed", because: null, itemId: null, documentId: null, title: null, shareUrl: null } }),
-        itemOf(5, "waiting", { asked: true, origin: { kind: "follow-up", source: null, because: "why it is asked", itemId: 1, documentId: 11, title: "parent title", shareUrl: "https://example.com/parent" } })
+        itemOf(5, "waiting", { asked: true, origin: { kind: "follow-up", source: null, because: "why it is asked", itemId: 1, documentId: 11, title: "parent title", shareUrl: "https://example.com/parent" } }),
+        itemOf(6, "stuck", { tries: 4, retryAt: 90, repairItemId: 812, error: "the run was cut off" })
       ],
       more: true
     });
@@ -91,6 +93,9 @@ const research = standIn("RESEARCH", (call) => {
 
   if (path === "/queue/1" && call.method === "PATCH") return answer(itemOf(1, "dismissed"));
   if (path === "/queue/2" && call.method === "PATCH") return answer({ code: "conflict", error: "a taken item is not dismissed" }, 409);
+  if (path === "/queue/6" && call.method === "PATCH" && call.body?.state === "waiting") return answer(itemOf(6, "waiting", { tries: 0 }));
+  if (path === "/queue/6" && call.method === "PATCH" && call.body?.front === true) return answer(itemOf(6, "stuck", { priority: 2, tries: 4, repairItemId: 812 }));
+  if (path === "/queue/8" && call.method === "PATCH") return answer({ code: "conflict", error: "only a stuck item is asked again or moved so" }, 409);
 
   if (path === "/research-runs/41") return answer(RUN);
   if (path === "/research-runs/41/log-lines") return answer({ items: [{ id: 1, runId: 41, at: 11, kind: "asked", text: "asked" }, { id: 2, runId: 41, at: 12, kind: "seated", text: "seated" }] });
@@ -120,7 +125,7 @@ const readState = await routeOf<ResearchStateView>("../../apps/web/server/api/re
 const changeState = await routeOf<ResearchStateView>("../../apps/web/server/api/research/state.patch");
 const readQueue = await routeOf<ResearchQueuePage>("../../apps/web/server/api/research/queue.get");
 const ask = await routeOf<ResearchItem>("../../apps/web/server/api/research/queue.post");
-const dismiss = await routeOf<ResearchItem>("../../apps/web/server/api/research/queue/[id].patch");
+const changeItem = await routeOf<ResearchItem>("../../apps/web/server/api/research/queue/[id].patch");
 const readRun = await routeOf<ResearchRunDetail>("../../apps/web/server/api/research/runs/[runId].get");
 const readSources = await routeOf<{ items: ResearchSource[] }>("../../apps/web/server/api/research/sources.get");
 const addSource = await routeOf<ResearchSource>("../../apps/web/server/api/research/sources.post");
@@ -134,8 +139,8 @@ describe("reading the research state", () => {
     expect(got.status).toBe(200);
     expect(got.answer?.state).toBe("running");
     expect(got.answer?.categories.map((one) => one.name)).toEqual(["category-a", "category-b"]);
-    expect(got.answer?.categories[0]).toMatchObject({ purpose: "first purpose", waitingCount: 2, runningCount: 1, cap: 5, state: "running", provider: null });
-    expect(got.answer?.categories[1]).toMatchObject({ gatherMinutes: 1440, provider: "provider-a", model: "model-a", state: "stopped" });
+    expect(got.answer?.categories[0]).toMatchObject({ purpose: "first purpose", waitingCount: 2, runningCount: 1, stuckCount: 3, cap: 5, state: "running", provider: null });
+    expect(got.answer?.categories[1]).toMatchObject({ gatherMinutes: 1440, provider: "provider-a", model: "model-a", state: "stopped", stuckCount: 0 });
     expect(got.answer?.holds).toEqual([HOLD]);
     expect(research.asked.at(-1)?.headers?.authorization).toBe("Bearer research-token");
   });
@@ -199,8 +204,15 @@ describe("reading the queue", () => {
 
     expect(research.asked.at(-1)?.path).toBe("/queue?categoryName=category-a&state=waiting%2Crunning&after=12&limit=50");
     expect(got.answer?.more).toBe(true);
-    expect(got.answer?.items.map((item) => item.id)).toEqual([3, 1, 5]);
-    expect(got.answer?.items[1]).toMatchObject({ shareUrl: "https://example.com/doc", languages: ["ko", "en"], fit: true, state: "reported" });
+    expect(got.answer?.items.map((item) => item.id)).toEqual([3, 1, 5, 6]);
+    expect(got.answer?.items[1]).toMatchObject({ shareUrl: "https://example.com/doc", languages: ["ko", "en"], fit: true, state: "reported", repairItemId: null });
+  });
+
+  test("answers a stuck item with its tries, its retry wait, its last error and its repair job", async () => {
+    const got = await asked(readQueue, { query: { state: "stuck" } });
+
+    expect(research.asked.at(-1)?.path).toBe("/queue?state=stuck");
+    expect(got.answer?.items[3]).toMatchObject({ state: "stuck", tries: 4, retryAt: 90, repairItemId: 812, error: "the run was cut off" });
   });
 
   test("answers where each item came from as the unit names it", async () => {
@@ -226,6 +238,7 @@ describe("reading the queue", () => {
     const before = research.asked.length;
 
     expect(await asked(readQueue, { query: { state: "waiting,lost" } })).toMatchObject({ status: 400 });
+    expect(await asked(readQueue, { query: { state: "failed" } })).toMatchObject({ status: 400 });
     expect(await asked(readQueue, { query: { after: "first" } })).toMatchObject({ status: 400 });
     expect(await asked(readQueue, { query: { limit: "500" } })).toMatchObject({ status: 400 });
     expect(research.asked.length).toBe(before);
@@ -288,23 +301,45 @@ describe("asking for a thing", () => {
 
 describe("dismissing an item", () => {
   test("sends the dismissal alone and answers the item as the unit now holds it", async () => {
-    const got = await asked(dismiss, { params: { id: "1" }, body: { state: "dismissed" } });
+    const got = await asked(changeItem, { params: { id: "1" }, body: { state: "dismissed" } });
 
     expect(research.asked.at(-1)).toMatchObject({ method: "PATCH", path: "/queue/1", body: { state: "dismissed" } });
     expect(got.answer?.state).toBe("dismissed");
   });
 
   test("says an item the unit no longer dismisses in the pack's words", async () => {
-    expect(await asked(dismiss, { params: { id: "2" }, body: { state: "dismissed" } })).toMatchObject({ status: 409, message: wording("research.error.dismiss_conflict") });
+    expect(await asked(changeItem, { params: { id: "2" }, body: { state: "dismissed" } })).toMatchObject({ status: 409, message: wording("research.error.dismiss_conflict") });
   });
 
   test("refuses any other change, or an id that is no number, without calling the unit", async () => {
     const before = research.asked.length;
 
-    expect(await asked(dismiss, { params: { id: "1" }, body: { state: "taken", jobItemId: 3 } })).toMatchObject({ status: 400 });
-    expect(await asked(dismiss, { params: { id: "1" }, body: { front: true } })).toMatchObject({ status: 400 });
-    expect(await asked(dismiss, { params: { id: "one" }, body: { state: "dismissed" } })).toMatchObject({ status: 400 });
+    expect(await asked(changeItem, { params: { id: "1" }, body: { state: "taken", jobItemId: 3 } })).toMatchObject({ status: 400 });
+    expect(await asked(changeItem, { params: { id: "1" }, body: { front: false } })).toMatchObject({ status: 400 });
+    expect(await asked(changeItem, { params: { id: "1" }, body: { state: "waiting", front: true } })).toMatchObject({ status: 400 });
+    expect(await asked(changeItem, { params: { id: "one" }, body: { state: "dismissed" } })).toMatchObject({ status: 400 });
     expect(research.asked.length).toBe(before);
+  });
+});
+
+describe("a stuck item", () => {
+  test("is asked again afresh with a waiting state alone, and stands as the unit answers it", async () => {
+    const got = await asked(changeItem, { params: { id: "6" }, body: { state: "waiting" } });
+
+    expect(research.asked.at(-1)).toMatchObject({ method: "PATCH", path: "/queue/6", body: { state: "waiting" } });
+    expect(got.answer).toMatchObject({ id: 6, state: "waiting", tries: 0, repairItemId: null });
+  });
+
+  test("is moved to the front with front alone, and stands as the unit answers it", async () => {
+    const got = await asked(changeItem, { params: { id: "6" }, body: { front: true } });
+
+    expect(research.asked.at(-1)).toMatchObject({ method: "PATCH", path: "/queue/6", body: { front: true } });
+    expect(got.answer).toMatchObject({ id: 6, state: "stuck", repairItemId: 812 });
+  });
+
+  test("says an item no longer stuck in the pack's words for what was asked", async () => {
+    expect(await asked(changeItem, { params: { id: "8" }, body: { state: "waiting" } })).toMatchObject({ status: 409, message: wording("research.error.reask_conflict") });
+    expect(await asked(changeItem, { params: { id: "8" }, body: { front: true } })).toMatchObject({ status: 409, message: wording("research.error.front_conflict") });
   });
 });
 

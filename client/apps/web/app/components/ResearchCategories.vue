@@ -1,7 +1,7 @@
 <template>
   <!-- The research unit's categories (docs/web.md, 「Research screen」): whether the loop runs, with the one button
-       that changes every category, then each category with its state, its figures, its road, the holds that name
-       it and its own stop or resume. -->
+       that changes every category, then each category with its state, its figures with its stuck items, its road, the
+       holds that name it and its own stop or resume. -->
   <section class="flex min-w-0 flex-col gap-3" aria-labelledby="research-categories-title">
     <div class="flex flex-wrap items-center gap-2">
       <h2 id="research-categories-title" class="text-base font-semibold text-highlighted">{{ $t("research.title.categories") }}</h2>
@@ -63,6 +63,7 @@
         <p class="flex flex-wrap gap-x-3 gap-y-1 text-sm tabular-nums text-muted">
           <span>{{ shapeLabel($t, category.shape) }}</span>
           <span>{{ $t("research.label.cap_counts", { waiting: countText(category.waitingCount), running: countText(category.runningCount), cap: countText(category.cap) }) }}</span>
+          <span :class="{ 'text-error': category.stuckCount > 0 }">{{ $t("research.label.stuck_count", { n: countText(category.stuckCount) }) }}</span>
           <span>{{ $t("research.label.cadence", { n: countText(category.cadenceMinutes) }) }}</span>
           <span v-if="category.gatherMinutes !== null">{{ $t("research.label.gather", { n: countText(category.gatherMinutes) }) }}</span>
           <span class="min-w-0 break-all" :class="{ 'font-mono': category.provider !== null || category.model !== null }">{{ roadText($t, category) }}</span>

@@ -8,6 +8,7 @@ import type {
   ResearchFilter,
   ResearchHold,
   ResearchItem,
+  ResearchItemChange,
   ResearchLogLine,
   ResearchNewSource,
   ResearchOrigin,
@@ -43,6 +44,8 @@ const STATE = { ...FAILED, "not-found": "research.error.no_category" };
 const ASK = { ...FAILED, "bad-request": "research.error.ask_refused", "not-found": "research.error.no_category", conflict: "research.error.ask_conflict" };
 const FOLLOW = { ...FAILED, "bad-request": "research.error.follow_refused", "not-found": "research.error.follow_missing", conflict: "research.error.follow_conflict" };
 const DISMISS = { ...FAILED, "not-found": "research.error.no_item", conflict: "research.error.dismiss_conflict" };
+const REASK = { ...FAILED, "not-found": "research.error.no_item", conflict: "research.error.reask_conflict" };
+const FRONT = { ...FAILED, "not-found": "research.error.no_item", conflict: "research.error.front_conflict" };
 const RUN = { ...FAILED, "not-found": "research.error.no_run" };
 const SOURCE_READ = FAILED;
 const SOURCE_ADD = { ...FAILED, "bad-request": "research.error.source_refused", "not-found": "research.error.no_category" };
@@ -71,6 +74,7 @@ interface UnitCategoryState {
   state: string;
   waitingCount: number;
   runningCount: number;
+  stuckCount: number;
   cap: number;
 }
 
@@ -116,7 +120,8 @@ function stateOf(state: UnitState, categories: readonly UnitCategory[]): Researc
         state: standing?.state ?? category.state,
         stateAt: category.stateAt ?? null,
         waitingCount: standing?.waitingCount ?? 0,
-        runningCount: standing?.runningCount ?? 0
+        runningCount: standing?.runningCount ?? 0,
+        stuckCount: standing?.stuckCount ?? 0
       };
     }),
     holds: (state.holds ?? []).map((hold) => ({ registration: hold.registration, reason: hold.reason, nodeName: hold.nodeName ?? null, since: hold.since, reported: hold.reported, categoryNames: hold.categoryNames ?? [] }))
@@ -193,6 +198,7 @@ function itemOf(item: UnitItem): ResearchItem {
     narrations: item.narrations ?? [],
     fit: item.fit === true,
     fitNodes: item.fitNodes ?? [],
+    repairItemId: item.repairItemId ?? null,
     error: item.error ?? null,
     createdAt: item.createdAt,
     changedAt: item.changedAt
@@ -207,7 +213,7 @@ export interface ResearchQueueQuery {
   limit: number | null;
 }
 
-const ITEM_STATES = new Set(["waiting", "running", "reported", "fit", "failed", "taken", "dismissed"]);
+const ITEM_STATES = new Set(["waiting", "running", "reported", "fit", "stuck", "taken", "dismissed"]);
 const QUEUE_LIMIT = 200;
 
 const wholeOf = (value: unknown): number | null => (typeof value === "string" && /^\d+$/.test(value) ? Number(value) : null);
@@ -288,9 +294,29 @@ export async function askResearch(ask: ResearchAsk): Promise<ResearchItem> {
   return itemOf(await researchFetch<UnitItem>("/queue", json("POST", ask), follows ? FOLLOW : ASK));
 }
 
-// A dismissal alone: the console marks nothing taken and moves nothing to the front.
-export async function dismissResearchItem(itemId: number): Promise<ResearchItem> {
-  return itemOf(await researchFetch<UnitItem>(`/queue/${itemId}`, json("PATCH", { state: "dismissed" }), DISMISS));
+/**
+ * An item's change the console sends, read off a body naming exactly one: a dismissal, a stuck item asked again, or a
+ * stuck item moved to the front. The console marks nothing taken, since that is the chat agent's to record.
+ */
+export function researchItemChangeOf(body: unknown): ResearchItemChange | null {
+  if (typeof body !== "object" || body === null || Object.keys(body).length !== 1) return null;
+
+  const fields = body as Record<string, unknown>;
+
+  if (fields.state === "dismissed" || fields.state === "waiting") return { state: fields.state };
+
+  return fields.front === true ? { front: true } : null;
+}
+
+// Each change's refusals say what was asked: an item no longer dismissed, or one no longer stuck.
+function changeCodes(change: ResearchItemChange): Readonly<Record<string, string>> {
+  if ("front" in change) return FRONT;
+
+  return change.state === "waiting" ? REASK : DISMISS;
+}
+
+export async function changeResearchItem(itemId: number, change: ResearchItemChange): Promise<ResearchItem> {
+  return itemOf(await researchFetch<UnitItem>(`/queue/${itemId}`, json("PATCH", change), changeCodes(change)));
 }
 
 type UnitRun = ResearchRunView & Record<string, unknown>;

@@ -2393,29 +2393,36 @@ research:
     dismiss_named: "{name} 제외"
     edit_source_named: "출처 #{id} 편집"
     follow_up_named: "{name} 후속 조사 요청"
+    front_named: "{name} 맨 앞으로"
     log: 실행 로그
     minutes_of: "{key} 시간"
     open_run_named: "{name} 실행 기록 열기"
+    reask_named: "{name} 다시 요청"
+    repair_named: "수리 작업 #{id} 열기"
     resume_named: "{name} 재개"
     sections: 리서치 섹션
     state_filter: 상태 필터
     stop_named: "{name} 중지"
   error:
-    ask_conflict: 같은 항목이 이미 대기 중이거나 실행 중입니다.
+    ask_conflict: 같은 항목이 이미 대기 중이거나 실행 중이거나 막혀 있습니다.
     ask_failed: 요청하지 못했습니다.
     ask_refused: 리서치 유닛이 이 이름이나 주소를 받아들이지 않았습니다.
     dismiss_conflict: 이 항목은 지금 상태에서 제외할 수 없습니다.
     dismiss_failed: 제외하지 못했습니다.
     engines_unread: "검색 엔진 상태를 읽지 못했습니다: {reason}"
     failed: 리서치 유닛이 요청을 처리하지 못했습니다.
-    follow_conflict: 같은 항목이 이미 대기 중이거나 실행 중이거나, 후속할 조사에 아직 문서가 없습니다.
+    follow_conflict: 같은 항목이 이미 대기 중이거나 실행 중이거나 막혀 있거나, 후속할 조사에 아직 문서가 없습니다.
     follow_missing: 리서치 유닛에 이 분류나 후속할 조사가 없습니다.
     follow_refused: 리서치 유닛이 이 이름이나 주소, 또는 후속할 조사를 받아들이지 않았습니다.
+    front_conflict: 이 항목은 지금 상태에서 맨 앞으로 옮길 수 없습니다.
+    front_failed: 맨 앞으로 옮기지 못했습니다.
     no_category: 리서치 유닛에 이 분류가 없습니다.
     no_item: 리서치 유닛에 이 항목이 없습니다.
     no_run: 리서치 유닛에 이 실행 기록이 없습니다.
     no_source: 리서치 유닛에 이 출처가 없습니다.
     queue_read_failed: 대기열을 읽지 못했습니다.
+    reask_conflict: 이 항목은 막힌 상태가 아니어서 다시 요청할 수 없습니다.
+    reask_failed: 다시 요청하지 못했습니다.
     refused: 리서치 유닛이 이 값을 받아들이지 않았습니다.
     run_read_failed: 실행 기록을 읽지 못했습니다.
     settings_read_failed: 리서치 설정을 읽지 못했습니다.
@@ -2432,7 +2439,9 @@ research:
     dismiss_note: 제외한 항목은 다시 찾지 않습니다.
     dismissed: 대기열에서 제외했습니다.
     every_help: 비우면 분류 주기
+    fronted: 맨 앞으로 옮겼습니다.
     gap_help: 비우면 기본값
+    reasked: 다시 요청했습니다.
     source_added: 출처를 추가했습니다.
     source_delete_confirm: "출처 #{id}를 삭제할까요?"
     source_delete_note: 이 출처가 찾은 항목은 그대로 남습니다.
@@ -2478,10 +2487,10 @@ research:
     hold_since: "{time}부터"
     host_gap: 호스트 간격
     item_state_dismissed: 제외됨
-    item_state_failed: 실패
     item_state_fit: 검토 요청
     item_state_reported: 보고됨
     item_state_running: 실행 중
+    item_state_stuck: 막힘
     item_state_taken: 처리됨
     item_state_waiting: 대기
     key: 키
@@ -2527,6 +2536,7 @@ research:
     query: 질문
     read_at: 마지막 읽음
     reason: 이유
+    repair: "수리 #{id}"
     require_words: 포함할 단어
     retry_at: "{time} 재시도"
     road: 경로
@@ -2555,6 +2565,7 @@ research:
     strategy_browser_first: 브라우저 먼저
     strategy_direct_only: 직접만
     strategy_direct_then_browser: 직접 먼저
+    stuck_count: "막힘 {n}"
     suspended_until: 중단 해제
     tab_queue: 대기열
     tab_sources: 출처
@@ -2590,6 +2601,8 @@ research:
     ask: 요청
     dismiss: 제외
     follow_up: 후속 조사
+    front: 맨 앞으로
+    reask: 다시 요청
     resume: 재개
     resume_all: 전체 재개
     stop: 중지

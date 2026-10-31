@@ -10,6 +10,8 @@ import {
   followOfItem,
   holdReasonText,
   holdsOf,
+  isStuck,
+  ITEM_CHANGES,
   ITEM_STATES,
   itemStateLook,
   languageLabel,
@@ -18,6 +20,7 @@ import {
   mergedPages,
   openableAddress,
   originLine,
+  retryDue,
   parentText,
   profileLabel,
   queueOrder,
@@ -75,7 +78,34 @@ describe("the queue's words", () => {
   });
 
   test("offers dismissal in every state but taken and dismissed", () => {
-    expect(ITEM_STATES.filter(dismissible)).toEqual(["waiting", "running", "reported", "fit", "failed"]);
+    expect(ITEM_STATES.filter(dismissible)).toEqual(["waiting", "running", "reported", "fit", "stuck"]);
+  });
+
+  test("knows no failed state, and says a stuck item in its own words and in the error colour", () => {
+    expect(ITEM_STATES).not.toContain("failed");
+    expect(itemStateLook(wording, "stuck")).toEqual({ label: wording("research.label.item_state_stuck"), color: "error" });
+  });
+
+  test("offers asking again and moving to the front on a stuck item alone", () => {
+    expect(ITEM_STATES.filter(isStuck)).toEqual(["stuck"]);
+  });
+
+  test("asks the unit each change by its own body, with words for it done and failed", () => {
+    expect(ITEM_CHANGES.dismiss.body).toEqual({ state: "dismissed" });
+    expect(ITEM_CHANGES.reask.body).toEqual({ state: "waiting" });
+    expect(ITEM_CHANGES.front.body).toEqual({ front: true });
+
+    for (const change of Object.values(ITEM_CHANGES)) {
+      expect(wording(change.done)).not.toBe("");
+      expect(wording(change.failed)).not.toBe("");
+    }
+  });
+
+  test("says when the next try is due for a waiting or a stuck item that holds a retry wait", () => {
+    expect(retryDue({ state: "waiting", retryAt: 10 })).toBe(10);
+    expect(retryDue({ state: "stuck", retryAt: 20 })).toBe(20);
+    expect(retryDue({ state: "stuck", retryAt: null })).toBeNull();
+    expect(retryDue({ state: "reported", retryAt: 10 })).toBeNull();
   });
 
   test("says an item's and a category's shape, a language and a log line's kind", () => {
@@ -101,22 +131,23 @@ describe("the queue's words", () => {
     expect(merged.find((item) => item.id === 1)?.state).toBe("running");
   });
 
-  test("stands the running first, then the finished newest first, then the waiting oldest first", () => {
+  test("stands the running first, then the stuck oldest first, then the finished newest first, then the waiting oldest first", () => {
     const item = (id: number, state: string, createdAt: number, changedAt: number) => ({ id, state, createdAt, changedAt });
     const items = [
       item(1, "waiting", 30, 30),
       item(2, "reported", 10, 50),
       item(3, "running", 40, 70),
       item(4, "waiting", 20, 20),
-      item(5, "failed", 15, 60),
+      item(5, "stuck", 15, 60),
       item(6, "dismissed", 5, 40),
       item(7, "running", 35, 65),
       item(8, "fit", 12, 55),
       item(9, "taken", 8, 45),
-      item(10, "waiting", 20, 20)
+      item(10, "waiting", 20, 20),
+      item(11, "stuck", 3, 80)
     ];
 
-    expect(queueOrder(items).map((one) => one.id)).toEqual([7, 3, 5, 8, 2, 9, 6, 4, 10, 1]);
+    expect(queueOrder(items).map((one) => one.id)).toEqual([7, 3, 11, 5, 8, 2, 9, 6, 4, 10, 1]);
   });
 
   test("keeps the order within what a choice narrowed the queue to", () => {

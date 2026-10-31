@@ -71,7 +71,13 @@ describe("the research screen", () => {
 
   test("asks once in a dialog naming the item before a dismissal", () => {
     expect(scriptOf(page)).toContain('await askFirst({ title: t("research.message.dismiss_confirm"), item: item.name, effect: t("research.message.dismiss_note"), confirm: t("research.action.dismiss") });');
-    expect(scriptOf(page)).toContain('{ method: "PATCH", body: { state: "dismissed" } }');
+    expect(scriptOf(page)).toContain('if (taken) await changeItem(item, "dismiss");');
+  });
+
+  test("asks a stuck item again or moves it to the front as pressed, through the item's route", () => {
+    expect(templateOf(page)).toContain("@reask=\"void changeItem(item, 'reask')\"");
+    expect(templateOf(page)).toContain("@front=\"void changeItem(item, 'front')\"");
+    expect(scriptOf(page)).toContain('$fetch<ResearchItem>(`/api/research/queue/${item.id}`, { method: "PATCH", body: move.body })');
   });
 });
 
@@ -80,6 +86,10 @@ describe("the categories", () => {
     expect(templateOf(categories)).toContain("emit('change', category.name, category.state === 'running' ? 'stopped' : 'running')");
     expect(templateOf(categories)).toContain("emit('change', null, loopRunning ? 'stopped' : 'running')");
     expect(scriptOf(page)).toContain('$fetch<ResearchStateView>("/api/research/state", { method: "PATCH"');
+  });
+
+  test("count each category's stuck items beside its waiting and running ones", () => {
+    expect(templateOf(categories)).toContain('$t("research.label.stuck_count", { n: countText(category.stuckCount) })');
   });
 
   test("stand each hold under the categories it names", () => {
@@ -110,6 +120,17 @@ describe("an item", () => {
     expect(templateOf(row)).toContain(':href="documentLink" target="_blank" rel="noopener noreferrer"');
     expect(templateOf(row)).toContain(':href="link" target="_blank" rel="noopener noreferrer"');
     expect(templateOf(row)).toContain('v-if="dismissible(props.item.state)"');
+  });
+
+  test("offers asking again and moving to the front on a stuck item alone", () => {
+    expect(templateOf(row)).toContain('<template v-if="isStuck(props.item.state)">');
+    expect(templateOf(row)).toContain("@click=\"emit('reask')\"");
+    expect(templateOf(row)).toContain("@click=\"emit('front')\"");
+  });
+
+  test("links its repair job to that item on the TODO panel, the screen standing as it was", () => {
+    expect(templateOf(row)).toContain('v-if="props.item.repairItemId !== null"');
+    expect(templateOf(row)).toContain(':to="{ query: { ...route.query, todo: props.item.repairItemId } }"');
   });
 });
 

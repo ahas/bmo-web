@@ -68,6 +68,8 @@ export interface ResearchCategoryView {
   stateAt: number | null;
   waitingCount: number;
   runningCount: number;
+  // Its items past their retries, still asked again on the retry wait while their repair is worked on.
+  stuckCount: number;
 }
 
 /** Whether the loop runs, every category in the unit's order and what holds the queue. */
@@ -124,10 +126,15 @@ export interface ResearchItem {
   narrations: string[];
   fit: boolean;
   fitNodes: string[];
+  // The job item filed for the helper while the item was stuck; null where none was.
+  repairItemId: number | null;
   error: string | null;
   createdAt: number;
   changedAt: number;
 }
+
+/** A change the console makes on an item: its dismissal, or a stuck one asked again afresh or moved to its category's front. */
+export type ResearchItemChange = { state: "dismissed" } | { state: "waiting" } | { front: true };
 
 /** A page of the queue in the unit's order, and whether more stand past it. */
 export interface ResearchQueuePage {

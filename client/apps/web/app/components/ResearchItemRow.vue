@@ -1,7 +1,7 @@
 <template>
   <!-- One item of the research queue (docs/web.md, 「Research screen」): its name, which opens its run where it has
-       one, its marks and state, where it came from, where it was found, its tries, its error, its document, its
-       follow-up and its dismissal. -->
+       one, its marks and state, where it came from, where it was found, its tries, its error, its repair job, its
+       document, its follow-up, its dismissal, and for a stuck item its ask again and its move to the front. -->
   <article class="flex min-w-0 flex-col gap-1 rounded-md border border-default p-3">
     <div class="flex min-w-0 flex-wrap items-center gap-2">
       <button
@@ -20,6 +20,34 @@
       <UBadge :color="stateLook.color" variant="subtle" size="sm" :label="stateLook.label" />
 
       <div class="ms-auto flex shrink-0 items-center gap-1">
+        <template v-if="isStuck(props.item.state)">
+          <UTooltip :text="$t('research.action.reask')">
+            <UButton
+              size="xs"
+              color="neutral"
+              variant="ghost"
+              icon="i-material-symbols-replay"
+              :loading="props.changing === 'reask'"
+              :disabled="props.changing !== null"
+              :aria-label="$t('research.aria.reask_named', { name: props.item.name })"
+              @click="emit('reask')"
+            />
+          </UTooltip>
+
+          <UTooltip :text="$t('research.action.front')">
+            <UButton
+              size="xs"
+              color="neutral"
+              variant="ghost"
+              icon="i-material-symbols-vertical-align-top"
+              :loading="props.changing === 'front'"
+              :disabled="props.changing !== null"
+              :aria-label="$t('research.aria.front_named', { name: props.item.name })"
+              @click="emit('front')"
+            />
+          </UTooltip>
+        </template>
+
         <UTooltip v-if="followable" :text="$t('research.action.follow_up')">
           <UButton
             size="xs"
@@ -37,7 +65,8 @@
             color="neutral"
             variant="ghost"
             icon="i-material-symbols-do-not-disturb-on-outline"
-            :loading="props.dismissing"
+            :loading="props.changing === 'dismiss'"
+            :disabled="props.changing !== null"
             :aria-label="$t('research.aria.dismiss_named', { name: props.item.name })"
             @click="emit('dismiss')"
           />
@@ -55,9 +84,19 @@
       <span>{{ shapeLabel($t, props.item.shape) }}</span>
       <span class="font-mono">{{ props.item.categoryName }}</span>
       <span class="tabular-nums">{{ $t("research.label.tries", { n: countText(props.item.tries) }) }}</span>
-      <span v-if="props.item.retryAt !== null && props.item.state === 'waiting'" class="tabular-nums">
-        {{ $t("research.label.retry_at", { time: formatDayClock(toUnixSeconds(props.item.retryAt)) }) }}
+      <span v-if="retryAt !== null" class="tabular-nums">
+        {{ $t("research.label.retry_at", { time: formatDayClock(toUnixSeconds(retryAt)) }) }}
       </span>
+      <!-- The repair job filed for the helper opens on the TODO panel, the screen standing as it was. -->
+      <ULink
+        v-if="props.item.repairItemId !== null"
+        :to="{ query: { ...route.query, todo: props.item.repairItemId } }"
+        class="flex items-center gap-1 text-primary underline-offset-2 hover:underline"
+        :aria-label="$t('research.aria.repair_named', { id: props.item.repairItemId })"
+      >
+        <UIcon name="i-material-symbols-build-outline" class="size-4 shrink-0" />
+        <span class="tabular-nums">{{ $t("research.label.repair", { id: props.item.repairItemId }) }}</span>
+      </ULink>
     </p>
 
     <p v-if="props.item.error !== null" class="break-words text-sm text-error">{{ props.item.error }}</p>
@@ -85,22 +124,25 @@
 <script setup lang="ts">
 import { countText } from "bmo-ui/app/domain/numbers";
 import { formatDayClock, toUnixSeconds } from "bmo-ui/app/domain/time";
-import { dismissible, itemStateLook, languageLabel, makerText, openableAddress, shapeLabel } from "~/domain/research";
+import { dismissible, isStuck, itemStateLook, languageLabel, makerText, openableAddress, retryDue, shapeLabel } from "~/domain/research";
 
 import type { ResearchItem } from "#shared/research";
+import type { ItemChange } from "~/domain/research";
 
 const props = defineProps<{
   item: ResearchItem;
-  // Whether this item's dismissal is going.
-  dismissing: boolean;
+  // The change of this item that is going, null where none is.
+  changing: ItemChange | null;
 }>();
 
-const emit = defineEmits<{ "open-run": []; "follow-up": []; dismiss: [] }>();
+const emit = defineEmits<{ "open-run": []; "follow-up": []; dismiss: []; reask: []; front: [] }>();
 
 const { t } = useI18n();
+const route = useRoute();
 
 const stateLook = computed(() => itemStateLook(t, props.item.state));
 const maker = computed(() => makerText(props.item));
+const retryAt = computed(() => retryDue(props.item));
 const link = computed(() => openableAddress(props.item.address));
 const documentLink = computed(() => openableAddress(props.item.shareUrl));
 // A follow-up names an earlier research by its document, so only an item that has filed one offers it.

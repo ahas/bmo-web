@@ -69,6 +69,7 @@ common:
     no_record: 기록 없음
     none: 없음
     off: 꺼짐
+    optional: 선택
     original: 원문
     palette_forest: 숲
     palette_lemon: 레몬
@@ -1521,7 +1522,6 @@ account:
     device_since: "{time}부터 · {kinds}"
     new_password: 새 비밀번호
     nothing_subscribed: 받는 알림 없음
-    optional: 선택
     other_devices: "다른 기기 {n}개"
     palette: 팔레트
     palette_description: 대화방 색
@@ -2392,6 +2392,7 @@ research:
     delete_source_named: "출처 #{id} 삭제"
     dismiss_named: "{name} 제외"
     edit_source_named: "출처 #{id} 편집"
+    follow_up_named: "{name} 후속 조사 요청"
     log: 실행 로그
     minutes_of: "{key} 시간"
     open_run_named: "{name} 실행 기록 열기"
@@ -2407,6 +2408,9 @@ research:
     dismiss_failed: 제외하지 못했습니다.
     engines_unread: "검색 엔진 상태를 읽지 못했습니다: {reason}"
     failed: 리서치 유닛이 요청을 처리하지 못했습니다.
+    follow_conflict: 같은 항목이 이미 대기 중이거나 실행 중이거나, 후속할 조사에 아직 문서가 없습니다.
+    follow_missing: 리서치 유닛에 이 분류나 후속할 조사가 없습니다.
+    follow_refused: 리서치 유닛이 이 이름이나 주소, 또는 후속할 조사를 받아들이지 않았습니다.
     no_category: 리서치 유닛에 이 분류가 없습니다.
     no_item: 리서치 유닛에 이 항목이 없습니다.
     no_run: 리서치 유닛에 이 실행 기록이 없습니다.
@@ -2440,6 +2444,7 @@ research:
     all_categories: 전체 분류
     all_states: 전체 상태
     asked: 요청
+    because: 왜/무엇을 알고 싶은지
     branch_role: 브랜치 역할
     branches: 브랜치
     cadence: "{n}분마다 읽음"
@@ -2506,6 +2511,11 @@ research:
     minutes_value: "{n}분"
     narration: "낭독 {language}"
     observed: 확인
+    origin_asked: "요청: {because}"
+    origin_follow_up: "「{title}」의 후속 조사"
+    origin_follow_up_document: "문서 #{id}의 후속 조사"
+    origin_source: "출처: {source}"
+    origin_source_gone: "출처: 지금은 없는 소스"
     outcome: 결과
     outcome_answered: 답변
     outcome_cut: 중단
@@ -2569,6 +2579,7 @@ research:
     categories: 분류
     engines: 검색 엔진
     fetching: 가져오기
+    follow_up: 후속 조사 요청
     limits: 키별 한도
     queue: 대기열
     run: 실행 기록
@@ -2578,6 +2589,7 @@ research:
   action:
     ask: 요청
     dismiss: 제외
+    follow_up: 후속 조사
     resume: 재개
     resume_all: 전체 재개
     stop: 중지

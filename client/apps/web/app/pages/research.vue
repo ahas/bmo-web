@@ -1,7 +1,8 @@
 <!-- The research screen (docs/web.md, 「Research screen」): the research unit, bmo-research, watched at work, a tab to
      each part. The queue's tab holds whether its loop runs, each category with its state and its stop and resume, and
-     its queue in the queue's order, narrowed by category and state, each item's run opening in a sheet over the list;
-     the sources' tab holds the sources its categories are read from. -->
+     its queue in the queue's order, narrowed by category and state, each item's run opening in a sheet over the list
+     and each item that filed a document asked a follow-up of; the sources' tab holds the sources its categories are read
+     from. An address naming a document's number opens the ask as a follow-up of that document. -->
 <template>
   <UDashboardPanel id="research">
     <template #header>
@@ -31,7 +32,7 @@
             icon="i-material-symbols-add"
             :aria-label="$t('research.title.ask')"
             :disabled="(stateView?.categories.length ?? 0) === 0"
-            @click="asking = true"
+            @click="openAsk(null)"
           />
         </UTooltip>
 
@@ -106,6 +107,7 @@
                   :item="item"
                   :dismissing="dismissing === item.id"
                   @open-run="openRun(item)"
+                  @follow-up="openAsk(followOfItem(item))"
                   @dismiss="void dismiss(item)"
                 />
               </li>
@@ -128,8 +130,8 @@
         <ResearchSources v-if="!failedFirst && tab === 'sources'" ref="sourcesRef" :categories="stateView?.categories ?? []" :quiet="failing" />
       </div>
 
-      <ResearchAskDialog v-model:open="asking" :categories="categoryNames" @asked="asked" />
-      <ResearchRunSheet v-model:open="runOpened" :run-id="runShown?.runId ?? null" :title="runShown?.name ?? ''" />
+      <ResearchAskDialog v-model:open="asking" :categories="categoryNames" :follows="follows" @asked="asked" />
+      <ResearchRunSheet v-model:open="runOpened" :run-id="runShown?.runId ?? null" :title="runShown?.name ?? ''" :origin="runShown?.origin ?? null" />
     </template>
   </UDashboardPanel>
 </template>
@@ -141,12 +143,12 @@ import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
 import { useNextPages } from "~/domain/next-pages";
-import { ITEM_STATES, RESEARCH_TABS, isResearchTab, itemStateLook, mergedPages, queueOrder } from "~/domain/research";
+import { ITEM_STATES, RESEARCH_TABS, followOfAddress, followOfItem, isResearchTab, itemStateLook, mergedPages, queueOrder } from "~/domain/research";
 import { useFootInView } from "bmo-ui/app/domain/foot";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import type { ResearchItem, ResearchQueuePage, ResearchStateChange, ResearchStateView } from "#shared/research";
-import type { ResearchTab } from "~/domain/research";
+import type { ResearchFollow, ResearchTab } from "~/domain/research";
 
 const { t } = useI18n();
 const island = useIsland(t);
@@ -194,6 +196,8 @@ let queueRead = 0;
 const changing = ref<string | null>(null);
 const dismissing = ref<number | null>(null);
 const asking = ref(false);
+// The research the open ask follows from, null for an ask of its own.
+const follows = ref<ResearchFollow | null>(null);
 const runShown = ref<ResearchItem | null>(null);
 const runOpened = ref(false);
 
@@ -328,6 +332,25 @@ async function dismiss(item: ResearchItem): Promise<void> {
     dismissing.value = null;
   }
 }
+
+function openAsk(follow: ResearchFollow | null): void {
+  follows.value = follow;
+  asking.value = true;
+}
+
+// An address naming a document's number opens the ask as a follow-up of that document once the categories are read,
+// and the ask closed takes the number out of the address.
+watch([() => route.query.follows, () => categoryNames.value.length], ([named, held]) => {
+  const follow = followOfAddress(named);
+
+  if (follow !== null && held > 0 && !asking.value) openAsk(follow);
+}, { immediate: true });
+
+watch(asking, (opened) => {
+  if (opened || route.query.follows === undefined) return;
+
+  void router.replace({ query: { ...route.query, follows: undefined } });
+});
 
 function asked(): void {
   island.say({ tone: "success", title: t("research.message.asked") });

@@ -5,6 +5,9 @@ import { wording } from "../../../apps/web/shared/wording";
 import {
   dismissible,
   everyText,
+  followFields,
+  followOfAddress,
+  followOfItem,
   holdReasonText,
   holdsOf,
   ITEM_STATES,
@@ -14,6 +17,8 @@ import {
   makerText,
   mergedPages,
   openableAddress,
+  originLine,
+  parentText,
   profileLabel,
   queueOrder,
   researchKeys,
@@ -158,5 +163,57 @@ describe("a source", () => {
   test("holds its filter's words as a comma-separated box", () => {
     expect(wordsOf(" gguf, ,instruct ")).toEqual(["gguf", "instruct"]);
     expect(wordsText(["gguf", "instruct"])).toBe("gguf, instruct");
+  });
+});
+
+describe("where an item came from", () => {
+  const none = { source: null, because: null, itemId: null, documentId: null, title: null, shareUrl: null };
+
+  test("says a scan's source, or that it no longer stands", () => {
+    expect(originLine(wording, { ...none, kind: "source", source: "rss https://example.com/feed" })).toEqual({ text: wording("research.label.origin_source", { source: "rss https://example.com/feed" }), link: null, because: null });
+    expect(originLine(wording, { ...none, kind: "source" })?.text).toBe(wording("research.label.origin_source_gone"));
+  });
+
+  test("says an ask's words, and nothing for an ask made with none", () => {
+    expect(originLine(wording, { ...none, kind: "asked", because: "why" })?.text).toBe(wording("research.label.origin_asked", { because: "why" }));
+    expect(originLine(wording, { ...none, kind: "asked" })).toBeNull();
+  });
+
+  test("names a follow-up's parent by its title, else its document's number, linked to its page", () => {
+    expect(originLine(wording, { ...none, kind: "follow-up", because: "why", itemId: 1, documentId: 11, title: "parent", shareUrl: "https://example.com/parent" })).toEqual({
+      text: wording("research.label.origin_follow_up", { title: "parent" }),
+      link: "https://example.com/parent",
+      because: "why"
+    });
+    expect(originLine(wording, { ...none, kind: "follow-up", documentId: 11, shareUrl: "file:///parent" })).toEqual({ text: wording("research.label.origin_follow_up_document", { id: "11" }), link: null, because: null });
+    expect(parentText(wording, { title: null, documentId: 12 })).toBe(wording("research.label.origin_follow_up_document", { id: "12" }));
+  });
+
+  test("names a kind the screen has no words for", () => {
+    expect(originLine(wording, { ...none, kind: "imported" })?.text).toBe(wording("research.label.unknown_value", { value: "imported" }));
+  });
+});
+
+describe("a follow-up", () => {
+  const item = { id: 4, documentId: 11, title: null, name: "item-4", categoryName: "category-a", address: "https://example.com/4" };
+
+  test("follows an item once it has filed a document, named by its title, else its name", () => {
+    expect(followOfItem(item)).toEqual({ itemId: 4, documentId: 11, title: "item-4", categoryName: "category-a", address: "https://example.com/4" });
+    expect(followOfItem({ ...item, title: "doc title" })?.title).toBe("doc title");
+    expect(followOfItem({ ...item, documentId: null })).toBeNull();
+  });
+
+  test("follows the document an address names by its number alone", () => {
+    expect(followOfAddress("11")).toEqual({ itemId: null, documentId: 11, title: null, categoryName: null, address: null });
+    expect(followOfAddress("0")).toBeNull();
+    expect(followOfAddress("eleven")).toBeNull();
+    expect(followOfAddress(undefined)).toBeNull();
+  });
+
+  test("carries the item where it follows one, else the document, and the owner's words where they gave some", () => {
+    expect(followFields(followOfItem(item), " why ")).toEqual({ because: "why", followsItemId: 4 });
+    expect(followFields(followOfAddress("11"), "")).toEqual({ followsDocumentId: 11 });
+    expect(followFields(null, "why")).toEqual({ because: "why" });
+    expect(followFields(null, "  ")).toEqual({});
   });
 });

@@ -7,8 +7,8 @@ import { answer, standIn } from "../../support/units";
 import type { ResearchItem, ResearchQueuePage, ResearchRunDetail, ResearchSource, ResearchStateView } from "../../../apps/web/shared/research";
 
 // The research screen's reads and changes (docs/web.md, 「Research screen」): the research unit's state with its
-// categories, a category stopped and started again, its queue narrowed and paged, a thing asked for, an item
-// dismissed, an item's research run with its log, and the sources registered, changed and taken away, each refusal
+// categories, a category stopped and started again, its queue narrowed and paged with where each item came from, a
+// thing asked for with its words and, for a follow-up, its parent, an item dismissed, an item's research run with its log, and the sources registered, changed and taken away, each refusal
 // said in the pack's words (bmo-research's docs/api.md, 「state」, 「categories」, 「queue」, 「research runs」 and
 // 「sources」).
 
@@ -70,10 +70,21 @@ const research = standIn("RESEARCH", (call) => {
 
   if (path === "/categories") return answer({ items: CATEGORIES, more: false });
 
-  if (path === "/queue" && call.method === "GET") return answer({ items: [itemOf(3, "running"), itemOf(1, "reported", { shareUrl: "https://example.com/doc", languages: ["ko", "en"], fit: true })], more: true });
+  if (path === "/queue" && call.method === "GET") {
+    return answer({
+      items: [
+        itemOf(3, "running"),
+        itemOf(1, "reported", { shareUrl: "https://example.com/doc", languages: ["ko", "en"], fit: true, origin: { kind: "source", source: "rss https://example.com/feed", because: null, itemId: null, documentId: null, title: null, shareUrl: null } }),
+        itemOf(5, "waiting", { asked: true, origin: { kind: "follow-up", source: null, because: "why it is asked", itemId: 1, documentId: 11, title: "parent title", shareUrl: "https://example.com/parent" } })
+      ],
+      more: true
+    });
+  }
 
   if (path === "/queue" && call.method === "POST") {
     if (call.body?.name === "taken-name") return answer({ code: "conflict", error: "an item already waits for that key" }, 409);
+    if (call.body?.followsItemId === 404) return answer({ code: "not-found", error: "no item stands at that id" }, 404);
+    if (call.body?.followsItemId === 409) return answer({ code: "conflict", error: "that item has filed no document yet" }, 409);
 
     return answer(itemOf(7, "waiting", { name: call.body?.name, asked: true }), 201);
   }
@@ -188,8 +199,21 @@ describe("reading the queue", () => {
 
     expect(research.asked.at(-1)?.path).toBe("/queue?categoryName=category-a&state=waiting%2Crunning&after=12&limit=50");
     expect(got.answer?.more).toBe(true);
-    expect(got.answer?.items.map((item) => item.id)).toEqual([3, 1]);
+    expect(got.answer?.items.map((item) => item.id)).toEqual([3, 1, 5]);
     expect(got.answer?.items[1]).toMatchObject({ shareUrl: "https://example.com/doc", languages: ["ko", "en"], fit: true, state: "reported" });
+  });
+
+  test("answers where each item came from as the unit names it", async () => {
+    const got = await asked(readQueue, { query: {} });
+
+    expect(got.answer?.items[1]?.origin).toEqual({ kind: "source", source: "rss https://example.com/feed", because: null, itemId: null, documentId: null, title: null, shareUrl: null });
+    expect(got.answer?.items[2]?.origin).toEqual({ kind: "follow-up", source: null, because: "why it is asked", itemId: 1, documentId: 11, title: "parent title", shareUrl: "https://example.com/parent" });
+  });
+
+  test("stands an item the unit answers with no origin as a scan's, its source unnamed", async () => {
+    const got = await asked(readQueue, { query: {} });
+
+    expect(got.answer?.items[0]?.origin).toEqual({ kind: "source", source: null, because: null, itemId: null, documentId: null, title: null, shareUrl: null });
   });
 
   test("asks the whole queue where nothing narrows it", async () => {
@@ -214,6 +238,39 @@ describe("asking for a thing", () => {
 
     expect(research.asked.at(-1)).toMatchObject({ method: "POST", path: "/queue", body: { categoryName: "category-a", name: "thing-a", address: "https://example.com/a" } });
     expect(got.answer).toMatchObject({ id: 7, asked: true, state: "waiting" });
+  });
+
+  test("sends the owner's words and the parent a follow-up follows from", async () => {
+    await asked(ask, { body: { categoryName: "category-a", name: "thing-b", address: "https://example.com/b", because: " why it is asked ", followsItemId: 1 } });
+
+    expect(research.asked.at(-1)?.body).toEqual({ categoryName: "category-a", name: "thing-b", address: "https://example.com/b", because: "why it is asked", followsItemId: 1 });
+
+    await asked(ask, { body: { categoryName: "category-a", name: "thing-c", address: "https://example.com/c", followsDocumentId: 11 } });
+
+    expect(research.asked.at(-1)?.body).toEqual({ categoryName: "category-a", name: "thing-c", address: "https://example.com/c", followsDocumentId: 11 });
+  });
+
+  test("sends no words where the owner gave blank ones", async () => {
+    await asked(ask, { body: { categoryName: "category-a", name: "thing-d", address: "https://example.com/d", because: "   " } });
+
+    expect(research.asked.at(-1)?.body).toEqual({ categoryName: "category-a", name: "thing-d", address: "https://example.com/d" });
+  });
+
+  test("says a follow-up's missing parent, or one with no document yet, in the pack's words", async () => {
+    const body = { categoryName: "category-a", name: "thing-e", address: "https://example.com/e" };
+
+    expect(await asked(ask, { body: { ...body, followsItemId: 404 } })).toMatchObject({ status: 404, message: wording("research.error.follow_missing") });
+    expect(await asked(ask, { body: { ...body, followsItemId: 409 } })).toMatchObject({ status: 409, message: wording("research.error.follow_conflict") });
+  });
+
+  test("refuses words that are no text or a parent that is no number without calling the unit", async () => {
+    const before = research.asked.length;
+    const body = { categoryName: "category-a", name: "thing-f", address: "https://example.com/f" };
+
+    expect(await asked(ask, { body: { ...body, because: 3 } })).toMatchObject({ status: 400 });
+    expect(await asked(ask, { body: { ...body, followsItemId: "1" } })).toMatchObject({ status: 400 });
+    expect(await asked(ask, { body: { ...body, followsDocumentId: 0 } })).toMatchObject({ status: 400 });
+    expect(research.asked.length).toBe(before);
   });
 
   test("says the same thing already waiting in the pack's words", async () => {

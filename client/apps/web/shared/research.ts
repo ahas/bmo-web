@@ -84,6 +84,24 @@ export interface ResearchStateChange {
   categoryName?: string;
 }
 
+/**
+ * Where an item came from: a source a scan read, the owner's ask, or a follow-up of an earlier research. The fields a
+ * kind does not use are null.
+ */
+export interface ResearchOrigin {
+  kind: string;
+  // For a scanned item, the source that found it, as the unit names it; null where it no longer stands.
+  source: string | null;
+  // The words the ask was made with.
+  because: string | null;
+  // For a follow-up, the item and the document it follows from, with that document's title and live link as they
+  // stood when the ask was made.
+  itemId: number | null;
+  documentId: number | null;
+  title: string | null;
+  shareUrl: string | null;
+}
+
 /** One thing in the queue. */
 export interface ResearchItem {
   id: number;
@@ -94,6 +112,7 @@ export interface ResearchItem {
   kind: string;
   shape: string;
   asked: boolean;
+  origin: ResearchOrigin;
   state: string;
   tries: number;
   retryAt: number | null;
@@ -116,11 +135,17 @@ export interface ResearchQueuePage {
   more: boolean;
 }
 
-/** A thing asked for by its category, its name and its maker's address. */
+/**
+ * A thing asked for by its category, its name and its maker's address, with the owner's words for why where they gave
+ * some, and, for a follow-up, the item or the document it follows from.
+ */
 export interface ResearchAsk {
   categoryName: string;
   name: string;
   address: string;
+  because?: string;
+  followsItemId?: number;
+  followsDocumentId?: number;
 }
 
 /** One research run as the runner's ledger holds it. */

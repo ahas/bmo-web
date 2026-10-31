@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
 // The research screen as it ships (docs/web.md, 「Research screen」): its categories with their stop and resume, its
-// queue narrowed by category and state and read newest first, an ask, a dismissal asked once first, and an item's run
+// queue narrowed by category and state and read newest first, an ask with its words and, for a follow-up, its parent,
+// where each item came from, a dismissal asked once first, and an item's run
 // opening in a sheet over the list, read again on its clock while it has not closed, and the sources registered,
 // changed and taken away. The words and values are the
 // domain's (domain/research.test.ts) and the calls the server's (server/api/research.test.ts); these checks hold the
@@ -16,6 +17,7 @@ const categories = await read("./components/ResearchCategories.vue");
 const row = await read("./components/ResearchItemRow.vue");
 const sheet = await read("./components/ResearchRunSheet.vue");
 const dialog = await read("./components/ResearchAskDialog.vue");
+const origin = await read("./components/ResearchOriginLine.vue");
 const sources = await read("./components/ResearchSources.vue");
 const sourceDialog = await read("./components/ResearchSourceDialog.vue");
 
@@ -91,6 +93,19 @@ describe("an item", () => {
     expect(templateOf(row)).toContain("@click=\"emit('open-run')\"");
   });
 
+  test("says where it came from, and the same in its run sheet", () => {
+    expect(templateOf(row)).toContain('<ResearchOriginLine :origin="props.item.origin" />');
+    expect(templateOf(sheet)).toContain('<ResearchOriginLine v-if="props.origin !== null" :origin="props.origin" />');
+    expect(templateOf(page)).toContain(':origin="runShown?.origin ?? null"');
+    expect(templateOf(origin)).toContain(':href="line.link" target="_blank" rel="noopener noreferrer"');
+  });
+
+  test("offers a follow-up once it has filed a document, opening the ask as that item's follow-up", () => {
+    expect(templateOf(row)).toContain('<UTooltip v-if="followable"');
+    expect(scriptOf(row)).toContain("const followable = computed(() => props.item.documentId !== null);");
+    expect(templateOf(page)).toContain('@follow-up="openAsk(followOfItem(item))"');
+  });
+
   test("links its document and its maker in a new tab, and offers dismissal only where the unit takes it", () => {
     expect(templateOf(row)).toContain(':href="documentLink" target="_blank" rel="noopener noreferrer"');
     expect(templateOf(row)).toContain(':href="link" target="_blank" rel="noopener noreferrer"');
@@ -112,8 +127,19 @@ describe("the run sheet", () => {
 
 describe("the ask", () => {
   test("posts the category, the name and the address, and keeps the unit's refusal under the dialog", () => {
-    expect(scriptOf(dialog)).toContain('$fetch<ResearchItem>("/api/research/queue", { method: "POST", body: draft.value })');
+    expect(scriptOf(dialog)).toContain('$fetch<ResearchItem>("/api/research/queue", { method: "POST", body: {');
     expect(templateOf(dialog)).toContain('<p v-if="refusal !== null" role="alert"');
+  });
+
+  test("takes the owner's optional words for why, and carries them with the parent a follow-up follows from", () => {
+    expect(templateOf(dialog)).toContain(':label="$t(\'research.label.because\')" :hint="$t(\'common.label.optional\')"');
+    expect(templateOf(dialog)).toContain("$t(props.follows === null ? 'research.title.ask' : 'research.title.follow_up')");
+    expect(scriptOf(dialog)).toContain("body: { ...draft.value, ...followFields(props.follows, because.value) }");
+  });
+
+  test("opens as a follow-up of the document the address names, and takes the number out once closed", () => {
+    expect(scriptOf(page)).toContain("const follow = followOfAddress(named);");
+    expect(scriptOf(page)).toContain("void router.replace({ query: { ...route.query, follows: undefined } });");
   });
 });
 

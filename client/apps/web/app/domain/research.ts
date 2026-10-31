@@ -1,3 +1,4 @@
+import type { ResearchAsk, ResearchItem, ResearchOrigin } from "#shared/research";
 import type { FallbackProfile } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
@@ -269,6 +270,73 @@ export function openableAddress(address: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+/** Where an item came from, as one line: its words, the parent's link for a follow-up, and the words it was asked with after them. */
+export interface OriginLine {
+  text: string;
+  link: string | null;
+  because: string | null;
+}
+
+/** The research a follow-up follows from, by its title, else by its document's number. */
+export function parentText(t: Translate, parent: { title: string | null; documentId: number | null }): string {
+  if (parent.title !== null) return t("research.label.origin_follow_up", { title: parent.title });
+
+  return t("research.label.origin_follow_up_document", { id: parent.documentId === null ? "—" : String(parent.documentId) });
+}
+
+/**
+ * An item's origin in words (docs/web.md, 「Research screen」): a scan's source, an ask's words, or the research a
+ * follow-up follows from, by its title, else its document's number; an ask made with no words says nothing beyond its
+ * asked chip, and a kind this screen has no words for stands as a sentence naming it.
+ */
+export function originLine(t: Translate, origin: ResearchOrigin): OriginLine | null {
+  if (origin.kind === "source") {
+    return { text: origin.source === null ? t("research.label.origin_source_gone") : t("research.label.origin_source", { source: origin.source }), link: null, because: null };
+  }
+
+  if (origin.kind === "asked") return origin.because === null ? null : { text: t("research.label.origin_asked", { because: origin.because }), link: null, because: null };
+
+  if (origin.kind === "follow-up") return { text: parentText(t, origin), link: openableAddress(origin.shareUrl), because: origin.because };
+
+  return { text: t("research.label.unknown_value", { value: origin.kind }), link: null, because: origin.because };
+}
+
+/**
+ * The research a follow-up ask follows from: an item, with the category and the maker's address the ask starts from,
+ * or a document by its number alone.
+ */
+export interface ResearchFollow {
+  itemId: number | null;
+  documentId: number | null;
+  title: string | null;
+  categoryName: string | null;
+  address: string | null;
+}
+
+/** The follow-up of an item, offered once the item has filed a document. */
+export function followOfItem(item: Pick<ResearchItem, "id" | "documentId" | "title" | "name" | "categoryName" | "address">): ResearchFollow | null {
+  return item.documentId === null ? null : { itemId: item.id, documentId: item.documentId, title: item.title ?? item.name, categoryName: item.categoryName, address: item.address };
+}
+
+/** The follow-up of the document the screen's address names by its number, or none where it names none. */
+export function followOfAddress(value: unknown): ResearchFollow | null {
+  const number = typeof value === "string" && /^\d+$/.test(value) ? Number(value) : null;
+
+  return number === null || number < 1 || !Number.isSafeInteger(number) ? null : { itemId: null, documentId: number, title: null, categoryName: null, address: null };
+}
+
+/** What an ask carries of its parent and of the owner's words: the item where it follows one, else the document. */
+export function followFields(follow: ResearchFollow | null, because: string): Pick<ResearchAsk, "because" | "followsItemId" | "followsDocumentId"> {
+  const words = because.trim();
+  const fields: Pick<ResearchAsk, "because" | "followsItemId" | "followsDocumentId"> = words === "" ? {} : { because: words };
+
+  if (follow === null) return fields;
+  if (follow.itemId !== null) fields.followsItemId = follow.itemId;
+  else if (follow.documentId !== null) fields.followsDocumentId = follow.documentId;
+
+  return fields;
 }
 
 // Where an item stands in the queue's order: what runs, then what is done with, then what still waits.

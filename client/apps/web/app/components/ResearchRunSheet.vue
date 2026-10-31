@@ -1,6 +1,6 @@
 <template>
-  <!-- An item's research run in a sheet over the queue (docs/web.md, 「Research screen」): its facts, the question it
-       was asked and its log oldest first, read again on a clock while the run has not closed. -->
+  <!-- An item's research run in a sheet over the queue (docs/web.md, 「Research screen」): where its item came from, its
+       facts, the question it was asked and its log oldest first, read again on a clock while the run has not closed. -->
   <USlideover v-model:open="open" :title="props.title" :description="$t('research.title.run')">
     <template #close="{ ui }">
       <ShellClose :class="ui.close()" @close="open = false" />
@@ -8,6 +8,8 @@
 
     <template #body>
       <div class="flex min-w-0 flex-col gap-4">
+        <ResearchOriginLine v-if="props.origin !== null" :origin="props.origin" />
+
         <ReadFailure :failure="readFailure" :message="failureText(failure, $t('research.error.run_read_failed'))" :reading="reading" @retry="void read()" />
 
         <SkeletonStatus v-if="detail === null && failure === null" as="div" class="flex flex-col gap-1" :label="$t('research.status.run_loading')">
@@ -68,13 +70,15 @@ import { useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
 import { logKindLook, openableAddress, outcomeLabel, profileLabel, runOpen, runStateLabel } from "~/domain/research";
 
-import type { ResearchRunDetail } from "#shared/research";
+import type { ResearchOrigin, ResearchRunDetail } from "#shared/research";
 
 const props = defineProps<{
   // The research run the sheet shows, null where none is chosen.
   runId: number | null;
   // The item the run was asked for, the sheet's title.
   title: string;
+  // Where that item came from, null where none is chosen.
+  origin: ResearchOrigin | null;
 }>();
 
 const open = defineModel<boolean>("open", { required: true });

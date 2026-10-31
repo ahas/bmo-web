@@ -1,6 +1,7 @@
 <template>
   <!-- One item of the research queue (docs/web.md, 「Research screen」): its name, which opens its run where it has
-       one, its marks and state, where it was found, its tries, its error, its document and its dismissal. -->
+       one, its marks and state, where it came from, where it was found, its tries, its error, its document, its
+       follow-up and its dismissal. -->
   <article class="flex min-w-0 flex-col gap-1 rounded-md border border-default p-3">
     <div class="flex min-w-0 flex-wrap items-center gap-2">
       <button
@@ -18,19 +19,33 @@
       <UBadge v-if="props.item.asked" color="neutral" variant="outline" size="sm" :label="$t('research.label.asked')" />
       <UBadge :color="stateLook.color" variant="subtle" size="sm" :label="stateLook.label" />
 
-      <UTooltip v-if="dismissible(props.item.state)" :text="$t('research.action.dismiss')">
-        <UButton
-          class="ms-auto"
-          size="xs"
-          color="neutral"
-          variant="ghost"
-          icon="i-material-symbols-do-not-disturb-on-outline"
-          :loading="props.dismissing"
-          :aria-label="$t('research.aria.dismiss_named', { name: props.item.name })"
-          @click="emit('dismiss')"
-        />
-      </UTooltip>
+      <div class="ms-auto flex shrink-0 items-center gap-1">
+        <UTooltip v-if="followable" :text="$t('research.action.follow_up')">
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            icon="i-material-symbols-subdirectory-arrow-right"
+            :aria-label="$t('research.aria.follow_up_named', { name: props.item.name })"
+            @click="emit('follow-up')"
+          />
+        </UTooltip>
+
+        <UTooltip v-if="dismissible(props.item.state)" :text="$t('research.action.dismiss')">
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            icon="i-material-symbols-do-not-disturb-on-outline"
+            :loading="props.dismissing"
+            :aria-label="$t('research.aria.dismiss_named', { name: props.item.name })"
+            @click="emit('dismiss')"
+          />
+        </UTooltip>
+      </div>
     </div>
+
+    <ResearchOriginLine :origin="props.item.origin" />
 
     <p class="flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-sm text-muted">
       <a v-if="maker !== null && link !== null" :href="link" target="_blank" rel="noopener noreferrer" class="min-w-0 break-all text-primary underline-offset-2 hover:underline">
@@ -80,7 +95,7 @@ const props = defineProps<{
   dismissing: boolean;
 }>();
 
-const emit = defineEmits<{ "open-run": []; dismiss: [] }>();
+const emit = defineEmits<{ "open-run": []; "follow-up": []; dismiss: [] }>();
 
 const { t } = useI18n();
 
@@ -88,5 +103,7 @@ const stateLook = computed(() => itemStateLook(t, props.item.state));
 const maker = computed(() => makerText(props.item));
 const link = computed(() => openableAddress(props.item.address));
 const documentLink = computed(() => openableAddress(props.item.shareUrl));
+// A follow-up names an earlier research by its document, so only an item that has filed one offers it.
+const followable = computed(() => props.item.documentId !== null);
 const fitText = computed(() => (props.item.fitNodes.length === 0 ? t("research.label.fit") : t("research.label.fit_nodes", { nodes: props.item.fitNodes.join(", ") })));
 </script>

@@ -10,6 +10,7 @@ import type {
   ResearchItem,
   ResearchLogLine,
   ResearchNewSource,
+  ResearchOrigin,
   ResearchQueuePage,
   ResearchRunDetail,
   ResearchRunView,
@@ -40,6 +41,7 @@ const FAILED: Readonly<Record<string, string>> = {
 const READ = { ...FAILED, "not-found": "research.error.no_item" };
 const STATE = { ...FAILED, "not-found": "research.error.no_category" };
 const ASK = { ...FAILED, "bad-request": "research.error.ask_refused", "not-found": "research.error.no_category", conflict: "research.error.ask_conflict" };
+const FOLLOW = { ...FAILED, "bad-request": "research.error.follow_refused", "not-found": "research.error.follow_missing", conflict: "research.error.follow_conflict" };
 const DISMISS = { ...FAILED, "not-found": "research.error.no_item", conflict: "research.error.dismiss_conflict" };
 const RUN = { ...FAILED, "not-found": "research.error.no_run" };
 const SOURCE_READ = FAILED;
@@ -153,6 +155,22 @@ export function researchStateChangeOf(body: unknown): ResearchStateChange | null
 
 type UnitItem = ResearchItem & Record<string, unknown>;
 
+// Where an item came from as the unit answers it; an item it answers with no origin stands as an ask where it was
+// asked and as a scan's otherwise, its source unnamed.
+function originOf(item: UnitItem): ResearchOrigin {
+  const origin: Partial<ResearchOrigin> = item.origin ?? {};
+
+  return {
+    kind: origin.kind ?? (item.asked === true ? "asked" : "source"),
+    source: origin.source ?? null,
+    because: origin.because ?? null,
+    itemId: origin.itemId ?? null,
+    documentId: origin.documentId ?? null,
+    title: origin.title ?? null,
+    shareUrl: origin.shareUrl ?? null
+  };
+}
+
 function itemOf(item: UnitItem): ResearchItem {
   return {
     id: item.id,
@@ -163,6 +181,7 @@ function itemOf(item: UnitItem): ResearchItem {
     kind: item.kind,
     shape: item.shape,
     asked: item.asked === true,
+    origin: originOf(item),
     state: item.state,
     tries: item.tries,
     retryAt: item.retryAt ?? null,
@@ -220,7 +239,13 @@ export async function readResearchQueue(query: ResearchQueueQuery): Promise<Rese
   return { items: page.items.map(itemOf), more: page.more === true };
 }
 
-/** An ask the console sends, read off a body: a category, a name and an address, each a word. */
+// A number naming an item or a document: a whole number above zero.
+const numberOf = (value: unknown): number | null => (typeof value === "number" && Number.isSafeInteger(value) && value > 0 ? value : null);
+
+/**
+ * An ask the console sends, read off a body: a category, a name and an address, each a word; the words for why, where
+ * they stand and are not blank; and the item or the document a follow-up follows from, each a number where it stands.
+ */
 export function researchAskOf(body: unknown): ResearchAsk | null {
   if (typeof body !== "object" || body === null) return null;
 
@@ -230,11 +255,37 @@ export function researchAskOf(body: unknown): ResearchAsk | null {
   const name = word(fields.name);
   const address = word(fields.address);
 
-  return categoryName === null || name === null || address === null ? null : { categoryName, name, address };
+  if (categoryName === null || name === null || address === null) return null;
+
+  const ask: ResearchAsk = { categoryName, name, address };
+
+  if (fields.because !== undefined && fields.because !== null) {
+    if (typeof fields.because !== "string") return null;
+
+    const because = word(fields.because);
+
+    if (because !== null) ask.because = because;
+  }
+
+  for (const [field, named] of [["followsItemId", fields.followsItemId], ["followsDocumentId", fields.followsDocumentId]] as const) {
+    if (named === undefined || named === null) continue;
+
+    const number = numberOf(named);
+
+    if (number === null) return null;
+
+    ask[field] = number;
+  }
+
+  return ask;
 }
 
+// A follow-up's refusals also speak of its parent: one the unit does not hold, did not take, or that has filed no
+// document yet.
 export async function askResearch(ask: ResearchAsk): Promise<ResearchItem> {
-  return itemOf(await researchFetch<UnitItem>("/queue", json("POST", ask), ASK));
+  const follows = ask.followsItemId !== undefined || ask.followsDocumentId !== undefined;
+
+  return itemOf(await researchFetch<UnitItem>("/queue", json("POST", ask), follows ? FOLLOW : ASK));
 }
 
 // A dismissal alone: the console marks nothing taken and moves nothing to the front.

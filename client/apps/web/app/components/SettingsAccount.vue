@@ -26,7 +26,7 @@
           <UInput v-model="form.name" class="w-full" autocomplete="username" />
         </UFormField>
 
-        <UFormField :label="$t('account.label.new_password')" name="password" :hint="$t('account.label.optional')">
+        <UFormField :label="$t('account.label.new_password')" name="password" :hint="$t('common.label.optional')">
           <UInput v-model="form.password" class="w-full" type="password" autocomplete="new-password" />
         </UFormField>
 

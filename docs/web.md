@@ -2574,13 +2574,30 @@ Two ways, split because the running places differ.
     stands, in the error colour; and once a document is filed, the document's title linked to its share link in a
     new tab, with the languages its page holds and the languages its narration plays as chips — 한국어, 영어,
     and any other as the code the unit gave.
+  - **Where an item came from** stands as one line under its name, read off the origin the unit answers it with: a
+    scanned item's 출처 and the source that found it, as the unit names it, or 출처 with a word that the source no
+    longer stands; an ask's 요청 with the words it was asked with, and nothing beyond the 요청 chip where it was asked
+    with none; a follow-up as the follow-up of its parent, named by the parent document's title, else by its
+    number, linked to the parent's share link in a new tab, with the words it was asked with after it. The same
+    line stands in the item's run sheet.
+  - **후속 조사** stands on every item that has filed a document, and opens the ask as a follow-up of that item
+    (「항목 요청」 below).
   - **제외** stands on every item the unit still takes it for — every state but 처리됨 and 제외됨 — and asks once
     in a dialog first, naming the item, since a dismissed item's address stays seen and nothing turns it up again. The
     item stands as the unit answers it; a refusal is said in a notice.
 - **항목 요청** opens a dialog asking the unit for one thing by its category, its name and the address of its maker's
-  page; the category is chosen from the unit's, its first one chosen as the dialog opens. The unit queues it at once, ahead of
-  what a scan took in, and the queue is read again. A refusal stands under the dialog in the pack's words: a name
-  or an address it did not take, a category it does not hold, or the same thing already waiting or running.
+  page; the category is chosen from the unit's, its first one chosen as the dialog opens. Under them an optional
+  box, 왜/무엇을 알고 싶은지, takes the owner's words, which the ask carries as why it is made, and an ask sent with
+  the box empty carries none. The unit queues it at once, ahead of what a scan took in, and the queue is read
+  again. A refusal stands under the dialog in the pack's words: a name or an address it did not take, a category
+  it does not hold, or the same thing already waiting or running.
+  - **A follow-up** is the same dialog, titled 후속 조사 요청, naming above its fields the research it follows from.
+    Opened from an item's 후속 조사 it follows that item, its category and its maker's address filled in from the
+    item; opened by the screen's address naming a document's number (`/research?follows=<number>`, which another
+    screen links to for a document it shows) it follows that document, its category the first and its address
+    empty. The ask carries the parent's item or document number, and the unit finds the parent's title and link
+    itself. A refusal also says a parent the unit does not hold, an item that has filed no document yet, or a
+    parent it did not take. Closing the dialog takes the document's number out of the address.
 - **An item's run.** An item whose latest try went out as a research run is pressed by its name, and the run
   opens in a sheet from the side over the list, so the list stays where it was.
   - The sheet carries the run's facts — its depth by the searcher's name, its state (대기, 실행 중 or 종료), how it

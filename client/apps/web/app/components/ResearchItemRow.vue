@@ -1,7 +1,8 @@
 <template>
   <!-- One item of the research queue (docs/web.md, 「Research screen」): its name, which opens its run where it has
-       one, its marks and state, where it came from, where it was found, its tries, its error, its repair job, its
-       document, its follow-up, its dismissal, and for a stuck item its ask again and its move to the front. -->
+       one, its marks and state, where it came from, where it was found, its tries, its latest try's outcome, its
+       repair job, its document, its follow-up, its dismissal, and for a stuck item its ask again and its move to the
+       front. -->
   <article class="flex min-w-0 flex-col gap-1 rounded-md border border-default p-3">
     <div class="flex min-w-0 flex-wrap items-center gap-2">
       <button
@@ -99,7 +100,10 @@
       </ULink>
     </p>
 
-    <p v-if="props.item.error !== null" class="break-words text-sm text-error">{{ props.item.error }}</p>
+    <!-- The latest try's outcome, dated, in the muted colour: what that try ended with, not how the item stands. -->
+    <p v-if="props.item.error !== null" class="break-words text-sm text-muted">
+      <span class="tabular-nums">{{ lastTryText }}</span>: {{ props.item.error }}
+    </p>
 
     <div v-if="documentLink !== null || props.item.languages.length > 0 || props.item.narrations.length > 0" class="flex min-w-0 flex-wrap items-center gap-2 text-sm">
       <a v-if="documentLink !== null" :href="documentLink" target="_blank" rel="noopener noreferrer" class="flex min-w-0 items-center gap-1 text-primary underline-offset-2 hover:underline">
@@ -143,6 +147,9 @@ const route = useRoute();
 const stateLook = computed(() => itemStateLook(t, props.item.state));
 const maker = computed(() => makerText(props.item));
 const retryAt = computed(() => retryDue(props.item));
+const lastTryText = computed(() =>
+  props.item.errorAt === null ? t("research.label.last_try_untimed") : t("research.label.last_try", { time: formatDayClock(toUnixSeconds(props.item.errorAt)) })
+);
 const link = computed(() => openableAddress(props.item.address));
 const documentLink = computed(() => openableAddress(props.item.shareUrl));
 // A follow-up names an earlier research by its document, so only an item that has filed one offers it.

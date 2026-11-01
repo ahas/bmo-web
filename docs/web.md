@@ -2572,12 +2572,13 @@ Two ways, split because the running places differ.
   - Each item carries its name, 해당 where the reading of its document marks it for the owner's word (with the
     nodes a manual's fit names), 요청 where the owner asked it, and its state as a chip; under them its maker
     linked to the address it was found at (the address's host where no maker is known), its shape, its category,
-    how many tries it took, and while it waits on a retry, waiting or stuck, when the next try is due; the error
-    sentence of its latest try, where one stands, in the error colour; the repair job filed for it while it was
-    stuck, as 수리 with the job item's number, which opens that item on the TODO panel, the screen standing as it
-    was; and once a document is filed, the document's title linked to its share link in a new tab, with the
-    languages its page holds and the languages its narration plays as chips — 한국어, 영어, and any other as the
-    code the unit gave.
+    how many tries it took, and while it waits on a retry, waiting or stuck, when the next try is due; where its
+    latest try ended failed or interrupted, that try's outcome as 지난 시도 with the time the try ended, then its
+    error sentence, in the muted colour, since it says what that try ended with and not how the item stands now
+    (its state chip says that); the repair job filed for it while it was stuck, as 수리 with the job item's number,
+    which opens that item on the TODO panel, the screen standing as it was; and once a document is filed, the
+    document's title linked to its share link in a new tab, with the languages its page holds and the languages
+    its narration plays as chips — 한국어, 영어, and any other as the code the unit gave.
   - **Where an item came from** stands as one line under its name, read off the origin the unit answers it with: a
     scanned item's 출처 and the source that found it, as the unit names it, or 출처 with a word that the source no
     longer stands; an ask's 요청 with the words it was asked with, and nothing beyond the 요청 chip where it was asked

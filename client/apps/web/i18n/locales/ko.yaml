@@ -2503,6 +2503,8 @@ research:
     kind_rss: RSS
     language_en: 영어
     language_ko: 한국어
+    last_try: "지난 시도 {time}"
+    last_try_untimed: 지난 시도
     limit: 한 번에
     limit_value: "{n}건"
     log_kind_answer: 답변

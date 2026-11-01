@@ -200,6 +200,7 @@ function itemOf(item: UnitItem): ResearchItem {
     fitNodes: item.fitNodes ?? [],
     repairItemId: item.repairItemId ?? null,
     error: item.error ?? null,
+    errorAt: item.errorAt ?? null,
     createdAt: item.createdAt,
     changedAt: item.changedAt
   };

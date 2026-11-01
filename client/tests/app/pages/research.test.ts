@@ -128,6 +128,12 @@ describe("an item", () => {
     expect(templateOf(row)).toContain("@click=\"emit('front')\"");
   });
 
+  test("shows its latest try's outcome dated and muted, never as how the item stands", () => {
+    expect(templateOf(row)).toContain('<p v-if="props.item.error !== null" class="break-words text-sm text-muted">');
+    expect(templateOf(row)).not.toContain("text-error");
+    expect(scriptOf(row)).toContain('t("research.label.last_try", { time: formatDayClock(toUnixSeconds(props.item.errorAt)) })');
+  });
+
   test("links its repair job to that item on the TODO panel, the screen standing as it was", () => {
     expect(templateOf(row)).toContain('v-if="props.item.repairItemId !== null"');
     expect(templateOf(row)).toContain(':to="{ query: { ...route.query, todo: props.item.repairItemId } }"');

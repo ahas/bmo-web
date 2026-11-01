@@ -128,7 +128,9 @@ export interface ResearchItem {
   fitNodes: string[];
   // The job item filed for the helper while the item was stuck; null where none was.
   repairItemId: number | null;
+  // Why its latest try failed or was interrupted, and when that try ended: that try's outcome, not how it stands now.
   error: string | null;
+  errorAt: number | null;
   createdAt: number;
   changedAt: number;
 }

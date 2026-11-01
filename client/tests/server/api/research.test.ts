@@ -36,7 +36,7 @@ function itemOf(id: number, state: string, extra: Record<string, unknown> = {}) 
   return {
     id, categoryName: "category-a", key: `key-${id}`, name: `item-${id}`, maker: null, address: `https://example.com/${id}`, kind: "model", shape: "manual",
     sourceId: null, asked: false, priority: 0, state, tries: 0, retryAt: null, runId: null, documentId: null, title: null, description: null, shareUrl: null,
-    languages: [], narrations: [], fit: false, fitNodes: [], touches: null, plan: null, jobItemId: null, repairItemId: null, error: null, foundAt: id, createdAt: id, changedAt: id, ...extra
+    languages: [], narrations: [], fit: false, fitNodes: [], touches: null, plan: null, jobItemId: null, repairItemId: null, error: null, errorAt: null, foundAt: id, createdAt: id, changedAt: id, ...extra
   };
 }
 
@@ -77,7 +77,7 @@ const research = standIn("RESEARCH", (call) => {
         itemOf(3, "running"),
         itemOf(1, "reported", { shareUrl: "https://example.com/doc", languages: ["ko", "en"], fit: true, origin: { kind: "source", source: "rss https://example.com/feed", because: null, itemId: null, documentId: null, title: null, shareUrl: null } }),
         itemOf(5, "waiting", { asked: true, origin: { kind: "follow-up", source: null, because: "why it is asked", itemId: 1, documentId: 11, title: "parent title", shareUrl: "https://example.com/parent" } }),
-        itemOf(6, "stuck", { tries: 4, retryAt: 90, repairItemId: 812, error: "the run was cut off" })
+        itemOf(6, "stuck", { tries: 4, retryAt: 90, repairItemId: 812, error: "the run was cut off", errorAt: 70 })
       ],
       more: true
     });
@@ -212,7 +212,7 @@ describe("reading the queue", () => {
     const got = await asked(readQueue, { query: { state: "stuck" } });
 
     expect(research.asked.at(-1)?.path).toBe("/queue?state=stuck");
-    expect(got.answer?.items[3]).toMatchObject({ state: "stuck", tries: 4, retryAt: 90, repairItemId: 812, error: "the run was cut off" });
+    expect(got.answer?.items[3]).toMatchObject({ state: "stuck", tries: 4, retryAt: 90, repairItemId: 812, error: "the run was cut off", errorAt: 70 });
   });
 
   test("answers where each item came from as the unit names it", async () => {

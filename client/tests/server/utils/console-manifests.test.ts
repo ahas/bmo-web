@@ -125,12 +125,13 @@ test("the relay lets through the API prefix, the module and the stylesheet, and 
   expect(screenOf({ manifest, unit, words: {} }, "/base/").module).toBe("/base/api/unit-a/console/bundle.js");
 });
 
-test("a bundle that names a sidebar count hands over its relay address and the field, and one that names none over null", () => {
+test("a bundle that names a sidebar count is handed over as counted, never with an address the browser would read it at", () => {
   const counted = consoleManifest(manifestOf({ sidebarUnread: { path: "/summary", field: "unreadCount" } }));
   const plain = consoleManifest(manifestOf());
 
-  expect(screenOf({ manifest: counted, unit, words: {} }, "/base/").unread).toEqual({ url: "/base/api/unit-a/summary", field: "unreadCount" });
-  expect(screenOf({ manifest: plain, unit, words: {} }, "/base/").unread).toBeNull();
+  expect(screenOf({ manifest: counted, unit, words: {} }, "/base/").counted).toBe(true);
+  expect(screenOf({ manifest: plain, unit, words: {} }, "/base/").counted).toBe(false);
+  expect(JSON.stringify(screenOf({ manifest: counted, unit, words: {} }, "/base/"))).not.toContain("/summary");
 });
 
 test("the relay lets through a route the manifest relays by its method and path, beside what its prefix lets through", () => {

@@ -200,7 +200,7 @@ export function screenOf(bundle: AttachedBundle, baseURL: string): ConsoleScreen
     module: relayPath(baseURL, manifest, manifest.bundle),
     stylesheet: manifest.stylesheet === undefined ? null : relayPath(baseURL, manifest, manifest.stylesheet),
     words: bundle.words,
-    unread: manifest.sidebarUnread === undefined ? null : { url: relayPath(baseURL, manifest, manifest.sidebarUnread.path), field: manifest.sidebarUnread.field }
+    counted: manifest.sidebarUnread !== undefined
   };
 }
 

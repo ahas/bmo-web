@@ -26,13 +26,13 @@ export interface Screen {
   brought?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
-  // Where a bundle's sidebar count is read, at the relay address the console handed over, and the field of that
-  // answer the count stands in (bmo-ui's `docs/console-bundles.md`, the sidebar count). Only a screen a unit brings
-  // whose manifest names one carries it.
-  unread?: { url: string; field: string };
+  // Whether the screen's entry carries a sidebar count, which the console reads itself (bmo-ui's
+  // `docs/console-bundles.md`, the sidebar count; docs/web.md, 「Sidebar」). Only a screen a unit brings whose
+  // manifest names one carries it.
+  counted?: true;
   // The mark the screen's entry carries while something on it wants looking at, read from what the
   // console knows live. A status is a mark and not a count, so nothing of it grows beside the name;
-  // a count stands only where a unit's manifest declares one (`unread`).
+  // a count stands only where a unit's manifest declares one (`counted`).
   status?: (live: ScreenLive) => ScreenStatus | null;
 }
 
@@ -112,13 +112,13 @@ export function screensWithBundles(bundles: readonly ConsoleScreen[], screens: r
 
     if (bundle === undefined) return screen.brought ? [] : [screen];
 
-    return [{ ...screen, label: bundle.title, icon: bundle.icon, nested: true, brought: true, ...(bundle.unread == null ? {} : { unread: bundle.unread }) }];
+    return [{ ...screen, label: bundle.title, icon: bundle.icon, nested: true, brought: true, ...(bundle.counted ? { counted: true as const } : {}) }];
   });
 
   for (const bundle of bundles) {
     if (screens.some((screen) => screen.to === bundle.screenPath)) continue;
 
-    standing.push({ label: bundle.title, to: bundle.screenPath, icon: bundle.icon, nested: true, brought: true, ...(bundle.unread == null ? {} : { unread: bundle.unread }) });
+    standing.push({ label: bundle.title, to: bundle.screenPath, icon: bundle.icon, nested: true, brought: true, ...(bundle.counted ? { counted: true as const } : {}) });
   }
 
   return standing;
@@ -148,7 +148,7 @@ export type ScreenCounts = Readonly<Record<string, number>>;
 export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS, counts: ScreenCounts = {}): NavigationMenuItem[] {
   return screens.map((screen) => {
     const status = screen.status?.(live) ?? null;
-    const count = screen.unread === undefined ? 0 : (counts[screen.to] ?? 0);
+    const count = screen.counted === true ? (counts[screen.to] ?? 0) : 0;
     const entry = {
       label: t(screen.label),
       to: screen.to,

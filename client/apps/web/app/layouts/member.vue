@@ -103,6 +103,6 @@ const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.valu
 const bundles = useConsoleScreens();
 const screens = broughtScreens(bundles.value);
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
-const unread = useSidebarUnread(bundles.value);
+const unread = useSidebarUnread();
 const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value));
 </script>

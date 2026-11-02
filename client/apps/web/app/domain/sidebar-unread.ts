@@ -2,43 +2,37 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 
 import type { ScreenCounts } from "./screens";
 import type { Ref } from "vue";
-import type { ConsoleScreen } from "#shared/console-bundles";
 
 // The sidebar counts the bundles declare (docs/web.md, 「Sidebar」; bmo-ui's `docs/console-bundles.md`, the sidebar
-// count): each bundle whose manifest names one is read through the console's relay with the reader's own credential
-// and owner key, so the count is the reader's own, and the last count stands where a read does not answer. The
-// sidebar reads them when it stands, again every minute while the tab is open, and the moment a tab brought back into
-// view looks at them, since what arrived while it was out of sight is not in the count it holds.
+// count). The console reads them itself, from its server, for the reader signed in; the sidebar asks the console's own
+// route for them, so no call is made from whatever bundle's page is open, and the last count stands where one did not
+// answer. The sidebar asks when it stands, again every minute while the tab is open — a clock that paces, since no
+// stream announces a count — and the moment a tab brought back into view looks at them.
 
-// How often a standing sidebar asks again: a minute, the console's own clock, since no stream announces a count.
 const READ_EVERY_MS = 60_000;
 
-/** The bundles that declare a sidebar count, each by the address of the screen it stands on. */
-export interface CountedBundle {
-  to: string;
-  url: string;
-  field: string;
-}
+// The console's route the counts are read at, under its base path.
+const COUNTS_ROUTE = "/api/console-bundles/unread";
 
-export function countedBundles(screens: readonly ConsoleScreen[]): CountedBundle[] {
-  return screens.flatMap((screen) => (screen.unread == null ? [] : [{ to: screen.screenPath, url: screen.unread.url, field: screen.unread.field }]));
-}
+/** The counts an answer adds over those the sidebar held: each that answered replaces its own, the rest stand. */
+export function mergedCounts(held: ScreenCounts, answer: unknown): ScreenCounts {
+  if (typeof answer !== "object" || answer === null || Array.isArray(answer)) return held;
 
-// What an answer holds at the field a manifest named: a whole number nought or more, or null where it holds none.
-export function countOf(answer: unknown, field: string): number | null {
-  if (typeof answer !== "object" || answer === null) return null;
+  const next: Record<string, number> = { ...held };
 
-  const held = (answer as Record<string, unknown>)[field];
+  for (const [to, count] of Object.entries(answer as Record<string, unknown>)) {
+    if (typeof count === "number" && Number.isSafeInteger(count) && count >= 0) next[to] = count;
+  }
 
-  return typeof held === "number" && Number.isSafeInteger(held) && held >= 0 ? held : null;
+  return next;
 }
 
 /**
  * The sidebar counts, read for the reader whose sidebar stands. Nothing is drawn before a read has answered, and a
- * read that fails leaves the count the sidebar last held.
+ * count that did not answer stays as the sidebar last held it.
  */
-export function useSidebarUnread(screens: readonly ConsoleScreen[]): Ref<ScreenCounts> {
-  const counts = ref<Record<string, number>>({});
+export function useSidebarUnread(): Ref<ScreenCounts> {
+  const counts = ref<ScreenCounts>({});
   let clock: ReturnType<typeof setInterval> | null = null;
   let reading = false;
 
@@ -48,16 +42,9 @@ export function useSidebarUnread(screens: readonly ConsoleScreen[]): Ref<ScreenC
     reading = true;
 
     try {
-      for (const bundle of countedBundles(screens)) {
-        try {
-          const answer = await $fetch(bundle.url, { headers: { accept: "application/json" } });
-          const count = countOf(answer, bundle.field);
-
-          if (count !== null) counts.value = { ...counts.value, [bundle.to]: count };
-        } catch {
-          // A unit that did not answer leaves the count it last gave standing; the sidebar keeps drawing it.
-        }
-      }
+      counts.value = mergedCounts(counts.value, await $fetch(COUNTS_ROUTE, { headers: { accept: "application/json" } }));
+    } catch {
+      // A console that did not answer leaves every count standing; the sidebar keeps drawing them.
     } finally {
       reading = false;
     }

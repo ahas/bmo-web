@@ -214,7 +214,7 @@ const sidebarFolded = ref(false);
 const bundles = useConsoleScreens();
 const screens = screensWithBundles(bundles.value);
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
-const unread = useSidebarUnread(bundles.value);
+const unread = useSidebarUnread();
 const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value));
 
 // The picture every session in this sidebar wears.

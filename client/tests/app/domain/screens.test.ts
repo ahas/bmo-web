@@ -31,15 +31,13 @@ function brought(screenPath: string, name: string, over: Partial<ConsoleScreen> 
     module: `/base/api/${name}/bundle.js`,
     stylesheet: null,
     words: {},
+    counted: false,
     ...over
   };
 }
 
-// The count a bundle declares, as the console hands it over: the relay address of the read and the field of its answer.
-const UNREAD = { url: "/base/api/mail/summary", field: "unreadCount" };
-
 test("a bundle's sidebar count stands at the line's end as a count badge, and folded as the number over the icon", () => {
-  const screens = screensWithBundles([brought("/mail", "mail", { unread: UNREAD, title: "screens.label.mail" })]);
+  const screens = screensWithBundles([brought("/mail", "mail", { counted: true, title: "screens.label.mail" })]);
   const counts = { "/mail": 12 };
   const spread = screenItems(wording, "/", undefined, false, screens, counts).find((item) => item.to === "/mail")!;
   const folded = screenItems(wording, "/", undefined, true, screens, counts).find((item) => item.to === "/mail")!;
@@ -52,7 +50,7 @@ test("a bundle's sidebar count stands at the line's end as a count badge, and fo
 });
 
 test("no count draws nothing, and a count above ninety-nine reads as ninety-nine and more", () => {
-  const screens = screensWithBundles([brought("/mail", "mail", { unread: UNREAD, title: "screens.label.mail" })]);
+  const screens = screensWithBundles([brought("/mail", "mail", { counted: true, title: "screens.label.mail" })]);
   const none = screenItems(wording, "/", undefined, false, screens, {}).find((item) => item.to === "/mail")!;
   const many = screenItems(wording, "/", undefined, false, screens, { "/mail": 4210 }).find((item) => item.to === "/mail")!;
 
@@ -64,7 +62,7 @@ test("no count draws nothing, and a count above ninety-nine reads as ninety-nine
 test("a screen whose bundle names no count never draws one, whatever the counts hold", () => {
   const screens = screensWithBundles([brought("/mail", "mail", { title: "screens.label.mail" })]);
 
-  expect(screens.find((screen) => screen.to === "/mail")!.unread).toBeUndefined();
+  expect(screens.find((screen) => screen.to === "/mail")!.counted).toBeUndefined();
   expect(screenItems(wording, "/", undefined, false, screens, { "/mail": 3 }).find((item) => item.to === "/mail")!.badge).toBeUndefined();
 });
 

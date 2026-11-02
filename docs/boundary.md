@@ -508,6 +508,7 @@ public name stand in the console's settings (「Settings」) and are not written
 | `/api/events` and every other event stream | the console, unbuffered, the connection kept open while it idles |
 | `/api/<service>` and every road under it | the console, which hands each on whole to the service a manifest names (「Calls the console makes」), behind its sign-in but for the share reads a manifest names and a bundle's module and stylesheet |
 | `/api/console-bundles` | the console: the bundles the signed-in reader may open, with their words; with no session, the one bundle whose share page the `path` asked for stands under, the one with the longest screen path where one stands under another |
+| `/api/console-bundles/unread` | the console: the sidebar counts of the bundles the signed-in reader may open whose manifest names a `sidebarUnread`, each read by the console from the unit with its own credential and the reader's owner key and role, answered by screen path for each count that answered |
 | `/api/github/deliveries` | the console, with no sign-in, for `POST` alone and a body of at most 1 MB: handed on unchanged to the agency's `POST /github/deliveries` with GitHub's headers and the agency's token (`docs/web.md`, 「Access」) |
 
 The server answers on its own listen address to the console and the other units on the machine, and no road of

@@ -1217,13 +1217,16 @@ Four groups.
   This group does not fold — it is a flat list of screens with no branch to fold, and the fold the sidebar
   remembers is only the agent group's below.
   - **A screen a unit brings may carry a count its manifest declares** (bmo-ui's `docs/console-bundles.md`, the
-    sidebar count): the console reads it through the relay with the reader's own credential and owner key, and
-    draws a positive count at the line's end as a count badge (「Count badges」) in the primary colour, the
-    reader's mail count among them. Folded, it stands on the icon's rim at about two o'clock instead, as the
-    rooms' dots do, with the number itself in a pill there, placed from the row's centre so the folded column
-    keeps one centre. A count of none draws nothing. The console reads the count when the sidebar stands and
-    again on its own clock while the tab is open and shown, and a read that does not answer leaves the last
-    count standing; none is drawn before one has answered.
+    sidebar count): the console reads it as itself, from its own server, with its own credential for the unit
+    and the reader's owner key and role, never as a call from whatever bundle's page is open. The sidebar asks the
+    console's `GET /api/console-bundles/unread`, which reads every count the reader's screens declare side by side
+    and answers each that answered, by the address of the screen it stands on, so no bundle's page ever reaches
+    another unit for it. The console draws a positive count at the line's end as a count badge (「Count badges」)
+    in the primary colour, the reader's mail count among them. Folded, it stands on the icon's rim at about two
+    o'clock instead, as the rooms' dots do, with the number itself in a pill there, placed from the row's centre
+    so the folded column keeps one centre. A count of none draws nothing. The console reads the counts when the
+    sidebar stands and again on its own pacing clock while the tab is open and shown, and a count that does not
+    answer leaves the last one standing; none is drawn before one has answered.
 - **Rooms** — the rooms stand in the order the receiver's room list gives them, the pinned first. The owner's private
   chat is the room the receiver's `GET /owner` names — a room the console made on the record road as readily as a chat
   service's one-to-one — and stands under the chat agent's label; every other room, the owner's chat-service
@@ -6418,8 +6421,8 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
 - **A reader is handed the screens their role opens.** The console's `GET /api/console-bundles` answers the
   bundles whose manifest's role the signed-in reader's role allows, leaving out one that asks for the owner key
   where the login has no user: each with its name, title and icon, its screen path, the relay addresses of its
-  module and its stylesheet, its words, and, where its manifest names a `sidebarUnread`, the relay address of
-  that read and the field of its answer the count stands in. A page drawn on the server reads the same list, so the sidebar
+  module and its stylesheet, its words, and whether its manifest names a `sidebarUnread`, whose count the
+  console reads itself (「Sidebar」). A page drawn on the server reads the same list, so the sidebar
   names every screen on its first frame, and the words are merged into the console's pack under the bundle's
   namespace as the list is read.
 - **A screen's module is loaded the first time its path is opened.** The browser reads the module through the

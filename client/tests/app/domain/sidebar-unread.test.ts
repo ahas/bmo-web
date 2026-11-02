@@ -25,12 +25,12 @@ test("every bundle that names a count is read, at the screen its count stands on
   const bundles = countedBundles([
     screen("mail", "/mail", { url: "/base/api/mail/summary", field: "unreadCount" }),
     screen("files", "/files"),
-    screen("archive", "/archive", { url: "/base/api/archive/count", field: "unread" })
+    screen("artifact", "/artifact", { url: "/base/api/artifact/count", field: "unread" })
   ]);
 
   expect(bundles).toEqual([
     { to: "/mail", url: "/base/api/mail/summary", field: "unreadCount" },
-    { to: "/archive", url: "/base/api/archive/count", field: "unread" }
+    { to: "/artifact", url: "/base/api/artifact/count", field: "unread" }
   ]);
 });
 

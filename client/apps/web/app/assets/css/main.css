@@ -553,54 +553,6 @@
   margin: 0.8em 0;
 }
 
-/* A document's own ground and masthead (bmo-artifact's docs/archive.md, 「How a document is drawn」): the paper of
-   the reader's scheme filling the region the document scrolls in, the kind's label letter-spaced in
-   the accent over the title, the title large and bold, and a rule in the ink closing the masthead.
-   The title breaks only between words, as the chat does, so a Korean word is never split and only
-   a word with no break in it breaks inside itself, and its lines run the reading width with no
-   word alone on the last. A page document still being written takes the page frame's title step,
-   the one its title stands at once the page is there. */
-.document-paper {
-  background-color: var(--doc-paper);
-  color: var(--doc-ink);
-}
-
-.document-masthead {
-  border-bottom: 2px solid var(--doc-ink);
-}
-
-.document-eyebrow {
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.25rem;
-  letter-spacing: 0.08em;
-  color: var(--doc-accent);
-}
-
-.document-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  color: var(--doc-ink);
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-  text-wrap: pretty;
-}
-
-@media (min-width: 40rem) {
-  .document-title {
-    font-size: 2.25rem;
-  }
-}
-
-.document-title--page {
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.75rem;
-  letter-spacing: normal;
-}
-
 /* A fenced block in words is as often a quotation of prose as it is code — an item's instruction
    quotes the whole conversation in fences — and it stands in a card or a bubble a phone's width
    across, so its lines fold where the block ends rather than running out of sight. A block whose

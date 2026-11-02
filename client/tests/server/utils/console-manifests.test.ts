@@ -2,7 +2,7 @@ import { afterAll, expect, test } from "bun:test";
 
 import { consoleManifest } from "bmo-ui/shared/console-manifest";
 
-import { askedBundle, namedUnits, readerMay, relayedCall, relayedPath, screenOf, sharePage, withoutConflicts } from "../../../apps/web/server/utils/console-manifests";
+import { askedBundle, attachBundles, movedPage, namedUnits, readerMay, relayedCall, relayedPath, screenOf, sharePage, withoutConflicts } from "../../../apps/web/server/utils/console-manifests";
 
 // The manifests the units answer (docs/web.md, 「Screens a unit brings」): every unit the settings name is asked, a
 // manifest that reads brings its bundle with its words, and two that clash bring none.
@@ -62,6 +62,43 @@ test("two manifests sharing a name, a screen path or a service name both bring n
   ]);
 
   expect(kept.map((one) => one.manifest.name)).toEqual(["unit-c"]);
+});
+
+test("a former screen path counts as a screen path, so two manifests sharing one, or one's former path the other's screen path, both bring none", () => {
+  const bundle = (fields: Record<string, unknown>) => ({ manifest: consoleManifest(manifestOf(fields)), unit, words: {} });
+  const sharedFormer = withoutConflicts([
+    bundle({ formerScreenPaths: ["/old"] }),
+    bundle({ name: "unit-b", title: "unit-b.title", screenPath: "/unit-b", serviceName: "unit-b", formerScreenPaths: ["/old"] })
+  ]);
+  const formerOverOther = withoutConflicts([
+    bundle({ formerScreenPaths: ["/unit-b"] }),
+    bundle({ name: "unit-b", title: "unit-b.title", screenPath: "/unit-b", serviceName: "unit-b" }),
+    bundle({ name: "unit-c", title: "unit-c.title", screenPath: "/unit-c", serviceName: "unit-c", formerScreenPaths: ["/older"] })
+  ]);
+
+  expect(sharedFormer).toEqual([]);
+  expect(formerOverOther.map((one) => one.manifest.name)).toEqual(["unit-c"]);
+});
+
+test("a page under a bundle's former screen path moved to the same address under its screen path, base path and query kept", () => {
+  attachBundles([
+    { manifest: consoleManifest(manifestOf({ screenPath: "/artifact", formerScreenPaths: ["/archive"] })), unit, words: {} },
+    { manifest: consoleManifest(manifestOf({ name: "unit-b", title: "unit-b.title", serviceName: "unit-b", screenPath: "/unit-b" })), unit, words: {} }
+  ]);
+
+  expect(movedPage("/bmo/", "/bmo/archive/share/5fjE9YBJ")).toBe("/bmo/artifact/share/5fjE9YBJ");
+  expect(movedPage("/bmo/", "/bmo/archive")).toBe("/bmo/artifact");
+  expect(movedPage("/bmo/", "/bmo/archive?kind=research")).toBe("/bmo/artifact?kind=research");
+  expect(movedPage("/bmo/", "/bmo/archive/58?tab=sources&q=a%20b")).toBe("/bmo/artifact/58?tab=sources&q=a%20b");
+  expect(movedPage("/", "/archive/58")).toBe("/artifact/58");
+  expect(movedPage("", "/archive/58")).toBe("/artifact/58");
+
+  for (const address of ["/bmo/artifact/58", "/bmo/archived", "/bmo/unit-b/archive", "/bmoarchive/58", "/archive/58", "/bmo/api/archive/1", "/bmo/_nuxt/archive.js", "/bmo/"]) {
+    expect(movedPage("/bmo/", address)).toBeNull();
+  }
+
+  attachBundles([]);
+  expect(movedPage("/bmo/", "/bmo/archive/58")).toBeNull();
 });
 
 test("a screen opens to a role the manifest's allows, and to a login with a user where it asks for the owner key", () => {

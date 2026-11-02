@@ -70,8 +70,8 @@ describe("the page", () => {
     expect(pane).toContain('!props.narrow || one.value !== "split"');
   });
 
-  test("is reached from the sidebar beside the archive", () => {
-    const searchesAt = SCREENS.findIndex((screen) => screen.to === "/archive");
+  test("is reached from the sidebar beside the artifacts", () => {
+    const searchesAt = SCREENS.findIndex((screen) => screen.to === "/artifact");
     const viewerAt = SCREENS.findIndex((screen) => screen.label === "screens.label.documents" && screen.to === "/documents");
 
     expect(viewerAt).toBeGreaterThan(searchesAt);

@@ -11,7 +11,7 @@ import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 // from the pack, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen standing in this console is listed, named from the pack", () => {
-  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/code", "/agents", "/research", "/monitor", "/remote"]);
+  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/artifact", "/documents", "/code", "/agents", "/research", "/monitor", "/remote"]);
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
 });
 
@@ -69,7 +69,7 @@ test("a screen whose bundle names no count never draws one, whatever the counts 
 });
 
 test("a unit's screen takes its manifest's own name and icon, and stands where the console lists it", () => {
-  const all = ["/mail", "/files", "/archive", "/code", "/remote"].map((path) => brought(path, path.slice(1)));
+  const all = ["/mail", "/files", "/artifact", "/code", "/remote"].map((path) => brought(path, path.slice(1)));
   const screens = screensWithBundles(all);
   const screen = screens.find((entry) => entry.to === "/mail")!;
 
@@ -97,23 +97,23 @@ test("a member's shell lists the screens units bring alone", () => {
 });
 
 test("a nested screen is lit on its own address and on the pages below it, and nowhere else", () => {
-  const archive = SCREENS.find((screen) => screen.to === "/archive")!;
+  const artifact = SCREENS.find((screen) => screen.to === "/artifact")!;
 
-  expect(isScreenActive(archive, "/archive")).toBe(true);
-  expect(isScreenActive(archive, "/archive/58")).toBe(true);
-  expect(isScreenActive(archive, "/archived")).toBe(false);
-  expect(screenItems(wording, "/archive/58").find((item) => item.to === "/archive")!.active).toBe(true);
+  expect(isScreenActive(artifact, "/artifact")).toBe(true);
+  expect(isScreenActive(artifact, "/artifact/58")).toBe(true);
+  expect(isScreenActive(artifact, "/artifacts")).toBe(false);
+  expect(screenItems(wording, "/artifact/58").find((item) => item.to === "/artifact")!.active).toBe(true);
 });
 
 test("a screen's tab stands at the screen's own address when it is the first, and under its key otherwise", () => {
   const screen: Screen = {
-    label: "screens.label.archive",
+    label: "screens.label.artifact",
     to: "/somewhere",
     icon: "i-material-symbols-circle",
     nested: false,
     tabs: [
-      { value: "first", label: "screens.label.archive", icon: "i-material-symbols-circle" },
-      { value: "second one", label: "screens.label.archive", icon: "i-material-symbols-circle" }
+      { value: "first", label: "screens.label.artifact", icon: "i-material-symbols-circle" },
+      { value: "second one", label: "screens.label.artifact", icon: "i-material-symbols-circle" }
     ]
   };
 

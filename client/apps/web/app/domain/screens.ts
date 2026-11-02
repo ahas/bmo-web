@@ -77,11 +77,11 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.db", to: "/db", icon: "i-material-symbols-database-outline", nested: false },
   // A machine's drives walked as files, bmo-drive's bundle.
   { label: "screens.label.files", to: "/files", icon: "i-material-symbols-folder-open-outline", nested: false, brought: true },
-  // The Archive: the documents kept for reading, each with its attachments. Its pages are the
-  // bmo-artifact bundle's, and its pages below the address light it.
-  { label: "screens.label.archive", to: "/archive", icon: "i-material-symbols-archive-outline", nested: true, brought: true },
+  // The artifacts: the documents kept for reading, each with its attachments. Its pages are the bmo-artifact
+  // bundle's, and its pages below the address light it.
+  { label: "screens.label.artifact", to: "/artifact", icon: "i-material-symbols-archive-outline", nested: true, brought: true },
   // The documents the agents read and the deployment's operating documents, read as documents. It stands beside
-  // the Archive because both are kept for reading.
+  // the artifacts because both are kept for reading.
   { label: "screens.label.documents", to: "/documents", icon: "i-material-symbols-library-books-outline", nested: false },
   // A checkout read at a commit with reviews pinned to its lines, bmo-review's bundle.
   { label: "screens.label.code", to: "/code", icon: "i-material-symbols-rate-review-outline", nested: false, brought: true },

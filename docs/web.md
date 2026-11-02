@@ -1415,7 +1415,7 @@ Four groups.
 - The drawer closes on an outside press. Swiping horizontally does not drag the drawer along — a panel dragged whenever a
   hand skimming the list flows sideways cannot be read. At the bottom is the user menu: open the settings
   (「Settings」), change the screen mode to light, dark or system, or log out. A reader who never chose a mode reads dark, and the mode is
-  kept in a cookie for a year (「Themes」), so the server paints the first frame in it and knows it for a page it sends (bmo-artifact's `docs/archive.md`, 「How a
+  kept in a cookie for a year (「Themes」), so the server paints the first frame in it and knows it for a page it sends (bmo-artifact's `docs/artifact.md`, 「How a
   document is drawn」). The menu opens above its button, aligned to
   the button's left edge and as wide as it. Above the menu, while the bot's stream is not carrying anything, a line
   says so; it leads to the live status screen.
@@ -5210,7 +5210,7 @@ Four bounds keep it from growing forever.
   alone. The words are the bubble's own to find: 대화에서 찾기 matches them as it matches the message's text.
 - **The player is laid out as a Telegram voice message is,** with no frame of its own: it stands on whatever ground
   holds it. It is one component, and every sound of the console stands in it — a room's sounds here, a line's
-  spoken reading (「칩 줄」), and a document's sounds in the 아카이브 and under its share link (bmo-artifact's `docs/archive.md`).
+  spoken reading (「칩 줄」), and a document's sounds in the 아티팩트 and under its share link (bmo-artifact's `docs/artifact.md`).
   1. A round play and pause button at its leading edge, in the accent, centred on the player.
   2. Beside it, as one group with it, the sound's own waveform as a row of upright bars running to the player's
      trailing edge, and under it one small muted meta line.
@@ -6634,7 +6634,8 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   brought, and is not asked again until it has answered. A unit that answers anything but a 200, or that
   nothing answers, brings no screen, and nothing says so on a screen. A manifest that does not read through bmo-ui's
   `consoleManifest`, or whose words do not answer, brings none either, and the server's log names the fault.
-  Two manifests sharing a name, a screen path or a service name both bring none.
+  Two manifests sharing a name, a screen path or a service name both bring none, a screen path standing for its
+  manifest's screen path and every path it names under `formerScreenPaths`.
 - **The service is relayed under the name its manifest gives,** at the address and with the token of the unit
   that answered it: the paths under its `apiPrefix`, each route its manifest names under `relays` by its method and
   path, its module and its stylesheet, and nothing else of it. A relayed call waits for the service's answer
@@ -6690,6 +6691,14 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
     page area's edges stand around it as around every page, and no part of another page stands under it.
 - **A bundle's page is drawn in the browser.** The server holds no bundle's module, so an address under a
   bundle's screen path is answered with the app's shell, and the browser draws the page once the module is in.
+- **A screen that moved answers at its old addresses.** An address under a path a manifest names under
+  `formerScreenPaths` — the path itself or one below it, read from the console's base path — is answered by the
+  server with a 308 to the same address under the manifest's screen path, its query kept as it came and the base
+  path kept before it, and the browser carries the fragment on itself. It is answered before any page is drawn
+  and before any sign-in is asked for, to a reader signed in and to one who is not alike, so a share link kept
+  from before the move opens its share page at the new address with no sign-in, and a bookmark of a screen opens
+  the screen. An address of the console's own API or its assets is never read as moved. The server reads the
+  move from bmo-ui's `movedScreenAddress`, and the sidebar names the screen at its current path alone.
 - **A share page reads only its own bundle.** Asked with no session for an address under a screen path's
   `share/`, the list answers that one bundle's screen path, module, stylesheet and words, and nothing else of any
   manifest (「Access」).

@@ -1023,7 +1023,7 @@ screens:
   label:
     agents: 에이전트 관리
     agents_group: "에이전트 · {name}"
-    archive: 아카이브
+    artifact: 아티팩트
     chat_id: 채팅 번호
     code: 코드 리뷰
     db: DB

@@ -1,4 +1,4 @@
-import { CONSOLE_MANIFEST_ROUTE, consoleManifest, relaysRoute, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
+import { CONSOLE_MANIFEST_ROUTE, consoleManifest, movedScreenAddress, relaysRoute, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 import { unitHeaders } from "./units";
@@ -111,10 +111,16 @@ export async function askedBundle(name: string, unit: UnitAddress): Promise<Atta
   return { manifest, unit, words: words as ConsoleWords };
 }
 
-/** The bundles with every two that share a name, a screen path or a service name left out, both of them. */
+// Every screen path a manifest names: its own, and those its screens stood under before.
+function screenPaths(manifest: ConsoleManifest): string[] {
+  return [manifest.screenPath, ...manifest.formerScreenPaths];
+}
+
+/** The bundles with every two that share a name, a screen path or a service name left out, both of them; a former
+ * screen path counts as a screen path. */
 export function withoutConflicts(found: readonly AttachedBundle[]): AttachedBundle[] {
   const clash = (one: ConsoleManifest, other: ConsoleManifest) =>
-    one.name === other.name || one.screenPath === other.screenPath || one.serviceName === other.serviceName;
+    one.name === other.name || one.serviceName === other.serviceName || screenPaths(one).some((path) => screenPaths(other).includes(path));
 
   return found.filter((bundle) => {
     const others = found.filter((other) => other !== bundle && clash(bundle.manifest, other.manifest));
@@ -249,6 +255,30 @@ export function bundleOfPage(baseURL: string, page: string | undefined): Attache
   }
 
   return attached.find(({ manifest }) => path === manifest.screenPath || path.startsWith(`${manifest.screenPath}/`)) ?? null;
+}
+
+/**
+ * The address a page address moved to, where it stands under a former screen path of an attached bundle: the same
+ * address under that bundle's screen path, the console's base path before it and its query kept; null where it stands
+ * under none, and for an address outside the base path, of the console's API or of its assets.
+ */
+export function movedPage(baseURL: string, address: string): string | null {
+  const base = baseURL.replace(/\/+$/, "");
+  const below = address.slice(base.length);
+
+  if (!address.startsWith(base) || !/^(?:$|[/?])/.test(below)) return null;
+
+  const path = below === "" || below.startsWith("?") ? `/${below}` : below;
+
+  if (path.startsWith("/api/") || path.startsWith("/_")) return null;
+
+  for (const { manifest } of attached) {
+    const moved = movedScreenAddress(manifest, path);
+
+    if (moved !== null) return `${base}${moved}`;
+  }
+
+  return null;
 }
 
 /** Whether a read is of a bundle's own files: its module, its stylesheet, or a file in its module's folder or below it. */

@@ -58,7 +58,7 @@ function remember(seen: PictureShape): void {
 // The room a lone picture in a bubble takes: its own ratio, no taller than the cap and no wider than a
 // bubble may be, scaled to whichever bounds it first. Known from the picture's shape before it has loaded,
 // so the bubble stands at the picture's size from the start; unknown, the picture sizes itself as it loads.
-const PICTURE_CAP_PX = 256;
+const PICTURE_CAP_PX = 512;
 const BUBBLE_WIDEST_PX = 320;
 
 const frame = computed<{ width: string; height: string } | undefined>(() => {
@@ -80,10 +80,10 @@ const frame = computed<{ width: string; height: string } | undefined>(() => {
 
 const imageClass = computed<string>(() => {
   if (props.flush) {
-    return props.tile ? "size-full object-cover" : frame.value === undefined ? "max-h-64 w-auto max-w-80 object-contain" : "size-full object-contain";
+    return props.tile ? "size-full object-cover" : frame.value === undefined ? "max-h-128 w-auto max-w-80 object-contain" : "size-full object-contain";
   }
 
-  return props.tile ? "aspect-square w-full rounded-lg border border-default object-cover" : "max-h-64 w-auto max-w-full rounded-lg border border-default";
+  return props.tile ? "aspect-square w-full rounded-lg border border-default object-cover" : "max-h-128 w-auto max-w-full rounded-lg border border-default";
 });
 
 const pictures = inject(ROOM_PICTURES, null);

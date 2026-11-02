@@ -3604,6 +3604,9 @@ Four bounds keep it from growing forever.
     own; only a run with no break in it wider than the bubble, a long web address among them, folds anywhere.
   - A file it holds, the sound player among them, stays inside its inner room at every width, never cut at its
     trailing edge (「소리 듣기」).
+  - A picture it holds stands whole, at its own ratio: as wide as the bubble may be at the most and no taller
+    than the picture's cap, scaled to whichever bounds it first, so no edge of it is cut away. Only an album's
+    tiles fill their squares.
 - **One sender's run is one block.** Messages one after another from the same sender on the same side form a
   run, whatever each carries — words, a picture, an album, a file, a voice — as long as each comes within ten
   minutes of the one before it, on the same day, with nothing standing between them.

@@ -1,8 +1,9 @@
 <template>
-  <!-- A photo in a message, drawn small; pressing it opens it whole in the viewer. A tile of an
-       album fills its square of the grid instead, so the album reads as one block. In a message's
-       bubble the picture runs to the bubble's edges with no corners or edge of its own, cut by the
-       bubble's own corners. In a room, the viewer is the room's own and walks every picture the room
+  <!-- A photo in a message, drawn small and whole at its own ratio, never taller than its cap nor
+       wider than the bubble may be; pressing it opens it whole in the viewer. A tile of an album
+       fills its square of the grid instead, so the album reads as one block. In a message's bubble
+       the picture runs to the bubble's edges with no corners or edge of its own, cut by the bubble's
+       own corners. In a room, the viewer is the room's own and walks every picture the room
        holds; a picture with no archived message behind it, or shown outside a room, opens alone. -->
   <button type="button" class="block max-w-full cursor-zoom-in transition-opacity hover:opacity-85 active:opacity-70" :class="props.flush ? 'size-full' : 'rounded-lg'" :aria-label="$t('common.aria.enlarge_named', { name: props.title })" @click.stop="enlarge">
     <LoadingImage
@@ -56,7 +57,7 @@ function remember(seen: PictureShape): void {
 
 const imageClass = computed<string>(() => {
   if (props.flush) {
-    return props.tile ? "size-full object-cover" : "h-64 w-full object-cover";
+    return props.tile ? "size-full object-cover" : "max-h-64 w-auto max-w-full object-contain";
   }
 
   return props.tile ? "aspect-square w-full rounded-lg border border-default object-cover" : "max-h-64 w-auto max-w-full rounded-lg border border-default";

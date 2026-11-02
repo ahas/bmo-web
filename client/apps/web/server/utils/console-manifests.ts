@@ -258,24 +258,17 @@ export function bundleOfPage(baseURL: string, page: string | undefined): Attache
 }
 
 /**
- * The address a page address moved to, where it stands under a former screen path of an attached bundle: the same
- * address under that bundle's screen path, the console's base path before it and its query kept; null where it stands
- * under none, and for an address outside the base path, of the console's API or of its assets.
+ * The address a page moved to, where its path, read from the console's base path with its query, stands under a
+ * former screen path of an attached bundle: the same address under that bundle's screen path, its query kept and the
+ * console's base path before it; null where it stands under none, and for the console's API and its assets.
  */
 export function movedPage(baseURL: string, address: string): string | null {
-  const base = baseURL.replace(/\/+$/, "");
-  const below = address.slice(base.length);
-
-  if (!address.startsWith(base) || !/^(?:$|[/?])/.test(below)) return null;
-
-  const path = below === "" || below.startsWith("?") ? `/${below}` : below;
-
-  if (path.startsWith("/api/") || path.startsWith("/_")) return null;
+  if (address.startsWith("/api/") || address.startsWith("/_")) return null;
 
   for (const { manifest } of attached) {
-    const moved = movedScreenAddress(manifest, path);
+    const moved = movedScreenAddress(manifest, address);
 
-    if (moved !== null) return `${base}${moved}`;
+    if (moved !== null) return `${baseURL.replace(/\/+$/, "")}${moved}`;
   }
 
   return null;

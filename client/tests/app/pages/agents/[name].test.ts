@@ -73,16 +73,16 @@ describe("what an agent's title bar says about that agent", () => {
   });
 });
 
-// A worker's and a room agent's own settings are edited from their own screen, through the very dialogs
+// A supervisor's, a role's and a repository's own settings are edited from their own screen, through the very dialogs
 // the agent management screen opens, so a setting has one editor and one road wherever it is met.
 describe("this agent's own settings", () => {
   const script = source.slice(source.indexOf("<script"));
 
-  test("stand behind one button beside the name, for a worker and an agent whose turn is its settings' pieces", () => {
+  test("stand behind one button beside the name, for a supervisor, a role and a repository alike", () => {
     expect(template).toContain(`<UTooltip v-if="settingsKind !== null" :text="$t('agents.action.settings')">`);
     expect(template).toContain(`:aria-label="$t('agents.action.settings')"`);
-    expect(script).toContain('if (kind === "worker") return "worker";');
-    expect(script).toContain('return row.value?.turnShape === "pieces" ? "companion" : null;');
+    expect(script).toContain('if (settingsSupervisors.value?.some((one) => one.name === name) === true) return "supervisor";');
+    expect(script).toContain('if (settingsRoles.value?.roles.some((one) => one.name === name) === true) return "role";');
   });
 
   test("open no gate editor, which has no place on this screen", () => {
@@ -92,9 +92,11 @@ describe("this agent's own settings", () => {
     }
   });
 
-  test("open the worker's own dialog on its catalogue row, which is read again after a save", () => {
-    expect(template).toContain('<WorkerSettingsDialog v-if="settingsKind === \'worker\'" v-model:open="settingsOpen" :worker="row" :reread="refreshCatalogue" />');
-    expect(script).toContain("refresh: refreshCatalogue } = useAgentCatalogue()");
+  test("open the dialog of its axis or place by its name, the catalogue read again after a save", () => {
+    expect(template).toContain('<SupervisorSettingsDialog v-if="settingsKind === \'supervisor\'" v-model:open="settingsOpen" :name="name" :reread="refreshCatalogue" />');
+    expect(template).toContain('<RoleSettingsDialog v-else-if="settingsKind === \'role\'" v-model:open="settingsOpen" :name="name"');
+    expect(template).toContain('<RepositorySettingsDialog v-else-if="settingsKind === \'repository\'" v-model:open="settingsOpen" :name="name"');
+    expect(template).not.toContain("<WorkerSettingsDialog");
   });
 
   test("never put the button at the right end, which keeps what every screen carries", () => {

@@ -2,12 +2,6 @@
 // and the bodies they send. They are written here because the console reads the agency over HTTP and imports
 // none of its code; a field the agency adds is one the screens do not read until they are written to.
 
-import type { AgentProviderName, StopTarget } from "./types";
-
-export type TierProvider = AgentProviderName;
-
-export interface ModelCapability { provider: TierProvider; model: string; efforts: readonly (string | null)[] }
-
 interface SettingBase {
   name: string;
   // Whether the chat template reads it, so the request carries it under `chat_template_kwargs`.
@@ -33,84 +27,6 @@ export interface SwitchSetting extends SettingBase {
 export type GenerationSetting = NumberSetting | SwitchSetting;
 
 export type GenerationValue = number | boolean;
-
-export type ModelTier = string;
-export type CoworkerTier = string;
-
-// A provider as the tier screen heads its column: its own label, whether its mapping carries an answer
-// ceiling, the efforts it takes and whether it is on.
-export interface TierProviderView {
-  provider: TierProvider;
-  label: string;
-  capsAnswerTokens: boolean;
-  efforts: (string | null)[];
-  enabled: boolean;
-}
-
-export interface TierChoice {
-  model: string;
-  effort: string | null;
-}
-
-// The registry's mapping also names the ceiling of the answer's tokens; null is the work's own default.
-export interface TierMapping extends TierChoice {
-  provider: TierProvider;
-  tier: ModelTier;
-  answerTokens?: number | null;
-}
-
-export interface TierConflict {
-  key: string;
-  provider: TierProvider;
-  previous: TierChoice;
-  accepted: boolean;
-}
-
-// One work key's tier, the tiers it may take, and what it resolves to on each provider or why it does not.
-export interface TierAssignmentView {
-  key: string;
-  tier: ModelTier;
-  choices: ModelTier[];
-  // Why the key does not resolve on a provider, in the pack's words, with the agency's own sentence beside it.
-  effective: { provider: TierProvider; selection: TierMapping | null; error: string | null; errorEnglish: string | null }[];
-}
-
-// The tiers, their mappings on each provider and every work key's assignment (the agency's docs/model-tiers.md).
-export interface TierSettingsView {
-  tiers: ModelTier[];
-  providers: TierProviderView[];
-  mappings: TierMapping[];
-  conflicts: TierConflict[];
-  assignments: TierAssignmentView[];
-}
-
-// Where a fold ratio comes from: set on the console, the provider's own default where none is set, or the
-// general default where the provider declares none either.
-export type FoldRatioSource = "set" | "provider" | "default";
-
-// One provider's fold ratio at one tier: the share of a model's window a session may fill before it is folded
-// once the turn that crossed it is over.
-export interface FoldRatioView {
-  provider: TierProvider;
-  tier: ModelTier;
-  ratio: number;
-  source: FoldRatioSource;
-}
-
-// The fold-ratio grid (the agency's `docs/api.md`, 「fold-ratios」): the tiers in ladder order, the providers
-// the agency declares, and every provider's ratio at every tier.
-export interface FoldRatiosView {
-  tiers: ModelTier[];
-  providers: TierProvider[];
-  ratios: FoldRatioView[];
-}
-
-// What one model of a provider's catalogue offers a screen beyond the capability a save is checked
-// against. Each fact is the provider's to answer and absent from one that does not: `free` from
-// OpenRouter, and from a provider whose catalogue tells a generation in service from a superseded
-// one, `inService` — with `staleReadAt` saying, where the whole list served was read past that
-// provider's own freshness mark, when that read was taken.
-export interface TierCatalogueEntry extends ModelCapability { free?: boolean; inService?: boolean; staleReadAt?: number }
 
 // One session as a holder holds it.
 export interface AgentSession {
@@ -209,74 +125,6 @@ export interface ModelUse {
   log: string | null;
 }
 
-// The live picture of the common co-worker pool the console's live status screen draws as tiles
-// (docs/web.md, 「Live status screen」): a tile for every place a tier has on a provider that is
-// turned on and lends co-workers, and one for every worker's own turn, as the agency reads it on every ask.
-
-// Where one tile's work can be read while it runs: an agent's log, at the place one run of it begins.
-export interface PoolBoardLog {
-  agent: string;
-  run: string;
-}
-
-// What holds a place. `kind` names who asked for it, which is all the screen needs to pick a mark.
-export interface PoolBoardWork {
-  kind: "cowork" | "search" | "browse" | "native" | "turn" | "other";
-  role: string;
-  // The tier as the pool holds it.
-  tier: string;
-  provider: TierProvider;
-  model: string;
-  effort: string | null;
-  // The item or run it serves, and the step of it, in the words the rest of the console uses.
-  title: string;
-  detail: string | null;
-  todoId: number | null;
-  since: number | null;
-  log: PoolBoardLog | null;
-  // What a stop of this tile names. A co-worker has no reach of its own — no unit, no envelope, no
-  // cancel file — so what a tile is stopped by is the run it works inside, which is the same run
-  // its log belongs to (`the agency's docs/agent-control.md` 「Stopping」). A place held for work that has not
-  // started names nothing.
-  stop: StopTarget | null;
-}
-
-export interface PoolBoardTile {
-  // Working: a child runs in it. Held: a reservation keeps it for an owner. Idle: nobody is in it.
-  state: "working" | "held" | "idle";
-  work: PoolBoardWork | null;
-}
-
-export interface PoolBoardBucket {
-  provider: TierProvider;
-  tier: CoworkerTier;
-  capacity: number;
-  tiles: PoolBoardTile[];
-  waiting: PoolBoardWork[];
-}
-
-// One job worker: its turns are bounded by its checkout, so it has exactly one place, which an
-// ordinary job of its fills as well as a co-work turn.
-export interface PoolBoardWorker {
-  name: string;
-  label: string;
-  tile: PoolBoardTile;
-  waiting: PoolBoardWork[];
-}
-
-export interface PoolBoard {
-  readAt: number;
-  buckets: PoolBoardBucket[];
-  workers: PoolBoardWorker[];
-}
-
-// One place's limit as the agency's `PATCH /pool/limits` takes and answers it.
-export interface PoolLimitView {
-  provider: TierProvider;
-  tier: CoworkerTier;
-  capacity: number;
-}
-
 // One registered model as the agency's model resource serves it (the agency's docs/api.md,
 // 「providers, models, pin-checks, tiers and fallback」): its key names the registry's provider and the
 // registration apart, `tier` is the first tier the registration is mapped at, and `healthy` says
@@ -293,6 +141,12 @@ export interface ModelView {
   // When the engine last answered a health probe, in unix seconds, where it ever has; absent from a
   // registration answered before the agency kept it.
   lastAnsweredAt?: number | null;
+  // The arbiter service its engine is, where it names one, and whether that service's instances keep role files.
+  cardService?: string | null;
+  roleFiles?: boolean;
+  // Every supervisor, role and repository whose order or pin names it, and every model file standing behind it, as
+  // the agency names each.
+  usedBy?: string[];
 }
 
 // One of the chat agent's own documents the owner may keep a text of (the agency's `docs/api.md`,
@@ -409,72 +263,3 @@ export function companionResetTotal(answer: Pick<CompanionResetAnswer, "rows">):
   return answer.rows.reduce((sum, one) => sum + one.rows, 0);
 }
 
-export interface BasePromptView extends BasePrompt {
-  characters: number;
-  // The agents that choose it, with their labels.
-  choosers: { agent: string; label: string }[];
-}
-
-export interface BasePromptsView {
-  prompts: BasePromptView[];
-  // Every agent's choice that names one, by agent.
-  choices: Record<string, string>;
-  // The value names a prompt may carry.
-  values: string[];
-}
-
-export interface BasePrompt {
-  name: string;
-  label: string;
-  text: string;
-  // When and by whom it was last saved, null for a seed nobody has saved since.
-  updatedAt: number | null;
-  updatedBy: string | null;
-}
-
-export interface AgentSamplingView {
-  agent: string;
-  // The settings a worker samples with, with their bounds.
-  settings: readonly GenerationSetting[];
-  // What it holds of them; a setting left out is the engine's own default.
-  values: Record<string, GenerationValue>;
-}
-
-// A bundle a role gives, by the name the agency takes it under and the words the screen says it in.
-export interface AgentRoleBundleView {
-  name: string;
-  label: string;
-}
-
-// One role as the agency holds it (the agency's `docs/agent-roles.md`): `shown` is what the screen names it by,
-// `label` the label the agency keeps, which the role's dialog edits.
-export interface AgentRoleView {
-  name: string;
-  shown: string;
-  label: string;
-  bundles: AgentRoleBundleView[];
-  // How many of its agents' turns may run at once; none is no bound.
-  maxConcurrent: number | null;
-  prompt: string | null;
-  tier: ModelTier | null;
-  // How many agents hold it, and whether it is the role a kind is registered with where none is chosen.
-  agents: number;
-  kindDefault: boolean;
-}
-
-// Every role in the agency's order, and every bundle a role may give.
-export interface AgentRolesView {
-  roles: AgentRoleView[];
-  bundles: AgentRoleBundleView[];
-}
-
-// What a role's dialog sends: every field on a new role, the changed ones on a role being edited, a cleared
-// bound, prompt or tier as null.
-export interface AgentRoleChange {
-  name?: string;
-  label?: string;
-  bundles?: string[];
-  maxConcurrent?: number | null;
-  prompt?: string | null;
-  tier?: ModelTier | null;
-}

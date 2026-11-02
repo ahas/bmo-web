@@ -6,60 +6,122 @@ import { answer, standIn } from "../../support/units";
 
 import type { AgentList } from "../../../apps/web/shared/types";
 
-// The catalogue as the agency answers it, its agents and workers with each one's keepalive as the cache warmer
-// holds it laid over its row, and the roles an agent may hold as the agents' answer carries them. An agency that does not answer leaves the list empty and says so. The gate order is
-// the gate unit's, which is not split, so none stands beside the list; the receiver's default answerer does.
-
-process.env.KEEPALIVE_CONSUMER = "agency";
+// The agent list as the agency answers it: its supervisors with the rooms their sessions hold, its roles with the runs
+// their slots hold now, its repositories with their checkouts, and the line a job goes out on. An agency that does not
+// answer leaves the list empty and says so. The gate order is the gate unit's, which is not split, so none stands
+// beside the list; the receiver's default answerer does.
 
 let agencyAnswers = true;
+
+const ORDER = [{ provider: "codex", model: "model-a", effort: "high", thinking: null, answerTokens: null }];
 
 standIn("AGENCY", (call) => {
   if (!agencyAnswers) return answer({ code: "service-unavailable", error: "the store is not open" }, 503);
 
-  if (call.path.startsWith("/agents")) {
+  if (call.path.startsWith("/supervisors")) {
     return answer({
-      items: [{ name: "agent-a", label: "Agent A", role: "builder", gates: null, reasoning: null, voice: null, resetAt: null, standInAvailable: false }],
-      more: false,
-      roles: [{ name: "worker", code: "worker", label: "Worker", bundles: [{ name: "graph.read", code: "graph-read", label: "Graph" }] }, { label: "no name" }]
+      items: [
+        {
+          name: "agent-a", label: "Agent A", ownerAccount: null, aliases: null, icon: "i-material-symbols-mark-a", sessionScope: "agent",
+          turnShape: "window", defaultAnswerer: true, brainFolder: null, repository: null, order: ORDER, quotaShare: 0.01, warming: {},
+          foldRatio: 0.8, gates: null, voice: null, sampling: null, provider: "codex", model: "model-a", effort: "high", waitingFor: null
+        }
+      ],
+      more: false
     });
   }
 
-  if (call.path.startsWith("/workers")) return answer({ items: [], more: false });
+  if (call.path.startsWith("/roles")) {
+    return answer({
+      roles: [
+        {
+          name: "worker", code: "worker", label: "Worker", prompt: null, description: null,
+          bundles: [{ name: "graph.read", code: "graph-read", label: "Graph" }], line: "worker", order: ORDER, quotaShare: 0.01,
+          maxConcurrent: 3, sessions: "keep", foldRatio: 0.8, callable: false, running: 1, waiting: 0, provider: "codex", waitingFor: null
+        },
+        {
+          name: "role-x", code: "role-x", label: "Role X", prompt: null, description: null, bundles: [], line: "search", order: ORDER,
+          quotaShare: 0.01, maxConcurrent: 2, sessions: "keep", foldRatio: 0.8, callable: false, running: 0, waiting: 0, provider: null,
+          waitingFor: "no quota"
+        }
+      ],
+      bundles: [],
+      lines: ["worker", "search"]
+    });
+  }
 
-  return answer({ items: [{ name: "builder", tier: "builder", pooled: false }], more: false });
+  if (call.path.startsWith("/repositories")) {
+    return answer({
+      items: [
+        {
+          name: "repo-a", label: "Repository A", icon: null, ownerAccount: null, path: "/srv/repo-a", nodeName: null, supportCount: 0,
+          prefixDocuments: [], preamble: null, rules: null, devCommand: null, pin: null, downgradeHeal: true, sampling: null,
+          checkouts: [{ name: "repo-a", path: "/srv/repo-a", nodeName: null, job: { jobId: 7, itemId: 42, role: "worker" } }, { name: "repo-a-1", path: "/srv/repo-a-1", nodeName: null, job: null }]
+        }
+      ],
+      more: false
+    });
+  }
+
+  if (call.path.startsWith("/slots")) {
+    return answer({
+      items: [
+        { role: "worker", maxConcurrent: 3, active: 1, reserved: 0, waiting: 0, runs: [{ role: "worker", path: "/srv/repo-a", provider: "codex", model: "model-a", source: "job", since: 1_000 }] },
+        { role: "role-x", maxConcurrent: 2, active: 0, reserved: 0, waiting: 0, runs: [] }
+      ]
+    });
+  }
+
+  if (call.path.startsWith("/sessions")) return answer({ items: [{ agentName: "agent-a", roomId: -7 }, { agentName: "agent-a", roomId: null }], more: false });
+  if (call.path.startsWith("/jobs")) return answer({ items: [{ id: 7, roleName: "worker" }], more: false });
+
+  return answer({ code: "no-route", error: "no route" }, 404);
 });
 standIn("RECEIVER", (call) => {
   if (call.path.startsWith("/owner")) return answer({ room: 5, senderId: 1 });
   if (call.path.startsWith("/rooms/5/answerers")) return answer({ default: "agent-a", voice: "agent-a", items: [], more: false });
+  if (call.path === "/rooms" || call.path.startsWith("/rooms?")) return answer({ items: [], more: false });
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
-standIn("CACHE_WARMER", (call) =>
-  call.path.startsWith("/consumers/agency/subjects")
-    ? answer({ items: [{ id: 1, consumerName: "agency", name: "agent-a", on: false, pausedAt: 7_000, pausedUntil: 9_007_199_254_740_991, targetCount: 1 }], more: false })
-    : answer({ items: [{ id: 1, consumerName: "agency", name: "chat-touch", subjectName: "agent-a", warmedAt: 5_500 }], more: false })
-);
 
 const handler = await routeOf<AgentList>("../../apps/web/server/api/agents.get");
 
 describe("the agent list", () => {
-  test("is the agency's, with the warmer's keepalive laid over each row", async () => {
+  test("is the agency's supervisors, roles and repositories, each its own entry", async () => {
     agencyAnswers = true;
 
-    expect((await asked(handler, {})).answer).toMatchObject({
-      reachable: true,
-      agents: [{ name: "agent-a", kind: "chat", label: "Agent A", role: "builder", keepaliveStopped: true, keepalivePausedAt: 7, lastKeepaliveAt: 5 }],
-      // Each named by its code in the pack's words, never by the agency's English label.
-      roles: [{ name: "worker", label: wording("agents.label.role_worker"), bundles: [{ name: "graph.read", label: wording("agents.label.bundle_graph_read") }] }],
-      gateOrder: null,
-      defaultAnswerer: "agent-a"
-    });
+    const list = (await asked(handler, {})).answer as AgentList;
+
+    expect(list.reachable).toBe(true);
+    expect(list.agents.map((agent) => [agent.name, agent.kind])).toEqual([
+      ["agent-a", "supervisor"],
+      ["worker", "role"],
+      ["role-x", "role"],
+      ["repo-a", "repository"]
+    ]);
+    expect(list.agents[0]).toMatchObject({ label: "Agent A", defaultAnswerer: true, provider: "codex", model: "model-a", sessions: [{ chatId: -7, lastAt: null }] });
+    expect(list.agents[1]).toMatchObject({ running: 1, model: "model-a", effort: "high", runs: [{ role: "worker", path: "/srv/repo-a", source: "job", since: 1_000 }] });
+    expect(list.agents[2]).toMatchObject({ provider: null, waitingFor: "no quota", runs: [] });
+    expect(list.agents[3]?.checkouts).toEqual([
+      { name: "repo-a", path: "/srv/repo-a", node: null, jobId: 7, itemId: 42, role: "worker" },
+      { name: "repo-a-1", path: "/srv/repo-a-1", node: null, jobId: null, itemId: null, role: null }
+    ]);
+    // A role is named by the label the agency keeps for it.
+    expect(list.agents[1]?.label).toBe(wording("agents.label.role_worker"));
+    expect(list.agents[2]?.label).toBe("Role X");
+    expect(list.roles).toEqual([
+      { name: "worker", label: wording("agents.label.role_worker"), bundles: [{ name: "graph.read", label: wording("agents.label.bundle_graph_read") }] },
+      { name: "role-x", label: "Role X", bundles: [] }
+    ]);
+    expect(list.jobLine).toBe("worker");
+    expect(list.gateOrder).toBeNull();
+    expect(list.defaultAnswerer).toBe("agent-a");
   });
 
   test("stands empty, and says so, while the agency does not answer", async () => {
     agencyAnswers = false;
 
-    expect((await asked(handler, {})).answer).toEqual({ reachable: false, agents: [], roles: [], gateOrder: null, defaultAnswerer: "agent-a" });
+    expect((await asked(handler, {})).answer).toEqual({ reachable: false, agents: [], roles: [], jobLine: null, gateOrder: null, defaultAnswerer: "agent-a" });
   });
 });

@@ -103,11 +103,30 @@
 
       <!-- The work view: the job's work order, what it is doing now, what it spent and called, its stages where it is
            co-work or laid out a plan, and its log (docs/web.md, 「The work view」). -->
-      <WorkView ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="isJobWorker" :stepper="isJobWorker" :end="opensAtEnd" />
+      <!-- A repository keeps no log of its own: its screen reads the jobs run in it and stands the log of the one going
+           or, with none going, the latest, under the role that job ran as (docs/web.md, 「Agent screen」). -->
+      <template v-if="isRepository">
+        <ContentSkeleton v-if="repositoryJob === undefined" :rows="6" listClass="flex flex-col gap-2 px-4 py-3" :label="$t('agents.status.jobs_loading')">
+          <SkeletonLine width="w-4/5" />
+        </ContentSkeleton>
+        <BodyLine v-else-if="repositoryJob === null">{{ $t("agents.status.no_jobs") }}</BodyLine>
+        <WorkView
+          v-else
+          ref="view"
+          :key="`${repositoryJob.role ?? name}:${repositoryJob.run}`"
+          :agent="repositoryJob.role ?? name"
+          :place="{ run: repositoryJob.run }"
+          :run="repositoryJob.run"
+          job
+          stepper
+          :end="opensAtEnd || repositoryJob.finishedAt === null"
+        />
+      </template>
+      <WorkView v-else ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="false" :end="opensAtEnd" />
 
-      <WorkerSettingsDialog v-if="settingsKind === 'worker'" v-model:open="settingsOpen" :worker="row" :reread="refreshCatalogue" />
-      <CompanionSettingsDialog v-else-if="settingsKind === 'companion' && row !== null" v-model:open="settingsOpen" :meta="meta" :agent="row" :reread="refreshCatalogue" />
-      <SupervisorSettingsDialog v-else-if="settingsKind === 'supervisor' && row !== null" v-model:open="settingsOpen" :meta="meta" :agent="row" :reread="refreshCatalogue" />
+      <SupervisorSettingsDialog v-if="settingsKind === 'supervisor'" v-model:open="settingsOpen" :name="name" :reread="refreshCatalogue" />
+      <RoleSettingsDialog v-else-if="settingsKind === 'role'" v-model:open="settingsOpen" :name="name" @saved="() => void refreshCatalogue()" />
+      <RepositorySettingsDialog v-else-if="settingsKind === 'repository'" v-model:open="settingsOpen" :name="name" @saved="() => void refreshCatalogue()" />
       <PictureDialog v-if="picturable" v-model:open="pictureOpen" :title="$t('picture.label.agent')" :description="meta.label" kind="agent" :subject="name" :avatar="agentPicture" />
     </template>
 
@@ -148,7 +167,7 @@ import { screenKey } from "~/domain/route-key";
 import { stopKey, useStops } from "~/domain/stopping";
 
 import type { LaunchAgent } from "#shared/config";
-import type { LiveRun, RoomSummary, StatusView, StopTarget } from "#shared/types";
+import type { JobLine, LiveRun, RoomSummary, StatusView, StopTarget } from "#shared/types";
 import type { UsageView } from "#shared/types";
 import type { AgentMeta } from "~/domain/agents";
 import type { AgentVitals } from "~/domain/vitals";
@@ -238,17 +257,16 @@ const hasFigures = computed<boolean>(
 );
 
 
-// Which of the agent management screen's own editors this agent has: a job worker its whole
-// settings, a supervisor whose turn is its settings' pieces its block of the supervisors tab, and the chat agent
-// its own model summary and system-prompt texts. Every other agent's road is shared or set on that screen
-// alone, so it has none here (docs/web.md).
-const settingsKind = computed<"worker" | "companion" | "supervisor" | null>(() => {
-  const kind = row.value?.kind;
+// Which of the agent management screen's dialogs this screen's settings open (docs/web.md, 「Agent screen」): a
+// supervisor's, a role's or a repository's, read off the lists those tabs read under the same keys.
+const { data: settingsSupervisors } = useFetch<{ name: string }[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false });
+const { data: settingsRoles } = useFetch<{ roles: { name: string }[] }>("/api/roles", { key: "roles", lazy: true, server: false });
+const { data: settingsRepositories } = useFetch<{ name: string }[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
+const settingsKind = computed<"supervisor" | "role" | "repository" | null>(() => {
+  if (settingsSupervisors.value?.some((one) => one.name === name) === true) return "supervisor";
+  if (settingsRoles.value?.roles.some((one) => one.name === name) === true) return "role";
 
-  if (kind === "worker") return "worker";
-  if (row.value?.turnShape === "window") return "supervisor";
-
-  return row.value?.turnShape === "pieces" ? "companion" : null;
+  return settingsRepositories.value?.some((one) => one.name === name) === true ? "repository" : null;
 });
 const settingsOpen = ref(false);
 
@@ -260,9 +278,28 @@ const pictureOpen = ref(false);
 const faceOf = useAgentFace();
 const agentPicture = computed(() => faceOf.value(meta.value) ?? avatarFor(new Map(), "person", null, meta.value.label));
 
-// A job worker keeps the line of its job at the foot of its screen, whichever worker it is: the
-// catalogue says which agents are workers.
-const isJobWorker = computed<boolean>(() => row.value?.kind === "worker");
+// A repository's screen stands the log of its job going or, with none going, its latest, and keeps that job's line at
+// its foot: the catalogue says which names are repositories.
+const isRepository = computed<boolean>(() => row.value?.kind === "repository");
+
+// The job a repository's screen stands: the run the address names where it is one of its jobs, otherwise the one going,
+// otherwise the latest; undefined until it is read, and null where the repository has none.
+const repositoryJob = ref<JobLine | null | undefined>(undefined);
+
+async function readRepositoryJob(): Promise<void> {
+  if (!isRepository.value) return;
+
+  try {
+    const query = placeRun.value === null ? {} : { run: placeRun.value };
+
+    repositoryJob.value = (await $fetch<{ job: JobLine | null }>(`/api/agents/${encodeURIComponent(name)}/job`, { query })).job;
+  } catch {
+    repositoryJob.value = repositoryJob.value ?? null;
+  }
+}
+
+watch(isRepository, () => void readRepositoryJob());
+onMounted(() => void readRepositoryJob());
 
 // Whether the log opens at its end whatever run it was opened at, as the log dialog that sent the reader here did.
 const opensAtEnd = computed<boolean>(() => route.query.end === "1");
@@ -397,7 +434,14 @@ onMounted(async () => {
 // ended is the bot answering, so that is when it is asked again; while the stream is down it is
 // asked at the pace the rest of the console keeps.
 useLiveRefresh(() => void readControl(), { on: TURN_ENDED, everyMs: POLL_INTERVAL_MS });
-useLiveRefresh(() => void readLiveStatus(), { on: ["worker-run"], everyMs: POLL_INTERVAL_MS });
+useLiveRefresh(
+  () => {
+    void readLiveStatus();
+    // A job starting or ending in a repository moves which job its screen stands, unless the address names one.
+    if (placeRun.value === null) void readRepositoryJob();
+  },
+  { on: ["worker-run"], everyMs: POLL_INTERVAL_MS }
+);
 
 usePolling(() => {
   now.value = Math.floor(Date.now() / 1000);

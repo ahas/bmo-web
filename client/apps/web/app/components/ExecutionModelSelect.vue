@@ -44,9 +44,9 @@ watch(provider, async value => {
   if (value === "claude-code") { items.value = JOB_MODELS.map(value => ({ value, label: value })); return; }
   loading.value = true;
   try {
-    // Every provider but the Claude line answers from its own catalogue, the one the tier table reads.
-    const rows = await $fetch<{ model: string }[]>("/api/model-tiers/models", { query: { provider: value } });
-    if (current === generation) items.value = rows.map(row => ({ value: row.model, label: row.model }));
+    // Every provider but the Claude line answers the models it holds, the ones an order's entry may name.
+    const held = await $fetch<import("#shared/axes").ProviderModelsView>(`/api/provider-models/${encodeURIComponent(value)}`);
+    if (current === generation) items.value = held.models.map(row => ({ value: row.id, label: row.id }));
   } catch { if (current === generation) error.value = t("agents.error.models_load_failed"); }
   finally { if (current === generation) loading.value = false; }
 }, { immediate: true });

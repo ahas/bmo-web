@@ -128,8 +128,9 @@ describe("the co-work of a row", () => {
 });
 
 describe("the queue's live refresh", () => {
-  test("uses TODO events and reopen catch-up without a polling fallback", () => {
-    expect(source).toContain('on: ["todo", "work-order"]');
+  test("uses TODO events, the agency's job events and reopen catch-up without a polling fallback", () => {
+    // A job the agency ends takes a reporting row to the finished ones (docs/web.md, the TODO panel's section).
+    expect(source).toContain('on: ["todo", "work-order", "worker-run"]');
     expect(source).not.toContain("POLL_INTERVAL_MS");
   });
 
@@ -143,7 +144,7 @@ describe("the queue's live refresh", () => {
   // and an item a link opened from further back than the page — and a word that the queue moved
   // is as often about one of those: the chat agent adding words to an item, a runner handing them to its job.
   test("re-reads the open item's added words and a linked item on the same news, quietly", () => {
-    expect(source).toMatch(/void reload\(\);\s*rereadOpened\(\);\s*\},\s*\{\s*on: \["todo", "work-order"\]/);
+    expect(source).toMatch(/void reload\(\);\s*rereadOpened\(\);\s*\},\s*\{[^}]*on: \["todo", "work-order", "worker-run"\]/);
     expect(source).toContain("detail.value?.reread(opened.value);");
     expect(detailSource).toContain("void loadNotes(id, true);");
     expect(source).toContain("void readStray(stray.value.id);");
@@ -334,7 +335,7 @@ describe("the auto-progression switch", () => {
     // The panel has the one subscription; its dialog's is the open item's talk, which is no news
     // of the board.
     expect(source.match(/useLiveRefresh\(/g)?.length).toBe(1);
-    expect(source.match(/on: \[[^\]]*"todo"[^\]]*\]/g)).toEqual(['on: ["todo", "work-order"]']);
+    expect(source.match(/on: \[[^\]]*"todo"[^\]]*\]/g)).toEqual(['on: ["todo", "work-order", "worker-run"]']);
     expect(detailSource.match(/useLiveRefresh\(/g)?.length).toBe(1);
     expect(detailSource).toContain('on: ["todo-talk"]');
   });

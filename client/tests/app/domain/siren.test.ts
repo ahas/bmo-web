@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, test } from "bun:test";
 
-import { conversationOf } from "../../support/conversation";
+import { catalogueEntry, catalogueRow } from "../../support/catalogue";
 
 import { wording } from "../../../apps/web/shared/wording";
 
@@ -47,31 +47,11 @@ const session = (title: string) => wording("siren.label.chat_session", { title, 
 // Every screen reads an agent's name out of the catalogue the archive answered with, so a test
 // about a name puts that list in hand the way the app does.
 function catalogued(name: string, kind: string, label: string): AgentSummary {
-  const carried = conversationOf({ kind });
+  const icon = "i-material-symbols-radio-button-checked-outline";
 
-  return {
-    name,
-    kind,
-    sessionScope: carried?.scope ?? null,
-    turnShape: carried?.shape ?? null,
-    defaultAnswerer: carried?.defaultAnswerer ?? false,
-    model: null,
-    lastMode: null,
-    lastModel: null,
-    lastEffort: null,
-    label,
-    aliases: null,
-    icon: "i-material-symbols-radio-button-checked-outline",
-    cwd: null,
-    builtin: true,
-    chatId: null,
-    runs: 0,
-    lastRunAt: null,
-    lastKeepaliveAt: null,
-    contextTokens: null,
-    keepaliveStopped: false,
-    keepalivePausedAt: null
-  };
+  if (kind === "chat" || kind === "companion") return { ...catalogueRow(name, kind, label), icon };
+
+  return catalogueEntry(name, kind === "worker" ? "repository" : "role", label, { icon });
 }
 
 beforeEach(() =>

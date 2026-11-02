@@ -1,4 +1,4 @@
-import { DONE_PAGE_SIZE, REPORTING_WINDOW_SECONDS } from "#shared/config";
+import { DONE_PAGE_SIZE } from "#shared/config";
 import { shownInside, spanFace } from "./spans";
 import { formatStamp, remainingText, spanClock, toUnixSeconds } from "bmo-ui/app/domain/time";
 import { heldLabel } from "~/domain/queue-place";
@@ -150,13 +150,12 @@ export const PANEL_DEFAULT_WIDTH = 320;
 // launched, so it is never asked — a job whose session never wrote it is running all the same,
 // and an item whose runner died is not.
 //
-// A job marks its item done before it writes its report, so for the minute between the two the
-// item is done and its run is still going: that is reporting. It only holds while the item
-// was marked done lately, because a runner that died leaves its job row open for ever and the
-// item would otherwise never come to rest.
-export function todoState(item: TodoItem, now: number = toUnixSeconds(Date.now())): TodoState {
+// An item bmo-job marks done while the agency's job for it is still going is reporting, until the agency says the job
+// ended; no clock of the console's bounds it, since a job whose runner died is ended by the agency's own sweep
+// (docs/web.md, the TODO panel's section).
+export function todoState(item: TodoItem, _now: number = toUnixSeconds(Date.now())): TodoState {
   if (item.done) {
-    return item.reporting || (item.running && reportingWindowOpen(item, now)) ? "reporting" : "done";
+    return item.reporting === true || (item.liveState ?? null) !== null ? "reporting" : "done";
   }
 
   // Merged is what a row is before anything else it could be: its work is carried by the item it
@@ -1048,13 +1047,6 @@ export function clampPanelWidth(width: number): number {
 // Which row a press's name belongs to. The name is this module's own, so it is read back here.
 function rowOf(key: string): number {
   return Number(key.slice(0, key.indexOf(":")));
-}
-
-// How long the report may take before the item is left to rest among the finished: a runner
-// that died writes no end to its job row, and without a bound its item would read reporting
-// and stand in the queue for ever.
-function reportingWindowOpen(item: TodoItem, now: number): boolean {
-  return item.doneAt !== null && now - item.doneAt <= REPORTING_WINDOW_SECONDS;
 }
 
 // The ids of the rows the bot's own queue holds: what is finished stands in the section while

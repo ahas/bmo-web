@@ -1,42 +1,63 @@
 <template>
-  <!-- The models the registry holds (the agency's docs/api.md, 「providers, models, pin-checks, tiers and
-       fallback」): each registration's own name, the model behind it, the first tier it is mapped at and
-       whether its addresses answer. -->
-  <section :id="settingsAnchor('registry')" class="flex flex-col gap-3" aria-labelledby="registry-title">
-    <h2 id="registry-title" class="text-lg font-semibold text-highlighted">{{ generalSectionTitle($t, "registry") }}</h2>
+  <!-- The registered models (docs/web.md, 「Agent management screen」, the registered models tab; the agency's
+       docs/api.md, 「providers, models and model files」): one row each, its name with a mark saying whether its engine
+       answers, the model behind it, what names it and its card service. A row's more-menu changes or removes it. -->
+  <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.tab_models')">
+    <DataTableSkeleton v-if="models === undefined && !error" :headers="tableHeaders(columns)" :rows="3" :label="$t('agents.status.registry_loading')" />
+    <ReadFailure
+      v-else-if="error && models === undefined"
+      class="mx-4 my-4 w-auto"
+      :failure="readFailure"
+      :message="$t('agents.error.registry_read_failed')"
+      :reading="status === 'pending'"
+      @retry="refresh()"
+    />
+    <p v-else-if="models !== undefined && rows.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_registrations") }}</p>
 
-    <ReadFailure v-if="props.failed && props.models === null" :failure="readFailure" :message="$t('agents.error.registry_read_failed')" :reading="props.reading" @retry="props.reread()" />
-
-    <AgentsRegistrySkeleton v-else-if="props.models === null" :rows="REGISTRY_WAITING" />
-
-    <ul v-else class="flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default" :aria-label="$t('agents.title.registry')">
-      <li v-for="row in rows" :key="row.model.key" :data-registration="row.name" class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 py-2 ps-4 pe-2">
-        <span class="flex min-w-0 flex-col gap-1">
+    <DataTable v-if="models !== undefined && rows.length > 0" data-settings-table :data="rows" :columns="columns" :row-key="(row: RegistryRow) => row.name">
+      <template #name-cell="{ row }">
+        <span :id="settingsAnchor(`registry-${row.original.name}`)" :class="CELL_TEXT" class="ps-4" :data-registration="row.original.name">
           <span class="flex min-w-0 items-center gap-2">
-            <SearchText class="truncate text-sm font-medium text-highlighted" :text="row.name" :query="props.query" />
-            <span v-if="row.health !== null" class="flex shrink-0 items-center gap-1 text-sm text-muted">
-              <UIcon :name="row.health.icon" class="size-4 shrink-0" :class="row.health.tone" aria-hidden="true" />
-              {{ row.health.text }}
+            <SearchText class="truncate text-sm font-medium text-highlighted" :text="row.original.name" :query="props.query" />
+            <span v-if="row.original.health !== null" class="flex shrink-0 items-center gap-1 text-sm text-muted">
+              <UIcon :name="row.original.health.icon" class="size-4 shrink-0" :class="row.original.health.tone" aria-hidden="true" />
+              {{ row.original.health.text }}
             </span>
           </span>
-          <SearchText class="truncate font-mono text-sm text-toned" :text="row.model.model" :query="props.query" />
-          <span class="text-sm text-muted">
-            {{ $t("agents.label.tier") }}
-            <SearchText class="font-mono" :text="row.model.tier ?? '—'" :query="props.query" />
-          </span>
         </span>
+      </template>
 
-        <UDropdownMenu :items="menuOf(row.model)" :content="{ align: 'end' }">
-          <UTooltip :text="$t('common.aria.menu_of', { name: row.name })">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: row.name })" />
-          </UTooltip>
-        </UDropdownMenu>
-      </li>
+      <template #model-cell="{ row }">
+        <span :class="CELL_TEXT">
+          <SearchText class="whitespace-nowrap font-mono text-sm text-toned" :text="row.original.model.model" :query="props.query" />
+        </span>
+      </template>
 
-      <li v-if="rows.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_registrations") }}</li>
-    </ul>
+      <template #usedBy-cell="{ row, held }">
+        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-72']" class="text-sm">
+          <span v-if="row.original.usedBy.length === 0" class="text-muted">—</span>
+          <SearchText v-for="one in row.original.usedBy" :key="one" class="truncate text-toned" :text="one" :query="props.query" />
+        </span>
+      </template>
 
-    <p v-if="removeFailed !== ''" role="alert" class="break-words text-sm text-error">{{ removeFailed }}</p>
+      <template #cardService-cell="{ row }">
+        <span :class="CELL_TEXT" class="text-sm">
+          <span class="whitespace-nowrap font-mono" :class="row.original.model.cardService ? 'text-toned' : 'text-muted'">{{ row.original.model.cardService ?? "—" }}</span>
+        </span>
+      </template>
+
+      <template #actions-cell="{ row }">
+        <span class="flex min-h-12 items-center justify-end pe-2">
+          <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
+            <UTooltip :text="$t('common.aria.menu_of', { name: row.original.name })">
+              <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: row.original.name })" />
+            </UTooltip>
+          </UDropdownMenu>
+        </span>
+      </template>
+    </DataTable>
+
+    <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
     <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.registry_add') : form.name" :dirty="formDirty">
       <form id="registry-form" class="flex flex-col gap-4" @submit.prevent="save">
@@ -46,6 +67,14 @@
 
         <UFormField :label="$t('common.label.model')" name="model" :error="errorAt('model')">
           <UInput v-model="form.model" class="w-full font-mono" :aria-label="$t('common.label.model')" />
+        </UFormField>
+
+        <UFormField :label="$t('agents.label.card_service')" name="cardService" :error="errorAt('cardService')">
+          <UInput v-model="form.cardService" class="w-full font-mono" :aria-label="$t('agents.label.card_service')" />
+        </UFormField>
+
+        <UFormField name="roleFiles" :error="errorAt('roleFiles')">
+          <USwitch v-model="form.roleFiles" :label="$t('agents.label.role_files')" :disabled="form.cardService.trim() === ''" />
         </UFormField>
 
         <p v-if="errorAt('form') !== undefined" role="alert" class="break-words text-sm text-error">{{ errorAt("form") }}</p>
@@ -60,39 +89,51 @@
 </template>
 
 <script setup lang="ts">
-import { settingsAnchor } from "~/domain/agent-settings";
-import { GENERAL_SECTIONS, generalSectionTitle } from "~/domain/agents";
+import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { useReadFailure } from "~/domain/events";
+
+import { settingsAnchor } from "~/domain/agent-settings";
 import { useConfirm } from "~/domain/confirm";
-import { emptyModelForm, healthMark, healthText, modelChange, modelCreate, modelForm, modelRefusalPlace, registrationName } from "~/domain/registry";
+import { useReadFailure } from "~/domain/events";
+import { emptyModelForm, healthMark, healthText, modelChange, modelCreate, modelForm, modelRefusalPlace, registrationName, usedByText } from "~/domain/registry";
+import { CELL_TEXT } from "~/domain/settings-cells";
 
 import type { ModelPage, ModelView } from "#shared/agency";
-import type { DropdownMenuItem } from "@nuxt/ui";
+import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 import type { ModelForm } from "~/domain/registry";
 
-interface Props {
-  // The registered models as the page last read them, or null before its first read has landed.
-  models: ModelPage | null;
-  failed?: boolean;
-  // Whether the page is reading the models now.
-  reading?: boolean;
-  // Every change is asked of the bot and then read back by the page, which this waits for.
-  reread: () => Promise<void>;
-  query?: string;
+const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
+const { t } = useI18n();
+const askFirst = useConfirm();
+
+// The page's search reads the same answer under the same key.
+const { data: models, error, refresh, status } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
+const readFailure = useReadFailure({ failed: () => !!error.value && models.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
+
+interface RegistryRow {
+  model: ModelView;
+  name: string;
+  usedBy: string[];
+  health: { icon: string; tone: string; text: string } | null;
 }
 
-const props = withDefaults(defineProps<Props>(), { failed: false, reading: false, query: "" });
-const { t } = useI18n();
-const readFailure = useReadFailure({ failed: () => props.failed && props.models === null, reading: () => props.reading, reread: () => void props.reread() });
-const askFirst = useConfirm();
-// As many waiting rows as the page's own waiting shape stood with.
-const REGISTRY_WAITING = GENERAL_SECTIONS.find((one) => one.id === "registry")?.waiting ?? 1;
+const columns = computed<TableColumn<RegistryRow>[]>(() => [
+  { id: "name", header: t("common.label.name"), meta: { class: { th: "w-full" } } },
+  { id: "model", header: t("common.label.model") },
+  { id: "usedBy", header: t("agents.label.used_by") },
+  { id: "cardService", header: t("agents.label.card_service") },
+  { id: "actions", header: "" }
+]);
 
-const rows = computed(() => (props.models?.items ?? []).map((one) => {
+const rows = computed<RegistryRow[]>(() => (models.value?.items ?? []).map((one) => {
   const mark = healthMark(one.healthy);
 
-  return { model: one, name: registrationName(one.key), health: mark === null ? null : { ...mark, text: healthText(t, one.healthy, one.lastAnsweredAt ?? null) } };
+  return {
+    model: one,
+    name: registrationName(one.key),
+    usedBy: (one.usedBy ?? []).map((used) => usedByText(t, used)),
+    health: mark === null ? null : { ...mark, text: healthText(t, one.healthy, one.lastAnsweredAt ?? null) }
+  };
 }));
 
 const busy = ref(false);
@@ -112,10 +153,20 @@ function errorAt(place: string): string | undefined {
   return refusal.value?.place === place ? refusal.value.text : undefined;
 }
 
-function menuOf(model: ModelView): DropdownMenuItem[] {
+// A registration anything names is not removed, which its menu item says by naming what does.
+function menuOf(row: RegistryRow): DropdownMenuItem[] {
+  const named = row.usedBy.length > 0;
+
   return [
-    { label: t("common.action.edit"), icon: "i-material-symbols-edit-outline", onSelect: () => openEdit(model) },
-    { label: t("common.action.delete"), icon: "i-material-symbols-delete-outline", color: "error" as const, onSelect: () => void remove(model) }
+    { label: t("common.action.edit"), icon: "i-material-symbols-edit-outline", onSelect: () => openEdit(row.model) },
+    {
+      label: t("common.action.delete"),
+      icon: "i-material-symbols-delete-outline",
+      color: "error" as const,
+      disabled: named,
+      ...(named ? { description: t("agents.status.registration_in_use", { names: row.usedBy.join(", ") }) } : {}),
+      onSelect: () => void remove(row.model)
+    }
   ];
 }
 
@@ -154,7 +205,7 @@ async function save(): Promise<void> {
       await $fetch<ModelView>(`/api/models/${encodeURIComponent(editedName.value)}`, { method: "PATCH", body: modelChange(form.value) });
     }
 
-    await props.reread();
+    await refresh();
     editing.value = false;
   } catch (error) {
     const { field, text } = refusalOf(error);
@@ -165,8 +216,7 @@ async function save(): Promise<void> {
   }
 }
 
-// A removal is asked first in a dialog; what the bot refuses it for — a tier or a pin still naming the
-// registration — stands under the list.
+// A removal is asked first in a dialog; what the agency refuses it for stands under the table.
 async function remove(model: ModelView): Promise<void> {
   const name = registrationName(model.key);
   const taken = await askFirst({
@@ -181,11 +231,11 @@ async function remove(model: ModelView): Promise<void> {
 
   try {
     await $fetch(`/api/models/${encodeURIComponent(name)}`, { method: "DELETE" });
-    await props.reread();
+    await refresh();
   } catch (error) {
     removeFailed.value = failureText(error, t("common.error.save_failed"));
   }
 }
 
-defineExpose({ openAdd });
+defineExpose({ openAdd, refresh });
 </script>

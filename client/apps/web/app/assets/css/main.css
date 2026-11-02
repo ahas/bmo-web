@@ -576,6 +576,14 @@
   background-color: color-mix(in oklab, var(--ui-warning) 25%, transparent);
 }
 
+/* A settings table whose widths are held by hand stands exactly as wide as its columns add up to (docs/web.md,
+   「Agent management screen」): a drag moves the dragged column alone and the table grows or shrinks by what it added
+   or took. The component library's table keeps a minimum of its box's whole width, which a held table would be
+   stretched to, spreading the drag over every other column; a held table sets that minimum aside. */
+[data-settings-table] table.table-fixed {
+  min-width: 0;
+}
+
 [id^="setting-"] {
   transition: background-color var(--bmo-motion-unfold) var(--bmo-ease-exit);
 }

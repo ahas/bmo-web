@@ -74,11 +74,10 @@
           </MovingList>
         </section>
 
-        <!-- The gates, the runners, the editors and the job workers, each kind its own block. What one of their runs cost and what it ended carrying is written
-             down now, so there are figures to put under a name; a kind the catalogue has nobody
-             for does not stand at all, rather than standing empty. -->
+        <!-- The runners and the job workers, each its own block, read from the agency's lists as they are; a block
+             the agency lists nobody for does not stand at all, rather than standing empty. -->
         <section v-for="group in standingGroups" :key="group.key" class="flex flex-col gap-3">
-          <h2 class="text-sm font-semibold text-highlighted">{{ groupLabel($t, group.key) }}</h2>
+          <h2 class="text-sm font-semibold text-highlighted">{{ group.label }}</h2>
 
           <ul class="grid gap-2 sm:grid-cols-2">
             <li v-for="agent in group.agents" :key="agent.name">
@@ -92,7 +91,6 @@
                   <p class="truncate text-sm text-muted">{{ subtitle(agent) }}</p>
                   <AgentVitals :loading="usageInitial" :vitals="vitalsOf(agent.name, null)" :now="now" />
                 </div>
-                <span class="shrink-0 text-sm text-muted">{{ runsOf(agent.name) }}</span>
               </NuxtLink>
             </li>
           </ul>
@@ -106,19 +104,18 @@
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { POLL_INTERVAL_MS } from "#shared/config";
 import { controlLine, controlLink } from "~/domain/control";
-import { groupAgents, groupLabel, runOfAgent } from "~/domain/agents";
+import { agentNameLabel, defaultAnswererName, metaOf } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { avatarFor, useAvatars } from "~/domain/avatars";
-import { countText } from "~/domain/numbers";
 import { TURN_ENDED, useBmoTurns, useLivePicture, useLiveRefresh } from "~/domain/events";
-import { runningWorkLabel } from "~/domain/status";
 import { formatStamp } from "bmo-ui/app/domain/time";
-import { chatAgent } from "#shared/agent-names";
 import { agentUsage, emptyUsage } from "~/domain/usage";
 import { agentVitals } from "~/domain/vitals";
 
-import type { AgentList, AgentMode, ChatCompaction, LiveRun, RoomSummary, StatusView, UsageView } from "#shared/types";
-import type { AgentGroupKey, AgentMeta } from "~/domain/agents";
+import { agentProviderNames } from "#shared/types";
+
+import type { AgentList, AgentMode, AgentSummary, ChatCompaction, LiveRun, RoomSummary, StatusView, UsageView } from "#shared/types";
+import type { AgentMeta } from "~/domain/agents";
 import type { AgentVitals, ChatTurn } from "~/domain/vitals";
 
 const { t } = useI18n();
@@ -158,9 +155,8 @@ const roomsShown = computed(() => roomsLoaded.value && !usageInitial.value && !a
 
 const rooms = computed<RoomSummary[]>(() => data.value ?? []);
 const agents = computed<AgentList>(() => agentData.value);
-// Whether one session of the chat agent serves every room, which the catalogue says by holding the agent under its
-// own name.
-const hasSharedBmo = computed(() => agents.value.agents.some(agent => agent.name === chatAgent().name));
+// Whether one supervisor answers every room that names nobody, which the catalogue says by its default answerer.
+const hasSharedBmo = computed(() => agents.value.agents.some(agent => agent.kind === "supervisor" && agent.defaultAnswerer));
 const usage = computed<UsageView>(() => usageData.value ?? emptyUsage());
 // The picture each room wears here, the same one the sidebar and the room itself wear.
 const avatars = useAvatars();
@@ -177,71 +173,90 @@ const compacting = ref<ChatCompaction[]>([]);
 const bmoTurns = useBmoTurns();
 const turns = computed(() => new Map<number, ChatTurn>([...bmoTurns.value].map(([chatId, run]) => [chatId, { startedAt: run.startedAt, progress: run.progress }])));
 
-// The kinds that stand below the rooms, each read out of the catalogue rather than written out here, the gates in
-// the catalogue's order, since the gate order is the gate unit's: an agent the owner adds to one of them appears on
-// its own, under the name they gave it. The workers are in it for that reason above all — how many there are and
-// what each is called is the owner's to change, and a screen holding a worker of its own would show one of them
-// for all.
-const STANDING_KINDS: readonly AgentGroupKey[] = ["gate", "designated", "runner", "worker"];
+// The blocks that stand below the rooms (docs/web.md, 「Home screen」), each read out of the agency's lists rather than
+// written out here, so a role or a repository the owner adds stands on its own under its own name: the runners — the
+// roles on a line other than the one a job goes out on — and the job workers, every repository a job works in now.
+interface HomeGroup {
+  key: "runner" | "worker";
+  label: string;
+  agents: readonly AgentMeta[];
+}
 
-const standingGroups = computed<{ key: AgentGroupKey; agents: readonly AgentMeta[] }[]>(() =>
-  // A kind stands once the figures under its names can stand with it, so it arrives whole.
-  usageInitial.value ? [] : STANDING_KINDS.map((key) => ({ key, agents: groupAgents(t, agents.value.agents, key) })).filter(
-    (group) => group.agents.length > 0
-  )
-);
+const standingGroups = computed<HomeGroup[]>(() => {
+  // A block stands once the figures under its names can stand with it, so it arrives whole.
+  if (usageInitial.value) return [];
 
-// What stands under an agent's name. A runner and an editor wear the name the machine files
-// them under; a worker wears what its own job is a run of instead, because the queue is what a
-// worker is for and which item it is at is the thing worth a glance.
+  const listed = agents.value.agents;
+  const jobLine = agents.value.jobLine ?? null;
+  const runners = jobLine === null ? [] : listed.filter((agent) => agent.kind === "role" && agent.line !== null && agent.line !== jobLine);
+  const working = listed.filter((agent) => agent.kind === "repository" && agent.checkouts.some((checkout) => checkout.jobId !== null));
+  const groups: HomeGroup[] = [
+    { key: "runner", label: t("agents.label.group_runner"), agents: runners.map((agent) => metaOf(t, agent, rooms.value, listed)) },
+    { key: "worker", label: t("agents.label.group_worker"), agents: working.map((agent) => metaOf(t, agent, rooms.value, listed)) }
+  ];
+
+  return groups.filter((group) => group.agents.length > 0);
+});
+
+// What stands under a name. A runner wears the name the agency files it under; a repository wears what its job is a
+// run of and the role it runs as, since which item it is at is the thing worth a glance, or the line a job of no item
+// was launched for.
 function subtitle(agent: AgentMeta): string {
-  if (agent.group !== "worker") {
-    return agent.name;
-  }
+  const row = agents.value.agents.find((held) => held.name === agent.name);
 
-  const run = runOfAgent(agent, live.value);
+  if (row === undefined || row.kind !== "repository") return agent.name;
 
-  return run === null ? t("home.label.queue_job") : (runningWorkLabel(t, run) ?? t("home.label.loose_job"));
+  return row.checkouts
+    .filter((checkout) => checkout.jobId !== null)
+    .map((checkout) => {
+      const work = checkout.itemId === null || checkout.itemId <= 0
+        ? (purposeOf(checkout.jobId) ?? t("home.label.loose_job"))
+        : t("live.label.work_item", { id: checkout.itemId });
+
+      return checkout.role === null ? work : `${work} · ${agentNameLabel(t, { name: checkout.role, label: roleLabel(checkout.role) })}`;
+    })
+    .join(", ");
+}
+
+// A role's label out of the list in hand.
+function roleLabel(name: string): string | null {
+  return agents.value.agents.find((held) => held.kind === "role" && held.name === name)?.label ?? null;
+}
+
+// Why a job of no item was launched, as its launcher wrote it, where the live picture carries it.
+function purposeOf(jobId: number | null): string | null {
+  const run = live.value.find((one) => one.kind === "worker" && one.id === jobId);
+
+  return run?.purpose?.trim() || null;
+}
+
+// What a provider the agency names is, among the ones the console carries; none for one it does not know.
+function modeOf(provider: string | null): AgentMode | null {
+  return provider !== null && (agentProviderNames as readonly string[]).includes(provider) ? (provider as AgentMode) : null;
 }
 
 // One agent's figures, whatever kind it is: the bot's word for its model and its context, the
 // archive's sum of what it has burnt, and what it is doing at this second.
 function vitalsOf(name: string, chatId: number | null): AgentVitals {
-  const reported = agents.value.agents.find((held) => held.name === name);
-  const selected = selectedRoute(reported?.lastMode ?? null, reported?.lastModel ?? null, reported?.configuredMode ?? null, reported?.model ?? null);
+  const reported: AgentSummary | undefined = agents.value.agents.find((held) => held.name === name);
+  const answerer = defaultAnswererName();
 
   return agentVitals(t, {
     name,
-    chatId: name === chatAgent().name ? (turns.value.keys().next().value ?? compacting.value[0]?.chatId ?? null) : chatId,
-    mode: selected.mode,
-    model: selected.model,
-    contextTokens: reported?.contextTokens ?? null,
+    chatId: name === answerer ? (turns.value.keys().next().value ?? compacting.value[0]?.chatId ?? null) : chatId,
+    mode: modeOf(reported?.provider ?? null),
+    model: reported?.model ?? null,
+    contextTokens: null,
     usage: agentUsage(usage.value.agents, name),
     live: live.value,
     compacting: compacting.value,
-    turn: name === chatAgent().name ? (turns.value.values().next().value ?? null) : chatId === null ? null : (turns.value.get(chatId) ?? null)
+    turn: name === answerer ? (turns.value.values().next().value ?? null) : chatId === null ? null : (turns.value.get(chatId) ?? null)
   });
 }
 
-function selectedRoute(
-  lastMode: AgentMode | null,
-  lastModel: string | null,
-  primaryMode: AgentMode | null,
-  primaryModel: string | null
-): { mode: AgentMode | null; model: string | null } {
-  return { mode: lastMode ?? primaryMode, model: lastModel ?? primaryModel };
-}
-
-// The name the bot keeps a room's session under, which is the name every figure of it is filed
-// against.
+// The name the agency keeps a room's answering supervisor under, which every figure of it is filed against.
 function chatAgentName(chatId: number): string {
-  return hasSharedBmo.value ? chatAgent().name : `chat:${chatId}`;
-}
-
-function runsOf(name: string): string {
-  const agent = agents.value.agents.find((held) => held.name === name);
-
-  return agent === undefined ? "" : t("agents.label.runs", { n: countText(agent.runs) });
+  return hasSharedBmo.value ? defaultAnswererName() : `chat:${chatId}`;
 }
 
 useLivePicture((picture) => {

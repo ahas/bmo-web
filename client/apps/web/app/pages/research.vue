@@ -2,7 +2,8 @@
      each part. The queue's tab holds whether its loop runs, each category with its state and its stop and resume, and
      its queue in the queue's order, narrowed by category and state, each item's run opening in a sheet over the list,
      each item that filed a document asked a follow-up of and each stuck item asked again or moved to the front; the
-     sources' tab holds the sources its categories are read from. An address naming a document's number opens the ask
+     sources' tab holds the sources its categories are read from; the settings tab holds what every research run is
+     held to and the search engines' state. An address naming a document's number opens the ask
      as a follow-up of that document. -->
 <template>
   <UDashboardPanel id="research">
@@ -37,7 +38,7 @@
           />
         </UTooltip>
 
-        <UTooltip v-else :text="$t('research.title.source_add')">
+        <UTooltip v-else-if="tab === 'sources'" :text="$t('research.title.source_add')">
           <UButton
             class="shrink-0"
             size="sm"
@@ -131,6 +132,8 @@
         </template>
 
         <ResearchSources v-if="!failedFirst && tab === 'sources'" ref="sourcesRef" :categories="stateView?.categories ?? []" :quiet="failing" />
+
+        <ResearchSettings v-if="tab === 'settings'" class="-mx-4 sm:-mx-6" />
       </div>
 
       <ResearchAskDialog v-model:open="asking" :categories="categoryNames" :follows="follows" @asked="asked" />

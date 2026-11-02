@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { conversationOf } from "../../support/conversation";
+import { catalogueEntry } from "../../support/catalogue";
 import { WORKER } from "../../support/ids";
 
 import { wording } from "../../../apps/web/shared/wording";
@@ -30,7 +30,7 @@ import {
   watchStopTarget
 } from "../../../apps/web/app/domain/status";
 
-import type { AgentSummary, GateRunRecord, JobRecord, LiveRun, RoomSummary, RunnerRecord } from "../../../apps/web/shared/types";
+import type { AgentAxis, AgentSummary, GateRunRecord, JobRecord, LiveRun, RoomSummary, RunnerRecord } from "../../../apps/web/shared/types";
 import KO from "../../fixtures/app/domain/status.test.ko.json";
 
 function gateRun(verdict: string): GateRunRecord {
@@ -41,41 +41,16 @@ const rooms: RoomSummary[] = [{ chatId: -1001, title: "Alpha Room", messageCount
 
 // The board's groups are the catalogue's own agents, so a test about them puts the catalogue in
 // hand the way every screen does.
-function catalogued(name: string, kind: string, label: string): AgentSummary {
-  const carried = conversationOf({ kind });
-
-  return {
-    name,
-    kind,
-    sessionScope: carried?.scope ?? null,
-    turnShape: carried?.shape ?? null,
-    defaultAnswerer: carried?.defaultAnswerer ?? false,
-    model: null,
-    lastMode: null,
-    lastModel: null,
-    lastEffort: null,
-    label,
-    aliases: null,
-    icon: "i-material-symbols-radio-button-checked-outline",
-    cwd: null,
-    builtin: true,
-    chatId: null,
-    runs: 0,
-    lastRunAt: null,
-    lastKeepaliveAt: null,
-    contextTokens: null,
-    keepaliveStopped: false,
-    keepalivePausedAt: null
-  };
+function catalogued(name: string, kind: AgentAxis, label: string): AgentSummary {
+  return catalogueEntry(name, kind, label, { icon: "i-material-symbols-radio-button-checked-outline" });
 }
 
 beforeEach(() =>
   holdCatalogue([
-    catalogued("content-judge", "gate", KO.line_75),
-    catalogued("search", "runner", KO.line_76),
-    catalogued("browse", "runner", KO.line_77),
-    catalogued("digest", "editor", KO.line_78),
-    catalogued("worker", "worker", KO.line_79)
+    catalogued("search", "role", KO.line_76),
+    catalogued("browse", "role", KO.line_77),
+    catalogued("digest", "role", KO.line_78),
+    catalogued("worker", "role", KO.line_79)
   ])
 );
 
@@ -94,38 +69,29 @@ test("a Claude model is read under the name its identifier gives, listed or not"
 });
 
 describe("the groups the live board watches", () => {
-  test("are the three that run, under the catalogue's own names", () => {
+  test("are the three that run, under the pack's names for them", () => {
     expect(statusGroups(wording).map((group) => group.key)).toEqual(["gate", "runner", "worker"]);
     expect(statusGroups(wording).map((group) => group.label)).toEqual([KO.line_100, wording("agents.label.group_runner"), KO.line_100_2]);
-    expect(statusGroups(wording)[1]?.agents.map((agent) => agent.label)).toEqual([KO.line_101, KO.line_101_2]);
-  });
-
-  test("carry a worker the owner added, since the catalogue is where they come from", () => {
-    holdCatalogue([catalogued("worker", "worker", KO.line_106), catalogued("infra", "worker", KO.line_106_2)]);
-
-    expect(statusGroups(wording).find((group) => group.key === "worker")?.agents.map((agent) => agent.label)).toEqual([
-      KO.line_109,
-      KO.line_110
-    ]);
   });
 });
 
 describe("the board's sections", () => {
-  test("stand as one tab each: the pool, every group of runs, then the transport records", () => {
-    expect(LIVE_TABS.map((tab) => tab.value)).toEqual(["pool", "gate", "runner", "worker", "executions"]);
-    expect(LIVE_TABS.map((tab) => wording(tab.label))).toEqual([wording("live.label.tab_pool"), KO.line_118, wording("agents.label.group_runner"), KO.line_118_2, "Herdr"]);
+  test("stand as one tab each: the role slots, every group of runs, then the transport records", () => {
+    expect(LIVE_TABS.map((tab) => tab.value)).toEqual(["slots", "gate", "runner", "worker", "executions"]);
+    expect(LIVE_TABS.map((tab) => wording(tab.label))).toEqual([wording("live.label.tab_slots"), KO.line_118, wording("agents.label.group_runner"), KO.line_118_2, "Herdr"]);
     // Every tab wears a mark, since the row is read at a glance and on a phone.
     expect(LIVE_TABS.every((tab) => tab.icon.startsWith("i-material-symbols-"))).toBe(true);
   });
 
-  test("name a group of runs by the catalogue's own name for that branch", () => {
+  test("name a group of runs by the same words as the group", () => {
     for (const key of ["gate", "runner", "worker"] as const) {
       expect(liveTabLabel(wording, key)).toBe(statusGroups(wording).find((group) => group.key === key)!.label);
     }
   });
 
   test("only these are read back from an address", () => {
-    expect(isLiveTab("pool")).toBe(true);
+    expect(isLiveTab("slots")).toBe(true);
+    expect(isLiveTab("pool")).toBe(false);
     expect(isLiveTab("gate")).toBe(true);
     expect(isLiveTab("worker")).toBe(true);
     expect(isLiveTab("editor")).toBe(false);
@@ -225,8 +191,8 @@ describe("where a row of the board leads", () => {
     expect(jobRows(wording, [{ ...job, outcome: "failed", ok: false }], [], rooms)[0]?.tone).toBe("error");
   });
 
-  test("a job of another worker: that worker's own name and that worker's own log", () => {
-    holdCatalogue([catalogued("worker", "worker", KO.line_244), catalogued("infra", "worker", KO.line_244_2)]);
+  test("a job of another role: that role's own name and that role's own log", () => {
+    holdCatalogue([catalogued("worker", "role", KO.line_244), catalogued("infra", "role", KO.line_244_2)]);
 
     const row = jobRows(wording, [{ ...job, worker: "infra" }], [], rooms)[0];
 
@@ -391,8 +357,8 @@ describe("which block a finished run stands in", () => {
     outcome: "done"
   };
 
-  test("the runners' block holds the runners alone", () => {
-    expect(runRows(wording, [runner, batch], [], rooms, "runner").map((row) => row.agent)).toEqual([KO.line_409]);
+  test("the runners' block holds every role's run, newest first", () => {
+    expect(runRows(wording, [runner, batch], [], rooms, "runner").map((row) => row.agent)).toEqual([KO.line_78, KO.line_409]);
   });
 
   test("an agent the catalogue says nothing about stands with the runners", () => {

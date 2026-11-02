@@ -144,18 +144,56 @@ function silentStream(): Response {
   });
 }
 
-// One agent as the agency's own agent resource serves it, and one worker as its worker resource does: the
-// console reads these into the rows its sidebar lists.
-function agent(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
-  return { name, label, role: "role-a", gates: null, reasoning: null, voice: null, resetAt: null, standInAvailable: false, ...extra };
+// One provider order's entry, as a supervisor's and a role's answer carry it.
+function entry(provider: string, model: string, effort: string | null = null): Record<string, unknown> {
+  return { provider, model, effort, thinking: null, answerTokens: null };
 }
 
-function worker(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
+// One supervisor as the agency's supervisor resource serves it: the default answerer, whose turns its window makes, and
+// a companion, whose turns its settings' pieces make.
+function supervisor(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    name, label, cwd: "/srv/checkouts/worker", icon: null, builtin: true, nodeName: "node-a", role: "role-a",
-    state: "resting", sampling: null, restingSince: null, sessionId: null, runCount: 0, lastRunAt: null, ...extra
+    name, label, ownerAccount: null, aliases: null, icon: null, sessionScope: "room", turnShape: "pieces", defaultAnswerer: false,
+    brainFolder: `agents/${name}`, repository: "repo-a", order: [entry("claude-code", "claude-opus-5-5", "high"), entry("deepseek", "deepseek-v4-pro")],
+    quotaShare: 0.01, warming: { "claude-code": true, deepseek: false }, foldRatio: 0.8, gates: null, voice: null, sampling: null,
+    provider: "claude-code", model: "claude-opus-5-5", effort: "high", waitingFor: null, ...extra
   };
 }
+
+// One role as the agency's role resource serves it, with how many of its runs go and wait.
+function role(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    name, code: name, label, prompt: null, description: null, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }],
+    line: "worker", order: [entry("claude-code", "claude-sonnet-5", "medium")], quotaShare: 0.01, maxConcurrent: 2, sessions: "keep",
+    foldRatio: 0.8, callable: false, running: 0, waiting: 0, provider: "claude-code", waitingFor: null, ...extra
+  };
+}
+
+// One repository as the agency's repository resource serves it, with its checkouts and the job holding one.
+function repository(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    name, label, icon: null, ownerAccount: null, path: `/srv/checkouts/${name}`, nodeName: null, supportCount: 0,
+    prefixDocuments: [], preamble: null, rules: null, devCommand: null, pin: null, downgradeHeal: true, sampling: null,
+    checkouts: [{ name, path: `/srv/checkouts/${name}`, nodeName: null, job: null }], ...extra
+  };
+}
+
+// One provider as the agency's provider resource serves it, with its switch, its lines and its quota.
+function provider(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    name, code: name, label, enabled: true, registered: false, coworker: true, gateway: false, lines: ["chat", "worker", "search", "browse"],
+    quota: { left: 0.6, window: "week", balance: null, resetsAt: null }, reason: null, reasonCode: null, ...extra
+  };
+}
+
+const ROLES = [
+  role("worker", "Worker", { maxConcurrent: 3, running: 2, waiting: 1, order: [entry("claude-code", "claude-opus-5-5", "high")] }),
+  role("delegator", "Delegator", { running: 1 }),
+  role("helper", "Helper", { maxConcurrent: 0 }),
+  role("builder", "Builder", { maxConcurrent: 8 }),
+  role("scout", "Scout", { maxConcurrent: 12, callable: true, sessions: "fresh" }),
+  role("searcher", "Searcher", { line: "search", bundles: [{ name: "web.sites", code: "web-sites", label: "Site tools" }], maxConcurrent: 4 })
+];
 
 // One model file as the agency's model resource serves it, and the catalogue as a whole.
 function catalogueEntry(name: string, engine: string, registration: string): Record<string, unknown> {
@@ -169,8 +207,8 @@ function catalogueEntry(name: string, engine: string, registration: string): Rec
 // The registered models and model files the agency's stand-in holds, so the two model sections of the
 // agents screen render their lists and their changes as they would against the service.
 const models = new Map<string, Record<string, unknown>>([
-  ["model-a", { key: "registered::model-a", provider: "registered", model: "model-a-7b", tier: "large", healthy: true, lastAnsweredAt: null }],
-  ["model-b", { key: "registered::model-b", provider: "registered", model: "model-b-7b", tier: null, healthy: false, lastAnsweredAt: null }]
+  ["model-a", { key: "registered::model-a", name: "model-a", provider: "registered", model: "model-a-7b", cardService: null, roleFiles: false, tier: null, healthy: true, lastAnsweredAt: null, usedBy: ["repository repo-b"] }],
+  ["model-b", { key: "registered::model-b", name: "model-b", provider: "registered", model: "model-b-7b", cardService: "service-b", roleFiles: true, tier: null, healthy: false, lastAnsweredAt: null, usedBy: [] }]
 ]);
 const entries = new Map<string, Record<string, unknown>>([
   ["entry-a", catalogueEntry("entry-a", "engine-a", "model-a")],
@@ -231,33 +269,62 @@ const notFound = () => Response.json({ code: "not-found", error: "not served by 
 // not-found. The tests serve the rest of what they measure through the page's routes themselves.
 const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
   AGENCY: async (path, request) => {
-    // The agents' answer names the worker too, as the agency's does, beside the workers' own answer.
-    if (path === "/agents") {
-      // Beside them, the rows the agency keeps for the gate unit's sessions and a runner's, which no list of agents stands.
+    // The two axes and the places: two supervisors — the default answerer, whose turns its window makes, and a
+    // companion, whose turns its settings' pieces make — a handful of roles with runs going and waiting, and three
+    // repositories, one with a job holding a checkout.
+    if (path === "/supervisors") {
       return Response.json({
         items: [
-          agent("agent-a", "Agent A", { kind: "chat", defaultAnswerer: true }),
-          agent("worker", "Worker", { kind: "worker" }),
-          agent("gate-session", "Gate Session", { kind: "chat", role: null }),
-          agent("gate-a", "Gate A", { kind: "gate", role: "gate" }),
-          agent("runner-a", "Runner A", { kind: "runner", role: "searcher" })
+          supervisor("agent-a", "Agent A", { sessionScope: "agent", turnShape: "window", defaultAnswerer: true }),
+          supervisor("companion-a", "Companion A", { waitingFor: "every provider of its order is at its quota share" })
         ],
         more: false
       });
     }
-    if (path === "/workers") return Response.json({ items: [worker("worker", "Worker")], more: false });
-    if (path === "/roles") return Response.json({ items: [], more: false });
+    if (path === "/roles") return Response.json({ roles: ROLES, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }, { name: "web.sites", code: "web-sites", label: "Site tools" }], lines: ["worker", "search", "browse", "translate"] });
+    if (/^\/roles\/[^/]+\/sessions$/.test(path)) {
+      return Response.json({
+        items: [{ id: 2, sessionId: "session-b", path: "/srv/checkouts/repo-a", provider: "claude-code", model: "claude-opus-5-5", effort: "high", account: null, openedAt: Date.now() - 60_000, lastAnsweredAt: Date.now() - 5_000, runs: 3, context: { tokens: 42_000, share: 0.21 }, valid: true }],
+        more: false
+      });
+    }
+    if (path === "/repositories") {
+      return Response.json({
+        items: [
+          repository("repo-a", "Repository A", { supportCount: 2, prefixDocuments: ["docs/a.md"], checkouts: [{ name: "repo-a", path: "/srv/checkouts/repo-a", nodeName: null, job: { jobId: 7, itemId: 12, role: "worker" } }, { name: "repo-a-w2", path: "/srv/checkouts/repo-a-w2", nodeName: null, job: null }] }),
+          repository("repo-b", "Repository B", { pin: { provider: "registered", model: "model-a" }, downgradeHeal: false }),
+          repository("repo-c", "Repository C", { nodeName: "node-a" })
+        ],
+        more: false
+      });
+    }
+    if (path === "/slots") return Response.json({ items: ROLES.map((one) => ({ role: one.name, maxConcurrent: one.maxConcurrent, active: one.running, reserved: 0, waiting: one.waiting, runs: [] })) });
+    if (path === "/providers") {
+      return Response.json({
+        items: [
+          provider("claude-code", "Claude Code"),
+          provider("deepseek", "DeepSeek", { quota: { left: null, window: null, balance: 12.5, resetsAt: null } }),
+          provider("registered", "Registered models", { registered: true, lines: ["chat", "worker"], quota: null })
+        ],
+        more: false
+      });
+    }
+    const offered = /^\/provider-models\/([^/]+)$/.exec(path);
+
+    if (offered !== null) {
+      const named = decodeURIComponent(offered[1]!);
+      const ids = named === "registered" ? ["model-a"] : named === "deepseek" ? ["deepseek-v4-pro", "deepseek-flash"] : ["claude-opus-5-5", "claude-sonnet-5"];
+
+      return Response.json({ provider: named, models: ids.map((id, at) => ({ id, efforts: [], free: false, inService: at === 0 })), staleReadAt: null });
+    }
     if (path === "/sessions") return Response.json({ items: [], more: false });
     if (path === "/runs") return Response.json({ items: [], more: false });
     if (path === "/jobs") return Response.json({ items: [], more: false });
     if (path === "/log-lines") return Response.json({ items: [], more: false });
     if (path === "/prompt-documents") return Response.json({ items: [], more: false });
     if (path === "/companions") return Response.json({ items: [], more: false });
-    if (path === "/providers") return Response.json({ items: [], more: false });
-    if (path === "/tiers") return Response.json({ items: [], more: false });
 
     if (path === "/events") return silentStream();
-    if (path === "/pool") return Response.json({ readAt: Date.now(), workers: [], buckets: [] });
     if (path === "/fallback") return Response.json({ routes: [], answering: false });
 
     if (path === "/models" && request.method === "GET") return Response.json({ items: [...models.values()], more: false });
@@ -271,7 +338,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       if (models.has(name)) return Response.json({ code: "conflict", error: "a model is already registered" }, { status: 409 });
 
-      const made = { key, provider: "registered", model: body.model ?? "", tier: null, healthy: false, lastAnsweredAt: null };
+      const made = { key, name, provider: "registered", model: body.model ?? "", cardService: null, roleFiles: false, tier: null, healthy: false, lastAnsweredAt: null, usedBy: [] };
 
       models.set(name, made);
 

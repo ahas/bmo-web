@@ -109,7 +109,7 @@ const { t } = useI18n();
 
 const line = computed(() => props.row.line);
 const cwd = computed<string | null>(() =>
-  props.cwd !== undefined ? props.cwd : (catalogueAgents().find((agent) => agent.name === line.value.agent)?.cwd ?? null)
+  props.cwd !== undefined ? props.cwd : (catalogueAgents().find((agent) => agent.name === line.value.agent)?.path ?? null)
 );
 
 const top = computed(() => callTopLine(line.value.name, line.value.text) || (line.value.tool?.name ?? line.value.name ?? ""));

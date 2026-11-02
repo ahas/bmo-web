@@ -9,8 +9,8 @@ import type { AvatarProps } from "@nuxt/ui";
 import type { ComputedRef } from "vue";
 
 // What an agent stands as wherever it stands (docs/web.md, 「Profile photos」): every chat agent its face, decided
-// here and nowhere else, so the chat agents — who are equal — are drawn alike on every screen; every other agent its
-// group's mark.
+// here and nowhere else, so the chat agents — who are equal — are drawn alike on every screen; a role and a repository
+// their branch's mark.
 
 /** What an agent's mark is drawn from. */
 export type AgentMarkSubject = Pick<AgentMeta, "name" | "label" | "chatId" | "group" | "icon">;
@@ -22,9 +22,9 @@ export function agentFacesOf(faces: readonly AgentFace[]): AgentFaces {
   return new Map(faces.map((face) => [face.name, face.personId]));
 }
 
-/** Whether an agent stands as a face: a chat agent, and a room's own session. */
+/** Whether an agent stands as a face: a supervisor, the chat agent and every companion alike. */
 export function wearsFace(agent: Pick<AgentMeta, "group">): boolean {
-  return agent.group === "designated";
+  return agent.group === "supervisor";
 }
 
 

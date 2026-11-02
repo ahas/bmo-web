@@ -70,7 +70,6 @@
               <UFormField :label="asking === 'edit' ? $t('todo.label.edited_instruction') : $t('todo.label.rerun_instruction')" name="taskInstruction">
                 <GrowingTextarea v-model="instruction" :aria-label="$t('todo.aria.work_instruction')" :rows="4" />
               </UFormField>
-              <UFormField :label="$t('todo.label.task_tier')" name="taskTier"><USelect :content="{ align: 'start' }" v-model="tierChoice" :items="tierItems" class="min-h-11 w-full" :aria-label="$t('todo.label.task_tier')" /></UFormField>
             </template>
             <UFormField v-if="asking === 'skip'" :label="$t('todo.label.skip_reason')" name="skipWhy">
               <GrowingTextarea v-model="why" :aria-label="$t('todo.label.skip_reason')" :rows="2" />
@@ -156,9 +155,6 @@ const confirmLabel: Record<TaskVerb, string> = { edit: t("todo.action.save_instr
 const asking = ref<TaskVerb | null>(null);
 const instruction = ref("");
 const why = ref("");
-const tierChoice = ref("keep");
-const { data: tiers } = useFetch<import('#shared/agency').TierSettingsView>('/api/model-tiers', { key: 'model-tiers', server: false, lazy: true });
-const tierItems = computed(() => [{ value: 'keep', label: t("todo.label.keep_tier") }, ...(tiers.value?.tiers ?? []).map(value => ({ value, label: value }))]);
 const busy = ref(false);
 const refusal = ref("");
 
@@ -178,7 +174,7 @@ watch(() => task.value?.id, () => {
 });
 
 function choose(verb: TaskVerb) {
-  asking.value = verb; refusal.value = ""; tierChoice.value = "keep";
+  asking.value = verb; refusal.value = "";
   instruction.value = task.value?.instruction ?? "";
 }
 
@@ -196,7 +192,7 @@ async function send() {
     const body = verb === "skip"
       ? { action: verb, task: open.id, why: why.value }
       : verb === "edit" || verb === "rerun"
-        ? { action: verb, task: open.id, instruction: verb === "edit" ? instruction.value : changed, model: tierChoice.value === "keep" ? undefined : tierChoice.value }
+        ? { action: verb, task: open.id, instruction: verb === "edit" ? instruction.value : changed }
         : { action: verb, task: open.id };
     const order = await $fetch<WorkOrderView>(`/api/todos/${props.todoId}/work-order`, { method: "POST", body });
 

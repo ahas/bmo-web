@@ -1,8 +1,8 @@
 <template>
   <!-- Settings the engine samples an answer with, each with what it is for and its bounds in full
-       sight beside its box, an empty box the engine's own default and a switch's default its template's
-       (the agency's docs/companions.md, 「Its generation settings」). Rows of the form's own may stand ahead of
-       them in the same columns. -->
+       sight beside its box. A box or a switch the engine's own default stands in stays empty with no word, since
+       no route says what that default is (docs/web.md, 「The default among choices」); an emptied box is the
+       engine's own again. Rows of the form's own may stand ahead of them in the same columns. -->
   <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 sm:grid-cols-[max-content_minmax(0,1fr)_auto]" role="group" :aria-labelledby="labelledby">
     <slot />
 
@@ -16,13 +16,14 @@
       <USelect
         v-if="one.switch"
         :id="`${idPrefix}-${one.name}`"
-        v-model="draft[one.name]"
+        :model-value="draft[one.name] === '' ? undefined : draft[one.name]"
         :items="switchItems"
         value-key="value"
         class="w-full"
         :color="refusalAt(one.name) === '' ? undefined : 'error'"
         :highlight="refusalAt(one.name) !== ''"
         :disabled="disabled"
+        @update:model-value="(value: string) => (draft[one.name] = value)"
       />
       <NumberInput
         v-else
@@ -34,7 +35,6 @@
         :step-snapping="false"
         :format-options="{ maximumFractionDigits: one.whole ? 0 : DECIMAL_PLACES }"
         :digits="DIGITS"
-        :placeholder="$t('common.label.default_choice')"
         :color="refusalAt(one.name) === '' ? undefined : 'error'"
         :highlight="refusalAt(one.name) !== ''"
         :disabled="disabled"
@@ -63,7 +63,8 @@ interface Props {
 
 withDefaults(defineProps<Props>(), { disabled: false, refusalAt: () => "" });
 
-// Each setting's box as text, a switch's choice as on, off or default, held by the form until it saves.
+// Each setting's box as text, a switch's choice as on or off, either empty where nothing is set, held by the form until
+// it saves.
 const draft = defineModel<Record<string, string>>({ required: true });
 
 // A setting that takes fractions steps by a hundredth and keeps up to six places as they are typed.
@@ -73,7 +74,7 @@ const DECIMAL_PLACES = 6;
 // wide as a count of tokens, which a rarer longer value scrolls within.
 const DIGITS = 9;
 
-// The box holds a number, the form its text: an empty box is the engine's own default.
+// The box holds a number, the form its text: an empty box is the engine's own.
 function numberOf(text: string | undefined): number | null {
   return text === undefined || text.trim() === "" || !Number.isFinite(Number(text)) ? null : Number(text);
 }
@@ -84,7 +85,6 @@ function textOf(value: number | null | undefined): string {
 const { t } = useI18n();
 
 const switchItems = computed(() => [
-  { label: t("common.label.default_choice"), value: "default" },
   { label: t("agents.label.switch_on"), value: "on" },
   { label: t("agents.label.switch_off"), value: "off" },
 ]);

@@ -6,8 +6,8 @@ import { answer, standIn } from "../../support/units";
 
 import type { ResearchSettingsView } from "../../../apps/web/shared/research";
 
-// The research settings as the searcher tab reads and changes them (docs/web.md, the searcher tab): the research
-// unit's `GET /research-settings` with the agency's co-worker roles beside it, and one setting changed through its
+// The research settings as the research screen's settings tab reads and changes them (docs/web.md, 「Research screen」):
+// the research unit's `GET /research-settings` with the roles the agency lists as callable beside it, and one setting changed through its
 // `PUT`, sent as it stands since the unit keeps every field a change leaves out (bmo-research's docs/api.md,
 // 「research-settings」).
 
@@ -25,7 +25,15 @@ const research = standIn("RESEARCH", (call) => {
   return answer(SETTINGS);
 }, { headers: true });
 
-const agency = standIn("AGENCY", (call) => (call.path === "/roles" ? answer({ items: [{ name: "role-a" }, { name: "role-b" }], more: false }) : answer({ code: "not-found" }, 404)));
+// A role as the agency's `GET /roles` answers it, callable or not.
+function role(name: string, callable: boolean): Record<string, unknown> {
+  return {
+    name, code: name, label: name, prompt: null, description: null, bundles: [], line: "worker", order: [], quotaShare: 0.01,
+    maxConcurrent: 2, sessions: "keep", foldRatio: 0.8, callable, running: 0, waiting: 0, provider: null, waitingFor: null
+  };
+}
+
+const agency = standIn("AGENCY", (call) => (call.path === "/roles" ? answer({ roles: [role("role-a", true), role("role-b", true), role("role-c", false)], bundles: [], lines: ["worker"] }) : answer({ code: "not-found" }, 404)));
 
 process.env.RESEARCH_TOKEN = "research-token";
 
@@ -33,11 +41,11 @@ const read = await routeOf<ResearchSettingsView>("../../apps/web/server/api/rese
 const change = await routeOf<ResearchSettingsView>("../../apps/web/server/api/research-settings.put");
 
 describe("reading the research settings", () => {
-  test("reads the research unit with its token, the agency's co-worker roles beside them and each key's branches and clock alone", async () => {
+  test("reads the research unit with its token, the roles the agency lists as callable beside them and each key's branches and clock alone", async () => {
     const got = await asked(read, {});
 
     expect(got.status).toBe(200);
-    expect(got.answer?.roles).toEqual(["role-a", "role-b"]);
+    expect(got.answer?.roles).toEqual([{ name: "role-a", label: "role-a" }, { name: "role-b", label: "role-b" }]);
     expect(got.answer?.keys).toEqual([{ key: "search:basic", branches: 0, minutes: 5 }]);
     expect(got.answer?.engines?.[0]?.name).toBe("engine-a");
     expect(research.asked.at(-1)?.headers?.authorization).toBe("Bearer research-token");

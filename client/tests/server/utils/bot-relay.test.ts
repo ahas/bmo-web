@@ -89,7 +89,7 @@ describe("the relay to a tab", () => {
 
     expect(receiver.asked.at(-1)?.path).toBe("/events?after=5&run=receiver-run");
     expect(job.asked.map((one) => one.path)).toEqual(["/events?after=3", "/events?after=4"]);
-    expect(agency.asked.at(-1)?.path).toBe("/events?kinds=turn.created,turn.ended,job.created,job.changed,job.ended,run.created,run.changed,run.stopped,session.created,session.changed");
+    expect(agency.asked.at(-1)?.path).toBe("/events?kinds=turn.created,turn.ended,job.created,job.changed,job.ended,run.created,run.changed,run.stopped,session.created,session.changed,supervisor.changed,role.changed,repository.changed,repository.deleted,slot-request.changed");
 
     // The receiver's events pass as they came.
     expect(text).toContain('event: run\ndata: {"run":"receiver-run"}\n\n');

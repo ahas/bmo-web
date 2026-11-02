@@ -667,8 +667,8 @@ export interface TodoItem {
   // The state the job of this item stands in right now, as the agency names it: `starting` while its worker is
   // launched, `running` while its turn goes. Null or absent where no job of it is under way.
   liveState?: "starting" | "running" | null;
-  // Whether the item was marked done lately and its closing report has not arrived: the run's report is still
-  // being written for it.
+  // Whether the item is done in bmo-job while the agency's job for it still goes: its report is still going out,
+  // until the agency says the job ended.
   reporting?: boolean;
   priority: number;
   status: string;
@@ -888,6 +888,9 @@ export interface LiveRun {
   // A worker run alone: which TODO item it is a run of. The item is the only number shown for a
   // run; one with no item behind it carries none.
   todoId: number | null;
+  // A worker run alone: the repository it runs in and the checkout of it, each null where the agency names none.
+  repository?: string | null;
+  checkout?: string | null;
   // A worker run with no item alone: why it was launched, as its launcher wrote it, which a screen
   // shows where an item's number would stand. Absent or null for every other run.
   purpose?: string | null;
@@ -1044,7 +1047,10 @@ export type BotEventType =
   | "voice-briefing"
   // A job the agency runs for a room started, changed or ended. What runs now is read from the agency's job
   // list, so the event says only that it moved.
-  | "worker-run";
+  | "worker-run"
+  // A supervisor, a role or a repository changed or went, or a role's slot was asked, let in or given back, as the
+  // agency publishes it: what the agent lists and the role slots read again on.
+  | "agency-catalogue";
 
 // The ways a turn ends: the bot answered, it held its peace, its run failed, somebody stopped it,
 // or it did nothing but wait for the rest of what someone is typing. Whatever a turn moves — a
@@ -1258,9 +1264,11 @@ export interface JobRecord {
   // Why a job with no item was launched, as its launcher wrote it; null for a run of an item and
   // for a row written before launches had to say.
   purpose: string | null;
-  // The worker that ran it, which is the name its log is kept under and the screen it belongs
-  // to. A row from before there was more than one worker carries the built-in worker's name.
+  // The role it ran as, which is the name its log is kept under and the screen it belongs to.
   worker: string;
+  // The repository it ran in and the checkout of it, each null where the agency names none.
+  repository?: string | null;
+  checkout?: string | null;
 }
 
 // What the live status screen is answered with: the bot's picture of now, and the archive's
@@ -1385,89 +1393,68 @@ export interface TurnFigures {
   spend: SpendFigure | null;
 }
 
+// Which of the agency's two axes or its places an entry of the agent list is (the agency's docs/agents.md, 「Two
+// axes」): a supervisor — the chat agent or a companion —, a role, or a repository.
+export type AgentAxis = "supervisor" | "role" | "repository";
+
+// One run a role's slot is let in for now, as the agency's `GET /slots` answers it: the path it works at, the
+// provider and model it went out on, the source that asked for it, and since when it holds the slot, in epoch
+// milliseconds. A field the answer does not carry stands as none.
+export interface RoleSlotRun {
+  role: string;
+  path: string | null;
+  provider: string | null;
+  model: string | null;
+  source: string | null;
+  since: number | null;
+}
+
+// One checkout of a repository, as the agency answers it: its name, path and node, and the job holding it where one
+// does — the job, its item and the role it runs as —, each none where it is not held or the answer does not say.
+export interface RepositoryCheckout {
+  name: string | null;
+  path: string | null;
+  node: string | null;
+  jobId: number | null;
+  itemId: number | null;
+  role: string | null;
+}
+
+// One entry of the console's agent list: a supervisor, a role or a repository, as the agency's own lists answer it.
+// Every field belongs to one axis and stands empty — null, false, nought or no entries — on the others.
 export interface AgentSummary {
   name: string;
-  kind: string;
-  // What it is for, which decides the bundles its turns are given (the agency's docs/agent-roles.md); null where
-  // its row names none, absent where the archive holds no such column yet.
-  role?: string | null;
-  // How the one runner carries a conversational agent (the agency's docs/agents.md, 「One runner」): one session
-  // across its rooms or one in each, its window's turns or its settings' pieces, and whether it answers
-  // every room that names nobody. The scope and shape are null and the answering false on every other
-  // row.
+  kind: AgentAxis;
+  // What the entry is called: a supervisor's and a repository's label, and a role by the pack's word for its name
+  // where the pack holds one and by the agency's label otherwise. Null where the answer names none.
+  label: string | null;
+  // The other names the owner calls a supervisor by.
+  aliases: string | null;
+  // The mark the agency answers for a supervisor and a repository; null where it answers none.
+  icon: string | null;
+  // How a supervisor's session is carried (the agency's docs/supervisors.md): one session across its rooms or one in
+  // each, its window's turns or its settings' pieces, and whether it answers every room that names nobody.
   sessionScope: "agent" | "room" | null;
   turnShape: "window" | "pieces" | null;
   defaultAnswerer: boolean;
-  // The model and provider the agent is configured to begin on, as the bot resolves its work key
-  // against the shared tier settings. Null where the agent has no work key or the settings refuse
-  // it, and null or absent when the list was read from the archive while the bot was not
-  // answering. lastMode and lastModel below remain what actually answered.
-  model: string | null;
-  configuredMode?: AgentMode | null;
-  // What the provider and the model it begins on are called, each as it answers for itself: the
-  // provider's label, and a registration's where the model is one. Absent or null where the bot did
-  // not say, and a screen then names them its own way.
-  configuredLabel?: string | null;
-  modelLabel?: string | null;
-  lastMode: AgentMode | null;
-  lastModel: string | null;
-  lastEffort: string | null;
-  // What the catalogue calls this agent, the other names the owner calls it by, and the mark a
-  // screen puts on it. All three are the archive's, so a screen never keeps a list of its own.
-  label: string | null;
-  aliases: string | null;
-  icon: string | null;
-  // Where a worker's jobs run. Null for every other kind of agent.
-  cwd: string | null;
-  // Whether a worker's directory is a git checkout; one that is not runs ordinary jobs only.
-  // Absent for every other kind of agent.
-  checkout?: boolean;
-  // What a worker's job prompts open with, and the one line its standing dev server runs. Null for
-  // every other kind, and absent when the list came from an archive that has not got the columns.
-  preamble?: string | null;
-  devCommand?: string | null;
-  // The documents a worker's session prefix carries, in the order it takes them, each a path relative to the
-  // worker's checkout or absolute under the umbrella. Absent for every other kind, and where the agency names none.
-  prefixDocuments?: string[];
-  // Whether the bot writes this row on every start. A built-in agent is part of the machine; one
-  // the owner added is theirs to change and to remove.
-  builtin: boolean;
-  chatId: number | null;
-  // The room sessions a designated agent holds, each with the moment its log last took a line there;
-  // absent for an agent that holds none.
+  // The rooms a supervisor's sessions hold, each with the moment its log last took a line there where that is known.
   sessions?: { chatId: number; lastAt: number | null }[];
-  runs: number;
-  lastRunAt: number | null;
-  lastKeepaliveAt: number | null;
-  // What this session was carrying when it last answered. Only a session that keeps one has it.
-  contextTokens: number | null;
-  // Whether the owner has stopped this agent's keepalive. A stopped agent still answers
-  // everything asked of it; what is off is the ping that holds its prefix warm.
-  keepaliveStopped: boolean;
-  // When a worker's keepalive was turned off until its next job, in seconds, or null.
-  keepalivePausedAt: number | null;
-  // Whether a worker's session is dropped when a run of it falls to a lesser model. Present for a
-  // worker only; one read from an archive that has not got the column reads as on.
-  downgradeHeal?: boolean;
-  // A base worker's two support settings, and a support worker's base and number
-  // (the agency's docs/worker-slots.md). Present for a worker only.
-  supportCount?: number;
-  supportKeepalive?: number;
-  supportOf?: string | null;
-  supportSlot?: number | null;
-  // The node a worker's checkout stands on, its directory being a path there; null for this machine
-  // (the agency's docs/work-nodes.md). Present for a worker only.
-  node?: string | null;
-  // The one provider a worker is pinned to, null where it follows the worker key's road. Present
-  // for a worker only.
-  pinnedProvider?: AgentMode | null;
-  // The one model of that provider the worker is pinned to — a registration — or null where the pin
-  // is the provider alone. Present for a worker only.
-  pinnedModel?: string | null;
-  // The agent's own thinking and effort over its tier (the agency's docs/model-tiers.md, 「An agent's own thinking
-  // and effort」). Null for an agent no choice of its own reaches — a gate, a support worker — and
-  // absent where the list was read from the archive while the bot was not answering.
-  reasoning?: AgentReasoningView | null;
+  // What a supervisor's last turn went out on, or a role's active provider, with the model and effort its order
+  // names there, and why its turns or runs wait; each null where the agency names none.
+  provider: string | null;
+  model: string | null;
+  effort: string | null;
+  waitingFor: string | null;
+  // A role's line, how many of its runs go and wait, its cap, and the runs its slots hold now.
+  line: string | null;
+  running: number;
+  waiting: number;
+  maxConcurrent: number | null;
+  runs: RoleSlotRun[];
+  // A repository's path, the node it stands on, and its checkouts.
+  path: string | null;
+  node: string | null;
+  checkouts: RepositoryCheckout[];
 }
 
 // What an agent's row names of its own thinking and effort, each null where its tier and its line
@@ -1484,6 +1471,8 @@ export interface AgentReasoningView {
 // which item it is, how long it went, how many tools it called and what each model it used spent.
 export interface JobLine {
   run: string;
+  // The role the job runs as, under whose name its log lines stand; absent or null where the agency names none.
+  role?: string | null;
   todoId: number | null;
   title: string | null;
   // Why a job with no item was launched, as its launcher wrote it.
@@ -1594,12 +1583,14 @@ export interface RoleView {
 
 export interface AgentList {
   reachable: boolean;
+  // The supervisors, then the roles, then the repositories, each in the order the agency lists them.
   agents: AgentSummary[];
-  // Every role an agent may hold, in the order the bot lists them; empty while it is not answering.
+  // Every role, with the bundles it gives, in the order the agency lists them; empty while it is not answering.
   roles: RoleView[];
-  // The gate order, which is the code's own and stands whether the bot answers or not. Empty only
-  // before the first read has come back.
-  // The gate order is the gate unit's, which is not split yet; null while no unit answers it.
+  // The line a job's run goes out on: the line of the role the agency's newest job ran as, null where it lists no
+  // job. A role on another line is one a runner runs as (docs/web.md, 「Home screen」). Absent before the list arrives.
+  jobLine?: string | null;
+  // The gate order is the gate unit's; null while no unit answers it.
   gateOrder: GatePartView[] | null;
   // The registration name of the receiver's default answerer, whose turns are the chat agent's; null where the
   // receiver did not say.

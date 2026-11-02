@@ -3,6 +3,7 @@ import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import KO from "../fixtures/browser/agents-designated.ko.json";
+import { catalogueEntry } from "../support/catalogue";
 
 import type { Browser, BrowserContext } from "playwright-core";
 import type { AgentList } from "../../apps/web/shared/types";
@@ -50,42 +51,15 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-// The catalogue: the chat agent's own row (answering every room), and the session it keeps for one room, labeled by
-// that room's title as the archive labels it.
+// The agent list: the chat agent's own supervisor row, answering every room that names nobody, and a companion named
+// the way a room's title reads, which no screen may take for the agent's name.
 function catalogue(list: AgentList, chatName: string): AgentList {
-  const row = (name: string, label: string, extra: Record<string, unknown>) => ({
-    name,
-    kind: "chat",
-    role: "companion",
-    sessionScope: null,
-    turnShape: null,
-    defaultAnswerer: false,
-    model: null,
-    lastMode: null,
-    lastModel: null,
-    lastEffort: null,
-    label,
-    aliases: null,
-    icon: null,
-    cwd: null,
-    builtin: false,
-    chatId: null,
-    runs: 0,
-    lastRunAt: null,
-    lastKeepaliveAt: null,
-    contextTokens: null,
-    keepaliveStopped: false,
-    keepalivePausedAt: null,
-    ...extra
-  });
-
   return {
     ...list,
     defaultAnswerer: chatName,
     agents: [
-      ...list.agents.filter((agent) => agent.name !== chatName && !agent.name.startsWith("chat:")),
-      row(chatName, CHAT_LABEL, { defaultAnswerer: true }),
-      row(`chat:${ROOM}`, ROOM_TITLE, { chatId: ROOM, defaultAnswerer: true })
+      ...list.agents.filter((agent) => agent.name !== chatName),
+      catalogueEntry(chatName, "supervisor", CHAT_LABEL, { defaultAnswerer: true, sessionScope: "agent", turnShape: "window" })
     ]
   };
 }

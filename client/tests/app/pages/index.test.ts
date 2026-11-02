@@ -22,31 +22,29 @@ function lineWith(mark: string): string {
 }
 
 describe("the blocks below the gates", () => {
-  test("are the kinds this screen stands, the workers among them", () => {
-    // Which kinds stand is the console's own arrangement; who is in each of them is the
-    // archive's, so a worker the owner adds arrives without this page being touched.
-    expect(lineWith("STANDING_KINDS: readonly")).toContain('"worker"');
-    expect(script).toContain("groupAgents(t, agents.value.agents, key)");
-    expect(template).toContain("groupLabel($t, group.key)");
+  test("are the runners and the job workers, read out of the agency's lists", () => {
+    // Which blocks stand is the console's own arrangement; who is in each of them is the agency's, so a role or a
+    // repository the owner adds arrives without this page being touched.
+    expect(lineWith('agent.kind === "role" && agent.line !== null && agent.line !== jobLine')).toContain("runners");
+    expect(lineWith('agent.kind === "repository" && agent.checkouts.some')).toContain("working");
+    expect(template).toContain("{{ group.label }}");
   });
 
-  test("stand one row to an agent, each under its own name, figures and log", () => {
+  test("stand one row to an entry, each under its own name, figures and log", () => {
     expect(template).toContain('v-for="agent in group.agents"');
     expect(template).toContain(":to=\"`/agents/${agent.name}`\"");
     expect(template).toContain("vitalsOf(agent.name, null)");
-    expect(template).toContain("runsOf(agent.name)");
   });
 
   test("hold no worker's name of their own, since holding one is holding the wrong one", () => {
     expect(source).not.toContain("WORKER_AGENT");
   });
 
-  test("still say what the job on a worker is a run of, under that worker's own row", () => {
+  test("still say what the job in a repository is a run of and the role it runs as, under that repository's own row", () => {
     expect(template).toContain("subtitle(agent)");
-    // The run is looked for under the row's own agent, so the item shown on a worker is the
-    // item that worker is at.
-    expect(script).toContain("runOfAgent(agent, live.value)");
-    expect(script).toContain("runningWorkLabel(t, run)");
+    // The job is read off the repository's own checkouts, so the item shown on a repository is the item a job there is at.
+    expect(script).toContain("row.checkouts");
+    expect(script).toContain('t("live.label.work_item", { id: checkout.itemId })');
   });
 });
 

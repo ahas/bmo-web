@@ -31,8 +31,8 @@ export interface RelayCursors {
   job: StreamCursor;
 }
 
-// The agency's events the console's screens read back on: a turn going out, a turn ending, and a job starting,
-// changing or ending beside the chat.
+// The agency's events the console's screens read back on: a turn going out, a turn ending, a job starting, changing
+// or ending beside the chat, and a supervisor, a role, a repository or a role's slot moving.
 export const AGENCY_KINDS = [
   "turn.created",
   "turn.ended",
@@ -43,7 +43,12 @@ export const AGENCY_KINDS = [
   "run.changed",
   "run.stopped",
   "session.created",
-  "session.changed"
+  "session.changed",
+  "supervisor.changed",
+  "role.changed",
+  "repository.changed",
+  "repository.deleted",
+  "slot-request.changed"
 ] as const;
 
 // The voice engine's kinds the screens read (its `docs/boundary-api.md`, 「Events」): a briefing taken in, ended, or

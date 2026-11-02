@@ -4,12 +4,12 @@ import { countText } from "./numbers";
 import { modeLabel } from "./status";
 import { draftQuestionLabel } from "./working";
 
-import type { DraftKey, DraftProcessValues, DraftProcessView, DraftRead, DraftReadHow, DraftRow, DraftSource, DraftSummary, PastCeiling } from "#shared/drafting";
+import type { DraftKey, DraftProcessValues, DraftProcessView, DraftRead, DraftReadHow, DraftRow, DraftSummary, PastCeiling } from "#shared/drafting";
 import type { AgentMode, Judgement } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
 // What the agents screen's draft-process table says and how its cells are checked and sent, and what a message's
-// draft chip stands and spreads (docs/web.md, the tier tab's draft-process table and the room screen's draft chip).
+// draft chip stands and spreads (docs/web.md, the supervisors tab's draft process and the room screen's draft chip).
 
 /** The gate's stage its rows of a round's draft process stand under. */
 export const DRAFT_STAGE = "draft";
@@ -25,11 +25,6 @@ export const QUESTION_TEXT_MAX = 4_000;
 
 // A question's name: a lowercase word of letters, digits and dashes.
 const QUESTION_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-
-const SOURCE_LABELS: Record<DraftSource, string> = {
-  set: "agents.label.draft_source_set",
-  default: "agents.label.draft_source_default"
-};
 
 const PAST_CEILING_LABELS: Record<PastCeiling, string> = {
   send: "agents.label.draft_past_send",
@@ -88,10 +83,6 @@ export function draftKeyId(key: DraftKey): string {
 
 export function sameDraftKey(one: DraftKey, other: DraftKey): boolean {
   return one.provider === other.provider && one.tier === other.tier && one.agentName === other.agentName;
-}
-
-export function draftSourceText(t: Translate, source: DraftSource): string {
-  return t(SOURCE_LABELS[source]);
 }
 
 export function pastCeilingText(t: Translate, past: PastCeiling): string {

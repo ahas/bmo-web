@@ -17,8 +17,8 @@ const templateOf = (source: string) => source.slice(0, source.indexOf("<script")
 const scriptOf = (source: string) => source.slice(source.indexOf("<script"));
 
 const page = await read("./live.vue");
-const pool = await read("../components/CoworkerPoolBoard.vue");
-const tile = await read("../components/PoolTile.vue");
+const pool = await read("../components/RoleSlotsBoard.vue");
+const tile = await read("../components/SlotTile.vue");
 const stopConfirm = await read("../components/StopConfirm.vue");
 
 describe("the board's sections", () => {
@@ -35,12 +35,12 @@ describe("the board's sections", () => {
   test("are drawn every one of them and shown one at a time, so none of them starts over when opened", () => {
     const template = templateOf(page);
 
-    for (const one of ["v-show=\"tab === 'pool'\"", "v-show=\"tab === 'executions'\"", 'v-show="tab === group.key"']) {
+    for (const one of ["v-show=\"tab === 'slots'\"", "v-show=\"tab === 'executions'\"", 'v-show="tab === group.key"']) {
       expect(template).toContain(one);
     }
     // A section taken down would take its reading down with it, and put a skeleton back on return.
     expect(template).not.toContain("v-if=\"tab === ");
-    expect(template).toContain("<CoworkerPoolBoard :now=");
+    expect(template).toContain("<RoleSlotsBoard :now=");
   });
 
   test("never repeat the tab's own name as a heading over the section", () => {
@@ -99,9 +99,9 @@ describe(KO.line_63, () => {
     expect(scriptOf(page)).toContain("useBackClose(computed(() => stops.asking.value !== null)");
   });
 
-  test("a co-worker tile carries the stop of the run it works inside", () => {
+  test("a slot's tile carries the stop of the item its run is a job of", () => {
     expect(templateOf(tile)).toContain("$t('live.aria.stop_named', { name: caption })");
-    expect(scriptOf(tile)).toContain("tileStop(props.tile)");
+    expect(scriptOf(tile)).toContain("props.tile.run?.stop");
     expect(templateOf(pool)).toContain(`:question="$t('live.message.stop_confirm')"`);
   });
 });

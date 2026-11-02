@@ -45,8 +45,6 @@ common:
     day_format: YYYY년 M월 D일 (ddd)
     days: "{d}일"
     days_hours: "{d}일 {h}시간"
-    default: 기본
-    default_choice: 기본값
     depth_basic: 기본
     depth_exhaustive: 초정밀
     depth_thorough: 정밀
@@ -65,10 +63,8 @@ common:
     minutes_seconds: "{m}분 {s}초"
     model: 모델
     name: 이름
-    no_effort: effort 없음
     no_record: 기록 없음
     none: 없음
-    off: 꺼짐
     optional: 선택
     original: 원문
     palette_forest: 숲
@@ -105,7 +101,6 @@ common:
     unplayable: 재생할 수 없음
     view: 보기
     volume: 볼륨
-    worker: 워커
   action:
     translate: 번역
     add: 추가
@@ -1243,6 +1238,8 @@ todo:
     conversation: 대화
     deploy_hold_breaks: 스키마 변경
     deploy_hold_jobs: 기다리는 Job
+    deploy_deploying: 배포 중
+    deploy_testing: 테스트 중
     deploy_waits: 이 Job이 끝나면 배포가 올라감
     detail_description: 지시와 기록
     discussion: 의논
@@ -1277,7 +1274,6 @@ todo:
     held_stop: 중지
     held_stopping: 중지 중
     item_head: "#{id} {title}"
-    keep_tier: 현재 등급 / 역할 설정 유지
     manage: 관리
     merged_done: "{target}에 병합되어 함께 완료"
     merged_done_since: "{since} {target}에 병합되어 함께 완료"
@@ -1371,7 +1367,6 @@ todo:
     task_running: 실행 중
     task_skipped: 건너뜀
     task_step: 작업 단계
-    task_tier: 작업 모델 등급
     time_attempts: "{n}번 실행"
     time_rest: "기타 {n}가지"
     time_total: "총 {time}"
@@ -1575,6 +1570,7 @@ settings:
     briefing: 보이스브리핑
     notifications: 알림
     palette: 대화방
+    providers: 공급자
     secrets: 비밀 보관함
     theme: 테마
   action:
@@ -1615,17 +1611,12 @@ secrets:
     unreachable: 계정 서비스에 연결되지 않았습니다.
 agents:
   action:
-    default_order: 기본 순서로
     expand: 크게 보기
-    open_routes: 실행 경로 열기
     reset_document: 파일 내용으로 되돌리기
     line_details: 자세히
     log: 로그
-    node_checkout_add: 노드 체크아웃 추가
     prefix_document_add: 프리픽스 문서 추가
-    pause_until_job: 다음 Job까지 끄기
     persona_to_file: 파일 내용으로 되돌리기
-    previous_confirm: 이전 설정 확인, 선택한 등급 적용
     session_reset: 세션 초기화
     session_reset_short: 초기화
     settings: 설정
@@ -1634,10 +1625,22 @@ agents:
     use_account: 이 계정 사용
     use_model: 이 모델로 변경
     walk_order: 순서대로
+    provider_add: 공급자 추가
   aria:
-    account_of: "{name} 계정"
+    callable_of: "{name} 코워커 호출 허용"
+    heal_of: "{name} 강등 복원"
+    max_concurrent_of: "{name} 동시 실행"
+    order_ceiling_of: "{name} 답변 상한"
+    order_effort_of: "{name} Effort"
+    order_entry_remove: "{name} 제거"
+    order_model_of: "{name} 모델"
+    order_of: "{name} 공급자 순서"
+    order_thinking_of: "{name} 생각"
+    sessions_of: "{name} 세션"
+    settings_of: "{name} 설정"
+    threshold_of: "{name} 압축 기준"
+    warming_of: "{name} {provider} 캐시 유지"
     choose_model: 모델 선택
-    cwd_of: "{name} 작업 경로"
     draft_ceiling_of: "{key}의 제한 시간"
     draft_light_chars_of: "{key}의 짧은 턴 기준"
     draft_light_of: "{key}의 짧은 턴 질문"
@@ -1649,15 +1652,6 @@ agents:
     draft_remove_question: "{name} 빼기"
     draft_rounds_of: "{key}의 질문 순서"
     drag_reorder: 드래그해서 순서 변경
-    effort_of: "{name} Effort"
-    fold_ratio_of: "{tier} {provider} 압축 기준"
-    keepalive_of: "{name} 캐시 유지"
-    label_of: "{name} 이름표"
-    limit_of: "{mode} {tier} 한도"
-    model_of: "{tier} {provider} 모델"
-    node_checkout_node: 체크아웃 노드
-    node_checkout_path: 체크아웃 경로
-    node_checkout_remove_of: "{node} 체크아웃 삭제"
     prefix_document_down: "{path} 아래로"
     prefix_document_path: 프리픽스 문서 경로
     prefix_document_remove: "{path} 빼기"
@@ -1667,11 +1661,7 @@ agents:
     session_reset_of: "{name} 세션 초기화"
     settings_sections: 설정 섹션
     switch_on: "{name} 켜기"
-    thinking_of: "{name} 생각"
-    tier_of: "{name} 등급"
     vitals: 에이전트 지표
-    worker_name: 워커 이름
-    role_delete_of: "{name} 역할 삭제"
   error:
     account_fields_needed: 계정 이름과 자격 증명 파일 경로를 입력해 주세요.
     account_order_list: 계정 순서를 목록으로 보내 주세요.
@@ -1682,22 +1672,16 @@ agents:
     agency_not_found: 에이전시에 해당 항목이 없습니다.
     agency_unavailable: 에이전시가 지금 이 요청을 처리할 수 없습니다.
     agency_unprocessable: 에이전시가 받아들일 수 없는 값입니다.
-    agent_add_refused: 에이전트를 등록하지 못했습니다.
     agent_name_taken: 이미 있는 키입니다.
     bad_account_choice: 계정은 자동이거나 계정 하나여야 합니다.
     bad_agent_name: 에이전트 이름이 올바르지 않습니다.
     bad_answer_size: 출력 크기는 1024·2048·4096·8192 중 하나여야 합니다.
     bad_credential_kind: 자격 증명은 설정 디렉터리이거나 토큰 파일입니다.
     bad_depth: 검색 깊이가 올바르지 않습니다.
-    bad_effort: Effort는 기본이거나 단계 하나여야 합니다.
     bad_launch_agent: 실행할 에이전트가 올바르지 않습니다.
-    bad_model_method: 모델 방법은 실행 경로 아니면 고정 모델입니다.
-    bad_model_registration: 고정 모델에는 등록 모델 이름이 필요합니다.
     bad_run_mode: 실행 모드는 자동 또는 공급자 하나여야 합니다.
     bad_thinking: 생각은 켬·끔 값이어야 합니다.
     bad_word_worker: 메시지를 보낼 워커가 올바르지 않습니다.
-    base_prompt_action: 기본 프롬프트에 요청한 동작이 올바르지 않습니다.
-    base_prompts_read_failed: 기본 프롬프트를 불러오지 못했습니다.
     catalogue_action: 모델 파일에 요청한 동작이 올바르지 않습니다.
     catalogue_read_failed: 모델 파일 목록을 불러오지 못했습니다.
     companion_add: 감독관의 이름, 표시 이름, 모델, 작업 워커, 방 제목을 보내 주세요.
@@ -1714,7 +1698,6 @@ agents:
     companions_read_failed: 감독관 설정을 불러오지 못했습니다.
     chat_documents_read_failed: 시스템 프롬프트를 불러오지 못했습니다.
     chat_document_save_failed: 저장하지 못했습니다.
-    supervisor_model_save_failed: 모델을 바꾸지 못했습니다.
     chat_document_action: 저장하거나 되돌릴 동작이 필요합니다.
     draft_final_last: 질문이 있는 목록은 final로 끝나야 합니다.
     draft_key_taken: 이미 있는 행입니다.
@@ -1727,75 +1710,44 @@ agents:
     draft_question_taken: 이미 있는 질문 이름입니다.
     draft_question_text: "질문은 비어 있지 않은 {max}자 이하여야 합니다."
     draft_unknown_question: 카탈로그에 없는 질문이 있습니다.
-    effort_unsupported: 이 모델이 지원하는 effort를 선택해 주세요.
     field_refused: 받아들여지지 않은 값입니다.
-    fold_percent: "압축 기준은 {min}부터 {max}까지의 정수(%)입니다."
-    fold_ratios_read_failed: 압축 기준을 불러오지 못했습니다.
     job_prompt_failed: 프롬프트를 불러오지 못했습니다.
-    keepalive_direction: 캐시 유지를 멈출지 다시 켤지 정해 주세요.
-    keepalive_failed: 캐시 워머가 요청을 처리하지 못했습니다.
-    keepalive_no_consumer: 에이전트별 킵얼라이브를 쓸 수 없습니다. 배포에 킵얼라이브 소비자 이름이 없습니다.
-    keepalive_refused: 캐시 워머가 요청을 받아들이지 않았습니다.
-    keepalive_worker: 캐시 유지를 끌 워커를 정해 주세요.
-    label_needed: 이름표를 입력해 주세요.
     launch_empty: 작업 지시를 입력해 주세요.
     launch_failed: 실행하지 못했습니다.
-    limits_read_failed: 코워커 한도를 읽지 못했습니다.
     log_read_failed: 로그를 읽지 못했습니다. 잠시 뒤 다시 시도해 주세요.
-    model_unlisted: 목록에 없는 모델입니다. 다시 선택해 주세요.
     models_load_failed: 모델 목록을 불러오지 못했습니다.
-    models_read_failed: 모델 목록을 받지 못했습니다.
     no_such_agent: 에이전트를 찾을 수 없습니다.
     no_such_agent_name: 이 이름의 에이전트를 찾을 수 없습니다.
-    path_needed: 경로를 입력해 주세요.
     pick_account: 계정을 선택해 주세요.
     pick_codex: Codex 모델과 effort를 선택해 주세요.
     pick_fallback_run: 폴백을 적용할 실행을 선택해 주세요.
     pick_model: 모델을 선택해 주세요.
     pick_openrouter: 대신 답할 OpenRouter 모델을 선택해 주세요.
-    pick_provider: 공급자를 선택해 주세요.
     provider_off: 꺼진 공급자입니다. 자동 또는 켜진 공급자를 선택해 주세요.
     provider_order_list: 공급자 순서를 목록으로 보내 주세요.
     provider_switch_needed: 공급자 이름과 켬·끔 값이 필요합니다.
     registry_read_failed: 등록 모델을 불러오지 못했습니다.
     registry_value: 등록 모델의 이름과 모델을 보내 주세요.
-    sampling_load_failed: 샘플링 설정을 불러오지 못했습니다.
     session_reset: 초기화할 세션을 에이전트와 방으로 정해 주세요.
     sessions_read_failed: 세션 목록을 불러오지 못했습니다.
-    settings_read_failed: 설정을 불러오지 못했습니다.
-    tier_not_saved: 등급 저장 안 됨
-    tiers_read_failed: 등급 설정을 불러오지 못했습니다.
     word_empty: 메시지를 입력해 주세요.
     word_unavailable: 워커에게 말을 전하는 길이 아직 없습니다.
-    worker_name_empty: 워커 이름을 입력해 주세요.
-    limit_whole: 한도는 0 이상의 정수입니다.
-    role_delete_refused: 에이전트가 쓰고 있거나 종류의 기본 역할이라 삭제하지 못했습니다.
+    role_delete_refused: 실행 중이거나 대기 중인 실행이 있거나 정책이 정한 역할이라 삭제하지 못했습니다.
     roles_read_failed: 역할을 불러오지 못했습니다.
+    accounts_read_failed: Claude 계정을 불러오지 못했습니다.
+    provider_models_read_failed: 공급자의 모델 목록을 불러오지 못했습니다.
+    providers_read_failed: 공급자를 불러오지 못했습니다.
+    repositories_read_failed: 저장소를 불러오지 못했습니다.
+    repository_delete_refused: Job이 체크아웃을 쓰고 있어 저장소를 삭제하지 못했습니다.
+    session_history_read_failed: 세션 기록을 불러오지 못했습니다.
+    supervisors_read_failed: 감독관을 불러오지 못했습니다.
   label:
     account_chosen: 선택한 계정
     account_kind_directory: 설정 디렉터리
     account_kind_token: 토큰 파일
     account_off: 꺼져 있음
     account_serving: 사용 중
-    agent_cwd: 폴더
-    agent_kind: 종류
-    agent_kind_chat: 대화
-    agent_kind_gate: 게이트
-    agent_kind_runner: 러너
-    agent_kind_worker: 워커
-    agent_node: 노드
-    agent_role: 역할
-    agent_role_default: 기본값
     alias: 별칭
-    all_agents: 모든 에이전트
-    applies_to: 적용 대상
-    base_prompt: 기본 프롬프트
-    base_prompt_characters: "{count}자"
-    base_prompt_none: 없음
-    base_prompt_text: 본문
-    base_prompt_unused: 사용하는 에이전트 없음
-    base_prompt_values: 넣을 수 있는 값
-    builtin: 빌트인
     bundle_graph_read: 그래프
     bundle_queue_read: TODO 읽기
     bundle_room_chat: 기억 · 메모 · TODO
@@ -1808,22 +1760,10 @@ agents:
     call_done: 완료
     call_failed: 실패
     characters_unit: 자
-    column_account: 계정
-    column_agent: 에이전트
-    column_auto_job: 자동 Job
-    column_cwd: 작업 경로
-    column_effort: Effort
-    column_keepalive: 캐시 유지
-    column_model: 현재 모델
     column_provider: 공급자
-    column_recent: 최근
     column_role: 역할
     column_rooms: 방
-    column_thinking: 생각
-    column_work: 작업
-    companion_label: 표시 이름
     companion_room: 방 제목
-    companion_worker: 작업 워커
     context_archive: 지난 대화
     context_attached: 이번에 읽음
     context_document: 참조 문서
@@ -1836,9 +1776,7 @@ agents:
     context_situation: 상황 규칙
     context_tokens: "컨텍스트 {tokens}"
     credential: 자격 증명
-    cwd_help: 비우면 자동 생성 · git 아니면 협업 없음
-    dev_server: 개발서버 명령
-    dev_server_help: 한 줄 · 비우면 없음
+    dev_server: 개발 서버 명령
     diff_added: "{added}줄 추가"
     diff_added_removed: "{added}줄 추가, {removed}줄 삭제"
     diff_more_files: "파일 {n}개 더 변경됨"
@@ -1859,70 +1797,27 @@ agents:
     draft_question_final: 메시지 작성
     draft_question_text: 질문
     draft_rounds: 질문 순서
-    draft_source: 출처
-    draft_source_default: 기본값
-    draft_source_set: 콘솔 설정
     engine: 엔진
-    engine_model: 엔진에 로드된 모델
-    engine_model_unknown: 엔진의 모델을 알 수 없음
     exec_node: 실행 노드
-    exec_node_help: 선택하면 Job 전체가 그 노드에서 실행 · 경로도 그 노드 기준
-    find_account: "Claude 계정 · {name}"
-    find_account_order: Claude 계정 · 계정 순서
     find_draft_process: "드래프트 과정 {key}"
     find_draft_question: "드래프트 질문 {name}"
-    find_fallback: 활성 공급자 및 우선순위 · 폴백
-    find_fold_ratio: "압축 기준 · {tier}"
-    find_keepalive: "에이전트별 캐시 유지 · {name}"
-    find_keepalive_all: 캐시 유지 · 전체 캐시 유지
-    find_pool_limit: "코워커 한도 · {provider} {tier}"
-    find_provider: "공급자 · {name}"
-    find_reasoning: 생각·Effort · Thinking · 추론 강도
     find_registration: "등록 모델 · {name}"
-    find_roles: 역할 · Role · 채팅 역할 · 워커 역할 · 서쳐 역할 · 기능 묶음 · 보내기
-    find_searcher: "서쳐 · {name}"
-    find_sessions: 세션 · 세션 초기화 · 워커 세션 · 방 세션
-    find_tier: "모델 · {tier}"
-    fold_percent: "{percent} %"
-    fold_ratios_help: 세션이 모델 컨텍스트 창을 이 비율만큼 채우면, 그 턴이 끝난 뒤 세션을 압축합니다.
-    fold_source_default: 일반 기본값
-    fold_source_provider: 공급자 기본값
-    fold_source_set: 콘솔에서 설정
-    free_only: 무료 모델만
-    gate_off: 끔
-    gate_on: 켬
     generation: 생성 파라미터
     generation_of: "{generation}번째 세션"
-    group_designated: 지정된 에이전트
     group_gate: 게이트
+    group_repository: 저장소
+    group_role: 역할
     group_runner: 러너
+    group_supervisor: 감독관
     group_worker: 저장소
     job_prompt_english: 영어본
     job_running: "실행 중 {time}"
     job_took: "{time} 소요"
     job_tools: "툴 {n}회"
-    keepalive: 주기적 캐시 유지
-    keepalive_all: 전체 캐시 유지
-    keepalive_all_stopped: 전체 멈춤
-    keepalive_help: 끄면 Job이 와도 다시 안 켜짐 · Job은 그대로 받음
-    keepalive_off: 캐시 유지 꺼짐
-    keepalive_paused: 다음 Job까지 꺼짐
     key: 키
-    key_search: 검색
-    supervisor_model: 모델
-    supervisor_model_fixed: 고정 모델
-    supervisor_model_fixed_help: 이 감독관은 고른 등록 모델로 답합니다. 그 모델이 답하지 못하면 실행 경로를 따라 다른 공급자로 넘어갑니다.
-    supervisor_model_method: 모델 방법
-    supervisor_model_method_fixed: 고정 모델
-    supervisor_model_method_route: 실행 경로
-    supervisor_model_pick: 등록 모델을 고르세요
-    supervisor_model_route: "실행 경로 · {model}"
-    supervisor_model_route_help: 이 감독관의 모델은 agency의 작업 키가 실행 경로에서 푸는 모델입니다. 등급·공급자·계정은 실행 경로에서 바꿉니다.
-    chat_documents_help: 이 글들이 비모의 시스템 프롬프트를 조립합니다. 저장한 글은 다음 턴부터 적용되고, 되돌리면 저장소의 파일 내용을 다시 씁니다.
     chat_document_opening: 프롬프트 여는 글
     chat_document_absolute_rules: 절대 규칙
     chat_document_manual: 운영 매뉴얼
-    last_read_list: "마지막으로 읽은 목록 · {time}"
     launch_say: 메시지
     launch_task: 작업 지시
     line_answer: 답
@@ -1942,17 +1837,9 @@ agents:
     login_needed: 로그인 필요
     model_bytes: 바이트 수
     model_file: 파일 이름
-    model_not_listed: "{model} (목록에 없음)"
-    model_retired: "{model} (이전 세대)"
     model_source: 다운로드 주소
-    model_unlisted: 목록에 없는 모델
-    no_assignment: 배정 없음
-    no_cowork_without_git: git 아니면 협업 없음
     no_room: 방 없음
-    no_route: 실행 경로 없음
     node_checkouts: 노드 체크아웃
-    node_checkouts_help: 노드마다 하나 · 경로는 그 노드 기준
-    not_checkout: git 아님
     note: 메모
     persona_file: 파일 내용
     phase_final: 최종 검증
@@ -1960,14 +1847,8 @@ agents:
     phase_synthesis: 설계 종합
     piece_persona: 페르소나
     pinned_provider: 공급자
-    pinned_provider_help: 자동이면 워커 공용 경로 사용 · 선택하면 Job과 메시지 모두 이 공급자로 실행
-    place_counts: "실행 {active} · 예약 {reserved} · 대기 {waiting}"
-    pool_limit_of: "코워커 한도 {tier}"
-    preamble: 선행 프롬프트
-    preamble_help: Job 프롬프트 맨 앞에 붙음 · 캐시에 영향 없음
+    preamble: 머리말
     prefix_documents: 프리픽스 문서
-    prefix_documents_help: 워커 체크아웃 기준 상대 경로이거나 umbrella 아래 절대 경로입니다. 세션 프리픽스가 이 순서대로 읽습니다.
-    previous: 이전 설정
     provider_claude_code: Claude Code
     provider_codex: Codex
     provider_deepseek: DeepSeek
@@ -1975,15 +1856,6 @@ agents:
     provider_off: 꺼진 공급자
     provider_openrouter: OpenRouter
     provider_registered: 등록 모델
-    reason: 사유
-    reasoning_default: 기본값
-    reasoning_levels: "적용되는 단계: {levels}"
-    reasoning_no_levels: 이 공급자는 Effort를 받지 않습니다.
-    reasoning_not_applied: 미적용
-    reasoning_off: 끔
-    reasoning_on: 켬
-    reasoning_unsupported: 지원 안 함
-    recent: "최근 {value}"
     record_ends: 기록이 여기서 끊김
     reference: 참조 주입
     reference_send: 붙이기
@@ -1992,60 +1864,36 @@ agents:
     registry_last_answered: "마지막 응답 {time}"
     reset_at: "{time}에 변경됨"
     restore: 강등 복원
-    restore_help: 끄면 강등돼도 세션 유지
     result_less: 축소
     result_more: "{n}줄 더 보기"
     role_bundles_none: 기능 묶음 없음
     role_chat: 채팅
     role_gate: 게이트
-    role_key: "작업 키 역할 · {role}"
-    role_none: 역할 없음
     role_searcher: 서쳐
     role_translator: 번역기
     role_worker: 워커
     room_sessions: 방 세션
     run_cache_read: "캐시 읽기 {n}"
     run_context: "컨텍스트 ~{tokens}"
+    run_no_place: 경로 없음
     run_requests: "요청 {n}회"
-    runs: "{n}회"
-    sampling: 샘플링
     search_tab: 탭
-    searcher_of: "서쳐 {name}"
     serving: 서빙 중
     session_chat: "대화 세션 · {model}"
     session_cleared_at: "{time} 초기화"
     session_models: "Job 세션 · {models}"
     session_reset_waiting: 초기화 대기
     session_room: "{room} · {generation}번째 세션"
-    settings: 설정
-    shown: 표시
     source_fetch: 다운로드
     source_none: 다운로드 주소 없음
-    stopped_agents: "꺼진 에이전트 {n}개"
-    support: 추가지원
-    support_count: 추가지원 워커 수
-    support_count_help: 기본 워커 외에 추가로 실행할 워커 수 · 0이면 사용 안 함
-    support_keepalive: 캐시 유지 수
-    support_keepalive_help: 추가지원 워커 중 캐시를 유지할 수 · 워커 수 이하
-    support_of: "{base} 따름"
+    support_count: 추가지원 체크아웃 수
     switch_off: 끔
     switch_on: 켬
     system_prompt_sent: 보낼 시스템 프롬프트
     tab_supervisors: 감독관
-    tab_general: 일반
-    tab_research: 서쳐
-    tab_routes: 실행 경로
-    tab_tiers: 모델
-    tab_workers: 워커
     think_off: 생각 끔
     think_on: 생각 켬
     thinking: 생각
-    thinking_choice_default: 기본값
-    thinking_choice_off: 생각 안 함
-    thinking_choice_on: 생각
-    thinking_default: "{tokens} · 생각 기본"
-    thinking_off: "{tokens} · 생각 끔"
-    thinking_on: "{tokens} · 생각 켬"
     this_machine: 이 기기
     this_run: 이 실행
     tier: 등급
@@ -2055,7 +1903,6 @@ agents:
     unit_stage: "단계 {stage}-{task}"
     unknown_code: "알 수 없는 코드 `{code}`"
     unmeasured: 미측정
-    unset: 지정 없음
     uptime: "업타임 {time}"
     usage_cache_read: "캐시 읽기 {n}"
     usage_input: "입력 {n}"
@@ -2072,34 +1919,72 @@ agents:
     use_repeat_penalty: 최근 토큰 반복 억제
     use_seed: 무작위 시드
     use_temperature: 답의 무작위성
-    use_thinking: 답하기 전에 추론
     use_top_k: 상위 k개만 후보로
     use_top_p: 누적 확률 상위만 후보로
     weekly: 주간
     worker_label: 이름표
     tab_roles: 역할
     column_bundles: 기능 묶음
-    column_max_concurrent: 동시 실행 한도
-    column_role_agents: 쓰는 에이전트
+    column_max_concurrent: 동시 실행
     find_role: "역할 {name}"
-    role_kind_default: 종류 기본
-    role_max_concurrent_help: 비우면 제한 없음
     role_prompt: 역할 프롬프트
-    role_prompt_help: 이 역할을 가진 에이전트마다 자기 문서 앞에 붙습니다. 비우면 붙이지 않습니다.
-    role_unbounded: 제한 없음
+    callable: 코워커 호출 허용
+    card_service: 카드 서비스
+    checkouts_value: "추가지원 {support} · {held}/{all} 사용 중"
+    column_callable: 코워커
+    column_checkouts: 체크아웃
+    column_heal: 강등 복원
+    column_model_defaults: 생성 파라미터
+    column_model_file: 모델 파일
+    column_nodes: 노드
+    column_now: 지금
+    column_repository: 저장소
+    column_sessions: 세션
+    column_size: 크기
+    column_supervisor: 감독관
+    column_threshold: 압축 기준
+    column_warming: 캐시 유지
+    default_marked: "{value} (기본값)"
+    description: 설명
+    display_name: 표시 이름
+    model_superseded: 이전 세대
+    models_stale: "{time}에 읽은 목록"
+    order: 공급자 순서
+    pinned_model: 고정 모델
+    quota_balance: "잔액 {amount}"
+    quota_left: "{share} 남음"
+    quota_left_window: "{share} 남음 · {window}"
+    quota_share: 할당량 기준
+    role_files: 역할 파일 보관
+    role_label: 이름표
+    role_order: 역할 순서
+    role_running: "{running}/{cap} 실행"
+    role_waiting: "{n} 대기"
+    rules_folder: 규칙 폴더
+    run_line: 실행 라인
+    session_answered: "마지막 응답 {time}"
+    session_context: "컨텍스트 {tokens}"
+    session_context_share: "컨텍스트 {tokens} · {share}"
+    session_opened: "시작 {time}"
+    session_runs: "실행 {n}회"
+    sessions_fresh: 새로
+    sessions_keep: 유지
+    tab_model_files: 모델 파일
+    tab_models: 등록 모델
+    tab_repositories: 저장소
+    used_by: 쓰는 곳
+    used_by_repository: "저장소 {name}"
+    used_by_role: "역할 {name}"
+    used_by_supervisor: "감독관 {name}"
+    work_repository: 작업 저장소
   message:
     account_delete_confirm: 계정을 삭제할까요?
-    base_prompt_delete_confirm: 기본 프롬프트를 삭제할까요?
-    base_prompt_resets: "저장하면 {agents}의 세션이 새로 시작됩니다"
     catalogue_delete_confirm: 모델 파일을 목록에서 삭제할까요?
     companion_delete_confirm: "{name}을(를) 삭제할까요?"
     companion_delete_takes: "감독관의 설정과 세션, 인물 기록을 삭제합니다.
 
       대화 상대가 답하던 방은 메시지와 문서까지 그대로 남습니다."
     companion_room_taken_back: "{room} 방을 다시 이어받았습니다."
-    chat_document_saved: "{name}을 저장했습니다."
-    chat_document_reset: "{name}을 파일 내용으로 되돌렸습니다."
-    supervisor_model_saved: 감독관 모델을 바꿨습니다. 다음 턴부터 적용됩니다.
     draft_process_remove_confirm: "이 드래프트 과정 행을 삭제할까요? 정책에 같은 행이 있으면 그 행이 다시 적용됩니다."
     generation_resets: "방 세션 {n}개가 다음 턴부터 새로 시작됩니다."
     log_of_agent: 이 에이전트의 로그
@@ -2109,58 +1994,43 @@ agents:
     session_clears: 다음 턴부터 새 세션으로 시작합니다
     session_clears_chat: 다음 턴에 새 세션을 열고, 지난 대화는 요약으로 넘깁니다
     session_clears_companion: "{room} 방의 {generation}번째 세션은 기록으로 남기고, 다음 턴부터 새 세션으로 시작합니다"
-    session_clears_worker: "세션 기록 {n}개를 삭제하고, 다음 Job은 새 세션으로 시작합니다"
-    session_clears_worker_running: 실행 중인 Job이 끝난 뒤 세션 기록을 삭제하고, 다음 Job은 새 세션으로 시작합니다
-    tools_new_session: 방마다 다음 턴부터 새 세션으로 시작합니다.
+    supervisor_seeded: 배포가 세운 감독관이라 삭제할 수 없습니다.
     use_model_confirm: "{engine} 엔진에 {model} 모델을 로드할까요?"
-    use_model_loads: "{engine} 엔진에 {model} 모델을 로드합니다."
     use_model_moves: "다운로드·확인·설치를 마치고 엔진이 다시 시작될 때까지 {registration} 등록 모델은 응답하지 않습니다."
-    worker_delete_confirm: 워커를 삭제할까요?
     role_delete_confirm: 이 역할을 삭제할까요?
+    document_to_file: 저장하면 파일 내용으로 돌아갑니다.
+    pin_waits: 고정 모델이 응답할 수 없으면 이 저장소의 작업이 기다립니다.
+    repository_delete_confirm: 이 저장소를 삭제할까요?
   placeholder:
     account_name: 부계정
-    cwd_auto: 자동 생성
     directory_path: 설정 디렉터리의 절대 경로
     draft_add_question: 질문 추가
     find_settings: 설정 찾기
     registry_name: 영문 소문자·숫자·하이픈
     token_path: 토큰 파일의 절대 경로
-    worker_label: 인프라
   status:
-    agent_added_failed: "{name}을 등록했지만 브레인을 만들지 못했습니다."
-    agent_added_kept: "{name}을 등록했습니다. 있던 브레인을 그대로 씁니다."
-    agent_added_made: "{name}을 등록하고 브레인을 만들었습니다."
-    agent_added_none: "{name}을 등록했습니다."
-    active: 활성
     call_running: 실행 중
-    check_needed: 확인 필요
     chat_documents_loading: 시스템 프롬프트 불러오는 중…
     chat_document_stored: 저장된 글
     chat_document_file: 파일 내용
     chosen_after: "현재 {serving} 사용 중 · 한도 도달 후 {chosen}"
+    jobs_loading: Job 불러오는 중…
+    no_jobs: 실행한 Job 없음
     chosen_login: "{chosen} 로그인 필요 · 현재 {serving} 사용 중"
     chosen_resting: "{chosen} 한도 도달 · {time} 복귀 · 현재 {serving} 사용 중"
     compacting: 압축 중
     companion_room_taken_back: "{name}이(가) 같은 이름의 방을 다시 맡았습니다. 방 제목은 {title}(으)로 바꾸었고, 메시지와 문서는 그대로 남아 있습니다."
     companions_loading: 감독관 설정 불러오는 중…
     draft_processes_loading: 드래프트 과정 불러오는 중…
-    fold_ratios_loading: 압축 기준 불러오는 중…
     job_ended: 끝남
     job_running: 실행 중
-    limits_loading: 코워커 한도 불러오는 중…
     log_loading: 로그 불러오는 중…
     log_unavailable: 링크가 가리키는 실행을 찾지 못해 그 실행의 로그를 열 수 없습니다.
     newer_loading: 다음 줄 불러오는 중…
     no_accounts: 등록된 계정 없음
-    no_assigned_work: 배정된 작업 없음
-    no_base_prompts: 저장된 기본 프롬프트 없음
     no_catalogue: 등록된 모델 파일 없음
-    no_companions: 감독관 없음
     no_log: 기록된 로그 없음
-    no_mapping: 매핑 없음
     no_registrations: 등록된 모델 없음
-    no_sessions: 세션 없음
-    no_tier_assignment: 등급 배정 없음
     older_loading: 이전 줄 불러오는 중…
     registry_loading: 등록 모델 불러오는 중
     road_codex_missing: 이 기기에 Codex 실행 파일이 없어 선택할 수 없습니다.
@@ -2172,15 +2042,11 @@ agents:
     road_openrouter_key_unset: BMO_OPENROUTER_KEY가 설정되지 않아 OpenRouter를 선택할 수 없습니다.
     road_unavailable: 지금은 이 경로를 선택할 수 없습니다.
     road_unknown_code: "알 수 없는 코드 `{code}`로 선택할 수 없습니다."
-    routes_loading: 실행 경로 불러오는 중…
     run_gate: 판정 중
     run_runner: 검색 중
     run_worker: 작업 중
     running: 진행 중
     sessions_loading: 세션 불러오는 중…
-    settings_loading: 설정 불러오는 중…
-    tier_applied: 등급 적용됨
-    tiers_loading: 모델 등급 불러오는 중…
     turn_thinking: 생각 중
     turn_tool: 툴 사용 중
     turn_tool_named: "{tool} 사용 중"
@@ -2192,41 +2058,44 @@ agents:
     use_starting: 시작하는 중
     vitals_loading: 에이전트 수치 불러오는 중…
     no_roles: 역할 없음
-    role_held: 이 역할을 쓰는 에이전트가 있어 삭제할 수 없습니다.
-    role_kind_own: 에이전트 종류의 기본 역할이라 삭제할 수 없습니다.
     roles_loading: 역할 불러오는 중…
+    catalogue_loading: 모델 파일 불러오는 중…
+    no_node_checkouts: 노드 체크아웃 없음
+    no_repositories: 저장소 없음
+    no_role_sessions: 세션 없음
+    no_supervisors: 감독관 없음
+    providers_loading: 공급자 불러오는 중…
+    registration_in_use: "{names}에서 쓰는 중이라 삭제할 수 없습니다."
+    repositories_loading: 저장소 불러오는 중…
+    repository_in_use: Job이 체크아웃을 쓰고 있어 삭제할 수 없습니다.
+    role_blocked: 막힘
+    role_in_use: 실행 중이거나 대기 중인 실행이 있어 삭제할 수 없습니다.
+    session_expired: 만료
+    session_history_loading: 세션 기록 불러오는 중…
+    session_valid: 유효
+    supervisors_loading: 감독관 불러오는 중…
+    waiting_for_quota: 할당량 대기 중
   title:
     account_add: Claude 계정 추가
+    providers: 공급자
+    repository_add: 저장소 추가
+    session_history: 세션 기록
+    supervisor_add: 감독관 추가
     accounts: Claude 계정
-    agent_add: 에이전트 추가
-    base_prompt_add: 기본 프롬프트 추가
-    base_prompts: 기본 프롬프트
-    catalogue: 모델 파일
     catalogue_add: 모델 파일 추가
     catalogue_uses: 모델 변경 기록
-    companion_add: 감독관 추가
-    supervisor_settings: 감독관 설정
     chat_documents: 시스템 프롬프트
-    coworker_limits: 코워커 한도
     draft_process_add: 드래프트 과정 행 추가
     draft_processes: 드래프트 과정
     draft_question_add: 드래프트 질문 추가
     draft_questions: 드래프트 질문
-    fold_ratios: 압축 기준
-    previous_check: 이전 설정 확인 필요
     registry: 등록 모델
     registry_add: 등록 모델 추가
-    section_agents: 에이전트별 설정
-    section_keepalive: 캐시 유지
-    section_providers: 활성 공급자 및 우선순위
-    section_sessions: 세션
-    tiers: 모델 등급
     work_log: 로그
     work_now: 지금
     work_order: 작업 지시
     work_result: 결과
     work_stages: 진행 단계
-    worker_add: 워커 추가
     role_add: 역할 추가
 gates:
   label:
@@ -2250,10 +2119,9 @@ live:
     sections: 상태 섹션
     stop_confirm_named: "{name} 중지 확인"
     stop_named: "{name} 중지"
-    worker_places: 워커 슬롯
   error:
     load_failed: 실시간 상태를 불러오지 못했습니다.
-    pool_read_failed: 코워커 풀을 읽지 못했습니다.
+    slots_read_failed: 역할 슬롯을 읽지 못했습니다.
     stop_failed: 실행을 중지하지 못했습니다.
     stop_target_absent: 멈출 실행을 찾지 못했습니다.
     stop_target_needed: 중지할 실행을 지정해 주세요.
@@ -2261,15 +2129,12 @@ live:
   label:
     as_of: "{time} 기준"
     attempt: "{n}회차"
-    bucket_head: "{mode} · {tier} {used}/{capacity}"
-    bucket_waiting: "{head} · 대기 {n}"
     cap: "상한 {time}"
     child_done: 하위 실행 완료
     child_failed: 하위 실행 실패
     child_requested: 하위 실행 요청
     child_started: 하위 실행 시작 기록 · 현재 상태 확인 필요
     child_unknown: 하위 실행 결과 확인 불가
-    coworker: 코워커
     deadline_passed: 기한 지남
     elapsed: "{time} 경과"
     execution_id: "실행: {id}"
@@ -2329,15 +2194,26 @@ live:
     run_link: 실행 연결
     run_started: 실행 시작 기록 · 현재 상태 확인 필요
     shares_parent_pane: 부모 팬 공유
+    slot_idle: 비어 있음
+    slot_reserved: 예약됨
+    slot_row_head: "{role} · {used}/{cap}"
+    slot_row_waiting: "{head} · 대기 {n}"
+    slot_source_ask: 요청
+    slot_source_browse: 브라우징
+    slot_source_cowork: 협업
+    slot_source_delegate: 위임
+    slot_source_job: Job
+    slot_source_native: 네이티브
+    slot_source_none: 출처 없음
+    slot_source_search: 검색
+    slot_source_translate: 번역
+    slot_working: 작업 중
     start_failed: 시작 실패
     start_requested: 시작 요청 기록 · 현재 상태 확인 필요
     started_at: "{time} 시작"
     state_unknown: 상태 확인 불가
     tab_executions: Herdr
-    tab_pool: 코워커 풀
-    tile_held: 예약됨
-    tile_idle: 대기 중
-    tile_working: 작업 중
+    tab_slots: 역할 슬롯
     timed_out: 시간 초과
     timer: 타이머
     timer_left: "타이머 · {time} 남음"
@@ -2357,12 +2233,6 @@ live:
     work_item: "항목 #{id}"
     work_item_progress: "항목 #{id} · {progress}"
     work_item_run: "항목 #{id} · {attempt}번째 실행"
-    work_kind_browse: 브라우즈 브랜치
-    work_kind_cowork: 협업 브랜치
-    work_kind_native: 네이티브
-    work_kind_other: 기타
-    work_kind_search: 검색 브랜치
-    work_kind_turn: 워커
   message:
     stop_confirm: 이 작업의 실행을 중지할까요?
     stop_confirm_default: 실행을 중지할까요?
@@ -2370,10 +2240,10 @@ live:
     check_runner_unknown: 확인 러너 상태 확인 불가
     log_loading: 실행 기록 불러오는 중…
     machine_loading: 기기 여유 불러오는 중…
-    no_places: 코워커 슬롯 없음
+    no_slots: 역할 없음
     nothing_running: 실행 중인 것 없음
-    pool_loading: 코워커 풀 불러오는 중…
     runs_loading: 실행 불러오는 중…
+    slots_loading: 역할 슬롯 불러오는 중…
     stopping: 중지 중
     unchecked: 확인 전
     unknown_now: 현재 상태 확인 불가
@@ -2437,7 +2307,7 @@ research:
     dismissed: 대기열에서 제외했습니다.
     every_help: 비우면 분류 주기
     fronted: 맨 앞으로 옮겼습니다.
-    gap_help: 비우면 기본값
+    gap_help: 비우면 웹 도구가 정한 값
     reasked: 다시 요청했습니다.
     source_added: 출처를 추가했습니다.
     source_delete_confirm: "출처 #{id}를 삭제할까요?"
@@ -2457,7 +2327,6 @@ research:
     cap_counts: "대기 {waiting} · 실행 {running} / 상한 {cap}"
     category: 분류
     closes: 웹 도구 종료
-    default: 기본값
     default_road: 기본 경로
     depth: 깊이
     document: 문서
@@ -2550,9 +2419,7 @@ research:
     shape_investigation: 조사
     shape_manual: 매뉴얼
     shape_manual_or_investigation: 매뉴얼·조사
-    source_default: 기본값
     source_id: 번호
-    source_set: 수동 지정
     source_target: 주소·검색어
     started: 시작
     state: 상태
@@ -2568,6 +2435,7 @@ research:
     stuck_count: "막힘 {n}"
     suspended_until: 중단 해제
     tab_queue: 대기열
+    tab_settings: 설정
     tab_sources: 출처
     tries: "시도 {n}회"
     unknown_value: "알 수 없는 값 {value}"
@@ -2575,7 +2443,6 @@ research:
     no_categories: 분류 없음
     no_engines: 검색 엔진이 없습니다.
     no_items: 항목 없음
-    no_keys: 에이전시에 서쳐의 작업 키가 없습니다.
     no_log: 로그 없음
     no_sources: 등록된 출처 없음
     queue_end: 대기열 끝
@@ -3094,11 +2961,10 @@ briefing:
     settings_loading: 보이스브리핑 설정을 읽는 중…
 home:
   label:
-    agents_description: 게이트, 러너, 에디터, Job 워커
+    agents_description: 역할 슬롯, 게이트, 러너, 저장소
     bmo_link: 채팅 에이전트 연결
     live_description: 현재 실행 중인 작업
     loose_job: 항목 없이 실행한 Job
-    queue_job: 대기열 항목을 처리하는 Job
   status:
     bmo_answering: 채팅 에이전트가 답변 중
 picture:

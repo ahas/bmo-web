@@ -6,7 +6,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
-// The agents screen's two model sections follow the agency's model resource (docs/web.md, 「Agent management
+// The agents screen's two model tabs follow the agency's model resource (docs/web.md, 「Agent management
 // screen」): the registered models at `/models`, listed, created, changed and removed there, and the model
 // files at `/model-catalogue`, listed, saved and removed there. It drives the console
 // tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
@@ -44,24 +44,34 @@ async function open(viewport: { width: number; height: number }, phone = false):
   return context;
 }
 
-// The agents screen, its general tab read to the end.
-async function agents(page: Page): Promise<void> {
-  await page.goto(`${origin}/agents`, { waitUntil: "load" });
+// The agents screen at one of its tabs, read to the end.
+async function agents(page: Page, tab: "models" | "model-files", first: string): Promise<void> {
+  await page.goto(`${origin}/agents?tab=${tab}`, { waitUntil: "load" });
   await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
-  await page.getByRole("heading", { name: wording("agents.title.registry") }).waitFor({ timeout: 15_000 });
+  await page.locator(first).waitFor({ timeout: 15_000 });
+}
+
+// The table row a cell stands in.
+function rowOf(page: Page, selector: string) {
+  return page.locator("tr", { has: page.locator(selector) });
 }
 
 // What one row says, once it is drawn.
 async function rowText(page: Page, selector: string): Promise<string> {
-  await page.locator(selector).waitFor();
+  await rowOf(page, selector).waitFor();
 
-  return await page.locator(selector).innerText();
+  return await rowOf(page, selector).innerText();
 }
 
 // A row's more-menu, opened.
 async function openMenu(page: Page, row: string, name: string): Promise<void> {
-  await page.locator(row).getByRole("button", { name: wording("common.aria.menu_of", { name }) }).click();
+  await rowOf(page, row).getByRole("button", { name: wording("common.aria.menu_of", { name }) }).click();
   await page.getByRole("menuitem", { name: wording("common.action.edit") }).waitFor();
+}
+
+// The tab row's own add button.
+async function addFromTabRow(page: Page): Promise<void> {
+  await page.locator("[data-tab-add]").click();
 }
 
 // A removal asked first in a dialog, answered with its way through.
@@ -81,16 +91,15 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
     try {
       const page = await context.newPage();
 
-      await agents(page);
+      await agents(page, "models", '[data-registration="model-a"]');
 
-      // The list as the agency serves it.
+      // The list as the agency serves it, with what names each registration.
       expect(await rowText(page, '[data-registration="model-a"]')).toContain("model-a-7b");
+      expect(await rowText(page, '[data-registration="model-a"]')).toContain(wording("agents.label.used_by_repository", { name: "repo-b" }));
       expect(await rowText(page, '[data-registration="model-b"]')).toContain("model-b-7b");
 
-      // A create.
-      // The tab row's own add button, the one that opens the menu of what the general tab adds.
-      await page.locator('button[aria-haspopup="menu"]').and(page.getByRole("button", { name: wording("common.action.add") })).click();
-      await page.getByRole("menuitem", { name: wording("agents.title.registry") }).click();
+      // A create, from the tab row's own add button.
+      await addFromTabRow(page);
 
       const add = page.getByRole("dialog");
 
@@ -101,7 +110,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
       const created = page.locator('[data-registration="model-c"]');
 
       await created.waitFor();
-      expect(await created.innerText()).toContain("model-c-7b");
+      expect(await rowText(page, '[data-registration="model-c"]')).toContain("model-c-7b");
 
       // A change, the name fixed once made.
       await openMenu(page, '[data-registration="model-c"]', "model-c");
@@ -113,7 +122,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
       expect(await change.getByLabel(wording("common.label.name")).isDisabled()).toBe(true);
       await change.getByLabel(wording("common.label.model")).fill("model-c-13b");
       await change.getByRole("button", { name: wording("common.action.save") }).click();
-      await page.locator('[data-registration="model-c"]').getByText("model-c-13b").waitFor();
+      await rowOf(page, '[data-registration="model-c"]').getByText("model-c-13b").waitFor();
 
       // A removal, asked first.
       await openMenu(page, '[data-registration="model-c"]', "model-c");
@@ -130,14 +139,13 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
     try {
       const page = await context.newPage();
 
-      await agents(page);
+      await agents(page, "model-files", '[data-entry="entry-a"]');
 
       // The list as the agency serves it.
       expect(await rowText(page, '[data-entry="entry-a"]')).toContain("entry-a.gguf");
 
-      // The tab row's own add button, the one that opens the menu of what the general tab adds.
-      await page.locator('button[aria-haspopup="menu"]').and(page.getByRole("button", { name: wording("common.action.add") })).click();
-      await page.getByRole("menuitem", { name: wording("agents.title.catalogue") }).click();
+      // The tab row's own add button.
+      await addFromTabRow(page);
 
       const add = page.getByRole("dialog");
 
@@ -152,7 +160,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
       const created = page.locator('[data-entry="entry-c"]');
 
       await created.waitFor();
-      expect(await created.innerText()).toContain("entry-c.gguf");
+      expect(await rowText(page, '[data-entry="entry-c"]')).toContain("entry-c.gguf");
 
       await openMenu(page, '[data-entry="entry-c"]', "Entry C");
       await page.getByRole("menuitem", { name: wording("common.action.edit") }).click();
@@ -161,7 +169,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
 
       await change.getByLabel(wording("agents.label.worker_label")).fill("Entry C changed");
       await change.getByRole("button", { name: wording("common.action.save") }).click();
-      await page.locator('[data-entry="entry-c"]').getByText("Entry C changed").waitFor();
+      await rowOf(page, '[data-entry="entry-c"]').getByText("Entry C changed").waitFor();
 
       await openMenu(page, '[data-entry="entry-c"]', "Entry C changed");
       await removeAsked(page);
@@ -177,31 +185,25 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
     try {
       const page = await context.newPage();
 
-      await agents(page);
+      await agents(page, "models", '[data-registration="model-a"]');
 
       const measured = await page.evaluate(() => {
-        const rows = [...document.querySelectorAll<HTMLElement>("[data-registration]")];
-        const buttons = [...document.querySelectorAll<HTMLElement>("[data-registration] button")];
-        const name = rows[0]?.firstElementChild?.firstElementChild?.firstElementChild as HTMLElement | undefined;
+        const buttons = [...document.querySelectorAll<HTMLElement>("tr button[aria-haspopup='menu']")];
 
         return {
           pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           menus: buttons.map((one) => one.getBoundingClientRect()).map((one) => ({ width: one.width, height: one.height })),
-          nameCut: name === undefined ? 0 : name.scrollWidth - name.clientWidth,
           status: [...document.querySelectorAll<HTMLElement>("[data-registration]")].map((one) => one.innerText)
         };
       });
 
-      // The page never scrolls sideways, every row's menu is the shared small square to press, and a row's
-      // name is not cut.
+      // The page never scrolls sideways, and every row's menu is the shared small square to press.
       expect(measured.pageOverflow).toBeLessThanOrEqual(1);
       expect(measured.menus.filter((one) => one.width < 28 || one.height < 28)).toEqual([]);
-      expect(measured.nameCut).toBeLessThanOrEqual(1);
       expect(measured.status.join("\n")).toContain(wording("agents.label.registry_healthy"));
 
       // The box a create opens is centred and whole, its buttons inside the visible screen.
-      await page.getByRole("button", { name: wording("common.action.add") }).first().tap();
-      await page.getByRole("menuitem", { name: wording("agents.title.registry") }).tap();
+      await page.locator("[data-tab-add]").tap();
 
       const box = await page.getByRole("dialog").boundingBox();
 

@@ -1,7 +1,7 @@
 import { countText } from "./numbers";
 import { formatClock, spanClock } from "bmo-ui/app/domain/time";
 
-import type { DeployHold, DeployRunView, DeployView } from "#shared/types";
+import type { DeployCommit, DeployHold, DeployRunView, DeployView } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { DeployPart, DeployStage, DeployStep, DeployStepAhead } from "#shared/deploy-progress";
 
@@ -255,4 +255,37 @@ export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease:
   }
 
   return null;
+}
+
+/** What a TODO row says beside its state while the deployment the title bar reads carries the item. */
+export type ItemDeployPhase = "testing" | "deploying";
+
+export const ITEM_DEPLOY_LABELS: Record<ItemDeployPhase, string> = {
+  testing: "todo.label.deploy_testing",
+  deploying: "todo.label.deploy_deploying",
+};
+
+const ITEM_MENTION = /#(\d+)/g;
+
+// Whether a carried commit names the item: the item its record names, or a `#NNNN` in its subject.
+function commitNames(commit: DeployCommit, itemId: number): boolean {
+  return commit.todoId === itemId || [...commit.subject.matchAll(ITEM_MENTION)].some((match) => Number(match[1]) === itemId);
+}
+
+/**
+ * Where the deployment the title bar reads stands for one item (docs/web.md, the TODO panel's section): a run under
+ * way one of whose carried commits names the item is testing while its check stage is under way — or before its
+ * first stage, where the plan opens with the check — and deploying through every later stage until it ends. None
+ * where no run under way carries the item.
+ */
+export function itemDeployPhase(view: DeployView | null | undefined, itemId: number): ItemDeployPhase | null {
+  const run = view?.run ?? null;
+
+  if (run === null || run.phase !== "running" || !run.carried.some((commit) => commitNames(commit, itemId))) return null;
+
+  const stage = currentStage(run);
+
+  if (stage === null) return run.plan[0] === "check" ? "testing" : "deploying";
+
+  return stage === "check" ? "testing" : "deploying";
 }

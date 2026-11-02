@@ -4,8 +4,8 @@ import type { TodoModelPlan } from "#shared/types";
 
 // What a TODO row names before anything has run: the model the item will go out on, read from what is already known
 // (docs/web.md, the TODO panel's section). A row's model is the item's own pin where it has one; otherwise the road its worker goes
-// out on — the pin the worker holds, else the model the registry maps its work key to — and, while a job of the item
-// runs, the road that run actually took. The agency's agents, models and jobs answer this.
+// out on — the pin its repository holds, else the active provider and model of the role its job runs as — and, while a
+// job of the item runs, the road that run actually took. The agency's repositories, roles, models and jobs answer this.
 
 const text = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 
@@ -39,29 +39,31 @@ function roadOf(provider: unknown, model: unknown, registered: ReadonlyMap<strin
   return named === "registered" ? `registered/${registered.get(held) ?? held}` : `${named}/${held}`;
 }
 
-/** Each worker's own road, and the road the running job of each item went out on. */
+/** Each repository's own road, and the road the running job of each item went out on. */
 export async function todoModelPlan(): Promise<TodoModelPlan> {
-  const [agents, models, running, starting] = await Promise.all([
-    agencyCall(agency().GET("/agents")),
+  const [repositories, roles, models, running, starting, newest] = await Promise.all([
+    agencyCall(agency().GET("/repositories")),
+    agencyCall(agency().GET("/roles")),
     agencyCall(agency().GET("/models")),
     agencyCall(agency().GET("/jobs", { params: { query: { state: "running", limit: 200 } } })),
-    agencyCall(agency().GET("/jobs", { params: { query: { state: "starting", limit: 200 } } }))
+    agencyCall(agency().GET("/jobs", { params: { query: { state: "starting", limit: 200 } } })),
+    agencyCall(agency().GET("/jobs", { params: { query: { limit: 1 } } }))
   ]);
 
   const registered = registeredNames(models);
   const workers: Record<string, string> = {};
+  // The road a job goes out on where its repository pins none: the active provider of the role the agency's newest
+  // job ran as, on the model its order names there (the agency's docs/provider-order.md, 「Choosing the provider」).
+  const jobRole = roles.roles.find((role) => role.name === newest.items[0]?.roleName);
+  const roleRoad = jobRole === undefined || jobRole.provider === null
+    ? null
+    : roadOf(jobRole.provider, jobRole.order.find((entry) => entry.provider === jobRole.provider)?.model, registered);
 
-  const agentRows = (agents as { items?: unknown }).items;
+  for (const repository of repositories.items) {
+    // The pin a repository holds, else the road its jobs' role goes out on.
+    const road = repository.pin === null ? roleRoad : roadOf(repository.pin.provider, repository.pin.model, registered);
 
-  for (const row of Array.isArray(agentRows) ? agentRows : []) {
-    const agent = row as { name?: unknown; kind?: unknown; pinnedProvider?: unknown; pinnedModel?: unknown; configuredMode?: unknown; model?: unknown };
-
-    if (text(agent.kind) !== "worker") continue;
-
-    // The pin a worker holds, else the model and provider its work key resolves to.
-    const road = roadOf(agent.pinnedProvider ?? agent.configuredMode, agent.pinnedModel ?? agent.model, registered);
-
-    if (road !== null) workers[text(agent.name)] = road;
+    if (road !== null) workers[repository.name] = road;
   }
 
   const runningModels: Record<number, string> = {};

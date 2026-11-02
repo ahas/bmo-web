@@ -49,9 +49,9 @@ describe("an agent's face", () => {
     expect(face.src).not.toBe("/api/avatars/room/-800?v=1");
   });
 
-  test("is worn by the chat agents alone", () => {
-    expect(wearsFace({ group: "designated" })).toBe(true);
-    expect(wearsFace({ group: "worker" })).toBe(false);
-    expect(wearsFace({ group: "gate" })).toBe(false);
+  test("is worn by the supervisors alone", () => {
+    expect(wearsFace({ group: "supervisor" })).toBe(true);
+    expect(wearsFace({ group: "role" })).toBe(false);
+    expect(wearsFace({ group: "repository" })).toBe(false);
   });
 });

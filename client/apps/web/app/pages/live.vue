@@ -49,10 +49,10 @@
     <template #body>
       <ReadFailure :failure="readFailure" :message="loadError" :reading="reading" @retry="load()" />
       <div v-if="loaded || !loadError" class="flex grow flex-col gap-8">
-        <!-- Every section is drawn and one of them shows. So the pool goes on reading while another
+        <!-- Every section is drawn and one of them shows. So the role slots go on reading while another
              tab stands, and a tab opened again is full rather than starting over. -->
-        <section v-show="tab === 'pool'" :aria-label="$t('live.label.tab_pool')">
-          <CoworkerPoolBoard :now="now * 1000" :rooms="rooms" />
+        <section v-show="tab === 'slots'" :aria-label="$t('live.label.tab_slots')">
+          <RoleSlotsBoard :now="now * 1000" :rooms="rooms" />
         </section>
 
         <section v-show="tab === 'executions'" class="flex grow flex-col gap-3" :aria-label="$t('live.aria.herdr_log')">
@@ -108,6 +108,8 @@
                   <MarqueeLine class="text-sm font-medium">
                     {{ agentNameLabel($t, { name: run.agent }) }}
                     <span class="font-normal text-muted">· {{ roomTitle($t, rooms, run.chatId) }}</span>
+                    <!-- A job wears the repository it runs in, with its checkout beside it. -->
+                    <span v-if="placeOf(run) !== null" class="font-normal text-muted">· {{ placeOf(run) }}</span>
                     <!-- A run of the queue wears the item it is a run of; nothing wears a job
                          number. -->
                     <ItemTip v-if="runningWorkLabel($t, run) !== null" :id="run.todoId" press class="font-normal text-muted">· {{ runningWorkLabel($t, run) }}</ItemTip>
@@ -267,7 +269,8 @@ import {
   waitingLabel,
   isLiveTab,
   LIVE_TABS,
-  statusGroups
+  statusGroups,
+  placeOf
 } from "~/domain/status";
 import { stopKey, useStops } from "~/domain/stopping";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
@@ -380,7 +383,7 @@ useBackClose(computed(() => stops.asking.value !== null), () => stops.cancel());
 const route = useRoute();
 const router = useRouter();
 
-const tab = computed<LiveTab>(() => (isLiveTab(route.query.tab) ? route.query.tab : "pool"));
+const tab = computed<LiveTab>(() => (isLiveTab(route.query.tab) ? route.query.tab : "slots"));
 // On a phone the row has not the width for both a mark and a name on six tabs, and the name is
 // what a reader picks a section by, so the marks are what gives way.
 const narrow = useNarrow();

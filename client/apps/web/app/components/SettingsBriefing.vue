@@ -39,7 +39,6 @@
           :step="8"
           :digits="4"
           :unit="$t('briefing.label.pixels')"
-          :placeholder="$t('common.label.default_choice')"
           :aria-label="$t('briefing.label.position_top')"
           data-briefing-top
         />
@@ -84,7 +83,8 @@ const side = computed({
   get: () => position.value.side,
   set: (next: string) => keep({ ...position.value, side: next as BriefingSide })
 });
-// An emptied box is the first place again: as low as the page area lets it.
+// An emptied box is the first place again: as low as the page area lets it. That place is no number the screen can
+// write, so the box stands empty with no word (docs/web.md, 「The default among choices」).
 const top = computed({
   get: () => position.value.top ?? undefined,
   set: (next: number | null | undefined) => keep({ ...position.value, top: next === null || next === undefined ? null : Math.max(0, Math.round(next)) })

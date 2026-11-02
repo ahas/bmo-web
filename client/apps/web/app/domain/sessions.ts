@@ -3,17 +3,12 @@ import type { Translate } from "#shared/wording";
 
 // An agent's session as the console lists it and asks it cleared (the agency's docs/session-resets.md).
 
-// The line a reset's confirmation says of what it clears: each holder's kind in its own words, and
-// for a worker whether it waits for the job running now. A kind this file does not know says the plain
-// line.
+// The line a reset's confirmation says of what it clears, by the session's scope (the agency's `docs/api.md`,
+// 「sessions」): a supervisor's one session across its rooms, or its session in one room. Any other scope says the
+// plain line.
 export function sessionClears(t: Translate, session: Pick<SessionView, "kind" | "running" | "models" | "title" | "chatId" | "generation">): string {
-  if (session.kind === "chat") return t("agents.message.session_clears_chat");
-  if (session.kind === "worker") {
-    return session.running
-      ? t("agents.message.session_clears_worker_running")
-      : t("agents.message.session_clears_worker", { n: session.models.length.toLocaleString("en-US") });
-  }
-  if (session.kind === "companion") {
+  if (session.kind === "agent") return t("agents.message.session_clears_chat");
+  if (session.kind === "room") {
     return t("agents.message.session_clears_companion", { room: session.title ?? String(session.chatId), generation: (session.generation ?? 0).toLocaleString("en-US") });
   }
 
@@ -25,7 +20,7 @@ export function sessionDetail(t: Translate, session: Pick<SessionView, "kind" | 
   if (session.chatId !== null) {
     return t("agents.label.session_room", { room: session.title ?? String(session.chatId), generation: (session.generation ?? 0).toLocaleString("en-US") });
   }
-  if (session.kind === "chat") return t("agents.label.session_chat", { model: session.models.join(", ") });
+  if (session.kind === "agent") return t("agents.label.session_chat", { model: session.models.join(", ") });
 
   return t("agents.label.session_models", { models: session.models.join(", ") });
 }

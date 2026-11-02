@@ -1,15 +1,11 @@
 import type { ResearchAsk, ResearchItem, ResearchItemChange, ResearchOrigin } from "#shared/research";
-import type { FallbackProfile } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
-// What the agent-management screen says about the searchers: which work keys are theirs and the names
-// they stand under (docs/web.md, 「Agent management screen」).
-
-// The run lines a research goes out on, as the agency names them.
-const RESEARCH_LINES: readonly string[] = ["search", "browse"];
+// What the research screen's settings tab says of each research line: the name it stands under (docs/web.md,
+// 「Research screen」).
 
 // Each research key's name, by the key of the words it is said in.
-export const PROFILE_LABELS: Record<string, string> = {
+const PROFILE_LABELS: Record<string, string> = {
   "search:basic": "research.label.profile_search_basic",
   "search:thorough": "research.label.profile_search_thorough",
   "search:exhaustive": "research.label.profile_search_exhaustive",
@@ -21,29 +17,6 @@ export function profileLabel(t: Translate, key: string): string {
   const label = PROFILE_LABELS[key];
 
   return label === undefined ? key : t(label);
-}
-
-// The line a key no profile declares goes out on, read off its name the way the agency reads it.
-function lineByName(key: string): string | null {
-  if (key === "browse") return "browse";
-  if (key.startsWith("search")) return "search";
-
-  return null;
-}
-
-function onResearchLine(line: string | null): boolean {
-  return line !== null && RESEARCH_LINES.includes(line);
-}
-
-/** The searchers' work keys: every profile on a research line, then every assigned key no profile declares that goes out on one. */
-export function researchKeys(profiles: readonly Pick<FallbackProfile, "key" | "line">[], assignments: readonly { key: string }[]): string[] {
-  const keys = profiles.filter((profile) => onResearchLine(profile.line)).map((profile) => profile.key);
-
-  for (const { key } of assignments) {
-    if (!keys.includes(key) && !profiles.some((profile) => profile.key === key) && onResearchLine(lineByName(key))) keys.push(key);
-  }
-
-  return keys;
 }
 
 // The fetch strategies the research unit holds a research run to, in the order the choice offers them, each by the
@@ -61,9 +34,10 @@ export function strategyLabel(t: Translate, strategy: string): string {
   return label === undefined ? t("research.label.unknown_value", { value: strategy }) : t(label);
 }
 
-/** A gap between two requests, in milliseconds, or the web tools' own where none is set. */
+/** A gap between two requests, in milliseconds, or a dash where none is set: the web tools' own value is no route's
+ * answer, so it is never guessed (docs/web.md, 「The default among choices」). */
 export function gapText(t: Translate, ms: number | null): string {
-  return ms === null ? t("research.label.default") : t("research.label.gap_value", { n: ms.toLocaleString("ko-KR") });
+  return ms === null ? "—" : t("research.label.gap_value", { n: ms.toLocaleString("ko-KR") });
 }
 
 /** What a gap's box holds once saved: an emptied box sets the gap back to the web tools' own. */
@@ -116,7 +90,8 @@ export interface ChipLook {
 // The research screen's tabs, the queue first (docs/web.md, 「Research screen」).
 export const RESEARCH_TABS = [
   { value: "queue", label: "research.label.tab_queue", icon: "i-material-symbols-format-list-bulleted" },
-  { value: "sources", label: "research.label.tab_sources", icon: "i-material-symbols-rss-feed" }
+  { value: "sources", label: "research.label.tab_sources", icon: "i-material-symbols-rss-feed" },
+  { value: "settings", label: "research.label.tab_settings", icon: "i-material-symbols-tune" }
 ] as const;
 
 export type ResearchTab = (typeof RESEARCH_TABS)[number]["value"];

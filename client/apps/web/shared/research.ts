@@ -28,8 +28,9 @@ export interface ResearchSettingsView {
   source: string;
   engines: SearchEngineState[] | null;
   enginesUnread: string | null;
-  // The co-worker roles a search's branches may go out on, as the agency's pool lists them.
-  roles: string[];
+  // The roles a search's branches may go out as: those the agency lists as callable, each by its name and the words
+  // the screen names it by.
+  roles: { name: string; label: string }[];
 }
 
 // One change to the research settings: the field named alone, every other kept.

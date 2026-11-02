@@ -1,59 +1,50 @@
 import { describe, expect, test } from "bun:test";
 
-// The chat agent's own settings on its screen (docs/web.md, 「Agent screen」): its model, kept on the agency's
-// route or on a fixed registered model, and the texts its system prompt is composed of, each saved or put
-// back to its file.
+// A supervisor's settings (docs/web.md, 「Agent management screen」, the supervisors tab, and 「Agent screen」): one form
+// with one save — its own settings, its provider order among them, then the companion's block or the texts its
+// system prompt is composed of — opened by the supervisors tab, the supervisor's own screen and a room alike.
 
 const read = async (name: string) => await Bun.file(new URL(`../../../apps/web/app/${name}`, import.meta.url)).text();
 const server = async (name: string) => await Bun.file(new URL(`../../../apps/web/server/${name}`, import.meta.url)).text();
 
 const page = await read("pages/agents/[name].vue");
 const dialog = await read("components/SupervisorSettingsDialog.vue");
+const fields = await read("components/SupervisorFields.vue");
+const documents = await read("components/ChatDocumentsFields.vue");
+const companionDialog = await read("components/CompanionSettingsDialog.vue");
+const tab = await read("components/AgentsSupervisors.vue");
 const listing = await server("api/chat-documents.get.ts");
 const changing = await server("api/chat-documents/[documentName].patch.ts");
-const model = await server("api/agent-model.post.ts");
-const companions = await read("components/AgentsCompanions.vue");
+const patch = await server("api/supervisors/[name].patch.ts");
 
-describe("the chat agent's settings", () => {
-  test("stand on the agent screen of the agent whose turn is the window's, opened by the list's own row", () => {
-    expect(page).toContain('row.value?.turnShape === "window") return "supervisor"');
-    expect(page).toContain("<SupervisorSettingsDialog");
-    expect(companions).toContain("<SupervisorSettingsDialog");
+describe("a supervisor's settings", () => {
+  test("are one dialog, opened by the tab, the supervisor's own screen and a room's companion tools", () => {
+    expect(page).toContain('<SupervisorSettingsDialog v-if="settingsKind === \'supervisor\'" v-model:open="settingsOpen" :name="name"');
+    expect(tab).toContain("<SupervisorSettingsDialog");
+    expect(companionDialog).toContain('<SupervisorSettingsDialog v-model:open="open" :name="props.meta.name"');
   });
 
-  test("name the model the work key resolves to and open its road on the routes tab", () => {
-    expect(dialog).toContain("props.agent.modelLabel ?? props.agent.model");
-    expect(dialog).toContain("/agents?tab=routes&key=");
-    expect(dialog).toContain('$t("agents.label.supervisor_model_route"');
+  test("hold one save at the foot over every block, the supervisor's own change sent first", () => {
+    expect(dialog).toContain("useFormSave(t)");
+    expect(dialog.indexOf("<SupervisorFields")).toBeLessThan(dialog.indexOf("<CompanionSettingsBlock"));
+    expect(fields).toContain("useFormPart(");
+    expect(documents).toContain("useFormPart(");
+    expect(fields).toContain("<ProviderOrderField");
   });
 
-  test("keep its model on the agency's route or on a fixed registered model", () => {
-    expect(dialog).toContain("props.agent.pinnedModel");
-    expect(dialog).toContain("supervisor_model_method_route");
-    expect(dialog).toContain("supervisor_model_method_fixed");
-    expect(dialog).toContain("one.name ?? one.model");
-    expect(dialog).toContain('$fetch("/api/agent-model"');
-    expect(page).toContain(":reread=\"refreshCatalogue\"");
-  });
-
-  test("read the three documents, each saved as the owner's text or put back to its file", () => {
-    expect(dialog).toContain('$fetch<ChatDocumentsView>("/api/chat-documents")');
-    expect(dialog).toContain('action: "save"');
-    expect(dialog).toContain('action: "reset"');
-    expect(dialog).toContain("chat_document_opening");
-    expect(dialog).toContain("chat_document_absolute_rules");
-    expect(dialog).toContain("chat_document_manual");
+  test("read the three documents, each saved as the owner's text or put back to its file with the form's save", () => {
+    expect(documents).toContain('$fetch<ChatDocumentsView>("/api/chat-documents")');
+    expect(documents).toContain('{ action: "reset" }');
+    expect(documents).toContain('{ action: "save", text: drafts[document.name] }');
+    expect(documents).toContain("chat_document_opening");
+    expect(documents).toContain("chat_document_absolute_rules");
+    expect(documents).toContain("chat_document_manual");
   });
 
   test("are carried to the agency by the console's own routes", () => {
     expect(listing).toContain('agencyRoute<ChatDocumentsView>("GET", "/chat-documents")');
     expect(changing).toContain('agencyRoute<ChatDocumentView>("PATCH", `/chat-documents/${encodeURIComponent(name)}`');
-    expect(changing).toContain("by: session.user.name");
-  });
-
-  test("carry the model method to the agency's own agent change", () => {
-    expect(model).toContain('agency().PATCH("/agents/{agentName}"');
-    expect(model).toContain('body.method === "route" ? { method: "route" } : { method: "fixed", registration }');
-    expect(model).toContain("isAgentName(body?.agent)");
+    expect(patch).toContain("supervisorChangeOf(await readBody<unknown>(event))");
+    expect(patch).toContain("requireAdministrator(event)");
   });
 });

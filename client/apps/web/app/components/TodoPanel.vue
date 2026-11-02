@@ -387,6 +387,17 @@
               <div class="mt-1 flex flex-wrap items-center gap-1">
                 <UBadge :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="searched" /></UBadge>
 
+                <!-- While the deployment the title bar reads carries this item, whether it is being tested or put live,
+                     as words beside the state: no state, filter or place in the order of its own. -->
+                <UBadge
+                  v-if="itemDeployPhase(deployView, item.id) !== null"
+                  color="primary"
+                  variant="outline"
+                  size="sm"
+                  icon="i-material-symbols-rocket-launch-outline"
+                  data-item-deploy
+                ><SearchText :text="$t(ITEM_DEPLOY_LABELS[itemDeployPhase(deployView, item.id)!])" :query="searched" /></UBadge>
+
                 <!-- A job standing still behind a question says so on its row (docs/web.md, the TODO panel's section):
                      a badge here, beside the state, so it is seen without opening the item. -->
                 <UBadge v-if="awaitsAnswer(item.id)" color="warning" variant="subtle" size="sm" icon="i-material-symbols-help-outline" data-awaiting-question>{{ $t("todo.label.awaiting_question") }}</UBadge>
@@ -512,6 +523,7 @@ import { questionsOfTodo, questionSummary, useOpenQuestions } from "~/domain/que
 import { useTodoPanelLayout, useTodoView } from "~/domain/todo-settings";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { holdWaits } from "~/domain/queue-place";
+import { ITEM_DEPLOY_LABELS, itemDeployPhase } from "~/domain/deploy";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { useConfirm } from "~/domain/confirm";
 import { matchFields } from "bmo-ui/shared/search";
@@ -560,6 +572,7 @@ import {
 import { movedEnoughToDrag, rowAtPoint, startsRowDrag } from "~/domain/row-drag";
 
 import type {
+  DeployView,
   QueuePauseChanged,
   RoomSummary,
   StatusView,
@@ -622,12 +635,15 @@ const { data: rooms } = useFetch<RoomSummary[]>("/api/rooms", {
   default: () => []
 });
 
-// The workers this machine has, out of the one catalogue read every screen shares: the list is
-// the archive's, so this panel holds none of its own and a worker the owner adds stands here
-// without a change.
+// The repositories an item may go to, out of the one catalogue read every screen shares: the list is the agency's,
+// so this panel holds none of its own and a repository the owner adds stands here without a change.
 const { agents } = useAgentCatalogue();
 
-const workers = computed(() => agents.value.agents.filter((agent) => agent.kind === "worker"));
+const workers = computed(() => agents.value.agents.filter((agent) => agent.kind === "repository"));
+
+// The deployment the title bar reads, which says on a row whose item it carries whether it is being tested or put
+// live (docs/web.md, the TODO panel's section).
+const { data: deployView } = useNuxtData<DeployView>("deploy");
 
 const board = ref<TodoBoard>(EMPTY);
 // What the jobs have stopped to ask him, and the clock the countdown on an open one is read
@@ -1519,7 +1535,8 @@ useLiveRefresh(
     rereadOpened();
   },
   {
-    on: ["todo", "work-order"],
+    // A job the agency ends takes a reporting row to the finished ones, so its end is news for the rows too.
+    on: ["todo", "work-order", "worker-run"],
     busy: () => held.value !== null || saving.value
   }
 );

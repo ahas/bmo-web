@@ -65,12 +65,20 @@
 - mention → 멘션: 멘션, 멘션 후보, 멘션할 이름. Never 호출, 부르기, 지칭.
 - an agent's role, which gives its function bundles → 역할: 역할, 역할 추가, 역할 프롬프트, 종류 기본. A co-work role a
   work key names (`role:`) is 역할 too; where it stands on a screen beside the agent role it is told apart as 작업 키
-  역할, and the agent role keeps the bare word. A function bundle → 기능 묶음; how many turns run at once → 동시 실행
-  한도.
+  역할, and the agent role keeps the bare word. A function bundle → 기능 묶음; how many of a role's runs go at once → 동시
+  실행, with what goes and waits as `2/3 실행 · 1 대기` and a cap of none as 막힘.
 - supervisor → 감독관: 감독관, 감독관 추가, 감독관의 설정, 감독관 없음. Every chat agent is a supervisor, the
   chat agent and every companion alike; a screen never calls one 채팅 에이전트 or 대화 상대.
-- a supervisor's model method → 실행 경로 (the agency's route) and 고정 모델 (a registered model kept as its
-  own): 모델 방법, 실행 경로, 고정 모델, 등록 모델을 고르세요, 감독관 모델을 바꿨습니다. Never 라우트, 라우팅.
+- a role's slot, one of the runs its cap lets in at once → 역할 슬롯, 슬롯: 역할 슬롯, 작업 중, 예약됨, 비어 있음. Never
+  자리, 칸, 풀.
+- a repository the agency runs jobs in → 저장소: 저장소, 저장소 추가. Never 리포지토리, 레포, 워커 for the place.
+- a supervisor's or a role's provider order → 공급자 순서: 공급자 순서, 공급자 추가; the share of a provider's quota at
+  which it is passed over → 할당량 기준; a session's compaction threshold → 압축 기준; keeping a prefix warm → 캐시 유지;
+  a role's sessions kept or opened anew → 유지, 새로. Never 라우트, 라우팅, 우선순위 목록.
+- a repository, where executing work runs → 저장소: 저장소, 저장소 추가, 작업 저장소; the model a repository pins →
+  고정 모델; no pin → 역할 순서. A deployment's own model → 등록 모델; a file its engine serves → 모델 파일.
+- a value equal to the default a service states → `<value> (기본값)`, after the value and never in its place; a
+  setting whose default no service states stands empty, with no word.
 - a round's record on its answer → 판정 기록: 판정 기록, 기록, 펼치기, 접기. The one press carrying the turn's
   brain, calls, drafts and judgement; its parts say 브레인, 툴 사용, 드래프트, 판정.
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,
@@ -92,7 +100,7 @@
 - filter, sift → 필터. Never 거르기.
 - page → 페이지. Never 쪽.
 - table → 테이블; row → 행; query → 쿼리, wherever the text is about a database. Never 표, 줄, 질의.
-- default → 기본값. Never 처음 값.
+- default → 기본값, standing only as the mark after the default value (above). Never 처음 값.
 - section → 섹션. Never 구역.
 - health check → 헬스 체크; the one run before anything changes → 사전 헬스 체크. Never 생존 확인.
 - rollback → 롤백. Never 되돌림.

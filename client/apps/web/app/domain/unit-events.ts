@@ -145,6 +145,10 @@ export function agencyEvent(data: Fields): BotEvent | null {
     return { id, at: number(job.startedAt) ?? at, type: "worker-run", chatId: room ?? 0, messageId: null };
   }
 
+  if (kind === "supervisor.changed" || kind === "role.changed" || kind === "repository.changed" || kind === "repository.deleted" || kind === "slot-request.changed") {
+    return { id, at, type: "agency-catalogue", chatId: 0, messageId: null };
+  }
+
   return null;
 }
 

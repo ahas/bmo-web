@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { REPORTING_WINDOW_SECONDS } from "../../../apps/web/shared/config";
 import { setModelRegistrations } from "../../../apps/web/shared/model-short";
 import {
   itemModel,
@@ -141,9 +140,8 @@ const board: TodoBoard = {
   paused: false, deployHold: null
 };
 
-// The moment the tests are read at, and the moment an item that is reporting was marked done —
-// a minute inside the bound, which is about what a report actually takes. Fixed here, because a
-// state that turns on a clock cannot be tested against the one that is running.
+// The moment the tests are read at, and the moment an item that is reporting was marked done, fixed here so a
+// state never reads differently by the clock it is tested at.
 const NOW = 1_756_900_000;
 const REPORTED = NOW - 60;
 
@@ -324,30 +322,35 @@ describe("where an item stands", () => {
 });
 
 describe("an item whose job is still writing its report", () => {
-  test("a done item whose run is still going is reporting, and wears the reporting word", () => {
-    const held = item(5, { done: true, running: true, doneAt: REPORTED, status: "done" });
+  test("a done item whose agency job is still going is reporting, and wears the reporting word", () => {
+    const held = item(5, { done: true, liveState: "running", doneAt: REPORTED, status: "done" });
 
     expect(todoState(held, NOW)).toBe("reporting");
     expect(stateLabel(wording, held, NOW)).toBe(wording("todo.label.state_reporting"));
   });
 
-  test("the same item is done once its run has ended", () => {
-    const held = item(5, { done: true, running: false, doneAt: REPORTED, status: "done" });
+  test("the same item is done once the agency says its job ended", () => {
+    const held = item(5, { done: true, liveState: null, doneAt: REPORTED, status: "done" });
 
     expect(todoState(held, NOW)).toBe("done");
     expect(stateLabel(wording, held, NOW)).toBe(wording("todo.label.state_done"));
   });
 
-  test("an item marked done longer ago than the bound is done, job row open or not", () => {
-    const held = (ago: number): TodoItem => item(5, { done: true, running: true, doneAt: NOW - ago });
+  test("no clock bounds it: however long ago it was marked done, it reports until its job ends", () => {
+    const held = (ago: number): TodoItem => item(5, { done: true, liveState: "running", doneAt: NOW - ago });
 
-    expect(todoState(held(REPORTING_WINDOW_SECONDS), NOW)).toBe("reporting");
-    expect(todoState(held(REPORTING_WINDOW_SECONDS + 1), NOW)).toBe("done");
-    expect(todoState(item(5, { done: true, running: true, doneAt: null }), NOW)).toBe("done");
+    expect(todoState(held(60), NOW)).toBe("reporting");
+    expect(todoState(held(24 * 60 * 60), NOW)).toBe("reporting");
+    expect(todoState(item(5, { done: true, liveState: "running", doneAt: null }), NOW)).toBe("reporting");
+    expect(todoState(item(5, { done: true, liveState: null, doneAt: NOW }), NOW)).toBe("done");
+  });
+
+  test("the server's own word that it reports stands as well", () => {
+    expect(todoState(item(5, { done: true, reporting: true }), NOW)).toBe("reporting");
   });
 
   test("the row stays at the head of the queue with the running ones, and not among the finished", () => {
-    const reporting = item(5, { done: true, running: true, doneAt: REPORTED, priority: 2, status: "done" });
+    const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, priority: 2, status: "done" });
     const sections = todoSections(wording, { ...board, done: [reporting, ...board.done] }, { ...DEFAULT_VIEW, filter: "all" }, NOW);
 
     expect(jobGoingOn(todoState(reporting, NOW))).toBe(true);
@@ -356,7 +359,7 @@ describe("an item whose job is still writing its report", () => {
   });
 
   test("the running tab shows it and its badge counts it, and the waiting tab does neither", () => {
-    const reporting = item(5, { done: true, running: true, doneAt: REPORTED, priority: 2, status: "done" });
+    const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, priority: 2, status: "done" });
     const withReporting = { ...board, done: [reporting, ...board.done] };
     const shownUnder = (filter: TodoFilter) =>
       todoSections(wording, withReporting, { ...DEFAULT_VIEW, filter }, NOW).flatMap((section) => section.items.map((entry) => entry.id));
@@ -368,7 +371,7 @@ describe("an item whose job is still writing its report", () => {
   });
 
   test("the header counts it with the queue it is standing in", () => {
-    const reporting = item(5, { done: true, running: true, doneAt: REPORTED, priority: 2 });
+    const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, priority: 2 });
 
     expect(todoSummary(wording, { ...board, done: [reporting, ...board.done] }, NOW)).toBe(summary(4, 1));
     expect(todoSummary(wording, board, NOW)).toBe(summary(3, 1));
@@ -388,9 +391,9 @@ describe("an item whose job is still writing its report", () => {
 });
 
 describe("the colour a row's word wears", () => {
-  // The reporting state is built the way the state's own tests build it: marked done inside the bound
-  // with its run still open, read at a moment that is fixed rather than the clock's.
-  const reporting = item(5, { done: true, running: true, doneAt: NOW - REPORTING_WINDOW_SECONDS, status: "done" });
+  // The reporting state is built the way the state's own tests build it: marked done with the agency's job for it
+  // still going.
+  const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, status: "done" });
 
   test("each state wears its own, and done wears the console's word for finished", () => {
     expect(stateColour(item(4, { done: true }), NOW)).toBe("success");
@@ -687,7 +690,7 @@ describe("dragging a row to a place of its own", () => {
 
   // The queue section as the panel shows it, with a row that is done and still reporting
   // standing in it where its priority puts it.
-  const reporting = item(5, { done: true, running: true, doneAt: REPORTED, priority: 2, status: "done" });
+  const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, priority: 2, status: "done" });
   const shown = todoSections(wording, { ...board, queue, done: [reporting, ...board.done] }, { ...DEFAULT_VIEW, filter: "all" }, NOW);
   const withReporting = shown[1]?.items ?? [];
 
@@ -796,10 +799,10 @@ describe("the row a job is going on for standing first", () => {
   });
 
   test("a row wearing the reporting word stays lifted with the running ones until its job has ended", () => {
-    const reporting = item(6, { done: true, running: true, doneAt: REPORTED, priority: 2, status: "done" });
+    const reporting = item(6, { done: true, liveState: "running", doneAt: REPORTED, priority: 2, status: "done" });
 
     expect(shownOf({ ...held, done: [reporting] }).map((entry) => entry.id)).toEqual([6, 3, 1, 2, 4, 5]);
-    expect(shownOf({ ...held, done: [{ ...reporting, running: false }] }).map((entry) => entry.id)).toEqual([3, 1, 2, 4, 5]);
+    expect(shownOf({ ...held, done: [{ ...reporting, liveState: null }] }).map((entry) => entry.id)).toEqual([3, 1, 2, 4, 5]);
   });
 
   test("so do the rows winding down on their way to being held", () => {

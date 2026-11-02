@@ -3,8 +3,8 @@ import { countText } from "./numbers";
 import type { CatalogueEntryView, ModelUseView } from "#shared/agency";
 import type { Translate } from "#shared/wording";
 
-// The model catalogue as the General tab's model files section reads and changes it
-// (the agency's docs/model-catalogue.md; docs/web.md, 「Agent management screen」).
+// The model catalogue as the model files tab reads and changes it (the agency's docs/model-catalogue.md; docs/web.md,
+// 「Agent management screen」).
 
 // A size in bytes as gigabytes with one decimal.
 export function sizeText(bytes: number): string {
@@ -20,15 +20,15 @@ export function sourceText(t: Translate, source: string | null): string {
 
 const dash = "—";
 
-// An entry's defaults as one line: each named, a dash where empty.
-export function defaultsText(t: Translate, entry: Pick<CatalogueEntryView, "thinking" | "temperature" | "topP" | "presencePenalty" | "maxTokens">): string {
+// An entry's defaults, each named with its value, a dash where the entry sets none.
+export function defaultsPairs(t: Translate, entry: Pick<CatalogueEntryView, "thinking" | "temperature" | "topP" | "presencePenalty" | "maxTokens">): { name: string; value: string }[] {
   return [
-    `${t("agents.label.thinking")} ${entry.thinking === null ? dash : t(entry.thinking ? "agents.label.think_on" : "agents.label.think_off")}`,
-    `temperature ${entry.temperature ?? dash}`,
-    `top_p ${entry.topP ?? dash}`,
-    `presence_penalty ${entry.presencePenalty ?? dash}`,
-    `max_tokens ${entry.maxTokens === null ? dash : countText(entry.maxTokens)}`,
-  ].join(" · ");
+    { name: t("agents.label.thinking"), value: entry.thinking === null ? dash : t(entry.thinking ? "agents.label.think_on" : "agents.label.think_off") },
+    { name: "temperature", value: entry.temperature === null ? dash : String(entry.temperature) },
+    { name: "top_p", value: entry.topP === null ? dash : String(entry.topP) },
+    { name: "presence_penalty", value: entry.presencePenalty === null ? dash : String(entry.presencePenalty) },
+    { name: "max_tokens", value: entry.maxTokens === null ? dash : countText(entry.maxTokens) }
+  ];
 }
 
 // A choice of an entry for its engine as one line: the entry, the engine, who and how it went.
@@ -59,7 +59,8 @@ export interface CatalogueForm {
   engine: string;
   registration: string;
   note: string;
-  thinking: "default" | "on" | "off";
+  // On or off, or empty where the entry leaves it to the engine.
+  thinking: "" | "on" | "off";
   temperature: number | null;
   topP: number | null;
   presencePenalty: number | null;
@@ -67,7 +68,7 @@ export interface CatalogueForm {
 }
 
 export function emptyCatalogueForm(): CatalogueForm {
-  return { name: "", label: "", file: "", bytes: null, sha256: "", source: "", engine: "", registration: "", note: "", thinking: "default", temperature: null, topP: null, presencePenalty: null, maxTokens: null };
+  return { name: "", label: "", file: "", bytes: null, sha256: "", source: "", engine: "", registration: "", note: "", thinking: "", temperature: null, topP: null, presencePenalty: null, maxTokens: null };
 }
 
 export function catalogueForm(entry: CatalogueEntryView): CatalogueForm {
@@ -81,7 +82,7 @@ export function catalogueForm(entry: CatalogueEntryView): CatalogueForm {
     engine: entry.engine ?? "",
     registration: entry.registration ?? "",
     note: entry.note ?? "",
-    thinking: entry.thinking === null ? "default" : entry.thinking ? "on" : "off",
+    thinking: entry.thinking === null ? "" : entry.thinking ? "on" : "off",
     temperature: entry.temperature,
     topP: entry.topP,
     presencePenalty: entry.presencePenalty,
@@ -104,7 +105,7 @@ export function catalogueSave(form: CatalogueForm): Record<string, unknown> {
     engine: text(form.engine),
     registration: text(form.registration),
     note: text(form.note),
-    thinking: form.thinking === "default" ? null : form.thinking === "on",
+    thinking: form.thinking === "" ? null : form.thinking === "on",
     temperature: form.temperature,
     topP: form.topP,
     presencePenalty: form.presencePenalty,

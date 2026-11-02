@@ -3,8 +3,8 @@ import { describe, expect, test } from "bun:test";
 import { engineLook, gapOf, gapText, STRATEGY_LABELS, strategyLabel } from "../../../apps/web/app/domain/research";
 import { wording } from "../../../apps/web/shared/wording";
 
-// The words the searcher tab says the research settings in (docs/web.md, the searcher tab): the three fetch
-// strategies, a gap or the web tools' own, and each engine state as a mark and a word.
+// The words the research screen's settings tab says the research settings in (docs/web.md, 「Research screen」): the
+// three fetch strategies, a gap or a dash where the web tools' own stands, and each engine state as a mark and a word.
 
 describe("the research settings' words", () => {
   test("name each of the agency's three strategies, and one it does not know by its value", () => {
@@ -13,9 +13,9 @@ describe("the research settings' words", () => {
     expect(strategyLabel(wording, "sideways")).toBe(wording("research.label.unknown_value", { value: "sideways" }));
   });
 
-  test("say a gap in milliseconds with its separators, the web tools' own as the default, and read an emptied box as it", () => {
+  test("say a gap in milliseconds with its separators, a dash where none is set since no route says the web tools' own, and read an emptied box as none", () => {
     expect(gapText(wording, 1500)).toBe(wording("research.label.gap_value", { n: "1,500" }));
-    expect(gapText(wording, null)).toBe(wording("research.label.default"));
+    expect(gapText(wording, null)).toBe("—");
     expect(gapOf(" ")).toBeNull();
     expect(gapOf("250")).toBe(250);
   });

@@ -1,9 +1,9 @@
 <template>
-  <!-- One companion's settings (the agency's docs/companions.md, 「Its settings」; docs/web.md, 「Agent management screen」): its
-       model, its base prompt, its persona, how its model is asked, the system prompt its next request sends (its base
-       prompt, the fixed companion role and its persona), its room sessions and its latest changes. The block is part of the
-       form around it (「Forms」): what is changed here waits for that form's one save, which goes to
-       the bot, keeps the change with who made it, and the block then stands as the bot answered. -->
+  <!-- One companion's settings (docs/web.md, 「Agent management screen」, the supervisors tab): its picture, how its
+       model is asked, whether a turn is given its reference, its persona, the system prompt its next request sends and
+       its room sessions. Its provider order is the supervisor's own, set above it. The block is part of the form around
+       it (「Forms」): what is changed here waits for that form's one save, which goes to the agency, keeps the change
+       with who made it, and the block then stands as the agency answered. -->
   <section class="flex flex-col gap-6" :data-companion="view.agent" :aria-labelledby="`companion-${view.agent}`">
     <header v-if="!props.bare" class="flex min-h-8 items-center gap-2">
       <UIcon :name="view.icon ?? 'i-material-symbols-person-outline'" class="size-5 shrink-0 text-muted" />
@@ -22,83 +22,14 @@
       <PictureSetting kind="agent" :subject="view.agent" :avatar="picture" />
     </div>
 
-    <!-- The model, every supervisor's the same two ways: the agency's route, or a registration kept as its
-         fixed model with the file its engine serves. -->
-    <div class="flex flex-col gap-2">
-      <h3 class="text-sm font-medium text-highlighted">{{ $t("common.label.model") }}</h3>
-      <USelect
-        :model-value="draft.method"
-        :items="methodItems"
-        value-key="value"
-        class="w-full sm:w-64"
-        :disabled="busy"
-        :aria-label="$t('agents.label.supervisor_model_method')"
-        @update:model-value="(value: string) => (draft.method = value === 'route' ? 'route' : 'fixed')"
-      />
-      <template v-if="draft.method === 'fixed'">
-        <div class="grid gap-2 sm:grid-cols-2">
-          <USelect
-            :model-value="draft.registration ?? undefined"
-            :items="registrationItems"
-            value-key="value"
-            class="w-full"
-            :disabled="busy"
-            :aria-label="$t('agents.title.registry')"
-            @update:model-value="(value: string) => (draft.registration = value)"
-          />
-          <!-- The files offered are those of the registration saved, so another registration chosen
-               holds this list still until it is saved. -->
-          <USelect
-            v-if="view.entries.length > 0"
-            :model-value="draft.entry ?? undefined"
-            :items="entryItems"
-            value-key="value"
-            class="w-full"
-            :placeholder="$t('agents.label.engine_model_unknown')"
-            :disabled="busy || running || draft.registration !== saved.registration"
-            :aria-label="$t('agents.label.engine_model')"
-            @update:model-value="(value: string) => (draft.entry = value)"
-          />
-        </div>
-        <p v-if="draft.registration === null" class="text-sm text-muted">{{ $t("agents.label.supervisor_model_pick") }}</p>
-      </template>
-      <template v-else>
-        <p class="text-sm text-highlighted" data-companion-model-route>{{ $t("agents.label.supervisor_model_route", { model: view.model ?? "—" }) }}</p>
-        <p class="text-sm text-dimmed">{{ $t("agents.label.supervisor_model_route_help") }}</p>
-        <NuxtLink to="/agents?tab=routes" class="text-sm text-primary">{{ $t("agents.action.open_routes") }}</NuxtLink>
-      </template>
-      <p v-if="view.modelUse !== null && view.modelUse.state !== 'done'" class="text-sm" :class="view.modelUse.state === 'failed' ? 'text-error' : 'text-muted'" role="status">
-        {{ useText($t, view.modelUse) }}
-      </p>
-      <p v-if="entryEffect !== ''" class="whitespace-pre-line text-sm text-muted">{{ entryEffect }}</p>
-      <p v-if="refusalAt('registration') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("registration") }}</p>
-    </div>
-
-    <!-- The base prompt: the whole prompt its system prompt opens on, or none (the agency's docs/base-prompts.md). -->
-    <div class="flex flex-col gap-2">
-      <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.label.base_prompt") }}</h3>
-      <div class="grid gap-2 sm:grid-cols-2">
-        <USelect v-model="draft.base" :items="baseItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.base_prompt')" />
-      </div>
-      <p v-if="differs('base')" class="text-sm text-muted">{{ $t("agents.message.tools_new_session") }}</p>
-      <p v-if="refusalAt('basePrompt') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("basePrompt") }}</p>
-    </div>
-
     <!-- The generation parameters: how its answers are sampled, each setting with what it is for and its bounds in
          full sight beside its box, an empty box the engine's own default. -->
     <div class="flex flex-col gap-2">
       <h3 :id="`generation-${view.agent}`" class="text-sm font-medium text-highlighted">{{ $t("agents.label.generation") }}</h3>
-      <p v-if="(differs('generation') || differs('thinking')) && view.sessions.length > 0" class="text-sm text-muted">
+      <p v-if="differs('generation') && view.sessions.length > 0" class="text-sm text-muted">
         {{ $t("agents.message.generation_resets", { n: countText(view.sessions.length) }) }}
       </p>
-      <GenerationFields v-model="draft.generation" :settings="view.generationSettings" :id-prefix="`generation-${view.agent}`" :labelledby="`generation-${view.agent}`" :disabled="busy" :refusal-at="refusalAt">
-        <label :for="`generation-${view.agent}-thinking`" class="flex min-w-0 flex-col sm:contents">
-          <span class="text-sm text-highlighted">{{ $t("agents.label.thinking") }}</span>
-          <span class="text-sm text-muted">{{ $t("agents.label.use_thinking") }}</span>
-        </label>
-        <USelect :id="`generation-${view.agent}-thinking`" v-model="draft.thinking" :items="thinkingItems" value-key="value" class="w-full" :disabled="busy" />
-        <p v-if="refusalAt('thinking') !== ''" role="alert" class="col-span-full break-words text-sm text-error">{{ refusalAt("thinking") }}</p>
-      </GenerationFields>
+      <GenerationFields v-model="draft.generation" :settings="view.generationSettings" :id-prefix="`generation-${view.agent}`" :labelledby="`generation-${view.agent}`" :disabled="busy" :refusal-at="refusalAt" />
       <p v-if="refusalAt('generation') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("generation") }}</p>
     </div>
 
@@ -178,9 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { BASE_NONE, basePromptChoices, chosenPrompt } from "~/domain/base-prompts";
 import { companionChange, companionDraft, draftDiffers } from "~/domain/companions";
-import { useText } from "~/domain/catalogue-models";
 import { countText } from "~/domain/numbers";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useFormPart } from "bmo-ui/app/domain/form-save";
@@ -200,31 +129,18 @@ const emit = defineEmits<{ saved: [view: CompanionView] }>();
 
 // The companion's face as every screen draws it, which its picture setting shows and replaces.
 const faceOf = useAgentFace();
-const picture = computed(() => faceOf.value({ name: props.view.agent, label: props.view.label, chatId: null, group: "designated" }) ?? { alt: props.view.label, text: props.view.label.slice(0, 1) });
+const picture = computed(() => faceOf.value({ name: props.view.agent, label: props.view.label, chatId: null, group: "supervisor" }) ?? { alt: props.view.label, text: props.view.label.slice(0, 1) });
 const { t } = useI18n();
 
 const view = computed(() => props.view);
-const running = computed(() => view.value.modelUse?.state === "running");
-const registrationItems = computed(() => view.value.registrations.map((one) => ({ label: one.label, value: one.name, description: one.name })));
-const methodItems = computed(() => [
-  { label: t("agents.label.supervisor_model_method_route"), value: "route" },
-  { label: t("agents.label.supervisor_model_method_fixed"), value: "fixed" },
-]);
-const entryItems = computed(() => view.value.entries.map((one) => ({ label: one.label, value: one.name, description: one.file })));
-const baseItems = computed(() => basePromptChoices(t, view.value.basePrompts));
-const thinkingItems = computed(() => [
-  { label: t("common.label.default_choice"), value: "default" },
-  { label: t("agents.label.think_on"), value: "on" },
-  { label: t("agents.label.think_off"), value: "off" },
-]);
 
-// The fields as the bot holds them, and as the form holds them until it saves.
-const saved = computed<CompanionDraft>(() => companionDraft(view.value, view.value.basePrompt ?? BASE_NONE));
-const draft = ref<CompanionDraft>(companionDraft(view.value, view.value.basePrompt ?? BASE_NONE));
+// The fields as the agency holds them, and as the form holds them until it saves.
+const saved = computed<CompanionDraft>(() => companionDraft(view.value));
+const draft = ref<CompanionDraft>(companionDraft(view.value));
 const KEYS = Object.keys(draft.value) as (keyof CompanionDraft)[];
 
-// The block is read again — after a save, while a model is being chosen, on a refresh — and a field
-// nobody touched takes what it says now, while one being written keeps what was written.
+// The block is read again — after a save, on a refresh — and a field nobody touched takes what it says now, while one
+// being written keeps what was written.
 watch(() => JSON.stringify(saved.value), (_now, beforeText) => {
   const before = JSON.parse(beforeText) as CompanionDraft;
   const next = { ...draft.value };
@@ -249,7 +165,7 @@ const busy = ref(false);
 const refusal = ref<{ field: string; text: string } | null>(null);
 
 // The fields that carry a refusal of their own under them.
-const SHOWN_FIELDS = new Set(["registration", "basePrompt", "thinking", "generation", "referenceOn", "persona"]);
+const SHOWN_FIELDS = new Set(["generation", "referenceOn", "persona"]);
 const generationNames = computed(() => new Set(view.value.generationSettings.map((one) => one.name)));
 
 function refusalAt(field: string): string {
@@ -266,56 +182,29 @@ async function reread(): Promise<CompanionView> {
   return (await $fetch<CompanionView[]>("/api/companions")).find((one) => one.agent === view.value.agent) ?? view.value;
 }
 
-// What another engine file sets off, said under its list while it differs from what is saved: the
-// engine loads it, and the registration answers nothing until the engine is up again. What another
-// base prompt or generation setting sets off stands under its own field.
-const entryEffect = computed(() => {
-  const entry = view.value.entries.find((one) => one.name === draft.value.entry);
-
-  if (!differs("entry") || entry === undefined) return "";
-
-  return [
-    t("agents.message.use_model_loads", { engine: entry.engine ?? "", model: entry.label }),
-    t("agents.message.use_model_moves", { registration: view.value.registration ?? "—" }),
-  ].join("\n");
-});
-
-// One save of everything changed, at once: the companion's own settings in one change the bot
-// checks whole, then the base prompt, then the engine's file. A refusal stops it and stands beside
-// what it was about; what went through before it stands as saved. Once all of it went through, the
-// block holds what the bot answered, every field it sent among them, so it holds no change after.
+// One save of everything changed, in one change the agency checks whole. A refusal stands beside what it was about.
+// Once it went through, the block holds what the agency answered, so it holds no change after.
 async function save(): Promise<boolean> {
   const change = companionChange(draft.value, saved.value);
-  const steps: { field: string; run: () => Promise<CompanionView | null> }[] = [
-    ...(Object.keys(change).length === 0 ? [] : [{ field: Object.keys(change).length === 1 ? Object.keys(change)[0]! : "agent", run: () => $fetch<CompanionView>("/api/companions", { method: "POST", body: { agent: view.value.agent, ...change } }) }]),
-    ...(differs("base") ? [{ field: "basePrompt", run: async () => { await $fetch("/api/base-prompts", { method: "POST", body: { action: "choose", agent: view.value.agent, prompt: chosenPrompt(draft.value.base) } }); return null; } }] : []),
-    ...(differs("entry") && draft.value.entry !== null ? [{ field: "registration", run: async () => { await $fetch("/api/models", { method: "POST", body: { action: "use", name: draft.value.entry } }); return null; } }] : []),
-  ];
+  const keys = Object.keys(change);
+
+  if (keys.length === 0) return true;
 
   busy.value = true;
   refusal.value = null;
 
-  let latest: CompanionView | null = view.value;
-  let went = 0;
-
   try {
-    for (const step of steps) {
-      try {
-        latest = await step.run();
-        went += 1;
-      } catch (error) {
-        refusal.value = { field: fieldOf(error, step.field), text: failureText(error, t("common.error.save_failed")) };
+    const latest = await $fetch<CompanionView>("/api/companions", { method: "POST", body: { agent: view.value.agent, ...change } });
 
-        return false;
-      }
-    }
-
-    latest ??= await reread().catch(() => null);
-    if (latest !== null) draft.value = companionDraft(latest, latest.basePrompt ?? BASE_NONE);
+    draft.value = companionDraft(latest);
+    emit("saved", latest);
 
     return true;
+  } catch (error) {
+    refusal.value = { field: fieldOf(error, keys.length === 1 ? keys[0]! : "agent"), text: failureText(error, t("common.error.save_failed")) };
+
+    return false;
   } finally {
-    if (went > 0) emit("saved", latest ?? await reread().catch(() => view.value));
     busy.value = false;
   }
 }

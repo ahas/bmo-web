@@ -72,9 +72,32 @@ function wordOr(table: Readonly<Record<string, string>>, code: unknown, name: st
   return key === undefined ? (label === "" ? named : label) : wording(key);
 }
 
-/** A role the screen names, in the pack's words where the pack holds them, by its agency label otherwise. */
-export function roleWordOf(code: unknown, name: string, label: string): string {
-  return wordOr(ROLE_LABELS, code, name, label);
+/** A role the screen names (docs/web.md, 「Sidebar」): in the pack's words where the pack holds them, by the label the
+ * agency keeps for it otherwise, and by its code where it keeps none. */
+export function roleWordOf(code: unknown, name: string, label: string | null): string {
+  return wordOr(ROLE_LABELS, code, name, label ?? "");
+}
+
+// The sources a slot is asked under, as the agency's `docs/role-slots.md` names them, each with the pack's key for its
+// word: the agency's own vocabulary of who asks, not the name of any role.
+const SLOT_SOURCES: Readonly<Record<string, string>> = {
+  job: "live.label.slot_source_job",
+  ask: "live.label.slot_source_ask",
+  delegate: "live.label.slot_source_delegate",
+  cowork: "live.label.slot_source_cowork",
+  native: "live.label.slot_source_native",
+  search: "live.label.slot_source_search",
+  browse: "live.label.slot_source_browse",
+  translate: "live.label.slot_source_translate"
+};
+
+/** The source a slot was asked under, in the pack's words; one the pack holds none for is said as the code it is. */
+export function slotSourceOf(source: string | null): string {
+  if (source === null) return wording("live.label.slot_source_none");
+
+  const key = SLOT_SOURCES[source];
+
+  return key === undefined ? wording("agents.label.unknown_code", { code: source }) : wording(key);
 }
 
 /** A bundle the screen names, in the pack's words where the pack holds them, by its agency label otherwise. */

@@ -1,260 +1,98 @@
 <template>
-  <!-- The chat agent's own settings on its screen (docs/web.md, 「Agent screen」): its model, kept on the
-       agency's route or on a fixed registered model, and the texts its system prompt is composed of — its
-       opening, the absolute rules and the manual — each saved as the owner's own or put back to its file. -->
-  <SettingsDialog v-model:open="open" :title="$t('agents.title.supervisor_settings')" :description="props.meta.label" :dirty="false">
-    <div class="flex flex-col gap-8">
-      <!-- The supervisor's model, one of two ways (docs/web.md, 「Agent screen」): the model agency's
-           supervisor route resolves for its key, or a fixed registered model. The save reaches the next
-           turn. -->
-      <section class="flex flex-col gap-2" data-supervisor-model>
-        <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.label.supervisor_model") }}</h3>
-        <USelect
-          v-model="method"
-          :items="methodItems"
-          value-key="value"
-          class="w-full sm:w-64"
-          :disabled="modelBusy"
-          :aria-label="$t('agents.label.supervisor_model_method')"
-          data-supervisor-method
-        />
-        <template v-if="method === 'fixed'">
-          <USelect
-            v-model="registration"
-            :items="registrationItems"
-            value-key="value"
-            class="w-full sm:w-80"
-            :disabled="modelBusy || registrations === null"
-            :placeholder="$t('agents.label.supervisor_model_pick')"
-            :aria-label="$t('agents.label.supervisor_model_fixed')"
-            data-supervisor-fixed
-          />
-          <p class="text-sm text-dimmed">{{ $t("agents.label.supervisor_model_fixed_help") }}</p>
-        </template>
-        <template v-else>
-          <p class="text-sm text-highlighted" data-supervisor-model-route>{{ $t("agents.label.supervisor_model_route", { model: modelName }) }}</p>
-          <p class="text-sm text-dimmed">{{ $t("agents.label.supervisor_model_route_help") }}</p>
-        </template>
-        <div class="flex flex-wrap items-center gap-2">
-          <UButton :label="$t('common.action.save')" size="sm" :loading="modelBusy" :disabled="!modelDirty" @click="void saveModel()" />
-          <NuxtLink v-if="method === 'route'" :to="`/agents?tab=routes&key=${encodeURIComponent(props.meta.name)}`" class="text-sm text-primary">{{ $t("agents.action.open_routes") }}</NuxtLink>
-        </div>
-        <p v-if="modelFailure !== ''" role="alert" class="break-words text-sm text-error">{{ modelFailure }}</p>
-      </section>
+  <!-- A supervisor's settings (docs/web.md, 「Agent management screen」, the supervisors tab): one form with one save at its foot —
+       its own settings, then for a supervisor whose turns its settings' pieces make the companion's own block, and for
+       the one whose turns its window makes the texts its system prompt is composed of. The supervisors tab, the
+       supervisor's own screen and a room's model settings all open this one dialog. A save sends the supervisor's change and
+       then the rest; a refusal keeps every field as written with the reason under the one it names. -->
+  <SettingsDialog v-model:open="open" wide :title="supervisor?.label ?? props.name" :description="props.name" :dirty="form.dirty.value">
+    <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.supervisors_read_failed") }}</p>
+    <ContentSkeleton v-else-if="supervisor === null" :rows="3" :label="$t('agents.status.supervisors_loading')">
+      <div class="flex flex-col gap-2">
+        <SkeletonBar class="h-5 w-32" />
+        <SkeletonBar class="h-8 w-full rounded-md" />
+      </div>
+    </ContentSkeleton>
 
-      <section class="flex flex-col gap-4">
-        <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.title.chat_documents") }}</h3>
-        <p class="text-sm text-dimmed">{{ $t("agents.label.chat_documents_help") }}</p>
+    <div v-else class="flex flex-col gap-8">
+      <SupervisorFields :supervisor="supervisor" @saved="(saved) => (supervisor = saved)" />
 
-        <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.chat_documents_read_failed") }}</p>
-        <ContentSkeleton v-else-if="documents === null" :rows="3" :label="$t('agents.status.chat_documents_loading')">
-          <div class="flex flex-col gap-2">
-            <SkeletonBar class="h-5 w-40" />
-            <SkeletonBar class="h-24 w-full rounded-md" />
-          </div>
+      <template v-if="supervisor.turnShape === 'pieces'">
+        <p v-if="companionFailed" role="alert" class="text-sm text-error">{{ $t("agents.error.companions_read_failed") }}</p>
+        <ContentSkeleton v-else-if="companion === null" :rows="1" :label="$t('agents.status.companions_loading')">
+          <SkeletonBar class="h-8 w-full rounded-md" />
         </ContentSkeleton>
+        <CompanionSettingsBlock v-else bare :view="companion" @saved="(saved) => (companion = saved)" />
+      </template>
 
-        <template v-else>
-          <div v-for="document in documents" :key="document.name" data-chat-document :data-document="document.name" class="flex flex-col gap-2">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="text-sm font-medium text-highlighted">{{ documentLabel(document.name) }}</span>
-              <UBadge
-                :color="document.source === 'stored' ? 'primary' : 'neutral'"
-                variant="subtle"
-                size="sm"
-                :label="$t(document.source === 'stored' ? 'agents.status.chat_document_stored' : 'agents.status.chat_document_file')"
-              />
-            </div>
-
-            <UTextarea v-model="drafts[document.name]" :rows="10" :aria-label="documentLabel(document.name)" class="w-full font-mono" />
-
-            <div class="flex flex-wrap items-center gap-2">
-              <UButton :label="$t('common.action.save')" size="sm" :loading="busy === document.name" :disabled="busy !== '' || !dirtyOf(document)" @click="void save(document)" />
-              <UButton
-                v-if="document.source === 'stored'"
-                :label="$t('agents.action.reset_document')"
-                size="sm"
-                color="neutral"
-                variant="ghost"
-                :disabled="busy !== ''"
-                @click="void reset(document)"
-              />
-            </div>
-
-            <p v-if="failure[document.name] !== undefined" role="alert" class="text-sm text-error">{{ failure[document.name] }}</p>
-          </div>
-        </template>
+      <section v-else-if="supervisor.turnShape === 'window'" class="flex flex-col gap-4">
+        <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.title.chat_documents") }}</h3>
+        <ChatDocumentsFields />
       </section>
     </div>
 
     <template #footer="{ close }">
-      <UButton :label="$t('common.action.close')" color="neutral" variant="ghost" @click="close()" />
+      <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="form.saving.value" @click="close()" />
+      <UButton :label="$t('common.action.save')" :loading="form.saving.value" :disabled="!form.dirty.value || form.saving.value" @click="void saveAll()" />
     </template>
   </SettingsDialog>
 </template>
 
 <script setup lang="ts">
-import { failureText } from "bmo-ui/app/domain/errors";
-import { useIsland } from "bmo-ui/app/domain/island";
+import { useFormSave } from "bmo-ui/app/domain/form-save";
 
-import type { ChatDocumentView, ChatDocumentsView, ModelPage, ModelView } from "#shared/agency";
-import type { AgentSummary } from "#shared/types";
-import type { AgentMeta } from "~/domain/agents";
+import type { CompanionView } from "#shared/agency";
+import type { SupervisorView } from "#shared/axes";
 
 interface Props {
-  meta: AgentMeta;
-  agent: AgentSummary;
-  reread: () => Promise<void>;
+  // The supervisor's name; its settings are read each time the dialog opens.
+  name: string;
+  // What the screen it was opened on reads again once a save went through.
+  reread?: () => Promise<void>;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { reread: async () => {} });
 const open = defineModel<boolean>("open", { required: true });
 
 const { t } = useI18n();
-const island = useIsland(t);
-const NuxtLink = resolveComponent("NuxtLink");
-
-const documents = ref<ChatDocumentView[] | null>(null);
-const drafts = reactive<Record<string, string>>({});
-const failure = reactive<Record<string, string | undefined>>({});
+const form = useFormSave(t);
+const supervisor = ref<SupervisorView | null>(null);
+const companion = ref<CompanionView | null>(null);
 const failed = ref(false);
-const busy = ref("");
+const companionFailed = ref(false);
 
-// The model the agent begins on, as the bot resolved its work key on the routes tab.
-const modelName = computed<string>(() => props.agent.modelLabel ?? props.agent.model ?? "—");
+async function saveAll(): Promise<void> {
+  if (!(await form.save())) return;
 
-// The model method the supervisor stands on: its key's route, or a registered model kept as its pin.
-const method = ref<"route" | "fixed">("route");
-const registration = ref<string | undefined>(undefined);
-const registrations = ref<ModelView[] | null>(null);
-const modelBusy = ref(false);
-const modelFailure = ref("");
-
-const methodItems = computed(() => [
-  { label: t("agents.label.supervisor_model_method_route"), value: "route" },
-  { label: t("agents.label.supervisor_model_method_fixed"), value: "fixed" }
-]);
-
-const registrationItems = computed(() =>
-  (registrations.value ?? []).map((one) => ({
-    label: one.name ?? one.model,
-    value: one.name ?? one.model,
-    description: one.model
-  }))
-);
-
-// Only a change from what the agent stands on is saved: a route against no pin, or a fixed model against
-// another registration.
-const modelDirty = computed<boolean>(() => {
-  if (method.value === "route") return props.agent.pinnedProvider != null;
-
-  return (
-    registration.value !== undefined &&
-    (props.agent.pinnedProvider !== "registered" || props.agent.pinnedModel !== registration.value)
-  );
-});
-
-async function saveModel(): Promise<void> {
-  modelBusy.value = true;
-  modelFailure.value = "";
-
-  try {
-    await $fetch("/api/agent-model", {
-      method: "POST",
-      body:
-        method.value === "route"
-          ? { agent: props.meta.name, method: "route" }
-          : { agent: props.meta.name, method: "fixed", registration: registration.value }
-    });
-
-    island.say({ title: t("agents.message.supervisor_model_saved") });
-    await props.reread();
-  } catch (error) {
-    modelFailure.value = failureText(error, t("agents.error.supervisor_model_save_failed"));
-  } finally {
-    modelBusy.value = false;
-  }
+  open.value = false;
+  await props.reread();
 }
 
-const DOCUMENT_LABELS: Record<string, string> = {
-  opening: "agents.label.chat_document_opening",
-  "absolute-rules": "agents.label.chat_document_absolute_rules",
-  manual: "agents.label.chat_document_manual"
-};
-
-function documentLabel(name: string): string {
-  const key = DOCUMENT_LABELS[name];
-
-  return key === undefined ? name : t(key);
-}
-
-function dirtyOf(document: ChatDocumentView): boolean {
-  return drafts[document.name] !== document.text;
-}
-
-// A document answered by the agency stands in the list and in the box; what was typed for it is let go.
-function took(document: ChatDocumentView): void {
-  const held = documents.value ?? [];
-  const at = held.findIndex((one) => one.name === document.name);
-
-  documents.value = at === -1 ? [...held, document] : held.map((one, index) => (index === at ? document : one));
-  drafts[document.name] = document.text;
-  failure[document.name] = undefined;
-}
-
-async function save(document: ChatDocumentView): Promise<void> {
-  busy.value = document.name;
-
-  try {
-    took(await $fetch<ChatDocumentView>(`/api/chat-documents/${encodeURIComponent(document.name)}`, { method: "PATCH", body: { action: "save", text: drafts[document.name] } }));
-    island.say({ title: t("agents.message.chat_document_saved", { name: documentLabel(document.name) }) });
-  } catch (error) {
-    failure[document.name] = failureText(error, t("agents.error.chat_document_save_failed"));
-  } finally {
-    busy.value = "";
-  }
-}
-
-async function reset(document: ChatDocumentView): Promise<void> {
-  busy.value = document.name;
-
-  try {
-    took(await $fetch<ChatDocumentView>(`/api/chat-documents/${encodeURIComponent(document.name)}`, { method: "PATCH", body: { action: "reset" } }));
-    island.say({ title: t("agents.message.chat_document_reset", { name: documentLabel(document.name) }) });
-  } catch (error) {
-    failure[document.name] = failureText(error, t("agents.error.chat_document_save_failed"));
-  } finally {
-    busy.value = "";
-  }
-}
-
-// Read each time it opens, so it shows what the agency holds now.
+// Read each time it opens, so it shows what the agency holds now, and nothing typed and thrown away before stands in
+// it.
 watch(open, async (now) => {
   if (!now) return;
 
+  form.discard();
   failed.value = false;
-  documents.value = null;
-  method.value = props.agent.pinnedModel == null ? "route" : "fixed";
-  registration.value = props.agent.pinnedModel ?? undefined;
-  modelFailure.value = "";
+  companionFailed.value = false;
+  supervisor.value = null;
+  companion.value = null;
 
   try {
-    registrations.value = (await $fetch<ModelPage>("/api/models")).items;
-  } catch {
-    registrations.value = null;
-  }
-
-  try {
-    const answer = await $fetch<ChatDocumentsView>("/api/chat-documents");
-
-    documents.value = answer.items;
-
-    for (const document of answer.items) {
-      drafts[document.name] = document.text;
-      failure[document.name] = undefined;
-    }
+    supervisor.value = await $fetch<SupervisorView>(`/api/supervisors/${encodeURIComponent(props.name)}`);
   } catch {
     failed.value = true;
+
+    return;
+  }
+
+  if (supervisor.value.turnShape !== "pieces") return;
+
+  try {
+    companion.value = (await $fetch<CompanionView[]>("/api/companions")).find((one) => one.agent === props.name) ?? null;
+    companionFailed.value = companion.value === null;
+  } catch {
+    companionFailed.value = true;
   }
 }, { immediate: true });
 </script>

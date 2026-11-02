@@ -1,25 +1,23 @@
 import { modelFace } from "~/domain/model-face";
 import { shortModel } from "#shared/model-short";
-import { agentGroups, agentKind, agentLabel, catalogueAgents, groupIcon, groupLabelKey, roomTitle } from "./agents";
+import { agentKind, agentLabel, roomTitle } from "./agents";
 import { verdictTone } from "./judgements";
 
-import type { AgentMode, AgentSummary, GateRunRecord, JobRecord, LiveRun, LiveRunKind, RoomSummary, RunnerRecord, StopTarget, WatchView } from "#shared/types";
-import type { AgentGroupKey, AgentMeta } from "./agents";
+import type { AgentMode, GateRunRecord, JobRecord, LiveRun, LiveRunKind, RoomSummary, RunnerRecord, StopTarget, WatchView } from "#shared/types";
 import type { VerdictTone } from "./judgements";
 import type { Translate } from "#shared/wording";
 
-// One standing group of the live status screen. The four stand whether anything is running
-// or not, so they are the catalogue's own groups rather than something grown out of what the
-// bot happens to report.
+// One standing group of runs on the live status screen: the gates, the runners and the job workers. Each stands
+// whether anything runs or not, so they are this console's own arrangement rather than something grown out of what
+// the bot happens to report.
 export interface StatusGroup {
   key: LiveRunKind;
   label: string;
-  agents: readonly AgentMeta[];
 }
 
-// Which section of the board stands: the co-worker pool, one group of runs, or the transport
-// records. One of them stands at a time, and which one is in the address.
-export type LiveTab = "pool" | "executions" | LiveRunKind;
+// Which section of the board stands: the role slots, one group of runs, or the transport records. One of them stands
+// at a time, and which one is in the address.
+export type LiveTab = "slots" | "executions" | LiveRunKind;
 
 export interface LiveTabItem {
   value: LiveTab;
@@ -44,41 +42,35 @@ export interface RecentRow {
 
 export type OutcomeTone = "success" | "error" | "warning" | "neutral";
 
-// The groups that run. Their agents are the catalogue's own, read from the list the app was
-// given, so a worker the owner added stands here the moment it exists.
-export function statusGroups(t: Translate): readonly StatusGroup[] {
-  return agentGroups(t, [...catalogueAgents()], []).flatMap((group) => {
-    const key = LIVE_KIND_OF[group.key];
-
-    return key === undefined ? [] : [{ key, label: group.label, agents: group.agents }];
-  });
-}
-
-// The keys, which stand whether the catalogue has arrived or not: they are this console's own
-// arrangement rather than anything the archive says.
+// The keys of the groups of runs, in the order they stand.
 const LIVE_KEYS: readonly LiveRunKind[] = ["gate", "runner", "worker"];
 
-// The kind of run each group's agents run as, as the live picture reports it, and the group each kind
-// of run is told under. The designated agents are no run of the board's; a room's turns are watched in that
-// room.
-const LIVE_KIND_OF: Partial<Record<AgentGroupKey, LiveRunKind>> = { gate: "gate", runner: "runner", worker: "worker" };
-const GROUP_OF_LIVE: Record<LiveRunKind, AgentGroupKey> = { gate: "gate", runner: "runner", worker: "worker" };
+// What each group of runs is called.
+const LIVE_LABELS: Record<LiveRunKind, string> = {
+  gate: "agents.label.group_gate",
+  runner: "agents.label.group_runner",
+  worker: "agents.label.group_worker"
+};
+
+// The groups of runs, each named in the pack's words.
+export function statusGroups(t: Translate): readonly StatusGroup[] {
+  return LIVE_KEYS.map((key) => ({ key, label: t(LIVE_LABELS[key]) }));
+}
 
 // The mark each section's tab wears. A group of runs wears the mark of what that branch does, and
 // the two sections that are not a group of runs wear their own.
 const LIVE_TAB_ICONS: Record<LiveTab, string> = {
-  pool: "i-material-symbols-grid-view-outline",
-  gate: groupIcon("gate"),
-  runner: groupIcon("runner"),
-  worker: groupIcon("worker"),
+  slots: "i-material-symbols-grid-view-outline",
+  gate: "i-material-symbols-balance",
+  runner: "i-material-symbols-travel-explore",
+  worker: "i-material-symbols-folder-outline",
   executions: "i-material-symbols-receipt-long-outline"
 };
 
-// The sections of the board, in the order they stand. A group of runs is named by the catalogue's
-// own name for that branch, so a tab and the rows under it never say the group differently.
+// The sections of the board, in the order they stand.
 export const LIVE_TABS: readonly LiveTabItem[] = [
-  { value: "pool", label: "live.label.tab_pool", icon: LIVE_TAB_ICONS.pool },
-  ...LIVE_KEYS.map((key) => ({ value: key, label: groupLabelKey(GROUP_OF_LIVE[key]), icon: LIVE_TAB_ICONS[key] })),
+  { value: "slots", label: "live.label.tab_slots", icon: LIVE_TAB_ICONS.slots },
+  ...LIVE_KEYS.map((key) => ({ value: key, label: LIVE_LABELS[key], icon: LIVE_TAB_ICONS[key] })),
   { value: "executions", label: "live.label.tab_executions", icon: LIVE_TAB_ICONS.executions }
 ];
 
@@ -184,7 +176,10 @@ export function modeLabel(t: Translate, mode: AgentMode): string {
 
 // What an agent begins on, the provider and the model each named as the bot named it where it did
 // and by the console's own names otherwise; empty where it begins on nothing.
-export function agentStartText(t: Translate, agent: Pick<AgentSummary, "configuredMode" | "configuredLabel" | "model" | "modelLabel">): string {
+export function agentStartText(
+  t: Translate,
+  agent: { configuredMode?: AgentMode | null; configuredLabel?: string | null; model: string | null; modelLabel?: string | null }
+): string {
   if (agent.configuredMode == null) return "";
 
   const provider = agent.configuredLabel ?? modeLabel(t, agent.configuredMode);
@@ -448,11 +443,9 @@ export function runRows(
   );
 }
 
-// What kind of run a row is: the kind of the agent that ran it, as the catalogue has it.
+// What kind of run a row is: a repository's is a job worker's, and every other a runner's.
 function runKindOf(agent: string): LiveRunKind {
-  const kind = agentKind(agent);
-
-  return (kind === null ? undefined : LIVE_KIND_OF[kind]) ?? "runner";
+  return agentKind(agent) === "repository" ? "worker" : "runner";
 }
 
 export function jobRows(t: Translate, records: JobRecord[], live: LiveRun[], rooms: RoomSummary[]): RecentRow[] {
@@ -476,12 +469,22 @@ export function jobRows(t: Translate, records: JobRecord[], live: LiveRun[], roo
         at: record.finishedAt ?? record.launchedAt,
         // What a run is called: the item it was a run of, and the model it ran on. A run of no
         // item wears no number, because there is none to look up.
-        note: [workLabel(t, record), record.model === null ? null : shortModel(record.model)]
+        note: [workLabel(t, record), placeOf(record), record.model === null ? null : shortModel(record.model)]
           .filter((part): part is string => part !== null)
           .join(" · ") || null,
         to: unitLink(record.worker, record.unit)
       }))
   );
+}
+
+// Where a job ran: its repository, with the checkout beside it where that is not the repository's own name.
+export function placeOf(run: { repository?: string | null; checkout?: string | null }): string | null {
+  const repository = run.repository ?? null;
+  const checkout = run.checkout ?? null;
+
+  if (repository === null) return checkout;
+
+  return checkout === null || checkout === repository ? repository : `${repository} · ${checkout}`;
 }
 
 function newestFirst(rows: RecentRow[]): RecentRow[] {

@@ -387,13 +387,6 @@ export function questionSettledNotice(t: Translate, by: QuestionSettler | null, 
     : t("question.error.settled_elsewhere", { answer });
 }
 
-// How long a finished item is still counted as reporting: a job marks its item done and only
-// then writes its report, so the item is done while its run is still going. The bound is what
-// keeps a run whose runner died from leaving its item in the queue for ever — it is the same
-// grace the bot gives a job before it calls the runner dead, and an observed report takes well
-// under half of it.
-export const REPORTING_WINDOW_SECONDS = 5 * 60;
-
 // How many lines of an agent's log one page carries, and how often the screen asks the
 // archive for what came after the last line it has. It asks the archive, not the bot.
 export const AGENT_LOG_PAGE_SIZE = 200;

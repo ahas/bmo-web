@@ -2,9 +2,10 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { catalogueEntry } from "../support/catalogue";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
-import type { AgentList } from "../../apps/web/shared/types";
+import type { AgentList, AgentSummary } from "../../apps/web/shared/types";
 
 // An @ in a room offers its agents by the agents' own names and pictures (docs/web.md, the room screen's mention
 // section): the names come from the receiver's answerers and what each is called from the agents catalogue, never from
@@ -42,43 +43,22 @@ async function open(width: number, height: number): Promise<BrowserContext> {
 
   await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
 
-  // The room answers with a default answerer and one companion; the catalogue carries a chat session for the room,
-  // labeled by the room's title, which is no agent's name.
+  // The room answers with a default answerer and one companion, each a supervisor holding a session in the room; the
+  // room's title is no agent's name.
   await context.route(new RegExp(`/api/rooms/${CHAT}/answerers$`), (route) =>
     route.fulfill({ json: { default: "agent-a", voice: null, agents: [{ name: "agent-a", companion: false }, { name: "agent-b", companion: true }] } })
   );
   await context.route(/\/api\/agents(\?|$)/, async (route) => {
     const list = (await (await route.fetch()).json()) as AgentList;
-    const named = (name: string, label: string, extra: Record<string, unknown>) => ({
-      name,
-      kind: "chat",
-      role: "companion",
-      sessionScope: null,
-      turnShape: null,
-      defaultAnswerer: false,
-      model: null,
-      lastMode: null,
-      lastModel: null,
-      lastEffort: null,
-      label,
-      aliases: null,
-      icon: null,
-      cwd: null,
-      builtin: false,
-      chatId: CHAT,
-      runs: 0,
-      lastRunAt: null,
-      ...extra
-    });
+    const named = (name: string, label: string, extra: Partial<AgentSummary>) => catalogueEntry(name, "supervisor", label, { sessionScope: "room", turnShape: "pieces", ...extra });
 
     await route.fulfill({
       json: {
         ...list,
         agents: [
           ...list.agents.filter((agent) => agent.name !== `chat:${CHAT}` && agent.name !== "agent-b"),
-          named("agent-a", "Agent A", { defaultAnswerer: true, chatId: null }),
-          named("agent-b", "Agent B", {}),
-          named(`chat:${CHAT}`, ROOM_TITLE, { defaultAnswerer: true })
+          named("agent-a", "Agent A", { defaultAnswerer: true, sessionScope: "agent", turnShape: "window", sessions: [{ chatId: CHAT, lastAt: null }] }),
+          named("agent-b", "Agent B", { sessions: [{ chatId: CHAT, lastAt: null }] })
         ]
       }
     });

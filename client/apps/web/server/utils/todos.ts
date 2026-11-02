@@ -1,4 +1,4 @@
-import { DONE_MAX, DONE_PAGE_SIZE, REPORTING_WINDOW_SECONDS, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, WORKER_AGENT } from "#shared/config";
+import { DONE_MAX, DONE_PAGE_SIZE, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, WORKER_AGENT } from "#shared/config";
 import { filterRecords } from "bmo-ui/shared/search";
 import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields } from "../../app/domain/todos";
@@ -136,8 +136,6 @@ function pinnedModel(labels: Record<string, string>): string | null {
 // it, and the state the job of it stands in where one is under way.
 function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null, liveState: TodoItem["liveState"] = null, stopped = false): TodoItem {
   const said = reportsOf(reports);
-  const closing = reports.some((report) => report.kind === "final");
-  const doneFor = item.endedAt === null ? null : Math.max(0, Math.floor(Date.now() / 1000) - Math.floor(item.endedAt / 1000));
 
   return {
     id: item.id,
@@ -153,7 +151,9 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     done: item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null,
     running: item.state === "leased",
     liveState,
-    reporting: item.state === "done" && !closing && doneFor !== null && doneFor <= REPORTING_WINDOW_SECONDS,
+    // Done in bmo-job while the agency's job for it still goes: its report is still going out, until the agency says
+    // the job ended (docs/web.md, the TODO panel's section).
+    reporting: item.state === "done" && liveState !== null,
     priority: item.priority,
     status: item.state,
     model: pinnedModel(item.labels),

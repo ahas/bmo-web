@@ -101,13 +101,23 @@ function accountNames(fallback: Held | null): Map<string, string> {
   return names;
 }
 
-/** The slot the chat runs on, as the fallback answer names it, or none where it names none. */
-export function activeUsage(answer: unknown): ActiveUsage | null {
+/**
+ * The slot the chat runs on: the provider the chat agent runs on, which is the default answerer's own `provider`
+ * where it is named, with the login and windows the fallback answer states for that provider; none where neither
+ * names a provider. A provider the fallback's slot is not on stands with no login and no window, never another
+ * provider's figures.
+ */
+export function activeUsage(answer: unknown, chatProvider: string | null = null): ActiveUsage | null {
   const fallback = held(answer);
-  const active = held(fallback?.active);
-  const provider = text(active?.provider);
+  const named = held(fallback?.active);
+  const active = named !== null && (chatProvider === null || text(named.provider) === chatProvider) ? named : null;
+  const provider = text(active?.provider) ?? chatProvider;
 
-  if (active === null || provider === null) return null;
+  if (provider === null) return null;
+
+  if (active === null) {
+    return { provider, label: providerLabels(fallback).get(provider) ?? provider, account: null, accountName: null, logins: 0, session: null, week: null, balance: null };
+  }
 
   const account = text(active.account);
 
@@ -205,9 +215,9 @@ export function workerContexts(usage: Schemas["Usage"]): AgentContext[] {
   });
 }
 
-/** The whole view out of the three answers. */
-export function usageView(fallback: unknown, accounts: readonly Schemas["Account"][], usage: Schemas["Usage"]): UsageView {
-  const active = activeUsage(fallback);
+/** The whole view out of the three answers and the provider the chat agent runs on. */
+export function usageView(fallback: unknown, accounts: readonly Schemas["Account"][], usage: Schemas["Usage"], chatProvider: string | null = null): UsageView {
+  const active = activeUsage(fallback, chatProvider);
 
   return { active, accounts: accountUsages(fallback, accounts, active), agents: workerUsages(usage), contexts: workerContexts(usage) };
 }

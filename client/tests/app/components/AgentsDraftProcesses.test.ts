@@ -1,28 +1,32 @@
 import { describe, expect, test } from "bun:test";
 
-// The draft-process table on the tier tab (docs/web.md, the tier tab's draft-process table), read from the files
-// that ship: what a rendered screen would not name is where each cell's value goes, that a set carries the whole row,
+// The draft-process table on the supervisors tab (docs/web.md, 「Agent management screen」, the supervisors tab's draft
+// process), read from the files that ship: what a rendered screen would not name is where each cell's value goes, that a set carries the whole row,
 // that only the console's own rows can be taken away, and that refusals are the pack's sentences.
 
 const read = async (name: string) => await Bun.file(new URL(name, new URL("../../../apps/web/app/components/", import.meta.url))).text();
 const source = await read("./AgentsDraftProcesses.vue");
 const list = await read("./DraftListCell.vue");
 const page = await Bun.file(new URL("../../../apps/web/app/pages/agents/index.vue", import.meta.url)).text();
+const supervisors = await read("./AgentsSupervisors.vue");
 const template = source.slice(0, source.indexOf("<script"));
 const script = source.slice(source.indexOf("<script"));
 const listTemplate = list.slice(0, list.indexOf("<script"));
 
 describe("the table", () => {
-  test("stands on the tier tab under the co-worker table, read by the browser alone under the key the search reads", () => {
-    expect(page.indexOf("<AgentsDraftProcesses")).toBeGreaterThan(page.indexOf("<AgentsCoworkerLimits"));
+  test("stands on the supervisors tab under the supervisors' table, read by the browser alone under the key the search reads", () => {
+    expect(supervisors.indexOf("<AgentsDraftProcesses")).toBeGreaterThan(supervisors.indexOf("<DataTable"));
     expect(script).toContain('useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", server: false, lazy: true })');
     expect(page).toContain('useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", lazy: true, server: false })');
   });
 
-  test("is a row per key with a column for each value and where it comes from", () => {
-    for (const id of ['accessorKey: "provider"', 'accessorKey: "tier"', 'accessorKey: "agentName"', 'id: "rounds"', 'id: "light"', 'id: "lightChars"', 'id: "ceilingSeconds"', 'id: "pastCeiling"', 'id: "source"', 'id: "remove"']) {
+  test("is a row per key with a column for each value and none for where it comes from", () => {
+    for (const id of ['accessorKey: "provider"', 'accessorKey: "tier"', 'accessorKey: "agentName"', 'id: "rounds"', 'id: "light"', 'id: "lightChars"', 'id: "ceilingSeconds"', 'id: "pastCeiling"', 'id: "remove"']) {
       expect({ id, stood: script.includes(id) }).toEqual({ id, stood: true });
     }
+    expect(script).not.toContain('id: "source"');
+    expect(template).toContain("markedDefault($t, draftKeyText($t, row.original.agentName), row.original.source === 'default')");
+    expect(template).toContain("markedDefault($t, row.original.name, row.original.source === 'default')");
     expect(template).toContain('<DataTable v-if="data" data-draft-processes :data="data.rows" :columns="columns">');
   });
 

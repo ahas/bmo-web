@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { deployMarkOf, ENDING_SHOWN_MS, holdLimit, holdWaits, stageRows, stageSpans, stepLabel } from "../../../apps/web/app/domain/deploy";
+import { deployMarkOf, ENDING_SHOWN_MS, holdLimit, holdWaits, itemDeployPhase, stageRows, stageSpans, stepLabel } from "../../../apps/web/app/domain/deploy";
 
 import type { DeployRunView, DeployView } from "../../../apps/web/shared/types";
 import type { DeployStep } from "../../../apps/web/shared/deploy-progress";
@@ -174,5 +174,34 @@ describe("the deployment mark", () => {
     const steps = [{ name: "type check", code: 0, waitedSeconds: 0, ranSeconds: 48, at: NOW - 700_000 }, { name: "release build", code: 0, waitedSeconds: 0, ranSeconds: 30, at: NOW - 1_000 }];
 
     expect(stageSpans(run({ steps }), NOW).map((span) => [span.stage, span.steps.map((one) => one.name)])).toEqual([["check", ["type check"]], ["build", ["release build"]]]);
+  });
+});
+
+// What a TODO row says beside its state while the deployment the title bar reads carries its item (docs/web.md, the TODO
+// panel's section).
+describe("an item a deployment carries", () => {
+  const carried = [
+    { commit: "a".repeat(40), subject: "Fix the panel (#1201)", todoId: null },
+    { commit: "b".repeat(40), subject: "Fold two things", todoId: 1202 }
+  ];
+
+  test("is being tested while the check stage is under way, and before the first stage of a plan that opens with it", () => {
+    const testing = view({ run: run({ carried, stages: [{ stage: "check", at: NOW - 1_000 }] }) });
+
+    expect(itemDeployPhase(testing, 1201)).toBe("testing");
+    expect(itemDeployPhase(testing, 1202)).toBe("testing");
+    expect(itemDeployPhase(view({ run: run({ carried, plan: ["check", "build"], stages: [] }) }), 1201)).toBe("testing");
+  });
+
+  test("is being put live through every later stage until the run ends", () => {
+    expect(itemDeployPhase(view({ run: run({ carried }) }), 1201)).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ carried, stages: [{ stage: "restart", at: NOW }] }) }), 1202)).toBe("deploying");
+  });
+
+  test("says nothing of an item no commit names, of a run that ended, or with no run", () => {
+    expect(itemDeployPhase(view({ run: run({ carried }) }), 1203)).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "live" }) }), 1201)).toBeNull();
+    expect(itemDeployPhase(view(), 1201)).toBeNull();
+    expect(itemDeployPhase(null, 1201)).toBeNull();
   });
 });

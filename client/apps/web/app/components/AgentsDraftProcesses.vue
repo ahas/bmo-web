@@ -1,8 +1,9 @@
 <template>
   <!-- What a round's answer is asked before it goes out, as the receiver's draft process table holds it: a row per
        key of a provider, a tier and an agent, each a name or any, and under it the questions the rows name. Every
-       cell sets its one value with the row's others as they stand (docs/web.md, the tier tab's draft-process
-       table). -->
+       cell sets its one value with the row's others as they stand (docs/web.md, 「Agent management screen」, the
+       supervisors tab's draft process). A row or a question the receiver's policy holds unchanged carries the default
+       mark after its key or its name. -->
   <section class="flex min-w-0 flex-col" aria-labelledby="draft-processes-title">
     <div class="flex min-h-12 items-center gap-2 border-y border-default px-4 py-2">
       <div class="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -54,7 +55,7 @@
         <span :class="CELL_TEXT" class="text-highlighted"><SearchText :text="draftKeyText($t, row.original.tier)" :query="props.query" /></span>
       </template>
       <template #agentName-cell="{ row }">
-        <span :class="CELL_TEXT" class="text-highlighted"><SearchText :text="draftKeyText($t, row.original.agentName)" :query="props.query" /></span>
+        <span :class="CELL_TEXT" class="whitespace-nowrap text-highlighted"><SearchText :text="markedDefault($t, draftKeyText($t, row.original.agentName), row.original.source === 'default')" :query="props.query" /></span>
       </template>
 
       <template v-for="field in LIST_FIELDS" :key="field" #[`${field}-cell`]="{ row }">
@@ -107,10 +108,6 @@
         </SettingsChoiceCell>
       </template>
 
-      <template #source-cell="{ row }">
-        <span :class="CELL_TEXT" class="text-muted"><SearchText :text="draftSourceText($t, row.original.source)" :query="props.query" /></span>
-      </template>
-
       <template #remove-cell="{ row }">
         <span class="flex min-h-12 items-center justify-end pe-2">
           <UTooltip v-if="row.original.source === 'set'" :text="$t('common.action.delete')">
@@ -155,7 +152,7 @@
     <DataTable v-if="data" data-draft-questions :data="data.questions" :columns="questionColumns" aria-labelledby="draft-questions-title">
       <template #name-cell="{ row }">
         <span :id="settingsAnchor(`draft-question-${row.original.name}`)" :class="CELL_TEXT" class="ps-4 font-mono text-highlighted">
-          <SearchText :text="row.original.name" :query="props.query" />
+          <SearchText :text="markedDefault($t, row.original.name, row.original.source === 'default')" :query="props.query" />
         </span>
       </template>
       <template #text-cell="{ row }">
@@ -174,9 +171,6 @@
           </template>
         </SettingsPopoverCell>
       </template>
-      <template #source-cell="{ row }">
-        <span :class="CELL_TEXT" class="text-muted"><SearchText :text="draftSourceText($t, row.original.source)" :query="props.query" /></span>
-      </template>
     </DataTable>
   </section>
 </template>
@@ -186,8 +180,9 @@ import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useConfirm } from "~/domain/confirm";
 import { ANY_KEY } from "#shared/drafting";
-import { CELL_TEXT, PROVIDER_COLUMNS, settingsAnchor } from "~/domain/agent-settings";
-import { useAgentCatalogue } from "~/domain/catalogue";
+import { settingsAnchor } from "~/domain/agent-settings";
+import { markedDefault, useProviders } from "~/domain/axes";
+import { CELL_TEXT } from "~/domain/settings-cells";
 import {
   CEILING_SECONDS_MAX,
   CEILING_SECONDS_MIN,
@@ -202,7 +197,6 @@ import {
   draftNumberFault,
   draftProviderText,
   draftRowFor,
-  draftSourceText,
   draftValues,
   pastCeilingText,
   questionNameFault,
@@ -211,10 +205,9 @@ import {
 } from "~/domain/draft-process";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
-import { modeLabel } from "~/domain/status";
 
 import type { DraftKey, DraftProcessesView, DraftProcessValues, DraftProcessView, DraftQuestionView, PastCeiling } from "#shared/drafting";
-import type { TierSettingsView } from "#shared/agency";
+import type { SupervisorView } from "#shared/axes";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { TableColumn } from "@nuxt/ui";
 
@@ -230,9 +223,10 @@ const LIST_LABELS: Record<(typeof LIST_FIELDS)[number], string> = { rounds: "age
 // same key.
 const { data, error, refresh, status } = useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", server: false, lazy: true });
 const readFailure = useReadFailure({ failed: () => !!error.value && !data.value, reading: () => status.value === "pending", reread: () => void refresh() });
-// The tiers of the ladder and the providers the agency lists, and the registered agents, offered for a new key.
-const { data: tiers } = useFetch<TierSettingsView>("/api/model-tiers", { key: "model-tiers", lazy: true, server: false });
-const { agents } = useAgentCatalogue();
+// The providers the agency carries and its supervisors, offered for a new key beside the tiers the receiver's rows key
+// by.
+const { data: providers } = useProviders();
+const { data: supervisors } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false });
 
 const catalogue = computed<string[]>(() => (data.value?.questions ?? []).map((question) => question.name));
 const actionFailed = ref("");
@@ -246,14 +240,12 @@ const columns = computed<TableColumn<DraftProcessView>[]>(() => [
   { id: "lightChars", header: t("agents.label.draft_light_chars"), meta: { class: { th: "w-28" } } },
   { id: "ceilingSeconds", header: t("agents.label.draft_ceiling"), meta: { class: { th: "w-24" } } },
   { id: "pastCeiling", header: t("agents.label.draft_past_ceiling"), meta: { class: { th: "w-28" } } },
-  { id: "source", header: t("agents.label.draft_source"), meta: { class: { th: "w-24" } } },
-  { id: "remove", header: "", meta: { class: { th: "w-12" } } }
+  { id: "remove", header: "" }
 ]);
 
 const questionColumns = computed<TableColumn<DraftQuestionView>[]>(() => [
   { accessorKey: "name", header: t("common.label.name"), meta: { class: { th: "w-32" } } },
-  { id: "text", header: t("agents.label.draft_question_text") },
-  { id: "source", header: t("agents.label.draft_source"), meta: { class: { th: "w-24" } } }
+  { id: "text", header: t("agents.label.draft_question_text"), meta: { class: { th: "w-full" } } }
 ]);
 
 const pastChoices = computed<CellChoice[]>(() => PAST_CEILINGS.map((past) => ({ value: past, label: pastCeilingText(t, past) })));
@@ -303,9 +295,9 @@ const addFault = ref("");
 const newKey = reactive<DraftKey>({ provider: ANY_KEY, tier: ANY_KEY, agentName: ANY_KEY });
 
 const anyChoice = computed<CellChoice>(() => ({ value: ANY_KEY, label: draftKeyText(t, ANY_KEY) }));
-const providerChoices = computed<CellChoice[]>(() => [anyChoice.value, ...(tiers.value?.providers.map((one) => one.provider) ?? [...PROVIDER_COLUMNS]).map((name) => ({ value: name, label: modeLabel(t, name) }))]);
-const tierChoices = computed<CellChoice[]>(() => [anyChoice.value, ...(tiers.value?.tiers ?? []).map((tier) => ({ value: tier, label: tier }))]);
-const agentChoices = computed<CellChoice[]>(() => [anyChoice.value, ...agents.value.agents.map((agent) => ({ value: agent.name, label: agent.name }))]);
+const providerChoices = computed<CellChoice[]>(() => [anyChoice.value, ...(providers.value ?? []).map((one) => ({ value: one.name, label: one.label }))]);
+const tierChoices = computed<CellChoice[]>(() => [anyChoice.value, ...[...new Set((data.value?.rows ?? []).map((row) => row.tier).filter((tier) => tier !== ANY_KEY))].map((tier) => ({ value: tier, label: tier }))]);
+const agentChoices = computed<CellChoice[]>(() => [anyChoice.value, ...(supervisors.value ?? []).map((one) => ({ value: one.name, label: one.label }))]);
 const keyTaken = computed<boolean>(() => (data.value?.rows ?? []).some((row) => sameDraftKey(row, newKey)));
 
 watch(adding, (now) => {

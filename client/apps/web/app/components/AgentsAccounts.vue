@@ -1,10 +1,10 @@
 <template>
-  <!-- The Claude logins the agency holds, in the order the Claude Code entry walks them. A row is carried
-       by its handle alone, by the mouse and the finger the same way, and the order is saved the
-       moment it is dropped. What a row says of a credential is the path it is reached by — no cell
+  <!-- The Claude logins the agency holds, in the order the Claude Code provider walks them (docs/web.md, 「Settings」,
+       the providers section). A row is carried by its handle alone, by the mouse and the finger the same way, and the
+       order is saved the moment it is dropped. What a row says of a credential is the path it is reached by — no cell
        and no box here has a token to show, because none is ever sent to this screen. -->
-  <section :id="settingsAnchor('accounts')" class="flex flex-col gap-3" aria-labelledby="accounts-title">
-    <h2 id="accounts-title" class="text-lg font-semibold text-highlighted">{{ $t("agents.title.accounts") }}</h2>
+  <section class="flex flex-col gap-3" aria-labelledby="accounts-title">
+    <h3 id="accounts-title" class="flex min-h-8 items-center text-sm font-semibold text-highlighted">{{ $t("agents.title.accounts") }}</h3>
 
     <ol ref="list" class="flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default" :aria-label="$t('agents.title.accounts')">
       <li
@@ -73,6 +73,10 @@
       <span class="min-w-0 break-words">{{ choiceNote }}</span>
     </p>
 
+    <div class="flex justify-end">
+      <UButton color="neutral" variant="subtle" icon="i-material-symbols-person-add-outline" :label="$t('agents.title.account_add')" @click="openAdd" />
+    </div>
+
     <p v-if="failed !== ''" role="alert" class="break-words text-sm text-error">{{ failed }}</p>
 
     <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.account_add') : editName" :description="adding ? undefined : editId" :dirty="formDirty">
@@ -111,7 +115,6 @@
 
 <script setup lang="ts">
 import { ACCOUNT_KINDS, accountChoiceNote, accountLoginText, accountMark } from "~/domain/accounts";
-import { settingsAnchor } from "~/domain/agent-settings";
 import { movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { usePolling } from "~/domain/polling";
@@ -289,5 +292,4 @@ async function remove(): Promise<void> {
   }
 }
 
-defineExpose({ openAdd });
 </script>

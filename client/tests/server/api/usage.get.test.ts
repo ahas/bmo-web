@@ -9,6 +9,8 @@ import type { UsageView } from "../../../apps/web/shared/types";
 // account list for each account's window, and the usage grouped by worker over the last week.
 
 let empty = false;
+// The provider the default answerer runs on now, which is the provider the chat runs on.
+let chatProvider = "provider-x";
 
 const agency = standIn("AGENCY", (call) => {
   if (call.path.startsWith("/fallback")) {
@@ -22,6 +24,10 @@ const agency = standIn("AGENCY", (call) => {
             accounts: [{ id: "a", name: "Account A" }]
           }
     );
+  }
+
+  if (call.path.startsWith("/supervisors")) {
+    return answer({ items: empty ? [] : [{ name: "agent-a", defaultAnswerer: true, provider: chatProvider }, { name: "agent-b", defaultAnswerer: false, provider: "provider-z" }], more: false });
   }
 
   if (call.path.startsWith("/accounts")) {
@@ -48,6 +54,19 @@ describe("the usage view", () => {
       agents: [],
       contexts: []
     });
+  });
+
+  test("follows the provider the default answerer runs on, borrowing no window of the fallback's other slot", async () => {
+    empty = false;
+    chatProvider = "provider-y";
+
+    try {
+      expect((await asked(handler, {})).answer?.active).toEqual({
+        provider: "provider-y", label: "provider-y", account: null, accountName: null, logins: 0, session: null, week: null, balance: null
+      });
+    } finally {
+      chatProvider = "provider-x";
+    }
   });
 
   test("asks the usage grouped by worker over the last week", async () => {

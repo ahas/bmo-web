@@ -61,7 +61,15 @@
           tooltip
           popover
           orientation="vertical"
-        />
+        >
+          <!-- An entry at work turns a mark at its line's end, beside a role's count of its runs and the chevron of an
+               entry that holds lines under it, so a spinning mark never stands where the chevron is pressed. -->
+          <template #item-trailing="{ item, ui, active }">
+            <UIcon v-if="item.busy === true" name="i-material-symbols-progress-activity" class="size-5 shrink-0 animate-spin text-primary" />
+            <UBadge v-if="typeof item.badge === 'object'" v-bind="item.badge" />
+            <UIcon v-if="item.children?.length" :name="appConfig.ui.icons.chevronDown" data-slot="linkTrailingIcon" :class="ui.linkTrailingIcon({ active })" />
+          </template>
+        </UNavigationMenu>
       </template>
 
       <template #footer="{ collapsed }">
@@ -140,11 +148,13 @@ import { useBriefings } from "~/domain/briefing";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
-import { agentGroups, groupIcon, isAgentRunning, isGroupOpen, designatedAndWorkers, sessionLink, withGroupFolds } from "~/domain/agents";
+import { agentGroups, groupIcon, isAgentRunning, isGroupOpen, runLink, sessionLink, withGroupFolds } from "~/domain/agents";
 import { useAgentFace } from "~/domain/agent-face";
 import { avatarFor, useAvatars } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
-import { useBotEvents } from "~/domain/events";
+import { useBotEvents, useLiveRefresh, useSupervisorsAnswering } from "~/domain/events";
+import { COUNT_BADGE, countText } from "~/domain/numbers";
+import { POLL_INTERVAL_MS } from "#shared/config";
 import { jumpGroups, screenGroup } from "~/domain/jump";
 import { useModelNames } from "~/domain/model-names";
 import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
@@ -156,7 +166,7 @@ import { useSidebarUnread } from "~/domain/sidebar-unread";
 
 import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
 import type { NavigationMenuItem } from "@nuxt/ui";
-import type { AgentGroup, AgentMeta, AgentSession } from "~/domain/agents";
+import type { AgentGroup, AgentMeta, AgentRun, AgentSession } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
 
 // Where the title bar's one set of buttons stands: the standing screen's bar.
@@ -212,7 +222,12 @@ const avatars = useAvatars();
 const agentFace = useAgentFace();
 
 // The agents are the agency's to report; a catalogue it does not answer leaves the block saying so.
-const { agents, initial: agentsInitial, failed: agentsFailed } = useAgentCatalogue();
+const { agents, initial: agentsInitial, failed: agentsFailed, refresh: refreshAgents } = useAgentCatalogue();
+const appConfig = useAppConfig();
+
+// A supervisor, a role or a repository moving, a role's slot being let in or given back, and a job or a run of a role
+// starting or ending are what the branches read again on (docs/web.md, 「Sidebar」).
+useLiveRefresh(() => void refreshAgents(), { on: ["agency-catalogue", "agency-run", "worker-run"], everyMs: POLL_INTERVAL_MS });
 
 // The rooms, each with how many of its messages the reader has not read, read again whenever a message lands in one
 // of them (docs/web.md, 「Sidebar」). A room's session is titled and ranked by the same list.
@@ -233,7 +248,9 @@ const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.valu
 // carry, so a mark comes and goes without the sidebar asking again.
 const live = ref<LiveRun[]>([]);
 
-const groups = computed<AgentGroup[]>(() => agentGroups(t, designatedAndWorkers(agents.value.agents), rooms.value));
+const groups = computed<AgentGroup[]>(() => agentGroups(t, [...agents.value.agents], rooms.value));
+// The supervisors whose turn runs now in a room.
+const answering = useSupervisorsAnswering();
 
 // Which groups the owner has folded away, and which are left open. The choice stays in this browser, so the
 // sidebar stands as it was left however many times the console is opened.
@@ -260,27 +277,35 @@ const openGroups = computed<string[]>({
   set: (open) => setFolds(withGroupFolds(folds.value, groups.value.map((group) => group.key), open))
 });
 
-// One agent's entry: its name, and a turning circle while it is at work. Nothing that grows stands beside the
-// name, since a name is what the entry is read by. A name carries a colon and may carry a minus sign, so the
-// link encodes it.
+// Whether an entry is at work (docs/web.md, 「Sidebar」): a supervisor whose turn runs, a role whose runs go, and a
+// repository a job works in.
+function busy(agent: AgentMeta): boolean {
+  if (agent.group === "supervisor") return answering.value.has(agent.name) || isAgentRunning(agent, live.value);
+  if (agent.group === "role") return agent.running > 0;
+
+  return agent.working;
+}
+
+// One entry: its name, a turning circle while it is at work, and a role's count of the runs it has going. Nothing that
+// grows stands beside the name but that count, since a name is what the entry is read by. A name may carry a colon or
+// a minus sign, so the link encodes it.
 function agentEntry(agent: AgentMeta): NavigationMenuItem {
-  const running = isAgentRunning(agent, live.value);
+  const at = decodeURIComponent(route.path) === `/agents/${agent.name}`;
+  const children = [...agent.sessions.map((session) => sessionEntry(agent, session)), ...agent.runs.map((run) => runEntry(agent, run))];
 
   return {
     label: agent.label,
     to: `/agents/${encodeURIComponent(agent.name)}`,
-    // A chat agent wears its face, a room's own session that room's picture, and every other agent its group's mark
-    // (docs/web.md, 「Profile photos」).
+    // A supervisor wears its face, a role and a repository their branch's mark (docs/web.md, 「Profile photos」).
     icon: agentFace.value(agent) === undefined ? agent.icon : undefined,
     avatar: agentFace.value(agent),
-    active: decodeURIComponent(route.path) === `/agents/${agent.name}`,
-    // A turning circle rather than a still dot: the list is meant to say what is alive, and a dot says only
-    // that something was true when the picture arrived.
-    trailingIcon: running ? "i-material-symbols-progress-activity" : undefined,
-    ui: running ? { linkTrailingIcon: "animate-spin text-primary" } : undefined,
-    // A designated agent's room sessions stand under it, each its room's name and picture, opening the agent's
-    // log at its last turn there (docs/web.md, 「Sidebar」).
-    ...(agent.sessions.length === 0 ? {} : { defaultOpen: true, children: agent.sessions.map((session) => sessionEntry(agent, session)) })
+    active: at && route.query.chat === undefined && route.query.at === undefined,
+    // A turning circle rather than a still dot: the list is meant to say what is alive, and a dot says only that
+    // something was true when the picture arrived.
+    busy: busy(agent),
+    ...(agent.group === "role" && agent.running > 0 ? { badge: { ...COUNT_BADGE, color: "neutral" as const, label: countText(agent.running) } } : {}),
+    // A supervisor's room sessions and a role's runs stand under it (docs/web.md, 「Sidebar」).
+    ...(children.length === 0 ? {} : { defaultOpen: true, children })
   };
 }
 
@@ -290,6 +315,16 @@ function sessionEntry(agent: AgentMeta, session: AgentSession): NavigationMenuIt
     to: sessionLink(agent.name, session),
     avatar: avatarFor(avatars.value, "room", session.chatId, session.label),
     active: decodeURIComponent(route.path) === `/agents/${agent.name}` && route.query.chat === String(session.chatId)
+  };
+}
+
+// One run of a role, by what it works in, opening the role's log at that run.
+function runEntry(agent: AgentMeta, run: AgentRun): NavigationMenuItem {
+  return {
+    label: run.label,
+    to: runLink(agent.name, run),
+    icon: "i-material-symbols-subdirectory-arrow-right",
+    active: decodeURIComponent(route.path) === `/agents/${agent.name}` && run.since !== null && route.query.at === String(run.since)
   };
 }
 

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-// The searcher tab as it ships (docs/web.md, the searcher tab): the searchers' work keys as rows of the road table,
-// and under them what every research run is held to — each key's branches and clock, the branch role, the fetch
-// strategy and the two gaps, each a cell saving its one value — and the search engines' state. The words and
+// The research screen's settings tab as it ships (docs/web.md, 「Research screen」): what every research run is held
+// to — each line's branches and clock, the branch role, the fetch strategy and the two gaps, each a cell saving its
+// one value — and the search engines' state. The words and
 // values are the domain's (domain/research.test.ts); these checks hold the screen to what the document promises.
 
 const read = async (name: string) => await Bun.file(new URL(name, new URL("../../../apps/web/app/components/", import.meta.url))).text();
@@ -10,16 +10,19 @@ const templateOf = (source: string) => source.slice(0, source.indexOf("<script")
 const scriptOf = (source: string) => source.slice(source.indexOf("<script"));
 
 const settings = await read("./ResearchSettings.vue");
-const page = await read("../pages/agents/index.vue");
+const page = await read("../pages/research.vue");
+const agents = await read("../pages/agents/index.vue");
 
-describe("the searcher tab", () => {
-  test("stands as the last tab of the agent page", () => {
-    expect(page).toContain('<ResearchSettings v-else :query="query"');
+describe("the research settings tab", () => {
+  test("stands as the research screen's settings tab, and no longer on the agent page", () => {
+    expect(page).toContain("<ResearchSettings v-if=\"tab === 'settings'\"");
+    expect(agents).not.toContain("<ResearchSettings");
   });
 
-  test("shows the research keys as rows of the road table, saved through the same roads and tiers", () => {
-    expect(templateOf(settings)).toContain('<AgentsRouteTable v-if="!read || keys.length > 0" :only="keys" :query="props.query" />');
-    expect(scriptOf(settings)).toContain("researchKeys(fallback.value?.profiles ?? [], tiers.value?.assignments ?? [])");
+  test("names no source of a value and no default word, and offers the roles the agency lists as callable", () => {
+    expect(templateOf(settings)).not.toContain("sourceLabel");
+    expect(settings).not.toContain("AgentsRouteTable");
+    expect(scriptOf(settings)).toContain("roles.map((role) => ({ value: role.name, label: role.label }))");
   });
 
   test("reads the research settings and saves each value in a cell of its own", () => {

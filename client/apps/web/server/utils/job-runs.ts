@@ -1,6 +1,6 @@
 import { STATUS_HISTORY_LIMIT, WORKER_AGENT } from "#shared/config";
 
-import { agency, agencyCall } from "./agency";
+import { agency, agencyCall, agencyRoute } from "./agency";
 import { job as jobService, jobCall } from "./job";
 import { planOf } from "../../app/domain/tool-view";
 
@@ -16,15 +16,35 @@ const seconds = (ms: number): number => Math.floor(ms / 1000);
 // How many jobs under way the board reads. More than any machine runs at once, and the agency's largest page.
 const LIVE_JOBS_LIMIT = 500;
 
-/** The job a worker's screen keeps a line for, or null where the worker has none. */
-export async function readWorkerJob(worker: string, run: string | null): Promise<JobLine | null> {
-  const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { workerName: worker, limit: 50 } } }));
-  const named = run === null || run.trim() === "" ? undefined : jobs.items.find((job) => job.runName === run.trim() || String(job.runId ?? job.id) === run.trim());
-  const live = jobs.items.find((job) => job.state === "running" || job.state === "starting");
-  const job = named ?? live ?? [...jobs.items].sort((one, other) => other.startedAt - one.startedAt)[0];
+// The jobs a screen of the agency's names keeps its line for, newest first: a repository's, the jobs run in it, and
+// otherwise a role's, the jobs run as it (the agency's `docs/api.md`, 「assignments and jobs」).
+async function jobsOf(name: string): Promise<AgencyJob[]> {
+  const inRepository = await agencyCall(agency().GET("/jobs", { params: { query: { repositoryName: name, limit: 50 } } }));
 
-  return job === undefined ? null : {
+  if (inRepository.items.length > 0) return inRepository.items;
+
+  // The published client names no `roleName` filter, which the agency's document states; it is asked as written there,
+  // and the answer is held to the role all the same.
+  const asked = await agencyRoute<{ items: AgencyJob[] }>("GET", `/jobs?roleName=${encodeURIComponent(name)}&limit=50`);
+
+  return asked.items.filter((job) => job.roleName === name);
+}
+
+// The job a line speaks of: the run named where it is one of these jobs, otherwise the one going, otherwise the latest.
+function jobChosen(jobs: readonly AgencyJob[], run: string | null): AgencyJob | null {
+  const named = run === null || run.trim() === "" ? undefined : jobs.find((job) => job.runName === run.trim() || String(job.runId ?? job.id) === run.trim());
+  const live = jobs.find((job) => job.state === "running" || job.state === "starting");
+
+  return named ?? live ?? [...jobs].sort((one, other) => other.startedAt - one.startedAt)[0] ?? null;
+}
+
+/** The job a repository's or a role's screen keeps a line for, or null where it has none. */
+export async function readWorkerJob(worker: string, run: string | null): Promise<JobLine | null> {
+  const job = jobChosen(await jobsOf(worker), run);
+
+  return job === null ? null : {
     run: job.runName ?? String(job.runId ?? job.id),
+    role: job.roleName,
     todoId: job.itemId,
     title: null,
     purpose: null,
@@ -52,12 +72,7 @@ export async function readWorkerJobPrompt(worker: string, run: string | null): P
 }
 
 async function jobNamed(worker: string, run: string | null): Promise<AgencyJob | null> {
-  const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { workerName: worker, limit: 50 } } }));
-  const named = run === null || run.trim() === "" ? undefined : jobs.items.find((job) => job.runName === run.trim() || String(job.runId ?? job.id) === run.trim());
-  const live = jobs.items.find((job) => job.state === "running" || job.state === "starting");
-  const job = named ?? live ?? [...jobs.items].sort((one, other) => other.startedAt - one.startedAt)[0];
-
-  return job ?? null;
+  return jobChosen(await jobsOf(worker), run);
 }
 
 /** The jobs that have just run, newest first, as many as the live board shows of a kind. */
@@ -82,7 +97,10 @@ export async function readRecentJobs(): Promise<JobRecord[]> {
       todoId: job.itemId,
       attempt: 1,
       purpose: job.report,
-      worker: job.workerName
+      // A job's lines stand under the role it ran as.
+      worker: job.roleName ?? job.workerName,
+      repository: job.repositoryName ?? null,
+      checkout: job.workerName ?? null
     }));
 }
 
@@ -115,7 +133,10 @@ function liveRunOf(job: AgencyJob, room: number | null): LiveRun {
   return {
     id: job.id,
     kind: "worker",
-    agent: job.workerName,
+    // A job's lines stand under the role it runs as, so its line leads to that role's log.
+    agent: job.roleName ?? job.workerName,
+    repository: job.repositoryName ?? null,
+    checkout: job.workerName ?? null,
     chatId: room,
     messageId: null,
     startedAt: seconds(job.startedAt),
@@ -167,12 +188,12 @@ function roadOf(text: string): RanOn | null {
 
 /**
  * The jobs of an item on its worker, read from the agency: how many ran it and for how long, the road its latest
- * answered on and the newest plan it laid out of its own (docs/web.md, 「The work view」). A job's lines stand under its
- * worker's name.
+ * answered on and the newest plan it laid out of its own (docs/web.md, 「The work view」). A job's lines stand under the
+ * role it ran as.
  */
 export async function itemRunsOf(worker: string | null, todoId: number): Promise<ItemRuns> {
   // The item's own jobs, asked by its number, on its worker where it names one; each is held to the item as well.
-  const query = worker === null ? { itemId: todoId, limit: 50 } : { itemId: todoId, workerName: worker, limit: 50 };
+  const query = worker === null ? { itemId: todoId, limit: 50 } : { itemId: todoId, repositoryName: worker, limit: 50 };
   const jobs = (await agencyCall(agency().GET("/jobs", { params: { query } }))).items.filter((one) => one.itemId === todoId);
   const ended = jobs.filter((one) => one.endedAt !== null);
   const latest = [...jobs].sort((one, other) => other.startedAt - one.startedAt)[0];
@@ -185,7 +206,7 @@ export async function itemRunsOf(worker: string | null, todoId: number): Promise
 
   if (latest === undefined || latest.runId === null) return runs;
 
-  const lines = (await agencyCall(agency().GET("/log-lines", { params: { query: { runId: latest.runId, agentName: latest.workerName, after: 0, limit: RUN_LINES } } }))).items;
+  const lines = (await agencyCall(agency().GET("/log-lines", { params: { query: { runId: latest.runId, agentName: latest.roleName ?? latest.workerName, after: 0, limit: RUN_LINES } } }))).items;
 
   for (const line of [...lines].reverse()) {
     if (runs.ranOn === null && line.kind === "answer") runs.ranOn = roadOf(line.text);

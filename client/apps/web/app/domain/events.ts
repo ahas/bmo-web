@@ -1,6 +1,6 @@
 import { EVENT_FIRST_RETRY_MS, EVENT_RETRY_MS, RESTART_GRACE_MS, STREAM_KEEPALIVE_MS, STREAM_SILENCE_MS } from "#shared/config";
 import { TURN_ENDED } from "#shared/types";
-import { companionOf } from "./agents";
+import { companionOf, defaultAnswererName } from "./agents";
 import { askWhetherLoginEnded } from "./login-end";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { appUrl } from "./urls";
@@ -1226,6 +1226,16 @@ export function useChatTurns(): Readonly<Ref<ChatTurnProgress[]>> {
   const own = useBmoTurns();
 
   return computed(() => [...own.value].map(([chatId, run]) => ({ chatId, progress: run.progress })));
+}
+
+// The supervisors whose turn runs now in any room: each turn's companion by its name, and the chat agent's under the
+// default answerer's.
+export function useSupervisorsAnswering(): Readonly<Ref<ReadonlySet<string>>> {
+  const record = roomTurns();
+
+  useBotEvents(() => undefined);
+
+  return computed(() => new Set([...record.value.values()].flatMap((runs) => runs.map((run) => companionOf(run.speaker)?.name ?? defaultAnswererName()))));
 }
 
 

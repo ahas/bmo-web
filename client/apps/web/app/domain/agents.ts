@@ -4,67 +4,53 @@ import { chatAgent } from "#shared/agent-names";
 import { isLaunchAgent, WORKER_AGENT } from "#shared/config";
 
 import type { LaunchAgent } from "#shared/config";
-import { gateOrderKeys } from "./gate-order";
 
-import type { AgentSummary, GatePartView, RoomSummary, TurnSpeaker } from "#shared/types";
+import type { AgentAxis, AgentSummary, GatePartView, RoleSlotRun, RoomSummary, TurnSpeaker } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
-// Who the agents are is the archive's answer, not this app's. The catalogue — which agents
-// exist, what each is called, the mark it wears, and for a worker the directory it works in —
-// is rows in the agents table, and every screen here reads its names out of the list the app
-// was given rather than out of a copy kept in this file.
+// Who the agents are is the agency's answer, not this app's. Its supervisors, its roles and its repositories — which
+// exist, what each is called, the mark it wears — are the agency's lists, and every screen here reads its names out of
+// the list the app was given rather than out of a copy kept in this file.
 //
-// What does stay here is how the screens are laid out: which groups there are and in what order
-// they stand. That is this console's own arrangement and belongs to it.
+// What does stay here is how the screens are laid out: which branches there are and in what order they stand. That is
+// this console's own arrangement and belongs to it.
 
-// Which of the groups an agent stands in: the console's own arrangement of the kinds the archive
-// gives its rows (docs/web.md, 「Sidebar」). Every designated agent — the chat agent and each companion
-// — stands in one group.
-export type AgentGroupKey = "designated" | "gate" | "runner" | "worker";
+// Which branch an entry stands in: the agency's two axes and its places (docs/web.md, 「Sidebar」).
+export type AgentGroupKey = AgentAxis;
 
-// The group each kind of row stands in. A kind not named here stands with the workers, as a row the
-// console does not know is still somebody's to read. A companion an older writer left under a kind of its
-// own stands with the designated agents, as every companion of the kind `chat` does.
-const KIND_GROUPS: Readonly<Record<string, AgentGroupKey>> = {
-  chat: "designated",
-  companion: "designated",
-  gate: "gate",
-  runner: "runner",
-  worker: "worker"
-};
-
-/** The agents a person designates and the workers, the only rows the sidebar and the agent management screen list
- * (docs/web.md, 「Sidebar」): a `chat` row holding a role, and a `worker` row. The gate unit's session rows — the
- * `gate` kind, and a `chat` row holding none — and the runners' rows are the gates screen's and the searcher tab's. */
-export function designatedAndWorkers<A extends Pick<AgentSummary, "kind" | "role">>(agents: readonly A[]): A[] {
-  return agents.filter((agent) => agent.kind === "worker" || (agent.kind === "chat" && typeof agent.role === "string" && agent.role !== ""));
-}
-
-export function groupOfKind(kind: string): AgentGroupKey {
-  return KIND_GROUPS[kind] ?? "worker";
-}
-
-// One room session of a designated agent, as the sidebar lists it under the agent: the room, what
-// the room is called, and where in the agent's log its last turn there stands.
+// One room session of a supervisor, as the sidebar lists it under the supervisor: the room, what the room is called,
+// and where in the supervisor's log its last turn there stands where that is known.
 export interface AgentSession {
   chatId: number;
   label: string;
   lastAt: number | null;
 }
 
-// One agent as a screen shows it: the internal name its log and the control API use, and the
-// name the owner calls it by.
+// One run a role's slot holds now, as the sidebar lists it under the role: what it works in — the repository whose
+// checkout its path is, by its label, or the folder's last part — and since when, in epoch seconds.
+export interface AgentRun {
+  key: string;
+  label: string;
+  since: number | null;
+}
+
+// One entry as a screen shows it: the internal name its log and the agency use, and the name the owner calls it by.
 export interface AgentMeta {
   name: string;
   label: string;
   icon: string;
   group: AgentGroupKey;
-  // The room a chat agent serves. Every other agent serves all of them at once.
+  // The room a session registered for one room serves; none for every entry the agency lists.
   chatId: number | null;
-  // Where a worker's jobs run. Null for every other kind.
-  cwd: string | null;
-  // A designated agent's room sessions, in the order the rooms stand; none for every other agent.
+  // Where a repository stands. Null for every other entry.
+  path: string | null;
+  // A supervisor's room sessions, in the order the rooms stand; none for every other entry.
   sessions: readonly AgentSession[];
+  // How many of a role's runs go, and the runs its slots hold now; nought and none for every other entry.
+  running: number;
+  runs: readonly AgentRun[];
+  // Whether a job works in a repository now.
+  working: boolean;
 }
 
 export interface AgentGroup {
@@ -74,67 +60,31 @@ export interface AgentGroup {
 }
 
 const GROUP_LABELS: Record<AgentGroupKey, string> = {
-  designated: "agents.label.group_designated",
-  gate: "agents.label.group_gate",
-  runner: "agents.label.group_runner",
-  worker: "agents.label.group_worker"
+  supervisor: "agents.label.group_supervisor",
+  role: "agents.label.group_role",
+  repository: "agents.label.group_repository"
 };
 
-// The mark a group wears wherever its name cannot stand alone: a tab of its runs, and its row in
-// the sidebar folded to its icons.
+// The mark a branch wears wherever its name cannot stand alone: its row in the sidebar folded to its icons, and an
+// entry the agency answers no mark for.
 const GROUP_ICONS: Record<AgentGroupKey, string> = {
-  designated: "i-material-symbols-forum-outline",
-  gate: "i-material-symbols-balance",
-  runner: "i-material-symbols-travel-explore",
-  worker: "i-material-symbols-construction"
+  supervisor: "i-material-symbols-chat-bubble-outline",
+  role: "i-material-symbols-construction",
+  repository: "i-material-symbols-folder-outline"
 };
 
-// The order the groups stand in, the designated agents first because they are the ones answering the
-// rooms.
-export const GROUP_ORDER: readonly AgentGroupKey[] = ["designated", "gate", "runner", "worker"];
-
-// The sections the general settings screen stands, in the order they stand in. What each is called
-// is settled here rather than in the screen, because the screen stands the same titles before the
-// settings have arrived as after: a title says nothing that had to be fetched.
-//
-// `title` is the key of what the section is called, and `waiting` is how many placeholder cards
-// stand under a title while the settings are being read, which is what that section ordinarily
-// holds.
-export const GENERAL_SECTIONS: readonly { id: string; title: string; waiting: number }[] = [
-  { id: "keepalive", title: "agents.title.section_keepalive", waiting: 1 },
-  { id: "providers", title: "agents.title.section_providers", waiting: 4 },
-  { id: "registry", title: "agents.title.registry", waiting: 2 },
-  { id: "catalogue", title: "agents.title.catalogue", waiting: 2 },
-  { id: "base-prompts", title: "agents.title.base_prompts", waiting: 1 },
-  { id: "accounts", title: "agents.title.accounts", waiting: 2 },
-  { id: "agents", title: "agents.title.section_agents", waiting: 3 },
-  { id: "sessions", title: "agents.title.section_sessions", waiting: 3 }
-];
-
-// What a change on the general tab has the page read again.
-export type GeneralPart = "agents" | "fallback" | "keepalive" | "registry";
-
-export function generalSectionTitle(t: Translate, id: string): string {
-  const title = GENERAL_SECTIONS.find((section) => section.id === id)?.title;
-
-  return title === undefined ? "" : t(title);
-}
-
+// The order the branches stand in, the supervisors first because they are the ones answering the rooms.
+export const GROUP_ORDER: readonly AgentGroupKey[] = ["supervisor", "role", "repository"];
 const CHAT_PREFIX = "chat:";
-const CHAT_ICON = "i-material-symbols-chat-bubble-outline";
 
-// An agent the catalogue says nothing about wears this rather than disappearing.
-const UNKNOWN_ICON = "i-material-symbols-radio-button-checked-outline";
-
-// The catalogue this browser has in hand. It is read once from the archive and every screen
-// reads its names out of it, so a worker the owner added is called what they called it wherever it
-// appears. A screen asked about an agent before the list arrived gets the agent's own name,
-// which is true and readable, rather than a name kept in this file that could go stale.
-// It is a ref rather than a plain value so that a screen reading a name inside a computed is
-// redrawn when the list arrives; the read is what tracks it.
+// The catalogue this browser has in hand. It is read once from the agency and every screen reads its names out of it,
+// so an entry the owner added is called what they called it wherever it appears. A screen asked about an agent before
+// the list arrived gets the agent's own name, which is true and readable, rather than a name kept in this file that
+// could go stale. It is a ref rather than a plain value so that a screen reading a name inside a computed is redrawn
+// when the list arrives; the read is what tracks it.
 const held = shallowRef<readonly AgentSummary[]>([]);
-// The gate order that came with it, which is where every list of gates takes its order from
-// (the gate unit's docs/gates.md). Empty until the list arrives, and a list of gates then stands as the archive gave it.
+// The gate order that came with it, which is where every list of gates takes its order from (the gate unit's
+// docs/gates.md). Empty until the list arrives.
 const heldGateOrder = shallowRef<readonly GatePartView[]>([]);
 
 // The registration name of the receiver's default answerer, which the list carries beside its agents; null until
@@ -151,7 +101,12 @@ export function catalogueAgents(): readonly AgentSummary[] {
   return held.value;
 }
 
-// The key of a group's name, for a list that carries keys and puts the words on at the screen.
+/** The gate order the list carries. */
+export function catalogueGateOrder(): readonly GatePartView[] {
+  return heldGateOrder.value;
+}
+
+// The key of a branch's name, for a list that carries keys and puts the words on at the screen.
 export function groupLabelKey(key: AgentGroupKey): string {
   return GROUP_LABELS[key];
 }
@@ -237,9 +192,9 @@ export function bmoLabel(t: Translate, catalogue: readonly AgentSummary[] = held
   return chatAgent().label !== "" ? chatAgent().label : t("common.label.chat_agent");
 }
 
-// The catalogue's chat session that answers every room naming nobody, rather than one room of its own.
+// The catalogue's supervisor that answers every room naming nobody.
 function sharedAnswerer(catalogue: readonly AgentSummary[]): AgentSummary | undefined {
-  return catalogue.find((agent) => agent.defaultAnswerer && agent.chatId === null && chatIdOf(agent.name) === null);
+  return catalogue.find((agent) => agent.kind === "supervisor" && agent.defaultAnswerer);
 }
 
 // The registration name of the default answerer, the agent a turn is the chat agent's under: the receiver's, as the
@@ -320,36 +275,25 @@ export function workUnitLabel(t: Translate, name: string): string | null {
   return which(again(phase === undefined ? task! : t(phase)));
 }
 
-// Which group an agent stands in, out of the catalogue in hand. The archive's answer and nothing
-// else: an agent the list says nothing about — a name from a row older than the catalogue, or a
-// screen that asked before the list arrived — comes back as nothing rather than as a guess.
+// Which branch an entry stands in, out of the catalogue in hand. The agency's answer and nothing else: a name the list
+// says nothing about comes back as nothing rather than as a guess.
 export function agentKind(name: string, catalogue: readonly AgentSummary[] = held.value): AgentGroupKey | null {
-  const kind = catalogue.find((agent) => agent.name === name)?.kind;
-
-  return kind === undefined ? null : groupOfKind(kind);
+  return catalogue.find((agent) => agent.name === name)?.kind ?? null;
 }
 
-// The agents of one group, in the order the archive listed them: what a screen that stands a
-// whole kind together — the home's own blocks — puts in that block.
-export function groupAgents(
-  t: Translate,
-  reported: readonly AgentSummary[],
-  key: AgentGroupKey,
-  rooms: RoomSummary[] = []
-): readonly AgentMeta[] {
+// The entries of one branch, in the order the agency listed them.
+export function groupAgents(t: Translate, reported: readonly AgentSummary[], key: AgentGroupKey, rooms: RoomSummary[] = []): readonly AgentMeta[] {
   return agentGroups(t, [...reported], rooms).find((group) => group.key === key)?.agents ?? [];
 }
 
-// An agent's mark is the one the agency answers for its kind (docs/web.md, 「Fonts」); the console's own stand only
-// for an agent it answers none for.
+// An entry's mark is the one the agency answers for it; its branch's own stands for one it answers none for.
 export function agentIcon(name: string, catalogue: readonly AgentSummary[] = held.value): string {
   const found = catalogue.find((agent) => agent.name === name);
 
-  if (found?.icon !== null && found?.icon !== undefined && found.icon !== "") {
-    return found.icon;
-  }
+  if (found?.icon !== null && found?.icon !== undefined && found.icon !== "") return found.icon;
+  if (found !== undefined) return GROUP_ICONS[found.kind];
 
-  return found?.defaultAnswerer === true || name.startsWith(CHAT_PREFIX) ? CHAT_ICON : UNKNOWN_ICON;
+  return name.startsWith(CHAT_PREFIX) ? GROUP_ICONS.supervisor : GROUP_ICONS.role;
 }
 
 // The room a run or a chat agent belongs to, by the name the room list gives it — their own room
@@ -374,64 +318,50 @@ export function chatIdOf(name: string): number | null {
   return Number.isSafeInteger(chatId) ? chatId : null;
 }
 
+// The folder's last part of a path, as a run with no repository behind its path is named.
+function folderOf(path: string): string {
+  const parts = path.split("/").filter((part) => part !== "");
 
-// What a worker whose directory is not a git checkout carries beside its name: it runs ordinary
-// jobs only.
-export const NOT_CHECKOUT_LABEL = "agents.label.not_checkout";
-
-// What a worker whose own warming switch is down carries beside its name. It says only that the
-// periodic warming is off: the worker takes its jobs as it always did.
-export const KEEPALIVE_OFF_LABEL = "agents.label.keepalive_off";
-
-// What an agent's row says about its warming beside its own switch: that its cache keeping is off
-// where its switch is down, off until the next job for a worker turned off until its next job, all
-// stopped where the whole round is off, and nothing on a row actually being warmed.
-export function keepaliveMarkOf(
-  t: Translate,
-  agent: Pick<AgentSummary, "keepaliveStopped" | "keepalivePausedAt"> | undefined,
-  allStopped: boolean
-): string {
-  if (agent?.keepaliveStopped === true) return t(KEEPALIVE_OFF_LABEL);
-  if (allStopped) return t("agents.label.keepalive_all_stopped");
-
-  return agent !== undefined && agent.keepalivePausedAt !== null ? t("agents.label.keepalive_paused") : "";
+  return parts.at(-1) ?? path;
 }
 
-// The whole catalogue as the sidebar shows it: the rooms the bot keeps a session for, then the
-// groups that stand on their own, each in the order the archive listed its agents — but for the
-// gates, which stand in the gate order, where each first runs, and after them any gate the order
-// does not place. A group with nothing in it does not stand at all.
-export function agentGroups(
-  t: Translate,
-  reported: AgentSummary[],
-  rooms: RoomSummary[],
-  gateOrder: readonly GatePartView[] = heldGateOrder.value
-): AgentGroup[] {
+/** What a role's run works in (docs/web.md, 「Sidebar」): the repository one of whose checkouts — or whose own folder —
+ * its path is, by that repository's label, or the folder's last part where the path is no repository's. */
+export function runPlaceLabel(t: Translate, path: string | null, catalogue: readonly AgentSummary[] = held.value): string {
+  if (path === null) return t("agents.label.run_no_place");
+
+  const repository = catalogue.find(
+    (agent) => agent.kind === "repository" && (agent.path === path || agent.checkouts.some((checkout) => checkout.path === path))
+  );
+
+  return repository === undefined ? folderOf(path) : agentNameLabel(t, repository);
+}
+
+/** Where one run of a role opens: the role's log at the moment the run took its slot, or at the log's end where that
+ * is not known. */
+export function runLink(role: string, run: Pick<AgentRun, "since">): string {
+  const base = `/agents/${encodeURIComponent(role)}`;
+
+  return run.since === null ? base : `${base}?at=${run.since}`;
+}
+
+// The whole catalogue as the sidebar shows it: the supervisors, the roles and the repositories, each branch in the
+// order the agency listed its entries, the default answerer first among the supervisors. A branch with nothing in it
+// does not stand at all.
+export function agentGroups(t: Translate, reported: AgentSummary[], rooms: RoomSummary[]): AgentGroup[] {
   const groups: AgentGroup[] = [];
 
   for (const key of GROUP_ORDER) {
-    const kinds = reported.filter((agent) => groupOfKind(agent.kind) === key);
-    const agents = kinds.map((agent) => metaOf(t, agent, rooms));
+    const kinds = reported.filter((agent) => agent.kind === key);
+    const agents = kinds.map((agent) => metaOf(t, agent, rooms, reported));
 
-    if (agents.length === 0) {
-      continue;
-    }
+    if (agents.length === 0) continue;
 
-    if (key === "designated") {
-      // The chat agent stands first, its sessions of a room the archive has no row for last, and the
-      // companions after it in the order the archive listed them.
-      const rank = (agent: AgentMeta, index: number): number =>
-        kinds[index]!.defaultAnswerer ? roomRank(agent, rooms) : rooms.length + 1 + index;
-      const ranked = agents.map((agent, index) => ({ agent, rank: rank(agent, index) }));
+    if (key === "supervisor") {
+      const rank = (index: number): number => (kinds[index]!.defaultAnswerer ? 0 : 1);
+      const ranked = agents.map((agent, index) => ({ agent, rank: rank(index), index }));
 
-      agents.splice(0, agents.length, ...ranked.sort((left, right) => left.rank - right.rank).map((one) => one.agent));
-    }
-
-    if (key === "gate") {
-      const order = gateOrderKeys(gateOrder);
-      const rank = (agent: AgentMeta): number => (order.includes(agent.name) ? order.indexOf(agent.name) : order.length);
-
-      agents.sort((left, right) => rank(left) - rank(right));
+      agents.splice(0, agents.length, ...ranked.sort((left, right) => left.rank - right.rank || left.index - right.index).map((one) => one.agent));
     }
 
     groups.push({ key, label: t(GROUP_LABELS[key]), agents });
@@ -440,58 +370,45 @@ export function agentGroups(
   return groups;
 }
 
-
-function roomRank(agent: AgentMeta, rooms: RoomSummary[]): number {
-  const at = rooms.findIndex((room) => room.chatId === agent.chatId);
-
-  return at === -1 ? rooms.length : at;
-}
-
-// One agent by name, out of the groups a screen is holding.
+// One entry by name, out of the branches a screen is holding.
 export function findAgent(name: string, groups: readonly AgentGroup[]): AgentMeta | null {
   for (const group of groups) {
     const found = group.agents.find((agent) => agent.name === name);
 
-    if (found !== undefined) {
-      return found;
-    }
+    if (found !== undefined) return found;
   }
 
   return null;
 }
 
-// An agent named on an address that the catalogue in hand says nothing about — a chat session
-// whose room has not run since the bot came up, or a screen opened before the list arrived — is
-// still readable: its log is in the archive under its own name.
+// A chat session named on an address that the catalogue in hand says nothing about is still readable: its log is
+// kept under its own name.
 export function chatAgentMeta(t: Translate, name: string, rooms: RoomSummary[]): AgentMeta | null {
   const chatId = chatIdOf(name);
 
   return chatId === null
     ? null
-    : { name, label: roomTitle(t, rooms, chatId), icon: CHAT_ICON, group: "designated", chatId, cwd: null, sessions: [] };
+    : { name, label: roomTitle(t, rooms, chatId), icon: GROUP_ICONS.supervisor, group: "supervisor", chatId, path: null, sessions: [], running: 0, runs: [], working: false };
 }
 
-// The run this agent is at work on, or nothing. A chat agent leaves no run of its own in the
-// live picture — what stands there is the work its room is having done — so its room is what
-// is looked for; every other agent stands under its own name.
-export function runOfAgent<Run extends { agent: string; chatId: number | null }>(
-  agent: AgentMeta,
-  live: Run[]
-): Run | null {
+// The run this entry is at work on in the live picture, or nothing: every entry stands under its own name there.
+export function runOfAgent<Run extends { agent: string; chatId: number | null }>(agent: Pick<AgentMeta, "name" | "chatId">, live: Run[]): Run | null {
   return live.find((run) => (agent.chatId === null ? run.agent === agent.name : run.chatId === agent.chatId)) ?? null;
 }
 
-export function isAgentRunning<Run extends { agent: string; chatId: number | null }>(
-  agent: AgentMeta,
-  live: Run[]
-): boolean {
+export function isAgentRunning<Run extends { agent: string; chatId: number | null }>(agent: Pick<AgentMeta, "name" | "chatId">, live: Run[]): boolean {
   return runOfAgent(agent, live) !== null;
 }
 
-// One catalogue row as a screen shows it.
-export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[]): AgentMeta {
-  const chatId = agent.chatId ?? chatIdOf(agent.name);
-  const group = groupOfKind(agent.kind);
+// One run of a role as the sidebar lists it.
+function runOf(t: Translate, run: RoleSlotRun, index: number, catalogue: readonly AgentSummary[]): AgentRun {
+  const since = run.since === null ? null : Math.floor(run.since / 1000);
+
+  return { key: `${run.path ?? ""}#${run.since ?? index}`, label: runPlaceLabel(t, run.path, catalogue), since };
+}
+
+// One catalogue entry as a screen shows it.
+export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[], catalogue: readonly AgentSummary[] = held.value): AgentMeta {
   const standing = (chatId: number): number => {
     const index = rooms.findIndex((room) => room.chatId === chatId);
 
@@ -501,75 +418,46 @@ export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[]):
     .map((session) => ({ ...session, label: roomTitle(t, rooms, session.chatId) }))
     .sort((left, right) => standing(left.chatId) - standing(right.chatId));
 
-  if (agent.defaultAnswerer) {
-    return {
-      name: agent.name,
-      // The agent's own name, never the room's: a chat session registered for one room is labeled by that room.
-      label: agentNameLabel(t, agent),
-      icon: agentIcon(agent.name, [agent]),
-      group,
-      chatId,
-      cwd: null,
-      sessions
-    };
-  }
-
   return {
     name: agent.name,
     label: agentNameLabel(t, agent),
     icon: agentIcon(agent.name, [agent]),
-    group,
+    group: agent.kind,
     chatId: null,
-    cwd: agent.cwd ?? null,
-    sessions
+    path: agent.path,
+    sessions,
+    running: agent.running,
+    runs: agent.runs.map((run, index) => runOf(t, run, index, catalogue)),
+    working: agent.checkouts.some((checkout) => checkout.jobId !== null)
   };
 }
 
-// Where one room session of an agent opens: the agent's log at its last turn in that room, or its log
-// at the end where the room has no line yet (docs/web.md, 「Agent screen」).
+// Where one room session of a supervisor opens: its log at its last turn in that room, or at the end where that is
+// not known (docs/web.md, 「Agent screen」).
 export function sessionLink(agent: string, session: Pick<AgentSession, "chatId" | "lastAt">): string {
   const base = `/agents/${encodeURIComponent(agent)}`;
 
   return session.lastAt === null ? `${base}?chat=${session.chatId}` : `${base}?chat=${session.chatId}&at=${session.lastAt}`;
 }
 
-// One agent as a screen shows it, out of the catalogue in hand: the row where the list has one,
-// a chat session read off its own name where it does not, and the bare name for anything else —
-// a log is kept under a name whether the catalogue still holds that name or not.
+// One entry as a screen shows it, out of the catalogue in hand: the entry where the list has one, a chat session read
+// off its own name where it does not, and the bare name for anything else — a log is kept under a name whether the
+// catalogue still holds that name or not.
 export function agentMetaOf(t: Translate, name: string, catalogue: readonly AgentSummary[], rooms: RoomSummary[]): AgentMeta {
   const row = catalogue.find((agent) => agent.name === name);
 
-  if (row !== undefined) {
-    return metaOf(t, row, rooms);
-  }
+  if (row !== undefined) return metaOf(t, row, rooms, catalogue);
 
   return (
-    chatAgentMeta(t, name, rooms) ?? { name, label: name, icon: UNKNOWN_ICON, group: "worker", chatId: null, cwd: null, sessions: [] }
+    chatAgentMeta(t, name, rooms) ?? { name, label: name, icon: GROUP_ICONS.role, group: "role", chatId: null, path: null, sessions: [], running: 0, runs: [], working: false }
   );
 }
 
-// Whether an agent's own screen carries the box the owner types work into, and what that box
-// launches. There are two kinds of answer and they are found differently.
-//
-// The runners are two fixed agents of this machine, so their names are known here. A job worker
-// is not: the owner adds one, names it and points it at a checkout of its own, and the archive is
-// the list of them. So a worker is recognised by the catalogue saying it is one, and never by a
-// name written down in this app — a list written here could only ever hold the workers that
-// existed when it was written, and the console would go on offering the box to the built-in
-// worker alone however many the owner had added.
-//
-// What a worker's box launches is a job, because a job is one kind of run however many workers
-// there are to run it; which worker does it — and so which checkout the work happens in — is the
-// screen the box stands on. That is why nothing here chooses a worker: the choosing is walking to
-// that worker's screen, and a box that could send the work elsewhere would be a screen promising
-// one thing and doing another with the other one's log standing above it.
-//
-// A name the catalogue does not carry gets no box at all. Its log still opens — a log is kept
-// under a name whether the catalogue still holds it or not — but there is nothing to launch into.
+// Whether an entry's own screen carries the box the owner types work into, and what that box launches. A repository
+// takes a job, and which repository it goes to is the screen the box stands on; a runner the launcher names takes its
+// own run. A name the catalogue does not carry gets no box: its log still opens, but there is nothing to launch into.
 export function launchableAgent(name: string, catalogue: readonly AgentSummary[]): LaunchAgent | null {
-  if (catalogue.some((agent) => agent.name === name && agent.kind === "worker")) {
-    return WORKER_AGENT;
-  }
+  if (catalogue.some((agent) => agent.name === name && agent.kind === "repository")) return WORKER_AGENT;
 
   return isLaunchAgent(name) && name !== WORKER_AGENT ? name : null;
 }

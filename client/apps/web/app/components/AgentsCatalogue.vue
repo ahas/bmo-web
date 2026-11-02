@@ -1,67 +1,107 @@
 <template>
-  <!-- The model files the deployment's own engines serve (the agency's docs/model-catalogue.md), and the latest choice of one
-       for each engine above them, read again every few seconds while one runs. -->
-  <section :id="settingsAnchor('catalogue')" class="flex flex-col gap-3" aria-labelledby="catalogue-title">
-    <h2 id="catalogue-title" class="text-lg font-semibold text-highlighted">{{ generalSectionTitle($t, "catalogue") }}</h2>
+  <!-- The model files the deployment's own engines serve (docs/web.md, 「Agent management screen」, the model files tab;
+       the agency's docs/model-catalogue.md): above the table the latest choice of one for each engine, read again every
+       few seconds while one runs; under it one row for each entry. -->
+  <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.tab_model_files')">
+    <ul v-if="catalogue !== undefined && catalogue.uses.length > 0" class="flex flex-col gap-2 px-4 py-3" :aria-label="$t('agents.title.catalogue_uses')">
+      <li v-for="use in catalogue.uses" :key="use.id" :data-use="use.engine" class="flex flex-col gap-1 text-sm">
+        <span class="flex min-w-0 items-center gap-2">
+          <UIcon :name="useMark(use.state).icon" class="size-4 shrink-0" :class="[useMark(use.state).tone, use.state === 'running' ? 'animate-spin motion-reduce:animate-none' : '']" />
+          <span class="min-w-0 truncate text-toned">{{ useText($t, use) }}</span>
+          <span class="ms-auto shrink-0 tabular-nums text-muted">{{ timeText(use.startedAt) }}</span>
+        </span>
+        <pre
+          v-if="use.logTail.length > 0 && use.state !== 'done'"
+          class="overflow-x-auto rounded-md bg-elevated px-3 py-2 font-mono text-sm text-toned"
+        >{{ use.logTail.join("\n") }}</pre>
+      </li>
+    </ul>
 
-    <UAlert
-      v-if="status === 'error' && catalogue === undefined"
-      color="error"
-      variant="subtle"
-      :description="$t('agents.error.catalogue_read_failed')"
-      :actions="[{ label: $t('common.action.refresh'), color: 'neutral', variant: 'outline', onClick: () => void refresh() }]"
+    <DataTableSkeleton v-if="catalogue === undefined && status !== 'error'" :headers="tableHeaders(columns)" :rows="3" :label="$t('agents.status.catalogue_loading')" />
+    <ReadFailure
+      v-else-if="status === 'error' && catalogue === undefined"
+      class="mx-4 my-4 w-auto"
+      :failure="readFailure"
+      :message="$t('agents.error.catalogue_read_failed')"
+      :reading="false"
+      @retry="refresh()"
     />
+    <p v-else-if="catalogue !== undefined && catalogue.entries.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_catalogue") }}</p>
 
-    <AgentsRegistrySkeleton v-else-if="catalogue === undefined" :rows="CATALOGUE_WAITING" />
-
-    <template v-else>
-      <ul v-if="catalogue.uses.length > 0" class="flex flex-col gap-2" :aria-label="$t('agents.title.catalogue_uses')">
-        <li v-for="use in catalogue.uses" :key="use.id" :data-use="use.engine" class="flex flex-col gap-1 text-sm">
+    <DataTable v-if="catalogue !== undefined && catalogue.entries.length > 0" data-settings-table :data="catalogue.entries" :columns="columns" :row-key="(row: CatalogueEntryView) => row.name">
+      <template #entry-cell="{ row }">
+        <span :id="settingsAnchor(`catalogue-${row.original.name}`)" :class="CELL_TEXT" class="ps-4" :data-entry="row.original.name">
           <span class="flex min-w-0 items-center gap-2">
-            <UIcon :name="useMark(use.state).icon" class="size-4 shrink-0" :class="[useMark(use.state).tone, use.state === 'running' ? 'animate-spin' : '']" />
-            <span class="min-w-0 truncate text-toned">{{ useText($t, use) }}</span>
-            <span class="ms-auto shrink-0 tabular-nums text-muted">{{ timeText(use.startedAt) }}</span>
+            <SearchText class="truncate text-sm font-medium text-highlighted" :text="row.original.label" :query="props.query" />
+            <UBadge v-if="row.original.serving" color="success" variant="subtle" size="sm" class="shrink-0">{{ $t("agents.label.serving") }}</UBadge>
           </span>
-          <pre
-            v-if="use.logTail.length > 0 && use.state !== 'done'"
-            class="max-h-48 overflow-auto rounded-md bg-elevated px-3 py-2 font-mono text-sm text-toned"
-          >{{ use.logTail.join("\n") }}</pre>
-        </li>
-      </ul>
+          <SearchText class="truncate font-mono text-sm text-muted" :text="row.original.name" :query="props.query" />
+        </span>
+      </template>
 
-      <ul class="flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default" :aria-label="$t('agents.title.catalogue')">
-        <li v-for="one in catalogue.entries" :key="one.name" :data-entry="one.name" class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 py-2 ps-4 pe-2">
-          <span class="flex min-w-0 flex-col gap-1">
-            <span class="flex min-w-0 items-center gap-2">
-              <SearchText class="truncate text-sm font-medium text-highlighted" :text="one.label" :query="props.query" />
-              <SearchText class="truncate font-mono text-sm text-muted" :text="one.name" :query="props.query" />
-              <UBadge v-if="one.serving" color="success" variant="subtle" size="sm" class="shrink-0">{{ $t("agents.label.serving") }}</UBadge>
-            </span>
-            <span data-overflow-cell class="block max-w-full overflow-x-auto whitespace-nowrap [scrollbar-width:thin]">
-              <SearchText class="font-mono text-sm text-toned" :text="one.file" :query="props.query" />
-            </span>
-            <span class="text-sm tabular-nums text-muted">
-              {{ [sizeText(one.bytes), `sha256 ${one.sha256.slice(0, 12)}`, sourceText($t, one.source), `${one.engine ?? "—"} · ${one.registration ?? "—"}`].join(" · ") }}
-            </span>
-            <span class="text-sm tabular-nums text-muted">{{ defaultsText($t, one) }}</span>
-            <span v-if="one.note !== null" class="break-words text-sm text-muted">{{ one.note }}</span>
-            <span v-if="one.nodes.length > 0" class="flex flex-wrap gap-1 pt-1">
-              <UBadge v-for="node in one.nodes" :key="node" color="neutral" variant="subtle" size="sm" class="font-mono">{{ node }}</UBadge>
-            </span>
+      <template #file-cell="{ row, held }">
+        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-72']">
+          <SearchText class="truncate font-mono text-sm text-toned" :text="row.original.file" :query="props.query" />
+        </span>
+      </template>
+
+      <template #size-cell="{ row }">
+        <span :class="CELL_TEXT" class="whitespace-nowrap text-sm tabular-nums text-highlighted">{{ sizeText(row.original.bytes) }}</span>
+      </template>
+
+      <template #sha-cell="{ row }">
+        <span :class="CELL_TEXT" class="font-mono text-sm text-muted">{{ row.original.sha256.slice(0, 12) }}</span>
+      </template>
+
+      <template #source-cell="{ row, held }">
+        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-60']">
+          <span class="truncate text-sm text-toned">{{ sourceText($t, row.original.source) }}</span>
+        </span>
+      </template>
+
+      <template #engine-cell="{ row }">
+        <span :class="CELL_TEXT" class="text-sm">
+          <SearchText class="whitespace-nowrap font-mono text-toned" :text="row.original.engine ?? '—'" :query="props.query" />
+          <SearchText class="whitespace-nowrap font-mono text-muted" :text="row.original.registration ?? '—'" :query="props.query" />
+        </span>
+      </template>
+
+      <template #nodes-cell="{ row }">
+        <span :class="CELL_TEXT">
+          <span v-if="row.original.nodes.length > 0" class="flex flex-wrap gap-1">
+            <UBadge v-for="node in row.original.nodes" :key="node" color="neutral" variant="subtle" size="sm" class="font-mono">{{ node }}</UBadge>
           </span>
+          <span v-else class="text-sm text-muted">—</span>
+        </span>
+      </template>
 
-          <UDropdownMenu :items="menuOf(one)" :content="{ align: 'end' }">
-            <UTooltip :text="$t('common.aria.menu_of', { name: one.label })">
-              <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: one.label })" />
+      <template #defaults-cell="{ row }">
+        <span :class="CELL_TEXT" class="text-sm">
+          <span v-for="pair in defaultsPairs($t, row.original)" :key="pair.name" class="flex items-center gap-2 whitespace-nowrap">
+            <span class="text-muted">{{ pair.name }}</span>
+            <span class="tabular-nums text-highlighted">{{ pair.value }}</span>
+          </span>
+        </span>
+      </template>
+
+      <template #note-cell="{ row, held }">
+        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-60']">
+          <span class="truncate text-sm text-muted">{{ row.original.note ?? "—" }}</span>
+        </span>
+      </template>
+
+      <template #actions-cell="{ row }">
+        <span class="flex min-h-12 items-center justify-end pe-2">
+          <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
+            <UTooltip :text="$t('common.aria.menu_of', { name: row.original.label })">
+              <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: row.original.label })" />
             </UTooltip>
           </UDropdownMenu>
-        </li>
+        </span>
+      </template>
+    </DataTable>
 
-        <li v-if="catalogue.entries.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_catalogue") }}</li>
-      </ul>
-    </template>
-
-    <p v-if="actionFailed !== ''" role="alert" class="break-words text-sm text-error">{{ actionFailed }}</p>
+    <p v-if="actionFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ actionFailed }}</p>
 
     <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.catalogue_add') : form.label || form.name" :description="adding ? undefined : form.name" :dirty="formDirty">
       <form id="catalogue-form" class="flex flex-col gap-4" @submit.prevent="save">
@@ -102,7 +142,7 @@
 
         <div class="grid gap-4 sm:grid-cols-3">
           <UFormField :label="$t('agents.label.thinking')" name="thinking" :error="errorAt('thinking')">
-            <USelect v-model="form.thinking" :items="thinkingItems" value-key="value" class="w-full" :aria-label="$t('agents.label.thinking')" />
+            <USelect :model-value="form.thinking === '' ? undefined : form.thinking" :items="thinkingItems" value-key="value" class="w-full" :aria-label="$t('agents.label.thinking')" @update:model-value="(value: string) => (form.thinking = value === 'on' ? 'on' : 'off')" />
           </UFormField>
           <UFormField v-for="one in GENERATION_FIELDS" :key="one.field" :label="one.label" :name="one.field" :error="errorAt(one.field)">
             <NumberInput
@@ -113,7 +153,6 @@
               :digits="one.field === 'maxTokens' ? 9 : 4"
               :format-options="{ useGrouping: true, maximumFractionDigits: one.field === 'maxTokens' ? 0 : 2 }"
               locale="en-US"
-              :placeholder="$t('common.label.default_choice')"
               :aria-label="one.label"
             />
           </UFormField>
@@ -135,23 +174,39 @@
 </template>
 
 <script setup lang="ts">
-import { settingsAnchor } from "~/domain/agent-settings";
-import { GENERAL_SECTIONS, generalSectionTitle } from "~/domain/agents";
-import { anyRunning, catalogueForm, catalogueRefusalPlace, catalogueSave, defaultsText, emptyCatalogueForm, GENERATION_FIELDS, sizeText, sourceText, useText } from "~/domain/catalogue-models";
+import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
+
+import { settingsAnchor } from "~/domain/agent-settings";
+import { anyRunning, catalogueForm, catalogueRefusalPlace, catalogueSave, defaultsPairs, emptyCatalogueForm, GENERATION_FIELDS, sizeText, sourceText, useText } from "~/domain/catalogue-models";
 import { useConfirm } from "~/domain/confirm";
+import { useReadFailure } from "~/domain/events";
+import { CELL_TEXT } from "~/domain/settings-cells";
 
 import type { CatalogueEntryView, CatalogueView } from "#shared/agency";
-import type { DropdownMenuItem } from "@nuxt/ui";
+import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 import type { CatalogueForm } from "~/domain/catalogue-models";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
 const askFirst = useConfirm();
-const CATALOGUE_WAITING = GENERAL_SECTIONS.find((one) => one.id === "catalogue")?.waiting ?? 1;
 const WHOLE_NUMBER = { step: 1, formatOptions: { useGrouping: true, maximumFractionDigits: 0 }, locale: "en-US" } as const;
 
 const { data: catalogue, refresh, status } = useFetch<CatalogueView>("/api/model-catalogue", { key: "model-catalogue", lazy: true, server: false });
+const readFailure = useReadFailure({ failed: () => status.value === "error" && catalogue.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
+
+const columns = computed<TableColumn<CatalogueEntryView>[]>(() => [
+  { id: "entry", header: t("agents.label.column_model_file"), meta: { class: { th: "w-full" } } },
+  { id: "file", header: t("agents.label.model_file") },
+  { id: "size", header: t("agents.label.column_size") },
+  { id: "sha", header: "SHA-256" },
+  { id: "source", header: t("agents.label.model_source") },
+  { id: "engine", header: t("agents.label.engine") },
+  { id: "nodes", header: t("agents.label.column_nodes") },
+  { id: "defaults", header: t("agents.label.column_model_defaults") },
+  { id: "note", header: t("agents.label.note") },
+  { id: "actions", header: "" }
+]);
 
 // While a choice runs its progress is read again every few seconds; nothing is read once all have ended.
 const POLL_MS = 3_000;
@@ -170,7 +225,6 @@ onBeforeUnmount(() => {
 });
 
 const thinkingItems = computed(() => [
-  { label: t("common.label.default_choice"), value: "default" },
   { label: t("agents.label.think_on"), value: "on" },
   { label: t("agents.label.think_off"), value: "off" }
 ]);

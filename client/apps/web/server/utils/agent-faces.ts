@@ -1,4 +1,4 @@
-import { agency, agencyCall, carriedOf } from "./agency";
+import { agency, agencyCall } from "./agency";
 import { ownerChat } from "./owner";
 import { receiver, receiverCall } from "./receiver";
 
@@ -27,13 +27,13 @@ async function ownNumber(roomId: number, agentName: string): Promise<number | nu
 }
 
 async function readFaces(): Promise<AgentFace[]> {
-  const [agents, rooms, owner] = await Promise.all([
-    agencyCall(agency().GET("/agents")).then((answer) => answer.items).catch(() => []),
+  const [supervisors, rooms, owner] = await Promise.all([
+    agencyCall(agency().GET("/supervisors")).then((answer) => answer.items).catch(() => []),
     receiverCall(receiver().GET("/rooms")).then((answer) => answer.items).catch(() => []),
     ownerChat()
   ]);
-  // The chat agents a person designates: a row of the chat kind holding a role (docs/web.md, 「Sidebar」).
-  const chats = agents.filter((agent) => carriedOf(agent).kind === "chat" && agent.role !== "").map((agent) => agent.name);
+  // The chat agents are the supervisors, the chat agent and every companion alike (docs/web.md, 「Sidebar」).
+  const chats = supervisors.map((supervisor) => supervisor.name);
   const faces = await Promise.all(
     chats.map(async (name): Promise<AgentFace | null> => {
       const companionOf = rooms.filter((room) => room.companions.includes(name)).map((room) => room.id);

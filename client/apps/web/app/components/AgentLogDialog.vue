@@ -59,7 +59,7 @@ import { UDrawer, UModal } from "#components";
 import { agentMetaOf, catalogueAgents, roomTitle } from "~/domain/agents";
 import { usePolling } from "~/domain/polling";
 import { useNarrow } from "bmo-ui/app/domain/screen";
-import { agentLink, unitLink } from "~/domain/status";
+import { agentLink, momentLink, unitLink } from "~/domain/status";
 import { watchTitle } from "~/domain/watches";
 
 import type { RoomSummary, WatchView } from "#shared/types";
@@ -96,7 +96,7 @@ const placeKey = computed(() => JSON.stringify(props.place));
 // The run the dialog was opened at, whose job the view speaks of.
 const placeRun = computed<string | null>(() => (props.place !== null && "run" in props.place ? props.place.run : null));
 // A worker's view carries its job and its stages; any other agent's is its log.
-const isWorker = computed(() => catalogueAgents().find((agent) => agent.name === props.name)?.kind === "worker");
+const isWorker = computed(() => catalogueAgents().find((agent) => agent.name === props.name)?.kind === "repository");
 
 const emit = defineEmits<{ "update:open": [open: boolean] }>();
 
@@ -127,6 +127,13 @@ function goToPage(): void {
   emit("update:open", false);
   // The page stands the same log: the run the dialog was opened at, and its end where the dialog opened there.
   const run = placeRun.value;
+  const place = props.place;
+
+  if (run === null && place !== null && "at" in place) {
+    void router.push(momentLink(props.name, place.at));
+
+    return;
+  }
 
   void router.push(run === null ? agentLink(props.name) : `${unitLink(props.name, run)}${props.end ? "&end=1" : ""}`);
 }

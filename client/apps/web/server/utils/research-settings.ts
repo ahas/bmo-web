@@ -1,12 +1,12 @@
-import { agencyRoute } from "./agency";
+import { readRoles } from "./axes";
 import { researchFetch } from "./research";
 
 import type { ResearchKeySettings, ResearchSettingsChange, ResearchSettingsView, SearchEngineState } from "#shared/research";
 
 // The settings every research run is held to and the search engines' state (bmo-research's `docs/api.md`,
-// 「research-settings」; docs/web.md, the searcher tab), with the co-worker roles a search's branches may go out on
-// beside them, read off the agency's pool. The research unit publishes no TypeScript client, so it is called by its
-// documented paths, at the address and with the token `RESEARCH_ADDRESS` and `RESEARCH_TOKEN` name.
+// 「research-settings」; docs/web.md, 「Research screen」, its settings tab), with the roles a search's branches may go
+// out as beside them: those the agency's `GET /roles` lists as callable. The research unit publishes no TypeScript
+// client, so it is called by its documented paths, at the address and with the token `RESEARCH_ADDRESS` and `RESEARCH_TOKEN` name.
 
 // The research unit's codes, each with the pack's key for its sentence: a value it did not take, or a failure on
 // its side.
@@ -35,11 +35,7 @@ interface UnitResearchSettings {
   enginesUnread: string | null;
 }
 
-interface AgencyRoles {
-  items: { name: string }[];
-}
-
-function viewOf(settings: UnitResearchSettings, roles: readonly string[]): ResearchSettingsView {
+function viewOf(settings: UnitResearchSettings, roles: ResearchSettingsView["roles"]): ResearchSettingsView {
   return {
     branchRole: settings.branchRole,
     strategy: settings.strategy,
@@ -53,10 +49,12 @@ function viewOf(settings: UnitResearchSettings, roles: readonly string[]): Resea
   };
 }
 
-async function coworkerRoles(): Promise<string[]> {
-  const answer = await agencyRoute<AgencyRoles>("GET", "/roles").catch(() => ({ items: [] }));
+// The roles a run may call, each named as the role tab names it; none while the agency does not answer, the role the
+// settings hold still standing as its own choice on the screen.
+async function callableRoles(): Promise<ResearchSettingsView["roles"]> {
+  const answer = await readRoles().catch(() => null);
 
-  return answer.items.map((role) => role.name);
+  return (answer?.roles ?? []).filter((role) => role.callable).map((role) => ({ name: role.name, label: role.shown }));
 }
 
 // A call on the research unit, its refusals said in the pack's words.
@@ -65,7 +63,7 @@ async function research<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export async function readResearchSettings(): Promise<ResearchSettingsView> {
-  const [settings, roles] = await Promise.all([research<UnitResearchSettings>("/research-settings"), coworkerRoles()]);
+  const [settings, roles] = await Promise.all([research<UnitResearchSettings>("/research-settings"), callableRoles()]);
 
   return viewOf(settings, roles);
 }
@@ -74,7 +72,7 @@ export async function readResearchSettings(): Promise<ResearchSettingsView> {
 // them, so a gap sent as null alone goes back to the web tools' default.
 export async function changeResearchSettings(change: ResearchSettingsChange): Promise<ResearchSettingsView> {
   const init = { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(change) };
-  const [settings, roles] = await Promise.all([research<UnitResearchSettings>("/research-settings", init), coworkerRoles()]);
+  const [settings, roles] = await Promise.all([research<UnitResearchSettings>("/research-settings", init), callableRoles()]);
 
   return viewOf(settings, roles);
 }

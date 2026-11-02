@@ -959,16 +959,15 @@ const emit = defineEmits<{
 
 const { opened, busy, failure, notice, noticeTodo, board, questions, now, rooms, act, reload, fetchStray } = props.panel;
 
-// The workers this machine has, out of the one catalogue read every screen shares: the list is
-// the archive's, so this dialog holds none of its own and a worker the owner adds stands here
-// without a change.
+// The repositories an item may go to, out of the one catalogue read every screen shares: the list is the agency's, so
+// this dialog holds none of its own and a repository the owner adds stands here without a change.
 const { agents } = useAgentCatalogue();
 
 // What the select stands on for a row nobody has assigned. A select cannot carry an empty string
 // as a value, so the unassigned state has a name of its own here and is written back as null.
 const UNASSIGNED = "-";
 
-const workers = computed(() => agents.value.agents.filter((agent) => agent.kind === "worker"));
+const workers = computed(() => agents.value.agents.filter((agent) => agent.kind === "repository"));
 
 const workerOptions = computed(() => [
   { label: t("todo.label.unassigned_builtin"), value: UNASSIGNED },
@@ -978,7 +977,7 @@ const workerOptions = computed(() => [
 // What the line beside the select says: where the work will actually be done, which is the one
 // thing the name alone does not tell him.
 function workerNote(item: TodoItem): string {
-  return workers.value.find((agent) => agent.name === item.worker)?.cwd ?? "";
+  return workers.value.find((agent) => agent.name === item.worker)?.path ?? "";
 }
 
 

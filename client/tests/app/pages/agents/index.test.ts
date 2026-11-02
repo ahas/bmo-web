@@ -30,6 +30,8 @@ const table = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/
 const choice = await read("../../components/SettingsChoiceCell.vue");
 const popover = await read("../../components/SettingsPopoverCell.vue");
 const input = await read("../../components/SettingsInputCell.vue");
+const generation = await read("../../components/GenerationFields.vue");
+const cells = await Bun.file(new URL("../../../../apps/web/app/domain/settings-cells.ts", import.meta.url)).text();
 
 const sections = [supervisors, roles, repositories, registry, catalogue];
 
@@ -74,11 +76,26 @@ describe("every table of the screen", () => {
       expect(templateOf(source)).toContain("data-settings-table");
       expect(templateOf(source)).not.toContain("<UTable");
     }
-    expect(css).toContain("[data-settings-table] table.table-fixed {\n  min-width: 0;\n}");
+    expect(css).toContain("[data-settings-table] table.table-fixed {\n  width: 100%;\n  min-width: max-content;\n}");
+  });
+
+  test("draws every cell as one box filling its cell top to bottom, so a hover never stands shorter than the row", () => {
+    expect(cells).toContain('CELL_BUTTON =\n  "relative flex h-full min-h-12 w-full');
+    expect(cells).toContain('CELL_TEXT = "flex h-full min-h-12');
+    for (const source of sections) expect(templateOf(source)).toContain('class="flex h-full min-h-12 items-center justify-end pe-2"');
+  });
+
+  test("gives a tab of one table the tab's whole height, its head stuck to the top", () => {
+    for (const source of [roles, repositories, registry, catalogue]) expect(templateOf(source)).toContain('data-settings-table layout="fill"');
+    expect(templateOf(supervisors)).not.toContain('layout="fill"');
   });
 
   test("gives the title column what is left and every other column its content's width, a long text under a ceiling it gives up once held", () => {
     for (const source of sections) expect(scriptOf(source)).toContain('meta: { class: { th: "w-full" } }');
+    // The title column alone is flexible: a floor of its own in either layout, and a held width set aside once a drag
+    // holds the others, the table spanning its box.
+    expect(css).toContain("[data-settings-table] thead th.w-full::before {");
+    expect(css).toContain("[data-settings-table] table.table-fixed > thead > tr > th.w-full {\n  width: auto !important;\n}");
     expect(templateOf(supervisors)).toContain("held ? 'w-full' : 'w-max max-w-72'");
     expect(templateOf(repositories)).toContain("held ? 'w-full' : 'w-max max-w-80'");
   });
@@ -113,10 +130,22 @@ describe("a provider order", () => {
 
   test("marks the agency's quota share as the default, and offers no default entry anywhere", () => {
     expect(templateOf(orderField)).toContain("percentOf(share) === percentOf(DEFAULT_QUOTA_SHARE)");
-    for (const source of [orderField, orderCell, ...sections, roleDialog, repositoryDialog]) {
+    for (const source of [orderField, orderCell, ...sections, roleDialog, repositoryDialog, generation]) {
       expect(source).not.toContain("default_choice");
       expect(source).not.toContain('value: "default"');
+      // A field whose value the service names none of stands empty, with no word in place of a value.
+      expect(source).not.toContain("service_default");
     }
+  });
+
+  test("stands in its cell as one line, the first provider and how many stand behind it", () => {
+    expect(templateOf(orderCell)).toContain("entryText(providers, first)");
+    expect(templateOf(orderCell)).toContain('$t("agents.label.order_more", { n: countText(rest) })');
+    expect(templateOf(orderCell)).not.toContain('v-for="(entry, index) in props.order"');
+  });
+
+  test("labels each of an entry's fields", () => {
+    for (const label of ["common.label.model", "agents.label.effort", "agents.label.thinking", "agents.label.answer_ceiling"]) expect(templateOf(orderField)).toContain(label);
   });
 
   test("opens from its cell in a form of its own with one save", () => {
@@ -132,6 +161,14 @@ describe("the supervisors tab", () => {
     expect(templateOf(supervisors)).toContain("#threshold-cell");
     expect(scriptOf(supervisors)).toContain("`/api/supervisors/${encodeURIComponent(name)}`, { method: \"PATCH\", body }");
     expect(scriptOf(supervisors)).toContain("warming: { ...supervisor.warming, [provider]: on }");
+    // The warming cell is one line of the providers kept warm, its switches in the cell's dropdown.
+    expect(templateOf(supervisors)).toContain("warmedOf(row.original).join(\" · \")");
+    expect(templateOf(supervisors)).toMatch(/#warming-cell[\s\S]*<SettingsPopoverCell[\s\S]*<USwitch/);
+  });
+
+  test("keeps a row's settings and its removal in its more-menu", () => {
+    expect(scriptOf(supervisors)).toContain("const settings: DropdownMenuItem = { label: t(\"agents.action.settings\")");
+    expect(templateOf(supervisors)).not.toContain("data-supervisor-settings");
   });
 
   test("removes a supervisor the console added, asked first, holds a seeded one's removal disabled with why, and the draft process under its table", () => {

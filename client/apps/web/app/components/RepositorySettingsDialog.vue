@@ -3,7 +3,7 @@
        docs/repositories.md): one form with one save at its foot holding every field of a repository. The
        repositories tab and the repository's own screen open this one dialog; with no name it adds a repository. Its
        name is what its checkouts and its jobs are kept under, so it never moves once made. -->
-  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.repository_add') : (held?.label ?? props.name ?? '')" :description="adding ? undefined : (props.name ?? undefined)" :dirty="dirty">
+  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.repository_add') : (held?.label ?? props.name ?? '')" :description="adding || held?.label === props.name ? undefined : (props.name ?? undefined)" :dirty="dirty">
     <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.repositories_read_failed") }}</p>
     <ContentSkeleton v-else-if="!adding && held === null" :rows="3" :label="$t('agents.status.repositories_loading')">
       <div class="flex flex-col gap-2">
@@ -48,7 +48,7 @@
           <ul v-if="form.nodeCheckouts.length > 0" class="flex flex-col gap-1">
             <li v-for="checkout in form.nodeCheckouts" :key="checkout.nodeName" data-node-checkout class="flex min-w-0 items-center gap-2 text-sm">
               <span class="w-28 shrink-0 truncate text-toned sm:w-36">{{ nodeLabel(checkout.nodeName) }}</span>
-              <span class="min-w-0 flex-1 truncate font-mono" :class="checkout.path === '' ? 'text-muted' : ''">{{ checkout.path === "" ? $t("agents.placeholder.service_default") : checkout.path }}</span>
+              <span class="min-w-0 flex-1 truncate font-mono" :class="checkout.path === '' ? 'text-muted' : ''">{{ checkout.path === "" ? "—" : checkout.path }}</span>
               <UTooltip :text="$t('agents.aria.node_checkout_remove', { node: nodeLabel(checkout.nodeName) })">
                 <UButton icon="i-material-symbols-close" color="neutral" variant="ghost" :disabled="busy" :aria-label="$t('agents.aria.node_checkout_remove', { node: nodeLabel(checkout.nodeName) })" @click="dropNodeCheckout(checkout.nodeName)" />
               </UTooltip>
@@ -68,7 +68,6 @@
               <UInput
                 v-model="addingCheckout.path"
                 class="min-w-0 flex-1 font-mono"
-                :placeholder="$t('agents.placeholder.service_default')"
                 :disabled="busy"
                 :aria-label="$t('agents.aria.node_checkout_path')"
                 @keydown.enter.prevent="addNodeCheckout"

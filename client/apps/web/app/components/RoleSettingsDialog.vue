@@ -2,7 +2,7 @@
   <!-- A role's dialog (docs/web.md, 「Agent management screen」, the roles tab; the agency's docs/agent-roles.md): one
        form with one save at its foot holding every field of a role, and, for a role that stands, its session history
        under the form. The roles tab and the role's own screen open this one dialog; with no name it adds a role. -->
-  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.role_add') : (role?.shown ?? props.name ?? '')" :description="adding ? undefined : (props.name ?? undefined)" :dirty="dirty">
+  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.role_add') : (role?.shown ?? props.name ?? '')" :description="adding || role?.shown === props.name ? undefined : (props.name ?? undefined)" :dirty="dirty">
     <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.roles_read_failed") }}</p>
     <ContentSkeleton v-else-if="!adding && role === null" :rows="3" :label="$t('agents.status.roles_loading')">
       <div class="flex flex-col gap-2">
@@ -48,12 +48,13 @@
           <ProviderOrderField v-model="form.order" v-model:share="form.quotaShare" :line="form.line" :refusal="orderRefusal" :disabled="busy" />
         </UFormField>
 
-        <div class="grid gap-4 sm:grid-cols-3">
+        <!-- Short fields side by side, each as wide as the values it takes. -->
+        <div class="flex flex-wrap items-start gap-4">
           <UFormField :label="$t('agents.label.column_max_concurrent')" name="maxConcurrent" :error="errorAt('maxConcurrent')">
             <NumberInput v-model="form.maxConcurrent" :min="0" :step="1" :digits="3" :disabled="busy" :aria-label="$t('agents.label.column_max_concurrent')" />
           </UFormField>
           <UFormField :label="$t('agents.label.column_sessions')" name="sessions" :error="errorAt('sessions')">
-            <USelect v-model="form.sessions" :items="sessionItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.column_sessions')" />
+            <USelect v-model="form.sessions" :items="sessionItems" value-key="value" class="w-40" :disabled="busy" :aria-label="$t('agents.label.column_sessions')" />
           </UFormField>
           <UFormField :label="$t('agents.label.column_threshold')" name="foldRatio" :error="errorAt('foldRatio')">
             <NumberInput

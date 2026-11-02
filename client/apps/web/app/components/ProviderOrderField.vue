@@ -1,9 +1,9 @@
 <template>
   <!-- A provider order as one field of a form (docs/web.md, 「Agent management screen」; the agency's
-       docs/provider-order.md, 「What an order is」): one line per entry, carried by its handle or moved by its
-       arrows, each naming its provider, its model, its effort, its thinking and, on the registry's provider, its
-       answer ceiling; the providers it does not hold yet are added under them, and its quota share stands last. Every
-       change waits for the form's one save. An order is never empty, so its last entry has no remove. -->
+       docs/provider-order.md, 「What an order is」): one block per entry, carried by its handle or moved by its
+       arrows, each naming its provider over its fields, each field under its own label — its model, its effort, its
+       thinking and, on the registry's provider, its answer ceiling; the providers it does not hold yet are added
+       under them, and its quota share stands last. Every change waits for the form's one save. An order is never empty, so its last entry has no remove. -->
   <div class="flex min-w-0 flex-col gap-4">
     <ol ref="list" class="flex min-w-0 flex-col divide-y divide-default rounded-lg border border-default" :aria-label="$t('agents.label.order')">
       <li
@@ -36,47 +36,55 @@
           </UTooltip>
         </div>
 
-        <div class="grid min-w-0 gap-2 ps-12 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
-          <USelect
-            :model-value="entry.model === '' ? undefined : entry.model"
-            :items="modelItems(entry)"
-            value-key="value"
-            class="w-full min-w-0"
-            :loading="modelsOf(entry.provider).reading"
-            :disabled="props.disabled"
-            :aria-label="$t('agents.aria.order_model_of', { name: providerWord(providers, entry.provider) })"
-            @update:model-value="(value: string) => change(index, { model: value, effort: keptEffort(entry, value) })"
-          />
-          <USelect
-            v-if="effortItems(entry).length > 0"
-            :model-value="entry.effort ?? undefined"
-            :items="effortItems(entry)"
-            value-key="value"
-            class="w-full sm:w-28"
-            :disabled="props.disabled"
-            :aria-label="$t('agents.aria.order_effort_of', { name: providerWord(providers, entry.provider) })"
-            @update:model-value="(value: string) => change(index, { effort: value })"
-          />
-          <USelect
-            :model-value="thinkingShown(entry)"
-            :items="thinkingItems(entry)"
-            value-key="value"
-            class="w-full sm:w-32"
-            :disabled="props.disabled"
-            :aria-label="$t('agents.aria.order_thinking_of', { name: providerWord(providers, entry.provider) })"
-            @update:model-value="(value: string) => change(index, { thinking: thinkingKept(entry, value) })"
-          />
-          <NumberInput
-            v-if="registeredProvider(entry.provider)"
-            :model-value="entry.answerTokens ?? undefined"
-            :min="1"
-            :step="1024"
-            :digits="13"
-            :placeholder="ceilingPlaceholder(entry)"
-            :aria-label="$t('agents.aria.order_ceiling_of', { name: providerWord(providers, entry.provider) })"
-            :disabled="props.disabled"
-            @update:model-value="(value: number | null | undefined) => change(index, { answerTokens: value ?? null })"
-          />
+        <!-- The entry's fields, each under its own label: the model takes what is left, every other field its own
+             width, side by side from the small breakpoint up. -->
+        <div class="flex min-w-0 flex-col gap-2 ps-12 sm:flex-row sm:items-start">
+          <UFormField :label="$t('common.label.model')" :name="`order-${index}-model`" class="min-w-0 sm:flex-1">
+            <USelect
+              :model-value="entry.model === '' ? undefined : entry.model"
+              :items="modelItems(entry)"
+              value-key="value"
+              class="w-full min-w-0"
+              :loading="modelsOf(entry.provider).reading"
+              :disabled="props.disabled"
+              :aria-label="$t('agents.aria.order_model_of', { name: providerWord(providers, entry.provider) })"
+              @update:model-value="(value: string) => change(index, { model: value, effort: keptEffort(entry, value) })"
+            />
+          </UFormField>
+          <UFormField v-if="effortItems(entry).length > 0" :label="$t('agents.label.effort')" :name="`order-${index}-effort`" class="sm:w-28 sm:shrink-0">
+            <USelect
+              :model-value="entry.effort ?? undefined"
+              :items="effortItems(entry)"
+              value-key="value"
+              class="w-full"
+              :disabled="props.disabled"
+              :aria-label="$t('agents.aria.order_effort_of', { name: providerWord(providers, entry.provider) })"
+              @update:model-value="(value: string) => change(index, { effort: value })"
+            />
+          </UFormField>
+          <UFormField :label="$t('agents.label.thinking')" :name="`order-${index}-thinking`" class="sm:w-32 sm:shrink-0">
+            <USelect
+              :model-value="thinkingShown(entry)"
+              :items="thinkingItems(entry)"
+              value-key="value"
+              class="w-full"
+              :disabled="props.disabled"
+              :aria-label="$t('agents.aria.order_thinking_of', { name: providerWord(providers, entry.provider) })"
+              @update:model-value="(value: string) => change(index, { thinking: thinkingKept(entry, value) })"
+            />
+          </UFormField>
+          <UFormField v-if="registeredProvider(entry.provider)" :label="$t('agents.label.answer_ceiling')" :name="`order-${index}-ceiling`" class="sm:shrink-0">
+            <NumberInput
+              :model-value="entry.answerTokens ?? undefined"
+              :min="1"
+              :step="1024"
+              :digits="13"
+              :placeholder="ceilingPlaceholder(entry)"
+              :aria-label="$t('agents.aria.order_ceiling_of', { name: providerWord(providers, entry.provider) })"
+              :disabled="props.disabled"
+              @update:model-value="(value: number | null | undefined) => change(index, { answerTokens: value ?? null })"
+            />
+          </UFormField>
         </div>
 
         <p v-if="staleText(entry) !== ''" class="ps-12 text-sm text-muted">{{ staleText(entry) }}</p>

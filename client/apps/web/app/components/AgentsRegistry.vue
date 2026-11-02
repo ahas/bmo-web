@@ -2,8 +2,8 @@
   <!-- The registered models (docs/web.md, 「Agent management screen」, the registered models tab; the agency's
        docs/api.md, 「providers, models and model files」): one row each, its name with a mark saying whether its engine
        answers, the model behind it, what names it and its card service. A row's more-menu changes or removes it. -->
-  <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.tab_models')">
-    <DataTableSkeleton v-if="models === undefined && !error" :headers="tableHeaders(columns)" :rows="3" :label="$t('agents.status.registry_loading')" />
+  <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('agents.label.tab_models')">
+    <DataTableSkeleton v-if="models === undefined && !error" layout="fill" :headers="tableHeaders(columns)" :rows="3" :label="$t('agents.status.registry_loading')" />
     <ReadFailure
       v-else-if="error && models === undefined"
       class="mx-4 my-4 w-auto"
@@ -14,7 +14,7 @@
     />
     <p v-else-if="models !== undefined && rows.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_registrations") }}</p>
 
-    <DataTable v-if="models !== undefined && rows.length > 0" data-settings-table :data="rows" :columns="columns" :row-key="(row: RegistryRow) => row.name">
+    <DataTable v-if="models !== undefined && rows.length > 0" data-settings-table layout="fill" :data="rows" :columns="columns" :row-key="(row: RegistryRow) => row.name">
       <template #name-cell="{ row }">
         <span :id="settingsAnchor(`registry-${row.original.name}`)" :class="CELL_TEXT" class="ps-4" :data-registration="row.original.name">
           <span class="flex min-w-0 items-center gap-2">
@@ -36,7 +36,12 @@
       <template #usedBy-cell="{ row, held }">
         <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-72']" class="text-sm">
           <span v-if="row.original.usedBy.length === 0" class="text-muted">—</span>
-          <SearchText v-for="one in row.original.usedBy" :key="one" class="truncate text-toned" :text="one" :query="props.query" />
+          <span v-else class="truncate text-toned">
+            <template v-for="(one, at) in row.original.usedBy" :key="one">
+              <span v-if="at > 0" class="text-muted"> · </span>
+              <SearchText :text="one" :query="props.query" />
+            </template>
+          </span>
         </span>
       </template>
 
@@ -47,7 +52,7 @@
       </template>
 
       <template #actions-cell="{ row }">
-        <span class="flex min-h-12 items-center justify-end pe-2">
+        <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: row.original.name })">
               <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: row.original.name })" />

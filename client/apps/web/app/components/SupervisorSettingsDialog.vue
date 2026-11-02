@@ -4,7 +4,7 @@
        the one whose turns its window makes the texts its system prompt is composed of. The supervisors tab, the
        supervisor's own screen and a room's model settings all open this one dialog. A save sends the supervisor's change and
        then the rest; a refusal keeps every field as written with the reason under the one it names. -->
-  <SettingsDialog v-model:open="open" wide :title="supervisor?.label ?? props.name" :description="props.name" :dirty="form.dirty.value">
+  <SettingsDialog v-model:open="open" wide :title="supervisor?.label ?? props.name" :description="supervisor === null || supervisor.label === props.name ? undefined : props.name" :dirty="form.dirty.value">
     <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.supervisors_read_failed") }}</p>
     <ContentSkeleton v-else-if="supervisor === null" :rows="3" :label="$t('agents.status.supervisors_loading')">
       <div class="flex flex-col gap-2">

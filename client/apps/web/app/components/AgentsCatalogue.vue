@@ -2,7 +2,7 @@
   <!-- The model files the deployment's own engines serve (docs/web.md, 「Agent management screen」, the model files tab;
        the agency's docs/model-catalogue.md): above the table the latest choice of one for each engine, read again every
        few seconds while one runs; under it one row for each entry. -->
-  <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.tab_model_files')">
+  <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('agents.label.tab_model_files')">
     <ul v-if="catalogue !== undefined && catalogue.uses.length > 0" class="flex flex-col gap-2 px-4 py-3" :aria-label="$t('agents.title.catalogue_uses')">
       <li v-for="use in catalogue.uses" :key="use.id" :data-use="use.engine" class="flex flex-col gap-1 text-sm">
         <span class="flex min-w-0 items-center gap-2">
@@ -17,7 +17,7 @@
       </li>
     </ul>
 
-    <DataTableSkeleton v-if="catalogue === undefined && status !== 'error'" :headers="tableHeaders(columns)" :rows="3" :label="$t('agents.status.catalogue_loading')" />
+    <DataTableSkeleton v-if="catalogue === undefined && status !== 'error'" layout="fill" :headers="tableHeaders(columns)" :rows="3" :label="$t('agents.status.catalogue_loading')" />
     <ReadFailure
       v-else-if="status === 'error' && catalogue === undefined"
       class="mx-4 my-4 w-auto"
@@ -28,7 +28,7 @@
     />
     <p v-else-if="catalogue !== undefined && catalogue.entries.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_catalogue") }}</p>
 
-    <DataTable v-if="catalogue !== undefined && catalogue.entries.length > 0" data-settings-table :data="catalogue.entries" :columns="columns" :row-key="(row: CatalogueEntryView) => row.name">
+    <DataTable v-if="catalogue !== undefined && catalogue.entries.length > 0" data-settings-table layout="fill" :data="catalogue.entries" :columns="columns" :row-key="(row: CatalogueEntryView) => row.name">
       <template #entry-cell="{ row }">
         <span :id="settingsAnchor(`catalogue-${row.original.name}`)" :class="CELL_TEXT" class="ps-4" :data-entry="row.original.name">
           <span class="flex min-w-0 items-center gap-2">
@@ -75,11 +75,15 @@
         </span>
       </template>
 
-      <template #defaults-cell="{ row }">
-        <span :class="CELL_TEXT" class="text-sm">
-          <span v-for="pair in defaultsPairs($t, row.original)" :key="pair.name" class="flex items-center gap-2 whitespace-nowrap">
-            <span class="text-muted">{{ pair.name }}</span>
-            <span class="tabular-nums text-highlighted">{{ pair.value }}</span>
+      <!-- Its defaults on one line, each a name and its value, cut at the column's ceiling. -->
+      <template #defaults-cell="{ row, held }">
+        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-80']" class="text-sm">
+          <span class="truncate">
+            <template v-for="(pair, at) in defaultsPairs($t, row.original)" :key="pair.name">
+              <span v-if="at > 0" class="text-muted"> · </span>
+              <span class="text-muted">{{ pair.name }} </span>
+              <span class="tabular-nums text-highlighted">{{ pair.value }}</span>
+            </template>
           </span>
         </span>
       </template>
@@ -91,7 +95,7 @@
       </template>
 
       <template #actions-cell="{ row }">
-        <span class="flex min-h-12 items-center justify-end pe-2">
+        <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: row.original.label })">
               <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :aria-label="$t('common.aria.menu_of', { name: row.original.label })" />
@@ -103,7 +107,7 @@
 
     <p v-if="actionFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ actionFailed }}</p>
 
-    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.catalogue_add') : form.label || form.name" :description="adding ? undefined : form.name" :dirty="formDirty">
+    <SettingsDialog v-model:open="editing" :title="adding ? $t('agents.title.catalogue_add') : form.label || form.name" :description="adding || form.label === '' || form.label === form.name ? undefined : form.name" :dirty="formDirty">
       <form id="catalogue-form" class="flex flex-col gap-4" @submit.prevent="save">
         <div class="grid gap-4 sm:grid-cols-2">
           <UFormField :label="$t('common.label.name')" name="name" :error="errorAt('name')">

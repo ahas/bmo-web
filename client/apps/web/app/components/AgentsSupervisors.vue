@@ -42,32 +42,40 @@
         />
       </template>
 
-      <template #now-cell="{ row }">
-        <span :class="CELL_TEXT" class="text-sm">
+      <template #now-cell="{ row, held }">
+        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-64']" class="text-sm">
           <span v-if="row.original.provider === null" class="text-muted">—</span>
-          <span v-else class="whitespace-nowrap text-highlighted">{{ nowText(row.original) }}</span>
+          <span v-else class="truncate text-highlighted">{{ nowText(row.original) }}</span>
           <HintTip v-if="row.original.waitingFor !== null" :text="row.original.waitingFor" class="min-w-0">
             <span class="text-warning">{{ $t("agents.status.waiting_for_quota") }}</span>
           </HintTip>
         </span>
       </template>
 
-      <template #warming-cell="{ row }">
-        <span :class="CELL_TEXT" class="gap-1">
-          <span v-for="entry in row.original.order" :key="entry.provider" class="flex items-center justify-between gap-3 text-sm">
-            <span class="whitespace-nowrap text-toned">{{ providerWord(providers, entry.provider) }}</span>
-            <HintTip :text="warmingBlock(entry.provider) ?? undefined" :disabled="warmingBlock(entry.provider) === null">
-              <USwitch
-                :model-value="row.original.warming[entry.provider] === true"
-                size="sm"
-                :loading="warmingBusy === `${row.original.name}:${entry.provider}`"
-                :disabled="warmingBusy !== '' || warmingBlock(entry.provider) !== null"
-                :aria-label="$t('agents.aria.warming_of', { name: row.original.label, provider: providerWord(providers, entry.provider) })"
-                @update:model-value="(on: boolean) => void switchWarming(row.original, entry.provider, on)"
-              />
-            </HintTip>
-          </span>
-        </span>
+      <!-- The providers its prefix is kept warm on, on one line; pressed, one switch per provider of its order, each
+           taking effect as it is thrown. -->
+      <template #warming-cell="{ row, held }">
+        <SettingsPopoverCell :label="$t('agents.aria.warming_cell_of', { name: row.original.label })" :busy="warmingBusy.startsWith(`${row.original.name}:`)">
+          <span v-if="warmedOf(row.original).length === 0" class="whitespace-nowrap text-sm text-muted">{{ $t("agents.label.switch_off") }}</span>
+          <span v-else class="max-w-full text-sm text-highlighted" :class="held ? 'truncate' : 'whitespace-nowrap'">{{ warmedOf(row.original).join(" · ") }}</span>
+
+          <template #content>
+            <ul class="flex min-w-0 flex-col" :aria-label="$t('agents.label.column_warming')">
+              <li v-for="entry in row.original.order" :key="entry.provider" class="flex min-h-10 items-center justify-between gap-4 text-sm">
+                <span class="whitespace-nowrap text-toned">{{ providerWord(providers, entry.provider) }}</span>
+                <HintTip :text="warmingBlock(entry.provider) ?? undefined" :disabled="warmingBlock(entry.provider) === null">
+                  <USwitch
+                    :model-value="row.original.warming[entry.provider] === true"
+                    :loading="warmingBusy === `${row.original.name}:${entry.provider}`"
+                    :disabled="warmingBusy !== '' || warmingBlock(entry.provider) !== null"
+                    :aria-label="$t('agents.aria.warming_of', { name: row.original.label, provider: providerWord(providers, entry.provider) })"
+                    @update:model-value="(on: boolean) => void switchWarming(row.original, entry.provider, on)"
+                  />
+                </HintTip>
+              </li>
+            </ul>
+          </template>
+        </SettingsPopoverCell>
       </template>
 
       <template #threshold-cell="{ row }">
@@ -91,11 +99,8 @@
       </template>
 
       <template #actions-cell="{ row }">
-        <span class="flex min-h-12 items-center justify-end gap-1 pe-2">
-          <UTooltip :text="$t('agents.action.settings')">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-settings-outline" :aria-label="$t('agents.aria.settings_of', { name: row.original.label })" data-supervisor-settings @click="edit(row.original.name)" />
-          </UTooltip>
-          <UDropdownMenu v-if="removable(row.original)" :items="menuOf(row.original)" :content="{ align: 'end' }">
+        <span class="flex h-full min-h-12 items-center justify-end pe-2">
+          <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: row.original.label })">
               <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :loading="removing === row.original.name" :aria-label="$t('common.aria.menu_of', { name: row.original.label })" />
             </UTooltip>
@@ -209,6 +214,11 @@ function warmingBlock(provider: string): string | null {
   return held.reason;
 }
 
+// The providers of its order its prefix is kept warm on, by their words, in the order's order.
+function warmedOf(supervisor: SupervisorView): string[] {
+  return supervisor.order.filter((entry) => supervisor.warming[entry.provider] === true).map((entry) => providerWord(providers.value, entry.provider));
+}
+
 // The rooms a supervisor answers: a companion's sessions' rooms and every room made for companions that names it;
 // the default answerer's every room that names no answerer of its own.
 function roomsOf(supervisor: SupervisorView): string[] {
@@ -275,8 +285,14 @@ function removable(supervisor: SupervisorView): boolean {
   return supervisor.seeded || companions.value?.some((one) => one.agent === supervisor.name) === true;
 }
 
+// Its settings first, then its removal where it is one the console added or the deployment seeds.
 function menuOf(supervisor: SupervisorView): DropdownMenuItem[] {
+  const settings: DropdownMenuItem = { label: t("agents.action.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => edit(supervisor.name) };
+
+  if (!removable(supervisor)) return [settings];
+
   return [
+    settings,
     {
       label: t("common.action.delete"),
       icon: "i-material-symbols-delete-outline",

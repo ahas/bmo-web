@@ -109,7 +109,7 @@
       </template>
 
       <template #remove-cell="{ row }">
-        <span class="flex min-h-12 items-center justify-end pe-2">
+        <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UTooltip v-if="row.original.source === 'set'" :text="$t('common.action.delete')">
             <UButton icon="i-material-symbols-delete-outline" color="neutral" variant="ghost" :aria-label="$t('agents.aria.draft_remove_of', { key: keyText(row.original) })" @click="remove(row.original)" />
           </UTooltip>

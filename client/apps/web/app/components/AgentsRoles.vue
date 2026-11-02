@@ -3,8 +3,8 @@
        docs/agent-roles.md): one row each in its order, every value a cell of its own that saves it, the counts of
        what goes and waits read again every few seconds. Pressing a role's name opens its dialog; its removal stands
        in the row's more-menu. -->
-  <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.tab_roles')">
-    <DataTableSkeleton v-if="!view && !error" :headers="tableHeaders(columns)" :rows="6" :label="$t('agents.status.roles_loading')" />
+  <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('agents.label.tab_roles')">
+    <DataTableSkeleton v-if="!view && !error" layout="fill" :headers="tableHeaders(columns)" :rows="6" :label="$t('agents.status.roles_loading')" />
     <ReadFailure
       v-else-if="error && !view"
       class="mx-4 my-4 w-auto"
@@ -15,7 +15,7 @@
     />
     <p v-else-if="view && view.roles.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_roles") }}</p>
 
-    <DataTable v-if="view && view.roles.length > 0" data-settings-table :data="view.roles" :columns="columns" :row-key="(row: RoleView) => row.name">
+    <DataTable v-if="view && view.roles.length > 0" data-settings-table layout="fill" :data="view.roles" :columns="columns" :row-key="(row: RoleView) => row.name">
       <template #role-cell="{ row }">
         <button
           :id="settingsAnchor(`role-${row.original.name}`)"
@@ -50,10 +50,11 @@
           :name="row.original.shown"
           :held="held"
           :save="(order, quotaShare) => change(row.original.name, { order, quotaShare })"
-        />
-        <HintTip v-if="row.original.waitingFor !== null" :text="row.original.waitingFor" class="px-2 pb-1">
-          <span class="text-sm text-warning">{{ $t("agents.status.waiting_for_quota") }}</span>
-        </HintTip>
+        >
+          <HintTip v-if="row.original.waitingFor !== null" :text="row.original.waitingFor" class="min-w-0">
+            <span class="text-sm text-warning">{{ $t("agents.status.waiting_for_quota") }}</span>
+          </HintTip>
+        </ProviderOrderCell>
       </template>
 
       <template #concurrency-cell="{ row }">
@@ -105,7 +106,7 @@
       </template>
 
       <template #actions-cell="{ row }">
-        <span class="flex min-h-12 items-center justify-end pe-2">
+        <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: row.original.shown })">
               <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :loading="removing === row.original.name" :aria-label="$t('common.aria.menu_of', { name: row.original.shown })" />

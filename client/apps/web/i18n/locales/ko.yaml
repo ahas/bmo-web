@@ -1646,6 +1646,7 @@ agents:
     supervisor_rooms: "{name}이(가) 답한 방"
     threshold_of: "{name} 압축 기준"
     warming_of: "{name} {provider} 캐시 유지"
+    warming_cell_of: "{name} 캐시 유지"
     choose_model: 모델 선택
     draft_ceiling_of: "{key}의 제한 시간"
     draft_light_chars_of: "{key}의 짧은 턴 기준"
@@ -1968,6 +1969,9 @@ agents:
     model_superseded: 이전 세대
     models_stale: "{time}에 읽은 목록"
     order: 공급자 순서
+    order_more: "외 {n}"
+    effort: 강도
+    answer_ceiling: 답변 상한
     pinned_model: 고정 모델
     quota_balance: "잔액 {amount}"
     quota_left: "{share} 남음"
@@ -2026,7 +2030,6 @@ agents:
     draft_add_question: 질문 추가
     find_settings: 설정 찾기
     registry_name: 영문 소문자·숫자·하이픈
-    service_default: "(기본값)"
     token_path: 토큰 파일의 절대 경로
   status:
     call_running: 실행 중

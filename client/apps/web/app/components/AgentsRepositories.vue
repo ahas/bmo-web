@@ -3,8 +3,8 @@
        docs/repositories.md): one row each in the agency's order, under a repository whose checkout a job holds the
        job's item and role. Pressing a row's name opens its dialog; its more-menu holds the edit, its log and its
        removal. -->
-  <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.tab_repositories')">
-    <DataTableSkeleton v-if="repositories === undefined && !error" :headers="tableHeaders(columns)" :rows="4" :label="$t('agents.status.repositories_loading')" />
+  <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('agents.label.tab_repositories')">
+    <DataTableSkeleton v-if="repositories === undefined && !error" layout="fill" :headers="tableHeaders(columns)" :rows="4" :label="$t('agents.status.repositories_loading')" />
     <ReadFailure
       v-else-if="error && repositories === undefined"
       class="mx-4 my-4 w-auto"
@@ -15,7 +15,7 @@
     />
     <p v-else-if="repositories !== undefined && repositories.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_repositories") }}</p>
 
-    <DataTable v-if="repositories !== undefined && repositories.length > 0" data-settings-table :data="repositories" :columns="columns" :row-key="(row: RepositoryView) => row.name">
+    <DataTable v-if="repositories !== undefined && repositories.length > 0" data-settings-table layout="fill" :data="repositories" :columns="columns" :row-key="(row: RepositoryView) => row.name">
       <template #repository-cell="{ row }">
         <button
           :id="settingsAnchor(`repository-${row.original.name}`)"
@@ -71,7 +71,7 @@
       </template>
 
       <template #actions-cell="{ row }">
-        <span class="flex min-h-12 items-center justify-end pe-2">
+        <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: row.original.label })">
               <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :loading="removing === row.original.name" :aria-label="$t('common.aria.menu_of', { name: row.original.label })" />

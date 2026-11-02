@@ -1,8 +1,8 @@
 <template>
   <!-- Settings the engine samples an answer with, each with what it is for and its bounds in full
-       sight beside its box. A box or a switch the engine's own default stands in stays empty with the default mark as its
-       placeholder, since the service says only that it is the engine's own and no route says what it is (docs/web.md,
-       「The default among choices」); an emptied box is the engine's own again. Rows of the form's own may stand ahead of
+       sight beside its box. A box or a switch the engine's own default stands in stays empty, with no word in it, since
+       the service says only that it is the engine's own and no route says what it is (docs/web.md, 「The default among
+       choices」); an emptied box is the engine's own again. Rows of the form's own may stand ahead of
        them in the same columns. -->
   <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 sm:grid-cols-[max-content_minmax(0,1fr)_auto]" role="group" :aria-labelledby="labelledby">
     <slot />
@@ -20,7 +20,6 @@
         :model-value="draft[one.name] === '' ? undefined : draft[one.name]"
         :items="switchItems"
         value-key="value"
-        :placeholder="$t('agents.placeholder.service_default')"
         class="w-full"
         :color="refusalAt(one.name) === '' ? undefined : 'error'"
         :highlight="refusalAt(one.name) !== ''"
@@ -37,7 +36,6 @@
         :step-snapping="false"
         :format-options="{ maximumFractionDigits: one.whole ? 0 : DECIMAL_PLACES }"
         :digits="DIGITS"
-        :placeholder="$t('agents.placeholder.service_default')"
         :color="refusalAt(one.name) === '' ? undefined : 'error'"
         :highlight="refusalAt(one.name) !== ''"
         :disabled="disabled"

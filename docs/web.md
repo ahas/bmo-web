@@ -1518,10 +1518,10 @@ Four groups.
   box stands for it. A row or an entry that holds the service's own settings unchanged carries `(기본값)` after its
   name.
 - **A setting the service holds unset is shown as the value it runs on,** with `(기본값)` beside it, where the service
-  says what that value is. Where the service says only that an unset setting is its own default and names no value —
-  an engine's sampling setting — the field stands empty with `(기본값)` as its placeholder, a list of choices holding
-  `(기본값)` as its placeholder while nothing is chosen. Where the service says neither, the field stands empty — a
-  dash in a cell, an empty box with no placeholder. The screen never guesses a value or keeps one of its own.
+  says what that value is. Where it names no value — an engine's sampling setting, which the service says only is its
+  own — the field stands empty: an empty box with no placeholder, a list with nothing chosen and no placeholder, a
+  dash in a cell. No word stands in a field in place of a value, and the screen never guesses a value or keeps one
+  of its own.
 - **Which value is the default is the service's word:** a compaction threshold's is the provider's declared
   `foldRatioDefault` of the first provider of the row's order, a thinking switch's the `thinking` the model's
   registration or road member declares, an answer ceiling's the `answerTokens` it declares (the agency's
@@ -2711,33 +2711,52 @@ Two ways, split because the running places differ.
   tab's rows mark the phrase too.
 - **Every table on the screen is the one shared settings table.** It fills the section edge to edge, one row to a
   line, has no pages, and scrolls sideways inside its own box so that no cell is cut; the page itself never scrolls
-  sideways.
-  - **Each column starts as wide as its content asks** — its name and its widest cell, measured once the rows have
-    landed — and the title column takes whatever width is left over, so a narrow table spreads and a wide one
-    scrolls. A column holding a long free text (a path, a prompt) starts at a ceiling of its own and cuts its cells
-    on one line, the whole text in the tooltip every cut line gets.
+  sideways. A tab holding one table — 역할, 저장소, 등록 모델, 모델 파일 — gives it the tab's whole height, its box
+  scrolling both ways with the head of names stuck to its top, so its sideways scrollbar sits on the tab's foot however
+  few its rows; the 감독관 tab, holding the draft tables under its own, gives each table only its own height.
+  - **A row is as tall as its content and no taller.** Every cell is one line where its value is one — a row's title
+    takes its label over its name — and a row stands at the shared table's one-line height unless a cell says more.
+    A value with several parts says them on one line, never one part to a line, and leaves the rest to its dropdown
+    or its form.
+  - **A cell is one box, edge to edge of its column and top to bottom of its row.** A pressed cell answers a hover
+    and a press over the whole of that box, so the hover never stands shorter or narrower than the cell it marks;
+    a cell that only shows a value fills the same box, its content centred on the row's middle line.
+  - **In each section's own table exactly one column is flexible: the title's,** the words that say which record the
+    row is. It takes whatever width is left over and is cut last, never narrower than a floor of its own. Every other
+    column stands as wide as its content asks — its name and its widest cell, measured once the rows have landed — up
+    to a ceiling of its own, and never stretches; a column whose cells vary in length (a path, a list of rooms, what a row runs on now) cuts its
+    cells on one line at that ceiling, the whole text in the tooltip every cut line gets.
   - **Every column's width is dragged at the right edge of its name,** or moved with the arrow keys there, the way
-    the DB screen's columns are. A drag moves the dragged column alone: every other column keeps the width it stood
-    at, and the table grows or shrinks by what the drag added or took. A column is never dragged narrower than its
-    name.
+    the DB screen's columns are. A drag changes the dragged column alone: the other content columns keep the widths
+    they stood at, and the title column takes up the difference, so the table keeps reaching its box's right edge
+    and only scrolls sideways once the content columns and the title's floor no longer fit. A column is never dragged
+    narrower than the shared table's least column width. The widths stand while the screen stands; a tab opened again
+    lays its columns out afresh.
 - **A cell edits its own value, in place.** Pressing a cell that holds a setting opens a dropdown aligned to that
   cell, holding that cell's value and nothing else: a list for a choice, a number box for a number, a text box for a
   text. A choice is saved as it is picked; a number or a text is saved with Enter or the check button beside it, and
   Escape leaves it as it was. While a value is being saved the cell spins, and a refused one keeps the dropdown open
   with the pack's sentence for the agency's code under the field, or, for a choice, says it in a notice. A cell
-  showing what the agency worked out — the provider a row runs on now, how many of its runs go — is not pressed.
-  Dialogs are left only for what is not one cell: a provider order, a whole role, a whole repository, a supervisor's
-  own settings, and asking once before a removal.
+  showing what the agency worked out — the provider a row runs on now, how many of its runs go — is not pressed. A
+  cell holding a group of switches — a supervisor's 캐시 유지 — opens them in its dropdown, each taking effect as it is
+  thrown. Dialogs are left only for what is not one cell: a provider order, a whole role, a whole repository, a
+  supervisor's own settings, and asking once before a removal; a row's whole settings open from its more-menu or its
+  name, never from a cell.
 - **What a row runs on now** is the agency's word, never worked out here: a supervisor's and a role's `provider`,
   and `waitingFor`, said under it in the warning colour while its runs wait for quota.
 - **A provider order is one field, edited in its own dialog** (the agency's `docs/provider-order.md`, 「What an order
-  is」), the same for a supervisor and a role. Its cell reads the providers in order, each by the pack's word for its
-  code with its model named short (「Model names where room is short」) and its effort, the first marked as where the
-  row's runs go while it has quota. Pressed, it opens one form (「Forms」) with one 저장:
-  - one line per entry: a drag handle, its place, the provider, the model — a list of what the agency's
+  is」), the same for a supervisor and a role. Its cell is one line: the first provider, where the row's runs go
+  while it has quota, by the pack's word for its code with its model named short (「Model names where room is short」)
+  and its effort, marked as the first, and `외 N` after it, muted, for the N providers behind it; an order of one
+  provider has no `외`. A row whose runs wait for quota says so under that line, inside the same cell. Pressed, it
+  opens one form (「Forms」) with one 저장, holding the whole order:
+  - one block per entry: its head a drag handle, its place, the provider, and the buttons moving it up and down and
+    taking it out; under it the entry's fields, each under its own label — 모델, a list of what the agency's
     `GET /provider-models/{provider}` answers for it, the Claude catalogue's superseded generations marked and a
-    stale read said with the time it was taken — the effort, a list of the levels that model takes, the thinking,
-    켬 or 끔, and, on the registry's provider, the answer ceiling; and a button taking the entry out;
+    stale read said with the time it was taken; 강도, a list of the levels that model takes, standing only where it
+    takes any; 생각, 켬 or 끔; and, on the registry's provider, 답변 상한. The fields stand in one column on a phone
+    and side by side from the small breakpoint up, the model taking what is left and every other field its own
+    width;
   - **the thinking and the answer ceiling mark the model's own:** the choice equal to the `thinking` the model's
     registration or road member declares reads `켬 (기본값)` or `끔 (기본값)` and stands chosen while the entry leaves
     thinking to the provider, and picking it leaves it so; an emptied ceiling box is the registration's own, its
@@ -2753,20 +2772,28 @@ Two ways, split because the running places differ.
   the settings are in the agency's documents named here, not on the screen.
 - **A supervisor's, a role's and a repository's settings are also opened on their own screens** (「Agent screen」),
   in the very dialogs this screen opens; no second editor exists anywhere, and a save on one is read by the other.
+- **Every settings dialog of the screen is laid out the same way.** Its title is the record's label, with its name
+  under it only where the two differ. Each field stands under its own label; a text or a path takes the dialog's
+  width, while a number box stands as wide as the values it takes and a list of a few short choices as wide as its
+  longest one, short fields of one kind standing side by side on one line. Fields that belong together — a provider
+  order and its share, a pinned model and its sampling — stand together, one gap apart, and groups stand one larger
+  gap apart.
 
 #### 감독관
 
 - **One table of every supervisor** (the agency's `docs/supervisors.md`), one row each in the order the agency lists
   them: 감독관, its mark, its label and its name, the title column; 공급자 순서, its order (above); 지금, the provider and
-  model its last turn went out on, and why it waits where it waits; 캐시 유지, one switch per provider of its order,
-  each by the provider's word, on where its prefix is kept warm on that provider; 압축 기준, its compaction threshold
-  as a whole percent, the value equal to the first provider of its order's declared threshold reading
-  `85% (기본값)`; and 방, every room it answers, on one line under a ceiling of its own and cut inside its cell
-  where longer. The row's own presses stand centred on the row at the trailing edge, as every table's do: 설정 opens
-  its settings dialog here, and pressing the row's name opens its own screen.
-- **캐시 유지** is switched per provider as the cell is pressed, through `PATCH /supervisors/{name}` with `warming`
-  whole; a provider turned off on this machine stands disabled with its reason. **압축 기준** takes a whole percent
-  from 1 to 100, saved with Enter or the check button.
+  model its last turn went out on, on one line under a ceiling of its own, and why it waits where it waits; 캐시 유지,
+  the providers of its order its prefix is kept warm on, by the provider's word on one line, or 끔 where it is kept
+  warm on none; 압축 기준, its compaction threshold as a whole percent, the value equal to the first provider of its
+  order's declared threshold reading `85% (기본값)`; and 방, every room it answers, on one line under a ceiling of its
+  own. The row's more-menu stands centred on the row at its trailing edge, as every table's does, holding 설정, which
+  opens its settings dialog here, and, for a supervisor the console added or the deployment seeds, 삭제; pressing the
+  row's name opens its own screen.
+- **캐시 유지** opens from its cell a dropdown of one switch per provider of the order, each by the provider's word,
+  each switched as it is pressed through `PATCH /supervisors/{name}` with `warming` whole; a provider turned off on
+  this machine stands disabled with its reason. **압축 기준** takes a whole percent from 1 to 100, saved with Enter or
+  the check button.
 - **The settings dialog** is one form with one 저장 at its foot: 표시 이름; 공급자 순서 and 할당량 기준, the order's
   editor in place; 캐시 유지 and 압축 기준 as the cells set them; 작업 저장소, the repository its TODO items go to,
   a list of the repositories; and, for a supervisor whose turns its settings' pieces make (its `turnShape`), the
@@ -2782,8 +2809,8 @@ Two ways, split because the running places differ.
   refused, nothing of it stands and the refusal stands under the field or the order's entry it names. An added
   supervisor stands as a row at once with a room of the console's own that it answers alone, and where a console room
   already stood under its name the notice after the add says it took that room back with its record.
-- **삭제** stands in a supervisor's more-menu. For one the deployment seeds — the agency's `seeded`, the default
-  answerer among them — it stands disabled, saying under it that the deployment set the supervisor up. It asks first, naming what goes — its settings, sessions and person records — and saying that
+- **삭제** stands in a supervisor's more-menu under 설정. For one the deployment seeds — the agency's `seeded`, the
+  default answerer among them — it stands disabled, saying under it that the deployment set the supervisor up. It asks first, naming what goes — its settings, sessions and person records — and saying that
   the rooms it answered stay with their messages and documents.
 - **The draft process** (드래프트 과정) stands under the table: what a round's answer is asked before it goes out, as
   the receiver keeps it (the receiver's `docs/drafting.md`, 「The process table」). A row per key of a provider, a tier
@@ -2860,8 +2887,9 @@ Two ways, split because the running places differ.
     now still stands as its own choice.
   - **노드 체크아웃** lists the checkouts kept on the work nodes, each with its node and path and a button taking it
     away; under it a node select of the nodes that take jobs and no checkout of this repository yet, and a path field —
-    from the node's home or absolute, empty for the agency's own place beside the base — add one. The list is sent
-    whole with the save, through `PATCH /repositories/{name}`'s `nodeCheckouts`, a checkout already standing sent
+    from the node's home or absolute, left empty with no placeholder for the agency's own place beside the base — add
+    one; a checkout added with no path shows a dash where its path stands until the agency answers with it. The list
+    is sent whole with the save, through `PATCH /repositories/{name}`'s `nodeCheckouts`, a checkout already standing sent
     with no path so it keeps its own (the agency's `docs/worker-slots.md`, 「Checkouts on the nodes」). It stands only
     for a repository already made, and only while its base stands on this machine; a removal the agency refuses
     while a job holds the checkout says the pack's sentence under the field.
@@ -2873,11 +2901,11 @@ Two ways, split because the running places differ.
   - **고정 모델** is a choice of 역할 순서 (no pin) or a provider and one of its models; a model of the registry's
     provider chosen brings the 샘플링 block under it, laid out as a companion's 생성 파라미터 are (the agency's
     `docs/repositories.md`, 「A pinned model」): one line for every setting the agency's `samplingSettings` names, by
-    its name with its bounds, the value the repository holds in its box and a setting it leaves out standing empty
-    with `(기본값)`, the engine's own. A box emptied is sent as none, which gives the setting back to the engine. A
-    pinned model that cannot answer makes the repository's work wait, which the field says under it while a pin is
+    its name with its bounds, the value the repository holds in its box and a setting it leaves out standing empty,
+    the engine's own, which the agency names no value for. A box emptied is sent as none, which gives the setting
+    back to the engine. A pinned model that cannot answer makes the repository's work wait, which the field says under it while a pin is
     chosen.
-  - **강등 복원** is a switch, 켬 reading `켬 (기본값)`.
+  - **강등 복원** is a switch whose label carries `(기본값)` while it stands on, the agency's default.
   - A refused save keeps every field as written with the pack's sentence for the agency's code under the field it
     names.
 - **추가** in the tab row opens the same dialog for a new repository, sent through `POST /repositories`; a path left

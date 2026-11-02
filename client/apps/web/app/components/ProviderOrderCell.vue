@@ -1,14 +1,16 @@
 <template>
-  <!-- A row's provider order in its cell (docs/web.md, 「Agent management screen」): the providers in order, each by
-       its word with its model named short and its effort, the first marked as where the row's runs go while it has
-       quota. Pressed, it opens the order's own form, with one save; a refusal keeps every line as written with the
-       reason under the entry it names. -->
+  <!-- A row's provider order in its cell (docs/web.md, 「Agent management screen」): one line, the first provider by its
+       word with its model named short and its effort, marked as where the row's runs go while it has quota, and how
+       many providers stand behind it. What the row says under it — that its runs wait for quota — stands in the same
+       box. Pressed, it opens the order's own form, with one save, holding the whole order; a refusal keeps every line
+       as written with the reason under the entry it names. -->
   <button type="button" :class="CELL_BUTTON" :disabled="props.disabled" :aria-label="$t('agents.aria.order_of', { name: props.name })" @click="openForm">
-    <span v-for="(entry, index) in props.order" :key="entry.provider" class="flex max-w-full items-center gap-1 text-sm" :class="index === 0 ? 'font-medium text-highlighted' : 'text-muted'">
-      <UIcon v-if="index === 0" name="i-material-symbols-arrow-right-alt" class="size-4 shrink-0 text-primary" />
-      <span v-else class="w-4 shrink-0 text-center tabular-nums">{{ index + 1 }}</span>
-      <span :class="props.held ? 'truncate' : 'whitespace-nowrap'">{{ entryText(providers, entry) }}</span>
+    <span v-if="first !== undefined" class="flex max-w-full items-center gap-1 text-sm">
+      <UIcon name="i-material-symbols-arrow-right-alt" class="size-4 shrink-0 text-primary" />
+      <span class="font-medium text-highlighted" :class="props.held ? 'truncate' : 'whitespace-nowrap'">{{ entryText(providers, first) }}</span>
+      <span v-if="rest > 0" class="shrink-0 whitespace-nowrap text-muted">{{ $t("agents.label.order_more", { n: countText(rest) }) }}</span>
     </span>
+    <slot />
   </button>
 
   <SettingsDialog v-model:open="open" wide :title="$t('agents.label.order')" :description="props.name" :dirty="dirty">
@@ -23,6 +25,7 @@
 
 <script setup lang="ts">
 import { entryText, orderRefusalEntry, useProviders } from "~/domain/axes";
+import { countText } from "~/domain/numbers";
 import { CELL_BUTTON } from "~/domain/settings-cells";
 
 import type { OrderEntryView } from "#shared/axes";
@@ -49,6 +52,9 @@ const order = ref<OrderEntryView[]>([]);
 const share = ref(0);
 const refusal = ref<{ entry: number | null; text: string } | null>(null);
 
+// The provider the row's runs go to first, and how many stand behind it.
+const first = computed(() => props.order[0]);
+const rest = computed(() => Math.max(props.order.length - 1, 0));
 const dirty = computed(() => JSON.stringify(order.value) !== JSON.stringify(props.order) || share.value !== props.share);
 const complete = computed(() => order.value.length > 0 && order.value.every((one) => one.model !== ""));
 

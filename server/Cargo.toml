@@ -20,7 +20,7 @@ test = false
 async-trait = "0.1.92"
 # The service's own contract: its bodies as types, its OpenAPI document, and one call for each route.
 bmo-web-client = { path = "client" }
-axum = "0.8.9"
+axum.workspace = true
 chrono = { version = "0.4.45", default-features = false, features = ["std", "clock"] }
 clap = { version = "4.6.7", features = ["derive", "env"] }
 # The settings files and the environment, layered in that order.
@@ -31,7 +31,7 @@ indexmap = { version = "2.14.2", features = ["serde"] }
 # The language pack's YAML, read into each part's type, and the document wording file written from it.
 serde-saphyr = { version = "1.3.0", default-features = false, features = ["deserialize", "serialize"] }
 # The receiver, asked for a message's sender.
-reqwest = { version = "0.13.5", features = ["json"] }
+reqwest.workspace = true
 # The service's own statements, in the release sumida's own entities are written in.
 sea-orm = { version = "1.1.17", default-features = false, features = ["macros", "runtime-tokio-rustls", "sqlx-postgres"] }
 # The migrations, in the release sumida's own migrations run on.
@@ -47,7 +47,7 @@ sqlx = { version = "0.8.6", default-features = false, features = ["postgres", "r
 # static one is chosen; no token is ever issued here.
 sumida = { git = "https://github.com/ahas/sumida", rev = "1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0", default-features = false, features = ["session-store-redis", "jwt-secret-store-static"] }
 thiserror = "2.0.21"
-tokio = { version = "1.53.2", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tokio.workspace = true
 
 [dev-dependencies]
 # A password hash of the form the console's own account command makes.

@@ -9,6 +9,13 @@ edition = "2024"
 license = "MIT"
 publish = false
 
+# The registry crates every unit takes at one version and one feature set (bmo-chat's docs/conventions.md,
+# 「Shared versions」), copied from its shared-versions.toml.
+[workspace.dependencies]
+axum = { version = "0.8.9", features = ["macros", "multipart", "ws"] }
+reqwest = { version = "0.13.5", features = ["json", "query", "stream"] }
+tokio = { version = "1.53.3", features = ["fs", "io-std", "io-util", "macros", "net", "process", "rt", "rt-multi-thread", "signal", "sync", "test-util", "time"] }
+
 # The build output is kept small (bmo-chat's docs/conventions.md, 「Rust builds」): debug information down to line
 # numbers beside the objects, no incremental state, and none kept in a test binary or a release.
 [profile.dev]

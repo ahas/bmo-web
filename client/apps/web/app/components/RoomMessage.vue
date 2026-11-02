@@ -114,7 +114,7 @@
                   ref="bubble"
                   data-bubble
                   class="relative max-w-full"
-                  :class="[bubbleClass, pictured ? 'w-80' : 'w-fit', props.arriving ? 'bubble-rise' : '']"
+                  :class="[bubbleClass, albumed ? 'w-80' : pictured ? 'w-fit max-w-80' : 'w-fit', props.arriving ? 'bubble-rise' : '']"
                 >
                   <div class="relative flex flex-col overflow-hidden rounded-inherit">
                     <!-- The sender's name, once at the head of the run's first bubble, and the
@@ -559,8 +559,10 @@ const markLine = computed<string>(() => {
 // Whether the row is a sticker alone, standing as Telegram stands it: no bubble, name line or tail.
 const sticker = computed<boolean>(() => props.item.look.variant === "naked");
 
-// Whether the bubble holds a picture or an album, which runs to its edges at a picture's width.
-const pictured = computed<boolean>(() => (props.item.album ?? []).length > 1 || props.item.imageUrl !== null);
+// Whether the bubble holds a picture or an album, which runs to its edges. An album's mosaic fills a
+// picture's width; one picture stands at its own width, the bubble as wide as the picture and no wider.
+const albumed = computed<boolean>(() => (props.item.album ?? []).length > 1);
+const pictured = computed<boolean>(() => albumed.value || props.item.imageUrl !== null);
 
 // A picture with nothing under it carries the meta line over its own foot.
 const overPicture = computed<boolean>(

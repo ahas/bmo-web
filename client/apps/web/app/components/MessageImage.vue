@@ -5,7 +5,7 @@
        the picture runs to the bubble's edges with no corners or edge of its own, cut by the bubble's
        own corners. In a room, the viewer is the room's own and walks every picture the room
        holds; a picture with no archived message behind it, or shown outside a room, opens alone. -->
-  <button type="button" class="block max-w-full cursor-zoom-in transition-opacity hover:opacity-85 active:opacity-70" :class="props.flush ? 'size-full' : 'rounded-lg'" :aria-label="$t('common.aria.enlarge_named', { name: props.title })" @click.stop="enlarge">
+  <button type="button" class="block max-w-full cursor-zoom-in transition-opacity hover:opacity-85 active:opacity-70" :class="props.flush ? 'size-full' : 'rounded-lg'" :style="frame" :aria-label="$t('common.aria.enlarge_named', { name: props.title })" @click.stop="enlarge">
     <LoadingImage
       :src="props.src"
       :alt="props.title"
@@ -55,9 +55,32 @@ function remember(seen: PictureShape): void {
   }
 }
 
+// The room a lone picture in a bubble takes: its own ratio, no taller than the cap and no wider than a
+// bubble may be, scaled to whichever bounds it first. Known from the picture's shape before it has loaded,
+// so the bubble stands at the picture's size from the start; unknown, the picture sizes itself as it loads.
+const PICTURE_CAP_PX = 256;
+const BUBBLE_WIDEST_PX = 320;
+
+const frame = computed<{ width: string; height: string } | undefined>(() => {
+  if (!props.flush || props.tile || shape.value === null || shape.value.width <= 0 || shape.value.height <= 0) {
+    return undefined;
+  }
+
+  const ratio = shape.value.width / shape.value.height;
+  let height = Math.min(PICTURE_CAP_PX, shape.value.height);
+  let width = height * ratio;
+
+  if (width > BUBBLE_WIDEST_PX) {
+    width = BUBBLE_WIDEST_PX;
+    height = width / ratio;
+  }
+
+  return { width: `${Math.round(width)}px`, height: `${Math.round(height)}px` };
+});
+
 const imageClass = computed<string>(() => {
   if (props.flush) {
-    return props.tile ? "size-full object-cover" : "max-h-64 w-auto max-w-full object-contain";
+    return props.tile ? "size-full object-cover" : frame.value === undefined ? "max-h-64 w-auto max-w-80 object-contain" : "size-full object-contain";
   }
 
   return props.tile ? "aspect-square w-full rounded-lg border border-default object-cover" : "max-h-64 w-auto max-w-full rounded-lg border border-default";

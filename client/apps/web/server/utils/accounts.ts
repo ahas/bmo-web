@@ -1,6 +1,7 @@
 import { getRequestHeader } from "h3";
 
 import { AccountServiceDown, modelState, sessionUser } from "./account-service";
+import { administratorKey } from "./owner-key";
 import { sessionLapsed } from "./session-life";
 import { wording } from "#shared/wording";
 
@@ -72,10 +73,20 @@ export interface Sealed {
  * Who a session's seal says is signed in, read the same way wherever the seal is opened. A seal holding no
  * sumida session is a console login, the administrator's. Whether the seal still stands is `sealState`'s to
  * say, asked before the seal is read: by the session middleware for a request, by the relay for a socket.
+ * Whether a sumida login is the administrator is the account model's word each time (docs/web.md, 「Access」):
+ * the user the seal names is the administrator while the model names them so, whatever the seal recorded
+ * at sign-in; where the model names nobody, or cannot be asked, the seal's own word stands.
  */
-export async function signedInOf(session: Sealed): Promise<SignedIn> {
+export async function signedInOf(
+  session: Sealed,
+  administrator: () => Promise<string | null> = administratorKey
+): Promise<SignedIn> {
   if (session.sid !== undefined) {
-    return { name: session.user.name, id: session.user.id ?? null, administrator: session.administrator === true };
+    const id = session.user.id ?? null;
+    const sealed = session.administrator === true;
+    const named = id === null ? null : await administrator().catch(() => null);
+
+    return { name: session.user.name, id, administrator: named === null ? sealed : String(id) === named };
   }
 
   return { name: session.user.name, id: null, administrator: true };

@@ -401,9 +401,12 @@ console page. No answer says which framework drew it. Strict transport is the re
 opened routes serve.** The routes refuse them either way; what this adds is that no screen opens onto
 nothing.
 
-- **Whether the one signed in is the administrator is read off the session the browser already
-  holds.** A sign-in on the service writes it into the seal; a seal that does not name it is a console
-  login, which stands only before the model and is the administrator's, as the routes read it.
+- **Whether the one signed in is the administrator is read from the account model each time,** for the
+  user the session's seal names: they are the administrator while the model names their user as its
+  administrator, whatever the seal recorded at sign-in, so a login kept across a change of the model reads as
+  what they are now. A seal naming a user the model does not place stands as the seal recorded it. A seal
+  that names no sumida session is a console login, which stands only before the model and is the
+  administrator's, as the routes read it.
 - **Each screen says whether a member may open it.** A member opens home, the settings, the rooms they may
   read and the screens units bring whose manifest's role is `member` — and, where the manifest asks for the
   owner key, only when their login has a user; asking for any other address takes them home.

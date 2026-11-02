@@ -77,6 +77,16 @@ describe("whether a seal's login stands", () => {
     expect(await sealState({ remember: false, loggedInAt: at }, "127.0.0.1", at)).toBe("gone");
   });
 
+  test("a sumida login is the administrator while the model names its user so, whatever the seal recorded", async () => {
+    const sealed = { user: { name: "boss", id: 1 }, sid: "bmo.sid=boss", administrator: false };
+
+    expect((await signedInOf(sealed, async () => "1")).administrator).toBe(true);
+    expect((await signedInOf(sealed, async () => "2")).administrator).toBe(false);
+    expect((await signedInOf(sealed, async () => null)).administrator).toBe(false);
+    expect((await signedInOf({ ...sealed, administrator: true }, async () => null)).administrator).toBe(true);
+    expect((await signedInOf({ ...sealed, administrator: true }, async () => "2")).administrator).toBe(false);
+  });
+
   test("a seal holding no sumida session stands as the administrator's before the model", async () => {
     service.state.inForce = false;
     const at = later();

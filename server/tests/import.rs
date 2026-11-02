@@ -2,7 +2,7 @@
 //! the refusal of a store already holding rows, and the count-and-sample compare, over a small export
 //! written into a temporary folder and a migrated scratch database.
 
-mod support;
+use crate::support;
 
 use std::fs;
 use std::path::PathBuf;

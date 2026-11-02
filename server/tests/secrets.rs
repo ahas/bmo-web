@@ -3,7 +3,7 @@
 //! refused, and that no answer and no refusal carries a value — the store by itself, and its routes as a caller
 //! asks them, with the role the console hands on.
 
-mod support;
+use crate::support;
 
 use std::fs;
 use std::os::unix::fs::{PermissionsExt, symlink};

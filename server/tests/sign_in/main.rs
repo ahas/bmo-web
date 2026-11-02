@@ -1,8 +1,13 @@
 //! Signing in through the service as the console does: the moved account's hash, made the way the console
 //! makes it, signs in with the same password, and the session it is handed names that user. The sessions
-//! stand on the machine's Valkey, in a database of the tests' own. This is the one test of its binary, since
-//! sumida reads its settings once per process.
+//! stand on the machine's Valkey, in a database of the tests' own.
 
+// A target of its own (bmo-chat's docs/conventions.md, 「Rust builds」): sumida reads its settings once per
+// process, at its first reading, and this test sets them to its own database and Valkey database before that
+// reading, which in the main target another test's router would have made first.
+
+#[allow(dead_code)]
+#[path = "../support/mod.rs"]
 mod support;
 
 use axum::body::Body;

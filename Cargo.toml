@@ -8,3 +8,19 @@ members = ["server", "server/client"]
 edition = "2024"
 license = "MIT"
 publish = false
+
+# The build output is kept small (bmo-chat's docs/conventions.md, 「Rust builds」): debug information down to line
+# numbers beside the objects, no incremental state, and none kept in a test binary or a release.
+[profile.dev]
+debug = "line-tables-only"
+split-debuginfo = "unpacked"
+incremental = false
+
+[profile.test]
+debug = "line-tables-only"
+strip = "debuginfo"
+incremental = false
+
+[profile.release]
+debug = false
+strip = "debuginfo"

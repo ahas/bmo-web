@@ -457,7 +457,7 @@ The account service stands in `server/`, one Rust project on sumida (build-2, bu
 | the `sumida` git dependency at rev `1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0` | `server/Cargo.toml` | build-2 |
 | the read of a message's sender out of the shared `messages` table, which a message check and a grant are made on | the receiver port, `server/src/receiver.rs`, asking the receiver's `GET /rooms/{chat}/messages/{message}` | build-2 |
 | the room record the account service declared its holdings to | the holdings route and the declaration to the receiver | build-3 |
-| `bot/bmo-server/tests/integration/grants.rs` and `sign_in.rs`, and the scratch archive and test ids they stood on | `server/tests/grants.rs`, `server/tests/sign_in.rs` and `server/tests/support/`: 11 tests and 1 | build-2 |
+| `bot/bmo-server/tests/integration/grants.rs` and `sign_in.rs`, and the scratch archive and test ids they stood on | `server/tests/grants.rs`, `server/tests/sign_in/main.rs` and `server/tests/support/`: 11 tests and 1 | build-2 |
 | the two tests of `grants.rs` on whose work an item is (`requester_run`, approvals on a standing rule) | not carried: bmo-job's, standing on its items and the agency's Claude accounts | — |
 | `bot/accounts/account-service.ts` | `client/packages/accounts/account-service.ts`: the same functions, asking the server over HTTP at `WEB_SERVER_ADDRESS` with its token instead of the old socket, on the routes `docs/boundary.md` states, a user named by the string id the server gives | build-6 |
 | `bot/accounts/account-service-fixture.ts` | `client/tests/support/account-service.ts`, the stand-in on a loopback port, answering those routes | build-6 |

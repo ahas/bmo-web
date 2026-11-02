@@ -1,7 +1,7 @@
 //! The grant tests (docs/accounts.md, 「Checks」, 「Grants」 and 「The data move」), against sumida's own
 //! evaluation on a migrated scratch database, with a receiver stand-in saying who sent each message.
 
-mod support;
+use crate::support;
 
 use bmo_web_server::Refusal;
 use bmo_web_server::checks::{check_message, check_object, check_room};

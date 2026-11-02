@@ -18,7 +18,7 @@ setup = ["cd client && bun install --frozen-lockfile"]
 # The sweeps that read the tree before anything runs: Korean in the code, the README's folder table and the
 # dependencies the manifests name. The ledger is the debt of Korean left in a code file, a file it does not
 # name being allowed none; no code file of this repository holds any.
-quick = ["korean", "layout", "dependencies"]
+quick = ["korean", "layout", "dependencies", "cargo-profile"]
 korean_ledger = "korean-ledger.json"
 # The base libraries, the published clients of the units the console calls (docs/boundary.md), and sumida,
 # the server's base, a git dependency.

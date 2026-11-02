@@ -3,7 +3,7 @@
 //! heading and version they were said over, the chat agent's answer bare, read back by the document's name in
 //! the order said; and the migration taken down drops the table.
 
-mod support;
+use crate::support;
 
 use bmo_web_server::migration::Migrator;
 use sea_orm::{ConnectionTrait, DbBackend, Statement, Value};

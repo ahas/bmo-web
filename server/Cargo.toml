@@ -7,6 +7,8 @@ version = "0.1.0-rev.1"
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
+# One test target, the harness at tests/main.rs (bmo-chat's docs/conventions.md, 「Rust builds」).
+autotests = false
 
 [[bin]]
 name = "bmo-web-server"
@@ -61,8 +63,11 @@ toml = "0.8.23"
 # The patterns the repository's guard reads its tracked files for.
 regex = "1.13.1"
 
-# The checks that span the repository (docs/checks.md) stand in the root's tests/; the root is a workspace and holds
-# no package, so this crate runs them.
 [[test]]
-name = "repository"
-path = "../tests/repository.rs"
+name = "main"
+path = "tests/main.rs"
+
+# Signing in stands in a process of its own: sumida reads its settings once per process.
+[[test]]
+name = "sign_in"
+path = "tests/sign_in/main.rs"

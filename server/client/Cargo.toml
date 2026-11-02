@@ -8,6 +8,8 @@ version = "0.1.0-rev.1"
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
+# One test target, the harness at tests/main.rs (bmo-chat's docs/conventions.md, 「Rust builds」).
+autotests = false
 
 [dependencies]
 reqwest = { version = "0.13.5", default-features = false, features = ["json", "query"] }
@@ -15,3 +17,7 @@ schemars = "1.2.3"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 url = "2.5.8"
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

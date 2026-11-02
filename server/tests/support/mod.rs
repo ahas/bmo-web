@@ -1,15 +1,13 @@
 //! What the server's tests stand on: a database of the test's own on the test server, copied from a
-//! template this binary migrates once, or one database a binary's tests share, seeded once; the rules
-//! standing on it; and a receiver stand-in that knows the messages a test put in rooms. A database is
-//! dropped when its guard goes, and what a binary that is gone left behind is dropped by the next binary to
-//! make one.
-
-#![allow(dead_code)]
+//! template this binary migrates once, or a database a module's tests share, seeded once; the rules
+//! standing on it; sumida's settings, set once before its first reading; and a receiver stand-in that knows
+//! the messages a test put in rooms. A database is dropped when its guard goes, and what a binary that is gone
+//! left behind is dropped by the next binary to make one.
 
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU32, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, Once};
 
 use bmo_web_server::migration::Migrator;
 use bmo_web_server::receiver::{Holding, Receiver, no_such_message};
@@ -27,7 +25,22 @@ const COPY: &str = "bmo_web_copy_";
 const SHARED: &str = "bmo_web_shared_";
 
 static COPIES: AtomicU32 = AtomicU32::new(0);
+static SHAREDS: AtomicU32 = AtomicU32::new(0);
 static MADE: tokio::sync::OnceCell<String> = tokio::sync::OnceCell::const_new();
+static SUMIDA: Once = Once::new();
+
+/// sumida's settings: its file, and sessions on a Valkey database of the tests' own. sumida reads them once, at
+/// its first reading, so every test that stands up its routes asks this first.
+pub fn ready() {
+  SUMIDA.call_once(|| {
+    // SAFETY: the standard library guards its own reads and writes of the environment with one lock, every read
+    // in this process is made through it, and every test that stands up sumida's routes waits here first.
+    unsafe {
+      std::env::set_var("SUMIDA_SETTINGS", concat!(env!("CARGO_MANIFEST_DIR"), "/sumida.toml"));
+      std::env::set_var("SUMIDA_SESSION__REDIS__URL", "redis://127.0.0.1:6379/15");
+    }
+  });
+}
 
 /// The test server, as the suite names it, and the machine's own socket where nothing does.
 pub fn test_address() -> String {
@@ -147,8 +160,9 @@ pub struct Scratch {
   kept: bool,
 }
 
-/// The database one test binary's tests share, made and seeded by the first test to ask. Each test stands
-/// the service on a pool of its own, since a pool lives no longer than the runtime of the test that made it.
+/// A database a module's tests share, made and seeded by the first test to ask, one for each value of this type.
+/// Each test stands the service on a pool of its own, since a pool lives no longer than the runtime of the test
+/// that made it.
 pub struct SharedDatabase(tokio::sync::OnceCell<(String, Messages)>);
 
 impl SharedDatabase {
@@ -164,7 +178,8 @@ impl SharedDatabase {
     let (database, messages) = self
       .0
       .get_or_init(|| async {
-        let seeded = seed(Scratch::made(&format!("{SHARED}{}", std::process::id()), true).await).await;
+        let name = format!("{SHARED}{}_{}", std::process::id(), SHAREDS.fetch_add(1, Ordering::SeqCst));
+        let seeded = seed(Scratch::made(&name, true).await).await;
 
         (seeded.database.clone(), seeded.messages.clone())
       })

@@ -49,11 +49,11 @@ The first command stands until interrupted, so it runs in a shell of its own bes
 ## The repository-wide checks
 
 The checks that span the repository stand in the root's `tests/`, in `repository.rs`. The root is a Cargo
-workspace and holds no package, so the server's crate runs them as a test target of its own, `repository`, and they
-run with the server's tests:
+workspace and holds no package, so the server's crate runs them as a module of its test harness, `repository`, and
+they run with the server's tests:
 
 ```
-bmo-testbed cargo test --manifest-path server/Cargo.toml --test repository
+bmo-testbed cargo test -p bmo-web-server --test main repository::
 ```
 
 They read every file git tracks or would track, the new ones it does not ignore among them.

@@ -2,10 +2,9 @@
 //! of its `FixedLine` codes with the fields it carries beside it and the room's language, answered with the
 //! sentence built here from the pack's keys; and the document wording file, held to bmo-artifact's keys.
 
-mod support;
+use crate::support;
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::Once;
 
 use axum::Router;
 use axum::body::Body;
@@ -22,23 +21,10 @@ use bmo_web_server::routes::in_force;
 use bmo_web_server::wording::document_wording;
 use http_body_util::BodyExt;
 use serde_json::{Map, Value, json};
-use support::{CHAT_AGENT, Scratch, SharedDatabase};
+use support::{CHAT_AGENT, Scratch, SharedDatabase, ready};
 use tower::ServiceExt;
 
 const TOKEN: &str = "the server's token";
-
-static SUMIDA: Once = Once::new();
-
-// sumida reads its settings once, at its first reading; every test of this binary asks this first.
-fn ready() {
-  SUMIDA.call_once(|| {
-    // SAFETY: every other test of this process waits here before it reads the environment.
-    unsafe {
-      std::env::set_var("SUMIDA_SETTINGS", concat!(env!("CARGO_MANIFEST_DIR"), "/sumida.toml"));
-      std::env::set_var("SUMIDA_SESSION__REDIS__URL", "redis://127.0.0.1:6379/15");
-    }
-  });
-}
 
 // The router on a database the data move has not run on, so every line here is asked before the model is in
 // force.

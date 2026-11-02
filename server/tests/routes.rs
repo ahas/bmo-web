@@ -2,9 +2,9 @@
 //! a caller asks it: with the token, in snake_case JSON, a user named by a string; and the receiver's client
 //! against a stand-in receiver.
 
-mod support;
+use crate::support;
 
-use std::sync::{Arc, Mutex, Once};
+use std::sync::{Arc, Mutex};
 
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
@@ -17,27 +17,13 @@ use bmo_web_server::routes::in_force;
 use bmo_web_server::users::set_sign_in;
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
-use support::{OWNER, ROOM, Scratch, SharedDatabase, console_hash};
+use support::{OWNER, ROOM, Scratch, SharedDatabase, console_hash, ready};
 use tower::ServiceExt;
 
 const TOKEN: &str = "the server's token";
 const MEMBER: i64 = 777;
 const OTHER: i64 = -200;
 const UNANSWERED: i64 = -300;
-
-static SUMIDA: Once = Once::new();
-
-// sumida reads its settings once, at its first reading; every test of this binary asks this first, before it
-// reads anything of the environment, so the one that sets them is done before any reads.
-fn ready() {
-  SUMIDA.call_once(|| {
-    // SAFETY: every other test of this process waits here before it reads the environment.
-    unsafe {
-      std::env::set_var("SUMIDA_SETTINGS", concat!(env!("CARGO_MANIFEST_DIR"), "/sumida.toml"));
-      std::env::set_var("SUMIDA_SESSION__REDIS__URL", "redis://127.0.0.1:6379/15");
-    }
-  });
-}
 
 /// A database the move has run on, with the owner's account, two rooms the deployment answers, a room rule
 /// for a member in the first, and messages in both. Shared by the tests that only read or grant to holders

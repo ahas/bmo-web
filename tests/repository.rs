@@ -1,7 +1,7 @@
 //! Checks that span the repository (docs/checks.md): what its packages and its code may depend on, that no code or
 //! test holds Korean, its layout, that no tracked file matches a personal-data pattern or holds a name the list
-//! kept outside the repository gives. It is a test target of the server's crate, since the repository's root is a
-//! workspace and holds no package.
+//! kept outside the repository gives. It is a module of the server crate's test harness, since the repository's
+//! root is a workspace and holds no package.
 
 use std::collections::BTreeSet;
 use std::fs;

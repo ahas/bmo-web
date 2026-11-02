@@ -14,6 +14,11 @@ export interface SlotTileRun {
   model: string | null;
   // Since when the run holds the slot, in epoch milliseconds; none where the agency does not say.
   since: number | null;
+  // The line naming the work the slot was asked for, where its asker named one.
+  title: string | null;
+  // The run the tile's log opens at: its job's run where the agency names the job, else the run its binding names;
+  // none while it is bound to nothing.
+  log: string | null;
   // What a stop of the tile names: a job's run is stopped through its item, as every job is; a run the console can
   // tie to no item names none.
   stop: StopTarget | null;

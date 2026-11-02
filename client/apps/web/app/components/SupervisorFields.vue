@@ -28,7 +28,16 @@
 
     <div class="grid gap-4 sm:grid-cols-2">
       <UFormField :label="$t('agents.label.column_threshold')" name="foldRatio" :error="errorAt('foldRatio')">
-        <NumberInput v-model="draft.threshold" :min="1" :max="100" :step="1" :digits="3" unit="%" :disabled="busy" :aria-label="$t('agents.label.column_threshold')" />
+        <NumberInput
+          v-model="draft.threshold"
+          :min="1"
+          :max="100"
+          :step="1"
+          :digits="3"
+          :unit="markedDefault($t, '%', isDefaultThreshold(draft.threshold, defaultThreshold(providers, draft.order)))"
+          :disabled="busy"
+          :aria-label="$t('agents.label.column_threshold')"
+        />
       </UFormField>
       <UFormField :label="$t('agents.label.work_repository')" name="repository" :error="errorAt('repository')">
         <USelect v-model="draft.repository" :items="repositoryItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.work_repository')" />
@@ -42,7 +51,7 @@
 <script setup lang="ts">
 import { useFormPart } from "bmo-ui/app/domain/form-save";
 
-import { fractionOf, orderRefusalEntry, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, useProviders } from "~/domain/axes";
+import { defaultThreshold, fractionOf, isDefaultThreshold, markedDefault, orderRefusalEntry, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, useProviders } from "~/domain/axes";
 
 import type { OrderEntryView, RepositoryView, SupervisorView } from "#shared/axes";
 

@@ -136,7 +136,6 @@ export interface ModelView {
   name?: string;
   provider: string;
   model: string;
-  tier: string | null;
   healthy: boolean | null;
   // When the engine last answered a health probe, in unix seconds, where it ever has; absent from a
   // registration answered before the agency kept it.
@@ -147,6 +146,10 @@ export interface ModelView {
   // Every supervisor, role and repository whose order or pin names it, and every model file standing behind it, as
   // the agency names each.
   usedBy?: string[];
+  // The registration's own run settings: its window, its answer ceiling and its thinking default.
+  contextTokens?: number | null;
+  answerTokens?: number | null;
+  thinking?: boolean | null;
 }
 
 // One of the chat agent's own documents the owner may keep a text of (the agency's `docs/api.md`,

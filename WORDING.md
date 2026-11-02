@@ -78,7 +78,13 @@
 - a repository, where executing work runs → 저장소: 저장소, 저장소 추가, 작업 저장소; the model a repository pins →
   고정 모델; no pin → 역할 순서. A deployment's own model → 등록 모델; a file its engine serves → 모델 파일.
 - a value equal to the default a service states → `<value> (기본값)`, after the value and never in its place; a
-  setting whose default no service states stands empty, with no word.
+  setting a service leaves to its own default without naming the value stands empty with `(기본값)` as its
+  placeholder; a setting whose default no service states stands empty, with no word.
+- a role the agency seeds, by its code → 워커 (worker), 위임자 (delegator), 헬퍼 (helper), 영상 제작자 (video), 빌더
+  (builder), 검증자 (verifier), 다이제스트 (digest), 스카우트 (scout), 스크리너 (screener), 서쳐 (searcher), 브라우저
+  (browser), 번역기 (translator), 음역기 (transliterator), 유지 관리 (upkeep). A role the pack holds no word for is
+  shown by its row's label.
+- a supervisor whose turn goes out on the stand-in → 대신 답하는 중.
 - a round's record on its answer → 판정 기록: 판정 기록, 기록, 펼치기, 접기. The one press carrying the turn's
   brain, calls, drafts and judgement; its parts say 브레인, 툴 사용, 드래프트, 판정.
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,

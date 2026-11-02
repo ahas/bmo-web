@@ -5,8 +5,10 @@ import { bundleWordOf, providerLabelOf, roadReasonOf, roleWordOf } from "./agenc
 
 import type { Provider, Repository, Role, Supervisor } from "@agency/client";
 import type { components } from "@agency/client/schema";
+import type { GenerationSetting } from "#shared/agency";
 import type {
   CheckoutView,
+  NodeCheckoutAsk,
   OrderEntryView,
   ProviderModelsView,
   ProviderModelView,
@@ -18,7 +20,10 @@ import type {
   RoleSessionView,
   RolesView,
   RoleView,
-  SupervisorView
+  StandInView,
+  SupervisorRoomView,
+  SupervisorView,
+  WorkNodeView
 } from "#shared/axes";
 
 type Schemas = components["schemas"];
@@ -87,7 +92,8 @@ export function providerViewOf(provider: Provider): ProviderView {
     lines: list(held.lines).filter((one): one is string => typeof one === "string"),
     quota: quotaOf(held.quota),
     reason: said.reason,
-    reasonEnglish: said.reasonEnglish
+    reasonEnglish: said.reasonEnglish,
+    foldRatioDefault: number(held.foldRatioDefault)
   };
 }
 
@@ -109,7 +115,13 @@ function providerModelOf(value: unknown): ProviderModelView[] {
 
   if (id === null) return [];
 
-  return [{ id, efforts: list(held.efforts).filter((one): one is string => typeof one === "string"), inService: typeof held.inService === "boolean" ? held.inService : null }];
+  return [{
+    id,
+    efforts: list(held.efforts).filter((one): one is string => typeof one === "string"),
+    inService: typeof held.inService === "boolean" ? held.inService : null,
+    thinking: typeof held.thinking === "boolean" ? held.thinking : null,
+    answerTokens: number(held.answerTokens)
+  }];
 }
 
 /** The models an order's entry may name on one provider; a catalogue that cannot be read answers the agency's refusal. */
@@ -389,6 +401,7 @@ function checkoutOf(value: unknown): CheckoutView[] {
     name: text(held.name) ?? path,
     path,
     nodeName: text(held.nodeName),
+    kind: text(held.kind) ?? "base",
     job: job === null || (jobId === null && itemId === null && role === null) ? null : { jobId, itemId, role }
   }];
 }
@@ -401,6 +414,54 @@ function samplingOf(value: unknown): Record<string, number | boolean> {
   }
 
   return values;
+}
+
+// A sampling change as a screen sent it: each setting a number, a switch, or none to give it back to the engine; null
+// where any is none of these.
+function samplingAsked(value: unknown): Record<string, number | boolean | null> | null {
+  const values: Record<string, number | boolean | null> = {};
+
+  for (const [name, held] of Object.entries(record(value))) {
+    if (held !== null && typeof held !== "boolean" && (typeof held !== "number" || !Number.isFinite(held))) return null;
+
+    values[name] = held;
+  }
+
+  return values;
+}
+
+// Every setting a repository's sampling may hold, by its name and bounds, as the agency answers them; one that does not
+// read as a setting is left out.
+function samplingSettingsOf(value: unknown): GenerationSetting[] {
+  return list(value).flatMap((one): GenerationSetting[] => {
+    const held = record(one);
+    const name = text(held.name);
+
+    if (name === null) return [];
+    if (held.switch === true) return [{ name, switch: true }];
+
+    return [{
+      name,
+      min: number(held.min) ?? 0,
+      max: number(held.max),
+      ...(held.aboveMin === true ? { aboveMin: true } : {}),
+      ...(held.whole === true ? { whole: true } : {})
+    }];
+  });
+}
+
+// A node checkouts list as a screen sent it, whole: each a node and a path or none; null where any is not.
+function nodeCheckoutsAsked(value: unknown): NodeCheckoutAsk[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const asked = value.map((one): NodeCheckoutAsk | null => {
+    const held = record(one);
+    const nodeName = text(held.nodeName);
+
+    return nodeName === null || (held.path !== null && held.path !== undefined && typeof held.path !== "string") ? null : { nodeName, path: text(held.path) };
+  });
+
+  return asked.every((one) => one !== null) ? (asked as NodeCheckoutAsk[]) : null;
 }
 
 /** One repository as the screen reads it. */
@@ -420,6 +481,7 @@ export function repositoryViewOf(repository: Repository): RepositoryView {
     pin: repository.pin,
     downgradeHeal: repository.downgradeHeal,
     sampling: samplingOf(repository.sampling),
+    samplingSettings: samplingSettingsOf(repository.samplingSettings),
     checkouts: repository.checkouts.flatMap(checkoutOf)
   };
 }
@@ -474,7 +536,23 @@ export function repositoryChangeOf(body: unknown, adding: boolean): Schemas["Rep
     change.downgradeHeal = held.downgradeHeal;
   }
 
-  if ("sampling" in held) change.sampling = samplingOf(held.sampling);
+  if ("sampling" in held) {
+    const sampling = samplingAsked(held.sampling);
+
+    if (sampling === null) return null;
+
+    change.sampling = sampling;
+  }
+
+  if ("nodeCheckouts" in held) {
+    if (adding) return null;
+
+    const checkouts = nodeCheckoutsAsked(held.nodeCheckouts);
+
+    if (checkouts === null) return null;
+
+    change.nodeCheckouts = checkouts;
+  }
 
   if (!adding && Object.keys(change).length === 0) return null;
 
@@ -494,6 +572,46 @@ const REPOSITORY_REMOVAL_CODES: Readonly<Record<string, string>> = { conflict: "
 
 export async function removeRepository(name: string): Promise<void> {
   await agencyCall(agency().DELETE("/repositories/{repositoryName}", { params: { path: { repositoryName: name } } }), { codes: REPOSITORY_REMOVAL_CODES });
+}
+
+/** The rooms a supervisor's turns went into, the latest first, each with its latest run there (the agency's `docs/api.md`,
+ * 「supervisors」). */
+export async function readSupervisorRooms(name: string): Promise<SupervisorRoomView[]> {
+  const page = await agencyCall(agency().GET("/supervisors/{supervisorName}/rooms", { params: { path: { supervisorName: name } } }));
+
+  return page.items.map((room) => ({ chatId: room.roomId, runs: room.runs, lastRun: room.lastRunUnit, lastStartedAt: room.lastStartedAt, lastFinishedAt: room.lastFinishedAt }));
+}
+
+/** The stand-in that answers a supervisor now: where the agency names one and the supervisor's last turn went out on it
+ * rather than on the first provider of its order; none otherwise (docs/boundary.md, 「Gaps the console meets」). */
+export async function readStandIn(name: string): Promise<StandInView | null> {
+  const [supervisor, standIn] = await Promise.all([
+    agencyCall(agency().GET("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } } })),
+    agencyCall(agency().GET("/stand-in", { params: { query: { agent: name } } }))
+  ]);
+  const first = orderOf(supervisor.order)[0]?.provider ?? null;
+
+  if (!standIn.answers || standIn.provider === null || standIn.model === null) return null;
+  if (supervisor.provider !== standIn.provider || first === standIn.provider) return null;
+
+  return { provider: providerLabelOf(standIn.provider, standIn.provider), model: standIn.model };
+}
+
+/** The nodes the agency places jobs on, in the node list's order, each by its label and how it is reached in the pack's
+ * words (the agency's `docs/work-nodes.md`, 「Which nodes take jobs」). */
+export async function readWorkNodes(): Promise<WorkNodeView[]> {
+  const page = await agencyCall(agency().GET("/nodes"));
+
+  return page.items.filter((node) => node.takesJobs).map((node) => ({ name: node.name, label: node.label === "" ? node.name : node.label, kind: nodeKindWord(node.kind) }));
+}
+
+// How a node is reached, in the pack's words: SSH, or the hub's own word for a node reached through one, which the agency
+// calls `jake`.
+function nodeKindWord(kind: string): string {
+  if (kind === "ssh") return wording("hardware.label.kind_ssh");
+  if (kind === "jake") return wording("hardware.label.kind_hub");
+
+  return wording("agents.label.unknown_code", { code: kind });
 }
 
 /** The name a route's path names, or a refusal where it names none. */

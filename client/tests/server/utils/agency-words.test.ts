@@ -37,3 +37,12 @@ test("a provider is named by its code, a product by its own name and the registr
   expect(providerLabelOf(undefined, "deepseek")).toBe(wording("agents.label.provider_deepseek"));
   expect(providerLabelOf("brand-new", "brand-new")).toBe(wording("agents.label.unknown_code", { code: "brand-new" }));
 });
+
+test("every role the agency's policy seeds is worded by the pack, never by its English label", () => {
+  const seeded = ["worker", "delegator", "helper", "video", "builder", "verifier", "digest", "scout", "screener", "searcher", "browser", "translator", "transliterator", "upkeep"];
+
+  for (const code of seeded) {
+    expect(roleWordOf(code, code, "English label")).not.toBe("English label");
+    expect(roleLabelOf(code, code)).not.toBe(wording("agents.label.unknown_code", { code }));
+  }
+});

@@ -56,7 +56,17 @@
             <USelect v-model="form.sessions" :items="sessionItems" value-key="value" class="w-full" :disabled="busy" :aria-label="$t('agents.label.column_sessions')" />
           </UFormField>
           <UFormField :label="$t('agents.label.column_threshold')" name="foldRatio" :error="errorAt('foldRatio')">
-            <NumberInput v-model="form.threshold" :min="1" :max="100" :step="1" :digits="3" unit="%" :disabled="busy" :aria-label="$t('agents.label.column_threshold')" />
+            <NumberInput
+              v-model="form.threshold"
+              :min="1"
+              :max="100"
+              :step="1"
+              :digits="3"
+              :unit="markedDefault($t, '%', isDefaultThreshold(form.threshold, firstThreshold))"
+              :placeholder="firstThreshold === null ? undefined : markedDefault($t, String(percentOf(firstThreshold)), true)"
+              :disabled="busy"
+              :aria-label="$t('agents.label.column_threshold')"
+            />
           </UFormField>
         </div>
 
@@ -83,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { DEFAULT_QUOTA_SHARE, DEFAULT_ROLE_SESSIONS, fractionOf, orderRefusalEntry, percentOf, refusalOf, sessionsText } from "~/domain/axes";
+import { DEFAULT_QUOTA_SHARE, DEFAULT_ROLE_SESSIONS, defaultThreshold, fractionOf, isDefaultThreshold, markedDefault, orderRefusalEntry, percentOf, refusalOf, sessionsText, useProviders } from "~/domain/axes";
 
 import type { OrderEntryView, RoleSessions, RolesView, RoleView } from "#shared/axes";
 
@@ -97,6 +107,7 @@ const open = defineModel<boolean>("open", { required: true });
 const emit = defineEmits<{ saved: [role: RoleView] }>();
 
 const { t } = useI18n();
+const { data: providers } = useProviders();
 const formId = useId();
 
 // The roles tab reads the same answer under the same key.
@@ -145,6 +156,8 @@ function formOf(held: RoleView): RoleForm {
 }
 
 const form = ref<RoleForm>(emptyForm());
+// The threshold the role is given where it names none: the declared one of the first provider of its order.
+const firstThreshold = computed(() => defaultThreshold(providers.value, form.value.order));
 const opened = ref<RoleForm>(emptyForm());
 const busy = ref(false);
 const refusal = ref<{ field: string | null; text: string } | null>(null);

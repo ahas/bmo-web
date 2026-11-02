@@ -79,7 +79,7 @@
           :step="1"
           :save="(value: string) => saved(change(row.original.name, { foldRatio: fractionOf(Number(value)) }))"
         >
-          <span class="text-sm tabular-nums text-highlighted">{{ thresholdText(row.original.foldRatio) }}</span>
+          <span class="text-sm tabular-nums text-highlighted">{{ thresholdText($t, row.original.foldRatio, defaultThreshold(providers, row.original.order)) }}</span>
         </SettingsInputCell>
       </template>
 
@@ -136,7 +136,7 @@
           </UFormField>
         </div>
 
-        <p v-if="addRefusal !== null && !ADD_FIELDS.has(addRefusal.field ?? '')" role="alert" class="break-words text-sm text-error">{{ addRefusal.text }}</p>
+        <p v-if="addRefusal !== null && !ADD_FIELDS.has(addRefusal.field ?? '') && orderRefusal === null" role="alert" class="break-words text-sm text-error">{{ addRefusal.text }}</p>
       </form>
 
       <template #footer="{ close }">
@@ -154,7 +154,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
-import { DEFAULT_QUOTA_SHARE, fractionOf, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
+import { DEFAULT_QUOTA_SHARE, defaultThreshold, fractionOf, orderRefusalEntry, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { useRoomList } from "~/domain/room-list";
@@ -311,7 +311,7 @@ async function remove(supervisor: SupervisorView): Promise<void> {
 }
 
 // The add's fields, and the ones a refusal stands under.
-const ADD_FIELDS = new Set(["name", "label", "worker", "repository", "room", "order", "provider", "model"]);
+const ADD_FIELDS = new Set(["name", "label", "worker", "repository", "room", "order", "provider", "model", "quotaShare"]);
 
 interface SupervisorDraft {
   name: string;
@@ -335,7 +335,15 @@ const addComplete = computed(() =>
   draft.value.name.trim() !== "" && draft.value.label.trim() !== "" && draft.value.repository !== "" && draft.value.room.trim() !== "" && draft.value.order.length > 0 && draft.value.order.every((one) => one.model !== "")
 );
 const addRefusal = ref<{ field: string | null; text: string } | null>(null);
-const orderRefusal = computed(() => (addRefusal.value !== null && ["order", "provider", "model"].includes(addRefusal.value.field ?? "") ? { entry: 0, text: addRefusal.value.text } : null));
+// A refusal of the order stands under the entry the agency names, the first where it names the provider or the model the
+// room was made on.
+const orderRefusal = computed(() => {
+  const field = addRefusal.value?.field ?? "";
+
+  if (addRefusal.value === null || !(field.startsWith("order") || ["provider", "model", "quotaShare"].includes(field))) return null;
+
+  return { entry: field.startsWith("order") ? orderRefusalEntry(field) : 0, text: addRefusal.value.text };
+});
 const repositoryItems = computed(() => (repositories.value ?? []).map((one) => ({ label: one.label, value: one.name, description: one.name })));
 
 function addErrorAt(field: string): string | undefined {

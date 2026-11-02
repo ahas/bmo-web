@@ -101,6 +101,9 @@
         class="border-b border-default px-4 py-3"
       />
 
+      <!-- A supervisor's screen names the rooms it has spoken in and whether a stand-in answers for it now. -->
+      <SupervisorRooms v-if="settingsKind === 'supervisor'" :name="name" :label="meta.label" :run="placeRun" :rooms="rooms" />
+
       <!-- The work view: the job's work order, what it is doing now, what it spent and called, its stages where it is
            co-work or laid out a plan, and its log (docs/web.md, 「The work view」). -->
       <!-- A repository keeps no log of its own: its screen reads the jobs run in it and stands the log of the one going

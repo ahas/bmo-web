@@ -100,7 +100,7 @@ import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { AGENT_TABS, isAgentTab, searchSettings, settingsAnchor } from "~/domain/agent-settings";
 import { usedByText, registrationName } from "~/domain/registry";
 import { draftKeyId, draftKeyLabel, draftListText } from "~/domain/draft-process";
-import { sessionsText, thresholdText, entryText, useProviders } from "~/domain/axes";
+import { defaultThreshold, sessionsText, thresholdText, entryText, useProviders } from "~/domain/axes";
 
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
 import type { CatalogueView, ModelPage } from "#shared/agency";
@@ -194,7 +194,7 @@ const entries = computed<SettingsEntry[]>(() => {
         { label: t("common.label.name"), text: one.label, shown: true },
         { label: t("agents.label.key"), text: one.name, shown: true },
         { label: t("agents.label.order"), text: one.order.map((entry) => entryText(providers.value, entry)).join(" "), shown: true },
-        { label: t("agents.label.column_threshold"), text: thresholdText(one.foldRatio), shown: true },
+        { label: t("agents.label.column_threshold"), text: thresholdText(t, one.foldRatio, defaultThreshold(providers.value, one.order)), shown: true },
         { label: t("agents.label.alias"), text: one.aliases, shown: false }
       ]
     });

@@ -35,15 +35,50 @@
         </UFormField>
       </div>
 
-      <!-- The checkouts kept on the work nodes, as the agency answers them. -->
-      <UFormField v-if="!adding" :label="$t('agents.label.node_checkouts')" name="nodeCheckouts">
-        <ul v-if="nodeCheckouts.length > 0" class="flex flex-col gap-1">
-          <li v-for="checkout in nodeCheckouts" :key="checkout.name" class="flex min-w-0 items-center gap-2 text-sm">
-            <span class="w-32 shrink-0 truncate text-toned">{{ nodeLabel(checkout.nodeName ?? "") }}</span>
-            <span class="min-w-0 flex-1 truncate font-mono">{{ checkout.path }}</span>
-          </li>
-        </ul>
-        <p v-else class="text-sm text-muted">{{ $t("agents.status.no_node_checkouts") }}</p>
+      <!-- The checkouts kept on the work nodes, the list sent whole with the save: one standing keeps its own path, a
+           new one names its path or leaves it to the agency's place beside the base. -->
+      <UFormField
+        v-if="!adding"
+        :label="$t('agents.label.node_checkouts')"
+        name="nodeCheckouts"
+        :error="errorAt('nodeCheckouts')"
+        :help="form.node === HERE ? undefined : $t('agents.message.node_checkouts_need_here')"
+      >
+        <div class="flex flex-col gap-2">
+          <ul v-if="form.nodeCheckouts.length > 0" class="flex flex-col gap-1">
+            <li v-for="checkout in form.nodeCheckouts" :key="checkout.nodeName" data-node-checkout class="flex min-w-0 items-center gap-2 text-sm">
+              <span class="w-28 shrink-0 truncate text-toned sm:w-36">{{ nodeLabel(checkout.nodeName) }}</span>
+              <span class="min-w-0 flex-1 truncate font-mono" :class="checkout.path === '' ? 'text-muted' : ''">{{ checkout.path === "" ? $t("agents.placeholder.service_default") : checkout.path }}</span>
+              <UTooltip :text="$t('agents.aria.node_checkout_remove', { node: nodeLabel(checkout.nodeName) })">
+                <UButton icon="i-material-symbols-close" color="neutral" variant="ghost" :disabled="busy" :aria-label="$t('agents.aria.node_checkout_remove', { node: nodeLabel(checkout.nodeName) })" @click="dropNodeCheckout(checkout.nodeName)" />
+              </UTooltip>
+            </li>
+          </ul>
+          <p v-else class="text-sm text-muted">{{ $t("agents.status.no_node_checkouts") }}</p>
+          <div v-if="form.node === HERE" class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+            <USelect
+              v-model="addingCheckout.node"
+              :items="checkoutNodeItems"
+              value-key="value"
+              class="w-full sm:w-44"
+              :disabled="busy || checkoutNodeItems.length === 0"
+              :aria-label="$t('agents.aria.node_checkout_node')"
+            />
+            <div class="flex min-w-0 flex-1 items-center gap-2">
+              <UInput
+                v-model="addingCheckout.path"
+                class="min-w-0 flex-1 font-mono"
+                :placeholder="$t('agents.placeholder.service_default')"
+                :disabled="busy"
+                :aria-label="$t('agents.aria.node_checkout_path')"
+                @keydown.enter.prevent="addNodeCheckout"
+              />
+              <UTooltip :text="$t('agents.action.node_checkout_add')">
+                <UButton icon="i-material-symbols-add" color="neutral" variant="ghost" :disabled="addingCheckout.node === '' || busy" :aria-label="$t('agents.action.node_checkout_add')" @click="addNodeCheckout" />
+              </UTooltip>
+            </div>
+          </div>
+        </div>
       </UFormField>
 
       <!-- The documents a run's prefix carries in this repository, in order, sent whole. -->
@@ -102,6 +137,13 @@
         <p v-if="pinModels.failure !== null" role="alert" class="mt-1 break-words text-sm text-error">{{ pinModels.failure }}</p>
       </UFormField>
 
+      <!-- The sampling a run on a pinned registration is sent: a setting the repository leaves out is the engine's own. -->
+      <div v-if="samplingShown" class="flex flex-col gap-2">
+        <h3 :id="`${formId}-sampling`" class="text-sm font-medium text-highlighted">{{ $t("agents.label.sampling") }}</h3>
+        <GenerationFields v-model="form.sampling" :settings="samplingSettings" :id-prefix="`${formId}-sampling`" :labelledby="`${formId}-sampling`" :disabled="busy" :refusal-at="samplingRefusal" />
+        <p v-if="errorAt('sampling') !== undefined" role="alert" class="break-words text-sm text-error">{{ errorAt("sampling") }}</p>
+      </div>
+
       <UFormField name="downgradeHeal" :error="errorAt('downgradeHeal')">
         <USwitch v-model="form.downgradeHeal" :label="markedDefault($t, $t('agents.label.restore'), form.downgradeHeal === DEFAULT_DOWNGRADE_HEAL)" :disabled="busy" />
       </UFormField>
@@ -120,9 +162,10 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 
 import { DEFAULT_DOWNGRADE_HEAL, markedDefault, refusalOf, useProviderModels, useProviders } from "~/domain/axes";
+import { generationChange, settingsDraft } from "~/domain/companions";
 
-import type { MonitorNode } from "#shared/types";
-import type { RepositoryView } from "#shared/axes";
+import type { GenerationSetting } from "#shared/agency";
+import type { NodeCheckoutAsk, RepositoryView, WorkNodeView } from "#shared/axes";
 
 interface Props {
   // The repository to edit; none opens the dialog for a new one.
@@ -147,12 +190,16 @@ const HERE = "@here";
 
 // The repositories tab reads the same answer under the same key.
 const { data: repositories, refresh } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
-const { data: nodes } = useFetch<MonitorNode[]>("/api/nodes", { key: "nodes", lazy: true, server: false });
+// The nodes the agency places jobs on; one the repository names that takes none now still stands as its own choice.
+const { data: nodes } = useFetch<WorkNodeView[]>("/api/work-nodes", { key: "work-nodes", lazy: true, server: false });
 const { data: providers } = useProviders();
 const models = useProviderModels();
 
 const adding = computed(() => props.name === null);
 const held = computed<RepositoryView | null>(() => (props.name === null ? null : (repositories.value?.find((one) => one.name === props.name) ?? null)));
+// Every setting a repository's sampling may hold, as the agency answers them: this repository's, or for a new one any
+// repository's, since the settings are the engine's and not the repository's.
+const samplingSettings = computed<GenerationSetting[]>(() => held.value?.samplingSettings ?? repositories.value?.[0]?.samplingSettings ?? []);
 const failed = ref(false);
 
 interface RepositoryForm {
@@ -168,10 +215,30 @@ interface RepositoryForm {
   pinProvider: string;
   pinModel: string;
   downgradeHeal: boolean;
+  // The checkouts on the work nodes: a node and the path it is kept at, empty for the agency's own place; one already
+  // standing is kept as the agency holds it.
+  nodeCheckouts: { nodeName: string; path: string; kept: boolean }[];
+  // Each sampling setting's box as text, empty for the engine's own.
+  sampling: Record<string, string>;
 }
 
 function emptyForm(): RepositoryForm {
-  return { name: "", label: "", path: "", node: HERE, supportCount: 0, prefixDocuments: [], preamble: "", rules: "", devCommand: "", pinProvider: ROLE_ORDER, pinModel: "", downgradeHeal: DEFAULT_DOWNGRADE_HEAL };
+  return {
+    name: "",
+    label: "",
+    path: "",
+    node: HERE,
+    supportCount: 0,
+    prefixDocuments: [],
+    preamble: "",
+    rules: "",
+    devCommand: "",
+    pinProvider: ROLE_ORDER,
+    pinModel: "",
+    downgradeHeal: DEFAULT_DOWNGRADE_HEAL,
+    nodeCheckouts: [],
+    sampling: settingsDraft(samplingSettings.value, {})
+  };
 }
 
 function formOf(repository: RepositoryView): RepositoryForm {
@@ -187,7 +254,9 @@ function formOf(repository: RepositoryView): RepositoryForm {
     devCommand: repository.devCommand ?? "",
     pinProvider: repository.pin?.provider ?? ROLE_ORDER,
     pinModel: repository.pin?.model ?? "",
-    downgradeHeal: repository.downgradeHeal
+    downgradeHeal: repository.downgradeHeal,
+    nodeCheckouts: repository.checkouts.filter((one) => one.kind === "node" && one.nodeName !== null).map((one) => ({ nodeName: one.nodeName ?? "", path: one.path, kept: true })),
+    sampling: settingsDraft(repository.samplingSettings, repository.sampling)
   };
 }
 
@@ -200,30 +269,52 @@ const refusal = ref<{ field: string | null; text: string } | null>(null);
 const dirty = computed(() => JSON.stringify(form.value) !== JSON.stringify(opened.value));
 const complete = computed(() => form.value.name.trim() !== "" && (form.value.pinProvider === ROLE_ORDER || form.value.pinModel !== ""));
 
-const FIELDS = ["name", "label", "path", "nodeName", "supportCount", "prefixDocuments", "preamble", "rules", "devCommand", "pin", "downgradeHeal"];
+const FIELDS = ["name", "label", "path", "nodeName", "supportCount", "nodeCheckouts", "prefixDocuments", "preamble", "rules", "devCommand", "pin", "sampling", "downgradeHeal"];
 
 function errorAt(place: string): string | undefined {
   if (refusal.value === null) return undefined;
 
   const field = refusal.value.field;
+  // A refusal naming one sampling setting stands under that setting's own box.
+  const named = field !== null && samplingSettings.value.some((one) => one.name === field) ? "sampling-setting" : field;
 
-  return (field !== null && FIELDS.includes(field) ? field : "form") === place ? refusal.value.text : undefined;
+  return (named !== null && (FIELDS.includes(named) || named === "sampling-setting") ? named : "form") === place ? refusal.value.text : undefined;
 }
-
-const workNodes = computed(() => (nodes.value ?? []).filter((node) => !node.thisMachine));
 
 function nodeLabel(name: string): string {
   return nodes.value?.find((node) => node.name === name)?.label ?? name;
 }
 
 const nodeItems = computed(() => {
-  const items = [{ label: t("agents.label.this_machine"), value: HERE }, ...workNodes.value.map((node) => ({ label: node.label, value: node.name }))];
+  const items = [{ label: t("agents.label.this_machine"), value: HERE }, ...(nodes.value ?? []).map((node) => ({ label: node.label, value: node.name, description: node.kind }))];
 
   return items.some((one) => one.value === form.value.node) ? items : [...items, { label: form.value.node, value: form.value.node }];
 });
 
-// The checkouts this repository keeps on the work nodes, as the agency answers them.
-const nodeCheckouts = computed(() => (held.value?.checkouts ?? []).filter((one) => one.nodeName !== null && one.path !== held.value?.path));
+// A node checkout is added on a node that takes jobs and holds none of this repository's yet.
+const addingCheckout = ref<{ node: string; path: string }>({ node: "", path: "" });
+const checkoutNodeItems = computed(() =>
+  (nodes.value ?? []).filter((node) => !form.value.nodeCheckouts.some((one) => one.nodeName === node.name)).map((node) => ({ label: node.label, value: node.name, description: node.kind }))
+);
+
+function addNodeCheckout(): void {
+  const node = addingCheckout.value.node;
+
+  if (node === "" || form.value.nodeCheckouts.some((one) => one.nodeName === node)) return;
+
+  form.value.nodeCheckouts = [...form.value.nodeCheckouts, { nodeName: node, path: addingCheckout.value.path.trim(), kept: false }];
+  addingCheckout.value = { node: "", path: "" };
+}
+
+function dropNodeCheckout(node: string): void {
+  form.value.nodeCheckouts = form.value.nodeCheckouts.filter((one) => one.nodeName !== node);
+}
+
+const samplingShown = computed(() => samplingSettings.value.length > 0 && form.value.pinProvider !== ROLE_ORDER && providers.value?.find((one) => one.name === form.value.pinProvider)?.registered === true);
+
+function samplingRefusal(field: string): string {
+  return refusal.value?.field === field ? refusal.value.text : "";
+}
 
 const pinProviderItems = computed(() => [
   { label: t("agents.label.role_order"), value: ROLE_ORDER },
@@ -271,6 +362,7 @@ function load(): void {
   form.value = held.value === null ? emptyForm() : formOf(held.value);
   opened.value = structuredClone(toRaw(form.value));
   addingPrefix.value = "";
+  addingCheckout.value = { node: "", path: "" };
   refusal.value = null;
 }
 
@@ -305,6 +397,14 @@ function body(): Record<string, unknown> {
   if (changed("devCommand") && (!adding.value || now.devCommand.trim() !== "")) sent.devCommand = textOrNone(now.devCommand.trim());
   if (changed("pinProvider") || changed("pinModel")) sent.pin = now.pinProvider === ROLE_ORDER ? null : { provider: now.pinProvider, model: now.pinModel };
   if (changed("downgradeHeal")) sent.downgradeHeal = now.downgradeHeal;
+  if (!adding.value && changed("nodeCheckouts")) {
+    sent.nodeCheckouts = now.nodeCheckouts.map((one): NodeCheckoutAsk => ({ nodeName: one.nodeName, path: one.kept || one.path === "" ? null : one.path }));
+  }
+  if (samplingShown.value) {
+    const sampling = generationChange(now.sampling, adding.value ? {} : (held.value?.sampling ?? {}));
+
+    if (Object.keys(sampling).length > 0) sent.sampling = sampling;
+  }
 
   return sent;
 }

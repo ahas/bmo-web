@@ -26,8 +26,8 @@ export function rowHead(t: Translate, row: SlotRow): string {
   return row.waiting > 0 ? t("live.label.slot_row_waiting", { head, n: countText(row.waiting) }) : head;
 }
 
-/** The lines a tile's tooltip carries: its state, then what holds it — the path, the source that asked for it, the
- * provider and model, and how long it has been there. `now` is in epoch milliseconds. */
+/** The lines a tile's tooltip carries: its state and the source that asked for it, then what holds it — the line
+ * naming its work, the path, the provider and model, and how long it has been there. `now` is in epoch milliseconds. */
 export function tileLines(t: Translate, tile: SlotTile, now: number): string[] {
   const run = tile.run;
   const state = t(SLOT_STATE_LABELS[tile.state]);
@@ -36,6 +36,7 @@ export function tileLines(t: Translate, tile: SlotTile, now: number): string[] {
 
   return [
     `${state} · ${run.source}`,
+    ...(run.title === null ? [] : [run.title]),
     run.path ?? run.place,
     ...([run.provider, run.model === null ? null : modelLabel(run.model)].some((part) => part !== null)
       ? [[run.provider, run.model === null ? null : modelLabel(run.model)].filter((part): part is string => part !== null).join(" · ")]

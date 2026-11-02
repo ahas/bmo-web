@@ -15,21 +15,40 @@ type Held = Record<string, unknown>;
 const held = (value: unknown): Held | null => (typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Held) : null);
 const count = (value: unknown): number => (typeof value === "number" && Number.isFinite(value) ? value : 0);
 
-// A run's stop: the item of the job holding the checkout its path is, which a job is stopped through (the agency's
-// `docs/api.md`, 「assignments and jobs」); none where no job of an item holds it.
-function stopOf(path: string | null, repositories: readonly AgentSummary[]): StopTarget | null {
-  const checkout = path === null ? undefined : repositories.flatMap((one) => one.checkouts).find((one) => one.path === path && one.jobId !== null);
+// A job going now, by its id: the run its log is kept under and the item it is a run of.
+interface JobGoing {
+  run: string;
+  itemId: number | null;
+}
 
-  return checkout?.itemId === null || checkout?.itemId === undefined || checkout.itemId <= 0 ? null : { kind: "item", id: String(checkout.itemId) };
+// A run's stop: the item of the job the slot names, or else of the job holding the checkout its path is, which a job is
+// stopped through (the agency's `docs/api.md`, 「assignments and jobs」); none where no job of an item holds it.
+function stopOf(job: JobGoing | null, path: string | null, repositories: readonly AgentSummary[]): StopTarget | null {
+  const checkout = path === null ? undefined : repositories.flatMap((one) => one.checkouts).find((one) => one.path === path && one.jobId !== null);
+  const itemId = job?.itemId ?? checkout?.itemId ?? null;
+
+  return itemId === null || itemId <= 0 ? null : { kind: "item", id: String(itemId) };
+}
+
+// The jobs going now, by id; a read that fails names none, and a tile then opens by the run its binding names.
+async function jobsGoing(): Promise<Map<number, JobGoing>> {
+  try {
+    const page = await agencyCall(agency().GET("/jobs", { params: { query: { running: true, limit: 500 } } }));
+
+    return new Map(page.items.map((job) => [job.id, { run: job.runName ?? String(job.runId ?? job.id), itemId: job.itemId }]));
+  } catch {
+    return new Map();
+  }
 }
 
 export default defineEventHandler(async (event): Promise<SlotBoard> => {
   await requireUserSession(event);
 
-  const [slots, roles, repositories] = await Promise.all([
+  const [slots, roles, repositories, jobs] = await Promise.all([
     agencyCall(agency().GET("/slots")),
     agencyCall(agency().GET("/roles")),
-    agencyCall(agency().GET("/repositories")).then((page) => page.items.map(repositorySummary)).catch(() => [])
+    agencyCall(agency().GET("/repositories")).then((page) => page.items.map(repositorySummary)).catch(() => []),
+    jobsGoing()
   ]);
   const runs = slotRunsOf(slots);
   const items = new Map((Array.isArray(slots.items) ? slots.items : []).flatMap((item) => {
@@ -43,18 +62,25 @@ export default defineEventHandler(async (event): Promise<SlotBoard> => {
     const cap = item === null ? role.maxConcurrent : count(item.maxConcurrent);
     const working: SlotTile[] = runs
       .filter((run) => run.role === role.name)
-      .map((run) => ({
-        state: "working",
-        run: {
-          place: runPlace(run.path, repositories),
-          path: run.path,
-          source: slotSourceOf(run.source),
-          provider: run.provider === null ? null : providerLabelOf(undefined, run.provider),
-          model: run.model,
-          since: run.since,
-          stop: stopOf(run.path, repositories)
-        }
-      }));
+      .map((run) => {
+        // A screen opens a tile's log by its job's run where the slot names the job, else by the run its binding names.
+        const job = run.jobId === null ? null : (jobs.get(run.jobId) ?? null);
+
+        return {
+          state: "working",
+          run: {
+            place: runPlace(run.path, repositories),
+            path: run.path,
+            source: slotSourceOf(run.source),
+            provider: run.provider === null ? null : providerLabelOf(undefined, run.provider),
+            model: run.model,
+            since: run.since,
+            title: run.title,
+            log: job?.run ?? run.runName,
+            stop: stopOf(job, run.path, repositories)
+          }
+        };
+      });
     const active = Math.max(working.length, count(item?.active));
     const reserved = count(item?.reserved);
     const waiting = item === null ? role.waiting : count(item.waiting);

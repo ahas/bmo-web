@@ -23,12 +23,23 @@ const PROVIDER_LABELS: Readonly<Record<string, string>> = {
   laya: "agents.label.provider_laya"
 };
 
+// The roles the agency's policy seeds, by their codes (the agency's `docs/agent-roles.md`, 「The roles the policy
+// seeds」); a role the owner adds is shown by its row's label until a word for its code stands here.
 const ROLE_LABELS: Readonly<Record<string, string>> = {
-  chat: "agents.label.role_chat",
   worker: "agents.label.role_worker",
+  delegator: "agents.label.role_delegator",
+  helper: "agents.label.role_helper",
+  video: "agents.label.role_video",
+  builder: "agents.label.role_builder",
+  verifier: "agents.label.role_verifier",
+  digest: "agents.label.role_digest",
+  scout: "agents.label.role_scout",
+  screener: "agents.label.role_screener",
   searcher: "agents.label.role_searcher",
+  browser: "agents.label.role_browser",
   translator: "agents.label.role_translator",
-  gate: "agents.label.role_gate"
+  transliterator: "agents.label.role_transliterator",
+  upkeep: "agents.label.role_upkeep"
 };
 
 const BUNDLE_LABELS: Readonly<Record<string, string>> = {
@@ -72,8 +83,8 @@ function wordOr(table: Readonly<Record<string, string>>, code: unknown, name: st
   return key === undefined ? (label === "" ? named : label) : wording(key);
 }
 
-/** A role the screen names (docs/web.md, 「Sidebar」): in the pack's words where the pack holds them, by the label the
- * agency keeps for it otherwise, and by its code where it keeps none. */
+/** A role the screen names (docs/web.md, 「Sidebar」; the agency's `docs/agent-roles.md`, 「A role's label」): in the pack's
+ * words by its code where the pack holds them, by the row's label otherwise, and by its code where it keeps none. */
 export function roleWordOf(code: unknown, name: string, label: string | null): string {
   return wordOr(ROLE_LABELS, code, name, label ?? "");
 }

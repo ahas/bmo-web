@@ -58,20 +58,21 @@
             @update:model-value="(value: string) => change(index, { effort: value })"
           />
           <USelect
-            :model-value="entry.thinking ?? undefined"
-            :items="thinkingItems"
+            :model-value="thinkingShown(entry)"
+            :items="thinkingItems(entry)"
             value-key="value"
-            class="w-full sm:w-24"
+            class="w-full sm:w-32"
             :disabled="props.disabled"
             :aria-label="$t('agents.aria.order_thinking_of', { name: providerWord(providers, entry.provider) })"
-            @update:model-value="(value: string) => change(index, { thinking: value })"
+            @update:model-value="(value: string) => change(index, { thinking: thinkingKept(entry, value) })"
           />
           <NumberInput
             v-if="registeredProvider(entry.provider)"
             :model-value="entry.answerTokens ?? undefined"
             :min="1"
             :step="1024"
-            :digits="7"
+            :digits="13"
+            :placeholder="ceilingPlaceholder(entry)"
             :aria-label="$t('agents.aria.order_ceiling_of', { name: providerWord(providers, entry.provider) })"
             :disabled="props.disabled"
             @update:model-value="(value: number | null | undefined) => change(index, { answerTokens: value ?? null })"
@@ -112,7 +113,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
-import { DEFAULT_QUOTA_SHARE, effortChoices, fractionOf, markedDefault, percentOf, providerWord, useProviderModels, useProviders } from "~/domain/axes";
+import { ceilingDefault, DEFAULT_QUOTA_SHARE, effortChoices, fractionOf, markedDefault, percentOf, providerWord, thinkingDefault, useProviderModels, useProviders } from "~/domain/axes";
 import { movedOrder } from "~/domain/agents";
 import { useRowDrag } from "~/domain/row-drag";
 
@@ -138,10 +139,39 @@ const models = useProviderModels();
 const list = ref<HTMLElement | null>(null);
 const drag = useRowDrag({ list, ready: () => !props.disabled, drop: (from, to) => move(from, to) });
 
-const thinkingItems = computed(() => [
-  { label: t("agents.label.switch_on"), value: "on" },
-  { label: t("agents.label.switch_off"), value: "off" }
-]);
+// The thinking default the entry's model declares, as the switch's word: none where it declares none.
+function thinkingDefaultOf(entry: OrderEntryView): "on" | "off" | null {
+  const declared = thinkingDefault(modelsOf(entry.provider).view, entry.model);
+
+  return declared === null ? null : declared ? "on" : "off";
+}
+
+// On and off, the one equal to the model's declared default marked as it.
+function thinkingItems(entry: OrderEntryView): { label: string; value: string }[] {
+  const fallback = thinkingDefaultOf(entry);
+
+  return [
+    { label: markedDefault(t, t("agents.label.switch_on"), fallback === "on"), value: "on" },
+    { label: markedDefault(t, t("agents.label.switch_off"), fallback === "off"), value: "off" }
+  ];
+}
+
+// An entry that leaves thinking to the provider stands at the model's declared default.
+function thinkingShown(entry: OrderEntryView): string | undefined {
+  return entry.thinking ?? thinkingDefaultOf(entry) ?? undefined;
+}
+
+// Picking the model's declared default leaves thinking to the provider, so the entry follows the model's own.
+function thinkingKept(entry: OrderEntryView, value: string): string | null {
+  return value === thinkingDefaultOf(entry) ? null : value;
+}
+
+// An emptied ceiling is the registration's own, which its placeholder names.
+function ceilingPlaceholder(entry: OrderEntryView): string | undefined {
+  const declared = ceilingDefault(modelsOf(entry.provider).view, entry.model);
+
+  return declared === null ? undefined : markedDefault(t, declared.toLocaleString("ko-KR"), true);
+}
 
 function modelsOf(provider: string) {
   return models.stateOf(provider).value;

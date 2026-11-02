@@ -22,7 +22,7 @@ import type { ModelView } from "../../../apps/web/shared/agency";
 
 const t = wording;
 
-const model: ModelView = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", tier: null, healthy: true, lastAnsweredAt: null, cardService: "service-a", roleFiles: true, usedBy: [] };
+const model: ModelView = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", healthy: true, lastAnsweredAt: null, cardService: "service-a", roleFiles: true, usedBy: [] };
 
 describe("what a row says", () => {
   test("a registration is named by the part of its key after the provider", () => {

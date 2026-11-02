@@ -6,9 +6,9 @@ import type { Translate } from "#shared/wording";
 import type { Ref } from "vue";
 
 // The agent management screen's two axes and its places (docs/web.md, 「Agent management screen」): what a supervisor's
-// or a role's provider order reads as, how a share or a threshold is written, and the agency's own defaults where its
-// documents state them. A provider's own defaults are no route's answer, so none stands here
-// (docs/boundary.md, 「Gaps the console meets」).
+// or a role's provider order reads as, how a share or a threshold is written, and the agency's defaults — those its
+// documents state, and those its providers and models declare, read as its routes answer them (docs/web.md, 「The
+// default among choices」).
 
 // The agency's quota share where a row sets none (the agency's `docs/provider-order.md`, 「What an order is」).
 export const DEFAULT_QUOTA_SHARE = 0.01;
@@ -44,9 +44,33 @@ export function shareText(t: Translate, share: number): string {
   return markedDefault(t, `${percentOf(share)}%`, percentOf(share) === percentOf(DEFAULT_QUOTA_SHARE));
 }
 
-/** A compaction threshold as a whole percent; no route states a provider's own, so none is marked. */
-export function thresholdText(threshold: number): string {
-  return `${percentOf(threshold)}%`;
+/** The compaction threshold a row is given where its add names none: the declared one of the first provider of its
+ * order, or none where that provider has not been read or declares none. */
+export function defaultThreshold(providers: readonly ProviderView[] | null | undefined, order: readonly OrderEntryView[]): number | null {
+  const first = order[0]?.provider;
+
+  return first === undefined ? null : (providers?.find((one) => one.name === first)?.foldRatioDefault ?? null);
+}
+
+/** Whether a whole percent is the row's default threshold. */
+export function isDefaultThreshold(percent: number | null, fallback: number | null): boolean {
+  return percent !== null && fallback !== null && percent === percentOf(fallback);
+}
+
+/** A compaction threshold as a whole percent, marked as the default where it is the first provider's declared one. */
+export function thresholdText(t: Translate, threshold: number, fallback: number | null): string {
+  return markedDefault(t, `${percentOf(threshold)}%`, isDefaultThreshold(percentOf(threshold), fallback));
+}
+
+/** The thinking default the model an entry names declares, from its provider's catalogue; none where it declares none
+ * or the catalogue has not been read. */
+export function thinkingDefault(models: ProviderModelsView | null, model: string): boolean | null {
+  return models?.models.find((one) => one.id === model)?.thinking ?? null;
+}
+
+/** The answer ceiling the model an entry names declares; none where it declares none. */
+export function ceilingDefault(models: ProviderModelsView | null, model: string): number | null {
+  return models?.models.find((one) => one.id === model)?.answerTokens ?? null;
 }
 
 /** A role's sessions in the pack's words, keep marked as the default. */

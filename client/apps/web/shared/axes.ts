@@ -1,3 +1,5 @@
+import type { GenerationSetting } from "./agency";
+
 // The agency's two axes and its places as the agent management screen reads them (the agency's `docs/agents.md`,
 // 「Two axes」; its `docs/api.md`, 「supervisors」, 「roles」, 「repositories, prefix-checks and room-holdings」 and
 // 「providers, models and model files」): the supervisors, the roles, the repositories, the providers an order names
@@ -25,7 +27,8 @@ export interface QuotaView {
 }
 
 // One provider the agency carries: its name, the pack's word for its code, the owner's switch, the lines its program
-// carries, what it has left, and why it cannot answer now in the pack's words with the agency's own sentence beside.
+// carries, what it has left, why it cannot answer now in the pack's words with the agency's own sentence beside, and
+// the compaction threshold a row whose order begins on it is given where its add names none.
 export interface ProviderView {
   name: string;
   label: string;
@@ -35,14 +38,18 @@ export interface ProviderView {
   quota: QuotaView | null;
   reason: string | null;
   reasonEnglish: string | null;
+  foldRatioDefault: number | null;
 }
 
 // One model an order's entry may name on a provider: its id, the effort levels its entry takes (none listed is every
-// level the harness declares), and whether the catalogue serves its generation or has superseded it.
+// level the harness declares), whether the catalogue serves its generation or has superseded it, and what its
+// registration or road member declares — its thinking default and its answer ceiling, none where it declares none.
 export interface ProviderModelView {
   id: string;
   efforts: string[];
   inService: boolean | null;
+  thinking: boolean | null;
+  answerTokens: number | null;
 }
 
 // The models a provider holds, with the moment a stale read was taken in epoch milliseconds, or null for a fresh one.
@@ -135,11 +142,13 @@ export interface RoleSessionPage {
   more: boolean;
 }
 
-// One checkout of a repository: its name, path and node, and the job holding it, where one does.
+// One checkout of a repository: its name, path and node, its kind — `base`, `support` or `node` — and the job holding
+// it, where one does.
 export interface CheckoutView {
   name: string;
   path: string;
   nodeName: string | null;
+  kind: string;
   job: { jobId: number | null; itemId: number | null; role: string | null } | null;
 }
 
@@ -158,7 +167,40 @@ export interface RepositoryView {
   devCommand: string | null;
   pin: { provider: string; model: string } | null;
   downgradeHeal: boolean;
-  // The sampling a run on a pinned registration is sent, each setting by the name the engine reads it under.
+  // The sampling a run on a pinned registration is sent, each setting by the name the engine reads it under, and every
+  // setting it may hold with its bounds.
   sampling: Record<string, number | boolean>;
+  samplingSettings: GenerationSetting[];
   checkouts: CheckoutView[];
+}
+
+// One checkout on a work node as a repository's change sends it: the node, and the path from the node's home or
+// absolute, or none for the agency's own place or, on one already standing, the path it keeps.
+export interface NodeCheckoutAsk {
+  nodeName: string;
+  path: string | null;
+}
+
+// One node the agency places jobs on (the agency's `docs/work-nodes.md`, 「Which nodes take jobs」): its name, its label
+// and how it is reached, in the pack's words.
+export interface WorkNodeView {
+  name: string;
+  label: string;
+  kind: string;
+}
+
+// One room a supervisor's turns went into (the agency's `docs/api.md`, 「supervisors」): how many of its runs went there
+// and its latest, the run a screen opens its log at, moments in epoch milliseconds.
+export interface SupervisorRoomView {
+  chatId: number;
+  runs: number;
+  lastRun: string;
+  lastStartedAt: number;
+  lastFinishedAt: number | null;
+}
+
+// The stand-in answering for a supervisor now, by the pack's word for its provider and the model, or none.
+export interface StandInView {
+  provider: string;
+  model: string;
 }

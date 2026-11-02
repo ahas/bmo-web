@@ -174,7 +174,11 @@ function repository(name: string, label: string, extra: Record<string, unknown> 
   return {
     name, label, icon: null, ownerAccount: null, path: `/srv/checkouts/${name}`, nodeName: null, supportCount: 0,
     prefixDocuments: [], preamble: null, rules: null, devCommand: null, pin: null, downgradeHeal: true, sampling: null,
-    checkouts: [{ name, path: `/srv/checkouts/${name}`, nodeName: null, job: null }], ...extra
+    samplingSettings: [
+      { name: "temperature", min: 0, max: 2 }, { name: "top_p", min: 0, max: 1, aboveMin: true }, { name: "top_k", min: 0, max: null, whole: true },
+      { name: "preserve_thinking", switch: true }
+    ],
+    checkouts: [{ name, path: `/srv/checkouts/${name}`, nodeName: null, kind: "base", job: null }], ...extra
   };
 }
 
@@ -182,7 +186,7 @@ function repository(name: string, label: string, extra: Record<string, unknown> 
 function provider(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     name, code: name, label, enabled: true, registered: false, coworker: true, gateway: false, lines: ["chat", "worker", "search", "browse"],
-    quota: { left: 0.6, window: "week", balance: null, resetsAt: null }, reason: null, reasonCode: null, ...extra
+    quota: { left: 0.6, window: "week", balance: null, resetsAt: null }, reason: null, reasonCode: null, foldRatioDefault: 0.85, ...extra
   };
 }
 
@@ -276,7 +280,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({
         items: [
           supervisor("agent-a", "Agent A", { sessionScope: "agent", turnShape: "window", defaultAnswerer: true }),
-          supervisor("companion-a", "Companion A", { waitingFor: "every provider of its order is at its quota share" })
+          supervisor("companion-a", "Companion A", { waitingFor: "every provider of its order is at its quota share", foldRatio: 0.85, provider: "deepseek", model: "deepseek-v4-pro", effort: null })
         ],
         more: false
       });
@@ -291,14 +295,61 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/repositories") {
       return Response.json({
         items: [
-          repository("repo-a", "Repository A", { supportCount: 2, prefixDocuments: ["docs/a.md"], checkouts: [{ name: "repo-a", path: "/srv/checkouts/repo-a", nodeName: null, job: { jobId: 7, itemId: 12, role: "worker" } }, { name: "repo-a-w2", path: "/srv/checkouts/repo-a-w2", nodeName: null, job: null }] }),
-          repository("repo-b", "Repository B", { pin: { provider: "registered", model: "model-a" }, downgradeHeal: false }),
+          repository("repo-a", "Repository A", {
+            supportCount: 2,
+            prefixDocuments: ["docs/a.md"],
+            checkouts: [
+              { name: "repo-a", path: "/srv/checkouts/repo-a", nodeName: null, kind: "base", job: { jobId: 7, itemId: 12, role: "worker" } },
+              { name: "repo-a-w2", path: "/srv/checkouts/repo-a-w2", nodeName: null, kind: "support", job: null },
+              { name: "repo-a@node-a", path: "/srv/node-a/checkouts/repo-a-node-a", nodeName: "node-a", kind: "node", job: null }
+            ]
+          }),
+          repository("repo-b", "Repository B", { pin: { provider: "registered", model: "model-a" }, downgradeHeal: false, sampling: { temperature: 0.6, preserve_thinking: true } }),
           repository("repo-c", "Repository C", { nodeName: "node-a" })
         ],
         more: false
       });
     }
-    if (path === "/slots") return Response.json({ items: ROLES.map((one) => ({ role: one.name, maxConcurrent: one.maxConcurrent, active: one.running, reserved: 0, waiting: one.waiting, runs: [] })) });
+    if (path === "/slots") {
+      // The worker's runs: a job's, which opens by the job's run, and one its binding names.
+      const runs = (name: string): Record<string, unknown>[] =>
+        name === "worker"
+          ? [
+              { token: "slot-a", role: "worker", path: "/srv/checkouts/repo-a", provider: "claude-code", model: "claude-opus-5-5", source: "job", since: Date.now() - 90_000, runName: "job-7", session: null, jobId: 7, title: "Item 12" },
+              { token: "slot-b", role: "worker", path: "/srv/checkouts/repo-a-w2", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 30_000, runName: "delegate-b", session: null, jobId: null, title: "Look into a thing" }
+            ]
+          : [];
+
+      return Response.json({ items: ROLES.map((one) => ({ role: one.name, maxConcurrent: one.maxConcurrent, active: one.running, reserved: 0, waiting: one.waiting, runs: runs(String(one.name)) })) });
+    }
+    // The rooms the companion spoke in, and the stand-in answering for it on its second provider.
+    if (/^\/supervisors\/[^/]+\/rooms$/.test(path)) {
+      return Response.json({
+        items: [
+          { roomId: OWNER_CHAT, runs: 12, lastRunId: 41, lastRunUnit: "chat-41", lastStartedAt: Date.now() - 120_000, lastFinishedAt: Date.now() - 100_000 },
+          { roomId: UNREAD_CHAT, runs: 3, lastRunId: 38, lastRunUnit: "chat-38", lastStartedAt: Date.now() - 3_600_000, lastFinishedAt: Date.now() - 3_590_000 }
+        ],
+        more: false
+      });
+    }
+    if (/^\/supervisors\/[^/]+$/.test(path)) {
+      const name = decodeURIComponent(path.slice("/supervisors/".length));
+
+      return name === "companion-a"
+        ? Response.json(supervisor("companion-a", "Companion A", { foldRatio: 0.85, provider: "deepseek", model: "deepseek-v4-pro", effort: null }))
+        : Response.json(supervisor(name, name, { sessionScope: "agent", turnShape: "window", defaultAnswerer: true }));
+    }
+    if (path === "/stand-in") return Response.json({ answers: true, provider: "deepseek", model: "deepseek-v4-pro" });
+    if (path === "/nodes") {
+      return Response.json({
+        items: [
+          { name: "node-a", label: "Node A", kind: "ssh", role: null, state: "connected", checkedAt: null, takesJobs: true, jobsRefusal: null },
+          { name: "node-b", label: "Node B", kind: "ssh", role: null, state: "connected", checkedAt: null, takesJobs: true, jobsRefusal: null },
+          { name: "node-c", label: "Node C", kind: "jake", role: null, state: "connected", checkedAt: null, takesJobs: false, jobsRefusal: "A node reached through a hub has no SSH route." }
+        ],
+        more: false
+      });
+    }
     if (path === "/providers") {
       return Response.json({
         items: [
@@ -315,7 +366,11 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       const named = decodeURIComponent(offered[1]!);
       const ids = named === "registered" ? ["model-a"] : named === "deepseek" ? ["deepseek-v4-pro", "deepseek-flash"] : ["claude-opus-5-5", "claude-sonnet-5"];
 
-      return Response.json({ provider: named, models: ids.map((id, at) => ({ id, efforts: [], free: false, inService: at === 0 })), staleReadAt: null });
+      // What each model declares: the registration and the road's members their thinking and ceiling, the Claude CLI's
+      // catalogue none.
+      const declared = (at: number) => (named === "claude-code" ? { thinking: null, answerTokens: null } : { thinking: at === 0, answerTokens: 32_768 });
+
+      return Response.json({ provider: named, models: ids.map((id, at) => ({ id, efforts: [], free: false, inService: at === 0, ...declared(at) })), staleReadAt: null });
     }
     if (path === "/sessions") return Response.json({ items: [], more: false });
     if (path === "/runs") return Response.json({ items: [], more: false });

@@ -88,7 +88,7 @@
           :step="1"
           :save="(value: string) => saved(change(row.original.name, { foldRatio: fractionOf(Number(value)) }))"
         >
-          <span class="text-sm tabular-nums text-highlighted">{{ thresholdText(row.original.foldRatio) }}</span>
+          <span class="text-sm tabular-nums text-highlighted">{{ thresholdText($t, row.original.foldRatio, defaultThreshold(providers, row.original.order)) }}</span>
         </SettingsInputCell>
       </template>
 
@@ -128,7 +128,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
-import { fractionOf, percentOf, refusalOf, sessionsText, thresholdText } from "~/domain/axes";
+import { defaultThreshold, fractionOf, percentOf, refusalOf, sessionsText, thresholdText, useProviders } from "~/domain/axes";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
@@ -141,6 +141,7 @@ import type { CellChoice } from "~/domain/settings-cells";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
+const { data: providers } = useProviders();
 const island = useIsland(t);
 const askFirst = useConfirm();
 

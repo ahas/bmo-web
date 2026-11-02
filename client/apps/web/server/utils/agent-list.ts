@@ -146,7 +146,17 @@ export function slotRunsOf(answer: unknown): RoleSlotRun[] {
 
       return run === null || name === null
         ? []
-        : [{ role: name, path: text(run.path), provider: text(run.provider), model: text(run.model), source: text(run.source), since: count(run.since) }];
+        : [{
+            role: name,
+            path: text(run.path),
+            provider: text(run.provider),
+            model: text(run.model),
+            source: text(run.source),
+            since: count(run.since),
+            runName: text(run.runName),
+            jobId: count(run.jobId),
+            title: text(run.title)
+          }];
     });
   });
 }

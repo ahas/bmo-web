@@ -1518,8 +1518,14 @@ Four groups.
   box stands for it. A row or an entry that holds the service's own settings unchanged carries `(기본값)` after its
   name.
 - **A setting the service holds unset is shown as the value it runs on,** with `(기본값)` beside it, where the service
-  says what that value is. Where it does not say, the field stands empty — a dash in a cell, an empty box with no
-  placeholder — and the screen never guesses a value or keeps one of its own.
+  says what that value is. Where the service says only that an unset setting is its own default and names no value —
+  an engine's sampling setting — the field stands empty with `(기본값)` as its placeholder, a list of choices holding
+  `(기본값)` as its placeholder while nothing is chosen. Where the service says neither, the field stands empty — a
+  dash in a cell, an empty box with no placeholder. The screen never guesses a value or keeps one of its own.
+- **Which value is the default is the service's word:** a compaction threshold's is the provider's declared
+  `foldRatioDefault` of the first provider of the row's order, a thinking switch's the `thinking` the model's
+  registration or road member declares, an answer ceiling's the `answerTokens` it declares (the agency's
+  `docs/api.md`, 「providers, models and model files」), each read as the service answers it now.
 - **Clearing a setting back to the service's own** is the field emptied, where the service takes an empty value;
   a list of choices offers no entry for it.
 
@@ -2036,12 +2042,14 @@ archive and this week's tokens remain. That is all that can actually be known th
   2. **A tile says at a glance which state its slot is in**: working (a run holds it), reserved (a reservation
      keeps it for an owner who has not used it yet) or idle, by its colour and its mark. A working tile carries the
      repository or folder its run works in.
-  3. **Hovering a tile** shows its state and what holds it: the path, the source that asked it — 잡, 위임, 협업,
-     네이티브 and the rest by the pack's word for the source — the provider and model, and how long it has been
-     there.
-  4. **Pressing a working tile opens the live log** of the role's run, at the place that run began and following
-     its newest lines: a dialog in the middle of a wide screen, a sheet from the bottom edge of a phone. An idle
-     tile opens nothing.
+  3. **Hovering a tile** shows its state and what holds it: the line naming the work it was asked for where its
+     asker named one, the path, the source that asked it — 잡, 위임, 협업, 네이티브 and the rest by the pack's word for
+     the source — the provider and model, and how long it has been there.
+  4. **Pressing a working tile opens the live log** of the run the slot holds, from that run's start and following
+     its newest lines: a job's run where the agency names the job (`jobId`), else the run its binding names
+     (`runName`), and, for a run bound to nothing yet, the role's log at the moment it took the slot. It opens as a
+     dialog in the middle of a wide screen, a sheet from the bottom edge of a phone. An idle tile opens nothing.
+     A job's tile is stopped through the job's item, as every job is.
 - Runners write execution records to a table of their own, and which group a record belongs to is read by which
   branch the agent that ran that line is — the branch the catalogue answers, and a name the catalogue does not
   know is read as a runner. Reading is per branch, as gates are read per gate.
@@ -2729,8 +2737,11 @@ Two ways, split because the running places differ.
   - one line per entry: a drag handle, its place, the provider, the model — a list of what the agency's
     `GET /provider-models/{provider}` answers for it, the Claude catalogue's superseded generations marked and a
     stale read said with the time it was taken — the effort, a list of the levels that model takes, the thinking,
-    켬 or 끔 where the provider takes the switch, and, on the registry's provider, the answer ceiling; and a button
-    taking the entry out;
+    켬 or 끔, and, on the registry's provider, the answer ceiling; and a button taking the entry out;
+  - **the thinking and the answer ceiling mark the model's own:** the choice equal to the `thinking` the model's
+    registration or road member declares reads `켬 (기본값)` or `끔 (기본값)` and stands chosen while the entry leaves
+    thinking to the provider, and picking it leaves it so; an emptied ceiling box is the registration's own, its
+    placeholder the declared `answerTokens` with `(기본값)`. A model of a catalogue that declares neither marks none;
   - under them, 공급자 추가, offering only the providers the order does not hold yet and whose program carries the
     row's line, a provider that cannot answer now standing with the pack's sentence for its reason;
   - 할당량 기준, the share of a provider's quota at or below which it is passed over, a whole percent from 0 to 100,
@@ -2749,7 +2760,8 @@ Two ways, split because the running places differ.
   them: 감독관, its mark, its label and its name, the title column; 공급자 순서, its order (above); 지금, the provider and
   model its last turn went out on, and why it waits where it waits; 캐시 유지, one switch per provider of its order,
   each by the provider's word, on where its prefix is kept warm on that provider; 압축 기준, its compaction threshold
-  as a whole percent; and 방, every room it answers, on one line under a ceiling of its own and cut inside its cell
+  as a whole percent, the value equal to the first provider of its order's declared threshold reading
+  `85% (기본값)`; and 방, every room it answers, on one line under a ceiling of its own and cut inside its cell
   where longer. The row's own presses stand centred on the row at the trailing edge, as every table's do: 설정 opens
   its settings dialog here, and pressing the row's name opens its own screen.
 - **캐시 유지** is switched per provider as the cell is pressed, through `PATCH /supervisors/{name}` with `warming`
@@ -2766,9 +2778,10 @@ Two ways, split because the running places differ.
   names.
 - **감독관 추가** is the tab's 추가: a dialog of 이름, 표시 이름, 공급자 순서, 작업 저장소 and 방 제목, with 취소 and
   추가, sent as a companion added on the console is (the agency's `docs/companions.md`, 「Where a companion and its
-  rooms come from」). A refusal stands under the field it names; an added supervisor stands as a row at once with a
-  room of the console's own that it answers alone, and where a console room already stood under its name the notice
-  after the add says it took that room back with its record.
+  rooms come from」). It is one action: the supervisor stands with its whole order and share, or, where any part is
+  refused, nothing of it stands and the refusal stands under the field or the order's entry it names. An added
+  supervisor stands as a row at once with a room of the console's own that it answers alone, and where a console room
+  already stood under its name the notice after the add says it took that room back with its record.
 - **삭제** stands in a supervisor's more-menu. For one the deployment seeds — the agency's `seeded`, the default
   answerer among them — it stands disabled, saying under it that the deployment set the supervisor up. It asks first, naming what goes — its settings, sessions and person records — and saying that
   the rooms it answered stay with their messages and documents.
@@ -2802,17 +2815,17 @@ Two ways, split because the running places differ.
 
 #### 역할
 
-- **One table of the roles the agency holds** (the agency's `docs/agent-roles.md`), one row each in the order the
-  agency lists them, read from its `GET /roles`: 역할, the pack's word for its name where the pack holds one and the
-  agency's label otherwise, with its name under it, the title column; 기능 묶음, the bundles it gives as chips, each
-  by the pack's short name for its code and by the agency's label where the pack holds none, or 기능 묶음 없음;
-  공급자 순서, its order; 동시 실행, its cap, with how many of its runs go and wait beside it — `2/3 실행 · 1 대기`
-  — and 막힘 at a cap of 0; 세션, 유지 or 새로; 압축 기준; and 코워커, whether a run may call it as a co-worker.
-  The counts are read again every few seconds while the tab stands.
+- **One table of the roles the agency holds** (the agency's `docs/agent-roles.md`, 「A role's label」), one row each in
+  the order the agency lists them, read from its `GET /roles`: 역할, the pack's word for its code where the pack holds
+  one and the row's label otherwise, with its name under it, the title column; 기능 묶음, the bundles it gives as chips,
+  each by the pack's short name for its code and by the agency's label where the pack holds none, or 기능 묶음 없음;
+  공급자 순서, its order; 동시 실행, its cap, with how many of its runs go and wait beside it — `2/3 실행 · 1 대기` —
+  and 막힘 at a cap of 0; 세션, 유지 or 새로; 압축 기준; and 코워커, whether a run may call it as a co-worker. The
+  counts are read again every few seconds while the tab stands.
 - **The cells set their own values:** 동시 실행 a whole number from 0, 세션 a choice of 유지 and 새로 — 유지 reading
-  `유지 (기본값)` — 압축 기준 a whole percent from 1 to 100, and 코워커 a switch, each through `PATCH
-  /roles/{name}`. A raised cap lets waiting runs in at once; nothing running is stopped by any change (the agency's
-  `docs/agent-roles.md`, 「Changing the roles」).
+  `유지 (기본값)` — 압축 기준 a whole percent from 1 to 100, marked `(기본값)` as a supervisor's is, and 코워커 a
+  switch, each through `PATCH /roles/{name}`. A raised cap lets waiting runs in at once; nothing running is stopped by
+  any change (the agency's `docs/agent-roles.md`, 「Changing the roles」).
 - **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made),
   이름표, 설명, 실행 라인 — a choice of the lines the agency names — 기능 묶음 as a checkbox for every bundle the agency
   declares, 공급자 순서 and 할당량 기준, 동시 실행, 세션, 압축 기준, 코워커 호출 허용, and 역할 프롬프트, a text area
@@ -2841,18 +2854,29 @@ Two ways, split because the running places differ.
 - **The repository's dialog** is one form with one 저장 at its foot: 이름 (fixed once made), 표시 이름, 경로, 실행
   노드 — 이 기계 or a node that takes jobs — 추가지원 체크아웃 수, 노드 체크아웃, 프리픽스 문서, 머리말, 규칙 폴더, 개발
   서버 명령, 고정 모델 and 강등 복원.
+  - **The nodes it offers are the agency's,** read from its `GET /nodes`, and only those whose `takesJobs` it answers
+    (the agency's `docs/work-nodes.md`, 「Which nodes take jobs」), each by its label with the pack's word for how it is
+    reached — SSH, or Jake for a node reached through a hub. A node the repository already names that takes no jobs
+    now still stands as its own choice.
   - **노드 체크아웃** lists the checkouts kept on the work nodes, each with its node and path and a button taking it
-    away; under it a node select of the nodes that take jobs and a path field add one (the agency's
-    `docs/work-nodes.md`, 「A checkout on a node」).
+    away; under it a node select of the nodes that take jobs and no checkout of this repository yet, and a path field —
+    from the node's home or absolute, empty for the agency's own place beside the base — add one. The list is sent
+    whole with the save, through `PATCH /repositories/{name}`'s `nodeCheckouts`, a checkout already standing sent
+    with no path so it keeps its own (the agency's `docs/worker-slots.md`, 「Checkouts on the nodes」). It stands only
+    for a repository already made, and only while its base stands on this machine; a removal the agency refuses
+    while a job holds the checkout says the pack's sentence under the field.
   - **프리픽스 문서** lists the documents a run's prefix carries in this repository, in order, each a path relative to
     the checkout or absolute under the umbrella, each moved up or down or taken out; a path field and an add button
     under them put one at the end. The list is sent whole; an empty list is none.
   - **머리말** is multi-line text standing before every job's prompt in this repository, up to 8,000 characters; **개발
     서버 명령** one shell line, up to 1,000 characters. Both empty are none.
-  - **고정 모델** is a choice of 역할 순서 (no pin) or a provider and one of its models; a registered model chosen
-    brings the 샘플링 block under it, laid out as a companion's 생성 파라미터 are (the agency's `docs/repositories.md`,
-    「A pinned model」). A pinned model that cannot answer makes the repository's work wait, which the field says
-    under it while a pin is chosen.
+  - **고정 모델** is a choice of 역할 순서 (no pin) or a provider and one of its models; a model of the registry's
+    provider chosen brings the 샘플링 block under it, laid out as a companion's 생성 파라미터 are (the agency's
+    `docs/repositories.md`, 「A pinned model」): one line for every setting the agency's `samplingSettings` names, by
+    its name with its bounds, the value the repository holds in its box and a setting it leaves out standing empty
+    with `(기본값)`, the engine's own. A box emptied is sent as none, which gives the setting back to the engine. A
+    pinned model that cannot answer makes the repository's work wait, which the field says under it while a pin is
+    chosen.
   - **강등 복원** is a switch, 켬 reading `켬 (기본값)`.
   - A refused save keeps every field as written with the pack's sentence for the agency's code under the field it
     names.
@@ -2947,6 +2971,14 @@ Two ways, split because the running places differ.
   role across its runs (the agency's `docs/run-records.md`, 「Agent log」); a role's run opened from the sidebar or a
   slot tile opens the role's log at that run. A repository's screen reads the jobs the agency ran in it, newest
   first, and the log of the one going or, with none going, the latest.
+- **A supervisor's screen names the rooms it has spoken in,** read from the agency's `GET /supervisors/{name}/rooms`
+  (its `docs/api.md`, 「supervisors」), in one line under the title bar that scrolls sideways inside itself where it
+  runs long: each room by its title with how many of its runs went there, its tooltip saying when the latest began.
+  Pressing one opens this screen's log at that latest run. A room it answers and never spoke in is not among them; which
+  rooms it answers is the 감독관 tab's 방.
+- **대신 답하는 중** stands at the head of that line while the supervisor's last turn went out on the stand-in the
+  agency names for it (`GET /stand-in`, the agency's `docs/cache-fallback.md`) rather than on the first provider of
+  its order, with that provider's word and the model it answers on.
 - A line has a time, a kind and content. There are eight kinds.
   - **시작** — a run opened. Which room's work, and which model and depth it runs at, attach.
   - **생각** — the thinking the run wrote itself.

@@ -8,9 +8,6 @@ import type { CompanionAdded } from "#shared/agency";
 // that room back.
 const FIELDS = ["name", "label", "provider", "model", "worker", "room"] as const;
 
-// The receiver checks a name against the agency's rows and writes both halves, which takes longer than a save.
-const ADD_WAIT_MS = 30_000;
-
 export default defineEventHandler(async (event): Promise<CompanionAdded> => {
   await requireAdministrator(event);
   const body = await readBody<Record<string, string>>(event);
@@ -18,8 +15,7 @@ export default defineEventHandler(async (event): Promise<CompanionAdded> => {
   if (typeof body !== "object" || body === null || FIELDS.some((field) => typeof body[field] !== "string")) throw fail(400, wording("agents.error.companion_add"));
 
   const added = await addCompanion(
-    { name: body.name!, label: body.label!, provider: body.provider!, model: body.model!, worker: body.worker!, room: body.room! },
-    ADD_WAIT_MS
+    { name: body.name!, label: body.label!, provider: body.provider!, model: body.model!, worker: body.worker!, room: body.room! }
   );
   const room = added.room;
 

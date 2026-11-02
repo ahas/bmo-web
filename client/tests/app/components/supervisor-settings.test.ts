@@ -53,7 +53,7 @@ describe("the chat agent's settings", () => {
 
   test("carry the model method to the agency's own agent change", () => {
     expect(model).toContain('agency().PATCH("/agents/{agentName}"');
-    expect(model).toContain('body.method === "route" ? { method: "route" } : { method: "fixed", registration: body.registration }');
+    expect(model).toContain('body.method === "route" ? { method: "route" } : { method: "fixed", registration }');
     expect(model).toContain("isAgentName(body?.agent)");
   });
 });

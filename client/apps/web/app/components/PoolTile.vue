@@ -47,7 +47,7 @@
             color="neutral"
             variant="ghost"
             class="absolute end-1 top-1"
-            :disabled="props.stops.busy()"
+            :disabled="props.stops.isSending(target)"
             :aria-label="$t('live.aria.stop_named', { name: caption })"
             @click.stop="props.stops.ask(target)"
           />

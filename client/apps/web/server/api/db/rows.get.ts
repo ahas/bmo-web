@@ -20,9 +20,10 @@ export default defineEventHandler(async (event): Promise<DbPage> => {
   const query = typeof asked.q === "string" && asked.q.trim() !== "" ? asked.q.trim() : null;
   const sort = typeof asked.sort === "string" && asked.sort !== "" ? asked.sort : null;
   const started = Date.now();
+  const read = openDbRead(dbReadKeyOf(event));
 
   try {
-    const schema = await readDbSchema(table);
+    const schema = await readDbSchema(table, read);
 
     if (schema.columns.length === 0) {
       throw fail(404, wording("db.error.no_such_table"));
@@ -41,7 +42,8 @@ export default defineEventHandler(async (event): Promise<DbPage> => {
 
     const [counted, listed] = await askDatabase([statements.count, statements.rows], {
       rowCap: DB_VIEW.pageSize,
-      cellCap: DB_VIEW.cellCap
+      cellCap: DB_VIEW.cellCap,
+      read
     });
 
     return {
@@ -60,5 +62,7 @@ export default defineEventHandler(async (event): Promise<DbPage> => {
     }
 
     throw fail(dbStatus(error), dbReason(error));
+  } finally {
+    closeDbRead(read);
   }
 });

@@ -60,6 +60,6 @@ describe("the agent list", () => {
   test("stands empty, and says so, while the agency does not answer", async () => {
     agencyAnswers = false;
 
-    expect((await asked(handler, {})).answer).toEqual({ reachable: false, slow: false, agents: [], roles: [], gateOrder: null, defaultAnswerer: "agent-a" });
+    expect((await asked(handler, {})).answer).toEqual({ reachable: false, agents: [], roles: [], gateOrder: null, defaultAnswerer: "agent-a" });
   });
 });

@@ -4,7 +4,6 @@ import { publishConsoleEvent } from "./console-events";
 import { useWebSql } from "./db";
 import { fail } from "./fail";
 import { receiver, receiverCall } from "./receiver";
-import { within } from "./unit-answer";
 
 import type { DocumentTalkTurn, TalkSpeaker } from "#shared/types";
 
@@ -66,8 +65,7 @@ export async function writeAgentAnswer(document: string, text: string, now: numb
 // once and the agent's answer is written when the talk comes back. One turn of a document's talk is answered at a
 // time; where each talk stands is this process's to hold, and every tab hears that it moved.
 
-// How long a turn may take: it waits its place behind the rounds already running, then a model's turn.
-export const TALK_TIMEOUT_MS = 15 * 60_000;
+// A turn waits its place behind the rounds already running, then a model's turn, and the call waits for all of it.
 
 /** The document a turn is about, as the receiver's topic names it. */
 export interface TalkedDocument {
@@ -122,7 +120,7 @@ async function answer(about: TalkedDocument, over: SaidOver, earlier: DocumentTa
 
   try {
     const answered = await receiverCall(
-      receiver().POST("/talks", { body: { topic, turns, said }, signal: within(TALK_TIMEOUT_MS) })
+      receiver().POST("/talks", { body: { topic, turns, said } })
     );
     const words = answered.answer?.trim() ?? "";
 

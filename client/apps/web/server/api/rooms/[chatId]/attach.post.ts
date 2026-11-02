@@ -80,9 +80,8 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
     body.append("file", new File([new Uint8Array(file.data)], file.name, { type: file.type ?? "" }));
   }
 
-  // Files the receiver took and did not answer for in time may well have gone; they are watched for
-  // rather than failed, so none is sent twice. A try of a send still going under its key is watched
-  // for the same way.
+  // A try of a send still going under its key may well have gone; its files are watched for rather than
+  // failed, so none is sent twice.
   const watched = (): SentAttachments => ({ sent: [], failed, checking: going.map(({ name }) => ({ name })) });
   const key = sendKeyOf(new TextDecoder().decode(parts.find((part) => part.name === "key")?.data ?? new Uint8Array()));
 
@@ -91,9 +90,9 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
     key,
     async () => {
       try {
-        // Each file is given the time one sent alone would be, since the receiver uploads them one after another.
+        // The call waits for the receiver's answer however long its uploads take.
         const answer = (await receiverCall(
-          receiver().POST("/owner/message-files", { body, signal: within(ATTACH_TIMEOUT_MS * going.length) })
+          receiver().POST("/owner/message-files", { body })
         )) as ReceivedAttachments;
 
         return {
@@ -102,10 +101,6 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
           checking: answer.checking.map((one) => ({ name: one.name }))
         };
       } catch (error) {
-        if (unitSlow(error)) {
-          return watched();
-        }
-
         // A receiver that did not take the call has sent none of them: the send waits on the screen and goes again
         // once the receiver answers.
         if ((error as { statusCode?: unknown }).statusCode === 503) {

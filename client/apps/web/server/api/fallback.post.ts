@@ -161,7 +161,7 @@ async function toAgency(sent: Record<string, unknown>): Promise<FallbackChanged>
     mode: text(sent.mode)
   };
 
-  await agencyCall(agency().PATCH("/fallback", { body: change, signal: within(LISTING_TIMEOUT_MS) }));
+  await agencyCall(agency().PATCH("/fallback", { body: change }));
 
   return { ok: true };
 }

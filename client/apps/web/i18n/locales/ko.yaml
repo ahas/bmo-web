@@ -215,7 +215,6 @@ control:
     checking: API 로드 중
   error:
     reader_disconnected: 리더가 연결되지 않아 보낼 수 없습니다.
-    slow: API 응답 지연
     status: "봇 제어 API가 {status}로 응답했습니다."
     unreachable: API 로드 실패
 
@@ -237,7 +236,7 @@ db:
     result: "{rows}행 · {ms}ms"
     result_cut: "{rows}행에서 잘림 · {ms}ms"
     schema: 스키마
-    sql_rule: "읽기 전용 · 최대 {rows}행 · {seconds}초"
+    sql_rule: "읽기 전용 · 최대 {rows}행"
     table: 테이블
   action:
     first_page: 첫 페이지
@@ -245,6 +244,7 @@ db:
     next_page: 다음 페이지
     previous_page: 이전 페이지
     run: 실행
+    stop: 중지
   aria:
     find_in_table: 이 테이블에서 찾기
     pick_table: 테이블 선택
@@ -257,8 +257,8 @@ db:
     no_table_name: 테이블 이름이 없습니다.
     query_empty: 쿼리가 비어 있습니다.
     query_failed: 쿼리를 실행하지 못했습니다.
-    query_timeout: 쿼리가 제한 시간을 넘겨 중단됐습니다.
     read_failed: 데이터베이스를 읽지 못했습니다.
+    read_stopped: 읽기를 중지했습니다.
     row_not_found: 행을 찾을 수 없습니다.
     rows_failed: 행을 읽지 못했습니다.
     table_failed: 테이블을 읽지 못했습니다.
@@ -516,8 +516,6 @@ room:
     voice_unsupported: 이 브라우저에서는 음성 메모를 녹음할 수 없습니다.
     voice_with_files: 음성 메모는 파일과 함께 보낼 수 없습니다.
     say_empty: 보낼 메시지를 입력해 주세요.
-    send_not_taken: 10분 동안 수신 유닛에 연결되지 않아 보내지 못했습니다.
-    send_unconfirmed: 전송 여부를 확인하지 못했습니다. 방에 메시지가 올라갔는지 먼저 확인해 주세요.
     session_failed: 세션 정보를 불러오지 못했습니다.
     unpin_failed: 방의 고정을 해제하지 못했습니다.
     words_only: 이 방은 글만 받습니다.
@@ -2260,7 +2258,6 @@ live:
     stop_target_absent: 멈출 실행을 찾지 못했습니다.
     stop_target_needed: 중지할 실행을 지정해 주세요.
     stop_target_wrong: 멈출 대상이 올바르지 않습니다.
-    stop_unanswered: 봇이 응답하지 않아 중지 여부를 확인하지 못했습니다. 새로고침해서 확인합니다.
   label:
     as_of: "{time} 기준"
     attempt: "{n}회차"

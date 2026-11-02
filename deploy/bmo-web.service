@@ -16,6 +16,8 @@ EnvironmentFile=%h/.local/share/bmo-web/deploy/client/apps/web/console.env
 ExecStart=%h/.bun/bin/bun .output/server/index.mjs
 Restart=on-failure
 RestartSec=5
+# The console ends on SIGTERM once its relays are told and its close hooks have run; a stop waits for that end.
+TimeoutStopSec=infinity
 Environment=PATH=%h/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # Bun cuts a request that has sent nothing for ten seconds unless told otherwise; a change carried to a unit may
 # take longer, so a request waits up to Bun's ceiling (docs/web.md, 「Running as a service」).

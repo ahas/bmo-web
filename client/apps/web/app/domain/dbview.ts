@@ -197,3 +197,9 @@ export function jsonFields(t: Translate, value: unknown, under = ""): JsonField[
 
   return [{ label: under, value: typeof value === "number" ? countText(value) : String(value) }];
 }
+
+// The key a read of the screen carries, by which the stop button stops it: drawn from the browser's random source,
+// which a page served over plain HTTP has as well.
+export function readKey(): string {
+  return [...crypto.getRandomValues(new Uint8Array(16))].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}

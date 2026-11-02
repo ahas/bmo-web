@@ -24,7 +24,9 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     throw fail(400, wording("agents.error.bad_model_method"));
   }
 
-  if (body.method === "fixed" && (typeof body.registration !== "string" || body.registration.trim() === "")) {
+  const registration = typeof body.registration === "string" ? body.registration.trim() : "";
+
+  if (body.method === "fixed" && registration === "") {
     throw fail(400, wording("agents.error.bad_model_registration"));
   }
 
@@ -36,7 +38,7 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
         reasoning: null,
         role: null,
         voice: null,
-        model: body.method === "route" ? { method: "route" } : { method: "fixed", registration: body.registration }
+        model: body.method === "route" ? { method: "route" } : { method: "fixed", registration }
       }
     })
   );

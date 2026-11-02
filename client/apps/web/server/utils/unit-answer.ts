@@ -1,12 +1,13 @@
-import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
+import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
 import type { UnitCall } from "./units";
 
 // One call made through a unit's published client (docs/boundary.md, 「Calls the console makes」). The client
 // hands back the route's answer beside its response, and a non-2xx answer is the unit's own `{code, error}`
-// body; a call that reaches no unit, or is held up past its wait, is this app's failure and is answered the
-// same way as any other unit call (docs/web.md, 「How the units are talked to」).
+// body. A call waits for that answer however long it takes; one that reaches no unit, or whose connection
+// breaks, is this app's failure and is answered the same way as any other unit call (docs/web.md, 「How the
+// units are talked to」).
 
 /** The answer a published client carries: the route's body, its refusal, and the response either stands on. */
 export interface UnitResult<T, E> {
@@ -30,21 +31,14 @@ export type UnitAnswerCall = Omit<UnitCall, "refusal"> & {
   refusal?: (body: RefusalBody) => RefusalBody;
 };
 
-/** The wait a call is given; the client's call takes it as the request's own signal. */
-export function within(ms: number): AbortSignal {
-  return AbortSignal.timeout(ms);
-}
-
 /** The route's answer, or the refusal or failure it answered with. */
 export async function answered<T, E extends RefusalBody>(asked: Promise<UnitResult<T, E>>, call: UnitAnswerCall = {}): Promise<T> {
   let result: UnitResult<T, E>;
 
   try {
     result = await asked;
-  } catch (error) {
-    throw error instanceof Error && error.name === "TimeoutError"
-      ? fail(504, wording(CONTROL_SLOW))
-      : fail(503, wording(CONTROL_UNREACHABLE));
+  } catch {
+    throw fail(503, wording(CONTROL_UNREACHABLE));
   }
 
   if (result.error !== undefined || !result.response.ok) {

@@ -32,8 +32,7 @@ export default defineEventHandler(async (event): Promise<WorkOrderView> => {
 
     await jobCall(job().PATCH("/items/{itemId}/work-order/tasks/{taskId}", {
       params: { path: { itemId: id, taskId } },
-      body: { state },
-      signal: within(JOB_VERB_TIMEOUT_MS)
+      body: { state }
     }));
   } else if (action === "save" || action === "reopen") {
     const current = await jobCall(job().GET("/items/{itemId}/work-order", { params: { path: { itemId: id } } })).catch(() => null);
@@ -41,14 +40,12 @@ export default defineEventHandler(async (event): Promise<WorkOrderView> => {
 
     await jobCall(job().PUT("/items/{itemId}/work-order", {
       params: { path: { itemId: id } },
-      body: { purpose, directive: instruction, steps: current?.steps ?? [instruction], state: "saved" },
-      signal: within(JOB_VERB_TIMEOUT_MS)
+      body: { purpose, directive: instruction, steps: current?.steps ?? [instruction], state: "saved" }
     }));
   } else if (action === "resume" || action === "close") {
     await jobCall(job().PATCH("/items/{itemId}/work-order", {
       params: { path: { itemId: id } },
-      body: { state: action === "resume" ? "running" : "done" },
-      signal: within(JOB_VERB_TIMEOUT_MS)
+      body: { state: action === "resume" ? "running" : "done" }
     }));
   } else {
     throw fail(400, wording("todo.error.bad_action"));

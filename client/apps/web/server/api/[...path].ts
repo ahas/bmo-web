@@ -4,7 +4,7 @@ import type { H3Event } from "h3";
 
 import { wording } from "#shared/wording";
 
-import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
+import { CONTROL_UNREACHABLE } from "#shared/config";
 import { shareRead } from "bmo-ui/shared/console-manifest";
 
 import { relayedRest, socketRelay } from "../utils/bundle-relay";
@@ -62,25 +62,6 @@ const ANSWERED_HEADERS = [
 
 // The policy a relayed answer carries where its unit set none.
 const RELAYED_FRAMING = "frame-ancestors 'self'";
-
-// How long a service has to begin answering; the bytes themselves, a file or a stream, may take longer.
-const BEGIN_MS = 30_000;
-
-// How long the translator's route has to begin answering where the console's setting names no other wait.
-const TRANSLATOR_BEGIN_MS = 90_000;
-
-// How long a call has to begin its answer: the console's own wait for the translator's route, which queues its work
-// before it answers, and `BEGIN_MS` for every other (docs/web.md, 「Screens a unit brings」).
-function beginMs(service: string, path: string): number {
-  const config = useRuntimeConfig() as { translatorBeginMs?: unknown; public?: { bmoUi?: { translator?: { service?: unknown; path?: unknown } } } };
-  const translator = config.public?.bmoUi?.translator;
-
-  if (translator?.service !== service || translator.path !== path) return BEGIN_MS;
-
-  const named = Number(config.translatorBeginMs);
-
-  return Number.isInteger(named) && named > 0 ? named : TRANSLATOR_BEGIN_MS;
-}
 
 function queryOf(event: Parameters<typeof getQuery>[0]): string {
   const asked = new URLSearchParams();
@@ -154,18 +135,15 @@ async function relayed(event: H3Event): Promise<Response> {
 
   // The body goes as the bytes it came as, so a bundle's file upload is not read as text on the way.
   const body = reading ? undefined : await readRawBody(event);
+  // The call waits for the service's answer however long it takes to begin; it ends only on that answer or on
+  // its connection refused or broken (docs/web.md, 「Screens a unit brings」).
   const waiting = new AbortController();
-  const timer = setTimeout(() => waiting.abort(new DOMException("the service did not begin its answer", "TimeoutError")), beginMs(service, `/${rest}`));
   let response: Response;
 
   try {
     response = await fetch(`${unit.address}/${rest}${queryOf(event)}`, { method, headers, body, signal: waiting.signal });
-  } catch (error) {
-    throw (error instanceof Error && error.name === "TimeoutError") || waiting.signal.aborted
-      ? fail(504, wording(CONTROL_SLOW))
-      : fail(503, wording(CONTROL_UNREACHABLE));
-  } finally {
-    clearTimeout(timer);
+  } catch {
+    throw fail(503, wording(CONTROL_UNREACHABLE));
   }
 
   // A stream the browser lets go of is a call to the service let go of too, so a closed tab leaves no

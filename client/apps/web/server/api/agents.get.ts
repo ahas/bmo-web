@@ -27,8 +27,8 @@ export default defineEventHandler(async (event): Promise<AgentList> => {
       gateOrder: await order,
       defaultAnswerer: await answerer
     };
-  } catch (error) {
+  } catch {
     // Which agents and roles there are is the agency's word, so none are offered while it is not answering.
-    return { reachable: false, slow: unitSlow(error), agents: [], roles: [], gateOrder: await order, defaultAnswerer: await answerer };
+    return { reachable: false, agents: [], roles: [], gateOrder: await order, defaultAnswerer: await answerer };
   }
 });

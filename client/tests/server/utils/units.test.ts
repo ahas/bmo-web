@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "../../../apps/web/shared/config";
+import { CONTROL_UNREACHABLE } from "../../../apps/web/shared/config";
 import { wording } from "../../../apps/web/shared/wording";
-import { carries, reasonOf, unitAt, unitFetch, unitSlow } from "../../../apps/web/server/utils/units";
+import { carries, reasonOf, unitAt, unitFetch } from "../../../apps/web/server/utils/units";
 import { fail } from "../../../apps/web/server/utils/fail";
 
 // What Nitro would import into the module by itself.
@@ -89,18 +89,33 @@ describe("a unit that did not answer", () => {
     throw new Error("the call answered");
   }
 
-  test("a port that took the call and never answered is the unit held up, not gone", async () => {
-    // A listener that accepts and says nothing: the kernel's queue taking a call the unit is too busy to read.
+  test("a port that took the call is waited on until it answers or its connection ends", async () => {
+    // A listener that accepts and says nothing: a unit too busy to answer yet.
     const held = Bun.listen({ hostname: "127.0.0.1", port: 0, socket: { data() {} } });
+    const before = process.env.TEST_UNIT_ADDRESS;
+
+    process.env.TEST_UNIT_ADDRESS = `http://127.0.0.1:${held.port}`;
 
     try {
-      const error = await failure(() => against(`http://127.0.0.1:${held.port}`, () => unitFetch("TEST_UNIT", "/health", undefined, 200)));
+      const asked = unitFetch("TEST_UNIT", "/health").then(
+        () => "answered",
+        (error: unknown) => error as Error & { statusCode?: number }
+      );
+      const early = await Promise.race([asked, Bun.sleep(300).then(() => "still asking")]);
 
-      expect(error.statusCode).toBe(504);
-      expect(error.message).toBe(wording(CONTROL_SLOW));
-      expect(unitSlow(error)).toBe(true);
+      expect(early).toBe("still asking");
+
+      held.stop(true);
+
+      const error = (await asked) as Error & { statusCode?: number };
+
+      expect(error.statusCode).toBe(503);
+      expect(error.message).toBe(wording(CONTROL_UNREACHABLE));
     } finally {
       held.stop(true);
+
+      if (before === undefined) delete process.env.TEST_UNIT_ADDRESS;
+      else process.env.TEST_UNIT_ADDRESS = before;
     }
   });
 
@@ -110,11 +125,10 @@ describe("a unit that did not answer", () => {
 
     gone.stop(true);
 
-    const error = await failure(() => against(`http://127.0.0.1:${port}`, () => unitFetch("TEST_UNIT", "/health", undefined, 2_000)));
+    const error = await failure(() => against(`http://127.0.0.1:${port}`, () => unitFetch("TEST_UNIT", "/health")));
 
     expect(error.statusCode).toBe(503);
     expect(error.message).toBe(wording(CONTROL_UNREACHABLE));
-    expect(unitSlow(error)).toBe(false);
   });
 
   test("a unit whose address is not set is gone, and nothing is asked", async () => {

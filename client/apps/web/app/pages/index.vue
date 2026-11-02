@@ -153,7 +153,7 @@ const usageInitial = useInitialRead(usageStatus);
 // read their lines wait on has, so the placeholder turns into the rows in one step rather than
 // into rows still holding placeholders of their own.
 // The catalogue carries whether the bot answered; before it has come back nothing is known.
-const agentsLink = computed(() => controlLink(agentsInitial.value ? null : agents.value.reachable, agents.value.slow === true));
+const agentsLink = computed(() => controlLink(agentsInitial.value ? null : agents.value.reachable));
 const roomsShown = computed(() => roomsLoaded.value && !usageInitial.value && !agentsInitial.value);
 
 const rooms = computed<RoomSummary[]>(() => data.value ?? []);

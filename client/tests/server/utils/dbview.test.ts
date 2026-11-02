@@ -9,8 +9,8 @@ import { scratchWebDatabase } from "../../support/web-database";
 
 // Reading the console's own database as tables of rows, on a scratch database of the server's shape with tables of
 // the test's own beside the console's. The two things worth pinning here are the two the screen rests on and
-// neither of which a person can see by looking: that nothing on this road can write, and that nothing on it can run
-// forever.
+// neither of which a person can see by looking: that nothing on this road can write, and that a read the screen
+// stops stops on the database at once.
 
 const address = await scratchWebDatabase();
 const made = new SQL(connectionOf(address) as SQL.Options);
@@ -34,13 +34,15 @@ const {
   asRows,
   browseStatements,
   countsSql,
-  DbTimeoutError,
+  DbStoppedError,
   DbViewError,
   likeTerm,
   listDbTables,
   maskResult,
+  openDbRead,
   quoted,
   readDbSchema,
+  stopDbRead,
   wrapQuery
 } = await import("../../../apps/web/server/utils/dbview");
 
@@ -67,15 +69,51 @@ describe("what the database is read as", () => {
 });
 
 describe("a query that would never end", () => {
-  test("is killed at its deadline instead of holding the console", async () => {
-    const started = Date.now();
-    const forever = askDatabase([{ sql: "SELECT count(*) FROM wide a, wide b, wide c, wide d", params: [] }], { timeoutMs: 400 });
+  test("waits for its answer until the screen stops it, and then stops on the database at once", async () => {
+    const key = "read-a-0000000000000001";
+    const read = openDbRead(key);
+    const forever = askDatabase([{ sql: "SELECT count(*) FROM wide a, wide b, wide c, wide d", params: [] }], { read });
+    const settled = forever.then(
+      () => "answered",
+      (error: unknown) => error
+    );
 
-    await expect(forever).rejects.toBeInstanceOf(DbTimeoutError);
-    // The deadline is what ended it, and it ended near the deadline rather than at the answer.
-    expect(Date.now() - started).toBeLessThan(4_000);
+    // Running on the database before it is stopped; nothing but the stop ends it.
+    for (let looked = 0; looked < 100 && !(await running()); looked++) await Bun.sleep(50);
+    expect(await running()).toBe(true);
+
+    const stoppedAt = Date.now();
+
+    stopDbRead(key);
+
+    expect(await settled).toBeInstanceOf(DbStoppedError);
+    expect(Date.now() - stoppedAt).toBeLessThan(4_000);
+    expect(await running()).toBe(false);
+  });
+
+  test("is not run at all where its stop reached the screen's key first", async () => {
+    const key = "read-a-0000000000000002";
+
+    stopDbRead(key);
+
+    await expect(askDatabase([{ sql: "SELECT 1", params: [] }], { read: openDbRead(key) })).rejects.toBeInstanceOf(DbStoppedError);
   });
 });
+
+// Whether the endless query runs on the database now, asked on a connection of its own.
+async function running(): Promise<boolean> {
+  const looking = new SQL(connectionOf(address) as SQL.Options);
+
+  try {
+    const [row] = await looking.unsafe(
+      "SELECT count(*)::int AS n FROM pg_stat_activity WHERE state = 'active' AND pid <> pg_backend_pid() AND query LIKE '%wide a, wide b, wide c, wide d%'"
+    );
+
+    return (row as { n: number }).n > 0;
+  } finally {
+    await looking.close();
+  }
+}
 
 describe("what a statement is allowed to answer with", () => {
   test("stops at the row cap and says that is where it stopped", async () => {

@@ -17,8 +17,10 @@ export default defineEventHandler(async (event): Promise<DbRowDetail> => {
     throw fail(400, wording("db.error.row_not_found"));
   }
 
+  const read = openDbRead(dbReadKeyOf(event));
+
   try {
-    const schema = await readDbSchema(table);
+    const schema = await readDbSchema(table, read);
 
     if (schema.columns.length === 0) {
       throw fail(404, wording("db.error.no_such_table"));
@@ -28,12 +30,13 @@ export default defineEventHandler(async (event): Promise<DbRowDetail> => {
       throw fail(400, wording("db.error.no_rowid"));
     }
 
-    const [read] = await askDatabase([rowStatement(table, schema.columns, rowid)], {
+    const [found] = await askDatabase([rowStatement(table, schema.columns, rowid)], {
       rowCap: 1,
-      cellCap: DB_VIEW.fullCellCap
+      cellCap: DB_VIEW.fullCellCap,
+      read
     });
 
-    const rows = read === undefined ? [] : asRows(read, false);
+    const rows = found === undefined ? [] : asRows(found, false);
 
     return { columns: schema.columns, row: rows[0] ?? null };
   } catch (error) {
@@ -42,5 +45,7 @@ export default defineEventHandler(async (event): Promise<DbRowDetail> => {
     }
 
     throw fail(dbStatus(error), dbReason(error));
+  } finally {
+    closeDbRead(read);
   }
 });

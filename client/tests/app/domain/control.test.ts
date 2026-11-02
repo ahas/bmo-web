@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { Glob } from "bun";
-import { CONTROL_CHECKING, CONTROL_SLOW, CONTROL_UNREACHABLE } from "../../../apps/web/shared/config";
+import { CONTROL_CHECKING, CONTROL_UNREACHABLE } from "../../../apps/web/shared/config";
 import { controlLine, controlLink, controlTone, useControlStatus } from "../../../apps/web/app/domain/control";
 
 import type { ControlStatus } from "../../../apps/web/shared/types";
@@ -12,14 +12,6 @@ describe("what a screen says of the bot's control API", () => {
     expect(controlLink(null)).toBe("checking");
     expect(controlLink(false)).toBe("unreachable");
     expect(controlLink(true)).toBe("reachable");
-  });
-
-  test("a bot that took the call and did not answer in time is slow, not gone", () => {
-    expect(controlLink(false, true)).toBe("slow");
-    expect(controlLink(true, true)).toBe("reachable");
-    expect(controlLine(wording, "slow")).toBe(wording(CONTROL_SLOW));
-    expect(controlTone("slow")).toBe("warning");
-    expect(new Set([CONTROL_CHECKING, CONTROL_SLOW, CONTROL_UNREACHABLE]).size).toBe(3);
   });
 
   test("asking and failing read differently, and an answer reads as nothing", () => {
@@ -46,13 +38,13 @@ describe("what a screen says of the bot's control API", () => {
     expect(reading.link.value).toBe("reachable");
     expect(reading.control.value?.ownerChatId).toBe(7);
 
-    answer = async () => ({ reachable: false, slow: true, ownerChatId: null });
+    answer = async () => ({ reachable: false, ownerChatId: null });
     await reading.read();
-    expect(reading.link.value).toBe("slow");
+    expect(reading.link.value).toBe("unreachable");
 
     answer = async () => { throw Object.assign(new Error("fixture: refused for the login"), { response: { status: 401 } }); };
     await reading.read();
-    expect(reading.link.value).toBe("slow");
+    expect(reading.link.value).toBe("unreachable");
 
     answer = async () => { throw Object.assign(new Error("fixture: refused here"), { response: { status: 503 } }); };
     await reading.read();

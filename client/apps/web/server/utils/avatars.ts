@@ -71,7 +71,7 @@ async function listedBy(unit: UnitAddress): Promise<AvatarRef[]> {
     let page: AvatarPage;
 
     try {
-      const response = await fetch(`${unit.address}/avatars?${query}`, { headers: unitHeaders(unit), signal: AbortSignal.timeout(5_000) });
+      const response = await fetch(`${unit.address}/avatars?${query}`, { headers: unitHeaders(unit) });
 
       if (!response.ok) return refs;
 
@@ -114,7 +114,7 @@ export async function avatarPicture(kind: AvatarKind, subjectId: number): Promis
 
   for (const unit of keepers()) {
     try {
-      const response = await fetch(`${unit.address}${path}`, { headers: unitHeaders(unit), signal: AbortSignal.timeout(5_000) });
+      const response = await fetch(`${unit.address}${path}`, { headers: unitHeaders(unit) });
 
       if (response.ok) {
         return { bytes: new Uint8Array(await response.arrayBuffer()), type: response.headers.get("content-type") ?? "image/jpeg" };

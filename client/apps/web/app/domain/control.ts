@@ -1,28 +1,27 @@
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from "vue";
-import { CONTROL_CHECKING, CONTROL_SLOW, CONTROL_UNREACHABLE, POLL_INTERVAL_MS } from "#shared/config";
+import { CONTROL_CHECKING, CONTROL_UNREACHABLE, POLL_INTERVAL_MS } from "#shared/config";
 
 import type { ControlStatus } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
-// What a screen knows of the bot's control API: it has not heard yet, the bot took the call and
-// was too busy to answer in time, nothing took the call, or the bot answered. Not having asked yet
-// is no failure and a busy bot is no gone one, so the four are kept apart all the way to the words
-// and the colour (docs/web.md).
-export type ControlLink = "checking" | "slow" | "unreachable" | "reachable";
+// What a screen knows of the bot's control API: it has not heard yet, nothing took the call, or the
+// bot answered. A busy bot is waited for, so it reads as not heard yet; not having heard is no failure
+// and a busy bot is no gone one, so the three are kept apart all the way to the words and the colour
+// (docs/web.md).
+export type ControlLink = "checking" | "unreachable" | "reachable";
 
-export function controlLink(reachable: boolean | null, slow = false): ControlLink {
-  return reachable === null ? "checking" : reachable ? "reachable" : slow ? "slow" : "unreachable";
+export function controlLink(reachable: boolean | null): ControlLink {
+  return reachable === null ? "checking" : reachable ? "reachable" : "unreachable";
 }
 
 // The line a screen stands where the bot's part of it would be, and nothing once the bot answers.
 export function controlLine(t: Translate, link: ControlLink): string {
-  return link === "reachable" ? "" : t({ checking: CONTROL_CHECKING, slow: CONTROL_SLOW, unreachable: CONTROL_UNREACHABLE }[link]);
+  return link === "reachable" ? "" : t({ checking: CONTROL_CHECKING, unreachable: CONTROL_UNREACHABLE }[link]);
 }
 
-// Only a failure that was actually met wears the error colour; a busy bot is a warning, asking is
-// neutral.
-export function controlTone(link: ControlLink): "neutral" | "warning" | "error" {
-  return link === "unreachable" ? "error" : link === "slow" ? "warning" : "neutral";
+// Only a failure that was actually met wears the error colour; asking is neutral.
+export function controlTone(link: ControlLink): "neutral" | "error" {
+  return link === "unreachable" ? "error" : "neutral";
 }
 
 export interface ControlReading {
@@ -92,7 +91,7 @@ export function useControlStatus(
     });
   }
 
-  const link = computed(() => controlLink(control.value === null ? null : control.value.reachable, control.value?.slow === true));
+  const link = computed(() => controlLink(control.value === null ? null : control.value.reachable));
 
   return { control, link, reachable: computed(() => link.value === "reachable"), read };
 }

@@ -17,14 +17,12 @@ import type { KeptSecret } from "#shared/types";
 export interface ServiceOptions {
   address?: string;
   token?: string;
-  /** How long one request may take before the service is read as not answering. */
-  timeoutMs?: number;
 }
 
 /** A user as the server names them: the id it gives, a string handed on as it stands. */
 export type UserId = string;
 
-/** The service did not answer at all: nothing listens at its address, or it did not answer in time. */
+/** The service did not answer at all: nothing listens at its address, or the connection broke. */
 export class AccountServiceDown extends Error {
   constructor(readonly address: string, why: string) {
     super(`bmo-web-server does not answer at ${address}: ${why}`);
@@ -42,8 +40,6 @@ export class AccountRefusal extends Error {
   }
 }
 
-const defaultTimeoutMs = 5_000;
-
 type RefusalBody = WireError | SessionError;
 
 /** What one route answered: its body where it has one, its refusal body where it refused, and the answer. */
@@ -55,10 +51,6 @@ interface Reply<T> {
 
 function addressOf(options: ServiceOptions): string {
   return (options.address ?? process.env.WEB_SERVER_ADDRESS ?? "").replace(/\/+$/, "");
-}
-
-function signalOf(options: ServiceOptions): AbortSignal {
-  return AbortSignal.timeout(options.timeoutMs ?? defaultTimeoutMs);
 }
 
 function clientOf(options: ServiceOptions): AccountServiceClient {
@@ -114,8 +106,7 @@ export async function reportWatching(rooms: number[], options: ServiceOptions = 
   await sent(
     options,
     client.PUT("/watching", {
-      body: { rooms },
-      signal: signalOf(options),
+      body: { rooms }
     })
   );
 }
@@ -130,7 +121,7 @@ export interface ModelState {
 export async function modelState(options: ServiceOptions = {}): Promise<ModelState | null> {
   try {
     const client = clientOf(options);
-    const reply = await sent(options, client.GET("/accounts/model", { signal: signalOf(options) }));
+    const reply = await sent(options, client.GET("/accounts/model"));
     const state = answered(reply);
 
     return state.inForce ? { inForce: true } : { inForce: false, reason: state.why ?? undefined };
@@ -162,8 +153,7 @@ export async function signIn(
     options,
     client.POST("/sumida/auth/session", {
       body: { username: name, password, rememberMe: false },
-      headers: signedHeaders(address),
-      signal: signalOf(options)
+      headers: signedHeaders(address)
     })
   );
 
@@ -188,7 +178,7 @@ export async function sessionUser(
   const client = sumidaClientOf(options);
   const reply = await sent(
     options,
-    client.GET("/sumida/me", { headers: signedHeaders(address, cookie), signal: signalOf(options) })
+    client.GET("/sumida/me", { headers: signedHeaders(address, cookie) })
   );
 
   if (reply.response.status === 401 || reply.response.status === 403) return null;
@@ -205,7 +195,7 @@ export async function signOut(cookie: string, address: string, options: ServiceO
 
   await sent(
     options,
-    client.DELETE("/sumida/auth/session", { headers: signedHeaders(address, cookie), signal: signalOf(options) })
+    client.DELETE("/sumida/auth/session", { headers: signedHeaders(address, cookie) })
   );
 }
 
@@ -224,7 +214,7 @@ export async function userOf(id: UserId | number, options: ServiceOptions = {}):
   const client = clientOf(options);
   const reply = await sent(
     options,
-    client.GET("/users/{user}", { params: { path: { user: userPath(id) } }, signal: signalOf(options) })
+    client.GET("/users/{user}", { params: { path: { user: userPath(id) } } })
   );
 
   if (reply.response.status === 404) return null;
@@ -246,8 +236,7 @@ export async function changeUserPassword(
     options,
     client.POST("/users/{user}/password", {
       params: { path: { user: userPath(id) } },
-      body: { current, next },
-      signal: signalOf(options)
+      body: { current, next }
     })
   );
 
@@ -268,8 +257,7 @@ export async function renameUser(
     options,
     client.POST("/users/{user}/name", {
       params: { path: { user: userPath(id) } },
-      body: { name },
-      signal: signalOf(options)
+      body: { name }
     })
   );
 
@@ -287,7 +275,7 @@ export async function makePhoneKey(
   const client = clientOf(options);
   const reply = await sent(
     options,
-    client.POST("/phones", { body: { user: userPath(id) }, signal: signalOf(options) })
+    client.POST("/phones", { body: { user: userPath(id) } })
   );
   const made = answered(reply);
 
@@ -303,7 +291,7 @@ export async function adoptPhone(
   const client = clientOf(options);
   const reply = await sent(
     options,
-    client.POST("/phones/adopt", { body: { token, user: userPath(id) }, signal: signalOf(options) })
+    client.POST("/phones/adopt", { body: { token, user: userPath(id) } })
   );
 
   return answered(reply).hash;
@@ -315,7 +303,7 @@ export async function phoneHolder(
   options: ServiceOptions = {}
 ): Promise<{ user: UserId; name: string; hash: string } | null> {
   const client = clientOf(options);
-  const reply = await sent(options, client.POST("/phones/who", { body: { key }, signal: signalOf(options) }));
+  const reply = await sent(options, client.POST("/phones/who", { body: { key } }));
 
   if (reply.response.status === 401) return null;
 
@@ -328,7 +316,7 @@ export async function deletePhoneKey(hash: string, options: ServiceOptions = {})
 
   await sent(
     options,
-    client.DELETE("/phones/{hash}", { params: { path: { hash } }, signal: signalOf(options) })
+    client.DELETE("/phones/{hash}", { params: { path: { hash } } })
   );
 }
 
@@ -349,7 +337,7 @@ export async function checkRoom(
   const client = clientOf(options);
   const reply = await sent(
     options,
-    client.POST("/checks/room", { body: { room, sender, relation }, signal: signalOf(options) })
+    client.POST("/checks/room", { body: { room, sender, relation } })
   );
   const said = answered(reply);
 
@@ -368,8 +356,7 @@ export async function checkObject(
   const reply = await sent(
     options,
     client.POST("/checks/object", {
-      body: { kind, object, relation, user: userPath(id) },
-      signal: signalOf(options)
+      body: { kind, object, relation, user: userPath(id) }
     })
   );
   const said = answered(reply);
@@ -393,8 +380,7 @@ export async function runMove(
   const reply = await sent(
     options,
     client.POST("/accounts/move", {
-      body: { ownerSenders: request.ownerSenders, rooms: request.rooms, roomRules: request.roomRules },
-      signal: AbortSignal.timeout(options.timeoutMs ?? 120_000)
+      body: { ownerSenders: request.ownerSenders, rooms: request.rooms, roomRules: request.roomRules }
     })
   );
   const said = answered(reply);
@@ -410,7 +396,7 @@ export async function listSecrets(role: OwnerRole, options: ServiceOptions = {})
   const client = clientOf(options);
   const reply = await sent(
     options,
-    client.GET("/secrets", { params: { header: { "Owner-Role": role } }, signal: signalOf(options) })
+    client.GET("/secrets", { params: { header: { "Owner-Role": role } } })
   );
 
   return answered(reply).secrets.map(({ name, bytes, changedAt }) => ({ name, bytes, changedAt }));
@@ -432,8 +418,7 @@ export async function keepSecret(
     options,
     client.PUT("/secrets/{name}", {
       params: { path: { name }, header: { "Owner-Role": role } },
-      body: { value, replace },
-      signal: signalOf(options)
+      body: { value, replace }
     })
   );
   const kept = answered(reply);
@@ -447,8 +432,7 @@ export async function dropSecret(name: string, role: OwnerRole, options: Service
   const reply = await sent(
     options,
     client.DELETE("/secrets/{name}", {
-      params: { path: { name }, header: { "Owner-Role": role } },
-      signal: signalOf(options)
+      params: { path: { name }, header: { "Owner-Role": role } }
     })
   );
 

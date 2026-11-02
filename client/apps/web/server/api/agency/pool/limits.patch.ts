@@ -19,7 +19,7 @@ export default defineEventHandler(async (event): Promise<PoolLimitView> => {
 
   if (provider === null || tier === null || capacity === null) throw fail(400, wording("common.error.bad_action"));
 
-  const saved = await agencyCall(agency().PATCH("/pool/limits", { body: { provider, tier, capacity }, signal: within(AGENCY_TIMEOUT_MS) }));
+  const saved = await agencyCall(agency().PATCH("/pool/limits", { body: { provider, tier, capacity } }));
 
   return { provider: saved.provider as PoolLimitView["provider"], tier: saved.tier, capacity: saved.capacity };
 });

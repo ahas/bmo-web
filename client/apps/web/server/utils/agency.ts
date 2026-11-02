@@ -36,11 +36,6 @@ const AGENCY_CODES: Readonly<Record<string, string>> = {
   "name-taken": "agents.error.agent_name_taken"
 };
 
-// A listing the agency reads from a provider's own catalogue takes as long as that provider answers.
-export const LISTING_TIMEOUT_MS = 20_000;
-// A call that only reads the agency answers at once; one that runs a model takes as long as the model takes.
-export const AGENCY_TIMEOUT_MS = 5_000;
-
 /** The agency at the address its setting names, asked with its token. */
 export function agency(): AgencyClient {
   const unit = unitAt("AGENCY");
@@ -62,8 +57,7 @@ export async function agencyRoute<T>(method: "GET" | "PUT" | "PATCH", path: stri
   const asked = fetch(`${unit.address}${path}`, {
     method,
     headers: { ...unitHeaders(unit), accept: "application/json", ...(body === undefined ? {} : { "content-type": "application/json" }) },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(AGENCY_TIMEOUT_MS)
+    body: body === undefined ? undefined : JSON.stringify(body)
   }).then(async (response) => {
     const parsed: unknown = await response.json().catch(() => undefined);
 

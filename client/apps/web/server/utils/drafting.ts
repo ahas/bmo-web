@@ -2,7 +2,6 @@
 // agents screen, and what a round's process wrote, read for the room's draft chip. A refusal of a set is said by the
 // pack's sentence for the receiver's code on these routes, which says what the receiver checks.
 import { receiver, receiverCall } from "./receiver";
-import { within } from "./unit-answer";
 
 import type { DraftKey, DraftProcessesView, DraftProcessValues, DraftProcessView, DraftQuestionView, DraftRead, DraftReadHow, DraftRow, DraftSummary, DraftSource, PastCeiling } from "#shared/drafting";
 import type { components } from "@bmo/receiver-client/schema";
@@ -13,9 +12,6 @@ type Schemas = components["schemas"];
 // console row for is the one thing a removal is refused for.
 const PROCESS_CODES: Readonly<Record<string, string>> = { "bad-request": "agents.error.draft_process_refused", "not-found": "agents.error.draft_process_missing" };
 const QUESTION_CODES: Readonly<Record<string, string>> = { "bad-request": "agents.error.draft_question_refused" };
-
-// A page waits this long at most for its rounds' draft rows: the page stands without the draft chip rather than late.
-const DRAFTS_TIMEOUT_MS = 3_000;
 
 const sourceOf = (source: string): DraftSource => (source === "set" ? "set" : "default");
 
@@ -121,10 +117,10 @@ export function draftSummaryOf(round: string, rows: readonly DraftRow[]): DraftS
   return { round, asked: past.filter((row) => row.kind !== "end").length, end: end?.outcome ?? null, reads: end?.reads ?? [], loaded: end?.loaded ?? null };
 }
 
-/** The summaries of a page's rounds; a receiver that does not answer in time leaves the page without them. */
+/** The summaries of a page's rounds; a receiver that does not answer leaves the page without them. */
 export async function draftSummaries(chatId: number, rounds: readonly string[]): Promise<Map<string, DraftSummary>> {
   try {
-    const read = await readRoundDrafts(chatId, rounds, within(DRAFTS_TIMEOUT_MS));
+    const read = await readRoundDrafts(chatId, rounds);
     const summaries = new Map<string, DraftSummary>();
 
     for (const [round, rows] of read) {

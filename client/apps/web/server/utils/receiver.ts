@@ -39,16 +39,6 @@ export type ReceiverTalkAnswer = Schemas["TalkAnswer"];
 /** The receiver's client, over the document its package publishes. */
 export type ReceiverClient = Client<paths>;
 
-// A send waits its turn on the road it goes by, which may do one thing at a time, before the words go.
-export const SEND_TIMEOUT_MS = 45_000;
-// How much longer a send the screen was told ran late is still listened for, so what it went out as is written
-// under its key while the screen checks it.
-export const SEND_LATE_MS = 120_000;
-// An upload travels twice — into this app, then into the receiver — and a file may be tens of megabytes.
-export const ATTACH_TIMEOUT_MS = 120_000;
-// A call that only reads the receiver answers at once; one that runs a model takes as long as the model takes.
-export const RECEIVER_TIMEOUT_MS = 5_000;
-
 export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   // Every route's.
   "bad-request": "room.error.receiver_bad_request",

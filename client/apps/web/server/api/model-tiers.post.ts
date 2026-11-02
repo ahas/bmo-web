@@ -32,7 +32,7 @@ export default defineEventHandler(async (event): Promise<TierSettingsView> => {
     answerTokens: whole(body?.answerTokens)
   };
 
-  await agencyCall(agency().PATCH("/tiers/{tierName}", { params: { path: { tierName: tier } }, body: change, signal: within(LISTING_TIMEOUT_MS) }));
+  await agencyCall(agency().PATCH("/tiers/{tierName}", { params: { path: { tierName: tier } }, body: change }));
 
   const [tiers, providers] = await Promise.all([
     agencyCall(agency().GET("/tiers")),

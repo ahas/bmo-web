@@ -23,7 +23,7 @@ export default defineEventHandler(async (event): Promise<{ readings: { text: str
     "GATE",
     "/translations",
     { method: "POST", headers: { "content-type": "application/json", "owner-role": "administrator" }, body: JSON.stringify({ language, originals }) },
-    { timeoutMs: 90_000, passStatus: [503] }
+    { passStatus: [503] }
   );
   const readings = (answer?.readings ?? []).map((one, at) => ({ text: typeof one.text === "string" ? one.text : originals[at]!, whole: one.whole === true }));
 

@@ -67,7 +67,7 @@
                 size="sm"
                 color="neutral"
                 variant="outline"
-                :disabled="stops.busy()"
+                :disabled="stops.isSending(stopTarget)"
                 :aria-label="$t('live.aria.stop_named', { name: meta.label })"
                 @click="stops.ask(stopTarget)"
               />
@@ -304,7 +304,7 @@ const phoneActions = computed<BarAction[]>(() => {
       id: "stop",
       label: t("live.action.stop"),
       icon: "i-material-symbols-stop-circle-outline",
-      disabled: stops.busy(),
+      disabled: stops.isSending(target),
       loading: stops.isStopping(target),
       onSelect: () => stops.ask(target)
     });

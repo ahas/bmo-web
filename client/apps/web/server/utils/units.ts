@@ -1,4 +1,4 @@
-import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
+import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
 // Where another unit is reached (docs/boundary.md, 「Settings」): each by the base address and the token its
@@ -24,20 +24,15 @@ export function unitAt(name: string, environment: Record<string, string | undefi
   return { address: address.replace(/\/+$/, ""), token: token === "" ? null : token };
 }
 
-// A call that only reads a unit's state answers at once; one that runs a model takes as long as the model
-// takes.
-const CALL_TIMEOUT_MS = 5_000;
-
 /** The headers a unit is called with: its token as a bearer, where it takes one. */
 export function unitHeaders(unit: UnitAddress): Record<string, string> {
   return unit.token === null ? {} : { Authorization: `Bearer ${unit.token}` };
 }
 
-// How a call is made beyond the request itself: how long to wait, and whether a refusal the unit wrote for a
-// person travels on in its own words. Most refusals are notes to a programmer and read as this app's own
+// How a call is made beyond the request itself: whether a refusal the unit wrote for a person travels on in its
+// own words, and how a refusal's code is said. Most refusals are notes to a programmer and read as this app's own
 // sentence instead; the ones written to be read on a screen say so here.
 export interface UnitCall {
-  timeoutMs?: number;
   // Whether the unit's own words for a refusal are passed on: for every refusal, or only for the statuses
   // named.
   carryReason?: boolean | number[];
@@ -52,12 +47,11 @@ export interface UnitCall {
   refusal?: (body: Record<string, unknown>) => Record<string, unknown>;
 }
 
-// A unit that does not answer is this app's own failure, not the fetch's error: the view reads that one line
-// and goes read-only. A call the unit took and the wait ran out on is the unit held up and is a 504; a call
-// nothing took, a call on a unit whose address is not set, or one broken on the way is the unit gone and is
-// a 503 (docs/web.md, 「How the units are talked to」).
-export async function unitFetch<T>(name: string, path: string, init?: RequestInit, call: number | UnitCall = CALL_TIMEOUT_MS): Promise<T> {
-  const asked: UnitCall = typeof call === "number" ? { timeoutMs: call } : call;
+// A call waits for the unit's answer however long it takes; it ends on that answer or on its connection refused
+// or broken. A unit that does not answer is this app's own failure, not the fetch's error: the view reads that
+// one line and goes read-only. A call nothing took, a call on a unit whose address is not set, or one broken on
+// the way is the unit gone and is a 503 (docs/web.md, 「How the units are talked to」).
+export async function unitFetch<T>(name: string, path: string, init?: RequestInit, asked: UnitCall = {}): Promise<T> {
   const unit = unitAt(name);
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
@@ -67,11 +61,10 @@ export async function unitFetch<T>(name: string, path: string, init?: RequestIni
   try {
     response = await fetch(`${unit.address}${path}`, {
       ...init,
-      headers: { ...unitHeaders(unit), ...((init?.headers as Record<string, string> | undefined) ?? {}) },
-      signal: AbortSignal.timeout(asked.timeoutMs ?? CALL_TIMEOUT_MS)
+      headers: { ...unitHeaders(unit), ...((init?.headers as Record<string, string> | undefined) ?? {}) }
     });
-  } catch (error) {
-    throw timedOut(error) ? fail(504, wording(CONTROL_SLOW)) : fail(503, wording(CONTROL_UNREACHABLE));
+  } catch {
+    throw fail(503, wording(CONTROL_UNREACHABLE));
   }
 
   if (!response.ok) {
@@ -97,9 +90,6 @@ export async function unitFetch<T>(name: string, path: string, init?: RequestIni
 const BYTE_HEADERS = ["content-type", "content-length", "content-disposition", "cache-control", "x-content-type-options",
   "etag", "last-modified", "accept-ranges", "content-range"];
 
-// How long a unit has to begin answering bytes; the bytes themselves, a file sent whole, may take longer.
-const BYTES_BEGIN_MS = 30_000;
-
 /** How bytes are asked of a unit: the request as it goes, and the unit's refusal codes said in the pack's words. */
 export interface UnitBytes {
   method?: string;
@@ -118,16 +108,12 @@ export async function unitBytes(name: string, path: string, asked: UnitBytes = {
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
 
-  const waiting = new AbortController();
-  const timer = setTimeout(() => waiting.abort(new DOMException("the unit did not begin its answer", "TimeoutError")), BYTES_BEGIN_MS);
   let response: Response;
 
   try {
-    response = await fetch(`${unit.address}${path}`, { method: asked.method ?? "GET", headers: { ...unitHeaders(unit), ...asked.headers }, body: asked.body, signal: waiting.signal });
-  } catch (error) {
-    throw timedOut(error) || waiting.signal.aborted ? fail(504, wording(CONTROL_SLOW)) : fail(503, wording(CONTROL_UNREACHABLE));
-  } finally {
-    clearTimeout(timer);
+    response = await fetch(`${unit.address}${path}`, { method: asked.method ?? "GET", headers: { ...unitHeaders(unit), ...asked.headers }, body: asked.body });
+  } catch {
+    throw fail(503, wording(CONTROL_UNREACHABLE));
   }
 
   if (!response.ok && asked.codes !== undefined && (response.headers.get("content-type") ?? "").includes("json")) {
@@ -174,15 +160,6 @@ async function refusalOf(response: Response): Promise<Refusal | null> {
   return (await response.json().catch(async () => null)) as Refusal | null;
 }
 
-function timedOut(error: unknown): boolean {
-  return error instanceof Error && error.name === "TimeoutError";
-}
-
-/** Whether a failed unit call was the unit too busy to answer rather than a unit not there. */
-export function unitSlow(error: unknown): boolean {
-  return (error as { statusCode?: unknown } | null)?.statusCode === 504;
-}
-
 export function carries(call: UnitCall, status: number): boolean {
   return call.carryReason === true || (Array.isArray(call.carryReason) && call.carryReason.includes(status));
 }
@@ -207,14 +184,14 @@ function reasonIn(body: Refusal | null, status: number, carry: boolean): string 
   return wording("control.error.status", { status });
 }
 
-/** Whether a unit answers its health at all. */
+/** Whether a unit answers its health at all, waiting for its answer. */
 export async function unitReachable(name: string): Promise<boolean> {
   const unit = unitAt(name);
 
   if (unit === null) return false;
 
   try {
-    const response = await fetch(`${unit.address}/health`, { headers: unitHeaders(unit), signal: AbortSignal.timeout(CALL_TIMEOUT_MS) });
+    const response = await fetch(`${unit.address}/health`, { headers: unitHeaders(unit) });
 
     return response.ok;
   } catch {

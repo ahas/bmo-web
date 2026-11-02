@@ -607,7 +607,6 @@ export interface TokenSplit {
 
 export interface ControlStatus {
   reachable: boolean;
-  slow?: boolean;
   // The owner's own private chat, as the bot names it. A screen knows whose room it is
   // standing in by this, and nothing but this; a bot that does not answer leaves it null.
   ownerChatId: number | null;
@@ -1309,7 +1308,6 @@ export interface StatusView {
   executions?: ExecutionHistory[];
   watches?: WatchView[];
   reachable: boolean;
-  slow?: boolean;
   live: LiveRun[];
   compacting: ChatCompaction[];
   liveAt: number | null;
@@ -1596,7 +1594,6 @@ export interface RoleView {
 
 export interface AgentList {
   reachable: boolean;
-  slow?: boolean;
   agents: AgentSummary[];
   // Every role an agent may hold, in the order the bot lists them; empty while it is not answering.
   roles: RoleView[];
@@ -2708,7 +2705,6 @@ export interface StickerSet {
 // answer it went out with, the refusal that came instead, a send still going, or no record of it.
 export type SendOutcomeRecord<T> =
   | { state: "answered"; answer: T }
-  | { state: "failed"; reason: string }
   | { state: "going" }
   | { state: "unknown" };
 

@@ -14,7 +14,8 @@ WorkingDirectory=%h/.local/share/bmo-web/deploy/server
 ExecStart=%h/.local/share/bmo-web/deploy/bin/bmo-web-server serve
 Restart=always
 RestartSec=2
-TimeoutStopSec=30
+# The server ends on SIGTERM once the requests it holds have answered; a stop waits for that end.
+TimeoutStopSec=infinity
 
 [Install]
 WantedBy=default.target

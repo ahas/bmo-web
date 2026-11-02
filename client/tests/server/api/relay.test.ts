@@ -270,9 +270,8 @@ describe("the relay of a call from a bundle's page", () => {
 });
 
 // A route a manifest names under `relays` stands outside its API prefix and is relayed by its method and path alone,
-// for its own screens and for a page whose manifest names the service under `calls`; the translator's route waits
-// as long as the console's setting says for its answer to begin, every other call thirty seconds (docs/web.md,
-// 「Screens a unit brings」).
+// for its own screens and for a page whose manifest names the service under `calls`; every call waits for the
+// service's answer however long it takes to begin (docs/web.md, 「Screens a unit brings」).
 describe("the relay of a route a manifest relays", () => {
   const heard: string[] = [];
   const served = Bun.serve({
@@ -295,10 +294,9 @@ describe("the relay of a route a manifest relays", () => {
   });
   const runtime = globals.useRuntimeConfig;
   let translator: { service: string; path: string } = { service: "", path: "" };
-  let translatorBeginMs: unknown = 50;
 
   beforeAll(() => {
-    globals.useRuntimeConfig = () => ({ app: { baseURL: "/" }, translatorBeginMs, public: { bmoUi: { translator } } });
+    globals.useRuntimeConfig = () => ({ app: { baseURL: "/" }, public: { bmoUi: { translator } } });
     attachBundles([
       named("caller", ["reader"]),
       named("stranger"),
@@ -340,18 +338,14 @@ describe("the relay of a route a manifest relays", () => {
     expect(response.headers.get("retry-after")).toBe("5");
   });
 
-  test("waits for the translator's route as long as the setting says, and every other call thirty seconds", async () => {
+  test("waits for a slow service's answer, the translator's route as much as any other", async () => {
     translator = { service: "reader", path: "/readings" };
 
     try {
-      expect(await call("reader/readings")).toBe(504);
-      expect(await call("reader/slow")).toBe(200);
-
-      translatorBeginMs = undefined;
       expect(await call("reader/readings")).toBe(200);
+      expect(await call("reader/slow")).toBe(200);
     } finally {
       translator = { service: "", path: "" };
-      translatorBeginMs = 50;
     }
   });
 });

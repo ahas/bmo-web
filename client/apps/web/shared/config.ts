@@ -185,13 +185,12 @@ export const BRIEFING_SHOWN_MS = 30 * 60_000;
 // document, and the route refuses more.
 export const TODO_SEARCH_LIMIT = 200;
 
-// What a screen says of the bot's control API: one line while it is still being asked, one when
-// it took the call and did not answer in time, another once nothing took the call, and nothing once
-// it has answered. Not having asked yet is not a failure and a busy bot is not a gone one, so the
-// first is calm, the second a warning and only the third wears the error colour. The archive still reads either
-// way, so these stand where the bot's part of the screen stands rather than over the whole view.
+// What a screen says of the bot's control API: one line while it is still being asked, which a busy
+// bot is, another once nothing took the call, and nothing once it has answered. Not having heard yet is
+// not a failure and a busy bot is not a gone one, so the first is calm and only the second wears the
+// error colour. The archive still reads either way, so these stand where the bot's part of the screen
+// stands rather than over the whole view.
 export const CONTROL_CHECKING = "control.status.checking";
-export const CONTROL_SLOW = "control.error.slow";
 export const CONTROL_UNREACHABLE = "control.error.unreachable";
 
 // What the prompt says when the bot is there but the owner's reader account is not.
@@ -514,14 +513,13 @@ export const HOSTED_PAGE_ISOLATION = {
 } as const;
 
 // What the DB screen holds itself to. One page of a table, the most rows a typed query is
-// allowed to answer with, how much of a long value the list carries, how much the one-row view
-// carries, and how long any read of this screen may take before it is killed.
+// allowed to answer with, how much of a long value the list carries, and how much the one-row view
+// carries.
 export const DB_VIEW = {
   pageSize: 50,
   rowCap: 500,
   cellCap: 400,
-  fullCellCap: 200_000,
-  timeoutMs: 5_000
+  fullCellCap: 200_000
 } as const;
 
 // What a value stands as when the column it came from is one this console does not put on a
@@ -541,7 +539,7 @@ export const GRAPH_VIEW = {
 // What the code review holds itself to (the review unit's `docs/code-review.md`). How much of a file the viewer
 // carries before it says the rest was cut, how far into a file it looks for a NUL before calling it
 // binary, how many entries of one commit's tree come over at once, how many commits the picker
-// offers, what one content search may return and how long it may take, how much of a matched line
+// offers, what one content search may return, how much of a matched line
 // is shown, how many lines a line review may span and how much of them it keeps, how many files
 // stand open as tabs, and the width at and below which the three parts become tabs.
 export const CODE_VIEW = {
@@ -552,11 +550,6 @@ export const CODE_VIEW = {
   searchQueryMax: 200,
   searchPerFile: 5,
   searchTotal: 200,
-  searchTimeoutMs: 10_000,
-  // A definition search is one expression standing for every language at once, which costs about
-  // ten times a plain search and still answers the largest checkout in under a second. It is a
-  // jump the reader is waiting on, so its ceiling is seconds rather than the content search's ten.
-  //
   // Two numbers stand for one file because the search deliberately over-matches: an expression
   // holding every language's shapes finds, in a file of one of them, lines another language would
   // have declared something on — a bare call at the head of a line is a shell function's own shape
@@ -566,7 +559,6 @@ export const CODE_VIEW = {
   definitionScanPerFile: 40,
   definitionPerFile: 5,
   definitionTotal: 50,
-  definitionTimeoutMs: 5_000,
   matchLineMax: 300,
   reviewExcerptMax: 20_000,
   openTabsMax: 10,

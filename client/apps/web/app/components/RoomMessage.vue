@@ -327,7 +327,8 @@
                           <span v-if="message" data-clock>{{ clock }}</span>
                           <!-- Where a message of the reader's own stands on its way, one mark in a column
                                of its own width beside the time, so a change of state changes the mark and
-                               nothing beside or under it. A failed one is pressed for why and what next. -->
+                               nothing beside or under it. A failed one is pressed for why and what next,
+                               and one that waits for a bot or is being checked for deleting. -->
                           <span v-if="markShown" data-send-mark class="inline-flex size-5 items-center justify-center" @pointerdown.stop @click.stop>
                             <UDropdownMenu v-if="mark === 'failed'" :items="failedItems" :content="{ align: 'end' }">
                               <UTooltip :text="$t('room.status.not_sent')">
@@ -338,6 +339,18 @@
                                   icon="i-material-symbols-error"
                                   class="size-5 justify-center p-0"
                                   :aria-label="$t('room.status.not_sent')"
+                                />
+                              </UTooltip>
+                            </UDropdownMenu>
+                            <UDropdownMenu v-else-if="mark === 'waiting' || mark === 'checking'" :items="heldItems" :content="{ align: 'end' }">
+                              <UTooltip :text="markWord">
+                                <UButton
+                                  size="xs"
+                                  color="neutral"
+                                  variant="ghost"
+                                  :icon="markIcon"
+                                  class="size-5 justify-center p-0"
+                                  :aria-label="markWord"
                                 />
                               </UTooltip>
                             </UDropdownMenu>
@@ -614,6 +627,13 @@ const failedItems = computed<DropdownMenuItem[][]>(() => [
     { label: t("room.action.resend"), icon: "i-material-symbols-undo", onSelect: () => emit("retry", props.item.key) },
     { label: t("common.action.delete"), icon: "i-material-symbols-delete-outline", onSelect: () => emit("discard", props.item.key) }
   ]
+]);
+
+// A message that waits for a bot to take it, or is being checked, waits however long that takes, and is
+// pressed for what it waits on and deleted from there where the owner no longer wants it.
+const heldItems = computed<DropdownMenuItem[][]>(() => [
+  [{ type: "label", label: markWord.value }],
+  [{ label: t("common.action.delete"), icon: "i-material-symbols-delete-outline", onSelect: () => emit("discard", props.item.key) }]
 ]);
 
 // Whether a kept file stands as its player: a video or a sound, received, of a type the browser

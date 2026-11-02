@@ -23,6 +23,19 @@
         <template #right>
           <span class="hidden truncate text-sm tabular-nums text-muted sm:inline">{{ standing }}</span>
 
+          <!-- A read waits for the database however long its query takes; while one goes, the stop button stops every read
+               the screen has going at once. -->
+          <UTooltip v-if="going.length > 0" :text="$t('db.action.stop')">
+            <UButton
+              size="sm"
+              color="neutral"
+              variant="ghost"
+              icon="i-material-symbols-stop-outline"
+              :aria-label="$t('db.action.stop')"
+              @click="stop"
+            />
+          </UTooltip>
+
           <UTooltip :text="$t('common.action.refresh')">
             <UButton
               size="sm"
@@ -207,7 +220,8 @@ import {
   pageNote,
   resultNote,
   tableChoices,
-  openingTable
+  openingTable,
+  readKey
 } from "~/domain/dbview";
 import { countText } from "~/domain/numbers";
 import { useNarrow } from "bmo-ui/app/domain/screen";
@@ -228,7 +242,7 @@ import type { TabsItem } from "@nuxt/ui";
 // old what is on it is, and the button beside it reads again.
 
 const { t } = useI18n();
-const SQL_RULE = t("db.label.sql_rule", { rows: countText(DB_VIEW.rowCap), seconds: DB_VIEW.timeoutMs / 1_000 });
+const SQL_RULE = t("db.label.sql_rule", { rows: countText(DB_VIEW.rowCap) });
 
 const { table, mode, setTable, setMode } = useDbView();
 
@@ -249,8 +263,13 @@ const searched = ref<string | null>(null);
 const sql = ref("");
 const reading = ref(false);
 const tablesReady = ref(false);
-let pageGeneration = 0, rowGeneration = 0, sqlGeneration = 0;
-onScopeDispose(() => { pageGeneration++; rowGeneration++; sqlGeneration++; });
+let tablesGeneration = 0, pageGeneration = 0, rowGeneration = 0, sqlGeneration = 0;
+// The keys of the reads the screen has going, each carried on its request.
+const going = ref<string[]>([]);
+onScopeDispose(() => {
+  stop();
+  tablesGeneration++; pageGeneration++; rowGeneration++; sqlGeneration++;
+});
 const failed = ref("");
 const schemaOpen = ref(false);
 const narrow = useNarrow();
@@ -318,12 +337,48 @@ const standing = computed<string>(() => {
   return what === "" ? read.value : t("db.status.note_read_at", { note: what, time: read.value });
 });
 
-async function loadTables(): Promise<void> {
+// One read of the database under a key of its own, which the stop button stops it by.
+async function asked<T>(url: string, options: { method?: "GET" | "POST"; query?: Record<string, string | number>; body?: Record<string, unknown> } = {}): Promise<T> {
+  const key = readKey();
+
+  going.value = [...going.value, key];
+
   try {
-    tables.value = await $fetch<DbTable[]>("/api/db/tables");
+    return (await $fetch(url, { ...options, headers: { "db-read": key } })) as T;
+  } finally {
+    going.value = going.value.filter((one) => one !== key);
+  }
+}
+
+// Every read the screen has going stops at once: its answer is not waited for, the database is asked to cancel its
+// statement, and what stood on the screen before stays.
+function stop(): void {
+  const reads = going.value;
+
+  if (reads.length === 0) return;
+
+  tablesGeneration++;
+  pageGeneration++;
+  rowGeneration++;
+  sqlGeneration++;
+  going.value = [];
+  reading.value = false;
+  rowLoading.value = false;
+  void $fetch("/api/db/stop", { method: "POST", body: { reads } }).catch(() => undefined);
+}
+
+async function loadTables(): Promise<void> {
+  const mine = ++tablesGeneration;
+
+  try {
+    const answer = await asked<DbTable[]>("/api/db/tables");
+
+    if (mine !== tablesGeneration) return;
+    tables.value = answer;
     setTable(openingTable(tables.value, table.value));
     tablesReady.value = true;
   } catch (error) {
+    if (mine !== tablesGeneration) return;
     failed.value = failureText(error, t("db.error.tables_failed"));
   }
 }
@@ -338,7 +393,7 @@ async function loadPage(): Promise<void> {
   failed.value = "";
 
   try {
-    const answer = await $fetch<DbPage>("/api/db/rows", {
+    const answer = await asked<DbPage>("/api/db/rows", {
       query: {
         table: table.value,
         page: atPage.value,
@@ -368,7 +423,7 @@ async function run(): Promise<void> {
   failed.value = "";
 
   try {
-    const answer = await $fetch<DbResult>("/api/db/query", { method: "POST", body: { sql: sql.value } });
+    const answer = await asked<DbResult>("/api/db/query", { method: "POST", body: { sql: sql.value } });
     if (mine !== sqlGeneration) return;
     result.value = answer;
     read.value = clock();
@@ -436,7 +491,7 @@ async function openBrowsedRow(index: number): Promise<void> {
   rowLoading.value = true;
 
   try {
-    const whole = await $fetch<DbRowDetail>("/api/db/row", {
+    const whole = await asked<DbRowDetail>("/api/db/row", {
       query: { table: page.value.table, rowid: row.rowid }
     });
 

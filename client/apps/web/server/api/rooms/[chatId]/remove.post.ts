@@ -1,8 +1,7 @@
 import type { RoomRemovalAnswer } from "#shared/types";
 
 // This room's registration removed with its whole record, carried to the receiver under the administrator's name.
-// It waits out the room's turns being cut and every holder's part, so it is given long.
-const REMOVE_WAIT_MS = 180_000;
+// It waits for the receiver's answer, which waits out the room's turns ending and every holder's part.
 
 // What the receiver answers a removal with; the fields the console's screen does not show stand aside.
 interface RemovalRead {
@@ -18,8 +17,7 @@ export default defineEventHandler(async (event): Promise<RoomRemovalAnswer> => {
   const chatId = requireChatId(event);
   const answer = (await receiverCall(
     receiver().DELETE("/rooms/{roomId}", {
-      params: { path: { roomId: chatId }, query: { by: signed.name } },
-      signal: within(REMOVE_WAIT_MS)
+      params: { path: { roomId: chatId }, query: { by: signed.name } }
     })
   )) as RemovalRead;
 

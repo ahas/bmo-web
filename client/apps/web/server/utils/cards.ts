@@ -9,9 +9,6 @@ import type { CardNode, CardProcess, CardsState, CardTicket, CardUnit, CardView,
 
 const UNIT = "ARBITER";
 
-// The master answers from what it holds; one that takes longer is not there.
-const READ_TIMEOUT_MS = 3_000;
-
 type Maybe<T> = T | null | undefined;
 
 interface ClusterUnit {
@@ -200,7 +197,7 @@ export function cardsStateOf(cluster: Cluster): CardsState {
 
 /** The master's picture now. */
 export async function readCards(): Promise<CardsState> {
-  return cardsStateOf(await unitFetch<Cluster>(UNIT, "/cluster", undefined, READ_TIMEOUT_MS));
+  return cardsStateOf(await unitFetch<Cluster>(UNIT, "/cluster"));
 }
 
 /** The master's event stream of its pictures, opened with its token; null where no address is set. */

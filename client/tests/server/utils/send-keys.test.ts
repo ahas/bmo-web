@@ -5,15 +5,13 @@ import { join } from "node:path";
 import { scratchDir } from "../../support/scratch";
 
 import { fail } from "../../../apps/web/server/utils/fail";
-import { unitSlow } from "../../../apps/web/server/utils/units";
-import { answerSend, claimSend, failSend, readSend, releaseSend, SEND_KEY_SECONDS, sendKeyOf, sendOnce, sweepSends } from "../../../apps/web/server/utils/send-keys";
+import { answerSend, claimSend, readSend, releaseSend, SEND_KEY_SECONDS, sendKeyOf, sendOnce, sweepSends } from "../../../apps/web/server/utils/send-keys";
 
 // What Nitro would import into the module by itself.
 const globals = globalThis as Record<string, unknown>;
 
 globals.createError = (options: { statusCode: number; message: string }) => Object.assign(new Error(options.message), options);
 globals.fail = fail;
-globals.unitSlow = unitSlow;
 
 const root = scratchDir("bmo-send-keys-");
 let drawn = 0;
@@ -137,11 +135,12 @@ describe("a send under its key", () => {
     expect(await sendOnce(7, one, async () => "sent", going, root)).toBe("sent");
   });
 
-  test("that ran late keeps its key claimed: it may well have gone", async () => {
+  test("that the bot refused frees its key too, and its next try meets the refusal again", async () => {
     const one = key();
 
-    await expect(sendOnce(7, one, () => Promise.reject(fail(504, "too late")), going, root)).rejects.toThrow("too late");
-    expect(await sendOnce(7, one, async () => "twice", going, root)).toBe("going");
+    await expect(sendOnce(7, one, () => Promise.reject(fail(409, "refused")), going, root)).rejects.toThrow("refused");
+    expect(await readSend(7, one, root)).toEqual({ state: "unknown" });
+    await expect(sendOnce(7, one, () => Promise.reject(fail(409, "refused")), going, root)).rejects.toThrow("refused");
   });
 
   test("with no key is simply sent, every time", async () => {
@@ -155,21 +154,6 @@ describe("a send under its key", () => {
   });
 });
 
-// A key's record as it settles once a send listened for late has come back, asked a bounded number of times.
-async function settledRecord(chatId: number, one: string): Promise<Awaited<ReturnType<typeof readSend>>> {
-  for (let tries = 0; tries < 200; tries += 1) {
-    const record = await readSend(chatId, one, root);
-
-    if (record.state !== "going") {
-      return record;
-    }
-
-    await Bun.sleep(1);
-  }
-
-  return readSend(chatId, one, root);
-}
-
 describe("what a key came to, read without claiming it", () => {
   test("nothing for a key never handed over, going while claimed, then its answer", async () => {
     const one = key();
@@ -180,68 +164,23 @@ describe("what a key came to, read without claiming it", () => {
     await answerSend(7, one, { messageId: 42 }, root);
     expect(await readSend(7, one, root)).toEqual({ state: "answered", answer: { messageId: 42 } });
   });
-
-  test("a refusal written under it reads as failed, and frees the key for the next try", async () => {
-    const one = key();
-
-    await claimSend(7, one, root);
-    await failSend(7, one, "refused", root);
-
-    expect(await readSend(7, one, root)).toEqual({ state: "failed", reason: "refused" });
-    expect(await claimSend(7, one, root)).toEqual({ kind: "fresh" });
-  });
 });
 
-describe("a send the screen stopped waiting for", () => {
+describe("a send that takes its time", () => {
   const going = () => "going" as const;
 
-  // A send held until the test lets it answer, past a screen given no time at all.
-  function held(): { send: () => Promise<string>; finish: (answer: string) => void; refuse: (error: Error) => void } {
+  test("is waited for however long it takes, and what it went out as is written under its key", async () => {
+    const one = key();
     let finish: (answer: string) => void = () => undefined;
-    let refuse: (error: Error) => void = () => undefined;
-    const answer = new Promise<string>((resolve, reject) => {
-      finish = resolve;
-      refuse = reject;
-    });
+    const first = sendOnce(7, one, () => new Promise<string>((resolve) => (finish = resolve)), going, root);
 
-    return { send: () => answer, finish: (one) => finish(one), refuse: (error) => refuse(error) };
-  }
-
-  test("answers as going, and writes what it went out as once it comes back", async () => {
-    const one = key();
-    const send = held();
-
-    expect(await sendOnce(7, one, send.send, going, root, 0)).toBe("going");
+    await Bun.sleep(20);
     expect(await readSend(7, one, root)).toEqual({ state: "going" });
 
-    send.finish("message 9");
+    finish("message 9");
 
-    expect(await settledRecord(7, one)).toEqual({ state: "answered", answer: "message 9" });
-    expect(await sendOnce(7, one, async () => "twice", going, root, 0)).toBe("message 9");
-  });
-
-  test("writes the refusal that came instead", async () => {
-    const one = key();
-    const send = held();
-
-    expect(await sendOnce(7, one, send.send, going, root, 0)).toBe("going");
-    send.refuse(fail(409, "refused"));
-
-    expect(await settledRecord(7, one)).toEqual({ state: "failed", reason: "refused" });
-  });
-
-  test("that ran past even the app's own wait stays claimed: it may well have gone", async () => {
-    const one = key();
-    const send = held();
-
-    expect(await sendOnce(7, one, send.send, going, root, 0)).toBe("going");
-    send.refuse(fail(504, "late"));
-    await Bun.sleep(5);
-
-    expect(await readSend(7, one, root)).toEqual({ state: "going" });
-  });
-
-  test("answered within the screen's time is answered as ever", async () => {
-    expect(await sendOnce(7, key(), async () => "message 1", going, root, 60_000)).toBe("message 1");
+    expect(await first).toBe("message 9");
+    expect(await readSend(7, one, root)).toEqual({ state: "answered", answer: "message 9" });
+    expect(await sendOnce(7, one, async () => "twice", going, root)).toBe("message 9");
   });
 });

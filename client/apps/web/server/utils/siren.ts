@@ -12,8 +12,6 @@ import type { AgentMode, SirenEvent, SirenWatch } from "#shared/types";
 // the agency's records, which no route serves the console (docs/boundary.md, 「Gaps the console meets」), so a
 // request is named only where a runner's own directory names it and no prefix loss carries a cause.
 
-// The siren reads local files on this machine; it answers at once or it is not there.
-const CALL_TIMEOUT_MS = 3_000;
 
 // The daemon's ring holds the newest 600 events by default and it answers at most 1000 in one page. The console
 // reads the whole ring it knows, since the last ten minutes are counted from events rather than from a tally the
@@ -86,7 +84,7 @@ interface ReadRow {
 }
 
 async function ask<T>(path: string, init?: RequestInit): Promise<T> {
-  return await unitFetch<T>("CACHE_SIREN", path, init, CALL_TIMEOUT_MS);
+  return await unitFetch<T>("CACHE_SIREN", path, init);
 }
 
 function unreachable(): SirenWatch {

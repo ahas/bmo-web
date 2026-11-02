@@ -18,8 +18,6 @@ export type SendClaim<T> = { kind: "fresh" } | { kind: "answered"; answer: T } |
 interface SendRecord<T> {
   at: number;
   answer?: T;
-  // The refusal a send that ran late came back with, after the screen was told it ran late.
-  failed?: string;
 }
 
 // How long a key is kept: far past any reload or deployment a send waits through.
@@ -78,13 +76,6 @@ export async function claimSend<T>(chatId: number, key: string, root = sendKeysR
   const read = await readRecord<T>(path);
   const record = read === "unreadable" ? null : read;
 
-  // A refusal frees the key, whenever it came: the next try sends.
-  if (record?.failed !== undefined) {
-    await rm(path, { force: true });
-
-    return (await made(path, now)) ? { kind: "fresh" } : { kind: "going" };
-  }
-
   return record?.answer === undefined ? { kind: "going" } : { kind: "answered", answer: record.answer };
 }
 
@@ -111,7 +102,7 @@ async function readRecord<T>(path: string): Promise<SendRecord<T> | null | "unre
     .catch((error: NodeJS.ErrnoException) => (error.code === "ENOENT" ? null : "unreadable"));
 }
 
-// What a key came to, read without claiming it, for the screen checking a send that ran late.
+// What a key came to, read without claiming it, for the screen checking a send another try is carrying.
 export async function readSend<T>(chatId: number, key: string, root = sendKeysRoot()): Promise<SendOutcomeRecord<T>> {
   const record = await readRecord<T>(recordPath(root, chatId, key));
 
@@ -123,11 +114,7 @@ export async function readSend<T>(chatId: number, key: string, root = sendKeysRo
     return { state: "going" };
   }
 
-  if (record.answer !== undefined) {
-    return { state: "answered", answer: record.answer };
-  }
-
-  return record.failed === undefined ? { state: "going" } : { state: "failed", reason: record.failed };
+  return record.answer === undefined ? { state: "going" } : { state: "answered", answer: record.answer };
 }
 
 // The answer a claimed send came back with, handed to every later try of its key. It is written beside
@@ -160,32 +147,11 @@ export async function sweepSends(root: string, now = Date.now()): Promise<void> 
   );
 }
 
-// The refusal a send came back with after the screen was told it ran late, kept where its answer would
-// have been, so the screen checking it learns it failed and why.
-export async function failSend(chatId: number, key: string, reason: string, root = sendKeysRoot(), now = Date.now()): Promise<void> {
-  const path = recordPath(root, chatId, key);
-  const beside = `${path}.${process.pid}.next`;
-
-  await writeFile(beside, JSON.stringify({ at: now, failed: reason } satisfies SendRecord<never>));
-  await rename(beside, path);
-}
-
 // One send under its key: an answered key hands its answer back, a key still going answers as `going`
-// says, and a fresh one is sent and its answer kept. A send that ran late may well have gone, so its key
-// stays claimed; any other failure is a send the bot did not take or refused, and frees the key. A send
-// with no key is simply sent.
-//
-// Where the screen is given only so long (`answerWithinMs`), a send still going then answers as `going`
-// and is listened for on its own: the message it went out as, or the refusal that came instead, is
-// written under its key for the screen to ask for (docs/web.md, the room screen's send checked after it ran late).
-export async function sendOnce<T>(
-  chatId: number,
-  key: string | null,
-  send: () => Promise<T>,
-  going: () => T,
-  root = sendKeysRoot(),
-  answerWithinMs: number | null = null
-): Promise<T> {
+// says, and a fresh one is sent, waited on however long the bot takes, and its answer kept. A send that failed
+// is one the bot did not take or refused, and frees the key. A send with no key is simply sent (docs/web.md, the
+// room screen's section on a send going once).
+export async function sendOnce<T>(chatId: number, key: string | null, send: () => Promise<T>, going: () => T, root = sendKeysRoot()): Promise<T> {
   if (key === null) {
     return send();
   }
@@ -200,22 +166,12 @@ export async function sendOnce<T>(
     return going();
   }
 
-  const sending = send();
-
-  if (answerWithinMs !== null && (await outlasts(sending, answerWithinMs))) {
-    void listenLate(chatId, key, sending, root);
-
-    return going();
-  }
-
   let answer: T;
 
   try {
-    answer = await sending;
+    answer = await send();
   } catch (error) {
-    if (!unitSlow(error)) {
-      await releaseSend(chatId, key, root);
-    }
+    await releaseSend(chatId, key, root);
 
     throw error;
   }
@@ -223,50 +179,4 @@ export async function sendOnce<T>(
   await answerSend(chatId, key, answer, root);
 
   return answer;
-}
-
-// Whether a send is still going once the screen's time is out. The timer goes with the send, so a send
-// that answers in time holds nothing open.
-async function outlasts(sending: Promise<unknown>, ms: number): Promise<boolean> {
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  const late = new Promise<boolean>((resolve) => {
-    timer = setTimeout(() => resolve(true), ms);
-  });
-  const answered = sending.then(
-    () => false,
-    () => false
-  );
-
-  try {
-    return await Promise.race([answered, late]);
-  } finally {
-    if (timer !== null) {
-      clearTimeout(timer);
-    }
-  }
-}
-
-// What a send the screen stopped waiting for came to, written under its key. One that ran past even the
-// app's own wait stays claimed, since it may well have gone.
-async function listenLate<T>(chatId: number, key: string, sending: Promise<T>, root: string): Promise<void> {
-  const outcome = await sending.then(
-    (answer) => ({ answer }),
-    (error: unknown) => ({ error })
-  );
-
-  try {
-    if ("answer" in outcome) {
-      await answerSend(chatId, key, outcome.answer, root);
-    } else if (!unitSlow(outcome.error)) {
-      await failSend(chatId, key, refusalOf(outcome.error), root);
-    }
-  } catch {
-    // A record that could not be written leaves the key claimed, which the screen reads as never confirmed.
-  }
-}
-
-function refusalOf(error: unknown): string {
-  const said = error as { statusMessage?: string; message?: string } | null;
-
-  return said?.message || said?.statusMessage || wording("common.error.not_sent");
 }

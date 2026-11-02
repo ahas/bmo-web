@@ -8,14 +8,9 @@ import {
   landedKeys,
   landedPictures,
   nextSend,
-  OUTBOX_CHECKING_SECONDS,
   OUTBOX_GRACE_SECONDS,
-  OUTBOX_WAITING_SECONDS,
   outboxOf,
-  overdueChecks,
-  overdueWaits,
   previewsOf,
-  restored,
   SEND_RETRY_MAX_MS,
   sendOutcome,
   sendRetryMs,
@@ -133,7 +128,7 @@ describe("which rows the archive has caught up with", () => {
     const key = items[0]?.key ?? "";
 
     expect(landedKeys(items, [archived(42, KO.line_131, 100)], owner)).toEqual([]);
-    expect(landedKeys(withWaiting(items, [key], 100), [archived(42, KO.line_132, 100)], owner)).toEqual([]);
+    expect(landedKeys(withWaiting(items, [key]), [archived(42, KO.line_132, 100)], owner)).toEqual([]);
   });
 
   test("the one whose words are there even after the send has answered with a number of its own", () => {
@@ -206,7 +201,7 @@ describe("which rows the feed stands no longer for the archive carrying their me
 
   test("a send waiting on the bot gives way the same, its earlier try having reached it", () => {
     const items = outboxOf("hello", [], 100);
-    const waiting = withWaiting(items, [items[0]?.key ?? ""], 100);
+    const waiting = withWaiting(items, [items[0]?.key ?? ""]);
 
     expect([...echoedKeys(waiting, [archived(-7, "hello", 130)], owner)]).toEqual([items[0]?.key ?? ""]);
   });
@@ -373,27 +368,26 @@ describe("which rows the feed is done with", () => {
   });
 });
 
-describe("a send the bot answered late", () => {
+describe("a send another try of its key is still carrying", () => {
   const items = outboxOf(KO.line_269, [], 100);
   const key = items[0]?.key ?? "";
-  const checking = withChecking(items, key, 145);
+  const checking = withChecking(items, key);
 
   test("stands checking, with no reason to send it again", () => {
-    expect(checking[0]).toMatchObject({ state: "checking", reason: null, checkingSince: 145 });
+    expect(checking[0]).toMatchObject({ state: "checking", reason: null });
   });
 
   test("becomes the message its words came back as, however late the archive carries it", () => {
     expect(settledKeys(checking, [archived(9, KO.line_278, 150)], owner, 200)).toEqual([key]);
   });
 
-  test("is overdue only once the whole watch has passed with nothing in the archive", () => {
-    expect(overdueChecks(checking, 145 + OUTBOX_CHECKING_SECONDS - 1)).toEqual([]);
-    expect(overdueChecks(checking, 145 + OUTBOX_CHECKING_SECONDS)).toEqual([key]);
-    expect(overdueChecks(items, 145 + OUTBOX_CHECKING_SECONDS)).toEqual([]);
+  test("stays checking with nothing in the archive, however long that is", () => {
+    expect(settledKeys(checking, [], owner, 100 + OUTBOX_GRACE_SECONDS * 1000)).toEqual([]);
+    expect(nextSend(checking)).toEqual([]);
   });
 
   test("sent again, it starts over as a message on its way", () => {
-    expect(withResending(withFailed(checking, key, KO.line_288), key)[0]).toMatchObject({ state: "sending", checkingSince: null });
+    expect(withResending(withFailed(checking, key, KO.line_288), key)[0]).toMatchObject({ state: "sending", reason: null, messageId: null });
   });
 });
 
@@ -431,14 +425,14 @@ describe("which send goes next", () => {
   });
 
   test("a waiting send keeps its place ahead of the ones behind it", () => {
-    expect(keys(nextSend(withWaiting(rows, keys(first), 100)))).toEqual(keys(first));
+    expect(keys(nextSend(withWaiting(rows, keys(first))))).toEqual(keys(first));
   });
 
   test("past one that failed or is checked for, which no longer goes by itself", () => {
     const failed = withFailed(rows, first[0]?.key ?? "", KO.line_330);
-    const checking = withChecking(failed, second[0]?.key ?? "", 103);
+    const checking = withChecking(failed, second[0]?.key ?? "");
 
-    expect(keys(nextSend(withChecking(checking, second[1]?.key ?? "", 103)))).toEqual(keys(third));
+    expect(keys(nextSend(withChecking(checking, second[1]?.key ?? "")))).toEqual(keys(third));
   });
 
   test("of a press whose files answered one by one, only those still unanswered", () => {
@@ -478,7 +472,7 @@ describe("what a send that did not answer with a message comes to", () => {
     const items = withFailed(outboxOf(KO.line_370, [], 100), "", "");
     const key = items[0]?.key ?? "";
 
-    expect(withWaiting(items, [key], 100)[0]).toMatchObject({ state: "waiting", reason: null, messageId: null });
+    expect(withWaiting(items, [key])[0]).toMatchObject({ state: "waiting", reason: null, messageId: null });
   });
 
   test("a waiting send rests a second, then twice as long each time, up to its ceiling", () => {
@@ -500,36 +494,22 @@ describe("a send no bot takes", () => {
   const items = outboxOf("words", [], 100);
   const key = items[0]?.key ?? "";
 
-  test("is bounded from the first try that found none, which later tries keep", () => {
-    const waiting = withWaiting(withWaiting(items, [key], 200), [key], 500);
+  test("waits however many tries find none, and stays the next to go", () => {
+    const waiting = withWaiting(withWaiting(items, [key]), [key]);
 
-    expect(waiting[0]?.waitingSince).toBe(200);
-    expect(overdueWaits(waiting, 200 + OUTBOX_WAITING_SECONDS - 1)).toEqual([]);
-    expect(overdueWaits(waiting, 200 + OUTBOX_WAITING_SECONDS)).toEqual([key]);
-  });
-
-  test("starts its wait afresh when the room puts it back from the browser", () => {
-    const back = restored(withWaiting(items, [key], 200));
-
-    expect(back[0]).toMatchObject({ state: "waiting", waitingSince: null });
-    expect(overdueWaits(withWaiting(back, [key], 900), 900)).toEqual([]);
-  });
-
-  test("kept by a screen that wrote no wait is never overdue until it waits on this one", () => {
-    const { waitingSince: _dropped, ...older } = withWaiting(items, [key], 200)[0] as OutboxItem;
-
-    expect(overdueWaits([older], 200 + OUTBOX_WAITING_SECONDS)).toEqual([]);
+    expect(waiting[0]).toMatchObject({ state: "waiting", reason: null });
+    expect(nextSend(waiting).map((held) => held.key)).toEqual([key]);
   });
 });
 
 describe("a checked row's key", () => {
   const put = outboxOf("[tag]: words", [], 100);
   const held = put[0]?.key ?? "";
-  const checked = withChecking(put, held, 150);
+  const checked = withChecking(put, held);
 
   test("is asked after for words, never for a file answered late", () => {
     const file = outboxOf("", [picked("a.jpg")], 100);
-    const fileChecked = withChecking(file, file[0]?.key ?? "", 150);
+    const fileChecked = withChecking(file, file[0]?.key ?? "");
 
     expect(keyChecks(checked).map((one) => one.key)).toEqual([held]);
     expect(keyChecks(fileChecked)).toEqual([]);
@@ -545,17 +525,15 @@ describe("a checked row's key", () => {
     expect(landedKeys(sent, [asAnother], owner)).toEqual([held]);
   });
 
-  test("that was refused makes the row failed with the refusal", () => {
-    expect(withKeyOutcome(checked, held, { state: "failed", reason: "refused" })[0]).toMatchObject({ state: "failed", reason: "refused" });
+  test("with no record under it is a send that did not go, and the row goes again under the same key", () => {
+    const again = withKeyOutcome(checked, held, { state: "unknown" });
+
+    expect(again[0]).toMatchObject({ state: "sending", messageId: null, sendKey: checked[0]?.sendKey });
+    expect(nextSend(again).map((one) => one.key)).toEqual([held]);
   });
 
-  test("still going, or unknown to the app, leaves the row checking until its watch is over", () => {
-    for (const outcome of [{ state: "going" }, { state: "unknown" }] as const) {
-      const still = withKeyOutcome(checked, held, outcome);
-
-      expect(still[0]).toMatchObject({ state: "checking", checkingSince: 150 });
-      expect(overdueChecks(still, 150 + OUTBOX_CHECKING_SECONDS)).toEqual([held]);
-    }
+  test("still going leaves the row checking", () => {
+    expect(withKeyOutcome(checked, held, { state: "going" })[0]).toMatchObject({ state: "checking" });
   });
 
   test("answers nothing for a row no longer checked", () => {

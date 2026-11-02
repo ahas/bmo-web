@@ -18,7 +18,6 @@ export default defineEventHandler(async (event): Promise<BriefingReading> => {
     `/rooms/${chatId}/messages/${messageId}/reading`,
     { method: "POST" },
     {
-      timeoutMs: 30_000,
       passStatus: [404, 409, 502],
       codes: {
         ...RECEIVER_CODES,

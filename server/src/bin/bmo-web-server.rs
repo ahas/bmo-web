@@ -228,15 +228,12 @@ async fn user(settings: Settings, name: String, administrator: bool) -> ExitCode
   }
 }
 
-// How long the health waits on the service's answer.
-const HEALTH_WAIT: std::time::Duration = std::time::Duration::from_secs(5);
-
 /// Whether the service on the address the settings name answers its health route, and why not where it does not.
+/// The ask waits for the service's answer; it ends on that answer or on its connection refused or broken.
 async fn health(settings: &Settings) -> Result<(), String> {
   let address = format!("{}/health", settings.server.address());
   let answer = reqwest::Client::new()
     .get(&address)
-    .timeout(HEALTH_WAIT)
     .send()
     .await
     .map_err(|why| format!("nothing answered at {address}: {why}"))?;

@@ -1,5 +1,4 @@
 import { receiver, receiverCall } from "./receiver";
-import { within } from "./unit-answer";
 
 import type { CompanionRequest, Companions } from "@bmo/receiver-client";
 import type { UnitAnswerCall } from "./unit-answer";
@@ -113,14 +112,14 @@ async function renamed<T, E extends { code?: string; error?: string; field?: str
 }
 
 /** A companion added with the room the console names. */
-export async function addCompanion(body: CompanionRequest, timeoutMs: number): Promise<Companions> {
-  return await renamed(receiver().POST("/companions", { body, signal: within(timeoutMs) }), { codes: COMPANION_CODES, passStatus: [409] });
+export async function addCompanion(body: CompanionRequest): Promise<Companions> {
+  return await renamed(receiver().POST("/companions", { body }), { codes: COMPANION_CODES, passStatus: [409] });
 }
 
 /** A companion taken out, with its room and everything it kept. */
-export async function removeCompanion(companionName: string, by: string, timeoutMs: number): Promise<Companions> {
+export async function removeCompanion(companionName: string, by: string): Promise<Companions> {
   return await renamed(
-    receiver().DELETE("/companions/{companionName}", { params: { path: { companionName }, query: { by } }, signal: within(timeoutMs) }),
+    receiver().DELETE("/companions/{companionName}", { params: { path: { companionName }, query: { by } } }),
     { codes: COMPANION_CODES, passStatus: [409] }
   );
 }

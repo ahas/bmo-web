@@ -12,10 +12,6 @@ import type { HistoryBand, HistoryMetric, HistoryRange, HistorySpan, LiveRange, 
 
 const UNIT = "NODE";
 
-// A machine is read at once or not at all; one the recorder holds nothing fresh of is read by the service itself,
-// which takes a moment more.
-const READ_TIMEOUT_MS = 8_000;
-
 // The node service's refusals the screen says in its own words.
 const NODE_CODES: Readonly<Record<string, string>> = {
   "not-found": "hardware.error.no_machine",
@@ -97,7 +93,7 @@ function machineOf(answer: MachineAnswer, now: number = Date.now()): MachineHard
 
 /** One machine with its latest reading. */
 export async function machineHardware(name: string): Promise<MachineHardware> {
-  return machineOf(await unitFetch<MachineAnswer>(UNIT, path(name), undefined, { timeoutMs: READ_TIMEOUT_MS, codes: NODE_CODES }));
+  return machineOf(await unitFetch<MachineAnswer>(UNIT, path(name), undefined, { codes: NODE_CODES }));
 }
 
 /** A machine's live tracking or CPU limit changed, as the service now holds it. */
@@ -145,7 +141,7 @@ function bandsOf(reading: Reading): [string, Band][] {
 
 async function readings(name: string, spanMs: number, afterMs: number, limit: number): Promise<Reading[]> {
   const query = new URLSearchParams({ spanMs: String(spanMs), after: String(afterMs), limit: String(limit) });
-  const page = await unitFetch<Page<Reading>>(UNIT, `${path(name)}/readings?${query}`, undefined, { timeoutMs: READ_TIMEOUT_MS, codes: NODE_CODES });
+  const page = await unitFetch<Page<Reading>>(UNIT, `${path(name)}/readings?${query}`, undefined, { codes: NODE_CODES });
 
   return page.items ?? [];
 }

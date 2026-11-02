@@ -2,12 +2,8 @@
 // worn by the judgements of those turns. One asking covers every round the judgements name; a receiver that cannot
 // be reached leaves them as they were.
 import { receiver, receiverCall } from "./receiver";
-import { within } from "./unit-answer";
 
 import type { Judgement, RoundOpening } from "#shared/types";
-
-// A page waits this long at most: the verdicts stand without the openings rather than late.
-const OPENINGS_TIMEOUT_MS = 3_000;
 
 export async function withOpenings(chatId: number, judgements: Judgement[]): Promise<Judgement[]> {
   const rounds = [...new Set(judgements.flatMap((judgement) => (judgement.round === null || judgement.round === undefined ? [] : [judgement.round])))];
@@ -21,8 +17,7 @@ export async function withOpenings(chatId: number, judgements: Judgement[]): Pro
   try {
     const page = await receiverCall(
       receiver().GET("/rounds/openings", {
-        params: { query: { room: chatId, rounds: rounds.join(",") } },
-        signal: within(OPENINGS_TIMEOUT_MS)
+        params: { query: { room: chatId, rounds: rounds.join(",") } }
       })
     );
 

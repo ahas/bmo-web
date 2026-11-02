@@ -477,12 +477,8 @@ import {
   keyChecks,
   landedPictures,
   nextSend,
-  OUTBOX_SAY_CALL_MS,
   outboxOf,
-  overdueChecks,
-  overdueWaits,
   previewsOf,
-  restored,
   sendOutcome,
   sendRetryMs,
   settledKeys,
@@ -2312,7 +2308,7 @@ async function restoreOutbox(): Promise<void> {
     return;
   }
 
-  outbox.value = [...restored(back), ...outbox.value];
+  outbox.value = [...back, ...outbox.value];
   settleOutbox();
   void checkRound();
   void pump();
@@ -2351,8 +2347,7 @@ async function deliver(batch: readonly OutboxItem[]): Promise<SendOutcome | "ans
     } else {
       const said = await $fetch<SentMessage>(`/api/rooms/${chatId}/say`, {
         method: "POST",
-        body: { text: first.text, replyTo: first.reply?.messageId, key: first.sendKey },
-        timeout: OUTBOX_SAY_CALL_MS
+        body: { text: first.text, replyTo: first.reply?.messageId, key: first.sendKey }
       });
 
       outbox.value = withSent(outbox.value, first.key, said.messageId);
@@ -2360,25 +2355,17 @@ async function deliver(batch: readonly OutboxItem[]): Promise<SendOutcome | "ans
   } catch (error) {
     const outcome = sendOutcome(error);
 
-    // Nothing went: the send waits for a bot and an app to answer, and goes again as it stands, until
-    // it has waited out its bound and fails, letting the sends behind it go.
+    // Nothing went: the send waits for a bot and an app to answer, and goes again as it stands, however long
+    // that takes, the sends behind it waiting behind it; the owner deletes it where it is no longer wanted.
     if (outcome === "waiting") {
-      const now = toUnixSeconds(Date.now());
-
-      outbox.value = withWaiting(outbox.value, batch.map((held) => held.key), now);
-
-      const given = overdueWaits(outbox.value, now);
-
-      for (const key of given) {
-        outbox.value = withFailed(outbox.value, key, t("room.error.send_not_taken"));
-      }
+      outbox.value = withWaiting(outbox.value, batch.map((held) => held.key));
 
       void readControl();
 
-      return given.length > 0 ? "failed" : outcome;
+      return outcome;
     }
 
-    // What the bot took and did not answer for in time may well be in the room already.
+    // What another try of its key is still carrying may well be in the room already.
     if (outcome === "checking") {
       check(batch);
       await settle();
@@ -2447,11 +2434,10 @@ function markFiles(batch: readonly OutboxItem[], answer: SentAttachments): void 
   }
 }
 
-// Rows whose send ran late wait for the archive to carry them, and have their key asked after every
-// few seconds for the message the send went out as, which a line the archive keeps as another
-// speaker's is found by alone. The ones neither has settled once the watch is over are failed with a
-// reason that sends them to the room before sending again (docs/web.md, the send checked after it ran
-// late).
+// Rows another try of their key is still carrying wait for the archive to carry them, and have their key
+// asked after every few seconds for the message the send went out as, which a line the archive keeps as
+// another speaker's is found by alone. A row waits so until one of the two settles it, or the owner deletes
+// it (docs/web.md, the room screen's 「Checking」).
 const CHECK_EVERY_MS = 5_000;
 let checkTimer: ReturnType<typeof setTimeout> | null = null;
 let checkingRound = false;
@@ -2463,10 +2449,8 @@ function check(rows: readonly OutboxItem[]): void {
     return;
   }
 
-  const now = toUnixSeconds(Date.now());
-
   for (const held of rows) {
-    outbox.value = withChecking(outbox.value, held.key, now);
+    outbox.value = withChecking(outbox.value, held.key);
   }
 
   watchChecks();
@@ -2492,10 +2476,6 @@ async function checkRound(): Promise<void> {
 
   try {
     const answered = await askKeys();
-
-    for (const key of overdueChecks(outbox.value, toUnixSeconds(Date.now()))) {
-      outbox.value = withFailed(outbox.value, key, t("room.error.send_unconfirmed"));
-    }
 
     // A row the key answered for is the archived message by number, which the archive is read for.
     if (answered) {
@@ -2523,6 +2503,11 @@ async function askKeys(): Promise<boolean> {
     if (outcome !== null) {
       outbox.value = withKeyOutcome(outbox.value, key, outcome);
     }
+  }
+
+  // A key no record stands under is a send that did not go, and it goes again.
+  if (outcomes.some(({ outcome }) => outcome?.state === "unknown")) {
+    void pump();
   }
 
   return outcomes.some(({ outcome }) => outcome?.state === "answered");

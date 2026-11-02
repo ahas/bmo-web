@@ -1,8 +1,7 @@
 import { STATUS_HISTORY_LIMIT, WORKER_AGENT } from "#shared/config";
 
 import { agency, agencyCall } from "./agency";
-import { job as jobService, jobCall, JOB_TIMEOUT_MS } from "./job";
-import { within } from "./unit-answer";
+import { job as jobService, jobCall } from "./job";
 import { planOf } from "../../app/domain/tool-view";
 
 import type { Job as AgencyJob } from "@agency/client";
@@ -99,7 +98,7 @@ async function roomOf(job: AgencyJob): Promise<number | null> {
 
   try {
     const item = await jobCall(
-      jobService().GET("/items/{itemId}", { params: { path: { itemId: job.itemId } }, signal: within(JOB_TIMEOUT_MS) })
+      jobService().GET("/items/{itemId}", { params: { path: { itemId: job.itemId } } })
     );
     const scope = item.scope?.trim() ?? "";
 

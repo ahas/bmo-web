@@ -41,7 +41,7 @@ export default defineEventHandler(async (event): Promise<CatalogueView> => {
     by: session.user.name
   };
   const view = await agencyCall(
-    agency().POST("/model-catalogue", { body: change, signal: within(body.action === "use" ? 20_000 : 8_000) })
+    agency().POST("/model-catalogue", { body: change })
   );
 
   return { entries: view.entries, uses: view.uses.map((use) => ({ ...use, state: use.state as ModelUseState })) };

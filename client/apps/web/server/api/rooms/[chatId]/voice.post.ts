@@ -1,4 +1,4 @@
-import { CONTROL_SLOW, MAX_ATTACHMENT_BYTES, MAX_SAY_TEXT_LENGTH } from "#shared/config";
+import { MAX_ATTACHMENT_BYTES, MAX_SAY_TEXT_LENGTH } from "#shared/config";
 import { wording } from "#shared/wording";
 
 import type { SentMessage } from "#shared/types";
@@ -69,7 +69,7 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
   body.append("file", new File([new Uint8Array(file.data)], name, { type: file.type ?? "" }));
 
   const watched = (): SentMessage => {
-    throw fail(504, wording(CONTROL_SLOW));
+    throw fail(504, wording("room.status.checking"));
   };
   const key = sendKeyOf(new TextDecoder().decode(parts.find((part) => part.name === "key")?.data ?? new Uint8Array()));
 
@@ -77,30 +77,18 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
     chatId,
     key,
     async () => {
-      try {
-        const answer = (await receiverCall(
-          receiver().POST("/owner/message-files", { body, signal: within(ATTACH_TIMEOUT_MS) })
-        )) as ReceivedVoice;
-        const sent = answer.sent[0];
+      const answer = (await receiverCall(receiver().POST("/owner/message-files", { body }))) as ReceivedVoice;
+      const sent = answer.sent[0];
 
-        if (sent !== undefined) {
-          return { messageId: sent.id };
-        }
-
-        const failed = answer.failed[0];
-
-        throw fail(502, failed === undefined ? wording("common.error.not_sent") : unsentReason(failed));
-      } catch (error) {
-        if (unitSlow(error)) {
-          return watched();
-        }
-
-        throw error;
+      if (sent !== undefined) {
+        return { messageId: sent.id };
       }
+
+      const failed = answer.failed[0];
+
+      throw fail(502, failed === undefined ? wording("common.error.not_sent") : unsentReason(failed));
     },
-    watched,
-    sendKeysRoot(),
-    ATTACH_TIMEOUT_MS
+    watched
   );
 })
 

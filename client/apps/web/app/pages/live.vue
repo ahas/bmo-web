@@ -158,7 +158,7 @@
                     color="neutral"
                     variant="outline"
                     class="min-h-11"
-                    :disabled="stops.busy()"
+                    :disabled="stops.isSending(stopTargetOf(run)!)"
                     :aria-label="$t('live.aria.stop_named', { name: agentNameLabel($t, { name: run.agent }) })"
                     @click.prevent.stop="stops.ask(stopTargetOf(run)!)"
                   />
@@ -407,7 +407,7 @@ const rooms = computed<RoomSummary[]>(() => roomList.value ?? []);
 
 // Nothing is known of the bot until the first picture of it has come back, or the stream has
 // said it is up; what the button carries before that is the calm line, not the failure.
-const link = computed<ControlLink>(() => controlLink(loaded.value || status.value.reachable ? status.value.reachable : null, status.value.slow === true));
+const link = computed<ControlLink>(() => controlLink(loaded.value || status.value.reachable ? status.value.reachable : null));
 
 const standing = computed<string>(() => {
   if (link.value !== "reachable") {

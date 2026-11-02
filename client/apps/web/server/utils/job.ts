@@ -18,11 +18,6 @@ import type { UnitAnswerCall } from "./unit-answer";
 /** The job service's client, over the document its package publishes. */
 export type JobClient = Client<paths>;
 
-// A call that only reads bmo-job answers at once; a verb that starts work waits on what it asks.
-export const JOB_TIMEOUT_MS = 5_000;
-// A verb that stops runs or starts a work order waits on what it asks of the agency.
-export const JOB_VERB_TIMEOUT_MS = 180_000;
-
 /** bmo-job at the address its setting names, asked with its token. */
 export function job(): JobClient {
   const unit = unitAt("JOB");

@@ -1,7 +1,7 @@
 <template>
   <!-- A stop is asked again where the row stands, as a step the row grows: a question at the top
        of the screen would say nothing about which row it is about. What the row was told, when a
-       stop was refused or nothing answered it, stays here too — on the row rather than under the
+       stop was refused or could not be carried, stays here too — on the row rather than under the
        section, so moving between sections never takes it away. -->
   <div v-if="open" class="flex flex-col gap-2">
     <div
@@ -17,7 +17,6 @@
         variant="outline"
         class="min-h-11"
         :loading="props.stops.isSending(props.target)"
-        :disabled="props.stops.busy() && !props.stops.isSending(props.target)"
         :aria-label="$t('live.aria.stop_named', { name: props.label })"
         @click="props.stops.stop(props.target)"
       />

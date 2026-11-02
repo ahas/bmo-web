@@ -4,9 +4,8 @@ import { wording } from "#shared/wording";
 import type { CompanionResetAnswer, CompanionResetRange } from "#shared/agency";
 
 // A companion's reset of the ranges the administrator chose, carried to the agency under their name (the agency's
-// `docs/api.md`, 「companion-resets」). It walks every archive copy under the data root, which takes seconds and
-// more under load, so it is given longer than a setting's save.
-const RESET_WAIT_MS = 150_000;
+// `docs/api.md`, 「companion-resets」). It walks every archive copy under the data root, and waits for that answer
+// however long it takes under load.
 
 export default defineEventHandler(async (event): Promise<CompanionResetAnswer> => {
   const signed = await requireAdministrator(event);
@@ -24,8 +23,7 @@ export default defineEventHandler(async (event): Promise<CompanionResetAnswer> =
         shared: null,
         dryRun: false,
         by: signed.name
-      },
-      signal: within(RESET_WAIT_MS)
+      }
     })
   );
   const ranges = (Array.isArray(reset.ranges) ? reset.ranges : []).filter(

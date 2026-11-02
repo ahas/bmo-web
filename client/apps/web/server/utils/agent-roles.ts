@@ -1,8 +1,7 @@
 import { wording } from "#shared/wording";
 
-import { AGENCY_TIMEOUT_MS, agency, agencyCall } from "./agency";
+import { agency, agencyCall } from "./agency";
 import { bundleWordOf, roleWordOf } from "./agency-words";
-import { within } from "./unit-answer";
 
 import type { components } from "@agency/client/schema";
 import type { AgentRoleBundleView, AgentRoleChange, AgentRoleView, AgentRolesView } from "#shared/agency";
@@ -99,7 +98,7 @@ export function agentRoleChangeOf(body: unknown, adding: boolean): AgentRoleChan
 
 /** Every role and bundle the agency holds. */
 export async function agentRoles(): Promise<AgentRolesView> {
-  return agentRolesOfAnswer(await agencyCall(agency().GET("/agent-roles", { signal: within(AGENCY_TIMEOUT_MS) })));
+  return agentRolesOfAnswer(await agencyCall(agency().GET("/agent-roles")));
 }
 
 /** A new role; on a new role the agency is sent no bound, prompt or tier it was not given. */
@@ -112,17 +111,17 @@ export async function addAgentRole(change: AgentRoleChange): Promise<AgentRoleVi
   if (change.prompt != null) body.prompt = change.prompt;
   if (change.tier != null) body.tier = change.tier;
 
-  return agentRoleOf(await agencyCall(agency().POST("/agent-roles", { body, signal: within(AGENCY_TIMEOUT_MS) })));
+  return agentRoleOf(await agencyCall(agency().POST("/agent-roles", { body })));
 }
 
 /** One role's change, the fields it names and no other. */
 export async function changeAgentRole(name: string, change: AgentRoleChange): Promise<AgentRoleView> {
   const { name: _name, ...body } = change;
 
-  return agentRoleOf(await agencyCall(agency().PATCH("/agent-roles/{roleName}", { params: { path: { roleName: name } }, body, signal: within(AGENCY_TIMEOUT_MS) })));
+  return agentRoleOf(await agencyCall(agency().PATCH("/agent-roles/{roleName}", { params: { path: { roleName: name } }, body })));
 }
 
 /** One role removed; a role still held, or a kind's own, is refused in the pack's words. */
 export async function removeAgentRole(name: string): Promise<void> {
-  await agencyCall(agency().DELETE("/agent-roles/{roleName}", { params: { path: { roleName: name } }, signal: within(AGENCY_TIMEOUT_MS) }), { codes: REMOVAL_CODES });
+  await agencyCall(agency().DELETE("/agent-roles/{roleName}", { params: { path: { roleName: name } } }), { codes: REMOVAL_CODES });
 }

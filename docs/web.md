@@ -346,7 +346,8 @@ this rule alone and goes nowhere else.
   agency's `POST /github/deliveries` with its `Content-Type`, `X-GitHub-Event`, `X-GitHub-Delivery` and
   `X-Hub-Signature-256` headers and the agency's token, answering with the agency's status and body. Whether
   the delivery is GitHub's is the agency's to say, by its signature: the console judges nothing of it. A larger
-  body is refused 413 and nothing is handed on; an agency that does not answer is 502. Each delivery leaves one
+  body is refused 413 and nothing is handed on. The delivery waits for the agency's answer however long it takes,
+  GitHub's own wait being GitHub's; an agency that refuses the connection or breaks it is 502. Each delivery leaves one
   line in the console's log: its event, its delivery id and the status it was answered with.
 
 **Every answer carries the browser's guards.** `X-Content-Type-Options: nosniff`, so a file is read as the
@@ -502,15 +503,13 @@ answer, the screens that read it say so and the rest stand; a room whose receive
 as the input box's placeholder. The box still takes words and files, which wait in the browser until the bot
 answers again (the room screen's **대기**).
 
-- **What a screen knows of the control API is one of four things:** it is still asking, the bot took
-  the call and did not answer in time, nothing took the call at all, or the bot answered. Not having
-  heard yet is not a failure, and a bot that is busy is not a bot that is gone.
-- **A late answer and a refused call are told apart where the call is made.** A call the bot's port
-  took but the bot did not answer before the wait ran out is the bot being held up — its one thread
-  busy — and comes back as this app's 504; a call nothing took, one the control port's front answered
-  with the bot behind it not answering (`docs/boundary.md`), or one that broke on the way, is the
-  bot being down and comes back as the 503 it always was. The routes that report whether the bot is
-  there carry which of the two it was.
+- **What a screen knows of the control API is one of three things:** it is still asking, nothing
+  took the call, or the bot answered. Not having heard yet is not a failure, and a bot that is busy
+  is not a bot that is gone.
+- **A busy bot is waited for.** A call the bot's port took waits for the bot's answer however long
+  its one thread is busy, and the screen stands as still asking meanwhile; a call nothing took, one
+  the control port's front answered with the bot behind it not answering (`docs/boundary.md`), or one
+  that broke on the way, is the bot being down and comes back as the 503 it always was.
 - **A screen's own call that this app never answered says nothing of the bot.** A browser offline for
   a moment, or a phone waking with its requests cut, never reached the bot's port at all, so such a
   call leaves the screen's last reading standing, or still asking where it had none, rather than
@@ -519,10 +518,10 @@ answers again (the room screen's **대기**).
 - **A reading other than an answer is asked again on its own clock,** every poll interval until the bot
   answers, whatever the event stream is doing: the stream says when a turn ends, and a screen whose
   one read missed would otherwise stand on that miss until the next turn anywhere.
-- **Asking reads 「API 로드 중」 in the quiet colour; a late answer reads 「API 응답 지연」 in the
-  warning colour; a failure reads 「API 로드 실패」 in the error colour; an answer reads as
-  nothing.** One module holds the four and every screen that speaks of the bot says it through that
-  module, so none of them can call a question not yet answered, or a bot merely slow, a failure.
+- **Asking reads 「API 로드 중」 in the quiet colour; a failure reads 「API 로드 실패」 in the error
+  colour; an answer reads as nothing.** One module holds the three and every screen that speaks of the
+  bot says it through that module, so none of them can call a question not yet answered, or a bot
+  merely slow, a failure.
 - **A call refused for the login says nothing of the bot either.** It leaves the reading where it
   stood, and the tab goes to the login screen instead.
 
@@ -2061,7 +2060,9 @@ archive and this week's tokens remain. That is all that can actually be known th
   road it took, the run closes as 「사용자가 중지」, never as 실패 or 보고 없이 종료됨.
 - **A line whose stop is asked reads 중지 중.** The answer a stop gives is that it was asked, so the line
   carries that word until the bot's picture next says the run is gone, and it is that line that carries it —
-  a person pressing one stop can see which one is in flight. A stop the bot refused, or could not carry,
+  a person pressing one stop can see which one is in flight. A stop's call waits for the bot's answer however
+  long the run takes to end, and each line's stop is its own: a line whose stop is out holds its own button,
+  never another line's. A stop the bot refused, or could not carry,
   stands as an error on the line it was pressed on, and stays there while the line does rather than going
   away with the section.
 - **A co-work run is read not by its unit name but by the place it stands in the work order.** The name the bot
@@ -2263,10 +2264,12 @@ Two ways, split because the running places differ.
   app recognises but by the database itself. A directly typed query has one more layer: the query is wrapped whole
   in a subquery to run, so anything not one SELECT-shaped statement is caught at the parser first, and joining two
   statements with a semicolon is caught in the same place.
-- **It can be stopped.** Each read runs in a process of its own, killed at the console's deadline, and carries a
-  statement timeout the database enforces a moment past it, so a query missing a join condition is cancelled rather
-  than burning a core. A query past the limit says so, and the console answers
-  other things meanwhile.
+- **It can be stopped.** Each read runs in a process of its own and waits for the database's answer however long
+  the query takes, and the console answers other things meanwhile. While a read goes, a **중지** button stands in
+  the screen's own row beside the one that reads again; pressing it, or leaving the screen, stops every read the
+  screen has going at once: the read's process asks the database to cancel its statement and ends, so a query
+  missing a join condition stops burning a core the moment the owner says so, and what stood on the screen before
+  stays.
 - **Skimming a table.** Choosing a table stands its rows fifty at a time. The table choice is a dropdown with a
   search box, so a table is found by typing part of its name. The choices carry how many rows each table holds, and
   the last-opened table is remembered by that browser. The order is the table's own, newest row first. Pressing a
@@ -4720,11 +4723,10 @@ Four bounds keep it from growing forever.
   app answered in place of this app is no failure: the same
   send is tried again after a second, then after longer each time up to fifteen seconds, and at once when the
   screen reads the bot answering again or the browser comes back online. A call refused for the login waits the
-  same way while the tab goes to the login screen. The ones behind it wait behind it, so the order holds. A send
-  the bot has still not taken after ten minutes of tries on one screen turns failed, its reason saying the bot
-  never took it, so it is sent again or deleted by hand rather than left waiting for good; opening the room again
-  starts the ten minutes afresh. A call sending words that this app has not answered in a minute is given up on
-  the screen and tried again under its key, so a call lost on the way never holds the line on 「보내는 중」.
+  same way while the tab goes to the login screen. The ones behind it wait behind it, so the order holds. A
+  waiting send is tried until a bot takes it, however long that is; pressing its mark opens a menu with what it
+  waits on and **지우기**, which takes it back where the owner no longer wants it. A call sending words waits for
+  this app's answer however long the bot takes; a call lost on the way is tried again under its key.
 - **Kept in the browser** — every line on its way, words and files alike, is kept in that browser's own storage
   (IndexedDB) under its room until the archive carries it or it is deleted. A reload, a closed tab or a browser
   restarted puts each line back where it stood, in its state, and sends on whatever had not yet been answered.
@@ -4734,21 +4736,21 @@ Four bounds keep it from growing forever.
 - **Once only** — every send carries a key the browser made for it, the same on every try. This app keeps each key
   it was handed for a week in its own data folder, the one its settings name, one small file per room and key, made only where none stands, so
   of two tries of one key only one ever reaches the bot. A key whose send has answered hands that same answer to
-  every later try; a key whose send is still going, or whose app stopped before the answer came, answers as a
-  send that ran late, so the screen watches for it (「Checking」). A send the bot refused or did not take frees its
-  key for the next try. A send that ran late is still listened for: this app keeps waiting on the bot for two
-  minutes past the 45 seconds it gave the screen, and writes under the key the message the send went out as, or
-  the refusal that came instead. The screen asks for a key's outcome on a route of its own, which reads the
-  record and sends nothing. **다시 보내기** is a new send and takes a new key.
+  every later try; a key whose send is still going, or whose app stopped before the answer came, answers so, and
+  the screen watches for it (「Checking」). A send waits for the bot's answer however long the road takes, and
+  this app writes under its key the message it went out as; a send the bot refused or did not take frees its key
+  for the next try. The screen asks for a key's outcome on a route of its own, which reads the record and sends
+  nothing. **다시 보내기** is a new send and takes a new key.
 - **Checking** — a send can take longer than a read: the bot waits its turn on a road that does one thing at a time,
-  such as the owner's PC KakaoTalk, before the words go. So a send is given 45 seconds, and a send the bot took but
-  did not answer in that time is no failure: its mark stays the clock, its tooltip reads 「보냈는지 확인하는 중」, it offers no 다시 보내기, and
-  becomes the message as soon as the archive carries it, the way a line on its way does. While it is checked the
-  screen asks every few seconds what its key came to: the message it went out as makes it that message, found by
-  number, and a refusal makes it failed with the bot's reason. A line restored from the browser in this state is
-  asked for at once. Only a line neither the archive nor its key has settled two minutes after the answer ran
-  late turns failed, and its reason says the send was never confirmed, so it is checked in the room before being
-  sent again rather than sent twice. A file answered late is watched in the archive alone.
+  such as the owner's PC KakaoTalk, before the words go. A try whose key another try is still carrying — a reload,
+  a second tab, a call lost on the way while the first still goes — is no failure: its mark stays the clock, its
+  tooltip reads 「보냈는지 확인하는 중」, it offers no 다시 보내기, and it becomes the message as soon as the archive
+  carries it, the way a line on its way does. While it is checked the screen asks every few seconds what its key
+  came to: the message it went out as makes it that message, found by number, and a key under which no record
+  stands any more is a send that did not go, so the line goes again under that same key, meeting the bot's
+  refusal again where there was one. A line restored from the browser in this state is asked for at once. A line
+  is checked until the archive or its key settles it, however long that is; pressing its mark opens a menu with
+  **지우기**, which takes it back. A file the bot answers as still checking is watched in the archive alone.
 - **보내지 못함** — if it could not be sent, its mark is a red exclamation mark, and pressing it opens a menu with the
   reason, **다시 보내기** and **지우기**. The written words do not return to the input box but stay on that line, so pressing 다시 보내기
   sends them again as is, after whatever is waiting ahead of it. A failed line is kept in the browser like any
@@ -6627,15 +6629,16 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
 
 - **The units asked are every unit the settings name.** The server asks each unit whose `<NAME>_ADDRESS` is set
   for `GET /console-manifest`, with that unit's token and no owner key or role, when it starts and once a minute
-  after. A unit that answers anything but a 200, that nothing answers, or that takes longer than five seconds
-  brings no screen, and nothing says so on a screen. A manifest that does not read through bmo-ui's
+  after, each ask waiting for its unit's answer; a unit still answering keeps the screens its last answer
+  brought, and is not asked again until it has answered. A unit that answers anything but a 200, or that
+  nothing answers, brings no screen, and nothing says so on a screen. A manifest that does not read through bmo-ui's
   `consoleManifest`, or whose words do not answer, brings none either, and the server's log names the fault.
   Two manifests sharing a name, a screen path or a service name both bring none.
 - **The service is relayed under the name its manifest gives,** at the address and with the token of the unit
   that answered it: the paths under its `apiPrefix`, each route its manifest names under `relays` by its method and
-  path, its module and its stylesheet, and nothing else of it. A relayed call gives the service thirty seconds to
-  begin its answer, and a call to the translator's route (below) the console's `NUXT_TRANSLATOR_BEGIN_MS`, ninety
-  seconds by default; a service that has not begun by then is a 504. Its
+  path, its module and its stylesheet, and nothing else of it. A relayed call waits for the service's answer
+  however long it takes to begin, and ends only when the service answers or its connection is refused or breaks,
+  which is a 503. Its
   event stream and its socket are relayed where the manifest asks for them, and the notices it names under
   `pushKinds` are rung (「Notifications」).
 - **A relayed path never walks out of itself.** A path one of whose segments reads, once its escapes are
@@ -6692,6 +6695,12 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
 
 ## How the units are talked to
 
+- **A call waits for its answer.** Every call the console's server makes on a unit — a read, a change, a send,
+  a file carried, a long operation such as a room's removal or a companion's reset — ends when the unit answers
+  or when its connection is refused, breaks or ends; no clock of the console's cuts it short. A unit that took
+  the call and is still working on it is still being asked, and the screen that asked stands as still asking.
+  The console's own route stands under Bun's idle ceiling (「Running as a service」), the runtime's span and not
+  one of the console's.
 - **The console's own server is the only caller.** Each unit's address and token are on the server side alone,
   and the browser calls only this app's paths (`docs/boundary.md`, 「Calls the console makes」). The server is
   reached for the session, the users and the grants; the agency for agents, sessions, runs and roads; bmo-job for
@@ -6920,6 +6929,9 @@ The console stands as the systemd user unit this repository's `deploy/` holds, `
   the public name are among them. A deployment finding either file missing is refused, and neither unit starts
   without its own.
 
+- **A stop waits for each process to end.** Both units end on the stop systemd sends — the server once the
+  requests it holds have answered, the console once its relays are told of the restart and its close hooks have
+  run — and neither unit has a stop of it cut short after a span.
 - **A request waits on its answer up to Bun's ceiling of 255 seconds.** Bun's server cuts a request that has sent
   nothing for its idle limit, ten seconds unless told otherwise, and the console's server reports that cut as
   `request timed out after 10 seconds` while the browser sees the request fail. A change carried to a unit can take

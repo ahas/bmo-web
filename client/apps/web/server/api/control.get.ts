@@ -11,7 +11,7 @@ export default defineEventHandler(async (event): Promise<ControlStatus> => {
     const owner = await ownerChat().catch(() => null);
 
     return { reachable: health.ready === true, ownerChatId: owner };
-  } catch (error) {
-    return { reachable: false, slow: unitSlow(error), ownerChatId: null };
+  } catch {
+    return { reachable: false, ownerChatId: null };
   }
 });

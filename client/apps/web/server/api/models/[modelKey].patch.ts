@@ -24,7 +24,6 @@ export default defineEventHandler(async (event): Promise<ModelView> => {
     model,
     contextTokens: null,
     answerTokens: null,
-    waitSeconds: null,
     thinking: null,
     walked: null,
     keepsResearch: null,

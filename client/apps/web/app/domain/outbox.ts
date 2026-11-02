@@ -4,9 +4,10 @@ import type { ArchivedMessage, ReplyQuote, SendOutcomeRecord, SentMessage } from
 import type { PickedFile } from "./attachments";
 
 // One message handed to the bot and not yet standing in the archive. It goes into the feed the
-// moment send is pressed, and what becomes of it is written on it. A send the bot took and did not
-// answer in time is checking: it may well have gone, so it waits for the archive or its key, not for
-// a resend. A send that met no bot, or no app, is waiting: it goes again by itself once one answers.
+// moment send is pressed, and what becomes of it is written on it. A send another try of its key is
+// still carrying is checking: it may well have gone, so it waits for the archive or its key, not for a
+// resend. A send that met no bot, or no app, is waiting: it goes again by itself once one answers, however
+// long that takes, unless the owner deletes it.
 export type OutboxState = "sending" | "waiting" | "checking" | "failed";
 
 export interface OutboxItem {
@@ -24,11 +25,6 @@ export interface OutboxItem {
   reason: string | null;
   // What the bot numbered it, once the send has answered.
   messageId: number | null;
-  // When the send's answer ran late, in seconds, while it is checking.
-  checkingSince: number | null;
-  // When this screen first found no bot to take it, in seconds, while it is waiting. A line kept by an
-  // older screen may lack it, which reads as null.
-  waitingSince?: number | null;
   // The message it answers, when it is a reply. It stays on the row, so sending it again is the
   // same reply.
   reply: ReplyQuote | null;
@@ -63,35 +59,32 @@ function item(text: string, file: PickedFile | null, now: number, reply: ReplyQu
     state: "sending",
     reason: null,
     messageId: null,
-    checkingSince: null,
-    waitingSince: null,
     reply
   };
 }
 
 export function withSent(items: readonly OutboxItem[], key: string, messageId: number): OutboxItem[] {
-  return items.map((held) => (held.key === key ? { ...held, messageId, reason: null, state: "sending", waitingSince: null } : held));
+  return items.map((held) => (held.key === key ? { ...held, messageId, reason: null, state: "sending" } : held));
 }
 
 export function withFailed(items: readonly OutboxItem[], key: string, reason: string): OutboxItem[] {
-  return items.map((held) => (held.key === key ? { ...held, state: "failed", reason, waitingSince: null } : held));
+  return items.map((held) => (held.key === key ? { ...held, state: "failed", reason } : held));
 }
 
-export function withChecking(items: readonly OutboxItem[], key: string, now: number): OutboxItem[] {
-  return items.map((held) =>
-    held.key === key ? { ...held, state: "checking", reason: null, checkingSince: now, waitingSince: null } : held
-  );
+export function withChecking(items: readonly OutboxItem[], key: string): OutboxItem[] {
+  return items.map((held) => (held.key === key ? { ...held, state: "checking", reason: null } : held));
 }
 
 // The rows checked by asking their key: words, whose send answers with the one message they went out
-// as. A file send answers file by file, and a file answered late is watched in the archive alone.
+// as. A file send answers file by file, and a file still checking is watched in the archive alone.
 export function keyChecks(items: readonly OutboxItem[]): OutboxItem[] {
   return items.filter((held) => held.state === "checking" && held.file === null);
 }
 
 // What a checked row's key came to, written on the row: the message it went out as makes it sent, so the
-// archived message takes its place by number, and a refusal makes it failed with the bot's reason. A
-// send still going, or one the app has no record of, leaves it checking.
+// archived message takes its place by number. A key no record stands under is a send that did not go — the
+// bot did not take it, or refused it — so the row goes again under that same key, and meets the refusal again
+// where there was one. A send still going leaves it checking.
 export function withKeyOutcome(items: readonly OutboxItem[], key: string, outcome: SendOutcomeRecord<SentMessage>): OutboxItem[] {
   const held = items.find((one) => one.key === key);
 
@@ -103,19 +96,7 @@ export function withKeyOutcome(items: readonly OutboxItem[], key: string, outcom
     return withSent(items, key, outcome.answer.messageId);
   }
 
-  return outcome.state === "failed" ? withFailed(items, key, outcome.reason) : [...items];
-}
-
-// How long a send answered late is watched for in the archive, in seconds, before it is called
-// failed. The bot keeps what it sent the moment the road answers, so a send that went shows up well
-// inside it.
-export const OUTBOX_CHECKING_SECONDS = 120;
-
-// The checking rows the archive has not carried for the whole of the watch.
-export function overdueChecks(items: readonly OutboxItem[], now: number): string[] {
-  return items
-    .filter((held) => held.state === "checking" && held.checkingSince !== null && now - held.checkingSince >= OUTBOX_CHECKING_SECONDS)
-    .map((held) => held.key);
+  return outcome.state === "unknown" ? items.map((one) => (one.key === key ? { ...one, state: "sending" } : one)) : [...items];
 }
 
 // Sending it again is the same message once more: the failure and the number it never got are
@@ -124,41 +105,17 @@ export function overdueChecks(items: readonly OutboxItem[], now: number): string
 export function withResending(items: readonly OutboxItem[], key: string): OutboxItem[] {
   return items.map((held) =>
     held.key === key
-      ? { ...held, sendKey: freshKey(), state: "sending", reason: null, messageId: null, checkingSince: null, waitingSince: null }
+      ? { ...held, sendKey: freshKey(), state: "sending", reason: null, messageId: null }
       : held
   );
 }
 
-// Rows that found no bot to take them: each keeps when it first did, which bounds how long it waits.
-export function withWaiting(items: readonly OutboxItem[], keys: readonly string[], now: number): OutboxItem[] {
+// Rows that found no bot to take them: they wait, and go again once one answers.
+export function withWaiting(items: readonly OutboxItem[], keys: readonly string[]): OutboxItem[] {
   const waiting = new Set(keys);
 
-  return items.map((held) =>
-    waiting.has(held.key) ? { ...held, state: "waiting", reason: null, waitingSince: held.waitingSince ?? now } : held
-  );
+  return items.map((held) => (waiting.has(held.key) ? { ...held, state: "waiting", reason: null } : held));
 }
-
-// How long a send no bot takes is tried on one screen, in seconds, before it is called failed: a
-// deployment restarts the bot within a minute or two, so a send still not taken is not going by itself.
-export const OUTBOX_WAITING_SECONDS = 600;
-
-// The waiting rows no bot has taken for the whole of their wait.
-export function overdueWaits(items: readonly OutboxItem[], now: number): string[] {
-  return items
-    .filter((held) => held.state === "waiting" && held.waitingSince != null && now - held.waitingSince >= OUTBOX_WAITING_SECONDS)
-    .map((held) => held.key);
-}
-
-// Rows put back from the browser's store: their wait starts afresh on this screen, since opening the room
-// again is asking for them to be tried again.
-export function restored(items: readonly OutboxItem[]): OutboxItem[] {
-  return items.map((held) => ({ ...held, waitingSince: null }));
-}
-
-// How long the screen waits on a call that sends words, in milliseconds: past the app's own wait on the
-// bot, so a call this app answered is always heard, and a call lost on the way is tried again under its
-// key, which hands back what became of the first.
-export const OUTBOX_SAY_CALL_MS = 60_000;
 
 // Whether a row still has a send ahead of it: nothing has answered for it yet.
 function unanswered(held: OutboxItem): boolean {
@@ -176,8 +133,8 @@ export function nextSend(items: readonly OutboxItem[]): OutboxItem[] {
 // What a send that did not answer with a message comes to. A call this app never answered — a browser
 // offline, an app stopped, a proxy answering in its place with a page of its own — or this app's 503
 // of a bot that did not take it, or a login to be made again, is waiting: nothing went, and the same
-// send goes again. This app's 504 is a send that ran late and is checked for in the archive. Anything
-// else this app said is the send refused.
+// send goes again. This app's 504 is a send another try of its key is still carrying, checked for in the
+// archive and by its key. Anything else this app said is the send refused.
 export type SendOutcome = "waiting" | "checking" | "failed";
 
 export function sendOutcome(error: unknown): SendOutcome {

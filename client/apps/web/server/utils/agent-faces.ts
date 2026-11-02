@@ -1,7 +1,6 @@
 import { agency, agencyCall, carriedOf } from "./agency";
 import { ownerChat } from "./owner";
 import { receiver, receiverCall } from "./receiver";
-import { within } from "./unit-answer";
 
 import type { AgentFace } from "#shared/types";
 
@@ -18,7 +17,7 @@ let kept: { at: number; faces: Promise<AgentFace[]> } | null = null;
 async function ownNumber(roomId: number, agentName: string): Promise<number | null> {
   try {
     const answer = await receiverCall(
-      receiver().GET("/rooms/{roomId}/own-number", { params: { path: { roomId }, query: { agentName } }, signal: within(5_000) })
+      receiver().GET("/rooms/{roomId}/own-number", { params: { path: { roomId }, query: { agentName } } })
     );
 
     return answer.number ?? null;
@@ -30,7 +29,7 @@ async function ownNumber(roomId: number, agentName: string): Promise<number | nu
 async function readFaces(): Promise<AgentFace[]> {
   const [agents, rooms, owner] = await Promise.all([
     agencyCall(agency().GET("/agents")).then((answer) => answer.items).catch(() => []),
-    receiverCall(receiver().GET("/rooms", { signal: within(5_000) })).then((answer) => answer.items).catch(() => []),
+    receiverCall(receiver().GET("/rooms")).then((answer) => answer.items).catch(() => []),
     ownerChat()
   ]);
   // The chat agents a person designates: a row of the chat kind holding a role (docs/web.md, 「Sidebar」).

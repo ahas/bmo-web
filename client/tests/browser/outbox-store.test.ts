@@ -88,7 +88,6 @@ async function saved(chatId: number, steps: { key: string; state: string; messag
             state: line.state,
             reason: null,
             messageId: line.messageId,
-            checkingSince: null,
             reply: null
           }))
         );

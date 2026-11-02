@@ -9,18 +9,10 @@ import type { Ref } from "vue";
 // of its own, so the question, the wait, the word stopping and a refusal read the same wherever a
 // stop is pressed (`docs/web.md`, 「Live status screen」).
 //
-// Three things it is written to hold, each of them a way the first pattern let a reader down:
-// a refusal belongs to the row it was pressed on and stays with that row, so switching sections
-// does not take it away; a call that never comes back gives the row up on its own rather than
-// leaving the question locked for ever; and the row whose stop is out says so, so a person who
-// pressed one can see which.
-
-/** How long a stop is waited for before the row is given back to whoever pressed it. */
-export const STOP_WAIT_MS = 20_000;
-
-// A stop nothing answered. It is told apart from a refusal because the two say different things:
-// a refusal is the bot's own words about this run, and this is the bot not having spoken at all.
-class StopUnanswered extends Error {}
+// Three things it holds: a refusal belongs to the row it was pressed on and stays with that row, so
+// switching sections does not take it away; a stop waits for the bot's answer however long the run
+// takes to end, and each row's stop is its own, so a row whose stop is out holds only its own button;
+// and the row whose stop is out says so, so a person who pressed one can see which.
 
 /** What a row is known by here: the target it names, in the shape every road writes it. */
 export function stopKey(target: StopTarget): string {
@@ -35,10 +27,8 @@ export interface Stops {
   asking: Ref<StopTarget | null>;
   /** Whether this row is the one asking. */
   isAsking: (target: StopTarget) => boolean;
-  /** Whether this row's own stop is out and unanswered. */
+  /** Whether this row's own stop is out and unanswered, which holds its button. */
   isSending: (target: StopTarget) => boolean;
-  /** Whether any row's stop is out, which is what holds the other rows' buttons. */
-  busy: () => boolean;
   /** Whether this row was asked to stop and has not been seen gone: the row reads stopping. */
   isStopping: (target: StopTarget) => boolean;
   /** What was refused or could not be carried for this row, or "". */
@@ -50,14 +40,13 @@ export interface Stops {
   seen: (keys: readonly string[]) => void;
 }
 
-export function useStops(t: Translate, call: StopCall, waitMs: number = STOP_WAIT_MS): Stops {
+export function useStops(t: Translate, call: StopCall): Stops {
   const asking = ref<StopTarget | null>(null);
-  const out = ref("");
+  const out = ref(new Set<string>());
   const stopping = ref(new Set<string>());
   const errors = ref(new Map<string, string>());
-  const busy = (): boolean => out.value !== "";
   const isAsking = (target: StopTarget): boolean => asking.value !== null && stopKey(asking.value) === stopKey(target);
-  const isSending = (target: StopTarget): boolean => out.value === stopKey(target);
+  const isSending = (target: StopTarget): boolean => out.value.has(stopKey(target));
   const isStopping = (target: StopTarget): boolean => stopping.value.has(stopKey(target));
   const errorOf = (target: StopTarget): string => errors.value.get(stopKey(target)) ?? "";
 
@@ -80,28 +69,21 @@ export function useStops(t: Translate, call: StopCall, waitMs: number = STOP_WAI
   async function stop(target: StopTarget): Promise<void> {
     const key = stopKey(target);
 
-    // One stop at a time. Pressing a second while the first is out would leave two rows waiting
-    // with nothing saying which answer belongs to which.
-    if (out.value !== "") {
+    // One stop a row: pressing it again while its stop is out asks nothing more.
+    if (out.value.has(key)) {
       return;
     }
 
-    out.value = key;
+    out.value = new Set(out.value).add(key);
     forget(key);
 
-    let held: ReturnType<typeof setTimeout> | undefined;
-
     try {
-      // A bot that never answers must not take the row with it: the wait is the row's own, and
-      // what it leaves is a line saying so rather than a question nothing can close.
-      const answer = await Promise.race([
-        call(target),
-        new Promise<never>((_, refuse) => {
-          held = setTimeout(() => refuse(new StopUnanswered(t("live.error.stop_unanswered"))), waitMs);
-        }),
-      ]);
+      const answer = await call(target);
 
-      asking.value = null;
+      // The question closes with its own answer; one opened on another row since stays open.
+      if (asking.value !== null && stopKey(asking.value) === key) {
+        asking.value = null;
+      }
 
       // The verb answers that the stop was asked, not that the run is already gone, so the row
       // says stopping until the picture no longer draws it.
@@ -111,11 +93,13 @@ export function useStops(t: Translate, call: StopCall, waitMs: number = STOP_WAI
     } catch (error) {
       const left = new Map(errors.value);
 
-      left.set(key, error instanceof StopUnanswered ? error.message : failureText(error, t("live.error.stop_failed")));
+      left.set(key, failureText(error, t("live.error.stop_failed")));
       errors.value = left;
     } finally {
-      clearTimeout(held);
-      out.value = "";
+      const left = new Set(out.value);
+
+      left.delete(key);
+      out.value = left;
     }
   }
 
@@ -137,5 +121,5 @@ export function useStops(t: Translate, call: StopCall, waitMs: number = STOP_WAI
     }
   }
 
-  return { asking, isAsking, isSending, busy, isStopping, errorOf, ask, cancel, stop, seen };
+  return { asking, isAsking, isSending, isStopping, errorOf, ask, cancel, stop, seen };
 }

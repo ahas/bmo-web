@@ -5,9 +5,13 @@ import type { DbTable } from "#shared/types";
 export default defineEventHandler(async (event): Promise<DbTable[]> => {
   await requireUserSession(event);
 
+  const read = openDbRead(dbReadKeyOf(event));
+
   try {
-    return await listDbTables();
+    return await listDbTables(read);
   } catch (error) {
     throw fail(dbStatus(error), dbReason(error));
+  } finally {
+    closeDbRead(read);
   }
 });

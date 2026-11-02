@@ -1,4 +1,4 @@
-import { CONTROL_SLOW, MAX_SAY_TEXT_LENGTH } from "#shared/config";
+import { MAX_SAY_TEXT_LENGTH } from "#shared/config";
 import { wording } from "#shared/wording";
 
 import type { SentMessage } from "#shared/types";
@@ -31,27 +31,24 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
 
   const replyTo = replyToOf(body?.replyTo);
 
-  // The receiver's refusal of a reply — a message it cannot find — is said by the pack's sentence for its code. A
-  // send the receiver has not answered in the screen's time comes back as the 504 of a unit held up, and the screen
-  // checks it rather than calling it failed, while the send is still listened for and what it came to is written
-  // under its key; a try of a send still going under its key says the same.
+  // The receiver's refusal of a reply — a message it cannot find — is said by the pack's sentence for its code. The
+  // send waits for the receiver's answer however long the road takes, and what it came to is written under its
+  // key; a try of a send still going under its key comes back as a 504, which the screen checks rather than
+  // calling it failed.
   return sendOnce<SentMessage>(
     chatId,
     sendKeyOf(body?.key),
     async () => {
       const said = await receiverCall(
         receiver().POST("/owner/messages", {
-          body: { chatId, text, replyTo },
-          signal: within(SEND_TIMEOUT_MS + SEND_LATE_MS)
+          body: { chatId, text, replyTo }
         })
       );
 
       return { messageId: said.id };
     },
     () => {
-      throw fail(504, wording(CONTROL_SLOW));
-    },
-    sendKeysRoot(),
-    SEND_TIMEOUT_MS
+      throw fail(504, wording("room.status.checking"));
+    }
   );
 });

@@ -193,21 +193,18 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
     case "append":
       await jobCall(job().POST("/items/{itemId}/notes", {
         params: { path: { itemId: id } },
-        body: { text: text as string, actorName: signed.name },
-        signal: within(JOB_TIMEOUT_MS)
+        body: { text: text as string, actorName: signed.name }
       }));
       break;
     case "unappend":
       await jobCall(job().DELETE("/items/{itemId}/notes/{noteId}", {
-        params: { path: { itemId: id, noteId: noteId as number } },
-        signal: within(JOB_TIMEOUT_MS)
+        params: { path: { itemId: id, noteId: noteId as number } }
       }));
       break;
     case "stop":
       await jobCall(job().POST("/items/{itemId}/notes", {
         params: { path: { itemId: id } },
-        body: { text: why as string, actorName: signed.name, labels: { kind: "stop" } },
-        signal: within(JOB_TIMEOUT_MS)
+        body: { text: why as string, actorName: signed.name, labels: { kind: "stop" } }
       }));
       await patchItem(id, { state: "held" });
 
@@ -219,8 +216,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       if (queue === undefined) throw fail(503, wording("todo.error.queue_unknown"));
 
       const raised = await jobCall(job().POST("/items", {
-        body: { title: title as string, brief: said as string, queueName: queue.name, requesterName: signed.name },
-        signal: within(JOB_TIMEOUT_MS)
+        body: { title: title as string, brief: said as string, queueName: queue.name, requesterName: signed.name }
       }));
 
       return { ok: true, raised: raised.id };
@@ -241,8 +237,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
 async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; cowork?: boolean; position?: number }): Promise<void> {
   await jobCall(job().PATCH("/items/{itemId}", {
     params: { path: { itemId: id } },
-    body: change,
-    signal: within(JOB_VERB_TIMEOUT_MS)
+    body: change
   }));
 }
 
@@ -270,7 +265,7 @@ async function reposition(action: "move" | "top" | "bottom" | "reorder", id: num
 
 // Every item as the queue orders it, read for the positions a move changes.
 async function readTodoBoardItems(): Promise<Item[]> {
-  const page = await jobCall(job().GET("/items", { params: { query: { limit: 500 } }, signal: within(JOB_TIMEOUT_MS) }));
+  const page = await jobCall(job().GET("/items", { params: { query: { limit: 500 } } }));
 
   return page.items;
 }

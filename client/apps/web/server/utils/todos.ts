@@ -3,8 +3,7 @@ import { filterRecords } from "bmo-ui/shared/search";
 import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields } from "../../app/domain/todos";
 import { agency, agencyCall } from "./agency";
-import { job, jobCall, JOB_TIMEOUT_MS } from "./job";
-import { within } from "./unit-answer";
+import { job, jobCall } from "./job";
 
 import type { Note, Item, Report, Queue } from "bmo-job-client";
 import type { DeployHold, TodoBoard, TodoChoices, TodoItem, TodoNote, TodoReport, TodoStanding } from "#shared/types";
@@ -41,8 +40,7 @@ async function allItems(query: { q?: string } = {}): Promise<Item[]> {
   for (;;) {
     const page = await jobCall(
       job().GET("/items", {
-        params: { query: { limit: 500, ...(after === undefined ? {} : { after }), ...(query.q === undefined ? {} : { q: query.q }) } },
-        signal: within(JOB_TIMEOUT_MS)
+        params: { query: { limit: 500, ...(after === undefined ? {} : { after }), ...(query.q === undefined ? {} : { q: query.q }) } }
       })
     );
 
@@ -61,7 +59,7 @@ export async function readQueues(): Promise<Queue[]> {
 
   for (;;) {
     const page = await jobCall(
-      job().GET("/queues", { params: { query: { limit: 500, ...(after === undefined ? {} : { after }) } }, signal: within(JOB_TIMEOUT_MS) })
+      job().GET("/queues", { params: { query: { limit: 500, ...(after === undefined ? {} : { after }) } } })
     );
 
     found.push(...page.items);
@@ -223,7 +221,7 @@ async function liveStateOf(id: number): Promise<TodoItem["liveState"]> {
 export async function readTodoItem(id: number): Promise<TodoItem | null> {
   try {
     const [item, notes, reports, liveState] = await Promise.all([
-      jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } }, signal: within(JOB_TIMEOUT_MS) })),
+      jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } } })),
       notesOf(id),
       reportsOfItem(id),
       liveStateOf(id)
@@ -243,19 +241,19 @@ export async function readTodoItems(ids: readonly number[]): Promise<TodoItem[]>
   if (ids.length === 0) return [];
 
   const page = await jobCall(
-    job().GET("/items", { params: { query: { ids: [...new Set(ids)].sort((one, other) => one - other).join(","), limit: 500 } }, signal: within(JOB_TIMEOUT_MS) })
+    job().GET("/items", { params: { query: { ids: [...new Set(ids)].sort((one, other) => one - other).join(","), limit: 500 } } })
   );
 
   return page.items.map((item) => itemOf(item));
 }
 
 async function notesOf(todoId: number): Promise<Note[]> {
-  return (await jobCall(job().GET("/items/{itemId}/notes", { params: { path: { itemId: todoId }, query: { limit: 500 } }, signal: within(JOB_TIMEOUT_MS) }))).items;
+  return (await jobCall(job().GET("/items/{itemId}/notes", { params: { path: { itemId: todoId }, query: { limit: 500 } } }))).items;
 }
 
 /** Every report bmo-job keeps of an item, oldest first, read afresh. */
 export async function reportsOfItem(todoId: number): Promise<Report[]> {
-  return (await jobCall(job().GET("/items/{itemId}/reports", { params: { path: { itemId: todoId } }, signal: within(JOB_TIMEOUT_MS) }))).items;
+  return (await jobCall(job().GET("/items/{itemId}/reports", { params: { path: { itemId: todoId } } }))).items;
 }
 
 /** An item's reports as the dialog reads them, afresh. */

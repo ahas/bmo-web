@@ -25,6 +25,6 @@ export default defineEventHandler(async (event): Promise<StatusView> => {
   const history = { executions: [], watches: [], gates: [], runners: [], jobs, machine: null, nodes: null };
 
   return snapshot.read === null
-    ? { reachable: false, slow: unitSlow(snapshot.error), live, compacting: [], liveAt: null, ...history }
+    ? { reachable: false, live, compacting: [], liveAt: null, ...history }
     : { reachable: true, live, compacting: snapshot.read.compacting ?? [], liveAt: snapshot.read.at, ...history };
 });

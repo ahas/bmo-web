@@ -19,8 +19,11 @@ export interface AttachedBundle {
   words: ConsoleWords;
 }
 
-// How long a unit has to answer its manifest and its words before it brings no screen this round.
-const ASK_MS = 5_000;
+// Each unit's bundle as its last answer brought it, and the units whose ask is still out. An ask waits for its
+// unit's answer, so a unit still answering keeps what it last brought and is not asked again until it has
+// answered, and no unit taking its time holds up another's screens.
+const brought = new Map<string, AttachedBundle | null>();
+const asking = new Set<string>();
 
 let attached: readonly AttachedBundle[] = [];
 const listeners = new Set<(bundles: readonly AttachedBundle[]) => void>();
@@ -71,7 +74,7 @@ async function answered(unit: UnitAddress, path: string): Promise<unknown> {
   let response: Response;
 
   try {
-    response = await fetch(`${unit.address}${path}`, { headers: { ...unitHeaders(unit), accept: "application/json" }, signal: AbortSignal.timeout(ASK_MS) });
+    response = await fetch(`${unit.address}${path}`, { headers: { ...unitHeaders(unit), accept: "application/json" } });
   } catch {
     return undefined;
   }
@@ -122,11 +125,36 @@ export function withoutConflicts(found: readonly AttachedBundle[]): AttachedBund
   });
 }
 
-/** Asks every unit the settings name for its manifest and stands what reads as the attached bundles. */
+/**
+ * Asks every unit the settings name for its manifest, but one whose last ask is still out, and stands what reads
+ * as the attached bundles each time a unit answers; settles once every ask it made has.
+ */
 export async function readManifests(environment: Record<string, string | undefined> = process.env): Promise<readonly AttachedBundle[]> {
-  const found = await Promise.all(namedUnits(environment).map(({ name, unit }) => askedBundle(name, unit)));
+  const units = namedUnits(environment);
+  const named = new Set(units.map(({ name }) => name));
 
-  attachBundles(withoutConflicts(found.filter((bundle): bundle is AttachedBundle => bundle !== null)));
+  for (const name of [...brought.keys()]) {
+    if (!named.has(name)) brought.delete(name);
+  }
+
+  const stand = () => attachBundles(withoutConflicts([...brought.values()].filter((bundle): bundle is AttachedBundle => bundle !== null)));
+
+  await Promise.all(
+    units
+      .filter(({ name }) => !asking.has(name))
+      .map(async ({ name, unit }) => {
+        asking.add(name);
+
+        try {
+          brought.set(name, await askedBundle(name, unit));
+        } finally {
+          asking.delete(name);
+        }
+
+        stand();
+      })
+  );
+  stand();
 
   return attached;
 }

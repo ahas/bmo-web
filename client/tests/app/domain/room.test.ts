@@ -460,7 +460,7 @@ describe("a message that is still on its way", () => {
   test("carries one mark beside its time from going to sent, which an archived message of theirs keeps", () => {
     const items = outboxOf(KO.line_382, [], 1);
     const key = items[0]?.key ?? "";
-    const marks = [items, withChecking(items, key, 2), withSent(items, key, 9), withFailed(items, key, KO.line_384)].map(
+    const marks = [items, withChecking(items, key), withSent(items, key, 9), withFailed(items, key, KO.line_384)].map(
       (held) => sendMark(pendingItems(held, speaker, avatars)[0]!)
     );
     const days = buildDays(wording, [archived(1, KO.line_387), archived(2, KO.line_387_2, "agent-a")], new Map(), imageUrl, avatars, [], [owner]);

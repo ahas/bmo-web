@@ -9,9 +9,6 @@ const DELIVERY_MAX_BYTES = 1024 * 1024;
 // The headers a delivery is handed on with.
 const HANDED: readonly string[] = ["content-type", "x-github-event", "x-github-delivery", "x-hub-signature-256"];
 
-// How long the agency has to answer a delivery; GitHub itself gives up at ten seconds.
-const ANSWER_MS = 9_000;
-
 export default defineEventHandler(async (event) => {
   const declared = Number.parseInt(getRequestHeader(event, "content-length") ?? "", 10);
 
@@ -43,8 +40,10 @@ export default defineEventHandler(async (event) => {
   const delivery = getRequestHeader(event, "x-github-delivery") ?? "-";
   let answer: Response;
 
+  // The delivery waits for the agency's answer however long it takes; GitHub's own ten seconds are GitHub's, and a
+  // delivery GitHub stopped waiting on still reaches the agency whole.
   try {
-    answer = await fetch(`${unit.address}/github/deliveries`, { method: "POST", headers, body: new Uint8Array(body), signal: AbortSignal.timeout(ANSWER_MS) });
+    answer = await fetch(`${unit.address}/github/deliveries`, { method: "POST", headers, body: new Uint8Array(body) });
   } catch {
     console.info(`github delivery ${delivery} (${kind}): the agency did not answer`);
     throw createError({ statusCode: 502, statusMessage: "Bad Gateway" });

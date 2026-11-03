@@ -577,19 +577,31 @@
 }
 
 /* A settings table is laid out as a spreadsheet (docs/web.md, 「Agent management screen」): by its columns' own widths
-   alone, as wide as they add up to, the room left over standing empty at its right edge, and a cell cuts what passes
-   its column's width. While its content is measured, for the moment of one read, the table stands at its content's
-   width, every column at what its name and widest cell take whole. A drag's held widths are the shared table's, laid
-   out the same way. */
+   alone, and never narrower than its box. The room the columns do not use stands as one empty column at the right
+   edge, drawn in every row of the head and the body, so the head's background and every row's line run edge to edge;
+   it has no width of its own, so a fixed table gives it whatever the columns leave and nothing once they fill the
+   box, and the table then scrolls sideways inside it. That column is drawn by the rows themselves, so it has no name,
+   no cell, no edge to drag, and no place among the columns the shared table measures or holds. A cell cuts what
+   passes its column's width. While its content is measured, for the moment of one read, the table stands at its
+   content's width with no empty column, every column at what its name and widest cell take whole. A drag's held
+   widths are the shared table's, laid out the same way. */
 [data-settings-layout][data-laid-out] > table:not(.table-fixed) {
   table-layout: fixed;
-  width: var(--settings-table-width);
+  width: max(var(--settings-table-width), 100%);
   min-width: 0;
 }
 
-/* Held by a drag, the table is as wide as the held widths add up to, ending short of its box where they fall short. */
+/* Held by a drag, the columns keep the held widths and the empty column gives or takes what a drag moves, the table
+   growing past its box only once the held widths alone add up to more. */
 [data-settings-layout] > table.table-fixed {
+  width: max(var(--data-table-width), 100%);
   min-width: 0;
+}
+
+[data-settings-layout] > table > thead > tr:has(> th)::after,
+[data-settings-layout] > table > tbody > tr::after {
+  content: "";
+  display: table-cell;
 }
 
 [data-settings-layout][data-laid-out] > table > tbody > tr > td {
@@ -604,6 +616,10 @@
 
 [data-settings-layout][data-measuring] > table > thead > tr > th {
   width: auto !important;
+}
+
+[data-settings-layout][data-measuring] > table > * > tr::after {
+  display: none;
 }
 
 [id^="setting-"] {

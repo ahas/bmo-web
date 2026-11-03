@@ -1,6 +1,7 @@
 // How a settings table lays its columns out (docs/web.md, 「Agent management screen」): as a spreadsheet does. Every
 // column stands at its own width — what its content asks, up to a ceiling of its own where its cells vary in length —
-// and no column takes the room left over, which stays empty at the table's right edge.
+// and no column takes the room left over, which stands as one empty column at the table's right edge, no column of
+// the table's own, so the table fills its box.
 
 import type { TableColumn } from "@nuxt/ui";
 

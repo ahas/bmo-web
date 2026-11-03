@@ -1,8 +1,9 @@
 <template>
   <!-- A settings table (docs/web.md, 「Agent management screen」): the one shared table, laid out as a spreadsheet —
-       every column at the width its content asks, up to its ceiling, the room left over standing empty at the
-       table's right edge. Until a drag holds the widths they are laid out again as what the rows say changes; once
-       held, the shared table keeps them as dragged. Every slot the screen gives is handed on as it stands. -->
+       every column at the width its content asks, up to its ceiling, and the table never narrower than its box, the
+       room left over standing as one empty column at its right edge that the stylesheet draws in every row. Until a
+       drag holds the widths they are laid out again as what the rows say changes; once held, the shared table keeps
+       them as dragged. Every slot the screen gives is handed on as it stands. -->
   <DataTable
     ref="table"
     data-settings-table

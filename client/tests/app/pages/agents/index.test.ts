@@ -80,7 +80,18 @@ describe("every table of the screen", () => {
     }
     expect(templateOf(settingsTable)).toContain("<DataTable");
     expect(templateOf(settingsTable)).toContain("data-settings-table");
-    expect(css).toContain("[data-settings-layout][data-laid-out] > table:not(.table-fixed) {\n  table-layout: fixed;\n  width: var(--settings-table-width);");
+    expect(css).toContain("[data-settings-layout][data-laid-out] > table:not(.table-fixed) {\n  table-layout: fixed;\n  width: max(var(--settings-table-width), 100%);");
+  });
+
+  test("fills its box, the room its columns leave one empty column at the right edge that is no column of its own", () => {
+    // Laid out and held by a drag alike, the table is as wide as its columns add up to and never narrower than its box.
+    expect(css).toContain("[data-settings-layout] > table.table-fixed {\n  width: max(var(--data-table-width), 100%);");
+    // The empty column is drawn last in the head's row and in every body row, with no name and no width of its own; it
+    // is no cell of the shared table's, so it carries no edge to drag and is never among the widths it holds.
+    expect(css).toContain('[data-settings-layout] > table > thead > tr:has(> th)::after,\n[data-settings-layout] > table > tbody > tr::after {\n  content: "";\n  display: table-cell;');
+    expect(css).not.toMatch(/\[data-settings-layout\][^{]*::after\s*\{[^}]*width:/);
+    // While the content is measured the empty column is not drawn, so it is never measured.
+    expect(css).toContain("[data-settings-layout][data-measuring] > table > * > tr::after {\n  display: none;");
   });
 
   test("draws every cell as one box filling its cell top to bottom, so a hover never stands shorter than the row", () => {

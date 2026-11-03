@@ -7,9 +7,10 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser } from "playwright-core";
 
 // The agent management screen's tabs (docs/web.md, 「Agent management screen」): the supervisors, the roles and the
-// repositories each stand as one shared settings table with every row the agency answers, and a column's width dragged
-// moves that column alone — every other column keeps the width it stood at and the table grows or shrinks by the
-// drag. It drives the console tests/support/browser-console.ts stands up; the suite stands up no console, so there it
+// repositories each stand as one shared settings table with every row the agency answers, filling its box with the
+// room its columns leave standing as one empty column at the right edge, and a column's width dragged moves that
+// column alone — every other column keeps the width it stood at and the empty column gives or takes the difference.
+// It drives the console tests/support/browser-console.ts stands up; the suite stands up no console, so there it
 // skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
@@ -86,6 +87,16 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
 
         // The page itself never scrolls sideways; a wide table scrolls inside its own box.
         expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+        // Every table fills its box: at a phone's width its columns pass the box, the empty column stands at no width
+        // and the table scrolls sideways; wider, the empty column takes what the columns leave.
+        const filled = await page.locator("[data-settings-table]").first().evaluate(fillOf);
+
+        expect(filled.table).toBeGreaterThanOrEqual(filled.box);
+        expect(filled.drawn).toEqual({ head: true, rows: true, named: false });
+        expect(filled.handles).toBe(filled.heads);
+        if (phone) expect({ filler: filled.filler, scrolls: filled.scrolls, table: filled.table }).toEqual({ filler: 0, scrolls: true, table: filled.columns });
+        else expect(filled.filler).toBe(Math.max(0, filled.box - filled.columns));
       } finally {
         await context.close();
       }
@@ -119,6 +130,17 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         settled = JSON.stringify(now) === JSON.stringify(before);
         before = now;
       }
+      // The table fills its box, its columns narrower than the box at this width and the room they leave the empty
+      // column's, last in every row, with no name and no edge to drag.
+      const filled = await page.locator("[data-settings-table]").first().evaluate(fillOf);
+
+      expect(filled.columns).toBeLessThan(filled.box);
+      expect(filled.table).toBe(filled.box);
+      expect(filled.filler).toBe(filled.box - filled.columns);
+      expect(filled.drawn).toEqual({ head: true, rows: true, named: false });
+      expect(filled.handles).toBe(filled.heads);
+      expect(filled.scrolls).toBe(false);
+
       const edge = heads.nth(2).getByRole("separator");
       const box = (await edge.boundingBox())!;
 
@@ -136,6 +158,13 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       expect(after[2]).toBe(before[2]! - 40);
       expect(Math.round(moved.x - box.x)).toBe(-40);
       expect(after.filter((_, index) => index !== 2)).toEqual(before.filter((_, index) => index !== 2));
+
+      // The table still fills its box: the empty column at its right edge took the 40 pixels the column gave up.
+      const held = await page.locator("[data-settings-table]").first().evaluate(fillOf);
+
+      expect(held.table).toBe(held.box);
+      expect(held.filler).toBe(held.box - held.columns);
+      expect(held.filler).toBe(filled.filler + 40);
     } finally {
       await context.close();
     }
@@ -249,7 +278,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     }, 60_000);
   }
 
-  test("stand every column of the draft tables at its own width, the room left over empty at the table's edge", async () => {
+  test("stand every column of the draft tables at its own width, the room left over one empty column at the table's edge", async () => {
     const context = await browser!.newContext({ viewport: { width: 1600, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
     const at = cookie.indexOf("=");
 
@@ -266,7 +295,8 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       for (const [table, title] of [["[data-draft-processes]", 2], ["[data-draft-questions]", 0]] as const) {
         // The widths as the table stands, then as it stands while its content is measured, every column at what its
         // name and widest cell take whole: no column stands wider than its content, the title's included, a column
-        // under a ceiling stands narrower only where its content passes it, and the table is as wide as its columns.
+        // under a ceiling stands narrower only where its content passes it, and the table is as wide as its columns or
+        // its box, whichever is wider. The empty column is not drawn while the content is measured.
         const widths = await page.locator(table).evaluate((root) => {
           const heads = [...root.querySelectorAll<HTMLElement>(":scope > table > thead > tr > th")];
           const read = () => heads.map((head) => Math.round(head.getBoundingClientRect().width));
@@ -275,14 +305,16 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
           root.setAttribute("data-measuring", "");
 
           const own = read();
+          const measuredFiller = getComputedStyle(heads[0]!.parentElement!, "::after").display;
 
           root.removeAttribute("data-measuring");
 
-          return { standing, own, box: root.clientWidth, table: Math.round(root.querySelector("table")!.getBoundingClientRect().width) };
+          return { standing, own, measuredFiller, box: root.clientWidth, table: Math.round(root.querySelector("table")!.getBoundingClientRect().width) };
         });
         const sum = widths.standing.reduce((all, one) => all + one, 0);
 
-        expect({ table, width: Math.abs(widths.table - sum) <= widths.standing.length }).toEqual({ table, width: true });
+        expect({ table, width: Math.abs(widths.table - Math.max(sum, widths.box)) <= widths.standing.length }).toEqual({ table, width: true });
+        expect({ table, measuredFiller: widths.measuredFiller }).toEqual({ table, measuredFiller: "none" });
         expect({ table, title: Math.abs(widths.standing[title]! - widths.own[title]!) <= 1 }).toEqual({ table, title: true });
         for (const [index, width] of widths.standing.entries()) {
           expect({ table, index, fits: width <= widths.own[index]! + 1 && width >= Math.min(widths.own[index]!, 240) }).toEqual({ table, index, fits: true });
@@ -293,6 +325,43 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     }
   }, 60_000);
 });
+
+// How a settings table fills its box, in whole pixels: the box's inner width, the table's, its columns' together, and
+// the empty column's, the room between the last column's right edge and the table's; whether that column is drawn in
+// the head's row and every body row and holds no words; how many names and edges to drag the head carries; and
+// whether the box scrolls sideways.
+function fillOf(root: Element): {
+  box: number;
+  table: number;
+  columns: number;
+  filler: number;
+  drawn: { head: boolean; rows: boolean; named: boolean };
+  heads: number;
+  handles: number;
+  scrolls: boolean;
+} {
+  const table = root.querySelector(":scope > table")!;
+  const heads = [...table.querySelectorAll<HTMLElement>(":scope > thead > tr > th")];
+  const rows = [...table.querySelectorAll<HTMLElement>(":scope > tbody > tr")];
+  const edge = table.getBoundingClientRect();
+  const last = heads.at(-1)!.getBoundingClientRect();
+  const filler = (row: Element) => getComputedStyle(row, "::after");
+
+  return {
+    box: root.clientWidth,
+    table: Math.round(edge.width),
+    columns: Math.round(last.right - heads[0]!.getBoundingClientRect().left),
+    filler: Math.round(edge.right - last.right),
+    drawn: {
+      head: filler(heads[0]!.parentElement!).display === "table-cell",
+      rows: rows.length > 0 && rows.every((row) => filler(row).display === "table-cell"),
+      named: [heads[0]!.parentElement!, ...rows].some((row) => filler(row).content !== '""')
+    },
+    heads: heads.length,
+    handles: table.querySelectorAll('thead [role="separator"]').length,
+    scrolls: root.scrollWidth > root.clientWidth
+  };
+}
 
 // Which scrolling boxes stand between a table's first row and the page: the table's own alone, the body around it
 // not scrolling.

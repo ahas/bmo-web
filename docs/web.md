@@ -2735,13 +2735,17 @@ Two ways, split because the running places differ.
     wide as its content asks — its name and its widest cell, measured as the rows land and again as what they say
     changes. A column whose cells vary in length (a path, a list of rooms, what a row runs on now, a list of
     questions, a question's text, a model file's defaults or note) stands at most at a ceiling of its own and cuts its
-    cells on one line there, the whole text in the tooltip every cut line gets. Room the columns do not use stays
-    empty at the table's right edge; a table wider than its box scrolls sideways inside it.
+    cells on one line there, the whole text in the tooltip every cut line gets. The room the columns do not use
+    stands as one empty column at the right edge, so the table fills its box and every row, the head's among them,
+    runs to its edge — the owner's words: 「왜 에이전트 페이지의 테이블들이 페이지 좌우폭을 꽉 안채우냐」. That column
+    has no name, no content and no edge to drag, is never measured and is no column of the table's own; it stands at
+    no width once the columns fill the box, and a table wider than its box scrolls sideways inside it.
   - **Every column's width is dragged at the right edge of its name,** or moved with the arrow keys there, the way
     the DB screen's columns are. A drag changes the dragged column alone, by what the pointer moved, so the edge
-    stays under the pointer; every other column keeps the width it stood at, and the table grows or shrinks by the
-    drag. A column is never dragged narrower than the shared table's least column width. The widths stand as dragged
-    while the tab stands; a tab opened again lays its columns out afresh.
+    stays under the pointer; every other column keeps the width it stood at, and the empty column at the right edge
+    gives or takes the difference while there is room, the table growing past its box only once the columns alone are
+    wider than it. A column is never dragged narrower than the shared table's least column width. The widths stand as
+    dragged while the tab stands; a tab opened again lays its columns out afresh.
 - **A cell edits its own value, in place.** Pressing a cell that holds a setting opens a dropdown aligned to that
   cell, holding that cell's value and nothing else: a list for a choice, a number box for a number, a text box for a
   text. The dropdown is as wide as what it holds, never narrower than the cell it drops from and never wider than the

@@ -299,7 +299,7 @@ push:
     room: 방 메시지
   message:
     mail: 받은편지함에 새 메일이 와서 읽지 않은 상태일 때 알립니다. 필터가 옮겼거나 읽음으로 표시한 메일은 알리지 않습니다.
-    room: 에이전트와 대화 상대가 방에 보낸 메시지와 보고를 알립니다. 그 방을 보고 있을 때는 알리지 않고, 한 방의 메시지는 하나로 묶습니다.
+    room: 감독관이 방에 보낸 메시지와 보고를 알립니다. 그 방을 보고 있을 때는 알리지 않고, 한 방의 메시지는 하나로 묶습니다.
     room_line: "{sender}: {line}"
     question: Job이 답을 기다리며 멈춰 있고, 1분이 지나면 추천 답으로 정해집니다. 콘솔에서 타이머를 멈출 수 있습니다.
     test_body: 이 기기로 알림이 도착합니다.
@@ -503,7 +503,7 @@ room:
     providers_save_failed: 채팅 서비스를 바꾸지 못했습니다.
     providers_shape: 켤 채팅 서비스를 하나 이상 골라 주세요.
     removal_read_failed: 삭제할 기록을 불러오지 못했습니다.
-    removal_seeded_room: 대화 상대 설정이 정해 둔 방이라 지울 수 없습니다.
+    removal_seeded_room: 감독관 설정이 정해 둔 방이라 지울 수 없습니다.
     reply_missing: 답장할 메시지가 기록에 없습니다.
     voice_denied: 마이크를 쓸 수 없습니다. 브라우저에서 마이크 권한을 허용해 주세요.
     voice_empty: 녹음된 소리가 없습니다. 다시 녹음해 주세요.
@@ -535,8 +535,6 @@ room:
     cancel_recording: 녹음 취소
     cancel_reply: 답장 취소
     choose_messages: 메시지 선택
-    companion_reset: 초기화
-    companion_settings: 모델 설정
     copy_all: 전체 복사
     copy_ref: 대화번호 복사
     copy_text: 텍스트만 복사
@@ -546,7 +544,6 @@ room:
     find_next: 다음 결과
     find_older: 이전 메시지 더 불러오기
     find_previous: 이전 결과
-    of_companion: "{action} · {name}"
     providers: 채팅 서비스
     pin: 고정
     remove_paste: 붙여넣은 텍스트 삭제
@@ -554,9 +551,7 @@ room:
     react: 반응
     reply: 답장
     resend: 다시 보내기
-    reset_run: 초기화
     select: 선택
-    session_only: 새 세션 시작
     show_in_message: 메시지에서 보기
     sticker: 스티커
     stop_recording: 녹음 끝내기
@@ -692,17 +687,6 @@ room:
     removal_stays: 남는 행
     removal_undeclared: 선언되지 않은 설정 (남음)
     removal_warnings: 확인할 점
-    reset_conversation: 대화 기록
-    reset_conversation_note: 단독으로 답하는 방의 메시지·세션·실행 기록, 함께 답하는 방의 자기 기록
-    reset_copies: 아카이브 사본
-    reset_failures: 삭제하지 못함
-    reset_files: 파일
-    reset_person: 인물 기록
-    reset_person_note: 인물북, 기억·메모·알림, brain 폴더
-    reset_rooms_alone: 기록 전체를 삭제한 방
-    reset_rooms_shared: 자기 기록만 삭제한 방
-    reset_rows: 행
-    reset_writer: 중지한 인물북 작성
     road_answered: 응답함
     road_busy_skip: 혼잡으로 건너뜀
     road_error: 오류
@@ -735,7 +719,7 @@ room:
     session_of: "{name} 세션"
     share_people: 사람
     sort_browse: 브라우징
-    sort_companion_cut: 대화 상대 중단
+    sort_companion_cut: 감독관 중단
     sort_console_talk: 콘솔 대화
     sort_document_reload: 문서 갱신
     sort_impact_mismatch: 협업 근거 차이
@@ -758,7 +742,7 @@ room:
     span_months: "{n}개월째"
     span_speakers: "{span} · 참여자 {n}명"
     stage_chat: 채팅
-    stage_companion: 대화 상대
+    stage_companion: 감독관
     stage_content_append: 덧붙이기
     stage_content_rewrite: 재작성
     stage_draft: 드래프트
@@ -806,17 +790,13 @@ room:
     id_copied: 대화번호를 복사했습니다.
     message_ref: "방 {room} (chatId {chatId}) · 메시지 #{messageId}"
     messages_copied: "메시지 {n}개를 복사했습니다."
-    no_session: 이 방에는 아직 이 대화 상대의 세션이 없어 다음 턴에 새 세션으로 시작합니다.
     removal_done: 방 등록과 그 기록을 삭제했습니다.
     removal_goes: 삭제하면 아래 기록과 파일이 함께 삭제되며 복원할 수 없습니다.
     providers_rule: 이 방의 기록만 켠 방은 어느 메신저와도 이어지지 않고, 말한 것은 기록과 이 콘솔에만 남습니다. 메신저를 켜면 그때부터 이 방에 남는 메시지가 그 메신저로도 가고, 끄면 멈춥니다. 방은 한 곳에는 켜져 있어야 합니다.
     providers_unset: 정해 둔 적이 없어, 지금 이 방이 이어진 곳을 보여 줍니다.
     removal_refused: 이 방은 등록을 삭제할 수 없습니다.
     removal_stays: 이 방에서 만든 항목, Job, Job의 질문, 검색, 사용량은 남습니다.
-    reset_done: 초기화했습니다.
     room_removed: 이 방의 등록이 삭제되어 홈으로 이동했습니다.
-    session_only: 아무것도 삭제하지 않습니다.
-    session_started: 다음 턴부터 새 세션으로 시작합니다.
     text_copied: 텍스트를 복사했습니다.
     room_add_mode_avatar: 방의 에이전트가 내 계정으로 답합니다.
     room_add_mode_record_only: 읽고 기록만 하며 답하지 않습니다.
@@ -825,7 +805,6 @@ room:
     room_add_one_to_one: 이 연락처와 일대일 대화를 시작합니다.
     room_add_group: "{n}명과 새 그룹을 만듭니다."
   title:
-    companion_reset: "{name} 초기화"
     providers: 채팅 서비스
     situation: 방의 상황
     remove_registration: 방 등록 삭제
@@ -1618,8 +1597,6 @@ agents:
     log: 로그
     prefix_document_add: 프리픽스 문서 추가
     persona_to_file: 파일 내용으로 되돌리기
-    session_reset: 세션 초기화
-    session_reset_short: 초기화
     settings: 설정
     to_end: 맨 아래로
     to_page: 페이지로
@@ -1665,7 +1642,6 @@ agents:
     prefix_document_up: "{path} 위로"
     provider_of: "{name} 공급자"
     search_depth: 검색 깊이
-    session_reset_of: "{name} 세션 초기화"
     settings_sections: 설정 섹션
     switch_on: "{name} 켜기"
     vitals: 에이전트 지표
@@ -1691,18 +1667,6 @@ agents:
     bad_word_worker: 메시지를 보낼 워커가 올바르지 않습니다.
     catalogue_action: 모델 파일에 요청한 동작이 올바르지 않습니다.
     catalogue_read_failed: 모델 파일 목록을 불러오지 못했습니다.
-    companion_add: 감독관의 이름, 표시 이름, 공급자 순서, 작업 저장소, 방 제목을 보내 주세요.
-    companion_change: 대화 상대를 선택해 주세요.
-    companion_label: 이름표를 입력해 주세요.
-    companion_model: 주소가 있는 등록 모델이 아닙니다.
-    companion_name: 쓸 수 없는 이름입니다.
-    companion_name_taken: 이미 다른 에이전트가 쓰는 이름입니다.
-    companion_not_companion: 대화 상대가 아닌 에이전트입니다.
-    companion_provider: 대화 상대를 맡을 수 없는 제공자입니다.
-    companion_room: 방 이름을 입력해 주세요.
-    companion_seeded: 배포가 심어 둔 대화 상대는 지울 수 없습니다.
-    companion_worker: 없는 워커입니다.
-    companions_read_failed: 감독관 설정을 불러오지 못했습니다.
     chat_documents_read_failed: 시스템 프롬프트를 불러오지 못했습니다.
     chat_document_save_failed: 저장하지 못했습니다.
     chat_document_action: 저장하거나 되돌릴 동작이 필요합니다.
@@ -1724,7 +1688,6 @@ agents:
     log_read_failed: 로그를 읽지 못했습니다. 잠시 뒤 다시 시도해 주세요.
     models_load_failed: 모델 목록을 불러오지 못했습니다.
     no_such_agent: 에이전트를 찾을 수 없습니다.
-    no_such_agent_name: 이 이름의 에이전트를 찾을 수 없습니다.
     pick_account: 계정을 선택해 주세요.
     pick_codex: Codex 모델과 effort를 선택해 주세요.
     pick_fallback_run: 폴백을 적용할 실행을 선택해 주세요.
@@ -1735,8 +1698,7 @@ agents:
     provider_switch_needed: 공급자 이름과 켬·끔 값이 필요합니다.
     registry_read_failed: 등록 모델을 불러오지 못했습니다.
     registry_value: 등록 모델의 이름과 모델을 보내 주세요.
-    session_reset: 초기화할 세션을 에이전트와 방으로 정해 주세요.
-    sessions_read_failed: 세션 목록을 불러오지 못했습니다.
+    supervisor_add: 감독관의 이름, 표시 이름, 공급자 순서, 작업 저장소를 보내 주세요.
     word_empty: 메시지를 입력해 주세요.
     word_unavailable: 워커에게 말을 전하는 길이 아직 없습니다.
     role_delete_refused: 실행 중이거나 대기 중인 실행이 있거나 정책이 정한 역할이라 삭제하지 못했습니다.
@@ -1770,7 +1732,6 @@ agents:
     column_provider: 공급자
     column_role: 역할
     column_rooms: 방
-    companion_room: 방 제목
     context_archive: 지난 대화
     context_attached: 이번에 읽음
     context_document: 참조 문서
@@ -1810,7 +1771,6 @@ agents:
     find_draft_question: "드래프트 질문 {name}"
     find_registration: "등록 모델 · {name}"
     generation: 생성 파라미터
-    generation_of: "{generation}번째 세션"
     group_gate: 게이트
     group_repository: 저장소
     group_role: 역할
@@ -1869,14 +1829,12 @@ agents:
     registry_healthy: 응답함
     registry_unhealthy: 응답 안 함
     registry_last_answered: "마지막 응답 {time}"
-    reset_at: "{time}에 변경됨"
     restore: 강등 복원
     result_less: 축소
     result_more: "{n}줄 더 보기"
     role_bundles_none: 기능 묶음 없음
     room_last_run: "마지막 실행 {time}"
     room_runs: "{n}회"
-    room_sessions: 방 세션
     run_cache_read: "캐시 읽기 {n}"
     run_context: "컨텍스트 ~{tokens}"
     run_no_place: 경로 없음
@@ -1884,11 +1842,6 @@ agents:
     sampling: 샘플링
     search_tab: 탭
     serving: 서빙 중
-    session_chat: "대화 세션 · {model}"
-    session_cleared_at: "{time} 초기화"
-    session_models: "Job 세션 · {models}"
-    session_reset_waiting: 초기화 대기
-    session_room: "{room} · {generation}번째 세션"
     source_fetch: 다운로드
     source_none: 다운로드 주소 없음
     support_count: 추가지원 체크아웃 수
@@ -1990,8 +1943,7 @@ agents:
     companion_delete_confirm: "{name}을(를) 삭제할까요?"
     companion_delete_takes: "감독관의 설정과 세션, 인물 기록을 삭제합니다.
 
-      대화 상대가 답하던 방은 메시지와 문서까지 그대로 남습니다."
-    companion_room_taken_back: "{room} 방을 다시 이어받았습니다."
+      감독관이 답하던 방은 메시지와 문서까지 그대로 남습니다."
     node_checkouts_need_here: 실행 노드가 이 기기일 때만 노드 체크아웃을 둘 수 있습니다.
     draft_process_remove_confirm: "이 드래프트 과정 행을 삭제할까요? 정책에 같은 행이 있으면 그 행이 다시 적용됩니다."
     generation_resets: "방 세션 {n}개가 다음 턴부터 새로 시작됩니다."
@@ -1999,9 +1951,6 @@ agents:
     log_of_watch: 이 워치의 대기 대상과 기록
     log_start: 로그의 처음입니다.
     registry_delete_confirm: 등록 모델을 삭제할까요?
-    session_clears: 다음 턴부터 새 세션으로 시작합니다
-    session_clears_chat: 다음 턴에 새 세션을 열고, 지난 대화는 요약으로 넘깁니다
-    session_clears_companion: "{room} 방의 {generation}번째 세션은 기록으로 남기고, 다음 턴부터 새 세션으로 시작합니다"
     supervisor_seeded: 배포가 세운 감독관이라 삭제할 수 없습니다.
     use_model_confirm: "{engine} 엔진에 {model} 모델을 로드할까요?"
     use_model_moves: "다운로드·확인·설치를 마치고 엔진이 다시 시작될 때까지 {registration} 등록 모델은 응답하지 않습니다."
@@ -2027,8 +1976,6 @@ agents:
     chosen_login: "{chosen} 로그인 필요 · 현재 {serving} 사용 중"
     chosen_resting: "{chosen} 한도 도달 · {time} 복귀 · 현재 {serving} 사용 중"
     compacting: 압축 중
-    companion_room_taken_back: "{name}이(가) 같은 이름의 방을 다시 맡았습니다. 방 제목은 {title}(으)로 바꾸었고, 메시지와 문서는 그대로 남아 있습니다."
-    companions_loading: 감독관 설정 불러오는 중…
     draft_processes_loading: 드래프트 과정 불러오는 중…
     job_ended: 끝남
     job_running: 실행 중
@@ -2054,7 +2001,6 @@ agents:
     run_runner: 검색 중
     run_worker: 작업 중
     running: 진행 중
-    sessions_loading: 세션 불러오는 중…
     standing_in: "대신 답하는 중 · {road}"
     turn_thinking: 생각 중
     turn_tool: 툴 사용 중
@@ -2333,7 +2279,7 @@ research:
     branch_role: 브랜치 역할
     branches: 브랜치
     cadence: "{n}분마다 읽음"
-    cap_counts: "대기 {waiting} · 실행 {running} / 상한 {cap}"
+    cap_counts: "대기 {waiting} · 실행 {running}"
     category: 분류
     closes: 웹 도구 종료
     default_road: 기본 경로
@@ -2356,7 +2302,7 @@ research:
     gap_value: "{n}ms"
     gather: "{n}분마다 모음"
     held: 보류
-    hold_bench: "벤치 · {node}"
+    hold_bench: 벤치
     hold_reported: 보고됨
     hold_restore: 복구 대기
     hold_since: "{time}부터"

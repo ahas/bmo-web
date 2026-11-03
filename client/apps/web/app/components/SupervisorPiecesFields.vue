@@ -1,35 +1,18 @@
 <template>
-  <!-- One companion's settings (docs/web.md, 「Agent management screen」, the supervisors tab): its picture, how its
-       model is asked, whether a turn is given its reference, its persona, the system prompt its next request sends and
-       its room sessions. Its provider order is the supervisor's own, set above it. The block is part of the form around
-       it (「Forms」): what is changed here waits for that form's one save, which goes to the agency, keeps the change
-       with who made it, and the block then stands as the agency answered. -->
-  <section class="flex flex-col gap-6" :data-companion="view.agent" :aria-labelledby="`companion-${view.agent}`">
-    <header v-if="!props.bare" class="flex min-h-8 items-center gap-2">
-      <UIcon :name="view.icon ?? 'i-material-symbols-person-outline'" class="size-5 shrink-0 text-muted" />
-      <h2 :id="`companion-${view.agent}`" class="text-lg font-semibold text-highlighted">{{ view.label }}</h2>
-      <span class="font-mono text-sm text-muted">{{ view.agent }}</span>
-      <!-- What the list around it offers on the companion as a whole. -->
-      <div v-if="$slots.actions" class="ms-auto flex items-center gap-1">
-        <slot name="actions" />
-      </div>
-    </header>
-
-    <!-- Its picture, set in the console and saved at once, apart from the form's one save (docs/web.md, 「Profile
-         photos」). -->
-    <div class="flex flex-col gap-2">
-      <h3 class="text-sm font-medium text-highlighted">{{ $t("picture.label.agent") }}</h3>
-      <PictureSetting kind="agent" :subject="view.agent" :avatar="picture" />
-    </div>
-
+  <!-- A supervisor's own settings, for one whose turns its settings' pieces make (docs/web.md, 「Agent management
+       screen」, the settings dialog): how its answers are sampled, whether a turn is given its reference, its persona
+       and the system prompt its next turn sends. The fields are part of the form around them (「Forms」): what is changed
+       here waits for that form's one save, which goes to the agency, keeps the change with who made it, and the fields
+       then stand as the agency answered. -->
+  <section class="flex flex-col gap-6" :aria-label="$t('agents.label.generation')">
     <!-- The generation parameters: how its answers are sampled, each setting with what it is for and its bounds in
          full sight beside its box, an empty box the engine's own default. -->
     <div class="flex flex-col gap-2">
-      <h3 :id="`generation-${view.agent}`" class="text-sm font-medium text-highlighted">{{ $t("agents.label.generation") }}</h3>
-      <p v-if="differs('generation') && view.sessions.length > 0" class="text-sm text-muted">
-        {{ $t("agents.message.generation_resets", { n: countText(view.sessions.length) }) }}
+      <h3 :id="`generation-${view.name}`" class="text-sm font-medium text-highlighted">{{ $t("agents.label.generation") }}</h3>
+      <p v-if="draftDiffers('generation', draft, saved) && view.sessions > 0" class="text-sm text-muted">
+        {{ $t("agents.message.generation_resets", { n: countText(view.sessions) }) }}
       </p>
-      <GenerationFields v-model="draft.generation" :settings="view.generationSettings" :id-prefix="`generation-${view.agent}`" :labelledby="`generation-${view.agent}`" :disabled="busy" :refusal-at="refusalAt" />
+      <GenerationFields v-model="draft.generation" :settings="view.generationSettings" :id-prefix="`generation-${view.name}`" :labelledby="`generation-${view.name}`" :disabled="busy" :refusal-at="refusalAt" />
       <p v-if="refusalAt('generation') !== ''" role="alert" class="break-words text-sm text-error">{{ refusalAt("generation") }}</p>
     </div>
 
@@ -66,40 +49,7 @@
       </UTooltip>
     </div>
 
-    <!-- The room sessions: when each room's system prompt last changed, and its reset, asked first on its own
-         row. A reset is an action, not a setting, and goes as it is asked. -->
-    <div v-if="view.sessions.length > 0" class="flex flex-col gap-2">
-      <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.label.room_sessions") }}</h3>
-      <ul class="flex flex-col gap-1 text-sm">
-        <li v-for="one in view.sessions" :key="one.chatId" class="flex flex-col gap-2">
-          <div class="flex min-h-8 min-w-0 items-center gap-2">
-            <span class="min-w-0 truncate text-highlighted">{{ one.title ?? one.chatId }}</span>
-            <span class="shrink-0 tabular-nums text-muted">{{ $t("agents.label.generation_of", { generation: countText(one.generation) }) }}</span>
-            <span class="ms-auto shrink-0 tabular-nums text-muted">{{ one.systemResetAt === null ? "—" : $t("agents.label.reset_at", { time: timeText(one.systemResetAt) }) }}</span>
-            <UBadge v-if="one.resetWaiting" color="warning" variant="subtle" size="sm" class="shrink-0">{{ $t("agents.label.session_reset_waiting") }}</UBadge>
-            <UTooltip :text="$t('agents.action.session_reset')">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                icon="i-material-symbols-restart-alt"
-                :aria-label="$t('agents.aria.session_reset_of', { name: one.title ?? String(one.chatId) })"
-                :disabled="one.resetWaiting || resetting === one.chatId"
-                @click="resetting = one.chatId"
-              />
-            </UTooltip>
-          </div>
-          <SessionResetStep
-            v-if="resetting === one.chatId"
-            :session="{ agent: view.agent, chatId: one.chatId, kind: 'companion', running: false, models: [], title: one.title, generation: one.generation }"
-            @cancel="resetting = null"
-            @done="void sessionCleared()"
-          />
-        </li>
-      </ul>
-    </div>
-
-    <!-- A refusal naming a field this block does not show stands at its end. -->
+    <!-- A refusal naming a field these settings do not show stands at their end. -->
     <p v-if="refusal !== null && !SHOWN_FIELDS.has(refusal.field) && !generationNames.has(refusal.field)" role="alert" class="break-words text-sm text-error">{{ refusal.text }}</p>
 
     <SettingsDialog v-model:open="systemOpen" :title="$t('agents.label.system_prompt_sent')" :description="`${countText(view.system.characters)}${$t('agents.label.characters_unit')} · sha256 ${view.system.hash.slice(0, 12)}`">
@@ -109,40 +59,30 @@
 </template>
 
 <script setup lang="ts">
-import { companionChange, companionDraft, draftDiffers } from "~/domain/companions";
+import { draftDiffers, piecesChange, piecesDraft } from "~/domain/generation";
 import { countText } from "~/domain/numbers";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useFormPart } from "bmo-ui/app/domain/form-save";
-import { useAgentFace } from "~/domain/agent-face";
 
-import type { CompanionView } from "#shared/agency";
-import type { CompanionDraft } from "~/domain/companions";
+import type { SupervisorPiecesView } from "#shared/axes";
+import type { PiecesDraft } from "~/domain/generation";
 
-interface Props {
-  view: CompanionView;
-  // Shown inside a dialog that already names the companion, the block's own header is left out.
-  bare?: boolean;
-}
+const props = defineProps<{ view: SupervisorPiecesView }>();
+const emit = defineEmits<{ saved: [view: SupervisorPiecesView] }>();
 
-const props = withDefaults(defineProps<Props>(), { bare: false });
-const emit = defineEmits<{ saved: [view: CompanionView] }>();
-
-// The companion's face as every screen draws it, which its picture setting shows and replaces.
-const faceOf = useAgentFace();
-const picture = computed(() => faceOf.value({ name: props.view.agent, label: props.view.label, chatId: null, group: "supervisor" }) ?? { alt: props.view.label, text: props.view.label.slice(0, 1) });
 const { t } = useI18n();
 
 const view = computed(() => props.view);
 
 // The fields as the agency holds them, and as the form holds them until it saves.
-const saved = computed<CompanionDraft>(() => companionDraft(view.value));
-const draft = ref<CompanionDraft>(companionDraft(view.value));
-const KEYS = Object.keys(draft.value) as (keyof CompanionDraft)[];
+const saved = computed<PiecesDraft>(() => piecesDraft(view.value));
+const draft = ref<PiecesDraft>(piecesDraft(view.value));
+const KEYS = Object.keys(draft.value) as (keyof PiecesDraft)[];
 
-// The block is read again — after a save, on a refresh — and a field nobody touched takes what it says now, while one
-// being written keeps what was written.
+// The settings are read again — after a save, on a refresh — and a field nobody touched takes what it says now, while
+// one being written keeps what was written.
 watch(() => JSON.stringify(saved.value), (_now, beforeText) => {
-  const before = JSON.parse(beforeText) as CompanionDraft;
+  const before = JSON.parse(beforeText) as PiecesDraft;
   const next = { ...draft.value };
 
   for (const key of KEYS) {
@@ -158,8 +98,7 @@ const persona = computed({
   },
 });
 
-const differs = (key: keyof CompanionDraft): boolean => draftDiffers(key, draft.value, saved.value);
-const dirty = computed(() => KEYS.some(differs));
+const dirty = computed(() => KEYS.some((key) => draftDiffers(key, draft.value, saved.value)));
 
 const busy = ref(false);
 const refusal = ref<{ field: string; text: string } | null>(null);
@@ -178,14 +117,10 @@ function fieldOf(error: unknown, fallback: string): string {
   return typeof field === "string" ? field : fallback;
 }
 
-async function reread(): Promise<CompanionView> {
-  return (await $fetch<CompanionView[]>("/api/companions")).find((one) => one.agent === view.value.agent) ?? view.value;
-}
-
 // One save of everything changed, in one change the agency checks whole. A refusal stands beside what it was about.
-// Once it went through, the block holds what the agency answered, so it holds no change after.
+// Once it went through, the fields hold what the agency answered, so they hold no change after.
 async function save(): Promise<boolean> {
-  const change = companionChange(draft.value, saved.value);
+  const change = piecesChange(draft.value, saved.value);
   const keys = Object.keys(change);
 
   if (keys.length === 0) return true;
@@ -194,9 +129,9 @@ async function save(): Promise<boolean> {
   refusal.value = null;
 
   try {
-    const latest = await $fetch<CompanionView>("/api/companions", { method: "POST", body: { agent: view.value.agent, ...change } });
+    const latest = await $fetch<SupervisorPiecesView>(`/api/supervisors/${encodeURIComponent(view.value.name)}/pieces`, { method: "PATCH", body: change });
 
-    draft.value = companionDraft(latest);
+    draft.value = piecesDraft(latest);
     emit("saved", latest);
 
     return true;
@@ -216,17 +151,5 @@ function discard(): void {
 
 useFormPart({ dirty: () => dirty.value, save, discard });
 
-function timeText(seconds: number): string {
-  return new Date(seconds * 1000).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
-}
-
 const systemOpen = ref(false);
-
-// The room whose session reset is being asked, by its number.
-const resetting = ref<number | null>(null);
-
-async function sessionCleared(): Promise<void> {
-  resetting.value = null;
-  emit("saved", await reread());
-}
 </script>

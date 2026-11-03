@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
 // A supervisor's settings (docs/web.md, 「Agent management screen」, the supervisors tab, and 「Agent screen」): one form
-// with one save — its own settings, its provider order among them, then the companion's block or the texts its
-// system prompt is composed of — opened by the supervisors tab, the supervisor's own screen and a room alike.
+// with one save — its own settings, its provider order among them, then its generation settings, reference, persona and
+// system prompt, or the texts its system prompt is composed of — opened by the supervisors tab and the supervisor's own
+// screen alike.
 
 const read = async (name: string) => await Bun.file(new URL(`../../../apps/web/app/${name}`, import.meta.url)).text();
 const server = async (name: string) => await Bun.file(new URL(`../../../apps/web/server/${name}`, import.meta.url)).text();
@@ -11,22 +12,24 @@ const page = await read("pages/agents/[name].vue");
 const dialog = await read("components/SupervisorSettingsDialog.vue");
 const fields = await read("components/SupervisorFields.vue");
 const documents = await read("components/ChatDocumentsFields.vue");
-const companionDialog = await read("components/CompanionSettingsDialog.vue");
+const pieces = await read("components/SupervisorPiecesFields.vue");
 const tab = await read("components/AgentsSupervisors.vue");
 const listing = await server("api/chat-documents.get.ts");
 const changing = await server("api/chat-documents/[documentName].patch.ts");
 const patch = await server("api/supervisors/[name].patch.ts");
 
 describe("a supervisor's settings", () => {
-  test("are one dialog, opened by the tab, the supervisor's own screen and a room's companion tools", () => {
+  test("are one dialog, opened by the tab and the supervisor's own screen", () => {
     expect(page).toContain('<SupervisorSettingsDialog v-if="settingsKind === \'supervisor\'" v-model:open="settingsOpen" :name="name"');
     expect(tab).toContain("<SupervisorSettingsDialog");
-    expect(companionDialog).toContain('<SupervisorSettingsDialog v-model:open="open" :name="props.meta.name"');
   });
 
   test("hold one save at the foot over every block, the supervisor's own change sent first", () => {
     expect(dialog).toContain("useFormSave(t)");
-    expect(dialog.indexOf("<SupervisorFields")).toBeLessThan(dialog.indexOf("<CompanionSettingsBlock"));
+    expect(dialog.indexOf("<SupervisorFields")).toBeLessThan(dialog.indexOf("<SupervisorPiecesFields"));
+    expect(pieces).toContain("useFormPart(");
+    expect(pieces).toContain("<GenerationFields");
+    expect(pieces).toContain("`/api/supervisors/${encodeURIComponent(view.value.name)}/pieces`");
     expect(fields).toContain("useFormPart(");
     expect(documents).toContain("useFormPart(");
     expect(fields).toContain("<ProviderOrderField");

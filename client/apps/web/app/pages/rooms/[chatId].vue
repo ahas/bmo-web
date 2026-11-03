@@ -85,7 +85,6 @@
                    turn runs or the listening row stands (docs/web.md, 「The window's time left stands in
                    the top bar」). -->
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
-              <RoomCompanionTools v-if="companionsHere.length > 0" ref="companionTools" :chat-id="chatId" />
               <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
               <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
               <PictureDialog v-if="administrator" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
@@ -983,20 +982,6 @@ const passing = computed(() => shownOutcome(outcome.value, group.value));
 const ownsTodo = computed<boolean>(() => owner.value.chatId === chatId);
 
 
-// The companions answering here, whose settings and reset the menu offers the administrator alone
-// (docs/web.md, the room screen's section on resetting a companion and its model); a room with more than one names each.
-const companionsHere = computed<string[]>(() => (owner.value.administrator ? (rooms.value ?? []).find((room) => room.chatId === chatId)?.companions ?? [] : []));
-const companionTools = useTemplateRef<{ labelOf: (agent: string) => string; settings: (agent: string) => void; reset: (agent: string) => void }>("companionTools");
-
-function companionItems(): DropdownMenuItem[] {
-  const named = (action: string, agent: string): string => (companionsHere.value.length > 1 ? t("room.action.of_companion", { action, name: companionTools.value?.labelOf(agent) ?? agent }) : action);
-
-  return companionsHere.value.flatMap((agent) => [
-    { label: named(t("room.action.companion_settings"), agent), icon: "i-material-symbols-tune", onSelect: () => companionTools.value?.settings(agent) },
-    { label: named(t("room.action.companion_reset"), agent), icon: "i-material-symbols-restart-alt", onSelect: () => companionTools.value?.reset(agent) }
-  ]);
-}
-
 const menuItems = computed<DropdownMenuItem[][]>(() => [
   [
     ...(administrator.value ? [{ label: t("room.title.session_info"), icon: "i-material-symbols-bar-chart", onSelect: openStats }] : []),
@@ -1016,7 +1001,6 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     // The room's picture, set in the console beside the one a provider hands in (docs/web.md, 「Profile photos」).
     ...(administrator.value ? [{ label: t("picture.action.set_room"), icon: "i-material-symbols-add-photo-alternate-outline", onSelect: () => { pictureOpen.value = true; } }] : [])
   ],
-  ...(companionsHere.value.length === 0 ? [] : [companionItems()]),
   // Removing the room's registration stands last, in a group of its own (docs/web.md, the room
   // screen's registration removal).
   ...(administrator.value ? [[{ label: t("room.action.remove_registration"), icon: "i-material-symbols-delete-outline", color: "error" as const, onSelect: () => { removalOpen.value = true; } }]] : [])

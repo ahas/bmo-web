@@ -1,12 +1,12 @@
-import type { CompanionView } from "#shared/agency";
+import type { GenerationSetting } from "#shared/agency";
+import type { SupervisorPiecesView } from "#shared/axes";
 import type { Translate } from "#shared/wording";
 
-// A companion's settings as its supervisor's settings form reads and changes them (docs/web.md, 「Agent management
-// screen」, the supervisors tab).
+// Generation settings as a settings form reads and changes them — a supervisor's own and a repository's sampling
+// (docs/web.md, 「Agent management screen」).
 
-// What each generation setting is for, in a few words the panel shows beside it
-// (the agency's docs/companions.md, 「Its generation settings」). A setting the bot names that this list does not is
-// shown by its name alone.
+// What each generation setting is for, in a few words the form shows beside it. A setting the agency names that this
+// list does not is shown by its name alone.
 const GENERATION_USES: Readonly<Record<string, string>> = {
   temperature: "agents.label.use_temperature",
   top_p: "agents.label.use_top_p",
@@ -30,8 +30,6 @@ export function generationUse(t: Translate, name: string): string {
   return key === undefined ? "" : t(key);
 }
 
-type GenerationSetting = CompanionView["generationSettings"][number];
-
 // A setting's bounds as its box shows them beside it; a switch has none.
 export function generationBounds(setting: GenerationSetting): string {
   if (setting.switch === true) return "";
@@ -44,8 +42,8 @@ export function generationBounds(setting: GenerationSetting): string {
 // The boxes as they start: each setting's saved number as text, and a switch's saved choice as on or off; a box or a
 // choice the engine's own default stands in stays empty, since no route says what that default is
 // (docs/web.md, 「The default among choices」).
-export function generationDraft(view: Pick<CompanionView, "generationSettings" | "settings">): Record<string, string> {
-  return settingsDraft(view.generationSettings, view.settings.generation);
+export function generationDraft(view: Pick<SupervisorPiecesView, "generationSettings" | "generation">): Record<string, string> {
+  return settingsDraft(view.generationSettings, view.generation);
 }
 
 // The same for any list of these settings and the values held of them, as a repository's sampling is shown (the
@@ -82,26 +80,21 @@ export function generationChange(draft: Readonly<Record<string, string | number 
   }));
 }
 
-// Everything a companion's block lets the owner change, as its fields hold it until the form saves
-// (docs/web.md, 「Forms」). The persona is null where the companion keeps none of its own and its
-// file's text is shown.
-export interface CompanionDraft {
+// Everything a supervisor's own settings let the owner change, as the form's fields hold it until the form saves
+// (docs/web.md, 「Forms」). The persona is null where the supervisor keeps none of its own and its file's text is shown.
+export interface PiecesDraft {
   generation: Record<string, string>;
   referenceOn: boolean;
   persona: string | null;
 }
 
 // The fields as the agency holds them now.
-export function companionDraft(view: CompanionView): CompanionDraft {
-  return {
-    generation: generationDraft(view),
-    referenceOn: view.settings.referenceOn,
-    persona: view.settings.persona
-  };
+export function piecesDraft(view: SupervisorPiecesView): PiecesDraft {
+  return { generation: generationDraft(view), referenceOn: view.referenceOn, persona: view.persona };
 }
 
 // Whether a field differs from what is saved.
-export function draftDiffers(key: keyof CompanionDraft, draft: CompanionDraft, saved: CompanionDraft): boolean {
+export function draftDiffers(key: keyof PiecesDraft, draft: PiecesDraft, saved: PiecesDraft): boolean {
   if (key === "generation") return Object.keys(generationChange(draft.generation, savedGeneration(saved.generation))).length > 0;
 
   return JSON.stringify(draft[key]) !== JSON.stringify(saved[key]);
@@ -115,9 +108,9 @@ function savedGeneration(boxes: Readonly<Record<string, string>>): Record<string
   }));
 }
 
-// What one save of the companion's own settings sends: every field that differs, which the agency checks whole.
-export function companionChange(draft: CompanionDraft, saved: CompanionDraft): Record<string, unknown> {
-  const differs = (key: keyof CompanionDraft): boolean => draftDiffers(key, draft, saved);
+// What one save of a supervisor's own settings sends: every field that differs, which the agency checks whole.
+export function piecesChange(draft: PiecesDraft, saved: PiecesDraft): Record<string, unknown> {
+  const differs = (key: keyof PiecesDraft): boolean => draftDiffers(key, draft, saved);
 
   return {
     ...(differs("referenceOn") ? { referenceOn: draft.referenceOn } : {}),

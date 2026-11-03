@@ -161,7 +161,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 
 import { DEFAULT_DOWNGRADE_HEAL, markedDefault, refusalOf, useProviderModels, useProviders } from "~/domain/axes";
-import { generationChange, settingsDraft } from "~/domain/companions";
+import { generationChange, settingsDraft } from "~/domain/generation";
 
 import type { GenerationSetting } from "#shared/agency";
 import type { NodeCheckoutAsk, RepositoryView, WorkNodeView } from "#shared/axes";

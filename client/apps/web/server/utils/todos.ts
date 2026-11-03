@@ -350,7 +350,7 @@ function standingOf(items: readonly Item[]): TodoStanding {
  * beyond the page in hand is not read at all.
  */
 export async function readTodoBoard(
-  input: { limit?: number; query?: string | null; conditions?: TodoConditions; room?: number | null } = {}
+  input: { limit?: number; query?: string | null; conditions?: TodoConditions } = {}
 ): Promise<TodoBoard> {
   const limit = input.limit ?? DONE_PAGE_SIZE;
   const query = input.query ?? null;

@@ -130,7 +130,7 @@ async function peopleNamed(ids: readonly number[]): Promise<Map<number, string>>
 const untitled = (title: string | null): boolean => title === null || title.trim() === "";
 
 /** Every room, the pinned ones first in the owner's order, each under the name it is called by (docs/web.md, the naming
- * rule) and with the companions made for it. */
+ * rule). */
 export async function listRooms(): Promise<RoomSummary[]> {
   const [rooms, owner] = await Promise.all([everyRoom(), ownerChat()]);
   const named = await peopleNamed(rooms.filter((room) => untitled(room.title) && room.id !== owner).map((room) => room.id));
@@ -142,8 +142,7 @@ export async function listRooms(): Promise<RoomSummary[]> {
         title: roomLabel(room.id, untitled(room.title) ? (named.get(room.id) ?? null) : room.title, owner),
         messageCount: room.messageCount,
         lastMessageAt: room.lastMessageAt === null ? null : seconds(room.lastMessageAt),
-        pinned: room.pinned,
-        ...(room.companions.length > 0 ? { madeForCompanions: true as const, companions: room.companions } : {})
+        pinned: room.pinned
       };
     })
   );

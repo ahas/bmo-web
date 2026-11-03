@@ -170,7 +170,7 @@ const { data: catalogue } = useFetch<CatalogueView>("/api/model-catalogue", { ke
 const { data: draftProcesses } = useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", lazy: true, server: false });
 const { data: providers } = useProviders();
 
-const READS = ["supervisors", "companions", "roles", "repositories", "models", "model-catalogue", "draft-processes", "agency-providers"];
+const READS = ["supervisors", "roles", "repositories", "models", "model-catalogue", "draft-processes", "agency-providers"];
 const rereading = ref(false);
 
 async function reread(): Promise<void> {

@@ -116,8 +116,7 @@
 
     <SupervisorSettingsDialog v-if="editing !== ''" v-model:open="editingOpen" :name="editing" :reread="rereadAll" />
 
-    <!-- A supervisor added as a companion added on the console is, with a room of the console's own that it answers
-         alone; a refusal stands under the field it names. -->
+    <!-- A supervisor added by its name, label, order and repository; a refusal stands under the field it names. -->
     <SettingsDialog v-model:open="adding" wide :title="$t('agents.title.supervisor_add')" :dirty="addDirty">
       <form id="supervisor-add-form" class="flex flex-col gap-4" @submit.prevent="void add()">
         <div class="grid gap-4 sm:grid-cols-2">
@@ -133,14 +132,9 @@
           <ProviderOrderField v-model="draft.order" v-model:share="draft.quotaShare" :line="SUPERVISOR_LINE" :refusal="orderRefusal" :disabled="addBusy" />
         </UFormField>
 
-        <div class="grid gap-4 sm:grid-cols-2">
-          <UFormField :label="$t('agents.label.work_repository')" name="repository" :error="addErrorAt('worker') ?? addErrorAt('repository')">
-            <USelect v-model="draft.repository" :items="repositoryItems" value-key="value" class="w-full" :aria-label="$t('agents.label.work_repository')" />
-          </UFormField>
-          <UFormField :label="$t('agents.label.companion_room')" name="room" :error="addErrorAt('room')">
-            <UInput v-model="draft.room" class="w-full" :aria-label="$t('agents.label.companion_room')" />
-          </UFormField>
-        </div>
+        <UFormField :label="$t('agents.label.work_repository')" name="repository" :error="addErrorAt('repository')">
+          <USelect v-model="draft.repository" :items="repositoryItems" value-key="value" class="w-full sm:w-1/2" :aria-label="$t('agents.label.work_repository')" />
+        </UFormField>
 
         <p v-if="addRefusal !== null && !ADD_FIELDS.has(addRefusal.field ?? '') && orderRefusal === null" role="alert" class="break-words text-sm text-error">{{ addRefusal.text }}</p>
       </form>
@@ -161,12 +155,13 @@ import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
 import { DEFAULT_QUOTA_SHARE, defaultThreshold, fractionOf, orderRefusalEntry, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
+import { agentMetaOf } from "~/domain/agents";
+import { useAgentCatalogue } from "~/domain/catalogue";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { useRoomList } from "~/domain/room-list";
 import { CELL_TEXT } from "~/domain/settings-cells";
 
-import type { CompanionAdded, CompanionView } from "#shared/agency";
 import type { OrderEntryView, RepositoryView, SupervisorView } from "#shared/axes";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { SettingsColumn } from "~/domain/settings-columns";
@@ -181,10 +176,10 @@ const SUPERVISOR_ICON = "i-material-symbols-chat-bubble-outline";
 
 // The page's search reads the same answers under the same keys.
 const { data: supervisors, error, refresh, status } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false });
-const { data: companions, refresh: rereadCompanions } = useFetch<CompanionView[]>("/api/companions", { key: "companions", lazy: true, server: false });
 const { data: repositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
 const { data: providers } = useProviders();
 const { data: rooms } = useRoomList();
+const { agents: catalogue, refresh: rereadCatalogue } = useAgentCatalogue();
 const readFailure = useReadFailure({ failed: () => !!error.value && supervisors.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
 const columns = computed<SettingsColumn<SupervisorView>[]>(() => [
@@ -221,20 +216,9 @@ function warmedOf(supervisor: SupervisorView): string[] {
   return supervisor.order.filter((entry) => supervisor.warming[entry.provider] === true).map((entry) => providerWord(providers.value, entry.provider));
 }
 
-// The rooms a supervisor answers: a companion's sessions' rooms and every room made for companions that names it;
-// the default answerer's every room that names no answerer of its own.
+// The rooms a supervisor speaks in, as the sidebar lists them under it (docs/web.md, 「Sidebar」), by their names.
 function roomsOf(supervisor: SupervisorView): string[] {
-  const listed = rooms.value ?? [];
-
-  if (supervisor.defaultAnswerer) return listed.filter((room) => (room.companions ?? []).length === 0).map((room) => room.title);
-
-  const companion = companions.value?.find((one) => one.agent === supervisor.name);
-  const titleOf = (chatId: number): string => listed.find((room) => room.chatId === chatId)?.title ?? String(chatId);
-
-  return [...new Set([
-    ...(companion?.sessions ?? []).map((session) => session.title ?? titleOf(session.chatId)),
-    ...listed.filter((room) => (room.companions ?? []).includes(supervisor.name)).map((room) => room.title)
-  ])];
+  return agentMetaOf(t, supervisor.name, catalogue.value.agents, rooms.value ?? []).sessions.map((session) => session.label);
 }
 
 /** One change of a supervisor sent; the table stands as the agency answered it, or the refusal with its field. */
@@ -278,23 +262,14 @@ function edit(name: string): void {
 }
 
 async function rereadAll(): Promise<void> {
-  await Promise.all([refresh(), rereadCompanions()]);
+  await Promise.all([refresh(), rereadCatalogue()]);
 }
 
-// A supervisor the console added stands with its removal; one the deployment seeds, the default answerer among them,
-// stands with it disabled and saying why, as the agency's `seeded` answers it.
-function removable(supervisor: SupervisorView): boolean {
-  return supervisor.seeded || companions.value?.some((one) => one.agent === supervisor.name) === true;
-}
-
-// Its settings first, then its removal where it is one the console added or the deployment seeds.
+// Its settings first, then its removal, which stands disabled, saying why, for one the deployment seeds — the default
+// answerer among them — as the agency's `seeded` answers it.
 function menuOf(supervisor: SupervisorView): DropdownMenuItem[] {
-  const settings: DropdownMenuItem = { label: t("agents.action.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => edit(supervisor.name) };
-
-  if (!removable(supervisor)) return [settings];
-
   return [
-    settings,
+    { label: t("agents.action.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => edit(supervisor.name) },
     {
       label: t("common.action.delete"),
       icon: "i-material-symbols-delete-outline",
@@ -319,8 +294,8 @@ async function remove(supervisor: SupervisorView): Promise<void> {
   removeFailed.value = "";
 
   try {
-    companions.value = await $fetch<CompanionView[]>("/api/companions/remove", { method: "POST", body: { agent: supervisor.name } });
-    await refresh();
+    await $fetch(`/api/supervisors/${encodeURIComponent(supervisor.name)}`, { method: "DELETE" });
+    await rereadAll();
   } catch (failure) {
     removeFailed.value = failureText(failure, t("common.error.save_failed"));
   } finally {
@@ -329,7 +304,7 @@ async function remove(supervisor: SupervisorView): Promise<void> {
 }
 
 // The add's fields, and the ones a refusal stands under.
-const ADD_FIELDS = new Set(["name", "label", "worker", "repository", "room", "order", "provider", "model", "quotaShare"]);
+const ADD_FIELDS = new Set(["name", "label", "repository", "order", "quotaShare"]);
 
 interface SupervisorDraft {
   name: string;
@@ -337,11 +312,10 @@ interface SupervisorDraft {
   order: OrderEntryView[];
   quotaShare: number;
   repository: string;
-  room: string;
 }
 
 function emptyDraft(): SupervisorDraft {
-  return { name: "", label: "", order: [], quotaShare: DEFAULT_QUOTA_SHARE, repository: "", room: "" };
+  return { name: "", label: "", order: [], quotaShare: DEFAULT_QUOTA_SHARE, repository: "" };
 }
 
 const adding = ref(false);
@@ -350,15 +324,14 @@ const draft = ref<SupervisorDraft>(emptyDraft());
 const opened = ref(JSON.stringify(emptyDraft()));
 const addDirty = computed(() => JSON.stringify(draft.value) !== opened.value);
 const addComplete = computed(() =>
-  draft.value.name.trim() !== "" && draft.value.label.trim() !== "" && draft.value.repository !== "" && draft.value.room.trim() !== "" && draft.value.order.length > 0 && draft.value.order.every((one) => one.model !== "")
+  draft.value.name.trim() !== "" && draft.value.label.trim() !== "" && draft.value.repository !== "" && draft.value.order.length > 0 && draft.value.order.every((one) => one.model !== "")
 );
 const addRefusal = ref<{ field: string | null; text: string } | null>(null);
-// A refusal of the order stands under the entry the agency names, the first where it names the provider or the model the
-// room was made on.
+// A refusal of the order stands under the entry the agency names.
 const orderRefusal = computed(() => {
   const field = addRefusal.value?.field ?? "";
 
-  if (addRefusal.value === null || !(field.startsWith("order") || ["provider", "model", "quotaShare"].includes(field))) return null;
+  if (addRefusal.value === null || !(field.startsWith("order") || field === "quotaShare")) return null;
 
   return { entry: field.startsWith("order") ? orderRefusalEntry(field) : 0, text: addRefusal.value.text };
 });
@@ -378,21 +351,14 @@ function openAdd(): void {
   adding.value = true;
 }
 
-// An add whose name a removed companion's console room still stood under takes that room back with its record, and
-// the notice says so and leads to it.
+// An add registers the supervisor whole, or nothing of it where any part is refused.
 async function add(): Promise<void> {
   addBusy.value = true;
   addRefusal.value = null;
 
   try {
-    const added = await $fetch<CompanionAdded>("/api/supervisors", { method: "POST", body: { ...draft.value, name: draft.value.name.trim(), label: draft.value.label.trim(), room: draft.value.room.trim() } });
-
-    companions.value = added.companions;
-    await refresh();
-
-    if (added.room.takenBack) {
-      island.say({ title: t("agents.status.companion_room_taken_back", { name: draft.value.label, title: draft.value.room }), to: `/rooms/${added.room.chatId}` });
-    }
+    await $fetch<SupervisorView>("/api/supervisors", { method: "POST", body: { ...draft.value, name: draft.value.name.trim(), label: draft.value.label.trim() } });
+    await rereadAll();
 
     opened.value = JSON.stringify(draft.value);
     adding.value = false;

@@ -187,12 +187,16 @@ describe("the supervisors tab", () => {
   });
 
   test("keeps a row's settings and its removal in its more-menu", () => {
-    expect(scriptOf(supervisors)).toContain("const settings: DropdownMenuItem = { label: t(\"agents.action.settings\")");
+    expect(scriptOf(supervisors)).toContain('{ label: t("agents.action.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => edit(supervisor.name) }');
     expect(templateOf(supervisors)).not.toContain("data-supervisor-settings");
   });
 
-  test("removes a supervisor the console added, asked first, holds a seeded one's removal disabled with why, and the draft process under its table", () => {
+  test("removes a supervisor, asked first, holds a seeded one's removal disabled with why, and the draft process under its table", () => {
     expect(scriptOf(supervisors)).toContain("disabled: supervisor.seeded || removing.value !== \"\"");
+    expect(scriptOf(supervisors)).toContain("`/api/supervisors/${encodeURIComponent(supervisor.name)}`, { method: \"DELETE\" }");
+    // A supervisor is added by its name, label, order and repository alone, and its rooms are the ones it speaks in.
+    expect(templateOf(supervisors)).not.toContain("draft.room");
+    expect(scriptOf(supervisors)).not.toContain("/api/companions");
     expect(scriptOf(supervisors)).toContain("description: t(\"agents.message.supervisor_seeded\")");
     expect(templateOf(supervisors)).toContain("<AgentsDraftProcesses");
   });

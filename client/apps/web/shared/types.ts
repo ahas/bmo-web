@@ -224,11 +224,6 @@ export interface RoomSummary {
   lastMessageAt: number | null;
   // Whether the room stands in the pinned order the receiver keeps.
   pinned: boolean;
-  // Whether the room was made for companions and names who answers in it (the agency's docs/companions.md): it
-  // takes words alone, and its TODO panel shows the items filed in it. Absent on every other room.
-  madeForCompanions?: true;
-  // The companions among those who answer in it, by agent name, where it was made for companions.
-  companions?: string[];
 }
 
 // A place in a room's line: when the message was sent, and of those sent in one second the order
@@ -264,9 +259,12 @@ export interface AvatarRef {
 
 // The person number a chat agent's own words stand under, by which it wears that person's picture (docs/web.md,
 // 「Profile photos」).
+// The person number a chat agent's own words stand under, none where the receiver names none, and the rooms it speaks
+// in, newest first, whose pictures stand for it where its number keeps none.
 export interface AgentFace {
   name: string;
-  personId: number;
+  personId: number | null;
+  rooms: number[];
 }
 
 export interface MessageAttachment {

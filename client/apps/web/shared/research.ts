@@ -45,11 +45,10 @@ export type ResearchSettingsChange =
 // 「queue」 and 「research runs」; docs/web.md, 「Research screen」), each in the unit's own words: a state, a shape, a
 // reason or a kind stands as the unit names it, and the screen says it in the pack's.
 
-/** A watched model that keeps runs from starting now: a bench on one of its nodes, or a wait on its health. */
+/** A watched model that keeps runs from starting now: a bench, or a wait on its health. */
 export interface ResearchHold {
   registration: string;
   reason: string;
-  nodeName: string | null;
   since: number;
   reported: boolean;
   categoryNames: string[];
@@ -60,7 +59,6 @@ export interface ResearchCategoryView {
   name: string;
   purpose: string;
   shape: string;
-  cap: number;
   cadenceMinutes: number;
   gatherMinutes: number | null;
   provider: string | null;

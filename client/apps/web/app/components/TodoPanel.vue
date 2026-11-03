@@ -222,9 +222,8 @@
 
           <UFormField v-for="field in conditionFields" :key="field.key" :label="field.label" size="sm">
             <USelect :content="{ align: 'start' }"
-              :model-value="field.key === 'chat' && scopedRoom !== null ? String(scopedRoom) : view.conditions[field.key] ?? ANY"
+              :model-value="view.conditions[field.key] ?? ANY"
               :items="field.items"
-              :disabled="field.key === 'chat' && scopedRoom !== null"
               value-key="value"
               class="w-full"
               size="sm"
@@ -682,15 +681,6 @@ const boardFailure = ref("");
 const route = useRoute();
 const router = useRouter();
 
-// The room the panel stands narrowed to: the room on the page, where it was made for companions
-// (docs/companions.md). There the room is the whole of the table, its requesting-room condition is
-// fixed, and the conditions this browser keeps are left as they were for every other page.
-const scopedRoom = computed<number | null>(() => {
-  const chatId = Number(route.params.chatId);
-
-  return route.path.startsWith("/rooms/") && (rooms.value ?? []).some((room) => room.chatId === chatId && room.madeForCompanions === true) ? chatId : null;
-});
-
 const opened = ref<number | null>(null);
 
 // The width the aside itself appears at. The dialog is drawn by one panel at a time and this is
@@ -778,7 +768,7 @@ const conditionFields = computed<{ key: keyof TodoConditions; label: string; ite
       label: t("todo.label.requested_room"),
       items: [
         any,
-        ...[...choices.chats, ...(scopedRoom.value !== null && !choices.chats.includes(scopedRoom.value) ? [scopedRoom.value] : [])].map((chat) =>
+        ...choices.chats.map((chat) =>
           chat === null
             ? { label: t("todo.label.no_room"), value: NO_ROOM }
             : { label: (rooms.value ?? []).find((room) => room.chatId === chat)?.title ?? String(chat), value: String(chat) }
@@ -824,11 +814,9 @@ function awaitsAnswer(todoId: number): boolean {
 // leaves the queue on its own, with nothing asked of the archive for it.
 const sections = computed(() => todoSections(t, board.value, view.value, now.value, search.value.trim() !== ""));
 
-// The room the rows in hand were read for, which changes only as the read for a new one lands. With
-// the tab, it is what the list is: a search or a condition narrows the same list, and its rows move
-// within it, while another tab or another room is another list.
-const readScope = ref<number | null>(scopedRoom.value);
-const listKey = computed(() => `${view.value.filter}:${readScope.value ?? "all"}`);
+// The tab is what the list is: a search or a condition narrows the same list, and its rows move within it, while
+// another tab is another list.
+const listKey = computed(() => view.value.filter);
 const filterIndex = computed(() => todoFilters().indexOf(view.value.filter));
 
 // The titles that stand while the board is still being read, with how many placeholder rows go
@@ -890,18 +878,16 @@ async function read(limit: number, more = false): Promise<void> {
   const generation = ++boardGeneration;
   const query = search.value.trim();
   const conditions = view.value.conditions;
-  const scope = scopedRoom.value;
   pending.value = !more;
   loadingMore.value = more;
   failure.value = null;
   boardFailure.value = "";
   try {
     const answer = await $fetch<TodoBoard>("/api/todos", {
-      query: { done: limit, ...(query === "" ? {} : { q: query }), ...conditionQuery(conditions), ...(scopedRoom.value === null ? {} : { room: scopedRoom.value }) }
+      query: { done: limit, ...(query === "" ? {} : { q: query }), ...conditionQuery(conditions) }
     });
     if (generation !== boardGeneration || query !== search.value.trim() || conditions !== view.value.conditions) return;
     board.value = answer;
-    readScope.value = scope;
     searched.value = query;
     loaded.value = true;
   } catch (error) {
@@ -961,10 +947,9 @@ async function reloadFromTop(): Promise<void> {
   await read(DONE_PAGE_SIZE);
 }
 
-// A change of conditions is a different list, so it is read from the first page like a new search,
-// and so is moving into or out of a room the panel stands narrowed to.
+// A change of conditions is a different list, so it is read from the first page like a new search.
 watch(
-  () => [view.value.conditions, scopedRoom.value],
+  () => view.value.conditions,
   () => {
     boardGeneration++;
     void reloadFromTop();

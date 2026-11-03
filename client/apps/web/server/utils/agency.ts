@@ -6,8 +6,7 @@ import { wording } from "#shared/wording";
 import { unitAt, unitHeaders } from "./units";
 import { answered } from "./unit-answer";
 
-import type { AgencyClient, Session } from "@agency/client";
-import type { SessionView } from "#shared/agency";
+import type { AgencyClient } from "@agency/client";
 import type { UnitAnswerCall } from "./unit-answer";
 
 // The agency's fixed API as its published package states it (the agency's `docs/api.md`, 「The control port」):
@@ -69,23 +68,6 @@ export async function agencyCall<T, E extends { code?: string; error?: string; f
   } catch (error) {
     throw error instanceof Error ? fieldRefusal(error) : error;
   }
-}
-
-/** A session as the console's session screen stands it; what the agency does not carry stands empty. */
-export function sessionView(session: Session, label: string | null = null): SessionView {
-  return {
-    agent: session.agentName,
-    chatId: session.roomId,
-    kind: session.scope,
-    title: null,
-    generation: session.generation,
-    models: [session.model],
-    running: session.holder !== null,
-    label: label ?? session.agentName,
-    icon: null,
-    waiting: null,
-    lastDoneAt: null
-  };
 }
 
 // A refusal about one field is said by the one sentence for a refused value; the screen puts it under the

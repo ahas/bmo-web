@@ -224,8 +224,8 @@ export function runOpen(state: string): boolean {
 }
 
 /** A hold's reason in words: a bench on its node, or the wait on the model's health. */
-export function holdReasonText(t: Translate, hold: { reason: string; nodeName: string | null }): string {
-  if (hold.reason === "bench") return t("research.label.hold_bench", { node: hold.nodeName ?? "—" });
+export function holdReasonText(t: Translate, hold: { reason: string }): string {
+  if (hold.reason === "bench") return t("research.label.hold_bench");
   if (hold.reason === "restore") return t("research.label.hold_restore");
 
   return t("research.label.unknown_value", { value: hold.reason });

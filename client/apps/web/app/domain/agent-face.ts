@@ -4,7 +4,7 @@ import { chatIdOf } from "./agents";
 
 import type { AgentMeta } from "./agents";
 import type { AvatarIndex } from "./avatars";
-import type { AgentFace, RoomSummary } from "#shared/types";
+import type { AgentFace } from "#shared/types";
 import type { AvatarProps } from "@nuxt/ui";
 import type { ComputedRef } from "vue";
 
@@ -15,14 +15,14 @@ import type { ComputedRef } from "vue";
 /** What an agent's mark is drawn from. */
 export type AgentMarkSubject = Pick<AgentMeta, "name" | "label" | "chatId" | "group" | "icon">;
 
-/** The person number each chat agent's own words stand under, by its name. */
-export type AgentFaces = ReadonlyMap<string, number>;
+/** The person number each chat agent's own words stand under and the rooms it speaks in, by its name. */
+export type AgentFaces = ReadonlyMap<string, Pick<AgentFace, "personId" | "rooms">>;
 
 export function agentFacesOf(faces: readonly AgentFace[]): AgentFaces {
-  return new Map(faces.map((face) => [face.name, face.personId]));
+  return new Map(faces.map((face) => [face.name, { personId: face.personId, rooms: face.rooms }]));
 }
 
-/** Whether an agent stands as a face: a supervisor, the chat agent and every companion alike. */
+/** Whether an agent stands as a face: every supervisor alike. */
 export function wearsFace(agent: Pick<AgentMeta, "group">): boolean {
   return agent.group === "supervisor";
 }
@@ -31,47 +31,41 @@ export function wearsFace(agent: Pick<AgentMeta, "group">): boolean {
 /**
  * An agent's picture wherever a screen names it (docs/web.md, 「Profile photos」): the picture of the person number its
  * words stand under — the agent's own face, whichever row of the catalogue it stands in, a session registered for one
- * room among them — then of a room made for it, and failing both its label's letter on its identity's colour. A room's
- * picture stands only where a room is what is shown, never for an agent.
+ * room among them — then of the newest room it speaks in that keeps one, and failing both its label's letter on its
+ * identity's colour.
  */
-export function agentPicture(
-  agent: Pick<AgentMeta, "name" | "label" | "chatId">,
-  avatars: AvatarIndex,
-  faces: AgentFaces,
-  rooms: readonly RoomSummary[]
-): AvatarProps {
+export function agentPicture(agent: Pick<AgentMeta, "name" | "label" | "chatId">, avatars: AvatarIndex, faces: AgentFaces): AvatarProps {
   // A session the chat agent keeps for one room is that agent serving it, and wears the agent's own face.
   const session = chatIdOf(agent.name);
   const name = session !== null || agent.name === chatAgent().name ? chatAgent().name : agent.name;
-  const person = faces.get(name) ?? null;
+  const face = faces.get(name);
+  const person = face?.personId ?? null;
 
   if (person !== null && avatars.has(avatarKey("person", person))) return avatarFor(avatars, "person", person, agent.label);
 
-  const room = rooms.find((one) => one.companions?.includes(name) === true && avatars.has(avatarKey("room", one.chatId)));
+  const room = face?.rooms.find((one) => avatars.has(avatarKey("room", one)));
 
-  return room === undefined ? avatarFor(avatars, "person", person, agent.label) : avatarFor(avatars, "room", room.chatId, agent.label);
+  return room === undefined ? avatarFor(avatars, "person", person, agent.label) : avatarFor(avatars, "room", room, agent.label);
 }
 
 /** The face each agent wears on this screen, or none where it stands as its group's mark. */
 export function useAgentFace(): ComputedRef<(agent: Pick<AgentMeta, "name" | "label" | "chatId" | "group">) => AvatarProps | undefined> {
   const avatars = useAvatars();
   const { data } = useFetch<AgentFace[]>("/api/agent-faces", { key: "agent-faces", lazy: true, server: false, default: () => [] });
-  const rooms = useNuxtData<RoomSummary[]>("rooms").data;
   const faces = computed(() => agentFacesOf(data.value ?? []));
 
-  return computed(() => (agent) => (wearsFace(agent) ? agentPicture(agent, avatars.value, faces.value, rooms.value ?? []) : undefined));
+  return computed(() => (agent) => (wearsFace(agent) ? agentPicture(agent, avatars.value, faces.value) : undefined));
 }
 
 /**
  * The avatar index with every chat agent's face laid in under its name beside the rooms and people: the picture of
- * the person number its words stand under, or of a room made for it.
+ * the person number its words stand under, or of a room it speaks in.
  */
-export function withAgentFaces(avatars: AvatarIndex, faces: AgentFaces, rooms: readonly RoomSummary[]): AvatarIndex {
+export function withAgentFaces(avatars: AvatarIndex, faces: AgentFaces): AvatarIndex {
   const index = new Map(avatars);
-  const names = new Set([...faces.keys(), ...rooms.flatMap((room) => room.companions ?? [])]);
 
-  for (const name of names) {
-    const src = agentPicture({ name, label: name, chatId: null }, avatars, faces, rooms).src;
+  for (const name of faces.keys()) {
+    const src = agentPicture({ name, label: name, chatId: null }, avatars, faces).src;
 
     if (typeof src === "string") index.set(agentKey(name), src);
   }
@@ -83,7 +77,6 @@ export function withAgentFaces(avatars: AvatarIndex, faces: AgentFaces, rooms: r
 export function useAgentAvatars(): ComputedRef<AvatarIndex> {
   const avatars = useAvatars();
   const { data } = useFetch<AgentFace[]>("/api/agent-faces", { key: "agent-faces", lazy: true, server: false, default: () => [] });
-  const rooms = useNuxtData<RoomSummary[]>("rooms").data;
 
-  return computed(() => withAgentFaces(avatars.value, agentFacesOf(data.value ?? []), rooms.value ?? []));
+  return computed(() => withAgentFaces(avatars.value, agentFacesOf(data.value ?? [])));
 }

@@ -190,6 +190,20 @@ export interface WorkNodeView {
 
 // One room a supervisor's turns went into (the agency's `docs/api.md`, 「supervisors」): how many of its runs went there
 // and its latest, the run a screen opens its log at, moments in epoch milliseconds.
+// The settings a supervisor whose turns its settings' pieces make holds of its own: its generation settings with their
+// bounds and the values it holds, its reference switch, its persona — null where it keeps none and its file's text
+// stands — the system prompt its next turn sends, and how many room sessions a change of its generation starts afresh.
+export interface SupervisorPiecesView {
+  name: string;
+  sessions: number;
+  generation: Record<string, number | boolean>;
+  generationSettings: GenerationSetting[];
+  referenceOn: boolean;
+  persona: string | null;
+  personaFile: string;
+  system: { text: string; characters: number; hash: string };
+}
+
 export interface SupervisorRoomView {
   chatId: number;
   runs: number;

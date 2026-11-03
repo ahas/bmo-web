@@ -1,5 +1,4 @@
 import { gateOrderView } from "../utils/gate";
-import { receiver, receiverCall } from "../utils/receiver";
 import { repositorySummary, roleSummary, roleViewsOf, slotRunsOf, supervisorRooms, supervisorSummary } from "../utils/agent-list";
 
 import type { AgentList } from "#shared/types";
@@ -17,20 +16,18 @@ export default defineEventHandler(async (event): Promise<AgentList> => {
   const order = gateOrderView();
 
   try {
-    const [supervisors, roles, repositories, slots, sessions, rooms, newest] = await Promise.all([
+    const [supervisors, roles, repositories, slots, sessions, newest] = await Promise.all([
       agencyCall(agency().GET("/supervisors")),
       agencyCall(agency().GET("/roles")),
       agencyCall(agency().GET("/repositories")),
-      // What the slots hold, the sessions and the rooms only add to the lists; one that does not answer leaves its
-      // part empty.
+      // What the slots and the sessions hold only adds to the lists; one that does not answer leaves its part empty.
       agencyCall(agency().GET("/slots")).catch(() => null),
       agencyCall(agency().GET("/sessions")).then((page) => page.items).catch(() => []),
-      receiverCall(receiver().GET("/rooms")).then((page) => page.items).catch(() => []),
       agencyCall(agency().GET("/jobs", { params: { query: { limit: 1 } } })).then((page) => page.items[0] ?? null).catch(() => null)
     ]);
     const runs = slotRunsOf(slots);
     // The rooms each supervisor's turns went into, read for each one; a supervisor whose list does not answer has
-    // only the rooms its sessions and companionships name.
+    // only the rooms its sessions name.
     const spoken = new Map(
       await Promise.all(
         supervisors.items.map(async (supervisor) => [
@@ -41,7 +38,7 @@ export default defineEventHandler(async (event): Promise<AgentList> => {
         ] as const)
       )
     );
-    const held = supervisorRooms(spoken, sessions, rooms);
+    const held = supervisorRooms(spoken, sessions);
     const jobRole = newest?.roleName ?? null;
 
     return {

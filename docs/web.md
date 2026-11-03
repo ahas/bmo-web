@@ -315,9 +315,8 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
   - It is one component, and every number that changes on a screen standing open is drawn by it: a
     count inside a sentence is that sentence's figure alone, the words round it drawn by the
     language pack's own sentence with the figure in its place.
-- **A list replaced by a different one stands at once.** The TODO panel read for another room, when
-  the page moves into or out of a room made for companions, is a different list: it is keyed by the
-  room it was read for, so when that read lands the new list replaces the old with none of its rows
+- **A list replaced by a different one stands at once.** The TODO panel turned to another tab is a different
+  list: it is keyed by its tab, so when that read lands the new list replaces the old with none of its rows
   moving.
 - **A room opened or switched to stands at its opening place from its first frame** (「Room screen」).
   Its skeleton stands while it is fetched, and the conversation replaces it at once, already at its
@@ -1114,18 +1113,19 @@ edit to that file alone, once the guide below carries the word.
 ### Profile photos
 
 - Rooms and people stand with the photo kept for them: the one the archive keeps, or else the one their chat
-  service shows — a room the receiver numbers itself, such as a room made for a companion, and the numbers it gives
-  a companion and the chat agent there wear the archive's. The room in the sidebar and that room's
+  service shows — a room the receiver numbers itself, and the numbers it gives the agents speaking there, wear the
+  archive's. The room in the sidebar and that room's
   the chat agent, the room header and beside a bubble are all the same photo. The chat agent stands with its own photo too. The
   photo beside a bubble attaches to the side that bubble stands on — words on the left on the left, words on
   the right on the right.
 - **Every chat agent stands the same way, wherever it stands.** The chat agents are equal, so each stands as its
   own face on the agents page, in the sidebar's agent branch, in the search, in its own screen's bar, in a room's
   header and beside its bubbles: the picture kept for the person number its words stand under, as the receiver
-  names that number in the owner's room, in a room it is a companion of or in any other room it answers, or else
-  the picture of a room made for it; failing both, the first letter of its label on its identity's colour.
+  names that number in the owner's room, in a room it speaks in (the agency's `GET /supervisors/{name}/rooms`) or in
+  any other room, or else the picture of the newest room it speaks in that keeps one; failing both, the first letter
+  of its label on its identity's colour.
 - **An agent's words wear the agent's face in every room.** The receiver names the agent whose words a message is
-  on every send it makes, so each agent that speaks in a room — the chat agent, a companion — stands with its own
+  on every send it makes, so each agent that speaks in a room — every supervisor alike — stands with its own
   face beside its lines, on a chat service's road and on the record road alike, where its words stand under no
   number of their own. A notice the receiver says in a room's voice wears the face of the agent the room answers as. A room's own session wears that
   room's picture. Where a chat agent stands as a mark instead, it is the mark the agency answers for its kind,
@@ -1135,8 +1135,7 @@ edit to that file alone, once the guide below carries the word.
   `PUT /avatars/{kind}/{subject}`, its `docs/api.md`); the newer of the two stands, and an agent's picture is the
   console's alone, never a provider's. The console sets three:
   - **an agent's,** by its registration name, on its own page — the 사진 button beside its name, for the
-    administrator — and in a companion's settings, the picture standing under every number the agent's words stand
-    under;
+    administrator — the picture standing under every number the agent's words stand under;
   - **a room's,** from the room's menu, 방 사진, for the administrator;
   - **one's own,** in 설정 › 계정, 프로필 사진: the sender linked to the account, the owner's for the administrator.
   Each is one shape: the picture standing now, 사진 고르기 picking a file, the picked one shown in its place with
@@ -1150,8 +1149,7 @@ edit to that file alone, once the guide below carries the word.
   and the line does not shift. If the chat agent has never spoken in that room and there is no photo to choose, it
   stands as its letter, as every chat agent does.
 - **A photo opens whole when pressed.** A face beside a bubble and the room's photo in the room header are each
-  a button that opens that very picture large, in the same viewer; the header's is the room's own picture,
-  which in a room made for a companion is the companion's. A room or a face standing as its letter has no
+  a button that opens that very picture large, in the same viewer; the header's is the room's own picture. A room or a face standing as its letter has no
   picture to open and is no button.
 - **The photo is fetched by the owner's account.** A bot account cannot see others' profile photos, and only the
   reader sees what the Telegram client sees. A fetched photo is kept by the bot as a file in its own
@@ -1173,13 +1171,6 @@ edit to that file alone, once the guide below carries the word.
     so a person's face and the name at the head of their bubble are one colour, in every theme; a private
     room is its person's number, so it wears the same hue in the room list. Everything else that stands as
     a letter — a mail address, a machine — keeps the console's tones drawn from its own key.
-- **A companion stands with the picture it carries, and a room made for it with the one its seed names**
-  (the agency's `docs/companions.md`). Neither is a Telegram photo, and no unit serves them yet, so a companion, a
-  room made for it and the chat agent's face under the console's numbers stand as their letters
-  (`docs/boundary.md`, 「Gaps the console meets」). Where a unit serves them, a companion's picture stands
-  beside its name in every room it speaks in, and on its own room in the sidebar and its header; a room made for
-  several companions wears none and stands as its letter; and the chat agent, speaking in such a room under a
-  number of the console's, wears there the face it wears in the owner's own chat.
 - The photo is in the same place as the rest of this app. It does not open without login, its address is made
   only of a room or person number, and no file outside the bot's photo directory goes out on any request.
 
@@ -1288,11 +1279,10 @@ Four groups.
   (「Agent screen」). Nothing here is held by this app: a supervisor, a role or a repository the owner adds stands
   here the moment the agency lists it, under its own label. Each entry stands as 「Profile photos」 says — a
   supervisor as its face, a role with the role mark, a repository with the repository mark.
-  - **감독관** — every supervisor the agency's `GET /supervisors` lists, the chat agent and every companion side by
-    side, each under its own label. Under each stand the rooms it speaks in, one entry per room: every room the
-    agency's `GET /supervisors/{name}/rooms` names for it — the rooms its turns went into, the chat agent's one
-    session across rooms included — with every room a session of its was recorded for and every room it answers as a
-    companion. Each is named by its room's name, in the order the rooms stand, and opens the supervisor's log at its
+  - **감독관** — every supervisor the agency's `GET /supervisors` lists, side by side, each under its own label. Under
+    each stand the rooms it speaks in, one entry per room: every room the agency's `GET /supervisors/{name}/rooms`
+    names for it — the rooms its turns went into, the chat agent's one session across rooms included — with every
+    room a session of its was recorded for. Each is named by its room's name, in the order the rooms stand, and opens the supervisor's log at its
     last line in that room — at the second the room's last run began, as that route names it — or at the log's end
     where the route names no run there. The owner's private chat stands not as a chat number but as the name the language pack gives it. A room
     name is the same everywhere on screen, so nowhere — sidebar, live status, log header — does a number come up as
@@ -1340,7 +1330,7 @@ Four groups.
     for.
   - **The picture is the agent's own.** A chat agent wears the picture of the person number its words stand under,
     whichever row of the catalogue it stands in — its own row and a session registered for a room alike — and failing
-    that a room made for it, and failing both its label's letter; a companion wears its own face the same way. A room's
+    that the newest room it speaks in that keeps one, and failing both its label's letter. A room's
     picture stands only where a room is what is shown: a room's header, a message's room, the room list. An agent that
     has a picture never stands without one, and one that has none stands its mark rather than nothing.
 - The three branches stand only while the agency answers, and a branch whose list is empty does not stand. An entry
@@ -2580,12 +2570,12 @@ Two ways, split because the running places differ.
     전체 중지 while any runs, 전체 재개 once none does.
   - Each category stands as a block in the order the unit names them: its name, its state as a chip (실행 중 or
     중지됨, and 보류 beside it while a hold names it), its purpose, and its figures — its shape (매뉴얼·조사, 보안
-    권고 or 브리핑), its waiting and running items against its cap, how many of its items are stuck (막힘, in the
+    권고 or 브리핑), its waiting and running items, how many of its items are stuck (막힘, in the
     error colour while any is), how often its sources are read, for a brief how often it gathers, and its road,
     the provider and model it names, or 기본 경로 where the settings' road stands — with a 중지 or 재개 button that
     changes that category alone.
   - A hold the unit reports stands under each category it names, in the warning colour: the model it waits on,
-    why — 벤치, with the node the bench stands on, or 복구 대기 while the model's health is awaited — since when,
+    why — 벤치, or 복구 대기 while the model's health is awaited — since when,
     and 보고됨 once the owner's room was told the model stays down.
   - A change goes as it is pressed; the button spins while it goes, the blocks stand as the unit answers, and a
     refusal is said in a notice.
@@ -2807,32 +2797,34 @@ Two ways, split because the running places differ.
   model its last turn went out on, on one line under a ceiling of its own, and why it waits where it waits; 캐시 유지,
   the providers of its order its prefix is kept warm on, by the provider's word on one line, or 끔 where it is kept
   warm on none; 압축 기준, its compaction threshold as a whole percent, the value equal to the first provider of its
-  order's declared threshold reading `85% (기본값)`; and 방, every room it answers, on one line under a ceiling of its
-  own. The row's more-menu stands centred on the row at its trailing edge, as every table's does, holding 설정, which
-  opens its settings dialog here, and, for a supervisor the console added or the deployment seeds, 삭제; pressing the
-  row's name opens its own screen.
+  order's declared threshold reading `85% (기본값)`; and 방, the rooms it speaks in as the sidebar lists them under it
+  (「Sidebar」), by their names on one line under a ceiling of its own. The row's more-menu stands centred on the row
+  at its trailing edge, as every table's does, holding 설정, which opens its settings dialog here, and 삭제; pressing
+  the row's name opens its own screen.
 - **캐시 유지** opens from its cell a dropdown of one switch per provider of the order, each by the provider's word,
   each switched as it is pressed through `PATCH /supervisors/{name}` with `warming` whole; a provider turned off on
   this machine stands disabled with its reason. **압축 기준** takes a whole percent from 1 to 100, saved with Enter or
   the check button.
 - **The settings dialog** is one form with one 저장 at its foot: 표시 이름; 공급자 순서 and 할당량 기준, the order's
   editor in place; 캐시 유지 and 압축 기준 as the cells set them; 작업 저장소, the repository its TODO items go to,
-  a list of the repositories; and, for a supervisor whose turns its settings' pieces make (its `turnShape`), the
-  companion's own block (the agency's `docs/companions.md`, 「Its settings」): 생성 파라미터, 참조 주입, 페르소나, 보낼
-  시스템 프롬프트 and 방 세션, each as the companion's settings answer it; for the supervisor whose turns its window
+  a list of the repositories; and, for a supervisor whose turns its settings' pieces make (its `turnShape`), its own
+  settings as the agency holds them (its `docs/api.md`, 「companions and companion-resets」): 생성 파라미터, each
+  setting with what it is for and its bounds and an empty box the engine's own default, saying how many room sessions
+  a change of them starts afresh; 참조 주입; 페르소나, its own text or its file's; and 보낼 시스템 프롬프트, what the next
+  turn sends, opened whole from its line; for the supervisor whose turns its window
   makes, the texts its system prompt is composed of — its opening, the absolute rules and the manual — each kept as
   the owner's own text or put back to its file (the agency's `docs/api.md`, 「chat-documents」). A save sends the
   supervisor's change and then the rest, and a refusal keeps every field as written with the reason under the one it
   names.
-- **감독관 추가** is the tab's 추가: a dialog of 이름, 표시 이름, 공급자 순서, 작업 저장소 and 방 제목, with 취소 and
-  추가, sent as a companion added on the console is (the agency's `docs/companions.md`, 「Where a companion and its
-  rooms come from」). It is one action: the supervisor stands with its whole order and share, or, where any part is
-  refused, nothing of it stands and the refusal stands under the field or the order's entry it names. An added
-  supervisor stands as a row at once with a room of the console's own that it answers alone, and where a console room
-  already stood under its name the notice after the add says it took that room back with its record.
-- **삭제** stands in a supervisor's more-menu under 설정. For one the deployment seeds — the agency's `seeded`, the
-  default answerer among them — it stands disabled, saying under it that the deployment set the supervisor up. It asks first, naming what goes — its settings, sessions and person records — and saying that
-  the rooms it answered stay with their messages and documents.
+- **감독관 추가** is the tab's 추가: a dialog of 이름, 표시 이름, 공급자 순서 and 작업 저장소, with 취소 and 추가, sent
+  as the agency's `POST /supervisors` registers one (its `docs/api.md`, 「supervisors」). It is one action: the
+  supervisor stands with its whole order and share, or, where any part is refused, nothing of it stands and the
+  refusal stands under the field or the order's entry it names. An added supervisor stands as a row at once.
+- **삭제** stands in every supervisor's more-menu under 설정, sent as the agency's `DELETE /supervisors/{name}`. For
+  one the deployment seeds — the agency's `seeded`, the default answerer among them — it stands disabled, saying under
+  it that the deployment set the supervisor up. It asks first, naming what goes — its settings, sessions and person
+  records — and saying that the rooms it answered stay with their messages and documents; a removal the agency
+  refuses says its reason under the table.
 - **The draft process** (드래프트 과정) stands under the table: what a round's answer is asked before it goes out, as
   the receiver keeps it (the receiver's `docs/drafting.md`, 「The process table」). A row per key of a provider, a tier
   and an agent, each a name or 전체 for any, in the order the receiver lists them. The key is the row's title, its
@@ -2922,7 +2914,7 @@ Two ways, split because the running places differ.
   - **머리말** is multi-line text standing before every job's prompt in this repository, up to 8,000 characters; **개발
     서버 명령** one shell line, up to 1,000 characters. Both empty are none.
   - **고정 모델** is a choice of 역할 순서 (no pin) or a provider and one of its models; a model of the registry's
-    provider chosen brings the 샘플링 block under it, laid out as a companion's 생성 파라미터 are (the agency's
+    provider chosen brings the 샘플링 block under it, laid out as a supervisor's 생성 파라미터 are (the agency's
     `docs/repositories.md`, 「A pinned model」): one line for every setting the agency's `samplingSettings` names, by
     its name with its bounds, the value the repository holds in its box and a setting it leaves out standing empty,
     the engine's own, which the agency names no value for. A box emptied is sent as none, which gives the setting
@@ -4871,33 +4863,6 @@ Four bounds keep it from growing forever.
   the last look went, the whole of the note, the condition, and the deadline or the timer's moment. A check that wrote no log is the ordinary case, so what the
   watch says stands whether there is a log under it or not.
 
-#### A companion's 모델 설정 and 초기화
-
-- **A room a companion answers in carries two more entries in its top bar's menu, for the owner alone:**
-  모델 설정 and 초기화, in a group of their own under 세션 정보, 메시지 고르기, 전체 복사 and 고정. A room with more than one companion
-  carries the pair for each, named by the companion's label. Nobody else signed in sees them, and the
-  console's server refuses either for anyone but the administrator.
-- **모델 설정 opens the companion's settings dialog** — the very dialog its own screen opens, saved by the one
-  저장 (「Forms」) — so the two places never differ.
-- **초기화 opens a dialog of its own** (the agency's `docs/companions.md`, 「Starting it afresh」):
-  - two checkboxes, 대화 기록 and 인물 기록, each with a line saying what it takes, both unchecked as
-    it opens;
-  - with neither checked, the dialog offers a fresh session alone: this room's session starts afresh at its next
-    turn, as the session reset does (the agency's `docs/session-resets.md`), and nothing is deleted. It reads the
-    session list first and says which of the room's sessions ends; where the room holds no session
-    of the companion, it says the next turn opens a new one anyway and the button stays off;
-  - with either checked, it reads nothing: each checkbox's own line is all it says of what goes, and
-    초기화 is on at once;
-  - the foot's button says what it does — 새 세션 시작 or 초기화 — and 새 세션 시작 is on only once
-    the session list is read;
-  - 초기화 deletes then and there, and the dialog turns into what it took, as a name and value list
-    (「Name and value lists」): with 대화 기록, the rooms whose whole record went and the rooms where
-    only the companion's own rows went; then each table's count, the files and folders, the archive
-    copies that gave up rows, the person-book runs it stopped and anything it could not remove. The
-    checkboxes go, and the foot carries 닫기 alone;
-  - a refused reset keeps the dialog as it was, with the reason; one that went through is shown only
-    there, and the session list says when each room session it ended was cleared.
-
 #### 대화에서 찾기
 
 - **Every room's top bar menu carries 대화에서 찾기, for every reader,** first in its first group. It opens a find row
@@ -5453,11 +5418,6 @@ Four bounds keep it from growing forever.
   - **협업** — lines run as co-work, or as one session.
   - **요청한 방** and **요청한 사람** — the room a request came from (or none) and the name it was filed under, out of
     what the table holds.
-- **In a room made for companions the panel shows that room's items alone.** While such a room is the page, the
-  panel stands narrowed to the items whose requesting room is that room — in a companion's room the ones it filed, in a room of several
-  theirs and the chat agent's (the agency's `docs/companions.md`, 「Filing a TODO item」) — and the 요청한 방 condition is fixed to it and
-  cannot be changed there. Leaving the room puts back the conditions the browser keeps, which
-  the room never wrote over.
 - **Conditions combine and go together with the search.** Every set condition narrows every group at once, and a
   search inside them finds only among what they left. The button shows how many are set, the popover's 「모두
   해제」 and the button beside the filter button drop them all in one press, and the choice is kept in this browser
@@ -5468,7 +5428,7 @@ Four bounds keep it from growing forever.
   none to pick. Under a condition a group left empty does not stand, and the line under the search says how many
   matched. The lists a condition is picked from are read from the whole table and never narrowed, so a condition that
   empties the panel can still be changed.
-- **The tab badges count the whole table,** or in a room made for companions the whole of that room's items. They are
+- **The tab badges count the whole table.** They are
   counted apart from whatever a search or a condition left on screen — a badge says how that state stands. 대기 and 진행 중 split the queue between them, a line held while its run
   still ends counting under 진행 중 where its filter shows it; a 완료 보고 중 line is finished and counts under neither.
   The folded strip keeps the whole count in one line, since it has no tabs.
@@ -6560,7 +6520,7 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
 ## How the units are talked to
 
 - **A call waits for its answer.** Every call the console's server makes on a unit — a read, a change, a send,
-  a file carried, a long operation such as a room's removal or a companion's reset — ends when the unit answers
+  a file carried, a long operation such as a room's removal or a supervisor's removal — ends when the unit answers
   or when its connection is refused, breaks or ends; no clock of the console's cuts it short. A unit that took
   the call and is still working on it is still being asked, and the screen that asked stands as still asking.
   The browser's request to the console's own route is held the same way, Bun's idle limit being off
@@ -6800,7 +6760,7 @@ The console stands as the systemd user unit this repository's `deploy/` holds, `
   run — and neither unit has a stop of it cut short after a span.
 - **The console's server keeps no clock on a connection.** Bun's server cuts a connection that has sent nothing for
   its idle limit — ten seconds unless told otherwise, and never more than 255 — which would fail a request whose unit
-  takes longer to answer (a companion's reset waits out a person-book run's stop) and cut an event stream a unit
+  takes longer to answer (a supervisor's removal waits out a person-book run's stop) and cut an event stream a unit
   keeps quiet. So the limit is off: a request waits until its unit answers, and a relayed stream or socket stands
   until its unit or the browser ends it. Nitro's Bun entry reads the limit only as a number of seconds and cannot
   turn it off, so the console's production build starts from an entry of its own, the Bun entry with the limit off

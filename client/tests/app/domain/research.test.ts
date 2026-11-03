@@ -139,10 +139,10 @@ describe("the categories' words", () => {
   });
 
   test("puts a hold under every category it names and says why it holds", () => {
-    const holds = [{ categoryNames: ["category-a"], reason: "bench", nodeName: "node-a" }, { categoryNames: ["category-a", "category-b"], reason: "restore", nodeName: null }];
+    const holds = [{ categoryNames: ["category-a"], reason: "bench" }, { categoryNames: ["category-a", "category-b"], reason: "restore" }];
 
     expect(holdsOf(holds, "category-b")).toEqual([holds[1]!]);
-    expect(holdReasonText(wording, holds[0]!)).toBe(wording("research.label.hold_bench", { node: "node-a" }));
+    expect(holdReasonText(wording, holds[0]!)).toBe(wording("research.label.hold_bench"));
     expect(holdReasonText(wording, holds[1]!)).toBe(wording("research.label.hold_restore"));
   });
 });

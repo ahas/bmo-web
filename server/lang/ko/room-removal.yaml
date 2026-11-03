@@ -6,7 +6,7 @@
 
 # Why a room is not removed, nothing written.
 refused:
-  seeded: "대화 상대 시드에 선언된 방이라 다음 시작 때 다시 만들어지므로 삭제할 수 없습니다."
+  seeded: "감독관 시드에 선언된 방이라 다음 시작 때 다시 만들어지므로 삭제할 수 없습니다."
   infra: "설정에 지정된 인프라 방이라 삭제할 수 없습니다."
   owner: "관리자의 개인 대화방이라 삭제할 수 없습니다. 보고와 질문이 이 방으로 전달됩니다."
   # Asked by anyone but the administrator, on either route.
@@ -16,7 +16,7 @@ refused:
 
 # What the confirmation warns of.
 warned:
-  answerers: "이 방에 답하는 대화 상대가 있습니다: {names}. 대화 상대는 남지만 이 방에서는 더 이상 답하지 않습니다."
+  answerers: "이 방에 답하는 감독관이 있습니다: {names}. 감독관은 남지만 이 방에서는 더 이상 답하지 않습니다."
   items: "이 방에서 만든 열린 항목이 {count}건 있습니다. 항목은 남고, 소식은 관리자의 개인 대화방으로 전달됩니다."
   questions: "이 방에서 나온 Job의 질문 중 답을 기다리는 질문이 {count}건 있습니다."
   private: "{user} 사용자의 개인 대화방입니다."

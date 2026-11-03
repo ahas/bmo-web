@@ -62,7 +62,7 @@
 
         <p class="flex flex-wrap gap-x-3 gap-y-1 text-sm tabular-nums text-muted">
           <span>{{ shapeLabel($t, category.shape) }}</span>
-          <span>{{ $t("research.label.cap_counts", { waiting: countText(category.waitingCount), running: countText(category.runningCount), cap: countText(category.cap) }) }}</span>
+          <span>{{ $t("research.label.cap_counts", { waiting: countText(category.waitingCount), running: countText(category.runningCount) }) }}</span>
           <span :class="{ 'text-error': category.stuckCount > 0 }">{{ $t("research.label.stuck_count", { n: countText(category.stuckCount) }) }}</span>
           <span>{{ $t("research.label.cadence", { n: countText(category.cadenceMinutes) }) }}</span>
           <span v-if="category.gatherMinutes !== null">{{ $t("research.label.gather", { n: countText(category.gatherMinutes) }) }}</span>

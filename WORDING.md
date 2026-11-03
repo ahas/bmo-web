@@ -67,8 +67,9 @@
   work key names (`role:`) is 역할 too; where it stands on a screen beside the agent role it is told apart as 작업 키
   역할, and the agent role keeps the bare word. A function bundle → 기능 묶음; how many of a role's runs go at once → 동시
   실행, with what goes and waits as `2/3 실행 · 1 대기` and a cap of none as 막힘.
-- supervisor → 감독관: 감독관, 감독관 추가, 감독관의 설정, 감독관 없음. Every chat agent is a supervisor, the
-  chat agent and every companion alike; a screen never calls one 채팅 에이전트 or 대화 상대.
+- supervisor → 감독관: 감독관, 감독관 추가, 감독관의 설정, 감독관 없음, 감독관 중단. Every agent that answers in rooms
+  is a supervisor, and every sentence names it 감독관 alone; a screen never calls one 채팅 에이전트 or by a word for a
+  partner in a chat.
 - a role's slot, one of the runs its cap lets in at once → 역할 슬롯, 슬롯: 역할 슬롯, 작업 중, 예약됨, 비어 있음. Never
   자리, 칸, 풀.
 - a repository the agency runs jobs in → 저장소: 저장소, 저장소 추가. Never 리포지토리, 레포, 워커 for the place.

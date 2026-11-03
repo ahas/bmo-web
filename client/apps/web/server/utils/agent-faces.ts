@@ -5,10 +5,11 @@ import { receiver, receiverCall } from "./receiver";
 import type { AgentFace } from "#shared/types";
 
 // The person number each chat agent's own words stand under, which its face is the picture of (docs/web.md,
-// 「Profile photos」). The receiver names it per room (`GET /rooms/{roomId}/own-number`), so each chat agent is asked
-// for in the owner's room, then in every room it is a companion of, then in every other room — a room the console made
-// on the record road numbers no agent — and the first number answered in that order stands. The answer
-// changes only as agents and rooms are made, so it is kept for a minute.
+// 「Profile photos」), beside the rooms it speaks in (the agency's `GET /supervisors/{name}/rooms`), newest first. The
+// receiver names the number per room (`GET /rooms/{roomId}/own-number`), so each chat agent is asked for in the owner's
+// room, then in every room it speaks in, then in every other room — a room the console made on the record road numbers
+// no agent — and the first number answered in that order stands. The answer changes only as agents and rooms are made,
+// so it is kept for a minute.
 
 const KEPT_MS = 60_000;
 
@@ -32,20 +33,18 @@ async function readFaces(): Promise<AgentFace[]> {
     receiverCall(receiver().GET("/rooms")).then((answer) => answer.items).catch(() => []),
     ownerChat()
   ]);
-  // The chat agents are the supervisors, the chat agent and every companion alike (docs/web.md, 「Sidebar」).
-  const chats = supervisors.map((supervisor) => supervisor.name);
-  const faces = await Promise.all(
-    chats.map(async (name): Promise<AgentFace | null> => {
-      const companionOf = rooms.filter((room) => room.companions.includes(name)).map((room) => room.id);
-      const places = [...new Set([...(owner === null ? [] : [owner]), ...companionOf, ...rooms.map((room) => room.id)])];
+  // The chat agents are the supervisors, every one alike (docs/web.md, 「Sidebar」).
+  return await Promise.all(
+    supervisors.map(async ({ name }): Promise<AgentFace> => {
+      const spoken = await agencyCall(agency().GET("/supervisors/{supervisorName}/rooms", { params: { path: { supervisorName: name } } }))
+        .then((page) => page.items.map((item) => item.roomId))
+        .catch(() => [] as number[]);
+      const places = [...new Set([...(owner === null ? [] : [owner]), ...spoken, ...rooms.map((room) => room.id)])];
       const numbers = await Promise.all(places.map((place) => ownNumber(place, name)));
-      const personId = numbers.find((number) => number !== null) ?? null;
 
-      return personId === null ? null : { name, personId };
+      return { name, personId: numbers.find((number) => number !== null) ?? null, rooms: spoken };
     })
   );
-
-  return faces.filter((face): face is AgentFace => face !== null);
 }
 
 /** Each chat agent's own person number, where the receiver names one. */

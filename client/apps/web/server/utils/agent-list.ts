@@ -168,11 +168,10 @@ export function roleViewsOf(roles: readonly Role[]): RoleView[] {
 
 /** The rooms each supervisor speaks in, each once (docs/web.md, 「Sidebar」): the rooms the agency's
  * `GET /supervisors/{name}/rooms` names for it, each with the second its last run there began, then the rooms its
- * sessions hold and the rooms the receiver lists it a companion in, with no moment known. */
+ * sessions hold, with no moment known. */
 export function supervisorRooms(
   spoken: ReadonlyMap<string, readonly { roomId: number; lastStartedAt: number }[]>,
-  sessions: readonly { agentName: string; roomId: number | null }[],
-  rooms: readonly { id: number; companions: readonly string[] }[]
+  sessions: readonly { agentName: string; roomId: number | null }[]
 ): Map<string, { chatId: number; lastAt: number | null }[]> {
   const found = new Map<string, Map<number, number | null>>();
   const add = (name: string, room: number, lastAt: number | null): void => {
@@ -184,7 +183,6 @@ export function supervisorRooms(
 
   for (const [name, items] of spoken) for (const item of items) add(name, item.roomId, item.lastStartedAt > 0 ? Math.floor(item.lastStartedAt / 1000) : null);
   for (const session of sessions) if (session.roomId !== null) add(session.agentName, session.roomId, null);
-  for (const room of rooms) for (const name of room.companions) add(name, room.id, null);
 
   return new Map([...found].map(([name, held]) => [name, [...held].map(([chatId, lastAt]) => ({ chatId, lastAt }))]));
 }

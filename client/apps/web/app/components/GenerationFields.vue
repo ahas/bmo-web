@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { generationBounds, generationUse } from "~/domain/companions";
+import { generationBounds, generationUse } from "~/domain/generation";
 
 import type { GenerationSetting } from "#shared/agency";
 

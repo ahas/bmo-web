@@ -75,7 +75,6 @@ interface UnitCategoryState {
   waitingCount: number;
   runningCount: number;
   stuckCount: number;
-  cap: number;
 }
 
 interface UnitState {
@@ -89,7 +88,6 @@ interface UnitCategory {
   name: string;
   purpose: string;
   shape: string;
-  cap: number;
   cadenceMinutes: number;
   gatherMinutes: number | null;
   provider: string | null;
@@ -112,7 +110,6 @@ function stateOf(state: UnitState, categories: readonly UnitCategory[]): Researc
         name: category.name,
         purpose: category.purpose,
         shape: category.shape,
-        cap: standing?.cap ?? category.cap,
         cadenceMinutes: category.cadenceMinutes,
         gatherMinutes: category.gatherMinutes ?? null,
         provider: category.provider ?? null,
@@ -124,7 +121,7 @@ function stateOf(state: UnitState, categories: readonly UnitCategory[]): Researc
         stuckCount: standing?.stuckCount ?? 0
       };
     }),
-    holds: (state.holds ?? []).map((hold) => ({ registration: hold.registration, reason: hold.reason, nodeName: hold.nodeName ?? null, since: hold.since, reported: hold.reported, categoryNames: hold.categoryNames ?? [] }))
+    holds: (state.holds ?? []).map((hold) => ({ registration: hold.registration, reason: hold.reason, since: hold.since, reported: hold.reported, categoryNames: hold.categoryNames ?? [] }))
   };
 }
 

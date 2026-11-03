@@ -14,19 +14,19 @@ import type { ResearchItem, ResearchQueuePage, ResearchRunDetail, ResearchSource
 // 「sources」).
 
 const CATEGORIES = [
-  { name: "category-a", purpose: "first purpose", shape: "manual-or-investigation", cap: 5, cadenceMinutes: 60, gatherMinutes: null, provider: null, model: null, state: "running", stateAt: null, createdAt: 1 },
-  { name: "category-b", purpose: "second purpose", shape: "brief", cap: 30, cadenceMinutes: 60, gatherMinutes: 1440, provider: "provider-a", model: "model-a", state: "stopped", stateAt: 5, createdAt: 2 }
+  { name: "category-a", purpose: "first purpose", shape: "manual-or-investigation", cadenceMinutes: 60, gatherMinutes: null, provider: null, model: null, state: "running", stateAt: null, createdAt: 1 },
+  { name: "category-b", purpose: "second purpose", shape: "brief", cadenceMinutes: 60, gatherMinutes: 1440, provider: "provider-a", model: "model-a", state: "stopped", stateAt: 5, createdAt: 2 }
 ];
 
-const HOLD = { registration: "model-a", reason: "bench", nodeName: "node-a", since: 7, reported: false, categoryNames: ["category-b"] };
+const HOLD = { registration: "model-a", reason: "bench", since: 7, reported: false, categoryNames: ["category-b"] };
 
 function stateOf(states: Record<string, string>) {
   return {
     state: Object.values(states).includes("running") ? "running" : "stopped",
     changedAt: 9,
     categories: [
-      { categoryName: "category-a", state: states["category-a"], waitingCount: 2, runningCount: 1, finishingCount: 0, stuckCount: 3, cap: 5 },
-      { categoryName: "category-b", state: states["category-b"], waitingCount: 0, runningCount: 0, cap: 30 }
+      { categoryName: "category-a", state: states["category-a"], waitingCount: 2, runningCount: 1, finishingCount: 0, stuckCount: 3 },
+      { categoryName: "category-b", state: states["category-b"], waitingCount: 0, runningCount: 0 }
     ],
     holds: [HOLD]
   };
@@ -139,7 +139,7 @@ describe("reading the research state", () => {
     expect(got.status).toBe(200);
     expect(got.answer?.state).toBe("running");
     expect(got.answer?.categories.map((one) => one.name)).toEqual(["category-a", "category-b"]);
-    expect(got.answer?.categories[0]).toMatchObject({ purpose: "first purpose", waitingCount: 2, runningCount: 1, stuckCount: 3, cap: 5, state: "running", provider: null });
+    expect(got.answer?.categories[0]).toMatchObject({ purpose: "first purpose", waitingCount: 2, runningCount: 1, stuckCount: 3, state: "running", provider: null });
     expect(got.answer?.categories[1]).toMatchObject({ gatherMinutes: 1440, provider: "provider-a", model: "model-a", state: "stopped", stuckCount: 0 });
     expect(got.answer?.holds).toEqual([HOLD]);
     expect(research.asked.at(-1)?.headers?.authorization).toBe("Bearer research-token");

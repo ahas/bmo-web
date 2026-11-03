@@ -65,15 +65,11 @@ describe("where a run works", () => {
 });
 
 describe("a supervisor's rooms", () => {
-  test("are the rooms its sessions hold and the rooms the receiver lists it a companion in, each once", () => {
-    const rooms = supervisorRooms(
-      new Map(),
-      [{ agentName: "agent-a", roomId: -1 }, { agentName: "agent-a", roomId: null }, { agentName: "agent-b", roomId: -2 }],
-      [{ id: -2, companions: ["agent-b"] }, { id: -3, companions: ["agent-b"] }]
-    );
+  test("are the rooms its sessions hold, each once", () => {
+    const rooms = supervisorRooms(new Map(), [{ agentName: "agent-a", roomId: -1 }, { agentName: "agent-a", roomId: null }, { agentName: "agent-b", roomId: -2 }, { agentName: "agent-b", roomId: -2 }]);
 
     expect(rooms.get("agent-a")).toEqual([{ chatId: -1, lastAt: null }]);
-    expect(rooms.get("agent-b")).toEqual([{ chatId: -2, lastAt: null }, { chatId: -3, lastAt: null }]);
+    expect(rooms.get("agent-b")).toEqual([{ chatId: -2, lastAt: null }]);
   });
 
   test("are the rooms its turns went into too, a supervisor of one session across rooms among them, each at the second its last run there began", () => {
@@ -82,8 +78,7 @@ describe("a supervisor's rooms", () => {
         ["agent-a", [{ roomId: 42, lastStartedAt: 1_700_000_005_500 }, { roomId: -1, lastStartedAt: 1_700_000_000_000 }]],
         ["agent-b", [{ roomId: -2, lastStartedAt: 1_700_000_009_000 }]]
       ]),
-      [{ agentName: "agent-a", roomId: -1 }],
-      [{ id: -2, companions: ["agent-b"] }, { id: -3, companions: ["agent-b"] }]
+      [{ agentName: "agent-a", roomId: -1 }, { agentName: "agent-b", roomId: -3 }]
     );
 
     expect(rooms.get("agent-a")).toEqual([{ chatId: 42, lastAt: 1_700_000_005 }, { chatId: -1, lastAt: 1_700_000_000 }]);

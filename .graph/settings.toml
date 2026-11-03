@@ -13,5 +13,4 @@ unindexed = [
   "client/packages/server-client/src/schema.ts",
   "client/apps/web/shared/auth.d.ts",
   "client/apps/web/shared/yaml.d.ts",
-  "client/vendor/iron-remote-desktop-rdp/index.d.ts",
 ]

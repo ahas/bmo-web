@@ -6539,6 +6539,22 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
 - **A share page reads only its own bundle.** Asked with no session for an address under a screen path's
   `share/`, the list answers that one bundle's screen path, module, stylesheet and words, and nothing else of any
   manifest (「Access」).
+- **A share page goes out with its card's head.** A chat app or a browser drawing a card for a share link reads
+  the shell and runs none of it, so the server writes the head into the shell itself (bmo-ui's
+  `docs/console-bundles.md`, 「Share pages」). Serving an address that is a bundle's screen path, `/share/` and one
+  segment, read from the console's base path — the bundle whose screen path is the longest the address stands
+  under — where that bundle's manifest names a `shareHead`, the server asks the unit that answered the manifest
+  for the head at that pattern with the address's token, with the unit's token and no owner key or role, whoever
+  is signed in, and `language` the console's one locale, `ko`. It reads the answer through bmo-ui's `shareHead`
+  and writes into the shell's head, each value escaped as an element's or an attribute's text so none closes its
+  tag: `<title>`, the `description` meta, `og:type`, `og:title`, `og:description`, `og:url`, `og:site_name`,
+  `og:locale` and `og:image`, `twitter:card`, `twitter:title`, `twitter:description` and `twitter:image`, the
+  canonical link at the answer's `url`, and the robots meta asking not to be indexed or followed. The image is
+  the address the console relays the unit's share read at, on the origin of the answer's `url`, and stands only
+  where the path is a share read the manifest names; with no image the card is `summary`, with one
+  `summary_large_image`, and with no description the three description tags are left out. A unit that answers 404
+  or anything but a 200, an answer that does not read, a call that fails, a manifest naming no `shareHead` or any
+  other address leaves the shell as it is. The bundle's page still sets its own head once its module runs.
 
 ## How the units are talked to
 

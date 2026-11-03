@@ -17,8 +17,11 @@ export interface SlotTileRun {
   // The line naming the work the slot was asked for, where its asker named one.
   title: string | null;
   // The run the tile's log opens at: its job's run where the agency names the job, else the run its binding names;
-  // none while it is bound to nothing.
+  // none while no run is named.
   log: string | null;
+  // The role session the slot is bound to, which with no run named holds the slot between two of its turns; none
+  // where it is bound to no session.
+  session: string | null;
   // What a stop of the tile names: a job's run is stopped through its item, as every job is; a run the console can
   // tie to no item names none.
   stop: StopTarget | null;

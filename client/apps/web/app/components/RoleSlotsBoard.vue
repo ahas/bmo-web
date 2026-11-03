@@ -53,7 +53,7 @@ import { useBackClose } from "bmo-ui/app/domain/layers";
 import { useReadFailure } from "~/domain/events";
 import { stopKey, useStops } from "~/domain/stopping";
 import { usePolling } from "~/domain/polling";
-import { rowHead } from "~/domain/role-slots";
+import { rowHead, slotLogPlace } from "~/domain/role-slots";
 
 import type { RoomSummary, StopTarget } from "#shared/types";
 import type { SlotBoard, SlotTile as SlotTileView } from "#shared/role-slots";
@@ -117,15 +117,14 @@ async function load(): Promise<void> {
 
 const readFailure = useReadFailure({ failed: () => failed.value !== "", reading: () => reading.value, reread: () => void load() });
 
-// A working tile opens the log of the run it holds, from that run's start and following its newest lines; one bound to
-// no run yet opens the role's log at the moment it took the slot; an idle or a reserved one opens nothing.
+// A working tile opens the log of the run it holds, from that run's start and following its newest lines; one held by
+// a role session between two of its turns opens the role's log at its newest lines, following them, so the session's
+// next turn comes in as it starts; one bound to nothing yet opens the role's log at the moment it took the slot; an
+// idle or a reserved one opens nothing.
 function openLog(role: string, tile: SlotTileView): void {
   if (tile.state !== "working") return;
 
-  const run = tile.run?.log ?? null;
-  const since = tile.run?.since ?? null;
-
-  log.value = { role, place: run !== null ? { run } : since === null ? null : { at: Math.floor(since / 1000) } };
+  log.value = { role, place: slotLogPlace(tile.run) };
   logOpen.value = true;
 }
 

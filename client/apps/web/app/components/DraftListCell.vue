@@ -9,7 +9,7 @@
 
     <template #content>
       <form class="flex min-w-0 flex-col gap-3" novalidate @submit.prevent="submit">
-        <UFormField :label="props.label" :name="props.label" :error="shownFault">
+        <UFormField :label="props.label" :name="props.label" :error="shownFault" :ui="CELL_FIELD_UI">
           <ol class="flex flex-col gap-1" :aria-label="props.label">
             <li v-for="(name, index) in list" :key="name" class="flex min-w-0 items-center gap-1">
               <span class="w-5 shrink-0 text-end text-sm text-dimmed tabular-nums">{{ index + 1 }}</span>
@@ -54,6 +54,7 @@
 <script setup lang="ts">
 import { FINAL_QUESTION } from "#shared/drafting";
 import { draftListFault, movedQuestion, withoutQuestion, withQuestion } from "~/domain/draft-process";
+import { CELL_FIELD_UI } from "~/domain/settings-cells";
 import { draftQuestionLabel } from "~/domain/working";
 
 interface Props {

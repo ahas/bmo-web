@@ -126,8 +126,10 @@ export default defineNuxtConfig({
       nitroConfig.esbuild.options.exclude = [];
     }
   },
+  // The served build runs on Bun from an entry of the console's own: Nitro's Bun entry with the idle limit off, which
+  // Nitro's own cannot turn off (docs/web.md, 「Running as a service」).
   $production: {
-    nitro: { preset: "bun" }
+    nitro: { preset: "bun", entry: fileURLToPath(new URL("./server/bun.mjs", import.meta.url)) }
   },
   // One language, one pack: every word the console shows is a key into `i18n/locales/ko.yaml`, so a
   // wording fix is an edit to that file alone (docs/web.md, 「Wording and the language pack」).

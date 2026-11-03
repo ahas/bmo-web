@@ -14,7 +14,9 @@
     />
     <p v-else-if="supervisors !== undefined && supervisors.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_supervisors") }}</p>
 
-    <DataTable v-if="supervisors !== undefined && supervisors.length > 0" data-settings-table :data="supervisors" :columns="columns" :row-key="(row: SupervisorView) => row.name">
+    <!-- The tab's body scrolls both ways around every table of the tab, so a table keeps no scrolling box of its own
+         and its head of names sticks to the top of the body while its rows pass under it. -->
+    <DataTable v-if="supervisors !== undefined && supervisors.length > 0" class="overflow-visible" data-settings-table :data="supervisors" :columns="columns" :row-key="(row: SupervisorView) => row.name">
       <template #supervisor-cell="{ row }">
         <NuxtLink
           :id="settingsAnchor(`supervisor-${row.original.name}`)"

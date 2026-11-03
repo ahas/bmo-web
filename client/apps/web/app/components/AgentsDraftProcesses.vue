@@ -45,7 +45,9 @@
       @retry="refresh()"
     />
 
-    <DataTable v-if="data" data-draft-processes :data="data.rows" :columns="columns">
+    <!-- Each table stands in the supervisors tab's scrolling body with no scrolling box of its own, its head sticking to
+         the body's top. -->
+    <DataTable v-if="data" class="overflow-visible" data-settings-table data-draft-processes :data="data.rows" :columns="columns">
       <template #provider-cell="{ row }">
         <span :id="settingsAnchor(`draft-${draftKeyId(row.original)}`)" :class="CELL_TEXT" class="ps-4 text-highlighted">
           <SearchText :text="draftProviderText($t, row.original.provider)" :query="props.query" />
@@ -58,14 +60,14 @@
         <span :class="CELL_TEXT" class="whitespace-nowrap text-highlighted"><SearchText :text="markedDefault($t, draftKeyText($t, row.original.agentName), row.original.source === 'default')" :query="props.query" /></span>
       </template>
 
-      <template v-for="field in LIST_FIELDS" :key="field" #[`${field}-cell`]="{ row }">
+      <template v-for="field in LIST_FIELDS" :key="field" #[`${field}-cell`]="{ row, held }">
         <DraftListCell
           :value="row.original[field]"
           :catalogue="catalogue"
           :label="$t(LIST_LABELS[field], { key: keyText(row.original) })"
           :save="(list: string[]) => save(row.original, { [field]: list })"
         >
-          <span class="font-mono text-sm break-words text-highlighted">{{ draftListText($t, row.original[field]) }}</span>
+          <span class="truncate font-mono text-sm text-highlighted" :class="held ? 'max-w-full' : 'max-w-72'">{{ draftListText($t, row.original[field]) }}</span>
         </DraftListCell>
       </template>
 
@@ -149,20 +151,20 @@
       </UPopover>
     </div>
 
-    <DataTable v-if="data" data-draft-questions :data="data.questions" :columns="questionColumns" aria-labelledby="draft-questions-title">
+    <DataTable v-if="data" class="overflow-visible" data-settings-table data-draft-questions :data="data.questions" :columns="questionColumns" aria-labelledby="draft-questions-title">
       <template #name-cell="{ row }">
         <span :id="settingsAnchor(`draft-question-${row.original.name}`)" :class="CELL_TEXT" class="ps-4 font-mono text-highlighted">
           <SearchText :text="markedDefault($t, row.original.name, row.original.source === 'default')" :query="props.query" />
         </span>
       </template>
-      <template #text-cell="{ row }">
+      <template #text-cell="{ row, held }">
         <SettingsPopoverCell v-model:open="editing[row.original.name]" :label="$t('agents.aria.draft_question_of', { name: row.original.name })" :busy="questionSaving && editingName === row.original.name">
-          <span class="text-sm break-words whitespace-pre-wrap text-highlighted"><SearchText :text="row.original.text" :query="props.query" /></span>
+          <span class="truncate text-sm text-highlighted" :class="held ? 'max-w-full' : 'max-w-xl'"><SearchText :text="row.original.text" :query="props.query" /></span>
 
           <template #content>
             <form class="flex min-w-0 flex-col gap-3" novalidate @submit.prevent="saveQuestion(row.original.name)">
-              <UFormField :label="row.original.name" :name="`draft-question-${row.original.name}`" :error="(questionTextFault($t, editedText) ?? questionRefused) || undefined">
-                <UTextarea v-model="editedText" class="w-full" :rows="4" autoresize :maxlength="QUESTION_TEXT_MAX" autofocus />
+              <UFormField :label="row.original.name" :name="`draft-question-${row.original.name}`" :error="(questionTextFault($t, editedText) ?? questionRefused) || undefined" :ui="CELL_FIELD_UI">
+                <UTextarea v-model="editedText" class="w-lg max-w-full" :rows="4" autoresize :maxlength="QUESTION_TEXT_MAX" autofocus />
               </UFormField>
               <div class="flex justify-end">
                 <UButton type="submit" :label="$t('common.action.save')" color="primary" variant="soft" :loading="questionSaving" :disabled="editedText === row.original.text || questionTextFault($t, editedText) !== null" />
@@ -182,7 +184,7 @@ import { useConfirm } from "~/domain/confirm";
 import { ANY_KEY } from "#shared/drafting";
 import { settingsAnchor } from "~/domain/agent-settings";
 import { markedDefault, useProviders } from "~/domain/axes";
-import { CELL_TEXT } from "~/domain/settings-cells";
+import { CELL_FIELD_UI, CELL_TEXT } from "~/domain/settings-cells";
 import {
   CEILING_SECONDS_MAX,
   CEILING_SECONDS_MIN,
@@ -231,21 +233,24 @@ const { data: supervisors } = useFetch<SupervisorView[]>("/api/supervisors", { k
 const catalogue = computed<string[]>(() => (data.value?.questions ?? []).map((question) => question.name));
 const actionFailed = ref("");
 
+// The key is the row's title, and its last part the one flexible column; every other column stands at its own
+// content's width (docs/web.md, 「Agent management screen」, the draft process).
 const columns = computed<TableColumn<DraftProcessView>[]>(() => [
-  { accessorKey: "provider", header: t("agents.label.column_provider"), meta: { class: { th: "w-32" } } },
-  { accessorKey: "tier", header: t("agents.label.tier"), meta: { class: { th: "w-24" } } },
-  { accessorKey: "agentName", header: t("agents.label.draft_agent"), meta: { class: { th: "w-28" } } },
+  { accessorKey: "provider", header: t("agents.label.column_provider") },
+  { accessorKey: "tier", header: t("agents.label.tier") },
+  { accessorKey: "agentName", header: t("agents.label.draft_agent"), meta: { class: { th: "w-full" } } },
   { id: "rounds", header: t("agents.label.draft_rounds") },
   { id: "light", header: t("agents.label.draft_light") },
-  { id: "lightChars", header: t("agents.label.draft_light_chars"), meta: { class: { th: "w-28" } } },
-  { id: "ceilingSeconds", header: t("agents.label.draft_ceiling"), meta: { class: { th: "w-24" } } },
-  { id: "pastCeiling", header: t("agents.label.draft_past_ceiling"), meta: { class: { th: "w-28" } } },
+  { id: "lightChars", header: t("agents.label.draft_light_chars") },
+  { id: "ceilingSeconds", header: t("agents.label.draft_ceiling") },
+  { id: "pastCeiling", header: t("agents.label.draft_past_ceiling") },
   { id: "remove", header: "" }
 ]);
 
+// A question's name is its row's title and the flexible column; its text stands on one line under a ceiling.
 const questionColumns = computed<TableColumn<DraftQuestionView>[]>(() => [
-  { accessorKey: "name", header: t("common.label.name"), meta: { class: { th: "w-32" } } },
-  { id: "text", header: t("agents.label.draft_question_text"), meta: { class: { th: "w-full" } } }
+  { accessorKey: "name", header: t("common.label.name"), meta: { class: { th: "w-full" } } },
+  { id: "text", header: t("agents.label.draft_question_text") }
 ]);
 
 const pastChoices = computed<CellChoice[]>(() => PAST_CEILINGS.map((past) => ({ value: past, label: pastCeilingText(t, past) })));

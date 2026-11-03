@@ -1399,7 +1399,8 @@ export type AgentAxis = "supervisor" | "role" | "repository";
 
 // One run a role's slot is let in for now, as the agency's `GET /slots` answers it: the path it works at, the
 // provider and model it went out on, the source that asked for it, since when it holds the slot, in epoch
-// milliseconds, the run its binding names, the job whose run it is, and the line naming its work. A field the answer
+// milliseconds, the role session it is bound to, the run its binding names — for a slot on a role session, the run of
+// that session's turn while one runs —, the job whose run it is, and the line naming its work. A field the answer
 // does not carry stands as none.
 export interface RoleSlotRun {
   role: string;
@@ -1408,6 +1409,7 @@ export interface RoleSlotRun {
   model: string | null;
   source: string | null;
   since: number | null;
+  session: string | null;
   runName: string | null;
   jobId: number | null;
   title: string | null;

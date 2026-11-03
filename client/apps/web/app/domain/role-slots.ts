@@ -1,8 +1,9 @@
 import { countText } from "./numbers";
 import { formatElapsed, modelLabel } from "./status";
 
-import type { SlotRow, SlotTile } from "#shared/role-slots";
+import type { SlotRow, SlotTile, SlotTileRun } from "#shared/role-slots";
 import type { Translate } from "#shared/wording";
+import type { LogPlace } from "./log";
 
 // How the live status screen draws the role slots (docs/web.md, 「Live status screen」): a tile to a slot, told apart by
 // what holds it.
@@ -24,6 +25,17 @@ export function rowHead(t: Translate, row: SlotRow): string {
   const head = t("live.label.slot_row_head", { role: row.label, used: countText(row.used), cap: countText(row.cap) });
 
   return row.waiting > 0 ? t("live.label.slot_row_waiting", { head, n: countText(row.waiting) }) : head;
+}
+
+/** Where a working tile opens its role's log, in the order the agency's `docs/api.md` (「slots」) gives: at the run the
+ * tile names, from its start; with no run named but a role session held, at the log's newest lines, which is no place
+ * (null); with neither, at the moment the run took the slot; and at the newest lines where even that is not known. */
+export function slotLogPlace(run: Pick<SlotTileRun, "log" | "session" | "since"> | null): LogPlace | null {
+  if (run === null) return null;
+  if (run.log !== null) return { run: run.log };
+  if (run.session !== null || run.since === null) return null;
+
+  return { at: Math.floor(run.since / 1000) };
 }
 
 /** The lines a tile's tooltip carries: its state and the source that asked for it, then what holds it — the line

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { ceilingDefault, defaultThreshold, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
-import { tileLines } from "../../../apps/web/app/domain/role-slots";
+import { slotLogPlace, tileLines } from "../../../apps/web/app/domain/role-slots";
 import { wording } from "../../../apps/web/shared/wording";
 
 import type { OrderEntryView, ProviderModelsView, ProviderView } from "../../../apps/web/shared/axes";
@@ -51,8 +51,18 @@ describe("a model's declared run settings", () => {
 
 describe("a slot tile's lines", () => {
   test("name the work its run was asked for after its state", () => {
-    const lines = tileLines(t, { state: "working", run: { place: "repo-a", path: "/srv/repo-a", source: "job", provider: null, model: null, since: null, title: "Title A", log: "run-a", stop: null } }, 0);
+    const lines = tileLines(t, { state: "working", run: { place: "repo-a", path: "/srv/repo-a", source: "job", provider: null, model: null, since: null, title: "Title A", log: "run-a", session: null, stop: null } }, 0);
 
     expect(lines).toEqual([`${wording("live.label.slot_working")} · job`, "Title A", "/srv/repo-a"]);
+  });
+});
+
+describe("where a slot tile opens its log", () => {
+  test("is the run it names, else the newest lines of a role session's, else the moment it took the slot", () => {
+    expect(slotLogPlace({ log: "run-a", session: "session-a", since: 5_000 })).toEqual({ run: "run-a" });
+    expect(slotLogPlace({ log: null, session: "session-a", since: 5_000 })).toBeNull();
+    expect(slotLogPlace({ log: null, session: null, since: 5_000 })).toEqual({ at: 5 });
+    expect(slotLogPlace({ log: null, session: null, since: null })).toBeNull();
+    expect(slotLogPlace(null)).toBeNull();
   });
 });

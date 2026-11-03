@@ -2048,10 +2048,13 @@ archive and this week's tokens remain. That is all that can actually be known th
   3. **Hovering a tile** shows its state and what holds it: the line naming the work it was asked for where its
      asker named one, the path, the source that asked it — 잡, 위임, 협업, 네이티브 and the rest by the pack's word for
      the source — the provider and model, and how long it has been there.
-  4. **Pressing a working tile opens the live log** of the run the slot holds, from that run's start and following
-     its newest lines: a job's run where the agency names the job (`jobId`), else the run its binding names
-     (`runName`), and, for a run bound to nothing yet, the role's log at the moment it took the slot. It opens as a
-     dialog in the middle of a wide screen, a sheet from the bottom edge of a phone. An idle tile opens nothing.
+  4. **Pressing a working tile opens the live log** of what the slot holds, in the order the agency's `docs/api.md`
+     (「slots」) gives: a job's run where the agency names the job (`jobId`), from that run's start and following its
+     newest lines; else the run its `runName` names, the same way; else, for a slot bound to a role session between
+     two of its turns (`session`), the role's log at its newest lines, following them, so the session's next turn
+     comes in as it starts; and, for a run bound to nothing yet, the role's log at the moment it took the slot. It
+     opens as a dialog in the middle of a wide screen, a sheet from the bottom edge of a phone. An idle tile opens
+     nothing.
      A job's tile is stopped through the job's item, as every job is.
 - Runners write execution records to a table of their own, and which group a record belongs to is read by which
   branch the agent that ran that line is — the branch the catalogue answers, and a name the catalogue does not
@@ -2713,10 +2716,15 @@ Two ways, split because the running places differ.
   modal. Pressing a result opens its tab, brings its row to the middle of the view and marks it a moment; the open
   tab's rows mark the phrase too.
 - **Every table on the screen is the one shared settings table.** It fills the section edge to edge, one row to a
-  line, has no pages, and scrolls sideways inside its own box so that no cell is cut; the page itself never scrolls
-  sideways. A tab holding one table — 역할, 저장소, 등록 모델, 모델 파일 — gives it the tab's whole height, its box
-  scrolling both ways with the head of names stuck to its top, so its sideways scrollbar sits on the tab's foot however
-  few its rows; the 감독관 tab, holding the draft tables under its own, gives each table only its own height.
+  line, has no pages, and scrolls sideways rather than cut a cell; the page itself never scrolls sideways. A tab's
+  body has exactly one box that scrolls, never a scrolling box inside another.
+  - **A tab holding one table** — 역할, 저장소, 등록 모델, 모델 파일 — gives it the tab's whole height under whatever
+    stands above it, and the table's own box is the one that scrolls, both ways, with the head of names stuck to its
+    top, so its sideways scrollbar sits on the tab's foot however few its rows. The tab's body around it does not
+    scroll.
+  - **The 감독관 tab,** holding the draft tables under its own, gives each table only its own height, and the tab's
+    body is the one box that scrolls, both ways: its tables keep no scrolling box of their own, and each table's head
+    of names sticks to the top of the body while that table's rows pass under it.
   - **A row is as tall as its content and no taller.** Every cell is one line where its value is one — a row's title
     takes its label over its name — and a row stands at the shared table's one-line height unless a cell says more.
     A value with several parts says them on one line, never one part to a line, and leaves the rest to its dropdown
@@ -2724,11 +2732,12 @@ Two ways, split because the running places differ.
   - **A cell is one box, edge to edge of its column and top to bottom of its row.** A pressed cell answers a hover
     and a press over the whole of that box, so the hover never stands shorter or narrower than the cell it marks;
     a cell that only shows a value fills the same box, its content centred on the row's middle line.
-  - **In each section's own table exactly one column is flexible: the title's,** the words that say which record the
+  - **In every table exactly one column is flexible: the title's,** the words that say which record the
     row is. It takes whatever width is left over and is cut last, never narrower than a floor of its own. Every other
     column stands as wide as its content asks — its name and its widest cell, measured once the rows have landed — up
-    to a ceiling of its own, and never stretches; a column whose cells vary in length (a path, a list of rooms, what a row runs on now) cuts its
-    cells on one line at that ceiling, the whole text in the tooltip every cut line gets.
+    to a ceiling of its own, and never stretches; a column whose cells vary in length (a path, a list of rooms, what a
+    row runs on now, a question's text) cuts its cells on one line at that ceiling, the whole text in the tooltip
+    every cut line gets.
   - **Every column's width is dragged at the right edge of its name,** or moved with the arrow keys there, the way
     the DB screen's columns are. A drag changes the dragged column alone: the other content columns keep the widths
     they stood at, and the title column takes up the difference, so the table keeps reaching its box's right edge
@@ -2737,7 +2746,10 @@ Two ways, split because the running places differ.
     lays its columns out afresh.
 - **A cell edits its own value, in place.** Pressing a cell that holds a setting opens a dropdown aligned to that
   cell, holding that cell's value and nothing else: a list for a choice, a number box for a number, a text box for a
-  text. A choice is saved as it is picked; a number or a text is saved with Enter or the check button beside it, and
+  text. The dropdown is as wide as what it holds, never narrower than the cell it drops from and never wider than the
+  screen less a gutter each side; a list dropped for a choice is the shared select's, held to 「A dropdown stays
+  inside the screen」. The same cells, and so the same dropdowns, edit every settings table of the console. A choice
+  is saved as it is picked; a number or a text is saved with Enter or the check button beside it, and
   Escape leaves it as it was. While a value is being saved the cell spins, and a refused one keeps the dropdown open
   with the pack's sentence for the agency's code under the field, or, for a choice, says it in a notice. A cell
   showing what the agency worked out — the provider a row runs on now, how many of its runs go — is not pressed. A
@@ -2817,7 +2829,9 @@ Two ways, split because the running places differ.
   the rooms it answered stay with their messages and documents.
 - **The draft process** (드래프트 과정) stands under the table: what a round's answer is asked before it goes out, as
   the receiver keeps it (the receiver's `docs/drafting.md`, 「The process table」). A row per key of a provider, a tier
-  and an agent, each a name or 전체 for any, in the order the receiver lists them. A line under the table's head says
+  and an agent, each a name or 전체 for any, in the order the receiver lists them. The key is the row's title, and its
+  last part, 에이전트, is the table's flexible column, so the three parts stand together at the head of the row and
+  every value after them at its own width. A line under the table's head says
   that a turn reads the most specific row that matches it, an agent's before a provider's and a provider's before a
   tier's.
   - **A row's cells:** 질문 순서, the questions of an ordinary turn in order; 짧은 턴 질문, those of a light turn;
@@ -2838,7 +2852,8 @@ Two ways, split because the running places differ.
   - **A refused set** says the pack's sentence for the receiver's code under the box or in a notice, and the row
     stands as the receiver holds it.
 - **The draft questions** (드래프트 질문) stand under the process table: a row per question of the catalogue, its
-  name, its text in the language it was written in, `(기본값)` after the name of one the console has not changed.
+  name, the title column, and its text in the language it was written in, on one line under a ceiling of its own,
+  `(기본값)` after the name of one the console has not changed.
   Pressing a text opens a box of it, at most 4,000 characters and never empty, saved with 저장. 추가 in its head opens
   a box of a new name — a lowercase word of letters, digits and dashes — and its text.
 - **A read that fails** says so with a reread in that table's place, and the other tables stand.
@@ -6527,8 +6542,8 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   a file carried, a long operation such as a room's removal or a companion's reset — ends when the unit answers
   or when its connection is refused, breaks or ends; no clock of the console's cuts it short. A unit that took
   the call and is still working on it is still being asked, and the screen that asked stands as still asking.
-  The console's own route stands under Bun's idle ceiling (「Running as a service」), the runtime's span and not
-  one of the console's.
+  The browser's request to the console's own route is held the same way, Bun's idle limit being off
+  (「Running as a service」).
 - **The console's own server is the only caller.** Each unit's address and token are on the server side alone,
   and the browser calls only this app's paths (`docs/boundary.md`, 「Calls the console makes」). The server is
   reached for the session, the users and the grants; the agency for agents, sessions, runs and roads; bmo-job for
@@ -6546,7 +6561,9 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   re-exposes a unit's API under a name of its own, so a route a service changes reaches its screen with no
   change in this console (bmo-ui's `docs/console-bundles.md`).
 - **The stream.** The receiver, bmo-job and the agency each publish a stream of events. The console's server holds
-  one stream to each, and relays them into one stream per browser tab, event by event: an event cut across two
+  one stream to each, and relays them into one stream per browser tab, event by event, and holds every stream it
+  relays — these, and a bundle's own stream and socket — with no clock of its own: a stream ends when its unit or
+  the browser ends it, never because the console's server found it quiet (「Running as a service」): an event cut across two
   reads waits here until the rest of it comes, so the frames this app writes into the same stream of its own — the
   keepalive and the stopping frame — always land between two whole events, never inside one. A unit that answers
   the relay with a refusal — a token that does not match, a fault of its own — is written in this app's log with the
@@ -6760,11 +6777,13 @@ The console stands as the systemd user unit this repository's `deploy/` holds, `
 - **A stop waits for each process to end.** Both units end on the stop systemd sends — the server once the
   requests it holds have answered, the console once its relays are told of the restart and its close hooks have
   run — and neither unit has a stop of it cut short after a span.
-- **A request waits on its answer up to Bun's ceiling of 255 seconds.** Bun's server cuts a request that has sent
-  nothing for its idle limit, ten seconds unless told otherwise, and the console's server reports that cut as
-  `request timed out after 10 seconds` while the browser sees the request fail. A change carried to a unit can take
-  longer — a companion's reset waits out a person-book run's stop — so the unit sets `NITRO_BUN_IDLE_TIMEOUT` to that
-  ceiling.
+- **The console's server keeps no clock on a connection.** Bun's server cuts a connection that has sent nothing for
+  its idle limit — ten seconds unless told otherwise, and never more than 255 — which would fail a request whose unit
+  takes longer to answer (a companion's reset waits out a person-book run's stop) and cut an event stream a unit
+  keeps quiet. So the limit is off: a request waits until its unit answers, and a relayed stream or socket stands
+  until its unit or the browser ends it. Nitro's Bun entry reads the limit only as a number of seconds and cannot
+  turn it off, so the console's production build starts from an entry of its own, the Bun entry with the limit off
+  and nothing else changed.
 - **A build takes a larger heap than Node gives by default.** Bundling the server runs past the default heap
   limit, so the build script raises it to six gigabytes (`NODE_OPTIONS=--max-old-space-size=6144`).
 - **Each deployment is a release of its own.** The testbed builds a release into a directory of its own and flips

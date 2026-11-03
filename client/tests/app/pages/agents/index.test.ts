@@ -32,6 +32,7 @@ const popover = await read("../../components/SettingsPopoverCell.vue");
 const input = await read("../../components/SettingsInputCell.vue");
 const generation = await read("../../components/GenerationFields.vue");
 const cells = await Bun.file(new URL("../../../../apps/web/app/domain/settings-cells.ts", import.meta.url)).text();
+const drafts = await read("../../components/AgentsDraftProcesses.vue");
 
 const sections = [supervisors, roles, repositories, registry, catalogue];
 
@@ -90,6 +91,12 @@ describe("every table of the screen", () => {
     expect(templateOf(supervisors)).not.toContain('layout="fill"');
   });
 
+  test("scrolls each tab in one box: a table's own in a tab of one table, the body around the supervisors' tables", () => {
+    expect(templateOf(page)).toContain(`:class="tab === 'supervisors' ? 'overflow-auto' : 'overflow-hidden'"`);
+    expect(templateOf(supervisors)).toContain('<DataTable v-if="supervisors !== undefined && supervisors.length > 0" class="overflow-visible"');
+    expect(templateOf(drafts).match(/<DataTable v-if="data" class="overflow-visible"/g)).toHaveLength(2);
+  });
+
   test("gives the title column what is left and every other column its content's width, a long text under a ceiling it gives up once held", () => {
     for (const source of sections) expect(scriptOf(source)).toContain('meta: { class: { th: "w-full" } }');
     // The title column alone is flexible: a floor of its own in either layout, and a held width set aside once a drag
@@ -111,6 +118,12 @@ describe("every table of the screen", () => {
     expect(templateOf(popover)).toContain("<UPopover");
     expect(templateOf(input)).toContain("<SettingsPopoverCell");
     expect(templateOf(input)).toContain('@keydown.escape="open = false"');
+  });
+
+  test("drops a dropdown as wide as what it holds, never narrower than its cell nor wider than the screen", () => {
+    expect(templateOf(popover)).toContain("w-max max-w-[calc(100vw-1rem)] min-w-[min(var(--reka-popover-trigger-width),calc(100vw-1rem))]");
+    expect(templateOf(popover)).not.toContain("w-80");
+    expect(cells).toContain('CELL_FIELD_UI = { error: "w-0 min-w-full" }');
   });
 });
 

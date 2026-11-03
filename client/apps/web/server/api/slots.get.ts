@@ -63,7 +63,8 @@ export default defineEventHandler(async (event): Promise<SlotBoard> => {
     const working: SlotTile[] = runs
       .filter((run) => run.role === role.name)
       .map((run) => {
-        // A screen opens a tile's log by its job's run where the slot names the job, else by the run its binding names.
+        // A screen opens a tile's log by its job's run where the slot names the job, else by the run its binding names,
+        // else by the role session it is bound to (the agency's `docs/api.md`, 「slots」).
         const job = run.jobId === null ? null : (jobs.get(run.jobId) ?? null);
 
         return {
@@ -77,6 +78,7 @@ export default defineEventHandler(async (event): Promise<SlotBoard> => {
             since: run.since,
             title: run.title,
             log: job?.run ?? run.runName,
+            session: run.session,
             stop: stopOf(job, run.path, repositories)
           }
         };

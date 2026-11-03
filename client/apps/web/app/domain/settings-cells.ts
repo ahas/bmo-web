@@ -9,6 +9,10 @@ export const CELL_BUTTON =
 // A cell that only shows what a unit worked out, filling its cell the same way.
 export const CELL_TEXT = "flex h-full min-h-12 min-w-0 flex-col justify-center px-2 py-1";
 
+// A field in a cell's dropdown, which is as wide as what it holds: the sentence a refusal stands under the field in
+// wraps at the width the field's own controls give the dropdown, rather than widening it once it appears.
+export const CELL_FIELD_UI = { error: "w-0 min-w-full" };
+
 // One choice a choice cell offers.
 export interface CellChoice {
   value: string | number;

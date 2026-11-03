@@ -7,7 +7,7 @@
 
     <template #content>
       <form class="flex min-w-0 flex-col gap-3" novalidate @submit.prevent="submit">
-        <UFormField :label="props.label" :name="props.label" :error="shownFault" :help="props.help">
+        <UFormField :label="props.label" :name="props.label" :error="shownFault" :help="props.help" :ui="CELL_FIELD_UI">
           <div class="flex min-w-0 items-center gap-2">
             <NumberInput
               v-if="props.kind === 'number'"
@@ -49,6 +49,8 @@
 </template>
 
 <script setup lang="ts">
+import { CELL_FIELD_UI } from "~/domain/settings-cells";
+
 interface Props {
   value: string | number | null;
   label: string;

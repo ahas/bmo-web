@@ -153,6 +153,7 @@ export function slotRunsOf(answer: unknown): RoleSlotRun[] {
             model: text(run.model),
             source: text(run.source),
             since: count(run.since),
+            session: text(run.session),
             runName: text(run.runName),
             jobId: count(run.jobId),
             title: text(run.title)

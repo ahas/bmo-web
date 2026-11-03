@@ -1,6 +1,8 @@
 <template>
   <!-- The agent settings, a section to a tab. The tab row carries the search over every section and
-       the button that reads them all again; the section fills what is left and scrolls on its own. -->
+       the button that reads them all again; the section fills what is left, with one box that scrolls:
+       a tab of one table scrolls in the table's own box and the body around it stands still, while the
+       supervisors' tab, a table with the draft tables under it, scrolls in the body, both ways. -->
   <UDashboardPanel id="catalogue" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.agents')" icon="i-material-symbols-list-alt-outline" />
@@ -75,7 +77,7 @@
     </template>
 
     <template #body>
-      <div ref="body" class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div ref="body" class="flex min-h-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-auto' : 'overflow-hidden'">
         <AgentsSupervisors v-if="tab === 'supervisors'" ref="supervisorsRef" :query="query" />
         <AgentsRoles v-else-if="tab === 'roles'" ref="rolesRef" :query="query" />
         <AgentsRepositories v-else-if="tab === 'repositories'" ref="repositoriesRef" :query="query" />

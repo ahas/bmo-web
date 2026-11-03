@@ -1106,6 +1106,7 @@ todo:
     bad_action: 할 수 없는 동작입니다.
     bad_cowork: 협업 여부가 올바르지 않습니다.
     bad_direction: 옮길 방향이 올바르지 않습니다.
+    bad_model: 모델이 올바르지 않습니다.
     bad_item_id: 항목 번호가 올바르지 않습니다.
     bad_note: 결재 의견이 너무 길거나 올바르지 않습니다.
     bad_order: 저장할 순서가 올바르지 않습니다.
@@ -1147,6 +1148,7 @@ todo:
     work_order_save_failed: 작업 지시서를 저장하지 못했습니다.
     work_order_stop_failed: 작업 지시서를 중지하지 못했습니다.
     worker_change_failed: 워커를 바꾸지 못했습니다.
+    model_change_failed: 모델을 바꾸지 못했습니다.
   action:
     approve: 승인
     auto_pause: 자동 진행 일시정지
@@ -1197,6 +1199,7 @@ todo:
     item_manage: 항목 상태와 관리
     item_view: 항목 보기
     item_worker: 이 항목을 맡을 워커
+    item_model: 이 항목을 실행할 모델
     more_sources: 이 항목 외에 함께 출처로 삼을 미결
     new_body: 새 항목으로 만들 내용
     panel_width: TODO 패널 너비 조절
@@ -1210,6 +1213,11 @@ todo:
     approval_no_caller: 호출자 미상
     approval_recommended: 추천
     approved: 결재됨
+    chosen_forced: 강제 지정
+    chosen_item: 항목 지정
+    chosen_order: 공급자 순서
+    chosen_pin: 고정 모델
+    model_chosen_by: "{model} · {by}"
     base_worker: 기본 워커
     builder_model: Builder 모델
     builder_stage: "{n}단계 · {title}"
@@ -1419,6 +1427,7 @@ todo:
       미결 내용은 그대로 남아 있습니다."
     unheld: "#{id}의 보류를 해제했습니다.\n원래 순서로 돌아갔습니다."
     worker_assigned: "#{id}번은 {worker}가 맡습니다."
+    model_changed: "#{id}의 모델을 바꿨습니다."
     worker_unassigned: "#{id}의 워커 배정을 해제했습니다.
 
       Built-in 워커가 맡습니다."
@@ -1615,6 +1624,7 @@ agents:
     provider_add: 공급자 추가
   aria:
     callable_of: "{name} 코워커 호출 허용"
+    active_of: "{name} 지금"
     heal_of: "{name} 강등 복원"
     max_concurrent_of: "{name} 동시 실행"
     node_checkout_node: 노드 체크아웃을 둘 노드
@@ -1735,6 +1745,9 @@ agents:
     supervisors_read_failed: 감독관을 불러오지 못했습니다.
   label:
     account_chosen: 선택한 계정
+    active_forced: 강제 지정
+    active_in_use: 사용 중
+    active_to_order: 순서에 맡김
     default_answerer: 기본 응답 감독관
     room_title: 방 이름
     account_kind_directory: 설정 디렉터리

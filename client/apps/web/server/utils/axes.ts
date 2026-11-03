@@ -8,6 +8,7 @@ import type { Provider, Repository, Role, Supervisor } from "@agency/client";
 import type { components } from "@agency/client/schema";
 import type { GenerationSetting } from "#shared/agency";
 import type {
+  ActiveProviderView,
   CheckoutView,
   NodeCheckoutAsk,
   OrderEntryView,
@@ -78,6 +79,25 @@ function quotaOf(value: unknown): QuotaView | null {
     balance: number(balance) ?? number(record(balance).amount),
     resetsAt: number(held.resetsAt)
   };
+}
+
+/** A forced active provider as the agency answers it, or none where it names none or not in its shape. */
+export function activeOf(value: unknown): ActiveProviderView | null {
+  const held = record(value);
+  const provider = text(held.provider);
+  const model = text(held.model);
+
+  return provider === null || model === null ? null : { provider, model };
+}
+
+/** A forced active provider a screen sent: a provider and a model, or null to clear it; undefined where it is
+ * neither. */
+export function activeAsked(value: unknown): ActiveProviderView | null | undefined {
+  if (value === null) return null;
+
+  const asked = activeOf(value);
+
+  return asked === null ? undefined : asked;
 }
 
 /** One provider as the screen reads it: the pack's word for its code, its switch, its lines, its quota and its reason. */
@@ -152,6 +172,7 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
     repository: supervisor.repository,
     order: orderOf(supervisor.order),
     quotaShare: supervisor.quotaShare,
+    active: activeOf(supervisor.active),
     warming,
     foldRatio: supervisor.foldRatio,
     provider: supervisor.provider,
@@ -187,6 +208,13 @@ export function supervisorChangeOf(body: unknown): Schemas["SupervisorChange"] |
     change.order = orderBody(order);
   }
   if (typeof held.quotaShare === "number") change.quotaShare = held.quotaShare;
+  if ("active" in held) {
+    const active = activeAsked(held.active);
+
+    if (active === undefined) return null;
+
+    change.active = active;
+  }
   if (typeof held.foldRatio === "number") change.foldRatio = held.foldRatio;
   if ("repository" in held) change.repository = text(held.repository);
   if ("warming" in held) {
@@ -226,6 +254,7 @@ export function roleViewOf(role: Role): RoleView {
     line: role.line,
     order: orderOf(role.order),
     quotaShare: role.quotaShare,
+    active: activeOf(role.active),
     maxConcurrent: role.maxConcurrent,
     sessions: role.sessions,
     foldRatio: role.foldRatio,
@@ -291,6 +320,15 @@ export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChan
     if (typeof held.quotaShare !== "number") return null;
 
     change.quotaShare = held.quotaShare;
+  }
+
+  if ("active" in held) {
+    const active = activeAsked(held.active);
+
+    // A forced provider is a change of a role already made; a new role starts on its order.
+    if (adding || active === undefined) return null;
+
+    change.active = active;
   }
 
   if ("maxConcurrent" in held) {

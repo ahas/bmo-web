@@ -48,11 +48,19 @@
           :line="row.original.line"
           :name="row.original.name"
           :save="(order, quotaShare) => change(row.original.name, { order, quotaShare })"
-        >
-          <HintTip v-if="row.original.waitingFor !== null" :text="row.original.waitingFor" class="min-w-0">
-            <span class="text-sm text-warning">{{ $t("agents.status.waiting_for_quota") }}</span>
-          </HintTip>
-        </ProviderOrderCell>
+        />
+      </template>
+
+      <!-- What it runs on now and how that provider became active; pressed, the force's list. -->
+      <template #now-cell="{ row }">
+        <ActiveProviderCell
+          :road="activeRoad(row.original, null)"
+          :active="row.original.active"
+          :waiting-for="row.original.waitingFor"
+          :line="row.original.line"
+          :name="row.original.name"
+          :save="(active) => saved(change(row.original.name, { active }))"
+        />
       </template>
 
       <template #concurrency-cell="{ row }">
@@ -127,14 +135,14 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
-import { defaultThreshold, fractionOf, percentOf, refusalOf, sessionsText, thresholdText, useProviders } from "~/domain/axes";
+import { activeRoad, defaultThreshold, fractionOf, percentOf, refusalOf, sessionsText, thresholdText, useProviders } from "~/domain/axes";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
 import { usePolling } from "~/domain/polling";
 import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
 
-import type { OrderEntryView, RolesView, RoleView } from "#shared/axes";
+import type { ActiveProviderView, OrderEntryView, RolesView, RoleView } from "#shared/axes";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { SettingsColumn } from "~/domain/settings-columns";
@@ -160,6 +168,7 @@ const columns = computed<SettingsColumn<RoleView>[]>(() => [
   { id: "role", header: t("agents.label.column_role") },
   { id: "bundles", header: t("agents.label.column_bundles"), ceiling: 320 },
   { id: "order", header: t("agents.label.order") },
+  { id: "now", header: t("agents.label.column_now"), ceiling: 256 },
   { id: "concurrency", header: t("agents.label.column_max_concurrent") },
   { id: "sessions", header: t("agents.label.column_sessions") },
   { id: "threshold", header: t("agents.label.column_threshold") },
@@ -183,7 +192,7 @@ function concurrencyText(role: RoleView): string {
 }
 
 /** One change of a role sent; the table stands as the agency answered it, or the refusal with its field. */
-async function change(name: string, body: { order?: OrderEntryView[]; quotaShare?: number; maxConcurrent?: number; sessions?: string; foldRatio?: number; callable?: boolean }): Promise<{ field: string | null; text: string } | null> {
+async function change(name: string, body: { order?: OrderEntryView[]; quotaShare?: number; active?: ActiveProviderView | null; maxConcurrent?: number; sessions?: string; foldRatio?: number; callable?: boolean }): Promise<{ field: string | null; text: string } | null> {
   try {
     const answered = await $fetch<RoleView>(`/api/roles/${encodeURIComponent(name)}`, { method: "PATCH", body });
 

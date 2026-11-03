@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { ceilingDefault, defaultThreshold, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
+import { activeRoad, activeRoadText, ceilingDefault, defaultThreshold, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
 import { headOffset } from "../../../apps/web/app/domain/held-heads";
 import { slotLogPlace, tileLines } from "../../../apps/web/app/domain/role-slots";
 import { wording } from "../../../apps/web/shared/wording";
@@ -74,5 +74,28 @@ describe("a held head of names", () => {
     expect(headOffset(100, 60, 400, 40)).toBe(40);
     expect(headOffset(100, 59.6, 400, 40)).toBe(40);
     expect(headOffset(100, -500, 400, 40)).toBe(360);
+  });
+});
+
+// What a row runs on now and how that provider became active (docs/web.md, 「What a row runs on now」).
+describe("a row's active road", () => {
+  const order = [{ ...entry("provider-a"), effort: "high" }, { ...entry("provider-b"), model: "model-b", effort: "low" }];
+
+  test("is the forced provider on its forced model, at the effort the order's entry for it names", () => {
+    const road = activeRoad({ active: { provider: "provider-b", model: "model-c" }, order, provider: "provider-b" }, { model: "model-a", effort: "high" });
+
+    expect(road).toEqual({ provider: "provider-b", model: "model-c", effort: "low", forced: true });
+    expect(activeRoadText([provider("provider-b", null)], road!)).toBe("provider-b · model-c · low");
+    // A forced provider the order does not hold runs at the provider's own effort.
+    expect(activeRoad({ active: { provider: "provider-c", model: "model-d" }, order, provider: "provider-c" }, null)).toEqual({ provider: "provider-c", model: "model-d", effort: null, forced: true });
+  });
+
+  test("is a supervisor's last turn where the order chose, and a role's order's entry for its active provider", () => {
+    expect(activeRoad({ active: null, order, provider: "provider-a" }, { model: "model-x", effort: "max" })).toEqual({ provider: "provider-a", model: "model-x", effort: "max", forced: false });
+    expect(activeRoad({ active: null, order, provider: "provider-b" }, null)).toEqual({ provider: "provider-b", model: "model-b", effort: "low", forced: false });
+  });
+
+  test("is none where the agency names no active provider", () => {
+    expect(activeRoad({ active: null, order, provider: null }, null)).toBeNull();
   });
 });

@@ -1484,8 +1484,9 @@ Four groups.
   task's dialog head, the models in a work view's head, a figure's line inside a bubble, and a live run's or an
   execution's model. A table's cell, a settings form and a verdict card name the model whole.
 - **A model stands alone.** No line puts beside a model's name why its road was taken — that the provider order fell
-  to it, that its runs went out on more than one — nor the model the work asked for; the road table on the agent
-  management screen is where a road's reason is read.
+  to it, that its runs went out on more than one — nor the model the work asked for. Where a reason is read, it is
+  read in the tooltip that names the model whole — a TODO row's chip names there what chose a running job's road
+  (「TODO 패널」) — or on the agent management screen's 지금 cells.
 - **The short name is one reading for every such place.** A registered engine is its alias resolved through the
   deployment's registrations to the engine it names, and carries no provider before it: `QFNC38` for a registration
   whose engine is `qwen3.8-flash-next-coder`, or the alias itself where no registration names it. Every other road
@@ -2754,18 +2755,39 @@ Two ways, split because the running places differ.
   is saved as it is picked; a number or a text is saved with Enter or the check button beside it, and
   Escape leaves it as it was. While a value is being saved the cell spins, and a refused one keeps the dropdown open
   with the pack's sentence for the agency's code under the field, or, for a choice, says it in a notice. A cell
-  showing what the agency worked out — the provider a row runs on now, how many of its runs go — is not pressed. A
+  showing only what the agency worked out — how many of a role's runs go — is not pressed. A
   cell holding a group of switches — a supervisor's 캐시 유지 — opens them in its dropdown, each taking effect as it is
   thrown. Dialogs are left only for what is not one cell: a provider order, a whole role, a whole repository, a
   supervisor's own settings, and asking once before a removal; a row's whole settings open from its more-menu or its
   name, never from a cell.
-- **What a row runs on now** is the agency's word, never worked out here: a supervisor's and a role's `provider`,
-  and `waitingFor`, said under it in the warning colour while its runs wait for quota.
+- **What a row runs on now** is its active provider (the agency's `docs/provider-order.md`, 「Choosing the provider」),
+  the agency's word, never worked out here, and it stands in the row's 지금 cell, the same for a supervisor and a
+  role. The owner's words: 「현재 활성화된 것을 쓰고, 현재 활성화라는건 내가 수동으로 강제지정하거나 사용량에 의해 자동
+  전환되거나」.
+  - **The cell is one line:** the provider by the pack's word for its code, the model whole and its effort, joined
+    by middle dots, and before them a compact mark of how the provider became active — 강제 지정 where the owner
+    forced it (the agency's `active`, 「A provider the owner forces」), 공급자 순서 where the order chose it — the
+    mark's word its tooltip and its accessible name. A forced provider stands with its forced model and the effort
+    the order's entry for that provider names, or none. An order's choice stands as the agency answers it: a
+    supervisor's `provider`, `model` and `effort`, what its last turn went out on; a role's `provider`, on the model
+    and effort its order's entry for that provider names. A row the agency names no active provider for stands as a
+    dash. While its runs wait for quota (`waitingFor`) the cell says so under that line in the warning colour, the
+    agency's sentence in its tooltip.
+  - **Pressed, it opens the force's list,** a choice saved as it is picked through `PATCH /supervisors/{name}` or
+    `PATCH /roles/{name}` with `active`. It holds 순서에 맡김 — no force, the agency's default, so it reads
+    `순서에 맡김 (기본값)` — and then every model the row's line may run on, a group to each provider whose program
+    carries the line, in the agency's order of providers: the group headed by the provider's word, a provider that
+    cannot answer now with the pack's sentence for its reason, and under it each model `GET /provider-models/{provider}`
+    answers, the Claude catalogue's superseded generations marked, as the order's editor offers them. The forced
+    entry stands chosen, or 순서에 맡김 where none is forced, and the entry the row runs on now says 사용 중 under
+    it. Picking a model sends `active` as that provider and model; picking 순서에 맡김 sends `active` as null. A
+    provider's models are read as the list opens, each provider's once while the page stands. Neither the force nor
+    its clearing changes the order.
 - **A provider order is one field, edited in its own dialog** (the agency's `docs/provider-order.md`, 「What an order
   is」), the same for a supervisor and a role. Its cell is one line: the first provider, where the row's runs go
   while it has quota, by the pack's word for its code with its model named short (「Model names where room is short」)
   and its effort, marked as the first, and `외 N` after it, muted, for the N providers behind it; an order of one
-  provider has no `외`. A row whose runs wait for quota says so under that line, inside the same cell. Pressed, it
+  provider has no `외`. Pressed, it
   opens one form (「Forms」) with one 저장, holding the whole order:
   - one block per entry: its head a drag handle, its place, the provider, and the buttons moving it up and down and
     taking it out; under it the entry's fields, each under its own label — 모델, a list of what the agency's
@@ -2799,8 +2821,9 @@ Two ways, split because the running places differ.
 #### 감독관
 
 - **One table of every supervisor** (the agency's `docs/supervisors.md`), one row each in the order the agency lists
-  them: 감독관, its mark, its label and its name, the title column; 공급자 순서, its order (above); 지금, the provider and
-  model its last turn went out on, on one line under a ceiling of its own, and why it waits where it waits; 캐시 유지,
+  them: 감독관, its mark, its label and its name, the title column; 공급자 순서, its order (above); 지금, its active
+  provider and how it became active, and the force set from it (above, 「What a row runs on now」), on one line under
+  a ceiling of its own, and why it waits where it waits; 캐시 유지,
   the providers of its order its prefix is kept warm on, by the provider's word on one line, or 끔 where it is kept
   warm on none; 압축 기준, its compaction threshold as a whole percent, the value equal to the first provider of its
   order's declared threshold reading `85% (기본값)`; and 방, the rooms it answers as the sidebar lists them under it
@@ -2876,12 +2899,14 @@ Two ways, split because the running places differ.
   the order the agency lists them, read from its `GET /roles`: 역할, its name alone — the kebab-case key the agency
   holds it under, never a translated word and never the row's label — the title column; 기능 묶음, the bundles it gives as chips,
   each by the pack's short name for its code and by the agency's label where the pack holds none, or 기능 묶음 없음;
-  공급자 순서, its order; 동시 실행, its cap, with how many of its runs go and wait beside it — `2/3 실행 · 1 대기` —
+  공급자 순서, its order; 지금, its active provider and how it became active, and the force set from it (above,
+  「What a row runs on now」), on one line under a ceiling of its own, and why its runs wait where they wait; 동시
+  실행, its cap, with how many of its runs go and wait beside it — `2/3 실행 · 1 대기` —
   and 막힘 at a cap of 0; 세션, 유지 or 새로; 압축 기준; and 코워커, whether a run may call it as a co-worker. The
   counts are read again every few seconds while the tab stands.
-- **The cells set their own values:** 동시 실행 a whole number from 0, 세션 a choice of 유지 and 새로 — 유지 reading
-  `유지 (기본값)` — 압축 기준 a whole percent from 1 to 100, marked `(기본값)` as a supervisor's is, and 코워커 a
-  switch, each through `PATCH /roles/{name}`. A raised cap lets waiting runs in at once; nothing running is stopped by
+- **The cells set their own values:** 지금 the force, 동시 실행 a whole number from 0, 세션 a choice of 유지 and
+  새로 — 유지 reading `유지 (기본값)` — 압축 기준 a whole percent from 1 to 100, marked `(기본값)` as a supervisor's
+  is, and 코워커 a switch, each through `PATCH /roles/{name}`. A raised cap lets waiting runs in at once; nothing running is stopped by
   any change (the agency's `docs/agent-roles.md`, 「Changing the roles」).
 - **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made,
   and the label the agency keeps for its log as the role is added), 설명, 실행 라인 — a choice of the lines the agency names — 기능 묶음 as a checkbox for every bundle the agency
@@ -5160,10 +5185,22 @@ Four bounds keep it from growing forever.
 - **A line never pushes the panel sideways.** The title gives way and wraps however long it is, and the arrow at the
   line's end keeps its place.
 - **Every line names the model its work will go out on**, short, as a chip beside its state (「Model names where room is
-  short」): the model the item was filed to run on where it pins one, and otherwise what `auto` resolves to — the road
-  its worker is pinned to, else the model the registry maps that worker's work key to. While a job of the item runs,
-  the line names the road that run took, which may differ from the plan. A tooltip names the model whole, and the
-  item's detail names the same model in its head.
+  short」), in the order the agency chooses a job's road (its `docs/repositories.md`, 「A model an item names」): the
+  model the item names, its `model` label, where the label names one other than `auto`; otherwise its worker's road —
+  the provider the owner forced on the role its jobs run as, else the model its repository pins, else the role's
+  choice by its order. While a job of the item runs, the line names the road that run took, which may differ from the
+  plan. A tooltip names the model whole, and while a job runs it names after it what chose the job's road, the
+  agency's `chosenBy` in the pack's words: 항목 지정, 강제 지정, 고정 모델 or 공급자 순서. The item's detail names
+  the same model in its head, in the same chip.
+- **The chip sets the item's model where the item is not finished,** on the line and in the detail's head alike; a
+  finished or merged item's chip is not pressed. Pressed, it opens the model list: `auto (기본값)` — the item names
+  no model and its job's road is the agency's to choose — then every model the worker line may run on, grouped by
+  provider as the 지금 cell's list offers them (「Agent management screen」, 「What a row runs on now」). The model
+  the item's label names stands chosen, or `auto` where it names none. A choice is saved as it is picked: the console
+  reads the item and writes its labels back whole through bmo-job's `PATCH /items/{itemId}`, `model` set to
+  `<provider>/<model>` or `auto` and every other label kept as it stood, since bmo-job replaces an item's labels whole.
+  The choice reaches the item's next job; a job already running keeps its road. A refusal says why in the line under
+  the list.
 - **Pressing a line stands that item's detail as a modal.** It does not spread inside the list — the panel is a
   fixed-width column and a line bears the whole of the original instruction, completion report, talk and buttons pressed
   on it, so spreading below the line pushes the rest of the queue off screen. So, like everything long in this console,
@@ -5200,8 +5237,8 @@ Four bounds keep it from growing forever.
 - **The modal is built as a screen to read one item.** The list line's shape is not carried over — a line shape fitted to
   a narrow column only lines up cell by cell in a wide place. The head stands the number and title uncut, and one line
   below gathers where this item stands now: state, approval (approved or awaiting, and who asked), worker, model,
-  co-work, priority. For an unfinished item the worker and co-work are cells changed right there, and for a finished item
-  read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 상태,
+  co-work, priority. For an unfinished item the worker, the model and co-work are cells changed right there, and for a
+  finished item read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 상태,
   지시 and 요청 원문 on the left, 의논 and 관리 on the right.
   - **Left: 결과, 상태, 지시 and 요청 원문** — how the item ended, what became of it and what it says.
     - **결과** stands only on an item that carries a report or unfinished-items, and it is the first tab of

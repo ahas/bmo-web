@@ -11,6 +11,8 @@ import { answer, standIn } from "../../support/units";
 
 // What bmo-job answers the next write with, where the test is about a refusal of its own.
 let refusal: { status: number; code: string } | null = null;
+// The labels item 7 holds as bmo-job answers it.
+let itemLabels: Record<string, string> = {};
 
 const job = standIn("JOB", (one) => {
   if (one.method === "GET" && one.path.startsWith("/queues")) {
@@ -25,7 +27,7 @@ const job = standIn("JOB", (one) => {
 
   if (one.method === "DELETE") return new Response(null, { status: 204 });
 
-  return answer({ id: 7, itemId: 7, title: "Item 7", brief: "do it", queueName: "default", priority: 0, state: "open", cowork: false, assigneeName: null, requesterName: "tester", labels: {}, approvals: [], createdAt: 0, changedAt: 0, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null });
+  return answer({ id: 7, itemId: 7, title: "Item 7", brief: "do it", queueName: "default", priority: 0, state: "open", cowork: false, assigneeName: null, requesterName: "tester", labels: itemLabels, approvals: [], createdAt: 0, changedAt: 0, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null });
 });
 
 const handler = await routeOf<{ ok: true; raised?: number; stopped?: number }>("../../apps/web/server/api/todos.post");
@@ -157,5 +159,42 @@ describe("what a verb answers", () => {
       queueName: "default",
       requesterName: "tester"
     });
+  });
+});
+
+// The model an item's jobs go out on is its `model` label (docs/web.md, the TODO panel's model chip): bmo-job replaces
+// labels whole, so the item is read and its labels written back with `model` set and every other label kept.
+describe("choosing an item's model", () => {
+  test("reads the item and writes its labels back whole, the model set and the rest kept", async () => {
+    fresh();
+    itemLabels = { kind: "fix", model: "deepseek/deepseek-flash" };
+
+    expect(await post({ action: "model", id: 7, model: "claude-code/claude-opus-5-5" })).toMatchObject({ status: 200 });
+    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["GET /items/7", "PATCH /items/7"]);
+    expect(job.asked[1]?.body).toEqual({ labels: { kind: "fix", model: "claude-code/claude-opus-5-5" } });
+
+    itemLabels = {};
+  });
+
+  test("writes auto to leave the road to the agency, a registered model and an OpenRouter model by their whole names", async () => {
+    for (const model of ["auto", "registered/flash-next", "openrouter/vendor/model-a"]) {
+      fresh();
+      itemLabels = { kind: "fix" };
+
+      expect(await post({ action: "model", id: 7, model })).toMatchObject({ status: 200 });
+      expect(job.asked[1]?.body).toEqual({ labels: { kind: "fix", model } });
+    }
+
+    itemLabels = {};
+  });
+
+  test("refuses what is no provider and model, without calling bmo-job", async () => {
+    fresh();
+
+    for (const model of ["", "claude-opus-5-5", "/model-a", "provider-a/", "provider-a/model a", 7, null, undefined, `p/${"m".repeat(300)}`]) {
+      expect(await post({ action: "model", id: 7, model })).toEqual({ status: 400, message: wording("todo.error.bad_model") });
+    }
+
+    expect(job.asked).toEqual([]);
   });
 });

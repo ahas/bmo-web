@@ -13,10 +13,11 @@ export const CELL_TEXT = "flex h-full min-h-12 min-w-0 flex-col justify-center p
 // wraps at the width the field's own controls give the dropdown, rather than widening it once it appears.
 export const CELL_FIELD_UI = { error: "w-0 min-w-full" };
 
-// One choice a choice cell offers.
+// One choice a choice cell offers, or, as a `label`, the head of a group of them that is not chosen itself.
 export interface CellChoice {
   value: string | number;
   label: string;
   description?: string;
   disabled?: boolean;
+  type?: "label";
 }

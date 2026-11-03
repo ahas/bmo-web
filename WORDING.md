@@ -80,6 +80,9 @@
   a role's sessions kept or opened anew → 유지, 새로. Never 라우트, 라우팅, 우선순위 목록.
 - a repository, where executing work runs → 저장소: 저장소, 저장소 추가, 작업 저장소; the model a repository pins →
   고정 모델; no pin → 역할 순서. A deployment's own model → 등록 모델; a file its engine serves → 모델 파일.
+- a supervisor's or a role's active provider, what it runs on now → 지금; the owner forcing one → 강제 지정; no force,
+  leaving it to the order → 순서에 맡김; the entry it runs on now → 사용 중. What chose a job's road → 항목 지정 (the
+  item's own model), 강제 지정, 고정 모델 or 공급자 순서. Never 고정 for a force, which is a repository's pin.
 - a value equal to the default a service states → `<value> (기본값)`, after the value and never in its place; a
   setting a service leaves to its own default without naming the value stands empty with `(기본값)` as its
   placeholder; a setting whose default no service states stands empty, with no word.

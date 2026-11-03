@@ -20,6 +20,7 @@ const registry = await read("../../components/AgentsRegistry.vue");
 const catalogue = await read("../../components/AgentsCatalogue.vue");
 const orderField = await read("../../components/ProviderOrderField.vue");
 const orderCell = await read("../../components/ProviderOrderCell.vue");
+const activeCell = await read("../../components/ActiveProviderCell.vue");
 const providersSection = await read("../../components/SettingsProviders.vue");
 const accounts = await read("../../components/AgentsAccounts.vue");
 const axes = await Bun.file(new URL("../../../../apps/web/app/domain/axes.ts", import.meta.url)).text();
@@ -183,6 +184,38 @@ describe("a provider order", () => {
     expect(templateOf(orderCell)).toContain('<SettingsDialog v-model:open="open" wide');
     expect(templateOf(orderCell)).toContain("<ProviderOrderField");
     for (const source of [supervisors, roles]) expect(templateOf(source)).toContain("<ProviderOrderCell");
+  });
+});
+
+// What a row runs on now and the owner's force (docs/web.md, 「What a row runs on now」): one cell of the same shape on
+// both tables, marking how the provider became active, its list opening on the order's own entry as the default and every model
+// the row's line may run on, a pick saved at once through the row's own route.
+describe("what a row runs on now", () => {
+  test("stands in the now cell of both tables, the waiting said there rather than under the order", () => {
+    for (const source of [supervisors, roles]) {
+      expect(templateOf(source)).toMatch(/#now-cell[\s\S]*<ActiveProviderCell/);
+      expect(templateOf(source)).not.toMatch(/<ProviderOrderCell[^/]*>[\s\S]*waiting_for_quota[\s\S]*<\/ProviderOrderCell>/);
+      expect(templateOf(source)).toContain(':save="(active) => saved(change(row.original.name, { active }))"');
+    }
+    expect(scriptOf(roles)).toContain('{ id: "now", header: t("agents.label.column_now"), ceiling: 256 }');
+    // A supervisor's order's choice is its last turn's road; a role's is its order's entry for its active provider.
+    expect(templateOf(supervisors)).toContain(":road=\"activeRoad(row.original, { model: row.original.model, effort: row.original.effort })\"");
+    expect(templateOf(roles)).toContain(':road="activeRoad(row.original, null)"');
+  });
+
+  test("marks a forced provider apart from the order's choice, each mark named by its tooltip", () => {
+    expect(templateOf(activeCell)).toContain("props.road.forced ? 'i-material-symbols-lock-outline' : 'i-material-symbols-format-list-numbered'");
+    expect(templateOf(activeCell)).toContain(':aria-label="markText"');
+    expect(scriptOf(activeCell)).toContain('t("agents.label.active_forced")');
+    expect(templateOf(activeCell)).toContain("agents.status.waiting_for_quota");
+  });
+
+  test("opens a list led by the order's own entry marked as the default, read as it opens, a pick sent as the force or its clearing", () => {
+    expect(templateOf(activeCell)).toContain("<SettingsChoiceCell");
+    expect(templateOf(activeCell)).toContain('@open="() => void choices.read()"');
+    expect(scriptOf(activeCell)).toContain('markedDefault(t, t("agents.label.active_to_order"), true)');
+    expect(scriptOf(activeCell)).toContain("String(value) === ROAD_ORDER ? null : roadParts(String(value))");
+    expect(scriptOf(activeCell)).toContain("props.active === null ? ROAD_ORDER");
   });
 });
 

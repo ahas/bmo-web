@@ -14,12 +14,12 @@ import type { ProviderModelsView, ProviderView, RepositoryView, RolesView, Stand
 const ENTRY = { provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null };
 const SUPERVISOR = {
   name: "agent-a", label: null, ownerAccount: null, aliases: null, icon: null, sessionScope: "agent", turnShape: "window",
-  brainFolder: null, repository: "repo-a", order: [ENTRY, { provider: "deepseek" }], quotaShare: 0.01, warming: { "claude-code": true, deepseek: "yes" },
+  brainFolder: null, repository: "repo-a", order: [ENTRY, { provider: "deepseek" }], quotaShare: 0.01, active: { provider: "deepseek", model: "deepseek-v4-pro" }, warming: { "claude-code": true, deepseek: "yes" },
   foldRatio: 0.8, gates: null, voice: null, sampling: null, provider: "claude-code", model: "claude-opus-5-5", effort: "high", waitingFor: null
 };
 const ROLE = {
   name: "worker", code: "worker", label: "Worker", prompt: null, description: null, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }],
-  line: "worker", order: [ENTRY], quotaShare: 0.01, maxConcurrent: 3, sessions: "keep", foldRatio: 0.8, callable: false, running: 2, waiting: 1,
+  line: "worker", order: [ENTRY], quotaShare: 0.01, active: null, maxConcurrent: 3, sessions: "keep", foldRatio: 0.8, callable: false, running: 2, waiting: 1,
   provider: "claude-code", waitingFor: null
 };
 const REPOSITORY = {
@@ -40,6 +40,7 @@ const OWN_ROLE = { ...ROLE, name: "role-own", code: "role-own", label: "Own role
 const agency = standIn("AGENCY", (call) => {
   if (call.path === "/supervisors") return answer({ items: [SUPERVISOR], more: false });
   if (call.path === "/supervisors/agent-a" && call.method === "PATCH") return answer({ ...SUPERVISOR, ...call.body });
+  if (call.path === "/roles/worker" && call.method === "PATCH") return answer({ ...ROLE, ...call.body });
   if (call.path === "/roles") return answer({ roles: [ROLE, DOPPELGANGER, OWN_ROLE], bundles: ROLE.bundles, lines: ["worker"] });
   if (call.path === "/supervisors/agent-a" && call.method === "GET") return answer({ ...SUPERVISOR, provider: "deepseek", model: "deepseek-v4-pro" });
   if (call.path === "/supervisors/agent-a/rooms") return answer({ items: [{ roomId: 5, runs: 3, lastRunId: 41, lastRunUnit: "chat-agent-a-41", lastStartedAt: 1_700_000_000_000, lastFinishedAt: null }], more: false });
@@ -97,6 +98,27 @@ describe("the supervisors", () => {
     expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: {} })).toMatchObject({ status: 400, message: wording("common.error.bad_action") });
     expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { order: [{ provider: "x" }] } })).toMatchObject({ status: 400 });
   });
+
+  test("stand with the provider the owner forced, and carry a force set and cleared, refusing one of another shape", async () => {
+    expect((await asked(supervisors, {})).answer?.[0]?.active).toEqual({ provider: "deepseek", model: "deepseek-v4-pro" });
+
+    calls.length = 0;
+
+    const forced = await asked(supervisorChange, { params: { name: "agent-a" }, body: { active: { provider: "claude-code", model: "claude-opus-5-5" } } });
+
+    expect(forced).toMatchObject({ status: 200, answer: { active: { provider: "claude-code", model: "claude-opus-5-5" } } });
+    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { active: null } })).toMatchObject({ status: 200, answer: { active: null } });
+    expect(calls).toMatchObject([
+      { method: "PATCH", path: "/supervisors/agent-a", body: { active: { provider: "claude-code", model: "claude-opus-5-5" } } },
+      { method: "PATCH", path: "/supervisors/agent-a", body: { active: null } }
+    ]);
+
+    calls.length = 0;
+
+    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { active: { provider: "deepseek" } } })).toMatchObject({ status: 400 });
+    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { active: "deepseek" } })).toMatchObject({ status: 400 });
+    expect(calls).toEqual([]);
+  });
 });
 
 describe("the roles", () => {
@@ -117,6 +139,28 @@ describe("the roles", () => {
     expect(await asked(roleChange, { params: { name: "worker" }, body: { sessions: "sometimes" } })).toMatchObject({ status: 400 });
     expect(await asked(roleChange, { params: { name: "worker" }, body: { maxConcurrent: -1 } })).toMatchObject({ status: 400 });
     expect(await asked(roleAdd, { body: { name: "role-b", label: "Role B", bundles: [], line: "worker", order: [ENTRY] } })).toMatchObject({ status: 400 });
+    expect(calls).toEqual([]);
+  });
+
+  test("carry a role's force set and cleared, and refuse one on a new role or of another shape", async () => {
+    expect((await asked(roles, {})).answer?.roles[0]?.active).toBeNull();
+
+    calls.length = 0;
+
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { active: { provider: "claude-code", model: "claude-opus-5-5" } } })).toMatchObject({
+      status: 200,
+      answer: { active: { provider: "claude-code", model: "claude-opus-5-5" } }
+    });
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { active: null } })).toMatchObject({ status: 200, answer: { active: null } });
+    expect(calls).toMatchObject([
+      { method: "PATCH", path: "/roles/worker", body: { active: { provider: "claude-code", model: "claude-opus-5-5" } } },
+      { method: "PATCH", path: "/roles/worker", body: { active: null } }
+    ]);
+
+    calls.length = 0;
+
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { active: { model: "claude-opus-5-5" } } })).toMatchObject({ status: 400 });
+    expect(await asked(roleAdd, { body: { name: "role-b", label: "Role B", bundles: [], line: "worker", order: [ENTRY], maxConcurrent: 1, active: null } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);
   });
 

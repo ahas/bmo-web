@@ -75,6 +75,9 @@ export const SIREN_UNREACHABLE = "siren.error.unreachable";
 // to it and the route refuses anything past it.
 export const NOTE_LIMIT = 2_000;
 
+// The longest `model` label an item is given from the console: a provider, a slash and a model id.
+export const MODEL_LABEL_LIMIT = 200;
+
 export const SIREN_POLL_MS = 5_000;
 
 // One kind of news the console may ring the owner's own device about. Each kind names for itself

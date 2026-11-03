@@ -404,11 +404,15 @@
                 <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
                 <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
 
-                <!-- The model this item's work will go out on, short, with its whole name on hover (docs/web.md, the
-                     TODO panel's section). -->
-                <UTooltip :text="itemModel(item, true)!" :disabled="itemModel(item) === itemModel(item, true)">
-                  <UBadge color="neutral" variant="outline" size="sm" data-item-model><SearchText :text="itemModel(item)!" :query="searched" /></UBadge>
-                </UTooltip>
+                <!-- The model this item's work will go out on, short, with its whole name on hover, chosen here while
+                     the item is not finished (docs/web.md, the TODO panel's section). -->
+                <ItemModelChip
+                  :item="item"
+                  :editable="!item.done && item.mergedInto === null"
+                  :busy="busy.has(busyKey(item.id, 'model'))"
+                  :query="searched"
+                  @pick="(model: string) => void setModel(item.id, model)"
+                />
 
                 <UBadge v-if="(item.stopped?.failures ?? 0) > 0" color="warning" variant="subtle" size="sm">{{ $t("todo.label.stop_failures", { n: countText(item.stopped!.failures) }) }}</UBadge>
 
@@ -555,7 +559,6 @@ import {
   deployWaitsLine,
   waitingLine,
   waitingOverdue,
-  itemModel,
   todoFilters,
   todoSearchFields,
   todoSections,
@@ -1052,6 +1055,14 @@ async function act(id: number, action: TodoAction, fields: TodoActFields = {}, f
   } finally {
     busy.value.delete(key);
   }
+}
+
+// The model an item's jobs go out on, written to its labels; nothing else about the row moves, and a job already
+// running keeps its road.
+async function setModel(id: number, model: string): Promise<void> {
+  await act(id, "model", { model }, "todo.error.model_change_failed");
+
+  if (failure.value === null) notice.value = t("todo.message.model_changed", { id });
 }
 
 // The auto-progression stopped or started again. The press goes to the bot, which writes the

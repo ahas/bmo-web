@@ -59,6 +59,13 @@ export interface ProviderModelsView {
   staleReadAt: number | null;
 }
 
+// The provider and model the owner forced as a supervisor's or a role's active provider (the agency's
+// `docs/provider-order.md`, 「A provider the owner forces」).
+export interface ActiveProviderView {
+  provider: string;
+  model: string;
+}
+
 // One supervisor as its row holds it and what it stands on now (the agency's `docs/supervisors.md`).
 export interface SupervisorView {
   name: string;
@@ -74,6 +81,8 @@ export interface SupervisorView {
   repository: string | null;
   order: OrderEntryView[];
   quotaShare: number;
+  // The provider the owner forced, or none where its order chooses.
+  active: ActiveProviderView | null;
   warming: Record<string, boolean>;
   foldRatio: number;
   // What its last turn went out on, and why its turn waits where no provider of its order has quota.
@@ -102,12 +111,15 @@ export interface RoleView {
   line: string;
   order: OrderEntryView[];
   quotaShare: number;
+  // The provider the owner forced, or none where its order chooses.
+  active: ActiveProviderView | null;
   maxConcurrent: number;
   sessions: RoleSessions;
   foldRatio: number;
   callable: boolean;
   running: number;
   waiting: number;
+  // Its active provider: the forced one, else its order's choice; none where it cannot answer now.
   provider: string | null;
   waitingFor: string | null;
 }

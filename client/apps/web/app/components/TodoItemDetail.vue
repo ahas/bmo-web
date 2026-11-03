@@ -69,9 +69,12 @@
 
             <span class="flex items-center gap-1">
               <span class="text-muted">{{ $t("todo.label.field_model") }}</span>
-              <UTooltip :text="itemModel(ranItem ?? openedItem, true)!" :disabled="itemModel(ranItem ?? openedItem) === itemModel(ranItem ?? openedItem, true)">
-                <span class="text-highlighted" data-item-model>{{ itemModel(ranItem ?? openedItem) }}</span>
-              </UTooltip>
+              <ItemModelChip
+                :item="ranItem ?? openedItem"
+                :editable="!openedItem.done && openedItem.mergedInto === null"
+                :busy="busy.has(busyKey(openedItem.id, 'model'))"
+                @pick="(model: string) => void setModel(openedItem!.id, model)"
+              />
             </span>
 
             <span v-if="!openedItem.done" class="flex items-center gap-1">
@@ -893,7 +896,6 @@ import {
   canStop,
   canTop,
   heldLine,
-  itemModel,
   jobRecordLine,
   mergedLine,
   requesterLine,
@@ -1490,6 +1492,14 @@ async function assignWorker(id: number, chosen: string): Promise<void> {
     notice.value =
       worker === null ? t("todo.message.worker_unassigned", { id }) : t("todo.message.worker_assigned", { id, worker });
   }
+}
+
+// The model its jobs go out on, written to its labels. Nothing else about the row moves, and a job already running
+// keeps its road.
+async function setModel(id: number, model: string): Promise<void> {
+  await act(id, "model", { model }, "todo.error.model_change_failed");
+
+  if (failure.value === null) notice.value = t("todo.message.model_changed", { id });
 }
 
 // Whether its job fans out into branches. Nothing else about the row moves: it says how the work

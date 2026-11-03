@@ -11,7 +11,7 @@ import { WORKER_AGENT } from "#shared/config";
 import { todoModelPlan } from "./todo-models";
 
 import type { SearchField } from "bmo-ui/shared/search";
-import type { RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoReport, TodoSpan } from "#shared/types";
+import type { JobChosenBy, RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoReport, TodoSpan } from "#shared/types";
 import type { BarColor } from "bmo-ui/app/domain/bars";
 import type { Translate } from "#shared/wording";
 
@@ -192,14 +192,34 @@ export function jobGoingOn(state: TodoState): boolean {
   return state === "starting" || state === "running" || state === "stopping" || state === "reporting";
 }
 
-// The model a row wears, short, or whole where `whole` asks for its tooltip (docs/web.md, the TODO panel's section): the model
-// the item was filed to run on where it pins one, otherwise what `auto` resolves to — the road its worker goes out on,
-// and while a job of it runs the road that run actually took. A row nothing is known of yet names `auto` itself.
+// The model a row wears, short, or whole where `whole` asks for its tooltip (docs/web.md, the TODO panel's section): while a job
+// of it runs, the road that run actually took; otherwise the model its `model` label names, and where it names none what
+// `auto` resolves to — the road its worker goes out on. A row nothing is known of yet names `auto` itself.
 export function itemModel(item: Pick<TodoItem, "id" | "model" | "worker">, whole = false): string | null {
   const known = todoModelPlan().value;
-  const road = item.model ?? known?.running[item.id] ?? known?.workers[item.worker ?? WORKER_AGENT] ?? null;
+  const road = known?.running[item.id] ?? item.model ?? known?.workers[item.worker ?? WORKER_AGENT] ?? null;
 
   return road === null ? "auto" : whole ? road : shortModel(road);
+}
+
+// What chose a running job's road, in the pack's words.
+const CHOSEN_BY_WORDS: Record<JobChosenBy, string> = {
+  item: "todo.label.chosen_item",
+  forced: "todo.label.chosen_forced",
+  pin: "todo.label.chosen_pin",
+  order: "todo.label.chosen_order"
+};
+
+// The tooltip a row's model chip carries (docs/web.md, the TODO panel's section): the model whole, and while a job of it
+// runs, after it what chose that job's road where the agency says. None where it would only repeat the chip.
+export function itemModelTip(t: Translate, item: Pick<TodoItem, "id" | "model" | "worker">): string | null {
+  const whole = itemModel(item, true)!;
+  const running = todoModelPlan().value?.running[item.id];
+  const chosen = running === undefined ? undefined : todoModelPlan().value?.chosenBy[item.id];
+
+  if (chosen !== undefined) return t("todo.label.model_chosen_by", { model: whole, by: t(CHOSEN_BY_WORDS[chosen]) });
+
+  return whole === itemModel(item) ? null : whole;
 }
 
 // The word a row wears. An item no job is going on for reads waiting whatever the table happens to
@@ -849,6 +869,7 @@ export interface TodoActFields {
   why?: string;
   worker?: string | null;
   cowork?: boolean;
+  model?: string;
 }
 
 // Which one button is waiting, in the one name the panel holds it under. A press belongs to the

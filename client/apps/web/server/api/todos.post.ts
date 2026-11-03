@@ -1,6 +1,7 @@
 import {
   APPEND_LIMIT,
   isAgentName,
+  MODEL_LABEL_LIMIT,
   NOTE_LIMIT,
   RAISE_LIMIT,
   RAISE_TITLE_LIMIT,
@@ -27,6 +28,7 @@ interface TodoBody {
   sources?: unknown;
   worker?: unknown;
   cowork?: unknown;
+  model?: unknown;
 }
 
 const ACTIONS: readonly TodoAction[] = [
@@ -46,7 +48,8 @@ const ACTIONS: readonly TodoAction[] = [
   "stop",
   "release",
   "worker",
-  "cowork"
+  "cowork",
+  "model"
 ];
 
 // Changing one row of the TODO. The table is bmo-job's to write, so the console asks and
@@ -162,6 +165,14 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
     throw fail(400, wording("todo.error.bad_cowork"));
   }
 
+  const model = body?.model;
+
+  // The provider and model its jobs go out on: `auto`, or a provider, a slash and a model. Whether the agency carries
+  // them is the agency's to say as a job of the item is launched.
+  if (action === "model" && !isModelLabel(model)) {
+    throw fail(400, wording("todo.error.bad_model"));
+  }
+
   // Each verb is one write on the item, its notes or its queue, as bmo-job's fixed API takes it. A verb the fixed
   // item has no place for — an unfinished note resolved — is refused as one this item cannot take.
   switch (action) {
@@ -189,6 +200,9 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       break;
     case "cowork":
       await patchItem(id, { cowork: cowork === true });
+      break;
+    case "model":
+      await setModelLabel(id, model as string);
       break;
     case "append":
       await jobCall(job().POST("/items/{itemId}/notes", {
@@ -234,7 +248,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   return { ok: true };
 });
 
-async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; cowork?: boolean; position?: number }): Promise<void> {
+async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; cowork?: boolean; position?: number; labels?: Record<string, string> }): Promise<void> {
   await jobCall(job().PATCH("/items/{itemId}", {
     params: { path: { itemId: id } },
     body: change
@@ -268,6 +282,23 @@ async function readTodoBoardItems(): Promise<Item[]> {
   const page = await jobCall(job().GET("/items", { params: { query: { limit: 500 } } }));
 
   return page.items;
+}
+
+// bmo-job replaces an item's labels whole, so the item is read and its labels written back with `model` set and every
+// other label kept as it stood (docs/web.md, the TODO panel's model chip).
+async function setModelLabel(id: number, model: string): Promise<void> {
+  const item = await jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } } }));
+
+  await patchItem(id, { labels: { ...item.labels, model } });
+}
+
+function isModelLabel(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > MODEL_LABEL_LIMIT) return false;
+  if (value === "auto") return true;
+
+  const at = value.indexOf("/");
+
+  return at > 0 && at < value.length - 1 && !/\s/.test(value);
 }
 
 function isOrder(value: unknown): value is number[] {

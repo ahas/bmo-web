@@ -61,14 +61,16 @@
         />
       </template>
 
+      <!-- What it runs on now and how that provider became active; pressed, the force's list. -->
       <template #now-cell="{ row }">
-        <span :class="CELL_TEXT" class="w-full text-sm">
-          <span v-if="row.original.provider === null" class="text-muted">—</span>
-          <span v-else class="truncate text-highlighted">{{ nowText(row.original) }}</span>
-          <HintTip v-if="row.original.waitingFor !== null" :text="row.original.waitingFor" class="min-w-0">
-            <span class="text-warning">{{ $t("agents.status.waiting_for_quota") }}</span>
-          </HintTip>
-        </span>
+        <ActiveProviderCell
+          :road="activeRoad(row.original, { model: row.original.model, effort: row.original.effort })"
+          :active="row.original.active"
+          :waiting-for="row.original.waitingFor"
+          :line="SUPERVISOR_LINE"
+          :name="row.original.label"
+          :save="(active) => saved(change(row.original.name, { active }))"
+        />
       </template>
 
       <!-- The providers its prefix is kept warm on, on one line; pressed, one switch per provider of its order, each
@@ -177,7 +179,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
-import { DEFAULT_QUOTA_SHARE, defaultThreshold, fractionOf, orderRefusalEntry, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
+import { activeRoad, DEFAULT_QUOTA_SHARE, defaultThreshold, fractionOf, orderRefusalEntry, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
 import { agentMetaOf } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useConfirm } from "~/domain/confirm";
@@ -185,7 +187,7 @@ import { useReadFailure } from "~/domain/events";
 import { useRoomList } from "~/domain/room-list";
 import { CELL_TEXT } from "~/domain/settings-cells";
 
-import type { DefaultAnswererView, OrderEntryView, RepositoryView, SupervisorAddedView, SupervisorView } from "#shared/axes";
+import type { ActiveProviderView, DefaultAnswererView, OrderEntryView, RepositoryView, SupervisorAddedView, SupervisorView } from "#shared/axes";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
@@ -219,11 +221,6 @@ function aliasMatch(supervisor: SupervisorView) {
   return matchFields([{ label: t("agents.label.alias"), text: supervisor.aliases ?? "", shown: false }], props.query);
 }
 
-// What its last turn went out on: the provider's word, the model whole and its effort.
-function nowText(supervisor: SupervisorView): string {
-  return [supervisor.provider === null ? null : providerWord(providers.value, supervisor.provider), supervisor.model, supervisor.effort].filter((part) => part !== null && part !== "").join(" · ");
-}
-
 // Why a provider's warming cannot be switched here: it is turned off, or cannot answer on this machine.
 function warmingBlock(provider: string): string | null {
   const held = providers.value?.find((one) => one.name === provider);
@@ -245,7 +242,7 @@ function roomsOf(supervisor: SupervisorView): string[] {
 }
 
 /** One change of a supervisor sent; the table stands as the agency answered it, or the refusal with its field. */
-async function change(name: string, body: { order?: OrderEntryView[]; quotaShare?: number; foldRatio?: number; warming?: Record<string, boolean> }): Promise<{ field: string | null; text: string } | null> {
+async function change(name: string, body: { order?: OrderEntryView[]; quotaShare?: number; active?: ActiveProviderView | null; foldRatio?: number; warming?: Record<string, boolean> }): Promise<{ field: string | null; text: string } | null> {
   try {
     const answered = await $fetch<SupervisorView>(`/api/supervisors/${encodeURIComponent(name)}`, { method: "PATCH", body });
 

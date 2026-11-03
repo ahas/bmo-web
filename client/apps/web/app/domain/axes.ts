@@ -1,7 +1,8 @@
+import { ref } from "vue";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { shortModel } from "#shared/model-short";
 
-import type { OrderEntryView, ProviderModelsView, ProviderView, QuotaView, RoleSessions } from "#shared/axes";
+import type { ActiveProviderView, OrderEntryView, ProviderModelsView, ProviderView, QuotaView, RoleSessions } from "#shared/axes";
 import type { Translate } from "#shared/wording";
 import type { Ref } from "vue";
 
@@ -96,6 +97,42 @@ export function providerWord(providers: readonly ProviderView[] | null | undefin
 /** One entry of an order on a line: the provider's word, its model named short and its effort. */
 export function entryText(providers: readonly ProviderView[] | null | undefined, entry: OrderEntryView): string {
   return [providerWord(providers, entry.provider), shortOnProvider(entry.provider, entry.model), entry.effort].filter((part) => part !== null && part !== "").join(" ");
+}
+
+// What a supervisor or a role runs on now and how it became active (docs/web.md, 「What a row runs on now」): the
+// provider the owner forced, on its forced model and the effort the order's entry for that provider names; else the
+// order's choice as the agency answers it, a supervisor's with the model and effort its last turn went out on, and a
+// role's on its order's entry for that provider.
+export interface ActiveRoad {
+  provider: string;
+  model: string | null;
+  effort: string | null;
+  forced: boolean;
+}
+
+/** A row's active road from what the agency answers of it; none where it names no active provider. `last` is the
+ * model and effort a supervisor's last turn went out on, and null for a role, whose order's entry names them. */
+export function activeRoad(
+  row: { active: ActiveProviderView | null; order: readonly OrderEntryView[]; provider: string | null },
+  last: { model: string | null; effort: string | null } | null
+): ActiveRoad | null {
+  if (row.active !== null) {
+    const entry = row.order.find((one) => one.provider === row.active!.provider);
+
+    return { provider: row.active.provider, model: row.active.model, effort: entry?.effort ?? null, forced: true };
+  }
+
+  if (row.provider === null) return null;
+  if (last !== null) return { provider: row.provider, model: last.model, effort: last.effort, forced: false };
+
+  const entry = row.order.find((one) => one.provider === row.provider);
+
+  return { provider: row.provider, model: entry?.model ?? null, effort: entry?.effort ?? null, forced: false };
+}
+
+/** An active road on one line: the provider's word, the model whole and its effort. */
+export function activeRoadText(providers: readonly ProviderView[] | null | undefined, road: ActiveRoad): string {
+  return [providerWord(providers, road.provider), road.model, road.effort].filter((part) => part !== null && part !== "").join(" · ");
 }
 
 /** The levels an entry may name for a model: those its catalogue entry names, every level where it names none, and none

@@ -574,3 +574,37 @@ describe("the result of an item", () => {
     expect(tagOf('v-if="openedItem.unfinishedResolvedAt !== null"', result)).not.toContain("rounded");
   });
 });
+
+// The model chip (docs/web.md, the TODO panel's section): one chip on the line and in the opened item's head, pressed to
+// choose the item's model while the item is not finished, its pick sent as the `model` verb.
+const chip = await Bun.file(new URL("../../../apps/web/app/components/ItemModelChip.vue", import.meta.url)).text();
+
+describe("the model chip", () => {
+  const chipTemplate = chip.slice(0, chip.indexOf("<script"));
+  const chipScript = chip.slice(chip.indexOf("<script"));
+
+  test("stands on the line and in the head alike, pressed only where the item is not finished", () => {
+    expect(template).toContain(':editable="!item.done && item.mergedInto === null"');
+    expect(detailTemplate).toContain(':editable="!openedItem.done && openedItem.mergedInto === null"');
+    expect(chipTemplate).toContain('<USelect\n      v-if="props.editable"');
+    expect(chipTemplate).toMatch(/<UBadge v-else[^>]*data-item-model/);
+  });
+
+  test("offers auto marked as the default first, the item's label chosen, and the worker line's roads read as it opens", () => {
+    expect(chipScript).toContain('choices.groups({ value: AUTO, label: markedDefault(t, AUTO, true) }, chosen.value');
+    expect(chipScript).toContain("props.item.model ?? AUTO");
+    expect(chipScript).toContain('const WORKER_LINE = "worker"');
+    expect(chipTemplate).toContain('@update:open="(open: boolean) => open && void choices.read()"');
+  });
+
+  test("names what chose a running job's road in its tooltip", () => {
+    expect(chipScript).toContain("itemModelTip(t, props.item)");
+  });
+
+  test("sends its pick as the model verb from the line and from the head", () => {
+    for (const file of [source, detailSource]) {
+      expect(file).toContain('await act(id, "model", { model }, "todo.error.model_change_failed");');
+      expect(file).toContain('@pick="(model: string) => void setModel(');
+    }
+  });
+});

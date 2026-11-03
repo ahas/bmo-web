@@ -74,12 +74,17 @@ export interface RanOn {
   changed: boolean;
 }
 
+// What chose a job's provider and model, the first of four that stands: its item's `model`, its role's forced provider,
+// its repository's pin, or its role's order (the agency's `docs/repositories.md`, 「A model an item names」).
+export type JobChosenBy = "item" | "forced" | "pin" | "order";
+
 // What the TODO rows name before anything of an item has run (docs/web.md, the TODO panel's section): each worker's own road, and
 // the road the running job of each item went out on, both `provider/model` with a registered engine under its model's
-// own name.
+// own name, and what chose each running job's road where the agency says.
 export interface TodoModelPlan {
   workers: Record<string, string>;
   running: Record<number, string>;
+  chosenBy: Record<number, JobChosenBy>;
 }
 
 // The agency's shapes (the agency's `docs/api.md`).
@@ -2109,7 +2114,9 @@ export type TodoAction =
   // whose turn the item is.
   | "worker"
   // Whether its job fans out into branches. Off is what every item runs as unless it is turned on.
-  | "cowork";
+  | "cowork"
+  // The provider and model its jobs go out on, its `model` label: `<provider>/<model>`, or `auto` for the agency's choice.
+  | "model";
 
 export interface TodoActionResult {
   ok: true;

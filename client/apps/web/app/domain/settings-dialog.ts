@@ -24,6 +24,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "notifications", label: "settings.label.notifications", icon: "i-material-symbols-notifications-outline", administrator: true, load: () => import("~/components/SettingsNotifications.vue") },
   { key: "briefing", label: "settings.label.briefing", icon: "i-material-symbols-record-voice-over-outline", administrator: true, load: () => import("~/components/SettingsBriefing.vue") },
   { key: "providers", label: "settings.label.providers", icon: "i-material-symbols-hub-outline", administrator: true, load: () => import("~/components/SettingsProviders.vue") },
+  { key: "research", label: "settings.label.research", icon: "i-material-symbols-travel-explore", administrator: true, load: () => import("~/components/SettingsResearch.vue") },
   { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: true, load: () => import("~/components/SettingsSecrets.vue") }
 ];
 

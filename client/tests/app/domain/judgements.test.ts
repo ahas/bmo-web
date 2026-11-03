@@ -101,7 +101,7 @@ describe("what the verdict mark says", () => {
 });
 
 // A message is being judged while a gate of its room judges it, while it waits queued for the chat agent's turn,
-// and while the chat agent's turn that read it last runs; a companion's turn judges nothing it read, and another
+// and while the chat agent's turn that read it last runs; another supervisor's turn judges nothing it read, and another
 // room's gate or queue nothing here.
 describe("which messages are being judged", () => {
   const gate = (chatId: number, messageId: number | null, kind: LiveRun["kind"] = "gate") => ({ kind, chatId, messageId }) as LiveRun;
@@ -118,7 +118,7 @@ describe("which messages are being judged", () => {
     expect([...judgedNow(5, [], queued, [])]).toEqual([15]);
   });
 
-  test("a companion's turn and a turn whose start the screen did not see name none", () => {
+  test("another supervisor's turn and a turn whose start the screen did not see name none", () => {
     expect([...judgedNow(5, [], [], [{ messageId: 21, speaker: { id: 3, name: KO.line_115 } }, { messageId: null }])]).toEqual([]);
   });
 

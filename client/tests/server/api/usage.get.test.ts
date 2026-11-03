@@ -27,7 +27,7 @@ const agency = standIn("AGENCY", (call) => {
   }
 
   if (call.path.startsWith("/supervisors")) {
-    return answer({ items: empty ? [] : [{ name: "agent-a", defaultAnswerer: true, provider: chatProvider }, { name: "agent-b", defaultAnswerer: false, provider: "provider-z" }], more: false });
+    return answer({ items: empty ? [] : [{ name: "agent-a", provider: chatProvider }, { name: "agent-b", provider: "provider-z" }], more: false });
   }
 
   if (call.path.startsWith("/accounts")) {
@@ -41,6 +41,9 @@ const agency = standIn("AGENCY", (call) => {
 
   return answer({ groups: empty ? [] : [{ key: "agent-a", tokens: 0, jobs: 4, firstAt: 1, lastAt: 2, contextTokens: null }], after: 0, before: 1 });
 });
+
+// The supervisor the receiver's default answerer setting names.
+standIn("RECEIVER", (call) => (call.path === "/default-answerer" ? answer({ supervisor: "agent-a" }) : answer({ code: "no-route", error: "no route" }, 404)));
 
 const handler = await routeOf<UsageView>("../../apps/web/server/api/usage.get");
 

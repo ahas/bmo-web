@@ -150,10 +150,10 @@ function entry(provider: string, model: string, effort: string | null = null): R
 }
 
 // One supervisor as the agency's supervisor resource serves it: the default answerer, whose turns its window makes, and
-// a companion, whose turns its settings' pieces make.
+// a supervisor of the room scope, whose turns its settings' pieces make.
 function supervisor(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    name, label, ownerAccount: null, aliases: null, icon: null, sessionScope: "room", turnShape: "pieces", defaultAnswerer: false,
+    name, label, ownerAccount: null, aliases: null, icon: null, sessionScope: "room", turnShape: "pieces",
     brainFolder: `agents/${name}`, repository: "repo-a", order: [entry("claude-code", "claude-opus-5-5", "high"), entry("deepseek", "deepseek-v4-pro")],
     quotaShare: 0.01, warming: { "claude-code": true, deepseek: false }, foldRatio: 0.8, gates: null, voice: null, sampling: null,
     provider: "claude-code", model: "claude-opus-5-5", effort: "high", waitingFor: null, ...extra
@@ -274,13 +274,13 @@ const notFound = () => Response.json({ code: "not-found", error: "not served by 
 const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
   AGENCY: async (path, request) => {
     // The two axes and the places: two supervisors — the default answerer, whose turns its window makes, and a
-    // companion, whose turns its settings' pieces make — a handful of roles with runs going and waiting, and three
+    // supervisor of the room scope, whose turns its settings' pieces make — a handful of roles with runs going and waiting, and three
     // repositories, one with a job holding a checkout.
     if (path === "/supervisors") {
       return Response.json({
         items: [
-          supervisor("agent-a", "Agent A", { sessionScope: "agent", turnShape: "window", defaultAnswerer: true }),
-          supervisor("companion-a", "Companion A", { waitingFor: "every provider of its order is at its quota share", foldRatio: 0.85, provider: "deepseek", model: "deepseek-v4-pro", effort: null })
+          supervisor("agent-a", "Agent A", { sessionScope: "agent", turnShape: "window" }),
+          supervisor("agent-c", "Agent C", { waitingFor: "every provider of its order is at its quota share", foldRatio: 0.85, provider: "deepseek", model: "deepseek-v4-pro", effort: null })
         ],
         more: false
       });
@@ -322,7 +322,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ items: ROLES.map((one) => ({ role: one.name, maxConcurrent: one.maxConcurrent, active: one.running, reserved: 0, waiting: one.waiting, runs: runs(String(one.name)) })) });
     }
-    // The rooms the companion spoke in, and the stand-in answering for it on its second provider.
+    // The rooms a supervisor spoke in, and the stand-in answering for it on its second provider.
     if (/^\/supervisors\/[^/]+\/rooms$/.test(path)) {
       return Response.json({
         items: [
@@ -335,9 +335,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (/^\/supervisors\/[^/]+$/.test(path)) {
       const name = decodeURIComponent(path.slice("/supervisors/".length));
 
-      return name === "companion-a"
-        ? Response.json(supervisor("companion-a", "Companion A", { foldRatio: 0.85, provider: "deepseek", model: "deepseek-v4-pro", effort: null }))
-        : Response.json(supervisor(name, name, { sessionScope: "agent", turnShape: "window", defaultAnswerer: true }));
+      return name === "agent-c"
+        ? Response.json(supervisor("agent-c", "Agent C", { foldRatio: 0.85, provider: "deepseek", model: "deepseek-v4-pro", effort: null }))
+        : Response.json(supervisor(name, name, { sessionScope: "agent", turnShape: "window" }));
     }
     if (path === "/stand-in") return Response.json({ answers: true, provider: "deepseek", model: "deepseek-v4-pro" });
     if (path === "/nodes") {
@@ -377,7 +377,6 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/jobs") return Response.json({ items: [], more: false });
     if (path === "/log-lines") return Response.json({ items: [], more: false });
     if (path === "/prompt-documents") return Response.json({ items: [], more: false });
-    if (path === "/companions") return Response.json({ items: [], more: false });
 
     if (path === "/events") return silentStream();
     if (path === "/fallback") return Response.json({ routes: [], answering: false });
@@ -452,7 +451,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     // One room: the owner's, with nothing said in it. Its moments are the receiver's milliseconds.
     const room = {
       id: OWNER_CHAT, title: null, messageCount: 0, lastMessageAt: null, pinned: false, senders: [],
-      companions: [], ownerRoom: true, registered: true, workRoom: OWNER_CHAT
+      supervisors: [], ownerRoom: true, registered: true, workRoom: OWNER_CHAT
     };
 
     // A second room, whose line grows while it is first read: asked for its newest message it answers the first,
@@ -487,7 +486,17 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ items: after === null ? record : record.filter((one) => one.id > Number(after)), more: false });
     }
-    if (path === `/rooms/${RECORD_CHAT}/answerers`) return Response.json({ default: "agent-a", items: [{ agentName: "agent-a", companion: false }], more: false, voice: "agent-a" });
+    // The default answerer, answering the two rooms that name no supervisor; the other supervisor answers none.
+    if (path === "/default-answerer") return Response.json({ supervisor: "agent-a" });
+    if (/^\/supervisors\/[^/]+\/rooms$/.test(path)) {
+      return Response.json({
+        items: path === "/supervisors/agent-a/rooms"
+          ? [{ id: OWNER_CHAT, title: null, named: false, alone: true }, { id: UNREAD_CHAT, title: "unread-room", named: false, alone: true }]
+          : [],
+        more: false
+      });
+    }
+    if (path === `/rooms/${RECORD_CHAT}/answerers`) return Response.json({ default: "agent-a", items: [{ agentName: "agent-a", defaultAnswerer: true }], more: false, voice: "agent-a" });
     if (path === `/rooms/${OWNER_CHAT}/own-number`) return Response.json({ number: new URL(request.url).searchParams.get("agentName") === "agent-a" ? AGENT_FACE : null });
     if (path === "/avatars") return Response.json({ items: [{ kind: "person", id: AGENT_FACE, takenAt: LINE_AT }], more: false });
     if (path === `/people/${AGENT_FACE}/avatar`) return new Response(PIXEL, { headers: { "content-type": "image/png" } });

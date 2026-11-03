@@ -49,7 +49,7 @@ const session = (title: string) => wording("siren.label.chat_session", { title, 
 function catalogued(name: string, kind: string, label: string): AgentSummary {
   const icon = "i-material-symbols-radio-button-checked-outline";
 
-  if (kind === "chat" || kind === "companion") return { ...catalogueRow(name, kind, label), icon };
+  if (kind === "chat" || kind === "room") return { ...catalogueRow(name, kind, label), icon };
 
   return catalogueEntry(name, kind === "worker" ? "repository" : "role", label, { icon });
 }

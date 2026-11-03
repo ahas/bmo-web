@@ -47,7 +47,7 @@ fn every_part_reads_as_its_type() {
   assert!(!chat_turn::CHAT_TURN_WORDS.title.is_empty());
   assert!(!checkout_holds::CHECKOUT_HOLDS.waits.lock.is_empty());
   assert!(!claude_token::CLAUDE_TOKEN.kept.is_empty());
-  assert!(!companions::COMPANION_WORDS.refusals.thinking.is_empty());
+  assert!(!supervisors::SUPERVISOR_WORDS.engine_error.failed.is_empty());
   assert!(!consult::CONSULT_WORDS.said.is_empty());
   assert!(!control_answers::CONTROL_ANSWERS.request.action.is_empty());
   assert!(!deployment::DEPLOYMENT.rollback.reason.is_empty());

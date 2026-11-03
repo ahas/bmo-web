@@ -66,7 +66,7 @@ const receiver = standIn("RECEIVER", (one) => {
   const path = one.path.split("?")[0]!;
 
   if (path === `/rooms/${ROOM}/messages`) return answer({ items: page, more: false });
-  if (path === `/rooms/${ROOM}/answerers`) return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", companion: false }], more: false });
+  if (path === `/rooms/${ROOM}/answerers`) return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", defaultAnswerer: true }], more: false });
   if (path === `/rooms/${ROOM}/own-number`) return answer({ number: 22 });
 
   return answer({ code: "no-route", error: "no route" }, 404);

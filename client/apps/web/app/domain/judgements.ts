@@ -1,6 +1,6 @@
 import type { Judgement, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
 import { chatAgent } from "#shared/agent-names";
-import { companionOf } from "./agents";
+import { otherAnswererOf } from "./agents";
 import { countText } from "./numbers";
 
 import type { Translate } from "#shared/wording";
@@ -20,7 +20,7 @@ export type VerdictTone = "success" | "error" | "neutral";
 // called two things.
 export const STAGES: readonly StageMeta[] = [
   { slug: "chat", label: "room.label.stage_chat" },
-  { slug: "companion", label: "room.label.stage_companion" },
+  { slug: "supervisor", label: "room.label.stage_supervisor" },
   // The content gate, the leak check that no longer runs, the rewrite it asked for and an addition it
   // once asked for. Nothing records under these names any more and the turns that did are still
   // read, so they keep their names here.
@@ -112,7 +112,6 @@ export function stageLabel(t: Translate, stage: string): string {
 // name, and a row that names none stands as a quiet instruction.
 const INSTRUCTION_SORTS = new Map([
   ["browse", "room.label.sort_browse"],
-  ["companion_cut", "room.label.sort_companion_cut"],
   ["console_talk", "room.label.sort_console_talk"],
   ["document_reload", "room.label.sort_document_reload"],
   ["impact_mismatch", "room.label.sort_impact_mismatch"],
@@ -129,6 +128,7 @@ const INSTRUCTION_SORTS = new Map([
   ["say", "room.label.sort_say"],
   ["search", "room.label.sort_search"],
   ["song", "room.label.sort_song"],
+  ["supervisor_cut", "room.label.sort_supervisor_cut"],
   ["unfinished", "room.label.sort_unfinished"],
   ["watch", "room.label.sort_watch"]
 ]);
@@ -322,7 +322,7 @@ export function verdictState(judgements: readonly Judgement[], judging: boolean)
 // Which of a room's messages are being judged right now: one a gate of the room is judging, the one
 // the room holds queued for the chat agent's turn, from the moment it was put into the queue, and the one the chat agent's
 // turn going in the room read last, from the turn's start until the room has read its answer, so
-// the gaps between its gates count too. A companion's turn writes its verdict on its own answer, so
+// the gaps between its gates count too. Another supervisor's turn writes its verdict on its own answer, so
 // the message it read is judged by none of it. A turn whose start the screen did not see names no
 // message, and is known by its gates alone (docs/web.md, 「Room screen」). A message already holding a
 // final verdict written since its judging began is judged no longer, whatever the picture still says of
@@ -353,7 +353,7 @@ export function judgedNow(
   }
 
   for (const turn of turns) {
-    if (companionOf(turn.speaker) === undefined && turn.messageId !== null) {
+    if (otherAnswererOf(turn.speaker) === undefined && turn.messageId !== null) {
       judging(turn.messageId, turn.startedAt);
     }
   }
@@ -488,7 +488,7 @@ export interface HomedMessage {
 
 // The stages that are the round's own turn deciding about the message it read, or saying it read one along with
 // another: what they say is the message's outcome rather than a card under it.
-const TURN_STAGES = new Set(["chat", "companion", "skipped", "read-with"]);
+const TURN_STAGES = new Set(["chat", "supervisor", "skipped", "read-with"]);
 const READ_WITH_STAGE = "read-with";
 
 /** Whether a verdict is the round's own turn's word on the message it read. */

@@ -1,7 +1,7 @@
 # What the removal of a room's registration says of the room before anything is taken (docs/chat-providers.md,
 # 「Removing a room's registration」): each sentence is said by the declaration of the code that depends on
 # what it names, and the confirmation shows them together.
-# Each `{name}` is filled in with what it names: {names} the companions' labels, {count} a number of rows,
+# Each `{name}` is filled in with what it names: {names} the labels of the supervisors the room names, {count} a number of rows,
 # {user} a user's name, {road} the label of a platform's road.
 
 # Why a room is not removed, nothing written.

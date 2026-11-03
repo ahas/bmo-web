@@ -13,7 +13,7 @@ import type { ProviderModelsView, ProviderView, RepositoryView, RolesView, Stand
 
 const ENTRY = { provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null };
 const SUPERVISOR = {
-  name: "agent-a", label: null, ownerAccount: null, aliases: null, icon: null, sessionScope: "agent", turnShape: "window", defaultAnswerer: true,
+  name: "agent-a", label: null, ownerAccount: null, aliases: null, icon: null, sessionScope: "agent", turnShape: "window",
   brainFolder: null, repository: "repo-a", order: [ENTRY, { provider: "deepseek" }], quotaShare: 0.01, warming: { "claude-code": true, deepseek: "yes" },
   foldRatio: 0.8, gates: null, voice: null, sampling: null, provider: "claude-code", model: "claude-opus-5-5", effort: "high", waitingFor: null
 };

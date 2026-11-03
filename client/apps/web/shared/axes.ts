@@ -188,12 +188,10 @@ export interface WorkNodeView {
   kind: string;
 }
 
-// One room a supervisor's turns went into (the agency's `docs/api.md`, 「supervisors」): how many of its runs went there
-// and its latest, the run a screen opens its log at, moments in epoch milliseconds.
 // The settings a supervisor whose turns its settings' pieces make holds of its own: its generation settings with their
 // bounds and the values it holds, its reference switch, its persona — null where it keeps none and its file's text
 // stands — the system prompt its next turn sends, and how many room sessions a change of its generation starts afresh.
-export interface SupervisorPiecesView {
+export interface SupervisorSettingsView {
   name: string;
   sessions: number;
   generation: Record<string, number | boolean>;
@@ -204,6 +202,27 @@ export interface SupervisorPiecesView {
   system: { text: string; characters: number; hash: string };
 }
 
+// A supervisor the console added: its name, the console room it answers alone, and whether that room is one already
+// standing under the title that the add took back.
+export interface SupervisorAddedView {
+  name: string;
+  roomId: number;
+  takenBack: boolean;
+}
+
+// The supervisor that answers every room naming none, as the receiver's setting holds it.
+export interface DefaultAnswererView {
+  supervisor: string;
+}
+
+// The supervisor a search or browse run no supervisor delegated writes its brain for, as the agency's own settings hold
+// it, or none.
+export interface ResearchSupervisorView {
+  supervisor: string | null;
+}
+
+// One room a supervisor's turns went into (the agency's `docs/api.md`, 「supervisors」): how many of its runs went there
+// and its latest, the run a screen opens its log at, moments in epoch milliseconds.
 export interface SupervisorRoomView {
   chatId: number;
   runs: number;

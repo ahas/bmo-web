@@ -8,11 +8,11 @@ use serde_json::{Map, Value};
 use crate::Refusal;
 use crate::lang::LANGUAGE;
 use crate::lang::chat_health::CHAT_HEALTH_WORDS;
-use crate::lang::companions::COMPANION_WORDS;
 use crate::lang::draws::DRAWS;
 use crate::lang::fixed_lines::FIXED_LINES;
 use crate::lang::particles::PARTICLES;
 use crate::lang::roads::ROAD_WORDS;
+use crate::lang::supervisors::SUPERVISOR_WORDS;
 use crate::marks::fill_marks;
 use crate::settings::Names;
 
@@ -36,10 +36,10 @@ pub enum FixedLine {
     items: Vec<i64>,
   },
   GoingDown,
-  CompanionEngineError {
+  SupervisorEngineError {
     kind: EngineError,
   },
-  CompanionCut {
+  SupervisorCut {
     agent: String,
     reason: String,
   },
@@ -51,7 +51,7 @@ pub enum FixedLine {
   Unknown,
 }
 
-/// How a companion's engine ended its turn.
+/// How a supervisor's engine ended its turn.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum EngineError {
@@ -151,8 +151,8 @@ impl FixedLine {
       Self::ChatDenied => FIXED_LINES.chat_denied.clone(),
       Self::GoingDownForUpdate { items } => going_down(Some(items)),
       Self::GoingDown => going_down(None),
-      Self::CompanionEngineError { kind } => {
-        let words = &COMPANION_WORDS.engine_error;
+      Self::SupervisorEngineError { kind } => {
+        let words = &SUPERVISOR_WORDS.engine_error;
 
         match kind {
           EngineError::Busy => words.busy.clone(),
@@ -161,8 +161,8 @@ impl FixedLine {
           EngineError::Failed => words.failed.clone(),
         }
       }
-      Self::CompanionCut { agent, reason } => {
-        fill_marks(&FIXED_LINES.companion_cut, &[("name", agent), ("reason", reason)])
+      Self::SupervisorCut { agent, reason } => {
+        fill_marks(&FIXED_LINES.supervisor_cut, &[("name", agent), ("reason", reason)])
       }
       Self::Draw(draw) => draw.text(),
       Self::StillWorking => FIXED_LINES.still_working.clone(),

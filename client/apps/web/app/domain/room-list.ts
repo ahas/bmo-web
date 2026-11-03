@@ -83,7 +83,7 @@ export function useRoomList() {
   });
   useLiveRefresh(() => void refresh({ dedupe: "defer" }), { on: ["message", "room-removed", "room-read"] });
 
-  return { data: useNewestReads(data), status, error };
+  return { data: useNewestReads(data), status, error, refresh };
 }
 
 /**

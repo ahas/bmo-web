@@ -70,6 +70,8 @@
 - supervisor → 감독관: 감독관, 감독관 추가, 감독관의 설정, 감독관 없음, 감독관 중단. Every agent that answers in rooms
   is a supervisor, and every sentence names it 감독관 alone; a screen never calls one 채팅 에이전트 or by a word for a
   partner in a chat.
+- the supervisor that answers every room naming none → 기본 응답 감독관; the supervisor a search or browse run no
+  supervisor delegated writes its brain for → 리서치 감독관.
 - a role's slot, one of the runs its cap lets in at once → 역할 슬롯, 슬롯: 역할 슬롯, 작업 중, 예약됨, 비어 있음. Never
   자리, 칸, 풀.
 - a repository the agency runs jobs in → 저장소: 저장소, 저장소 추가. Never 리포지토리, 레포, 워커 for the place.

@@ -1,11 +1,14 @@
-// A supervisor's registration ended, for the administrator (the agency's `docs/api.md`, 「supervisors」): its settings,
-// sessions and person records go, its brain and the rooms it answered stay. One the deployment seeds, or one a turn
-// holds now, is refused with the agency's reason.
+// A supervisor removed, for the administrator (the receiver's `docs/api.md`, 「Supervisors」, `DELETE
+// /supervisors/{supervisorName}`): the receiver asks the agency for its half — its settings, sessions and person records
+// go, its brain stays — and lets every room's naming of it go, a room left naming none going to the default answerer.
+// One the deployment seeds, the default answerer and one a turn holds now are refused with the receiver's reason.
 export default defineEventHandler(async (event): Promise<void> => {
-  await requireAdministrator(event);
-
+  const session = await requireAdministrator(event);
   const name = axisName(getRouterParam(event, "name"));
 
-  await agencyCall(agency().DELETE("/supervisors/{supervisorName}", { params: { path: { supervisorName: name }, query: {} } }));
+  await receiverCall(
+    receiver().DELETE("/supervisors/{supervisorName}", { params: { path: { supervisorName: name }, query: { by: session.name } } }),
+    { codes: SUPERVISOR_CODES }
+  );
   setResponseStatus(event, 204);
 });

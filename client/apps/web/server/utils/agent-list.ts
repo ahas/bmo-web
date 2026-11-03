@@ -52,8 +52,9 @@ function onOrder(order: readonly { provider: string; model: string; effort: stri
   return { model: entry?.model ?? null, effort: entry?.effort ?? null };
 }
 
-/** One supervisor as the agent list stands it, with the rooms its sessions hold. */
-export function supervisorSummary(supervisor: Supervisor, sessions: readonly { chatId: number; lastAt: number | null }[]): AgentSummary {
+/** One supervisor as the agent list stands it, with the rooms it answers, marked as the default answerer where the
+ * receiver's setting names it. */
+export function supervisorSummary(supervisor: Supervisor, sessions: readonly { chatId: number; lastAt: number | null }[], answerer: string | null): AgentSummary {
   return {
     ...EMPTY,
     name: supervisor.name,
@@ -63,7 +64,7 @@ export function supervisorSummary(supervisor: Supervisor, sessions: readonly { c
     icon: text(supervisor.icon),
     sessionScope: supervisor.sessionScope === "agent" || supervisor.sessionScope === "room" ? supervisor.sessionScope : null,
     turnShape: supervisor.turnShape === "window" || supervisor.turnShape === "pieces" ? supervisor.turnShape : null,
-    defaultAnswerer: supervisor.defaultAnswerer,
+    defaultAnswerer: supervisor.name === answerer,
     ...(sessions.length === 0 ? {} : { sessions: [...sessions] }),
     provider: text(supervisor.provider),
     model: text(supervisor.model),
@@ -166,25 +167,22 @@ export function roleViewsOf(roles: readonly Role[]): RoleView[] {
   }));
 }
 
-/** The rooms each supervisor speaks in, each once (docs/web.md, 「Sidebar」): the rooms the agency's
- * `GET /supervisors/{name}/rooms` names for it, each with the second its last run there began, then the rooms its
- * sessions hold, with no moment known. */
+/** The rooms each supervisor answers, each once (docs/web.md, 「Sidebar」): the rooms the receiver's
+ * `GET /supervisors/{name}/rooms` names for it, each with the second its last run there began where the agency's
+ * `GET /supervisors/{name}/rooms` names one, and no moment where it names none. A room the supervisor's turns went into
+ * and that no longer names it is not its room. */
 export function supervisorRooms(
-  spoken: ReadonlyMap<string, readonly { roomId: number; lastStartedAt: number }[]>,
-  sessions: readonly { agentName: string; roomId: number | null }[]
+  answered: ReadonlyMap<string, readonly { id: number }[]>,
+  spoken: ReadonlyMap<string, readonly { roomId: number; lastStartedAt: number }[]>
 ): Map<string, { chatId: number; lastAt: number | null }[]> {
-  const found = new Map<string, Map<number, number | null>>();
-  const add = (name: string, room: number, lastAt: number | null): void => {
-    const held = found.get(name) ?? new Map<number, number | null>();
+  return new Map(
+    [...answered].map(([name, rooms]) => {
+      const began = new Map((spoken.get(name) ?? []).map((item) => [item.roomId, item.lastStartedAt > 0 ? Math.floor(item.lastStartedAt / 1000) : null]));
+      const ids = [...new Set(rooms.map((room) => room.id))];
 
-    if (!held.has(room) || (held.get(room) === null && lastAt !== null)) held.set(room, lastAt);
-    found.set(name, held);
-  };
-
-  for (const [name, items] of spoken) for (const item of items) add(name, item.roomId, item.lastStartedAt > 0 ? Math.floor(item.lastStartedAt / 1000) : null);
-  for (const session of sessions) if (session.roomId !== null) add(session.agentName, session.roomId, null);
-
-  return new Map([...found].map(([name, held]) => [name, [...held].map(([chatId, lastAt]) => ({ chatId, lastAt }))]));
+      return [name, ids.map((chatId) => ({ chatId, lastAt: began.get(chatId) ?? null }))];
+    })
+  );
 }
 
 /** What a run works in: the repository one of whose checkouts — or whose own folder — its path is, by that

@@ -168,7 +168,7 @@ const live = ref<LiveRun[]>([]);
 const compacting = ref<ChatCompaction[]>([]);
 
 // The chat agent's own turn, room by room, out of the tab's record of every room's turns: a room's line here is
-// the chat agent's session in it, so a companion's turn there neither starts nor ends it. The record outlives
+// the chat agent's session in it, so another supervisor's turn there neither starts nor ends it. The record outlives
 // this page, so coming back to it finds the turns that began while another screen was up.
 const bmoTurns = useBmoTurns();
 const turns = computed(() => new Map<number, ChatTurn>([...bmoTurns.value].map(([chatId, run]) => [chatId, { startedAt: run.startedAt, progress: run.progress }])));

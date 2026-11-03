@@ -1,5 +1,5 @@
 // An entry of the agent list as the console's server answers it, for a test that hands the console the list the way
-// the app does: a supervisor — the chat agent answering every room that names nobody, or a companion —, a role or a
+// the app does: a supervisor — the chat agent answering every room that names nobody, or one with a session in each room —, a role or a
 // repository.
 
 import { conversationOf } from "./conversation";
@@ -33,8 +33,8 @@ export function catalogueEntry(name: string, kind: AgentAxis, label: string | nu
   };
 }
 
-/** A supervisor: the chat agent's row, or a companion's. */
-export function catalogueRow(name: string, kind: "chat" | "companion", label: string | null = null): AgentSummary {
+/** A supervisor: the chat agent's row, or a room-scoped supervisor's. */
+export function catalogueRow(name: string, kind: "chat" | "room", label: string | null = null): AgentSummary {
   const carried = conversationOf({ kind });
 
   return catalogueEntry(name, "supervisor", label, {

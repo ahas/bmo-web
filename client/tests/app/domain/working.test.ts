@@ -16,7 +16,7 @@ import KO from "../../fixtures/app/domain/working.test.ko.json";
 function catalogued(name: string, kind: string, label: string): AgentSummary {
   const icon = "i-material-symbols-radio-button-checked-outline";
 
-  if (kind === "chat" || kind === "companion") return { ...catalogueRow(name, kind, label), icon };
+  if (kind === "chat" || kind === "room") return { ...catalogueRow(name, kind, label), icon };
 
   return catalogueEntry(name, kind === "worker" ? "repository" : "role", label, { icon });
 }
@@ -81,8 +81,8 @@ describe("what the room says the answering agent is doing", () => {
     expect(phaseLook(wording, KO.line_117, progress({ phase: "tool", tool: "Brandnew" }))).toEqual({ label: KO.line_117_2 });
   });
 
-  // A companion whose engine a Job holds waits for that Job, and the line says which item's it is
-  // (docs/companions.md, 「The engine it shares」).
+  // Another supervisor whose engine a Job holds waits for that Job, and the line says which item's it is
+  // (the agency's docs/supervisors.md, 「The engine it shares」).
   test("a turn waiting for its engine names the item whose Job holds it", () => {
     expect(phaseLook(wording, KO.line_123, progress({ phase: "waiting", waitingFor: { jobId: 5, todoId: 1099 } })))
       .toEqual({ label: wording("room.status.agent_waiting_engine_item", { subject: KO.line_124, item: "1099" }) });
@@ -114,18 +114,18 @@ describe("what the room says the answering agent is doing", () => {
     expect(phaseLook(wording, KO.line_150, progress({ phase: "writing" }))).toEqual({ label: wording("room.status.agent_writing", { subject: KO.line_150_2 }) });
   });
 
-  test("a companion's turn wears the label the agents table gives it, never the registration name the turn carries", () => {
+  test("another supervisor's turn wears the label the agents table gives it, never the registration name the turn carries", () => {
     holdCatalogue([catalogued("agent-c", "chat", "Agent C")]);
 
     expect(turnName(wording, { id: 11, name: "agent-c" })).toBe("Agent C");
   });
 
-  test("a companion the agents table has no label for is named by its registration, and the chat agent by the catalogue's label for it", () => {
+  test("another supervisor the agents table has no label for is named by its registration, and the chat agent by the catalogue's label for it", () => {
     expect(turnName(wording, { id: 11, name: KO.line_154 })).toBe(KO.line_154);
     // The pack's word stands for the chat agent only while the catalogue holds no session serving every room.
     expect(turnName(wording, undefined)).toBe(KO.line_156);
 
-    holdCatalogue([catalogued("agent-c", "companion", KO.line_158), catalogued("agent-b", "chat", KO.line_158_2)]);
+    holdCatalogue([catalogued("agent-c", "room", KO.line_158), catalogued("agent-b", "chat", KO.line_158_2)]);
 
     expect(turnName(wording, undefined)).toBe(KO.line_160);
   });

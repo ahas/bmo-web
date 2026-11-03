@@ -1,7 +1,7 @@
 import { markWords, MEDIA_MARKS, VOICE_MARK } from "#shared/text-marks";
 import { PAGING, POLL_INTERVAL_MS, ROUND_FIGURES_AT_ONCE } from "#shared/config";
 import { chatAgent } from "#shared/agent-names";
-import { agentRowName, bmoLabel, companionOf, defaultAnswererName } from "./agents";
+import { agentRowName, bmoLabel, otherAnswererOf, defaultAnswererName } from "./agents";
 import { agentKey, avatarFor, hueOf } from "./avatars";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { runKey } from "./events";
@@ -1127,8 +1127,8 @@ export interface DayGroup {
 // The right is the owner's own side and nobody else's: the console is read by them, so what they
 // themselves said stands where their own hand put it and every other voice in the room — the chat agent, another
 // person, a notice — stands on the left, whether the room is their own chat or a group. What the
-// row wears is a separate question from the side it stands on: an agent's answer — the chat agent's or a
-// companion's, as the server says of each message — is markdown, the look the row standing for its
+// row wears is a separate question from the side it stands on: an agent's answer — whichever
+// supervisor gave it, as the server says of each message — is markdown, the look the row standing for its
 // turn already wore, and everything a person wrote is the characters it is. Each stands in a
 // bubble, unless it is only what it carried.
 //
@@ -1296,9 +1296,9 @@ export function botAvatar(messages: readonly ArchivedMessage[], avatars: AvatarI
 // moving, which is the whole reason the turn is handed over as a row at all.
 export function runItem(run: RunState, speaker: Speaker, avatar: AvatarProps): FeedItem {
   return {
-    // One running row to a speaker: the chat agent's and a companion's can stand in the same room at once. The chat
-    // agent's row is one key whether it holds a turn or only listens, so a turn beginning changes the row in place.
-    key: `turn:${companionOf(run.speaker) === undefined ? "bmo" : runKey(run.speaker)}`,
+    // One running row to a speaker: two supervisors' can stand in the same room at once. The default answerer's row
+    // is one key whether it holds a turn or only listens, so a turn beginning changes the row in place.
+    key: `turn:${otherAnswererOf(run.speaker) === undefined ? "bmo" : runKey(run.speaker)}`,
     messageId: 0,
     senderId: speaker.id,
     senderName: speaker.name,

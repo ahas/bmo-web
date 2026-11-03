@@ -80,6 +80,25 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   chat: "room.error.removal_chat"
 };
 
+// The receiver's refusals of a supervisor's add, its removal and the default answerer setting (its `docs/codes.md`,
+// 「SupervisorRefusal」), each with the pack's key for its sentence, and the field of the add's form each stands under.
+export const SUPERVISOR_CODES: Readonly<Record<string, string>> = {
+  "unknown-supervisor": "agents.error.supervisor_unknown",
+  name: "agents.error.supervisor_name",
+  "name-taken": "agents.error.supervisor_name_taken",
+  label: "agents.error.supervisor_label",
+  provider: "agents.error.supervisor_provider",
+  model: "agents.error.supervisor_model",
+  repository: "agents.error.supervisor_repository",
+  room: "agents.error.supervisor_room",
+  order: "agents.error.supervisor_order",
+  "quota-share": "agents.error.supervisor_quota_share",
+  seeded: "agents.error.supervisor_seeded_refused",
+  "default-answerer": "agents.error.supervisor_default_answerer",
+  running: "agents.error.supervisor_running",
+  action: "common.error.bad_action"
+};
+
 /**
  * The receiver at the address its setting names, asked with its token: a call that only reads answers at once,
  * and one that runs a model waits as long as the model takes.

@@ -1,5 +1,5 @@
 import type { GenerationSetting } from "#shared/agency";
-import type { SupervisorPiecesView } from "#shared/axes";
+import type { SupervisorSettingsView } from "#shared/axes";
 import type { Translate } from "#shared/wording";
 
 // Generation settings as a settings form reads and changes them — a supervisor's own and a repository's sampling
@@ -42,7 +42,7 @@ export function generationBounds(setting: GenerationSetting): string {
 // The boxes as they start: each setting's saved number as text, and a switch's saved choice as on or off; a box or a
 // choice the engine's own default stands in stays empty, since no route says what that default is
 // (docs/web.md, 「The default among choices」).
-export function generationDraft(view: Pick<SupervisorPiecesView, "generationSettings" | "generation">): Record<string, string> {
+export function generationDraft(view: Pick<SupervisorSettingsView, "generationSettings" | "generation">): Record<string, string> {
   return settingsDraft(view.generationSettings, view.generation);
 }
 
@@ -89,7 +89,7 @@ export interface PiecesDraft {
 }
 
 // The fields as the agency holds them now.
-export function piecesDraft(view: SupervisorPiecesView): PiecesDraft {
+export function piecesDraft(view: SupervisorSettingsView): PiecesDraft {
   return { generation: generationDraft(view), referenceOn: view.referenceOn, persona: view.persona };
 }
 

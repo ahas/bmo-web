@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { useFormSave } from "bmo-ui/app/domain/form-save";
 
-import type { SupervisorPiecesView, SupervisorView } from "#shared/axes";
+import type { SupervisorSettingsView, SupervisorView } from "#shared/axes";
 
 interface Props {
   // The supervisor's name; its settings are read each time the dialog opens.
@@ -55,7 +55,7 @@ const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
 const form = useFormSave(t);
 const supervisor = ref<SupervisorView | null>(null);
-const pieces = ref<SupervisorPiecesView | null>(null);
+const pieces = ref<SupervisorSettingsView | null>(null);
 const failed = ref(false);
 const piecesFailed = ref(false);
 
@@ -88,7 +88,7 @@ watch(open, async (now) => {
   if (supervisor.value.turnShape !== "pieces") return;
 
   try {
-    pieces.value = await $fetch<SupervisorPiecesView>(`/api/supervisors/${encodeURIComponent(props.name)}/pieces`);
+    pieces.value = await $fetch<SupervisorSettingsView>(`/api/supervisors/${encodeURIComponent(props.name)}/settings`);
   } catch {
     piecesFailed.value = true;
   }

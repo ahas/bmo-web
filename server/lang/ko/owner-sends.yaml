@@ -4,7 +4,7 @@
 # A reply naming a message the room's record does not hold.
 reply_missing: "답장할 메시지가 기록에 없습니다."
 
-# A room the console made for companions, which takes words alone.
+# A room the console made for the supervisors it names, which takes words alone.
 words_only: "이 방은 글만 받아요. 파일은 보낼 수 없어요."
 
 # A file refused before anything goes: one with nothing in it, and one past the ceiling, {size} its own size

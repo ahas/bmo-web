@@ -72,9 +72,6 @@
                 @click="stops.ask(stopTarget)"
               />
 
-              <!-- This agent's own settings, where it has any of its own: a worker's whole settings
-                   and a room agent's block of the Companions tab, the very pieces the agent management
-                   screen shows. -->
               <!-- A chat agent's own picture, set in the console, for the administrator (docs/web.md, 「Profile photos」). -->
               <UTooltip v-if="picturable" :text="$t('picture.label.agent')">
                 <UButton color="neutral" variant="ghost" icon="i-material-symbols-add-photo-alternate-outline" :aria-label="$t('picture.label.agent')" data-agent-picture @click="pictureOpen = true" />

@@ -53,7 +53,7 @@ const receiver = standIn("RECEIVER", (call) => {
 
     const id = typeof call.body?.contactId === "number" ? call.body.contactId : 7;
 
-    return answer({ id, title: id === 7 ? "room-a" : "Contact", messageCount: 0, lastMessageAt: null, pinned: false, senders: [], companions: [], ownerRoom: false, registered: true, workRoom: null, mode: "record-only" }, 201);
+    return answer({ id, title: id === 7 ? "room-a" : "Contact", messageCount: 0, lastMessageAt: null, pinned: false, senders: [], supervisors: [], ownerRoom: false, registered: true, workRoom: null, mode: "record-only" }, 201);
   }
 
   return answer({ code: "not-found", error: "no route" }, 404);

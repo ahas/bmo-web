@@ -312,7 +312,7 @@ export interface Situation {
 export interface RoomAnswerers {
   default: string;
   voice: string | null;
-  agents: { name: string; companion: boolean }[];
+  agents: { name: string }[];
 }
 
 // A room's situation note as it stands, with when it last changed (epoch milliseconds), both null where the room has no
@@ -352,7 +352,7 @@ export interface ArchivedMessage {
   voiceState?: string | null;
   attachments?: MessageAttachment[];
   expressions?: TelegramExpression[];
-  // Whether an agent sent this message, the chat agent or a companion, as the server reads it off the archive;
+  // Whether an agent sent this message, whichever supervisor it is, as the server reads it off the archive;
   // a screen draws an agent's answer by it rather than by any name. Absent where the server did not
   // say, which a screen reads as a person's words.
   agent?: boolean;
@@ -928,7 +928,7 @@ export interface TurnReceived {
 // screen that arrives in the middle of a turn, or comes back from a dropped stream, show it.
 // Who answers a turn, as the receiver names it on every event of the turn and on the turn its picture holds: the
 // number the agent's words stand under in the room, or null where the room gives it none, and the agent's
-// registration name, which tells the chat agent's turn from a companion's and is never shown as it is.
+// registration name, which tells the default answerer's turn from another supervisor's and is never shown as it is.
 export interface TurnSpeaker {
   id: number | null;
   name: string;
@@ -1392,7 +1392,7 @@ export interface TurnFigures {
 }
 
 // Which of the agency's two axes or its places an entry of the agent list is (the agency's docs/agents.md, 「Two
-// axes」): a supervisor — the chat agent or a companion —, a role, or a repository.
+// axes」): a supervisor, a role, or a repository.
 export type AgentAxis = "supervisor" | "role" | "repository";
 
 // One run a role's slot is let in for now, as the agency's `GET /slots` answers it: the path it works at, the
@@ -2055,7 +2055,7 @@ export interface TodoNote {
   // to a job, or they were handed themselves. Taking them back does not reach into that run.
   carried: boolean;
   // "change" is the chat agent's change to the item's brief, the only kind a running job is handed; null is
-  // words a person, a companion or a job added.
+  // words a person, a supervisor or a job added.
   kind: "change" | null;
   // When the words were taken back, and by whom. The row stays where it is and is marked instead
   // of being deleted, so the item still says that this was asked and then withdrawn; no reading

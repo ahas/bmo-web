@@ -6,10 +6,10 @@ import { answer, standIn } from "../../support/units";
 
 import type { AgentList } from "../../../apps/web/shared/types";
 
-// The agent list as the agency answers it: its supervisors with the rooms their sessions hold, its roles with the runs
+// The agent list as the agency answers it: its supervisors with the rooms the receiver names for each, its roles with the runs
 // their slots hold now, its repositories with their checkouts, and the line a job goes out on. An agency that does not
 // answer leaves the list empty and says so. The gate order is the gate unit's, which is not split, so none stands
-// beside the list; the receiver's default answerer does.
+// beside the list; the supervisor the receiver's default answerer setting names does.
 
 let agencyAnswers = true;
 
@@ -27,7 +27,7 @@ standIn("AGENCY", (call) => {
       items: [
         {
           name: "agent-a", label: "Agent A", ownerAccount: null, aliases: null, icon: "i-material-symbols-mark-a", sessionScope: "agent",
-          turnShape: "window", defaultAnswerer: true, brainFolder: null, repository: null, order: ORDER, quotaShare: 0.01, warming: {},
+          turnShape: "window", brainFolder: null, repository: null, order: ORDER, quotaShare: 0.01, warming: {},
           foldRatio: 0.8, gates: null, voice: null, sampling: null, provider: "codex", model: "model-a", effort: "high", waitingFor: null
         }
       ],
@@ -76,14 +76,17 @@ standIn("AGENCY", (call) => {
     });
   }
 
-  if (call.path.startsWith("/sessions")) return answer({ items: [{ agentName: "agent-a", roomId: -7 }, { agentName: "agent-a", roomId: null }], more: false });
   if (call.path.startsWith("/jobs")) return answer({ items: [{ id: 7, roleName: "worker" }], more: false });
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
 standIn("RECEIVER", (call) => {
-  if (call.path.startsWith("/owner")) return answer({ room: 5, senderId: 1 });
-  if (call.path.startsWith("/rooms/5/answerers")) return answer({ default: "agent-a", voice: "agent-a", items: [], more: false });
+  if (call.path === "/default-answerer") return answer({ supervisor: "agent-a" });
+  // The default answerer answers the room its turns went into, and a room naming none it never spoke in; the room it
+  // spoke in and that names another supervisor now is not its own.
+  if (call.path === "/supervisors/agent-a/rooms") {
+    return answer({ items: [{ id: 42, title: null, named: false, alone: true }, { id: -7, title: "Room", named: false, alone: true }], more: false });
+  }
   if (call.path === "/rooms" || call.path.startsWith("/rooms?")) return answer({ items: [], more: false });
 
   return answer({ code: "no-route", error: "no route" }, 404);

@@ -1,0 +1,10 @@
+# What a supervisor's turn says of its own in a room (docs/boundary.md, 「Fixed lines」).
+
+# The one line a supervisor's turn leaves in the room, under the supervisor's own name, where its engine ended
+# the turn with an error, chosen by the error's kind: the engine busy or over its limit, the engine refusing the
+# request, the answer longer than the engine allows, and any other error. No marks.
+engine_error:
+  busy: "엔진이 지금 바빠서 이번 말에는 답하지 못했어요. 잠시 뒤에 다시 말해 주세요."
+  refused: "엔진이 요청을 받지 않아서 이번 말에는 답하지 못했어요. 엔진 설정을 확인해야 해요."
+  too_long: "답이 엔진이 허용하는 길이를 넘어서 이번 말에는 답하지 못했어요. 조금 짧게 다시 물어봐 주세요."
+  failed: "엔진에서 오류가 나서 이번 말에는 답하지 못했어요. 잠시 뒤에 다시 말해 주세요."

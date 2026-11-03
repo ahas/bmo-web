@@ -11,8 +11,8 @@
     "typecheck": "nuxi typecheck"
   },
   "dependencies": {
-    "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-0fa11f1.tgz",
-    "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.1.0-rev.1-950739e.tgz",
+    "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.10-be78dd0.tgz",
+    "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.1.0-rev.1-3e54306.tgz",
     "@internationalized/date": "3.12.4",
     "@nuxt/ui": "^4.11.2",
     "@nuxtjs/i18n": "^10.6.0",

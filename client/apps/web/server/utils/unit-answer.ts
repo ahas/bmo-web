@@ -48,7 +48,7 @@ export async function answered<T, E extends RefusalBody>(asked: Promise<UnitResu
     const coded = typeof held?.code === "string" ? call.codes?.[held.code] : undefined;
     const reason = coded !== undefined ? wording(coded, fieldsOf(held)) : reasonIn(body, result.response.status, carries(call, result.response.status));
 
-    throw createError({ statusCode: status, message: reason, data: { field: typeof body?.field === "string" ? body.field : null, code: typeof held?.code === "string" ? held.code : null } });
+    throw createError({ statusCode: status, message: reason, data: { field: typeof held?.field === "string" ? held.field : null, code: typeof held?.code === "string" ? held.code : null } });
   }
 
   return result.data as T;

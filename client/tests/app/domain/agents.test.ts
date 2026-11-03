@@ -46,7 +46,7 @@ function room(chatId: number, title: string): RoomSummary {
 // the name the owner calls it by. Every screen reads its names out of this, so a test about a name puts the list in
 // hand the way the app does.
 const CATALOGUE: AgentSummary[] = [
-  catalogueRow("agent-b", "companion", "Agent B"),
+  catalogueRow("agent-b", "room", "Agent B"),
   catalogueRow("agent-a", "chat", "Agent A"),
   catalogueEntry("search", "role", "Search role", { line: "search" }),
   catalogueEntry("worker", "role", "Worker role", {
@@ -104,7 +104,7 @@ describe("the agent list's branches", () => {
     expect(agentGroups(wording, [], [])).toEqual([]);
   });
 
-  test("the default answerer stands first among the supervisors, the companions after it in the agency's order", () => {
+  test("the default answerer stands first among the supervisors, the others after it in the agency's order", () => {
     registerChatAgent({ name: "agent-a", label: "Agent A" });
 
     try {
@@ -145,8 +145,8 @@ describe("the agent list's branches", () => {
 describe("a supervisor's room sessions", () => {
   test("stand under the rooms' names in the order the rooms stand, each opening the supervisor's log in that room", () => {
     const rooms = [room(-1, "Room One"), room(-2, "Room Two")];
-    const companion = { ...catalogueRow("agent-b", "companion", "Agent B"), sessions: [{ chatId: -2, lastAt: null }, { chatId: -1, lastAt: 100 }] };
-    const shown = metaOf(wording, companion, rooms);
+    const other = { ...catalogueRow("agent-b", "room", "Agent B"), sessions: [{ chatId: -2, lastAt: null }, { chatId: -1, lastAt: 100 }] };
+    const shown = metaOf(wording, other, rooms);
 
     expect(shown.sessions.map((session) => session.label)).toEqual(["Room One", "Room Two"]);
     expect(sessionLink("agent-b", shown.sessions[0]!)).toBe("/agents/agent-b?chat=-1&at=100");

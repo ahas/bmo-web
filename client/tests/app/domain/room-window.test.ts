@@ -6,9 +6,9 @@ import { groupRoom, listeningRuns, shownOutcome, WINDOW_NEWS } from "../../../ap
 import type { RunState } from "../../../apps/web/app/domain/events";
 import { OWNER_ID as owner, ROOM_ID } from "../../support/ids";
 
-const companion = { id: 4_218_992, name: "Carol" };
+const other = { id: 4_218_992, name: "Carol" };
 const bmoTurn: RunState = { messageId: 1, startedAt: 1_788_000_010, received: { messages: 1, instructions: 0 }, progress: null };
-const companionTurn: RunState = { ...bmoTurn, speaker: companion };
+const otherTurn: RunState = { ...bmoTurn, speaker: other };
 const open = { since: 1_788_000_000, closesAt: 1_788_000_180 };
 
 // A group room is every room but the owner's own chat, and a room the screen cannot tell yet is not one
@@ -25,7 +25,7 @@ describe("which rooms are groups", () => {
 describe("the listening row", () => {
   test("stands while the window is open and no turn of the chat agent's runs, keyed to the moment it was seen open and carrying when it closes", () => {
     expect(listeningRuns([], open)).toEqual([{ messageId: null, startedAt: 1_788_000_000, received: null, progress: null, listening: { closesAt: 1_788_000_180 } }]);
-    expect(listeningRuns([companionTurn], open)).toHaveLength(1);
+    expect(listeningRuns([otherTurn], open)).toHaveLength(1);
   });
 
   test("gives way to the chat agent's own turn, and stands nowhere while the window is shut", () => {

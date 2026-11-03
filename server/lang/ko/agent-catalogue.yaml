@@ -8,7 +8,7 @@ roster:
   chat: "{chat_agent}: one shared chat agent. {owner_chat_agent} is the chat agent in the owner’s private chat, not another agent. Connected rooms: {rooms}."
   owner_room: "{owner_chat}, {owner_chat_agent} or {owner_chat_agent} (you, the owner's private chat)"
   kinds:
-    companion: "지정된 에이전트, or designated agents: you and the companions below, each answering in the rooms that name it, in a persona of its own. A room that names a companion alone is never yours to speak in; in a room you share with one, the receiver wakes each of you by the same rule."
+    supervisor: "감독관, or supervisors: you and the supervisors below, each answering in the rooms that name it, in a persona of its own. A room that names other supervisors alone is never yours to speak in; in a room you share with one, the receiver wakes each of you by the same rule."
     gate: "게이트 에이전트, or 게이트: the judgement runs with no tools of their own."
     runner: "러너: the research runs you launch and that hand their result back to you."
     recollector: "리콜렉터, or Recollector: the runs that decide what of a conversation becomes an agent's long-term memory and write it from that agent's own view: the room digest and the person-book writer with Read, Write, Edit, Glob and Grep only, the session summariser with no tools."

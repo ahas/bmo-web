@@ -43,8 +43,8 @@ export function subjectOf(name: string): string {
   return joinedSubject(name);
 }
 
-// Who a turn is, by the name a person calls it: a companion under the label its row in the agents table carries,
-// and the chat agent under its own; never the registration name the turn carries, but where the catalogue holds no
+// Who a turn is, by the name a person calls it: a supervisor under the label its row in the agents table carries,
+// and the default answerer under the chat agent's own; never the registration name the turn carries, but where the catalogue holds no
 // label for it.
 export function turnName(t: Translate, speaker: TurnSpeaker | undefined): string {
   return speaker === undefined ? bmoLabel(t) : agentNameLabel(t, { name: speaker.name });
@@ -143,7 +143,7 @@ function stateLook(t: Translate, name: string, progress: RunProgress | null): Wo
   }
 
   // A turn whose engine a Job holds waits for that Job, which the line names by the item it is a run of
-  // (docs/companions.md, 「The engine it shares」).
+  // (the agency's docs/supervisors.md, 「The engine it shares」).
   if (progress.phase === "waiting") {
     const item = progress.waitingFor?.todoId ?? null;
 

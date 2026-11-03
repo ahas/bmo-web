@@ -1,6 +1,7 @@
 import { wording } from "#shared/wording";
 
 import { agency, agencyCall } from "./agency";
+import { defaultAnswerer } from "./owner";
 import { bundleWordOf, providerLabelOf, roadReasonOf } from "./agency-words";
 
 import type { Provider, Repository, Role, Supervisor } from "@agency/client";
@@ -131,8 +132,8 @@ export async function readProviderModels(name: string): Promise<ProviderModelsVi
   return { provider: answer.provider, models: answer.models.flatMap(providerModelOf), staleReadAt: number(answer.staleReadAt) };
 }
 
-/** One supervisor as the screen reads it. */
-export function supervisorViewOf(supervisor: Supervisor): SupervisorView {
+/** One supervisor as the screen reads it, marked as the default answerer where the receiver's setting names it. */
+export function supervisorViewOf(supervisor: Supervisor, answerer: string | null): SupervisorView {
   const warming: Record<string, boolean> = {};
 
   for (const [provider, on] of Object.entries(record(supervisor.warming))) {
@@ -146,7 +147,7 @@ export function supervisorViewOf(supervisor: Supervisor): SupervisorView {
     aliases: supervisor.aliases,
     sessionScope: supervisor.sessionScope,
     turnShape: supervisor.turnShape,
-    defaultAnswerer: supervisor.defaultAnswerer,
+    defaultAnswerer: supervisor.name === answerer,
     seeded: supervisor.seeded,
     repository: supervisor.repository,
     order: orderOf(supervisor.order),
@@ -161,13 +162,15 @@ export function supervisorViewOf(supervisor: Supervisor): SupervisorView {
 }
 
 export async function readSupervisors(): Promise<SupervisorView[]> {
-  const page = await agencyCall(agency().GET("/supervisors"));
+  const [page, answerer] = await Promise.all([agencyCall(agency().GET("/supervisors")), defaultAnswerer()]);
 
-  return page.items.map(supervisorViewOf);
+  return page.items.map((supervisor) => supervisorViewOf(supervisor, answerer));
 }
 
 export async function readSupervisor(name: string): Promise<SupervisorView> {
-  return supervisorViewOf(await agencyCall(agency().GET("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } } })));
+  const [supervisor, answerer] = await Promise.all([agencyCall(agency().GET("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } } })), defaultAnswerer()]);
+
+  return supervisorViewOf(supervisor, answerer);
 }
 
 /** A supervisor's change as a screen sent it, each field of its own shape; null where the body names none. */
@@ -202,7 +205,9 @@ export function supervisorChangeOf(body: unknown): Schemas["SupervisorChange"] |
 }
 
 export async function changeSupervisor(name: string, change: Schemas["SupervisorChange"]): Promise<SupervisorView> {
-  return supervisorViewOf(await agencyCall(agency().PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change })));
+  const [supervisor, answerer] = await Promise.all([agencyCall(agency().PATCH("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } }, body: change })), defaultAnswerer()]);
+
+  return supervisorViewOf(supervisor, answerer);
 }
 
 // A bundle is worded by its code, the name with each dot a hyphen (the agency's `docs/api.md`, 「roles」).

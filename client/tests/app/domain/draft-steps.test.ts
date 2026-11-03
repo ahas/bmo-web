@@ -14,7 +14,7 @@ import { ROOM_ID } from "../../support/ids";
 
 const thinking: RunProgress = { phase: "thinking", tool: null, thinkingTokens: null, contextTokens: null, cacheReadTokens: null, requestId: null, spent: null, writtenTokens: null, actions: [], droppedActions: 0, droppedContext: 0 };
 const turn: RunState = { messageId: 1, startedAt: 1_788_000_010, received: { messages: 1, instructions: 0 }, progress: thinking };
-const companion: RunState = { ...turn, speaker: { id: 4_218_992, name: "Carol" } };
+const other: RunState = { ...turn, speaker: { id: 4_218_992, name: "Carol" } };
 
 let lastId = 10;
 
@@ -66,7 +66,7 @@ describe("the draft events on the room's turns", () => {
   });
 
   test("a room with no turn of the chat agent's going is left as it was", () => {
-    const rooms: ReadonlyMap<number, RunState[]> = new Map([[ROOM_ID, [companion]]]);
+    const rooms: ReadonlyMap<number, RunState[]> = new Map([[ROOM_ID, [other]]]);
 
     expect(stepRoomTurns(rooms, started(1, 3, "intent"))).toBe(rooms);
     expect(stepRoomTurns(new Map(), started(1, 3, "intent")).size).toBe(0);

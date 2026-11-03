@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { companionOf } from "~/domain/agents";
+import { otherAnswererOf } from "~/domain/agents";
 import { phaseDetail, receivedLine, turnName } from "~/domain/working";
 
 import type { RunState } from "~/domain/events";
@@ -63,10 +63,10 @@ const props = defineProps<Props>();
 
 const { t } = useI18n();
 // The line names whoever this row is the turn of, which is the name the answer will stand under.
-const name = computed(() => turnName(t, companionOf(props.run.speaker)));
-// What the chat agent's draft process is on, which a companion's turn runs none of; the detail says it in place of
+const name = computed(() => turnName(t, otherAnswererOf(props.run.speaker)));
+// What the chat agent's draft process is on, which another supervisor's turn runs none of; the detail says it in place of
 // the state.
-const detail = computed(() => phaseDetail(t, props.run.progress, companionOf(props.run.speaker) === undefined ? props.run.draft ?? null : null));
+const detail = computed(() => phaseDetail(t, props.run.progress, otherAnswererOf(props.run.speaker) === undefined ? props.run.draft ?? null : null));
 // What the turn has done so far, oldest first, each at its whole length as the agent's log keeps it.
 const actions = computed(() => props.run.progress?.actions ?? []);
 const dropped = computed(() => props.run.progress?.droppedActions ?? 0);

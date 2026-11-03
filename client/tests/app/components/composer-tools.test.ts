@@ -26,9 +26,8 @@ describe("the input box's tools", () => {
     expect(screen).not.toContain("<RoomStickerPicker");
   });
 
-  test("attach in every room, a room made for companions among them", () => {
+  test("attach in every room, a room the console made among them", () => {
     expect(screen).toContain(':attachable="true"');
-    expect(screen).not.toContain("madeForCompanions");
     expect(screen).toContain('@dragover.prevent="dragging = true"');
   });
 });

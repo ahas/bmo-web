@@ -258,7 +258,7 @@
         "type": "object"
       },
       "EngineError": {
-        "description": "How a companion's engine ended its turn.",
+        "description": "How a supervisor's engine ended its turn.",
         "enum": [
           "busy",
           "refused",
@@ -401,7 +401,7 @@
           {
             "properties": {
               "code": {
-                "const": "companion-engine-error",
+                "const": "supervisor-engine-error",
                 "type": "string"
               },
               "kind": {
@@ -420,7 +420,7 @@
                 "type": "string"
               },
               "code": {
-                "const": "companion-cut",
+                "const": "supervisor-cut",
                 "type": "string"
               },
               "reason": {

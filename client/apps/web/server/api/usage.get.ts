@@ -12,15 +12,16 @@ export default defineEventHandler(async (event): Promise<UsageView> => {
   await requireUserSession(event);
 
   const after = Date.now() - WEEK_MS;
-  const [fallback, accounts, usage, supervisors] = await Promise.all([
+  const [fallback, accounts, usage, supervisors, answerer] = await Promise.all([
     agencyCall(agency().GET("/fallback")),
     agencyCall(agency().GET("/accounts")),
     agencyCall(agency().GET("/usage", { params: { query: { groupBy: "agent", after } } })),
     // The provider the chat agent runs on is the default answerer's own; a list that does not answer leaves the
     // fallback's word standing.
-    agencyCall(agency().GET("/supervisors")).then((page) => (Array.isArray(page.items) ? page.items : [])).catch(() => [])
+    agencyCall(agency().GET("/supervisors")).then((page) => (Array.isArray(page.items) ? page.items : [])).catch(() => []),
+    defaultAnswerer()
   ]);
-  const chatProvider = supervisors.find((supervisor) => supervisor.defaultAnswerer)?.provider ?? null;
+  const chatProvider = supervisors.find((supervisor) => supervisor.name === answerer)?.provider ?? null;
 
   return usageView(fallback, accounts.items, usage, chatProvider);
 });

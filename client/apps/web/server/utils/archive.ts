@@ -283,7 +283,7 @@ async function isOwnerNumber(chatId: number, number: number, messageId: number):
 // went out under and the voice the room answers as. A send in the agent's own bot account is no such answer.
 function accountAgent(message: ReceivedMessage, voiced: ReadonlyMap<number, string>): string | undefined {
   // The agent the receiver names on its send is the agent whose words the message is, whichever voice it went out in —
-  // its own bot account or a person's — so a companion speaking in its own room stands under its own name
+  // its own bot account or a person's — so a supervisor speaking in a room that names it stands under its own name
   // (docs/web.md, the naming rule).
   if (message.agentName !== null) return message.agentName;
 

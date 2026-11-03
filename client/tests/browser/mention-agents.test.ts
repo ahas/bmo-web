@@ -43,10 +43,10 @@ async function open(width: number, height: number): Promise<BrowserContext> {
 
   await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
 
-  // The room answers with a default answerer and one companion, each a supervisor holding a session in the room; the
+  // The room answers with a default answerer and one other supervisor, each a supervisor holding a session in the room; the
   // room's title is no agent's name.
   await context.route(new RegExp(`/api/rooms/${CHAT}/answerers$`), (route) =>
-    route.fulfill({ json: { default: "agent-a", voice: null, agents: [{ name: "agent-a", companion: false }, { name: "agent-b", companion: true }] } })
+    route.fulfill({ json: { default: "agent-a", voice: null, agents: [{ name: "agent-a" }, { name: "agent-b" }] } })
   );
   await context.route(/\/api\/agents(\?|$)/, async (route) => {
     const list = (await (await route.fetch()).json()) as AgentList;

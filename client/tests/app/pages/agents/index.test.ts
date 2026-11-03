@@ -45,7 +45,7 @@ describe("the screen's sections", () => {
     for (const part of ["<AgentsSupervisors", "<AgentsRoles", "<AgentsRepositories", "<AgentsRegistry", "<AgentsCatalogue"]) {
       expect(templateOf(page)).toContain(part);
     }
-    for (const gone of ["<AgentsGeneral", "<AgentsWorkers", "<AgentsTierTable", "<AgentsFoldRatios", "<AgentsCoworkerLimits", "<AgentsRouteTable", "<ResearchSettings", "<AgentsCompanions"]) {
+    for (const gone of ["<AgentsGeneral", "<AgentsWorkers", "<AgentsTierTable", "<AgentsFoldRatios", "<AgentsCoworkerLimits", "<AgentsRouteTable", "<ResearchSettings"]) {
       expect(templateOf(page)).not.toContain(gone);
     }
   });
@@ -192,11 +192,10 @@ describe("the supervisors tab", () => {
   });
 
   test("removes a supervisor, asked first, holds a seeded one's removal disabled with why, and the draft process under its table", () => {
-    expect(scriptOf(supervisors)).toContain("disabled: supervisor.seeded || removing.value !== \"\"");
+    expect(scriptOf(supervisors)).toContain("disabled: supervisor.seeded || supervisor.defaultAnswerer || removing.value !== \"\"");
     expect(scriptOf(supervisors)).toContain("`/api/supervisors/${encodeURIComponent(supervisor.name)}`, { method: \"DELETE\" }");
-    // A supervisor is added by its name, label, order and repository alone, and its rooms are the ones it speaks in.
-    expect(templateOf(supervisors)).not.toContain("draft.room");
-    expect(scriptOf(supervisors)).not.toContain("/api/companions");
+    // A supervisor is added through the receiver with the title of the console room it answers alone.
+    expect(templateOf(supervisors)).toContain('v-model="draft.room"');
     expect(scriptOf(supervisors)).toContain("description: t(\"agents.message.supervisor_seeded\")");
     expect(templateOf(supervisors)).toContain("<AgentsDraftProcesses");
   });

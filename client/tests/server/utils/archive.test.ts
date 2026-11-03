@@ -65,7 +65,7 @@ const voiced = [
 const keptFile = (place: number, kind: string, name: string, type: string | null, size: number | null, kept = true) => ({ place, kind, name, type, size, kept });
 
 function room(id: number, over: Record<string, unknown> = {}): Record<string, unknown> {
-  return { id, title: null, messageCount: 1, lastMessageAt: 1, pinned: false, senders: [], companions: [], ownerRoom: false, registered: true, workRoom: 0, ...over };
+  return { id, title: null, messageCount: 1, lastMessageAt: 1, pinned: false, senders: [], supervisors: [], ownerRoom: false, registered: true, workRoom: 0, ...over };
 }
 
 const receiver = standIn("RECEIVER", (one) => {
@@ -75,7 +75,7 @@ const receiver = standIn("RECEIVER", (one) => {
     return answer({ items: [keptFile(0, "audio", "bmo:voice", "audio/ogg", 1200), keptFile(1, "document", "notes.pdf", "application/pdf", null, false), keptFile(2, "photo", "p.jpg", "image/jpeg", 50)], more: false });
   }
   if (path === "/rooms/-7/messages/4/metadata") return answer({ metadata: null });
-  if (path === "/rooms/-7/answerers") return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", companion: false }], more: false });
+  if (path === "/rooms/-7/answerers") return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", defaultAnswerer: true }], more: false });
   if (path === "/rooms/-7/own-number") return answer({ number: 22 });
   if (path === "/rooms/-8/messages") return answer({ items: drawn, more: false });
   if (path === "/rooms/-8/messages/6/files") {
@@ -94,7 +94,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-8/messages/7/files") return answer({ code: "upstream-failed", error: "the store did not answer" }, 503);
   if (path === "/rooms/-8/answerers") return answer({ default: "", voice: "", items: [], more: false });
   // A room answered in the owner's own account: the voice agent's number there is the owner's.
-  if (path === "/rooms/-9/answerers") return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", companion: false }], more: false });
+  if (path === "/rooms/-9/answerers") return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", defaultAnswerer: true }], more: false });
   if (path === "/rooms/-9/own-number") return answer({ number: 33 });
   if (path === "/rooms/-9/messages") return answer({ items: voiced, more: false });
   if (path === "/rooms/-9/messages/22/sender-is-owner") return answer({ owner: true });
@@ -103,7 +103,7 @@ const receiver = standIn("RECEIVER", (one) => {
     return answer({
       items: [
         room(5, { messageCount: 3, lastMessageAt: 100_000, pinned: true }),
-        room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200_000, companions: ["companion-a"] }),
+        room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200_000, supervisors: ["agent-b"] }),
         // The owner's private chat, a room the console made on the record road.
         room(-11, { messageCount: 1, lastMessageAt: 300_000 })
       ],
@@ -206,7 +206,7 @@ describe("a page of a room", () => {
 
     const read = await readMessagePage(-9, null, 50);
 
-    // Every send the receiver names its agent on is that agent's words, whichever voice it went out in: a companion's
+    // Every send the receiver names its agent on is that agent's words, whichever voice it went out in: another supervisor's
     // own bot account names it as a person's account does (docs/web.md, the naming rule).
     expect(read.messages.map((one) => [one.messageId, one.agent, one.voicedBy, one.senderName])).toEqual([
       [20, true, "agent-a", "person-owner"],

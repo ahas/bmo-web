@@ -10,7 +10,7 @@ import type { RoomRemovalPreview } from "../../../apps/web/shared/types";
 const preview: RoomRemovalPreview = {
   chat: -1005,
   refused: null,
-  warnings: ["companion answers here"],
+  warnings: ["agent-b answers here"],
   goes: [
     { table: "messages", rows: 120 },
     { table: "chat_titles", rows: 1 },
@@ -54,7 +54,7 @@ describe("what the dialog lists of a removal", () => {
       1,
       ["people_digest_since:agent-a:-1005"],
       ["mystery:-1005"],
-      ["companion answers here"],
+      ["agent-b answers here"],
     ]);
   });
 

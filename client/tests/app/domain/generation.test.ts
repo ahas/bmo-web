@@ -4,7 +4,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { anyRunning, catalogueSave, emptyCatalogueForm, sourceText } from "../../../apps/web/app/domain/catalogue-models";
 import { draftDiffers, generationBounds, generationChange, generationDraft, generationUse, piecesChange, piecesDraft } from "../../../apps/web/app/domain/generation";
 
-import type { SupervisorPiecesView } from "../../../apps/web/shared/axes";
+import type { SupervisorSettingsView } from "../../../apps/web/shared/axes";
 
 // A supervisor's own settings and the model catalogue as the console reads them (docs/web.md, 「Agent management
 // screen」; the agency's docs/model-catalogue.md).
@@ -53,7 +53,7 @@ describe("the generation settings", () => {
 });
 
 describe("a supervisor's own settings as its form holds them", () => {
-  const view: SupervisorPiecesView = {
+  const view: SupervisorSettingsView = {
     name: "tester-chat",
     sessions: 0,
     generation,

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, spyOn, test } from "bun:test";
 import { computed, createRenderer, defineComponent, nextTick, onMounted, onScopeDispose, readonly, ref, shallowRef, watch } from "vue";
 
-import { ANSWER_WAIT_MS, companionOf, retryDelay, runKey, shouldRefresh, TURN_ENDED, useBotEvents, useRoomRun } from "../../../apps/web/app/domain/events";
+import { ANSWER_WAIT_MS, otherAnswererOf, retryDelay, runKey, shouldRefresh, TURN_ENDED, useBotEvents, useRoomRun } from "../../../apps/web/app/domain/events";
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { listeningRuns } from "../../../apps/web/app/domain/room-window";
 import { registerChatAgent } from "../../../apps/web/shared/agent-names";
@@ -315,51 +315,51 @@ describe("the block a room shows while the chat agent is answering it", () => {
     });
   });
 
-  // A companion's turn names who answers (the agency's docs/companions.md), and its block wears that name rather
+  // Another supervisor's turn names who answers (the agency's docs/supervisors.md), and its block wears that name rather
   // than the chat agent's; the chat agent's own turn names nobody. In a room both answer, each turn is a block of its own.
-  test("a companion's turn and the chat agent's stand as two blocks, and each ending closes its own", async () => {
-    const companion = { id: 1_000_000_007, name: KO.line_316 };
+  test("another supervisor's turn and the chat agent's stand as two blocks, and each ending closes its own", async () => {
+    const other = { id: 1_000_000_007, name: KO.line_316 };
 
     await watching(-1003, async (screen) => {
-      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: companion }));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: other }));
       screen.write("bot", botEvent({ type: "run-started", messageId: 42 }));
 
-      expect(screen.runs().map((run) => [run.messageId, run.speaker])).toEqual([[41, companion], [42, undefined]]);
+      expect(screen.runs().map((run) => [run.messageId, run.speaker])).toEqual([[41, other], [42, undefined]]);
 
-      screen.write("bot", botEvent({ type: "sent", messageId: 43, speaker: companion }));
+      screen.write("bot", botEvent({ type: "sent", messageId: 43, speaker: other }));
       await screen.finishRead();
 
       expect(screen.runs().map((run) => run.messageId)).toEqual([42]);
     });
   });
 
-  test("a screen arriving in the middle of a companion's turn reads it off the picture beside the chat agent's", () => {
-    const companion = { id: 1_000_000_007, name: KO.line_332 };
+  test("a screen arriving in the middle of another supervisor's turn reads it off the picture beside the chat agent's", () => {
+    const other = { id: 1_000_000_007, name: KO.line_332 };
 
     watching(-1003, (screen) => {
-      screen.write("live", picture([chatTurn({ messages: 1 }), chatTurn({ messages: 3, speaker: companion })]));
+      screen.write("live", picture([chatTurn({ messages: 1 }), chatTurn({ messages: 3, speaker: other })]));
 
-      expect(screen.runs().map((run) => [run.received?.messages, run.speaker])).toEqual([[1, undefined], [3, companion]]);
+      expect(screen.runs().map((run) => [run.received?.messages, run.speaker])).toEqual([[1, undefined], [3, other]]);
 
-      // The picture lets the chat agent's turn go and keeps the companion's: only the agent's block comes down.
-      screen.write("live", picture([chatTurn({ messages: 3, speaker: companion })]));
+      // The picture lets the chat agent's turn go and keeps that supervisor's: only the agent's block comes down.
+      screen.write("live", picture([chatTurn({ messages: 3, speaker: other })]));
 
-      expect(screen.runs().map((run) => run.speaker)).toEqual([companion]);
+      expect(screen.runs().map((run) => run.speaker)).toEqual([other]);
     });
   });
 
-  // A companion's turn waiting for its engine stands in the picture with the Job it waits on, so a
+  // Another supervisor's turn waiting for its engine stands in the picture with the Job it waits on, so a
   // screen opened in the middle of the wait reads it as waiting, and as waiting no longer once the
-  // picture lets the wait go (the agency's docs/companions.md, 「The engine it shares」).
-  test("a screen arriving while a companion's turn waits for its engine reads the wait off the picture", () => {
-    const companion = { id: 1_000_000_007, name: KO.line_350 };
+  // picture lets the wait go (the agency's docs/supervisors.md, 「The engine it shares」).
+  test("a screen arriving while another supervisor's turn waits for its engine reads the wait off the picture", () => {
+    const other = { id: 1_000_000_007, name: KO.line_350 };
 
     watching(-1003, (screen) => {
-      screen.write("live", picture([chatTurn({ messages: 1, speaker: companion, waiting: { jobId: 5, todoId: 1099 } })]));
+      screen.write("live", picture([chatTurn({ messages: 1, speaker: other, waiting: { jobId: 5, todoId: 1099 } })]));
 
       expect(screen.runs().map((run) => [run.progress?.phase, run.progress?.waitingFor])).toEqual([["waiting", { jobId: 5, todoId: 1099 }]]);
 
-      screen.write("live", picture([chatTurn({ messages: 2, speaker: companion, waiting: null })]));
+      screen.write("live", picture([chatTurn({ messages: 2, speaker: other, waiting: null })]));
 
       expect(screen.runs().map((run) => [run.progress, run.received?.messages])).toEqual([[null, 2]]);
     });
@@ -398,10 +398,10 @@ describe("the block a room shows while the chat agent is answering it", () => {
     });
   });
 
-  // Every event of a companion's turn names its speaker (the receiver's live picture, 「What a running turn
+  // Every event of another supervisor's turn names its speaker (the receiver's live picture, 「What a running turn
   // says of itself」), so its progress moves its own block and its ending settles that block alone.
-  test("a companion's turn shows what it did and spent while it runs, and stands with it through its ending", async () => {
-    const companion = { id: 11, name: "Companion" };
+  test("another supervisor's turn shows what it did and spent while it runs, and stands with it through its ending", async () => {
+    const other = { id: 11, name: "Agent B" };
     const progress: RunProgress = {
       phase: "tool",
       tool: "Bash",
@@ -420,17 +420,17 @@ describe("the block a room shows while the chat agent is answering it", () => {
     };
 
     await watching(-1003, async (screen) => {
-      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: companion }));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: other }));
       screen.write("bot", botEvent({ type: "run-started", messageId: 42 }));
-      screen.write("bot", botEvent({ type: "run-progress", messageId: 41, speaker: companion, progress }));
+      screen.write("bot", botEvent({ type: "run-progress", messageId: 41, speaker: other, progress }));
 
       const shown = (): unknown[] => screen.runs().map((run) => [run.speaker?.name, run.progress?.tool, run.progress?.writtenTokens, run.progress?.actions.map((action) => action.name)]);
 
-      expect(shown()).toEqual([["Companion", "Bash", 40, ["knowledge", "Bash"]], [undefined, undefined, undefined, undefined]]);
+      expect(shown()).toEqual([["Agent B", "Bash", 40, ["knowledge", "Bash"]], [undefined, undefined, undefined, undefined]]);
 
-      screen.write("bot", botEvent({ type: "sent", messageId: 43, speaker: companion }));
+      screen.write("bot", botEvent({ type: "sent", messageId: 43, speaker: other }));
 
-      expect(shown()[0]).toEqual(["Companion", "Bash", 40, ["knowledge", "Bash"]]);
+      expect(shown()[0]).toEqual(["Agent B", "Bash", 40, ["knowledge", "Bash"]]);
 
       await screen.finishRead();
 
@@ -545,7 +545,7 @@ describe("the block a room shows while the chat agent is answering it", () => {
     });
   });
 
-  test("a companion's turn that failed says whose turn it was", () => {
+  test("another supervisor's turn that failed says whose turn it was", () => {
     watching(-1003, (screen) => {
       screen.write("bot", botEvent({ type: "run-failed", messageId: 41, speaker: { id: 11, name: KO.line_545 } }));
 
@@ -582,14 +582,14 @@ describe("the block a room shows while the chat agent is answering it", () => {
 });
 
 // The receiver names the speaker on every event of a turn by the answering agent's registration name: the default
-// answerer's is the chat agent's turn and any other name a companion's, and a turn's sending and draft rows reach the
+// answerer's is the chat agent's turn and any other name another supervisor's, and a turn's sending and draft rows reach the
 // row of the speaker they name (docs/web.md, 「The name is the one answering on that row」). The row standing for the
 // chat agent's turn is its own, so its listening row never stands beside it, and it stands until the answer it sent
 // is in the feed rather than until the picture lets the turn go (docs/web.md, the room screen's section on what is
 // being done now).
 describe("the chat agent's turn as the receiver names it", () => {
   const tagged: TurnSpeaker = { id: 8_000_000_001, name: "agent-a" };
-  const companion: TurnSpeaker = { id: 11, name: "agent-b" };
+  const other: TurnSpeaker = { id: 11, name: "agent-b" };
   const open = { since: 1_788_489_000, closesAt: 1_788_491_000 };
 
   beforeAll(() => registerChatAgent({ name: "agent-a", label: "Agent A" }));
@@ -598,27 +598,27 @@ describe("the chat agent's turn as the receiver names it", () => {
     holdCatalogue([]);
   });
 
-  test("the default answerer's name is the chat agent's, any other name a companion's, and the number tells nothing", () => {
-    expect(companionOf(tagged)).toBeUndefined();
-    expect(companionOf(undefined)).toBeUndefined();
+  test("the default answerer's name is the chat agent's, any other name another supervisor's, and the number tells nothing", () => {
+    expect(otherAnswererOf(tagged)).toBeUndefined();
+    expect(otherAnswererOf(undefined)).toBeUndefined();
     expect(runKey(tagged)).toBe(runKey({ id: null, name: "agent-a" }));
-    expect(companionOf(companion)).toEqual(companion);
-    expect(runKey(companion)).not.toBe(runKey(undefined));
-    // Two companions holding no number apart stand apart by their names, and one number held by both tells nothing.
+    expect(otherAnswererOf(other)).toEqual(other);
+    expect(runKey(other)).not.toBe(runKey(undefined));
+    // Two supervisors holding no number apart stand apart by their names, and one number held by both tells nothing.
     expect(runKey({ id: null, name: "agent-c" })).not.toBe(runKey({ id: null, name: "agent-d" }));
-    expect(runKey({ id: 11, name: "agent-c" })).not.toBe(runKey(companion));
+    expect(runKey({ id: 11, name: "agent-c" })).not.toBe(runKey(other));
   });
 
   test("an event whose speaker is null, a verdict's among them, is the chat agent's and moves no other turn", async () => {
-    expect(companionOf(null)).toBeUndefined();
+    expect(otherAnswererOf(null)).toBeUndefined();
     expect(runKey(null)).toBe(runKey(undefined));
 
     await watching(-1003, async (screen) => {
       screen.write("live", picture([]));
-      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: companion }));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: other }));
       screen.write("bot", botEvent({ type: "judgement", messageId: 41, stage: "chat", verdict: "REPLY", speaker: null }));
 
-      expect(screen.runs().map((run) => run.speaker)).toEqual([companion]);
+      expect(screen.runs().map((run) => run.speaker)).toEqual([other]);
 
       screen.write("live", picture([]));
     }, () => true);
@@ -628,8 +628,8 @@ describe("the chat agent's turn as the receiver names it", () => {
     holdCatalogue([], [], "agent-b");
 
     try {
-      expect(companionOf(companion)).toBeUndefined();
-      expect(companionOf(tagged)).toEqual(tagged);
+      expect(otherAnswererOf(other)).toBeUndefined();
+      expect(otherAnswererOf(tagged)).toEqual(tagged);
     } finally {
       holdCatalogue([]);
     }
@@ -638,16 +638,16 @@ describe("the chat agent's turn as the receiver names it", () => {
   test("a turn begun before the default answerer's name arrived moves to the chat agent's row once it does", () => {
     watching(-1003, (screen) => {
       screen.write("live", picture([]));
-      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: companion }));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: other }));
 
-      expect(screen.runs().map((run) => companionOf(run.speaker))).toEqual([companion]);
+      expect(screen.runs().map((run) => otherAnswererOf(run.speaker))).toEqual([other]);
 
       holdCatalogue([], [], "agent-b");
 
       try {
-        expect(screen.runs().map((run) => companionOf(run.speaker))).toEqual([undefined]);
+        expect(screen.runs().map((run) => otherAnswererOf(run.speaker))).toEqual([undefined]);
         // Its events still reach it by its speaker's name.
-        screen.write("bot", botEvent({ type: "run-progress", messageId: 41, speaker: companion, progress: { phase: "writing", tool: null, thinkingTokens: null, contextTokens: null, cacheReadTokens: null, requestId: null, spent: null, writtenTokens: 3, actions: [], droppedActions: 0, droppedContext: 0 } }));
+        screen.write("bot", botEvent({ type: "run-progress", messageId: 41, speaker: other, progress: { phase: "writing", tool: null, thinkingTokens: null, contextTokens: null, cacheReadTokens: null, requestId: null, spent: null, writtenTokens: 3, actions: [], droppedActions: 0, droppedContext: 0 } }));
 
         expect(screen.run()?.progress?.writtenTokens).toBe(3);
       } finally {
@@ -657,23 +657,23 @@ describe("the chat agent's turn as the receiver names it", () => {
     });
   });
 
-  test("a companion's sending and draft rows reach the companion's row, and the chat agent's its own", async () => {
+  test("another supervisor's sending and draft rows reach that supervisor's row, and the chat agent's its own", async () => {
     await watching(-1003, async (screen) => {
       screen.write("live", picture([]));
       screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
-      screen.write("bot", botEvent({ type: "run-started", messageId: 42, speaker: companion }));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 42, speaker: other }));
 
-      expect(screen.runs().map((run) => [run.messageId, companionOf(run.speaker)])).toEqual([[41, undefined], [42, companion]]);
+      expect(screen.runs().map((run) => [run.messageId, otherAnswererOf(run.speaker)])).toEqual([[41, undefined], [42, other]]);
 
-      screen.write("bot", botEvent({ type: "draft", number: 1, count: 2, kind: "start", question: "memory", speaker: companion }));
+      screen.write("bot", botEvent({ type: "draft", number: 1, count: 2, kind: "start", question: "memory", speaker: other }));
 
       expect(screen.runs().map((run) => run.draft?.question)).toEqual([undefined, "memory"]);
 
-      screen.write("bot", botEvent({ type: "sent", messageId: 43, speaker: companion }));
+      screen.write("bot", botEvent({ type: "sent", messageId: 43, speaker: other }));
       screen.write("live", picture([chatTurn({ speaker: tagged })]));
       await screen.finishRead();
 
-      expect(screen.runs().map((run) => [run.messageId, companionOf(run.speaker)])).toEqual([[41, undefined]]);
+      expect(screen.runs().map((run) => [run.messageId, otherAnswererOf(run.speaker)])).toEqual([[41, undefined]]);
 
       screen.write("live", picture([]));
     }, () => true);
@@ -687,13 +687,13 @@ describe("the chat agent's turn as the receiver names it", () => {
 
       screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
 
-      expect(screen.runs().map((run) => companionOf(run.speaker))).toEqual([undefined]);
+      expect(screen.runs().map((run) => otherAnswererOf(run.speaker))).toEqual([undefined]);
       expect(listeningRuns(screen.runs(), open)).toEqual([]);
 
       // A screen arriving mid-turn reads the same turn off the picture, named the same way.
       screen.write("live", picture([chatTurn({ speaker: tagged })]));
 
-      expect(screen.runs().map((run) => companionOf(run.speaker))).toEqual([undefined]);
+      expect(screen.runs().map((run) => otherAnswererOf(run.speaker))).toEqual([undefined]);
       expect(listeningRuns(screen.runs(), open)).toEqual([]);
 
       screen.write("live", picture([]));

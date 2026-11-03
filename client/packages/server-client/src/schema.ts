@@ -478,7 +478,7 @@ export interface components {
         /** @description What a route that answers with nothing in particular sends: an empty object. */
         Empty: Record<string, never>;
         /**
-         * @description How a companion's engine ended its turn.
+         * @description How a supervisor's engine ended its turn.
          * @enum {string}
          */
         EngineError: "busy" | "refused" | "too-long" | "failed";
@@ -515,12 +515,12 @@ export interface components {
             code: "going-down";
         } | {
             /** @constant */
-            code: "companion-engine-error";
+            code: "supervisor-engine-error";
             kind: components["schemas"]["EngineError"];
         } | {
             agent: string;
             /** @constant */
-            code: "companion-cut";
+            code: "supervisor-cut";
             reason: string;
         } | components["schemas"]["DrawLine"] | {
             /** @constant */

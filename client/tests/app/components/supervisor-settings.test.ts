@@ -29,7 +29,7 @@ describe("a supervisor's settings", () => {
     expect(dialog.indexOf("<SupervisorFields")).toBeLessThan(dialog.indexOf("<SupervisorPiecesFields"));
     expect(pieces).toContain("useFormPart(");
     expect(pieces).toContain("<GenerationFields");
-    expect(pieces).toContain("`/api/supervisors/${encodeURIComponent(view.value.name)}/pieces`");
+    expect(pieces).toContain("`/api/supervisors/${encodeURIComponent(view.value.name)}/settings`");
     expect(fields).toContain("useFormPart(");
     expect(documents).toContain("useFormPart(");
     expect(fields).toContain("<ProviderOrderField");

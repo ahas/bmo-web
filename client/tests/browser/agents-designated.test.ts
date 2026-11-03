@@ -51,7 +51,7 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-// The agent list: the chat agent's own supervisor row, answering every room that names nobody, and a companion named
+// The agent list: the chat agent's own supervisor row, answering every room that names nobody, and another supervisor named
 // the way a room's title reads, which no screen may take for the agent's name.
 function catalogue(list: AgentList, chatName: string): AgentList {
   return {

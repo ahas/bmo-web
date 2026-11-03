@@ -439,7 +439,7 @@ import { POLL_INTERVAL_MS } from "#shared/config";
 import { controlLine, useControlStatus } from "~/domain/control";
 import { messageOfQuery } from "#shared/paths";
 import { screenKey } from "~/domain/route-key";
-import { agentLabel, agentNameLabel, bmoLabel, companionOf, roomTitle } from "~/domain/agents";
+import { agentLabel, agentNameLabel, bmoLabel, otherAnswererOf, roomTitle } from "~/domain/agents";
 import { chatAgent } from "#shared/agent-names";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { attachmentBody } from "~/domain/attachments";
@@ -707,7 +707,7 @@ const { runs, outcome } = useRoomRun(chatId, {
   onJudgement: (judgement: Judgement) => roomFeed.addLiveJudgement(judgement),
   onSettled: () => settle(),
   // A turn that sent its answer stands its row until that answer is in the feed, found as its row finds it.
-  answered: (run: RunState) => turnAnswer(run, (companionOf(run.speaker) ?? botSpeaker(roomFeed.messages.value)).id, roomFeed.messages.value) !== undefined,
+  answered: (run: RunState) => turnAnswer(run, (otherAnswererOf(run.speaker) ?? botSpeaker(roomFeed.messages.value)).id, roomFeed.messages.value) !== undefined,
   onLive: (picture: LiveSnapshot) => {
     takeLive(picture.runs);
     queued.value = picture.queued ?? queued.value;
@@ -1082,8 +1082,8 @@ const statsRead = useReadFailure({
 });
 
 // Who the input box offers an @ (docs/web.md, the room screen's section on mentions): the people who spoke in this
-// room, the reader's own senders left out, and the agents answering it — the chat agent and every companion of the
-// room — each by its label. A name written into the words is what the receiver reads: a registered label or wake word.
+// room, the reader's own senders left out, and the agents answering it — every supervisor the
+// room names, the default answerer where it names none — each by its label. A name written into the words is what the receiver reads: a registered label or wake word.
 const { agents: catalogue } = useAgentCatalogue();
 // The room's agents for the mention list, by the names the receiver gives its answerers (docs/web.md, the room screen's
 // mention section): each is called by the agent's own label and wears the picture the catalogue gives it, never by a
@@ -1132,20 +1132,21 @@ const botFace = computed(() => botAvatar(roomFeed.messages.value, avatars.value)
 
 // The turns still running, each as a row of this conversation. A row is built the way every other
 // row is and handed to the same component, which is what keeps the answer's own coordinates from
-// moving when it takes the row's place. A companion's turn wears the companion's own name and
-// picture, which its answer will wear too, and stands beside the chat agent's where both answer at once; its name
+// moving when it takes the row's place. A turn of a supervisor other than the default answerer wears
+// that supervisor's own name and picture, which its answer will wear too, and stands beside the default answerer's
+// where both answer at once; its name
 // is the label the agents table gives it. While the chat agent only listens in a group room its row stands holding
 // no turn.
 const turnRows = computed<FeedItem[]>(() =>
   [...runs.value, ...listeningRuns(runs.value, listeningWindow.value)].map((run) => {
-    const companion = companionOf(run.speaker);
+    const other = otherAnswererOf(run.speaker);
 
-    if (companion === undefined) return runItem(run, botSpeaker(roomFeed.messages.value), botFace.value);
+    if (other === undefined) return runItem(run, botSpeaker(roomFeed.messages.value), botFace.value);
 
-    const shown = { id: companion.id, name: agentLabel(t, companion.name) };
+    const shown = { id: other.id, name: agentLabel(t, other.name) };
 
-    // The companion's own face, the one its answers wear, whatever number its words stand under here.
-    return runItem(run, shown, agentAvatar(avatars.value, companion.name));
+    // The supervisor's own face, the one its answers wear, whatever number its words stand under here.
+    return runItem(run, shown, agentAvatar(avatars.value, other.name));
   })
 );
 // A row gives its place to its turn's answer the moment the answer is in the feed, by whichever read.

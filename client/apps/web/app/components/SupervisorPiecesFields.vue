@@ -64,11 +64,11 @@ import { countText } from "~/domain/numbers";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useFormPart } from "bmo-ui/app/domain/form-save";
 
-import type { SupervisorPiecesView } from "#shared/axes";
+import type { SupervisorSettingsView } from "#shared/axes";
 import type { PiecesDraft } from "~/domain/generation";
 
-const props = defineProps<{ view: SupervisorPiecesView }>();
-const emit = defineEmits<{ saved: [view: SupervisorPiecesView] }>();
+const props = defineProps<{ view: SupervisorSettingsView }>();
+const emit = defineEmits<{ saved: [view: SupervisorSettingsView] }>();
 
 const { t } = useI18n();
 
@@ -129,7 +129,7 @@ async function save(): Promise<boolean> {
   refusal.value = null;
 
   try {
-    const latest = await $fetch<SupervisorPiecesView>(`/api/supervisors/${encodeURIComponent(view.value.name)}/pieces`, { method: "PATCH", body: change });
+    const latest = await $fetch<SupervisorSettingsView>(`/api/supervisors/${encodeURIComponent(view.value.name)}/settings`, { method: "PATCH", body: change });
 
     draft.value = piecesDraft(latest);
     emit("saved", latest);

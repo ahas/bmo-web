@@ -37,7 +37,7 @@ started: "{unit} 를 띄웠어요({tree}). 진행: bmo gate eval status --set {s
 status:
   set: "세트 {set} · {folder}"
   head: "게이트 | 상태 | 만든 수 | 목표 | 남은 양 | 묶음 | 물은 수 | 거부 | 버림 | 이유"
-  sanitizer: "sanitizer | Codex로 만들지 않음 | 보안 침해 문장이 문제 자체라 {companion} 몫으로 남김"
+  sanitizer: "sanitizer | Codex로 만들지 않음 | 보안 침해 문장이 문제 자체라 {supervisor} 몫으로 남김"
 
 # The last score of each gate on each road: a set with none, and the table's head.
 report:

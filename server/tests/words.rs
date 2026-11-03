@@ -11,11 +11,11 @@ use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
 use bmo_web_server::lang::LANGUAGE;
 use bmo_web_server::lang::chat_health::CHAT_HEALTH_WORDS;
-use bmo_web_server::lang::companions::COMPANION_WORDS;
 use bmo_web_server::lang::draws::DRAWS;
 use bmo_web_server::lang::fixed_lines::FIXED_LINES;
 use bmo_web_server::lang::particles::PARTICLES;
 use bmo_web_server::lang::roads::ROAD_WORDS;
+use bmo_web_server::lang::supervisors::SUPERVISOR_WORDS;
 use bmo_web_server::marks::fill_marks;
 use bmo_web_server::routes::in_force;
 use bmo_web_server::wording::document_wording;
@@ -176,8 +176,8 @@ async fn going_down_is_the_restart_under_the_service_mark() {
 }
 
 #[tokio::test]
-async fn companion_engine_error_is_its_kinds_line() {
-  let words = &COMPANION_WORDS.engine_error;
+async fn supervisor_engine_error_is_its_kinds_line() {
+  let words = &SUPERVISOR_WORDS.engine_error;
 
   for (kind, line) in [
     ("busy", &words.busy),
@@ -185,7 +185,7 @@ async fn companion_engine_error_is_its_kinds_line() {
     ("too-long", &words.too_long),
     ("failed", &words.failed),
   ] {
-    assert_eq!(rendered("companion-engine-error", json!({ "kind": kind })).await, *line, "{kind}");
+    assert_eq!(rendered("supervisor-engine-error", json!({ "kind": kind })).await, *line, "{kind}");
   }
 }
 
@@ -195,12 +195,12 @@ async fn still_working_is_the_fixed_lines_own() {
 }
 
 #[tokio::test]
-async fn companion_cut_names_the_companion_and_the_guards_reason() {
+async fn supervisor_cut_names_the_supervisor_and_the_guards_reason() {
   assert_eq!(
-    rendered("companion-cut", json!({ "agent": "companion-1", "reason": "The turn ran too long." })).await,
+    rendered("supervisor-cut", json!({ "agent": "agent-a", "reason": "The turn ran too long." })).await,
     fill_marks(
-      &FIXED_LINES.companion_cut,
-      &[("name", "companion-1"), ("reason", "The turn ran too long.")]
+      &FIXED_LINES.supervisor_cut,
+      &[("name", "agent-a"), ("reason", "The turn ran too long.")]
     ),
   );
 }
@@ -297,7 +297,7 @@ async fn a_code_or_a_language_the_pack_lacks_is_refused_by_its_code() {
   );
 
   let (status, body) =
-    render_with("companion-cut", json!({ "agent": "companion-1" }), LANGUAGE, Some(TOKEN)).await;
+    render_with("supervisor-cut", json!({ "agent": "agent-a" }), LANGUAGE, Some(TOKEN)).await;
 
   assert_eq!(
     (status, body["code"].as_str()),

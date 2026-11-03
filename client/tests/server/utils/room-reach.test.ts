@@ -33,7 +33,7 @@ const receiver = Bun.serve({
             lastMessageAt: 1,
             pinned: false,
             senders: id === -200 ? [5] : [member],
-            companions: [],
+            supervisors: [],
             ownerRoom: id === member,
             registered: true,
             workRoom: 0

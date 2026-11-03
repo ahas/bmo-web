@@ -336,10 +336,10 @@ pub enum FixedLineAsk {
     items: Vec<i64>,
   },
   GoingDown,
-  CompanionEngineError {
+  SupervisorEngineError {
     kind: EngineError,
   },
-  CompanionCut {
+  SupervisorCut {
     agent: String,
     reason: String,
   },
@@ -348,7 +348,7 @@ pub enum FixedLineAsk {
   StillWorking,
 }
 
-/// How a companion's engine ended its turn.
+/// How a supervisor's engine ended its turn.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum EngineError {

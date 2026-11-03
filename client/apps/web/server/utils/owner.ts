@@ -20,17 +20,13 @@ export async function ownerSender(): Promise<number | null> {
   }
 }
 
-// The registration name of the receiver's default answerer, the agent whose turns are the chat agent's, as the
-// owner's room names it among its answerers; null where the receiver is not reached or names none.
+// The supervisor the receiver's default answerer setting names, the one that answers every room naming none (the
+// receiver's `docs/api.md`, 「Supervisors」); null where the receiver is not reached or names none.
 export async function defaultAnswerer(): Promise<string | null> {
-  const room = await ownerChat();
-
-  if (room === null) return null;
-
   try {
-    const answerers = await receiverCall(receiver().GET("/rooms/{roomId}/answerers", { params: { path: { roomId: room } } }));
+    const held = await receiverCall(receiver().GET("/default-answerer"));
 
-    return answerers.default === "" ? null : answerers.default;
+    return held.supervisor === "" ? null : held.supervisor;
   } catch {
     return null;
   }

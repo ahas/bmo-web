@@ -204,12 +204,13 @@ export function defaultAnswererName(catalogue: readonly AgentSummary[] = held.va
   return heldAnswerer.value ?? sharedAnswerer(catalogue)?.name ?? chatAgent().name;
 }
 
-// The companion a turn or one of its events names, or undefined where it is the chat agent's. The receiver names the
-// speaker of every turn by the answering agent's registration name: the default answerer's is the chat agent's, any
-// other a companion's, and a turn that names none — its speaker absent or null — is the chat agent's (docs/web.md,
-// 「The name is the one answering on that row」). It is read as a turn is shown, so the default answerer's name
+// The supervisor a turn or one of its events names where it is not the default answerer, or undefined where the turn
+// is the default answerer's. The receiver names the speaker of every turn by the answering agent's registration name:
+// the default answerer's turn runs on the default answerer's row, any other on a row of its own, and a turn that names
+// none — its speaker absent or null — is the default answerer's (docs/web.md, 「The name is the one answering on that
+// row」). It is read as a turn is shown, so the default answerer's name
 // arriving after the turn began moves the turn to its own row.
-export function companionOf(speaker: TurnSpeaker | null | undefined, answerer: string = defaultAnswererName()): TurnSpeaker | undefined {
+export function otherAnswererOf(speaker: TurnSpeaker | null | undefined, answerer: string = defaultAnswererName()): TurnSpeaker | undefined {
   return speaker === undefined || speaker === null || speaker.name === answerer ? undefined : speaker;
 }
 

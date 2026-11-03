@@ -71,7 +71,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
 
         await page.goto(`${origin}/agents`, { waitUntil: "load" });
         await page.locator("#setting-supervisor-agent-a").waitFor({ timeout: 15_000 });
-        expect(await page.locator("#setting-supervisor-companion-a").count()).toBe(1);
+        expect(await page.locator("#setting-supervisor-agent-c").count()).toBe(1);
         expect((await page.locator(`[aria-label="${wording("agents.aria.settings_sections")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(
           ["agents.label.tab_supervisors", "agents.label.tab_roles", "agents.label.tab_repositories", "agents.label.tab_models", "agents.label.tab_model_files"].map((key) => wording(key))
         );

@@ -355,7 +355,7 @@ describe("which side a row is laid out from", () => {
   });
 
   test("an agent's words under no number of their own stand under that agent's name, whatever name they were filed with", () => {
-    const [row] = buildDays(wording, [{ ...archived(1, "a companion's answer", "BMO"), agent: true, senderId: null, speaker: "agent-a" }], new Map(), imageUrl, avatars, [], [owner])
+    const [row] = buildDays(wording, [{ ...archived(1, "another supervisor's answer", "BMO"), agent: true, senderId: null, speaker: "agent-a" }], new Map(), imageUrl, avatars, [], [owner])
       .flatMap((day) => day.items);
 
     expect(row?.senderName).not.toBe("BMO");
@@ -894,12 +894,12 @@ describe("the row a running turn stands in", () => {
     expect(row.sentAt).toBe(run.startedAt);
   });
 
-  // A companion answers under a number and a name of its own, and its answer takes the running row's
+  // Another supervisor answers under a number and a name of its own, and its answer takes the running row's
   // place: the server's word that an agent sent it is what keeps the look from changing as it does.
   test("and an agent's answer, under whatever name, takes its place in the same look", () => {
-    const companion = { ...archived(42, KO.line_769, KO.line_769_2), senderId: 9_000_000_000_000, agent: true };
-    const [answered] = buildDays(wording, [companion], new Map(), imageUrl, new Map()).flatMap((day) => day.items);
-    const waiting = runItem(run, { id: companion.senderId, name: companion.senderName }, answered!.look.avatar!);
+    const other = { ...archived(42, KO.line_769, KO.line_769_2), senderId: 9_000_000_000_000, agent: true };
+    const [answered] = buildDays(wording, [other], new Map(), imageUrl, new Map()).flatMap((day) => day.items);
+    const waiting = runItem(run, { id: other.senderId, name: other.senderName }, answered!.look.avatar!);
 
     expect(answered?.look).toEqual(waiting.look);
   });
@@ -922,7 +922,7 @@ describe("the row a running turn stands in", () => {
     const days = buildDays(wording, [archived(1, "hello")], new Map(), imageUrl, avatars, [], [owner]);
     const said = days[0]!.items[0]!.sentAt;
     const today = runItem(run, { id: 87, name: "agent-a" }, face);
-    const before = runItem({ ...run, startedAt: said - 86_400, speaker: { id: 5, name: "companion" } }, { id: 5, name: "companion" }, face);
+    const before = runItem({ ...run, startedAt: said - 86_400, speaker: { id: 5, name: "other" } }, { id: 5, name: "other" }, face);
 
     const opened = atFoot(wording, days, [today]);
     expect(opened.map((day) => day.items.map((row) => row.key))).toEqual([["m1"], [today.key]]);

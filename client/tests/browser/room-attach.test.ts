@@ -7,13 +7,13 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, BrowserContext } from "playwright-core";
 
 // A file goes into a room through the input box's clip (docs/web.md, the room screen's input box), in every room — a room
-// made for companions among them, where the words never leave this machine. It drives the console given in
+// the console made among them, where the words never leave this machine. It drives the console given in
 // BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, serving the room's messages and the attach
 // route through the page's own routes.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "room-attach", password: "fixture-password-2364" };
-// The room the harness keeps on this machine's own record — the road a room made for companions takes: its words never
+// The room the harness keeps on this machine's own record — the road a room the console made takes: its words never
 // leave the machine, and a file goes in the same way.
 const CHAT = -9_000_000_000_099;
 const NOW = 1_800_000_000_000;

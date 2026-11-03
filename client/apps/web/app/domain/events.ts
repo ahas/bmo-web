@@ -1,6 +1,6 @@
 import { EVENT_FIRST_RETRY_MS, EVENT_RETRY_MS, RESTART_GRACE_MS, STREAM_KEEPALIVE_MS, STREAM_SILENCE_MS } from "#shared/config";
 import { TURN_ENDED } from "#shared/types";
-import { companionOf, defaultAnswererName } from "./agents";
+import { otherAnswererOf, defaultAnswererName } from "./agents";
 import { askWhetherLoginEnded } from "./login-end";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { appUrl } from "./urls";
@@ -18,8 +18,8 @@ export interface RunState {
   // What the turn last said of itself: which phase it is in and what its stream has counted.
   // Null until the first word of it arrives, which is where every run begins.
   progress: RunProgress | null;
-  // Who is answering, as the receiver named the turn; absent where it named nobody. Whether it is the chat agent's
-  // or a companion's is read off it as the turn is shown (`companionOf`).
+  // Who is answering, as the receiver named the turn; absent where it named nobody. Whether it is the default answerer's
+  // or another supervisor's is read off it as the turn is shown (`otherAnswererOf`).
   speaker?: TurnSpeaker;
   // The question the turn's draft process is on, as its start told it: absent until the first question starts, and
   // again once the process has ended.
@@ -47,15 +47,12 @@ export interface RoomRun {
   outcome: Ref<RoomOutcome | null>;
 }
 
-// Why a turn ended with nothing to read: the key of the reason, and whose turn it was where it was a
-// companion's. Absent for the chat agent, as on the turn itself.
+// Why a turn ended with nothing to read: the key of the reason, and whose turn it was where it was not the default
+// answerer's. Absent for the default answerer, as on the turn itself.
 export interface RoomOutcome {
   key: string;
-  speaker?: Companion;
+  speaker?: TurnSpeaker;
 }
-
-// A turn's speaker that is a companion: any agent but the default answerer.
-export type Companion = TurnSpeaker;
 
 export interface RoomRunHandlers {
   // A judgement the bot has just recorded, before the archive page carrying it is asked for.
@@ -814,7 +811,7 @@ const DRAFT_OUTCOMES: Record<string, string> = {
   "ceiling-skip": "room.status.outcome_draft_ceiling_skip",
   "ceiling-message": "room.status.outcome_draft_ceiling_message"
 };
-export { companionOf };
+export { otherAnswererOf };
 
 // Which turn of a room a run is: its speaker's name, which every event of the turn carries. A room two agents answer
 // holds a turn of each at once, and each begins, moves and ends by this key alone; whose the name is plays no part.
@@ -900,8 +897,8 @@ function picturedTurns(rooms: ReadonlyMap<number, RunState[]>, turns: ChatTurn[]
 // The tab's record of every room's turns after one event. A turn is in flight from the moment the
 // session is handed something to read until the bot says it sent, skipped, waited or failed, and
 // it is read from two places that say the same thing: the events that begin and end it, and the
-// bot's own picture, which is what a tab has when it was not there for the beginning. A room the chat agent
-// and a companion both answer can have a turn of each going at once, one to a speaker. An event
+// bot's own picture, which is what a tab has when it was not there for the beginning. A room two supervisors
+// answer can have a turn of each going at once, one to a speaker. An event
 // that moves nothing hands the same record back.
 export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: BotEvent): ReadonlyMap<number, RunState[]> {
   if (event.type === "live") {
@@ -971,8 +968,8 @@ export const ANSWER_WAIT_MS = 15_000;
 
 // What one room is doing right now, read off the tab's record of every room's turns, so a screen
 // opened onto a room — coming back from another, as much as arriving mid-turn — stands the turns
-// already going there. A room the chat agent and a companion both answer can have a turn of each going at
-// once, and each stands as its own block.
+// already going there. A room two supervisors answer can have a turn of each going at once, and each stands as
+// its own block.
 export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
   const record = roomTurns();
   const outcome = ref<RoomOutcome | null>(null);
@@ -1049,7 +1046,7 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
 
   function announce(event: BotEvent): void {
     const kept = event.type === "skipped" && event.messageId !== null;
-    const speaker = companionOf(event.speaker);
+    const speaker = otherAnswererOf(event.speaker);
     const label = (speaker === undefined ? drafted : null) ?? (kept ? undefined : SILENT_OUTCOMES[event.type]);
 
     if (speaker === undefined) drafted = null;
@@ -1094,7 +1091,7 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
       unsettle(key);
       outcome.value = null;
 
-      if (companionOf(event.speaker) === undefined) drafted = null;
+      if (otherAnswererOf(event.speaker) === undefined) drafted = null;
 
       return;
     }
@@ -1198,8 +1195,8 @@ export function useLivePicture(onPicture: (picture: LiveSnapshot) => void): void
   });
 }
 
-// The chat agent's own turn in each room that has one, out of the tab's record of every room's turns. A
-// companion's turn is not the chat agent's, so it is passed over here. The stream is held
+// The default answerer's own turn in each room that has one, out of the tab's record of every room's turns. Another
+// supervisor's turn is not the default answerer's, so it is passed over here. The stream is held
 // for as long as the screen asking stands, since nothing moves the record while no stream is open.
 export function useBmoTurns(): Readonly<Ref<ReadonlyMap<number, RunState>>> {
   const record = roomTurns();
@@ -1210,7 +1207,7 @@ export function useBmoTurns(): Readonly<Ref<ReadonlyMap<number, RunState>>> {
     const own = new Map<number, RunState>();
 
     for (const [chatId, runs] of record.value) {
-      const run = runs.find((held) => companionOf(held.speaker) === undefined);
+      const run = runs.find((held) => otherAnswererOf(held.speaker) === undefined);
 
       if (run !== undefined) {
         own.set(chatId, run);
@@ -1228,14 +1225,14 @@ export function useChatTurns(): Readonly<Ref<ChatTurnProgress[]>> {
   return computed(() => [...own.value].map(([chatId, run]) => ({ chatId, progress: run.progress })));
 }
 
-// The supervisors whose turn runs now in any room: each turn's companion by its name, and the chat agent's under the
+// The supervisors whose turn runs now in any room: each turn's speaker by its name, and a turn naming none under the
 // default answerer's.
 export function useSupervisorsAnswering(): Readonly<Ref<ReadonlySet<string>>> {
   const record = roomTurns();
 
   useBotEvents(() => undefined);
 
-  return computed(() => new Set([...record.value.values()].flatMap((runs) => runs.map((run) => companionOf(run.speaker)?.name ?? defaultAnswererName()))));
+  return computed(() => new Set([...record.value.values()].flatMap((runs) => runs.map((run) => otherAnswererOf(run.speaker)?.name ?? defaultAnswererName()))));
 }
 
 

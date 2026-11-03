@@ -1226,7 +1226,7 @@ Four groups.
   service's one-to-one — and stands under the chat agent's label; every other room, the owner's chat-service
   one-to-one among them once it is not that room, stands under its own title. A one-to-one with no title of its own is
   called by the person whose number it is, as the receiver names that person, and a room with no name either comes up
-  as a chat number. A room the console made itself — one made for companions — stands from the moment it is made, before any
+  as a chat number. A room the console made itself — one made for the supervisors it names — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
   conversation.
   - **The 추가 button beside the group's name adds a room,** for the administrator, in a dialog of three choices made in
@@ -1280,11 +1280,13 @@ Four groups.
   here the moment the agency lists it, under its own label. Each entry stands as 「Profile photos」 says — a
   supervisor as its face, a role with the role mark, a repository with the repository mark.
   - **감독관** — every supervisor the agency's `GET /supervisors` lists, side by side, each under its own label. Under
-    each stand the rooms it speaks in, one entry per room: every room the agency's `GET /supervisors/{name}/rooms`
-    names for it — the rooms its turns went into, the chat agent's one session across rooms included — with every
-    room a session of its was recorded for. Each is named by its room's name, in the order the rooms stand, and opens the supervisor's log at its
-    last line in that room — at the second the room's last run began, as that route names it — or at the log's end
-    where the route names no run there. The owner's private chat stands not as a chat number but as the name the language pack gives it. A room
+    each stand the rooms it answers, one entry per room, as the receiver names them (its `docs/api.md`,
+    「Supervisors」, `GET /supervisors/{name}/rooms`): every room whose `supervisors` names it, and for the default
+    answerer every room that names none as well. Which rooms a supervisor answers is the receiver's word, read there
+    and never worked out here; the agency's `GET /supervisors/{name}/rooms` names only the rooms its turns went into,
+    and is read for when its last run in each began. Each is named by its room's name, in the order the rooms stand,
+    and opens the supervisor's log at its last line in that room — at the second its last run there began, as the
+    agency's route names it — or at the log's end where that route names no run there. The owner's private chat stands not as a chat number but as the name the language pack gives it. A room
     name is the same everywhere on screen, so nowhere — sidebar, live status, log header — does a number come up as
     is.
   - **역할** — every role the agency's `GET /roles` lists, in its order: the runners, the doppelganger, the worker,
@@ -1312,8 +1314,8 @@ Four groups.
     A session registered for a room is that agent serving that room: it stands as the agent's own name and picture, with
     the room it serves its own line under it.
   - **A message stands under the agent that said it.** The room view names a sender by the agent the record carries on
-    the message — its `agentName` — wherever that name is, whichever voice the words went out in: a companion answering
-    in its own room stands under its own name there, and the shared chat agent under BMO. A person's message keeps the
+    the message — its `agentName` — wherever that name is, whichever voice the words went out in: a supervisor answering
+    in a room that names it stands under its own name there, and the default answerer under its own label. A person's message keeps the
     person's own label, and a row the record names no agent on falls back to the name it does carry rather than being
     guessed at another agent's. One function names a row for every screen that draws one — the room list's preview, the
     room view, an item's notes, the live screen and a search.
@@ -1581,7 +1583,7 @@ Four groups.
 Body text a person or model writes in markdown stands as formatting, not asterisks and backticks — bold,
 inline code, code blocks, lists, headings, quotes, tables, links. The places such body text stands:
 
-- **Room screen** — the bubbles of what an agent said, the chat agent or a companion. What a person said is handed over with formatting stripped
+- **Room screen** — the bubbles of what an agent said, whichever supervisor said it. What a person said is handed over with formatting stripped
   by Telegram, so it stands as the literal characters. A bubble with a custom emoji inserted among the text
   stands as literal characters too. Where a picture would sit is recorded as a character position, and
   stripping formatting shrinks the characters and misaligns that position.
@@ -2797,7 +2799,7 @@ Two ways, split because the running places differ.
   model its last turn went out on, on one line under a ceiling of its own, and why it waits where it waits; 캐시 유지,
   the providers of its order its prefix is kept warm on, by the provider's word on one line, or 끔 where it is kept
   warm on none; 압축 기준, its compaction threshold as a whole percent, the value equal to the first provider of its
-  order's declared threshold reading `85% (기본값)`; and 방, the rooms it speaks in as the sidebar lists them under it
+  order's declared threshold reading `85% (기본값)`; and 방, the rooms it answers as the sidebar lists them under it
   (「Sidebar」), by their names on one line under a ceiling of its own. The row's more-menu stands centred on the row
   at its trailing edge, as every table's does, holding 설정, which opens its settings dialog here, and 삭제; pressing
   the row's name opens its own screen.
@@ -2808,7 +2810,7 @@ Two ways, split because the running places differ.
 - **The settings dialog** is one form with one 저장 at its foot: 표시 이름; 공급자 순서 and 할당량 기준, the order's
   editor in place; 캐시 유지 and 압축 기준 as the cells set them; 작업 저장소, the repository its TODO items go to,
   a list of the repositories; and, for a supervisor whose turns its settings' pieces make (its `turnShape`), its own
-  settings as the agency holds them (its `docs/api.md`, 「companions and companion-resets」): 생성 파라미터, each
+  settings as the agency holds them (its `docs/api.md`, 「supervisors」, a supervisor's settings): 생성 파라미터, each
   setting with what it is for and its bounds and an empty box the engine's own default, saying how many room sessions
   a change of them starts afresh; 참조 주입; 페르소나, its own text or its file's; and 보낼 시스템 프롬프트, what the next
   turn sends, opened whole from its line; for the supervisor whose turns its window
@@ -2816,15 +2818,24 @@ Two ways, split because the running places differ.
   the owner's own text or put back to its file (the agency's `docs/api.md`, 「chat-documents」). A save sends the
   supervisor's change and then the rest, and a refusal keeps every field as written with the reason under the one it
   names.
-- **감독관 추가** is the tab's 추가: a dialog of 이름, 표시 이름, 공급자 순서 and 작업 저장소, with 취소 and 추가, sent
-  as the agency's `POST /supervisors` registers one (its `docs/api.md`, 「supervisors」). It is one action: the
-  supervisor stands with its whole order and share, or, where any part is refused, nothing of it stands and the
-  refusal stands under the field or the order's entry it names. An added supervisor stands as a row at once.
-- **삭제** stands in every supervisor's more-menu under 설정, sent as the agency's `DELETE /supervisors/{name}`. For
-  one the deployment seeds — the agency's `seeded`, the default answerer among them — it stands disabled, saying under
-  it that the deployment set the supervisor up. It asks first, naming what goes — its settings, sessions and person
-  records — and saying that the rooms it answered stay with their messages and documents; a removal the agency
-  refuses says its reason under the table.
+- **기본 응답 감독관** stands above the table, a row of its own: the supervisor that answers every room naming none,
+  as the receiver's setting holds it (its `docs/api.md`, 「Supervisors」, `GET` and `PUT /default-answerer`). A list
+  of every supervisor the agency lists, each under its own label with its name under it, and no other entry; the
+  one the setting names now is the one chosen. A choice is saved as it is made, for the administrator, and every
+  screen that tells the default answerer's turns from another's reads it anew; one the receiver refuses goes back to
+  what it holds, its reason said under the row.
+- **감독관 추가** is the tab's 추가: a dialog of 이름, 표시 이름, 방 이름, 공급자 순서 and 작업 저장소, with 취소 and 추가,
+  sent as the receiver's `POST /supervisors` adds one (its `docs/api.md`, 「Supervisors」): the receiver makes a room
+  of the console's own under 방 이름 that names the new supervisor alone, and the agency registers the supervisor
+  with its whole order and share. It is one action: where any part is refused, nothing of it stands and the refusal
+  stands under the field or the order's entry it names, in the pack's sentence for the receiver's code. An added
+  supervisor stands as a row at once, and its room in the sidebar's rooms. Where the receiver took back a console
+  room already standing under that title, a notice says so.
+- **삭제** stands in every supervisor's more-menu under 설정, sent as the receiver's `DELETE /supervisors/{name}`. For
+  one the deployment seeds — the agency's `seeded` — and for the default answerer it stands disabled, saying under it
+  why. It asks first, naming what goes — its settings, sessions and person records — and saying that the rooms it
+  answered stay with their messages and documents, a room left naming no supervisor going to the default answerer; a
+  removal the receiver refuses says its reason under the table.
 - **The draft process** (드래프트 과정) stands under the table: what a round's answer is asked before it goes out, as
   the receiver keeps it (the receiver's `docs/drafting.md`, 「The process table」). A row per key of a provider, a tier
   and an agent, each a name or 전체 for any, in the order the receiver lists them. The key is the row's title, its
@@ -2983,9 +2994,9 @@ Two ways, split because the running places differ.
 ### Agent screen
 
 - The place to read one agent's log. Not a summary or a verdict but the lines that agent actually left
-  inside, as they are. A designated agent's room session — the chat agent's or a companion's — shows its standing pane
-  the same way for every agent: what the session was handed and how it answered, as the pane shows it
-  (the agency's `docs/companions.md`, 「What a turn shows」). A running run appends new lines as they arrive, and a finished run scrolls up to
+  inside, as they are. A supervisor's room session shows its standing pane
+  the same way for every supervisor: what the session was handed and how it answered, as the pane shows it
+  (the agency's `docs/supervisors.md`, 「What a turn shows」). A running run appends new lines as they arrive, and a finished run scrolls up to
   rewind. While standing at the very bottom it follows new lines down, and while scrolled up to read it
   does not follow. Only the reader takes it off the bottom: the window growing shorter under the input box
   that arrives at the foot of a worker's screen, or the lines reflowing, leaves a reader at the bottom there.
@@ -3368,7 +3379,7 @@ Four bounds keep it from growing forever.
 - Conversation piles up as a chat screen. The right is the owner's own side and nobody else's: what they
   themselves sent stands there, and every other voice — the chat agent, another person in a group, a notice — stands on
   the left, the same rule in their own chat as in a group. The side says whose message it is and nothing
-  about how it reads: an agent's answer, the chat agent's or a companion's, is markdown, and what
+  about how it reads: an agent's answer, whichever supervisor gave it, is markdown, and what
   a person wrote is still the characters it is. Which messages an agent sent is the
   server's answer, carried on each message, and never a name the screen compares: the server asks the receiver,
   once for each sender on a page, whether a message of that sender's is one an agent filed. So a row standing for a
@@ -3473,7 +3484,7 @@ Four bounds keep it from growing forever.
   | Bubble corner | 8px, the large tier; 4px where two bubbles of a run meet; the tail's corner square | 15–16px, 5px |
   | A run's join time | 10 minutes between one message and the next | |
   | Bubble inner room | 8px top and foot, 12px sides | 8px and 11px |
-  | Step between messages | 4px between two messages of one run, whoever sent it — a person, the chat agent or a companion — so the run reads as one; 8px between runs: a quarter of the 8px is each row's own room round its box and a quarter each run's round its rows. Only a day mark, a passed-over line and a passing word keep room of their own round them | 2px within a run, 6–8px between runs |
+  | Step between messages | 4px between two messages of one run, whoever sent it — a person or any supervisor — so the run reads as one; 8px between runs: a quarter of the 8px is each row's own room round its box and a quarter each run's round its rows. Only a day mark, a passed-over line and a passing word keep room of their own round them | 2px within a run, 6–8px between runs |
   | Day mark | centred, 32px from the bubble above it and 32px from the one below, the same on both sides wherever it stands | |
   | Photo | 32px, a circle | 33px |
   | Photo to bubble | 8px | 7px |
@@ -3545,7 +3556,7 @@ Four bounds keep it from growing forever.
   - A message someone else sends, an agent's answer among them, rises a short way into its place, up the axis
     the conversation glides along. It never fades: an item of a list does not, and a fade never runs beside the
     glide (「Motion」).
-  - The row of a turn that starts running rises in the same way, whichever designated agent runs it, since it is a
+  - The row of a turn that starts running rises in the same way, whichever supervisor runs it, since it is a
     row arriving at the end like any other (「지금 하는 일」).
   - A message the owner sends rises out of the input bar as its own bubble: from the first frame the bubble —
     its ground, corners and tail, its words, pictures and meta line — stands at its own size and line breaks,
@@ -3773,7 +3784,7 @@ Four bounds keep it from growing forever.
     screen then reads past its newest row, up to the most one read may carry, and the end joins on after it;
     where even that does not reach the end, the room's end replaces what was held, as opening the room at its
     end does. No stretch of the room is ever missing between two rows shown.
-- **답까지 걸린 시간** — an agent's answer, the chat agent's or a companion's, carries at the trailing end of its meta line,
+- **답까지 걸린 시간** — an agent's answer, whichever supervisor gave it, carries at the trailing end of its meta line,
   before the verdict mark and the time, how long that room waited. What is measured is from when the earliest not-yet-answered message this answer replied to
   arrived in the room to when that answer went out, both ends on one clock — Telegram's where Telegram carried
   the answer, this machine's otherwise — so it equals the difference of the two times on screen. An answer once rejected and rewritten measures to when the room read those words,
@@ -3996,7 +4007,8 @@ Four bounds keep it from growing forever.
       and moves on to a message pushed into it, so a screen that came in after the turn began knows it as well
       (docs/live-state.md, 「What a running turn says of itself」), and the mark beats on through the gaps
       between its gates before any verdict has arrived.
-    - A companion's turn writes its verdict on its own answer, so the message it read is not being judged.
+    - A turn of any supervisor but the default answerer writes its verdict on its own answer, so the message it
+      read is not being judged.
     - A reader who asked for less movement sees the mark stand still, dimmed to half its colour, for as long as
       it would beat.
     - **A verdict that ends a stage's work is final.** A message holding a verdict written since its judging
@@ -4093,7 +4105,7 @@ Four bounds keep it from growing forever.
   - **Verdicts arrive with the room's reads.** No unit's stream says a verdict was written, so a message's
     verdicts arrive with the read that follows a turn's ending and with every other read of the room; a
     verdict a stream does announce stands until the read carrying it arrives.
-- **브레인 · 툴 사용** — an agent's answer, the chat agent's or a companion's, carries what its own round did as two
+- **브레인 · 툴 사용** — an agent's answer, whichever supervisor gave it, carries what its own round did as two
   chips, each a count. **브레인** is what the round read from the brain: the brain documents the reference put in
   front of its turns and the stretches of the room they read back, and every call it made to the brain's tools — a
   call whose tool, its server set aside, is one of the brain's (`brain_list`, `brain_similar`, `brain_recall` and
@@ -4222,9 +4234,9 @@ Four bounds keep it from growing forever.
     decided. The count and whether the chip stands come with the page itself, which reads the page's rounds once
     when it is read.
   - **It stands on the answer's last message**, and only where the round's process left a row other than one of
-    the round's own turn, or the gate wrote a `draft` verdict of it. A companion's answer, a round that waited and
-    a turn from before the process was kept carry none.
-- **사용 토큰** — an agent's answer, the chat agent's or a companion's, carries what that answer wrote: the token mark and one figure (「What one answer spent
+    the round's own turn, or the gate wrote a `draft` verdict of it. An answer of any supervisor but the default
+    answerer, a round that waited and a turn from before the process was kept carry none.
+- **사용 토큰** — an agent's answer, whichever supervisor gave it, carries what that answer wrote: the token mark and one figure (「What one answer spent
   stands as one figure」).
   - **What is counted is the round.** A round is everything the bot ran to produce that answer: the
     turn of the room's session, every gate that read the messages on the way in (the sanitiser, the
@@ -4367,7 +4379,7 @@ Four bounds keep it from growing forever.
   - **A message's verdicts in a copy are the ones the screen gives it** (「판정」): a person's message copies its
     판정 and an answer copies its 드래프트 and its send, each in the record's own words.
   - **A copy holds the chosen messages and their own verdicts, and nothing of any other message.** A verdict that
-    is the answer the message drew — the chat agent's or a companion's `REPLY`, a send's `SENT` — stands as that
+    is the answer the message drew — any supervisor's `REPLY`, a send's `SENT` — stands as that
     word alone: what the answer says is the answering message's own, which a copy takes only where that message
     is chosen too.
 - **입력창** — words written here go up to that room as is under the owner's name. They go out on the Telegram
@@ -4384,12 +4396,12 @@ Four bounds keep it from growing forever.
     it: the voice note's own button and the sticker button are not shown, while the roads that carry a voice note, a
     sticker and a room's own tools stay in the console and on their routes, so what those roads carry still goes in by
     the ways that already had it.
-  - **In a room the console made for companions,** the words never leave this machine: they are kept as the
-    owner's message under the console's own number and the room's answerers take them (the agency's `docs/companions.md`).
-    A companion's answer stands on the left with its name and picture and the chat agent's with its own, and each turn shows on
-    a running line as the chat agent's does, wearing the name and picture of whoever is answering. Each speaker has a running
-    line of its own, so in a room of the chat agent and a companion the two turns stand as two lines at once and each goes when its own
-    turn ends; a screen opened or reloaded in the middle of either reads it off the bot's picture. A file attaches in such
+  - **In a room the console made,** the words never leave this machine: they are kept as the owner's message under
+    the console's own number and the supervisors the room names take them, the default answerer where it names none
+    (the receiver's `docs/api.md`, 「Rooms」). Each supervisor's answer stands on the left with its own name and
+    picture, and each turn shows on a running line wearing the name and picture of whoever is answering. Each speaker
+    has a running line of its own, so in a room two supervisors answer the two turns stand as two lines at once and
+    each goes when its own turn ends; a screen opened or reloaded in the middle of either reads it off the bot's picture. A file attaches in such
     a room as in any other: the composer's clip takes it, a dropped file is taken, and it goes in through the same road as
     words — the record road, which keeps it in the room's own archive on the owner's account.
 - **멘션** — an @ typed in the box offers the room's people and its agents. The list stands over the box, the names
@@ -4643,8 +4655,8 @@ Four bounds keep it from growing forever.
   A verdict attaches
   to that message before the archive is re-read. A turn ended with no answer shows its reason briefly and
   disappears — when it waited expecting more words, when the run failed, when somebody stopped it. The reason
-  names the agent whose turn it was, by the same name its running row wore, so a companion's failed turn says
-  the companion failed. That reason is not a bubble but a line standing centred like a date mark, with no photo,
+  names the agent whose turn it was, by the same name its running row wore, so a supervisor's failed turn says
+  that supervisor failed. That reason is not a bubble but a line standing centred like a date mark, with no photo,
   so the agent does not appear to have said what it did not. It stands at the conversation's foot.
 - **A turn the chat agent chose not to answer stays in the owner's own chat.** There a turn that ended in silence — the
   session answered `<<SKIP>>` — leaves a line 「〈이름〉가 이번에는 답하지 않았습니다.」
@@ -4700,8 +4712,8 @@ Four bounds keep it from growing forever.
     width, and the row grows by what it holds.
   - **The state names the tool as a person calls it** — 셸, 읽기, 편집, 웹 · web_search — and never by the name the
     CLI sends; a tool the vocabulary does not carry stands under the name it came with. A phase whose stream named
-    no tool says 툴 사용 중. A companion's turn whose engine a Job holds names the item whose Job it waits on until
-    that Job ends (the agency's `docs/companions.md`, 「The engine it shares」), read off the bot's picture as well
+    no tool says 툴 사용 중. A supervisor's turn whose engine a Job holds names the item whose Job it waits on until
+    that Job ends (the agency's `docs/supervisors.md`, 「The engine it shares」), read off the bot's picture as well
     as its events, so a screen opened in the middle of the wait shows it; the agents list's row says "Job 종료 대기 중".
   - **The chat agent's line says which question of the draft process it is on** (the receiver's `docs/drafting.md`).
     The receiver tells each question just before it goes out, as a `draft` event of kind `start` naming its place
@@ -4716,20 +4728,20 @@ Four bounds keep it from growing forever.
     process that ended with its text withheld or past its ceiling says so in the passing word once the turn has
     ended — "〈이름〉의 답이 점검을 통과하지 못해 보내지 않았습니다.", "〈이름〉가 시간 안에 답을 마치지 못해 보내지 않았습니다." or
     "〈이름〉가 시간 안에 답을 마치지 못해 그때까지의 답을 보냈습니다." — and a skip says it as any silent turn does. A
-    companion's turn runs no process, and its line says the state alone.
-  - **The name is the one answering on that row.** Each running row is one speaker's turn, so a companion's row
-    names the companion and the chat agent's row names the chat agent, and a room both answer at once stands both rows, each with its
-    own name. The receiver names the speaker on every event of a turn and on the turn its picture holds, by the
+    turn of any other supervisor runs no process, and its line says the state alone.
+  - **The name is the one answering on that row.** Each running row is one speaker's turn, so each supervisor's row
+    names that supervisor, and a room two answer at once stands both rows, each with its own name. The receiver names the speaker on every event of a turn and on the turn its picture holds, by the
     answering agent's registration name (the receiver's `docs/api.md`, 「Events and the live board」). A speaker
     whose name is the receiver's default answerer's — which the agent list carries beside its agents, read from
-    the owner's room's answerers, the deployment's chat agent standing for it before the list has arrived — is the
-    chat agent, and its row is the one its listening row stands as; a speaker of any other name is a companion. Every
-    event of a turn reaches the turn whose speaker bears the same name, its sending and its draft rows among them,
-    and which of the two a turn is, is read as it is shown, so a name arriving after the turn began moves the turn
-    to its own row. A turn whose speaker is absent or null is the chat agent's. The name on the row is the agent's label in the `agents` table, never the
-    registration name the event carries: a companion's from its own row, the chat agent's from the row of the
-    session answering every room, and only before the catalogue has arrived does a row fall back — the chat
-    agent's to the language pack's word for it, a companion's to its registration name. The particle after the name, 가 or
+    the receiver's default answerer setting, the deployment's chat agent standing for it before the list has arrived — runs on
+    the default answerer's row, the one its listening row stands as; a speaker of any other name runs on a row of
+    its own. Every event of a turn reaches the turn whose speaker bears the same name, its sending and its draft rows
+    among them, and which row a turn stands on is read as it is shown, so a name arriving after the turn began moves
+    the turn to its own row. A turn whose speaker is absent or null is the default answerer's. The name on the row is
+    the agent's label in the `agents` table, never the registration name the event carries: each supervisor's from
+    its own row, the default answerer's from the row of the session answering every room, and only before the
+    catalogue has arrived does a row fall back — the default answerer's to the language pack's word for the chat
+    agent, any other to its registration name. The particle after the name, 가 or
     이, follows the name's last sound. The shimmer of the block's face is the whole sign that the turn is going, in
   every phase; no mark spins beside it.
 - **The listening row** — in a group room, while the chat agent's window there is open and no turn of its is running, its running row
@@ -4921,7 +4933,7 @@ Four bounds keep it from growing forever.
     the folders with their files, the brain's documents of the room and the archive copies that hold
     it;
   - what stays: the items, jobs, job questions and searches filed from the room, and its usage;
-  - the warnings: each companion answering the room, the open items and questions filed there,
+  - the warnings: each supervisor the room names, the open items and questions filed there,
     another user's private chat by that user's name, and a road that can still reach the room;
   - the settings naming the room that no declaration matches, listed as kept.
 - **A refused room shows the reason and no confirm;** the foot carries 닫기 alone.
@@ -4948,16 +4960,17 @@ Four bounds keep it from growing forever.
   agent. Every other message is a person's.
 - **The messages card divides the count into people and each agent that spoke**, one share each,
   named by the agent's own label. 마지막 응답 is the latest message of any agent there.
-- **Talkers are people only.** 가장 많이 말한 사람 and the count of who spoke leave every agent out, a
-  companion as much as the chat agent.
-- **The agents shown are the room's own.** The room's designated agents, or the chat agent where the
+- **Talkers are people only.** 가장 많이 말한 사람 and the count of who spoke leave every agent out,
+  whichever supervisor it is.
+- **The agents shown are the room's own.** The supervisors the room names, or the default answerer where the
   room names none, and after them any other agent that spoke there. Each stands as a block of its
   own, headed by its label.
 - **A block's session is where that agent keeps its session for this room:**
   - The chat agent's is the chat session, one for every room where the chat agent is unified: its open
     session and model, its last answer's route, its context, runs and last run, as its agent row
     records them;
-  - an agent keeping a session per room, as a companion does (the agency's `docs/companions.md`, 「The session」),
+  - an agent keeping a session per room, as a supervisor of the `room` scope does (the agency's `docs/supervisors.md`,
+    「A session in each room」),
     shows that room session: the provider and model it was opened on while it holds one, the agent's
     last answer's route, and the runs of its own in this room — how many, the last one's time and
     the context that run carried in (read, cache read and cache write).
@@ -5773,8 +5786,8 @@ dialog open at 계정.
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방, 알림, 보이스브리핑, 공급자 and 비밀 보관함. A member is shown 계정, 테마 and
-    대화방; 알림, 보이스브리핑, 공급자 and 비밀 보관함 are the administrator's.
+  - The sections are 계정, 테마, 대화방, 알림, 보이스브리핑, 공급자, 리서치 and 비밀 보관함. A member is shown 계정, 테마
+    and 대화방; 알림, 보이스브리핑, 공급자, 리서치 and 비밀 보관함 are the administrator's.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -5788,7 +5801,7 @@ dialog open at 계정.
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
 - **An address opens it at one section:** `?settings=` and a section's key — `account`, `theme`,
-  `palette`, `notifications`, `briefing`, `providers`, `secrets` — on any address of the console opens the dialog at that
+  `palette`, `notifications`, `briefing`, `providers`, `research`, `secrets` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. The key is taken off the address as the dialog opens: what is open over a screen
   is not a place (「Floating things」), so the back gesture closes the dialog, or leaves the section on a
@@ -5881,6 +5894,15 @@ dialog open at 계정.
   refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
   the path is the whole of what is shown.
 - Every change here takes effect as it is made, as the dialog's do.
+
+#### 리서치
+
+- **리서치 감독관** — the supervisor whose brain a search or browse run writes into where no supervisor delegated
+  the run, as the agency's own settings hold it (its `docs/api.md`, 「settings」, `researchSupervisor`). A list of
+  every supervisor the agency lists, each under its own label with its name under it, and 없음, for no supervisor,
+  after them; the one the agency holds now is the one chosen. A choice is saved as it is made; one the agency
+  refuses goes back to what it holds, its reason said under the row. Where the agency does not answer, the row
+  says so with a button that reads it again.
 
 #### 비밀 보관함
 
@@ -6315,7 +6337,7 @@ folder every unit reads its secrets from by file name, written by the server's s
   therefore no notification: one rung as the item closed would carry the worker's English before the chat agent had said
   anything.
 - **A room message is caught where every room's words reach the stream,** not agent by agent. The bot's stream says
-  `sent` for an answer a turn filed and `message` for any row written in a room, whoever wrote it — the chat agent, a companion,
+  `sent` for an answer a turn filed and `message` for any row written in a room, whoever wrote it — any supervisor,
   a job's report, a script's send. The console reads the row each names and rings only where an agent filed it, by
   the same test the room screen uses to stand a row as an agent's, so an agent added later rings with nothing changed
   here. A person's own words never ring, and neither does a voice message: it speaks a line that rang on its own.

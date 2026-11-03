@@ -99,7 +99,7 @@ import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
 import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
 
-import type { RepositoryView, RolesView } from "#shared/axes";
+import type { RepositoryView } from "#shared/axes";
 import type { MonitorNode } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { SettingsColumn } from "~/domain/settings-columns";
@@ -114,7 +114,6 @@ const REPOSITORY_ICON = "i-material-symbols-folder-outline";
 
 // The page's search reads the same answer under the same key.
 const { data: repositories, error, refresh, status } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
-const { data: roles } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false });
 const { data: nodes } = useFetch<MonitorNode[]>("/api/nodes", { key: "nodes", lazy: true, server: false });
 const { data: providers } = useProviders();
 const readFailure = useReadFailure({ failed: () => !!error.value && repositories.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
@@ -142,7 +141,7 @@ function jobsOf(repository: RepositoryView): string[] {
   return repository.checkouts.flatMap((one) => {
     if (one.job === null) return [];
 
-    const role = one.job.role === null ? null : (roles.value?.roles.find((held) => held.name === one.job?.role)?.shown ?? one.job.role);
+    const role = one.job.role;
 
     return [[one.job.itemId === null ? null : `#${one.job.itemId}`, role].filter((part) => part !== null).join(" · ")];
   });

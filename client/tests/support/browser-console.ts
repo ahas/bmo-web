@@ -192,11 +192,11 @@ function provider(name: string, label: string, extra: Record<string, unknown> = 
 
 const ROLES = [
   role("worker", "Worker", { maxConcurrent: 3, running: 2, waiting: 1, order: [entry("claude-code", "claude-opus-5-5", "high")] }),
-  role("delegator", "Delegator", { running: 1 }),
-  role("helper", "Helper", { maxConcurrent: 0 }),
+  role("doppelganger", "Doppelganger", { running: 1 }),
+  role("producer", "Producer", { maxConcurrent: 0 }),
   role("builder", "Builder", { maxConcurrent: 8 }),
   role("scout", "Scout", { maxConcurrent: 12, callable: true, sessions: "fresh" }),
-  role("searcher", "Searcher", { line: "search", bundles: [{ name: "web.sites", code: "web-sites", label: "Site tools" }], maxConcurrent: 4 })
+  role("voyager", "Voyager", { line: "search", bundles: [{ name: "web.sites", code: "web-sites", label: "Site tools" }], maxConcurrent: 4 })
 ];
 
 // One model file as the agency's model resource serves it, and the catalogue as a whole.

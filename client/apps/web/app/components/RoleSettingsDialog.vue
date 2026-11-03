@@ -2,7 +2,7 @@
   <!-- A role's dialog (docs/web.md, 「Agent management screen」, the roles tab; the agency's docs/agent-roles.md): one
        form with one save at its foot holding every field of a role, and, for a role that stands, its session history
        under the form. The roles tab and the role's own screen open this one dialog; with no name it adds a role. -->
-  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.role_add') : (role?.shown ?? props.name ?? '')" :description="adding || role?.shown === props.name ? undefined : (props.name ?? undefined)" :dirty="dirty">
+  <SettingsDialog v-model:open="open" wide :title="adding ? $t('agents.title.role_add') : (props.name ?? '')" :dirty="dirty">
     <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.roles_read_failed") }}</p>
     <ContentSkeleton v-else-if="!adding && role === null" :rows="3" :label="$t('agents.status.roles_loading')">
       <div class="flex flex-col gap-2">
@@ -13,14 +13,9 @@
 
     <div v-else class="flex flex-col gap-8">
       <form :id="formId" class="flex flex-col gap-4" @submit.prevent="void save()">
-        <div class="grid gap-4 sm:grid-cols-2">
-          <UFormField :label="$t('common.label.name')" name="name" :error="errorAt('name')">
-            <UInput v-model="form.name" class="w-full font-mono" :disabled="!adding || busy" :aria-label="$t('common.label.name')" />
-          </UFormField>
-          <UFormField :label="$t('agents.label.role_label')" name="label" :error="errorAt('label')">
-            <UInput v-model="form.label" class="w-full" :disabled="busy" :aria-label="$t('agents.label.role_label')" />
-          </UFormField>
-        </div>
+        <UFormField :label="$t('common.label.name')" name="name" :error="errorAt('name')">
+          <UInput v-model="form.name" class="w-full font-mono sm:w-64" :disabled="!adding || busy" :aria-label="$t('common.label.name')" />
+        </UFormField>
 
         <UFormField :label="$t('agents.label.description')" name="description" :error="errorAt('description')">
           <UInput v-model="form.description" class="w-full" :disabled="busy" :aria-label="$t('agents.label.description')" />
@@ -122,7 +117,6 @@ const failed = ref(false);
 // provider; the cap empty until it is written on a new role.
 interface RoleForm {
   name: string;
-  label: string;
   description: string;
   line: string;
   bundles: string[];
@@ -136,13 +130,12 @@ interface RoleForm {
 }
 
 function emptyForm(): RoleForm {
-  return { name: "", label: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], order: [], quotaShare: DEFAULT_QUOTA_SHARE, maxConcurrent: null, sessions: DEFAULT_ROLE_SESSIONS, threshold: null, callable: false, prompt: "" };
+  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], order: [], quotaShare: DEFAULT_QUOTA_SHARE, maxConcurrent: null, sessions: DEFAULT_ROLE_SESSIONS, threshold: null, callable: false, prompt: "" };
 }
 
 function formOf(held: RoleView): RoleForm {
   return {
     name: held.name,
-    label: held.label,
     description: held.description ?? "",
     line: held.line,
     bundles: held.bundles.map((one) => one.name),
@@ -165,7 +158,7 @@ const refusal = ref<{ field: string | null; text: string } | null>(null);
 
 const dirty = computed(() => JSON.stringify(form.value) !== JSON.stringify(opened.value));
 const complete = computed(() =>
-  form.value.name.trim() !== "" && form.value.label.trim() !== "" && form.value.line !== "" && form.value.maxConcurrent !== null && form.value.order.length > 0 && form.value.order.every((one) => one.model !== "")
+  form.value.name.trim() !== "" && form.value.line !== "" && form.value.maxConcurrent !== null && form.value.order.length > 0 && form.value.order.every((one) => one.model !== "")
 );
 
 const lineItems = computed(() => {
@@ -230,8 +223,9 @@ function body(): Record<string, unknown> {
   const sent: Record<string, unknown> = {};
   const changed = (key: keyof RoleForm): boolean => adding.value || !same(now[key], before[key]);
 
+  // A role is shown by its name alone; the label the agency keeps for its log is the name it is added under.
   if (adding.value) sent.name = now.name.trim();
-  if (changed("label")) sent.label = now.label.trim();
+  if (adding.value) sent.label = now.name.trim();
   if (changed("description") && (!adding.value || now.description.trim() !== "")) sent.description = now.description.trim() === "" ? null : now.description;
   if (changed("line")) sent.line = now.line;
   if (changed("bundles")) sent.bundles = now.bundles;

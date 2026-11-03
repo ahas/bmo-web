@@ -66,7 +66,7 @@
             :label="$t('research.label.branch_role')"
             :save="(value: string | number) => save({ branchRole: String(value) })"
           >
-            <SearchText class="ps-2 font-medium text-highlighted" :text="roleWord(row.original.branchRole)" :query="props.query" />
+            <SearchText class="ps-2 font-medium text-highlighted" :text="row.original.branchRole" :query="props.query" />
           </SettingsChoiceCell>
         </template>
 
@@ -203,10 +203,6 @@ const roleItems = computed<CellChoice[]>(() => {
 
   return held === undefined || items.some((one) => one.value === held) ? items : [{ value: held, label: held }, ...items];
 });
-
-function roleWord(name: string): string {
-  return settings.value?.roles.find((role) => role.name === name)?.label ?? name;
-}
 
 const strategyItems = computed<CellChoice[]>(() => Object.keys(STRATEGY_LABELS).map((value) => ({ value, label: strategyLabel(t, value) })));
 

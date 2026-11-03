@@ -93,9 +93,8 @@ export type RoleSessions = "keep" | "fresh";
 
 // One role as its row holds it and what stands of it now (the agency's `docs/agent-roles.md`).
 export interface RoleView {
+  // Its key, which every screen shows it by alone; its label is the English word the agency's log keeps.
   name: string;
-  // What the screen names it by, as every screen names a role.
-  shown: string;
   label: string;
   description: string | null;
   prompt: string | null;

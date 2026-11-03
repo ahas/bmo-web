@@ -1,7 +1,7 @@
 import { wording } from "#shared/wording";
 
 import { agency, agencyCall } from "./agency";
-import { bundleWordOf, providerLabelOf, roadReasonOf, roleWordOf } from "./agency-words";
+import { bundleWordOf, providerLabelOf, roadReasonOf } from "./agency-words";
 
 import type { Provider, Repository, Role, Supervisor } from "@agency/client";
 import type { components } from "@agency/client/schema";
@@ -210,11 +210,10 @@ function bundleOf(bundle: Schemas["RoleBundle"]): RoleBundleView {
   return { name: bundle.name, label: bundleWordOf(bundle.code, bundle.name, bundle.label) };
 }
 
-/** One role as the screen reads it, named as every screen names a role. */
+/** One role as the screen reads it, named by its name on every screen (docs/web.md, the roles tab). */
 export function roleViewOf(role: Role): RoleView {
   return {
     name: role.name,
-    shown: roleWordOf(role.code, role.name, role.label),
     label: role.label,
     description: role.description,
     prompt: role.prompt,

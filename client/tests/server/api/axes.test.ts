@@ -34,13 +34,13 @@ const REPOSITORY = {
   ]
 };
 // A seeded role the pack words by its code, and one the owner added that it does not.
-const DELEGATOR = { ...ROLE, name: "delegator", code: "delegator", label: "Delegator" };
+const DOPPELGANGER = { ...ROLE, name: "doppelganger", code: "doppelganger", label: "Doppelganger" };
 const OWN_ROLE = { ...ROLE, name: "role-own", code: "role-own", label: "Own role" };
 
 const agency = standIn("AGENCY", (call) => {
   if (call.path === "/supervisors") return answer({ items: [SUPERVISOR], more: false });
   if (call.path === "/supervisors/agent-a" && call.method === "PATCH") return answer({ ...SUPERVISOR, ...call.body });
-  if (call.path === "/roles") return answer({ roles: [ROLE, DELEGATOR, OWN_ROLE], bundles: ROLE.bundles, lines: ["worker"] });
+  if (call.path === "/roles") return answer({ roles: [ROLE, DOPPELGANGER, OWN_ROLE], bundles: ROLE.bundles, lines: ["worker"] });
   if (call.path === "/supervisors/agent-a" && call.method === "GET") return answer({ ...SUPERVISOR, provider: "deepseek", model: "deepseek-v4-pro" });
   if (call.path === "/supervisors/agent-a/rooms") return answer({ items: [{ roomId: 5, runs: 3, lastRunId: 41, lastRunUnit: "chat-agent-a-41", lastStartedAt: 1_700_000_000_000, lastFinishedAt: null }], more: false });
   if (call.path.startsWith("/stand-in")) return answer({ answers: true, provider: "deepseek", model: "deepseek-v4-pro" });
@@ -100,12 +100,13 @@ describe("the supervisors", () => {
 });
 
 describe("the roles", () => {
-  test("stand by the pack's word or the label the agency keeps, with their bundles in the pack's words, their order and their counts", async () => {
+  test("stand by their names, the agency's label kept beside them, with their bundles in the pack's words, their order and their counts", async () => {
     const got = await asked(roles, {});
 
-    expect(got.answer?.roles[0]).toMatchObject({ name: "worker", shown: wording("agents.label.role_worker"), running: 2, waiting: 1, sessions: "keep" });
-    expect(got.answer?.roles[1]).toMatchObject({ name: "delegator", shown: wording("agents.label.role_delegator") });
-    expect(got.answer?.roles[2]).toMatchObject({ name: "role-own", shown: "Own role" });
+    expect(got.answer?.roles[0]).toMatchObject({ name: "worker", label: "Worker", running: 2, waiting: 1, sessions: "keep" });
+    expect(got.answer?.roles[1]).toMatchObject({ name: "doppelganger", label: "Doppelganger" });
+    expect(got.answer?.roles[2]).toMatchObject({ name: "role-own", label: "Own role" });
+    expect(got.answer?.roles[0]).not.toHaveProperty("shown");
     expect(got.answer?.bundles[0]).toEqual({ name: "web.read", label: wording("agents.label.bundle_web_read") });
     expect(got.answer?.lines).toEqual(["worker"]);
   });

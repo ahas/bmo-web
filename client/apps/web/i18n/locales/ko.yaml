@@ -1874,20 +1874,6 @@ agents:
     result_less: 축소
     result_more: "{n}줄 더 보기"
     role_bundles_none: 기능 묶음 없음
-    role_browser: 브라우저
-    role_builder: 빌더
-    role_delegator: 위임자
-    role_digest: 다이제스트
-    role_helper: 헬퍼
-    role_screener: 스크리너
-    role_scout: 스카우트
-    role_searcher: 서쳐
-    role_translator: 번역기
-    role_transliterator: 음역기
-    role_upkeep: 유지 관리
-    role_verifier: 검증자
-    role_video: 영상 제작자
-    role_worker: 워커
     room_last_run: "마지막 실행 {time}"
     room_runs: "{n}회"
     room_sessions: 방 세션
@@ -1978,7 +1964,6 @@ agents:
     quota_left_window: "{share} 남음 · {window}"
     quota_share: 할당량 기준
     role_files: 역할 파일 보관
-    role_label: 이름표
     role_order: 역할 순서
     role_running: "{running}/{cap} 실행"
     role_waiting: "{n} 대기"

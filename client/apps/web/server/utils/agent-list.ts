@@ -1,6 +1,6 @@
 import { wording } from "#shared/wording";
 
-import { bundleWordOf, roleWordOf } from "./agency-words";
+import { bundleWordOf } from "./agency-words";
 
 import type { Repository, Role, Supervisor } from "@agency/client";
 import type { AgentSummary, RepositoryCheckout, RoleSlotRun, RoleView } from "#shared/types";
@@ -23,11 +23,6 @@ function text(value: unknown): string | null {
 
 function count(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-/** A role in the pack's words where the pack holds them, by the label the agency keeps for it otherwise. */
-export function roleWord(code: string, label: string | null): string {
-  return roleWordOf(code, code, label);
 }
 
 const EMPTY: Omit<AgentSummary, "name" | "kind" | "label"> = {
@@ -86,7 +81,7 @@ export function roleSummary(role: Role, runs: readonly RoleSlotRun[]): AgentSumm
     ...EMPTY,
     name: role.name,
     kind: "role",
-    label: roleWord(role.code, role.label),
+    label: role.name,
     provider,
     model: placed.model,
     effort: placed.effort,
@@ -166,7 +161,7 @@ export function slotRunsOf(answer: unknown): RoleSlotRun[] {
 export function roleViewsOf(roles: readonly Role[]): RoleView[] {
   return roles.map((role) => ({
     name: role.name,
-    label: roleWord(role.code, role.label),
+    label: role.name,
     bundles: role.bundles.map((bundle) => ({ name: bundle.name, label: bundleWordOf(bundle.code, bundle.name, bundle.label) }))
   }));
 }

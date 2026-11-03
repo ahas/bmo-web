@@ -54,7 +54,7 @@ function viewOf(settings: UnitResearchSettings, roles: ResearchSettingsView["rol
 async function callableRoles(): Promise<ResearchSettingsView["roles"]> {
   const answer = await readRoles().catch(() => null);
 
-  return (answer?.roles ?? []).filter((role) => role.callable).map((role) => ({ name: role.name, label: role.shown }));
+  return (answer?.roles ?? []).filter((role) => role.callable).map((role) => ({ name: role.name, label: role.name }));
 }
 
 // A call on the research unit, its refusals said in the pack's words.

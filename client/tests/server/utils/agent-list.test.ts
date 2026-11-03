@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
-import { checkoutOf, roleWord, runPlace, slotRunsOf, supervisorRooms } from "../../../apps/web/server/utils/agent-list";
+import { checkoutOf, roleViewsOf, runPlace, slotRunsOf, supervisorRooms } from "../../../apps/web/server/utils/agent-list";
 import { catalogueEntry } from "../../support/catalogue";
 
 // The agent list's untyped parts, read as the agency's `docs/api.md` states them (docs/boundary.md, 「Gaps the console
@@ -39,11 +39,14 @@ describe("a repository's checkouts", () => {
   });
 });
 
-describe("a role's name", () => {
-  test("is the label the agency keeps for it, and its code where it has none", () => {
-    expect(roleWord("role-a", "Role A")).toBe("Role A");
-    expect(roleWord("role-a", null)).toBe("role-a");
-    expect(roleWord("role-a", "")).toBe("role-a");
+describe("a role", () => {
+  test("is named by its name alone, never the label the agency keeps for its log", () => {
+    const role: Parameters<typeof roleViewsOf>[0][number] = {
+      name: "role-a", code: "role-a", label: "Role A", prompt: null, description: null, bundles: [], line: "worker", order: [], quotaShare: 0.01,
+      maxConcurrent: 1, sessions: "keep", foldRatio: 0.85, callable: false, running: 0, waiting: 0, provider: null, waitingFor: null
+    };
+
+    expect(roleViewsOf([role])).toEqual([{ name: "role-a", label: "role-a", bundles: [] }]);
   });
 });
 

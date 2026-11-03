@@ -80,10 +80,8 @@
 - a value equal to the default a service states → `<value> (기본값)`, after the value and never in its place; a
   setting a service leaves to its own default without naming the value stands empty with `(기본값)` as its
   placeholder; a setting whose default no service states stands empty, with no word.
-- a role the agency seeds, by its code → 워커 (worker), 위임자 (delegator), 헬퍼 (helper), 영상 제작자 (video), 빌더
-  (builder), 검증자 (verifier), 다이제스트 (digest), 스카우트 (scout), 스크리너 (screener), 서쳐 (searcher), 브라우저
-  (browser), 번역기 (translator), 음역기 (transliterator), 유지 관리 (upkeep). A role the pack holds no word for is
-  shown by its row's label.
+- a role → its name alone, the kebab-case key the agency holds it under (`worker`, `doppelganger`, `voyager`,
+  `seeker`, `producer` …): never translated and never the row's label, on every screen that names one.
 - a supervisor whose turn goes out on the stand-in → 대신 답하는 중.
 - a round's record on its answer → 판정 기록: 판정 기록, 기록, 펼치기, 접기. The one press carrying the turn's
   brain, calls, drafts and judgement; its parts say 브레인, 툴 사용, 드래프트, 판정.

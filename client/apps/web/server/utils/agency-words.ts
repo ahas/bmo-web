@@ -1,7 +1,8 @@
 import { wording } from "#shared/wording";
 
-// The agency's codes for what it says in English — why a road cannot be taken, a provider, a role and a bundle — each with the
-// pack's key for its words (the agency's `docs/api.md`). The codes are the agency's and its providers' own; the
+// The agency's codes for what it says in English — why a road cannot be taken, a provider and a bundle — each with the
+// pack's key for its words (the agency's `docs/api.md`). A role is never worded here: every screen shows it by its name
+// alone (docs/web.md, the roles tab). The codes are the agency's and its providers' own; the
 // table is where the console says them. A code the pack holds no words for is said as the code itself.
 
 const ROAD_REASONS: Readonly<Record<string, string>> = {
@@ -21,25 +22,6 @@ const PROVIDER_LABELS: Readonly<Record<string, string>> = {
   deepseek: "agents.label.provider_deepseek",
   registered: "agents.label.provider_registered",
   laya: "agents.label.provider_laya"
-};
-
-// The roles the agency's policy seeds, by their codes (the agency's `docs/agent-roles.md`, 「The roles the policy
-// seeds」); a role the owner adds is shown by its row's label until a word for its code stands here.
-const ROLE_LABELS: Readonly<Record<string, string>> = {
-  worker: "agents.label.role_worker",
-  delegator: "agents.label.role_delegator",
-  helper: "agents.label.role_helper",
-  video: "agents.label.role_video",
-  builder: "agents.label.role_builder",
-  verifier: "agents.label.role_verifier",
-  digest: "agents.label.role_digest",
-  scout: "agents.label.role_scout",
-  screener: "agents.label.role_screener",
-  searcher: "agents.label.role_searcher",
-  browser: "agents.label.role_browser",
-  translator: "agents.label.role_translator",
-  transliterator: "agents.label.role_transliterator",
-  upkeep: "agents.label.role_upkeep"
 };
 
 const BUNDLE_LABELS: Readonly<Record<string, string>> = {
@@ -83,12 +65,6 @@ function wordOr(table: Readonly<Record<string, string>>, code: unknown, name: st
   return key === undefined ? (label === "" ? named : label) : wording(key);
 }
 
-/** A role the screen names (docs/web.md, 「Sidebar」; the agency's `docs/agent-roles.md`, 「A role's label」): in the pack's
- * words by its code where the pack holds them, by the row's label otherwise, and by its code where it keeps none. */
-export function roleWordOf(code: unknown, name: string, label: string | null): string {
-  return wordOr(ROLE_LABELS, code, name, label ?? "");
-}
-
 // The sources a slot is asked under, as the agency's `docs/role-slots.md` names them, each with the pack's key for its
 // word: the agency's own vocabulary of who asks, not the name of any role.
 const SLOT_SOURCES: Readonly<Record<string, string>> = {
@@ -114,11 +90,6 @@ export function slotSourceOf(source: string | null): string {
 /** A bundle the screen names, in the pack's words where the pack holds them, by its agency label otherwise. */
 export function bundleWordOf(code: unknown, name: string, label: string): string {
   return wordOr(BUNDLE_LABELS, code, name, label);
-}
-
-/** A role's name in the pack's words, by its code. */
-export function roleLabelOf(code: unknown, name: string): string {
-  return labelOf(ROLE_LABELS, code, name);
 }
 
 /** A bundle's name in the pack's words, by its code. */

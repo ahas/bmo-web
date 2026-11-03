@@ -1431,8 +1431,8 @@ export interface RepositoryCheckout {
 export interface AgentSummary {
   name: string;
   kind: AgentAxis;
-  // What the entry is called: a supervisor's and a repository's label, and a role by the pack's word for its name
-  // where the pack holds one and by the agency's label otherwise. Null where the answer names none.
+  // What the entry is called: a supervisor's and a repository's label, and a role's name alone. Null where the answer
+  // names none.
   label: string | null;
   // The other names the owner calls a supervisor by.
   aliases: string | null;

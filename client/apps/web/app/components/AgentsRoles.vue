@@ -22,11 +22,10 @@
           type="button"
           :class="CELL_BUTTON"
           class="ps-4"
-          :aria-label="$t('agents.aria.settings_of', { name: row.original.shown })"
+          :aria-label="$t('agents.aria.settings_of', { name: row.original.name })"
           @click="openEdit(row.original.name)"
         >
-          <SearchText class="truncate text-sm font-medium text-highlighted" :text="row.original.shown" :query="props.query" />
-          <SearchText class="truncate font-mono text-sm text-muted" :text="row.original.name" :query="props.query" />
+          <SearchText class="truncate font-mono text-sm font-medium text-highlighted" :text="row.original.name" :query="props.query" />
           <SearchHit :match="hiddenMatch(row.original)" :query="props.query" />
         </button>
       </template>
@@ -47,7 +46,7 @@
           :order="row.original.order"
           :share="row.original.quotaShare"
           :line="row.original.line"
-          :name="row.original.shown"
+          :name="row.original.name"
           :save="(order, quotaShare) => change(row.original.name, { order, quotaShare })"
         >
           <HintTip v-if="row.original.waitingFor !== null" :text="row.original.waitingFor" class="min-w-0">
@@ -59,7 +58,7 @@
       <template #concurrency-cell="{ row }">
         <SettingsInputCell
           :value="row.original.maxConcurrent"
-          :label="$t('agents.aria.max_concurrent_of', { name: row.original.shown })"
+          :label="$t('agents.aria.max_concurrent_of', { name: row.original.name })"
           :min="0"
           :step="1"
           :save="(value: string) => saved(change(row.original.name, { maxConcurrent: Number(value) }))"
@@ -72,7 +71,7 @@
         <SettingsChoiceCell
           :value="row.original.sessions"
           :items="sessionItems"
-          :label="$t('agents.aria.sessions_of', { name: row.original.shown })"
+          :label="$t('agents.aria.sessions_of', { name: row.original.name })"
           :save="(value: string | number) => saved(change(row.original.name, { sessions: String(value) }))"
         >
           <span class="whitespace-nowrap text-sm text-highlighted">{{ sessionsText($t, row.original.sessions) }}</span>
@@ -82,7 +81,7 @@
       <template #threshold-cell="{ row }">
         <SettingsInputCell
           :value="percentOf(row.original.foldRatio)"
-          :label="$t('agents.aria.threshold_of', { name: row.original.shown })"
+          :label="$t('agents.aria.threshold_of', { name: row.original.name })"
           :min="1"
           :max="100"
           :step="1"
@@ -98,7 +97,7 @@
             :model-value="row.original.callable"
             :loading="switching === row.original.name"
             :disabled="switching !== ''"
-            :aria-label="$t('agents.aria.callable_of', { name: row.original.shown })"
+            :aria-label="$t('agents.aria.callable_of', { name: row.original.name })"
             @update:model-value="(on: boolean) => void switchCallable(row.original, on)"
           />
         </span>
@@ -107,8 +106,8 @@
       <template #actions-cell="{ row }">
         <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
-            <UTooltip :text="$t('common.aria.menu_of', { name: row.original.shown })">
-              <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :loading="removing === row.original.name" :aria-label="$t('common.aria.menu_of', { name: row.original.shown })" />
+            <UTooltip :text="$t('common.aria.menu_of', { name: row.original.name })">
+              <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-more-vert" :loading="removing === row.original.name" :aria-label="$t('common.aria.menu_of', { name: row.original.name })" />
             </UTooltip>
           </UDropdownMenu>
         </span>
@@ -171,7 +170,7 @@ const columns = computed<SettingsColumn<RoleView>[]>(() => [
 const sessionItems = computed<CellChoice[]>(() => (["keep", "fresh"] as const).map((value) => ({ value, label: sessionsText(t, value) })));
 
 function hiddenMatch(role: RoleView) {
-  return matchFields([{ label: t("agents.label.role_label"), text: role.label, shown: false }, { label: t("agents.label.description"), text: role.description ?? "", shown: false }], props.query);
+  return matchFields([{ label: t("agents.label.description"), text: role.description ?? "", shown: false }], props.query);
 }
 
 // Its cap with how many of its runs go and wait beside it, and the closed word at a cap of none.
@@ -249,7 +248,7 @@ function menuOf(role: RoleView): DropdownMenuItem[] {
 
 // A removal is asked first in a dialog naming the role; one the agency refuses all the same says why under the table.
 async function remove(role: RoleView): Promise<void> {
-  const taken = await askFirst({ title: t("agents.message.role_delete_confirm"), item: role.shown, confirm: t("common.action.delete") });
+  const taken = await askFirst({ title: t("agents.message.role_delete_confirm"), item: role.name, confirm: t("common.action.delete") });
 
   if (!taken) return;
 

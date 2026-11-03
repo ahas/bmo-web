@@ -337,7 +337,7 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
 ## Access
 
 The owner alone sees it. Without logging in, no screen and no API open. The agent log holds a room's
-conversation and the credentials handed to the browser searcher as they are, so the log stands behind
+conversation and the credentials handed to the seeker as they are, so the log stands behind
 this rule alone and goes nowhere else.
 
 - **GitHub's deliveries are the one call taken with no sign-in.** GitHub posts an organisation's webhook
@@ -1295,8 +1295,8 @@ Four groups.
     none. The owner's private chat stands not as a chat number but as the name the language pack gives it. A room
     name is the same everywhere on screen, so nowhere — sidebar, live status, log header — does a number come up as
     is.
-  - **역할** — every role the agency's `GET /roles` lists, in its order: the runners, the helper, the delegator, the
-    worker, the co-workers and every other role alike. A role with runs going carries the spinning mark and, at the
+  - **역할** — every role the agency's `GET /roles` lists, in its order: the runners, the doppelganger, the worker,
+    the co-workers and every other role alike, each by its name alone (「역할」 under the agent screen). A role with runs going carries the spinning mark and, at the
     line's end, how many go as a count badge (「Count badges」); under it stand its runs now, one line each, read from
     the agency's `GET /slots` — the repository whose checkout the run works in by its label, or the folder's last
     part where the path is no repository's — each opening the role's log at that run. A role with none going stands
@@ -1624,7 +1624,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   image stand as their own characters. The question bar is a line the whole of which is a link to that
   question, so standing another link inside it would send one press to two places. Written HTML shown as
   characters is the same as archive text. A search's findings read like archive text but the two differ: the
-  searcher's structural lines stand as headings and labels, and an image stands as an image, not a link. But
+  voyager's structural lines stand as headings and labels, and an image stands as an image, not a link. But
   that image does not call the outside address as is; only when it is an image recorded in that search record
   does it point at the copy the console server fetched. An image at an address not in the record stands as a
   link, as in archive text. The rule that an image stands as a link elsewhere is unchanged. A document
@@ -1935,8 +1935,8 @@ queue's button and the usage meters — so the front door opens on the groups th
 - **Rooms** — the rooms as the receiver lists them. The room name, message count and last message time stand.
 - **Gate agents** — every gate the agency's catalogue holds, in the gate order the gate unit serves where it stands
   in it and in the catalogue's order otherwise, each opening its agent page.
-- **Runners** — the roles the research unit and the translator run as, the searcher, the browser and the
-  translator, each a role the agency lists.
+- **Runners** — the roles the research unit and the translator run as, `voyager`, `seeker` and `translator`,
+  each a role the agency lists.
 - **Job workers** — each repository a job works in now stands a line, under the label 저장소. If a job runs in a
   repository, which item that job is a run of and the role it runs as attach under the repository's name, and a
   job launched with no item attaches the line its launcher wrote for why it was launched in the same place.
@@ -1973,7 +1973,7 @@ measure, and the two differ.
 
 - **압축 중** — while a room's chat agent folds its context. Folding opens and closes no archive row, so it is read only
   while the bot carries it in its own picture.
-- **검색 중** — while a searcher's or browser searcher's run runs.
+- **검색 중** — while a `voyager`'s or a `seeker`'s run runs.
 - **정리 중** — while a digest's or person-book writer's run runs.
 - **작업 중** — while a worker's job runs.
 - **판정 중** — while a gate judges.
@@ -2020,7 +2020,7 @@ archive and this week's tokens remain. That is all that can actually be known th
     way and the names stand alone; the row fits one line at a phone's width, the tabs scrolling sideways inside
     it only where the machine's line and the refresh leave them too little.
   - **Gates** — every gate, in the gate order (the gate unit's documents).
-  - **Runners** — the searcher and the browser searcher.
+  - **Runners** — `voyager` and `seeker`.
   - **Job workers** — the worker.
 - The tab row carries, at its right end, the time the bot's picture was taken — or, in red, that the bot
   does not answer (「Tab bar and toolbar」, one row under the title bar). It is a button: pressing it reads the
@@ -2040,7 +2040,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   seconds while the screen stands (the agency's `docs/role-slots.md`).
   1. **One row per role**, in the order the agency lists the roles, with a tile for every slot its cap gives; a
      role at a cap of 0 has a row only while something of it still runs, is reserved or waits. The row's head names
-     the role by the pack's word for it, how many of its slots are in use out of the cap, and how many runs wait
+     the role by its name, how many of its slots are in use out of the cap, and how many runs wait
      for one.
   2. **A tile says at a glance which state its slot is in**: working (a run holds it), reserved (a reservation
      keeps it for an owner who has not used it yet) or idle, by its colour and its mark. A working tile carries the
@@ -2645,7 +2645,7 @@ Two ways, split because the running places differ.
     parent it did not take. Closing the dialog takes the document's number out of the address.
 - **An item's run.** An item whose latest try went out as a research run is pressed by its name, and the run
   opens in a sheet from the side over the list, so the list stays where it was.
-  - The sheet carries the run's facts — its depth by the searcher's name, its state (대기, 실행 중 or 종료), how it
+  - The sheet carries the run's facts — its depth by the voyager's name, its state (대기, 실행 중 or 종료), how it
     ended (답변, 실패 or 중단) once it has, its provider and model, when it started, when its web tools close and
     when it finished, how many branches it opened, the filed document's link and the error where one stands —
     and the question it was asked, in a block of its own.
@@ -2675,7 +2675,7 @@ Two ways, split because the running places differ.
   the research settings」), each value in a cell of its own that saves that one value at once, a refusal said under
   its box: a value it did not take, or a failure on its side. A save sends only the value it changes, and the unit
   keeps every other.
-  - **키별 한도** — a research line to a row, the searcher's and the browser's: **브랜치**, how many pooled branches a
+  - **키별 한도** — a research line to a row, the voyager's and the seeker's: **브랜치**, how many pooled branches a
     run of it may open, and **시간**, for how many minutes its web tools stay open.
   - **가져오기** — one row of the four settings every line shares: **브랜치 역할**, the role a search's branches go out
     as, chosen from the roles the agency lists as callable; **가져오기 전략**, one of 직접 먼저, 브라우저 먼저 and 직접만;
@@ -2872,8 +2872,8 @@ Two ways, split because the running places differ.
 #### 역할
 
 - **One table of the roles the agency holds** (the agency's `docs/agent-roles.md`, 「A role's label」), one row each in
-  the order the agency lists them, read from its `GET /roles`: 역할, the pack's word for its code where the pack holds
-  one and the row's label otherwise, with its name under it, the title column; 기능 묶음, the bundles it gives as chips,
+  the order the agency lists them, read from its `GET /roles`: 역할, its name alone — the kebab-case key the agency
+  holds it under, never a translated word and never the row's label — the title column; 기능 묶음, the bundles it gives as chips,
   each by the pack's short name for its code and by the agency's label where the pack holds none, or 기능 묶음 없음;
   공급자 순서, its order; 동시 실행, its cap, with how many of its runs go and wait beside it — `2/3 실행 · 1 대기` —
   and 막힘 at a cap of 0; 세션, 유지 or 새로; 압축 기준; and 코워커, whether a run may call it as a co-worker. The
@@ -2882,8 +2882,8 @@ Two ways, split because the running places differ.
   `유지 (기본값)` — 압축 기준 a whole percent from 1 to 100, marked `(기본값)` as a supervisor's is, and 코워커 a
   switch, each through `PATCH /roles/{name}`. A raised cap lets waiting runs in at once; nothing running is stopped by
   any change (the agency's `docs/agent-roles.md`, 「Changing the roles」).
-- **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made),
-  이름표, 설명, 실행 라인 — a choice of the lines the agency names — 기능 묶음 as a checkbox for every bundle the agency
+- **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made,
+  and the label the agency keeps for its log as the role is added), 설명, 실행 라인 — a choice of the lines the agency names — 기능 묶음 as a checkbox for every bundle the agency
   declares, 공급자 순서 and 할당량 기준, 동시 실행, 세션, 압축 기준, 코워커 호출 허용, and 역할 프롬프트, a text area
   as tall as its text, which every run of the role opens with, empty for none. The save sends what changed; an
   emptied prompt or description is cleared.
@@ -3218,15 +3218,15 @@ Two ways, split because the running places differ.
   stood at, and at its end where the dialog opened there, so the screen shows the same head over the same log.
   A stage of several tasks is no tab row of them: each task is a sub-stage of the stepper, and opening one opens
   the view at that task.
-- **The input box that speaks to a runner or a worker directly** is below. It stands on the searcher and
-  browser searcher, and **each job worker's screen**. Which agent is a worker is what the archive answers, not
+- **The input box that speaks to a runner or a worker directly** is below. It stands on the voyager's and
+  the seeker's screens, and **each job worker's screen**. Which agent is a worker is what the archive answers, not
   a list the app holds — if the owner makes one more worker, names it and points it at its repository, this input
   box stands on that worker's screen with nothing said. Writing names in the app would know only workers there
   at writing, and would never stand on a worker made after. It does not stand on a name the catalogue does not
   call a worker — the log still opens. What the box does differs by whose screen it is on, and it says which by
   its own label: **시킬 일** on a runner's screen and **할 말** on a worker's.
 - **On a runner's screen it launches that runner** without the room's chat agent, and the launched run's log flows in
-  the same place. The launching is the same as when the chat agent launches — a searcher chooses a depth. The launching
+  the same place. The launching is the same as when the chat agent launches — a voyager chooses a depth. The launching
   call returns at once without waiting, and when the run ends its result goes to the owner's private chat like
   any run.
 - **On a worker's screen it says something to that worker itself, and launches nothing.** the owner's word to a
@@ -3262,7 +3262,7 @@ Two ways, split because the running places differ.
   up to ten at 50MB each — and words may be left out when files are there. The bot writes a word's files
   into a directory of their own under that worker's workbench (`uploads/<time>-<id>/`, keeping each file's
   name and numbering a repeated one) and ends the words with the list of their paths, so the worker reads
-  them with its own tools. A searcher's and a browser searcher's box offers no clip: those runners are shown
+  them with its own tools. A voyager's and a seeker's box offers no clip: those runners are shown
   the web and nothing on this machine.
 
 #### Where the log comes from

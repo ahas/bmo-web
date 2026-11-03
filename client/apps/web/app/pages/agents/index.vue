@@ -231,13 +231,11 @@ const entries = computed<SettingsEntry[]>(() => {
     list.push({
       id: `role-${role.name}`,
       tab: "roles",
-      label: t("agents.label.find_role", { name: role.shown }),
+      label: t("agents.label.find_role", { name: role.name }),
       fields: [
-        { label: t("common.label.name"), text: role.shown, shown: true },
-        { label: t("agents.label.key"), text: role.name, shown: true },
+        { label: t("common.label.name"), text: role.name, shown: true },
         { label: t("agents.label.column_bundles"), text: role.bundles.map((one) => one.label).join(" "), shown: true },
-        { label: t("agents.label.column_sessions"), text: sessionsText(t, role.sessions), shown: true },
-        { label: t("agents.label.role_label"), text: role.label, shown: false }
+        { label: t("agents.label.column_sessions"), text: sessionsText(t, role.sessions), shown: true }
       ]
     });
   }

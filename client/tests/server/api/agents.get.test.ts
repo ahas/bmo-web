@@ -107,12 +107,12 @@ describe("the agent list", () => {
       { name: "repo-a", path: "/srv/repo-a", node: null, jobId: 7, itemId: 42, role: "worker" },
       { name: "repo-a-1", path: "/srv/repo-a-1", node: null, jobId: null, itemId: null, role: null }
     ]);
-    // A role is named by the label the agency keeps for it.
-    expect(list.agents[1]?.label).toBe(wording("agents.label.role_worker"));
-    expect(list.agents[2]?.label).toBe("Role X");
+    // A role is named by its name alone, never its label.
+    expect(list.agents[1]?.label).toBe("worker");
+    expect(list.agents[2]?.label).toBe("role-x");
     expect(list.roles).toEqual([
-      { name: "worker", label: wording("agents.label.role_worker"), bundles: [{ name: "graph.read", label: wording("agents.label.bundle_graph_read") }] },
-      { name: "role-x", label: "Role X", bundles: [] }
+      { name: "worker", label: "worker", bundles: [{ name: "graph.read", label: wording("agents.label.bundle_graph_read") }] },
+      { name: "role-x", label: "role-x", bundles: [] }
     ]);
     expect(list.jobLine).toBe("worker");
     expect(list.gateOrder).toBeNull();

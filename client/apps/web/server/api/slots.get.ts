@@ -1,5 +1,5 @@
 import { providerLabelOf, slotSourceOf } from "../utils/agency-words";
-import { repositorySummary, roleWord, runPlace, slotRunsOf } from "../utils/agent-list";
+import { repositorySummary, runPlace, slotRunsOf } from "../utils/agent-list";
 
 import type { SlotBoard, SlotRow, SlotTile } from "#shared/role-slots";
 import type { AgentSummary, StopTarget } from "#shared/types";
@@ -94,7 +94,7 @@ export default defineEventHandler(async (event): Promise<SlotBoard> => {
     const kept: SlotTile[] = Array.from({ length: reserved }, () => ({ state: "reserved", run: null }));
     const idle: SlotTile[] = Array.from({ length: Math.max(0, cap - active - reserved) }, () => ({ state: "idle", run: null }));
 
-    return [{ role: role.name, label: roleWord(role.code, role.label), cap, used: active + reserved, waiting, tiles: [...working, ...unnamed, ...kept, ...idle] }];
+    return [{ role: role.name, label: role.name, cap, used: active + reserved, waiting, tiles: [...working, ...unnamed, ...kept, ...idle] }];
   });
 
   return { readAt: Date.now(), rows };

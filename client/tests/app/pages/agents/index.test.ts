@@ -91,10 +91,11 @@ describe("every table of the screen", () => {
     expect(templateOf(supervisors)).not.toContain('layout="fill"');
   });
 
-  test("scrolls each tab in one box: a table's own in a tab of one table, the body around the supervisors' tables", () => {
-    expect(templateOf(page)).toContain(`:class="tab === 'supervisors' ? 'overflow-auto' : 'overflow-hidden'"`);
-    expect(templateOf(supervisors)).toContain('<DataTable v-if="supervisors !== undefined && supervisors.length > 0" class="overflow-visible"');
-    expect(templateOf(drafts).match(/<DataTable v-if="data" class="overflow-visible"/g)).toHaveLength(2);
+  test("scrolls each tab up and down in one box: a table's own in a tab of one table, the body around the supervisors' tables", () => {
+    expect(templateOf(page)).toContain(`class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'"`);
+    expect(scriptOf(page)).toContain('useHeldHeads(() => (tab.value === "supervisors" ? bodyRef.value : null));');
+    // Each of the supervisors' tab's tables keeps its own sideways box.
+    for (const source of [supervisors, drafts]) expect(templateOf(source)).not.toContain("overflow-visible");
   });
 
   test("gives the title column what is left and every other column its content's width, a long text under a ceiling it gives up once held", () => {

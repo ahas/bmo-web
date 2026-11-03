@@ -18,6 +18,8 @@ const ACCOUNT = { name: "agents-general", password: "fixture-password-2301" };
 // The draft process and its questions, served through the page's own route: enough rows that the supervisors' tab
 // scrolls on a short screen, a long list of questions in a cell and a question's long text.
 const QUESTIONS = ["sense", "plan", "check", "tone", "final"];
+// A supervisor's order of five, whose cell makes its table wider than a phone and the panel beside the TODO list.
+const FIVE = ["claude-code", "codex", "deepseek", "gemini", "openrouter"].map((provider) => ({ provider, model: `${provider}-model-with-a-long-name`, effort: "high", thinking: null, answerTokens: null }));
 const CATALOGUE = ["sense", "plan", "check", "tone", "scope", "facts", "voice", "final"];
 const DRAFTS = {
   rows: Array.from({ length: 6 }, (_, index) => ({
@@ -126,12 +128,18 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
   }, 60_000);
 
   for (const [width, height, phone] of [[1280, 260, false], [360, 400, true]] as const) {
-    test(`scroll each tab in one box, the supervisors' table heads sticking to the tab's top, ${width}px wide`, async () => {
+    test(`scroll each tab up and down in one box, each supervisors' tab table sideways in its own with its head held at the tab's top, ${width}px wide`, async () => {
       const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
       const at = cookie.indexOf("=");
 
       await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
       await context.route(/\/api\/draft-processes$/, (route) => route.fulfill({ json: DRAFTS }));
+      await context.route(/\/api\/supervisors$/, async (route) => {
+        const answer = await (await route.fetch()).json();
+
+        answer[0].order = FIVE;
+        await route.fulfill({ json: answer });
+      });
 
       try {
         const page = await context.newPage();
@@ -141,7 +149,8 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         await page.locator("#setting-role-worker").waitFor({ timeout: 15_000 });
         expect(await page.locator("[data-settings-table]").first().evaluate(scrollersAbove)).toEqual({ scrollers: 1, body: "hidden" });
 
-        // The supervisors' tab scrolls in its body, and each table's head stands at the body's top as its rows pass.
+        // The supervisors' tab scrolls up and down in its body, each table sideways in its own box, and each table's head
+        // stands at the body's top as its rows pass, inside the panel's edge.
         await page.goto(`${origin}/agents`, { waitUntil: "load" });
         await page.locator("[data-draft-questions] tbody tr").first().waitFor({ timeout: 15_000 });
 
@@ -157,10 +166,20 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
             body.scrollTop += root.getBoundingClientRect().top - body.getBoundingClientRect().top + 20;
             await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
 
-            return { overflow: getComputedStyle(root).overflowY, gap: Math.round(head.getBoundingClientRect().top - body.getBoundingClientRect().top), body: getComputedStyle(body).overflowY };
+            // Scrolled sideways in its own box, the head goes with its columns and stays held.
+            root.scrollLeft = 40;
+            await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+
+            return {
+              sideways: getComputedStyle(root).overflowX,
+              gap: Math.round(head.getBoundingClientRect().top - body.getBoundingClientRect().top),
+              body: getComputedStyle(body).overflowY,
+              inside: root.getBoundingClientRect().right <= body.getBoundingClientRect().right + 0.5 && body.scrollWidth <= body.clientWidth,
+              aligned: Math.round(head.getBoundingClientRect().left - root.querySelector("tbody")!.getBoundingClientRect().left)
+            };
           });
 
-          expect({ table, ...stuck }).toEqual({ table, overflow: "visible", gap: 0, body: "auto" });
+          expect({ table, ...stuck }).toEqual({ table, sideways: "auto", gap: 0, body: "auto", inside: true, aligned: 0 });
         }
 
         expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);

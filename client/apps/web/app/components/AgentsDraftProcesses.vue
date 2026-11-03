@@ -45,9 +45,9 @@
       @retry="refresh()"
     />
 
-    <!-- Each table stands in the supervisors tab's scrolling body with no scrolling box of its own, its head sticking to
+    <!-- Each table stands in the supervisors tab's scrolling body, scrolling sideways in its own box, its head held at
          the body's top. -->
-    <DataTable v-if="data" class="overflow-visible" data-settings-table data-draft-processes :data="data.rows" :columns="columns">
+    <DataTable v-if="data" data-settings-table data-draft-processes :data="data.rows" :columns="columns">
       <template #provider-cell="{ row }">
         <span :id="settingsAnchor(`draft-${draftKeyId(row.original)}`)" :class="CELL_TEXT" class="ps-4 text-highlighted">
           <SearchText :text="draftProviderText($t, row.original.provider)" :query="props.query" />
@@ -151,7 +151,7 @@
       </UPopover>
     </div>
 
-    <DataTable v-if="data" class="overflow-visible" data-settings-table data-draft-questions :data="data.questions" :columns="questionColumns" aria-labelledby="draft-questions-title">
+    <DataTable v-if="data" data-settings-table data-draft-questions :data="data.questions" :columns="questionColumns" aria-labelledby="draft-questions-title">
       <template #name-cell="{ row }">
         <span :id="settingsAnchor(`draft-question-${row.original.name}`)" :class="CELL_TEXT" class="ps-4 font-mono text-highlighted">
           <SearchText :text="markedDefault($t, row.original.name, row.original.source === 'default')" :query="props.query" />

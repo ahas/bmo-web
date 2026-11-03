@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { ceilingDefault, defaultThreshold, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
+import { headOffset } from "../../../apps/web/app/domain/held-heads";
 import { slotLogPlace, tileLines } from "../../../apps/web/app/domain/role-slots";
 import { wording } from "../../../apps/web/shared/wording";
 
@@ -64,5 +65,14 @@ describe("where a slot tile opens its log", () => {
     expect(slotLogPlace({ log: null, session: null, since: 5_000 })).toEqual({ at: 5 });
     expect(slotLogPlace({ log: null, session: null, since: null })).toBeNull();
     expect(slotLogPlace(null)).toBeNull();
+  });
+});
+
+describe("a held head of names", () => {
+  test("stands as far down its table as the table's top has passed the box's top, never past its last row", () => {
+    expect(headOffset(100, 150, 400, 40)).toBe(0);
+    expect(headOffset(100, 60, 400, 40)).toBe(40);
+    expect(headOffset(100, 59.6, 400, 40)).toBe(40);
+    expect(headOffset(100, -500, 400, 40)).toBe(360);
   });
 });

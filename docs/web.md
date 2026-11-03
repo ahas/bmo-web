@@ -2716,15 +2716,19 @@ Two ways, split because the running places differ.
   modal. Pressing a result opens its tab, brings its row to the middle of the view and marks it a moment; the open
   tab's rows mark the phrase too.
 - **Every table on the screen is the one shared settings table.** It fills the section edge to edge, one row to a
-  line, has no pages, and scrolls sideways rather than cut a cell; the page itself never scrolls sideways. A tab's
-  body has exactly one box that scrolls, never a scrolling box inside another.
+  line, has no pages, and scrolls sideways inside a box of its own rather than cut a cell; that box is never wider
+  than the panel, and neither the page nor the tab's body ever scrolls sideways. A tab's body has exactly one box
+  that scrolls up and down, never a scrolling box inside another.
   - **A tab holding one table** — 역할, 저장소, 등록 모델, 모델 파일 — gives it the tab's whole height under whatever
     stands above it, and the table's own box is the one that scrolls, both ways, with the head of names stuck to its
     top, so its sideways scrollbar sits on the tab's foot however few its rows. The tab's body around it does not
     scroll.
   - **The 감독관 tab,** holding the draft tables under its own, gives each table only its own height, and the tab's
-    body is the one box that scrolls, both ways: its tables keep no scrolling box of their own, and each table's head
-    of names sticks to the top of the body while that table's rows pass under it.
+    body is the one box that scrolls up and down, bounded by the panel's width. Each table scrolls sideways in its own
+    box, its sideways scrollbar at its own foot, and its head of names stands at the top of the body while that
+    table's rows pass under it, leaving with the table's last row. A box that scrolls sideways is the one a head's own
+    sticking holds to, so the screen holds each head there as the body scrolls, moving it down its table by whole
+    pixels.
   - **A row is as tall as its content and no taller.** Every cell is one line where its value is one — a row's title
     takes its label over its name — and a row stands at the shared table's one-line height unless a cell says more.
     A value with several parts says them on one line, never one part to a line, and leaves the rest to its dropdown

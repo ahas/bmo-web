@@ -1,8 +1,9 @@
 <template>
   <!-- The agent settings, a section to a tab. The tab row carries the search over every section and
-       the button that reads them all again; the section fills what is left, with one box that scrolls:
-       a tab of one table scrolls in the table's own box and the body around it stands still, while the
-       supervisors' tab, a table with the draft tables under it, scrolls in the body, both ways. -->
+       the button that reads them all again; the section fills what is left, with one box that scrolls
+       up and down: a tab of one table scrolls in the table's own box and the body around it stands
+       still, while the supervisors' tab, a table with the draft tables under it, scrolls in the body,
+       each table scrolling sideways in its own box with its head held at the body's top. -->
   <UDashboardPanel id="catalogue" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.agents')" icon="i-material-symbols-list-alt-outline" />
@@ -77,7 +78,7 @@
     </template>
 
     <template #body>
-      <div ref="body" class="flex min-h-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-auto' : 'overflow-hidden'">
+      <div ref="body" class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'">
         <AgentsSupervisors v-if="tab === 'supervisors'" ref="supervisorsRef" :query="query" />
         <AgentsRoles v-else-if="tab === 'roles'" ref="rolesRef" :query="query" />
         <AgentsRepositories v-else-if="tab === 'repositories'" ref="repositoriesRef" :query="query" />
@@ -100,6 +101,7 @@ import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import { AGENT_TABS, isAgentTab, searchSettings, settingsAnchor } from "~/domain/agent-settings";
+import { useHeldHeads } from "~/domain/held-heads";
 import { usedByText, registrationName } from "~/domain/registry";
 import { draftKeyId, draftKeyLabel, draftListText } from "~/domain/draft-process";
 import { defaultThreshold, sessionsText, thresholdText, entryText, useProviders } from "~/domain/axes";
@@ -121,6 +123,8 @@ useListPlace("agents", () => bodyRef.value);
 const narrow = useNarrow();
 
 const tab = computed<AgentTab>(() => (isAgentTab(route.query.tab) ? route.query.tab : "supervisors"));
+// The supervisors' tab holds its tables one under another in the body, each head held at the body's top.
+useHeldHeads(() => (tab.value === "supervisors" ? bodyRef.value : null));
 const tabItems = AGENT_TABS.map((one) => ({ ...one, label: t(one.label) }));
 
 // The section stands in the address, and moving to another is a step of the history; the first is the screen's own.

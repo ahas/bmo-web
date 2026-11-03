@@ -32,6 +32,8 @@ globals.getRouterParam = (event: RouteEvent, name: string) => event.params?.[nam
 globals.getMethod = (event: RouteEvent) => event.method ?? "GET";
 globals.getRequestHeader = (event: RouteEvent, name: string) => event.headers?.[name.toLowerCase()];
 globals.readRawBody = async (event: RouteEvent) => event.rawBody;
+globals.getRequestWebStream = (event: RouteEvent) =>
+  event.rawBody === undefined ? undefined : new Response(event.rawBody as BodyInit).body;
 // A route that answers with a web response hands it back as it is, which a test reads whole.
 globals.sendWebResponse = (_event: RouteEvent, response: Response) => response;
 

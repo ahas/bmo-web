@@ -17,6 +17,8 @@ const server = Bun.serve({
   port: process.env.NITRO_PORT || process.env.PORT || 3000,
   host: process.env.NITRO_HOST || process.env.HOST,
   idleTimeout: 0,
+  // A bundle files a video through the relay as a stream, so this server sets no ceiling of its own on a body.
+  maxRequestBodySize: Number.MAX_SAFE_INTEGER,
   websocket: import.meta._websocket ? ws.websocket : undefined,
   async fetch(request, served) {
     if (import.meta._websocket && request.headers.get("upgrade") === "websocket") {

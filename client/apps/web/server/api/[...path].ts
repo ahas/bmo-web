@@ -133,15 +133,16 @@ async function relayed(event: H3Event): Promise<Response> {
   // A share read carries neither: the token is the whole of what it is held to.
   if (session.user !== undefined && !shared) Object.assign(headers, ownerHeaders(await signedInUser(event)));
 
-  // The body goes as the bytes it came as, so a bundle's file upload is not read as text on the way.
-  const body = reading ? undefined : await readRawBody(event);
+  // The body goes as the bytes it came as and as they come, so a bundle's file upload is neither read as text on the
+  // way nor held whole in this process.
+  const body = reading ? undefined : getRequestWebStream(event);
   // The call waits for the service's answer however long it takes to begin; it ends only on that answer or on
   // its connection refused or broken (docs/web.md, 「Screens a unit brings」).
   const waiting = new AbortController();
   let response: Response;
 
   try {
-    response = await fetch(`${unit.address}/${rest}${queryOf(event)}`, { method, headers, body, signal: waiting.signal });
+    response = await fetch(`${unit.address}/${rest}${queryOf(event)}`, { method, headers, body, duplex: "half", signal: waiting.signal } as RequestInit);
   } catch {
     throw fail(503, wording(CONTROL_UNREACHABLE));
   }

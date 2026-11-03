@@ -6504,6 +6504,9 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   which is a 503. Its
   event stream and its socket are relayed where the manifest asks for them, and the notices it names under
   `pushKinds` are rung (「Notifications」).
+- **A relayed body goes as its bytes, as they come.** It is handed on as a stream, never decoded as text and never
+  held whole in the console, and the console sets no ceiling on its size, so a video or a subtitle in any encoding
+  reaches the service as the browser sent it.
 - **A relayed path never walks out of itself.** A path one of whose segments reads, once its escapes are
   undone, as `.` or `..` is refused 400 and reaches no unit — a bundle's service or a unit the console calls
   directly — and a socket at such a path is closed as no relay, so what a manifest lets through is all a

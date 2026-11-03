@@ -93,6 +93,9 @@
   brain, calls, drafts and judgement; its parts say 브레인, 툴 사용, 드래프트, 판정.
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,
   상태 노트, 컨텍스트 노트.
+- the calendar → 일정 (the screen), 캘린더 (one calendar in it), 내 일정, 조직 일정; a reminder → 알림; a recurrence → 반복.
+- the theater → 극장: 작품 (a title), 에피소드, 보관함 (the screen of titles), 내 극장, 조직 극장, 플레이리스트, 이어 보기,
+  자막, 자막 굽기, 라이브러리 (a folder registered), 색인 and 재색인 (a scan), 업로드, 대사.
 - secret, a value a unit reads by its file name → 비밀; the console's store of them → 비밀 보관함; putting a value in
   place of the one a name holds → 교체. Never 시크릿, 키 보관소.
 - retire, take down → 보관; bringing one back → 복원. Switching a piece in or out of use → 켜기, 끄기.

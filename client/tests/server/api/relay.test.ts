@@ -40,6 +40,25 @@ describe("the relay's path", () => {
     expect(unit.asked.at(-1)?.path).toBe(`/${written}`);
   });
 
+  test("hands a body on byte for byte, whatever it holds", async () => {
+    let heard: Uint8Array | undefined;
+    const bytes = new Uint8Array([0x00, 0xff, 0xfe, 0xc0, 0x80, 0xb0, 0xa1, 0x7f]);
+    const binary = Bun.serve({
+      port: 0,
+      async fetch(request) {
+        heard = new Uint8Array(await request.arrayBuffer());
+
+        return answer({ ok: true });
+      }
+    });
+
+    process.env.BINARY_ADDRESS = `http://127.0.0.1:${binary.port}`;
+    await handler({ params: { path: "binary/files" }, method: "POST", rawBody: bytes, node: {} } as unknown as RouteEvent);
+    await binary.stop(true);
+
+    expect(heard).toEqual(bytes);
+  });
+
   test("escapes once what the request left bare", async () => {
     await handler(asking("places/volume:x/entries"));
 

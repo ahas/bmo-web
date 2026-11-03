@@ -44,6 +44,11 @@ const receiver = standIn("RECEIVER", () =>
 // bmo-job's stream ends after its first answer, so the relay asks it again from the cursor it reached.
 let jobAnswers = 0;
 const job = standIn("JOB", (asked: Asked) => {
+  // A cursor bmo-job no longer keeps is refused, as the service refuses it.
+  if (asked.path.includes("after=9")) {
+    return new Response('{"code":"gone","error":"The cursor stands before the events the service still keeps."}', { status: 410 });
+  }
+
   jobAnswers += 1;
 
   return jobAnswers === 1
@@ -102,6 +107,19 @@ describe("the relay to a tab", () => {
     expect(text).toContain('event: agency\ndata: {"id":28,"kind":"turn.created","at":1,"data":{"session":"worker-b","run":"run-a"}}\n\n');
     expect(text).toContain('event: agency\ndata: {"id":29,"kind":"job.created","at":2,"data":{"id":8,"roomId":7}}\n\n');
     expect(text).not.toContain("nodes-moved");
+  }, 10_000);
+
+  test("lets a cursor bmo-job no longer keeps go and asks its stream again with none", async () => {
+    const aborted = new AbortController();
+
+    job.asked.length = 0;
+    await read(
+      relayBotStream({ receiver: { after: 5, run: "receiver-run" }, job: { after: 9, run: "job-run" } }, aborted, {}),
+      aborted,
+      UNIT_RETRY_MS + 1_500
+    );
+
+    expect(job.asked.slice(0, 2).map((one) => one.path)).toEqual(["/events?after=9&run=job-run", "/events"]);
   }, 10_000);
 
   test("carries neither bmo-job's nor the agency's events to a reader of some rooms", async () => {

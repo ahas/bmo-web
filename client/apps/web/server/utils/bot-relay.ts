@@ -178,7 +178,11 @@ async function readStream(name: string, path: string, signal: AbortSignal, chunk
 // nothing until they have something to say, so the keepalive is a frame the page hears: a page that has heard
 // nothing for several of them knows its connection is gone. The receiver's stream is the tab's: when it ends,
 // so does the relay, and the reader opens it again on its own. bmo-job's and the agency's are the relay's to
-// keep: one that ends or is not there is asked again after a pause, bmo-job's from where it got to.
+// keep: one that ends or is not there is asked again after a pause, bmo-job's from where it got to. bmo-job's
+// is opened with no cursor where the tab holds none, and where bmo-job answers that the cursor stands before
+// the events it still keeps (a 410), the cursor is let go and the stream opened again from the events still to
+// come: a cursor it cannot resume from would otherwise be refused on every retry and the tab would hear no
+// item move at all.
 export function relayBotStream(cursors: RelayCursors, aborted: AbortController, filter: RelayFilter = {}): ReadableStream<Uint8Array> {
   let keepalive: ReturnType<typeof setInterval> | null = null;
   const readers = new Map<string, ReadableStreamDefaultReader<Uint8Array>>();
@@ -236,13 +240,17 @@ export function relayBotStream(cursors: RelayCursors, aborted: AbortController, 
       });
 
       // One of bmo-job's or the agency's streams, kept open beside the receiver's for as long as the relay is.
-      function keepUnit(name: string, path: () => string, frames: (frame: string) => string[]): void {
+      function keepUnit(name: string, path: () => string, frames: (frame: string) => string[], refused?: (status: number) => void): void {
         if (stopped || unitAt(name) === null) return;
 
         const unit = new RelayOutput(write, () => false, frames);
 
         void readStream(name, path(), aborted.signal, (chunk) => unit.upstream(chunk), held(name))
-          .catch(() => undefined)
+          .catch((error: unknown) => {
+            const status = Number(error instanceof Error ? error.message : NaN);
+
+            if (Number.isInteger(status)) refused?.(status);
+          })
           .then(() => {
             if (stopped) return;
 
@@ -258,7 +266,17 @@ export function relayBotStream(cursors: RelayCursors, aborted: AbortController, 
       if (filter.units ?? true) {
         const job = { ...cursors.job };
 
-        keepUnit("JOB", () => `/events?after=${job.after}${job.run === null ? "" : `&run=${encodeURIComponent(job.run)}`}`, jobFrames(job));
+        keepUnit(
+          "JOB",
+          () => (job.after > 0 ? `/events?after=${job.after}${job.run === null ? "" : `&run=${encodeURIComponent(job.run)}`}` : "/events"),
+          jobFrames(job),
+          (status) => {
+            if (status === 410) {
+              job.after = 0;
+              job.run = null;
+            }
+          }
+        );
         keepUnit("AGENCY", () => `/events?kinds=${AGENCY_KINDS.join(",")}`, agencyFrames);
         keepUnit("VOICE", () => `/events?kinds=${VOICE_KINDS.join(",")}`, voiceFrames);
       }

@@ -576,10 +576,11 @@
   background-color: color-mix(in oklab, var(--ui-warning) 25%, transparent);
 }
 
-/* A settings table's widths are the console's own (docs/web.md, 「Agent management screen」): once given out, the
-   table is laid out by them alone, as wide as they add up to, and a cell cuts what passes its column's width. While its
-   content is measured, for the moment of one read, the table stands at its content's width, every column at what its
-   name and widest cell take whole. A drag's held widths are the shared table's, laid out the same way. */
+/* A settings table is laid out as a spreadsheet (docs/web.md, 「Agent management screen」): by its columns' own widths
+   alone, as wide as they add up to, the room left over standing empty at its right edge, and a cell cuts what passes
+   its column's width. While its content is measured, for the moment of one read, the table stands at its content's
+   width, every column at what its name and widest cell take whole. A drag's held widths are the shared table's, laid
+   out the same way. */
 [data-settings-layout][data-laid-out] > table:not(.table-fixed) {
   table-layout: fixed;
   width: var(--settings-table-width);

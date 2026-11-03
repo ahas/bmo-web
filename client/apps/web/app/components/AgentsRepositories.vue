@@ -119,7 +119,7 @@ const { data: providers } = useProviders();
 const readFailure = useReadFailure({ failed: () => !!error.value && repositories.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
 const columns = computed<SettingsColumn<RepositoryView>[]>(() => [
-  { id: "repository", header: t("agents.label.column_repository"), title: true },
+  { id: "repository", header: t("agents.label.column_repository") },
   { id: "path", header: t("common.label.path"), ceiling: 320 },
   { id: "checkouts", header: t("agents.label.column_checkouts") },
   { id: "prefix", header: t("agents.label.prefix_documents") },

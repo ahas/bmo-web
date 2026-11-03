@@ -30,9 +30,8 @@ describe("the table", () => {
     expect(template).toContain('<SettingsTable v-if="data" data-draft-processes :data="data.rows" :columns="columns">');
   });
 
-  test("gives the key's last part what is left and every other column its content's width, a list under a ceiling", () => {
-    expect(script).toContain('{ accessorKey: "agentName", header: t("agents.label.draft_agent"), title: true }');
-    expect(script.match(/title: true/g)).toHaveLength(2);
+  test("stands every column at its content's width, a list under a ceiling", () => {
+    expect(script).toContain('{ accessorKey: "agentName", header: t("agents.label.draft_agent") }');
     expect(script).toContain('{ id: "rounds", header: t("agents.label.draft_rounds"), ceiling: 304 }');
     expect(template).toContain('class="max-w-full truncate font-mono text-sm text-highlighted"');
   });

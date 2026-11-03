@@ -238,7 +238,7 @@ const actionFailed = ref("");
 const columns = computed<SettingsColumn<DraftProcessView>[]>(() => [
   { accessorKey: "provider", header: t("agents.label.column_provider") },
   { accessorKey: "tier", header: t("agents.label.tier") },
-  { accessorKey: "agentName", header: t("agents.label.draft_agent"), title: true },
+  { accessorKey: "agentName", header: t("agents.label.draft_agent") },
   { id: "rounds", header: t("agents.label.draft_rounds"), ceiling: 304 },
   { id: "light", header: t("agents.label.draft_light"), ceiling: 304 },
   { id: "lightChars", header: t("agents.label.draft_light_chars") },
@@ -249,7 +249,7 @@ const columns = computed<SettingsColumn<DraftProcessView>[]>(() => [
 
 // A question's name is its row's title and the flexible column; its text stands on one line under a ceiling.
 const questionColumns = computed<SettingsColumn<DraftQuestionView>[]>(() => [
-  { accessorKey: "name", header: t("common.label.name"), title: true },
+  { accessorKey: "name", header: t("common.label.name") },
   { id: "text", header: t("agents.label.draft_question_text"), ceiling: 592 }
 ]);
 

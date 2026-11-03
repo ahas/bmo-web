@@ -157,7 +157,7 @@ usePolling(() => {
 }, COUNTS_MS);
 
 const columns = computed<SettingsColumn<RoleView>[]>(() => [
-  { id: "role", header: t("agents.label.column_role"), title: true },
+  { id: "role", header: t("agents.label.column_role") },
   { id: "bundles", header: t("agents.label.column_bundles"), ceiling: 320 },
   { id: "order", header: t("agents.label.order") },
   { id: "concurrency", header: t("agents.label.column_max_concurrent") },

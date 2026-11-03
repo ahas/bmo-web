@@ -249,7 +249,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     }, 60_000);
   }
 
-  test("give the draft tables' title column what is left, every other column its content's width", async () => {
+  test("stand every column of the draft tables at its own width, the room left over empty at the table's edge", async () => {
     const context = await browser!.newContext({ viewport: { width: 1600, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
     const at = cookie.indexOf("=");
 
@@ -265,8 +265,8 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
 
       for (const [table, title] of [["[data-draft-processes]", 2], ["[data-draft-questions]", 0]] as const) {
         // The widths as the table stands, then as it stands while its content is measured, every column at what its
-        // name and widest cell take whole: a column at its content's own width is the same in both, the title wider,
-        // and the table reaches its box's right edge.
+        // name and widest cell take whole: no column stands wider than its content, the title's included, a column
+        // under a ceiling stands narrower only where its content passes it, and the table is as wide as its columns.
         const widths = await page.locator(table).evaluate((root) => {
           const heads = [...root.querySelectorAll<HTMLElement>(":scope > table > thead > tr > th")];
           const read = () => heads.map((head) => Math.round(head.getBoundingClientRect().width));
@@ -280,11 +280,12 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
 
           return { standing, own, box: root.clientWidth, table: Math.round(root.querySelector("table")!.getBoundingClientRect().width) };
         });
+        const sum = widths.standing.reduce((all, one) => all + one, 0);
 
-        expect({ table, width: widths.table }).toEqual({ table, width: widths.box });
+        expect({ table, width: Math.abs(widths.table - sum) <= widths.standing.length }).toEqual({ table, width: true });
+        expect({ table, title: Math.abs(widths.standing[title]! - widths.own[title]!) <= 1 }).toEqual({ table, title: true });
         for (const [index, width] of widths.standing.entries()) {
-          if (index === title) expect(width).toBeGreaterThan(widths.own[index]! + 8);
-          else expect({ table, index, width: Math.abs(width - widths.own[index]!) <= 1 }).toEqual({ table, index, width: true });
+          expect({ table, index, fits: width <= widths.own[index]! + 1 && width >= Math.min(widths.own[index]!, 240) }).toEqual({ table, index, fits: true });
         }
       }
     } finally {

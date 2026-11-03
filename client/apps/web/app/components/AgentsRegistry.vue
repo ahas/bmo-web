@@ -124,7 +124,7 @@ interface RegistryRow {
 }
 
 const columns = computed<SettingsColumn<RegistryRow>[]>(() => [
-  { id: "name", header: t("common.label.name"), title: true },
+  { id: "name", header: t("common.label.name") },
   { id: "model", header: t("common.label.model") },
   { id: "usedBy", header: t("agents.label.used_by"), ceiling: 288 },
   { id: "cardService", header: t("agents.label.card_service") },

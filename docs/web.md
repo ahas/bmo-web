@@ -2715,8 +2715,8 @@ Two ways, split because the running places differ.
   tabs with its results under it; where it does not (a phone) it is a button opening the same search in a centred
   modal. Pressing a result opens its tab, brings its row to the middle of the view and marks it a moment; the open
   tab's rows mark the phrase too.
-- **Every table on the screen is the one shared settings table.** It fills the section edge to edge, one row to a
-  line, has no pages, and scrolls sideways inside a box of its own rather than cut a cell; that box is never wider
+- **Every table on the screen is the one shared settings table.** Its box fills the section edge to edge; the table
+  stands one row to a line, has no pages, and scrolls sideways inside that box once it is wider; the box is never wider
   than the panel, and neither the page nor the tab's body ever scrolls sideways. A tab's body has exactly one box
   that scrolls up and down, never a scrolling box inside another.
   - **A tab holding one table** — 역할, 저장소, 등록 모델, 모델 파일 — gives it the tab's whole height under whatever
@@ -2736,25 +2736,18 @@ Two ways, split because the running places differ.
   - **A cell is one box, edge to edge of its column and top to bottom of its row.** A pressed cell answers a hover
     and a press over the whole of that box, so the hover never stands shorter or narrower than the cell it marks;
     a cell that only shows a value fills the same box, its content centred on the row's middle line.
-  - **In every table exactly one column is flexible: the title's,** the words that say which record the
-    row is. Every other column stands as wide as its content asks — its name and its widest cell, measured as the
-    rows land and again as they change — and never wider. A column whose cells vary in length (a path, a list of
-    rooms, what a row runs on now, a list of questions, a question's text) has a ceiling of its own; where its box is
-    short of room it stands at that ceiling and cuts its cells on one line, the whole text in the tooltip every cut
-    line gets.
-  - **The box's width is given out in one order:** every content column its content up to its ceiling and the title
-    a floor of its own, or its words where they ask less; then the title up to its own words; then the cut columns
-    toward their content, evenly; and what is still left to the title. So no column is cut while the title stands
-    wider than its words, and the title is wide only where no other column asks for the room. Where the first share does not fit, the table is wider than its box
-    and scrolls sideways. The widths are given out again whenever the box changes width — the TODO panel opened or
-    closed, the window resized — until a drag holds them.
+  - **The columns behave as a spreadsheet's do** — the owner's words: 「그냥 엑셀 생각해봐」. Every column, the
+    title's among them, stands at its own width, and no column takes the width left over. A column first stands as
+    wide as its content asks — its name and its widest cell, measured as the rows land and again as what they say
+    changes. A column whose cells vary in length (a path, a list of rooms, what a row runs on now, a list of
+    questions, a question's text, a model file's defaults or note) stands at most at a ceiling of its own and cuts its
+    cells on one line there, the whole text in the tooltip every cut line gets. Room the columns do not use stays
+    empty at the table's right edge; a table wider than its box scrolls sideways inside it.
   - **Every column's width is dragged at the right edge of its name,** or moved with the arrow keys there, the way
-    the DB screen's columns are. The edge follows the pointer: a drag changes the dragged column alone, by what the
-    pointer moved, and every other column, the title among them, keeps the width it stood at, so the table grows or
-    shrinks by the drag — scrolling sideways once it is wider than its box, and ending short of the box's right edge
-    where it is narrower. A column is never dragged narrower than the shared table's least column width. Once a drag
-    has held the widths they stand as dragged while the tab stands, whatever the box's width; a tab opened again lays
-    its columns out afresh.
+    the DB screen's columns are. A drag changes the dragged column alone, by what the pointer moved, so the edge
+    stays under the pointer; every other column keeps the width it stood at, and the table grows or shrinks by the
+    drag. A column is never dragged narrower than the shared table's least column width. The widths stand as dragged
+    while the tab stands; a tab opened again lays its columns out afresh.
 - **A cell edits its own value, in place.** Pressing a cell that holds a setting opens a dropdown aligned to that
   cell, holding that cell's value and nothing else: a list for a choice, a number box for a number, a text box for a
   text. The dropdown is as wide as what it holds, never narrower than the cell it drops from and never wider than the
@@ -2840,9 +2833,8 @@ Two ways, split because the running places differ.
   the rooms it answered stay with their messages and documents.
 - **The draft process** (드래프트 과정) stands under the table: what a round's answer is asked before it goes out, as
   the receiver keeps it (the receiver's `docs/drafting.md`, 「The process table」). A row per key of a provider, a tier
-  and an agent, each a name or 전체 for any, in the order the receiver lists them. The key is the row's title, and its
-  last part, 에이전트, is the table's flexible column, so the three parts stand together at the head of the row and
-  every value after them at its own width. A line under the table's head says
+  and an agent, each a name or 전체 for any, in the order the receiver lists them. The key is the row's title, its
+  three parts standing together at the head of the row and every value after them at its own width. A line under the table's head says
   that a turn reads the most specific row that matches it, an agent's before a provider's and a provider's before a
   tier's.
   - **A row's cells:** 질문 순서, the questions of an ordinary turn in order; 짧은 턴 질문, those of a light turn;

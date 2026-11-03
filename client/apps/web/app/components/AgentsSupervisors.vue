@@ -188,7 +188,7 @@ const { data: rooms } = useRoomList();
 const readFailure = useReadFailure({ failed: () => !!error.value && supervisors.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
 const columns = computed<SettingsColumn<SupervisorView>[]>(() => [
-  { id: "supervisor", header: t("agents.label.column_supervisor"), title: true },
+  { id: "supervisor", header: t("agents.label.column_supervisor") },
   { id: "order", header: t("agents.label.order") },
   { id: "now", header: t("agents.label.column_now"), ceiling: 256 },
   { id: "warming", header: t("agents.label.column_warming") },

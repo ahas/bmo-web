@@ -1,7 +1,7 @@
 <template>
-  <!-- A settings table (docs/web.md, 「Agent management screen」): the one shared table, its columns laid out by the
-       width their content asks and the order the box's width is given out in, the title the one flexible column.
-       Until a drag holds the widths they are given out again as the rows change and as the box changes width; once
+  <!-- A settings table (docs/web.md, 「Agent management screen」): the one shared table, laid out as a spreadsheet —
+       every column at the width its content asks, up to its ceiling, the room left over standing empty at the
+       table's right edge. Until a drag holds the widths they are laid out again as what the rows say changes; once
        held, the shared table keeps them as dragged. Every slot the screen gives is handed on as it stands. -->
   <DataTable
     ref="table"
@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import { giveOutWidths } from "~/domain/settings-columns";
+import { columnWidths } from "~/domain/settings-columns";
 
 import type { TableColumn } from "@nuxt/ui";
 import type { ColumnAsk, SettingsColumn } from "~/domain/settings-columns";
@@ -47,7 +47,7 @@ const total = computed(() => props.columns.reduce((sum, column) => sum + (widths
 // Each column's width stands on its name's cell, which a table laid out by its first row goes by.
 const laidColumns = computed<TableColumn<T>[]>(() =>
   props.columns.map((column) => {
-    const { title: _title, ceiling: _ceiling, ...shared } = column as SettingsColumn<T> & Record<string, unknown>;
+    const { ceiling: _ceiling, ...shared } = column as SettingsColumn<T> & Record<string, unknown>;
     const width = laid.value ? widths.value![idOf(column)] : undefined;
 
     if (width === undefined) return shared as TableColumn<T>;
@@ -70,8 +70,7 @@ function measure(root: HTMLElement): ColumnAsk[] | null {
   const asks = props.columns.map((column, at) => ({
     id: idOf(column),
     content: heads[at]!.getBoundingClientRect().width,
-    ceiling: column.ceiling,
-    title: column.title === true
+    ceiling: column.ceiling
   }));
 
   root.removeAttribute("data-measuring");
@@ -89,7 +88,7 @@ function boxOf(): HTMLElement | null {
   return node as HTMLElement | null;
 }
 
-// The widths given out again, unless a drag holds them: the shared table then lays the table out by its own.
+// The widths laid out again, unless a drag holds them: the shared table then lays the table out by its own.
 function lay(): void {
   const root = boxOf();
 
@@ -99,7 +98,7 @@ function lay(): void {
 
   if (asks === null) return;
 
-  const given = giveOutWidths(root.clientWidth, asks);
+  const given = columnWidths(asks);
 
   if (JSON.stringify(given) !== JSON.stringify(widths.value)) widths.value = given;
 }
@@ -113,31 +112,17 @@ function layLater(): void {
   frame = requestAnimationFrame(lay);
 }
 
-// The widths are given out again as the box changes width and as what the table says changes: rows landing, a cell's
-// words read in after its row, a column's name.
-let resized: ResizeObserver | null = null;
+// The widths are laid out again as what the table says changes: rows landing, a cell's words read in after its row, a
+// column's name.
 let changed: MutationObserver | null = null;
-let boxWidth = -1;
 
-function watchBox(root: HTMLElement | null, gone: HTMLElement | null | undefined): void {
-  if (gone) resized?.unobserve(gone);
+function watchBox(root: HTMLElement | null): void {
   changed?.disconnect();
 
-  if (root === null) return;
-
-  resized?.observe(root);
-  changed?.observe(root, { childList: true, subtree: true, characterData: true });
+  if (root !== null) changed?.observe(root, { childList: true, subtree: true, characterData: true });
 }
 
 onMounted(() => {
-  resized = new ResizeObserver((entries) => {
-    const width = Math.round(entries[0]?.contentRect.width ?? 0);
-
-    if (width === boxWidth) return;
-
-    boxWidth = width;
-    layLater();
-  });
   changed = new MutationObserver(layLater);
 
   watch(() => (table.value ? boxOf() : null), watchBox, { immediate: true });
@@ -147,7 +132,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(frame);
-  resized?.disconnect();
   changed?.disconnect();
 });
 </script>

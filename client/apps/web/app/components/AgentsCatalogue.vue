@@ -201,7 +201,7 @@ const { data: catalogue, refresh, status } = useFetch<CatalogueView>("/api/model
 const readFailure = useReadFailure({ failed: () => status.value === "error" && catalogue.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
 const columns = computed<SettingsColumn<CatalogueEntryView>[]>(() => [
-  { id: "entry", header: t("agents.label.column_model_file"), title: true },
+  { id: "entry", header: t("agents.label.column_model_file") },
   { id: "file", header: t("agents.label.model_file"), ceiling: 288 },
   { id: "size", header: t("agents.label.column_size") },
   { id: "sha", header: "SHA-256" },

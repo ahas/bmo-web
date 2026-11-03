@@ -102,16 +102,15 @@ describe("every table of the screen", () => {
     for (const source of [supervisors, drafts]) expect(templateOf(source)).not.toContain("overflow-visible");
   });
 
-  test("marks one column the title and gives a column whose cells vary in length a ceiling of its own", () => {
-    for (const source of sections) expect(scriptOf(source).match(/title: true/g)).toHaveLength(1);
+  test("stands every column at its own width, a column whose cells vary in length under a ceiling of its own", () => {
     expect(scriptOf(supervisors)).toContain('{ id: "rooms", header: t("agents.label.column_rooms"), ceiling: 288 }');
     expect(scriptOf(repositories)).toContain('{ id: "path", header: t("common.label.path"), ceiling: 320 }');
     // A cell fills its column and cuts what passes it; no cell holds a width of its own.
     for (const source of sections) expect(templateOf(source)).not.toContain("w-max max-w-");
-    expect(scriptOf(settingsTable)).toContain("giveOutWidths(root.clientWidth, asks)");
+    expect(scriptOf(settingsTable)).toContain("columnWidths(asks)");
     // While its content is measured the table stands at its content's width, every column at what it takes whole.
     expect(css).toContain("[data-settings-layout][data-measuring] > table {\n  table-layout: auto !important;\n  width: max-content !important;");
-    // A drag's held widths are the shared table's own: no title column's width is set aside while the others are held.
+    // A drag's held widths are the shared table's own: no column's width is set aside while the others are held.
     expect(css).not.toContain("th.w-full");
   });
 

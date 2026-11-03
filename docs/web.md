@@ -2737,17 +2737,24 @@ Two ways, split because the running places differ.
     and a press over the whole of that box, so the hover never stands shorter or narrower than the cell it marks;
     a cell that only shows a value fills the same box, its content centred on the row's middle line.
   - **In every table exactly one column is flexible: the title's,** the words that say which record the
-    row is. It takes whatever width is left over and is cut last, never narrower than a floor of its own. Every other
-    column stands as wide as its content asks — its name and its widest cell, measured once the rows have landed — up
-    to a ceiling of its own, and never stretches; a column whose cells vary in length (a path, a list of rooms, what a
-    row runs on now, a question's text) cuts its cells on one line at that ceiling, the whole text in the tooltip
-    every cut line gets.
+    row is. Every other column stands as wide as its content asks — its name and its widest cell, measured as the
+    rows land and again as they change — and never wider. A column whose cells vary in length (a path, a list of
+    rooms, what a row runs on now, a list of questions, a question's text) has a ceiling of its own; where its box is
+    short of room it stands at that ceiling and cuts its cells on one line, the whole text in the tooltip every cut
+    line gets.
+  - **The box's width is given out in one order:** every content column its content up to its ceiling and the title
+    a floor of its own, or its words where they ask less; then the title up to its own words; then the cut columns
+    toward their content, evenly; and what is still left to the title. So no column is cut while the title stands
+    wider than its words, and the title is wide only where no other column asks for the room. Where the first share does not fit, the table is wider than its box
+    and scrolls sideways. The widths are given out again whenever the box changes width — the TODO panel opened or
+    closed, the window resized — until a drag holds them.
   - **Every column's width is dragged at the right edge of its name,** or moved with the arrow keys there, the way
-    the DB screen's columns are. A drag changes the dragged column alone: the other content columns keep the widths
-    they stood at, and the title column takes up the difference, so the table keeps reaching its box's right edge
-    and only scrolls sideways once the content columns and the title's floor no longer fit. A column is never dragged
-    narrower than the shared table's least column width. The widths stand while the screen stands; a tab opened again
-    lays its columns out afresh.
+    the DB screen's columns are. The edge follows the pointer: a drag changes the dragged column alone, by what the
+    pointer moved, and every other column, the title among them, keeps the width it stood at, so the table grows or
+    shrinks by the drag — scrolling sideways once it is wider than its box, and ending short of the box's right edge
+    where it is narrower. A column is never dragged narrower than the shared table's least column width. Once a drag
+    has held the widths they stand as dragged while the tab stands, whatever the box's width; a tab opened again lays
+    its columns out afresh.
 - **A cell edits its own value, in place.** Pressing a cell that holds a setting opens a dropdown aligned to that
   cell, holding that cell's value and nothing else: a list for a choice, a number box for a number, a text box for a
   text. The dropdown is as wide as what it holds, never narrower than the cell it drops from and never wider than the

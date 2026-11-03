@@ -33,6 +33,7 @@ const input = await read("../../components/SettingsInputCell.vue");
 const generation = await read("../../components/GenerationFields.vue");
 const cells = await Bun.file(new URL("../../../../apps/web/app/domain/settings-cells.ts", import.meta.url)).text();
 const drafts = await read("../../components/AgentsDraftProcesses.vue");
+const settingsTable = await read("../../components/SettingsTable.vue");
 
 const sections = [supervisors, roles, repositories, registry, catalogue];
 
@@ -71,13 +72,15 @@ describe("the screen's sections", () => {
 });
 
 describe("every table of the screen", () => {
-  test("is the one shared table, marked so its held widths stand as dragged", () => {
+  test("is the one shared table, laid out by the widths the settings table gives out", () => {
     for (const source of sections) {
-      expect(templateOf(source)).toContain("<DataTable");
-      expect(templateOf(source)).toContain("data-settings-table");
+      expect(templateOf(source)).toContain("<SettingsTable");
+      expect(templateOf(source)).not.toContain("<DataTable ");
       expect(templateOf(source)).not.toContain("<UTable");
     }
-    expect(css).toContain("[data-settings-table] table.table-fixed {\n  width: 100%;\n  min-width: max-content;\n}");
+    expect(templateOf(settingsTable)).toContain("<DataTable");
+    expect(templateOf(settingsTable)).toContain("data-settings-table");
+    expect(css).toContain("[data-settings-layout][data-laid-out] > table:not(.table-fixed) {\n  table-layout: fixed;\n  width: var(--settings-table-width);");
   });
 
   test("draws every cell as one box filling its cell top to bottom, so a hover never stands shorter than the row", () => {
@@ -87,7 +90,8 @@ describe("every table of the screen", () => {
   });
 
   test("gives a tab of one table the tab's whole height, its head stuck to the top", () => {
-    for (const source of [roles, repositories, registry, catalogue]) expect(templateOf(source)).toContain('data-settings-table layout="fill"');
+    for (const source of [roles, repositories, registry, catalogue]) expect(templateOf(source)).toContain('<SettingsTable v-if');
+    for (const source of [roles, repositories, registry, catalogue]) expect(templateOf(source)).toContain(' layout="fill"');
     expect(templateOf(supervisors)).not.toContain('layout="fill"');
   });
 
@@ -98,14 +102,17 @@ describe("every table of the screen", () => {
     for (const source of [supervisors, drafts]) expect(templateOf(source)).not.toContain("overflow-visible");
   });
 
-  test("gives the title column what is left and every other column its content's width, a long text under a ceiling it gives up once held", () => {
-    for (const source of sections) expect(scriptOf(source)).toContain('meta: { class: { th: "w-full" } }');
-    // The title column alone is flexible: a floor of its own in either layout, and a held width set aside once a drag
-    // holds the others, the table spanning its box.
-    expect(css).toContain("[data-settings-table] thead th.w-full::before {");
-    expect(css).toContain("[data-settings-table] table.table-fixed > thead > tr > th.w-full {\n  width: auto !important;\n}");
-    expect(templateOf(supervisors)).toContain("held ? 'w-full' : 'w-max max-w-72'");
-    expect(templateOf(repositories)).toContain("held ? 'w-full' : 'w-max max-w-80'");
+  test("marks one column the title and gives a column whose cells vary in length a ceiling of its own", () => {
+    for (const source of sections) expect(scriptOf(source).match(/title: true/g)).toHaveLength(1);
+    expect(scriptOf(supervisors)).toContain('{ id: "rooms", header: t("agents.label.column_rooms"), ceiling: 288 }');
+    expect(scriptOf(repositories)).toContain('{ id: "path", header: t("common.label.path"), ceiling: 320 }');
+    // A cell fills its column and cuts what passes it; no cell holds a width of its own.
+    for (const source of sections) expect(templateOf(source)).not.toContain("w-max max-w-");
+    expect(scriptOf(settingsTable)).toContain("giveOutWidths(root.clientWidth, asks)");
+    // While its content is measured the table stands at its content's width, every column at what it takes whole.
+    expect(css).toContain("[data-settings-layout][data-measuring] > table {\n  table-layout: auto !important;\n  width: max-content !important;");
+    // A drag's held widths are the shared table's own: no title column's width is set aside while the others are held.
+    expect(css).not.toContain("th.w-full");
   });
 
   test("lets every column be widened from the right edge of its name", () => {

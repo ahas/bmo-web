@@ -108,7 +108,17 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       const heads = page.locator("[data-settings-table]").first().locator("thead > tr > th");
       const widths = async (): Promise<number[]> =>
         await heads.evaluateAll((cells) => cells.map((cell) => Math.round(cell.getBoundingClientRect().width)));
-      const before = await widths();
+      // The widths as they stand once every cell's words have been read in.
+      let before = await widths();
+
+      for (let settled = false; !settled; ) {
+        await page.waitForTimeout(300);
+
+        const now = await widths();
+
+        settled = JSON.stringify(now) === JSON.stringify(before);
+        before = now;
+      }
       const edge = heads.nth(2).getByRole("separator");
       const box = (await edge.boundingBox())!;
 
@@ -119,8 +129,12 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       await page.mouse.up();
 
       const after = await widths();
+      const moved = (await edge.boundingBox())!;
 
-      expect(after[2]).toBeLessThan(before[2]!);
+      // The edge follows the pointer: the column narrows by what the pointer moved, the title and every other column
+      // standing as they stood.
+      expect(after[2]).toBe(before[2]! - 40);
+      expect(Math.round(moved.x - box.x)).toBe(-40);
       expect(after.filter((_, index) => index !== 2)).toEqual(before.filter((_, index) => index !== 2));
     } finally {
       await context.close();
@@ -247,34 +261,30 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
 
       await page.goto(`${origin}/agents`, { waitUntil: "load" });
       await page.locator("[data-draft-questions] tbody tr").first().waitFor({ timeout: 15_000 });
+      await page.waitForTimeout(500);
 
       for (const [table, title] of [["[data-draft-processes]", 2], ["[data-draft-questions]", 0]] as const) {
-        // The widths as the table stands, then as it stands laid out at its content's width with no column flexible:
-        // a column at its content's own width is the same in both.
+        // The widths as the table stands, then as it stands while its content is measured, every column at what its
+        // name and widest cell take whole: a column at its content's own width is the same in both, the title wider,
+        // and the table reaches its box's right edge.
         const widths = await page.locator(table).evaluate((root) => {
-          const table = root.querySelector("table")!;
-          const heads = [...table.querySelectorAll<HTMLElement>("thead > tr > th")];
+          const heads = [...root.querySelectorAll<HTMLElement>(":scope > table > thead > tr > th")];
           const read = () => heads.map((head) => Math.round(head.getBoundingClientRect().width));
           const standing = read();
-          const flexible = heads.filter((head) => head.classList.contains("w-full"));
 
-          flexible.forEach((head) => head.classList.remove("w-full"));
-          table.style.width = "max-content";
-          table.style.minWidth = "0";
+          root.setAttribute("data-measuring", "");
 
           const own = read();
 
-          flexible.forEach((head) => head.classList.add("w-full"));
-          table.style.width = "";
-          table.style.minWidth = "";
+          root.removeAttribute("data-measuring");
 
-          return { standing, own, flexible: heads.map((head) => flexible.includes(head)) };
+          return { standing, own, box: root.clientWidth, table: Math.round(root.querySelector("table")!.getBoundingClientRect().width) };
         });
 
-        expect(widths.flexible.map((one, index) => (one ? index : -1)).filter((index) => index >= 0)).toEqual([title]);
+        expect({ table, width: widths.table }).toEqual({ table, width: widths.box });
         for (const [index, width] of widths.standing.entries()) {
           if (index === title) expect(width).toBeGreaterThan(widths.own[index]! + 8);
-          else expect({ table, index, width }).toEqual({ table, index, width: widths.own[index]! });
+          else expect({ table, index, width: Math.abs(width - widths.own[index]!) <= 1 }).toEqual({ table, index, width: true });
         }
       }
     } finally {

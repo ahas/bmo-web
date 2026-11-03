@@ -15,7 +15,7 @@
     />
     <p v-else-if="view && view.roles.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_roles") }}</p>
 
-    <DataTable v-if="view && view.roles.length > 0" data-settings-table layout="fill" :data="view.roles" :columns="columns" :row-key="(row: RoleView) => row.name">
+    <SettingsTable v-if="view && view.roles.length > 0" layout="fill" :data="view.roles" :columns="columns" :row-key="(row: RoleView) => row.name">
       <template #role-cell="{ row }">
         <button
           :id="settingsAnchor(`role-${row.original.name}`)"
@@ -31,8 +31,8 @@
         </button>
       </template>
 
-      <template #bundles-cell="{ row, held }">
-        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-80']">
+      <template #bundles-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full">
           <span v-if="row.original.bundles.length > 0" class="flex flex-wrap gap-1">
             <UBadge v-for="bundle in row.original.bundles" :key="bundle.name" color="neutral" variant="subtle" size="sm">
               <SearchText :text="bundle.label" :query="props.query" />
@@ -42,13 +42,12 @@
         </span>
       </template>
 
-      <template #order-cell="{ row, held }">
+      <template #order-cell="{ row }">
         <ProviderOrderCell
           :order="row.original.order"
           :share="row.original.quotaShare"
           :line="row.original.line"
           :name="row.original.shown"
-          :held="held"
           :save="(order, quotaShare) => change(row.original.name, { order, quotaShare })"
         >
           <HintTip v-if="row.original.waitingFor !== null" :text="row.original.waitingFor" class="min-w-0">
@@ -114,7 +113,7 @@
           </UDropdownMenu>
         </span>
       </template>
-    </DataTable>
+    </SettingsTable>
 
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
@@ -137,8 +136,9 @@ import { usePolling } from "~/domain/polling";
 import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
 
 import type { OrderEntryView, RolesView, RoleView } from "#shared/axes";
-import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
+import type { DropdownMenuItem } from "@nuxt/ui";
 import type { CellChoice } from "~/domain/settings-cells";
+import type { SettingsColumn } from "~/domain/settings-columns";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
@@ -157,9 +157,9 @@ usePolling(() => {
   if (document.visibilityState === "visible" && !editing.value) void refresh();
 }, COUNTS_MS);
 
-const columns = computed<TableColumn<RoleView>[]>(() => [
-  { id: "role", header: t("agents.label.column_role"), meta: { class: { th: "w-full" } } },
-  { id: "bundles", header: t("agents.label.column_bundles") },
+const columns = computed<SettingsColumn<RoleView>[]>(() => [
+  { id: "role", header: t("agents.label.column_role"), title: true },
+  { id: "bundles", header: t("agents.label.column_bundles"), ceiling: 320 },
   { id: "order", header: t("agents.label.order") },
   { id: "concurrency", header: t("agents.label.column_max_concurrent") },
   { id: "sessions", header: t("agents.label.column_sessions") },

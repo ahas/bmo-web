@@ -47,7 +47,7 @@
 
     <!-- Each table stands in the supervisors tab's scrolling body, scrolling sideways in its own box, its head held at
          the body's top. -->
-    <DataTable v-if="data" data-settings-table data-draft-processes :data="data.rows" :columns="columns">
+    <SettingsTable v-if="data" data-draft-processes :data="data.rows" :columns="columns">
       <template #provider-cell="{ row }">
         <span :id="settingsAnchor(`draft-${draftKeyId(row.original)}`)" :class="CELL_TEXT" class="ps-4 text-highlighted">
           <SearchText :text="draftProviderText($t, row.original.provider)" :query="props.query" />
@@ -60,14 +60,14 @@
         <span :class="CELL_TEXT" class="whitespace-nowrap text-highlighted"><SearchText :text="markedDefault($t, draftKeyText($t, row.original.agentName), row.original.source === 'default')" :query="props.query" /></span>
       </template>
 
-      <template v-for="field in LIST_FIELDS" :key="field" #[`${field}-cell`]="{ row, held }">
+      <template v-for="field in LIST_FIELDS" :key="field" #[`${field}-cell`]="{ row }">
         <DraftListCell
           :value="row.original[field]"
           :catalogue="catalogue"
           :label="$t(LIST_LABELS[field], { key: keyText(row.original) })"
           :save="(list: string[]) => save(row.original, { [field]: list })"
         >
-          <span class="truncate font-mono text-sm text-highlighted" :class="held ? 'max-w-full' : 'max-w-72'">{{ draftListText($t, row.original[field]) }}</span>
+          <span class="max-w-full truncate font-mono text-sm text-highlighted">{{ draftListText($t, row.original[field]) }}</span>
         </DraftListCell>
       </template>
 
@@ -117,7 +117,7 @@
           </UTooltip>
         </span>
       </template>
-    </DataTable>
+    </SettingsTable>
 
     <p v-if="actionFailed !== ''" role="alert" class="px-4 py-2 text-sm text-error">{{ actionFailed }}</p>
 
@@ -151,15 +151,15 @@
       </UPopover>
     </div>
 
-    <DataTable v-if="data" data-settings-table data-draft-questions :data="data.questions" :columns="questionColumns" aria-labelledby="draft-questions-title">
+    <SettingsTable v-if="data" data-draft-questions :data="data.questions" :columns="questionColumns" aria-labelledby="draft-questions-title">
       <template #name-cell="{ row }">
         <span :id="settingsAnchor(`draft-question-${row.original.name}`)" :class="CELL_TEXT" class="ps-4 font-mono text-highlighted">
           <SearchText :text="markedDefault($t, row.original.name, row.original.source === 'default')" :query="props.query" />
         </span>
       </template>
-      <template #text-cell="{ row, held }">
+      <template #text-cell="{ row }">
         <SettingsPopoverCell v-model:open="editing[row.original.name]" :label="$t('agents.aria.draft_question_of', { name: row.original.name })" :busy="questionSaving && editingName === row.original.name">
-          <span class="truncate text-sm text-highlighted" :class="held ? 'max-w-full' : 'max-w-xl'"><SearchText :text="row.original.text" :query="props.query" /></span>
+          <span class="max-w-full truncate text-sm text-highlighted"><SearchText :text="row.original.text" :query="props.query" /></span>
 
           <template #content>
             <form class="flex min-w-0 flex-col gap-3" novalidate @submit.prevent="saveQuestion(row.original.name)">
@@ -173,7 +173,7 @@
           </template>
         </SettingsPopoverCell>
       </template>
-    </DataTable>
+    </SettingsTable>
   </section>
 </template>
 
@@ -211,7 +211,7 @@ import { countText } from "~/domain/numbers";
 import type { DraftKey, DraftProcessesView, DraftProcessValues, DraftProcessView, DraftQuestionView, PastCeiling } from "#shared/drafting";
 import type { SupervisorView } from "#shared/axes";
 import type { CellChoice } from "~/domain/settings-cells";
-import type { TableColumn } from "@nuxt/ui";
+import type { SettingsColumn } from "~/domain/settings-columns";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
@@ -235,12 +235,12 @@ const actionFailed = ref("");
 
 // The key is the row's title, and its last part the one flexible column; every other column stands at its own
 // content's width (docs/web.md, 「Agent management screen」, the draft process).
-const columns = computed<TableColumn<DraftProcessView>[]>(() => [
+const columns = computed<SettingsColumn<DraftProcessView>[]>(() => [
   { accessorKey: "provider", header: t("agents.label.column_provider") },
   { accessorKey: "tier", header: t("agents.label.tier") },
-  { accessorKey: "agentName", header: t("agents.label.draft_agent"), meta: { class: { th: "w-full" } } },
-  { id: "rounds", header: t("agents.label.draft_rounds") },
-  { id: "light", header: t("agents.label.draft_light") },
+  { accessorKey: "agentName", header: t("agents.label.draft_agent"), title: true },
+  { id: "rounds", header: t("agents.label.draft_rounds"), ceiling: 304 },
+  { id: "light", header: t("agents.label.draft_light"), ceiling: 304 },
   { id: "lightChars", header: t("agents.label.draft_light_chars") },
   { id: "ceilingSeconds", header: t("agents.label.draft_ceiling") },
   { id: "pastCeiling", header: t("agents.label.draft_past_ceiling") },
@@ -248,9 +248,9 @@ const columns = computed<TableColumn<DraftProcessView>[]>(() => [
 ]);
 
 // A question's name is its row's title and the flexible column; its text stands on one line under a ceiling.
-const questionColumns = computed<TableColumn<DraftQuestionView>[]>(() => [
-  { accessorKey: "name", header: t("common.label.name"), meta: { class: { th: "w-full" } } },
-  { id: "text", header: t("agents.label.draft_question_text") }
+const questionColumns = computed<SettingsColumn<DraftQuestionView>[]>(() => [
+  { accessorKey: "name", header: t("common.label.name"), title: true },
+  { id: "text", header: t("agents.label.draft_question_text"), ceiling: 592 }
 ]);
 
 const pastChoices = computed<CellChoice[]>(() => PAST_CEILINGS.map((past) => ({ value: past, label: pastCeilingText(t, past) })));

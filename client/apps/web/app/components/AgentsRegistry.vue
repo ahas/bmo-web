@@ -14,7 +14,7 @@
     />
     <p v-else-if="models !== undefined && rows.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_registrations") }}</p>
 
-    <DataTable v-if="models !== undefined && rows.length > 0" data-settings-table layout="fill" :data="rows" :columns="columns" :row-key="(row: RegistryRow) => row.name">
+    <SettingsTable v-if="models !== undefined && rows.length > 0" layout="fill" :data="rows" :columns="columns" :row-key="(row: RegistryRow) => row.name">
       <template #name-cell="{ row }">
         <span :id="settingsAnchor(`registry-${row.original.name}`)" :class="CELL_TEXT" class="ps-4" :data-registration="row.original.name">
           <span class="flex min-w-0 items-center gap-2">
@@ -33,8 +33,8 @@
         </span>
       </template>
 
-      <template #usedBy-cell="{ row, held }">
-        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-72']" class="text-sm">
+      <template #usedBy-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full text-sm">
           <span v-if="row.original.usedBy.length === 0" class="text-muted">—</span>
           <span v-else class="truncate text-toned">
             <template v-for="(one, at) in row.original.usedBy" :key="one">
@@ -60,7 +60,7 @@
           </UDropdownMenu>
         </span>
       </template>
-    </DataTable>
+    </SettingsTable>
 
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
@@ -104,8 +104,9 @@ import { emptyModelForm, healthMark, healthText, modelChange, modelCreate, model
 import { CELL_TEXT } from "~/domain/settings-cells";
 
 import type { ModelPage, ModelView } from "#shared/agency";
-import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
+import type { DropdownMenuItem } from "@nuxt/ui";
 import type { ModelForm } from "~/domain/registry";
+import type { SettingsColumn } from "~/domain/settings-columns";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
@@ -122,10 +123,10 @@ interface RegistryRow {
   health: { icon: string; tone: string; text: string } | null;
 }
 
-const columns = computed<TableColumn<RegistryRow>[]>(() => [
-  { id: "name", header: t("common.label.name"), meta: { class: { th: "w-full" } } },
+const columns = computed<SettingsColumn<RegistryRow>[]>(() => [
+  { id: "name", header: t("common.label.name"), title: true },
   { id: "model", header: t("common.label.model") },
-  { id: "usedBy", header: t("agents.label.used_by") },
+  { id: "usedBy", header: t("agents.label.used_by"), ceiling: 288 },
   { id: "cardService", header: t("agents.label.card_service") },
   { id: "actions", header: "" }
 ]);

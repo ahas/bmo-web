@@ -576,25 +576,32 @@
   background-color: color-mix(in oklab, var(--ui-warning) 25%, transparent);
 }
 
-/* A settings table's title column is its one flexible column (docs/web.md, 「Agent management screen」): it takes what
-   the content columns leave and never stands narrower than a floor of its own, which a block of no height inside its
-   name holds, so the table's own layout and a held one both count it. Once a drag holds the widths, the title column
-   gives up the width it was held at and takes what the others leave, and the table spans its box whatever they add up
-   to, growing past it to scroll only once they and the title's floor no longer fit. */
-[data-settings-table] thead th.w-full::before {
-  content: "";
-  display: block;
-  width: 10rem;
-  height: 0;
+/* A settings table's widths are the console's own (docs/web.md, 「Agent management screen」): once given out, the
+   table is laid out by them alone, as wide as they add up to, and a cell cuts what passes its column's width. While its
+   content is measured, for the moment of one read, the table stands at its content's width, every column at what its
+   name and widest cell take whole. A drag's held widths are the shared table's, laid out the same way. */
+[data-settings-layout][data-laid-out] > table:not(.table-fixed) {
+  table-layout: fixed;
+  width: var(--settings-table-width);
+  min-width: 0;
 }
 
-[data-settings-table] table.table-fixed {
-  width: 100%;
-  min-width: max-content;
+/* Held by a drag, the table is as wide as the held widths add up to, ending short of its box where they fall short. */
+[data-settings-layout] > table.table-fixed {
+  min-width: 0;
 }
 
-/* The shared table writes a held width on every column's name; the title column's is set aside. */
-[data-settings-table] table.table-fixed > thead > tr > th.w-full {
+[data-settings-layout][data-laid-out] > table > tbody > tr > td {
+  overflow: hidden;
+}
+
+[data-settings-layout][data-measuring] > table {
+  table-layout: auto !important;
+  width: max-content !important;
+  min-width: 0 !important;
+}
+
+[data-settings-layout][data-measuring] > table > thead > tr > th {
   width: auto !important;
 }
 

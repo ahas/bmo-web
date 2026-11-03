@@ -7,7 +7,7 @@
   <button type="button" :class="CELL_BUTTON" :disabled="props.disabled" :aria-label="$t('agents.aria.order_of', { name: props.name })" @click="openForm">
     <span v-if="first !== undefined" class="flex max-w-full items-center gap-1 text-sm">
       <UIcon name="i-material-symbols-arrow-right-alt" class="size-4 shrink-0 text-primary" />
-      <span class="font-medium text-highlighted" :class="props.held ? 'truncate' : 'whitespace-nowrap'">{{ entryText(providers, first) }}</span>
+      <span class="truncate font-medium text-highlighted">{{ entryText(providers, first) }}</span>
       <span v-if="rest > 0" class="shrink-0 whitespace-nowrap text-muted">{{ $t("agents.label.order_more", { n: countText(rest) }) }}</span>
     </span>
     <slot />
@@ -36,14 +36,12 @@ interface Props {
   line: string;
   // What the row is called, which the form is titled by.
   name: string;
-  // Whether the table's widths are held by hand, which is when a line is cut inside its column's width.
-  held?: boolean;
   disabled?: boolean;
   // Saves the order and the share whole; the refusal with the field it names, or null once it took them.
   save: (order: OrderEntryView[], share: number) => Promise<{ field: string | null; text: string } | null>;
 }
 
-const props = withDefaults(defineProps<Props>(), { held: false, disabled: false });
+const props = withDefaults(defineProps<Props>(), { disabled: false });
 const { data: providers } = useProviders();
 
 const open = ref(false);

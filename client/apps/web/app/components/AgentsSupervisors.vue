@@ -16,7 +16,7 @@
 
     <!-- The tab's body scrolls up and down around every table of the tab; each table scrolls sideways in its own box,
          and the screen holds its head at the body's top while its rows pass under it. -->
-    <DataTable v-if="supervisors !== undefined && supervisors.length > 0" data-settings-table :data="supervisors" :columns="columns" :row-key="(row: SupervisorView) => row.name">
+    <SettingsTable v-if="supervisors !== undefined && supervisors.length > 0" :data="supervisors" :columns="columns" :row-key="(row: SupervisorView) => row.name">
       <template #supervisor-cell="{ row }">
         <NuxtLink
           :id="settingsAnchor(`supervisor-${row.original.name}`)"
@@ -33,19 +33,18 @@
         </NuxtLink>
       </template>
 
-      <template #order-cell="{ row, held }">
+      <template #order-cell="{ row }">
         <ProviderOrderCell
           :order="row.original.order"
           :share="row.original.quotaShare"
           :line="SUPERVISOR_LINE"
           :name="row.original.label"
-          :held="held"
           :save="(order, quotaShare) => change(row.original.name, { order, quotaShare })"
         />
       </template>
 
-      <template #now-cell="{ row, held }">
-        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-64']" class="text-sm">
+      <template #now-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full text-sm">
           <span v-if="row.original.provider === null" class="text-muted">—</span>
           <span v-else class="truncate text-highlighted">{{ nowText(row.original) }}</span>
           <HintTip v-if="row.original.waitingFor !== null" :text="row.original.waitingFor" class="min-w-0">
@@ -56,10 +55,10 @@
 
       <!-- The providers its prefix is kept warm on, on one line; pressed, one switch per provider of its order, each
            taking effect as it is thrown. -->
-      <template #warming-cell="{ row, held }">
+      <template #warming-cell="{ row }">
         <SettingsPopoverCell :label="$t('agents.aria.warming_cell_of', { name: row.original.label })" :busy="warmingBusy.startsWith(`${row.original.name}:`)">
           <span v-if="warmedOf(row.original).length === 0" class="whitespace-nowrap text-sm text-muted">{{ $t("agents.label.switch_off") }}</span>
-          <span v-else class="max-w-full text-sm text-highlighted" :class="held ? 'truncate' : 'whitespace-nowrap'">{{ warmedOf(row.original).join(" · ") }}</span>
+          <span v-else class="max-w-full truncate text-sm text-highlighted">{{ warmedOf(row.original).join(" · ") }}</span>
 
           <template #content>
             <ul class="flex min-w-0 flex-col" :aria-label="$t('agents.label.column_warming')">
@@ -93,8 +92,8 @@
         </SettingsInputCell>
       </template>
 
-      <template #rooms-cell="{ row, held }">
-        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-72']" class="text-sm">
+      <template #rooms-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full text-sm">
           <span v-if="roomsOf(row.original).length === 0" class="text-muted">—</span>
           <span v-else class="truncate text-highlighted">{{ roomsOf(row.original).join(" · ") }}</span>
         </span>
@@ -109,7 +108,7 @@
           </UDropdownMenu>
         </span>
       </template>
-    </DataTable>
+    </SettingsTable>
 
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
@@ -169,7 +168,8 @@ import { CELL_TEXT } from "~/domain/settings-cells";
 
 import type { CompanionAdded, CompanionView } from "#shared/agency";
 import type { OrderEntryView, RepositoryView, SupervisorView } from "#shared/axes";
-import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
+import type { DropdownMenuItem } from "@nuxt/ui";
+import type { SettingsColumn } from "~/domain/settings-columns";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
@@ -187,13 +187,13 @@ const { data: providers } = useProviders();
 const { data: rooms } = useRoomList();
 const readFailure = useReadFailure({ failed: () => !!error.value && supervisors.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
-const columns = computed<TableColumn<SupervisorView>[]>(() => [
-  { id: "supervisor", header: t("agents.label.column_supervisor"), meta: { class: { th: "w-full" } } },
+const columns = computed<SettingsColumn<SupervisorView>[]>(() => [
+  { id: "supervisor", header: t("agents.label.column_supervisor"), title: true },
   { id: "order", header: t("agents.label.order") },
-  { id: "now", header: t("agents.label.column_now") },
+  { id: "now", header: t("agents.label.column_now"), ceiling: 256 },
   { id: "warming", header: t("agents.label.column_warming") },
   { id: "threshold", header: t("agents.label.column_threshold") },
-  { id: "rooms", header: t("agents.label.column_rooms") },
+  { id: "rooms", header: t("agents.label.column_rooms"), ceiling: 288 },
   { id: "actions", header: "" }
 ]);
 

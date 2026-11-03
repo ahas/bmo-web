@@ -15,7 +15,7 @@
     />
     <p v-else-if="repositories !== undefined && repositories.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_repositories") }}</p>
 
-    <DataTable v-if="repositories !== undefined && repositories.length > 0" data-settings-table layout="fill" :data="repositories" :columns="columns" :row-key="(row: RepositoryView) => row.name">
+    <SettingsTable v-if="repositories !== undefined && repositories.length > 0" layout="fill" :data="repositories" :columns="columns" :row-key="(row: RepositoryView) => row.name">
       <template #repository-cell="{ row }">
         <button
           :id="settingsAnchor(`repository-${row.original.name}`)"
@@ -34,8 +34,8 @@
         </button>
       </template>
 
-      <template #path-cell="{ row, held }">
-        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-80']" class="text-sm">
+      <template #path-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full text-sm">
           <SearchText class="truncate font-mono text-toned" :text="row.original.path" :query="props.query" />
           <span v-if="row.original.nodeName !== null" class="truncate text-muted">{{ nodeLabel(row.original.nodeName) }}</span>
         </span>
@@ -79,7 +79,7 @@
           </UDropdownMenu>
         </span>
       </template>
-    </DataTable>
+    </SettingsTable>
 
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
@@ -101,7 +101,8 @@ import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
 
 import type { RepositoryView, RolesView } from "#shared/axes";
 import type { MonitorNode } from "#shared/types";
-import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
+import type { DropdownMenuItem } from "@nuxt/ui";
+import type { SettingsColumn } from "~/domain/settings-columns";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
@@ -118,9 +119,9 @@ const { data: nodes } = useFetch<MonitorNode[]>("/api/nodes", { key: "nodes", la
 const { data: providers } = useProviders();
 const readFailure = useReadFailure({ failed: () => !!error.value && repositories.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
-const columns = computed<TableColumn<RepositoryView>[]>(() => [
-  { id: "repository", header: t("agents.label.column_repository"), meta: { class: { th: "w-full" } } },
-  { id: "path", header: t("common.label.path") },
+const columns = computed<SettingsColumn<RepositoryView>[]>(() => [
+  { id: "repository", header: t("agents.label.column_repository"), title: true },
+  { id: "path", header: t("common.label.path"), ceiling: 320 },
   { id: "checkouts", header: t("agents.label.column_checkouts") },
   { id: "prefix", header: t("agents.label.prefix_documents") },
   { id: "pin", header: t("agents.label.pinned_model") },

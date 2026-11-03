@@ -28,7 +28,7 @@
     />
     <p v-else-if="catalogue !== undefined && catalogue.entries.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_catalogue") }}</p>
 
-    <DataTable v-if="catalogue !== undefined && catalogue.entries.length > 0" data-settings-table layout="fill" :data="catalogue.entries" :columns="columns" :row-key="(row: CatalogueEntryView) => row.name">
+    <SettingsTable v-if="catalogue !== undefined && catalogue.entries.length > 0" layout="fill" :data="catalogue.entries" :columns="columns" :row-key="(row: CatalogueEntryView) => row.name">
       <template #entry-cell="{ row }">
         <span :id="settingsAnchor(`catalogue-${row.original.name}`)" :class="CELL_TEXT" class="ps-4" :data-entry="row.original.name">
           <span class="flex min-w-0 items-center gap-2">
@@ -39,8 +39,8 @@
         </span>
       </template>
 
-      <template #file-cell="{ row, held }">
-        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-72']">
+      <template #file-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full">
           <SearchText class="truncate font-mono text-sm text-toned" :text="row.original.file" :query="props.query" />
         </span>
       </template>
@@ -53,8 +53,8 @@
         <span :class="CELL_TEXT" class="font-mono text-sm text-muted">{{ row.original.sha256.slice(0, 12) }}</span>
       </template>
 
-      <template #source-cell="{ row, held }">
-        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-60']">
+      <template #source-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full">
           <span class="truncate text-sm text-toned">{{ sourceText($t, row.original.source) }}</span>
         </span>
       </template>
@@ -76,8 +76,8 @@
       </template>
 
       <!-- Its defaults on one line, each a name and its value, cut at the column's ceiling. -->
-      <template #defaults-cell="{ row, held }">
-        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-80']" class="text-sm">
+      <template #defaults-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full text-sm">
           <span class="truncate">
             <template v-for="(pair, at) in defaultsPairs($t, row.original)" :key="pair.name">
               <span v-if="at > 0" class="text-muted"> · </span>
@@ -88,8 +88,8 @@
         </span>
       </template>
 
-      <template #note-cell="{ row, held }">
-        <span :class="[CELL_TEXT, held ? 'w-full' : 'w-max max-w-60']">
+      <template #note-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full">
           <span class="truncate text-sm text-muted">{{ row.original.note ?? "—" }}</span>
         </span>
       </template>
@@ -103,7 +103,7 @@
           </UDropdownMenu>
         </span>
       </template>
-    </DataTable>
+    </SettingsTable>
 
     <p v-if="actionFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ actionFailed }}</p>
 
@@ -188,8 +188,9 @@ import { useReadFailure } from "~/domain/events";
 import { CELL_TEXT } from "~/domain/settings-cells";
 
 import type { CatalogueEntryView, CatalogueView } from "#shared/agency";
-import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
+import type { DropdownMenuItem } from "@nuxt/ui";
 import type { CatalogueForm } from "~/domain/catalogue-models";
+import type { SettingsColumn } from "~/domain/settings-columns";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
@@ -199,16 +200,16 @@ const WHOLE_NUMBER = { step: 1, formatOptions: { useGrouping: true, maximumFract
 const { data: catalogue, refresh, status } = useFetch<CatalogueView>("/api/model-catalogue", { key: "model-catalogue", lazy: true, server: false });
 const readFailure = useReadFailure({ failed: () => status.value === "error" && catalogue.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
-const columns = computed<TableColumn<CatalogueEntryView>[]>(() => [
-  { id: "entry", header: t("agents.label.column_model_file"), meta: { class: { th: "w-full" } } },
-  { id: "file", header: t("agents.label.model_file") },
+const columns = computed<SettingsColumn<CatalogueEntryView>[]>(() => [
+  { id: "entry", header: t("agents.label.column_model_file"), title: true },
+  { id: "file", header: t("agents.label.model_file"), ceiling: 288 },
   { id: "size", header: t("agents.label.column_size") },
   { id: "sha", header: "SHA-256" },
-  { id: "source", header: t("agents.label.model_source") },
+  { id: "source", header: t("agents.label.model_source"), ceiling: 240 },
   { id: "engine", header: t("agents.label.engine") },
   { id: "nodes", header: t("agents.label.column_nodes") },
-  { id: "defaults", header: t("agents.label.column_model_defaults") },
-  { id: "note", header: t("agents.label.note") },
+  { id: "defaults", header: t("agents.label.column_model_defaults"), ceiling: 320 },
+  { id: "note", header: t("agents.label.note"), ceiling: 240 },
   { id: "actions", header: "" }
 ]);
 

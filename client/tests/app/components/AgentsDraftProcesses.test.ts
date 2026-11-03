@@ -15,7 +15,7 @@ const listTemplate = list.slice(0, list.indexOf("<script"));
 
 describe("the table", () => {
   test("stands on the supervisors tab under the supervisors' table, read by the browser alone under the key the search reads", () => {
-    expect(supervisors.indexOf("<AgentsDraftProcesses")).toBeGreaterThan(supervisors.indexOf("<DataTable"));
+    expect(supervisors.indexOf("<AgentsDraftProcesses")).toBeGreaterThan(supervisors.indexOf("<SettingsTable"));
     expect(script).toContain('useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", server: false, lazy: true })');
     expect(page).toContain('useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", lazy: true, server: false })');
   });
@@ -27,13 +27,14 @@ describe("the table", () => {
     expect(script).not.toContain('id: "source"');
     expect(template).toContain("markedDefault($t, draftKeyText($t, row.original.agentName), row.original.source === 'default')");
     expect(template).toContain("markedDefault($t, row.original.name, row.original.source === 'default')");
-    expect(template).toContain('<DataTable v-if="data" data-settings-table data-draft-processes :data="data.rows" :columns="columns">');
+    expect(template).toContain('<SettingsTable v-if="data" data-draft-processes :data="data.rows" :columns="columns">');
   });
 
   test("gives the key's last part what is left and every other column its content's width, a list under a ceiling", () => {
-    expect(script).toContain('{ accessorKey: "agentName", header: t("agents.label.draft_agent"), meta: { class: { th: "w-full" } } }');
-    expect(script.match(/th: "w-/g)).toHaveLength(2);
-    expect(template).toContain(`class="truncate font-mono text-sm text-highlighted" :class="held ? 'max-w-full' : 'max-w-72'"`);
+    expect(script).toContain('{ accessorKey: "agentName", header: t("agents.label.draft_agent"), title: true }');
+    expect(script.match(/title: true/g)).toHaveLength(2);
+    expect(script).toContain('{ id: "rounds", header: t("agents.label.draft_rounds"), ceiling: 304 }');
+    expect(template).toContain('class="max-w-full truncate font-mono text-sm text-highlighted"');
   });
 
   test("a cell sets its one value with the row's others as they stand", () => {

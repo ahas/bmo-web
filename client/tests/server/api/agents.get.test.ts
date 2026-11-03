@@ -18,6 +18,10 @@ const ORDER = [{ provider: "codex", model: "model-a", effort: "high", thinking: 
 standIn("AGENCY", (call) => {
   if (!agencyAnswers) return answer({ code: "service-unavailable", error: "the store is not open" }, 503);
 
+  if (call.path === "/supervisors/agent-a/rooms") {
+    return answer({ items: [{ roomId: 42, runs: 3, lastRunId: 9, lastRunUnit: "chat:42:1700000005500", lastStartedAt: 1_700_000_005_500, lastFinishedAt: null }], more: false });
+  }
+
   if (call.path.startsWith("/supervisors")) {
     return answer({
       items: [
@@ -100,7 +104,7 @@ describe("the agent list", () => {
       ["role-x", "role"],
       ["repo-a", "repository"]
     ]);
-    expect(list.agents[0]).toMatchObject({ label: "Agent A", defaultAnswerer: true, provider: "codex", model: "model-a", sessions: [{ chatId: -7, lastAt: null }] });
+    expect(list.agents[0]).toMatchObject({ label: "Agent A", defaultAnswerer: true, provider: "codex", model: "model-a", sessions: [{ chatId: 42, lastAt: 1_700_000_005 }, { chatId: -7, lastAt: null }] });
     expect(list.agents[1]).toMatchObject({ running: 1, model: "model-a", effort: "high", runs: [{ role: "worker", path: "/srv/repo-a", source: "job", since: 1_000 }] });
     expect(list.agents[2]).toMatchObject({ provider: null, waitingFor: "no quota", runs: [] });
     expect(list.agents[3]?.checkouts).toEqual([

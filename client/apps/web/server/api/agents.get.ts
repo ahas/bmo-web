@@ -4,8 +4,8 @@ import { repositorySummary, roleSummary, roleViewsOf, slotRunsOf, supervisorRoom
 
 import type { AgentList } from "#shared/types";
 
-// The console's agent list as the agency answers it (docs/web.md, 「Sidebar」): its supervisors with the rooms their
-// sessions hold, its roles with the runs their slots hold now, and its repositories with their checkouts, and the
+// The console's agent list as the agency answers it (docs/web.md, 「Sidebar」): its supervisors with the rooms they
+// speak in, its roles with the runs their slots hold now, and its repositories with their checkouts, and the
 // roles with the bundles each gives. An agency that does not answer leaves the list empty and says so. Beside it
 // stand the gate order as the gate unit serves it, none where that unit is not reached, and the receiver's default
 // answerer, by which a turn is told the chat agent's (docs/web.md, 「The name is the one answering on that row」).
@@ -29,7 +29,19 @@ export default defineEventHandler(async (event): Promise<AgentList> => {
       agencyCall(agency().GET("/jobs", { params: { query: { limit: 1 } } })).then((page) => page.items[0] ?? null).catch(() => null)
     ]);
     const runs = slotRunsOf(slots);
-    const held = supervisorRooms(sessions, rooms);
+    // The rooms each supervisor's turns went into, read for each one; a supervisor whose list does not answer has
+    // only the rooms its sessions and companionships name.
+    const spoken = new Map(
+      await Promise.all(
+        supervisors.items.map(async (supervisor) => [
+          supervisor.name,
+          await agencyCall(agency().GET("/supervisors/{supervisorName}/rooms", { params: { path: { supervisorName: supervisor.name } } }))
+            .then((page) => page.items)
+            .catch(() => [])
+        ] as const)
+      )
+    );
+    const held = supervisorRooms(spoken, sessions, rooms);
     const jobRole = newest?.roleName ?? null;
 
     return {

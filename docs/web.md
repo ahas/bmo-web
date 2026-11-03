@@ -1289,10 +1289,12 @@ Four groups.
   here the moment the agency lists it, under its own label. Each entry stands as 「Profile photos」 says — a
   supervisor as its face, a role with the role mark, a repository with the repository mark.
   - **감독관** — every supervisor the agency's `GET /supervisors` lists, the chat agent and every companion side by
-    side, each under its own label. Under each stand its room sessions: the chat agent's one per room a session was
-    recorded for, a companion's one per room it answers, each named by its room's name, in the order the rooms stand,
-    and each opening the supervisor's log at its last line in that room — or at the log's end while the room has
-    none. The owner's private chat stands not as a chat number but as the name the language pack gives it. A room
+    side, each under its own label. Under each stand the rooms it speaks in, one entry per room: every room the
+    agency's `GET /supervisors/{name}/rooms` names for it — the rooms its turns went into, the chat agent's one
+    session across rooms included — with every room a session of its was recorded for and every room it answers as a
+    companion. Each is named by its room's name, in the order the rooms stand, and opens the supervisor's log at its
+    last line in that room — at the second the room's last run began, as that route names it — or at the log's end
+    where the route names no run there. The owner's private chat stands not as a chat number but as the name the language pack gives it. A room
     name is the same everywhere on screen, so nowhere — sidebar, live status, log header — does a number come up as
     is.
   - **역할** — every role the agency's `GET /roles` lists, in its order: the runners, the doppelganger, the worker,

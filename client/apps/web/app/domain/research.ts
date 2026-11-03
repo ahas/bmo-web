@@ -223,10 +223,11 @@ export function runOpen(state: string): boolean {
   return state !== "closed";
 }
 
-/** A hold's reason in words: a bench on its node, or the wait on the model's health. */
+/** A hold's reason in words: a bench on its node, the wait on the model's health, or the wait for its engine's card. */
 export function holdReasonText(t: Translate, hold: { reason: string }): string {
   if (hold.reason === "bench") return t("research.label.hold_bench");
   if (hold.reason === "restore") return t("research.label.hold_restore");
+  if (hold.reason === "waiting-card") return t("research.label.hold_waiting_card");
 
   return t("research.label.unknown_value", { value: hold.reason });
 }

@@ -2345,6 +2345,7 @@ research:
     hold_bench: 벤치
     hold_reported: 보고됨
     hold_restore: 복구 대기
+    hold_waiting_card: 카드 대기
     hold_since: "{time}부터"
     host_gap: 호스트 간격
     item_state_dismissed: 제외됨

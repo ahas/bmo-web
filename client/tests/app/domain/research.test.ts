@@ -144,6 +144,7 @@ describe("the categories' words", () => {
     expect(holdsOf(holds, "category-b")).toEqual([holds[1]!]);
     expect(holdReasonText(wording, holds[0]!)).toBe(wording("research.label.hold_bench"));
     expect(holdReasonText(wording, holds[1]!)).toBe(wording("research.label.hold_restore"));
+    expect(holdReasonText(wording, { reason: "waiting-card" })).toBe(wording("research.label.hold_waiting_card"));
   });
 });
 

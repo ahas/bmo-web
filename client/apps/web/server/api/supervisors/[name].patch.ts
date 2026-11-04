@@ -3,10 +3,10 @@ import { wording } from "#shared/wording";
 import type { SupervisorView } from "#shared/axes";
 
 // One supervisor's fields changed — its label, order, quota share, forced active provider, warming, compaction threshold
-// or repository — for the administrator (the agency's `docs/api.md`, 「supervisors」). Whether the values stand is the
+// or repository — for a reader who may write the supervisors tab (the agency's `docs/api.md`, 「supervisors」). Whether the values stand is the
 // agency's to say, and a refused field is said under that field.
 export default defineEventHandler(async (event): Promise<SupervisorView> => {
-  await requireAdministrator(event);
+  await signedInUser(event);
 
   const name = axisName(getRouterParam(event, "name"));
   const change = supervisorChangeOf(await readBody<unknown>(event));

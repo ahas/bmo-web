@@ -94,7 +94,7 @@
         </span>
       </template>
 
-      <template #actions-cell="{ row }">
+      <template v-if="!props.readonly" #actions-cell="{ row }">
         <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: row.original.label })">
@@ -192,7 +192,7 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 import type { CatalogueForm } from "~/domain/catalogue-models";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
 const { t } = useI18n();
 const askFirst = useConfirm();
 const WHOLE_NUMBER = { step: 1, formatOptions: { useGrouping: true, maximumFractionDigits: 0 }, locale: "en-US" } as const;
@@ -210,7 +210,7 @@ const columns = computed<SettingsColumn<CatalogueEntryView>[]>(() => [
   { id: "nodes", header: t("agents.label.column_nodes") },
   { id: "defaults", header: t("agents.label.column_model_defaults"), ceiling: 320 },
   { id: "note", header: t("agents.label.note"), ceiling: 240 },
-  { id: "actions", header: "" }
+  ...(props.readonly ? [] : [{ id: "actions", header: "" }])
 ]);
 
 // While a choice runs its progress is read again every few seconds; nothing is read once all have ended.

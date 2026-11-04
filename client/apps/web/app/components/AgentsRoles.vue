@@ -22,6 +22,7 @@
           type="button"
           :class="CELL_BUTTON"
           class="ps-4"
+          :disabled="props.readonly"
           :aria-label="$t('agents.aria.settings_of', { name: row.original.name })"
           @click="openEdit(row.original.name)"
         >
@@ -47,6 +48,7 @@
           :share="row.original.quotaShare"
           :line="row.original.line"
           :name="row.original.name"
+          :disabled="props.readonly"
           :save="(order, quotaShare) => change(row.original.name, { order, quotaShare })"
         />
       </template>
@@ -59,6 +61,7 @@
           :waiting-for="row.original.waitingFor"
           :line="row.original.line"
           :name="row.original.name"
+          :disabled="props.readonly"
           :save="(active) => saved(change(row.original.name, { active }))"
         />
       </template>
@@ -67,6 +70,7 @@
         <SettingsInputCell
           :value="row.original.maxConcurrent"
           :label="$t('agents.aria.max_concurrent_of', { name: row.original.name })"
+          :disabled="props.readonly"
           :min="0"
           :step="1"
           :save="(value: string) => saved(change(row.original.name, { maxConcurrent: Number(value) }))"
@@ -80,6 +84,7 @@
           :value="row.original.sessions"
           :items="sessionItems"
           :label="$t('agents.aria.sessions_of', { name: row.original.name })"
+          :disabled="props.readonly"
           :save="(value: string | number) => saved(change(row.original.name, { sessions: String(value) }))"
         >
           <span class="whitespace-nowrap text-sm text-highlighted">{{ sessionsText($t, row.original.sessions) }}</span>
@@ -90,6 +95,7 @@
         <SettingsInputCell
           :value="percentOf(row.original.foldRatio)"
           :label="$t('agents.aria.threshold_of', { name: row.original.name })"
+          :disabled="props.readonly"
           :min="1"
           :max="100"
           :step="1"
@@ -104,14 +110,14 @@
           <USwitch
             :model-value="row.original.callable"
             :loading="switching === row.original.name"
-            :disabled="switching !== ''"
+            :disabled="switching !== '' || props.readonly"
             :aria-label="$t('agents.aria.callable_of', { name: row.original.name })"
             @update:model-value="(on: boolean) => void switchCallable(row.original, on)"
           />
         </span>
       </template>
 
-      <template #actions-cell="{ row }">
+      <template v-if="!props.readonly" #actions-cell="{ row }">
         <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: row.original.name })">
@@ -147,7 +153,7 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
 const { t } = useI18n();
 const { data: providers } = useProviders();
 const island = useIsland(t);
@@ -173,7 +179,7 @@ const columns = computed<SettingsColumn<RoleView>[]>(() => [
   { id: "sessions", header: t("agents.label.column_sessions") },
   { id: "threshold", header: t("agents.label.column_threshold") },
   { id: "callable", header: t("agents.label.column_callable") },
-  { id: "actions", header: "" }
+  ...(props.readonly ? [] : [{ id: "actions", header: "" }])
 ]);
 
 const sessionItems = computed<CellChoice[]>(() => (["keep", "fresh"] as const).map((value) => ({ value, label: sessionsText(t, value) })));

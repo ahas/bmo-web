@@ -22,10 +22,15 @@ use crate::{Refusal, Service, one, run};
 /// The kind of the deployment's rules a console section is.
 pub const KIND: &str = "bmo_section";
 
+/// The five parts of agent management, each its own permission: the supervisors, the roles, the repositories,
+/// the registered models and the model files.
+pub const AGENT_SECTIONS: [&str; 5] = ["supervisors", "roles", "repositories", "models", "model-files"];
+
 /// The sections the console serves, in the order its navigation stands them: the console's own screens and the
-/// screen the brain brings. `rooms` is the list of the reader's rooms and `account` the reader's own account,
-/// neither of which stands in the navigation's flat group.
-pub const SECTIONS: [&str; 15] = [
+/// screen the brain brings, with agent management's five parts where its screen stands. `rooms` is the list of
+/// the reader's rooms and `account` the reader's own account, neither of which stands in the navigation's flat
+/// group.
+pub const SECTIONS: [&str; 19] = [
   "live",
   "mail",
   "siren",
@@ -34,7 +39,11 @@ pub const SECTIONS: [&str; 15] = [
   "artifact",
   "documents",
   "code",
-  "agents",
+  "supervisors",
+  "roles",
+  "repositories",
+  "models",
+  "model-files",
   "research",
   "monitor",
   "remote",
@@ -184,6 +193,67 @@ pub async fn backfill<C: ConnectionTrait + TransactionTrait>(db: &C) -> Result<(
     &txn,
     r#"INSERT INTO "settings" ("key", "value") VALUES ($1, $2) ON CONFLICT ("key") DO NOTHING"#,
     vec![SEEDED.into(), crate::now_ms().to_string().into()],
+  )
+  .await?;
+  txn.commit().await?;
+
+  Ok(())
+}
+
+/// The settings key the one-time move of agent management's old single grant is marked under.
+const AGENTS_SPLIT: &str = "sections_agents_split_at";
+
+/// Agent management's old one section moved to its five parts: a grant on `agents` is written on every part it
+/// opened, so a reader an administrator had opened agent management for keeps it whole, and the old grant is
+/// taken away. Run once, against a deployment that holds a user.
+pub async fn split_agents<C: ConnectionTrait + TransactionTrait>(db: &C) -> Result<(), Refusal> {
+  if one(db, r#"SELECT 1 AS "held" FROM "settings" WHERE "key" = $1"#, vec![AGENTS_SPLIT.into()])
+    .await?
+    .is_some()
+  {
+    return Ok(());
+  }
+
+  let txn = db.begin().await?;
+
+  if one(&txn, r#"SELECT 1 AS "one" FROM "users" LIMIT 1"#, vec![]).await?.is_none() {
+    txn.rollback().await?;
+
+    return Ok(());
+  }
+
+  let tuples = crate::all(
+    &txn,
+    r#"SELECT "subject_key", "relation" FROM "relation_tuples"
+       WHERE "resource_type" = $1 AND "resource_id" = 'agents'
+         AND "relation" IN ('read', 'write')
+         AND ("expires_at" IS NULL OR "expires_at" > now())"#,
+    vec![KIND.into()],
+  )
+  .await?;
+
+  for row in &tuples {
+    let key: String = row.try_get("", "subject_key")?;
+    let relation: String = row.try_get("", "relation")?;
+    let Some(user) = key.strip_prefix("user:").and_then(|id| id.parse::<i32>().ok()) else {
+      continue;
+    };
+
+    for section in AGENT_SECTIONS {
+      Authz::write_unchecked(
+        TupleWrite::new(KIND, section, relation.as_str(), SubjectKey::user(user)),
+        DEFAULTS,
+        &txn,
+      )
+      .await?;
+    }
+  }
+
+  Authz::revoke_unchecked(TupleFilter::object(KIND, "agents"), &txn).await?;
+  run(
+    &txn,
+    r#"INSERT INTO "settings" ("key", "value") VALUES ($1, $2) ON CONFLICT ("key") DO NOTHING"#,
+    vec![AGENTS_SPLIT.into(), crate::now_ms().to_string().into()],
   )
   .await?;
   txn.commit().await?;

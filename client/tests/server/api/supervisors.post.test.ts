@@ -31,8 +31,8 @@ const globals = globalThis as Record<string, unknown>;
 
 describe("adding a supervisor", () => {
   test("the person's user id goes to the receiver as the account the supervisor is filed under", async () => {
-    const held = globals.requireAdministrator;
-    globals.requireAdministrator = async () => ({ id: 7, name: "tester", administrator: true });
+    const held = globals.signedInUser;
+    globals.signedInUser = async () => ({ id: 7, name: "tester", administrator: true });
     receiver.asked.length = 0;
 
     try {
@@ -42,7 +42,7 @@ describe("adding a supervisor", () => {
       expect(receiver.asked).toHaveLength(1);
       expect(receiver.asked[0]?.body).toMatchObject({ ...ADD, ownerAccount: 7 });
     } finally {
-      globals.requireAdministrator = held;
+      globals.signedInUser = held;
     }
   });
 });

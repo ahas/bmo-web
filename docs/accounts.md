@@ -150,7 +150,9 @@ section states what each does.
 ### Console sections
 
 - **A console section is one entry of the console's navigation,** from the live status down to the brain, and
-  the rooms and the account beside the flat group. Each is named by the first part of the screen's path:
+  the rooms and the account beside the flat group, or one part of agent management's screen, whose five tabs
+  are its five parts. Each screen is named by the first part of its path; each part of agent management is named
+  by its tab:
 
   | Section | The screen |
   |---|---|
@@ -162,13 +164,23 @@ section states what each does.
   | `artifact` | bmo-artifact's screen |
   | `documents` | the document viewer |
   | `code` | bmo-review's screen |
-  | `agents` | agent management |
+  | `supervisors` | agent management's supervisors tab |
+  | `roles` | agent management's roles tab |
+  | `repositories` | agent management's repositories tab |
+  | `models` | agent management's registered models tab |
+  | `model-files` | agent management's model files tab |
   | `research` | the research screen |
   | `monitor` | the machines and the card board |
   | `remote` | bmo-remote's screen |
   | `brain` | the brain's screen |
   | `rooms` | the reader's rooms and their messages |
   | `account` | the reader's own account and its settings |
+
+- **Agent management's screen opens on any one of its parts the reader may read,** and each tab on its own
+  part alone. Its shared reads — the agent list, a provider's models, the provider switches and the fallback,
+  an agent's face and tool marks — open on any part read; the provider switches and the fallback are changed in
+  the settings dialog, which only the administrator opens. An agent's own page stands under the three parts
+  whose rows open it: the supervisors, the roles and the repositories.
 
 - **A section's permission is two relations of the deployment's rules,** `read` and `write`, on a
   `bmo_section` object named by the section. They are checked through sumida's point check as every other

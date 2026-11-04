@@ -139,7 +139,10 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   }
 
   // The sections a user made without a word is given: their rooms and their own account.
-  const SECTIONS = ["live", "mail", "siren", "db", "files", "artifact", "documents", "code", "agents", "research", "monitor", "remote", "brain", "rooms", "account"];
+  const SECTIONS = [
+    "live", "mail", "siren", "db", "files", "artifact", "documents", "code", "supervisors", "roles", "repositories",
+    "models", "model-files", "research", "monitor", "remote", "brain", "rooms", "account"
+  ];
   const sectionsOf = (user: StandInUser): Map<string, { read: boolean; write: boolean }> => {
     const kept = sections.get(user.id);
 

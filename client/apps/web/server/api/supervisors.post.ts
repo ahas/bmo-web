@@ -27,7 +27,7 @@ const ADD_FIELDS: Readonly<Record<string, string>> = {
 // account is the signed-in person's user id, required of an organisation member, so the brain and ownership are
 // filed under them rather than under the deployment.
 export default defineEventHandler(async (event): Promise<SupervisorAddedView> => {
-  const signed = await requireAdministrator(event);
+  const signed = await signedInUser(event);
 
   const body = await readBody<Record<string, unknown>>(event);
   const fields = typeof body === "object" && body !== null ? body : {};

@@ -20,7 +20,7 @@ const patch = await server("api/supervisors/[name].patch.ts");
 
 describe("a supervisor's settings", () => {
   test("are one dialog, opened by the tab and the supervisor's own screen", () => {
-    expect(page).toContain('<SupervisorSettingsDialog v-if="settingsKind === \'supervisor\'" v-model:open="settingsOpen" :name="name"');
+    expect(page).toContain('<SupervisorSettingsDialog v-if="writable && settingsKind === \'supervisor\'" v-model:open="settingsOpen" :name="name"');
     expect(tab).toContain("<SupervisorSettingsDialog");
   });
 
@@ -48,6 +48,6 @@ describe("a supervisor's settings", () => {
     expect(listing).toContain('agencyRoute<ChatDocumentsView>("GET", "/chat-documents")');
     expect(changing).toContain('agencyRoute<ChatDocumentView>("PATCH", `/chat-documents/${encodeURIComponent(name)}`');
     expect(patch).toContain("supervisorChangeOf(await readBody<unknown>(event))");
-    expect(patch).toContain("requireAdministrator(event)");
+    expect(patch).toContain("signedInUser(event)");
   });
 });

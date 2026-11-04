@@ -1,4 +1,4 @@
-import { CONSOLE_SECTIONS, isConsoleSection, sectionOfPath } from "#shared/sections";
+import { CONSOLE_SECTIONS, isConsoleSection, sectionsOfPath } from "#shared/sections";
 import { screensWithBundles } from "./screens";
 
 import type { ConsoleScreen } from "#shared/console-bundles";
@@ -24,7 +24,12 @@ const NAMED: Record<string, { label: string; icon: string }> = {
   artifact: { label: "screens.label.artifact", icon: "i-material-symbols-archive-outline" },
   documents: { label: "screens.label.documents", icon: "i-material-symbols-library-books-outline" },
   code: { label: "screens.label.code", icon: "i-material-symbols-rate-review-outline" },
-  agents: { label: "screens.label.agents", icon: "i-material-symbols-list-alt-outline" },
+  // Agent management's five parts, each named for its tab and given the tab's own mark.
+  supervisors: { label: "agents.label.tab_supervisors", icon: "i-material-symbols-supervisor-account" },
+  roles: { label: "agents.label.tab_roles", icon: "i-material-symbols-badge-outline" },
+  repositories: { label: "agents.label.tab_repositories", icon: "i-material-symbols-folder-outline" },
+  models: { label: "agents.label.tab_models", icon: "i-material-symbols-model-training" },
+  "model-files": { label: "agents.label.tab_model_files", icon: "i-material-symbols-deployed-code-outline" },
   research: { label: "screens.label.research", icon: "i-material-symbols-travel-explore" },
   monitor: { label: "screens.label.monitor", icon: "i-material-symbols-monitor-heart-outline" },
   remote: { label: "screens.label.remote", icon: "i-material-symbols-devices-outline" },
@@ -38,9 +43,11 @@ export function permissionSections(bundles: readonly ConsoleScreen[]): Permissio
   const bySection = new Map<string, PermissionSection>();
 
   for (const screen of screensWithBundles(bundles)) {
-    const id = sectionOfPath(screen.to);
+    const sections = sectionsOfPath(screen.to);
+    const id = sections[0];
 
-    if (id === null || bySection.has(id)) continue;
+    // A screen standing under several sections is agent management, whose parts are named by their tabs.
+    if (id === undefined || sections.length !== 1 || bySection.has(id)) continue;
 
     bySection.set(id, { id, label: screen.label, icon: screen.icon });
   }

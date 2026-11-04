@@ -3,10 +3,13 @@ import { agencyClient } from "@agency/client";
 import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { signedInUser } from "./accounts";
+import { ownerHeaders } from "./owner-key";
 import { unitAt, unitHeaders } from "./units";
 import { answered } from "./unit-answer";
 
-import type { AgencyClient } from "@agency/client";
+import type { AgencyClient, AgencyFetch } from "@agency/client";
+import type { H3Event } from "h3";
 import type { UnitAnswerCall } from "./unit-answer";
 
 // The agency's fixed API as its published package states it (the agency's `docs/api.md`, 「The control port」):
@@ -26,13 +29,54 @@ const AGENCY_CODES: Readonly<Record<string, string>> = {
   "name-taken": "agents.error.agent_name_taken"
 };
 
-/** The agency at the address its setting names, asked with its token. */
+// The person a call acts for, read once for the request: the agency refuses what that login may not do (the
+// agency's `docs/api.md`, 「Who a call acts for」). A call made for nobody signed in carries none.
+const OWNER = "agencyOwner";
+
+async function ownerOf(event: H3Event): Promise<Record<string, string>> {
+  const held = event.context[OWNER] as Record<string, string> | undefined;
+
+  if (held !== undefined) return held;
+
+  const signed = await signedInUser(event).catch(() => null);
+  const headers = signed === null ? {} : ownerHeaders(signed);
+
+  event.context[OWNER] = headers;
+
+  return headers;
+}
+
+// The request a call is made for, where it is made inside one.
+function currentEvent(): H3Event | null {
+  try {
+    return useEvent();
+  } catch {
+    return null;
+  }
+}
+
+async function ownerCallHeaders(): Promise<Record<string, string>> {
+  const event = currentEvent();
+
+  return event === null ? {} : await ownerOf(event);
+}
+
+// Every agency call carries the signed-in person beside the console's token.
+const carryingOwner: AgencyFetch = async (request) => {
+  const headers = new Headers(request.headers);
+
+  for (const [name, value] of Object.entries(await ownerCallHeaders())) headers.set(name, value);
+
+  return await fetch(new Request(request, { headers }));
+};
+
+/** The agency at the address its setting names, asked with its token and the signed-in person's owner key. */
 export function agency(): AgencyClient {
   const unit = unitAt("AGENCY");
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
 
-  return agencyClient(unit.address, unit.token ?? "");
+  return agencyClient(unit.address, unit.token ?? "", carryingOwner);
 }
 
 /**
@@ -46,7 +90,7 @@ export async function agencyRoute<T>(method: "GET" | "PUT" | "PATCH", path: stri
 
   const asked = fetch(`${unit.address}${path}`, {
     method,
-    headers: { ...unitHeaders(unit), accept: "application/json", ...(body === undefined ? {} : { "content-type": "application/json" }) },
+    headers: { ...unitHeaders(unit), ...(await ownerCallHeaders()), accept: "application/json", ...(body === undefined ? {} : { "content-type": "application/json" }) },
     body: body === undefined ? undefined : JSON.stringify(body)
   }).then(async (response) => {
     const parsed: unknown = await response.json().catch(() => undefined);

@@ -6,7 +6,7 @@ import type { SupervisorSettingsView } from "#shared/axes";
 // the agency under the signed-in user, who the change is kept as made by (the agency's `docs/api.md`, 「supervisors」,
 // a supervisor's settings). A field the save leaves out is left as it stands.
 export default defineEventHandler(async (event): Promise<SupervisorSettingsView> => {
-  const session = await requireAdministrator(event);
+  const session = await signedInUser(event);
   const name = axisName(getRouterParam(event, "name"));
   const body = await readBody<Record<string, unknown>>(event);
 

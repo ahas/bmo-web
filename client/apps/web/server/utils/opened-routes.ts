@@ -26,7 +26,14 @@ export interface OpenedRoute {
 
 const ROOM = ["rooms"];
 const LIVE = ["live"];
-const AGENTS = ["agents"];
+// Agent management's five parts, each its own permission, and the three whose rows open an agent's own page.
+const SUPERVISORS = ["supervisors"];
+const ROLES = ["roles"];
+const REPOSITORIES = ["repositories"];
+const MODELS = ["models"];
+const MODEL_FILES = ["model-files"];
+const AGENT_PARTS = ["supervisors", "roles", "repositories", "models", "model-files"];
+const AGENT_DETAIL = ["supervisors", "roles", "repositories"];
 const RESEARCH = ["research"];
 const MONITOR = ["monitor"];
 const DOCUMENTS = ["documents"];
@@ -96,14 +103,44 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(LIVE, "GET", /^\/api\/todos(?:\/.*)?$/),
   section(LIVE, "POST", /^\/api\/todos(?:\/.*)?$/),
 
-  // The supervisors, roles, repositories, models and the jobs and runs that go with them. The agent list and
-  // the role slots stand on the live status screen too.
-  section(["agents", "live"], "GET", /^\/api\/(agents|slots)(?:\/.*)?$/),
-  section(AGENTS, "GET", /^\/api\/(supervisors|roles|repositories|models|model-catalogue|provider-models|providers|fallback|chat-documents|default-answerer|research-supervisor|work-nodes|agent-faces|tool-icons)(?:\/.*)?$/),
-  section(AGENTS, "POST", /^\/api\/(agents|supervisors|roles|repositories|models|model-catalogue|fallback|launch|run-stop|worker-word)(?:\/.*)?$/),
-  section(AGENTS, "PATCH", /^\/api\/(agents|supervisors|roles|repositories|models|providers|fallback|chat-documents|default-answerer|research-supervisor)(?:\/.*)?$/),
-  section(AGENTS, "PUT", /^\/api\/(chat-documents|default-answerer|research-supervisor)(?:\/.*)?$/),
-  section(AGENTS, "DELETE", /^\/api\/(supervisors|roles|repositories|models)(?:\/.*)?$/),
+  // Agent management, a permission to each of its five parts (docs/web.md, 「Access」). An agent's own page and
+  // the shared reads a chooser or a mark makes open under any part; the role slots stand on the live status
+  // screen too, and the provider switches and the fallback are read beside every part and written as a
+  // supervisor's.
+  section(AGENT_DETAIL, "GET", /^\/api\/agents\/[^/]+(?:\/.*)?$/),
+  section(AGENT_PARTS, "GET", /^\/api\/agents$/),
+  { ...section(["roles", "live"], "GET", /^\/api\/slots$/), access: "read" },
+  section(SUPERVISORS, "GET", /^\/api\/supervisors(?:\/.*)?$/),
+  section(SUPERVISORS, "POST", /^\/api\/supervisors(?:\/.*)?$/),
+  section(SUPERVISORS, "PATCH", /^\/api\/supervisors(?:\/.*)?$/),
+  section(SUPERVISORS, "DELETE", /^\/api\/supervisors(?:\/.*)?$/),
+  section(ROLES, "GET", /^\/api\/roles(?:\/.*)?$/),
+  section(ROLES, "POST", /^\/api\/roles(?:\/.*)?$/),
+  section(ROLES, "PATCH", /^\/api\/roles(?:\/.*)?$/),
+  section(ROLES, "DELETE", /^\/api\/roles(?:\/.*)?$/),
+  section(REPOSITORIES, "GET", /^\/api\/(repositories|work-nodes)(?:\/.*)?$/),
+  section(REPOSITORIES, "POST", /^\/api\/repositories(?:\/.*)?$/),
+  section(REPOSITORIES, "PATCH", /^\/api\/repositories(?:\/.*)?$/),
+  section(REPOSITORIES, "DELETE", /^\/api\/repositories(?:\/.*)?$/),
+  section(MODELS, "GET", /^\/api\/models(?:\/.*)?$/),
+  section(MODELS, "POST", /^\/api\/models(?:\/.*)?$/),
+  section(MODELS, "PATCH", /^\/api\/models(?:\/.*)?$/),
+  section(MODELS, "DELETE", /^\/api\/models(?:\/.*)?$/),
+  section(MODEL_FILES, "GET", /^\/api\/model-catalogue(?:\/.*)?$/),
+  section(MODEL_FILES, "POST", /^\/api\/model-catalogue(?:\/.*)?$/),
+  section(SUPERVISORS, "GET", /^\/api\/(chat-documents|default-answerer)(?:\/.*)?$/),
+  section(SUPERVISORS, "PUT", /^\/api\/default-answerer(?:\/.*)?$/),
+  section(SUPERVISORS, "PATCH", /^\/api\/chat-documents(?:\/.*)?$/),
+  // The draft processes and their questions stand under the supervisors' table.
+  section(SUPERVISORS, "GET", /^\/api\/draft-processes(?:\/.*)?$/),
+  section(SUPERVISORS, "POST", /^\/api\/(draft-processes|draft-questions)(?:\/.*)?$/),
+  section(SUPERVISORS, "DELETE", /^\/api\/draft-processes(?:\/.*)?$/),
+  // What every part's chooser reads. The provider switches and the fallback are the settings dialog's, which only
+  // the administrator opens, so their writes stand with the routes not opened to a member.
+  section(AGENT_PARTS, "GET", /^\/api\/(provider-models|providers|fallback|agent-faces|tool-icons)(?:\/.*)?$/),
+  // What an agent's own page sends, and the stop a run's row offers.
+  section(AGENT_DETAIL, "POST", /^\/api\/(launch|worker-word)(?:\/.*)?$/),
+  section(["live", "supervisors", "roles"], "POST", /^\/api\/run-stop(?:\/.*)?$/),
 
   // The research unit's queue, runs and sources, and the settings every run is held to.
   section(RESEARCH, "GET", /^\/api\/research(?:\/.*)?$/),
@@ -115,8 +152,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
 
   // Every machine's hardware and the card master's board.
   section(MONITOR, "GET", /^\/api\/(hardware\/machines\/[^/]+|hardware\/machines\/[^/]+\/(history|live)|cards\/(state|events))$/),
-  // The nodes a repository's jobs run on are named on agent management as well as on the monitor.
-  section(["monitor", "agents"], "GET", /^\/api\/nodes$/),
+  // The nodes a repository's jobs run on are named on its tab as well as on the monitor.
+  section(["monitor", "repositories"], "GET", /^\/api\/nodes$/),
   section(MONITOR, "POST", /^\/api\/hardware\/(tracking|cpu-limit)$/),
 
   // The console's own database, read as tables and rows.

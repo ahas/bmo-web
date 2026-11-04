@@ -397,6 +397,12 @@ console page. No answer says which framework drew it. Strict transport is the re
 - **A section's read opens its screen and its reads; its write opens its changes.** The sections and the
   defaults a user is made with stand in `docs/accounts.md`, 「Console sections」; a user's routes are read
   against the permission the account service holds, never the tab's own memory of it.
+- **Agent management's five parts are sections of their own.** A reader sees only the tabs they may read, and
+  every route a tab reads or changes is held to that tab's part; the agent list, a provider's models and an
+  agent's face and tool marks open on any part read. The provider switches and the fallback are the settings
+  dialog's, which only the administrator opens. An agent's own page opens on a read of the supervisors, the
+  roles or the repositories, and its stop, its settings and the box that launches work stand only where that
+  part writes.
 - **The administrator sets one person's sections in the settings.** The 권한 section lists the users, and
   the section chosen stands a table of the console's sections with a switch for its read and one for its
   write; a change is saved as it is made, and a write turns its read on. The platform administrator's own
@@ -2721,7 +2727,8 @@ Two ways, split because the running places differ.
   `docs/agents.md`, 「Two axes」): the supervisors, the roles and the repositories, and the two things a provider order
   may name of the deployment's own, the registered models and the model files. Everything this screen edits is
   written through the agency's routes; the console keeps none of it.
-- **A section to a tab.** The tabs are 감독관, 역할, 저장소, 등록 모델 and 모델 파일, keyed in the address as
+- **A section to a tab.** A tab stands only where the reader may read its part, and its 추가 and its row
+  changes stand only where they may write it (「Access」). The tabs are 감독관, 역할, 저장소, 등록 모델 and 모델 파일, keyed in the address as
   `?tab=supervisors`, `roles`, `repositories`, `models` and `model-files`, so a shared link opens the same section and
   moving between tabs is a step of the history; a key that names no tab opens 감독관. The tab row stands under the
   title bar and carries, at its right end, the open section's own 추가, the settings search and the one button that

@@ -22,6 +22,7 @@
           type="button"
           :class="CELL_BUTTON"
           class="flex-row items-start justify-start gap-2 ps-4"
+          :disabled="props.readonly"
           :aria-label="$t('agents.aria.settings_of', { name: row.original.label })"
           @click="openEdit(row.original.name)"
         >
@@ -63,7 +64,7 @@
           <USwitch
             :model-value="row.original.downgradeHeal"
             :loading="switching === row.original.name"
-            :disabled="switching !== ''"
+            :disabled="switching !== '' || props.readonly"
             :aria-label="$t('agents.aria.heal_of', { name: row.original.label })"
             @update:model-value="(on: boolean) => void switchHeal(row.original, on)"
           />
@@ -104,7 +105,7 @@ import type { MonitorNode } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
 const { t } = useI18n();
 const island = useIsland(t);
 const askFirst = useConfirm();
@@ -181,10 +182,14 @@ const removeFailed = ref("");
 
 function menuOf(repository: RepositoryView): DropdownMenuItem[] {
   const held = heldCount(repository) > 0;
+  // The log is read, and stands to a reader whose part is read alone; the edit and the removal need its write.
+  const log: DropdownMenuItem = { label: t("agents.action.log"), icon: "i-material-symbols-article-outline", to: `/agents/${encodeURIComponent(repository.name)}` };
+
+  if (props.readonly) return [log];
 
   return [
     { label: t("common.action.edit"), icon: "i-material-symbols-edit-outline", onSelect: () => openEdit(repository.name) },
-    { label: t("agents.action.log"), icon: "i-material-symbols-article-outline", to: `/agents/${encodeURIComponent(repository.name)}` },
+    log,
     {
       label: t("common.action.delete"),
       icon: "i-material-symbols-delete-outline",

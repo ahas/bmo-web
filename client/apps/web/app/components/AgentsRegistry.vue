@@ -51,7 +51,7 @@
         </span>
       </template>
 
-      <template #actions-cell="{ row }">
+      <template v-if="!props.readonly" #actions-cell="{ row }">
         <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: row.original.name })">
@@ -108,7 +108,7 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 import type { ModelForm } from "~/domain/registry";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
 const { t } = useI18n();
 const askFirst = useConfirm();
 
@@ -128,7 +128,7 @@ const columns = computed<SettingsColumn<RegistryRow>[]>(() => [
   { id: "model", header: t("common.label.model") },
   { id: "usedBy", header: t("agents.label.used_by"), ceiling: 288 },
   { id: "cardService", header: t("agents.label.card_service") },
-  { id: "actions", header: "" }
+  ...(props.readonly ? [] : [{ id: "actions", header: "" }])
 ]);
 
 const rows = computed<RegistryRow[]>(() => (models.value?.items ?? []).map((one) => {

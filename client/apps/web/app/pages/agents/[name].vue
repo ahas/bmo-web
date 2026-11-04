@@ -62,7 +62,7 @@
                 :label="$t('live.status.stopping')"
               />
               <UButton
-                v-else-if="stopTarget !== null && !stops.isAsking(stopTarget)"
+                v-else-if="stopTarget !== null && !stops.isAsking(stopTarget) && writable"
                 :label="$t('live.action.stop')"
                 size="sm"
                 color="neutral"
@@ -73,10 +73,10 @@
               />
 
               <!-- A chat agent's own picture, set in the console, for the administrator (docs/web.md, 「Profile photos」). -->
-              <UTooltip v-if="picturable" :text="$t('picture.label.agent')">
+              <UTooltip v-if="picturable && writable" :text="$t('picture.label.agent')">
                 <UButton color="neutral" variant="ghost" icon="i-material-symbols-add-photo-alternate-outline" :aria-label="$t('picture.label.agent')" data-agent-picture @click="pictureOpen = true" />
               </UTooltip>
-              <UTooltip v-if="settingsKind !== null" :text="$t('agents.action.settings')">
+              <UTooltip v-if="settingsKind !== null && writable" :text="$t('agents.action.settings')">
                 <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-settings-outline" :aria-label="$t('agents.action.settings')" @click="settingsOpen = true" />
               </UTooltip>
             </div>
@@ -91,7 +91,7 @@
       <!-- The question stands where the run it is about stands: under this agent's own name, above
            its log, rather than floating over the screen. -->
       <StopConfirm
-        v-if="stopTarget !== null"
+        v-if="stopTarget !== null && writable"
         :target="stopTarget"
         :label="meta.label"
         :stops="stops"
@@ -124,19 +124,19 @@
       </template>
       <WorkView v-else ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="false" :end="opensAtEnd" />
 
-      <SupervisorSettingsDialog v-if="settingsKind === 'supervisor'" v-model:open="settingsOpen" :name="name" :reread="refreshCatalogue" />
-      <RoleSettingsDialog v-else-if="settingsKind === 'role'" v-model:open="settingsOpen" :name="name" @saved="() => void refreshCatalogue()" />
-      <RepositorySettingsDialog v-else-if="settingsKind === 'repository'" v-model:open="settingsOpen" :name="name" @saved="() => void refreshCatalogue()" />
-      <PictureDialog v-if="picturable" v-model:open="pictureOpen" :title="$t('picture.label.agent')" :description="meta.label" kind="agent" :subject="name" :avatar="agentPicture" />
+      <SupervisorSettingsDialog v-if="writable && settingsKind === 'supervisor'" v-model:open="settingsOpen" :name="name" :reread="refreshCatalogue" />
+      <RoleSettingsDialog v-else-if="writable && settingsKind === 'role'" v-model:open="settingsOpen" :name="name" @saved="() => void refreshCatalogue()" />
+      <RepositorySettingsDialog v-else-if="writable && settingsKind === 'repository'" v-model:open="settingsOpen" :name="name" @saved="() => void refreshCatalogue()" />
+      <PictureDialog v-if="picturable && writable" v-model:open="pictureOpen" :title="$t('picture.label.agent')" :description="meta.label" kind="agent" :subject="name" :avatar="agentPicture" />
     </template>
 
     <template #footer>
-      <div v-if="launchable !== null" class="border-t border-default py-4">
+      <div v-if="launchable !== null && writable" class="border-t border-default py-4">
         <UContainer class="flex flex-col gap-3">
           <!-- The box says what it will do to the agent whose log stands above it, and to no
                other: what is launched here is this screen's own worker. -->
           <LaunchPrompt
-            v-if="launchable !== null"
+            v-if="launchable !== null && writable"
             :agent="launchable"
             :worker="isWorker ? name : undefined"
             :link="controlState"
@@ -154,6 +154,8 @@ import { isAgentName, POLL_INTERVAL_MS, WORKER_AGENT } from "#shared/config";
 import { agentMetaOf, catalogueAgents, groupLabel, launchableAgent, roomTitle, runOfAgent } from "~/domain/agents";
 import { useAgentFace, wearsFace } from "~/domain/agent-face";
 import { useAdministrator } from "~/domain/access";
+import { ensureSectionAccess, useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
+import { mayRead, mayWrite } from "#shared/sections";
 import { avatarFor } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useControlStatus } from "~/domain/control";
@@ -218,6 +220,16 @@ const meta = computed<AgentMeta>(() => {
   return found.chatId === null ? found : { ...found, label: roomTitle(t, rooms.value, found.chatId) };
 });
 
+// This agent changes through the write of its own part of agent management (docs/web.md, 「Access」): the
+// supervisors, the roles or the repositories. Its read alone opens the page, its rooms and its log.
+const access = useSectionAccess();
+const accessReady = useSectionAccessReady();
+
+if (!accessReady.value) await ensureSectionAccess().catch(() => null);
+
+const AGENT_SECTION: Record<AgentMeta["group"], string> = { supervisor: "supervisors", role: "roles", repository: "repositories" };
+const writable = computed(() => !accessReady.value || mayWrite(access.value, AGENT_SECTION[meta.value.group]));
+
 // What this agent's own session is carrying, read from the same figures the title bar reads.
 const { data: usage, status: usageStatus } = useFetch<UsageView>("/api/usage", {
   key: "usage",
@@ -258,10 +270,14 @@ const hasFigures = computed<boolean>(
 
 
 // Which of the agent management screen's dialogs this screen's settings open (docs/web.md, 「Agent screen」): a
-// supervisor's, a role's or a repository's, read off the lists those tabs read under the same keys.
-const { data: settingsSupervisors } = useFetch<{ name: string }[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false });
-const { data: settingsRoles } = useFetch<{ roles: { name: string }[] }>("/api/roles", { key: "roles", lazy: true, server: false });
-const { data: settingsRepositories } = useFetch<{ name: string }[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
+// supervisor's, a role's or a repository's, read off the lists those tabs read under the same keys. A part the
+// reader may not read is not asked for.
+const readsSupervisors = !accessReady.value || mayRead(access.value, "supervisors");
+const readsRoles = !accessReady.value || mayRead(access.value, "roles");
+const readsRepositories = !accessReady.value || mayRead(access.value, "repositories");
+const { data: settingsSupervisors } = useFetch<{ name: string }[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false, immediate: readsSupervisors });
+const { data: settingsRoles } = useFetch<{ roles: { name: string }[] }>("/api/roles", { key: "roles", lazy: true, server: false, immediate: readsRoles });
+const { data: settingsRepositories } = useFetch<{ name: string }[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: readsRepositories });
 const settingsKind = computed<"supervisor" | "role" | "repository" | null>(() => {
   if (settingsSupervisors.value?.some((one) => one.name === name) === true) return "supervisor";
   if (settingsRoles.value?.roles.some((one) => one.name === name) === true) return "role";
@@ -336,7 +352,7 @@ const phoneActions = computed<BarAction[]>(() => {
   const target = stopTarget.value;
   const actions: BarAction[] = [];
 
-  if (target !== null && !stops.isAsking(target)) {
+  if (target !== null && !stops.isAsking(target) && writable.value) {
     actions.push({
       id: "stop",
       label: t("live.action.stop"),
@@ -347,11 +363,11 @@ const phoneActions = computed<BarAction[]>(() => {
     });
   }
 
-  if (picturable.value) {
+  if (picturable.value && writable.value) {
     actions.push({ id: "picture", label: t("picture.label.agent"), icon: "i-material-symbols-add-photo-alternate-outline", onSelect: () => { pictureOpen.value = true; } });
   }
 
-  if (settingsKind.value !== null) {
+  if (settingsKind.value !== null && writable.value) {
     actions.push({ id: "settings", label: t("agents.action.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => { settingsOpen.value = true; } });
   }
 

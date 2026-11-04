@@ -23,7 +23,7 @@
           :items="answererItems"
           value-key="value"
           class="w-48"
-          :disabled="answererBusy"
+          :disabled="answererBusy || props.readonly"
           :aria-label="$t('agents.label.default_answerer')"
           data-default-answerer
           @update:model-value="(value: string) => void chooseAnswerer(value)"
@@ -57,6 +57,7 @@
           :share="row.original.quotaShare"
           :line="SUPERVISOR_LINE"
           :name="row.original.label"
+          :disabled="props.readonly"
           :save="(order, quotaShare) => change(row.original.name, { order, quotaShare })"
         />
       </template>
@@ -69,6 +70,7 @@
           :waiting-for="row.original.waitingFor"
           :line="SUPERVISOR_LINE"
           :name="row.original.label"
+          :disabled="props.readonly"
           :save="(active) => saved(change(row.original.name, { active }))"
         />
       </template>
@@ -76,7 +78,7 @@
       <!-- The providers its prefix is kept warm on, on one line; pressed, one switch per provider of its order, each
            taking effect as it is thrown. -->
       <template #warming-cell="{ row }">
-        <SettingsPopoverCell :label="$t('agents.aria.warming_cell_of', { name: row.original.label })" :busy="warmingBusy.startsWith(`${row.original.name}:`)">
+        <SettingsPopoverCell :label="$t('agents.aria.warming_cell_of', { name: row.original.label })" :disabled="props.readonly" :busy="warmingBusy.startsWith(`${row.original.name}:`)">
           <span v-if="warmedOf(row.original).length === 0" class="whitespace-nowrap text-sm text-muted">{{ $t("agents.label.switch_off") }}</span>
           <span v-else class="max-w-full truncate text-sm text-highlighted">{{ warmedOf(row.original).join(" · ") }}</span>
 
@@ -88,7 +90,7 @@
                   <USwitch
                     :model-value="row.original.warming[entry.provider] === true"
                     :loading="warmingBusy === `${row.original.name}:${entry.provider}`"
-                    :disabled="warmingBusy !== '' || warmingBlock(entry.provider) !== null"
+                    :disabled="warmingBusy !== '' || warmingBlock(entry.provider) !== null || props.readonly"
                     :aria-label="$t('agents.aria.warming_of', { name: row.original.label, provider: providerWord(providers, entry.provider) })"
                     @update:model-value="(on: boolean) => void switchWarming(row.original, entry.provider, on)"
                   />
@@ -103,6 +105,7 @@
         <SettingsInputCell
           :value="percentOf(row.original.foldRatio)"
           :label="$t('agents.aria.threshold_of', { name: row.original.label })"
+          :disabled="props.readonly"
           :min="1"
           :max="100"
           :step="1"
@@ -119,7 +122,7 @@
         </span>
       </template>
 
-      <template #actions-cell="{ row }">
+      <template v-if="!props.readonly" #actions-cell="{ row }">
         <span class="flex h-full min-h-12 items-center justify-end pe-2">
           <UDropdownMenu :items="menuOf(row.original)" :content="{ align: 'end' }">
             <UTooltip :text="$t('common.aria.menu_of', { name: row.original.label })">
@@ -132,7 +135,7 @@
 
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
-    <AgentsDraftProcesses class="mt-6" :query="props.query" />
+    <AgentsDraftProcesses class="mt-6" :query="props.query" :readonly="props.readonly" />
 
     <SupervisorSettingsDialog v-if="editing !== ''" v-model:open="editingOpen" :name="editing" :reread="rereadAll" />
 
@@ -179,6 +182,8 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
+import { useSectionAccess } from "~/domain/section-access";
+import { mayRead } from "#shared/sections";
 import { activeRoad, DEFAULT_QUOTA_SHARE, defaultThreshold, fractionOf, orderRefusalEntry, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
 import { agentMetaOf } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
@@ -191,7 +196,7 @@ import type { ActiveProviderView, DefaultAnswererView, OrderEntryView, Repositor
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
 const { t } = useI18n();
 const island = useIsland(t);
 const askFirst = useConfirm();
@@ -201,7 +206,9 @@ const SUPERVISOR_ICON = "i-material-symbols-chat-bubble-outline";
 
 // The page's search reads the same answers under the same keys.
 const { data: supervisors, error, refresh, status } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false });
-const { data: repositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
+// A supervisor's repository chooser reads the repositories tab, which this reader may not read.
+const access = useSectionAccess();
+const { data: repositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: mayRead(access.value, "repositories") });
 const { data: providers } = useProviders();
 const { data: rooms, refresh: rereadRooms } = useRoomList();
 const { agents: catalogue, refresh: rereadCatalogue } = useAgentCatalogue();
@@ -214,7 +221,7 @@ const columns = computed<SettingsColumn<SupervisorView>[]>(() => [
   { id: "warming", header: t("agents.label.column_warming") },
   { id: "threshold", header: t("agents.label.column_threshold") },
   { id: "rooms", header: t("agents.label.column_rooms"), ceiling: 288 },
-  { id: "actions", header: "" }
+  ...(props.readonly ? [] : [{ id: "actions", header: "" }])
 ]);
 
 function aliasMatch(supervisor: SupervisorView) {
@@ -392,6 +399,8 @@ function addErrorAt(field: string): string | undefined {
 
 // A new supervisor's order starts on the order of the default answerer, which it may change before it is added.
 function openAdd(): void {
+  if (props.readonly) return;
+
   const seed = supervisors.value?.find((one) => one.defaultAnswerer)?.order ?? [];
 
   draft.value = { ...emptyDraft(), order: seed.map((one) => ({ ...one })) };

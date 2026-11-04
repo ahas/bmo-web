@@ -4,7 +4,7 @@
        stand in order, each moved up or down or taken out; one not yet chosen is added before `final`, which stands
        last in every list that holds a question and is taken out only where it stands alone. The save button sends
        the list; a refusal keeps the dropdown open with the reason under it. -->
-  <SettingsPopoverCell v-model:open="open" :label="props.label" :busy="saving">
+  <SettingsPopoverCell v-model:open="open" :label="props.label" :disabled="props.disabled" :busy="saving">
     <slot />
 
     <template #content>
@@ -62,6 +62,8 @@ interface Props {
   // Every name the catalogue holds, in its order.
   catalogue: string[];
   label: string;
+  // Whether the cell stands closed to change, for a reader whose section is read alone.
+  disabled?: boolean;
   // Saves the list; the receiver's refusal in the pack's words, or null once it took it.
   save: (list: string[]) => Promise<string | null>;
 }

@@ -5,7 +5,7 @@ import type { RoleView } from "#shared/axes";
 // One role's fields changed, the rest kept; an emptied prompt or description is a cleared one (the agency's
 // `docs/api.md`, 「roles」).
 export default defineEventHandler(async (event): Promise<RoleView> => {
-  await requireAdministrator(event);
+  await signedInUser(event);
 
   const name = axisName(getRouterParam(event, "name"));
   const change = roleChangeOf(await readBody<unknown>(event), false);

@@ -8,6 +8,7 @@
     :value="chosen"
     :items="items"
     :label="$t('agents.aria.active_of', { name: props.name })"
+    :disabled="props.disabled"
     :reading="choices.reading.value"
     :save="pick"
     data-active-cell
@@ -52,6 +53,8 @@ interface Props {
   line: string;
   // What the row is called, which the cell's name says.
   name: string;
+  // Whether the cell stands closed to change, for a reader whose section is read alone.
+  disabled?: boolean;
   // Saves the force, or clears it with null; the agency's refusal in the pack's words, or null once it took it.
   save: (active: ActiveProviderView | null) => Promise<string | null>;
 }

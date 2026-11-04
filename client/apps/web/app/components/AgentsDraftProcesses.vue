@@ -12,7 +12,7 @@
       </div>
 
       <!-- A row of a key that stands nowhere yet, which starts from the row that key matches now. -->
-      <UPopover v-if="data" v-model:open="adding" :content="{ align: 'end', side: 'bottom' }">
+      <UPopover v-if="data && !props.readonly" v-model:open="adding" :content="{ align: 'end', side: 'bottom' }">
         <UButton icon="i-material-symbols-add" color="neutral" variant="ghost" :label="$t('common.action.add')" :aria-label="$t('agents.title.draft_process_add')" />
 
         <template #content>
@@ -65,6 +65,7 @@
           :value="row.original[field]"
           :catalogue="catalogue"
           :label="$t(LIST_LABELS[field], { key: keyText(row.original) })"
+          :disabled="props.readonly"
           :save="(list: string[]) => save(row.original, { [field]: list })"
         >
           <span class="max-w-full truncate font-mono text-sm text-highlighted">{{ draftListText($t, row.original[field]) }}</span>
@@ -75,6 +76,7 @@
         <SettingsInputCell
           :value="row.original.lightChars"
           :label="$t('agents.aria.draft_light_chars_of', { key: keyText(row.original) })"
+          :disabled="props.readonly"
           :min="LIGHT_CHARS_MIN"
           :max="LIGHT_CHARS_MAX"
           :step="1"
@@ -89,6 +91,7 @@
         <SettingsInputCell
           :value="row.original.ceilingSeconds"
           :label="$t('agents.aria.draft_ceiling_of', { key: keyText(row.original) })"
+          :disabled="props.readonly"
           :min="CEILING_SECONDS_MIN"
           :max="CEILING_SECONDS_MAX"
           :step="1"
@@ -104,6 +107,7 @@
           :value="row.original.pastCeiling"
           :items="pastChoices"
           :label="$t('agents.aria.draft_past_of', { key: keyText(row.original) })"
+          :disabled="props.readonly"
           :save="(value: string | number) => saveChoice(row.original, String(value))"
         >
           <span class="text-highlighted">{{ pastCeilingText($t, row.original.pastCeiling) }}</span>
@@ -112,7 +116,7 @@
 
       <template #remove-cell="{ row }">
         <span class="flex h-full min-h-12 items-center justify-end pe-2">
-          <UTooltip v-if="row.original.source === 'set'" :text="$t('common.action.delete')">
+          <UTooltip v-if="row.original.source === 'set' && !props.readonly" :text="$t('common.action.delete')">
             <UButton icon="i-material-symbols-delete-outline" color="neutral" variant="ghost" :aria-label="$t('agents.aria.draft_remove_of', { key: keyText(row.original) })" @click="remove(row.original)" />
           </UTooltip>
         </span>
@@ -125,7 +129,7 @@
     <div class="mt-6 flex min-h-12 items-center gap-2 border-y border-default px-4 py-2">
       <h2 id="draft-questions-title" class="min-w-0 flex-1 text-base font-semibold text-highlighted">{{ $t("agents.title.draft_questions") }}</h2>
 
-      <UPopover v-if="data" v-model:open="addingQuestion" :content="{ align: 'end', side: 'bottom' }">
+      <UPopover v-if="data && !props.readonly" v-model:open="addingQuestion" :content="{ align: 'end', side: 'bottom' }">
         <UButton icon="i-material-symbols-add" color="neutral" variant="ghost" :label="$t('common.action.add')" :aria-label="$t('agents.title.draft_question_add')" />
 
         <template #content>
@@ -158,7 +162,7 @@
         </span>
       </template>
       <template #text-cell="{ row }">
-        <SettingsPopoverCell v-model:open="editing[row.original.name]" :label="$t('agents.aria.draft_question_of', { name: row.original.name })" :busy="questionSaving && editingName === row.original.name">
+        <SettingsPopoverCell v-model:open="editing[row.original.name]" :label="$t('agents.aria.draft_question_of', { name: row.original.name })" :disabled="props.readonly" :busy="questionSaving && editingName === row.original.name">
           <span class="max-w-full truncate text-sm text-highlighted"><SearchText :text="row.original.text" :query="props.query" /></span>
 
           <template #content>
@@ -213,7 +217,7 @@ import type { SupervisorView } from "#shared/axes";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
 const { t } = useI18n();
 const askFirst = useConfirm();
 

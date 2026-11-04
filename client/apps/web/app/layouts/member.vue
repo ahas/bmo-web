@@ -68,7 +68,7 @@ import { useConsoleScreens } from "~/domain/console-screens";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
-import { accessOf, homeFor, isConsoleSection, sectionOfPath } from "#shared/sections";
+import { accessOf, homeFor, screenMayRead, sectionsOfPath } from "#shared/sections";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AvatarIndex } from "~/domain/avatars";
@@ -112,12 +112,10 @@ const home = computed(() => (accessReady.value ? homeFor(access.value) : MEMBER_
 const roomsRead = computed(() => !accessReady.value || accessOf(access.value, "rooms").read);
 const screens = computed(() =>
   screensWithBundles(bundles.value).filter((screen) => {
-    const section = sectionOfPath(screen.to);
-
-    if (section === null || !isConsoleSection(section)) return true;
+    if (sectionsOfPath(screen.to).length === 0) return true;
     if (!accessReady.value) return false;
 
-    return accessOf(access.value, section).read;
+    return screenMayRead(access.value, screen.to);
   })
 );
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).

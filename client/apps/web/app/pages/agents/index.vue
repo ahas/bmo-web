@@ -22,8 +22,8 @@
           @update:model-value="(value: string | number) => setTab(String(value))"
         />
 
-        <!-- The open section's own action stands first, at the right end of the row. -->
-        <UTooltip :text="addLabel">
+        <!-- The open section's own action stands first, at the right end of the row, where the reader may write it. -->
+        <UTooltip v-if="mayWriteCurrent" :text="addLabel">
           <UButton class="shrink-0" size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="addLabel" data-tab-add @click="openAdd" />
         </UTooltip>
 
@@ -79,11 +79,11 @@
 
     <template #body>
       <div ref="body" class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'">
-        <AgentsSupervisors v-if="tab === 'supervisors'" ref="supervisorsRef" :query="query" />
-        <AgentsRoles v-else-if="tab === 'roles'" ref="rolesRef" :query="query" />
-        <AgentsRepositories v-else-if="tab === 'repositories'" ref="repositoriesRef" :query="query" />
-        <AgentsRegistry v-else-if="tab === 'models'" ref="registryRef" :query="query" />
-        <AgentsCatalogue v-else ref="catalogueRef" :query="query" />
+        <AgentsSupervisors v-if="tab === 'supervisors'" ref="supervisorsRef" :query="query" :readonly="!mayWriteCurrent" />
+        <AgentsRoles v-else-if="tab === 'roles'" ref="rolesRef" :query="query" :readonly="!mayWriteCurrent" />
+        <AgentsRepositories v-else-if="tab === 'repositories'" ref="repositoriesRef" :query="query" :readonly="!mayWriteCurrent" />
+        <AgentsRegistry v-else-if="tab === 'models'" ref="registryRef" :query="query" :readonly="!mayWriteCurrent" />
+        <AgentsCatalogue v-else ref="catalogueRef" :query="query" :readonly="!mayWriteCurrent" />
       </div>
 
       <SettingsDialog v-model:open="searchOpen" :title="$t('agents.placeholder.find_settings')">
@@ -101,7 +101,9 @@ import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import { AGENT_TABS, isAgentTab, searchSettings, settingsAnchor } from "~/domain/agent-settings";
+import { ensureSectionAccess, useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { useHeldHeads } from "~/domain/held-heads";
+import { mayRead, mayWrite } from "#shared/sections";
 import { usedByText, registrationName } from "~/domain/registry";
 import { draftKeyId, draftKeyLabel, draftListText } from "~/domain/draft-process";
 import { defaultThreshold, sessionsText, thresholdText, entryText, useProviders } from "~/domain/axes";
@@ -122,10 +124,49 @@ const bodyRef = useTemplateRef<HTMLElement>("body");
 useListPlace("agents", () => bodyRef.value);
 const narrow = useNarrow();
 
-const tab = computed<AgentTab>(() => (isAgentTab(route.query.tab) ? route.query.tab : "supervisors"));
+// A tab opens where its own section reads and changes where its own section writes (docs/web.md, 「Access」);
+// the administrator passes every part. The parts not read stand in no tab row and send no read.
+const access = useSectionAccess();
+const accessReady = useSectionAccessReady();
+
+if (!accessReady.value) await ensureSectionAccess().catch(() => null);
+
+function readable(section: AgentTab): boolean {
+  return !accessReady.value || mayRead(access.value, section);
+}
+
+function writable(section: AgentTab): boolean {
+  return !accessReady.value || mayWrite(access.value, section);
+}
+
+const readableTabs = computed(() => AGENT_TABS.filter((one) => readable(one.value)));
+const tab = computed<AgentTab>(() => {
+  const asked = isAgentTab(route.query.tab) ? route.query.tab : null;
+
+  if (asked !== null && readableTabs.value.some((one) => one.value === asked)) return asked;
+
+  return readableTabs.value[0]?.value ?? "supervisors";
+});
+const mayWriteCurrent = computed(() => writable(tab.value));
 // The supervisors' tab holds its tables one under another in the body, each head held at the body's top.
 useHeldHeads(() => (tab.value === "supervisors" ? bodyRef.value : null));
-const tabItems = AGENT_TABS.map((one) => ({ ...one, label: t(one.label) }));
+const tabItems = computed(() => readableTabs.value.map((one) => ({ ...one, label: t(one.label) })));
+
+// An address naming a tab the reader may not open is moved to the first one they may, with no step of the history.
+watch(
+  readableTabs,
+  (list) => {
+    if (!import.meta.client) return;
+
+    const asked = isAgentTab(route.query.tab) ? route.query.tab : null;
+    const first = list[0];
+
+    if (asked === null || first === undefined || list.some((one) => one.value === asked)) return;
+
+    void router.replace({ query: { ...route.query, tab: addressOf(first.value) } });
+  },
+  { immediate: true }
+);
 
 // The section stands in the address, and moving to another is a step of the history; the first is the screen's own.
 function addressOf(next: AgentTab): string | undefined {
@@ -162,22 +203,32 @@ function openAdd(): void {
 }
 
 // Every section's read, under the keys the sections read them by, so the search looks over all of them at once.
-const { data: supervisors } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false });
-const { data: roles } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false });
-const { data: repositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
-const { data: models } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
-const { data: catalogue } = useFetch<CatalogueView>("/api/model-catalogue", { key: "model-catalogue", lazy: true, server: false });
-const { data: draftProcesses } = useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", lazy: true, server: false });
+// Only the parts the reader may read are asked for; the rest answer a member as absent.
+const { data: supervisors } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false, immediate: readable("supervisors") });
+const { data: roles } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false, immediate: readable("roles") });
+const { data: repositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: readable("repositories") });
+const { data: models } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false, immediate: readable("models") });
+const { data: catalogue } = useFetch<CatalogueView>("/api/model-catalogue", { key: "model-catalogue", lazy: true, server: false, immediate: readable("model-files") });
+const { data: draftProcesses } = useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", lazy: true, server: false, immediate: readable("supervisors") });
 const { data: providers } = useProviders();
 
-const READS = ["supervisors", "roles", "repositories", "models", "model-catalogue", "draft-processes", "agency-providers"];
+// The keys the button reads again: only the parts the reader may read, beside the providers every part's chooser
+// reads, so a change never asks a part the reader may not open.
+const READS = computed(() => [
+  ...(readable("supervisors") ? ["supervisors", "draft-processes"] : []),
+  ...(readable("roles") ? ["roles"] : []),
+  ...(readable("repositories") ? ["repositories"] : []),
+  ...(readable("models") ? ["models"] : []),
+  ...(readable("model-files") ? ["model-catalogue"] : []),
+  "agency-providers"
+]);
 const rereading = ref(false);
 
 async function reread(): Promise<void> {
   rereading.value = true;
 
   try {
-    await refreshNuxtData(READS);
+    await refreshNuxtData(READS.value);
   } finally {
     rereading.value = false;
   }

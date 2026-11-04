@@ -41,6 +41,25 @@ async fn app(scratch: &Scratch) -> Router {
   in_force(scratch.service.clone(), TOKEN.into()).await.unwrap()
 }
 
+/// A database of its own, with the data move written, for a test that changes a setting the others read.
+async fn fresh() -> Scratch {
+  let scratch = Scratch::new().await;
+
+  scratch.console_account("boss", &console_hash("the password")).await;
+  run_move(
+    scratch.db(),
+    MoveAsk {
+      owner_senders: vec![OWNER],
+      rooms: vec![ROOM],
+      room_rules: vec![],
+    },
+  )
+  .await
+  .unwrap();
+
+  scratch
+}
+
 /// A request as the login named by `key` and `role` asks it, with the token; the status and body it answers.
 async fn asked(
   app: &Router,
@@ -133,9 +152,13 @@ async fn a_user_made_is_given_the_defaults_in_force() {
   assert_eq!(section(&said, "mail")["read"], true, "{said}");
   assert_eq!(section(&said, "brain")["read"], true, "{said}");
 
-  // Nothing else, which is the console as it stands today.
+  // Nothing else, which is the console as it stands today, agent management's five parts included.
   assert_eq!(section(&said, "live")["read"], false, "{said}");
-  assert_eq!(section(&said, "agents")["write"], false, "{said}");
+
+  for part in ["supervisors", "roles", "repositories", "models", "model-files"] {
+    assert_eq!(section(&said, part)["read"], false, "{said}");
+    assert_eq!(section(&said, part)["write"], false, "{said}");
+  }
 
   assert!(check(&app, &user, "read", "rooms").await);
   assert!(!check(&app, &user, "write", "rooms").await);
@@ -206,6 +229,83 @@ async fn an_administrator_sets_one_person_s_read_and_write_and_the_checks_follow
   assert_eq!(status, StatusCode::OK, "{said}");
   assert_eq!(section(&said, "live")["read"], true, "{said}");
   assert_eq!(section(&said, "live")["write"], true, "{said}");
+}
+
+#[tokio::test]
+async fn agent_management_s_five_parts_are_set_and_checked_apart() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = owner(&app).await;
+  let made = set_sign_in(scratch.db(), "member-agents", "the password", false).await.unwrap();
+  let user = made.user.to_string();
+
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &format!("/users/{user}/sections"),
+    Some(json!({ "sections": [
+      { "section": "supervisors", "read": true, "write": false },
+      { "section": "roles", "read": false, "write": true }
+    ] })),
+    Some(&boss),
+    Some("administrator"),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  // The permitted read on the supervisors, and the refused write on them.
+  assert!(check(&app, &user, "read", "supervisors").await);
+  assert!(!check(&app, &user, "write", "supervisors").await);
+  // The permitted write on the roles, which is a read as well.
+  assert!(check(&app, &user, "read", "roles").await);
+  assert!(check(&app, &user, "write", "roles").await);
+  // The other parts stand closed.
+  for part in ["repositories", "models", "model-files"] {
+    assert!(!check(&app, &user, "read", part).await, "{part}");
+    assert!(!check(&app, &user, "write", part).await, "{part}");
+  }
+}
+
+#[tokio::test]
+async fn an_old_agent_management_grant_is_moved_to_the_five_parts() {
+  ready();
+  let scratch = fresh().await;
+  let app = app(&scratch).await;
+  let boss = owner(&app).await;
+  let made = set_sign_in(scratch.db(), "member-legacy", "the password", false).await.unwrap();
+  let user = made.user.to_string();
+
+  // What the surface held before the split stood: one grant on `agents`.
+  let (status, said) = asked(
+    &app,
+    Method::PUT,
+    &format!("/users/{user}/sections"),
+    Some(json!({ "sections": [{ "section": "agents", "read": true, "write": false }] })),
+    Some(&boss),
+    Some("administrator"),
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert!(check(&app, &user, "read", "agents").await);
+
+  // The move runs once, as a deployment starts; it is run here against the grant written above.
+  scratch
+    .run(r#"DELETE FROM "settings" WHERE "key" = $1"#, vec!["sections_agents_split_at".into()])
+    .await;
+  bmo_web_server::sections::split_agents(scratch.db()).await.unwrap();
+
+  for part in ["supervisors", "roles", "repositories", "models", "model-files"] {
+    assert!(check(&app, &user, "read", part).await, "{part}");
+    assert!(!check(&app, &user, "write", part).await, "{part}");
+  }
+
+  // The old section is gone, and the marker keeps the move from running again.
+  assert!(!check(&app, &user, "read", "agents").await);
+  bmo_web_server::sections::split_agents(scratch.db()).await.unwrap();
+  assert!(check(&app, &user, "read", "supervisors").await);
 }
 
 #[tokio::test]

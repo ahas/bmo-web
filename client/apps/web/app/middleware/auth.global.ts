@@ -2,7 +2,7 @@ import { MEMBER_HOME, MEMBER_LAYOUT, isAdministrator } from "~/domain/access";
 import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens } from "~/domain/console-screens";
 import { loginRoute, returnPath } from "~/domain/login-end";
 import { ensureSectionAccess } from "~/domain/section-access";
-import { accessOf, homeFor, isConsoleSection, sectionOfPath } from "#shared/sections";
+import { homeFor, screenMayRead, sectionsOfPath } from "#shared/sections";
 
 // Nothing but the login page is readable without a session; the API refuses on its own side. The
 // login screen carries the address asked for, so the next login returns there, and says the login
@@ -41,9 +41,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const access = await ensureSectionAccess().catch(() => null);
 
   if (access !== null) {
-    const section = sectionOfPath(to.path);
-
-    if (section !== null && isConsoleSection(section) && !accessOf(access, section).read) {
+    if (sectionsOfPath(to.path).length > 0 && !screenMayRead(access, to.path)) {
       return navigateTo(homeFor(access));
     }
 

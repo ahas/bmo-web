@@ -2,10 +2,10 @@ import { wording } from "#shared/wording";
 
 import type { DefaultAnswererView } from "#shared/axes";
 
-// The default answerer chosen, for the administrator (the receiver's `docs/api.md`, 「Supervisors」, `PUT
+// The default answerer chosen, for a reader who may write the supervisors tab (the receiver's `docs/api.md`, 「Supervisors」, `PUT
 // /default-answerer`): a supervisor the agency registers. The answer is the setting as the receiver then holds it.
 export default defineEventHandler(async (event): Promise<DefaultAnswererView> => {
-  await requireAdministrator(event);
+  await signedInUser(event);
 
   const body = await readBody<{ supervisor?: unknown }>(event);
 

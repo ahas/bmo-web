@@ -79,7 +79,7 @@ describe("this agent's own settings", () => {
   const script = source.slice(source.indexOf("<script"));
 
   test("stand behind one button beside the name, for a supervisor, a role and a repository alike", () => {
-    expect(template).toContain(`<UTooltip v-if="settingsKind !== null" :text="$t('agents.action.settings')">`);
+    expect(template).toContain(`<UTooltip v-if="settingsKind !== null && writable" :text="$t('agents.action.settings')">`);
     expect(template).toContain(`:aria-label="$t('agents.action.settings')"`);
     expect(script).toContain('if (settingsSupervisors.value?.some((one) => one.name === name) === true) return "supervisor";');
     expect(script).toContain('if (settingsRoles.value?.roles.some((one) => one.name === name) === true) return "role";');
@@ -93,9 +93,9 @@ describe("this agent's own settings", () => {
   });
 
   test("open the dialog of its axis or place by its name, the catalogue read again after a save", () => {
-    expect(template).toContain('<SupervisorSettingsDialog v-if="settingsKind === \'supervisor\'" v-model:open="settingsOpen" :name="name" :reread="refreshCatalogue" />');
-    expect(template).toContain('<RoleSettingsDialog v-else-if="settingsKind === \'role\'" v-model:open="settingsOpen" :name="name"');
-    expect(template).toContain('<RepositorySettingsDialog v-else-if="settingsKind === \'repository\'" v-model:open="settingsOpen" :name="name"');
+    expect(template).toContain('<SupervisorSettingsDialog v-if="writable && settingsKind === \'supervisor\'" v-model:open="settingsOpen" :name="name" :reread="refreshCatalogue" />');
+    expect(template).toContain('<RoleSettingsDialog v-else-if="writable && settingsKind === \'role\'" v-model:open="settingsOpen" :name="name"');
+    expect(template).toContain('<RepositorySettingsDialog v-else-if="writable && settingsKind === \'repository\'" v-model:open="settingsOpen" :name="name"');
     expect(template).not.toContain("<WorkerSettingsDialog");
   });
 

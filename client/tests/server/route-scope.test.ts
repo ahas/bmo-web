@@ -5,6 +5,7 @@ import { join, relative } from "node:path";
 import { mayRead, mayWrite } from "../../apps/web/shared/sections";
 import { openedRoute, openedRoutes } from "../../apps/web/server/utils/opened-routes";
 import { carriesSession } from "../../apps/web/server/utils/session-cookie";
+import { forgetSectionAccess } from "../../apps/web/server/utils/section-access";
 import { standInAccountService } from "../support/account-service";
 import { standInHandler } from "../support/route-handler";
 
@@ -118,13 +119,31 @@ describe("a console route as another user meets it", () => {
     }
   });
 
-  test("a grant of another section opens that section's read and write alone", async () => {
-    service.sections.set(3, new Map([["agents", { read: true, write: false }]]));
+  test("a grant of one agent-management part opens that part's reads alone", async () => {
+    service.sections.set(3, new Map([["supervisors", { read: true, write: false }]]));
     session = { user: { name: "agent-reader", id: 3 }, sid: "bmo.sid=agent-reader", administrator: false };
 
+    expect(await answer({ file: "supervisors.get", method: "GET", path: "/api/supervisors" })).toBe(200);
     expect(await answer({ file: "agents.get", method: "GET", path: "/api/agents" })).toBe(200);
+    // The permitted read does not open a change, and the other parts stay closed.
+    expect(await answer({ file: "supervisors/[name].patch", method: "PATCH", path: "/api/supervisors/agent-a" })).toBe(404);
+    expect(await answer({ file: "roles.get", method: "GET", path: "/api/roles" })).toBe(404);
     expect(await answer({ file: "models.post", method: "POST", path: "/api/models" })).toBe(404);
+    expect(await answer({ file: "model-catalogue.get", method: "GET", path: "/api/model-catalogue" })).toBe(404);
     expect(await answer({ file: "rooms.get", method: "GET", path: "/api/rooms" })).toBe(404);
+  });
+
+  test("a write opens its part's reads and changes alone", async () => {
+    forgetSectionAccess("3");
+    service.sections.set(3, new Map([["roles", { read: true, write: true }]]));
+    session = { user: { name: "agent-reader", id: 3 }, sid: "bmo.sid=agent-reader", administrator: false };
+
+    expect(await answer({ file: "roles.get", method: "GET", path: "/api/roles" })).toBe(200);
+    expect(await answer({ file: "roles.post", method: "POST", path: "/api/roles" })).toBe(200);
+    expect(await answer({ file: "roles/[name].delete", method: "DELETE", path: "/api/roles/a-role" })).toBe(200);
+    // The write does not open another part, and the supervisors' read is not the roles'.
+    expect(await answer({ file: "supervisors.get", method: "GET", path: "/api/supervisors" })).toBe(404);
+    expect(await answer({ file: "repositories.get", method: "GET", path: "/api/repositories" })).toBe(404);
   });
 
   test("a reader whose account section is closed reaches neither the people search nor a person's page", async () => {

@@ -96,7 +96,8 @@ types; `server/client/` is the Rust crate the server answers with and that docum
   reader may see: the name, the organisation and the job title for every user, and the landline, mobile and
   email for the platform administrator or the person themselves. A contact field the reader may not see is
   absent from the answer and is no answer to a search (`docs/accounts.md`, 「The people directory」).
-- **A console section** is named by the first part of its screen's path — `live`, `agents`, `rooms`, `brain` —
+- **A console section** is named by the first part of its screen's path — `live`, `rooms`, `brain` — or, for
+  agent management's five parts, by its tab — `supervisors`, `roles`, `repositories`, `models`, `model-files` —
   and its `read` and `write` are relations of the deployment's `bmo_section` kind, checked through sumida's
   point check. A write is also a read, and the platform administrator passes every section. The set is written
   whole, so a section left out is taken away (`docs/accounts.md`, 「Console sections」).
@@ -269,7 +270,10 @@ states them. The three units the console calls directly publish a TypeScript cli
 `bmo-job-client` and `@bmo/receiver-client`, each a vendored tarball under `client/vendor/`
 and each generated from that unit's OpenAPI document. The console's server calls them through those packages and
 their `./schema` types, and reads a response into the screen's own shape where the screen needs more than the
-unit carries. A browser call to one of them reaches its fixed path through the relay (below).
+unit carries. A browser call to one of them reaches its fixed path through the relay (below). Every call the
+console makes on the agency carries, beside the console's token, the signed-in login's user in `Owner-Key` and
+role in `Owner-Role`, so the agency refuses what that person may not do; a call made for nobody signed in
+carries neither.
 
 | Unit | What the console reaches it for | Routes |
 |---|---|---|

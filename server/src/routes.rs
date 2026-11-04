@@ -50,8 +50,10 @@ pub async fn stand(
   Authz::install_rules(RULES)?;
   Authz::boot_or_abort(&db).await?;
   Authz::sync_schema(&db).await?;
-  // A user who stood before the console's sections did is given the defaults in force, once.
+  // A user who stood before the console's sections did is given the defaults in force, once, and agent
+  // management's old single section is moved to its five parts.
   crate::sections::backfill(&db).await?;
+  crate::sections::split_agents(&db).await?;
 
   Ok(Service {
     db,

@@ -33,7 +33,7 @@ heard: |-
   {heard}
 
   Answer them from what you know of the work, and wait on the question again, in one call (timeout 600000):
-    ~/.local/share/bmo/deploy/bin/bmo job ask --talk {id} --say '<답>'
+    bmo job ask --talk {id} --say '<답>'
   Where the talk changed the choice, the same call puts it again: every option anew with the recommendation, and the question or the why where they changed:
     --option '<하나>' --option '<다른 하나>' --recommend <n> [--question '<무엇을 정할지>'] [--why '<한 줄>']
   They end it by choosing. Until then the question is open and the work waits on it.

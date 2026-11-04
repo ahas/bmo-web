@@ -1,4 +1,4 @@
 # What a job is told where words it means for the owner hand them a page hosted outside the chat agent's own 아카이브
 # (docs/archive.md, 「A document a job shows the owner」): a question it asks, a report it closes with. The job
 # reads it; the addresses it named follow, numbered, one to a line. {owner} is the owner's name.
-refusal: "a document shown to {owner} goes into the chat agent's own 아카이브, never onto a page hosted outside it. File it with `~/.local/share/bmo/deploy/bin/bmo archive doc --title '<제목>' --body <markdown file>` (an HTML page with `--html <file>`), and put the console address it prints where this address stands. These addresses open a page outside the 아카이브:"
+refusal: "a document shown to {owner} goes into the chat agent's own 아카이브, never onto a page hosted outside it. File it with `bmo archive doc --title '<제목>' --body <markdown file>` (an HTML page with `--html <file>`), and put the console address it prints where this address stands. These addresses open a page outside the 아카이브:"

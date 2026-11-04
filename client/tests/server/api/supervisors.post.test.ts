@@ -7,7 +7,8 @@ import type { SupervisorAddedView } from "../../../apps/web/shared/axes";
 
 // A supervisor added on the console (the receiver's docs/api.md, 「Supervisors」): the receiver makes the console
 // room and asks the agency for the supervisor's half. The add is filed under the person who made it, so their user
-// id goes to the receiver as `ownerAccount` beside the add's fields.
+// id goes to the receiver as `ownerAccount` beside the add's fields, and a person's supervisor names `agent` scope
+// so one session answers every room it speaks in. The console's own account keeps the agency's room scope.
 
 const ADD = {
   name: "agent-b",
@@ -41,6 +42,37 @@ describe("adding a supervisor", () => {
       expect(added.answer).toEqual({ name: "agent-b", roomId: 42, takenBack: false });
       expect(receiver.asked).toHaveLength(1);
       expect(receiver.asked[0]?.body).toMatchObject({ ...ADD, ownerAccount: 7 });
+    } finally {
+      globals.signedInUser = held;
+    }
+  });
+
+  test("a person's supervisor is added holding one session, so the add names agent scope", async () => {
+    const held = globals.signedInUser;
+    globals.signedInUser = async () => ({ id: 7, name: "tester", administrator: false });
+    receiver.asked.length = 0;
+
+    try {
+      await asked(handler, { body: ADD });
+
+      expect(receiver.asked).toHaveLength(1);
+      expect(receiver.asked[0]?.body).toMatchObject({ ...ADD, ownerAccount: 7, sessionScope: "agent" });
+    } finally {
+      globals.signedInUser = held;
+    }
+  });
+
+  test("the console's own account keeps the console's room scope, so the add names none", async () => {
+    const held = globals.signedInUser;
+    globals.signedInUser = async () => ({ id: null, name: "tester", administrator: true });
+    receiver.asked.length = 0;
+
+    try {
+      await asked(handler, { body: ADD });
+
+      expect(receiver.asked).toHaveLength(1);
+      expect(receiver.asked[0]?.body).toMatchObject({ ...ADD, ownerAccount: null });
+      expect(receiver.asked[0]?.body ?? {}).not.toHaveProperty("sessionScope");
     } finally {
       globals.signedInUser = held;
     }

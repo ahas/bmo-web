@@ -22,6 +22,10 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // The icon module's own route, which every screen draws its icons from; it reads nothing of anyone.
   { method: "GET", path: /^\/api\/_nuxt_icon\/[^/]+\.json$/, scope: "user" },
   { method: "POST", path: /^\/api\/account$/, scope: "user" },
+  // A user's own profile, which the account's holder or an administrator keeps (the route itself refuses another
+  // login).
+  { method: "GET", path: /^\/api\/users\/\d+\/profile$/, scope: "user" },
+  { method: "PUT", path: /^\/api\/users\/\d+\/profile$/, scope: "user" },
   { method: "GET", path: /^\/api\/account\/palette$/, scope: "user" },
   { method: "PUT", path: /^\/api\/account\/palette$/, scope: "user" },
   { method: "GET", path: /^\/api\/account\/theme$/, scope: "user" },

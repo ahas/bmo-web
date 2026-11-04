@@ -1336,6 +1336,15 @@ export interface AccountUser {
   name: string;
 }
 
+// A user's job title and contact details (docs/accounts.md, 「Users and senders」); every field is empty where the
+// account keeps none.
+export interface UserProfile {
+  jobTitle: string;
+  landline: string;
+  mobile: string;
+  email: string;
+}
+
 // The sorts of thing a `context` line carries, as its name: which of the things put in front of a
 // turn before it ran this one was. The writer settles it — a picker's library and a standing entry
 // each answer for their own — and a sort this list does not know still reads as what it is.

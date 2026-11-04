@@ -131,6 +131,12 @@ section states what each does.
 - **`POST /users/{user}/password`** — the current password and the next; refused with 401 where the current one
   does not match, and hashed as sumida hashes every password.
 - **`POST /users/{user}/name`** — another name; refused with 409 where another user holds it.
+- **`GET /users/{user}/profile`** — a user's job title, landline, mobile and email, each an empty string where
+  the account keeps none; **`POST /users/{user}/profile`** writes all four whole, an empty value clearing it,
+  and answers the profile as it now stands. Both are the account's holder's or an administrator's: the console
+  hands on the login it acts for in `Owner-Key` and `Owner-Role`, and any other login is refused 403 before a
+  row is read or written. The profile is kept in the service's own table, so sumida's `users` stays as sumida
+  made it; an account that keeps no profile has no row, and every account that stood before reads empty values.
 
 ### Phones
 
@@ -197,6 +203,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | Table | What it holds |
 |---|---|
 | `user_senders` | the link from a chat service's sender to a user |
+| `user_profiles` | a user's job title and contact details, keyed by sumida's user; an account keeping none has no row and reads empty |
 | `grant_words` | the words a grant was made with, beside the grant |
 | `settings` | the service's own keys: the mark that the move is written, and the platform administrator's user |
 | `web_users` | the console's own accounts, the sign-in that stands before the model is in force |

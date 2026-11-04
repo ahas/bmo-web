@@ -1244,6 +1244,30 @@
         ],
         "type": "object"
       },
+      "UserProfile": {
+        "description": "A user's job title and contact details, which the account's holder or an administrator keeps\n(docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "jobTitle": {
+            "type": "string"
+          },
+          "landline": {
+            "type": "string"
+          },
+          "mobile": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "jobTitle",
+          "landline",
+          "mobile",
+          "email"
+        ],
+        "type": "object"
+      },
       "UserView": {
         "description": "A user as the console reads them.",
         "properties": {
@@ -2054,7 +2078,7 @@
         "operationId": "secrets",
         "parameters": [
           {
-            "description": "The role of the login the call is made for; the store answers `administrator` alone.",
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -2121,7 +2145,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the store answers `administrator` alone.",
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -2182,7 +2206,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the store answers `administrator` alone.",
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -2601,6 +2625,168 @@
           "bad-request",
           "unauthorized",
           "wrong-password",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/profile": {
+      "get": {
+        "operationId": "userProfile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A user's job title and contact details, read by the account's holder or an administrator.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "post": {
+        "operationId": "setUserProfile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Writes a user's job title and contact details whole, by the account's holder or an administrator.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
           "not-found",
           "not-in-force",
           "database",

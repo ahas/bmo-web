@@ -67,6 +67,19 @@ interface StandInBody {
   // A secret's value and whether it replaces the one its name holds.
   value?: unknown;
   replace?: boolean;
+  // A user's profile.
+  jobTitle?: string;
+  landline?: string;
+  mobile?: string;
+  email?: string;
+}
+
+/** A user's job title and contact details, as the stand-in keeps them. */
+export interface StandInProfile {
+  jobTitle: string;
+  landline: string;
+  mobile: string;
+  email: string;
 }
 
 // A secret the stand-in's store holds: the value a test reads back to see it arrived, and when it was written.
@@ -86,6 +99,8 @@ export interface StandIn {
   // The secret store's files by name, and the role each call on the store was made in.
   secrets: Map<string, StandInSecret>;
   secretRoles: (string | null)[];
+  // Each user's profile, by the user's id.
+  profiles: Map<number, StandInProfile>;
   stop(): void;
 }
 
@@ -107,6 +122,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const state = { inForce: seed.inForce ?? true };
   const secrets = new Map<string, StandInSecret>();
   const secretRoles: (string | null)[] = [];
+  const profiles = new Map<number, StandInProfile>();
   const userOfSender = (sender: number | null): StandInUser | undefined =>
     sender === null ? undefined : users.find((user) => (user.senders ?? []).includes(sender));
   const holds = (kind: string, object: string, relation: string, subjects: string[]): boolean =>
@@ -215,6 +231,38 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
         return done();
       }
+
+      // A profile answers its account's holder or an administrator, as the login's user and role are handed on.
+      const profileRoute = path.match(/^\/users\/([^/]+)\/profile$/);
+
+      if (profileRoute !== null) {
+        const user = userNamed(decodeURIComponent(profileRoute[1]!));
+
+        if (user === undefined) return refused(404, "not-found", "no such user");
+
+        const role = request.headers.get("owner-role");
+        const key = request.headers.get("owner-key");
+
+        if (role !== "administrator" && key !== String(user.id)) {
+          return refused(403, "forbidden", "a profile is its account's holder's or an administrator's");
+        }
+
+        if (request.method === "GET") {
+          return json(profiles.get(user.id) ?? { jobTitle: "", landline: "", mobile: "", email: "" });
+        }
+
+        const profile = {
+          jobTitle: String(body?.jobTitle ?? ""),
+          landline: String(body?.landline ?? ""),
+          mobile: String(body?.mobile ?? ""),
+          email: String(body?.email ?? "")
+        };
+
+        profiles.set(user.id, profile);
+
+        return json(profile);
+      }
+
       if (path === "/checks/room") {
         return json(checkRoom(body?.room ?? 0, body?.sender ?? null, body?.relation ?? ""));
       }
@@ -367,6 +415,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     state,
     secrets,
     secretRoles,
+    profiles,
     stop() {
       server.stop(true);
     }

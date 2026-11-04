@@ -8,6 +8,7 @@ import {
   type AccountServiceClient,
   type Session as WireSession,
   type SessionError,
+  type UserProfile as WireProfile,
   type WireError
 } from "@web/server-client";
 
@@ -265,6 +266,48 @@ export async function renameUser(
   if (reply.error?.code === "name-taken") return false;
 
   throw refusalOf(reply.response, reply.error);
+}
+
+/** The login a profile is kept for, as the console hands it on: its user id written as a decimal and its role. */
+export interface ProfileCaller {
+  key: string;
+  role: "administrator" | "member";
+}
+
+/** A user's job title and contact details, empty where the account keeps none. */
+export async function profileOf(
+  id: UserId | number,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<WireProfile> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/{user}/profile", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }
+    })
+  );
+
+  return answered(reply);
+}
+
+/** A user's job title and contact details written whole, answered as they now stand. */
+export async function setProfile(
+  id: UserId | number,
+  profile: WireProfile,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<WireProfile> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/users/{user}/profile", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: profile
+    })
+  );
+
+  return answered(reply);
 }
 
 /** A phone's new key, handed out once, and the hash it is kept by. */

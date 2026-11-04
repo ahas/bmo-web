@@ -156,10 +156,10 @@ impl<S: Send + Sync, T: DeserializeOwned> FromRequest<S> for Body<T> {
   }
 }
 
-type Answer<T> = Result<Json<T>, Refusal>;
+pub(crate) type Answer<T> = Result<Json<T>, Refusal>;
 type Done = Result<StatusCode, Refusal>;
 
-fn user_in(path: &str) -> Result<i32, Refusal> {
+pub(crate) fn user_in(path: &str) -> Result<i32, Refusal> {
   parsed(path).ok_or_else(|| Refusal::bad(format!("`{path}` is no user's id")))
 }
 
@@ -190,6 +190,7 @@ fn own() -> Router<Service> {
     .route("/phones/{hash}", axum::routing::delete(phone_delete))
     .route("/rooms/{chat}/holdings", get(holdings_route))
     .route("/watching", get(crate::watching::get).put(crate::watching::put))
+    .merge(crate::profiles::routes())
     .merge(crate::secrets::routes())
 }
 

@@ -1336,6 +1336,15 @@ export interface AccountUser {
   name: string;
 }
 
+// A user's job title and contact details (docs/accounts.md, 「Users and senders」); every field is empty where the
+// account keeps none.
+export interface UserProfile {
+  jobTitle: string;
+  landline: string;
+  mobile: string;
+  email: string;
+}
+
 // The sorts of thing a `context` line carries, as its name: which of the things put in front of a
 // turn before it ran this one was. The writer settles it — a picker's library and a standing entry
 // each answer for their own — and a sort this list does not know still reads as what it is.
@@ -1480,8 +1489,8 @@ export interface AgentReasoningView {
 // which item it is, how long it went, how many tools it called and what each model it used spent.
 export interface JobLine {
   run: string;
-  // The role the job runs as, under whose name its log lines stand; absent or null where the agency names none.
-  role?: string | null;
+  // The agent under whose name the job's log lines stand: the worker it ran on, the agent of its session.
+  agent: string;
   todoId: number | null;
   title: string | null;
   // Why a job with no item was launched, as its launcher wrote it.

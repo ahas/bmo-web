@@ -436,7 +436,8 @@ nothing.
 - **Nothing on a member's room asks after the bot itself, its owner or the pictures index.** Whether
   the bot answers moves only the box to write in, whose room it is only the administrator's tools,
   and the index names every room and person; a member's feed draws every face by its initials.
-- **On the account, a member changes their name and password and sees and revokes their phones.**
+- **On the account, a member changes their name, password, job title and contact details and sees and revokes
+  their phones.**
   The notifications, the app download and the briefing player are the administrator's, and the
   screen reads none of them for a member.
 
@@ -3063,7 +3064,8 @@ Two ways, split because the running places differ.
 - **A screen for each axis and place.** A supervisor's screen and a role's read the agency's log of that supervisor or
   role across its runs (the agency's `docs/run-records.md`, 「Agent log」); a role's run opened from the sidebar or a
   slot tile opens the role's log at that run. A repository's screen reads the jobs the agency ran in it, newest
-  first, and the log of the one going or, with none going, the latest.
+  first, and the log of the one going or, with none going, the latest, under the name its lines stand under: the
+  worker the job ran on, whatever role it ran as. It is the log the same job's TODO line opens.
 - **A supervisor's screen names the rooms it has spoken in,** read from the agency's `GET /supervisors/{name}/rooms`
   (its `docs/api.md`, 「supervisors」), in one line under the title bar that scrolls sideways inside itself where it
   runs long: each room by its title with how many of its runs went there, its tooltip saying when the latest began.
@@ -5851,9 +5853,9 @@ dialog open at 계정.
     list, an on-off a switch, an action a button. A row whose control does not fit beside its name
     puts the control under it, at the right.
   - Everything in it takes effect as it is changed: a choice, a switch. Nothing
-    waits for a save, and the dialog closes at once. Its two forms, the name and the password opened
-    from 계정 and a secret opened from 비밀 보관함, are each a dialog of its own, with its own 저장 at its
-    foot.
+    waits for a save, and the dialog closes at once. Its forms are each a dialog of its own, with its own
+    저장 at its foot: the name and the password and the profile opened from 계정, and a secret opened from
+    비밀 보관함.
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
@@ -5873,6 +5875,10 @@ dialog open at 계정.
   with a change asks first (「Forms」).
 - A changed name takes everything the account holds with it — the devices it rings, the phones that
   play its briefings, the tabs each screen stands with, its theme and its palette.
+- **프로필** carries the account's job title, landline, mobile and email, each empty where the account keeps
+  none, with 변경 opening the form: the four fields and 저장, open only while one differs. The account's holder
+  or an administrator reads and writes it; the console hands the login's own user and role to the service, and
+  another login's call is refused.
 
 #### 테마
 

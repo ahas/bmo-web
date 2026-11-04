@@ -104,7 +104,7 @@
       <!-- The work view: the job's work order, what it is doing now, what it spent and called, its stages where it is
            co-work or laid out a plan, and its log (docs/web.md, 「The work view」). -->
       <!-- A repository keeps no log of its own: its screen reads the jobs run in it and stands the log of the one going
-           or, with none going, the latest, under the role that job ran as (docs/web.md, 「Agent screen」). -->
+           or, with none going, the latest, under the worker that job ran on (docs/web.md, 「Agent screen」). -->
       <template v-if="isRepository">
         <ContentSkeleton v-if="repositoryJob === undefined" :rows="6" listClass="flex flex-col gap-2 px-4 py-3" :label="$t('agents.status.jobs_loading')">
           <SkeletonLine width="w-4/5" />
@@ -113,8 +113,8 @@
         <WorkView
           v-else
           ref="view"
-          :key="`${repositoryJob.role ?? name}:${repositoryJob.run}`"
-          :agent="repositoryJob.role ?? name"
+          :key="`${repositoryJob.agent}:${repositoryJob.run}`"
+          :agent="repositoryJob.agent"
           :place="{ run: repositoryJob.run }"
           :run="repositoryJob.run"
           job

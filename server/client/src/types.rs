@@ -64,6 +64,17 @@ pub struct UserView {
   pub senders: Vec<i64>,
 }
 
+/// A user's job title and contact details, which the account's holder or an administrator keeps
+/// (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct UserProfile {
+  pub job_title: String,
+  pub landline: String,
+  pub mobile: String,
+  pub email: String,
+}
+
 /// The rooms the console has open, as the receiver reads them, and when the console last said so.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]

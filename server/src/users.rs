@@ -1,6 +1,7 @@
 //! Users as the service meets them: a chat identity linked to its user, the subjects a check is made for,
 //! and the users the model makes for a person who has none (docs/accounts.md).
 
+use bmo_web_client::UserProfile;
 use rand::Rng;
 use rand::distr::Alphanumeric;
 use sea_orm::{ConnectionTrait, TransactionTrait};
@@ -361,6 +362,71 @@ pub async fn link<C: ConnectionTrait>(db: &C, sender: i64, user: i32) -> Result<
     db,
     r#"INSERT INTO "user_senders" ("sender_id", "user_id", "linked_at") VALUES ($1, $2, $3)"#,
     vec![sender.into(), i64::from(user).into(), now_ms().into()],
+  )
+  .await?;
+
+  Ok(())
+}
+
+/// A user's job title and contact details, every field empty where the account keeps no profile
+/// (docs/accounts.md, 「Users and senders」). A user that does not stand is answered absent.
+pub async fn profile_of<C: ConnectionTrait>(db: &C, user: i32) -> Result<UserProfile, Refusal> {
+  let stands = one(db, r#"SELECT 1 AS "one" FROM "users" WHERE "id" = $1"#, vec![user.into()])
+    .await?
+    .is_some();
+
+  if !stands {
+    return Err(Refusal::absent(format!("no user {user}")));
+  }
+
+  let held = one(
+    db,
+    r#"SELECT "job_title", "landline", "mobile", "email" FROM "user_profiles" WHERE "user_id" = $1"#,
+    vec![user.into()],
+  )
+  .await?;
+
+  let Some(row) = held else {
+    return Ok(UserProfile::default());
+  };
+
+  Ok(UserProfile {
+    job_title: row.try_get("", "job_title")?,
+    landline: row.try_get("", "landline")?,
+    mobile: row.try_get("", "mobile")?,
+    email: row.try_get("", "email")?,
+  })
+}
+
+/// A user's profile written whole, an empty field clearing it. The user must stand, so a profile is never
+/// kept for nobody.
+pub async fn set_profile<C: ConnectionTrait>(
+  db: &C,
+  user: i32,
+  profile: &UserProfile,
+) -> Result<(), Refusal> {
+  let stands = one(db, r#"SELECT 1 AS "one" FROM "users" WHERE "id" = $1"#, vec![user.into()])
+    .await?
+    .is_some();
+
+  if !stands {
+    return Err(Refusal::absent(format!("no user {user}")));
+  }
+
+  run(
+    db,
+    r#"INSERT INTO "user_profiles" ("user_id", "job_title", "landline", "mobile", "email", "updated_at")
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT ("user_id") DO UPDATE SET
+         "job_title" = $2, "landline" = $3, "mobile" = $4, "email" = $5, "updated_at" = $6"#,
+    vec![
+      user.into(),
+      profile.job_title.clone().into(),
+      profile.landline.clone().into(),
+      profile.mobile.clone().into(),
+      profile.email.clone().into(),
+      now_ms().into(),
+    ],
   )
   .await?;
 

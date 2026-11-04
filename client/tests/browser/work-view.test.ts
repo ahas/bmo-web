@@ -55,7 +55,7 @@ const LOG: AgentLogPage = {
   hasMore: false
 };
 
-const JOB: JobLine = { run: "run-b", todoId: ITEM, title: "item-title", purpose: null, startedAt: NOW - 600, finishedAt: null, tools: 2, models: [] };
+const JOB: JobLine = { run: "run-b", agent: "worker-b", todoId: ITEM, title: "item-title", purpose: null, startedAt: NOW - 600, finishedAt: null, tools: 2, models: [] };
 
 function task(id: string, state: WorkTask["state"], over: Partial<WorkTask> = {}): WorkTask {
   return { id, title: `task-${id}`, role: "scout", model: "model-a", instruction: `instruction-${id}`, state, attempt: 1, unit: null, jobId: null, startedAt: null, result: null, artifact: null, error: null, ...over };

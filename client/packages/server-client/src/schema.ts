@@ -348,6 +348,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A user's job title and contact details, read by the account's holder or an administrator. */
+        get: operations["userProfile"];
+        put?: never;
+        /** Writes a user's job title and contact details whole, by the account's holder or an administrator. */
+        post: operations["setUserProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}/senders": {
         parameters: {
             query?: never;
@@ -767,6 +785,16 @@ export interface components {
             reason?: string | null;
             /** Format: uint16 */
             statusCode: number;
+        };
+        /**
+         * @description A user's job title and contact details, which the account's holder or an administrator keeps
+         *     (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.
+         */
+        UserProfile: {
+            email: string;
+            jobTitle: string;
+            landline: string;
+            mobile: string;
         };
         /** @description A user as the console reads them. */
         UserView: {
@@ -1243,7 +1271,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description The role of the login the call is made for; the store answers `administrator` alone. */
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -1275,7 +1303,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description The role of the login the call is made for; the store answers `administrator` alone. */
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -1322,7 +1350,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description The role of the login the call is made for; the store answers `administrator` alone. */
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -1559,6 +1587,82 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, wrong-password, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    userProfile: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfile"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setUserProfile: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserProfile"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfile"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

@@ -15,6 +15,7 @@ export type MoveAsk = Schemas["MoveAsk"];
 export type Moved = Schemas["Moved"];
 export type SenderUser = Schemas["SenderUser"];
 export type UserView = Schemas["UserView"];
+export type UserProfile = Schemas["UserProfile"];
 export type Senders = Schemas["Senders"];
 export type Watching = Schemas["Watching"];
 export type WatchingAsk = Schemas["WatchingAsk"];

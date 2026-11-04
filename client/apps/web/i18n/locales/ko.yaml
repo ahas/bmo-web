@@ -1501,15 +1501,21 @@ todo:
 account:
   title:
     login: 로그인 정보
+    profile: 프로필
   label:
     current_password: 현재 비밀번호
     device_since: "{time}부터 · {kinds}"
+    email: 이메일
+    job_title: 직함
+    landline: 유선 전화
+    mobile: 휴대전화
     new_password: 새 비밀번호
     nothing_subscribed: 받는 알림 없음
     other_devices: "다른 기기 {n}개"
     palette: 팔레트
     palette_description: 대화방 색
     preview: 미리보기
+    profile: 프로필
     theme: 테마
     theme_description: 강조색과 회색
     user_id: 아이디
@@ -1517,12 +1523,14 @@ account:
     change: 변경
     reset_palette: 초기화
     reset_theme: 초기화
+    retry: 다시 시도
     send_test: 테스트 발송
     subscribe: 알림 받기
     unsubscribe: 알림 끄기
   status:
     not_subscribed: 이 기기는 아직 알림을 받지 않습니다.
     notifications_loading: 알림 설정 불러오는 중…
+    profile_loading: 프로필 불러오는 중
   message:
     preview_answer: "7시예요. 회의록은 https://example.com/notes 에 있어요."
     preview_ask: 오늘 회의 몇 시였지?
@@ -1552,6 +1560,10 @@ account:
     save_failed: 계정 정보를 변경하지 못했습니다.
     theme_failed: 테마를 저장하지 못했습니다.
     user_id_taken: 이미 사용 중인 아이디입니다.
+    profile_forbidden: 프로필은 그 계정의 주인이나 플랫폼 관리자만 바꿀 수 있습니다.
+    profile_shape: 프로필의 값이 올바르지 않습니다.
+    profile_read_failed: 프로필을 불러오지 못했습니다.
+    profile_write_failed: 프로필을 저장하지 못했습니다.
 
 settings:
   title:

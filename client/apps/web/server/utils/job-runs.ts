@@ -44,7 +44,7 @@ export async function readWorkerJob(worker: string, run: string | null): Promise
 
   return job === null ? null : {
     run: job.runName ?? String(job.runId ?? job.id),
-    role: job.roleName,
+    agent: job.workerName ?? job.roleName ?? worker,
     todoId: job.itemId,
     title: null,
     purpose: null,

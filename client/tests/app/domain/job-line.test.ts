@@ -10,6 +10,7 @@ import KO from "../../fixtures/app/domain/job-line.test.ko.json";
 
 const job = (over: Partial<JobLine>): JobLine => ({
   run: UNIT,
+  agent: "worker-a",
   todoId: 1082,
   title: KO.line_13,
   purpose: null,

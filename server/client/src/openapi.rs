@@ -73,13 +73,24 @@ fn string_path(name: &str) -> Value {
   })
 }
 
+/// The user of the login a call is made for, which the console hands on.
+fn owner_key() -> Value {
+  json!({
+    "name": "Owner-Key",
+    "in": "header",
+    "required": true,
+    "description": "The user of the login the call is made for, its id written as a decimal number.",
+    "schema": { "type": "string" },
+  })
+}
+
 /// The role of the login a call is made for, which the console hands on.
 fn owner_role() -> Value {
   json!({
     "name": "Owner-Role",
     "in": "header",
     "required": true,
-    "description": "The role of the login the call is made for; the store answers `administrator` alone.",
+    "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
     "schema": { "type": "string", "enum": ["administrator", "member"] },
   })
 }
@@ -351,6 +362,32 @@ pub fn openapi() -> Value {
     body: Some(json!(generator.subschema_for::<NameAsk>())),
     answers: vec![(204, no_answer())],
     codes: vec!["bad-request", "unauthorized", "name-taken", "conflict", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}/profile",
+    "userProfile",
+    "Users and senders",
+    "A user's job title and contact details, read by the account's holder or an administrator.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<UserProfile>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/users/{user}/profile",
+    "setUserProfile",
+    "Users and senders",
+    "Writes a user's job title and contact details whole, by the account's holder or an administrator.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<UserProfile>())),
+    answers: vec![(200, json_answer::<UserProfile>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

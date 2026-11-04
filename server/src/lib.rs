@@ -13,6 +13,7 @@ pub mod lang;
 pub mod marks;
 pub mod migration;
 pub mod phones;
+pub mod profiles;
 pub mod receiver;
 pub mod routes;
 pub mod rules;

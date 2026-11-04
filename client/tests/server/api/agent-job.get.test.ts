@@ -109,6 +109,7 @@ describe("a worker's job line", () => {
     expect(read.answer).toEqual({
       job: {
         run: "job-unit-1",
+        agent: "worker-b",
         todoId: 41,
         title: null,
         purpose: null,

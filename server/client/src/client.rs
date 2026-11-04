@@ -10,6 +10,10 @@ use crate::wire::{Answer, ClientFailure};
 /// The header a call names the role of the login it is made for in, as the console hands it on.
 pub const OWNER_ROLE: &str = "owner-role";
 
+/// The header a call names the user of the login it is made for in, as the console hands it on: the id written
+/// as a decimal number.
+pub const OWNER_KEY: &str = "owner-key";
+
 /// The account service at one base address, called with one bearer token.
 #[derive(Debug, Clone)]
 pub struct AccountClient {
@@ -142,6 +146,34 @@ impl AccountClient {
   /// `POST /users/{user}/name`.
   pub async fn rename_user(&self, user: &str, ask: &NameAsk) -> Answer<()> {
     Self::nothing(self.send(Method::POST, &["users", user, "name"], ask)).await
+  }
+
+  /// `GET /users/{user}/profile`, asked as the login `key` acts for in `role`.
+  pub async fn profile(&self, user: &str, key: &str, role: &str) -> Answer<UserProfile> {
+    Self::answered(
+      self
+        .request(Method::GET, &["users", user, "profile"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `POST /users/{user}/profile`, asked as the login `key` acts for in `role`.
+  pub async fn set_profile(
+    &self,
+    user: &str,
+    profile: &UserProfile,
+    key: &str,
+    role: &str,
+  ) -> Answer<UserProfile> {
+    Self::answered(
+      self
+        .send(Method::POST, &["users", user, "profile"], profile)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
   }
 
   /// `POST /checks/room`.

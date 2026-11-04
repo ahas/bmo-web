@@ -12,7 +12,7 @@ export function usePalette(): Ref<string> {
   return useKeptChoice(PALETTE);
 }
 
-export function readPalette(fetcher: (address: string) => Promise<unknown>): Promise<string> {
+export function readPalette(fetcher: (address: string) => Promise<unknown>): Promise<string | null> {
   return readKeptChoice(PALETTE, fetcher);
 }
 

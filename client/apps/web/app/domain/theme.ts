@@ -12,7 +12,7 @@ export function useTheme(): Ref<string> {
   return useKeptChoice(THEME);
 }
 
-export function readTheme(fetcher: (address: string) => Promise<unknown>): Promise<string> {
+export function readTheme(fetcher: (address: string) => Promise<unknown>): Promise<string | null> {
   return readKeptChoice(THEME, fetcher);
 }
 

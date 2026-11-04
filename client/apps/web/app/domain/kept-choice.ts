@@ -17,15 +17,16 @@ export function useKeptChoice(choice: KeptChoice): Ref<string> {
   return useState<string>(choice.key, () => choice.fallback);
 }
 
-// The choice as the server keeps it, the fallback where it could not be read.
-export async function readKeptChoice(choice: KeptChoice, fetcher: (address: string) => Promise<unknown>): Promise<string> {
+// The choice as the server keeps it: the fallback where the server names none it knows, null where it could not be
+// read, which says nothing of the choice, so the caller keeps what it holds.
+export async function readKeptChoice(choice: KeptChoice, fetcher: (address: string) => Promise<unknown>): Promise<string | null> {
   try {
     const answer = (await fetcher(choice.address)) as Record<string, unknown>;
     const value = answer[choice.field];
 
     return choice.isChoice(value) ? value : choice.fallback;
   } catch {
-    return choice.fallback;
+    return null;
   }
 }
 

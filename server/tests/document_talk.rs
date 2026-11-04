@@ -1,7 +1,7 @@
 //! The talk about a document (`docs/documents-viewer.md`, 「The record」; `docs/accounts.md`, 「The tables」):
 //! the migrations make `document_talk` as the console writes and reads it, the owner's words with the passage,
 //! heading and version they were said over, the chat agent's answer bare, read back by the document's name in
-//! the order said; and the migration taken down drops the table.
+//! the order said; and the last migrations taken down drop their tables.
 
 use crate::support;
 
@@ -117,15 +117,14 @@ async fn a_documents_talk_reads_back_in_the_order_it_was_said() {
 }
 
 #[tokio::test]
-async fn the_migration_taken_down_drops_the_table() {
+async fn the_last_migrations_taken_down_drop_their_tables() {
   let scratch = Scratch::new().await;
 
-  Migrator::down(scratch.db(), Some(1)).await.expect("the last migration goes down");
+  Migrator::down(scratch.db(), Some(2)).await.expect("the last migrations go down");
 
-  assert_eq!(
-    scratch
-      .count("SELECT count(*) FROM pg_tables WHERE tablename = 'document_talk'", vec![])
-      .await,
-    0
-  );
+  for table in ["document_talk", "user_profiles"] {
+    let counted = format!("SELECT count(*) FROM pg_tables WHERE tablename = '{table}'");
+
+    assert_eq!(scratch.count(&counted, vec![]).await, 0);
+  }
 }

@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, afterEach, describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { standInAccountService } from "../../support/account-service";
@@ -26,9 +26,15 @@ const read = await routeOf<UserProfile>("../../apps/web/server/api/users/[user]/
 const write = await routeOf<UserProfile>("../../apps/web/server/api/users/[user]/profile.put");
 
 const globals = globalThis as Record<string, unknown>;
+const standing = globals.signedInUser;
 const signedAs = (id: number | null, administrator: boolean): void => {
   globals.signedInUser = async () => ({ id, name: id === 1 ? "boss" : "member", administrator });
 };
+
+// The signed-in reader is the whole suite's, so the one this file puts in its place goes back after each test.
+afterEach(() => {
+  globals.signedInUser = standing;
+});
 
 const PROFILE: UserProfile = { jobTitle: "Field engineer", landline: "office 12", mobile: "mobile 34", email: "engineer@example.com" };
 

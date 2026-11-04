@@ -10,6 +10,7 @@ import type { JobChosenBy, TodoModelPlan } from "#shared/types";
 // agency's repositories, roles, models and jobs answer this.
 
 const CHOSEN_BY: readonly JobChosenBy[] = ["item", "forced", "pin", "order"];
+const WORKER_ROLE = "worker";
 
 const text = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 
@@ -45,27 +46,37 @@ function roadOf(provider: unknown, model: unknown, registered: ReadonlyMap<strin
 
 /** Each repository's own road, and the road the running job of each item went out on. */
 export async function todoModelPlan(): Promise<TodoModelPlan> {
-  const [repositories, roles, models, running, starting, newest] = await Promise.all([
+  const [repositories, roles, models, running, starting, recent] = await Promise.all([
     agencyCall(agency().GET("/repositories")),
     agencyCall(agency().GET("/roles")),
     agencyCall(agency().GET("/models")),
     agencyCall(agency().GET("/jobs", { params: { query: { state: "running", limit: 200 } } })),
     agencyCall(agency().GET("/jobs", { params: { query: { state: "starting", limit: 200 } } })),
-    agencyCall(agency().GET("/jobs", { params: { query: { limit: 1 } } }))
+    agencyCall(agency().GET("/jobs", { params: { query: { limit: 200 } } }))
   ]);
 
   const registered = registeredNames(models);
   const workers: Record<string, string> = {};
-  // The role the agency's newest job ran as: the provider the owner forced on it stands over every repository's pin,
-  // and where none is forced its order's choice, the active provider on the model its order names there, stands under
-  // the pin (the agency's docs/provider-order.md, 「Choosing the provider」 and 「A provider the owner forces」).
-  const jobRole = roles.roles.find((role) => role.name === newest.items[0]?.roleName);
-  const forced = jobRole?.active == null ? null : roadOf(jobRole.active.provider, jobRole.active.model, registered);
-  const ordered = jobRole === undefined || jobRole.provider === null
-    ? null
-    : roadOf(jobRole.provider, jobRole.order.find((entry) => entry.provider === jobRole.provider)?.model, registered);
+  // The role each repository's jobs run as, read from its newest job, newest first as the agency answers them. The
+  // provider forced on that role stands over the repository's pin, and where none is forced its order's choice, the
+  // active provider on the model its order names there, stands under the pin (the agency's docs/provider-order.md,
+  // 「Choosing the provider」 and 「A provider the owner forces」). A repository no recent job shows runs as the agency's
+  // worker role. A role forced for its own jobs says nothing of another repository's.
+  const roleOfRepository = new Map<string, string>();
+
+  for (const job of recent.items) {
+    if (job.repositoryName !== null && job.roleName !== null && !roleOfRepository.has(job.repositoryName)) {
+      roleOfRepository.set(job.repositoryName, job.roleName);
+    }
+  }
 
   for (const repository of repositories.items) {
+    const name = roleOfRepository.get(repository.name) ?? WORKER_ROLE;
+    const jobRole = roles.roles.find((role) => role.name === name);
+    const forced = jobRole?.active == null ? null : roadOf(jobRole.active.provider, jobRole.active.model, registered);
+    const ordered = jobRole === undefined || jobRole.provider === null
+      ? null
+      : roadOf(jobRole.provider, jobRole.order.find((entry) => entry.provider === jobRole.provider)?.model, registered);
     // The role's forced provider, else the pin a repository holds, else the road its jobs' role's order chooses.
     const road = forced ?? (repository.pin === null ? ordered : roadOf(repository.pin.provider, repository.pin.model, registered));
 

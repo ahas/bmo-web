@@ -25,15 +25,18 @@ const JOB = (id: number, itemId: number, road: { provider: string; model: string
 });
 
 let role = ROLE;
+let extraRoles: (typeof ROLE)[] = [];
+let recent: Record<string, unknown>[] | null = null;
 
 standIn("AGENCY", (call) => {
   if (call.path === "/repositories") return answer({ items: [REPOSITORY("repo-a", null), REPOSITORY("repo-b", { provider: "codex", model: "gpt-5.6-sol" })], more: false });
-  if (call.path === "/roles") return answer({ roles: [role], bundles: [], lines: ["worker"] });
+  if (call.path === "/roles") return answer({ roles: [role, ...extraRoles], bundles: [], lines: ["worker"] });
   if (call.path === "/models") return answer({ items: [], more: false });
   if (call.path.startsWith("/jobs?") && call.path.includes("state=running")) {
     return answer({ items: [JOB(1, 11, { provider: "claude-code", model: "claude-opus-5-5" }, "forced"), JOB(2, 12, { provider: "deepseek", model: "deepseek-flash" }, "unheard-of")], more: false });
   }
   if (call.path.startsWith("/jobs?") && call.path.includes("state=starting")) return answer({ items: [], more: false });
+  if (call.path.startsWith("/jobs?") && recent !== null) return answer({ items: recent, more: false });
   if (call.path.startsWith("/jobs?")) return answer({ items: [JOB(1, 11, { provider: "claude-code", model: "claude-opus-5-5" }, "forced")], more: false });
 
   return answer({ code: "not-found", error: "no such route" }, 404);
@@ -54,6 +57,20 @@ describe("the model plan", () => {
     expect((await asked(plan, {})).answer?.workers).toEqual({ "repo-a": "claude-code/claude-opus-5-5", "repo-b": "claude-code/claude-opus-5-5" });
 
     role = ROLE;
+  });
+
+  test("reads a forced provider for the repository whose jobs run as that role, and no other", async () => {
+    role = ROLE;
+    extraRoles = [{ ...ROLE, name: "producer", active: { provider: "claude-code", model: "claude-opus-5-5" } }];
+    recent = [{ ...JOB(9, 19, { provider: "claude-code", model: "claude-opus-5-5" }, "forced"), roleName: "producer", repositoryName: "repo-a" }];
+
+    const answered = await asked(plan, {});
+
+    extraRoles = [];
+    recent = null;
+    expect(answered.status).toBe(200);
+    expect((answered.answer as TodoModelPlan).workers["repo-a"]).toBe("claude-code/claude-opus-5-5");
+    expect((answered.answer as TodoModelPlan).workers["repo-b"]).toBe("codex/gpt-5.6-sol");
   });
 
   test("names each running job's road and what chose it, leaving out a choice the agency does not name", async () => {

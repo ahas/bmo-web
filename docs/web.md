@@ -5188,7 +5188,8 @@ Four bounds keep it from growing forever.
   short」), in the order the agency chooses a job's road (its `docs/repositories.md`, 「A model an item names」): the
   model the item names, its `model` label, where the label names one other than `auto`; otherwise its worker's road —
   the provider the owner forced on the role its jobs run as, else the model its repository pins, else the role's
-  choice by its order. While a job of the item runs, the line names the road that run took, which may differ from the
+  choice by its order. The role is read per repository, from its newest job, and a repository no recent job shows
+  runs as `worker`, so a provider forced on one role names no other repository's lines. While a job of the item runs, the line names the road that run took, which may differ from the
   plan. A tooltip names the model whole, and while a job runs it names after it what chose the job's road, the
   agency's `chosenBy` in the pack's words: 항목 지정, 강제 지정, 고정 모델 or 공급자 순서. The item's detail names
   the same model in its head, in the same chip.

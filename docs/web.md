@@ -1232,7 +1232,7 @@ Four groups.
   as a chat number. A room the console made itself — one made for the supervisors it names — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
   conversation.
-  - **The 추가 button beside the group's name adds a room,** for the administrator, in a dialog of three choices made in
+  - **The 추가 button beside the group's name adds a room,** for the administrator, in a dialog of choices made in
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
     「Rooms」):
     - **A chat service:** every one the receiver names that takes a mode, each with the modes it states said
@@ -1252,13 +1252,18 @@ Four groups.
       offered only where the room's own modes, where the service states them, hold `human-avatar`; or 기록 전용,
       the room read and recorded and never answered — each said under the choice, with a title that may be left
       empty, which a group needs.
+    - **A group's supervisor,** where several contacts are chosen and the service starts groups: 그룹 감독관, one
+      of the signed-in person's own supervisors or 감독관 없음, said under the choice. The group carries only that
+      supervisor, never another person's; added with none it carries none, and the default answerer answers it.
     추가 posts the choices, the receiver asking the service to start a conversation first where one was chosen
-    from the contacts, and the room stands in the list at once. A refusal the receiver answers with a code is
-    said in the pack's sentence under the dialog: a service that lists no rooms or no contacts, a conversation of
-    a kind the service does not start, a contact it does not know, a start it refused, a room the service does
-    not know, an avatar mode the service does not hold active, a room already added, a service that did not
-    answer. The dialog keeps no unsaved-changes guard: it opens, lists, adds and closes, and closing it asks
-    nothing whatever was chosen.
+    from the contacts, and the room stands in the list at once; a group's chosen supervisor is named on it as it
+    stands, and a naming the receiver refuses leaves the group standing without one. A refusal the receiver
+    answers with a code is said in the pack's sentence under the dialog: a service
+    that lists no rooms or no contacts, a conversation of a kind the service does not start, a contact it does
+    not know, a start it refused, a room the service does not know, an avatar mode the service does not hold
+    active, a room already added, a service that did not answer; and a group's supervisor that is not the
+    signed-in person's own is refused before the receiver is asked. The dialog keeps no unsaved-changes guard: it
+    opens, lists, adds and closes, and closing it asks nothing whatever was chosen.
   - **A room carries how many of its messages the reader has not read**, as a number at the line's end
     (「Unread messages」); folded to pictures, a room with any carries a dot on its picture's rim at about two o'clock instead, where a
     badge conventionally sits, placed from the picture's own centre so the row's width does not move it.

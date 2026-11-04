@@ -163,6 +163,7 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
   return {
     name: supervisor.name,
     label: supervisor.label ?? supervisor.name,
+    ownerAccount: supervisor.ownerAccount ?? null,
     icon: supervisor.icon,
     aliases: supervisor.aliases,
     sessionScope: supervisor.sessionScope,
@@ -192,6 +193,18 @@ export async function readSupervisor(name: string): Promise<SupervisorView> {
   const [supervisor, answerer] = await Promise.all([agencyCall(agency().GET("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } } })), defaultAnswerer()]);
 
   return supervisorViewOf(supervisor, answerer);
+}
+
+/**
+ * Whether the agency registers `name` and the login account `account` owns it (the agency's
+ * `docs/agent-ownership.md`): a group room names only its creator's supervisor, and none another person's.
+ */
+export async function supervisorOwnedBy(name: string, account: number | null): Promise<boolean> {
+  if (account === null) return false;
+
+  const page = await agencyCall(agency().GET("/supervisors"));
+
+  return page.items.some((supervisor) => supervisor.name === name && supervisor.ownerAccount === account);
 }
 
 /** A supervisor's change as a screen sent it, each field of its own shape; null where the body names none. */

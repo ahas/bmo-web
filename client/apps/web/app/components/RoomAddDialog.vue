@@ -1,8 +1,9 @@
 <template>
-  <!-- A room added from a chat service (docs/web.md, 「Sidebar」): three choices made in turn, each offered by what
-       the service declares and never by its name — the service, a room of its account or a conversation started
-       with its contacts, and the mode with a title that may be left empty. A refusal the receiver answers with a
-       code is said in the pack's sentence under the form. The dialog keeps no unsaved-changes guard. -->
+  <!-- A room added from a chat service (docs/web.md, 「Sidebar」): choices made in turn, each offered by what the
+       service declares and never by its name — the service, a room of its account or a conversation started with
+       its contacts, and the mode with a title that may be left empty. A group names its supervisor, one of the
+       signed-in person's own or none. A refusal the receiver answers with a code is said in the pack's sentence
+       under the form. The dialog keeps no unsaved-changes guard. -->
   <SettingsDialog v-model:open="open" :title="$t('room.title.room_add')">
     <form id="room-add-form" class="flex flex-col gap-4" @submit.prevent="void add()">
       <p v-if="services !== null && services.length === 0" class="text-sm text-muted">{{ $t("room.status.room_add_no_services") }}</p>
@@ -101,6 +102,10 @@
         </UFormField>
       </div>
 
+      <UFormField v-if="group" :label="$t('room.label.room_add_supervisor')" name="supervisor" :help="$t('room.message.room_add_supervisor')">
+        <USelect v-model="supervisorName" :items="supervisorItems" value-key="value" class="w-full" :aria-label="$t('room.label.room_add_supervisor')" />
+      </UFormField>
+
       <p v-if="failed !== ''" role="alert" class="break-words text-sm text-error">{{ failed }}</p>
     </form>
 
@@ -117,13 +122,19 @@ import { useFootInView } from "bmo-ui/app/domain/foot";
 import { useNextPages } from "~/domain/next-pages";
 
 import type { RoomAddCandidate, RoomAddContact, RoomAddContactPage, RoomAddMode, RoomAddPage, RoomAddService, RoomAdded } from "#shared/types";
+import type { SupervisorView } from "#shared/axes";
 
 type Tab = "rooms" | "contacts";
+
+// No supervisor stands after every supervisor, as a value no supervisor's name can be: a name starts with a
+// letter, and a list's value is never empty.
+const NONE = "-";
 
 const open = defineModel<boolean>("open", { required: true });
 const emit = defineEmits<{ added: [RoomAdded] }>();
 
 const { t } = useI18n();
+const { user } = useUserSession();
 
 // A page of a service's rooms is as long as the service makes it; the dialog asks for this many at a time. The
 // contacts are read whole, page after page, so the search runs over all of them.
@@ -147,6 +158,8 @@ const contactIds = ref<number[]>([]);
 const search = ref("");
 const mode = ref<RoomAddMode | undefined>(undefined);
 const title = ref("");
+const supervisors = ref<SupervisorView[]>([]);
+const supervisorName = ref<string>(NONE);
 const busy = ref(false);
 const failed = ref("");
 
@@ -178,6 +191,17 @@ const found = computed(() => {
 const chosenRoom = computed(() => (tab.value === "rooms" ? (rooms.value.find((room) => room.id === roomId.value) ?? null) : null));
 const offeredModes = computed(() => (service.value?.modes ?? []).filter((one) => one !== "avatar" || chosenRoom.value?.modes == null || chosenRoom.value.modes.includes("human-avatar")));
 const modeItems = computed(() => offeredModes.value.map((one) => ({ label: modeLabel(one), value: one })));
+// A group names the signed-in person's own supervisor or none: the supervisors the agency files under their account,
+// and no other person's.
+const ownSupervisors = computed(() => {
+  const account = user.value?.id;
+
+  return account === undefined ? [] : supervisors.value.filter((one) => one.ownerAccount === account);
+});
+const supervisorItems = computed(() => [
+  ...ownSupervisors.value.map((one) => ({ label: one.label, value: one.name, description: one.name })),
+  { label: t("settings.label.supervisor_none"), value: NONE }
+]);
 const chosenTitle = computed(() => {
   if (tab.value === "rooms") return chosenRoom.value?.title ?? "";
   if (group.value) return "";
@@ -233,14 +257,23 @@ watch(open, async (opened) => {
   if (!opened) return;
 
   services.value = null;
+  supervisors.value = [];
+  supervisorName.value = NONE;
   serviceKey.value = undefined;
   failed.value = "";
 
-  try {
-    services.value = await $fetch<RoomAddService[]>("/api/room-add");
-  } catch (error) {
+  const [listed, owned] = await Promise.allSettled([
+    $fetch<RoomAddService[]>("/api/room-add"),
+    $fetch<SupervisorView[]>("/api/supervisors")
+  ]);
+
+  supervisors.value = owned.status === "fulfilled" ? owned.value : [];
+
+  if (listed.status === "fulfilled") {
+    services.value = listed.value;
+  } else {
     services.value = [];
-    failed.value = failureText(error, t("room.error.room_add_rooms_failed"));
+    failed.value = failureText(listed.reason, t("room.error.room_add_rooms_failed"));
   }
 });
 
@@ -371,9 +404,10 @@ async function add(): Promise<void> {
 
   const chosenRoomOrContacts =
     tab.value === "rooms" ? { roomId: roomId.value } : group.value ? { contactIds: contactIds.value } : { contactId: contactIds.value[0] };
+  const supervisor = group.value && supervisorName.value !== NONE ? { supervisor: supervisorName.value } : {};
 
   try {
-    const added = await $fetch<RoomAdded>("/api/rooms", { method: "POST", body: { provider: serviceKey.value, mode: mode.value, title: title.value, ...chosenRoomOrContacts } });
+    const added = await $fetch<RoomAdded>("/api/rooms", { method: "POST", body: { provider: serviceKey.value, mode: mode.value, title: title.value, ...chosenRoomOrContacts, ...supervisor } });
 
     emit("added", added);
     open.value = false;

@@ -71,6 +71,8 @@ export interface SupervisorView {
   name: string;
   // The label it is shown by, its name where it keeps none.
   label: string;
+  // The login account the agency files it under, or none (the agency's `docs/agent-ownership.md`).
+  ownerAccount: number | null;
   icon: string | null;
   aliases: string | null;
   sessionScope: string;

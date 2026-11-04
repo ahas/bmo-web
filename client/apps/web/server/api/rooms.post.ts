@@ -9,12 +9,14 @@ const isId = (value: unknown): value is number => typeof value === "number" && N
 // A room added from a chat service, for the administrator: the service, the mode it is added in, a title that may
 // be left out, and one of the room as the service numbers it, a contact to start a one-to-one with, or the
 // contacts to start a group with, which needs the title; handed to the receiver as they came (the receiver's
-// `docs/api.md`, 「Rooms」). The receiver checks each against what the service declares, asks the service to
-// start a conversation where one is chosen, and its refusals are said in the pack's words.
+// `docs/api.md`, 「Rooms」). A group may name its supervisor, one the signed-in person owns or none: the group
+// carries only its creator's supervisor, never another person's, and a group added with none carries none. The
+// receiver checks each against what the service declares, asks the service to start a conversation where one is
+// chosen, and its refusals are said in the pack's words.
 export default defineEventHandler(async (event): Promise<RoomAdded> => {
-  await requireAdministrator(event);
+  const signed = await requireAdministrator(event);
 
-  const body = await readBody<{ provider?: unknown; roomId?: unknown; contactId?: unknown; contactIds?: unknown; mode?: unknown; title?: unknown }>(event);
+  const body = await readBody<{ provider?: unknown; roomId?: unknown; contactId?: unknown; contactIds?: unknown; mode?: unknown; title?: unknown; supervisor?: unknown }>(event);
   const title = typeof body?.title === "string" && body.title.trim() !== "" ? body.title.trim() : null;
   const refused = (): never => {
     throw fail(400, wording("room.error.room_add_refused"));
@@ -28,16 +30,34 @@ export default defineEventHandler(async (event): Promise<RoomAdded> => {
 
   if (chosen !== 1) refused();
 
+  const groupContacts = Array.isArray(body.contactIds) && body.contactIds.length > 0 && body.contactIds.every(isId) && title !== null ? body.contactIds : null;
+  const supervisor = typeof body.supervisor === "string" && body.supervisor.trim() !== "" ? body.supervisor.trim() : null;
+
+  // Only a group started here names a supervisor, and only its creator's own; nothing is asked of the receiver
+  // before that stands.
+  if (supervisor !== null && (groupContacts === null || !(await supervisorOwnedBy(supervisor, signed.id)))) {
+    throw fail(400, wording("room.error.room_add_supervisor"));
+  }
+
   let room;
 
   if (isId(body.roomId)) {
     room = await receiverCall(receiver().POST("/rooms", { body: { provider, roomId: body.roomId, mode, title } }));
   } else if (isId(body.contactId)) {
     room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactId: body.contactId, mode, ...(title === null ? {} : { title }) } }));
-  } else if (Array.isArray(body.contactIds) && body.contactIds.length > 0 && body.contactIds.every(isId) && title !== null) {
-    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactIds: body.contactIds, mode, title } }));
+  } else if (groupContacts !== null) {
+    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactIds: groupContacts, mode, title } }));
   } else {
     return refused();
+  }
+
+  // The group stands before it can be named, so its supervisor is written on it as it comes; a group with none is
+  // left naming none, which the default answerer answers.
+  if (supervisor !== null) {
+    await receiverCall(
+      receiver().PUT("/rooms/{roomId}/supervisors", { params: { path: { roomId: room.id } }, body: { supervisors: [supervisor] } }),
+      { codes: SUPERVISOR_CODES }
+    );
   }
 
   return { chatId: room.id, title: room.title };

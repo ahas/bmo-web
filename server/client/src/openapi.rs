@@ -315,6 +315,19 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/users",
+    "users",
+    "Users and senders",
+    "Every user with their name and whether they are the platform administrator, for the administrator alone.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<UserList>(&mut generator))],
+    codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/users/{user}",
     "user",
     "Users and senders",
@@ -387,6 +400,32 @@ pub fn openapi() -> Value {
     params: vec![string_path("user"), owner_key(), owner_role()],
     body: Some(json!(generator.subschema_for::<UserProfile>())),
     answers: vec![(200, json_answer::<UserProfile>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}/sections",
+    "userSections",
+    "Users and senders",
+    "One user's console sections, each with whether they may read and write it: their own or an administrator's.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<Sections>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/users/{user}/sections",
+    "setUserSections",
+    "Users and senders",
+    "One user's console sections written whole, by an administrator: every write is also a read.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<Sections>())),
+    answers: vec![(200, json_answer::<Sections>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()

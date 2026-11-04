@@ -6,8 +6,11 @@
 import {
   accountServiceClient,
   type AccountServiceClient,
+  type SectionRow,
+  type Sections,
   type Session as WireSession,
   type SessionError,
+  type UserList,
   type UserProfile as WireProfile,
   type WireError
 } from "@web/server-client";
@@ -272,6 +275,53 @@ export async function renameUser(
 export interface ProfileCaller {
   key: string;
   role: "administrator" | "member";
+}
+
+/** Every user, for the administrator's screen that sets one person's sections. */
+export async function listUsers(caller: ProfileCaller, options: ServiceOptions = {}): Promise<UserList["users"]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+  );
+
+  return answered<UserList>(reply).users;
+}
+
+/** One user's console sections, read as the login `caller` acts for. */
+export async function sectionsOf(
+  id: UserId | number,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<SectionRow[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/{user}/sections", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }
+    })
+  );
+
+  return answered<Sections>(reply).sections;
+}
+
+/** One user's console sections written whole, answered as they now stand. */
+export async function setSections(
+  id: UserId | number,
+  sections: SectionRow[],
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<SectionRow[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/sections", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: { sections }
+    })
+  );
+
+  return answered<Sections>(reply).sections;
 }
 
 /** A user's job title and contact details, empty where the account keeps none. */

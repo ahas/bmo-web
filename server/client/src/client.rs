@@ -138,6 +138,40 @@ impl AccountClient {
     Self::answered(self.request(Method::GET, &["users", user, "senders"])).await
   }
 
+  /// `GET /users`, asked as the login `key` acts for in `role`.
+  pub async fn users(&self, key: &str, role: &str) -> Answer<UserList> {
+    Self::answered(self.request(Method::GET, &["users"]).header(OWNER_KEY, key).header(OWNER_ROLE, role))
+      .await
+  }
+
+  /// `GET /users/{user}/sections`, asked as the login `key` acts for in `role`.
+  pub async fn user_sections(&self, user: &str, key: &str, role: &str) -> Answer<Sections> {
+    Self::answered(
+      self
+        .request(Method::GET, &["users", user, "sections"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `PUT /users/{user}/sections`, asked as the login `key` acts for in `role`.
+  pub async fn set_user_sections(
+    &self,
+    user: &str,
+    ask: &Sections,
+    key: &str,
+    role: &str,
+  ) -> Answer<Sections> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["users", user, "sections"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `POST /users/{user}/password`.
   pub async fn change_password(&self, user: &str, ask: &PasswordAsk) -> Answer<()> {
     Self::nothing(self.send(Method::POST, &["users", user, "password"], ask)).await

@@ -9,6 +9,18 @@
 // always, so a grant to it is the room's member grant, and it is never a subject in another room.
 definition bmo_member { }
 
+// One console section, by its id (docs/accounts.md, 「Console sections」): whether a user may open it and
+// whether they may change what it holds. A write is also a read, so `may_read` takes the write relation too;
+// the administrator passes both.
+definition bmo_section {
+  relation read:  user
+  relation write: user
+
+  permission may_read  = read | write | platform:root->superuser
+  permission may_write = write | platform:root->superuser
+  permission grant     = platform:root->superuser
+}
+
 // A room, by its chat id. A grant names what its holder may have the chat agent do there; `rule` is a room
 // rule carried over, whose words the agent judges, and it opens every relation of the room for its holder.
 definition bmo_room {

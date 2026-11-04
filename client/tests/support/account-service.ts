@@ -27,8 +27,18 @@ export interface StandInSeed {
   inForce?: boolean;
   users?: StandInUser[];
   grants?: StandInGrant[];
+  // A user's console sections; a user named in none is given the defaults.
+  sections?: StandInSection[];
   // The messages a check on a message reads: room, message, sender.
   messages?: [number, number, number | null][];
+}
+
+/** One section's permission as the stand-in keeps it, by the user's id. */
+export interface StandInSection {
+  user: number;
+  section: string;
+  read: boolean;
+  write: boolean;
 }
 
 // What the data move was handed, as the stand-in kept it.
@@ -72,6 +82,8 @@ interface StandInBody {
   landline?: string;
   mobile?: string;
   email?: string;
+  // A user's console sections, written whole.
+  sections?: { section?: string; read?: boolean; write?: boolean }[];
 }
 
 /** A user's job title and contact details, as the stand-in keeps them. */
@@ -93,6 +105,8 @@ export interface StandIn {
   token: string;
   users: StandInUser[];
   grants: StandInGrant[];
+  // Each user's sections, by the user's id and the section's name.
+  sections: Map<number, Map<string, { read: boolean; write: boolean }>>;
   keys: Map<string, { user: number; key: string }>;
   moves: StandInMove[];
   state: { inForce: boolean };
@@ -115,6 +129,34 @@ function hashOf(key: string): string {
 export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const users = [...(seed.users ?? [])];
   const grants = [...(seed.grants ?? [])];
+  const sections = new Map<number, Map<string, { read: boolean; write: boolean }>>();
+
+  for (const one of seed.sections ?? []) {
+    const held = sections.get(one.user) ?? new Map<string, { read: boolean; write: boolean }>();
+
+    held.set(one.section, { read: one.read, write: one.write });
+    sections.set(one.user, held);
+  }
+
+  // The sections a user made without a word is given: their rooms and their own account.
+  const SECTIONS = ["live", "mail", "siren", "db", "files", "artifact", "documents", "code", "agents", "research", "monitor", "remote", "brain", "rooms", "account"];
+  const sectionsOf = (user: StandInUser): Map<string, { read: boolean; write: boolean }> => {
+    const kept = sections.get(user.id);
+
+    if (kept !== undefined) return kept;
+    if (user.administrator === true) return new Map(SECTIONS.map((section) => [section, { read: true, write: true }]));
+
+    return new Map([
+      ["mail", { read: true, write: false }],
+      ["files", { read: true, write: false }],
+      ["artifact", { read: true, write: false }],
+      ["code", { read: true, write: false }],
+      ["remote", { read: true, write: false }],
+      ["brain", { read: true, write: false }],
+      ["rooms", { read: true, write: false }],
+      ["account", { read: true, write: true }]
+    ]);
+  };
   const messages = new Map((seed.messages ?? []).map(([room, message, sender]) => [`${room}:${message}`, sender]));
   const sessions = new Map<string, number>();
   const keys = new Map<string, { user: number; key: string }>();
@@ -197,6 +239,50 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         return json({ done: true, written: moves.length === 1, administrator: administrator === undefined ? null : String(administrator.id) });
       }
       if (!state.inForce) return refused(503, "not-in-force", "the account model is not in force");
+      if (path === "/users" && request.method === "GET") {
+        if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the users are the administrator's");
+
+        return json(users.map((user) => ({ user: String(user.id), name: user.name, administrator: user.administrator === true })));
+      }
+
+      // A user's sections, read by their holder or the administrator and written by the administrator alone.
+      const sectionsRoute = path.match(/^\/users\/([^/]+)\/sections$/);
+
+      if (sectionsRoute !== null) {
+        const user = userNamed(decodeURIComponent(sectionsRoute[1]!));
+
+        if (user === undefined) return refused(404, "not-found", "no such user");
+
+        const role = request.headers.get("owner-role");
+        const key = request.headers.get("owner-key");
+
+        if (request.method === "GET") {
+          if (role !== "administrator" && key !== String(user.id)) return refused(403, "forbidden", "a user's sections are their own or an administrator's");
+
+          const held = sectionsOf(user);
+          const names = [...new Set([...SECTIONS, ...held.keys()])];
+
+          return json({ sections: names.map((section) => ({ section, ...(held.get(section) ?? { read: false, write: false }) })) });
+        }
+
+        if (role !== "administrator") return refused(403, "forbidden", "the sections are an administrator's to set");
+
+        const held = new Map<string, { read: boolean; write: boolean }>();
+
+        for (const row of body?.sections ?? []) {
+          if (typeof row.section !== "string") return refused(400, "bad-request", "a section is named");
+
+          const write = row.write === true;
+
+          held.set(row.section, { read: row.read === true || write, write });
+        }
+
+        sections.set(user.id, held);
+
+        const names = [...new Set([...SECTIONS, ...held.keys()])];
+
+        return json({ sections: names.map((section) => ({ section, ...(held.get(section) ?? { read: false, write: false }) })) });
+      }
 
       const userRoute = path.match(/^\/users\/([^/]+)$/);
 
@@ -282,9 +368,11 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         const object = body?.object ?? "";
         const relation = body?.relation ?? "";
         const user = userNamed(body?.user ?? "");
+        const held = user === undefined ? undefined : sectionsOf(user).get(object);
+        const bySection = relation === "read" ? held?.read === true || held?.write === true : held?.write === true;
 
         return json({
-          allowed: user?.administrator === true || holds(kind, object, relation, [`user:${body?.user ?? ""}`]),
+          allowed: user?.administrator === true || (kind === "bmo_section" ? bySection : holds(kind, object, relation, [`user:${body?.user ?? ""}`])),
           grant: `${kind}:${object}#${relation}`
         });
       }
@@ -410,6 +498,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     token: TOKEN,
     users,
     grants,
+    sections,
     keys,
     moves,
     state,

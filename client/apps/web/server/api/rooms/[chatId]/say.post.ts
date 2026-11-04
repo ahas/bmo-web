@@ -18,6 +18,8 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
   await requireUserSession(event);
 
   const chatId = requireChatId(event);
+
+  await requireReadableRoom(event, chatId);
   const body = await readBody<SayBody>(event);
   const text = typeof body?.text === "string" ? body.text.trim() : "";
 

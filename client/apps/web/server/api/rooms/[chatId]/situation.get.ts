@@ -10,5 +10,7 @@ export default defineEventHandler(async (event): Promise<RoomSituation> => {
 
   const chatId = requireChatId(event);
 
+  await requireReadableRoom(event, chatId);
+
   return await receiverCall(receiver().GET("/rooms/{roomId}/situation", { params: { path: { roomId: chatId } } }));
 });

@@ -297,6 +297,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every user with their name and whether they are the platform administrator, for the administrator alone. */
+        get: operations["users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}": {
         parameters: {
             query?: never;
@@ -360,6 +377,24 @@ export interface paths {
         put?: never;
         /** Writes a user's job title and contact details whole, by the account's holder or an administrator. */
         post: operations["setUserProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One user's console sections, each with whether they may read and write it: their own or an administrator's. */
+        get: operations["userSections"];
+        /** One user's console sections written whole, by an administrator: every write is also a read. */
+        put: operations["setUserSections"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -750,6 +785,16 @@ export interface components {
         Secrets: {
             secrets: components["schemas"]["Secret"][];
         };
+        /** @description One console section's permission for a user: whether they may read it and whether they may write it. */
+        SectionRow: {
+            read: boolean;
+            section: string;
+            write: boolean;
+        };
+        /** @description A user's sections, in the console's navigation order; every write is also a read. */
+        Sections: {
+            sections: components["schemas"]["SectionRow"][];
+        };
         /** @description The user a sender is linked to. */
         SenderUser: {
             user: string;
@@ -786,6 +831,10 @@ export interface components {
             /** Format: uint16 */
             statusCode: number;
         };
+        /** @description Every user, for the administrator's screen that sets one person's sections. */
+        UserList: {
+            users: components["schemas"]["UserSummary"][];
+        };
         /**
          * @description A user's job title and contact details, which the account's holder or an administrator keeps
          *     (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.
@@ -795,6 +844,15 @@ export interface components {
             jobTitle: string;
             landline: string;
             mobile: string;
+        };
+        /**
+         * @description One user as the users list names them: their id, their name and whether they are the platform
+         *     administrator.
+         */
+        UserSummary: {
+            administrator: boolean;
+            name: string;
+            user: string;
         };
         /** @description A user as the console reads them. */
         UserView: {
@@ -1500,6 +1558,40 @@ export interface operations {
             };
         };
     };
+    users: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserList"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     user: {
         parameters: {
             query?: never;
@@ -1660,6 +1752,82 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserProfile"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    userSections: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Sections"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setUserSections: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Sections"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Sections"];
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */

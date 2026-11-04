@@ -64,6 +64,35 @@ pub struct UserView {
   pub senders: Vec<i64>,
 }
 
+/// One user as the users list names them: their id, their name and whether they are the platform
+/// administrator.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UserSummary {
+  pub user: String,
+  pub name: String,
+  pub administrator: bool,
+}
+
+/// Every user, for the administrator's screen that sets one person's sections.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UserList {
+  pub users: Vec<UserSummary>,
+}
+
+/// One console section's permission for a user: whether they may read it and whether they may write it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SectionRow {
+  pub section: String,
+  pub read: bool,
+  pub write: bool,
+}
+
+/// A user's sections, in the console's navigation order; every write is also a read.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Sections {
+  pub sections: Vec<SectionRow>,
+}
+
 /// A user's job title and contact details, which the account's holder or an administrator keeps
 /// (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account keeps none.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

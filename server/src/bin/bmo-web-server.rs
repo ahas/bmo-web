@@ -13,11 +13,13 @@ use std::sync::Arc;
 use bmo_web_server::data_move::moved;
 use bmo_web_server::receiver::{NoReceiver, Receiver, ReceiverClient};
 use bmo_web_server::routes::{in_force, stand};
+use bmo_web_server::rules::RULES;
 use bmo_web_server::settings::Settings;
 use bmo_web_server::users::set_sign_in;
 use bmo_web_server::wording::document_wording;
 use bmo_web_server::{holdings, migration, secrets, store};
 use clap::{Parser, Subcommand};
+use sumida::api::authz::Authz;
 use tokio::net::TcpListener;
 use tokio::signal::unix::{SignalKind, signal};
 
@@ -213,6 +215,15 @@ async fn user(settings: Settings, name: String, administrator: bool) -> ExitCode
     Ok(true) => {}
     Ok(false) => return refused("the data move has not run, so the console's own accounts sign in"),
     Err(why) => return refused(why),
+  }
+
+  // A user made is given their console sections, which are relations of the deployment's rules: the rules are
+  // installed here and their schema kept on the database before the user is written.
+  if let Err(why) = Authz::install_rules(RULES) {
+    return refused(format!("the rules do not stand: {why}"));
+  }
+  if let Err(why) = Authz::sync_schema(&db).await {
+    return refused(format!("the rules' schema does not stand on the database: {why}"));
   }
 
   match set_sign_in(&db, &name, password, administrator).await {

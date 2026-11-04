@@ -389,15 +389,23 @@ console page. No answer says which framework drew it. Strict transport is the re
   ended, as one whose session is gone, and the next login is the service's. Where the service does not
   answer whether the model is in force, the request is refused as the service being down and the seal
   stays.
-- **The administrator reaches every screen and route.** Anyone else reaches only the routes opened
-  to them, each read under its scope: their own account, their phones and their tabs, and the rooms
-  they are a member of and hold the console grant in. Every other route answers them as if nothing
-  stood there; the list of opened routes is kept in one place, and a test holds every route file to it.
+- **The administrator reaches every screen and route.** Anyone else reaches the console sections their
+  permission reads, and each route of those sections under its scope: their own account, their phones and
+  their tabs, and the rooms they are a member of and hold the console grant in. A route of a section they
+  may not read or write answers them as if nothing stood there; the routes and the section each serves are
+  kept in one place, and a test holds every route file to it.
+- **A section's read opens its screen and its reads; its write opens its changes.** The sections and the
+  defaults a user is made with stand in `docs/accounts.md`, 「Console sections」; a user's routes are read
+  against the permission the account service holds, never the tab's own memory of it.
+- **The administrator sets one person's sections in the settings.** The 권한 section lists the users, and
+  the section chosen stands a table of the console's sections with a switch for its read and one for its
+  write; a change is saved as it is made, and a write turns its read on. The platform administrator's own
+  row stands with every switch on and no change to make: they pass every section.
 - **The settings' login form changes the name and the password on the service,** and keeps this app's own
   account of the same name in step, for the services below that still check their login there.
 
-**The console shows a member — a signed-in user other than the administrator — only the screens their
-opened routes serve.** The routes refuse them either way; what this adds is that no screen opens onto
+**The console shows a member — a signed-in user other than the administrator — only the sections their
+permission reads.** The routes refuse them either way; what this adds is that no screen opens onto
 nothing.
 
 - **Whether the one signed in is the administrator is read from the account model each time,** for the
@@ -406,19 +414,23 @@ nothing.
   what they are now. A seal naming a user the model does not place stands as the seal recorded it. A seal
   that names no sumida session is a console login, which stands only before the model and is the
   administrator's, as the routes read it.
-- **Each screen says whether a member may open it.** A member opens home, the settings, the rooms they may
-  read and the screens units bring whose manifest's role is `member` — and, where the manifest asks for the
-  owner key, only when their login has a user; asking for any other address takes them home.
-- **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the screens units
-  bring that they may open, their rooms and the user menu: none of the console's own screens, agents, nodes or
-  search, no queue panel, question bar or briefing player, and nothing in it reports which room the tab shows. Its sidebar hears the bot's stream for
+- **Each screen says which section it belongs to, and a member opens the ones their permission reads.** A
+  member opens the settings sections their account reads, the rooms they may read, and the screens units
+  bring whose manifest's role is `member` and whose section the administrator has left read — and, where the
+  manifest asks for the owner key, only when their login has a user; asking for a section they may not read
+  takes them to the first one they may.
+- **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the console's own
+  sections they may read, the screens units bring that they may open, their rooms and the user menu: no agents
+  block, nodes or search, no queue panel, question bar or briefing player, and nothing in it reports which room
+  the tab shows. Its sidebar hears the bot's stream for
   one thing, a message landing in one of their rooms, which moves the room's unread count and place
   (「Sidebar」).
 - **A member's home is their rooms,** one line each with its name, message count and last message
   time, and nothing that waits on an agent's figures.
 - **On a room, a member reads the conversation and sees it move.** The box to write in, the session
   information, the bar's queue button and usage meters, the gates' verdicts under the messages and the
-  line of other work going in the room are the administrator's.
+  line of other work going in the room are the administrator's. A member whose rooms section writes may
+  change a room through its routes; the screen's box to write in remains the administrator's.
   - Its photos, files, link previews, picture viewer and date jump are read under the rooms the
     conversation is.
   - The messages route hands a member the messages alone, with none of the verdicts recorded on them.
@@ -5845,8 +5857,8 @@ dialog open at 계정.
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방, 알림, 보이스브리핑, 공급자, 리서치 and 비밀 보관함. A member is shown 계정, 테마
-    and 대화방; 알림, 보이스브리핑, 공급자, 리서치 and 비밀 보관함 are the administrator's.
+  - The sections are 계정, 테마, 대화방, 알림, 보이스브리핑, 공급자, 리서치, 권한 and 비밀 보관함. A member is shown 계정,
+    테마 and 대화방; 알림, 보이스브리핑, 공급자, 리서치, 권한 and 비밀 보관함 are the administrator's.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -5860,12 +5872,22 @@ dialog open at 계정.
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
 - **An address opens it at one section:** `?settings=` and a section's key — `account`, `theme`,
-  `palette`, `notifications`, `briefing`, `providers`, `research`, `secrets` — on any address of the console opens the dialog at that
+  `palette`, `notifications`, `briefing`, `providers`, `research`, `permissions`, `secrets` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. The key is taken off the address as the dialog opens: what is open over a screen
   is not a place (「Floating things」), so the back gesture closes the dialog, or leaves the section on a
   narrow screen, and the page stays where it was. Opened from the user menu it starts at 계정, and on a
   narrow screen at the list.
+
+#### 권한
+
+- **사용자** chooses one person the console's users, by their name.
+- **섹션** is a table of every console section in the navigation's order, from 실시간 상태 down to 브레인,
+  with 방 and 계정 among them, and a 읽기 switch and a 쓰기 switch for each. A change is saved as it is made;
+  a 쓰기 turned on turns its 읽기 on, and a 읽기 turned off turns its 쓰기 off.
+- **The platform administrator's row stands with every switch on and nothing to change,** since they pass
+  every section; the note above the table says so. A section's defaults and what they mean stand in
+  `docs/accounts.md`, 「Console sections」.
 
 #### 계정
 

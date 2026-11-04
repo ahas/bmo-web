@@ -126,6 +126,8 @@ section states what each does.
 ### Users and senders
 
 - **`GET /senders/{sender}/user`** — the user a sender is linked to, or nothing found.
+- **`GET /users`** — every user, with their name and whether they are the platform administrator, for the
+  administrator alone.
 - **`GET /users/{user}`** — a user's name, whether they are the platform administrator, and the sender ids
   linked to them; **`GET /users/{user}/senders`** the sender ids alone.
 - **`POST /users/{user}/password`** — the current password and the next; refused with 401 where the current one
@@ -137,6 +139,50 @@ section states what each does.
   hands on the login it acts for in `Owner-Key` and `Owner-Role`, and any other login is refused 403 before a
   row is read or written. The profile is kept in the service's own table, so sumida's `users` stays as sumida
   made it; an account that keeps no profile has no row, and every account that stood before reads empty values.
+- **`GET /users/{user}/sections`** — one user's console sections, each with whether they may read and write
+  it: the account's holder's or an administrator's. **`PUT /users/{user}/sections`** writes one user's set
+  whole, by an administrator alone (「Console sections」).
+
+### Console sections
+
+- **A console section is one entry of the console's navigation,** from the live status down to the brain, and
+  the rooms and the account beside the flat group. Each is named by the first part of the screen's path:
+
+  | Section | The screen |
+  |---|---|
+  | `live` | the live status |
+  | `mail` | bmo-mail's screen |
+  | `siren` | the cache siren |
+  | `db` | the console's database |
+  | `files` | bmo-drive's screen |
+  | `artifact` | bmo-artifact's screen |
+  | `documents` | the document viewer |
+  | `code` | bmo-review's screen |
+  | `agents` | agent management |
+  | `research` | the research screen |
+  | `monitor` | the machines and the card board |
+  | `remote` | bmo-remote's screen |
+  | `brain` | the brain's screen |
+  | `rooms` | the reader's rooms and their messages |
+  | `account` | the reader's own account and its settings |
+
+- **A section's permission is two relations of the deployment's rules,** `read` and `write`, on a
+  `bmo_section` object named by the section. They are checked through sumida's point check as every other
+  relation is (`server/src/bmo.sz`); a write is also a read, so nobody changes what they may not see.
+- **The platform administrator passes every section.**
+- **A user's grants are sumida's relation tuples,** so the service keeps no table of them. An administrator
+  writes one user's set whole, and a section named no more is taken away.
+- **The defaults in force are the console as it stood before this surface:** `rooms` read, `account` read and
+  written, and the sections of the screens units bring that a member could open — `mail`, `files`, `artifact`,
+  `code`, `remote` and `brain` — read. A screen whose manifest names the administrator alone stays closed to a
+  member by that manifest, whatever its section says. A user made by the account command or linked to a sender
+  is given the defaults, and the users who stood before this surface did are given them once, as the service
+  starts against a database where that seeding has not run. A user whose administrator has since taken every
+  section away keeps none.
+- **The console reads them for its navigation and its route guard.** A reader sees only the sections they may
+  read, and a route of a section they may not read or write answers them as if nothing stood there. A screen a
+  unit brings is held to its manifest's role as well, so a section alone never opens a screen the unit keeps
+  for the administrator.
 
 ### Phones
 
@@ -179,7 +225,8 @@ section states what each does.
 
 - **The server's binary makes the user a name signs in as, or gives one standing a new password,** with the
   password read from standard input so it stands in no process listing.
-  - A user made is enabled, in the organization and role every user is given, and holds nothing until it is
+  - A user made is enabled, in the organization and role every user is given, and given the console sections
+    in force — their rooms read and their account read and written — holding nothing else until it is
     granted; `--administrator` also makes it the platform administrator.
   - A user standing is enabled again with the new password, and keeps its grants and its links.
   - The password is hashed as sumida hashes every password.
@@ -220,6 +267,9 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   refuses every acting relation with the grant named; a grant in one room opens nothing in another; an expired
   grant refuses as an absent one; every room's member grant after the data move is the deployment's default;
   the administrator passes every check in every room.
+- **The section tests** stand a user made, read the defaults they are given, have an administrator write one
+  person's read and write, and ask the check for a permitted and a refused relation; a user other than the
+  administrator is refused the write and the users list.
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**
 - **The secret store's tests stand on a temporary folder** in place of the data root's `env/`: the modes a write
   leaves, the value kept before, the names refused, and that no answer and no refusal carries a value.

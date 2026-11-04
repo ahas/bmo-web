@@ -50,6 +50,8 @@ pub async fn stand(
   Authz::install_rules(RULES)?;
   Authz::boot_or_abort(&db).await?;
   Authz::sync_schema(&db).await?;
+  // A user who stood before the console's sections did is given the defaults in force, once.
+  crate::sections::backfill(&db).await?;
 
   Ok(Service {
     db,
@@ -191,6 +193,7 @@ fn own() -> Router<Service> {
     .route("/rooms/{chat}/holdings", get(holdings_route))
     .route("/watching", get(crate::watching::get).put(crate::watching::put))
     .merge(crate::profiles::routes())
+    .merge(crate::sections::routes())
     .merge(crate::secrets::routes())
 }
 

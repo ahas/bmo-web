@@ -116,6 +116,9 @@
 - table → 테이블; row → 행; query → 쿼리, wherever the text is about a database. Never 표, 줄, 질의.
 - default → 기본값, standing only as the mark after the default value (above). Never 처음 값.
 - section → 섹션. Never 구역.
+- permission → 권한: 권한, 권한이 있습니다, 권한이 없습니다. Never 허가, 접근 권한.
+- read a section → 읽기: 읽기, 읽을 수 있습니다. Never 조회 for a section's read.
+- write a section → 쓰기: 쓰기, 쓸 수 있습니다. Never 편집 for a section's write.
 - health check → 헬스 체크; the one run before anything changes → 사전 헬스 체크. Never 생존 확인.
 - rollback → 롤백. Never 되돌림.
 - template → 템플릿; coverage → 커버리지; cap → 상한; cooldown → 쿨다운. Never 틀, 덮음, 천장, 휴식.

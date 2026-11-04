@@ -24,6 +24,8 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
   await requireUserSession(event);
 
   const chatId = requireChatId(event);
+
+  await requireReadableRoom(event, chatId);
   const declared = Number.parseInt(getRequestHeader(event, "content-length") ?? "", 10);
 
   if (Number.isSafeInteger(declared) && declared > MAX_BODY_BYTES) {

@@ -14,7 +14,7 @@
       <template #header="{ collapsed }">
         <NuxtLink
           v-if="!collapsed"
-          :to="MEMBER_HOME"
+          :to="home"
           class="flex items-center gap-2 rounded-md px-2.5 py-1 transition-colors hover:bg-elevated active:bg-accented"
         >
           <BmoMark class="size-5 shrink-0" />
@@ -29,14 +29,14 @@
       <template #default="{ collapsed }">
         <UNavigationMenu v-if="screenEntries.length > 0" :items="namedWhenFolded(screenEntries, collapsed)" :collapsed="collapsed" tooltip orientation="vertical" />
 
-        <ContentSkeleton v-if="roomsInitial" :rows="3" listClass="flex flex-col" :label="$t('screens.status.rooms_loading')">
+        <ContentSkeleton v-if="roomsInitial && roomsRead" :rows="3" listClass="flex flex-col" :label="$t('screens.status.rooms_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
             <SkeletonBar class="size-5 shrink-0 rounded-sm" />
             <SkeletonBar v-if="!collapsed" class="h-4 w-28" />
           </div>
         </ContentSkeleton>
-        <p v-if="roomsError" class="text-sm text-error">{{ $t("screens.error.rooms_failed") }}</p>
-        <SidebarRooms :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" />
+        <p v-if="roomsError && roomsRead" class="text-sm text-error">{{ $t("screens.error.rooms_failed") }}</p>
+        <SidebarRooms v-if="roomsRead" :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" />
       </template>
 
       <template #footer="{ collapsed }">
@@ -65,8 +65,10 @@ import { SCREEN_FRAME } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
-import { broughtScreens, namedWhenFolded, roomItems, screenItems } from "~/domain/screens";
+import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
+import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
+import { accessOf, homeFor, isConsoleSection, sectionOfPath } from "#shared/sections";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AvatarIndex } from "~/domain/avatars";
@@ -99,10 +101,26 @@ const pictures: AvatarIndex = new Map();
 
 const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.value, pictures, route.path, sidebarFolded.value, reading.value));
 
-// The screens units bring whose manifest opens to a member, as the console's list hands them to this reader.
+// The screens this reader may open: the console's own whose section their permission reads, and the screens units
+// bring whose manifest opens to them (docs/web.md, 「Access」). A screen unit-brought and not one of the console's
+// own list stands by its manifest's role alone.
 const bundles = useConsoleScreens();
-const screens = broughtScreens(bundles.value);
+const access = useSectionAccess();
+const accessReady = useSectionAccessReady();
+const home = computed(() => (accessReady.value ? homeFor(access.value) : MEMBER_HOME));
+// The rooms list is the section's own; a reader whose rooms section is closed sees none of it.
+const roomsRead = computed(() => !accessReady.value || accessOf(access.value, "rooms").read);
+const screens = computed(() =>
+  screensWithBundles(bundles.value).filter((screen) => {
+    const section = sectionOfPath(screen.to);
+
+    if (section === null || !isConsoleSection(section)) return true;
+    if (!accessReady.value) return false;
+
+    return accessOf(access.value, section).read;
+  })
+);
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
-const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value));
+const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens.value, unread.value));
 </script>

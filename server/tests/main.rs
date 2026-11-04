@@ -14,4 +14,5 @@ mod profiles;
 mod repository;
 mod routes;
 mod secrets;
+mod sections;
 mod words;

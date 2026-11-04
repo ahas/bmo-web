@@ -1,6 +1,8 @@
 import { MEMBER_HOME, MEMBER_LAYOUT, isAdministrator } from "~/domain/access";
 import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens } from "~/domain/console-screens";
 import { loginRoute, returnPath } from "~/domain/login-end";
+import { ensureSectionAccess } from "~/domain/section-access";
+import { accessOf, homeFor, isConsoleSection, sectionOfPath } from "#shared/sections";
 
 // Nothing but the login page is readable without a session; the API refuses on its own side. The
 // login screen carries the address asked for, so the next login returns there, and says the login
@@ -32,6 +34,25 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (!loggedIn.value) return navigateTo(loginRoute(to.fullPath, import.meta.server && useRequestEvent()?.context.sessionEnded === true));
 
   if (isAdministrator(session.value)) return;
+
+  // A member opens only the sections their permission opens, each in the member's own shell; any other
+  // address would open onto routes that answer them as absent (docs/web.md, 「Access」). The account service
+  // holds the permission; a console that cannot read it falls back to the screens a member has always had.
+  const access = await ensureSectionAccess().catch(() => null);
+
+  if (access !== null) {
+    const section = sectionOfPath(to.path);
+
+    if (section !== null && isConsoleSection(section) && !accessOf(access, section).read) {
+      return navigateTo(homeFor(access));
+    }
+
+    if (to.meta.member !== true && screen === null) return navigateTo(homeFor(access));
+
+    setPageLayout(MEMBER_LAYOUT);
+
+    return;
+  }
 
   // A member opens only the screens that say a member may, and the screens units bring whose manifest opens to
   // them, each in the member's own shell; any other address would open onto routes that answer them as absent

@@ -1016,6 +1016,8 @@ screens:
     research: 리서치
     search: 검색
     siren: 캐시 사이렌
+    rooms: 방
+    brain: 브레인
     todo_description: 대기열과 결재 대기
   placeholder:
     find: 화면·방·에이전트 찾기
@@ -1573,6 +1575,7 @@ settings:
     briefing: 보이스브리핑
     notifications: 알림
     palette: 대화방
+    permissions: 권한
     providers: 공급자
     research: 리서치
     research_supervisor: 리서치 감독관
@@ -1587,6 +1590,24 @@ settings:
     research_write_failed: 리서치 감독관을 저장하지 못했습니다.
   action:
     back: 뒤로
+permissions:
+  label:
+    administrator: 플랫폼 관리자는 모든 섹션을 읽고 쓸 수 있습니다.
+    none: 설정할 사용자가 없습니다.
+    read: 읽기
+    section: 섹션
+    user: 사용자
+    write: 쓰기
+  status:
+    sections_loading: 권한 불러오는 중…
+    users_loading: 사용자 목록 불러오는 중…
+  error:
+    sections_read_failed: 권한을 불러오지 못했습니다.
+    sections_write_failed: 권한을 저장하지 못했습니다.
+    users_read_failed: 사용자 목록을 불러오지 못했습니다.
+  aria:
+    read_of: "{name} 읽기"
+    write_of: "{name} 쓰기"
 secrets:
   title:
     add: 비밀 추가

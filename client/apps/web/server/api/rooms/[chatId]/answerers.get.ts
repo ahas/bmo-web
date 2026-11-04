@@ -10,6 +10,8 @@ export default defineEventHandler(async (event): Promise<RoomAnswerers> => {
   await requireUserSession(event);
 
   const chatId = requireChatId(event);
+
+  await requireReadableRoom(event, chatId);
   const answerers = await receiverCall(receiver().GET("/rooms/{roomId}/answerers", { params: { path: { roomId: chatId } } }));
 
   return {

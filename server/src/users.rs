@@ -183,6 +183,7 @@ pub async fn user_for_sender<C: ConnectionTrait>(db: &C, sender: i64) -> Result<
   let user: i32 = made.try_get("", "id")?;
 
   link(db, sender, user).await?;
+  crate::sections::seed_defaults(db, user, "sender-link").await?;
 
   Ok(user)
 }
@@ -269,6 +270,8 @@ async fn sign_in_written<C: ConnectionTrait>(
       .await?
       .ok_or_else(|| Refusal::bad("the user was not made"))?
       .try_get("", "id")?;
+
+      crate::sections::seed_defaults(db, user, ACCOUNT_COMMAND).await?;
 
       SignInSet { user, made: true }
     }

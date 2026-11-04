@@ -864,6 +864,9 @@ edit to that file alone, once the guide below carries the word.
 - **The page stands in the account's theme and palette from its first frame.** The server reads both
   for the page it sends and states their colours in the page's head, over the library's own, so even
   the ground painted before any stylesheet arrives is the account's.
+- **A read that fails says nothing of the choice.** A page drawn while the account service does not answer stands in
+  the defaults, so the tab reads both as it starts and whenever it is looked at again; a read that fails there leaves
+  what the tab holds standing, and neither is ever put back to the default but by signing out.
 - **Every pair keeps the console's contrast promises in both modes.** The checks of a bubble's inks and
   surfaces and of the code themes' token colours on a code block's ground, inside a bubble and out,
   run over every palette under every theme; the checks of the badges and of the focus ring run over
@@ -3300,6 +3303,11 @@ Two ways, split because the running places differ.
   a moment stands in, narrowed to a room where the link names one. A screen opened at one run reads that run from
   the agency's `GET /log-lines`, narrowed to it, and the lines above it are the same agent log: a page read upward
   from a run lands on the lines the run before it left.
+- **A turn picked up across the agency's restart is logged as it goes.** The agency files what its program's
+  record gained while the turn was carried, so the log a screen follows follows that turn rather than standing
+  at the last line the process before it wrote. A line of the log marks where the agency takes the turn up, and
+  where no record the agency can read names the turn, the log says so on a line of its own: the screen never
+  stands a line from before the restart as the live one.
 - **Why it is written rather than streamed:** each arriving line is kept, so a run killed from outside stays up to
   just before it died, and a finished run rewinds by going back by id. Relaying the stream alone would lose a killed
   run's end and could not rewind a finished one, and pushing what one job pours to each connected browser is the
@@ -6498,6 +6506,8 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   `consoleManifest`, or whose words do not answer, brings none either, and the server's log names the fault.
   Two manifests sharing a name, a screen path or a service name both bring none, a screen path standing for its
   manifest's screen path and every path it names under `formerScreenPaths`.
+- **The list the reader may open is read again as somebody signs in or out,** since a login reaches the console's
+  screens with no new page to read it on, and the sidebar stands whole from the first screen after it.
 - **The service is relayed under the name its manifest gives,** at the address and with the token of the unit
   that answered it: the paths under its `apiPrefix`, each route its manifest names under `relays` by its method and
   path, its module and its stylesheet, and nothing else of it. A relayed call waits for the service's answer

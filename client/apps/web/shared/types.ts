@@ -1480,8 +1480,8 @@ export interface AgentReasoningView {
 // which item it is, how long it went, how many tools it called and what each model it used spent.
 export interface JobLine {
   run: string;
-  // The role the job runs as, under whose name its log lines stand; absent or null where the agency names none.
-  role?: string | null;
+  // The agent under whose name the job's log lines stand: the worker it ran on, the agent of its session.
+  agent: string;
   todoId: number | null;
   title: string | null;
   // Why a job with no item was launched, as its launcher wrote it.

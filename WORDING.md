@@ -116,6 +116,8 @@
 - table → 테이블; row → 행; query → 쿼리, wherever the text is about a database. Never 표, 줄, 질의.
 - default → 기본값, standing only as the mark after the default value (above). Never 처음 값.
 - section → 섹션. Never 구역.
+- organisation → 조직: 조직, 같은 조직, 조직 이름. Never 단체, 기관.
+- a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.
 - permission → 권한: 권한, 권한이 있습니다, 권한이 없습니다. Never 허가, 접근 권한.
 - read a section → 읽기: 읽기, 읽을 수 있습니다. Never 조회 for a section's read.
 - write a section → 쓰기: 쓰기, 쓸 수 있습니다. Never 편집 for a section's write.

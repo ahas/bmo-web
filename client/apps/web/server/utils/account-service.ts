@@ -6,6 +6,8 @@
 import {
   accountServiceClient,
   type AccountServiceClient,
+  type People as WirePeople,
+  type Person as WirePerson,
   type SectionRow,
   type Sections,
   type Session as WireSession,
@@ -15,6 +17,7 @@ import {
   type WireError
 } from "@web/server-client";
 
+import type { PersonView } from "#shared/people";
 import type { KeptSecret } from "#shared/types";
 
 /** The server's base address; `WEB_SERVER_ADDRESS` where none is given. */
@@ -275,6 +278,53 @@ export async function renameUser(
 export interface ProfileCaller {
   key: string;
   role: "administrator" | "member";
+}
+
+// A person as the console reads them: a contact detail the account service left out is no value rather than a
+// null one.
+function personView(person: WirePerson): PersonView {
+  return {
+    ...person,
+    landline: person.landline ?? undefined,
+    mobile: person.mobile ?? undefined,
+    email: person.email ?? undefined
+  };
+}
+
+/** The people of the reader's organisation whose name, organisation, job title or permitted contact holds the words. */
+export async function searchPeople(
+  q: string,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<PersonView[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/search", {
+      params: { query: { q }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }
+    })
+  );
+
+  return answered<WirePeople>(reply).people.map(personView);
+}
+
+/** One person of the reader's organisation, or null where none stands there or in another organisation. */
+export async function personOf(
+  id: UserId | number,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<PersonView | null> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/{user}/person", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }
+    })
+  );
+
+  if (reply.response.status === 404) return null;
+
+  return personView(answered<WirePerson>(reply));
 }
 
 /** Every user, for the administrator's screen that sets one person's sections. */

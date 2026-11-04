@@ -138,6 +138,29 @@ impl AccountClient {
     Self::answered(self.request(Method::GET, &["users", user, "senders"])).await
   }
 
+  /// `GET /users/search`, asked as the login `key` acts for in `role`.
+  pub async fn search_people(&self, q: &str, key: &str, role: &str) -> Answer<People> {
+    Self::answered(
+      self
+        .request(Method::GET, &["users", "search"])
+        .query(&[("q", q)])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `GET /users/{user}/person`, asked as the login `key` acts for in `role`.
+  pub async fn person(&self, user: &str, key: &str, role: &str) -> Answer<Person> {
+    Self::answered(
+      self
+        .request(Method::GET, &["users", user, "person"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `GET /users`, asked as the login `key` acts for in `role`.
   pub async fn users(&self, key: &str, role: &str) -> Answer<UserList> {
     Self::answered(self.request(Method::GET, &["users"]).header(OWNER_KEY, key).header(OWNER_ROLE, role))

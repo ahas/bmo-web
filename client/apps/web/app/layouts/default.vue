@@ -156,6 +156,7 @@ import { useBotEvents, useLiveRefresh, useSupervisorsAnswering } from "~/domain/
 import { COUNT_BADGE, countText } from "~/domain/numbers";
 import { POLL_INTERVAL_MS } from "#shared/config";
 import { jumpGroups, screenGroup } from "~/domain/jump";
+import { peopleGroup } from "~/domain/people";
 import { useModelNames } from "~/domain/model-names";
 import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
@@ -165,6 +166,7 @@ import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/d
 import { useSidebarUnread } from "~/domain/sidebar-unread";
 
 import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
+import type { PersonView } from "#shared/people";
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AgentGroup, AgentMeta, AgentRun, AgentSession } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
@@ -331,8 +333,43 @@ function runEntry(agent: AgentMeta, run: AgentRun): NavigationMenuItem {
 // The console search: what this sidebar lists, and the shortcut that opens it from anywhere.
 // Ctrl+K is ⌘K on a Mac; the shortcut layer reads `meta` as Ctrl elsewhere.
 const searchTerm = ref("");
+
+// The people the account service finds in the reader's organisation (docs/accounts.md, 「The people
+// directory」). The search asks once typing stops, and an answer to words already typed past is dropped.
+const people = ref<PersonView[]>([]);
+let peopleTimer: ReturnType<typeof setTimeout> | null = null;
+let peopleAsked = 0;
+
+watch(searchTerm, (term) => {
+  const asked = ++peopleAsked;
+  const words = term.trim();
+
+  if (peopleTimer !== null) clearTimeout(peopleTimer);
+
+  if (words === "") {
+    people.value = [];
+
+    return;
+  }
+
+  peopleTimer = setTimeout(async () => {
+    try {
+      const found = await $fetch<PersonView[]>("/api/people/search", { query: { q: words } });
+
+      if (asked === peopleAsked) people.value = found;
+    } catch {
+      if (asked === peopleAsked) people.value = [];
+    }
+  }, 250);
+});
+
+onBeforeUnmount(() => {
+  if (peopleTimer !== null) clearTimeout(peopleTimer);
+});
+
 const jumpSources = computed<JumpGroup[]>(() => [
   screenGroup(t, screens),
+  peopleGroup(t, people.value),
   {
     id: "rooms",
     label: t("common.label.room"),

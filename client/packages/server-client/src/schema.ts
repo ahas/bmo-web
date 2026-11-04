@@ -314,6 +314,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The people of the reader's organisation whose name, organisation, job title or permitted contact details hold the words. */
+        get: operations["searchPeople"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}": {
         parameters: {
             query?: never;
@@ -359,6 +376,23 @@ export interface paths {
         put?: never;
         /** Changes a user's password on the strength of their current one. */
         post: operations["changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/person": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One person of the reader's organisation, with the contact details only an administrator or the person themselves may see. */
+        get: operations["person"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -701,6 +735,23 @@ export interface components {
         PasswordAsk: {
             current: string;
             next: string;
+        };
+        /** @description The people a search found, in the organisation's own order. */
+        People: {
+            people: components["schemas"]["Person"][];
+        };
+        /**
+         * @description One person of the reader's organisation in the console's directory (docs/accounts.md, 「The people
+         *     directory」). The contact fields stand only for the platform administrator and for the person themselves.
+         */
+        Person: {
+            email?: string | null;
+            jobTitle: string;
+            landline?: string | null;
+            mobile?: string | null;
+            name: string;
+            organization: string;
+            user: string;
         };
         /** @description A token issued before the model, carried onto a key of the same text. */
         PhoneAdoptAsk: {
@@ -1592,6 +1643,43 @@ export interface operations {
             };
         };
     };
+    searchPeople: {
+        parameters: {
+            query: {
+                q: string;
+                limit?: number;
+            };
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["People"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     user: {
         parameters: {
             query?: never;
@@ -1679,6 +1767,42 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, wrong-password, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    person: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Person"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

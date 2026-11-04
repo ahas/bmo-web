@@ -40,6 +40,8 @@ export function sectionOfPath(path: string): string | null {
 
   if (first === null || first === "login") return null;
   if (first === "cards") return "monitor";
+  // A person's page is read under the account section, whose directory finds them.
+  if (first === "people") return "account";
 
   return first;
 }

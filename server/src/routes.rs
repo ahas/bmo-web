@@ -193,6 +193,7 @@ fn own() -> Router<Service> {
     .route("/rooms/{chat}/holdings", get(holdings_route))
     .route("/watching", get(crate::watching::get).put(crate::watching::put))
     .merge(crate::profiles::routes())
+    .merge(crate::people::routes())
     .merge(crate::sections::routes())
     .merge(crate::secrets::routes())
 }

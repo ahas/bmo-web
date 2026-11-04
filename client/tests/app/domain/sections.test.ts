@@ -15,8 +15,9 @@ describe("the section a screen's path stands under", () => {
     expect(sectionOfPath("/account")).toBe("account");
   });
 
-  test("is monitor for the card board, and none for the front door and the login", () => {
+  test("is monitor for the card board, account for a person's page, and none for the front door and the login", () => {
     expect(sectionOfPath("/cards")).toBe("monitor");
+    expect(sectionOfPath("/people/7")).toBe("account");
     expect(sectionOfPath("/")).toBeNull();
     expect(sectionOfPath("/login")).toBeNull();
   });

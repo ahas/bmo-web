@@ -142,6 +142,10 @@ section states what each does.
 - **`GET /users/{user}/sections`** — one user's console sections, each with whether they may read and write
   it: the account's holder's or an administrator's. **`PUT /users/{user}/sections`** writes one user's set
   whole, by an administrator alone (「Console sections」).
+- **`GET /users/search?q=&limit=`** — the people of the reader's own organisation whose name, organisation,
+  job title or permitted contact details hold the words; at most 20 without a `limit`, and never more than 50.
+- **`GET /users/{user}/person`** — one person of the reader's own organisation; 404 where the user does not
+  stand or stands in another organisation (「The people directory」).
 
 ### Console sections
 
@@ -183,6 +187,22 @@ section states what each does.
   read, and a route of a section they may not read or write answers them as if nothing stood there. A screen a
   unit brings is held to its manifest's role as well, so a section alone never opens a screen the unit keeps
   for the administrator.
+
+### The people directory
+
+- **The directory is the users of the reader's own organisation.** The reader is named by `Owner-Key`; a call
+  naming no user of the deployment is refused 403, and a search never answers a user of another organisation.
+- **A person answers these fields:** their user id, their name (their full name where they keep one, their
+  user name otherwise), their organisation's name, their job title, and their landline, mobile and email.
+- **The contact details are read by the platform administrator and by the person themselves.** Everyone else
+  in the organisation reads the name, the organisation and the job title alone; the three contact fields are
+  absent from the answer, not empty.
+- **A search matches only the fields its reader may see.** A member's words are matched against the name, the
+  organisation, the job title and their own contact details; the administrator's against every contact detail
+  as well, so a refused field is never an answer to a search.
+- **The console's search reads it** as typing stops, and a result opens the person's page at `/people/<user>`
+  (`docs/web.md`, 「Sidebar」 and 「Person's page」). The page and its calls are the account section's, so a
+  console route that the account section's read does not open answers as if nothing stood there.
 
 ### Phones
 
@@ -270,6 +290,9 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **The section tests** stand a user made, read the defaults they are given, have an administrator write one
   person's read and write, and ask the check for a permitted and a refused relation; a user other than the
   administrator is refused the write and the users list.
+- **The people tests** read the same organisation's people by name, organisation, job title and contact, see
+  a member's answer carry no contact detail, find nothing of another organisation, and match no contact detail
+  a member may not see.
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**
 - **The secret store's tests stand on a temporary folder** in place of the data root's `env/`: the modes a write
   leaves, the value kept before, the names refused, and that no answer and no refusal carries a value.

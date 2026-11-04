@@ -12,6 +12,7 @@ pub mod import;
 pub mod lang;
 pub mod marks;
 pub mod migration;
+pub mod people;
 pub mod phones;
 pub mod profiles;
 pub mod receiver;

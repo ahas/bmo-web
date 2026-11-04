@@ -328,6 +328,32 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/users/search",
+    "searchPeople",
+    "Users and senders",
+    "The people of the reader's organisation whose name, organisation, job title or permitted contact details hold the words.",
+    params: vec![parameter("q", "string", true), parameter("limit", "integer", false), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<People>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}/person",
+    "person",
+    "Users and senders",
+    "One person of the reader's organisation, with the contact details only an administrator or the person themselves may see.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<Person>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/users/{user}",
     "user",
     "Users and senders",

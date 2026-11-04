@@ -15,6 +15,7 @@ app:
     search_group: 그룹
     search_key: 키
     search_name: 이름
+    search_people: 사람
     search_place: 위치
     search_screens: 화면
     sidebar: 사이드바
@@ -1590,6 +1591,21 @@ settings:
     research_write_failed: 리서치 감독관을 저장하지 못했습니다.
   action:
     back: 뒤로
+people:
+  title:
+    person: 사람
+  label:
+    name: 이름
+    organization: 조직
+    job_title: 직함
+    landline: 유선 전화
+    mobile: 휴대전화
+    email: 이메일
+  status:
+    loading: 사람 불러오는 중…
+  error:
+    read_failed: 사람 정보를 불러오지 못했습니다.
+    not_found: 사람을 찾을 수 없습니다.
 permissions:
   label:
     administrator: 플랫폼 관리자는 모든 섹션을 읽고 쓸 수 있습니다.

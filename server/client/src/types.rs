@@ -87,6 +87,29 @@ pub struct SectionRow {
   pub write: bool,
 }
 
+/// One person of the reader's organisation in the console's directory (docs/accounts.md, 「The people
+/// directory」). The contact fields stand only for the platform administrator and for the person themselves.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Person {
+  pub user: String,
+  pub name: String,
+  pub organization: String,
+  pub job_title: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub landline: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub mobile: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub email: Option<String>,
+}
+
+/// The people a search found, in the organisation's own order.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct People {
+  pub people: Vec<Person>,
+}
+
 /// A user's sections, in the console's navigation order; every write is also a read.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Sections {

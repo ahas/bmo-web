@@ -1199,10 +1199,14 @@ edit to that file alone, once the guide below carries the word.
   too; nothing else in the console takes that key. Folded to icons, the button is the search icon alone with
   its name as a tooltip; in the phone drawer it is the full-width button. The console has no `@nuxt/content`:
   the module's `content` switch registers the two components, and the palette is handed its groups directly.
-  - It finds what the sidebar lists and nothing else: the screens, each tab a screen keeps in its address as an
-    entry under that screen, the rooms, every agent in its branch and every node under 노드 — so a worker
-    the owner adds is found the moment it stands in the sidebar. A folded branch is found all the same. A node is
-    found by its internal name and its address too.
+  - It finds what the sidebar lists: the screens, each tab a screen keeps in its address as an entry under
+    that screen, the rooms, every agent in its branch and every node under 노드 — so a worker the owner adds is
+    found the moment it stands in the sidebar. A folded branch is found all the same. A node is found by its
+    internal name and its address too.
+  - **It finds the people of the reader's organisation as well.** The account service answers them as typing
+    stops, by name, organisation and job title, and by the contact details the reader may see
+    (`docs/accounts.md`, 「The people directory」); a result opens that person's page. An empty box lists no
+    people, and an answer to words already typed past is dropped.
   - The typed phrase is matched through the console's shared list search, the same way every list matches.
     What a row shows — its name and the group it stands in — is marked where it matched; an agent's internal
     name, a room's chat number and a screen tab's key are matched too, and a hit only there shows as one line
@@ -5846,6 +5850,16 @@ Four bounds keep it from growing forever.
   request, the chat agent approving, holding, releasing or adding words to an item, a job launched on an item, a runner handing the chat agent's change to the job
   running it, and a job turning an item complete. A re-read the word sets off draws over what stands without blanking it first, so a list or a detail
   that did not change does not flicker.
+
+### Person's page
+
+- **`/people/<user>` is one person of the reader's organisation,** reached from a result of the console search
+  or from an address. It reads the person's name, organisation and job title, and the landline, mobile and
+  email the reader may see: those stand for the platform administrator and for the person themselves, and a
+  member's page holds no contact row (`docs/accounts.md`, 「The people directory」).
+- **It is the account section's.** A reader whose account section is not read is taken to the first section
+  they may open, as any other screen of that section is. The administrator's page of anyone stands with the
+  contact rows, a member's page of another without them, and a member's own page with them.
 
 ### Settings
 

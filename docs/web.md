@@ -2857,10 +2857,12 @@ Two ways, split because the running places differ.
 - **감독관 추가** is the tab's 추가: a dialog of 이름, 표시 이름, 방 이름, 공급자 순서 and 작업 저장소, with 취소 and 추가,
   sent as the receiver's `POST /supervisors` adds one (its `docs/api.md`, 「Supervisors」): the receiver makes a room
   of the console's own under 방 이름 that names the new supervisor alone, and the agency registers the supervisor
-  with its whole order and share. It is one action: where any part is refused, nothing of it stands and the refusal
-  stands under the field or the order's entry it names, in the pack's sentence for the receiver's code. An added
-  supervisor stands as a row at once, and its room in the sidebar's rooms. Where the receiver took back a console
-  room already standing under that title, a notice says so.
+  with its whole order and share. The add carries the signed-in person's user id as `ownerAccount`, required of an
+  organisation member, so the supervisor's brain and ownership are filed under them; a supervisor already standing
+  keeps the account its row holds, and no row is written again. It is one action: where any part is refused, nothing
+  of it stands and the refusal stands under the field or the order's entry it names, in the pack's sentence for the
+  receiver's code. An added supervisor stands as a row at once, and its room in the sidebar's rooms. Where the
+  receiver took back a console room already standing under that title, a notice says so.
 - **삭제** stands in every supervisor's more-menu under 설정, sent as the receiver's `DELETE /supervisors/{name}`. For
   one the deployment seeds — the agency's `seeded` — and for the default answerer it stands disabled, saying under it
   why. It asks first, naming what goes — its settings, sessions and person records — and saying that the rooms it

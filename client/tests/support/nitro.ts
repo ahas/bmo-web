@@ -31,6 +31,7 @@ globals.getQuery = (event: RouteEvent) => event.query ?? {};
 globals.getRouterParam = (event: RouteEvent, name: string) => event.params?.[name];
 globals.getMethod = (event: RouteEvent) => event.method ?? "GET";
 globals.getRequestHeader = (event: RouteEvent, name: string) => event.headers?.[name.toLowerCase()];
+globals.setResponseStatus = () => {};
 globals.readRawBody = async (event: RouteEvent) => event.rawBody;
 globals.getRequestWebStream = (event: RouteEvent) =>
   event.rawBody === undefined ? undefined : new Response(event.rawBody as BodyInit).body;

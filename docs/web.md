@@ -4956,6 +4956,20 @@ Four bounds keep it from growing forever.
   the watch itself above the log, with its detail already open: how often it looks and how long is left, how
   the last look went, the whole of the note, the condition, and the deadline or the timer's moment. A check that wrote no log is the ordinary case, so what the
   watch says stands whether there is a log under it or not.
+- **The work of a supervisor's double stands in the owner's own chat.** One task a supervisor delegated to its double,
+  while it waits for a slot or runs, stands a centred line at the conversation's foot, muted like a passing word and
+  carrying a turning mark: the role that runs it by its name, what it is at (대기 중 or 작업 중), and what it was asked
+  to do — the delegation's title, or the agent it was bound to where it has none. Every run waiting or running stands
+  a line of its own, in the order the agency asked them. An ended run keeps the line for what it came to, and stands
+  it only while nothing of that supervisor's waits or runs, so the outcome takes the marker's place rather than
+  standing beside it. Only the owner's own chat, read by the platform administrator, stands the line, and only for
+  the runs its answerers asked for; another room stands none.
+  - **It is read from the agency, never from a copy.** The line is the agency's `GET /delegations` — the waiting and
+    running rows and the latest ended one — read when the room opens and again whenever the agency's stream says a
+    slot request moved, and on the catch-up read a reopened stream brings. Each read replaces the whole list, so a run
+    the agency no longer carries leaves no line behind, and a read that failed clears the line rather than standing an
+    old marker. The room runs no clock of its own while the stream stands; while it is broken the screen's own
+    fallback clock reads the line, as it reads the rest of the screen.
 
 #### 대화에서 찾기
 

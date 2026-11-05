@@ -56,7 +56,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["agent-names", "fixture-password-2371"],
   ["monitor-polling", "fixture-password-2372"],
   ["todo-models", "fixture-password-2298"],
-  ["work-view", "fixture-password-2311"]
+  ["work-view", "fixture-password-2311"],
+  ["delegation-marker", "fixture-password-2373"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -359,6 +360,22 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
           : [];
 
       return Response.json({ items: ROLES.map((one) => ({ role: one.name, maxConcurrent: one.maxConcurrent, active: one.running, reserved: 0, waiting: one.waiting, runs: runs(String(one.name)) })) });
+    }
+    // The tasks a supervisor delegated to its double, as the agency lists them for the room's marker: one still
+    // running under the owner's own chat agent, and one that has ended with what it came to.
+    if (path === "/delegations") {
+      return Response.json({
+        items: [
+          {
+            token: "delegation-running", title: "Check the room marker", askedBy: "agent-a", stage: "running", agentName: "doppelganger-a",
+            role: "doppelganger", askedAt: Date.now() - 60_000, runningSince: Date.now() - 30_000, endedAt: null, outcome: null
+          },
+          {
+            token: "delegation-ended", title: "Retire the old marker", askedBy: "agent-a", stage: "ended", agentName: "doppelganger-a",
+            role: "doppelganger", askedAt: Date.now() - 600_000, runningSince: Date.now() - 600_000, endedAt: Date.now() - 300_000, outcome: "all checks passed"
+          }
+        ]
+      });
     }
     // The rooms a supervisor spoke in, and the stand-in answering for it on its second provider.
     if (/^\/supervisors\/[^/]+\/rooms$/.test(path)) {

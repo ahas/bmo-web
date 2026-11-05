@@ -978,6 +978,31 @@ export interface LiveSnapshot {
   queued?: QueuedMessage[];
 }
 
+// Where a task a supervisor delegated to its double stands: waiting for a slot, running on one, or ended.
+export type DelegationStage = "waiting" | "running" | "ended";
+
+// A task a supervisor delegated to its double, as the agency lists it (its `docs/api.md`, `GET /delegations`): what it
+// was asked to do, which role's run carries it, who asked, and what it came to once it ended.
+export interface DelegationView {
+  token: string;
+  title: string | null;
+  askedBy: string | null;
+  stage: DelegationStage;
+  // The agent its turn runs on; null before it is bound.
+  agentName: string | null;
+  role: string;
+  askedAt: number;
+  runningSince: number | null;
+  endedAt: number | null;
+  outcome: string | null;
+}
+
+// The agency's page of delegations: the ones still waiting or running in the order they were asked, then the latest
+// ended.
+export interface DelegationPage {
+  items: DelegationView[];
+}
+
 export type BotEventType =
   | "avatars-updated"
   | "queued"

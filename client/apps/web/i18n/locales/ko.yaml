@@ -370,6 +370,12 @@ room:
     situation_none: 상황 노트 없음
     agent_waiting_engine_item: "{subject} 같은 모델을 쓰는 #{item} Job이 끝나기를 기다리는 중"
     agent_writing: "{subject} 답을 쓰는 중"
+    delegation_ended: "{role} 작업 끝"
+    delegation_ended_outcome: "{role} 작업 끝 · {outcome}"
+    delegation_running: "{role} 작업 중 · {title}"
+    delegation_running_untitled: "{role} 작업 중"
+    delegation_waiting: "{role} 대기 중 · {title}"
+    delegation_waiting_untitled: "{role} 대기 중"
     step_tool: 툴 사용 중
     step_tool_named: "{tool} 사용 중"
     step_waiting: 같은 모델을 쓰는 Job이 끝나기를 기다리는 중

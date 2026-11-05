@@ -4902,7 +4902,9 @@ Four bounds keep it from growing forever.
   and never as a verdict; a round that left no answer stands no note there.
 - **The room's situation as it stands now** is the room menu's 상황, which opens a small dialog of the note and the
   moment it last changed, read from the receiver each time it opens (`GET /rooms/{roomId}/situation`); a room with no
-  note yet says so rather than standing an empty box.
+  note yet says so rather than standing an empty box. The note carries the 번역 action of a text read in the
+  reader's language, exactly as a memory opened from the room's record does (「The original, and its translation
+  under it」).
 - **What else runs for this room** — besides the chat agent's answer, a job or a standing watch's check —
   stands below as **one line of counts**, never one line per run, however many run.
   - The parts are 「Job <n>」 for jobs and 「워치 <n>」 for watch checks, joined by a middle dot: 「Job 7 · 워치 3」.
@@ -5326,9 +5328,9 @@ Four bounds keep it from growing forever.
   - **The original, and its translation under it.** A text a worker or a job wrote is read in the language it was
     written in and in the reader's own: the brief and each change to it, the running work order's purpose and
     instruction, each report, and a co-work task's work order and result — and a brain memory opened from a room's
-    record, where the reading is asked by the modal's 번역 action rather than as the text opens. Each stands as
-    it was written, and under it, headed by the language it is in, its reading in the language the console speaks to
-    its reader — 한국어 번역. The original is never hidden, folded or replaced by its reading, and no press is
+    record and the room's situation note, where the reading is asked by the 번역 action rather than as the text
+    opens. Each stands as it was written, and under it, headed by the language it is in, its reading in the language
+    the console speaks to its reader — 한국어 번역. The original is never hidden, folded or replaced by its reading, and no press is
     needed to read what the text says.
     - **The road** is the gate's translating route, `POST /translations`, which the gate's `gate/translate` tool
       and a bundle's screens also take. The console asks it through a route of its own, `POST /api/translations`,

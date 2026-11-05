@@ -2506,9 +2506,13 @@ Two ways, split because the running places differ.
   that order; middling, the two columns share the width; narrow, one column in the order CPU, memory, GPU,
   storage, board. The system card carries the live tracking switch, and the CPU card the CPU limit, each written
   to the node service as it is set.
-- **How it reads.** A machine with its latest reading is asked every second while its screen stands and its tab
-  is visible, the live charts are filled from the node service's live record on opening and on coming back, and
-  a record is a span of the node service's readings gathered into the span's points (bmo-node's
+- **How it reads.** The overview asks every second, while its tab is visible, for one answer holding every
+  machine's recorded reading (the node service's `GET /machines`, which reads no machine), so every tile stands at
+  the same moment and no machine's record can hold another tile's request. An answer still out at twice the
+  interval is let go and the next period asks again, the tiles keeping what they last read until it comes. A
+  machine's own monitor asks that machine's reading every second instead, since one machine's live read is the
+  screen's whole subject. The live charts are filled from the node service's live record on opening and on coming
+  back, and a record is a span of the node service's readings gathered into the span's points (bmo-node's
   `docs/hardware.md`, 「History」). The console keeps no copy of either.
 - Every figure that is a share of a whole — a use, a fill, a power against its limit, a temperature against a
   hundred degrees — is a bar, coloured only where its figure has steps: a temperature against its part's limit

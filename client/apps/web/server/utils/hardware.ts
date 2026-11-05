@@ -91,9 +91,16 @@ function machineOf(answer: MachineAnswer, now: number = Date.now()): MachineHard
   };
 }
 
-/** One machine with its latest reading. */
+/** One machine with its latest reading, read live where the recorder holds nothing fresh of it. */
 export async function machineHardware(name: string): Promise<MachineHardware> {
   return machineOf(await unitFetch<MachineAnswer>(UNIT, path(name), undefined, { codes: NODE_CODES }));
+}
+
+/** Every machine's latest recorded reading, in the node service's order, read in one call and probing none. */
+export async function machineReadings(): Promise<MachineHardware[]> {
+  const page = await unitFetch<Page<MachineAnswer>>(UNIT, "/machines");
+
+  return (page.items ?? []).map((answer) => machineOf(answer));
 }
 
 /** A machine's live tracking or CPU limit changed, as the service now holds it. */

@@ -17,10 +17,11 @@ import type { ComputedRef, InjectionKey, Ref, ShallowRef } from "vue";
 export { HISTORY_FIRST_SPAN, LIVE_CHART_SECONDS, LIVE_GAP_SECONDS } from "#shared/hardware";
 
 // This machine, as the node service names it, and the console's roads to one machine's reading, its record and its
-// live record.
+// live record, and to every machine's recorded reading at once.
 export const LOCAL_MACHINE = "local";
 export const TRACKING_URL = "/api/hardware/tracking";
 export const CPU_LIMIT_URL = "/api/hardware/cpu-limit";
+export const MONITOR_READINGS_URL = "/api/hardware/machines";
 
 // The monitor screen's two tabs, kept in the address as `?tab=` (docs/web.md, 「Monitor screen」):
 // every machine's hardware, the screen's own address, and the card arbiter's board.
@@ -56,6 +57,8 @@ export function machineMonitorPath(name: string): string {
 // asked, where its monitor stands.
 export interface MonitorMachine {
   key: string;
+  // The name the node service calls it by, which every reading is keyed by.
+  name: string;
   // A node's label in the list; null for this machine, whose name is the host name its reading
   // hands over.
   label: string | null;
@@ -70,7 +73,7 @@ export interface MonitorMachine {
 // A node that is this machine is this machine's tile, so it has none of its own.
 export function monitorMachines(nodes: readonly MonitorNode[]): MonitorMachine[] {
   const tile = (key: string, name: string, label: string | null, kind: MachineHardware["kind"]): MonitorMachine => ({
-    key, label, kind, url: machineHardwareUrl(name), historyUrl: machineHistoryUrl(name), liveUrl: machineLiveUrl(name), to: machineMonitorPath(name)
+    key, name, label, kind, url: machineHardwareUrl(name), historyUrl: machineHistoryUrl(name), liveUrl: machineLiveUrl(name), to: machineMonitorPath(name)
   });
 
   return [
@@ -369,12 +372,13 @@ export function spanPollMs(span: HistorySpan): number {
 }
 
 
-type ReadStatus = "idle" | "pending" | "success" | "error";
+export type ReadStatus = "idle" | "pending" | "success" | "error";
 
 // One address read again at an interval while the screen stands and its tab is visible. The last
 // answer stays on the screen while the next is asked; a read that fails keeps nothing stale and says
-// why. `settled` is told of every read that came back, answered or failed.
-function usePolledRead<T>(url: Ref<string | null>, everyMs: number, settled?: (answer: T | null) => void): { value: Ref<T | null>; status: Ref<ReadStatus>; error: Ref<string | null> } {
+// why. `settled` is told of every read that came back, answered or failed. A read still out at the
+// deadline is let go, so an answer that never comes cannot hold the screen past it.
+function usePolledRead<T>(url: Ref<string | null>, everyMs: number, settled?: (answer: T | null) => void, deadlineMs = 0): { value: Ref<T | null>; status: Ref<ReadStatus>; error: Ref<string | null> } {
   const value = ref<T | null>(null) as Ref<T | null>;
   const status = ref<ReadStatus>("idle");
   const error = ref<string | null>(null);
@@ -389,11 +393,13 @@ function usePolledRead<T>(url: Ref<string | null>, everyMs: number, settled?: (a
 
     inFlight = true;
     const ask = ++asked;
+    const abort = deadlineMs === 0 ? null : new AbortController();
+    const cutoff = abort === null ? null : setTimeout(() => abort.abort(), deadlineMs);
 
     if (status.value === "idle") status.value = "pending";
 
     try {
-      const answer = (await $fetch(target)) as T;
+      const answer = (await $fetch(target, abort === null ? undefined : { signal: abort.signal })) as T;
 
       if (ask === asked) {
         value.value = answer;
@@ -409,6 +415,7 @@ function usePolledRead<T>(url: Ref<string | null>, everyMs: number, settled?: (a
         settled?.(null);
       }
     } finally {
+      if (cutoff !== null) clearTimeout(cutoff);
       inFlight = false;
     }
   }
@@ -546,13 +553,14 @@ async function fillLive(source: LiveSource): Promise<void> {
   await kept.filling;
 }
 
-// One machine's live reading, every period while the screen is open and visible, each answer kept
-// for the live drawing; the live record fills the drawing in on opening and on coming back.
-export function useMachineHardware(url: Ref<string | null>, live: LiveSource): { machine: Ref<MachineHardware | null>; status: Ref<ReadStatus>; error: Ref<string | null>; live: LiveKeeping } {
+// One machine's live drawing, filled from its record on opening and on coming back, and extended by
+// each recorded reading the screen already holds of it.
+export function useMachineLive(live: LiveSource, reading?: () => MachineHardware | null): LiveKeeping {
   const kept = keptOf(live);
-  const { value, status, error } = usePolledRead<MachineHardware>(url, LIVE_PERIOD_MS, (answer) => {
-    keepLive(kept, answer, Math.floor(Date.now() / 1000));
-  });
+
+  if (reading !== undefined) {
+    watch(reading, (answer) => keepLive(kept, answer, Math.floor(Date.now() / 1000)));
+  }
 
   function onVisible(): void {
     if (!document.hidden) void fillLive(live);
@@ -567,7 +575,28 @@ export function useMachineHardware(url: Ref<string | null>, live: LiveSource): {
     if (typeof document !== "undefined") document.removeEventListener("visibilitychange", onVisible);
   });
 
+  return kept;
+}
+
+// One machine's live reading, every period while the screen is open and visible, each answer kept
+// for the live drawing; the live record fills the drawing in on opening and on coming back.
+export function useMachineHardware(url: Ref<string | null>, live: LiveSource): { machine: Ref<MachineHardware | null>; status: Ref<ReadStatus>; error: Ref<string | null>; live: LiveKeeping } {
+  const kept = useMachineLive(live);
+  const { value, status, error } = usePolledRead<MachineHardware>(url, LIVE_PERIOD_MS, (answer) => {
+    keepLive(kept, answer, Math.floor(Date.now() / 1000));
+  });
+
   return { machine: value, status, error, live: kept };
+}
+
+// Every machine's recorded reading at once, every period while the overview stands and its tab is
+// visible. The node service answers the recorder's own for every machine and reads none, so no
+// machine can hold another's tile; a request still out at the deadline is let go and the next period
+// asks again, so one stalled answer never lengthens the interval.
+export function useMonitorReadings(): { readings: Ref<MachineHardware[]>; status: Ref<ReadStatus>; error: Ref<string | null> } {
+  const { value, status, error } = usePolledRead<MachineHardware[]>(ref(MONITOR_READINGS_URL), LIVE_PERIOD_MS, undefined, 2 * LIVE_PERIOD_MS);
+
+  return { readings: computed(() => value.value ?? []), status, error };
 }
 
 // One machine's live tracking switch (bmo-node's docs/hardware.md, 「Tracking」). Where it stands is the

@@ -983,6 +983,7 @@ hardware:
     cpu_limit_failed: 한계 온도를 바꾸지 못했습니다.
     cpu_limit_range: 한계 온도는 0 °C보다 높고 127 °C보다 낮아야 합니다.
     no_machine: 그런 기기가 없습니다.
+    readings_failed: 기기 상태를 불러오지 못했습니다.
     record_failed: 기록을 불러오지 못했습니다.
     tracking_direction: 기기와 켬·끔 값을 보내 주세요.
     tracking_failed: 실시간 추적을 바꾸지 못했습니다.

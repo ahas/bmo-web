@@ -24,6 +24,16 @@ const node = standIn("NODE", (one) => {
 
   if (path === "/nodes") return answer({ items: [{ name: "node-b", label: "Node B", kind: "hub", thisMachine: false }], more: false });
 
+  if (path === "/machines") {
+    return answer({
+      items: [
+        { name: "local", label: "host-a", kind: "local", tracking: true, cpuLimit: 90, readAt: 1_790_000_000_500, hardware: null, failure: "the probe failed" },
+        { name: "node-b", label: "Node B", kind: "hub", tracking: false, cpuLimit: null, readAt: 1_790_000_001_500, hardware: null, failure: null }
+      ],
+      more: false
+    });
+  }
+
   if (path === "/machines/missing") return answer({ code: "not-found", error: "No such machine." }, 404);
 
   if (path === "/machines/node-b" && one.method === "PATCH") {
@@ -88,6 +98,7 @@ function picture(): Record<string, unknown> {
 }
 
 const nodes = await routeOf<MonitorNode[]>("../../apps/web/server/api/nodes.get");
+const machines = await routeOf<MachineHardware[]>("../../apps/web/server/api/hardware/machines.get");
 const machine = await routeOf<MachineHardware>("../../apps/web/server/api/hardware/machines/[name].get");
 const history = await routeOf<HistoryRange>("../../apps/web/server/api/hardware/machines/[name]/history.get");
 const live = await routeOf<LiveRange>("../../apps/web/server/api/hardware/machines/[name]/live.get");
@@ -101,6 +112,15 @@ describe("the machines", () => {
       { name: "node-a", label: "Node A", kind: "ssh", thisMachine: true },
       { name: "node-b", label: "Node B", kind: "hub", thisMachine: false }
     ]);
+  });
+
+  test("every machine's recorded reading stands in one answer, its moments in seconds", async () => {
+    expect(await machines({})).toEqual([
+      { name: "local", label: "host-a", kind: "local", hardware: null, failure: "the probe failed", readAt: 1_790_000_000, tracking: true, cpuLimit: 90 },
+      { name: "node-b", label: "Node B", kind: "hub", hardware: null, failure: null, readAt: 1_790_000_001, tracking: false, cpuLimit: null }
+    ]);
+    // The list is the recorder's own: the one route that reads no machine and so holds no tile.
+    expect(node.asked.at(-1)).toMatchObject({ method: "GET", path: "/machines" });
   });
 
   test("a machine's reading stands with its moment in seconds, its limit and what was met", async () => {

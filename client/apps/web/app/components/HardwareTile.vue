@@ -2,13 +2,14 @@
      connection type, each GPU by its short name, a bar for each GPU's VRAM and one for RAM with their
      figures in their physical units and their fill after them, a small copy of its chip at one
      height on every tile, and two charts of the last minute, use and temperature, each drawing the
-     CPU and every GPU on one axis, read again every few seconds. What the machine is, its OS and its
-     CPU's model, and its storage devices stand only on the machine's own monitor, so a tile's height
-     never turns on its disks or its cores. Its live tracking switch stands in its head, and a machine
-     not tracked says so in place of its figures. The whole tile but the switch opens the machine's
+     CPU and every GPU on one axis, filled from the machine's live record. The reading is the
+     overview's one recorded answer for every tile, so no tile asks for itself. What the machine is,
+     its OS and its CPU's model, and its storage devices stand only on the machine's own monitor, so a
+     tile's height never turns on its disks or its cores. Its live tracking switch stands in its head,
+     and a machine not tracked says so in place of its figures. The whole tile but the switch opens the machine's
      own monitor: the name is the link, stretched over the tile, and the switch stands above it. -->
 <template>
-  <div class="relative rounded-lg border border-default bg-default p-4 transition-colors has-[a:hover]:bg-elevated/50 has-[a:active]:bg-elevated">
+  <div data-machine-tile class="relative rounded-lg border border-default bg-default p-4 transition-colors has-[a:hover]:bg-elevated/50 has-[a:active]:bg-elevated">
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <UAvatar v-bind="avatar" size="sm" />
@@ -28,7 +29,7 @@
           :disabled="tracking.busy.value"
           @update:model-value="tracking.set($event as boolean)"
         />
-        <SkeletonStatus v-else-if="failure === null" :label="$t('hardware.status.tracking_loading')" class="flex shrink-0">
+        <SkeletonStatus v-else-if="failure === null && !failed" :label="$t('hardware.status.tracking_loading')" class="flex shrink-0">
           <SkeletonBar class="h-5 w-20" />
         </SkeletonStatus>
         <UBadge :icon="machineIcon(machine.kind)" :label="machineKindWord($t, machine.kind)" color="neutral" variant="subtle" class="shrink-0" />
@@ -96,25 +97,28 @@
 <script setup lang="ts">
 import { identityMark } from "~/domain/avatars";
 import { livePoints } from "~/domain/hardware-chart";
-import { celsiusText, cpuLimitOf, fillCriteria, fillHeat, fillText, fillWidest, gpuShortName, LIVE_CHART_SECONDS, LIVE_GAP_SECONDS, machineIcon, machineKindWord, machineName, percentValue, seriesColour, UNREAD, useHardwareTracking, useMachineHardware, vramText, vramWidest } from "~/domain/hardware";
+import { celsiusText, cpuLimitOf, fillCriteria, fillHeat, fillText, fillWidest, gpuShortName, LIVE_CHART_SECONDS, LIVE_GAP_SECONDS, machineIcon, machineKindWord, machineName, percentValue, seriesColour, UNREAD, useHardwareTracking, useMachineLive, vramText, vramWidest } from "~/domain/hardware";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { formatTime } from "bmo-ui/app/domain/time";
 
-import type { MonitorMachine } from "~/domain/hardware";
+import type { MonitorMachine, ReadStatus } from "~/domain/hardware";
 import type { LiveSeries } from "~/domain/hardware-chart";
-import type { GpuView, HardwareView } from "#shared/types";
+import type { GpuView, HardwareView, MachineHardware } from "#shared/types";
 
-const props = defineProps<{ machine: MonitorMachine }>();
+// The reading is the overview's one recorded answer for every machine, handed to the tile rather than
+// asked by it, so the tiles keep one interval between them and no machine's read holds another.
+const props = defineProps<{ machine: MonitorMachine; reading: MachineHardware | null; status: ReadStatus; failed: boolean }>();
 const TILE_METRICS = ["use", "temp"];
 const { t } = useI18n();
 
-// A tile draws only use and temperature, so it asks the live record for those alone.
-const { machine: reading, status, error, live } = useMachineHardware(computed(() => props.machine.url), { url: props.machine.liveUrl, metrics: TILE_METRICS });
-const initial = useInitialRead(status);
-const tracking = useHardwareTracking(t, reading);
-const hardware = computed<HardwareView | null>(() => reading.value?.hardware ?? null);
-const failure = computed<string | null>(() => reading.value?.failure ?? error.value);
-const name = computed(() => machineName(t, props.machine, reading.value, error.value !== null));
+// A tile draws only use and temperature, so it fills its live drawing from those alone, extended by
+// each recorded reading the overview hands it.
+const live = useMachineLive({ url: props.machine.liveUrl, metrics: TILE_METRICS }, () => props.reading);
+const initial = useInitialRead(computed(() => props.status));
+const tracking = useHardwareTracking(t, computed(() => props.reading));
+const hardware = computed<HardwareView | null>(() => props.reading?.hardware ?? null);
+const failure = computed<string | null>(() => props.reading?.failure ?? null);
+const name = computed(() => machineName(t, props.machine, props.reading, props.failed));
 
 // The same mark the sidebar gives a node, so one machine wears one letter and colour everywhere.
 const avatar = computed(() => identityMark(props.machine.key, name.value ?? machineKindWord(t, props.machine.kind), { icon: machineIcon(props.machine.kind) }));

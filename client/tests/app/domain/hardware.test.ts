@@ -33,10 +33,10 @@ function node(name: string, kind: MonitorNode["kind"], thisMachine = false): Mon
 describe("monitorMachines", () => {
   test("this machine first, then the nodes in the list's order, each read and opened by its own name", () => {
     expect(monitorMachines([node("agent-a", "hub"), node("alpha", "hub"), node("pc-node", "ssh")])).toEqual([
-      { key: "local", label: null, kind: "local", url: "/api/hardware/machines/local", historyUrl: "/api/hardware/machines/local/history", liveUrl: "/api/hardware/machines/local/live", to: "/monitor/local" },
-      { key: "node:agent-a", label: "AGENT-A", kind: "hub", url: "/api/hardware/machines/agent-a", historyUrl: "/api/hardware/machines/agent-a/history", liveUrl: "/api/hardware/machines/agent-a/live", to: "/monitor/agent-a" },
-      { key: "node:alpha", label: "ALPHA", kind: "hub", url: "/api/hardware/machines/alpha", historyUrl: "/api/hardware/machines/alpha/history", liveUrl: "/api/hardware/machines/alpha/live", to: "/monitor/alpha" },
-      { key: "node:pc-node", label: "PC-NODE", kind: "ssh", url: "/api/hardware/machines/pc-node", historyUrl: "/api/hardware/machines/pc-node/history", liveUrl: "/api/hardware/machines/pc-node/live", to: "/monitor/pc-node" },
+      { key: "local", name: "local", label: null, kind: "local", url: "/api/hardware/machines/local", historyUrl: "/api/hardware/machines/local/history", liveUrl: "/api/hardware/machines/local/live", to: "/monitor/local" },
+      { key: "node:agent-a", name: "agent-a", label: "AGENT-A", kind: "hub", url: "/api/hardware/machines/agent-a", historyUrl: "/api/hardware/machines/agent-a/history", liveUrl: "/api/hardware/machines/agent-a/live", to: "/monitor/agent-a" },
+      { key: "node:alpha", name: "alpha", label: "ALPHA", kind: "hub", url: "/api/hardware/machines/alpha", historyUrl: "/api/hardware/machines/alpha/history", liveUrl: "/api/hardware/machines/alpha/live", to: "/monitor/alpha" },
+      { key: "node:pc-node", name: "pc-node", label: "PC-NODE", kind: "ssh", url: "/api/hardware/machines/pc-node", historyUrl: "/api/hardware/machines/pc-node/history", liveUrl: "/api/hardware/machines/pc-node/live", to: "/monitor/pc-node" },
     ]);
   });
 

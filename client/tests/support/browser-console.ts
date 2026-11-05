@@ -54,6 +54,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["voice-transcript", "fixture-password-2361"],
   ["room-attach", "fixture-password-2364"],
   ["agent-names", "fixture-password-2371"],
+  ["monitor-polling", "fixture-password-2372"],
   ["todo-models", "fixture-password-2298"],
   ["work-view", "fixture-password-2311"]
 ];

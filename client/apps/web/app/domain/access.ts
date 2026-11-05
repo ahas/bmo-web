@@ -1,4 +1,7 @@
+import { mayWrite } from "#shared/sections";
+
 import type { ComputedRef } from "vue";
+import type { SectionAccessMap } from "#shared/sections";
 
 // What the console shows a member, a signed-in user other than the platform administrator
 // (docs/web.md, 「Access」). The routes refuse them on the server either way; this is what keeps a
@@ -30,4 +33,13 @@ export function useAdministrator(): ComputedRef<boolean> {
   const { session } = useUserSession();
 
   return computed(() => isAdministrator(session.value));
+}
+
+/**
+ * Whether the room screen writes for a reader (docs/web.md, 「Access」): the platform administrator always,
+ * and a member whose rooms section writes once that permission has been read. Nothing is granted before it
+ * is read, so a member keeps the read-only screen rather than a box the routes would refuse.
+ */
+export function roomMayWrite(access: SectionAccessMap, administrator: boolean, ready: boolean): boolean {
+  return administrator || (ready && mayWrite(access, "rooms"));
 }

@@ -418,6 +418,8 @@ interface Props {
   day?: string;
   // Whether the reader is the platform administrator, whose delete the record takes on any message.
   administrator?: boolean;
+  // Whether the reader may write to the room: the answer and the acts on a message follow it.
+  writable?: boolean;
   // The round's whole record as the page reads it, for the answer's one record press: the gates that read the
   // person's message and the send and checks of the answer alike (docs/web.md, the room screen's chip line).
   roundJudgements?: Judgement[];
@@ -425,7 +427,7 @@ interface Props {
   roundSituation?: Situation | null;
 }
 
-const props = withDefaults(defineProps<Props>(), { arriving: false, judging: false, administrator: false, roundJudgements: () => [], roundSituation: null });
+const props = withDefaults(defineProps<Props>(), { arriving: false, judging: false, administrator: false, writable: false, roundJudgements: () => [], roundSituation: null });
 
 // Whether this row holds one of the room's own messages. The other kind holds the turn still
 // running: it is a row like any other and wears everything a row wears — the side, the picture,
@@ -717,6 +719,7 @@ const menuItems = computed<ContextMenuItem[][]>(() =>
       deleted: props.item.deleted === true,
       mine: mine.value,
       administrator: props.administrator,
+      writable: props.writable,
       pinned: props.item.pinnedAt != null,
       reaction: mineReaction(props.item)
     },

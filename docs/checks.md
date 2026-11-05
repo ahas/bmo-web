@@ -13,8 +13,8 @@ console's typecheck and then every test file under `client/tests` in one `bun te
   and its layout check holds every `package.json` to a project or the root's package workspace, which this
   repository does not have. So `client/` stays a project, and its browser files run in its check rather than as
   declared browser files.
-- **Seventeen browser files drive a running console** rather than a page of their own: `agent-topbar`,
-  `agents-general`, `agents-listed`, `agents-models`, `briefing-chip`, `bubble-wrap`, `composer-in-view`, `console-ids`, `item-reports`, `prompt-wrap`, `room-copy`, `room-feed-gap`, `room-unread`,
+- **Eighteen browser files drive a running console** rather than a page of their own: `agent-topbar`,
+  `agents-general`, `agents-listed`, `agents-models`, `briefing-chip`, `bubble-wrap`, `composer-in-view`, `console-ids`, `item-reports`, `prompt-wrap`, `room-copy`, `room-feed-gap`, `room-unread`, `room-write`,
   `title-bar`, `topbar-square`, `work-view` (which read the console's address from `BMO_CONSOLE_TEST_URL`) and `skeleton` (from
   `BMO_SKELETON_TEST_URL`). The suite stands up no console, so without those variables they skip; every other
   browser file runs.
@@ -28,7 +28,9 @@ console's typecheck and then every test file under `client/tests` in one `bun te
     (`BMO_TEST_POSTGRES`, or the machine's own socket where it names none);
   - a stand-in for each unit the console reads, answering the agent list, the owner's room and its figures, an
     empty TODO board and silent event streams, and every other road with the unit's own not-found;
-  - the fixture account each file signs in with, made by the console's own `user` script as an administrator;
+  - the fixture accounts each file signs in with, made by the console's own `user` script: the administrator
+    each file signs in as, and the two members a room's write stands on, whose console sections are written
+    whole as the administrator's screen writes them;
   - the console's development server, under the base path `/console/`, with a build folder of its own,
     `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
 - **What it prints:** the console's address, once it answers.

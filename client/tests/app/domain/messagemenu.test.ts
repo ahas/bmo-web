@@ -17,7 +17,7 @@ interface MenuEntry {
 import type { MessageMenuActions, MessageMenuState } from "../../../apps/web/app/domain/messagemenu";
 
 function item(text: string, over: Partial<MessageMenuState> = {}): MessageMenuState & CopyItem {
-  return { senderName: "Owner", senderId: 10000001, messageId: 7, sentAt: 1_757_000_000, text, judgements: [], ...over };
+  return { senderName: "Owner", senderId: 10000001, messageId: 7, sentAt: 1_757_000_000, text, judgements: [], writable: true, ...over };
 }
 
 function spies(): MessageMenuActions & { called: string[] } {
@@ -125,5 +125,20 @@ describe("the menu on one message", () => {
     const groups = messageMenu(wording, item("", { deleted: true }), spies());
 
     expect(groups.flat().map((entry) => entry.label)).toEqual([wording("room.action.copy_ref")]);
+  });
+
+  test("leaves a reader who may not write the room the copy and the choosing alone", () => {
+    const readOnly = messageMenu(wording, item("words", { mine: true, administrator: false, writable: false }), spies());
+    const labels = readOnly.map((group) => group.map((entry) => entry.label));
+
+    expect(labels).toEqual([
+      [wording("common.action.copy"), wording("room.action.copy_text"), wording("room.action.copy_ref")],
+      [wording("room.action.select")]
+    ]);
+    expect(readOnly.flat().map((entry) => entry.label)).not.toContain(wording("room.action.reply"));
+    expect(readOnly.flat().map((entry) => entry.label)).not.toContain(wording("room.action.react"));
+    expect(readOnly.flat().map((entry) => entry.label)).not.toContain(wording("room.action.pin"));
+    expect(readOnly.flat().map((entry) => entry.label)).not.toContain(wording("room.action.edit_message"));
+    expect(readOnly.flat().map((entry) => entry.label)).not.toContain(wording("common.action.delete"));
   });
 });

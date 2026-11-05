@@ -22,7 +22,8 @@ const CONSOLE_DIR = join(CLIENT, "apps/web");
 const SERVER_DIR = join(CLIENT, "../server");
 const TOKEN = "browser-console-token-0123456789";
 
-// The accounts the console-driven tests sign in with, each by the name and password its file names.
+// The accounts the console-driven tests sign in with, each by the name and password its file names. Each is the
+// platform administrator, so its screen reaches every section.
 const ACCOUNTS: readonly [string, string][] = [
   ["agent-topbar", "fixture-password-1558"],
   ["agents-general", "fixture-password-2301"],
@@ -55,6 +56,29 @@ const ACCOUNTS: readonly [string, string][] = [
   ["agent-names", "fixture-password-2371"],
   ["todo-models", "fixture-password-2298"],
   ["work-view", "fixture-password-2311"]
+];
+
+// The member accounts a test signs in with to read a section by its permission rather than as the administrator,
+// each with the console sections it is given once the console answers (docs/accounts.md, 「Console sections」).
+// A member is made by the user script without the administrator flag, and its sections are written whole as the
+// administrator's screen writes them.
+const MEMBERS: readonly { name: string; password: string; sections: readonly { section: string; read: boolean; write: boolean }[] }[] = [
+  {
+    name: "room-writer",
+    password: "fixture-password-2401",
+    sections: [
+      { section: "rooms", read: true, write: true },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  {
+    name: "room-reader",
+    password: "fixture-password-2402",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  }
 ];
 
 // The owner's room, which the receiver's stand-in names as theirs and lists, and a room an account meets two behind.
@@ -117,6 +141,19 @@ async function run(command: string, args: string[], env: Record<string, string>,
   if ((await ran.exited) !== 0) {
     throw new Error(`${command} ${args.join(" ")} ended ${ran.exitCode}: ${await new Response(ran.stderr).text()}`);
   }
+}
+
+// A login's cookie as a browser would hold it, taken from the console's own sign-in.
+async function signIn(name: string, password: string, at: string): Promise<string> {
+  const reply = await fetch(`${at}/api/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name, password })
+  });
+
+  if (!reply.ok) throw new Error(`${name} could not sign in: ${reply.status}`);
+
+  return reply.headers.get("set-cookie")!.split(";")[0]!;
 }
 
 async function answering(what: string, address: string, seconds: number): Promise<void> {
@@ -638,11 +675,35 @@ try {
     // A build folder of its own inside the checkout, so a typecheck beside it leaves what it serves alone and its
     // generated modules still resolve the console's packages.
     BMO_WEB_BUILD_DIR: ".nuxt-browser-tests",
-    BMO_WEB_BASE_URL: BASE
+    BMO_WEB_BASE_URL: BASE,
+    // The user script runs the account command once the model is in force, so it is told the service to run.
+    BMO_WEB_SERVER_BIN: binary,
+    BMO_WEB_SERVER_DIR: SERVER_DIR
   };
 
+  // The user script's account command runs the service binary, which reads the settings the service was started
+  // on, so it is given them too.
+  const userEnv = { ...consoleEnv, ...serverEnv };
+
+  // The account model is brought into force before the fixture's accounts are made, so each login is the
+  // service's and a member's sections are read through sumida. The move takes the console's one account as the
+  // platform administrator's, which is why it runs before any other account stands.
+  await run("bun", ["scripts/user.ts", "set", ACCOUNTS[0]![0], ACCOUNTS[0]![1], "--administrator"], userEnv, CONSOLE_DIR);
+
+  const move = await fetch(`http://127.0.0.1:${serverPort}/accounts/move`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
+    body: JSON.stringify({ ownerSenders: [1], rooms: [OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT] })
+  });
+
+  if (!move.ok) throw new Error(`the data move was refused: ${move.status} ${await move.text()}`);
+
   for (const [name, password] of ACCOUNTS) {
-    await run("bun", ["scripts/user.ts", "set", name, password, "--administrator"], consoleEnv, CONSOLE_DIR);
+    await run("bun", ["scripts/user.ts", "set", name, password, "--administrator"], userEnv, CONSOLE_DIR);
+  }
+
+  for (const { name, password } of MEMBERS) {
+    await run("bun", ["scripts/user.ts", "set", name, password], userEnv, CONSOLE_DIR);
   }
 
   start("bun", ["--bun", "nuxi", "dev", "--port", String(consolePort), "--host", "127.0.0.1"], consoleEnv, CONSOLE_DIR, "console");
@@ -650,6 +711,30 @@ try {
   const origin = `http://127.0.0.1:${consolePort}${BASE.replace(/\/$/, "")}`;
 
   await answering("the console", `${origin}/login`, 240);
+
+  // Each member's sections written whole as the administrator's screen writes them, so a test's login reads a
+  // rooms section that writes or one that only reads.
+  const administrator = await signIn(ACCOUNTS[0]![0], ACCOUNTS[0]![1], origin);
+  const listed = await fetch(`${origin}/api/users`, { headers: { cookie: administrator } });
+
+  if (!listed.ok) throw new Error(`the users list was refused: ${listed.status}`);
+
+  const users = (await listed.json()) as { user: string; name: string }[];
+
+  for (const member of MEMBERS) {
+    const one = users.find((user) => user.name === member.name);
+
+    if (one === undefined) throw new Error(`${member.name} stands in no users list`);
+
+    const written = await fetch(`${origin}/api/users/${one.user}/sections`, {
+      method: "PUT",
+      headers: { cookie: administrator, "content-type": "application/json" },
+      body: JSON.stringify({ sections: member.sections })
+    });
+
+    if (!written.ok) throw new Error(`${member.name}'s sections were refused: ${written.status}`);
+  }
+
   console.log(origin);
 } catch (error) {
   console.error(error);

@@ -433,10 +433,13 @@ nothing.
   (「Sidebar」).
 - **A member's home is their rooms,** one line each with its name, message count and last message
   time, and nothing that waits on an agent's figures.
-- **On a room, a member reads the conversation and sees it move.** The box to write in, the session
-  information, the bar's queue button and usage meters, the gates' verdicts under the messages and the
-  line of other work going in the room are the administrator's. A member whose rooms section writes may
-  change a room through its routes; the screen's box to write in remains the administrator's.
+- **On a room, a member reads the conversation and sees it move.** The session information, the bar's
+  queue button and usage meters, the gates' verdicts under the messages and the line of other work
+  going in the room are the administrator's. A member whose rooms section writes writes from the screen
+  too: the box to write in and the acts on a message — the answer, a reaction, a pin, and an edit and a
+  delete of their own — stand for them. One whose rooms section only reads keeps the read-only screen,
+  with no box to write in and none of those acts; a room whose permission has not been read yet stands
+  the same way, so nothing is offered that the routes would refuse.
   - Its photos, files, link previews, picture viewer and date jump are read under the rooms the
     conversation is.
   - The messages route hands a member the messages alone, with none of the verdicts recorded on them.

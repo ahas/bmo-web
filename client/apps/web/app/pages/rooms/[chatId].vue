@@ -257,6 +257,7 @@
                   :flashed="flashKey === item.key"
                   :roving="item.key === rovingKey"
                   :administrator="administrator"
+                  :writable="writable"
                   @select="startAt"
                   @pick="pick"
                   @reply="startReply"
@@ -346,7 +347,7 @@
            under its padding, so its box stands above that bar and its ground runs under it (docs/web.md,
            「What floats over the screen keeps clear of the bars a phone lays over it」). -->
       <div
-        v-if="administrator"
+        v-if="writable"
         ref="composerFoot"
         data-screen-foot
         class="absolute inset-x-0 bottom-[var(--bmo-foot-lift,0px)] z-20 flex max-h-[calc(100%-var(--room-head))] min-h-0 flex-col border-t border-default pt-(--chat-bar-pad) pe-(--feed-gutter) backdrop-blur-md"
@@ -369,7 +370,7 @@
             inline
             :attachable="true"
             :label="$t('room.label.messages')"
-            :placeholder="reachable ? (dragging ? $t('room.placeholder.drop_here') : $t('room.label.messages')) : controlLine($t, controlState)"
+            :placeholder="composerPlaceholder"
             :mention="mentionSources"
             @escape="onEscape"
             @submit="send"
@@ -433,7 +434,8 @@
 import { MotionConfig } from "motion-v";
 
 import { countText } from "~/domain/numbers";
-import { useAdministrator } from "~/domain/access";
+import { roomMayWrite, useAdministrator } from "~/domain/access";
+import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { POLL_INTERVAL_MS } from "#shared/config";
 import { controlLine, useControlStatus } from "~/domain/control";
@@ -566,9 +568,12 @@ const { t } = useI18n();
 const island = useIsland(t);
 const askFirst = useConfirm();
 
-// A member reads the conversation; writing to it, its session information and the bar's tools are the
-// administrator's (docs/web.md, 「Access」).
+// A member reads the conversation; writing to it follows the rooms section's write, and its session
+// information and the bar's tools are the administrator's (docs/web.md, 「Access」).
 const administrator = useAdministrator();
+const access = useSectionAccess();
+const accessReady = useSectionAccessReady();
+const writable = computed<boolean>(() => roomMayWrite(access.value, administrator.value, accessReady.value));
 
 const chatId = Number(route.params.chatId);
 const roomFeed = useRoomFeed(t, chatId);
@@ -590,12 +595,12 @@ const { data: owner } = useFetch<OwnerChat>("/api/owner", {
 // from the moment send is pressed, marked as on its way.
 const outbox = ref<OutboxItem[]>([]);
 // The same lines kept in this browser, so a reload or a closed tab loses none of them (docs/web.md,
-// the room screen's section on what the browser keeps). Every change of the lines is written there; nothing is kept for a member, who
-// sends nothing.
+// the room screen's section on what the browser keeps). Every change of the lines is written there by a
+// reader who writes here; nothing is kept for a member who only reads.
 const keptOutbox = outboxStore();
 
 watch(outbox, (items) => {
-  if (administrator.value) {
+  if (writable.value) {
     void keptOutbox.save(chatId, items);
   }
 });
@@ -611,6 +616,16 @@ const replyLine = computed(() => (replyTarget.value === null ? { name: "", words
 const flashKey = ref<string | null>(null);
 const composer = useTemplateRef<{ focus: () => void; attach: (files: File[]) => void; clear: (options?: { keepPreviews?: boolean }) => void }>("composer");
 const composerFoot = useTemplateRef<HTMLElement>("composerFoot");
+
+// What the box says while it holds nothing: the drop hint under a drag; for the administrator, the bot's
+// own line where it does not answer; and for a member who writes here, the plain label, since what the bot
+// answers is not read for a member.
+const composerPlaceholder = computed<string>(() => {
+  if (administrator.value && !reachable.value) return controlLine(t, controlState.value);
+  if (dragging.value) return t("room.placeholder.drop_here");
+
+  return t("room.label.messages");
+});
 
 // The input bar holds itself inside what is visible, whatever the browser lays over the page's foot (docs/web.md,
 // 「Layout fundamentals」).
@@ -2345,7 +2360,7 @@ async function deliver(batch: readonly OutboxItem[]): Promise<SendOutcome | "ans
     if (outcome === "waiting") {
       outbox.value = withWaiting(outbox.value, batch.map((held) => held.key));
 
-      void readControl();
+      if (administrator.value) void readControl();
 
       return outcome;
     }
@@ -2365,7 +2380,7 @@ async function deliver(batch: readonly OutboxItem[]): Promise<SendOutcome | "ans
       outbox.value = withFailed(outbox.value, held.key, reason);
     }
 
-    await readControl();
+    if (administrator.value) await readControl();
 
     return outcome;
   }
@@ -2630,7 +2645,8 @@ onMounted(async () => {
   // Whose room this is comes from the bot, and the queue's panel and the header's way into it
   // both hang on the answer, so it is asked for first and not waited on. Behind a hundred
   // messages the ask would otherwise leave the way in missing for as long as the room takes to
-  // lay itself out, which on a phone is seconds. A member writes nothing here, so nothing asks.
+  // lay itself out, which on a phone is seconds. A member's screen is told nothing of the bot (docs/web.md,
+  // 「Access」), so only the administrator's asks.
   if (administrator.value) {
     void readControl();
   }
@@ -2686,7 +2702,7 @@ onMounted(async () => {
   // The room's pins stand beside the room, not in the feed, so they are read beside the feed.
   void readPins();
 
-  if (administrator.value) {
+  if (writable.value) {
     await restoreOutbox();
   }
 

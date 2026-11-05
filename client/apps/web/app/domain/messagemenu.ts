@@ -7,8 +7,8 @@ import type { Translate } from "#shared/wording";
 
 // What one message's menu offers: the answer, the acts on the message — a reaction, a pin, an edit of the reader's own
 // and a delete of it — the three ways of taking the message away, and the way into choosing several of them. What the
-// record would refuse is not offered: a message the reader's own senders did not say carries no edit, and no delete
-// unless the reader is the administrator.
+// record would refuse is not offered: the answer and the acts stand only where the reader may write to the room, a
+// message the reader's own senders did not say carries no edit, and no delete unless the reader is the administrator.
 export interface MessageMenuActions {
   reply: () => void;
   forward: () => void;
@@ -30,6 +30,9 @@ export interface MessageMenuState extends Said {
   mine?: boolean;
   // Whether the reader is the platform administrator, whose delete the record takes on any message.
   administrator?: boolean;
+  // Whether the reader may write to the room. The answer and the acts on a message stand only where they may;
+  // the copy and the choosing stand for every reader.
+  writable?: boolean;
   // Whether the record holds a pin on it, and the emoji the reader has put on it where one stands.
   pinned?: boolean;
   reaction?: string | null;
@@ -56,36 +59,45 @@ export function messageMenu(t: Translate, item: MessageMenuState, actions: Messa
     return [[{ label: t("room.action.copy_ref"), icon: "i-material-symbols-tag", onSelect: () => actions.copyRef() }]];
   }
 
+  // The answer and the acts are writes to the room, so they stand only where the reader may write it.
+  const writable = item.administrator === true || item.writable === true;
+
   const own: ContextMenuItem[] = [];
 
-  if (item.mine === true) {
+  if (writable && item.mine === true) {
     own.push({ label: t("room.action.edit_message"), icon: "i-material-symbols-edit-outline", onSelect: () => actions.edit() });
   }
 
-  if (item.mine === true || item.administrator === true) {
+  if (writable && (item.mine === true || item.administrator === true)) {
     own.push({ label: t("common.action.delete"), icon: "i-material-symbols-delete-outline", onSelect: () => actions.remove() });
   }
 
   // The forward is the owner's alone: the record keeps the copy as theirs (docs/web.md, the room screen's message
   // menu).
-  const answer: ContextMenuItem[] = [
-    { label: t("room.action.reply"), icon: "i-material-symbols-reply", onSelect: () => actions.reply() },
-    ...(item.administrator === true
-      ? [{ label: t("room.action.forward"), icon: "i-material-symbols-forward", onSelect: () => actions.forward() }]
-      : [])
-  ];
+  const answer: ContextMenuItem[] = writable
+    ? [
+        { label: t("room.action.reply"), icon: "i-material-symbols-reply", onSelect: () => actions.reply() },
+        ...(item.administrator === true
+          ? [{ label: t("room.action.forward"), icon: "i-material-symbols-forward", onSelect: () => actions.forward() }]
+          : [])
+      ]
+    : [];
+
+  const acts: ContextMenuItem[] = writable
+    ? [
+        reactions(t, item, actions),
+        {
+          label: item.pinned === true ? t("room.action.unpin") : t("room.action.pin"),
+          icon: "i-material-symbols-keep",
+          onSelect: () => actions.pin(item.pinned !== true)
+        }
+      ]
+    : [];
 
   return [
     answer,
-    [
-      reactions(t, item, actions),
-      {
-        label: item.pinned === true ? t("room.action.unpin") : t("room.action.pin"),
-        icon: "i-material-symbols-keep",
-        onSelect: () => actions.pin(item.pinned !== true)
-      }
-    ],
-    ...(own.length === 0 ? [] : [own]),
+    acts,
+    own,
     [
       { label: t("common.action.copy"), icon: "i-material-symbols-content-copy-outline", onSelect: () => actions.copy() },
       {
@@ -97,5 +109,5 @@ export function messageMenu(t: Translate, item: MessageMenuState, actions: Messa
       { label: t("room.action.copy_ref"), icon: "i-material-symbols-tag", onSelect: () => actions.copyRef() }
     ],
     [{ label: t("room.action.select"), icon: "i-material-symbols-checklist", onSelect: () => actions.select() }]
-  ];
+  ].filter((group) => group.length > 0);
 }

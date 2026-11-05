@@ -1,9 +1,10 @@
-<!-- Every card on the card arbiter screen's board as one bar on one shared MiB scale (docs/web.md, 「Card
-     arbiter screen」), drawn in the form of ECharts' custom profile: a row per card, its capacity as the
+<!-- Every card on the card arbiter screen's board as one bar on one shared MiB scale (docs/web.md, 「Monitor's
+     services tab」), drawn in the form of ECharts' custom profile: a row per card, its capacity as the
      frame drawn first so what is left empty is the free room, each unit on it a block in its service's
-     colour with its part's pattern, then the memory in use no unit accounts for, each share named. The
-     node and card stand on the left, or over the bar where the chart is narrow, the memory used, in all
-     and free on the right; the slider under it widens a stretch. -->
+     colour with its part's pattern, then the memory in use no unit accounts for: a service's own share
+     in that service's colour, and what no service accounts for in a neutral tone. The node and card
+     stand on the left, or over the bar where the chart is narrow, the memory used, in all and free on
+     the right; the slider under it widens a stretch. -->
 <template>
   <div ref="box" class="w-full" :style="{ height: `${height}px` }" role="img" :aria-label="summary" />
 </template>
@@ -14,7 +15,7 @@ import { DataZoomComponent, GridComponent, TooltipComponent } from "echarts/comp
 import { graphic, init, use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 
-import { mibText, otherWord, partDecal } from "~/domain/cards";
+import { chartBlocks, mibText, partDecal } from "~/domain/cards";
 import { gpuShortName } from "~/domain/hardware";
 import { countText } from "~/domain/numbers";
 
@@ -39,30 +40,6 @@ const height = computed(() => props.cards.length * ROW + FRAME);
 const box = ref<HTMLElement | null>(null);
 let chart: EChartsType | null = null;
 let watching: ResizeObserver | null = null;
-
-interface Block {
-  row: number;
-  start: number;
-  end: number;
-  name: string;
-  service: string | null;
-  pattern: number;
-}
-
-const blocks = computed<Block[]>(() => props.cards.flatMap((card, row) => {
-  let start = 0;
-  const placed = card.pieces.map((piece) => {
-    const block = { row, start, end: start + piece.vramMiB, name: piece.unit, service: piece.service, pattern: piece.pattern };
-    start = block.end;
-    return block;
-  });
-  const others = card.others.map((other) => {
-    const block = { row, start, end: start + other.vramMiB, name: otherWord(t, other), service: null, pattern: 0 };
-    start = block.end;
-    return block;
-  });
-  return [...placed, ...others];
-}));
 
 const summary = computed(() => [t("cards.label.chart"), ...props.cards.map((card) => `${rowLabel(card)} ${figures(card).replace("\n", " ")}`)].join(", "));
 
@@ -139,7 +116,7 @@ function option(): Record<string, unknown> {
   const sumWidth = widest(sums.flat());
   const keys = props.cards.map((card) => card.key);
   const most = Math.max(1, ...props.cards.map((card) => card.totalMiB ?? card.usedMiB ?? 0));
-  const shown = blocks.value;
+  const shown = chartBlocks(t, props.cards);
   const over = narrow.value;
   const bar = (params: { coordSys: unknown }, api: RenderApi, fill: string, stroke: string, decal: Record<string, unknown> | null) => {
     const start = api.coord([api.value(1), api.value(0)]);

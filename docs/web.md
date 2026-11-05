@@ -2536,8 +2536,9 @@ Two ways, split because the running places differ.
   - a chart of every card as one horizontal bar on one shared MiB scale, drawn with ECharts in the form of its
     custom-series profile: the card's capacity as a frame drawn first, so what is left empty is the free room,
     then each unit on the card as a block in its service's colour with its part's pattern (none, stripes, dots,
-    in the order a service's parts first stand), then the memory in use that no unit accounts for in a neutral
-    tone, one block for each share named below; the node's name and card on the left, or over the bar where the
+    in the order a service's parts first stand), then the memory in use that no unit accounts for, one block for
+    each share named below: a share the card's processes put on a service in that service's colour, and a share
+    no service accounts for in a neutral tone; the node's name and card on the left, or over the bar where the
     chart is narrower than a phone's landscape, and on the right its memory used and in all with the free room
     under it; a slider under the chart widens a stretch of the scale, so a block of a few MiB can be seen, and
     touching or hovering a block names it with its size;

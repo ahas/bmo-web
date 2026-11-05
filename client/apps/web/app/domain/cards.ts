@@ -202,6 +202,8 @@ export interface BoardOther {
   what: "context" | "process" | "driver" | "unsplit";
   /** The processes' names, for a context or a process. */
   process: string | null;
+  /** The service that holds the share, or none where no service is known for it. */
+  service: string | null;
   vramMiB: number;
 }
 
@@ -258,6 +260,36 @@ export interface Board {
   waiting: BoardTicket[];
   /** The services' colours in the order they stand here, worn the same on the tiles below. */
   tone: Palette;
+}
+
+/** One block of the whole-cards chart: a unit, or a share of the memory in use no unit accounts for. */
+export interface ChartBlock {
+  row: number;
+  start: number;
+  end: number;
+  name: string;
+  /** The service the block belongs to, or none for a share no service accounts for. */
+  service: string | null;
+  pattern: number;
+}
+
+/** The whole-cards chart's blocks, card by card: each unit in its service's colour and pattern, then the
+ * memory in use no unit accounts for, a service's own share in that service's colour and the rest with
+ * none. */
+export function chartBlocks(t: Translate, cards: BoardCard[]): ChartBlock[] {
+  return cards.flatMap((card, row) => {
+    let start = 0;
+    const blocks: ChartBlock[] = [];
+    for (const piece of card.pieces) {
+      blocks.push({ row, start, end: start + piece.vramMiB, name: piece.unit, service: piece.service, pattern: piece.pattern });
+      start += piece.vramMiB;
+    }
+    for (const other of card.others) {
+      blocks.push({ row, start, end: start + other.vramMiB, name: otherWord(t, other), service: other.service, pattern: 0 });
+      start += other.vramMiB;
+    }
+    return blocks;
+  });
 }
 
 /** How many patterns tell a service's parts apart on a bar, the first being none. */
@@ -405,13 +437,13 @@ function cardOthers(card: CardView, resident: Map<string, number>): { what: Boar
   const processes = card.processes ?? null;
   if (processes === null) {
     const left = used === null ? 0 : Math.round(used - units);
-    return left > 0 ? [{ what: "unsplit", service: null, share: { key: key("unsplit", ""), what: "unsplit", process: null, vramMiB: left } }] : [];
+    return left > 0 ? [{ what: "unsplit", service: null, share: { key: key("unsplit", ""), what: "unsplit", process: null, service: null, vramMiB: left } }] : [];
   }
   const shares: { what: BoardOther["what"]; service: string | null; share: BoardOther }[] = [];
   const byService = new Map<string, CardProcess[]>();
   for (const process of processes) {
     if (process.service === null) {
-      shares.push({ what: "process", service: null, share: { key: key("process", String(process.pid)), what: "process", process: process.name, vramMiB: Math.round(process.usedMiB) } });
+      shares.push({ what: "process", service: null, share: { key: key("process", String(process.pid)), what: "process", process: process.name, service: null, vramMiB: Math.round(process.usedMiB) } });
     } else {
       byService.set(process.service, [...(byService.get(process.service) ?? []), process]);
     }
@@ -422,11 +454,11 @@ function cardOthers(card: CardView, resident: Map<string, number>): { what: Boar
     const context = Math.round(own.reduce((sum, one) => sum + one.usedMiB, 0) - (resident.get(owner) ?? 0));
     const names = [...new Set(own.map((one) => one.name))].join(", ");
     const what = holds ? "context" : "process";
-    if (context > 0) shares.unshift({ what, service: owner, share: { key: key(what, owner), what, process: names, vramMiB: context } });
+    if (context > 0) shares.unshift({ what, service: owner, share: { key: key(what, owner), what, process: names, service: owner, vramMiB: context } });
   }
   const counted = units + shares.reduce((sum, one) => sum + one.share.vramMiB, 0);
   const driver = used === null ? 0 : Math.round(used - counted);
-  if (driver > 0) shares.push({ what: "driver", service: null, share: { key: key("driver", ""), what: "driver", process: null, vramMiB: driver } });
+  if (driver > 0) shares.push({ what: "driver", service: null, share: { key: key("driver", ""), what: "driver", process: null, service: null, vramMiB: driver } });
   return shares.filter((one) => one.share.vramMiB > 0);
 }
 

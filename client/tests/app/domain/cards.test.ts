@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { board, detailText, memoryBar, mibText, otherWord, palette, sections, waitText } from "../../../apps/web/app/domain/cards";
+import { board, chartBlocks, detailText, memoryBar, mibText, otherWord, palette, sections, waitText } from "../../../apps/web/app/domain/cards";
 
 import type { CardsState, CardUnit } from "../../../apps/web/shared/cards";
 
@@ -89,12 +89,40 @@ describe("the card arbiter screen", () => {
     };
     const shown = board(state);
     const kakia = shown.services[0]!.chunks[0]!;
-    expect(kakia.others.map((other) => [otherWord(t, other), other.vramMiB])).toEqual([['cards.label.context{"process":"rpc-server"}', 450]]);
+    expect(kakia.others.map((other) => [otherWord(t, other), other.service, other.vramMiB])).toEqual([['cards.label.context{"process":"rpc-server"}', "kakia", 450]]);
     expect(kakia.vramMiB).toBe(9450);
     expect(shown.services[0]!.vramMiB).toBe(9450);
-    expect(shown.outside[0]!.others.map((other) => [otherWord(t, other), other.vramMiB])).toEqual([["Xorg", 120], ["cards.label.driver", 11875 - 1600 - 9450 - 120]]);
+    expect(shown.outside[0]!.others.map((other) => [otherWord(t, other), other.service, other.vramMiB])).toEqual([["Xorg", null, 120], ["cards.label.driver", null, 11875 - 1600 - 9450 - 120]]);
+    expect(shown.cards[0]!.others.map((other) => other.service)).toEqual(["kakia", null, null]);
     expect(detailText(t, kakia.units[0]!.detail)).toBe('cards.label.blocks{"from":"0","to":"17"}');
     expect(detailText(t, kakia.units[1]!.detail)).toBe('cards.label.blocks{"from":"57","to":"63"} · cards.label.full_attention{"n":"2"} · cards.label.mtp · cards.label.output');
+  });
+
+  test("the chart paints a card's memory by the service it belongs to, and only what no service holds gray", () => {
+    const busy = {
+      ...card(1600, [["kakia/weights@a", "kakia", 4000, "resident"]]),
+      processes: [
+        { pid: 7, name: "rpc-server", service: "kakia", usedMiB: 4400 },
+        { pid: 9, name: "Xorg", service: null, usedMiB: 120 },
+        { pid: 10, name: "voice", service: "voice", usedMiB: 300 },
+      ],
+    };
+    const state: CardsState = {
+      master: { version: "m", startedAt: 0, rulesFile: "r", rulesLoadedAt: 0, rulesError: null, readEveryS: 2 },
+      groups: [],
+      nodes: [{ ...node("a", card(0, [])), cards: [busy] }],
+      events: [],
+      tiers: [],
+      services: [],
+    };
+    const blocks = chartBlocks(t, board(state).cards);
+    expect(blocks.map((block) => [block.name, block.service, block.end - block.start])).toEqual([
+      ["kakia/weights", "kakia", 4000],
+      ["voice", "voice", 300],
+      ['cards.label.context{"process":"rpc-server"}', "kakia", 400],
+      ["Xorg", null, 120],
+      ["cards.label.driver", null, 5455],
+    ]);
   });
 
   test("a wait reads in the largest unit that fits it", () => {

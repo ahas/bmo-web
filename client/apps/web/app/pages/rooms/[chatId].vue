@@ -526,7 +526,7 @@ import { SCROLL_BOTTOM_THRESHOLD_PX, SCROLL_TOP_THRESHOLD_PX } from "~/domain/po
 import { formatClock, toUnixSeconds } from "bmo-ui/app/domain/time";
 import { imageUrl } from "~/domain/urls";
 import { outcomeLine, useHeldRuns } from "~/domain/working";
-import { delegationLines, roomDelegations } from "~/domain/delegations";
+import { useDelegationReading } from "~/domain/delegations";
 import { groupRoom, listeningRuns, shownOutcome, useRoomWindow } from "~/domain/room-window";
 import { clearFound, foundMessages, markFound, steppedHit } from "~/domain/room-find";
 import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
@@ -534,7 +534,6 @@ import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 import type {
   ArchivedMessage,
   DelegationPage,
-  DelegationView,
   Judgement,
   RoomStats,
   LiveRun,
@@ -1139,29 +1138,29 @@ const mentionSources = computed(() => ({ people: mentionPeople.value, agents: me
 // The tasks a supervisor delegated to its double, as the agency lists them (docs/web.md, the room screen's
 // delegated-run marker). The owner's own chat stands them, and another room stands none. Every read replaces the whole
 // list, so a run the agency no longer carries leaves no line behind; a read that failed clears what the last one stood
-// rather than leaving a marker that may have ended.
-const delegations = ref<DelegationView[]>([]);
-
-async function readDelegations(): Promise<void> {
-  if (group.value || !administrator.value) {
-    delegations.value = [];
-
-    return;
-  }
-
-  try {
-    delegations.value = (await $fetch<DelegationPage>("/api/delegations")).items;
-  } catch {
-    delegations.value = [];
-  }
-}
+// rather than leaving a marker that may have ended. An ended run says what it came to for a moment only where this
+// screen watched it end, and is then gone.
+const { lines: delegationMarkers, take: takeDelegations, clear: clearDelegations } = useDelegationReading(t);
 
 // The agents answering this room, the default answerer where it names none: a delegated run stands here when one of
 // them asked for it.
 const answererNames = computed(() => [
   ...new Set([roomAnswerers.value.default, ...roomAnswerers.value.agents.map((answerer) => answerer.name), catalogue.value.defaultAnswerer ?? ""])
 ]);
-const delegationMarkers = computed(() => delegationLines(t, roomDelegations(delegations.value, answererNames.value)));
+
+async function readDelegations(): Promise<void> {
+  if (group.value || !administrator.value) {
+    clearDelegations();
+
+    return;
+  }
+
+  try {
+    takeDelegations((await $fetch<DelegationPage>("/api/delegations")).items, answererNames.value);
+  } catch {
+    clearDelegations();
+  }
+}
 
 // The owner's chat is known a moment after the room opens, and a room that turned out to be a group stands none.
 watch(group, () => void readDelegations());

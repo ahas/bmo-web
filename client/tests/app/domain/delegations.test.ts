@@ -2,13 +2,15 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { delegationLine, delegationLines, roomDelegations } from "../../../apps/web/app/domain/delegations";
+import { delegationLine, delegationLines, roomDelegations, useDelegationReading } from "../../../apps/web/app/domain/delegations";
 
 import type { DelegationView } from "../../../apps/web/shared/types";
+import type { Later } from "../../../apps/web/app/domain/delegations";
 
 // The line the owner's own chat stands for a task a supervisor delegated to its double (docs/web.md, the room
-// screen's delegated-run marker): a waiting or running run says what it is at and what it was asked to do, and an
-// ended run stands what it came to instead of a marker.
+// screen's delegated-run marker): a waiting or running run says what it is at and what it was asked to do; a run the
+// screen watched end says what it came to for a moment and is then gone, and a run that had already ended when the
+// room opened stands nothing.
 
 function delegation(over: Partial<DelegationView> = {}): DelegationView {
   return {
@@ -23,6 +25,27 @@ function delegation(over: Partial<DelegationView> = {}): DelegationView {
     endedAt: null,
     outcome: null,
     ...over
+  };
+}
+
+// The clock the reading is handed, so a test fires the notice's end itself instead of waiting on a real one.
+function noticeClock(): { later: Later; fire: () => void; pending: () => boolean } {
+  let waiting: (() => void) | null = null;
+
+  return {
+    later: (work) => {
+      waiting = work;
+
+      return () => {
+        if (waiting === work) waiting = null;
+      };
+    },
+    fire: () => {
+      const work = waiting;
+      waiting = null;
+      work?.();
+    },
+    pending: () => waiting !== null
   };
 }
 
@@ -62,7 +85,7 @@ describe("the marker a delegated run stands", () => {
     );
   });
 
-  test("an ended run stands what it came to, never the working marker", () => {
+  test("an ended run's notice says what it came to", () => {
     const ended = delegationLine(wording, delegation({ stage: "ended", endedAt: 1_700_000_060_000, outcome: "Everything held" }));
 
     expect(ended.stage).toBe("ended");
@@ -92,13 +115,10 @@ describe("the lines the room stands", () => {
     const ended = delegationLines(wording, [delegation({ stage: "ended", outcome: "Done" })]);
 
     expect(running.some((one) => one.stage === "running" || one.stage === "waiting")).toBe(true);
-    expect(ended.some((one) => one.stage === "running" || one.stage === "waiting")).toBe(false);
-    // What it came to takes the marker's place rather than leaving nothing.
-    expect(ended).toHaveLength(1);
-    expect(ended[0]!.stage).toBe("ended");
+    expect(ended).toEqual([]);
   });
 
-  test("an ended run's outcome stands only where nothing waits or runs", () => {
+  test("an ended run stands no line beside the runs still going", () => {
     const lines = delegationLines(wording, [
       delegation({ token: "delegation-a" }),
       delegation({ token: "delegation-b", stage: "ended", outcome: "Done" })
@@ -109,5 +129,87 @@ describe("the lines the room stands", () => {
 
   test("nothing the agency no longer lists stands no line", () => {
     expect(delegationLines(wording, [])).toEqual([]);
+  });
+});
+
+describe("the notice of a run this screen watched end", () => {
+  test("a run waiting or running stands its line, and an ended run says what it came to for the notice's length", () => {
+    const clock = noticeClock();
+    const reading = useDelegationReading(wording, { later: clock.later });
+
+    reading.take([delegation()], ["agent-a"]);
+
+    expect(reading.lines.value.map((one) => one.stage)).toEqual(["running"]);
+    expect(clock.pending()).toBe(false);
+
+    reading.take([delegation({ stage: "ended", outcome: "Everything held" })], ["agent-a"]);
+
+    expect(reading.lines.value.map((one) => one.stage)).toEqual(["ended"]);
+    expect(reading.lines.value[0]!.text).toBe(wording("room.status.delegation_ended_outcome", { role: "doppelganger", outcome: "Everything held" }));
+
+    // And once the notice's time is up, nothing of the finished run remains.
+    clock.fire();
+
+    expect(reading.lines.value).toEqual([]);
+
+    reading.stop();
+  });
+
+  test("a run that had already ended when the room opened leaves nothing, and asks for no clock", () => {
+    const clock = noticeClock();
+    const reading = useDelegationReading(wording, { later: clock.later });
+
+    reading.take([delegation({ stage: "ended", outcome: "Done" })], ["agent-a"]);
+
+    expect(reading.lines.value).toEqual([]);
+    expect(clock.pending()).toBe(false);
+
+    reading.stop();
+  });
+
+  test("a run the agency dropped leaves nothing and announces nothing", () => {
+    const clock = noticeClock();
+    const reading = useDelegationReading(wording, { later: clock.later });
+
+    reading.take([delegation()], ["agent-a"]);
+    reading.take([], ["agent-a"]);
+
+    expect(reading.lines.value).toEqual([]);
+    expect(clock.pending()).toBe(false);
+
+    reading.stop();
+  });
+
+  test("a run that waits or runs again clears its notice, and the clock is let go", () => {
+    const clock = noticeClock();
+    const reading = useDelegationReading(wording, { later: clock.later });
+
+    reading.take([delegation()], ["agent-a"]);
+    reading.take([delegation({ stage: "ended", outcome: "Done" })], ["agent-a"]);
+    reading.take([delegation()], ["agent-a"]);
+
+    expect(reading.lines.value.map((one) => one.stage)).toEqual(["running"]);
+    expect(clock.pending()).toBe(false);
+
+    reading.stop();
+  });
+
+  test("a read that failed clears the line and any notice it stood", () => {
+    const clock = noticeClock();
+    const reading = useDelegationReading(wording, { later: clock.later });
+
+    reading.take([delegation()], ["agent-a"]);
+    reading.take([delegation({ stage: "ended", outcome: "Done" })], ["agent-a"]);
+    reading.clear();
+
+    expect(reading.lines.value).toEqual([]);
+    expect(clock.pending()).toBe(false);
+
+    // The run is new again after a failed read: it stands as the service now answers, and no old notice comes back.
+    reading.take([delegation({ stage: "ended", outcome: "Done" })], ["agent-a"]);
+
+    expect(reading.lines.value).toEqual([]);
+
+    reading.stop();
   });
 });

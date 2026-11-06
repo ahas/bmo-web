@@ -79,6 +79,48 @@ async function open(policy: string, width = 1280, height = 900): Promise<{ conte
   return { context, page, close: async () => { await context.close(); await launched.close(); } };
 }
 
+// A console with a sound of the page's own already playing, a report read aloud as it were, and its stream held
+// until that sound plays so the briefing reaches the console during it.
+async function openDuringPageSound(): Promise<{ page: Page; arrive: () => void; close: () => Promise<void> }> {
+  const launched = await chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required"] });
+  const context = await launched.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
+  const at = cookie.indexOf("=");
+  let arrive: () => void = () => undefined;
+  const arrived = new Promise<void>((resolve) => (arrive = resolve));
+
+  await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+  await context.route(/\/api\/briefings\/\d+\/sound/, (route) => route.fulfill({ status: 200, headers: { "content-type": "audio/wav" }, body: SOUND }));
+  await context.route(/\/api\/events(\?|$)/, async (route) => {
+    await arrived;
+
+    return await route.fulfill({ status: 200, headers: { "content-type": "text/event-stream", "cache-control": "no-cache" }, body: `${frame()}` });
+  });
+
+  const page = await context.newPage();
+
+  await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
+  await page.evaluate(async (base64) => {
+    const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
+    const sound = document.createElement("audio");
+
+    sound.dataset.player = "";
+    sound.loop = true;
+    sound.src = URL.createObjectURL(new Blob([bytes], { type: "audio/wav" }));
+    document.body.append(sound);
+    await sound.play();
+  }, SOUND.toString("base64"));
+  expect(await page.evaluate(() => (document.querySelector("[data-player]:not([data-briefing])") as HTMLAudioElement).paused)).toBe(false);
+
+  return { page, arrive, close: async () => { await context.close(); await launched.close(); } };
+}
+
+// The briefing stands in the player, waiting rather than playing over the page's sound or being dropped.
+async function standsWaiting(page: Page): Promise<void> {
+  await page.locator("[data-briefing-popup]").waitFor({ timeout: 30_000 });
+  expect(await until(async () => await page.locator("[data-briefing-press]").getAttribute("aria-label"), wording("briefing.action.listen"), 15_000)).toBe(true);
+  expect(await page.evaluate(() => (document.querySelector("audio[data-briefing]") as HTMLAudioElement).paused)).toBe(true);
+}
+
 describe.skipIf(!origin || !touchReady())("a briefing that arrives", () => {
   for (const [width, height] of [[1280, 900], [360, 700]] as const) {
     test(`plays by itself and closes as it ends at ${width}`, async () => {
@@ -114,52 +156,32 @@ describe.skipIf(!origin || !touchReady())("a briefing that arrives", () => {
   }, 120_000);
 
   test("waits while the page plays its own sound, and starts when that sound stops", async () => {
-    const launched = await chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required"] });
-    const context = await launched.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
-    const at = cookie.indexOf("=");
-    // The stream is held until the page's own sound is playing, so the briefing reaches the console during it.
-    let arrive: () => void = () => undefined;
-    const arrived = new Promise<void>((resolve) => (arrive = resolve));
-
-    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
-    await context.route(/\/api\/briefings\/\d+\/sound/, (route) => route.fulfill({ status: 200, headers: { "content-type": "audio/wav" }, body: SOUND }));
-    await context.route(/\/api\/events(\?|$)/, async (route) => {
-      await arrived;
-
-      return await route.fulfill({ status: 200, headers: { "content-type": "text/event-stream", "cache-control": "no-cache" }, body: `${frame()}` });
-    });
+    const held = await openDuringPageSound();
 
     try {
-      const page = await context.newPage();
-
-      await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
-
-      // A sound of the page's own, as a report read aloud is: it plays in a player the console does not drive.
-      await page.evaluate(async (base64) => {
-        const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
-        const sound = document.createElement("audio");
-
-        sound.dataset.player = "";
-        sound.loop = true;
-        sound.src = URL.createObjectURL(new Blob([bytes], { type: "audio/wav" }));
-        document.body.append(sound);
-        await sound.play();
-      }, SOUND.toString("base64"));
-      expect(await page.evaluate(() => (document.querySelector("[data-player]:not([data-briefing])") as HTMLAudioElement).paused)).toBe(false);
-
-      arrive();
-
-      // The briefing stands in the player, waiting, rather than playing over the page's sound or being dropped.
-      await page.locator("[data-briefing-popup]").waitFor({ timeout: 30_000 });
-      expect(await until(async () => await page.locator("[data-briefing-press]").getAttribute("aria-label"), wording("briefing.action.listen"), 15_000)).toBe(true);
-      expect(await page.evaluate(() => (document.querySelector("audio[data-briefing]") as HTMLAudioElement).paused)).toBe(true);
+      held.arrive();
+      await standsWaiting(held.page);
 
       // The page's sound stops, and the briefing that waited behind it starts.
-      await page.evaluate(() => (document.querySelector("[data-player]:not([data-briefing])") as HTMLAudioElement).pause());
-      expect(await until(async () => await page.locator("[data-briefing-press]").getAttribute("aria-label"), wording("briefing.action.pause"), 15_000)).toBe(true);
+      await held.page.evaluate(() => (document.querySelector("[data-player]:not([data-briefing])") as HTMLAudioElement).pause());
+      expect(await until(async () => await held.page.locator("[data-briefing-press]").getAttribute("aria-label"), wording("briefing.action.pause"), 15_000)).toBe(true);
     } finally {
-      await context.close();
-      await launched.close();
+      await held.close();
+    }
+  }, 120_000);
+
+  test("starts when the page's sound is taken away with the page", async () => {
+    const held = await openDuringPageSound();
+
+    try {
+      held.arrive();
+      await standsWaiting(held.page);
+
+      // The reader leaves the page, which takes its player with it and fires no pause the document hears.
+      await held.page.evaluate(() => document.querySelector("[data-player]:not([data-briefing])")?.remove());
+      expect(await until(async () => await held.page.locator("[data-briefing-press]").getAttribute("aria-label"), wording("briefing.action.pause"), 15_000)).toBe(true);
+    } finally {
+      await held.close();
     }
   }, 120_000);
 });

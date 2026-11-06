@@ -9,8 +9,16 @@ const PAGE_PLAYERS = "[data-player]:not([data-briefing])";
 // bubble, so they are followed on their way down.
 const SOUND_EVENTS = ["play", "playing", "pause", "ended", "emptied", "volumechange"] as const;
 
+// How often the page's sounds are read again. A player taken off the page with the screen it stood on is
+// paused then, but its pause never reaches the document, so the state is read on a slow beat as well.
+const PAGE_SOUND_READ_MS = 500;
+
 /** Every player of the page's own, in the order it stands. */
-export function pagePlayers(): NodeListOf<HTMLMediaElement> {
+export function pagePlayers(): Iterable<HTMLMediaElement> {
+  if (typeof document === "undefined") {
+    return [];
+  }
+
   return document.querySelectorAll<HTMLMediaElement>(PAGE_PLAYERS);
 }
 
@@ -32,7 +40,7 @@ export function pageSoundPlaying(): boolean {
 /**
  * Follows the page's own sounds for as long as the caller stands, calling back whenever one may have started
  * or stopped. It says whether one plays now rather than why it changed: a reader leaving a page takes the
- * sound and its element with it.
+ * sound and its element with it, and that takes no event with it that the document hears.
  */
 export function followPageSound(change: (playing: boolean) => void): () => void {
   if (typeof document === "undefined") {
@@ -45,7 +53,11 @@ export function followPageSound(change: (playing: boolean) => void): () => void 
     document.addEventListener(event, changed, true);
   }
 
+  const beat = setInterval(changed, PAGE_SOUND_READ_MS);
+
   return () => {
+    clearInterval(beat);
+
     for (const event of SOUND_EVENTS) {
       document.removeEventListener(event, changed, true);
     }

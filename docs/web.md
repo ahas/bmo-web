@@ -6137,13 +6137,21 @@ folder every unit reads its secrets from by file name, written by the server's s
   - **A briefing plays as it comes.** What comes to the player is what the voice engine's stream says has ended (its
     `docs/boundary-api.md`, 「Events」, 「Briefings」): a `briefing.ended` of a `summary`, `done`, whose `plays`
     holds. It starts by itself at the moment it comes — on opening, on a page loading, on a tab coming back from the
-    background, and behind another that has ended, which follows its own end — with no press asked for. One that
-    ended more than half an hour before — a stream handing back what it kept — is left to its line; a full reading
-    never comes to the player, and one whose `plays` does not hold is left to its line.
-  - **Only a browser that will not start a sound nobody pressed for leaves it waiting.** Such a browser refuses the
-    play, and the player then says so and starts the sound at one press of its play. That is the only way a briefing
-    waits: a briefing switched on does not wait because of any setting of the console's. The settings' trial voice
-    comes the same way, and a press on 들어보기 is a press of the reader's.
+    background, and behind another that has ended, which follows its own end — with no press asked for, unless the
+    page is playing a sound of its own, which it waits behind (「A briefing waits behind the page's own sound」). One
+    that ended more than half an hour before — a stream handing back what it kept — is left to its line; a full
+    reading never comes to the player, and one whose `plays` does not hold is left to its line.
+  - **A briefing waits behind the page's own sound.** A sound the page plays itself and the reader can hear — a
+    report read aloud on an artifact page, a voice message, a video — is heard out before a briefing that comes
+    while it plays. The briefing stands in the player at once with its play mark, and starts when the page's sound
+    stops, or when the reader leaves the page and the sound goes with it; nothing is dropped, and a briefing
+    arriving after it waits behind it as another does. A press of the player starts it at once and pauses the
+    page's sound, as starting a briefing does. Only a briefing that comes by itself is held: a press on the player
+    starts a held one, and the settings' trial voice is not held for the page's sound.
+  - **A browser that will not start a sound nobody pressed for leaves it waiting too.** Such a browser refuses the
+    play, and the player then says so and starts the sound at one press of its play. No setting of the console's
+    holds a briefing: what it waits behind is the page's own sound and that refusal alone. The settings' trial
+    voice comes the same way, and a press on 들어보기 is a press of the reader's.
   - **Played to its end, it goes.** Once a briefing has played to its end the player stays a moment, then goes,
     and the next one waiting comes to it; one the reader paused or moved along while it played, or played again in
     that moment, stays, at its end, until it is closed.

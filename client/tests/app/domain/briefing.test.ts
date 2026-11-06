@@ -62,13 +62,20 @@ class RefusingSound extends StandInSound {
 
 type Desk = InstanceType<typeof BriefingDesk>;
 
-function depsOf(shown: () => BriefingShown | null, write: (next: BriefingShown | null) => void, sound: (src: string, on: SoundHandlers) => BriefingSound, heard = new Set<string>()): DeskDeps {
+function depsOf(
+  shown: () => BriefingShown | null,
+  write: (next: BriefingShown | null) => void,
+  sound: (src: string, on: SoundHandlers) => BriefingSound,
+  heard = new Set<string>(),
+  pagePlaying: () => boolean = () => false
+): DeskDeps {
   return {
     t: (key: string) => key,
     shown: { read: shown, write },
     sound,
     src: (id) => `/api/briefings/${id}/sound`,
     players: () => [],
+    pagePlaying,
     channel: () => null,
     log: { has: (key) => heard.has(key), add: (key) => void heard.add(key) },
     tab: "tab-a",
@@ -121,6 +128,87 @@ describe("the trial voice", () => {
     expect(held.shown()?.key).toBe(BRIEFING_TRIAL_KEY);
     expect(held.shown()?.phase).toBe("playing");
     expect(held.shown()?.to).toBe("/rooms/1?settings=briefing");
+  });
+});
+
+function pageDesk(): { desk: Desk; shown: () => BriefingShown | null; sounds: StandInSound[]; page: (playing: boolean) => void } {
+  let shown: BriefingShown | null = null;
+  let playing = false;
+  const sounds: StandInSound[] = [];
+  const deps = depsOf(
+    () => shown,
+    (next) => (shown = next),
+    (src, on) => {
+      const sound = new StandInSound(src, on);
+
+      sounds.push(sound);
+      return sound;
+    },
+    new Set(),
+    () => playing
+  );
+
+  return { desk: new BriefingDesk(deps), shown: () => shown, sounds, page: (next) => (playing = next) };
+}
+
+describe("the page's own sound", () => {
+  test("a briefing that comes while the page plays waits, and plays when the page's sound stops", async () => {
+    const held = pageDesk();
+
+    held.page(true);
+    await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+
+    // It is in the player, waiting for the page's sound rather than dropped, and nothing was started.
+    expect(held.sounds.length).toBe(1);
+    expect(held.sounds[0]?.played).toBe(0);
+    expect(held.shown()?.key).toBe("briefing:7");
+    expect(held.shown()?.phase).toBe("paused");
+
+    held.page(false);
+    held.desk.resume();
+    await Promise.resolve();
+
+    expect(held.sounds[0]?.played).toBe(1);
+    expect(held.shown()?.phase).toBe("playing");
+  });
+
+  test("a briefing behind one already waiting plays as the page's sound stops", async () => {
+    const held = pageDesk();
+
+    held.page(true);
+    await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+    await held.desk.hear({ id: 8, chatId: 42, messageId: 549, endedAt: NOW - 1_000, title: null });
+    expect(held.desk.queued()).toEqual(["briefing:8"]);
+
+    held.page(false);
+    held.desk.resume();
+    await Promise.resolve();
+
+    expect(held.sounds[0]?.played).toBe(1);
+    expect(held.desk.queued()).toEqual(["briefing:8"]);
+  });
+
+  test("a press plays the waiting briefing though the page's sound goes on", async () => {
+    const held = pageDesk();
+
+    held.page(true);
+    await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+
+    held.shown()?.play();
+    await Promise.resolve();
+
+    expect(held.sounds[0]?.played).toBe(1);
+    expect(held.shown()?.phase).toBe("playing");
+  });
+
+  test("the trial voice plays at its press though the page plays", () => {
+    const held = pageDesk();
+
+    held.page(true);
+    held.desk.trial("/briefing-trial.ogg", "/rooms/1?settings=briefing");
+
+    expect(held.sounds[0]?.played).toBe(1);
+    expect(held.shown()?.phase).toBe("playing");
   });
 });
 

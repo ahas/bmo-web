@@ -3,6 +3,7 @@ import { TAP_FFT, tapOf } from "bmo-ui/app/domain/sound-tap";
 import { useIsland } from "bmo-ui/app/domain/island";
 
 import { useBotEvents } from "./events";
+import { followPageSound, pagePlayers, pageSoundPlaying } from "./page-sound";
 import { briefingSoundUrl, playAlone } from "./player";
 import { appUrl } from "./urls";
 
@@ -235,6 +236,8 @@ export interface DeskDeps {
   src: (id: number) => string;
   // The screen's own players, which a briefing starting pauses.
   players: () => Iterable<Playing>;
+  // Whether the page itself is playing a sound of its own, which a briefing that comes by itself waits behind.
+  pagePlaying: () => boolean;
   channel: (hear: (word: ClaimWord) => void) => ClaimChannel | null;
   log: HeardLog;
   tab: string;
@@ -245,7 +248,8 @@ export interface DeskDeps {
 }
 
 // One sound the desk plays through the player: where it comes from and where a press on the player leads while it
-// plays. Every sound comes to the player waiting for its play press; none starts by itself.
+// plays. A briefing comes to the player and starts by itself, unless the page's own sound or the browser holds it;
+// the trial voice is asked for at a press.
 interface Playable {
   key: string;
   src: string;
@@ -262,6 +266,14 @@ interface Current {
   over: boolean;
   // Whether the reader paused it or moved it along while it played, which keeps it in the player at its end.
   touched: boolean;
+  // Whether it waits for the page's own sound to stop before it starts.
+  held: boolean;
+}
+
+interface Waiting {
+  playable: Playable;
+  // Whether it came by itself, or was asked for at a press. One asked for at a press is never held.
+  byItself: boolean;
 }
 
 interface Pending {
@@ -285,7 +297,7 @@ function cutShort(error: unknown): boolean {
 export class BriefingDesk {
   private current: Current | null = null;
   // What this tab took while another was playing in the order it came.
-  private waiting: Playable[] = [];
+  private waiting: Waiting[] = [];
   private readonly pending = new Map<string, Pending>();
   // Claims another tab made before this one heard the briefing itself. The tabs hear it moments
   // apart, and a claim dropped for arriving first would leave this tab deciding on its own claim
@@ -308,7 +320,7 @@ export class BriefingDesk {
     // One that ended long before the tab heard of it — handed back by a stream opening again — is left to its line.
     if (this.deps.now() - heard.endedAt > BRIEFING_SHOWN_MS) return;
 
-    if (this.deps.log.has(key) || this.current?.playable.key === key || this.pending.has(key) || this.waiting.some((one) => one.key === key)) {
+    if (this.deps.log.has(key) || this.current?.playable.key === key || this.pending.has(key) || this.waiting.some((one) => one.playable.key === key)) {
       return;
     }
 
@@ -318,37 +330,52 @@ export class BriefingDesk {
 
     this.deps.log.add(key, this.deps.now());
     this.channel?.post({ kind: "taken", key, tab: this.deps.tab });
-    this.line({
-      key,
-      src: this.deps.src(heard.id),
-      to: heard.messageId === null ? `/rooms/${heard.chatId}` : `/rooms/${heard.chatId}?at=${heard.messageId}`,
-      title: heard.title
-    });
+    this.line(
+      {
+        key,
+        src: this.deps.src(heard.id),
+        to: heard.messageId === null ? `/rooms/${heard.chatId}` : `/rooms/${heard.chatId}?at=${heard.messageId}`,
+        title: heard.title
+      },
+      true
+    );
   }
 
   // The trial voice, brought to the same player at a press (docs/web.md, 「Settings」, the voice briefing section), where
   // it waits for the play press as a briefing does: no other tab claims it or hears of it, nothing keeps it, and it
   // stands once however often it is pressed while it stands or waits.
   trial(src: string, to: string): void {
-    if (this.current?.playable.key === BRIEFING_TRIAL_KEY || this.waiting.some((one) => one.key === BRIEFING_TRIAL_KEY)) return;
+    if (this.current?.playable.key === BRIEFING_TRIAL_KEY || this.waiting.some((one) => one.playable.key === BRIEFING_TRIAL_KEY)) return;
 
-    this.line({ key: BRIEFING_TRIAL_KEY, src, to, title: null });
+    this.line({ key: BRIEFING_TRIAL_KEY, src, to, title: null }, false);
   }
 
   // Played now, or behind the one playing and those already waiting.
-  private line(playable: Playable): void {
+  private line(playable: Playable, byItself: boolean): void {
     if (this.current !== null || this.waiting.length > 0) {
-      this.waiting.push(playable);
+      this.waiting.push({ playable, byItself });
 
       return;
     }
 
-    this.start(playable);
+    this.start(playable, byItself);
   }
 
   // The keys of the briefings waiting behind the one playing, in the order they will play.
   queued(): string[] {
-    return this.waiting.map((one) => one.key);
+    return this.waiting.map((one) => one.playable.key);
+  }
+
+  // The page's own sound has stopped — or the reader left the page and it went with them — so a briefing that
+  // waited behind it plays now.
+  resume(): void {
+    const current = this.current;
+
+    if (current === null || !current.held || current.over || this.deps.pagePlaying()) {
+      return;
+    }
+
+    void this.play(current);
   }
 
   close(): void {
@@ -415,8 +442,11 @@ export class BriefingDesk {
     }
   }
 
-  private start(playable: Playable): void {
+  private start(playable: Playable, byItself: boolean): void {
     const { key } = playable;
+    // A briefing that comes by itself waits while the page plays a sound of its own (docs/web.md, 「Messages」, the
+    // briefing's player); one asked for at a press does not.
+    const held = byItself && this.deps.pagePlaying();
     // The handlers reach the briefing they belong to, which is made once its sound is.
     let current!: Current;
     const sound = this.deps.sound(playable.src, {
@@ -435,14 +465,14 @@ export class BriefingDesk {
       failed: () => this.fail(current, null)
     });
 
-    current = { playable, sound, over: false, touched: false };
+    current = { playable, sound, over: false, touched: false, held };
     this.current = current;
 
     this.deps.shown.write({
       key,
       to: playable.to,
       title: playable.title,
-      phase: "loading",
+      phase: held ? "paused" : "loading",
       play: () => void this.play(current),
       pause: () => current.sound.pause(),
       stop: () => this.stop(current),
@@ -451,9 +481,12 @@ export class BriefingDesk {
     });
 
     // The sound starts by itself as it comes (docs/web.md, 「Messages」, the briefing's player): a briefing is meant to
-    // be heard, not waited for. A browser that will not start a sound nobody pressed for moves it to `blocked`, where
-    // the player's own press starts it.
-    void this.play(current);
+    // be heard, not waited for, unless the page's own sound stands in the way; that one is played by `resume` once it
+    // stops. A browser that will not start a sound nobody pressed for moves it to `blocked`, where the player's own
+    // press starts it.
+    if (!held) {
+      void this.play(current);
+    }
   }
 
   // Played to its end: gone after a moment unless the reader paused or moved it along, or played it again meanwhile;
@@ -484,6 +517,8 @@ export class BriefingDesk {
     if (current.over) {
       return;
     }
+
+    current.held = false;
 
     try {
       await current.sound.play();
@@ -545,7 +580,7 @@ export class BriefingDesk {
     const upcoming = this.current === null ? this.waiting.shift() : undefined;
 
     if (upcoming !== undefined) {
-      this.start(upcoming);
+      this.start(upcoming.playable, upcoming.byItself);
     }
   }
 }
@@ -679,7 +714,8 @@ export function useBriefings(t: Translate): void {
       shown: { read: () => state.value, write: (next) => (state.value = next) },
       sound: elementSound,
       src: briefingSoundUrl,
-      players: () => document.querySelectorAll<HTMLMediaElement>("[data-player]:not([data-briefing])"),
+      players: pagePlayers,
+      pagePlaying: pageSoundPlaying,
       channel: browserChannel,
       log: storedLog(),
       tab: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
@@ -696,8 +732,15 @@ export function useBriefings(t: Translate): void {
       void made().hear(heard);
     }
   });
+
+  // A briefing waits behind the page's own sound; it plays when that sound stops, or when the reader leaves the
+  // page and takes it along.
+  const stopFollowingPageSound = followPageSound(() => desk?.resume());
+
   openDesk = made;
   onScopeDispose(() => {
+    stopFollowingPageSound();
+
     if (openDesk === made) openDesk = null;
 
     desk?.close();

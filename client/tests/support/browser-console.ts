@@ -729,6 +729,16 @@ try {
     await run("bun", ["scripts/user.ts", "set", name, password], userEnv, CONSOLE_DIR);
   }
 
+  // The console reads whether a login is the administrator from the account model each time (docs/web.md,
+  // 「Access」): the model names the one account the data move made the platform administrator's, while every
+  // fixture account made with --administrator carries that in its seal. Removing the model's name leaves each
+  // login standing as its seal recorded it, so every account a file signs in with is the administrator its file
+  // waits for, and the two members, made without the flag, stay members.
+  const fixture = new SQL(connectionOf(databaseUrl) as SQL.Options);
+
+  await fixture.unsafe('DELETE FROM "settings" WHERE "key" = $1', ["users_administrator"]);
+  await fixture.close();
+
   start("bun", ["--bun", "nuxi", "dev", "--port", String(consolePort), "--host", "127.0.0.1"], consoleEnv, CONSOLE_DIR, "console");
 
   const origin = `http://127.0.0.1:${consolePort}${BASE.replace(/\/$/, "")}`;

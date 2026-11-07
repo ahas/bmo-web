@@ -26,9 +26,11 @@ console's typecheck and then every test file under `client/tests` in one `bun te
     (`BMO_TEST_POSTGRES`, or the machine's own socket where it names none);
   - a stand-in for each unit the console reads, answering the agent list, the owner's room and its figures, an
     empty TODO board and silent event streams, and every other road with the unit's own not-found;
-  - the fixture accounts each file signs in with, made by the console's own `user` script: the administrator
-    each file signs in as, and the two members a room's write stands on, whose console sections are written
-    whole as the administrator's screen writes them;
+  - the fixture accounts each file signs in with, made by the console's own `user` script. The console reads the
+    administrator from the account model each time, and the data move names only one user there, so the harness
+    removes that name: each login then stands as its seal recorded it, every account a file signs in with being
+    the administrator its file waits for, and the two members a room's write stands on staying members, whose
+    console sections are written whole as the administrator's screen writes them;
   - the console's development server, under the base path `/console/`, with a build folder of its own,
     `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
 - **What it prints:** the console's address, once it answers.

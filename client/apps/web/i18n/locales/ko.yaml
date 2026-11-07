@@ -1792,7 +1792,6 @@ agents:
     supervisor_seeded_refused: "{label}은(는) 배포가 세운 감독관이라 삭제할 수 없습니다."
     supervisor_unknown: "감독관 {supervisor}이(가) 없습니다."
     word_empty: 메시지를 입력해 주세요.
-    word_unavailable: 워커에게 말을 전하는 길이 아직 없습니다.
     role_delete_refused: 실행 중이거나 대기 중인 실행이 있거나 정책이 정한 역할이라 삭제하지 못했습니다.
     roles_read_failed: 역할을 불러오지 못했습니다.
     accounts_read_failed: Claude 계정을 불러오지 못했습니다.

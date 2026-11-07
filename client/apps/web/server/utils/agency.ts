@@ -26,7 +26,8 @@ const AGENCY_CODES: Readonly<Record<string, string>> = {
   "service-unavailable": "agents.error.agency_unavailable",
   "internal-server-error": "agents.error.agency_failed",
   "bad-gateway": "agents.error.agency_failed",
-  "name-taken": "agents.error.agent_name_taken"
+  "name-taken": "agents.error.agent_name_taken",
+  "too-large": "common.error.file_too_large"
 };
 
 // The person a call acts for, read once for the request: the agency refuses what that login may not do (the
@@ -83,7 +84,7 @@ export function agency(): AgencyClient {
  * One call on an agency route the published client the console vendors names no type for, by the path the agency's
  * `docs/api.md` documents, answered and refused as every other agency call is.
  */
-export async function agencyRoute<T>(method: "GET" | "PUT" | "PATCH", path: string, body?: unknown): Promise<T> {
+export async function agencyRoute<T>(method: "GET" | "POST" | "PUT" | "PATCH", path: string, body?: unknown): Promise<T> {
   const unit = unitAt("AGENCY");
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));

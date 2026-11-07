@@ -15,6 +15,17 @@ interface WordFile {
   data: Uint8Array<ArrayBuffer>;
 }
 
+// The agency takes at most this much in one file said to a worker. The console's own road carries more, so a file
+// it allows is refused here rather than sent to be refused there (the agency's `docs/api.md`).
+const WORD_FILE_BYTES = 8 * 1024 * 1024;
+
+// The agency's answer: the words were delivered, are waiting for the worker's session, or were refused. A refusal's
+// reason is written for an agent; a person is told the pack's sentence.
+interface WordAnswer {
+  said: "delivered" | "waiting" | "refused";
+  reason?: string | null;
+}
+
 // What a body may weigh before it is even read: every file at its ceiling, and a little for the
 // words and the multipart's own frame.
 const MAX_BODY_BYTES = MAX_ATTACHMENT_BYTES * MAX_ATTACHMENTS + 1024 * 1024;
@@ -49,7 +60,7 @@ async function readWord(event: H3Event): Promise<{ body: WordBody; files: WordFi
 // middle of, or into a turn of its own where nothing is running — and the words and what it
 // answers stand in that worker's own log, on the screen they were typed on.
 export default defineEventHandler(async (event): Promise<WorkerWordSent> => {
-  await requireUserSession(event);
+  const session = await requireUserSession(event);
 
   const { body, files } = await readWord(event);
   const text = typeof body.text === "string" ? body.text.trim() : "";
@@ -63,7 +74,7 @@ export default defineEventHandler(async (event): Promise<WorkerWordSent> => {
     throw fail(400, wording("common.error.attachments_too_many", { n: MAX_ATTACHMENTS }));
   }
 
-  if (files.some((file) => file.data.length > MAX_ATTACHMENT_BYTES)) {
+  if (files.some((file) => file.data.length > WORD_FILE_BYTES)) {
     throw fail(413, wording("common.error.file_too_large"));
   }
 
@@ -75,8 +86,19 @@ export default defineEventHandler(async (event): Promise<WorkerWordSent> => {
     throw fail(400, wording("common.error.too_long", { n: MAX_RUN_PROMPT_LENGTH }));
   }
 
-  // The words go to that worker's own session, which the agency keeps. The agency's fixed API sends a turn into a
-  // session, but starts none for a worker from a screen's words, so the words are refused as unavailable until that
-  // route stands (docs/boundary.md, 「Gaps the console meets」).
-  throw fail(503, wording("agents.error.word_unavailable"));
+  // The screen's worker is the repository whose worker the words are for, and the words go to that worker's own
+  // session: the agency hands them over, holds them while a turn runs, or refuses them (the agency's `docs/api.md`,
+  // `POST /repositories/{repositoryName}/words`).
+  const answer = await agencyRoute<WordAnswer>("POST", `/repositories/${encodeURIComponent(worker)}/words`, {
+    words: text,
+    text,
+    by: session.user.name,
+    files: files.map((file) => ({ name: file.name, type: file.type, data: Buffer.from(file.data).toString("base64") }))
+  });
+
+  if (answer.said === "refused") {
+    throw fail(502, wording("common.error.not_sent"));
+  }
+
+  return { ok: true };
 });

@@ -14,6 +14,8 @@ export interface RouteEvent {
   method?: string;
   headers?: Record<string, string>;
   rawBody?: string | Uint8Array;
+  // The parts of a multipart body, where a route reads a form.
+  parts?: { name?: string; filename?: string; type?: string; data: Uint8Array }[];
   // What a route keeps of the request while it runs, such as the rooms it may read.
   context?: Record<string, unknown>;
 }
@@ -27,6 +29,7 @@ globals.requireUserSession = async () => ({ user: { id: 1, name: "tester" } });
 globals.requireAdministrator = async () => ({ id: 1, name: "tester", administrator: true });
 globals.signedInUser = async () => ({ id: 1, name: "tester", administrator: true });
 globals.readBody = async (event: RouteEvent) => event.body;
+globals.readMultipartFormData = async (event: RouteEvent) => event.parts ?? null;
 globals.getQuery = (event: RouteEvent) => event.query ?? {};
 globals.getRouterParam = (event: RouteEvent, name: string) => event.params?.[name];
 globals.getMethod = (event: RouteEvent) => event.method ?? "GET";

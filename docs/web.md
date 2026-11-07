@@ -4732,6 +4732,17 @@ Four bounds keep it from growing forever.
       (below).
     - A turn still running after its answer stands — an answer in parts, more work after the words — stands its
       block again under the answer at the turn's next word of itself.
+    - **The answer is the turn's own line.** Once the ending says the turn sent, it is the message the ending
+      names. Before that it is the newest line of the turn's agent since the turn began, a system notice and a
+      voice briefing aside. A line is the agent's by the agent the receiver names on every send, and by the
+      number its words stand under only where a line names none, since on the record road an agent's words
+      stand under no number of their own.
+    - **A turn the bot said is over stays over, though the bot's picture still holds it.** The bot keeps a round
+      in its picture until the round lets go of the room, which is after its answer went out: the voice
+      briefing's summary of a notice asked of the same session, a fold, the round's own bookkeeping. A turn the
+      picture holds that began no later than its speaker's ending in that room is that turn, and nothing it
+      still does stands the block again under the answer. The console keeps that ending until the speaker's next
+      start there, or until a picture holds no turn of that speaker in that room.
   A verdict attaches
   to that message before the archive is re-read. A turn ended with no answer shows its reason briefly and
   disappears — when it waited expecting more words, when the run failed, when somebody stopped it. The reason
@@ -4775,8 +4786,9 @@ Four bounds keep it from growing forever.
   broke and resumed, it does not come again. So this line is read not only from the notice but from the picture the
   bot puts out. The picture carries which room has been answering what since when, and the stream hands that
   picture as it is at opening. Whether the screen just opened or broke and resumed, if there is a running turn that
-  line stands, and the moment the picture drops that turn the line disappears with it. Notice and picture fill the
-  same one line — the two do not each stand their own.
+  line stands, and the moment the picture drops that turn the line disappears with it. A turn whose ending the
+  stream has already told is no running turn, though the picture holds it until its round lets go of the room.
+  Notice and picture fill the same one line — the two do not each stand their own.
 - **The line belongs to the room, not to the screen showing it.** The tab keeps one record of every room's running
   turns, moved by the same notices and pictures whichever room is on screen, and a room's screen reads its turns
   out of that record. So going to another room and coming back finds the line standing where it was, with what the

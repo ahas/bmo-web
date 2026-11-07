@@ -31,6 +31,7 @@ import {
   senderRuns,
   settledAnswers,
   standingRuns,
+  turnAnswer,
   sideLayout,
   sideOf,
   skippedLine,
@@ -1116,6 +1117,35 @@ describe("a running row handing its place over", () => {
 
     expect(standingRuns([turn], handOvers([turn], [earlier], new Map()))).toEqual([turn]);
     expect(standingRuns([thinking], handOvers([thinking], [earlier, answer], held))).toEqual([thinking]);
+  });
+
+  // The record road files an agent's words under no number: only the agent the receiver names on the line says whose.
+  test("a line under no number is the answer of the agent the receiver names on it, and no other agent's", () => {
+    const named = { ...run, speaker: { id: -1, name: "agent-a" } };
+    const unnumbered = runItem(named, { id: null, name: "agent-a" }, { alt: "agent-a" });
+    const line = { ...answer, senderId: null, speaker: "agent-a" };
+    const another = { ...line, messageId: 3, speaker: "agent-b" };
+
+    expect(standingRuns([unnumbered], handOvers([unnumbered], [archived(1, KO.line_924), line], new Map()))).toEqual([]);
+    expect(standingRuns([unnumbered], handOvers([unnumbered], [archived(1, KO.line_924), another], new Map()))).toEqual([unnumbered]);
+    expect(turnAnswer(named, null, [line, another])).toBe(line);
+  });
+
+  test("a system notice and a voice briefing are never the answer", () => {
+    const notice = { ...answer, messageId: 3, notice: true };
+    const briefing = { ...answer, messageId: 4, briefs: 2 };
+    const awaiting = { ...answer, messageId: 5, awaitsLine: true };
+
+    expect(turnAnswer(run, 87, [notice, briefing, awaiting])).toBeUndefined();
+    expect(turnAnswer(run, 87, [answer, notice, briefing, awaiting])).toBe(answer);
+  });
+
+  test("the message the turn's ending named is its answer, whoever it stands under", () => {
+    const sent = { ...answer, messageId: 6, senderId: 4_218_991, speaker: "agent-b" };
+
+    expect(turnAnswer({ ...run, answer: 6 }, 87, [sent, answer])).toBe(sent);
+    // Until it is in the feed, the turn's own line stands for it.
+    expect(turnAnswer({ ...run, answer: 6 }, 87, [answer])).toBe(answer);
   });
 
   test("a row standing while the chat agent only listens is no turn, so no answer takes its place", () => {

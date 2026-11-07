@@ -1337,17 +1337,34 @@ function turnSaid(run: RunState): string {
   return JSON.stringify([run.received, run.progress?.phase ?? null, run.progress?.tool ?? null]);
 }
 
-// The answer a turn's row gives its place to: the newest agent message of the row's own speaker since the turn
-// began, or undefined while none is in the feed.
+// The answer a turn's row gives its place to, or undefined while none is in the feed: the message the turn's ending
+// named where it said it sent, and otherwise the newest line of the turn's own agent since the turn began, a system
+// notice and a voice briefing aside, since neither stands as the answer's row (docs/web.md, 「The answer is the turn's
+// own line」). A line is the agent's by the agent the receiver names on it, and by the number its words stand under
+// only where it names none: on the record road an agent's words stand under no number at all.
 export function turnAnswer(run: RunState, senderId: number | null, messages: readonly ArchivedMessage[]): ArchivedMessage | undefined {
-  return senderId === null ? undefined : messages.findLast((message) => message.agent === true && message.senderId === senderId && message.sentAt >= run.startedAt);
+  const named = run.answer === undefined ? undefined : messages.find((message) => message.messageId === run.answer);
+
+  if (named !== undefined) return named;
+
+  const agent = run.speaker?.name ?? defaultAnswererName();
+
+  return messages.findLast(
+    (message) =>
+      message.agent === true &&
+      message.notice !== true &&
+      message.briefs == null &&
+      message.awaitsLine !== true &&
+      message.sentAt >= run.startedAt &&
+      (message.speaker === undefined ? senderId !== null && message.senderId === senderId : message.speaker === agent)
+  );
 }
 
 // Which running rows have handed their place over. A turn's answer reaches the feed by whichever
 // read brings it first — the news of the message, or the read the turn's ending makes — and the row
 // standing for the turn gives it its place in that same render, so the two never stand together
-// (docs/web.md, the room screen's section on what is being done now). The answer is the newest agent message of the row's own speaker
-// since the turn began; a newer one hands over afresh.
+// (docs/web.md, the room screen's section on what is being done now). The answer is the turn's own line as
+// `turnAnswer` finds it; a newer one hands over afresh.
 export function handOvers(rows: readonly FeedItem[], messages: readonly ArchivedMessage[], held: ReadonlyMap<string, HandOver>): Map<string, HandOver> {
   const next = new Map<string, HandOver>();
 
@@ -1355,7 +1372,7 @@ export function handOvers(rows: readonly FeedItem[], messages: readonly Archived
     const run = row.run;
 
     // A row standing while the chat agent only listens is waiting on no answer, so nothing takes its place.
-    if (run === null || run.listening !== undefined || row.senderId === null) {
+    if (run === null || run.listening !== undefined) {
       continue;
     }
 

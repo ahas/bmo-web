@@ -29,6 +29,10 @@ export interface RunState {
   // carries when that window closes, in unix seconds on this screen's clock, which the line counts
   // down to.
   listening?: { closesAt: number };
+  // The message the turn's ending said it sent, on a turn standing through its ending: the answer its block gives
+  // its place to (docs/web.md, 「The answer is the turn's own line」). Absent on a turn still going and on one that
+  // ended any other way.
+  answer?: number;
 }
 
 // A question of the draft process as the running line reads it, from the event that tells it starting (the
@@ -170,6 +174,8 @@ const SILENT_LOOKS = STREAM_SILENCE_MS / STREAM_KEEPALIVE_MS;
 // The record itself moves from the stream's first event, whether or not any screen has asked for it
 // yet; what a screen reads is a ref over it, made the first time one asks.
 let turnsNow: ReadonlyMap<number, RunState[]> = new Map();
+// The turns the stream said were over, which the bot's picture may still hold (`stepEndedTurns`).
+let endedNow: ReadonlyMap<string, number> = new Map();
 let roomTurnsHeld: Ref<ReadonlyMap<number, RunState[]>> | null = null;
 // The bot's last picture of what is running, for the same reason.
 let pictured: LiveSnapshot | null = null;
@@ -195,7 +201,9 @@ function hand(event: BotEvent): void {
     listener(event);
   }
 
-  const next = stepRoomTurns(turnsNow, event);
+  const next = stepRoomTurns(turnsNow, event, endedNow);
+
+  endedNow = stepEndedTurns(endedNow, event);
 
   if (next !== turnsNow) {
     setTurns(next);
@@ -543,9 +551,10 @@ function close(): void {
   stream.connected.value = false;
   stream.dropped.value = false;
 
-  // Nothing moves the record while no stream is open, so it is let go of; the next stream opens
-  // with the bot's picture, which stands it again.
+  // Nothing moves the record while no stream is open, so it is let go of, the endings it kept with it; the next
+  // stream opens with the bot's picture, which stands it again.
   setTurns(new Map());
+  endedNow = new Map();
   pictured = null;
 }
 
@@ -872,10 +881,15 @@ function withRoom(rooms: ReadonlyMap<number, RunState[]>, chatId: number, runs: 
 // began, keeping what the events last said of it, and a turn it has let go of is over. The message a
 // turn reads last is the picture's where it names one, since a message pushed into the round moves
 // it on with no event of its own, and the turn's start is not the only screen that needs it.
-function picturedTurns(rooms: ReadonlyMap<number, RunState[]>, turns: ChatTurn[]): ReadonlyMap<number, RunState[]> {
+function picturedTurns(rooms: ReadonlyMap<number, RunState[]>, turns: ChatTurn[], ended: ReadonlyMap<string, number>): ReadonlyMap<number, RunState[]> {
   const next = new Map<number, RunState[]>();
 
   for (const turn of turns) {
+    const over = ended.get(endedKey(turn.chatId, turn.speaker));
+
+    // A turn its speaker's ending in this room already closed, which the picture holds until its round lets go.
+    if (over !== undefined && turn.since <= over) continue;
+
     const key = runKey(turn.speaker);
     const was = rooms.get(turn.chatId)?.find((run) => runKey(run.speaker) === key);
     const received: TurnReceived = { messages: turn.messages, instructions: turn.instructions };
@@ -900,12 +914,12 @@ function picturedTurns(rooms: ReadonlyMap<number, RunState[]>, turns: ChatTurn[]
 // bot's own picture, which is what a tab has when it was not there for the beginning. A room two supervisors
 // answer can have a turn of each going at once, one to a speaker. An event
 // that moves nothing hands the same record back.
-export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: BotEvent): ReadonlyMap<number, RunState[]> {
+export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: BotEvent, ended: ReadonlyMap<string, number> = new Map()): ReadonlyMap<number, RunState[]> {
   if (event.type === "live") {
     // A bot that says nothing about its turns leaves the record to the events alone.
     const turns = event.live?.turns;
 
-    return turns === undefined ? rooms : picturedTurns(rooms, turns);
+    return turns === undefined ? rooms : picturedTurns(rooms, turns, ended);
   }
 
   const held = rooms.get(event.chatId) ?? [];
@@ -957,6 +971,46 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
   }
 
   return rooms;
+}
+
+// One speaker's turns in one room, as the marks of turns already over are kept.
+function endedKey(chatId: number, speaker: TurnSpeaker | null | undefined): string {
+  return `${chatId} ${runKey(speaker)}`;
+}
+
+// The turns the stream said were over, by room and speaker, each with the moment it said so, after one event
+// (docs/web.md, 「A turn the bot said is over stays over」). The bot keeps a round in its picture until the round lets
+// go of the room, which is after its answer went out — the voice briefing's summary of a notice asked of the same
+// session, a fold, the round's own bookkeeping — so a picture taken in between still holds the turn the events
+// closed, and the record would take it back and stand its block again under the answer. A turn of the picture that
+// began no later than the mark is that turn. The speaker's next start lets the mark go, and so does a picture holding
+// no turn of that speaker in that room, the round having let go. An event that moves nothing hands the same marks
+// back.
+export function stepEndedTurns(ended: ReadonlyMap<string, number>, event: BotEvent): ReadonlyMap<string, number> {
+  if (event.type === "live") {
+    const turns = event.live?.turns;
+
+    if (turns === undefined || ended.size === 0) return ended;
+
+    const held = new Set(turns.map((turn) => endedKey(turn.chatId, turn.speaker)));
+    const kept = new Map([...ended].filter(([key]) => held.has(key)));
+
+    return kept.size === ended.size ? ended : kept;
+  }
+
+  const key = endedKey(event.chatId, event.speaker);
+
+  if (event.type === "run-started") {
+    if (!ended.has(key)) return ended;
+
+    const next = new Map(ended);
+
+    next.delete(key);
+
+    return next;
+  }
+
+  return TURN_ENDED.includes(event.type) ? new Map(ended).set(key, toUnixSeconds(event.at)) : ended;
 }
 
 // How long the reason for a silent run stays on the screen.
@@ -1120,8 +1174,10 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
     }
 
     const ending = (endings.get(key) ?? 0) + 1;
-    // The record has not yet heard this ending, so it still holds the turn as it stood.
-    const last = record.value.get(chatId)?.find((run) => runKey(run.speaker) === key);
+    // The record has not yet heard this ending, so it still holds the turn as it stood. A turn that sent stands
+    // naming the message it sent, which is the answer its block waits on.
+    const held = record.value.get(chatId)?.find((run) => runKey(run.speaker) === key);
+    const last = held !== undefined && event.type === "sent" && event.messageId !== null ? { ...held, answer: event.messageId } : held;
 
     endings.set(key, ending);
 

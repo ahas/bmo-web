@@ -827,6 +827,94 @@ describe("the chat agent's turn as the receiver names it", () => {
       expect(screen.runs()).toEqual([]);
     }, () => false);
   });
+
+  // A notice round of the owner's own chat, as the receiver tells it: the review question writes the message, the
+  // process ends, the answer is filed and the turn says it sent; the round still holds the room in its picture while
+  // the same session writes the voice briefing's summary, and lets it go after.
+  test("a turn that sent stays over while the picture still holds its round, and the summary after stands nothing", async () => {
+    const owner: TurnSpeaker = { id: -1, name: "agent-a" };
+    const thinking: RunProgress = {
+      phase: "thinking",
+      tool: null,
+      thinkingTokens: null,
+      contextTokens: null,
+      cacheReadTokens: null,
+      requestId: null,
+      spent: null,
+      writtenTokens: null,
+      actions: [],
+      droppedActions: 0,
+      droppedContext: 0
+    };
+    const asked: RunState[] = [];
+
+    await watching(-1003, async (screen) => {
+      screen.write("live", picture([chatTurn({ speaker: owner })]));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: owner }));
+      screen.write("bot", botEvent({ type: "draft", number: 2, count: 2, kind: "start", question: "review", speaker: owner }));
+      screen.write("bot", botEvent({ type: "draft", number: 2, kind: "end", outcome: "message", speaker: owner }));
+      screen.write("bot", botEvent({ type: "message", messageId: 42 }));
+      screen.write("bot", botEvent({ type: "sent", messageId: 42, round: "round:a", speaker: owner }));
+      // A picture redrawn for another room while the summary is written still holds this round.
+      screen.write("live", picture([chatTurn({ speaker: owner })]));
+      screen.write("bot", botEvent({ type: "run-progress", messageId: 41, progress: thinking, speaker: owner }));
+
+      await nextTick();
+
+      expect(screen.runs()).toEqual([]);
+
+      await screen.finishRead();
+      screen.write("bot", botEvent({ type: "run-progress", messageId: 41, progress: { ...thinking, phase: "writing" }, speaker: owner }));
+
+      expect(screen.runs()).toEqual([]);
+
+      screen.write("live", picture([]));
+
+      // The next round stands from its picture as soon as it begins, whether or not its start has come yet.
+      screen.write("live", picture([chatTurn({ speaker: owner, since: 1_788_490_100 })]));
+
+      expect(screen.runs().map((run) => run.startedAt)).toEqual([1_788_490_100]);
+
+      screen.write("bot", botEvent({ type: "run-started", messageId: 43, at: 1_788_490_100, speaker: owner }));
+
+      expect(screen.runs().map((run) => run.messageId)).toEqual([43]);
+
+      screen.write("bot", botEvent({ type: "run-failed", at: 1_788_490_110, speaker: owner }));
+      screen.write("live", picture([]));
+      await screen.finishRead();
+    }, (run) => {
+      asked.push(run);
+
+      return run.answer === 42;
+    });
+
+    // The block waited on the message its ending named.
+    expect(asked.some((run) => run.answer === 42)).toBe(true);
+  });
+
+  // A round handing over to the next registers that one before it lets go of its own, so one picture holds both.
+  test("a turn begun in the same second as the last one's ending stands from its start, the picture holding both", async () => {
+    const both = () => picture([chatTurn({ speaker: tagged }), chatTurn({ speaker: tagged, since: 1_788_490_000 })]);
+
+    await watching(-1003, async (screen) => {
+      screen.write("live", picture([]));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: tagged }));
+      screen.write("bot", botEvent({ type: "sent", messageId: 42, speaker: tagged }));
+      await nextTick();
+      screen.write("live", both());
+
+      expect(screen.runs()).toEqual([]);
+
+      screen.write("bot", botEvent({ type: "run-started", messageId: 43, speaker: tagged }));
+      screen.write("live", both());
+
+      expect(screen.runs().map((run) => run.messageId)).toEqual([43]);
+
+      screen.write("bot", botEvent({ type: "run-failed", speaker: tagged }));
+      screen.write("live", picture([]));
+      await screen.finishRead();
+    }, () => true);
+  });
 });
 
 describe("how long a dropped stream waits before it tries again", () => {

@@ -1382,12 +1382,18 @@ Four groups.
   hand-written in, or a shape this console no longer uses — that value is discarded and that branch stands
   open. Folding is not a matter of screen width, so while the sidebar is folded to icons alone a branch cannot
   be opened or closed and the memory stays.
+- **A row nested under a branch folds on its own.** Its own open set is its own: folding it moves nothing of
+  the branch above it, and that branch opening again shows the row in the state it was left in this visit. What
+  is remembered across visits is the three branches; a nested row keeps its state while its branch is folded
+  and opened again.
 - **A branch is one control.** The row naming a branch and the chevron at its end are one button, so the
   branch's id stands once on the page and the list its `aria-controls` names is that branch's own — a
   screen reader and keyboard movement reach the branch they were sent to.
-  - That holds in the phone's drawer too, which is drawn in the browser alone: the console carries one
-    patch of `reka-ui`, under `client/patches/`, by which a collapsible region's id is made with the
-    region's root rather than with its list, so a button drawn before its list already names it.
+  - That holds in the phone's drawer too, which is drawn in the browser alone: the console carries patches
+    for this under `client/patches/`: one of `reka-ui`, by which a collapsible region's id is made with the
+    region's root rather than with its list, so a button drawn before its list already names it, and one of
+    `@nuxt/ui`, by which a nested region keeps its own open set instead of handing it back to the menu that
+    holds it, so folding one nested row moves no branch.
   - No id stands twice anywhere on a console screen. `client/tests/browser/console-ids.test.ts` holds home,
     every screen the sidebar lists and the first room and agent to that at a desktop width and at a
     phone's with the drawer open, and holds each branch's button, its chevron and the keyboard to

@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { wording } from "../../apps/web/shared/wording";
 import { harnessScreens } from "./harness-screens";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
@@ -191,6 +192,77 @@ describe.skipIf(!origin || !touchReady())("ids on a console screen", () => {
           await branch.focus();
           await page.keyboard.press("Enter");
           await settled(page, controls, "false");
+        }
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`a nested agent branch folds on its own at ${viewport.width}px`, async () => {
+      const context = await open(viewport);
+
+      try {
+        const page = await context.newPage();
+
+        await visit(page, "/");
+
+        const within = await sidebar(page, viewport.phone);
+        // The doppelganger stands under the roles with its run named by the folder's last part, so the row
+        // and the list under it are the reported shape: a branch with a nested branch under it.
+        const label = within.locator('nav [data-slot="linkLabel"]').filter({ hasText: /^\s*doppelganger\s*$/ }).first();
+        const row = label.locator("xpath=ancestor::li[1]");
+        const nested = row.locator('[data-slot="linkTrailing"][aria-controls]').first();
+        const controls = (await nested.getAttribute("aria-controls"))!;
+        const parentId = (await nested.evaluate((element) => element.closest('[data-slot="content"]')?.id ?? null))!;
+        const parent = within.locator(`nav button[aria-controls="${parentId}"]`);
+
+        expect(parentId).not.toBe("");
+        expect(await parent.count()).toBe(1);
+        expect(await parent.getAttribute("aria-expanded")).toBe("true");
+        expect(await nested.getAttribute("aria-expanded")).toBe("true");
+        expect(await page.locator(`[id="${controls}"]`).innerText()).toContain("scratch");
+
+        // Closing the nested row moves its own list alone: the branch above it stays as it stood.
+        await nested.click();
+        await settled(page, controls, "false");
+        expect(await parent.getAttribute("aria-expanded")).toBe("true");
+        expect(await page.locator(`[id="${parentId}"]`).getAttribute("data-state")).toBe("open");
+
+        // Folded and opened again, the branch shows the nested row in the state it was left.
+        await parent.click();
+        await settled(page, parentId, "false");
+        await parent.click();
+        await settled(page, parentId, "true");
+        await settled(page, controls, "false");
+
+        // The nested row's fold was never written into the memory the branches keep: a reload stands all
+        // three branches as the browser last left them, and none of them took the nested row's state.
+        await page.reload({ waitUntil: "networkidle" });
+
+        let held = await sidebar(page, viewport.phone);
+        let branches = held.locator("nav button[aria-controls]");
+
+        for (let at = 0; at < await branches.count(); at += 1) {
+          expect(await branches.nth(at).getAttribute("aria-expanded")).toBe("true");
+        }
+
+        // And a branch folded on its own is the only one remembered folded.
+        const roles = branches.filter({ hasText: wording("agents.label.group_role") }).first();
+        const roleControls = (await roles.getAttribute("aria-controls"))!;
+
+        await roles.click();
+        await settled(page, roleControls, "false");
+        await page.reload({ waitUntil: "networkidle" });
+
+        held = await sidebar(page, viewport.phone);
+        branches = held.locator("nav button[aria-controls]");
+
+        for (let at = 0; at < await branches.count(); at += 1) {
+          const id = (await branches.nth(at).getAttribute("aria-controls"))!;
+          const folded = id === roleControls;
+
+          expect(await branches.nth(at).getAttribute("aria-expanded")).toBe(folded ? "false" : "true");
+          expect(await page.locator(`[id="${id}"]`).getAttribute("data-state")).toBe(folded ? "closed" : "open");
         }
       } finally {
         await context.close();

@@ -25,6 +25,7 @@
   },
   "patchedDependencies": {
     "reka-ui@2.10.4": "patches/reka-ui@2.10.4.patch",
-    "@nuxt/icon@2.5.1": "patches/@nuxt%2Ficon@2.5.1.patch"
+    "@nuxt/icon@2.5.1": "patches/@nuxt%2Ficon@2.5.1.patch",
+    "@nuxt/ui@4.11.2": "patches/@nuxt%2Fui@4.11.2.patch"
   }
 }

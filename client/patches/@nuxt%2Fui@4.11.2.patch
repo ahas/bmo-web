@@ -1,0 +1,26 @@
+diff --git a/dist/runtime/components/NavigationMenu.vue b/dist/runtime/components/NavigationMenu.vue
+--- a/dist/runtime/components/NavigationMenu.vue
++++ b/dist/runtime/components/NavigationMenu.vue
+@@ -69,6 +69,13 @@
+   unmountOnHide: props.unmountOnHide
+ })), emits);
+ const accordionProps = useForwardProps(reactivePick(props, "collapsible", "disabled", "type", "unmountOnHide"), emits);
++// A nested region keeps its own open set. Only the menu's own root hands its moves back to the v-model
++// that names the branches; a nested region handed its moves back as well would rewrite that set with
++// its own values, so closing one nested row would close every branch the menu holds.
++const nestedAccordionProps = computed(() => {
++  const { "onUpdate:modelValue": _ownOpenSet, ...rest } = accordionProps.value;
++  return rest;
++});
+ const contentProps = toRef(() => props.content);
+ const tooltipProps = toRef(() => defu(typeof props.tooltip === "boolean" ? {} : props.tooltip, { ...props.orientation === "vertical" && { delayDuration: 0, content: { side: "right" } } }));
+ const popoverProps = toRef(() => defu(typeof props.popover === "boolean" ? {} : props.popover, { mode: "hover", content: { side: "right", align: "start", alignOffset: 2 } }));
+@@ -270,7 +277,7 @@
+       <AccordionContent v-if="props.orientation === 'vertical' && item.children?.length && !props.collapsed" data-slot="content" :class="ui.content({ class: [props.ui?.content, item.ui?.content] })">
+         <AccordionRoot
+           v-bind="{
+-  ...accordionProps,
++  ...nestedAccordionProps,
+   defaultValue: getAccordionDefaultValue(item.children, level + 1, listIndex)
+ }"
+           as="ul"

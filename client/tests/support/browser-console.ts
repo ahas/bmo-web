@@ -350,14 +350,19 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       });
     }
     if (path === "/slots") {
-      // The worker's runs: a job's, which opens by the job's run, and one its binding names.
+      // The worker's runs: a job's, which opens by the job's run, and one its binding names. The
+      // doppelganger's run works in no repository, so its row is named by the folder's last part.
       const runs = (name: string): Record<string, unknown>[] =>
         name === "worker"
           ? [
               { token: "slot-a", role: "worker", path: "/srv/checkouts/repo-a", provider: "claude-code", model: "claude-opus-5-5", source: "job", since: Date.now() - 90_000, runName: "job-7", session: null, jobId: 7, title: "Item 12" },
               { token: "slot-b", role: "worker", path: "/srv/checkouts/repo-a-w2", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 30_000, runName: "delegate-b", session: null, jobId: null, title: "Look into a thing" }
             ]
-          : [];
+          : name === "doppelganger"
+            ? [
+                { token: "slot-c", role: "doppelganger", path: "/srv/scratch", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 20_000, runName: "delegate-c", session: null, jobId: null, title: "Scratch the surface" }
+              ]
+            : [];
 
       return Response.json({ items: ROLES.map((one) => ({ role: one.name, maxConcurrent: one.maxConcurrent, active: one.running, reserved: 0, waiting: one.waiting, runs: runs(String(one.name)) })) });
     }

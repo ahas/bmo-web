@@ -54,6 +54,8 @@
           </div>
         </ContentSkeleton>
         <p v-if="agentsFailed" class="text-sm text-error">{{ $t("screens.error.agents_failed") }}</p>
+        <!-- A closed branch keeps its list mounted, so a row folded under it stands in the state it was
+             left when the branch opens again (docs/web.md, 「Sidebar」). -->
         <UNavigationMenu
           v-model="openGroups"
           :items="namedWhenFolded(agentItems, collapsed)"
@@ -61,6 +63,7 @@
           tooltip
           popover
           orientation="vertical"
+          :unmount-on-hide="false"
         >
           <!-- An entry at work turns a mark at its line's end, beside a role's count of its runs and the chevron of an
                entry that holds lines under it, so a spinning mark never stands where the chevron is pressed. -->

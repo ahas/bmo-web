@@ -4209,16 +4209,14 @@ Four bounds keep it from growing forever.
     log」), those pieces are the brain's documents in place of the ones the agency's log says the turn was handed.
     They come with the page, read with the round's summary, and stand at the head of the list before anything is
     read.
-  - **The 브레인 chip's figure is a running count, per room and per session**: first what this room's earlier
-    rounds of the same session had read in full before this round, as the round's end carries it, then a plus
-    and, in the success colour, what this round read new — the pieces that went whole, those the agent read
-    itself through the index, and the brain calls. 「2+1」 is two read before and one new, and the next round of
-    that session in the room opens on 3; a round that read nothing new stands the plain count, and the
-    session's first round in the room stands 「+2」. A piece sent in full again because its text changed counts
-    as new again, and a session that starts afresh counts from nothing. A screen reader hears 브레인, the count
-    read before, and 새로 읽음 with the new count. A turn still running counts, until its end comes, the pieces
-    that went as a mark on this turn in place of the running count, off what its stream has said, and a round
-    whose end carries no running count stands the same way.
+  - **The 브레인 chip's figure is the round's own reads**: first the pieces the session already held on this
+    round, then a plus and, in the success colour, the documents this round read new — the pieces that went
+    whole and those the agent read itself through the index. 「1+2」 is one held and two new; a round that read
+    nothing new stands the plain held count, and a round that held nothing stands 「+N」 alone. A piece sent in
+    full again because its text changed counts as new again, and a session that starts afresh holds nothing, so
+    its first round in the room stands 「+N」. The brain calls are the 툴 사용 chip's, never this one's: they
+    follow the pieces in the spread and stand in no count here. A screen reader hears 브레인, the count held, and
+    새로 읽음 with the new count. A turn still running counts off what its stream has said until its end comes.
   - **Spread, it is one list, read like a diff**: each new piece a line in the success colour on its own wash
     with a leading plus, as an added line, and each held one plain under them, in the muted colour with the
     plus's room kept blank. A piece stands by the index's words for it; the room's own due memories, the entry
@@ -4239,7 +4237,7 @@ Four bounds keep it from growing forever.
     name and path alone otherwise. Only an administrator, the brain screen's one reader, opens a piece; for
     anyone else the lines stand still.
   - **What the record does not hold stands as nothing.** A round on a road whose turns hand the agency no list of
-    what they were handed leaves no reference document in its log, so its 브레인 holds its brain calls alone
+    what they were handed leaves no reference document in its log, so its 브레인 stands no document count and its list holds its brain calls alone
     (`docs/boundary.md`, 「Gaps the console meets」).
   - **Each list is its own message's and its own chip's.** An answer's two lists start folded, and pressing one
     spreads or folds that list on that message alone — the other chip's list, the other answers and the turn still

@@ -546,6 +546,10 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ items: after === null ? record : record.filter((one) => one.id > Number(after)), more: false });
     }
+    // The record room's pinned message, for the top bar's pinned button.
+    if (path === `/rooms/${RECORD_CHAT}/pins`) {
+      return Response.json({ items: [{ id: -1, senderName: "owner", text: "record -1", pinnedAt: LINE_AT - 500 }], more: false });
+    }
     // The default answerer, answering the two rooms that name no supervisor; the other supervisor answers none.
     if (path === "/default-answerer") return Response.json({ supervisor: "agent-a" });
     if (/^\/supervisors\/[^/]+\/rooms$/.test(path)) {

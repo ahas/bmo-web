@@ -455,10 +455,9 @@ const done = computed<TurnActionsRef | null>(() => props.actionsAt ?? null);
 const reads = computed<DraftRead[]>(() => (props.live === null ? (props.drafts?.reads ?? []) : []));
 
 // What each chip counts: the whole round either way — for a turn still running, what its stream has
-// said plus what fell off the front of its block. The brain chip's held figure is the running count the
-// round's end carries — what this room's earlier rounds of the session read in full — and falls back to the
-// pieces that went as a mark on this turn where the end carries none; its new figure is the documents
-// handed in full and the calls that read the brain. The tool chip counts every call, those among them.
+// said plus what fell off the front of its block. The brain chip's held figure is the pieces the session
+// already held on this round; its new figure is the documents handed in full or read directly, never the
+// calls, which the tool chip counts. The round's reads name both.
 const counts = computed<{ documents: number; held: number; tools: number; brain: number }>(() => {
   const live = props.live;
 
@@ -468,7 +467,7 @@ const counts = computed<{ documents: number; held: number; tools: number; brain:
 
     return {
       documents: named ? reads.value.length - held : (done.value?.documents ?? 0),
-      held: named ? (props.drafts?.loaded ?? held) : (done.value?.held ?? 0),
+      held: named ? held : (done.value?.held ?? 0),
       tools: done.value?.tools ?? 0,
       brain: done.value?.brain ?? 0
     };
@@ -484,9 +483,9 @@ const counts = computed<{ documents: number; held: number; tools: number; brain:
 
 const records = computed<TurnRecord[]>(() => done.value?.records ?? []);
 
-// What the round read new: the pieces handed whole or read by the agent itself, and the brain calls; what the session
+// What the round read new: the pieces handed whole or read by the agent itself, never the calls; what the session
 // already held stands as the record button's plain figure before it.
-const fresh = computed<number>(() => counts.value.documents + counts.value.brain);
+const fresh = computed<number>(() => counts.value.documents);
 
 // The round's judgement as the record stands it: the gates that read the person's message and the answer's send and
 // checks alike.

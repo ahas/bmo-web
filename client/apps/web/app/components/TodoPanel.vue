@@ -513,6 +513,7 @@
 <script setup lang="ts">
 import { APPEND_LIMIT, DONE_PAGE_SIZE, TODO_SEARCH_LIMIT } from "#shared/config";
 import { todoOfQuery } from "#shared/paths";
+import { todoClosed, useAskedTodo } from "~/domain/todo-address";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useHoldMenu } from "bmo-ui/app/domain/holdmenu";
@@ -965,6 +966,9 @@ function toggle(id: number): void {
   const open = opened.value === id;
 
   opened.value = open ? null : id;
+
+  // A row the reader closed is not opened again by going back onto an address that names it.
+  if (open) todoClosed(id);
 
   // Closing the row it was sent to takes the address back to the room, so a reload does not open
   // it again after he has done with it.
@@ -1542,8 +1546,10 @@ useLiveRefresh(
 // long as the row is open: the panel stands twice on this page — beside the room on a wide
 // screen and in a drawer on a narrow one — and both read the same address, so taking it off
 // would leave whichever of them read it second with nothing to open.
+const askedTodo = useAskedTodo();
+
 async function openAsked(): Promise<void> {
-  const asked = todoOfQuery(route.query.todo);
+  const asked = askedTodo();
 
   if (asked === null || opened.value === asked) {
     return;

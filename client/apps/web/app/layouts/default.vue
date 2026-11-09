@@ -167,6 +167,7 @@ import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
+import { useAskedTodo } from "~/domain/todo-address";
 
 import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
 import type { PersonView } from "#shared/people";
@@ -202,8 +203,10 @@ const todoOpen = useState<boolean>("todo-open", () => false);
 // panel stands beside the page at, the panel is the drawer, so the drawer opens to show it.
 const asideShown = useNarrow("(min-width: 1280px)");
 
+const askedTodo = useAskedTodo();
+
 function openAskedTodo(): void {
-  if (route.query.todo !== undefined && !asideShown.value) {
+  if (askedTodo() !== null && !asideShown.value) {
     todoOpen.value = true;
   }
 }

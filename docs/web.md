@@ -5293,6 +5293,13 @@ Four bounds keep it from growing forever.
 
 #### TODO 패널
 
+- **An address naming an item opens it, and an item the reader closed is not opened again by going back.** The
+  address carries the item (`?todo=`) for as long as its row stands open, and closing the row takes it off the
+  entry the reader stands on. Where something floats under the row — the drawer the panel stands in on a narrow
+  screen — that entry is the floating thing's own, and the page's entry under it still names the item. So an item
+  the reader closed is remembered for the page's life: arriving at an address naming it by going back opens
+  nothing and takes the item off that address, and the back gesture goes on to close the drawer and then to leave
+  the page. A link or a notification naming the same item again opens it again.
 - After login, the same TODO panel stands on the right of every page. Being in the common layout, moving pages keeps
   the open item, search and scroll state. On a narrow screen it becomes a drawer opened by each page's top-bar
   「TODO 열기」 button.

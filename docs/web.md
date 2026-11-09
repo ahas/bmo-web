@@ -2052,34 +2052,17 @@ archive and this week's tokens remain. That is all that can actually be known th
 
 ### Live status screen
 
-- **The Herdr tab** shows the most recent structured herdr execution records, each with provider, work line
-  and recorded transport outcome and a mark for that outcome. An unfinished record is labelled as requiring
-  live-state confirmation rather than presented as proof of a live model. Transport exit is not a successful
-  model answer. Older archives without this table show an empty list, its one line centred in the tab's body
-  (「Where a list stands empty」); the console never creates the bot's table. Herdr is written with its capital
-  wherever a person reads it.
-
-- The place to skim at a glance what the gates, runners and job workers are doing now. A board standing
-  result states, not a place to read logs — what is running, what it was, how long it took, how it ended, is all.
-  Logs are on the agent screen.
-- **A section to a tab.** The five sections — role slots, gate, runner, job worker, Herdr —
-  stand as the component library's tabs on the console's own tab row, under the title bar and in that order,
-  and one of them stands at a time. Per group what is running now stands first, recent records below, and a
-  group with nothing running says only what is missing, since the tab over it already names the group.
-  - **Which tab stands is in the address** (`?tab=`), the pool being the screen's own address, so a link opens
-    the section it was taken on and moving to another tab is a step of the history. A tab the address does not
-    know falls back to the pool with nothing said. The choice is kept nowhere else.
-  - The tabs are the screen's own list, which the console search reads too, so a section is found by its own
-    name from anywhere.
-  - **Every section is drawn whether it stands or not**, and the one standing is the one shown. So the pool
-    goes on reading while another tab stands, and a tab opened again is full rather than starting over with a
-    skeleton.
-  - On a phone the row has not the width for both a mark and a name on five tabs, so the marks are what gives
-    way and the names stand alone; the row fits one line at a phone's width, the tabs scrolling sideways inside
-    it only where the machine's line and the refresh leave them too little.
-  - **Gates** — every gate, in the gate order (the gate unit's documents).
-  - **Runners** — `voyager` and `seeker`.
-  - **Job workers** — the worker.
+- **`/live`, 실시간 상태, is where what the agents are doing now is seen at a glance.** It reads no log and shows no
+  conversation: who works, where, on what and since when is all, and a log is opened from it.
+- **Two tabs,** the component library's tabs on the console's own tab row under the title bar: **공간** first, the
+  agents' space, and **역할 슬롯**, the role slots as a grid of tiles.
+  - **Which tab stands is in the address** (`?tab=`), the space being the screen's own address, so a link opens
+    the tab it was taken on and moving to the other is a step of the history. A tab the address does not know falls
+    back to the space with nothing said. The choice is kept nowhere else.
+  - The tabs are the screen's own list, which the console search reads too, so a tab is found by its own name from
+    anywhere.
+  - **Both tabs are drawn whether they stand or not**, and the one standing is the one shown, so a tab opened again
+    is full rather than starting over with a skeleton. A tab out of sight reads nothing and draws nothing.
 - The tab row carries, at its right end, the time the bot's picture was taken — or, in red, that the bot
   does not answer (「Tab bar and toolbar」, one row under the title bar). It is a button: pressing it reads the
   picture again, and it spins while it does. On a phone the time folds into its tooltip and the refresh stands as
@@ -2094,6 +2077,42 @@ archive and this week's tokens remain. That is all that can actually be known th
   and heavy runs it was given and its room, and where the next heavy run goes (the agency's `docs/work-nodes.md`,
   「The rotation」) — and the way to the hardware monitor. Where a command holds the turn the line carries it as one more part,
   the holder and how many wait. On a phone the line keeps the memory pressure and the open jobs.
+- **공간 is one floor seen from above its corner, drawn in voxels** — every wall, desk and person a set of small
+  boxes painted in code on one canvas, with no picture file — read from the console's `GET /api/space` and read
+  again every few seconds while the tab stands.
+  - **Every machine and every repository is a room.** First stand 감독관실, where each supervisor keeps a desk;
+    휴게실, where an agent with no work waits; and 작업실, for work in no repository the agency lists. After them
+    stands every machine the node service lists: the machine's own room, its racks along the far wall with their
+    lamps blinking, quicker while work goes on that machine, and after it a room to each repository standing on it,
+    four desks each. A repository that names no machine stands with the first machine's. The rooms stand in rows in
+    that order, broken where that leaves the floor most nearly square, which is what fits a box best seen from its
+    corner. A room's far walls stand and its near sides are open, and a plate over its far corner names it — the
+    repository's or the machine's label, or the room's own word — smaller the farther the floor stands.
+  - **The floor stands still while the machines, the repositories and the agents listed stay the same,** so a run
+    that starts or ends moves nobody's room.
+  - **Every agent is a person on the floor.** A supervisor wears a headset and a pale top; an agent of a role wears
+    its role's colour, the same for every agent of that role, and its own hair, skin and legs by its name, so one
+    agent looks the same every time. One that works sits at a desk of the room its work is in and types, three dots
+    over its head and a light on its laptop; one with a run in a room whose desks are taken stands in it. One with
+    no work sits on the lounge's sofa or stands before it and strolls to another place now and then. One switched
+    off dozes on the sofa. A supervisor answering a room types at its own desk and sits still otherwise.
+  - **An agent whose work begins walks to its room, and one whose work ends walks back,** along the paths between
+    the rooms and in through a room's open sides, never through a wall. For a reader who asked for less motion
+    nobody walks or strolls: each stands at its place at once.
+  - **The floor is dragged to move it and zoomed by the wheel, two fingers or the buttons** at its corner — 확대,
+    축소 and 맞춤, which fits the whole floor to its box, as the floor stands until it is first moved. The arrow keys
+    move it, `+` and `-` zoom it and `0` fits it.
+  - **Touching an agent opens its card** over the floor's corner: its label, its role or 감독관, and its name; 상태,
+    작업 중, 대기 중 or 꺼짐; for one that works 위치, the repository or the folder its run works in, or the room a
+    supervisor answers, 작업, the line naming the work where its asker named one, and 경과, how long it has worked;
+    and 실행 경로, the provider and model it works on now, else the road it is set on, else 요청한 감독관을 따름. 로그
+    열기 opens the live log of an agent's run as a role slot's tile does, and 에이전트 화면 leads to a supervisor's own
+    screen. The agent touched and the one the pointer stands on carry their names on a plate over their heads. A
+    press on the floor closes the card, and so does Esc.
+  - **Over the floor's corner stand its counts:** how many agents work, how many runs wait for a free agent, how
+    many agents wait, and how many are switched off.
+  - **The space is read without seeing it:** the canvas says its counts as its name, and beside it, out of sight,
+    every agent stands as a line with its state that opens the same card.
 - **The role slots are a grid of tiles** (역할 슬롯), read from the agency's `GET /slots` and read again every few
   seconds while the screen stands (the agency's `docs/role-slots.md`).
   1. **One row per role**, in the order the agency lists the roles, with a tile for every one of its agents that
@@ -2114,122 +2133,20 @@ archive and this week's tokens remain. That is all that can actually be known th
      opens as a dialog in the middle of a wide screen, a sheet from the bottom edge of a phone. An idle tile opens
      nothing.
      A job's tile is stopped through the job's item, as every job is.
-- Runners write execution records to a table of their own, and which group a record belongs to is read by which
-  branch the agent that ran that line is — the branch the catalogue answers, and a name the catalogue does not
-  know is read as a runner. Reading is per branch, as gates are read per gate.
-- A running line has the agent name, which room's work, for a job the repository it runs in with the checkout
-  beside it where that is not the repository's own name, who launched it, when it started, and how long it has
-  gone. A gate is launched by nobody — it runs as part of answering — so a gate line has no launcher. The elapsed
-  is redrawn every second. A run with a ceiling shows the ceiling and remaining time together, and when the
-  remaining runs out, the overrun shows. A run with no ceiling — a search is such — shows only the elapsed. A
-  queue job carries its item number, and a co-work step carries how far its work order came as a some/some like
-  the TODO panel. A search carries its own depth (basic, thorough, exhaustive), a job its own model. A group with
-  nothing running is not left blank but written 「실행 중인 것 없음」.
-- **A job standing still on the owner says so.** A job whose pane stopped on a confirmation the runner put to them
-  wears a raised-hand status icon and a 「확인 창 대기」 chip; a job waiting on a question it asked them wears the
-  same icon and 「응답 대기」. On a phone the chip takes the model chip's place.
-- **Every running line stands a 「중지」.** What a line is stopped by is the stop target the bot's picture gives
-  it (the agency's `docs/agent-control.md`, 「Stopping」), so the button stands on every line that has one, on this board's
-  groups and on the agent screens alike: a chat turn and a gate by their execution, a runner and a
-  job worker by their unit, and a busy co-worker tile by the parent it runs inside. Pressing asks
-  「실행을 중지할까요?」 in place — the line's own question, never a screen over the screen — and on confirming
-  the control API stops that target. A tile has not the width to hold the question, so the question
-  grows under the group of tiles instead, naming the tile it is about while that tile stands marked;
-  and an open question goes back with the back gesture, as everything a screen goes into does. A search has no ceiling of its own, so this is the one way one ends short
-  of its own answer. The runner cuts its run, salvages what the run wrote so far and returns it to the room,
-  then closes the run row as 「사용자가 중지」; with nothing to salvage the room hears one line that the work was
-  cut off with no result, and a stopped chat turn leaves that same line in the room it was answering. A job
-  and a co-work run are also stopped through their item, by the 중지 of the TODO item or its work order panel
-  (bmo-job's `docs/work-orders.md`, 「the owner stops an item now」), which ends every run that item holds at once. Whichever
-  road it took, the run closes as 「사용자가 중지」, never as 실패 or 보고 없이 종료됨.
-- **A line whose stop is asked reads 중지 중.** The answer a stop gives is that it was asked, so the line
-  carries that word until the bot's picture next says the run is gone, and it is that line that carries it —
-  a person pressing one stop can see which one is in flight. A stop's call waits for the bot's answer however
-  long the run takes to end, and each line's stop is its own: a line whose stop is out holds its own button,
-  never another line's. A stop the bot refused, or could not carry,
-  stands as an error on the line it was pressed on, and stays there while the line does rather than going
-  away with the section.
+- **A working tile whose run is tied to an item carries 중지.** Pressing it asks 「실행을 중지할까요?」 in place — a
+  tile has not the width to hold the question, so it grows under the row of tiles, naming the tile it is about
+  while that tile stands marked — and on confirming the item is stopped, which ends every run that item holds
+  (bmo-job's `docs/work-orders.md`, 「the owner stops an item now」). The tile reads 중지 중 until the slots no longer
+  hold its run, and a stop the agency refused stands as an error under the row.
 - **A co-work run is read not by its unit name but by the place it stands in the work order.** The name the bot
   gives such a run is an identifier joining item, task and round, and the log, unit and control API find that run
   by that name, so the name itself is left as is. But since it is not a name made for a person to read, on screen
   it stands as 계획, 단계 몇-몇, 설계 종합, 구현 몇, 최종 검증. From the second round on, which round attaches, and not on the
-  first. The item number is not put in that name — every screen already has the item standing beside the run
-  line, so it would only write the same number twice in one line. The name-reading place is shared by every
-  screen, so this rule reaches the live status, room and siren screens at once, and an agent with a label in the
-  catalogue always stands by that label, so the rule reaches only labelless runs.
-- Recent records are the last few runs per group. What it ended as and how long it took stand together, and which
-  room's work attaches. A job carries which item's run it was as an item number, and a job launched with no item
-  stands without a number, under the line its launcher wrote for why it was launched.
-- Every line wears a status mark in its state's colour: a running line its agent's mark, a finished line a mark
-  for how it ended (done, failed, cut off, stopped). The chip at the right of a line holds one ended state only. There are nine states — 끝남, 답을 못 냈다고 보고,
-  실패, 천장에서 잘림, 사람이 중지, 제 일을 띄운 채 거부됨, 한도에 걸림, 실행이 답을 못 냄, 보고 없이 죽음.
-  「응답 실패 보고」 is a search writing in its result's first line that it could not meet the done condition,
-  and the answer itself has gone to the room. A gate's end is that gate's verdict folded into one of three — 통과,
-  거부, 판정. The chip carries in no case what a run left. Content in a chip is cut and unread, and it is not this
-  screen's job.
-- **A watch run says which watch it holds, in one line.** Under the run line of a watch stands the watch it
-  holds as 「워치 #N · <name>」 and nothing else: its number and its short name. A watch carrying no name of its
-  own is shown by the head of its note instead, so a line never stands without saying which watch it is. A
-  watch serving no memory carries a 「메모리 없음」 badge on that line, since nothing closing a memory will ever
-  end it (the brain's `docs/memories.md`, 「Watches」). Pressing the line opens its detail in place: how often it checks
-  and how long is left of its deadline, the last check with its exit, the memory it serves by number or that it
-  serves none, the whole of what it promised, the whole check, and the deadline or the timer's moment. A watch is joined to its run by the unit the watch row names. A timer and a check between two runs
-  stand in no run, so the runner group lists them under 「러너 없는 워치」 with the same one line; the room it
-  was set in and whether it waits for its next check stand first in that detail. While the bot does not answer, no run is known, so every standing watch stands there under 「워치」. The name and the note are the chat agent's own words about what it promised, and are the one text beyond room names this screen
-  carries.
-- The conversation content on this screen is only the room name and the message number the run attached to. Neither
-  what was asked, nor what was answered, nor what a job was told stands here. The place to see that is the agent
-  screen.
-- **Pressing a line goes to see that run.** A running line goes to that agent's screen, to the end of the log
-  where lines pile now. A recent-record line goes to the same screen at where that run started — not the log's
-  start or end, but where that run wrote its first line.
-- The way to get there differs per branch. Runners and jobs each run in their own unit and the log piles under
-  that unit name, so a line names that name and picks that run exactly. A gate has no unit and the number attached to the log
-  restarts from 1 each time the bot starts, so it names the place found by the verdict time minus its duration,
-  and the room that verdict attached to. One gate judges one room one at a time, so the two settle the run, and if
-  there is no line of that room around there — already deleted or never kept — it shows the log's end.
-- What a gate judged attaches as a chip on the room screen too, but what that run exchanged inside is only in the
-  log, so a gate line goes to the log too. The log keeps only 4,000 lines per week per agent, so if the sought run
-  is already deleted, any branch shows the log's end.
-- A line shows as pressable and can be moved to by the Tab key. The way back is the sidebar's live status. The
-  agent screen has its own place in the sidebar, so unlike the gate-test screen it puts no return hook in the
-  header.
-
-#### How liveness is known
-
-Two ways, split because the running places differ.
-
-- **A gate is the bot's own run.** Its process runs in the gate's standing herdr pane, but the bot launches it and
-  waits, so the bot's memory is the fact. If the bot dies the gate is stopped with it and the control API does not
-  answer either, so the screen says the bot is gone. There is nowhere to disagree.
-- **A runner and a job worker run in a temporary systemd unit outside the bot.** So the record and the unit
-  are seen together. A run writes its row to the archive at start and closes it at end, and whether an unclosed
-  row is still alive is **asked of the unit**. A run killed from outside has no chance to write its end, so the
-  row stays open, so the record alone looks like it runs forever, and the unit alone cannot say which room's work
-  started when. The record says what, the unit says yes/no.
-- An unclosed row with no unit is a run that died with no report. It disappears from what is running now and
-  remains in recent records as 「보고 없이 종료됨」. The bot closes a runner's row so, and closes a job's
-  row when it next starts, telling that room the job ended.
-- A run with no unit at all — run by hand — has no unit to ask, so it opens no row and only writes what it wrote
-  and what it carried on ending.
-- A case where a unit never came up does not reach here. The side launching a runner (the search, browser, voice
-  launcher) opens the row first and asks for the unit, so if the ask fails there is no runner to close. There the
-  launcher closes its own row as 「실행 오류」 — the place that knows what happened is there, and writing a
-  run that did nothing as 「보고 없이 종료됨」 would be untrue. So on this screen that row never looks even briefly like
-  it runs.
-- The bot's picture carries more things that are not runs — **a room folding its context**, **a room
-  answering a turn now** and **a message waiting for its turn** (docs/live-state.md). All three happen in the same
-  place as a gate — in the bot's own memory, as work it holds and waits on — so they are settled the same way. None
-  opens or closes a row, so while it happens the only place to read it is this picture. An answering room and a
-  waiting message do not stand in this screen's list — what stands here is runs in units and
-  gates, and the place to see how far that turn came is that room's screen. What the picture carries is which room
-  has been answering what since when.
-- Asking the unit is done by the bot alone. With no unclosed row it does not ask at all, and asks once every few
-  seconds only when there is one. An event flows only the moment the picture changes, so the screen changes on its
-  own at every start and end with nothing to refresh. But while nothing changes nothing flows, so a screen opened
-  in between has nothing to hear — so the stream hands the picture once as it is at opening and flows onward at each
-  change. This first picture uses no event number, so a screen counting the break by that number does not lose its
-  count. The app does not look at units directly and holds nothing.
+  first. The name-reading place is shared by every screen, so this rule reaches the room and siren screens as it
+  reaches this one, and an agent with a label in the catalogue always stands by that label, so the rule reaches
+  only labelless runs.
+- The conversation content on this screen is only the name of the room a supervisor answers. Neither what was
+  asked, nor what was answered, nor what a job was told stands here. The place to see that is the agent screen.
 
 ### Cache siren screen
 

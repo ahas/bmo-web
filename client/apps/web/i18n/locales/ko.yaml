@@ -2190,12 +2190,18 @@ live:
   action:
     open_hardware: 하드웨어 모니터
     stop: 중지
+    zoom_in: 확대
+    zoom_out: 축소
+    zoom_fit: 맞춤
+    open_log: 로그 열기
+    open_agent: 에이전트 화면
   aria:
-    herdr_log: Herdr 실행 기록
     machine: "기기 여유: {line}"
     sections: 상태 섹션
     stop_confirm_named: "{name} 중지 확인"
     stop_named: "{name} 중지"
+    space: "에이전트 공간: 작업 중 {working}, 대기 중 {idle}"
+    space_agents: 에이전트 목록
   error:
     load_failed: 실시간 상태를 불러오지 못했습니다.
     slots_read_failed: 역할 슬롯을 읽지 못했습니다.
@@ -2203,28 +2209,17 @@ live:
     stop_target_absent: 멈출 실행을 찾지 못했습니다.
     stop_target_needed: 중지할 실행을 지정해 주세요.
     stop_target_wrong: 멈출 대상이 올바르지 않습니다.
+    space_read_failed: 공간을 불러오지 못했습니다.
   label:
     as_of: "{time} 기준"
-    attempt: "{n}회차"
-    cap: "상한 {time}"
-    child_done: 하위 실행 완료
-    child_failed: 하위 실행 실패
-    child_requested: 하위 실행 요청
-    child_started: 하위 실행 시작 기록 · 현재 상태 확인 필요
-    child_unknown: 하위 실행 결과 확인 불가
     deadline_passed: 기한 지남
     elapsed: "{time} 경과"
-    execution_id: "실행: {id}"
-    execution_parent: "부모: {id}"
-    execution_root: "시작 작업: {id}"
-    exit_code: "종료 코드 {code}"
     gate_judged: 판정
     gate_passed: 통과
     gate_refused: 거부
     last_check_met: "마지막 확인 {ago} 전 · 충족"
     last_check_timed_out: "마지막 확인 {ago} 전 · 시간 초과"
     last_check_unmet: "마지막 확인 {ago} 전 · 미충족 (종료 {code})"
-    launched_by: "{name} 실행"
     launcher_console: 콘솔에서
     launcher_room: "{title}에서"
     machine_available: "사용 가능 메모리 {free}/{total} GB"
@@ -2266,11 +2261,7 @@ live:
     outcome_unclosed: 작업을 닫지 않아 거부됨
     outcome_work_step: 단계 완료
     overrun: "{time} 초과"
-    process_ended: 프로세스 종료
     remaining: "{time} 남음"
-    run_link: 실행 연결
-    run_started: 실행 시작 기록 · 현재 상태 확인 필요
-    shares_parent_pane: 부모 팬 공유
     slot_idle: 비어 있음
     slot_reserved: 예약됨
     slot_row_head: "{role} · {used}/{cap}"
@@ -2285,17 +2276,9 @@ live:
     slot_source_search: 검색
     slot_source_translate: 번역
     slot_working: 작업 중
-    start_failed: 시작 실패
-    start_requested: 시작 요청 기록 · 현재 상태 확인 필요
-    started_at: "{time} 시작"
-    state_unknown: 상태 확인 불가
-    tab_executions: Herdr
     tab_slots: 역할 슬롯
-    timed_out: 시간 초과
-    timer: 타이머
     timer_left: "타이머 · {time} 남음"
     timer_passed: 타이머 · 시간 지남
-    watch: 워치
     watch_condition: 조건
     watch_content: 내용
     watch_deadline: 기한
@@ -2306,29 +2289,39 @@ live:
     watch_no_memory: 메모리 없음
     watch_time: 시각
     watch_title: "워치 #{id} · {name}"
-    watch_without_runner: 러너 없는 워치
     work_item: "항목 #{id}"
     work_item_progress: "항목 #{id} · {progress}"
     work_item_run: "항목 #{id} · {attempt}번째 실행"
+    tab_space: 공간
+    space_supervisors: 감독관실
+    space_lounge: 휴게실
+    space_workshop: 작업실
+    space_working: "작업 중 {n}"
+    space_waiting: "실행 대기 {n}"
+    space_idle: "대기 중 {n}"
+    space_off: "꺼짐 {n}"
+    space_supervisor: 감독관
+    space_state: 상태
+    space_state_working: 작업 중
+    space_state_idle: 대기 중
+    space_state_off: 꺼짐
+    space_place: 위치
+    space_title: 작업
+    space_since: 경과
+    space_road: 실행 경로
+    space_follows: 요청한 감독관을 따름
   message:
     stop_confirm: 이 작업의 실행을 중지할까요?
     stop_confirm_default: 실행을 중지할까요?
   status:
-    check_runner_unknown: 확인 러너 상태 확인 불가
-    log_loading: 실행 기록 불러오는 중…
     machine_loading: 기기 여유 불러오는 중…
     no_slots: 역할 없음
-    nothing_running: 실행 중인 것 없음
-    runs_loading: 실행 불러오는 중…
     slots_loading: 역할 슬롯 불러오는 중…
     stopping: 중지 중
     unchecked: 확인 전
-    unknown_now: 현재 상태 확인 불가
     waiting_answer: 응답 대기
     waiting_confirmation: 확인 창 대기
-    waiting_next_check: 다음 확인 대기
-  title:
-    recent_log: 최근 기록
+    space_loading: 공간을 불러오는 중
 research:
   aria:
     branches_of: "{key} 브랜치"

@@ -53,8 +53,8 @@ const CATALOGUE: AgentSummary[] = [
     line: "worker",
     running: 2,
     runs: [
-      { role: "worker", path: "/srv/repo-a/places/1", provider: "codex", model: "model-a", source: "job", since: 1_788_000_000_000, session: null, runName: null, jobId: null, title: null },
-      { role: "worker", path: "/tmp/scratch/loose", provider: "codex", model: "model-a", source: "ask", since: null, session: null, runName: null, jobId: null, title: null }
+      { role: "worker", path: "/srv/repo-a/places/1", provider: "codex", model: "model-a", source: "job", since: 1_788_000_000_000, session: null, runName: null, jobId: null, title: null, agent: null },
+      { role: "worker", path: "/tmp/scratch/loose", provider: "codex", model: "model-a", source: "ask", since: null, session: null, runName: null, jobId: null, title: null, agent: null }
     ]
   }),
   catalogueEntry("repo-a", "repository", "Repository A", {

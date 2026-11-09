@@ -1469,6 +1469,8 @@ export interface RoleSlotRun {
   runName: string | null;
   jobId: number | null;
   title: string | null;
+  // The agent of the role the run was let in on; none where the agency names none.
+  agent: string | null;
 }
 
 // One checkout of a repository, as the agency answers it: its name, path and node, and the job holding it where one

@@ -152,7 +152,8 @@ export function slotRunsOf(answer: unknown): RoleSlotRun[] {
             session: text(run.session),
             runName: text(run.runName),
             jobId: count(run.jobId),
-            title: text(run.title)
+            title: text(run.title),
+            agent: text(run.agent)
           }];
     });
   });

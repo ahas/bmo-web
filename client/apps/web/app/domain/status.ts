@@ -15,9 +15,9 @@ export interface StatusGroup {
   label: string;
 }
 
-// Which section of the board stands: the role slots, one group of runs, or the transport records. One of them stands
-// at a time, and which one is in the address.
-export type LiveTab = "slots" | "executions" | LiveRunKind;
+// Which tab of the live status screen stands: the agents' space or the role slots. One of them stands at a time, and
+// which one is in the address.
+export type LiveTab = "space" | "slots";
 
 export interface LiveTabItem {
   value: LiveTab;
@@ -57,21 +57,10 @@ export function statusGroups(t: Translate): readonly StatusGroup[] {
   return LIVE_KEYS.map((key) => ({ key, label: t(LIVE_LABELS[key]) }));
 }
 
-// The mark each section's tab wears. A group of runs wears the mark of what that branch does, and
-// the two sections that are not a group of runs wear their own.
-const LIVE_TAB_ICONS: Record<LiveTab, string> = {
-  slots: "i-material-symbols-grid-view-outline",
-  gate: "i-material-symbols-balance",
-  runner: "i-material-symbols-travel-explore",
-  worker: "i-material-symbols-folder-outline",
-  executions: "i-material-symbols-receipt-long-outline"
-};
-
-// The sections of the board, in the order they stand.
+// The tabs of the live status screen, in the order they stand.
 export const LIVE_TABS: readonly LiveTabItem[] = [
-  { value: "slots", label: "live.label.tab_slots", icon: LIVE_TAB_ICONS.slots },
-  ...LIVE_KEYS.map((key) => ({ value: key, label: LIVE_LABELS[key], icon: LIVE_TAB_ICONS[key] })),
-  { value: "executions", label: "live.label.tab_executions", icon: LIVE_TAB_ICONS.executions }
+  { value: "space", label: "live.label.tab_space", icon: "i-material-symbols-view-in-ar-outline" },
+  { value: "slots", label: "live.label.tab_slots", icon: "i-material-symbols-grid-view-outline" }
 ];
 
 const DEPTH_LABELS: Record<string, string> = {

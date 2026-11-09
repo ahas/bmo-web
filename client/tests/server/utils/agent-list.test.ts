@@ -12,15 +12,15 @@ describe("the slots' runs", () => {
     expect(
       slotRunsOf({
         items: [
-          { role: "role-a", runs: [{ role: "role-a", path: "/srv/a", provider: "codex", model: "model-a", source: "job", since: 5, session: "session-a", runName: "run-a", jobId: 7, title: "Title A" }] },
+          { role: "role-a", runs: [{ role: "role-a", path: "/srv/a", provider: "codex", model: "model-a", source: "job", since: 5, agent: "role-a-01", session: "session-a", runName: "run-a", jobId: 7, title: "Title A" }] },
           { role: "role-b", runs: [{ path: null }] },
           { role: "role-c" },
           "nonsense"
         ]
       })
     ).toEqual([
-      { role: "role-a", path: "/srv/a", provider: "codex", model: "model-a", source: "job", since: 5, session: "session-a", runName: "run-a", jobId: 7, title: "Title A" },
-      { role: "role-b", path: null, provider: null, model: null, source: null, since: null, session: null, runName: null, jobId: null, title: null }
+      { role: "role-a", path: "/srv/a", provider: "codex", model: "model-a", source: "job", since: 5, session: "session-a", runName: "run-a", jobId: 7, title: "Title A", agent: "role-a-01" },
+      { role: "role-b", path: null, provider: null, model: null, source: null, since: null, session: null, runName: null, jobId: null, title: null, agent: null }
     ]);
   });
 

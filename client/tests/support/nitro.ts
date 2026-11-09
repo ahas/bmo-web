@@ -69,7 +69,8 @@ for (const module of [
   await import("../../apps/web/server/utils/document-translation"),
   await import("../../apps/web/server/utils/document-talk"),
   await import("../../apps/web/server/utils/hardware"),
-  await import("../../apps/web/server/utils/cards")
+  await import("../../apps/web/server/utils/cards"),
+  await import("../../apps/web/server/utils/space")
 ]) {
   Object.assign(globals, module);
 }

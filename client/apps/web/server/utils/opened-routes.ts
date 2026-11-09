@@ -110,6 +110,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(AGENT_DETAIL, "GET", /^\/api\/agents\/[^/]+(?:\/.*)?$/),
   section(AGENT_PARTS, "GET", /^\/api\/agents$/),
   { ...section(["roles", "live"], "GET", /^\/api\/slots$/), access: "read" },
+  // The agents' space, the live status screen's first tab.
+  { ...section(["live"], "GET", /^\/api\/space$/), access: "read" },
   section(SUPERVISORS, "GET", /^\/api\/supervisors(?:\/.*)?$/),
   section(SUPERVISORS, "POST", /^\/api\/supervisors(?:\/.*)?$/),
   section(SUPERVISORS, "PATCH", /^\/api\/supervisors(?:\/.*)?$/),

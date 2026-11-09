@@ -68,37 +68,26 @@ test("a Claude model is read under the name its identifier gives, listed or not"
   expect(modelLabel("gpt-6-astra")).toBe("GPT-6 Astra");
 });
 
-describe("the groups the live board watches", () => {
+describe("the groups of runs", () => {
   test("are the three that run, under the pack's names for them", () => {
     expect(statusGroups(wording).map((group) => group.key)).toEqual(["gate", "runner", "worker"]);
     expect(statusGroups(wording).map((group) => group.label)).toEqual([KO.line_100, wording("agents.label.group_runner"), KO.line_100_2]);
   });
 });
 
-describe("the board's sections", () => {
-  test("stand as one tab each: the role slots, every group of runs, then the transport records", () => {
-    expect(LIVE_TABS.map((tab) => tab.value)).toEqual(["slots", "gate", "runner", "worker", "executions"]);
-    expect(LIVE_TABS.map((tab) => wording(tab.label))).toEqual([wording("live.label.tab_slots"), KO.line_118, wording("agents.label.group_runner"), KO.line_118_2, "Herdr"]);
+describe("the live status screen's tabs", () => {
+  test("stand as the agents' space and then the role slots", () => {
+    expect(LIVE_TABS.map((tab) => tab.value)).toEqual(["space", "slots"]);
+    expect(LIVE_TABS.map((tab) => wording(tab.label))).toEqual([wording("live.label.tab_space"), wording("live.label.tab_slots")]);
     // Every tab wears a mark, since the row is read at a glance and on a phone.
     expect(LIVE_TABS.every((tab) => tab.icon.startsWith("i-material-symbols-"))).toBe(true);
-  });
-
-  test("name a group of runs by the same words as the group", () => {
-    for (const key of ["gate", "runner", "worker"] as const) {
-      expect(liveTabLabel(wording, key)).toBe(statusGroups(wording).find((group) => group.key === key)!.label);
-    }
+    expect(liveTabLabel(wording, "space")).toBe(wording("live.label.tab_space"));
   });
 
   test("only these are read back from an address", () => {
+    expect(isLiveTab("space")).toBe(true);
     expect(isLiveTab("slots")).toBe(true);
-    expect(isLiveTab("pool")).toBe(false);
-    expect(isLiveTab("gate")).toBe(true);
-    expect(isLiveTab("worker")).toBe(true);
-    expect(isLiveTab("editor")).toBe(false);
-    expect(isLiveTab("executions")).toBe(true);
-    expect(isLiveTab("all")).toBe(false);
-    expect(isLiveTab("chat")).toBe(false);
-    expect(isLiveTab(null)).toBe(false);
+    for (const other of ["pool", "gate", "worker", "executions", "all", null]) expect(isLiveTab(other)).toBe(false);
   });
 });
 

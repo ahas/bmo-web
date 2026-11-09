@@ -4,6 +4,7 @@ import { unitFetch } from "./units";
 
 import type {
   ResearchAsk,
+  ResearchCalendar,
   ResearchCategoryView,
   ResearchFilter,
   ResearchHold,
@@ -11,6 +12,7 @@ import type {
   ResearchItemChange,
   ResearchLogLine,
   ResearchNewSource,
+  ResearchNewTopic,
   ResearchOrigin,
   ResearchQueuePage,
   ResearchRunDetail,
@@ -18,7 +20,8 @@ import type {
   ResearchSource,
   ResearchSourceChange,
   ResearchStateChange,
-  ResearchStateView
+  ResearchStateView,
+  ResearchTopicChange
 } from "#shared/research";
 
 // The research unit, bmo-research, as the console reaches it: its state, its categories, its queue and an item's
@@ -47,6 +50,8 @@ const DISMISS = { ...FAILED, "not-found": "research.error.no_item", conflict: "r
 const REASK = { ...FAILED, "not-found": "research.error.no_item", conflict: "research.error.reask_conflict" };
 const FRONT = { ...FAILED, "not-found": "research.error.no_item", conflict: "research.error.front_conflict" };
 const RUN = { ...FAILED, "not-found": "research.error.no_run" };
+const TOPIC_ADD = { ...FAILED, "bad-request": "research.error.topic_refused", conflict: "research.error.topic_taken" };
+const TOPIC_CHANGE = { ...FAILED, "bad-request": "research.error.topic_refused", "not-found": "research.error.no_category", conflict: "research.error.topic_held" };
 const SOURCE_READ = FAILED;
 const SOURCE_ADD = { ...FAILED, "bad-request": "research.error.source_refused", "not-found": "research.error.no_category" };
 const SOURCE_CHANGE = { ...FAILED, "bad-request": "research.error.source_refused", "not-found": "research.error.no_source" };
@@ -92,8 +97,19 @@ interface UnitCategory {
   gatherMinutes: number | null;
   provider: string | null;
   model: string | null;
+  instruction?: string | null;
+  calendar?: { realm?: string; calendarId?: string } | null;
   state: string;
   stateAt: number | null;
+}
+
+// The calendar a category names, where it names one of the two realms and an id.
+function calendarOf(value: unknown): ResearchCalendar | null {
+  const held = typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+  const realm = held?.realm;
+  const calendarId = typeof held?.calendarId === "string" ? held.calendarId.trim() : "";
+
+  return (realm === "mine" || realm === "organization") && calendarId !== "" ? { realm, calendarId } : null;
 }
 
 // Every category the unit holds, in its order, with the state and the part of the queue the state names for it.
@@ -114,6 +130,8 @@ function stateOf(state: UnitState, categories: readonly UnitCategory[]): Researc
         gatherMinutes: category.gatherMinutes ?? null,
         provider: category.provider ?? null,
         model: category.model ?? null,
+        instruction: category.instruction ?? null,
+        calendar: calendarOf(category.calendar),
         state: standing?.state ?? category.state,
         stateAt: category.stateAt ?? null,
         waitingCount: standing?.waitingCount ?? 0,
@@ -141,6 +159,89 @@ export async function changeResearchState(change: ResearchStateChange): Promise<
   const state = await researchFetch<UnitState>("/state", json("PATCH", change), STATE);
 
   return stateOf(state, await categories());
+}
+
+// A topic's fields read off a body, each of its own shape where it stands: null where one is of another shape.
+function topicFieldsOf(fields: Record<string, unknown>): ResearchTopicChange | null {
+  const change: ResearchTopicChange = {};
+
+  for (const field of ["purpose", "instruction"] as const) {
+    if (fields[field] === undefined) continue;
+    if (typeof fields[field] !== "string" || fields[field].trim() === "") return null;
+
+    change[field] = fields[field].trim();
+  }
+
+  if (fields.gatherMinutes !== undefined) {
+    if (typeof fields.gatherMinutes !== "number" || !Number.isInteger(fields.gatherMinutes) || fields.gatherMinutes < 1) return null;
+
+    change.gatherMinutes = fields.gatherMinutes;
+  }
+
+  if (fields.calendar === null) {
+    change.calendar = null;
+  } else if (fields.calendar !== undefined) {
+    const calendar = calendarOf(fields.calendar);
+
+    if (calendar === null) return null;
+
+    change.calendar = calendar;
+  }
+
+  return change;
+}
+
+/** A topic registered, read off a body: its name, its purpose and its instruction, and what else it names. */
+export function researchNewTopicOf(body: unknown): ResearchNewTopic | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  const fields = body as Record<string, unknown>;
+  const name = typeof fields.name === "string" ? fields.name.trim() : "";
+  const rest = topicFieldsOf(fields);
+
+  if (name === "" || rest === null || rest.purpose === undefined || rest.instruction === undefined || rest.calendar === null) return null;
+
+  return { name, purpose: rest.purpose, instruction: rest.instruction, ...(rest.gatherMinutes === undefined ? {} : { gatherMinutes: rest.gatherMinutes }), ...(rest.calendar === undefined ? {} : { calendar: rest.calendar }) };
+}
+
+/** A topic's change, read off a body: at least one field the change takes. */
+export function researchTopicChangeOf(body: unknown): ResearchTopicChange | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  const change = topicFieldsOf(body as Record<string, unknown>);
+
+  return change === null || Object.keys(change).length === 0 ? null : change;
+}
+
+// A topic's name as a path holds it: null for one that is no name.
+export function researchTopicNameOf(value: string | undefined): string | null {
+  const name = (value ?? "").trim();
+
+  return name === "" ? null : name;
+}
+
+// The topic a call names must be a topic: the other shapes' categories are not this screen's to change.
+async function topicNamed(name: string): Promise<void> {
+  const held = await researchFetch<UnitCategory>(`/categories/${encodeURIComponent(name)}`, undefined, TOPIC_CHANGE);
+
+  if (held.shape !== "topic") throw fail(404, wording("research.error.no_category"));
+}
+
+/** A topic registered with the unit, a category of the shape `topic`. */
+export async function addResearchTopic(topic: ResearchNewTopic): Promise<void> {
+  await researchFetch<UnitCategory>("/categories", json("POST", { ...topic, shape: "topic" }), TOPIC_ADD);
+}
+
+/** A topic changed, every field the change leaves out kept. */
+export async function changeResearchTopic(name: string, change: ResearchTopicChange): Promise<void> {
+  await topicNamed(name);
+  await researchFetch<UnitCategory>(`/categories/${encodeURIComponent(name)}`, json("PATCH", change), TOPIC_CHANGE);
+}
+
+/** A topic taken away with its recipients. */
+export async function removeResearchTopic(name: string): Promise<void> {
+  await topicNamed(name);
+  await researchFetch<null>(`/categories/${encodeURIComponent(name)}`, { method: "DELETE" }, TOPIC_CHANGE);
 }
 
 /** A state change the console sends, read off a body: a state of the two, and a category's name where it names one. */

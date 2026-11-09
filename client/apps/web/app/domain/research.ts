@@ -90,6 +90,7 @@ export interface ChipLook {
 // The research screen's tabs, the queue first (docs/web.md, 「Research screen」).
 export const RESEARCH_TABS = [
   { value: "queue", label: "research.label.tab_queue", icon: "i-material-symbols-format-list-bulleted" },
+  { value: "topics", label: "research.label.tab_topics", icon: "i-material-symbols-topic-outline" },
   { value: "sources", label: "research.label.tab_sources", icon: "i-material-symbols-rss-feed" },
   { value: "settings", label: "research.label.tab_settings", icon: "i-material-symbols-tune" }
 ] as const;
@@ -399,6 +400,50 @@ export function wordsOf(text: string): string[] {
 }
 
 /** How often a source is read: its own cadence, or its category's where it names none. */
+/** The shape of a category that is a topic: gathered under its own instruction. */
+export const TOPIC_SHAPE = "topic";
+
+/** A topic's name: a lower-case letter, then lower-case letters, digits and `-`, at most 32. */
+export const TOPIC_NAME = /^[a-z][a-z0-9-]{0,31}$/;
+
+/** The units a topic's period is written in, each with how many minutes it is, its word and the sentence a period
+ * of it is said in. */
+export const PERIOD_UNITS = [
+  { value: "day", minutes: 1_440, label: "research.label.period_day", every: "research.label.period_every_day" },
+  { value: "hour", minutes: 60, label: "research.label.period_hour", every: "research.label.period_every_hour" },
+  { value: "minute", minutes: 1, label: "research.label.period_minute", every: "research.label.period_every_minute" }
+] as const;
+
+export type PeriodUnit = (typeof PERIOD_UNITS)[number]["value"];
+
+/** A period in minutes as a number and the largest unit that divides it whole. */
+export function periodOf(minutes: number): { count: number; unit: PeriodUnit } {
+  const unit = PERIOD_UNITS.find((one) => minutes % one.minutes === 0) ?? PERIOD_UNITS[2];
+
+  return { count: minutes / unit.minutes, unit: unit.value };
+}
+
+/** A period written as a number and a unit, in minutes. */
+export function periodMinutes(count: number, unit: PeriodUnit): number {
+  return count * (PERIOD_UNITS.find((one) => one.value === unit)?.minutes ?? 1);
+}
+
+/** How often a topic is gathered, in words: in days, hours or minutes, whichever divides it whole. */
+export function periodText(t: Translate, minutes: number | null): string {
+  if (minutes === null || minutes < 1) return "—";
+
+  const { count, unit } = periodOf(minutes);
+
+  return t(PERIOD_UNITS.find((one) => one.value === unit)!.every, { n: count.toLocaleString("ko-KR") });
+}
+
+/** The calendar a topic writes to, in words: the realm's word and the calendar's id, or the pack's word for none. */
+export function calendarText(t: Translate, calendar: { realm: string; calendarId: string } | null): string {
+  if (calendar === null) return t("common.label.none");
+
+  return `${t(calendar.realm === "organization" ? "research.label.calendar_organization" : "research.label.calendar_mine")} · ${calendar.calendarId}`;
+}
+
 export function everyText(t: Translate, everyMinutes: number | null, cadenceMinutes: number | null): string {
   if (everyMinutes !== null) return t("research.label.every_value", { n: everyMinutes.toLocaleString("ko-KR") });
 

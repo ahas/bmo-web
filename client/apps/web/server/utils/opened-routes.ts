@@ -142,9 +142,9 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(RESEARCH, "GET", /^\/api\/research(?:\/.*)?$/),
   section(RESEARCH, "PUT", /^\/api\/research-settings$/),
   section(RESEARCH, "GET", /^\/api\/research-settings$/),
-  section(RESEARCH, "POST", /^\/api\/research\/(queue|sources)$/),
-  section(RESEARCH, "PATCH", /^\/api\/research\/(queue\/[^/]+|sources\/[^/]+|state)$/),
-  section(RESEARCH, "DELETE", /^\/api\/research\/sources\/[^/]+$/),
+  section(RESEARCH, "POST", /^\/api\/research\/(queue|sources|topics)$/),
+  section(RESEARCH, "PATCH", /^\/api\/research\/(queue\/[^/]+|sources\/[^/]+|topics\/[^/]+|state)$/),
+  section(RESEARCH, "DELETE", /^\/api\/research\/(sources|topics)\/[^/]+$/),
 
   // Every machine's hardware and the card master's board.
   section(MONITOR, "GET", /^\/api\/(hardware\/machines\/[^/]+|hardware\/machines\/[^/]+\/(history|live)|cards\/(state|events))$/),

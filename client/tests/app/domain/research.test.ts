@@ -29,8 +29,43 @@ import {
   shapeLabel,
   sourceKindLabel,
   wordsOf,
-  wordsText
+  wordsText,
+  calendarText,
+  isResearchTab,
+  periodMinutes,
+  periodOf,
+  periodText,
+  TOPIC_NAME
 } from "../../../apps/web/app/domain/research";
+
+describe("a topic", () => {
+  test("says its period in the largest unit that divides it whole", () => {
+    expect(periodOf(1_440)).toEqual({ count: 1, unit: "day" });
+    expect(periodOf(4_320)).toEqual({ count: 3, unit: "day" });
+    expect(periodOf(720)).toEqual({ count: 12, unit: "hour" });
+    expect(periodOf(90)).toEqual({ count: 90, unit: "minute" });
+    expect(periodMinutes(3, "day")).toBe(4_320);
+    expect(periodMinutes(12, "hour")).toBe(720);
+    expect(periodText(wording, 720)).toBe(wording("research.label.period_every_hour", { n: "12" }));
+    expect(periodText(wording, 1_440)).toBe(wording("research.label.period_every_day", { n: "1" }));
+    expect(periodText(wording, null)).toBe("—");
+  });
+
+  test("names its calendar by the realm's word and the calendar's id, or says it has none", () => {
+    expect(calendarText(wording, { realm: "organization", calendarId: "calendar-a" })).toBe(`${wording("research.label.calendar_organization")} · calendar-a`);
+    expect(calendarText(wording, { realm: "mine", calendarId: "calendar-b" })).toBe(`${wording("research.label.calendar_mine")} · calendar-b`);
+    expect(calendarText(wording, null)).toBe(wording("common.label.none"));
+  });
+
+  test("takes a name of a lower-case letter and then lower-case letters, digits and dashes, at most 32", () => {
+    for (const name of ["a", "topic-7", `a${"b".repeat(31)}`]) expect(TOPIC_NAME.test(name)).toBe(true);
+    for (const name of ["", "7topic", "Topic", "topic_a", `a${"b".repeat(32)}`]) expect(TOPIC_NAME.test(name)).toBe(false);
+  });
+
+  test("stands in a tab of its own", () => {
+    expect(isResearchTab("topics")).toBe(true);
+  });
+});
 
 describe("profileLabel", () => {
   test("names a known key in the pack's words and any other by its key", () => {

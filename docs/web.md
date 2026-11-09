@@ -2627,14 +2627,15 @@ Two ways, split because the running places differ.
   「state」, 「categories」, 「queue」 and 「research runs」). It is the console's own screen, reading the unit
   through the console's server at the address `RESEARCH_ADDRESS` names, and it stands in the reading column as a
   list screen, its panel body the one scroll. Beside them it reads and changes the settings every research run is
-  held to and reads the search engines' state (its `docs/api.md`, 「research-settings」), and nothing else of the unit:
-  the categories' own settings, the recipients and the stack stay the unit's routes.
-- **Three tabs,** Nuxt UI's link tabs in a row under the title bar as the agent management screen's: **대기열** first,
-  holding the categories, the queue and an item's run; **출처**, holding the sources; and **설정**, holding what every
-  research run is held to and the search engines (「설정」 below). The tab stands in the
+  held to and reads the search engines' state (its `docs/api.md`, 「research-settings」), and adds, changes and takes
+  away the topics, the categories of the shape `topic`; nothing else of the unit: the other categories' own settings,
+  the recipients and the stack stay the unit's routes.
+- **Four tabs,** Nuxt UI's link tabs in a row under the title bar as the agent management screen's: **대기열** first,
+  holding the categories, the queue and an item's run; **토픽**, holding the topics; **출처**, holding the sources; and
+  **설정**, holding what every research run is held to and the search engines (「설정」 below). The tab stands in the
   address, the first standing where it names none, and moving to another is a step of the history. The open tab's
-  own add stands at the right end of the row as an icon button naming itself in a tooltip: 항목 요청 on 대기열, 출처
-  추가 on 출처. The one failure for the whole unit stands over either.
+  own add stands at the right end of the row as an icon button naming itself in a tooltip: 항목 요청 on 대기열, 토픽
+  추가 on 토픽, 출처 추가 on 출처. The one failure for the whole unit stands over either.
 - **분류** stands first on 대기열.
   - Its head says whether the loop runs — 실행 중 while any category runs, 모두 중지됨 where every one is
     stopped — with when a category's state last changed, and one button that changes every category at once:
@@ -2714,6 +2715,23 @@ Two ways, split because the running places differ.
     and the question it was asked, in a block of its own.
   - Under them stands the run's log, oldest first: each line's time, its kind as a chip — 요청, 배정, 답변,
     라운드, 브랜치, 등록, 알림, 종료 — and its text. A run whose log holds nothing yet says 로그 없음.
+- **토픽**, its own tab, which names it, so the table stands with no head of its own: every category of the shape
+  `topic` the unit holds (its `docs/design.md`, 「Categories」), one row each — 토픽, its name with its purpose under
+  it; 지시, its own instruction on one line under a ceiling of its own; 주기, how often it is gathered, said in days,
+  hours or minutes, whichever divides it whole; 캘린더, the calendar its dated findings are written to — 내 캘린더 or
+  조직 캘린더 with the calendar's id — or 없음; 상태, 실행 중 or 중지됨 with how many of its items wait and run; and at
+  its end 편집 and 삭제. A unit that holds no topic says so in a line.
+  - **토픽 추가** in the tab row opens a form: 이름, a lower-case letter and then lower-case letters, digits and `-`,
+    at most 32, fixed once made; 목적, a line; 지시, what to look for and how to write it up, never empty; 주기, a
+    number with its unit — 분, 시간 or 일 — a day where none is set; and 캘린더에 기록, a switch that opens the choice
+    of 내 캘린더 or 조직 캘린더 and the calendar's id. It is sent as the unit's `POST /categories` with the shape
+    `topic`.
+  - **편집** opens the same form for a topic that stands, its name fixed, and sends what changed through
+    `PATCH /categories/{name}`; the switch turned off stops the topic writing to a calendar.
+  - **삭제** asks first and sends `DELETE /categories/{name}`; a topic a source or a waiting or running item still
+    names is not taken away, and the unit's refusal says so.
+  - What the unit refuses — a name taken or out of shape, an empty instruction, a calendar that names no id — is said
+    under the form in the pack's sentence for its code, every field kept as written.
 - **출처**, its own tab, which names it, so the table stands with no head of its own: every source the unit reads its categories' candidates from (its `docs/sources.md`), in one
   table of the shared settings table's look, one row each by its number, scrolling sideways inside its own box
   where the reading column is too narrow for it.

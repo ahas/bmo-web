@@ -54,6 +54,30 @@ export interface ResearchHold {
   categoryNames: string[];
 }
 
+/** The calendar a topic writes its dated findings to: the owner's own or the organisation's, and the calendar's id. */
+export interface ResearchCalendar {
+  realm: "mine" | "organization";
+  calendarId: string;
+}
+
+/** A topic registered: a category of the shape `topic`, gathered under its own instruction. */
+export interface ResearchNewTopic {
+  name: string;
+  purpose: string;
+  instruction: string;
+  // How often it is gathered; the unit's own where none is named.
+  gatherMinutes?: number;
+  calendar?: ResearchCalendar;
+}
+
+/** A topic's change: every field it leaves out is kept, and a calendar given as null stops it writing to one. */
+export interface ResearchTopicChange {
+  purpose?: string;
+  instruction?: string;
+  gatherMinutes?: number;
+  calendar?: ResearchCalendar | null;
+}
+
 /** One category with its state and its part of the queue. */
 export interface ResearchCategoryView {
   name: string;
@@ -63,6 +87,10 @@ export interface ResearchCategoryView {
   gatherMinutes: number | null;
   provider: string | null;
   model: string | null;
+  // A topic's own instruction, and the calendar its dated findings are written to; null for another shape, and for
+  // a topic that writes to none.
+  instruction: string | null;
+  calendar: ResearchCalendar | null;
   state: string;
   stateAt: number | null;
   waitingCount: number;

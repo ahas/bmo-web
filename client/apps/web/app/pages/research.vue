@@ -2,6 +2,7 @@
      each part. The queue's tab holds whether its loop runs, each category with its state and its stop and resume, and
      its queue in the queue's order, narrowed by category and state, each item's run opening in a sheet over the list,
      each item that filed a document asked a follow-up of and each stuck item asked again or moved to the front; the
+     topics' tab holds the topics, each gathered under its own instruction, added, changed and taken away; the
      sources' tab holds the sources its categories are read from; the settings tab holds what every research run is
      held to and the search engines' state. An address naming a document's number opens the ask
      as a follow-up of that document. -->
@@ -35,6 +36,19 @@
             :aria-label="$t('research.title.ask')"
             :disabled="(stateView?.categories.length ?? 0) === 0"
             @click="openAsk(null)"
+          />
+        </UTooltip>
+
+        <UTooltip v-else-if="tab === 'topics'" :text="$t('research.title.topic_add')">
+          <UButton
+            class="shrink-0"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            icon="i-material-symbols-add"
+            :aria-label="$t('research.title.topic_add')"
+            :disabled="stateView === null"
+            @click="topicsRef?.openAdd()"
           />
         </UTooltip>
 
@@ -131,6 +145,8 @@
           </section>
         </template>
 
+        <ResearchTopics v-if="!failedFirst && tab === 'topics'" ref="topicsRef" :categories="stateView?.categories ?? []" :loaded="stateView !== null" @changed="(state) => (stateData = state)" />
+
         <ResearchSources v-if="!failedFirst && tab === 'sources'" ref="sourcesRef" :categories="stateView?.categories ?? []" :quiet="failing" />
 
         <ResearchSettings v-if="tab === 'settings'" class="-mx-4 sm:-mx-6" />
@@ -165,6 +181,7 @@ const router = useRouter();
 const tab = computed<ResearchTab>(() => (isResearchTab(route.query.tab) ? route.query.tab : "queue"));
 const tabItems = RESEARCH_TABS.map((one) => ({ ...one, label: t(one.label) }));
 const sourcesRef = useTemplateRef<{ openAdd: () => void }>("sourcesRef");
+const topicsRef = useTemplateRef<{ openAdd: () => void }>("topicsRef");
 
 // The tab stands in the address, and moving to another is a step of the history.
 function setTab(next: string): void {

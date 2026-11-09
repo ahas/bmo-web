@@ -39,15 +39,8 @@
           </div>
         </UFormField>
 
-        <UFormField :label="$t('agents.label.order')" name="order">
-          <ProviderOrderField v-model="form.order" v-model:share="form.quotaShare" :line="form.line" :refusal="orderRefusal" :disabled="busy" />
-        </UFormField>
-
         <!-- Short fields side by side, each as wide as the values it takes. -->
         <div class="flex flex-wrap items-start gap-4">
-          <UFormField :label="$t('agents.label.column_max_concurrent')" name="maxConcurrent" :error="errorAt('maxConcurrent')">
-            <NumberInput v-model="form.maxConcurrent" :min="0" :step="1" :digits="3" :disabled="busy" :aria-label="$t('agents.label.column_max_concurrent')" />
-          </UFormField>
           <UFormField :label="$t('agents.label.column_sessions')" name="sessions" :error="errorAt('sessions')">
             <USelect v-model="form.sessions" :items="sessionItems" value-key="value" class="w-40" :disabled="busy" :aria-label="$t('agents.label.column_sessions')" />
           </UFormField>
@@ -78,6 +71,14 @@
         <p v-if="errorAt('form') !== undefined" role="alert" class="break-words text-sm text-error">{{ errorAt("form") }}</p>
       </form>
 
+      <!-- Its agents, each saved as it is changed, apart from the form's one save; a role being added takes its
+           agents once it stands. -->
+      <section v-if="role !== null" class="flex min-w-0 flex-col gap-2" :aria-label="$t('agents.label.role_agents')">
+        <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.label.role_agents") }}</h3>
+        <RoleAgentsField :model-value="role.agents" :role="role.name" :line="role.line" :bundles="bundleItems" :disabled="busy" @update:model-value="seated" @changed="() => void refresh()" />
+      </section>
+      <p v-else-if="adding" class="text-sm text-muted">{{ $t("agents.message.agents_after_add") }}</p>
+
       <RoleSessionHistory v-if="!adding && props.name !== null" :role="props.name" />
     </div>
 
@@ -89,9 +90,9 @@
 </template>
 
 <script setup lang="ts">
-import { DEFAULT_QUOTA_SHARE, DEFAULT_ROLE_SESSIONS, defaultThreshold, fractionOf, isDefaultThreshold, markedDefault, orderRefusalEntry, percentOf, refusalOf, sessionsText, useProviders } from "~/domain/axes";
+import { DEFAULT_ROLE_SESSIONS, defaultThreshold, fractionOf, isDefaultThreshold, markedDefault, percentOf, refusalOf, sessionsText, useProviders } from "~/domain/axes";
 
-import type { OrderEntryView, RoleSessions, RolesView, RoleView } from "#shared/axes";
+import type { RoleAgentView, RoleSessions, RolesView, RoleView } from "#shared/axes";
 
 interface Props {
   // The role to edit; none opens the dialog for a new role.
@@ -114,15 +115,12 @@ const role = computed<RoleView | null>(() => (props.name === null ? null : (view
 const failed = ref(false);
 
 // A role's fields as the form holds them: the threshold a whole percent, empty where a new role leaves it to its first
-// provider; the cap empty until it is written on a new role.
+// agent's provider.
 interface RoleForm {
   name: string;
   description: string;
   line: string;
   bundles: string[];
-  order: OrderEntryView[];
-  quotaShare: number;
-  maxConcurrent: number | null;
   sessions: RoleSessions;
   threshold: number | null;
   callable: boolean;
@@ -130,7 +128,7 @@ interface RoleForm {
 }
 
 function emptyForm(): RoleForm {
-  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], order: [], quotaShare: DEFAULT_QUOTA_SHARE, maxConcurrent: null, sessions: DEFAULT_ROLE_SESSIONS, threshold: null, callable: false, prompt: "" };
+  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], sessions: DEFAULT_ROLE_SESSIONS, threshold: null, callable: false, prompt: "" };
 }
 
 function formOf(held: RoleView): RoleForm {
@@ -139,9 +137,6 @@ function formOf(held: RoleView): RoleForm {
     description: held.description ?? "",
     line: held.line,
     bundles: held.bundles.map((one) => one.name),
-    order: held.order.map((one) => ({ ...one })),
-    quotaShare: held.quotaShare,
-    maxConcurrent: held.maxConcurrent,
     sessions: held.sessions,
     threshold: percentOf(held.foldRatio),
     callable: held.callable,
@@ -150,16 +145,14 @@ function formOf(held: RoleView): RoleForm {
 }
 
 const form = ref<RoleForm>(emptyForm());
-// The threshold the role is given where it names none: the declared one of the first provider of its order.
-const firstThreshold = computed(() => defaultThreshold(providers.value, form.value.order));
+// The threshold the role is given where it names none: the declared one of its first agent's provider.
+const firstThreshold = computed(() => defaultThreshold(providers.value, role.value?.order ?? []));
 const opened = ref<RoleForm>(emptyForm());
 const busy = ref(false);
 const refusal = ref<{ field: string | null; text: string } | null>(null);
 
 const dirty = computed(() => JSON.stringify(form.value) !== JSON.stringify(opened.value));
-const complete = computed(() =>
-  form.value.name.trim() !== "" && form.value.line !== "" && form.value.maxConcurrent !== null && form.value.order.length > 0 && form.value.order.every((one) => one.model !== "")
-);
+const complete = computed(() => form.value.name.trim() !== "" && form.value.line !== "");
 
 const lineItems = computed(() => {
   const lines = view.value?.lines ?? [];
@@ -168,15 +161,21 @@ const lineItems = computed(() => {
 });
 const sessionItems = computed(() => (["keep", "fresh"] as const).map((value) => ({ label: sessionsText(t, value), value })));
 
-const FIELDS = ["name", "label", "description", "line", "bundles", "maxConcurrent", "sessions", "foldRatio", "callable", "prompt"];
-const orderRefusal = computed(() => {
-  const field = refusal.value?.field ?? null;
+const bundleItems = computed(() => (view.value?.bundles ?? []).map((one) => ({ label: one.label, value: one.name })));
 
-  return refusal.value !== null && field !== null && (field.startsWith("order") || field === "quotaShare") ? { entry: orderRefusalEntry(field), text: refusal.value.text } : null;
-});
+// The role's agents as the field answered them, so the list stands at once and the tab's next read agrees.
+function seated(agents: RoleAgentView[]): void {
+  if (!view.value || role.value === null) return;
+
+  const name = role.value.name;
+
+  view.value = { ...view.value, roles: view.value.roles.map((one) => (one.name === name ? { ...one, agents } : one)) };
+}
+
+const FIELDS = ["name", "label", "description", "line", "bundles", "sessions", "foldRatio", "callable", "prompt"];
 
 function errorAt(place: string): string | undefined {
-  if (refusal.value === null || orderRefusal.value !== null) return undefined;
+  if (refusal.value === null) return undefined;
 
   const field = refusal.value.field;
   const at = field !== null && FIELDS.includes(field) ? field : "form";
@@ -229,9 +228,6 @@ function body(): Record<string, unknown> {
   if (changed("description") && (!adding.value || now.description.trim() !== "")) sent.description = now.description.trim() === "" ? null : now.description;
   if (changed("line")) sent.line = now.line;
   if (changed("bundles")) sent.bundles = now.bundles;
-  if (changed("order")) sent.order = now.order;
-  if (changed("quotaShare")) sent.quotaShare = now.quotaShare;
-  if (changed("maxConcurrent")) sent.maxConcurrent = now.maxConcurrent;
   if (changed("sessions")) sent.sessions = now.sessions;
   if (changed("threshold") && now.threshold !== null) sent.foldRatio = fractionOf(now.threshold);
   if (changed("callable")) sent.callable = now.callable;

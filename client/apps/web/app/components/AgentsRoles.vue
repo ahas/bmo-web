@@ -42,41 +42,32 @@
         </span>
       </template>
 
-      <template #order-cell="{ row }">
-        <ProviderOrderCell
-          :order="row.original.order"
-          :share="row.original.quotaShare"
-          :line="row.original.line"
-          :name="row.original.name"
-          :disabled="props.readonly"
-          :save="(order, quotaShare) => change(row.original.name, { order, quotaShare })"
-        />
+      <!-- Its agents in the order a run looks for a free one, each on its road; pressed, the role's dialog, where they
+           are changed. -->
+      <template #agents-cell="{ row }">
+        <button type="button" :class="CELL_BUTTON" class="w-full" :disabled="props.readonly" :aria-label="$t('agents.aria.agents_of', { name: row.original.name })" @click="openEdit(row.original.name)">
+          <span v-if="row.original.agents.length === 0" class="text-sm text-warning">{{ $t("agents.status.agents_none") }}</span>
+          <span v-else class="flex min-w-0 flex-col gap-0.5 py-1 text-start">
+            <span v-for="agent in row.original.agents" :key="agent.name" class="flex min-w-0 items-center gap-1.5 text-sm" :class="agent.enabled ? 'text-highlighted' : 'text-dimmed line-through'" :data-agent="agent.name">
+              <span class="size-1.5 shrink-0 rounded-full" :class="agent.carries ? 'bg-primary' : agent.enabled ? 'bg-muted' : 'bg-transparent'" />
+              <SearchText class="truncate" :text="agentRoadText(providers, agent) ?? $t('agents.label.agent_follows')" :query="props.query" />
+            </span>
+          </span>
+        </button>
       </template>
 
-      <!-- What it runs on now and how that provider became active; pressed, the force's list. -->
+      <!-- The road its next run goes out on, or why none goes now. -->
       <template #now-cell="{ row }">
-        <ActiveProviderCell
-          :road="activeRoad(row.original, null)"
-          :active="row.original.active"
-          :waiting-for="row.original.waitingFor"
-          :line="row.original.line"
-          :name="row.original.name"
-          :disabled="props.readonly"
-          :save="(active) => saved(change(row.original.name, { active }))"
-        />
+        <span :class="CELL_TEXT" class="w-full">
+          <span v-if="nextRoad(row.original) !== null" class="truncate text-sm text-highlighted">{{ nextRoad(row.original) }}</span>
+          <span v-else class="break-words text-sm text-warning">{{ row.original.waitingFor ?? $t("agents.status.role_blocked") }}</span>
+        </span>
       </template>
 
       <template #concurrency-cell="{ row }">
-        <SettingsInputCell
-          :value="row.original.maxConcurrent"
-          :label="$t('agents.aria.max_concurrent_of', { name: row.original.name })"
-          :disabled="props.readonly"
-          :min="0"
-          :step="1"
-          :save="(value: string) => saved(change(row.original.name, { maxConcurrent: Number(value) }))"
-        >
+        <span :class="CELL_TEXT">
           <span class="whitespace-nowrap text-sm tabular-nums" :class="row.original.maxConcurrent === 0 ? 'text-warning' : 'text-highlighted'">{{ concurrencyText(row.original) }}</span>
-        </SettingsInputCell>
+        </span>
       </template>
 
       <template #sessions-cell="{ row }">
@@ -130,7 +121,7 @@
 
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
-    <RoleSettingsDialog v-model:open="editing" :name="editingName" @saved="() => void refresh()" />
+    <RoleSettingsDialog v-model:open="editing" :name="editingName" @saved="(role: RoleView) => void savedRole(role)" />
   </section>
 </template>
 
@@ -141,14 +132,15 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
-import { activeRoad, defaultThreshold, fractionOf, percentOf, refusalOf, sessionsText, thresholdText, useProviders } from "~/domain/axes";
+import { defaultThreshold, fractionOf, percentOf, providerWord, refusalOf, sessionsText, thresholdText, useProviders } from "~/domain/axes";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
 import { usePolling } from "~/domain/polling";
+import { agentRoadText } from "~/domain/role-agents";
 import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
 
-import type { ActiveProviderView, OrderEntryView, RolesView, RoleView } from "#shared/axes";
+import type { RolesView, RoleView } from "#shared/axes";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { SettingsColumn } from "~/domain/settings-columns";
@@ -173,7 +165,7 @@ usePolling(() => {
 const columns = computed<SettingsColumn<RoleView>[]>(() => [
   { id: "role", header: t("agents.label.column_role") },
   { id: "bundles", header: t("agents.label.column_bundles"), ceiling: 320 },
-  { id: "order", header: t("agents.label.order") },
+  { id: "agents", header: t("agents.label.role_agents") },
   { id: "now", header: t("agents.label.column_now"), ceiling: 256 },
   { id: "concurrency", header: t("agents.label.column_max_concurrent") },
   { id: "sessions", header: t("agents.label.column_sessions") },
@@ -188,7 +180,17 @@ function hiddenMatch(role: RoleView) {
   return matchFields([{ label: t("agents.label.description"), text: role.description ?? "", shown: false }], props.query);
 }
 
-// Its cap with how many of its runs go and wait beside it, and the closed word at a cap of none.
+// The road of the first of its agents that stands on the provider its next run goes out on; none where no run goes now.
+function nextRoad(role: RoleView): string | null {
+  if (role.provider === null) return null;
+
+  const agent = role.agents.find((one) => one.enabled && one.provider === role.provider) ?? null;
+
+  return agent === null ? providerWord(providers.value, role.provider) : agentRoadText(providers.value, agent);
+}
+
+// How many of its agents are switched on with how many of its runs go and wait beside it, and the closed word where
+// none is.
 function concurrencyText(role: RoleView): string {
   if (role.maxConcurrent === 0) return t("agents.status.role_blocked");
 
@@ -198,7 +200,7 @@ function concurrencyText(role: RoleView): string {
 }
 
 /** One change of a role sent; the table stands as the agency answered it, or the refusal with its field. */
-async function change(name: string, body: { order?: OrderEntryView[]; quotaShare?: number; active?: ActiveProviderView | null; maxConcurrent?: number; sessions?: string; foldRatio?: number; callable?: boolean }): Promise<{ field: string | null; text: string } | null> {
+async function change(name: string, body: { sessions?: string; foldRatio?: number; callable?: boolean }): Promise<{ field: string | null; text: string } | null> {
   try {
     const answered = await $fetch<RoleView>(`/api/roles/${encodeURIComponent(name)}`, { method: "PATCH", body });
 
@@ -239,6 +241,18 @@ function openEdit(name: string): void {
 function openAdd(): void {
   editingName.value = null;
   editing.value = true;
+}
+
+// A role just added holds no agent, so its dialog opens again on it, where its agents are added.
+async function savedRole(role: RoleView): Promise<void> {
+  const added = editingName.value === null;
+
+  await refresh();
+
+  if (!added) return;
+
+  await nextTick();
+  openEdit(role.name);
 }
 
 const removing = ref("");

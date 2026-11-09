@@ -42,7 +42,7 @@ describe("a repository's checkouts", () => {
 describe("a role", () => {
   test("is named by its name alone, never the label the agency keeps for its log", () => {
     const role: Parameters<typeof roleViewsOf>[0][number] = {
-      name: "role-a", code: "role-a", label: "Role A", prompt: null, description: null, bundles: [], line: "worker", order: [], quotaShare: 0.01, active: null,
+      name: "role-a", code: "role-a", label: "Role A", prompt: null, description: null, bundles: [], line: "worker", agents: [],
       maxConcurrent: 1, sessions: "keep", foldRatio: 0.85, callable: false, followsSupervisor: false, running: 0, waiting: 0, provider: null, waitingFor: null
     };
 

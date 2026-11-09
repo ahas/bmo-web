@@ -259,8 +259,8 @@ export function roleAgentViewOf(agent: Schemas["RoleAgent"]): RoleAgentView {
   };
 }
 
-// The roads a role's runs go out on: its agents that are switched on and name one, each road once, in their order.
-function roadsOf(agents: readonly Schemas["RoleAgent"][]): OrderEntryView[] {
+/** The roads a role's runs go out on: its agents that are switched on and name one, each road once, in their order. */
+export function roadsOf(agents: readonly Schemas["RoleAgent"][]): OrderEntryView[] {
   const roads: OrderEntryView[] = [];
 
   for (const agent of agents) {
@@ -427,7 +427,9 @@ export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["Rol
     if (!(field in held)) continue;
     if (held[field] !== null && typeof held[field] !== "string") return null;
 
-    change[field] = text(held[field]) === null ? null : (held[field] as string).trim();
+    const written = typeof held[field] === "string" ? (held[field] as string).trim() : "";
+
+    change[field] = written === "" ? null : written;
   }
 
   for (const field of AGENT_LISTS) {

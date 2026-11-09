@@ -76,7 +76,7 @@ export function supervisorSummary(supervisor: Supervisor, sessions: readonly { c
 /** One role as the agent list stands it, with the runs its slots hold now. */
 export function roleSummary(role: Role, runs: readonly RoleSlotRun[]): AgentSummary {
   const provider = text(role.provider);
-  const placed = onOrder(role.order, provider);
+  const placed = onOrder(roadsOf(role.agents ?? []), provider);
 
   return {
     ...EMPTY,

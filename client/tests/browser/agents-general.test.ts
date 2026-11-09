@@ -41,6 +41,19 @@ const DRAFTS = {
 let browser: Browser | null = null;
 let cookie = "";
 
+// What `read` answers once it holds, read again until it does or the time is up.
+async function until<T>(read: () => Promise<T>, holds: (value: T) => boolean, ms = 10_000): Promise<T> {
+  const end = Date.now() + ms;
+  let value = await read();
+
+  while (!holds(value) && Date.now() < end) {
+    await new Promise((done) => setTimeout(done, 50));
+    value = await read();
+  }
+
+  return value;
+}
+
 beforeAll(async () => {
   if (!origin || !touchReady()) return;
 
@@ -234,7 +247,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     test(`drop a cell's dropdown as wide as what it holds and inside the screen, ${width}px wide`, async () => {
       const context = await browser!.newContext({ viewport: { width, height: 800 }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
       const at = cookie.indexOf("=");
-      const name = wording("agents.aria.max_concurrent_of", { name: "" }).trim();
+      const name = wording("agents.aria.threshold_of", { name: "" }).trim();
 
       await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
 
@@ -277,6 +290,105 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       }
     }, 60_000);
   }
+
+  test("list a role's agents in its row and change them in its dialog, each change sent as it is made", async () => {
+    const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = cookie.indexOf("=");
+    // One role of three agents on one road, the first carrying a run, as the console's own route answers it.
+    const seat = (index: number, extra: Record<string, unknown> = {}) => ({
+      name: `worker-0${index}`, role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null,
+      enabled: true, position: index, keepsCache: false, foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: index === 1, ...extra
+    });
+    let agents = [seat(1), seat(2), seat(3)];
+    const view = () => ({
+      roles: [{
+        name: "worker", label: "Worker", description: null, prompt: null, bundles: [{ name: "web.read", label: "Web reading" }], line: "worker", agents,
+        order: [{ provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null }],
+        maxConcurrent: agents.filter((one) => one.enabled).length, sessions: "keep", foldRatio: 0.8, callable: false, running: 1, waiting: 0, provider: "claude-code", waitingFor: null
+      }],
+      bundles: [{ name: "web.read", label: "Web reading" }],
+      lines: ["worker"]
+    });
+    const sent: { method: string; name: string | null; body: unknown }[] = [];
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+    await context.route(/\/api\/roles$/, (route) => route.fulfill({ json: view() }));
+    await context.route(/\/api\/role-agents(\/[^/]+)?$/, async (route) => {
+      const request = route.request();
+      const name = /\/role-agents\/([^/]+)$/.exec(new URL(request.url()).pathname)?.[1] ?? null;
+      const body = request.method() === "DELETE" ? null : (request.postDataJSON() as Record<string, unknown>);
+
+      sent.push({ method: request.method(), name, body });
+
+      if (request.method() === "POST") {
+        const added = seat(agents.length + 1, { ...body, carries: false });
+
+        agents = [...agents, added];
+
+        return await route.fulfill({ json: added });
+      }
+
+      if (request.method() === "DELETE") {
+        agents = agents.filter((one) => one.name !== name);
+
+        return await route.fulfill({ json: null });
+      }
+
+      agents = agents.map((one) => (one.name === name ? { ...one, ...body } : one)).sort((a, b) => a.position - b.position);
+
+      return await route.fulfill({ json: agents.find((one) => one.name === name) });
+    });
+
+    try {
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/agents?tab=roles`, { waitUntil: "load" });
+      await page.locator("#setting-role-worker").waitFor({ timeout: 15_000 });
+
+      // The row lists its agents, each on its road, and the count of them as the most that go at once.
+      const listed = page.locator("[data-settings-table] tbody tr").first().locator("[data-agent]");
+
+      expect(await listed.count()).toBe(3);
+      expect((await listed.first().innerText()).trim()).toContain("claude-opus-5-5 · high");
+      expect(await page.locator("[data-settings-table] tbody tr").first().innerText()).toContain(wording("agents.label.role_running", { running: "1", cap: "3" }));
+
+      await page.locator("#setting-role-worker").click();
+
+      const blocks = page.locator("[data-role-agents] li[data-agent]");
+
+      await blocks.first().waitFor({ timeout: 15_000 });
+      expect(await blocks.count()).toBe(3);
+
+      // An agent that carries a run is not removed.
+      expect(await page.locator(`li[data-agent="worker-01"] button[aria-label="${wording("agents.aria.agent_remove", { name: "worker-01" })}"]`).isDisabled()).toBe(true);
+
+      // Switched off, the agent's change goes at once and stands as answered.
+      await page.locator('li[data-agent="worker-03"] [role="switch"]').first().click();
+      expect(await until(async () => sent.length, (count) => count === 1)).toBe(1);
+      expect(sent[0]).toEqual({ method: "PATCH", name: "worker-03", body: { enabled: false } });
+
+      // One more seat of the same kind is one press: it stands last on the road of the role's last agent.
+      await page.getByRole("button", { name: wording("agents.action.agent_add") }).click();
+      await blocks.nth(3).waitFor({ timeout: 10_000 });
+      expect(sent[1]).toEqual({ method: "POST", name: null, body: { role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high" } });
+
+      // Moved up, the two agents that trade places are each sent the place they now hold.
+      await page.locator(`li[data-agent="worker-04"] button[aria-label="${wording("common.aria.move_up_named", { name: "worker-04" })}"]`).click();
+      expect(await until(async () => sent.length, (count) => count === 4)).toBe(4);
+      expect(sent.slice(2)).toEqual([
+        { method: "PATCH", name: "worker-04", body: { position: 3 } },
+        { method: "PATCH", name: "worker-03", body: { position: 4 } }
+      ]);
+      expect(await blocks.evaluateAll((all) => all.map((one) => one.getAttribute("data-agent")))).toEqual(["worker-01", "worker-02", "worker-04", "worker-03"]);
+
+      // Removed, it leaves the list.
+      await page.locator(`li[data-agent="worker-04"] button[aria-label="${wording("agents.aria.agent_remove", { name: "worker-04" })}"]`).click();
+      expect(await until(async () => await blocks.count(), (count) => count === 3)).toBe(3);
+      expect(sent[4]).toEqual({ method: "DELETE", name: "worker-04", body: null });
+    } finally {
+      await context.close();
+    }
+  }, 90_000);
 
   test("stand every column of the draft tables at its own width, the room left over one empty column at the table's edge", async () => {
     const context = await browser!.newContext({ viewport: { width: 1600, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });

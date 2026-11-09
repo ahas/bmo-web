@@ -1,11 +1,14 @@
 <template>
   <!-- A photo in a message, drawn small and whole at its own ratio, never taller than its cap nor
-       wider than the bubble may be; pressing it opens it whole in the viewer. A tile of an album
+       wider than the bubble may be; pressing it opens it whole in the viewer. In a bubble wider than
+       the picture it stands in the middle, over the picture itself enlarged and blurred, which fills
+       the room on either side. A tile of an album
        fills its square of the grid instead, so the album reads as one block. In a message's bubble
        the picture runs to the bubble's edges with no corners or edge of its own, cut by the bubble's
        own corners. In a room, the viewer is the room's own and walks every picture the room
        holds; a picture with no archived message behind it, or shown outside a room, opens alone. -->
-  <button type="button" class="block max-w-full cursor-zoom-in transition-opacity hover:opacity-85 active:opacity-70" :class="props.flush ? 'size-full' : 'rounded-lg'" :style="frame" :aria-label="$t('common.aria.enlarge_named', { name: props.title })" @click.stop="enlarge">
+  <button type="button" class="block max-w-full cursor-zoom-in transition-opacity hover:opacity-85 active:opacity-70" :class="props.flush ? (backed ? 'relative size-full overflow-hidden' : 'size-full') : 'rounded-lg'" :style="frame" :aria-label="$t('common.aria.enlarge_named', { name: props.title })" @click.stop="enlarge">
+    <span v-if="backed" aria-hidden="true" data-picture-backdrop class="pointer-events-none absolute inset-0 scale-125 bg-cover bg-center blur-xl" :style="{ backgroundImage: backdrop }" />
     <LoadingImage
       :src="props.src"
       :alt="props.title"
@@ -61,7 +64,13 @@ function remember(seen: PictureShape): void {
 const PICTURE_CAP_PX = 512;
 const BUBBLE_WIDEST_PX = 320;
 
-const frame = computed<{ width: string; height: string } | undefined>(() => {
+// A lone picture in a bubble stands over its own blurred copy, which shows wherever the bubble is wider than
+// the picture.
+const backed = computed<boolean>(() => props.flush === true && props.tile !== true);
+// The copy is the picture as a background, so the bubble holds one image element, the picture itself.
+const backdrop = computed<string>(() => `url(${JSON.stringify(props.src)})`);
+
+const frame = computed<{ width: string; minWidth: string; height: string } | undefined>(() => {
   if (!props.flush || props.tile || shape.value === null || shape.value.width <= 0 || shape.value.height <= 0) {
     return undefined;
   }
@@ -75,12 +84,14 @@ const frame = computed<{ width: string; height: string } | undefined>(() => {
     height = width / ratio;
   }
 
-  return { width: `${Math.round(width)}px`, height: `${Math.round(height)}px` };
+  // The bubble is never narrower than the picture, and the picture's box is as wide as the bubble: the picture
+  // is drawn contained in it, so it stands in the middle of whatever width is left over.
+  return { width: "100%", minWidth: `${Math.round(width)}px`, height: `${Math.round(height)}px` };
 });
 
 const imageClass = computed<string>(() => {
   if (props.flush) {
-    return props.tile ? "size-full object-cover" : frame.value === undefined ? "max-h-128 w-auto max-w-80 object-contain" : "size-full object-contain";
+    return props.tile ? "size-full object-cover" : frame.value === undefined ? "mx-auto max-h-128 w-auto max-w-80 object-contain" : "size-full object-contain";
   }
 
   return props.tile ? "aspect-square w-full rounded-lg border border-default object-cover" : "max-h-128 w-auto max-w-full rounded-lg border border-default";

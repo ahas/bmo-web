@@ -3012,8 +3012,9 @@ Two ways, split because the running places differ.
   - **역할 위에 덮어쓰기, folded,** with the count of what it lays over where it lays any: 시스템 프롬프트, which
     then stands in place of the role's; 기능 묶음, a choice of several among the bundles the agency declares; and
     스킬, names set apart by commas, each a skill a plugin of the agency's release carries. Each left empty is the
-    role's own. The mark the agency keeps for warming an agent's kept session warms nothing there
-    (the agency's `docs/role-agents.md`, 「What an agent row holds」), so no switch stands for it.
+    role's own. Above them stands 캐시 유지, a switch: the session the agent's last answered run kept is pinged
+    before its cache cools, on a provider that publishes a cache lifetime (the agency's
+    `docs/keepalive-schedule.md`, 「An agent's kept session」).
   - **에이전트 추가** under the list adds one in the last place, on the road of the role's last agent, so a seat
     more of the same kind is one press.
   - A change the agency refuses says the pack's sentence for its code, or the agency's own, under the list, and the
@@ -3559,9 +3560,12 @@ Four bounds keep it from growing forever.
   - A file it holds, the sound player among them, stays inside its inner room at every width, never cut at its
     trailing edge (「소리 듣기」).
   - A picture it holds stands whole, at its own ratio: as wide as a bubble may be at the most and no taller
-    than the picture's cap, scaled to whichever bounds it first, so no edge of it is cut away; the bubble is as
-    wide as the picture and no wider. An album's mosaic fills a bubble's full width, and its tiles fill their
-    squares.
+    than the picture's cap, scaled to whichever bounds it first, so no edge of it is cut away; the bubble is at
+    least as wide as the picture, and wider only where what stands with it — a caption, a name, a quote — is
+    wider. In a bubble wider than its picture the picture stands in the middle of the bubble's width, and the
+    room on either side of it is filled with the picture itself, enlarged and blurred, as a chat app fills it,
+    never left bare with the picture pushed to one side. An album's mosaic fills a bubble's full width, and its
+    tiles fill their squares.
 - **One sender's run is one block.** Messages one after another from the same sender on the same side form a
   run, whatever each carries — words, a picture, an album, a file, a voice — as long as each comes within ten
   minutes of the one before it, on the same day, with nothing standing between them.

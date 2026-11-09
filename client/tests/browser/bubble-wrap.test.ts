@@ -149,6 +149,9 @@ const FORMATTED = row(
   "# Heading\n\nSome **bold** and *italic*, a ||secret|| and `code`.\n\n- one\n- two\n\n> quoted\n\n```sh\nls -la\n```\n\nSee https://example.com/formatted now.",
   false
 );
+// A tall narrow picture under words wider than it, so the bubble is wider than its picture.
+const NARROW_PICTURE = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="600"><rect width="200" height="600" fill="#a47"/></svg>`;
+const NARROW = row("A caption long enough to make the bubble wider than the tall narrow picture above it.", false, { imagePath: "narrow.svg" });
 // The rows the room is served with: every row, or the ones a test puts in their place.
 let served: ArchivedMessage[] = ROWS;
 // A verdict on each of the owner's words, so their meta line carries its mark as the owner's does.
@@ -472,6 +475,68 @@ describe.skipIf(!origin || !touchReady())("an agent's words in a bubble", () => 
       expect((await covered()).ink).not.toBe("rgba(0, 0, 0, 0)");
       await spoiler.click();
       expect((await covered()).shown).toBe(false);
+    } finally {
+      served = ROWS;
+      await context.close();
+    }
+  }, TEST_MS);
+});
+
+describe.skipIf(!origin || !touchReady())("a picture narrower than its bubble", () => {
+  test("stands in the middle of the bubble's width, over its own blurred copy filling the sides", async () => {
+    const context = await open(WIDTHS[2]!);
+
+    await context.route(new RegExp(`/api/images/${CHAT}/`), (route) => route.fulfill({ contentType: "image/svg+xml", body: NARROW_PICTURE }));
+    served = [NARROW];
+
+    try {
+      const page = await context.newPage();
+
+      await enter(page);
+
+      const picture = page.locator(`[data-message="m${NARROW.messageId}"] button img:not([data-stand-in])`);
+
+      await picture.waitFor({ state: "attached", timeout: 30_000 });
+      await page.waitForFunction((id) => {
+        const drawn = document.querySelector<HTMLImageElement>(`[data-message="m${id}"] button img:not([data-stand-in])`);
+
+        return drawn !== null && drawn.complete && drawn.naturalWidth > 0;
+      }, NARROW.messageId, { timeout: 30_000 });
+
+      const placed = await picture.evaluate((drawn) => {
+        const image = drawn as HTMLImageElement;
+        const box = image.closest("button")!;
+        const backdrop = box.querySelector<HTMLElement>("[data-picture-backdrop]");
+        const frame = box.getBoundingClientRect();
+        // The picture is drawn contained in its box: its drawn width is its height at its own ratio.
+        const drawnWidth = frame.height * (image.naturalWidth / image.naturalHeight);
+        const look = getComputedStyle(image);
+
+        return {
+          box: Math.round(frame.width),
+          own: Math.round(drawnWidth),
+          fit: look.objectFit,
+          at: look.objectPosition,
+          fills: Math.round(image.getBoundingClientRect().width) === Math.round(frame.width),
+          backdrop: backdrop === null ? null : {
+            blur: getComputedStyle(backdrop).filter,
+            fit: getComputedStyle(backdrop).backgroundSize,
+            shows: getComputedStyle(backdrop).backgroundImage.includes(new URL(image.src).pathname),
+            covers: Math.round(backdrop.getBoundingClientRect().width) >= Math.round(frame.width)
+          },
+          images: box.querySelectorAll("img:not([data-stand-in])").length,
+          cut: getComputedStyle(box).overflow
+        };
+      });
+
+      // The bubble is wider than the picture, the picture is drawn whole in the middle of that width, and its
+      // blurred copy covers the box behind it, cut at the box's edges.
+      expect(placed.box).toBeGreaterThan(placed.own + 40);
+      expect(placed).toMatchObject({ fit: "contain", at: "50% 50%", fills: true, cut: "hidden" });
+      expect(placed.backdrop).toMatchObject({ fit: "cover", shows: true, covers: true });
+      // The copy is no image element of its own: the bubble holds the one picture.
+      expect(placed.images).toBe(1);
+      expect(placed.backdrop!.blur).toContain("blur(");
     } finally {
       served = ROWS;
       await context.close();

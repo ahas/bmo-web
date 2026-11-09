@@ -68,12 +68,20 @@
           </UFormField>
         </div>
 
-        <!-- What it lays over its role's preset, each left empty for the role's own. -->
+        <!-- Whether its last kept session is kept warm, and what it lays over its role's preset, each left empty
+             for the role's own. -->
         <UCollapsible :unmount-on-hide="false">
           <UButton color="neutral" variant="link" size="sm" class="px-0" trailing-icon="i-material-symbols-keyboard-arrow-down" :label="overridesLabel(agent)" />
 
           <template #content>
             <div class="flex min-w-0 flex-col gap-2 pt-2">
+              <USwitch
+                :model-value="agent.keepsCache"
+                :label="$t('agents.label.agent_keeps_cache')"
+                :description="$t('agents.label.agent_keeps_cache_hint')"
+                :disabled="locked"
+                @update:model-value="(on: boolean) => void save(agent, { keepsCache: on })"
+              />
               <UFormField :label="$t('agents.label.agent_prompt')" :name="`agent-${agent.name}-prompt`" :hint="$t('agents.label.agent_inherits')">
                 <UTextarea
                   :model-value="written(agent, 'prompt', agent.prompt ?? '')"

@@ -271,7 +271,7 @@ describe("the roles tab", () => {
     expect(templateOf(roleDialog)).toContain("<RoleAgentsField");
     expect(templateOf(roleDialog)).toContain("agents.message.agents_after_add");
     for (const call of ['$fetch<RoleAgentView>("/api/role-agents", { method: "POST"', 'method: "PATCH", body', 'method: "DELETE"']) expect(scriptOf(agentsField)).toContain(call);
-    for (const part of ["agent.enabled", "agent.prompt", "agent.bundles", "agent.skills", "agents.label.agent_follows", "agents.action.agent_add"]) {
+    for (const part of ["agent.enabled", "agent.keepsCache", "agent.prompt", "agent.bundles", "agent.skills", "agents.label.agent_follows", "agents.action.agent_add"]) {
       expect(agentsField).toContain(part);
     }
     // An agent that carries a run is not removed.

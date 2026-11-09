@@ -1,5 +1,5 @@
 import type { components } from "@agency/client/schema";
-import type { AccountUsage, ActiveUsage, AgentContext, AgentTokenUsage, HeadlineWindow, UsageBalance, UsageView } from "#shared/types";
+import type { AccountUsage, ActiveUsage, AgentContext, AgentTokenUsage, HeadlineWindow, RoadUsage, UsageBalance, UsageView } from "#shared/types";
 
 type Schemas = components["schemas"];
 
@@ -49,7 +49,39 @@ export function balanceOf(value: unknown): UsageBalance | null {
   const currency = text(balance?.currency);
   const seenAt = count(balance?.seenAt);
 
-  return amount === null || currency === null || seenAt === null ? null : { amount, currency, seenAt };
+  return amount === null || currency === null || seenAt === null ? null : { amount, currency, seenAt, requests: requestsOf(balance?.requests) };
+}
+
+// A request allowance as the agency answers it, or none where it states no figure of the three.
+function requestsOf(value: unknown): UsageBalance["requests"] {
+  const requests = held(value);
+  const used = count(requests?.used);
+  const limit = count(requests?.limit);
+  const left = count(requests?.left);
+
+  return used === null || limit === null || left === null ? null : { used, limit, left, scope: text(requests?.scope) };
+}
+
+/**
+ * Each provider's own road that keeps a balance: a provider that is switched on, whose quota states a balance with
+ * its currency and when it was seen, other than the provider the chat runs on, whose slot stands for it already.
+ */
+export function roadUsages(providers: readonly unknown[], active: ActiveUsage | null): RoadUsage[] {
+  const roads: RoadUsage[] = [];
+
+  for (const one of providers) {
+    const provider = held(one);
+    const name = text(provider?.name);
+    const quota = held(provider?.quota);
+
+    if (name === null || provider?.enabled === false || name === active?.provider) continue;
+
+    const balance = balanceOf({ amount: quota?.balance, currency: quota?.currency, seenAt: quota?.balanceSeenAt, requests: quota?.requests });
+
+    if (balance !== null) roads.push({ provider: name, label: text(provider?.label) ?? name, balance });
+  }
+
+  return roads;
 }
 
 function windowAt(name: string, minutes: number, utilization: number | null, resetsAt: number | null): HeadlineWindow | null {
@@ -241,9 +273,16 @@ export function usageView(
   accounts: readonly Schemas["Account"][],
   usage: Schemas["Usage"],
   chatProvider: string | null = null,
-  providersOff: ReadonlySet<string> = new Set()
+  providersOff: ReadonlySet<string> = new Set(),
+  providers: readonly unknown[] = []
 ): UsageView {
   const active = activeUsage(fallback, chatProvider);
 
-  return { active, accounts: accountUsages(fallback, accounts, active, providersOff), agents: workerUsages(usage), contexts: workerContexts(usage) };
+  return {
+    active,
+    roads: roadUsages(providers, active),
+    accounts: accountUsages(fallback, accounts, active, providersOff),
+    agents: workerUsages(usage),
+    contexts: workerContexts(usage)
+  };
 }

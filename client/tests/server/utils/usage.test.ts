@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { accountUsages, accountWindows, activeUsage, headlineOf, usageView, workerContexts, workerUsages } from "../../../apps/web/server/utils/usage";
+import { accountUsages, accountWindows, activeUsage, headlineOf, roadUsages, usageView, workerContexts, workerUsages } from "../../../apps/web/server/utils/usage";
 
 // An entry of the agency's account list, as the mapping takes it.
 type Account = Parameters<typeof accountUsages>[1][number];
@@ -71,7 +71,7 @@ describe("the slot the chat runs on", () => {
   test("on a provider paid by the request it carries the balance the agency read, and none it cannot read", () => {
     const paid = { ...onOther, balance: { amount: 25.6, currency: "USD", seenAt: 1_800_000_000 } };
 
-    expect(activeUsage(fallback(paid))?.balance).toEqual({ amount: 25.6, currency: "USD", seenAt: 1_800_000_000 });
+    expect(activeUsage(fallback(paid))?.balance).toEqual({ amount: 25.6, currency: "USD", seenAt: 1_800_000_000, requests: null });
     expect(activeUsage(fallback({ ...onOther, balance: { amount: "lots" } }))?.balance).toBeNull();
   });
 
@@ -180,8 +180,36 @@ describe("each worker's week", () => {
   });
 });
 
+describe("a provider's own road", () => {
+  const road = (over: Record<string, unknown> = {}) => ({
+    name: "provider-y",
+    label: "Provider Y",
+    enabled: true,
+    quota: { has: true, balance: 9.55, currency: "USD", balanceSeenAt: 1_800_000_000, requests: { used: 12, limit: 1000, left: 988, scope: "free-models" } },
+    ...over
+  });
+
+  test("that is switched on and keeps a balance stands with it and the request allowance read beside it", () => {
+    expect(roadUsages([road()], null)).toEqual([
+      { provider: "provider-y", label: "Provider Y", balance: { amount: 9.55, currency: "USD", seenAt: 1_800_000_000, requests: { used: 12, limit: 1000, left: 988, scope: "free-models" } } }
+    ]);
+    expect(roadUsages([road({ quota: { has: true, balance: 3, currency: "USD", balanceSeenAt: 5 } })], null)[0]?.balance.requests).toBeNull();
+    expect(roadUsages([road({ quota: { has: true, balance: 3, currency: "USD", balanceSeenAt: 5, requests: { used: 1, limit: 2 } } })], null)[0]?.balance.requests).toBeNull();
+  });
+
+  test("is left out where it is switched off, keeps no balance, or is the slot the chat runs on", () => {
+    const active = { provider: "provider-y", label: "Provider Y", account: null, accountName: null, logins: 0, session: null, week: null, balance: null };
+
+    expect(roadUsages([road({ enabled: false })], null)).toEqual([]);
+    expect(roadUsages([road({ quota: { has: true, balance: null } })], null)).toEqual([]);
+    expect(roadUsages([road({ quota: { has: true, balance: 3 } })], null)).toEqual([]);
+    expect(roadUsages([road()], active)).toEqual([]);
+    expect(roadUsages([null, "provider-y", {}], null)).toEqual([]);
+  });
+});
+
 describe("the whole view", () => {
   test("with nothing answered is empty, and says nothing of any figure", () => {
-    expect(usageView({ routes: [], answering: false }, [], { groups: [], after: 0, before: 1 })).toEqual({ active: null, accounts: [], agents: [], contexts: [] });
+    expect(usageView({ routes: [], answering: false }, [], { groups: [], after: 0, before: 1 })).toEqual({ active: null, roads: [], accounts: [], agents: [], contexts: [] });
   });
 });

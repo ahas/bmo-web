@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { agentUsage, figureText, kindFigures, knownMode, limitless, liveWindow, loudestTone, resetClock, resetDay, resetText, shareText, shareTone, titleAccountLabel, titleWindows, tokenText, totalText, unsplitText, untilText, usageBar, usageGroups, windowLabel, moneyText } from "../../../apps/web/app/domain/usage";
+import { agentUsage, figureText, kindFigures, knownMode, limitless, liveWindow, loudestTone, resetClock, resetDay, resetText, shareText, shareTone, titleAccountLabel, titleWindows, tokenText, totalText, unsplitText, untilText, usageBar, usageGroups, windowLabel, moneyText, requestsLabel, requestsText } from "../../../apps/web/app/domain/usage";
 
 import type { AccountUsage, ActiveUsage, AgentTokenUsage, HeadlineWindow, UsageView } from "../../../apps/web/shared/types";
 import type { UsageBar, UsageSegment } from "../../../apps/web/app/domain/usage";
@@ -337,7 +337,7 @@ describe("the panel's groups", () => {
   }
 
   function view(over: Partial<UsageView> = {}): UsageView {
-    return { active: null, accounts: [], agents: [], contexts: [], ...over };
+    return { active: null, roads: [], accounts: [], agents: [], contexts: [], ...over };
   }
 
   test("each account holds its own windows alone, session first, in the agency's order", () => {
@@ -448,14 +448,32 @@ describe("whose window the title bar shows", () => {
 // panel carries it beside the windows, or alone where there are none.
 describe("a balance", () => {
   test("is written in its own currency", () => {
-    expect(moneyText({ amount: 25.6, currency: "USD", seenAt: 0 })).toContain("25.60");
-    expect(moneyText({ amount: 3, currency: "NOT-A-CODE", seenAt: 0 })).toBe("3 NOT-A-CODE");
+    expect(moneyText({ amount: 25.6, currency: "USD", seenAt: 0, requests: null })).toContain("25.60");
+    expect(moneyText({ amount: 3, currency: "NOT-A-CODE", seenAt: 0, requests: null })).toBe("3 NOT-A-CODE");
   });
 
   test("stands in the slot's group of the panel", () => {
-    const balance = { amount: 1, currency: "USD", seenAt: 0 };
-    const groups = usageGroups({ active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null, balance }, accounts: [], agents: [], contexts: [] });
+    const balance = { amount: 1, currency: "USD", seenAt: 0, requests: null };
+    const groups = usageGroups({ active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null, balance }, roads: [], accounts: [], agents: [], contexts: [] });
 
     expect(groups[0]?.balance).toEqual(balance);
+  });
+
+  test("of a provider's own road stands as a group of its own after the accounts, under the provider's label", () => {
+    const balance = { amount: 9.55, currency: "USD", seenAt: 0, requests: { used: 12, limit: 1000, left: 988, scope: "free-models" } };
+    const account = { id: "a", name: "Account A", provider: "claude-code", label: "Claude Code", inUse: false, session: null, week: null, balance: null };
+    const groups = usageGroups({ active: null, roads: [{ provider: "provider-y", label: "Provider Y", balance }], accounts: [account], agents: [], contexts: [] });
+
+    expect(groups.map((group) => group.id)).toEqual(["a", "road:provider-y"]);
+    expect(groups[1]).toMatchObject({ provider: "provider-y", label: "Provider Y", name: null, inUse: false, windows: [], balance });
+  });
+
+  test("says what its request allowance covers in the pack's words, and how many are left of the day's ceiling", () => {
+    const allowance = { used: 12, limit: 1000, left: 988, scope: "free-models" as string | null };
+
+    expect(requestsLabel(wording, allowance)).toBe(wording("usage.label.requests_free_models"));
+    expect(requestsLabel(wording, { ...allowance, scope: "a-scope-the-pack-has-no-word-for" })).toBe(wording("usage.label.requests_day"));
+    expect(requestsLabel(wording, { ...allowance, scope: null })).toBe(wording("usage.label.requests_day"));
+    expect(requestsText(wording, allowance)).toBe(wording("usage.label.requests_left", { left: "988", limit: "1,000" }));
   });
 });

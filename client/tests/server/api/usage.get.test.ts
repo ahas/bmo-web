@@ -53,6 +53,7 @@ describe("the usage view", () => {
 
     expect((await asked(handler, {})).answer).toEqual({
       active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null, balance: null },
+      roads: [],
       accounts: [{ id: "a", name: "Account A", provider: "claude-code", label: "claude-code", inUse: false, session: null, week: null, balance: null }],
       agents: [],
       contexts: []
@@ -89,6 +90,6 @@ describe("the usage view", () => {
   test("with nothing to name stands empty", async () => {
     empty = true;
 
-    expect((await asked(handler, {})).answer).toEqual({ active: null, accounts: [], agents: [], contexts: [] });
+    expect((await asked(handler, {})).answer).toEqual({ active: null, roads: [], accounts: [], agents: [], contexts: [] });
   });
 });

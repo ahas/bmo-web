@@ -990,7 +990,13 @@ edit to that file alone, once the guide below carries the word.
   that holds no login, that slot stands first as a group of its own, marked the same way, with whatever
   windows it reports. A slot or an account the agency reads a balance for — a provider paid by the request, an
   endpoint account — carries it as a row of its own: 「잔액」, the amount in its currency, and how long ago it was
-  read. An account whose windows and balance the agency states none of says so in one line rather than
+  read. A balance that carries a request allowance (the agency's `docs/usage-windows.md`, 「Balances」) stands
+  one more row under it: what the allowance covers in the pack's words for it, 「무료 모델 요청」 for
+  `free-models` and 「하루 요청」 for one the pack has no word for or that covers every request, and how many
+  are left of the day's ceiling, 「988 / 1,000 남음」. A provider that is switched on and keeps a balance on
+  its own road stands as a group of its own after the accounts, under the agency's label for it, with that
+  balance and its allowance, unless it is the slot the chat runs on, which stands first already. An account
+  whose windows and balance the agency states none of says so in one line rather than
   standing a figure, and with no account registered and no slot named the panel says there is no
   account. No tally of tokens by model, gate or user and no list of saved sessions stands in it.
 - **The panel keeps to the window and scrolls inside it,** since what stands past the bottom of a panel

@@ -9,7 +9,8 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 // runs on from the default answerer's own `provider`, its login and the accounts' names from the agency's fallback answer, each account's own window from its account
 // list, and each worker's week from its usage grouped by worker (docs/boundary.md, 「Gaps the console meets」). An
 // account the owner switched off, or one on a provider switched off, is left out: the providers' own switches are
-// read from the agency's provider list, and a list that does not answer leaves every provider standing as on.
+// read from the agency's provider list, and a list that does not answer leaves every provider standing as on. The
+// same list names each provider's own road that keeps a balance, with the request allowance read beside it.
 export default defineEventHandler(async (event): Promise<UsageView> => {
   await requireUserSession(event);
 
@@ -28,5 +29,5 @@ export default defineEventHandler(async (event): Promise<UsageView> => {
 
   const providersOff = new Set(providers.filter((provider) => provider.enabled === false).map((provider) => provider.name));
 
-  return usageView(fallback, accounts.items, usage, chatProvider, providersOff);
+  return usageView(fallback, accounts.items, usage, chatProvider, providersOff, providers);
 });

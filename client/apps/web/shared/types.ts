@@ -1601,6 +1601,10 @@ export interface UsageBalance {
   amount: number;
   currency: string;
   seenAt: number;
+  // The request allowance read with it, where its provider states one: how many requests of the day are used,
+  // the day's ceiling, how many are left, and what the allowance covers as the agency's word for it, or null
+  // where it covers every request.
+  requests: { used: number; limit: number; left: number; scope: string | null } | null;
 }
 
 // One registered account and what it has left: its own session and weekly windows and no other account's, null
@@ -1616,9 +1620,19 @@ export interface AccountUsage {
   balance: UsageBalance | null;
 }
 
+// A provider's own road and what it has left in money: one that is switched on and keeps a balance, other than
+// the slot the chat runs on.
+export interface RoadUsage {
+  provider: string;
+  label: string;
+  balance: UsageBalance;
+}
+
 export interface UsageView {
   // Null where the agency names no slot.
   active: ActiveUsage | null;
+  // Each provider's own road that keeps a balance, in the order the agency lists the providers.
+  roads: RoadUsage[];
   // In the order the agency lists them.
   accounts: AccountUsage[];
   // What each worker's jobs have spent over the week, only where the agency carries a figure.

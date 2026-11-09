@@ -1,4 +1,4 @@
-import { COUNT_LOCALE } from "./numbers";
+import { COUNT_LOCALE, countText } from "./numbers";
 import { agentProviderNames } from "#shared/types";
 
 import type { ActiveUsage, AgentMode, AgentTokenUsage, HeadlineWindow, TokenSplit, UsageBalance, UsageTally, UsageView } from "#shared/types";
@@ -134,7 +134,8 @@ function windowsOf(slot: { session: HeadlineWindow | null; week: HeadlineWindow 
 }
 
 // Every registered account as a group of its own, in the agency's order, each with its own windows. Where the chat
-// runs on a provider that holds no login, that slot is a group of its own ahead of them, marked as the one in use.
+// runs on a provider that holds no login, that slot is a group of its own ahead of them, marked as the one in use;
+// and each provider's own road that keeps a balance stands after them, under the provider's label.
 export function usageGroups(view: UsageView): UsageGroup[] {
   const active = view.active;
   const slot: UsageGroup[] =
@@ -152,8 +153,23 @@ export function usageGroups(view: UsageView): UsageGroup[] {
       inUse: account.inUse,
       windows: windowsOf(account),
       balance: account.balance
-    }))
+    })),
+    ...view.roads.map((road) => ({ id: `road:${road.provider}`, provider: road.provider, label: road.label, name: null, inUse: false, windows: [], balance: road.balance }))
   ];
+}
+
+// The pack's words for what a request allowance covers, by the agency's word for it; an allowance of a scope the
+// pack has no word for, or of none, is told as the day's requests.
+const REQUEST_SCOPES: Readonly<Record<string, string>> = { "free-models": "usage.label.requests_free_models" };
+
+/** What a balance's request allowance is called on the panel. */
+export function requestsLabel(t: Translate, requests: NonNullable<UsageBalance["requests"]>): string {
+  return t((requests.scope !== null ? REQUEST_SCOPES[requests.scope] : undefined) ?? "usage.label.requests_day");
+}
+
+/** How many requests an allowance has left of its ceiling, as the panel says it. */
+export function requestsText(t: Translate, requests: NonNullable<UsageBalance["requests"]>): string {
+  return t("usage.label.requests_left", { left: countText(requests.left), limit: countText(requests.limit) });
 }
 
 // A window's figure as it stands now: the window itself while its reset is still ahead, and nothing
@@ -410,5 +426,5 @@ export function unsplitText(t: Translate, tallies: readonly UsageTally[]): strin
 }
 
 export function emptyUsage(): UsageView {
-  return { active: null, accounts: [], agents: [], contexts: [] };
+  return { active: null, roads: [], accounts: [], agents: [], contexts: [] };
 }

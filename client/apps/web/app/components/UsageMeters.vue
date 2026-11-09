@@ -115,6 +115,13 @@
               <span class="ms-auto text-sm tabular-nums text-dimmed">{{ $t("usage.label.balance_seen", { wait: elapsedText($t, Math.max(0, now - group.balance.seenAt)) }) }}</span>
             </div>
 
+            <!-- The request allowance read with the balance: what it covers, and how many are left of the day's
+                 ceiling. -->
+            <div v-if="group.balance?.requests" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" data-usage-requests>
+              <span class="min-w-0 flex-1 basis-24 break-words text-dimmed">{{ requestsLabel($t, group.balance.requests) }}</span>
+              <span class="tabular-nums text-muted">{{ requestsText($t, group.balance.requests) }}</span>
+            </div>
+
             <!-- An account whose windows and balance the agency states none of says so, and no figure stands in their
                  place. -->
             <p v-if="group.windows.length === 0 && group.balance === null" class="text-sm text-dimmed">{{ $t("usage.status.no_info") }}</p>
@@ -142,6 +149,8 @@ import {
   liveWindow,
   loudestTone,
   moneyText,
+  requestsLabel,
+  requestsText,
   resetClock,
   resetDay,
   resetText,

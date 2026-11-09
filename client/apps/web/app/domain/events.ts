@@ -853,7 +853,8 @@ const emptyRunProgress: RunProgress = {
   writtenTokens: null,
   actions: [],
   droppedActions: 0,
-  droppedContext: 0
+  droppedContext: 0,
+  said: []
 };
 
 // A room's turns with one speaker's put in where it stood, or after the others where it is new.

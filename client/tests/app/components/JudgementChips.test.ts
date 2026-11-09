@@ -71,6 +71,14 @@ describe("the record, in the order the turn made it", () => {
     expect(record).toContain(`<AgentToolCall v-else-if="entry.kind === 'call'" :row="entry.row" />`);
   });
 
+  test("what the turn wrote and then went on working stands among its calls, before the call it led to", () => {
+    expect(script).toContain("const said = new Set(progressLines(loadedLines.value).map((line) => line.id));");
+    expect(script).toContain("for (const line of loadedLines.value) {");
+    expect(script).toContain('else if (said.has(line.id)) push(line.at, { kind: "said", text: line.text });');
+    expect(record).toContain("<p v-else-if=\"entry.kind === 'said'\" data-record-said");
+    expect(record).toContain("whitespace-normal break-keep wrap-anywhere");
+  });
+
   test("each question of the draft process stands at its own moment, its answer or change whole", () => {
     expect(script).toContain('push(row.at, {');
     expect(script).toContain("draftDiff(before, line.answer)");

@@ -1230,6 +1230,14 @@ export interface TurnAction {
   state: "succeeded" | "failed" | AgentLogContextState | null;
 }
 
+// A line a running turn wrote and then went on working, shown as its words in progress: the words, run into one
+// line and redacted by the bot, and how many actions the turn had made, those dropped counted, when the call it led
+// to was made.
+export interface SaidLine {
+  text: string;
+  before: number;
+}
+
 export interface RunProgress {
   phase: "thinking" | "writing" | "tool" | "waiting";
   tool: string | null;
@@ -1246,6 +1254,8 @@ export interface RunProgress {
   actions: TurnAction[];
   droppedActions: number;
   droppedContext: number;
+  // The turn's last few progress lines, oldest first; a bot that tells none leaves it out.
+  said?: SaidLine[];
   // The Job the turn waits on, in the waiting phase alone.
   waitingFor?: EngineHold | null;
 }

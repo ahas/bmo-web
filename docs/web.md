@@ -4798,6 +4798,15 @@ Four bounds keep it from growing forever.
   out of that record. So going to another room and coming back finds the line standing where it was, with what the
   turn has done so far; the home screen's 〈이름〉가 답변 중 on a room's line stands the same way. A reload or another device reads the
   picture the stream opens with, which is the same record from the bot's side.
+- **What the agent writes as it works** — the lines the turn writes and then goes on working, its progress lines
+  (the receiver's `docs/receiver.md`, 「The event stream」), stand in the block between what the turn received and
+  its state line, as the agent's own words in progress: the newest in the plain ink, read as a line of the chat,
+  and the few before it above it in the muted ink, oldest first, as many as the bot's picture carries. Each is one
+  line of words that wraps at the row's width, a long run breaking inside itself, so nothing scrolls the room
+  sideways, at a phone's width too. They are no messages: no number, no reply, no menu and no actions. A new line
+  comes in under the others and the oldest goes as the picture drops it; what the turn writes last is its answer,
+  which the picture never carries among them. When the answer takes the row's place they go with the rest of the
+  running block, and the answer's record stands them again among its calls (「What the turn did」).
 - **Thinking, and using a tool** — that one line is the turn's own account of what it is at: a pressable
   "생각하는 중…" that shimmers while the turn runs, standing at the row's left edge with no name beside it — the
   row's header already names the agent — and under it, spread open while it runs, the turn's detail.
@@ -4891,15 +4900,20 @@ Four bounds keep it from growing forever.
   - When the answer takes the row's place, everything the running block had spread is folded: the answer stands
     as its words and its meta line, and nothing of the turn's work stays under it unless the reader spreads it
     again from the answer's own record.
+  - The answer's record stands the turn's progress lines among its calls, each at its moment as one muted line of
+    words that wraps: the text lines of a run that a call of the same run follows, read off the same log lines the
+    calls are, a co-worker branch's left out. A run's last text, with no call after it, is its answer or its
+    notes and stands as none.
 - **One run with its answer** — the running turn stands in its answer's place, in the same run, with the same name at its head and
   the same photo beside its foot, but on no bubble ground, with no tail and no time (「지금 하는 일」); its meta line
   carries the record and what it has spent on its leading end as the answer's does. What the turn received and the state line are both at
   the meta line's size, line height and colour, each alone on its own line, so the block reads at one size. The
   two stand one step apart — the bubble's own step, the same one between the name above them and the meta line
   below, so the whole bubble reads at one rhythm rather than at two. The state line
-  stands directly under what the turn received, at the head of the block: it is the one line of the block that
-  is read over and over while the turn runs, and standing it under the stack would move it down the screen on
-  every call that lands, leaving a reader to find it again each time. Under the words comes the meta line —
+  stands directly under what the turn received and its progress lines, at the head of the block: it is the one
+  line of the block that is read over and over while the turn runs, and standing it under the stack would move it
+  down the screen on every call that lands, leaving a reader to find it again each time. The progress lines between
+  them are only the few the picture carries, so they move it only while they fill in. Under the words comes the meta line —
   기록 and 사용 토큰 at its leading end, the time at its trailing end — and what the record spreads grows
   downwards from under it, which is where a finished answer spreads the same panel.
 - **사용 토큰** — the meta line always carries the token chip the answer will carry, in the place it will carry it,

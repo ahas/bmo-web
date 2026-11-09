@@ -36,6 +36,30 @@ describe("what the block stands while a turn runs", () => {
     expect(received).toBeLessThan(reasoning);
   });
 
+  test("what the agent writes as it works stands between what opened the turn and what it is at", () => {
+    const received = at("<RollingSentence");
+    const said = at("data-said ");
+    const reasoning = at("<UChatReasoning");
+
+    // The agent's words come first and the state under them, as a chat reads a line and then the sign that more
+    // is coming; the newest line is the row's own words, the few before it muted.
+    expect(received).toBeLessThan(said);
+    expect(said).toBeLessThan(reasoning);
+    expect(source).toContain("saidLines(props.run.progress)");
+
+    const block = template.slice(said, reasoning);
+
+    expect(block).toContain('v-for="(line, index) in said.earlier"');
+    expect(block).toContain("text-muted");
+    expect(block).toContain("{{ said.newest }}");
+    // Each line wraps at the row's width and a long run breaks inside itself, so the room never scrolls sideways.
+    expect(block.match(/whitespace-normal break-keep wrap-anywhere/g)?.length).toBe(2);
+    expect(block).not.toContain("truncate");
+    // No message stands there, so nothing on them presses or numbers them.
+    expect(block).not.toContain("@click");
+    expect(block).not.toContain("<UButton");
+  });
+
   test("the count of what the turn was handed is still there", () => {
     expect(template).toContain(":figures=\"received.figures\"");
     expect(source).toContain("receivedLine(props.run.received)");

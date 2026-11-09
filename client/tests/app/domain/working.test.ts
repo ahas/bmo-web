@@ -5,7 +5,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { GENERIC_TOOL_ICON } from "../../../apps/web/app/domain/log";
-import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, receivedLine, subjectOf, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
+import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, progressLines, receivedLine, saidLines, subjectOf, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
 
 import type { AgentLogLine, AgentSummary, LiveRun, RunProgress, TurnAction } from "../../../apps/web/shared/types";
 
@@ -279,6 +279,62 @@ describe("what a finished turn did, read back out of its run", () => {
 
   test("a call still without its result stands as one still out", () => {
     expect(turnActions([line({ kind: "tool", name: "Bash", ref: "t3", text: "{}" })])[0]?.state).toBeNull();
+  });
+
+  test("its progress lines are the text a call of the same run follows, never the run's last text or a branch's", () => {
+    const other = "chat:-1003:1789751065738:2";
+    const said = progressLines([
+      line({ id: 1, kind: "thinking", text: "weighing it" }),
+      line({ id: 2, kind: "text", text: "Reading the plan first." }),
+      line({ id: 3, kind: "tool", name: "Read", ref: "t1", text: "{}" }),
+      line({ id: 4, kind: "text", text: "A branch's words.", parent: "t9" }),
+      line({ id: 5, kind: "tool", name: "Bash", ref: "t8", text: "{}", parent: "t9" }),
+      line({ id: 6, kind: "text", text: "API Error: overloaded", state: "failed" }),
+      line({ id: 7, kind: "text", text: "Checking the second step." }),
+      line({ id: 8, kind: "tool", name: "Bash", ref: "t2", text: "{}" }),
+      line({ id: 9, kind: "text", text: "Both steps are done." }),
+      // Another run's text a call of its own follows is that run's line; its last text is its notes.
+      line({ id: 10, kind: "text", run: other, text: "Looking at the notes." }),
+      line({ id: 11, kind: "tool", run: other, name: "Read", ref: "t3", text: "{}" }),
+      line({ id: 12, kind: "text", run: other, text: "The notes say two steps." })
+    ]);
+
+    expect(said.map((one) => one.id)).toEqual([2, 7, 10]);
+  });
+});
+
+describe("what a running turn has written as it works", () => {
+  const progress = (said: RunProgress["said"]): RunProgress => ({
+    phase: "tool",
+    tool: "Bash",
+    thinkingTokens: null,
+    contextTokens: null,
+    cacheReadTokens: null,
+    requestId: null,
+    spent: null,
+    writtenTokens: null,
+    actions: [],
+    droppedActions: 0,
+    droppedContext: 0,
+    ...(said === undefined ? {} : { said })
+  });
+
+  test("is the newest line apart from the few before it, oldest first", () => {
+    const said = saidLines(
+      progress([
+        { text: "Reading the plan first.", before: 0 },
+        { text: "Checking the second step.", before: 1 },
+        { text: "Listing the folder.", before: 2 }
+      ])
+    );
+
+    expect(said).toEqual({ earlier: ["Reading the plan first.", "Checking the second step."], newest: "Listing the folder." });
+  });
+
+  test("is nothing where the turn has written none, or the bot tells none", () => {
+    expect(saidLines(progress([]))).toEqual({ earlier: [], newest: null });
+    expect(saidLines(progress(undefined))).toEqual({ earlier: [], newest: null });
+    expect(saidLines(null)).toEqual({ earlier: [], newest: null });
   });
 });
 

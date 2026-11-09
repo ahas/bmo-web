@@ -336,6 +336,35 @@ export function turnActions(lines: readonly AgentLogLine[]): TurnAction[] {
   return actions;
 }
 
+// What a running turn has written as it works, as its block stands it: the newest of its progress lines, read as the
+// agent's words, and the few before it, oldest first (docs/web.md, the room screen's progress lines).
+export function saidLines(progress: RunProgress | null): { earlier: string[]; newest: string | null } {
+  const said = (progress?.said ?? []).map((line) => line.text).filter((text) => text.trim() !== "");
+
+  return { earlier: said.slice(0, -1), newest: said.at(-1) ?? null };
+}
+
+// The progress lines a finished turn's runs left: each text line a call of the same run follows, the run's own and
+// no co-worker branch's. A run's last text, with no call after it, is its answer or its notes, and a failed
+// request's text is no line of the turn's, so neither is one.
+export function progressLines(lines: readonly AgentLogLine[]): AgentLogLine[] {
+  const said: AgentLogLine[] = [];
+  const held = new Map<string, AgentLogLine[]>();
+
+  for (const line of lines) {
+    if (line.parent !== null) continue;
+
+    if (line.kind === "text" && line.state !== "failed" && line.text.trim() !== "") {
+      held.set(line.run, [...(held.get(line.run) ?? []), line]);
+    } else if (line.kind === "tool") {
+      said.push(...(held.get(line.run) ?? []));
+      held.delete(line.run);
+    }
+  }
+
+  return said;
+}
+
 // How long a picture that carries no runs is held off before it takes the room's line away: long enough for a job to
 // hand over to the next one — a run ends and the next starts a moment later — and short enough that a line whose work
 // truly ended goes. A job's own line is the agency's, and its changes come as one event each, so a moment with none

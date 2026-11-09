@@ -158,6 +158,10 @@
 
             <AgentToolCall v-else-if="entry.kind === 'call'" :row="entry.row" />
 
+            <!-- A line the turn wrote and then went on working, at its moment among the calls: one muted line of
+                 words that wraps, no message of its own. -->
+            <p v-else-if="entry.kind === 'said'" data-record-said class="px-1 text-sm text-muted whitespace-normal break-keep wrap-anywhere">{{ entry.text }}</p>
+
             <TurnOpening v-else-if="entry.kind === 'opening'" :instructions="entry.opening.instructions" :chat-id="props.chatId" class="w-full" />
 
             <!-- One question of the round's draft process, with what it was asked, what it answered, and the answer
@@ -264,7 +268,7 @@ import { useBotEvents } from "~/domain/events";
 import { readRunLines } from "~/domain/log";
 import { countText, secondsText } from "~/domain/numbers";
 import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowedOffer, roadName, roadOutcome, stageLabel, verdictState, verdictWords } from "~/domain/judgements";
-import { brainActions, turnActions } from "~/domain/working";
+import { brainActions, progressLines, turnActions } from "~/domain/working";
 import { formatClock, formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
 import { draftAsked, draftDiff, draftRound, endLine, gateRoundLines, roundLines, splitDraftJudgements } from "~/domain/draft-process";
@@ -497,6 +501,7 @@ type RecordEntry =
   | { kind: "reads"; reads: DraftRead[] }
   | { kind: "actions"; actions: TurnAction[] }
   | { kind: "call"; row: LogRow }
+  | { kind: "said"; text: string }
   | { kind: "draft"; line: RoundLine; diff: DraftDiffLine[]; at: number }
   | { kind: "end"; outcome: string; withheld: boolean; ms: number | null; at: number | null }
   | { kind: "opening"; opening: NonNullable<Judgement["opening"]> }
@@ -531,8 +536,17 @@ const timeline = computed<RecordEntry[]>(() => {
       if (read.length > 0) head.push({ kind: "actions", actions: read });
     }
 
-    // Every call, as the agent's log draws it, the result under the call.
-    for (const row of callRows.value) push(row.line.at, { kind: "call", row });
+    // Every call, as the agent's log draws it, the result under the call, and what the turn wrote and then went on
+    // working, each in the order the log holds them so a line stands before the call it led to.
+    const calls = new Map(callRows.value.map((row) => [row.line.id, row]));
+    const said = new Set(progressLines(loadedLines.value).map((line) => line.id));
+
+    for (const line of loadedLines.value) {
+      const row = calls.get(line.id);
+
+      if (row !== undefined) push(row.line.at, { kind: "call", row });
+      else if (said.has(line.id)) push(line.at, { kind: "said", text: line.text });
+    }
 
     // Each question of the round's draft process, with the answer or the change it wrote.
     const rows = draftRows.value;

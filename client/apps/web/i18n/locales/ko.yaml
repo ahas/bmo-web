@@ -24,7 +24,9 @@ app:
   action:
     login: 로그인
     logout: 로그아웃
+    reload: 새로고침
   message:
+    new_build: 새 버전이 배포됐습니다.
     manifest_description: 방 대화와 에이전트 판정을 보고, 방의 에이전트에게 메시지를 보냅니다.
     login_again: 다시 로그인해 주세요.
     session_ended: 로그인이 만료되었습니다.

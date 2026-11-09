@@ -7031,6 +7031,11 @@ The console stands as the systemd user unit this repository's `deploy/` holds, `
 `bmo-web-server.service`. Both are linked, started and restarted by the testbed's deployment of this repository
 (`testbed.toml`; the testbed's `docs/deploy.md`), into the deploy tree `~/.local/share/bmo-web/deploy`.
 
+- **A window that stands open is told when a newer build is live.** A window keeps the build it loaded, so a
+  deployment changes nothing it shows until it is loaded again. Every minute the window reads the build the
+  server names as its newest, and where that is no longer its own it says so in the notice island, 「새 버전이
+  배포됐습니다」 with 새로고침, which loads the window again. The notice stands until it is pressed or put away,
+  and a still newer build says it again.
 - **The server is the deployment's service,** marked `bot`: the deployment waits on its health, `bmo-web-server
   health` run in the release's `server/`, and watches it stay up. The console is marked `restart`, restarted by
   every deployment just before the server.

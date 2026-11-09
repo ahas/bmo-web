@@ -36,6 +36,9 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
   compatibilityDate: "2025-09-01",
   devtools: { enabled: false },
+  // An open window reads the newest build's name every minute, so a deployment reaches it as a notice
+  // (app/plugins/new-build.client.ts; docs/web.md, 「Running as a service」).
+  experimental: { checkOutdatedBuildInterval: 60_000 },
   ssr: true,
   // A worker's standing dev console serves a copy under a path of its own and builds into a directory
   // of its own, so a typecheck in the same checkout does not rewrite what it is serving. Nothing named,

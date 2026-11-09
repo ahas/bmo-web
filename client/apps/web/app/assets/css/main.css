@@ -514,6 +514,44 @@
   margin-inline: auto;
 }
 
+/* A message stands as the chat it went out to shows it (see domain/message-markup): its markup's line
+   breaks are line breaks, a quote and a code block sit close to the lines around them, and a spoiler is
+   covered until it is pressed. Like words, it takes its size and colour from the bubble. */
+.markdown--message {
+  white-space: pre-wrap;
+}
+
+.markdown--message blockquote,
+.markdown--message .markdown-code {
+  margin: 0.25em 0;
+}
+
+.markdown--message .markdown-code {
+  white-space: normal;
+}
+
+.markdown-spoiler {
+  border-radius: var(--ui-radius);
+  background-color: var(--ui-text-muted);
+  color: transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+.markdown-spoiler * {
+  visibility: hidden;
+}
+
+.markdown-spoiler[data-shown] {
+  background-color: var(--ui-bg-elevated);
+  color: inherit;
+  user-select: auto;
+}
+
+.markdown-spoiler[data-shown] * {
+  visibility: visible;
+}
+
 /* Words stand where something else already set the size and the colour — a report in a card, a
    line of a log, a message — so they take both from the place and say nothing of their own. The
    blocks sit closer than a document's, since the text is a part of a screen rather than the whole

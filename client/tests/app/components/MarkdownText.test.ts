@@ -13,7 +13,9 @@ describe("a markdown text", () => {
   test("stands as the characters it was written as until there is HTML to stand instead", () => {
     expect(template).toContain('<component :is="tag" v-if="html === null"');
     expect(template).toContain("'break-words whitespace-pre-wrap'\">{{ props.text }}</component>");
-    expect(template).toMatch(/<component :is="tag" v-else ref="shown" v-bind="\$attrs" class="markdown" :class="`markdown--\$\{props\.kind\}`" @click="copyFromPress\(\$t, \$event, copyText\)" v-html="html" \/>/);
+    expect(template).toMatch(/<component :is="tag" v-else ref="shown" v-bind="\$attrs" class="markdown" :class="`markdown--\$\{props\.kind\}`" @click="pressed" @keydown\.enter="uncovered" v-html="html" \/>/);
+    // A press is a spoiler's to uncover first, and a code block's copy button's otherwise.
+    expect(source).toMatch(/function pressed\(event: MouseEvent\): void \{\s*if \(!uncovered\(event\)\) \{\s*void copyFromPress\(t, event, copyText\);/);
   });
 
   // A fenced block's copy button is drawn with the text, so the press on it is taken where the

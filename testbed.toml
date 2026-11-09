@@ -23,7 +23,7 @@ quick = ["korean", "layout", "dependencies", "cargo-profile", "shared-versions"]
 korean_ledger = "korean-ledger.json"
 # The base libraries, the published clients of the units the console calls (docs/boundary.md), and sumida,
 # the server's base, a git dependency.
-base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "@agency/client", "bmo-job-client", "@bmo/receiver-client", "sumida"]
+base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-text", "@agency/client", "bmo-job-client", "@bmo/receiver-client", "sumida"]
 
 # The repository whose root holds the shared versions the manifests and the lock hold to. The hyper 0.14 line the
 # lock holds besides hyper 1 is sumida's S3 client's own, on a semver line the shared versions do not name.

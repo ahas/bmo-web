@@ -1633,7 +1633,9 @@ Four groups.
 Body text a person or model writes in markdown stands as formatting, not asterisks and backticks — bold,
 inline code, code blocks, lists, headings, quotes, tables, links. The places such body text stands:
 
-- **Room screen** — the bubbles of what an agent said, whichever supervisor said it. What a person said is handed over with formatting stripped
+- **Room screen** — the bubbles of what an agent said, whichever supervisor said it, drawn as the chat service
+  the words went out on shows them (「A bubble reads as its message does in the chat」 below) rather than as the
+  whole of markdown. What a person said is handed over with formatting stripped
   by Telegram, so it stands as the literal characters. A bubble with a custom emoji inserted among the text
   stands as literal characters too. Where a picture would sit is recorded as a character position, and
   stripping formatting shrinks the characters and misaligns that position.
@@ -1765,6 +1767,18 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 - **Strong words close in Korean.** A pair of double asterisks that CommonMark would not close — one after a
   bracket or a quote and before a letter, as in 「**「그림」**과」 — still sets its words in bold, in every
   kind of text. Where CommonMark already reads the pair, its reading stands.
+- **A bubble reads as its message does in the chat.** An agent's words go out to a chat as the markup the base
+  library `bmo-text` reads its markdown into (its `docs/api.md`, 「`markdown`」), and a room's bubble is drawn from
+  that same reading, so the owner sees in the console what the room saw:
+  - bold, italic, strike, a spoiler, inline code, a link, a quote and a code block stand as that formatting; a
+    heading, a list, a table and a rule, for which the chat has no formatting, are laid flat into the text as the
+    reading lays them — a heading its words, a list item behind `•` or its number, a table's cells set apart by
+    `·` — and a line break is a line break;
+  - a spoiler stands covered until it is pressed, and pressed again it is covered again;
+  - a code block stands in the same box, with the same copy button and colours, as every other code block of
+    the console; a bare web address in the words is a link, as the chat makes it one;
+  - the reading arrives in a chunk of its own the first time a room's bubble needs it, apart from the markdown
+    renderer, and until it has arrived the bubble stands as the text it was written as.
 - **Either way it passes sanitising.** The HTML a markdown is turned into passes DOMPurify once before it
   enters the screen. Scripts, event attributes and `javascript:` addresses drop there. A link opens in a new
   tab, and the opened page cannot touch the console window.

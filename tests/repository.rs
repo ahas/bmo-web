@@ -20,10 +20,11 @@ fn root() -> &'static Path {
 
 /// The only `bmo-*` packages anything here may depend on: the base libraries and the published clients of the
 /// units the console calls (docs/boundary.md).
-const ALLOWED: [&str; 6] = [
+const ALLOWED: [&str; 7] = [
   "bmo-chat",
   "bmo-chat-client",
   "bmo-ui",
+  "bmo-text",
   "@agency/client",
   "bmo-job-client",
   "@bmo/receiver-client",

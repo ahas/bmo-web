@@ -141,6 +141,16 @@ const WORDS: ArchivedMessage[] = [
 ];
 
 const ROWS = [...FILES, ...WORDS];
+
+// An agent's words written in markdown, read as their chat shows them (docs/web.md, 「A bubble reads as its
+// message does in the chat」): formatting the chat has, what it lays flat, a spoiler, a code block and a bare
+// address. Served in the rows' place by the test that reads it.
+const FORMATTED = row(
+  "# Heading\n\nSome **bold** and *italic*, a ||secret|| and `code`.\n\n- one\n- two\n\n> quoted\n\n```sh\nls -la\n```\n\nSee https://example.com/formatted now.",
+  false
+);
+// The rows the room is served with: every row, or the ones a test puts in their place.
+let served: ArchivedMessage[] = ROWS;
 // A verdict on each of the owner's words, so their meta line carries its mark as the owner's does.
 const JUDGEMENTS: Judgement[] = WORDS.filter((each) => each.agent === false).map((each, at) => ({
   id: 90_000 + at,
@@ -183,9 +193,9 @@ async function answerRoom(route: Route): Promise<void> {
   if (url.pathname.endsWith("/messages")) {
     const whole = !url.searchParams.has("before") && !url.searchParams.has("after");
 
-    const messages = ROWS.map((each) => (each.senderId === -1 ? { ...each, senderId: owner } : each));
+    const messages = served.map((each) => (each.senderId === -1 ? { ...each, senderId: owner } : each));
 
-    await route.fulfill({ json: { messages: whole ? messages : [], judgements: whole ? JUDGEMENTS : [], hasMore: false } });
+    await route.fulfill({ json: { messages: whole ? messages : [], judgements: whole && served === ROWS ? JUDGEMENTS : [], hasMore: false } });
   } else if (url.pathname.endsWith("/read")) {
     await route.fulfill({ json: { unread: 0, firstUnread: null, readTo: null } });
   } else {
@@ -193,10 +203,8 @@ async function answerRoom(route: Route): Promise<void> {
   }
 }
 
-// The room entered from inside the console, as a person goes to it, its rows all standing, their
-// players measured and their bubbles fitted. A player at rest says its sound's length on its meta line
-// once it has read it, so a player is measured when that clock stands there.
-async function visit(page: Page): Promise<void> {
+// The room entered from inside the console, as a person goes to it.
+async function enter(page: Page): Promise<void> {
   const listed = page.waitForResponse(/\/api\/rooms$/);
 
   await page.goto(`${origin}/`, { waitUntil: "load" });
@@ -211,6 +219,13 @@ async function visit(page: Page): Promise<void> {
 
     await root!.__vue_app__!.config.globalProperties.$router.push(path);
   }, `/rooms/${CHAT}`);
+}
+
+// The room entered from inside the console, as a person goes to it, its rows all standing, their
+// players measured and their bubbles fitted. A player at rest says its sound's length on its meta line
+// once it has read it, so a player is measured when that clock stands there.
+async function visit(page: Page): Promise<void> {
+  await enter(page);
 
   for (const each of ROWS) {
     await page.locator(`[data-message="m${each.messageId}"]`).waitFor({ state: "attached", timeout: 20_000 });
@@ -408,6 +423,61 @@ async function worded(page: Page): Promise<Worded[]> {
     });
   });
 }
+
+describe.skipIf(!origin || !touchReady())("an agent's words in a bubble", () => {
+  test("stand as their chat shows them: its formatting, what it lays flat, a spoiler a press uncovers, a code block in its box", async () => {
+    const context = await open(WIDTHS[2]!);
+
+    served = [FORMATTED];
+
+    try {
+      const page = await context.newPage();
+
+      await enter(page);
+
+      const words = page.locator(`[data-message="m${FORMATTED.messageId}"] .markdown--message`);
+
+      // The reading arrives after the row stands; the bubble is read once it has drawn the words.
+      await words.locator("b").first().waitFor({ state: "attached", timeout: 30_000 });
+
+      const drawn = await words.evaluate((root) => ({
+        bold: root.querySelector("b")?.textContent,
+        italic: root.querySelector("i")?.textContent,
+        code: root.querySelector(":scope > code")?.textContent,
+        quote: root.querySelector("blockquote")?.textContent,
+        flat: root.querySelectorAll("h1, h2, ul, ol, li, table").length,
+        text: (root as HTMLElement).innerText,
+        box: root.querySelector(".markdown-code")?.getAttribute("data-language"),
+        fenced: root.querySelector(".markdown-code pre code")?.textContent?.trim(),
+        copy: root.querySelectorAll(".markdown-code [data-copy]").length,
+        link: root.querySelector('a[href="https://example.com/formatted"]')?.getAttribute("target"),
+        breaks: getComputedStyle(root).whiteSpace
+      }));
+
+      expect(drawn).toMatchObject({
+        bold: "bold", italic: "italic", code: "code", quote: "quoted", flat: 0, box: "sh", fenced: "ls -la", copy: 1, link: "_blank", breaks: "pre-wrap"
+      });
+      // What the chat has no formatting for is laid flat: the heading its words, the list behind its marks.
+      expect(drawn.text).toContain("Heading");
+      expect(drawn.text).toContain("• one\n• two");
+
+      // The spoiler is covered until it is pressed, and covered again by the next press.
+      const spoiler = words.locator("[data-spoiler]");
+      const covered = () => spoiler.evaluate((span) => ({ shown: span.hasAttribute("data-shown"), ink: getComputedStyle(span).color }));
+
+      expect(await spoiler.textContent()).toBe("secret");
+      expect(await covered()).toEqual({ shown: false, ink: "rgba(0, 0, 0, 0)" });
+      await spoiler.click();
+      expect((await covered()).shown).toBe(true);
+      expect((await covered()).ink).not.toBe("rgba(0, 0, 0, 0)");
+      await spoiler.click();
+      expect((await covered()).shown).toBe(false);
+    } finally {
+      served = ROWS;
+      await context.close();
+    }
+  }, TEST_MS);
+});
 
 describe.skipIf(!origin || !touchReady())("what a bubble holds keeps inside it", () => {
   for (const viewport of WIDTHS) {

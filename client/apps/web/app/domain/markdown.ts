@@ -44,7 +44,7 @@ import type { Token, TokenizerAndRendererExtension, TokenizerObject, Tokens } fr
 //
 // In every kind a strike is two tildes on each side and nothing less. One tilde is a range of
 // figures, three to five, ten to twelve o'clock, and stands as the character it is.
-export type MarkdownKind = "document" | "words" | "line" | "book";
+export type MarkdownKind = "document" | "words" | "line" | "book" | "message";
 
 const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 
@@ -186,8 +186,13 @@ function copyableCode(this: Renderer, token: Tokens.Code): string {
     return `<div class="markdown-diagram" data-diagram><pre><code>${escapeHtml(token.text)}</code></pre>${zoomTools()}</div>\n`;
   }
 
-  const block = Renderer.prototype.code.call(this, token).trimEnd();
-  const language = escapeHtml(fenceWord(token.lang));
+  return codeBox(Renderer.prototype.code.call(this, token).trimEnd(), fenceWord(token.lang));
+}
+
+// The box a code block stands in: the block itself, the language its fence named at its top left and on the
+// box, and the copy button over its corner.
+function codeBox(block: string, word: string): string {
+  const language = escapeHtml(word);
   const named = language === "" ? "" : ` data-language="${language}"`;
   const head = language === "" ? "" : `<div class="markdown-code-head"><span class="markdown-code-language">${language}</span></div>`;
 
@@ -332,7 +337,26 @@ export function markdownHtml(t: Translate, text: string, kind: MarkdownKind): st
   }
 }
 
+// A message's reading, the base library's, which arrives apart from the renderer the first time a room's bubble
+// needs it (see domain/message-markup); null until it has.
+let messageReader: ((text: string, box: (block: string, language: string) => string) => string) | null = null;
+
+/** Whether a message's reading has arrived, so a bubble can be drawn as its chat shows it. */
+export function messageReaderLoaded(): boolean {
+  return messageReader !== null;
+}
+
+/** A message's reading, fetched if nobody has asked for it yet. */
+export async function loadMessageReader(): Promise<void> {
+  messageReader ??= (await import("./message-markup")).messageMarkup;
+}
+
 function builtHtml(text: string, kind: MarkdownKind): string {
+  // A message stands as its chat shows it, and as the text it was written as until that reading has arrived.
+  if (kind === "message") {
+    return messageReader === null ? escapeHtml(text) : messageReader(text, codeBox);
+  }
+
   if (kind === "line") {
     return lines.parseInline(text.replace(/\s*\n\s*/g, " "), { async: false });
   }

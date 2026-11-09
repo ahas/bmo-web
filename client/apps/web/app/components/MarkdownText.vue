@@ -5,7 +5,7 @@
        line stands inside a line, so both of its forms are inline; its plain form lets the browser
        fold its newlines, as the rendered form does. -->
   <component :is="tag" v-if="html === null" v-bind="$attrs" :class="props.kind === 'line' ? '' : 'break-words whitespace-pre-wrap'">{{ props.text }}</component>
-  <component :is="tag" v-else ref="shown" v-bind="$attrs" class="markdown" :class="`markdown--${props.kind}`" @click="copyFromPress($t, $event, copyText)" v-html="html" />
+  <component :is="tag" v-else ref="shown" v-bind="$attrs" class="markdown" :class="`markdown--${props.kind}`" @click="pressed" @keydown.enter="uncovered" v-html="html" />
 </template>
 
 <script setup lang="ts">
@@ -49,10 +49,32 @@ const tag = computed(() => (props.kind === "line" ? "span" : "div"));
 // being hydrated, where the server drew the plain text and the browser has to draw the same.
 const { t } = useI18n();
 const renderer = shallowRef(useNuxtApp().isHydrating ? null : markdownRenderer());
+// A message is drawn as its chat shows it, by a reading that arrives apart from the renderer; until it has, the
+// text stands as it was written.
+const read = ref(props.kind !== "message" || (renderer.value?.messageReaderLoaded() ?? false));
 
 const html = computed<string | null>(() =>
-  renderer.value === null ? null : renderer.value.renderMarkdown(t, props.text, props.kind)
+  renderer.value === null || !read.value ? null : renderer.value.renderMarkdown(t, props.text, props.kind)
 );
+
+// A spoiler is uncovered by a press and covered by the next; any other press is a code block's copy button's.
+function uncovered(event: Event): boolean {
+  const spoiler = event.target instanceof Element ? event.target.closest("[data-spoiler]") : null;
+
+  if (spoiler === null) {
+    return false;
+  }
+
+  spoiler.toggleAttribute("data-shown");
+
+  return true;
+}
+
+function pressed(event: MouseEvent): void {
+  if (!uncovered(event)) {
+    void copyFromPress(t, event, copyText);
+  }
+}
 
 watch(
   html,
@@ -102,6 +124,11 @@ watch(dark, (inDark) => {
 onMounted(async () => {
   if (renderer.value === null) {
     renderer.value = await loadMarkdownRenderer();
+  }
+
+  if (!read.value && renderer.value !== null) {
+    // A reading that could not be fetched leaves the text as it was written.
+    await renderer.value.loadMessageReader().then(() => (read.value = true), () => undefined);
   }
 });
 </script>

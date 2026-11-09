@@ -20,7 +20,7 @@ is a placeholder.
   make it wrong or incomplete repairs it first, stating what is true now, and the code is then written to
   match. `docs/boundary.md` states every route this repository serves, every call it makes on another unit
   and every code it answers with; `docs/inventory.md` states where each member of the old repository stands.
-- **No `bmo-*` dependency but the base libraries** `bmo-chat`, `bmo-chat-client` and `bmo-ui`, the published clients of the units the console calls (`@agency/client`,
+- **No `bmo-*` dependency but the base libraries** `bmo-chat`, `bmo-chat-client`, `bmo-ui` and `bmo-text`, the published clients of the units the console calls (`@agency/client`,
   `bmo-job-client` and `@bmo/receiver-client`), and the repository's own crates
   `bmo-web-server` and `bmo-web-client`. Each of those clients is installed as the vendored tarball under
   `client/vendor/`. Another unit is reached over HTTP at the address a setting names; its code, its tables and

@@ -50,7 +50,7 @@ the testbed's Korean sweep holds every file to; no code file of this repository 
 
 `bmo-testbed check quick` runs the three sweeps that read the tree before anything runs: Korean in the code,
 the README's folder table and the dependencies the manifests name. The only dependencies from another
-repository are the base libraries `bmo-chat`, `bmo-chat-client` and `bmo-ui`, and the console bundles
+repository are the base libraries `bmo-chat`, `bmo-chat-client`, `bmo-ui` and `bmo-text`, and the console bundles
 `bmo-artifact-client`, `bmo-mail-client`, `bmo-review-client`, `bmo-drive-client` and `bmo-remote-client`, and
 the published clients of the units the console calls, `@agency/client`, `bmo-job-client`, `@bmo/receiver-client`
 and `bmo-brain-client`, as `testbed.toml` declares; the console takes them all from their packs under

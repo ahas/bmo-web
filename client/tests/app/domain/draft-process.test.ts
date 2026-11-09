@@ -5,6 +5,7 @@ import {
   draftAsked,
   draftKeyLabel,
   draftListFault,
+  draftListParts,
   draftListText,
   draftNumberFault,
   draftOutcomeText,
@@ -12,6 +13,7 @@ import {
   draftRowFor,
   endLine,
   gateRoundLines,
+  keptOff,
   readLabel,
   readList,
   roundLines,
@@ -19,6 +21,7 @@ import {
   questionNameFault,
   questionTextFault,
   splitDraftJudgements,
+  switchedQuestion,
   withoutQuestion,
   withQuestion
 } from "../../../apps/web/app/domain/draft-process";
@@ -33,7 +36,7 @@ import type { Judgement } from "../../../apps/web/shared/types";
 const CATALOGUE = ["intent", "information", "facts", "promises", "fit", "final"];
 
 function row(over: Partial<DraftProcessView>): DraftProcessView {
-  return { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default", ...over };
+  return { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], off: [], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default", ...over };
 }
 
 function judgement(id: number, verdict: string, stage = "draft"): Judgement {
@@ -71,6 +74,23 @@ describe("an ordered pick of questions", () => {
   test("stands in order, or as no questions", () => {
     expect(draftListText(wording, ["intent", "final"])).toBe("intent → final");
     expect(draftListText(wording, [])).toBe(wording("agents.label.draft_no_questions"));
+  });
+
+  test("switches a question off where it stands and on again, and never the one that writes the message", () => {
+    expect(switchedQuestion([], "facts", false)).toEqual(["facts"]);
+    expect(switchedQuestion(["facts"], "facts", false)).toEqual(["facts"]);
+    expect(switchedQuestion(["facts", "intent"], "facts", true)).toEqual(["intent"]);
+    expect(switchedQuestion([], "final", false)).toEqual([]);
+    expect(draftListParts(["intent", "facts", "final"], ["facts"])).toEqual([
+      { name: "intent", off: false },
+      { name: "facts", off: true },
+      { name: "final", off: false }
+    ]);
+  });
+
+  test("leaves off only the questions a row's lists still hold", () => {
+    expect(keptOff(["facts", "intent"], ["intent", "final"], ["final"])).toEqual(["intent"]);
+    expect(keptOff(["facts"], ["final"], ["facts", "final"])).toEqual(["facts"]);
   });
 });
 

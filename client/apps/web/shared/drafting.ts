@@ -1,6 +1,6 @@
 // The receiver's draft process as the console reads and sets it (the receiver's `docs/drafting.md`): the table
-// that says which questions a round's answer is asked before it goes out, the questions themselves, and what a
-// round's process wrote. The shapes are the receiver's, as its document states them.
+// that says which questions a round's one draft turn follows before it writes the message, the questions
+// themselves, and what a round's process wrote. The shapes are the receiver's, as its document states them.
 
 /** `*` in a key's place stands for any provider, tier or agent. */
 export const ANY_KEY = "*";
@@ -23,12 +23,15 @@ export interface DraftKey {
 
 /** What a row holds besides its key, as a set sends it. */
 export interface DraftProcessValues {
+  // The questions an ordinary turn's round follows in its one draft turn, in order.
   rounds: string[];
-  // The question of `rounds` from whose answer on a send is read, empty for the first; the table does not show it
-  // and carries it as it stands.
+  // A value the receiver reads no more; the table does not show it and carries it as it stands.
   sendFrom: string;
   light: string[];
+  // The questions of the two lists that are switched off: each keeps its place and is not followed.
+  off: string[];
   lightChars: number;
+  // Values the receiver reads no more; the table does not show them and carries them as they stand.
   ceilingSeconds: number;
   pastCeiling: PastCeiling;
 }

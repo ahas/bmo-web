@@ -4,7 +4,7 @@ import { countText } from "./numbers";
 import { modeLabel } from "./status";
 import { draftQuestionLabel } from "./working";
 
-import type { DraftKey, DraftProcessValues, DraftProcessView, DraftRead, DraftReadHow, DraftRow, DraftSummary, PastCeiling } from "#shared/drafting";
+import type { DraftKey, DraftProcessValues, DraftProcessView, DraftRead, DraftReadHow, DraftRow, DraftSummary } from "#shared/drafting";
 import type { AgentMode, Judgement } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
@@ -14,24 +14,15 @@ import type { Translate } from "#shared/wording";
 /** The gate's stage its rows of a round's draft process stand under. */
 export const DRAFT_STAGE = "draft";
 
-// The bounds the receiver holds a row's two numbers to.
+// The bounds the receiver holds a row's light bound to.
 export const LIGHT_CHARS_MIN = 0;
 export const LIGHT_CHARS_MAX = 1_000;
-export const CEILING_SECONDS_MIN = 1;
-export const CEILING_SECONDS_MAX = 3_600;
 
 // The longest text a question takes.
 export const QUESTION_TEXT_MAX = 4_000;
 
 // A question's name: a lowercase word of letters, digits and dashes.
 const QUESTION_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-
-const PAST_CEILING_LABELS: Record<PastCeiling, string> = {
-  send: "agents.label.draft_past_send",
-  skip: "agents.label.draft_past_skip"
-};
-
-export const PAST_CEILINGS: readonly PastCeiling[] = ["send", "skip"];
 
 // A row's kind and how it ended, each by the key of the words it is said in; one the receiver names that the
 // pack does not hold stands as the receiver's word.
@@ -85,10 +76,6 @@ export function sameDraftKey(one: DraftKey, other: DraftKey): boolean {
   return one.provider === other.provider && one.tier === other.tier && one.agentName === other.agentName;
 }
 
-export function pastCeilingText(t: Translate, past: PastCeiling): string {
-  return t(PAST_CEILING_LABELS[past]);
-}
-
 /** A list of questions, in order, or the pack's words for none. */
 export function draftListText(t: Translate, list: readonly string[]): string {
   return list.length === 0 ? t("agents.label.draft_no_questions") : list.join(" → ");
@@ -115,10 +102,30 @@ export function draftValues(row: DraftProcessValues): DraftProcessValues {
     rounds: [...row.rounds],
     sendFrom: row.sendFrom,
     light: [...row.light],
+    off: [...row.off],
     lightChars: row.lightChars,
     ceilingSeconds: row.ceilingSeconds,
     pastCeiling: row.pastCeiling
   };
+}
+
+/** The questions switched off with one switched off or on again; `final` writes the message and is never off. */
+export function switchedQuestion(off: readonly string[], name: string, on: boolean): string[] {
+  if (name === FINAL_QUESTION) return off.filter((one) => one !== name);
+  if (on) return off.filter((one) => one !== name);
+
+  return off.includes(name) ? [...off] : [...off, name];
+}
+
+/** The questions switched off that a row's lists still hold, in the order given: one taken out of both lists is
+ * off no more. */
+export function keptOff(off: readonly string[], rounds: readonly string[], light: readonly string[]): string[] {
+  return off.filter((name) => rounds.includes(name) || light.includes(name));
+}
+
+/** A list of questions as a cell stands it: each in order with whether it is switched off. */
+export function draftListParts(list: readonly string[], off: readonly string[]): { name: string; off: boolean }[] {
+  return list.map((name) => ({ name, off: off.includes(name) }));
 }
 
 /** A list with a question added before `final`, `final` joining it where the list was empty. */

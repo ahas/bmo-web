@@ -1,9 +1,10 @@
 <template>
-  <!-- What a round's answer is asked before it goes out, as the receiver's draft process table holds it: a row per
-       key of a provider, a tier and an agent, each a name or any, and under it the questions the rows name. Every
-       cell sets its one value with the row's others as they stand (docs/web.md, 「Agent management screen」, the
-       supervisors tab's draft process). A row or a question the receiver's policy holds unchanged carries the default
-       mark after its key or its name. -->
+  <!-- The questions a round's one draft turn follows before it writes the message, as the receiver's draft process
+       table holds it: a row per key of a provider, a tier and an agent, each a name or any, and under it the
+       questions the rows name. Every cell sets its one value with the row's others as they stand (docs/web.md,
+       「Agent management screen」, the supervisors tab's draft process). A question a row has switched off stands
+       in its list dimmed and struck through. A row or a question the receiver's policy holds unchanged carries the
+       default mark after its key or its name. -->
   <section class="flex min-w-0 flex-col" aria-labelledby="draft-processes-title">
     <div class="flex min-h-12 items-center gap-2 border-y border-default px-4 py-2">
       <div class="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -63,12 +64,19 @@
       <template v-for="field in LIST_FIELDS" :key="field" #[`${field}-cell`]="{ row }">
         <DraftListCell
           :value="row.original[field]"
+          :off="row.original.off"
           :catalogue="catalogue"
           :label="$t(LIST_LABELS[field], { key: keyText(row.original) })"
           :disabled="props.readonly"
-          :save="(list: string[]) => save(row.original, { [field]: list })"
+          :save="(list: string[], off: string[]) => saveList(row.original, field, list, off)"
         >
-          <span class="max-w-full truncate font-mono text-sm text-highlighted">{{ draftListText($t, row.original[field]) }}</span>
+          <span class="max-w-full truncate font-mono text-sm text-highlighted">
+            <template v-if="row.original[field].length === 0">{{ $t("agents.label.draft_no_questions") }}</template>
+            <template v-for="(part, index) in draftListParts(row.original[field], row.original.off)" :key="part.name">
+              <span v-if="index > 0" aria-hidden="true"> → </span>
+              <span :class="part.off ? 'text-dimmed line-through' : ''" :title="part.off ? $t('agents.label.draft_question_off') : undefined">{{ part.name }}</span>
+            </template>
+          </span>
         </DraftListCell>
       </template>
 
@@ -85,33 +93,6 @@
         >
           <span class="tabular-nums text-highlighted">{{ $t("agents.label.draft_chars", { n: countText(row.original.lightChars) }) }}</span>
         </SettingsInputCell>
-      </template>
-
-      <template #ceilingSeconds-cell="{ row }">
-        <SettingsInputCell
-          :value="row.original.ceilingSeconds"
-          :label="$t('agents.aria.draft_ceiling_of', { key: keyText(row.original) })"
-          :disabled="props.readonly"
-          :min="CEILING_SECONDS_MIN"
-          :max="CEILING_SECONDS_MAX"
-          :step="1"
-          :check="(text: string) => draftNumberFault($t, text, CEILING_SECONDS_MIN, CEILING_SECONDS_MAX)"
-          :save="(text: string) => save(row.original, { ceilingSeconds: Number(text) })"
-        >
-          <span class="tabular-nums text-highlighted">{{ $t("common.label.seconds", { n: countText(row.original.ceilingSeconds) }) }}</span>
-        </SettingsInputCell>
-      </template>
-
-      <template #pastCeiling-cell="{ row }">
-        <SettingsChoiceCell
-          :value="row.original.pastCeiling"
-          :items="pastChoices"
-          :label="$t('agents.aria.draft_past_of', { key: keyText(row.original) })"
-          :disabled="props.readonly"
-          :save="(value: string | number) => saveChoice(row.original, String(value))"
-        >
-          <span class="text-highlighted">{{ pastCeilingText($t, row.original.pastCeiling) }}</span>
-        </SettingsChoiceCell>
       </template>
 
       <template #remove-cell="{ row }">
@@ -161,6 +142,13 @@
           <SearchText :text="markedDefault($t, row.original.name, row.original.source === 'default')" :query="props.query" />
         </span>
       </template>
+      <template #remove-cell="{ row }">
+        <span class="flex h-full min-h-12 items-center justify-end pe-2">
+          <UTooltip v-if="row.original.source === 'set' && !props.readonly" :text="$t('common.action.delete')">
+            <UButton icon="i-material-symbols-delete-outline" color="neutral" variant="ghost" :aria-label="$t('agents.aria.draft_question_remove_of', { name: row.original.name })" @click="removeQuestion(row.original)" />
+          </UTooltip>
+        </span>
+      </template>
       <template #text-cell="{ row }">
         <SettingsPopoverCell v-model:open="editing[row.original.name]" :label="$t('agents.aria.draft_question_of', { name: row.original.name })" :disabled="props.readonly" :busy="questionSaving && editingName === row.original.name">
           <span class="max-w-full truncate text-sm text-highlighted"><SearchText :text="row.original.text" :query="props.query" /></span>
@@ -178,6 +166,8 @@
         </SettingsPopoverCell>
       </template>
     </SettingsTable>
+
+    <p v-if="questionActionFailed !== ''" role="alert" class="px-4 py-2 text-sm text-error">{{ questionActionFailed }}</p>
   </section>
 </template>
 
@@ -190,21 +180,18 @@ import { settingsAnchor } from "~/domain/agent-settings";
 import { markedDefault, useProviders } from "~/domain/axes";
 import { CELL_FIELD_UI, CELL_TEXT } from "~/domain/settings-cells";
 import {
-  CEILING_SECONDS_MAX,
-  CEILING_SECONDS_MIN,
   LIGHT_CHARS_MAX,
   LIGHT_CHARS_MIN,
-  PAST_CEILINGS,
   QUESTION_TEXT_MAX,
   draftKeyId,
   draftKeyLabel,
   draftKeyText,
-  draftListText,
+  draftListParts,
   draftNumberFault,
   draftProviderText,
   draftRowFor,
   draftValues,
-  pastCeilingText,
+  keptOff,
   questionNameFault,
   questionTextFault,
   sameDraftKey
@@ -212,7 +199,7 @@ import {
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
 
-import type { DraftKey, DraftProcessesView, DraftProcessValues, DraftProcessView, DraftQuestionView, PastCeiling } from "#shared/drafting";
+import type { DraftKey, DraftProcessesView, DraftProcessValues, DraftProcessView, DraftQuestionView } from "#shared/drafting";
 import type { SupervisorView } from "#shared/axes";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { SettingsColumn } from "~/domain/settings-columns";
@@ -246,18 +233,15 @@ const columns = computed<SettingsColumn<DraftProcessView>[]>(() => [
   { id: "rounds", header: t("agents.label.draft_rounds"), ceiling: 304 },
   { id: "light", header: t("agents.label.draft_light"), ceiling: 304 },
   { id: "lightChars", header: t("agents.label.draft_light_chars") },
-  { id: "ceilingSeconds", header: t("agents.label.draft_ceiling") },
-  { id: "pastCeiling", header: t("agents.label.draft_past_ceiling") },
   { id: "remove", header: "" }
 ]);
 
 // A question's name is its row's title and the flexible column; its text stands on one line under a ceiling.
 const questionColumns = computed<SettingsColumn<DraftQuestionView>[]>(() => [
   { accessorKey: "name", header: t("common.label.name") },
-  { id: "text", header: t("agents.label.draft_question_text"), ceiling: 592 }
+  { id: "text", header: t("agents.label.draft_question_text"), ceiling: 592 },
+  { id: "remove", header: "" }
 ]);
-
-const pastChoices = computed<CellChoice[]>(() => PAST_CEILINGS.map((past) => ({ value: past, label: pastCeilingText(t, past) })));
 
 function keyText(key: DraftKey): string {
   return draftKeyLabel(t, key);
@@ -276,8 +260,11 @@ async function save(row: DraftProcessView, change: Partial<DraftProcessValues>):
   }
 }
 
-async function saveChoice(row: DraftProcessView, value: string): Promise<string | null> {
-  return value === "send" || value === "skip" ? await save(row, { pastCeiling: value as PastCeiling }) : t("common.error.bad_action");
+// One of a row's lists set with what the row has switched off: a question taken out of both lists is off no more.
+async function saveList(row: DraftProcessView, field: (typeof LIST_FIELDS)[number], list: string[], off: string[]): Promise<string | null> {
+  const lists = { rounds: row.rounds, light: row.light, [field]: list };
+
+  return await save(row, { [field]: list, off: keptOff(off, lists.rounds, lists.light) });
 }
 
 // A console's row taken away, asked first in a dialog; the policy's row of the key stands again where it
@@ -385,6 +372,26 @@ async function writeQuestion(name: string, text: string): Promise<boolean> {
     return false;
   } finally {
     questionSaving.value = false;
+  }
+}
+
+// The console's text of a question taken away, asked first in a dialog: a question the console added leaves the
+// catalogue, and one the policy holds stands again in the policy's text. The receiver's refusal, in the pack's
+// words, stands under the table.
+const questionActionFailed = ref("");
+
+async function removeQuestion(question: DraftQuestionView): Promise<void> {
+  const taken = await askFirst({ title: t("agents.message.draft_question_remove_confirm"), item: question.name, confirm: t("common.action.delete") });
+
+  if (!taken) return;
+
+  questionActionFailed.value = "";
+
+  try {
+    await $fetch("/api/draft-questions", { method: "DELETE", body: { name: question.name } });
+    await refresh();
+  } catch (failure) {
+    questionActionFailed.value = failureText(failure, t("common.error.save_failed"));
   }
 }
 

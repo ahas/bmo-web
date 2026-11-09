@@ -2914,22 +2914,26 @@ Two ways, split because the running places differ.
   why. It asks first, naming what goes — its settings, sessions and person records — and saying that the rooms it
   answered stay with their messages and documents, a room left naming no supervisor going to the default answerer; a
   removal the receiver refuses says its reason under the table.
-- **The draft process** (드래프트 과정) stands under the table: what a round's answer is asked before it goes out, as
+- **The draft process** (드래프트 과정) stands under the table: the questions a round's one draft turn follows
+  before it writes the message, as
   the receiver keeps it (the receiver's `docs/drafting.md`, 「The process table」). A row per key of a provider, a tier
   and an agent, each a name or 전체 for any, in the order the receiver lists them. The key is the row's title, its
   three parts standing together at the head of the row and every value after them at its own width. A line under the table's head says
-  that a turn reads the most specific row that matches it, an agent's before a provider's and a provider's before a
-  tier's.
-  - **A row's cells:** 질문 순서, the questions of an ordinary turn in order; 짧은 턴 질문, those of a light turn;
-    짧은 턴 기준, how short the room's words must be for a light turn, in characters; 제한 시간, the time the whole
-    process may take, in seconds; and 시간 초과 시, 보내기 or 보내지 않기. A list with no question stands as 질문
-    없음. A row the receiver's policy holds and the console has not changed carries `(기본값)` after its key.
+  that the questions of a row are followed in one turn, in their order, and that a turn reads the most specific
+  row that matches it, an agent's before a provider's and a provider's before a tier's.
+  - **A row's cells:** 질문 순서, the questions an ordinary turn's round follows, in order; 짧은 턴 질문, those of a
+    light turn; and 짧은 턴 기준, how short the room's words must be for a light turn, in characters. A question
+    the row has switched off stands in its list at its place, dimmed and struck through, and is not followed. A
+    list with no question stands as 질문 없음. A row the receiver's policy holds and the console has not changed
+    carries `(기본값)` after its key.
   - **Each cell sets that one value,** the row's other values sent with it as they stand, so a policy row a cell is
     changed on becomes the console's row of the same key. A list's dropdown is an ordered pick from the catalogue,
     each question under the pack's word for it, and one the console added under its own name; the questions chosen
-    stand in that word, in order, each moved up or down or taken out, and a question not yet chosen is added before
-    `final`, which stands last in every list that holds a question. The two numbers take a whole number, 0 to 1,000
-    characters and 1 to 3,600 seconds.
+    stand in that word, in order, each with a checkbox, moved up or down or taken out, and a question not yet
+    chosen is added before `final`, which stands last in every list that holds a question. The checkbox switches
+    a question off or on where it stands: one unchecked keeps its place in the list and is left out of what the
+    round follows, and checking it again puts it back at that place. `final` writes the message and carries no
+    checkbox. The number takes a whole number, 0 to 1,000 characters.
   - **추가** in the table's head opens a box of a provider, a tier and an agent, each 전체 or one the receiver keys
     by; a key that already stands is not offered. The new row starts from the values of the row that key matches
     now.
@@ -2941,7 +2945,10 @@ Two ways, split because the running places differ.
   name, the title column, and its text in the language it was written in, on one line under a ceiling of its own,
   `(기본값)` after the name of one the console has not changed.
   Pressing a text opens a box of it, at most 4,000 characters and never empty, saved with 저장. 추가 in its head opens
-  a box of a new name — a lowercase word of letters, digits and dashes — and its text.
+  a box of a new name — a lowercase word of letters, digits and dashes — and its text. A question the console
+  added or changed carries 삭제 at its end, asked first: the receiver takes the console's text away, so a question
+  the console added leaves the catalogue and one the policy holds stands again in the policy's text. A question
+  a list still names is not taken away, and the refusal says to take it out of the lists first.
 - **A read that fails** says so with a reread in that table's place, and the other tables stand.
 
 #### 역할
@@ -4287,13 +4294,15 @@ Four bounds keep it from growing forever.
   — and pressing it spreads the round as a person reads it, in this order.
   - **The rounds, one line each**, in the order written: the round's number, what it asked — the question's word
     (정보 확인, 사실 확인, 기억 정리, 약속 점검, 의도 파악, 규칙·말투 점검, 메시지 작성, 도착 확인, and 판단 for the
-    agent's judgement before the round), or the question's own name where the pack has none — what it decided —
+    agent's judgement before the round), or the question's own name where the pack has none; the draft turn, which
+    follows several questions at once, stands as the words of all of them in their order, 「의도 파악 · 정보 확인 ·
+    메시지 작성」 — what it decided —
     답함, 보냄, 넘김, 실패, or the receiver's word for one the console does not know — how long its answer is,
     「110자」, and how long it took, 「11.8초」. 바뀜 follows where the answer differs from the one before it.
   - **The slow round is marked**: where more than one round ran, the round that took longest, when it took at
     least twice as long as any other, wears a clock mark and its time in the warning colour.
   - **Every round stands open.** Its line carries no fold: the round's number, what it asked and what it decided stand
-    as a line, and the answer that round wrote — its notes, or the message in the last — stands under it whole as it was
+    as a line, and the answer that round wrote stands under it whole as it was
     written, wrapping at the bubble's width and keeping the page's ordinary flow. A very long answer is bounded by the
     same means the rest of the screen uses — the bubble's own scroll and the 지우기/더 보기 pattern where a list needs it —
     never by folding every round. A round with no answer stands its line alone.
@@ -4823,15 +4832,12 @@ Four bounds keep it from growing forever.
     no tool says 툴 사용 중. A supervisor's turn whose engine a Job holds names the item whose Job it waits on until
     that Job ends (the agency's `docs/supervisors.md`, 「The engine it shares」), read off the bot's picture as well
     as its events, so a screen opened in the middle of the wait shows it; the agents list's row says "Job 종료 대기 중".
-  - **The chat agent's line says which question of the draft process it is on** (the receiver's `docs/drafting.md`).
-    The receiver tells each question just before it goes out, as a `draft` event of kind `start` naming its place
-    in the process from 1, how many questions the process asks and the question's name, and from that event the
-    line stands as the round and the question in place of the state: "라운드 2/5 · 사실 확인", the question named in
-    the language pack's words for it and by its own name where the pack has none. The last question writes the
-    message, so its line says that instead: "라운드 5/5 · 메시지 작성 중". Until the first question's start — the
-    gates and the reference before it — the line says the state alone. The rows the process writes as each
-    question is answered move the line nothing, and no line waits on one: a round whose first answer is a wait
-    tells its first question's start and no row, and its line stands on that question until the turn ends. The
+  - **The chat agent's line says when its draft turn is writing the message** (the receiver's `docs/drafting.md`).
+    The receiver tells the draft turn just before it goes out, as a `draft` event of kind `start`, and from that
+    event the line stands as "메시지 작성 중" in place of the state. Until that start — the judgement, the gates
+    and the reference before it — the line says the state alone. The rows the process writes as its turns are
+    answered move the line nothing, and no line waits on one: a round whose draft turn answers a wait tells its
+    start and no row, and its line stands until the turn ends. The
     process's `end` row brings the line back to the state alone. A
     process that ended with its text withheld or past its ceiling says so in the passing word once the turn has
     ended — "〈이름〉의 답이 점검을 통과하지 못해 보내지 않았습니다.", "〈이름〉가 시간 안에 답을 마치지 못해 보내지 않았습니다." or

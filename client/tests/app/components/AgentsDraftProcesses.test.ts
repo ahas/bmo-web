@@ -21,9 +21,12 @@ describe("the table", () => {
   });
 
   test("is a row per key with a column for each value and none for where it comes from", () => {
-    for (const id of ['accessorKey: "provider"', 'accessorKey: "tier"', 'accessorKey: "agentName"', 'id: "rounds"', 'id: "light"', 'id: "lightChars"', 'id: "ceilingSeconds"', 'id: "pastCeiling"', 'id: "remove"']) {
+    for (const id of ['accessorKey: "provider"', 'accessorKey: "tier"', 'accessorKey: "agentName"', 'id: "rounds"', 'id: "light"', 'id: "lightChars"', 'id: "remove"']) {
       expect({ id, stood: script.includes(id) }).toEqual({ id, stood: true });
     }
+    // What the receiver reads no more stands in no column.
+    expect(script).not.toContain('id: "ceilingSeconds"');
+    expect(script).not.toContain('id: "pastCeiling"');
     expect(script).not.toContain('id: "source"');
     expect(template).toContain("markedDefault($t, draftKeyText($t, row.original.agentName), row.original.source === 'default')");
     expect(template).toContain("markedDefault($t, row.original.name, row.original.source === 'default')");
@@ -38,19 +41,26 @@ describe("the table", () => {
 
   test("a cell sets its one value with the row's others as they stand", () => {
     expect(script).toContain("body: { provider: row.provider, tier: row.tier, agentName: row.agentName, ...draftValues(row), ...change }");
-    expect(template).toContain(':save="(list: string[]) => save(row.original, { [field]: list })"');
+    expect(template).toContain(':save="(list: string[], off: string[]) => saveList(row.original, field, list, off)"');
     expect(template).toContain(':save="(text: string) => save(row.original, { lightChars: Number(text) })"');
-    expect(template).toContain(':save="(text: string) => save(row.original, { ceilingSeconds: Number(text) })"');
-    expect(template).toContain(':save="(value: string | number) => saveChoice(row.original, String(value))"');
+  });
+
+  test("a list is set with what the row has switched off, a question taken out of both lists off no more", () => {
+    expect(template).toContain(':off="row.original.off"');
+    expect(script).toContain("return await save(row, { [field]: list, off: keptOff(off, lists.rounds, lists.light) });");
+  });
+
+  test("stands a question switched off in its list, dimmed and struck through", () => {
+    expect(template).toContain('v-for="(part, index) in draftListParts(row.original[field], row.original.off)"');
+    expect(template).toContain(":class=\"part.off ? 'text-dimmed line-through' : ''\"");
   });
 
   test("checks the numbers against the receiver's bounds before they go", () => {
     expect(template).toContain(":check=\"(text: string) => draftNumberFault($t, text, LIGHT_CHARS_MIN, LIGHT_CHARS_MAX)\"");
-    expect(template).toContain(":check=\"(text: string) => draftNumberFault($t, text, CEILING_SECONDS_MIN, CEILING_SECONDS_MAX)\"");
   });
 
   test("takes away only the console's own rows, asked first", () => {
-    expect(template).toContain('<UTooltip v-if="row.original.source === \'set\' && !props.readonly" :text="$t(\'common.action.delete\')">');
+    expect(template.split('<UTooltip v-if="row.original.source === \'set\' && !props.readonly" :text="$t(\'common.action.delete\')">')).toHaveLength(3);
     expect(script).toContain('await askFirst({ title: t("agents.message.draft_process_remove_confirm"), item: keyText(row), confirm: t("common.action.delete") });');
     expect(script).toContain('$fetch("/api/draft-processes", { method: "DELETE", body: { provider: row.provider, tier: row.tier, agentName: row.agentName } })');
   });
@@ -79,6 +89,14 @@ describe("a list's cell", () => {
     expect(listTemplate).toContain("(list = withQuestion(list, value))");
     expect(list).toContain("const fault = computed(() => draftListFault(t, list.value, props.catalogue));");
   });
+
+  test("carries a checkbox on every question but final, which switches it off or on where it stands", () => {
+    expect(listTemplate).toContain('v-if="name !== FINAL_QUESTION"');
+    expect(listTemplate).toContain(':model-value="!offs.includes(name)"');
+    expect(listTemplate).toContain("(offs = switchedQuestion(offs, name, on === true))");
+    expect(list).toContain("const answer = await props.save([...list.value], [...offs.value]);");
+    expect(list).toContain("offs.value = [...props.off];");
+  });
 });
 
 describe("the questions", () => {
@@ -87,5 +105,11 @@ describe("the questions", () => {
     expect(script).toContain('$fetch("/api/draft-questions", { method: "POST", body: { name, text } })');
     expect(template).toContain(":maxlength=\"QUESTION_TEXT_MAX\"");
     expect(template).toContain("questionNameFault($t, newQuestion.name, catalogue)");
+  });
+
+  test("take the console's text of one away, asked first, the refusal standing under the table", () => {
+    expect(script).toContain('await askFirst({ title: t("agents.message.draft_question_remove_confirm"), item: question.name, confirm: t("common.action.delete") });');
+    expect(script).toContain('$fetch("/api/draft-questions", { method: "DELETE", body: { name: question.name } })');
+    expect(template).toContain("{{ questionActionFailed }}");
   });
 });

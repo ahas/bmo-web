@@ -51,29 +51,25 @@ export function turnName(t: Translate, speaker: TurnSpeaker | undefined): string
 }
 
 // The line says who is at it, by the name of the agent answering on that row: a room two agents
-// answer stands a row of each, and each row says its own. While the chat agent's draft process is on a question, the
-// line says that question in place of the state (docs/web.md, the room screen's running line): its round out of how
-// many the process asks, and the question in the pack's words, or that the message is being written where it is the
-// last. `draft` is the question under way, null where none is.
+// answer stands a row of each, and each row says its own. While the chat agent's draft turn works, the line says
+// that the message is being written, in place of the state (docs/web.md, the room screen's running line). `draft`
+// is the draft turn under way, null where none is.
 export function phaseLook(t: Translate, name: string, progress: RunProgress | null, draft: DraftStep | null = null): WorkingLook {
   if (draft === null) return stateLook(t, name, progress);
 
-  const step = t("room.status.draft_step_round", { n: countText(draft.number), count: countText(draft.count) });
-  const what = draft.number >= draft.count ? t("room.status.draft_writing") : draftQuestionFace(t, draft.question);
+  return { label: draftStepText(t) };
+}
 
-  return { label: t("room.status.draft_step", { step, what }) };
+// The draft turn as its line says it: a round's draft is one turn, and it writes the message.
+function draftStepText(t: Translate): string {
+  return t("room.status.draft_writing");
 }
 
 // What a running turn is at now, without the agent's name: the reasoning block's face carries the name, and the
 // detail under it says the state. Null while it only thinks, since the face already says that, and null where the
 // pack has no word for a phase the stream named.
 export function phaseDetail(t: Translate, progress: RunProgress | null, draft: DraftStep | null = null): string | null {
-  if (draft !== null) {
-    const step = t("room.status.draft_step_round", { n: countText(draft.number), count: countText(draft.count) });
-    const what = draft.number >= draft.count ? t("room.status.draft_writing") : draftQuestionFace(t, draft.question);
-
-    return t("room.status.draft_step", { step, what });
-  }
+  if (draft !== null) return draftStepText(t);
 
   if (progress === null || progress.phase === "thinking") return null;
 
@@ -90,26 +86,9 @@ export function phaseDetail(t: Translate, progress: RunProgress | null, draft: D
   return named === null ? t("room.status.step_tool") : t("room.status.step_tool_named", { tool: named });
 }
 
-// The words the pack has for each question of the draft process's catalogue (the receiver's docs/drafting.md, 「The
-// questions」). A question the console adds under a name of its own stands under that name.
-const DRAFT_QUESTION_FACES: Record<string, string> = {
-  intent: "room.status.draft_question_intent",
-  information: "room.status.draft_question_information",
-  facts: "room.status.draft_question_facts",
-  promises: "room.status.draft_question_promises",
-  fit: "room.status.draft_question_fit",
-  memory: "room.status.draft_question_memory",
-  final: "room.status.draft_writing"
-};
-
-export function draftQuestionFace(t: Translate, question: string): string {
-  const face = DRAFT_QUESTION_FACES[question];
-
-  return face === undefined ? question : t(face);
-}
-
-// The same questions named in a list the reader picks from or reads a row of — the draft process's round table
-// and its catalogue — where each stands under the pack's word for it rather than under its catalogue name, and a
+// The questions of the draft process's catalogue (the receiver's docs/drafting.md, 「The questions」) named in a
+// list the reader picks from or reads a row of — the draft process's table, its catalogue and a round's draft
+// log — where each stands under the pack's word for it rather than under its catalogue name, and a
 // question the console adds under a name of its own under that name. The last question writes the message instead
 // of asking one, so it is named as the step it is.
 const DRAFT_QUESTION_NAMES: Record<string, string> = {
@@ -125,7 +104,16 @@ const DRAFT_QUESTION_NAMES: Record<string, string> = {
   arrived: "room.label.draft_question_arrived"
 };
 
+// The draft turn follows several questions at once and goes by all their names, joined by `+` (the receiver's
+// docs/drafting.md, 「The round log」): it stands as the words of each, in their order.
 export function draftQuestionLabel(t: Translate, question: string): string {
+  if (question.includes("+")) {
+    return question
+      .split("+")
+      .map((one) => draftQuestionLabel(t, one))
+      .join(" · ");
+  }
+
   const name = DRAFT_QUESTION_NAMES[question];
 
   return name === undefined ? question : t(name);

@@ -16,8 +16,8 @@ globals.requireReadableRoom = async () => undefined;
 globals.readableRooms = async () => "all";
 
 const ROWS = [
-  { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default" },
-  { provider: "claude-code", tier: "*", agentName: "*", rounds: ["final"], sendFrom: "", light: ["final"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "skip", source: "set" }
+  { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], off: ["intent"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default" },
+  { provider: "claude-code", tier: "*", agentName: "*", rounds: ["final"], sendFrom: "", light: ["final"], off: [], lightChars: 12, ceilingSeconds: 150, pastCeiling: "skip", source: "set" }
 ];
 const QUESTIONS = [{ name: "intent", text: "Why?", source: "default" }, { name: "final", text: "Write it.", source: "set" }];
 const DRAFT_ROWS = [
@@ -55,6 +55,13 @@ const receiver = standIn("RECEIVER", (one) => {
 
     if (name === "Bad") return answer({ code: "bad-request", error: "bad name" }, 400);
 
+    if (one.method === "DELETE") {
+      if (name === "named") return answer({ code: "conflict", error: "a list names it" }, 409);
+      if (name === "untouched") return answer({ code: "not-found", error: "no text" }, 404);
+
+      return new Response(null, { status: 204 });
+    }
+
     return answer({ name, text: one.body?.text, source: "set" });
   }
 
@@ -65,9 +72,10 @@ const list = await routeOf<DraftProcessesView>("../../apps/web/server/api/draft-
 const set = await routeOf<DraftProcessView>("../../apps/web/server/api/draft-processes.post");
 const remove = await routeOf<{ ok: true }>("../../apps/web/server/api/draft-processes.delete");
 const question = await routeOf<DraftQuestionView>("../../apps/web/server/api/draft-questions.post");
+const removeQuestion = await routeOf<{ ok: true }>("../../apps/web/server/api/draft-questions.delete");
 const drafts = await routeOf<{ rows: DraftRow[] }>("../../apps/web/server/api/rooms/[chatId]/drafts.get");
 
-const VALUES = { rounds: ["information", "final"], sendFrom: "final", light: ["final"], lightChars: 20, ceilingSeconds: 90, pastCeiling: "skip" };
+const VALUES = { rounds: ["information", "final"], sendFrom: "final", light: ["final"], off: ["information"], lightChars: 20, ceilingSeconds: 90, pastCeiling: "skip" };
 
 describe("reading the table", () => {
   test("answers every row with its source and every question, read together", async () => {
@@ -76,6 +84,7 @@ describe("reading the table", () => {
     expect(read.status).toBe(200);
     expect(read.answer?.rows).toHaveLength(2);
     expect(read.answer?.rows[1]).toEqual({ ...ROWS[1], pastCeiling: "skip", source: "set" } as DraftProcessView);
+    expect(read.answer?.rows[0]?.off).toEqual(["intent"]);
     expect(read.answer?.questions.map((one) => one.name)).toEqual(["intent", "final"]);
   });
 });
@@ -91,6 +100,17 @@ describe("setting a row", () => {
     expect(receiver.asked).toHaveLength(1);
     expect(receiver.asked[0]).toMatchObject({ method: "PUT", body: VALUES });
     expect(decodeURIComponent(receiver.asked[0]!.path)).toBe("/draft-processes/*/Light/agent-a");
+  });
+
+  test("carries the questions switched off, and none for a body that names none", async () => {
+    receiver.asked.length = 0;
+
+    const { off: _, ...plain } = VALUES;
+
+    await asked(set, { body: { provider: "*", tier: "*", agentName: "*", ...plain } });
+
+    expect(receiver.asked[0]?.body).toMatchObject({ off: [] });
+    expect(await asked(set, { body: { provider: "*", tier: "*", agentName: "*", ...VALUES, off: "information" } })).toMatchObject({ status: 400, message: wording("common.error.bad_action") });
   });
 
   test("says the receiver's refusal of a set in the pack's sentence for this route", async () => {
@@ -133,6 +153,24 @@ describe("setting a question", () => {
 
     receiver.asked.length = 0;
     expect(await asked(question, { body: { name: "tone", text: "  " } })).toMatchObject({ status: 400, message: wording("common.error.bad_action") });
+    expect(receiver.asked).toEqual([]);
+  });
+});
+
+describe("taking a question's text away", () => {
+  test("deletes the console's text of the name", async () => {
+    receiver.asked.length = 0;
+
+    expect(await asked(removeQuestion, { body: { name: "tone" } })).toMatchObject({ status: 200, answer: { ok: true } });
+    expect(receiver.asked[0]).toMatchObject({ method: "DELETE", path: "/draft-questions/tone" });
+  });
+
+  test("says a question a list still names, and one the console never set, in the pack's sentences", async () => {
+    expect(await asked(removeQuestion, { body: { name: "named" } })).toMatchObject({ status: 409, message: wording("agents.error.draft_question_named") });
+    expect(await asked(removeQuestion, { body: { name: "untouched" } })).toMatchObject({ status: 404, message: wording("agents.error.draft_question_missing") });
+
+    receiver.asked.length = 0;
+    expect(await asked(removeQuestion, { body: {} })).toMatchObject({ status: 400, message: wording("common.error.bad_action") });
     expect(receiver.asked).toEqual([]);
   });
 });

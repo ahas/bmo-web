@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { stepRoomTurns } from "../../../apps/web/app/domain/events";
-import { draftQuestionFace, draftQuestionLabel, phaseLook, subjectOf } from "../../../apps/web/app/domain/working";
+import { draftQuestionLabel, phaseLook, subjectOf } from "../../../apps/web/app/domain/working";
 
 import type { RunState } from "../../../apps/web/app/domain/events";
 import type { BotEvent, RunProgress } from "../../../apps/web/shared/types";
@@ -75,28 +75,20 @@ describe("the draft events on the room's turns", () => {
 
 describe("the running line", () => {
   const state = wording("room.status.agent_thinking", { subject: subjectOf("Bob") });
-  const line = (n: string, count: string, what: string) => wording("room.status.draft_step", { step: wording("room.status.draft_step_round", { n, count }), what });
 
-  test("says the question under way, its round out of how many, in place of the state", () => {
-    expect(phaseLook(wording, "Bob", thinking, { number: 2, count: 5, question: "facts" })).toEqual({
-      label: line("2", "5", wording("room.status.draft_question_facts"))
-    });
-  });
-
-  test("says the message is being written on the last question, whatever its name", () => {
-    expect(phaseLook(wording, "Bob", thinking, { number: 5, count: 5, question: "final" })).toEqual({ label: line("5", "5", wording("room.status.draft_writing")) });
-    expect(phaseLook(wording, "Bob", thinking, { number: 1, count: 1, question: "fit" })).toEqual({ label: line("1", "1", wording("room.status.draft_writing")) });
-  });
-
-  test("names a question the pack has no words for by its own name", () => {
-    expect(draftQuestionFace(wording, "tone")).toBe("tone");
-    expect(draftQuestionFace(wording, "intent")).toBe(wording("room.status.draft_question_intent"));
+  test("says the message is being written while the draft turn works, in place of the state", () => {
+    expect(phaseLook(wording, "Bob", thinking, { number: 1, count: 1, question: "intent+facts+final" })).toEqual({ label: wording("room.status.draft_writing") });
+    expect(phaseLook(wording, "Bob", thinking, { number: 1, count: 1, question: "final" })).toEqual({ label: wording("room.status.draft_writing") });
   });
 
   test("names each question in the table's lists by the pack's word, the last as the step it is", () => {
     expect(draftQuestionLabel(wording, "memory")).toBe(wording("room.status.draft_question_memory"));
     expect(draftQuestionLabel(wording, "final")).toBe(wording("agents.label.draft_question_final"));
     expect(draftQuestionLabel(wording, "tone")).toBe("tone");
+  });
+
+  test("names the draft turn by the words of every question it followed, in their order", () => {
+    expect(draftQuestionLabel(wording, "intent+tone+final")).toBe([wording("room.status.draft_question_intent"), "tone", wording("agents.label.draft_question_final")].join(" · "));
   });
 
   test("says the state alone before the first question starts and for a turn that runs no process", () => {

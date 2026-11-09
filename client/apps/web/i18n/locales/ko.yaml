@@ -392,8 +392,6 @@ room:
     draft_question_intent: 의도 파악
     draft_question_memory: 기억 정리
     draft_question_promises: 약속 점검
-    draft_step: "{step} · {what}"
-    draft_step_round: "라운드 {n}/{count}"
     draft_writing: 메시지 작성 중
     earlier_loading: 이전 대화를 불러오는 중…
     failed: 실패
@@ -1703,15 +1701,15 @@ agents:
     warming_of: "{name} {provider} 캐시 유지"
     warming_cell_of: "{name} 캐시 유지"
     choose_model: 모델 선택
-    draft_ceiling_of: "{key}의 제한 시간"
     draft_light_chars_of: "{key}의 짧은 턴 기준"
     draft_light_of: "{key}의 짧은 턴 질문"
     draft_move_down: "{name} 아래로"
     draft_move_up: "{name} 위로"
-    draft_past_of: "{key}의 시간 초과 처리"
     draft_question_of: "{name} 질문"
+    draft_question_on: "{name} 켜기"
+    draft_question_remove_of: "{name} 질문 삭제"
     draft_remove_of: "{key} 행 삭제"
-    draft_remove_question: "{name} 빼기"
+    draft_remove_question: "{name} 제거"
     draft_rounds_of: "{key}의 질문 순서"
     drag_reorder: 드래그해서 순서 변경
     prefix_document_down: "{path} 아래로"
@@ -1752,9 +1750,11 @@ agents:
     draft_key_taken: 이미 있는 행입니다.
     draft_number: "{min}부터 {max}까지의 정수입니다."
     draft_process_missing: 콘솔이 설정한 행이 없습니다.
-    draft_process_refused: "수신 유닛이 이 행을 받지 않았습니다. 질문은 카탈로그에 있는 이름이어야 하고, 질문이 있는 목록은 final로 끝나야 하며, 짧은 턴 기준은 0~1,000자, 제한 시간은 1~3,600초여야 합니다."
+    draft_process_refused: "수신 유닛이 이 행을 받지 않았습니다. 질문은 카탈로그에 있는 이름이어야 하고, 질문이 있는 목록은 final로 끝나야 하며, final은 끌 수 없고, 짧은 턴 기준은 0~1,000자여야 합니다."
     draft_processes_read_failed: 드래프트 과정을 불러오지 못했습니다.
+    draft_question_missing: 콘솔에서 추가하거나 바꾼 질문이 아닙니다.
     draft_question_name: 이름은 소문자·숫자·대시로 된 한 단어입니다.
+    draft_question_named: 아직 목록에 있는 질문입니다. 먼저 질문 순서에서 제거하세요.
     draft_question_refused: "수신 유닛이 이 질문을 받지 않았습니다. 이름은 소문자·숫자·대시로 된 한 단어, 질문은 비어 있지 않은 4,000자 이하여야 합니다."
     draft_question_taken: 이미 있는 질문 이름입니다.
     draft_question_text: "질문은 비어 있지 않은 {max}자 이하여야 합니다."
@@ -1849,16 +1849,13 @@ agents:
     diff_removed: "{removed}줄 삭제"
     draft_agent: 에이전트
     draft_any: 전체
-    draft_ceiling: 제한 시간
     draft_chars: "{n}자 이하"
     draft_light: 짧은 턴 질문
     draft_light_chars: 짧은 턴 기준
     draft_no_questions: 질문 없음
-    draft_past_ceiling: 시간 초과 시
-    draft_past_send: 보내기
-    draft_past_skip: 보내지 않기
-    draft_processes_help: "답이 나가기 전에 같은 세션에 묻는 질문입니다. 턴은 맞는 행 가운데 가장 구체적인 행을 따릅니다: 에이전트 행, 공급자 행, 티어 행 순서입니다."
+    draft_processes_help: "한 턴 안에서 메시지를 쓰기 전에 순서대로 따르는 질문입니다. 끈 질문은 자리를 지킨 채 빠집니다. 턴은 맞는 행 가운데 가장 구체적인 행을 따릅니다: 에이전트 행, 공급자 행, 티어 행 순서입니다."
     draft_question_final: 메시지 작성
+    draft_question_off: 꺼짐
     draft_question_text: 질문
     draft_rounds: 질문 순서
     engine: 엔진
@@ -2041,6 +2038,7 @@ agents:
 
       감독관이 답하던 방은 메시지와 문서까지 그대로 남습니다."
     node_checkouts_need_here: 실행 노드가 이 기기일 때만 노드 체크아웃을 둘 수 있습니다.
+    draft_question_remove_confirm: "콘솔에서 추가하거나 바꾼 이 질문의 글을 삭제할까요? 추가한 질문은 목록에서 사라지고, 기본 질문은 기본 글로 돌아갑니다."
     draft_process_remove_confirm: "이 드래프트 과정 행을 삭제할까요? 정책에 같은 행이 있으면 그 행이 다시 적용됩니다."
     generation_resets: "방 세션 {n}개가 다음 턴부터 새로 시작됩니다."
     log_of_agent: 이 에이전트의 로그

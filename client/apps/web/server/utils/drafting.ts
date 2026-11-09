@@ -11,7 +11,11 @@ type Schemas = components["schemas"];
 // A set the receiver refuses is refused for what it checks of the row or the question, and a key it holds no
 // console row for is the one thing a removal is refused for.
 const PROCESS_CODES: Readonly<Record<string, string>> = { "bad-request": "agents.error.draft_process_refused", "not-found": "agents.error.draft_process_missing" };
-const QUESTION_CODES: Readonly<Record<string, string>> = { "bad-request": "agents.error.draft_question_refused" };
+const QUESTION_CODES: Readonly<Record<string, string>> = {
+  "bad-request": "agents.error.draft_question_refused",
+  conflict: "agents.error.draft_question_named",
+  "not-found": "agents.error.draft_question_missing"
+};
 
 const sourceOf = (source: string): DraftSource => (source === "set" ? "set" : "default");
 
@@ -23,6 +27,7 @@ function processOf(row: Schemas["DraftProcess"]): DraftProcessView {
     rounds: row.rounds,
     sendFrom: row.sendFrom,
     light: row.light,
+    off: row.off,
     lightChars: row.lightChars,
     ceilingSeconds: row.ceilingSeconds,
     pastCeiling: row.pastCeiling === "skip" ? "skip" : "send",
@@ -95,6 +100,12 @@ export async function writeDraftQuestion(name: string, text: string): Promise<Dr
   return questionOf(await receiverCall(receiver().PUT("/draft-questions/{name}", { params: { path: { name } }, body: { text } }), { codes: QUESTION_CODES }));
 }
 
+/** The console's text of one question taken away: a question the console added leaves the catalogue, and one the
+ * policy holds stands again in the policy's text. */
+export async function eraseDraftQuestion(name: string): Promise<void> {
+  await receiverCall(receiver().DELETE("/draft-questions/{name}", { params: { path: { name } } }), { codes: QUESTION_CODES });
+}
+
 /** Every row each named round's process wrote, in the order written, its answers whole. */
 export async function readRoundDrafts(chatId: number, rounds: readonly string[], signal?: AbortSignal): Promise<Map<string, DraftRow[]>> {
   if (rounds.length === 0) return new Map();
@@ -152,10 +163,12 @@ export function draftValuesOf(body: Record<string, unknown> | null | undefined):
   const lightChars = whole(body?.lightChars);
   const ceilingSeconds = whole(body?.ceilingSeconds);
   const pastCeiling = body?.pastCeiling === "send" || body?.pastCeiling === "skip" ? (body.pastCeiling as PastCeiling) : null;
-  // The value the table carries unshown: absent from an older body, the first question.
+  // A value the table carries unshown: absent from an older body, empty.
   const sendFrom = body?.sendFrom === undefined ? "" : typeof body.sendFrom === "string" ? body.sendFrom : null;
+  // The questions switched off: absent from a body that switches none off.
+  const off = body?.off === undefined ? [] : names(body.off);
 
-  if (rounds === null || light === null || lightChars === null || ceilingSeconds === null || pastCeiling === null || sendFrom === null) return null;
+  if (rounds === null || light === null || off === null || lightChars === null || ceilingSeconds === null || pastCeiling === null || sendFrom === null) return null;
 
-  return { rounds, sendFrom, light, lightChars, ceilingSeconds, pastCeiling };
+  return { rounds, sendFrom, light, off, lightChars, ceilingSeconds, pastCeiling };
 }

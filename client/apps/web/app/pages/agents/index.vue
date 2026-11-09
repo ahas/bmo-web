@@ -2,7 +2,7 @@
   <!-- The agent settings, a section to a tab. The tab row carries the search over every section and
        the button that reads them all again; the section fills what is left, with one box that scrolls
        up and down: a tab of one table scrolls in the table's own box and the body around it stands
-       still, while the supervisors' tab, a table with the draft tables under it, scrolls in the body,
+       still, while the agents' tab, the supervisors' table with the roles' agents under it, scrolls in the body,
        each table scrolling sideways in its own box with its head held at the body's top. -->
   <UDashboardPanel id="catalogue" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
@@ -105,13 +105,11 @@ import { ensureSectionAccess, useSectionAccess, useSectionAccessReady } from "~/
 import { useHeldHeads } from "~/domain/held-heads";
 import { mayRead, mayWrite } from "#shared/sections";
 import { usedByText, registrationName } from "~/domain/registry";
-import { draftKeyId, draftKeyLabel, draftListText } from "~/domain/draft-process";
 import { defaultThreshold, sessionsText, thresholdText, entryText, useProviders } from "~/domain/axes";
 
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
 import type { CatalogueView, ModelPage } from "#shared/agency";
 import type { RepositoryView, RolesView, SupervisorView } from "#shared/axes";
-import type { DraftProcessesView } from "#shared/drafting";
 
 const route = useRoute();
 const router = useRouter();
@@ -209,13 +207,12 @@ const { data: roles } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: 
 const { data: repositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: readable("repositories") });
 const { data: models } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false, immediate: readable("models") });
 const { data: catalogue } = useFetch<CatalogueView>("/api/model-catalogue", { key: "model-catalogue", lazy: true, server: false, immediate: readable("model-files") });
-const { data: draftProcesses } = useFetch<DraftProcessesView>("/api/draft-processes", { key: "draft-processes", lazy: true, server: false, immediate: readable("supervisors") });
 const { data: providers } = useProviders();
 
 // The keys the button reads again: only the parts the reader may read, beside the providers every part's chooser
 // reads, so a change never asks a part the reader may not open.
 const READS = computed(() => [
-  ...(readable("supervisors") ? ["supervisors", "draft-processes"] : []),
+  ...(readable("supervisors") ? ["supervisors"] : []),
   ...(readable("roles") ? ["roles"] : []),
   ...(readable("repositories") ? ["repositories"] : []),
   ...(readable("models") ? ["models"] : []),
@@ -254,27 +251,6 @@ const entries = computed<SettingsEntry[]>(() => {
         { label: t("agents.label.column_threshold"), text: thresholdText(t, one.foldRatio, defaultThreshold(providers.value, one.order)), shown: true },
         { label: t("agents.label.alias"), text: one.aliases, shown: false }
       ]
-    });
-  }
-
-  for (const row of draftProcesses.value?.rows ?? []) {
-    list.push({
-      id: `draft-${draftKeyId(row)}`,
-      tab: "supervisors",
-      label: t("agents.label.find_draft_process", { key: draftKeyLabel(t, row) }),
-      fields: [
-        { label: t("agents.label.draft_rounds"), text: draftListText(t, row.rounds), shown: true },
-        { label: t("agents.label.draft_light"), text: draftListText(t, row.light), shown: true }
-      ]
-    });
-  }
-
-  for (const question of draftProcesses.value?.questions ?? []) {
-    list.push({
-      id: `draft-question-${question.name}`,
-      tab: "supervisors",
-      label: t("agents.label.find_draft_question", { name: question.name }),
-      fields: [{ label: t("common.label.name"), text: question.name, shown: true }, { label: t("agents.label.draft_question_text"), text: question.text, shown: true }]
     });
   }
 

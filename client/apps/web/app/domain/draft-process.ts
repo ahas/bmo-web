@@ -1,15 +1,14 @@
-import { ANY_KEY, FINAL_QUESTION } from "#shared/drafting";
-import { agentProviderNames } from "#shared/types";
+import { FINAL_QUESTION } from "#shared/drafting";
 import { countText } from "./numbers";
-import { modeLabel } from "./status";
 import { draftQuestionLabel } from "./working";
 
-import type { DraftKey, DraftProcessValues, DraftProcessView, DraftRead, DraftReadHow, DraftRow, DraftSummary } from "#shared/drafting";
-import type { AgentMode, Judgement } from "#shared/types";
+import type { DraftProcessValues, DraftQuestionView, DraftRead, DraftReadHow, DraftRow, DraftSummary, SupervisorDraftSave, SupervisorDraftView } from "#shared/drafting";
+import type { Judgement } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
-// What the agents screen's draft-process table says and how its cells are checked and sent, and what a message's
-// draft chip stands and spreads (docs/web.md, the supervisors tab's draft process and the room screen's draft chip).
+// What a supervisor's draft block holds while it is edited and what its save sends, how its fields are checked, and
+// what a message's draft chip stands and spreads (docs/web.md, the settings dialog's draft block and the room
+// screen's draft chip).
 
 /** The gate's stage its rows of a round's draft process stand under. */
 export const DRAFT_STAGE = "draft";
@@ -50,52 +49,6 @@ const END_LABELS: Record<string, string> = {
   "ceiling-skip": "room.label.draft_end_ceiling_skip"
 };
 
-/** One place of a key, in words: `*` in the pack's word for any. */
-export function draftKeyText(t: Translate, part: string): string {
-  return part === ANY_KEY ? t("agents.label.draft_any") : part;
-}
-
-/** A provider's place of a key, in words: any, a provider the console carries by its label, or the name as it is. */
-export function draftProviderText(t: Translate, provider: string): string {
-  if (provider === ANY_KEY) return draftKeyText(t, provider);
-
-  return (agentProviderNames as readonly string[]).includes(provider) ? modeLabel(t, provider as AgentMode) : provider;
-}
-
-/** A key as a box names it: its three places, each a name or any. */
-export function draftKeyLabel(t: Translate, key: DraftKey): string {
-  return [draftProviderText(t, key.provider), draftKeyText(t, key.tier), draftKeyText(t, key.agentName)].join(" · ");
-}
-
-/** A key's identity, for a row's place in a list. */
-export function draftKeyId(key: DraftKey): string {
-  return `${key.provider}/${key.tier}/${key.agentName}`;
-}
-
-export function sameDraftKey(one: DraftKey, other: DraftKey): boolean {
-  return one.provider === other.provider && one.tier === other.tier && one.agentName === other.agentName;
-}
-
-/** A list of questions, in order, or the pack's words for none. */
-export function draftListText(t: Translate, list: readonly string[]): string {
-  return list.length === 0 ? t("agents.label.draft_no_questions") : list.join(" → ");
-}
-
-/** The row a key's turn reads now: the most specific of those matching it, an agent's before a provider's and a
- * provider's before a tier's, as the receiver matches. */
-export function draftRowFor(rows: readonly DraftProcessView[], key: DraftKey): DraftProcessView | null {
-  const fits = (held: string, asked: string): boolean => held === ANY_KEY || held === asked;
-  const weight = (row: DraftKey): number => (row.agentName === ANY_KEY ? 0 : 4) + (row.provider === ANY_KEY ? 0 : 2) + (row.tier === ANY_KEY ? 0 : 1);
-  let best: DraftProcessView | null = null;
-
-  for (const row of rows) {
-    if (!fits(row.provider, key.provider) || !fits(row.tier, key.tier) || !fits(row.agentName, key.agentName)) continue;
-    if (best === null || weight(row) > weight(best)) best = row;
-  }
-
-  return best;
-}
-
 /** A row's values, as a set sends them. */
 export function draftValues(row: DraftProcessValues): DraftProcessValues {
   return {
@@ -121,11 +74,6 @@ export function switchedQuestion(off: readonly string[], name: string, on: boole
  * off no more. */
 export function keptOff(off: readonly string[], rounds: readonly string[], light: readonly string[]): string[] {
   return off.filter((name) => rounds.includes(name) || light.includes(name));
-}
-
-/** A list of questions as a cell stands it: each in order with whether it is switched off. */
-export function draftListParts(list: readonly string[], off: readonly string[]): { name: string; off: boolean }[] {
-  return list.map((name) => ({ name, off: off.includes(name) }));
 }
 
 /** A list with a question added before `final`, `final` joining it where the list was empty. */
@@ -167,10 +115,8 @@ export function draftListFault(t: Translate, list: readonly string[], catalogue:
   return null;
 }
 
-/** Why a typed whole number cannot be sent, or null where it can. */
-export function draftNumberFault(t: Translate, text: string, min: number, max: number): string | null {
-  const value = text.trim() === "" ? Number.NaN : Number(text);
-
+/** Why a light bound cannot be sent, or null where it can. */
+export function draftNumberFault(t: Translate, value: number, min: number, max: number): string | null {
   return Number.isInteger(value) && value >= min && value <= max ? null : t("agents.error.draft_number", { min: countText(min), max: countText(max) });
 }
 
@@ -185,6 +131,124 @@ export function questionNameFault(t: Translate, name: string, taken: readonly st
 /** Why a question's text cannot be sent, or null where it can. */
 export function questionTextFault(t: Translate, text: string): string | null {
   return text.trim() === "" || text.length > QUESTION_TEXT_MAX ? t("agents.error.draft_question_text", { max: countText(QUESTION_TEXT_MAX) }) : null;
+}
+
+// A supervisor's draft block while it is edited.
+
+/** What the block holds: the two lists, what is switched off and the light bound, whether the supervisor keeps a
+ * process of its own whatever those say, and its catalogue as it will stand. */
+export interface DraftForm {
+  keepOwn: boolean;
+  rounds: string[];
+  light: string[];
+  off: string[];
+  lightChars: number;
+  questions: DraftQuestionView[];
+}
+
+/** The block as the receiver holds it. */
+export function draftFormOf(view: SupervisorDraftView): DraftForm {
+  return {
+    keepOwn: view.source === "set",
+    rounds: [...view.process.rounds],
+    light: [...view.process.light],
+    off: [...view.process.off],
+    lightChars: view.process.lightChars,
+    questions: view.questions.map((one) => ({ ...one }))
+  };
+}
+
+const sameList = (one: readonly string[], other: readonly string[]): boolean => one.length === other.length && one.every((name, at) => name === other[at]);
+
+// Whether what the block shows of a process is what another process holds; what is switched off counts only for the
+// questions the lists hold.
+function sameProcess(form: DraftForm, process: DraftProcessValues): boolean {
+  const off = (list: readonly string[], rounds: readonly string[], light: readonly string[]): string[] => keptOff(list, rounds, light).toSorted();
+
+  return (
+    sameList(form.rounds, process.rounds) &&
+    sameList(form.light, process.light) &&
+    form.lightChars === process.lightChars &&
+    sameList(off(form.off, form.rounds, form.light), off(process.off, process.rounds, process.light))
+  );
+}
+
+/** Whether the supervisor follows a process of its own as the block stands: one it keeps, or one that differs from
+ * the policy's. */
+export function draftOwn(form: DraftForm, policy: DraftProcessValues): boolean {
+  return form.keepOwn || !sameProcess(form, policy);
+}
+
+/** The block put back to the policy's process, the supervisor keeping none of its own. */
+export function draftToPolicy(form: DraftForm, policy: DraftProcessValues): DraftForm {
+  return { ...form, keepOwn: false, rounds: [...policy.rounds], light: [...policy.light], off: [...policy.off], lightChars: policy.lightChars };
+}
+
+/** The block with the console's text of one question taken away: a question the policy holds stands again in the
+ * policy's text, and one the console added leaves the catalogue and both lists. */
+export function withoutDraftText(form: DraftForm, name: string): DraftForm {
+  const question = form.questions.find((one) => one.name === name);
+
+  if (question === undefined) return form;
+
+  if (question.policyText !== null) {
+    const policyText = question.policyText;
+
+    return { ...form, questions: form.questions.map((one) => (one.name === name ? { ...one, text: policyText, source: "default" as const } : one)) };
+  }
+
+  return {
+    ...form,
+    rounds: withoutQuestion(form.rounds, name),
+    light: withoutQuestion(form.light, name),
+    off: form.off.filter((one) => one !== name),
+    questions: form.questions.filter((one) => one.name !== name)
+  };
+}
+
+/** Whether a question of the block carries a text of the console's: one the console added, or one whose text is not
+ * the policy's. */
+export function draftTextSet(question: DraftQuestionView): boolean {
+  return question.policyText === null || question.text !== question.policyText;
+}
+
+/** What a save of the block sends, against what the receiver holds: the texts set, the process set or taken away,
+ * and the texts taken away; a part with no change is left out. */
+export function draftChange(view: SupervisorDraftView, form: DraftForm): SupervisorDraftSave {
+  const save: SupervisorDraftSave = {};
+  const held = new Map(view.questions.map((one) => [one.name, one]));
+  const texts: Record<string, string> = {};
+  const removed: string[] = [];
+
+  for (const question of form.questions) {
+    const before = held.get(question.name);
+
+    if (!draftTextSet(question)) {
+      if (before?.source === "set") removed.push(question.name);
+    } else if (before === undefined || before.text !== question.text) {
+      texts[question.name] = question.text;
+    }
+  }
+
+  for (const before of view.questions) {
+    if (before.source === "set" && !form.questions.some((one) => one.name === before.name)) removed.push(before.name);
+  }
+
+  if (Object.keys(texts).length > 0) save.texts = texts;
+  if (removed.length > 0) save.removed = removed;
+
+  if (!draftOwn(form, view.policy)) {
+    if (view.source === "set") save.process = null;
+  } else if (view.source === "default" || !sameProcess(form, view.process)) {
+    save.process = { ...draftValues(view.process), rounds: [...form.rounds], light: [...form.light], off: keptOff(form.off, form.rounds, form.light), lightChars: form.lightChars };
+  }
+
+  return save;
+}
+
+/** Whether a save sends anything. */
+export function draftChanges(save: SupervisorDraftSave): boolean {
+  return save.process !== undefined || save.texts !== undefined || save.removed !== undefined;
 }
 
 // The chip of a message's draft process.

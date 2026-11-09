@@ -3,14 +3,16 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 import {
   draftAsked,
-  draftKeyLabel,
+  draftChange,
+  draftChanges,
+  draftFormOf,
   draftListFault,
-  draftListParts,
-  draftListText,
   draftNumberFault,
   draftOutcomeText,
+  draftOwn,
   draftRound,
-  draftRowFor,
+  draftTextSet,
+  draftToPolicy,
   endLine,
   gateRoundLines,
   keptOff,
@@ -22,21 +24,35 @@ import {
   questionTextFault,
   splitDraftJudgements,
   switchedQuestion,
+  withoutDraftText,
   withoutQuestion,
   withQuestion
 } from "../../../apps/web/app/domain/draft-process";
 
-import type { DraftProcessView, DraftRow } from "../../../apps/web/shared/drafting";
+import type { DraftProcessValues, DraftRow, SupervisorDraftView } from "../../../apps/web/shared/drafting";
 import type { Judgement } from "../../../apps/web/shared/types";
 
-// The draft-process table's cells and the room's draft chip (docs/web.md, the tier tab's draft-process table and the
-// room screen's draft chip): how a list of questions is picked in order, what a set is refused before it goes, which
-// row a key's turn reads, and what the chip counts and says.
+// A supervisor's draft block and the room's draft chip (docs/web.md, the settings dialog's draft block and the room
+// screen's draft chip): how a list of questions is picked in order, what a set is refused before it goes, what a save
+// of the block sends, and what the chip counts and says.
 
 const CATALOGUE = ["intent", "information", "facts", "promises", "fit", "final"];
 
-function row(over: Partial<DraftProcessView>): DraftProcessView {
-  return { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], off: [], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default", ...over };
+const POLICY: DraftProcessValues = { rounds: ["intent", "facts", "final"], sendFrom: "", light: ["final"], off: [], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send" };
+
+function view(over: Partial<SupervisorDraftView> = {}): SupervisorDraftView {
+  return {
+    source: "default",
+    process: POLICY,
+    policy: POLICY,
+    questions: [
+      { name: "supervisor", text: "Answer?", source: "default", policyText: "Answer?" },
+      { name: "intent", text: "Why?", source: "default", policyText: "Why?" },
+      { name: "facts", text: "True?", source: "default", policyText: "True?" },
+      { name: "final", text: "Write it.", source: "default", policyText: "Write it." }
+    ],
+    ...over
+  };
 }
 
 function judgement(id: number, verdict: string, stage = "draft"): Judgement {
@@ -71,21 +87,11 @@ describe("an ordered pick of questions", () => {
     expect(draftListFault(wording, ["intent"], CATALOGUE)).toBe(wording("agents.error.draft_final_last"));
   });
 
-  test("stands in order, or as no questions", () => {
-    expect(draftListText(wording, ["intent", "final"])).toBe("intent → final");
-    expect(draftListText(wording, [])).toBe(wording("agents.label.draft_no_questions"));
-  });
-
   test("switches a question off where it stands and on again, and never the one that writes the message", () => {
     expect(switchedQuestion([], "facts", false)).toEqual(["facts"]);
     expect(switchedQuestion(["facts"], "facts", false)).toEqual(["facts"]);
     expect(switchedQuestion(["facts", "intent"], "facts", true)).toEqual(["intent"]);
     expect(switchedQuestion([], "final", false)).toEqual([]);
-    expect(draftListParts(["intent", "facts", "final"], ["facts"])).toEqual([
-      { name: "intent", off: false },
-      { name: "facts", off: true },
-      { name: "final", off: false }
-    ]);
   });
 
   test("leaves off only the questions a row's lists still hold", () => {
@@ -96,8 +102,8 @@ describe("an ordered pick of questions", () => {
 
 describe("the numbers and the questions", () => {
   test("a number is a whole number within its bounds", () => {
-    expect(draftNumberFault(wording, "150", 1, 3_600)).toBeNull();
-    for (const text of ["0", "3601", "1.5", "", "x"]) expect(draftNumberFault(wording, text, 1, 3_600)).not.toBeNull();
+    expect(draftNumberFault(wording, 150, 1, 3_600)).toBeNull();
+    for (const value of [0, 3601, 1.5, Number.NaN]) expect(draftNumberFault(wording, value, 1, 3_600)).not.toBeNull();
   });
 
   test("a new question's name is a lowercase word of letters, digits and dashes no question holds", () => {
@@ -113,18 +119,71 @@ describe("the numbers and the questions", () => {
   });
 });
 
-describe("the row a key's turn reads", () => {
-  const rows = [row({}), row({ provider: "claude-code", rounds: ["information", "final"] }), row({ agentName: "agent-a", rounds: ["final"] }), row({ tier: "Light", rounds: [] })];
+describe("a supervisor's draft block", () => {
+  test("follows the policy's process until a list or the bound differs from it, and sends nothing while nothing changed", () => {
+    const form = draftFormOf(view());
 
-  test("is the most specific that matches: an agent's before a provider's before a tier's", () => {
-    expect(draftRowFor(rows, { provider: "claude-code", tier: "Light", agentName: "agent-a" })?.agentName).toBe("agent-a");
-    expect(draftRowFor(rows, { provider: "claude-code", tier: "Light", agentName: "agent-b" })?.provider).toBe("claude-code");
-    expect(draftRowFor(rows, { provider: "codex", tier: "Light", agentName: "agent-b" })?.tier).toBe("Light");
-    expect(draftRowFor(rows, { provider: "codex", tier: "Fine", agentName: "agent-b" })).toBe(rows[0]!);
+    expect(draftOwn(form, POLICY)).toBe(false);
+    expect(draftChanges(draftChange(view(), form))).toBe(false);
+
+    form.rounds = ["facts", "final"];
+
+    expect(draftOwn(form, POLICY)).toBe(true);
+    expect(draftChange(view(), form)).toEqual({ process: { ...POLICY, rounds: ["facts", "final"] } });
   });
 
-  test("names its key by its three places, any in the pack's word for it", () => {
-    expect(draftKeyLabel(wording, { provider: "*", tier: "Light", agentName: "agent-a" })).toBe(`${wording("agents.label.draft_any")} · Light · agent-a`);
+  test("counts what is switched off as a change, and drops from it a question neither list holds", () => {
+    const form = draftFormOf(view());
+
+    form.off = ["facts", "promises"];
+
+    expect(draftOwn(form, POLICY)).toBe(true);
+    expect(draftChange(view(), form).process?.off).toEqual(["facts"]);
+  });
+
+  test("keeps a process of its own that says what the policy's says, and takes it away once put back to the policy's", () => {
+    const held = view({ source: "set", process: { ...POLICY, lightChars: 40 } });
+    const same = view({ source: "set" });
+
+    expect(draftOwn(draftFormOf(same), POLICY)).toBe(true);
+    expect(draftChanges(draftChange(same, draftFormOf(same)))).toBe(false);
+
+    const back = draftToPolicy(draftFormOf(held), POLICY);
+
+    expect(back).toMatchObject({ keepOwn: false, lightChars: 12 });
+    expect(draftOwn(back, POLICY)).toBe(false);
+    expect(draftChange(held, back)).toEqual({ process: null });
+  });
+
+  test("sends a changed text and a question added, and nothing for a text as the receiver holds it", () => {
+    const form = draftFormOf(view());
+
+    form.questions[1]!.text = "Why was it said?";
+    form.questions.push({ name: "tone", text: "Does it fit?", source: "set", policyText: null });
+    form.rounds = ["intent", "tone", "final"];
+
+    expect(draftChange(view(), form)).toEqual({ texts: { intent: "Why was it said?", tone: "Does it fit?" }, process: { ...POLICY, rounds: ["intent", "tone", "final"] } });
+    expect(draftTextSet(form.questions[1]!)).toBe(true);
+    expect(draftTextSet(form.questions[2]!)).toBe(false);
+  });
+
+  test("takes the console's text of a question away: the policy's text stands again, and one the console added leaves the catalogue and both lists", () => {
+    const set = view({
+      source: "set",
+      process: { ...POLICY, rounds: ["intent", "tone", "final"], light: ["tone", "final"], off: ["tone"] },
+      questions: [...view().questions.map((one) => (one.name === "intent" ? { ...one, text: "Why was it said?", source: "set" as const } : one)), { name: "tone", text: "Does it fit?", source: "set", policyText: null }]
+    });
+    const back = withoutDraftText(draftFormOf(set), "intent");
+
+    expect(back.questions.find((one) => one.name === "intent")).toMatchObject({ text: "Why?", source: "default" });
+    expect(draftChange(set, back)).toEqual({ removed: ["intent"] });
+
+    const gone = withoutDraftText(draftFormOf(set), "tone");
+
+    expect(gone.questions.map((one) => one.name)).not.toContain("tone");
+    expect(gone).toMatchObject({ rounds: ["intent", "final"], light: ["final"], off: [] });
+    expect(draftChange(set, gone)).toEqual({ removed: ["tone"], process: { ...POLICY, rounds: ["intent", "final"], light: ["final"], off: [] } });
+    expect(withoutDraftText(draftFormOf(set), "nothing")).toEqual(draftFormOf(set));
   });
 });
 

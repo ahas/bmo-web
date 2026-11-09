@@ -16,27 +16,8 @@ import type { Browser } from "playwright-core";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "agents-general", password: "fixture-password-2301" };
 
-// The draft process and its questions, served through the page's own route: enough rows that the supervisors' tab
-// scrolls on a short screen, a long list of questions in a cell and a question's long text.
-const QUESTIONS = ["sense", "plan", "check", "tone", "final"];
 // A supervisor's order of five, whose cell makes its table wider than a phone and the panel beside the TODO list.
 const FIVE = ["claude-code", "codex", "deepseek", "gemini", "openrouter"].map((provider) => ({ provider, model: `${provider}-model-with-a-long-name`, effort: "high", thinking: null, answerTokens: null }));
-const CATALOGUE = ["sense", "plan", "check", "tone", "scope", "facts", "voice", "final"];
-const DRAFTS = {
-  rows: Array.from({ length: 6 }, (_, index) => ({
-    provider: index === 0 ? "*" : "claude-code",
-    tier: "*",
-    agentName: index < 2 ? "*" : `agent-${index}`,
-    rounds: QUESTIONS,
-    sendFrom: "",
-    light: ["final"],
-    lightChars: 40,
-    ceilingSeconds: 120,
-    pastCeiling: "send",
-    source: index === 0 ? "default" : "set"
-  })),
-  questions: CATALOGUE.map((name) => ({ name, text: `The question ${name} asks of a round, written out at length so that its line runs past any column's ceiling.`, source: "default" }))
-};
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -189,7 +170,6 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       const at = cookie.indexOf("=");
 
       await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
-      await context.route(/\/api\/draft-processes$/, (route) => route.fulfill({ json: DRAFTS }));
       await context.route(/\/api\/supervisors$/, async (route) => {
         const answer = await (await route.fetch()).json();
 
@@ -208,9 +188,9 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         // The supervisors' tab scrolls up and down in its body, each table sideways in its own box, and each table's head
         // stands at the body's top as its rows pass, inside the panel's edge.
         await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
-        await page.locator("[data-draft-questions] tbody tr").first().waitFor({ timeout: 15_000 });
+        await page.locator("[data-role-agents-table] [data-settings-table] tbody tr").first().waitFor({ timeout: 15_000 });
 
-        for (const table of ["[data-supervisors-table]", "[data-role-agents-table] [data-settings-table]", "[data-draft-processes]", "[data-draft-questions]"]) {
+        for (const table of ["[data-supervisors-table]", "[data-role-agents-table] [data-settings-table]"]) {
           const stuck = await page.locator(table).evaluate(async (root) => {
             let body = root.parentElement!;
 
@@ -404,21 +384,20 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     }
   }, 90_000);
 
-  test("stand every column of the draft tables at its own width, the room left over one empty column at the table's edge", async () => {
+  test("stand every column of the agents tab's tables at its own width, the room left over one empty column at the table's edge", async () => {
     const context = await browser!.newContext({ viewport: { width: 1600, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
     const at = cookie.indexOf("=");
 
     await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
-    await context.route(/\/api\/draft-processes$/, (route) => route.fulfill({ json: DRAFTS }));
 
     try {
       const page = await context.newPage();
 
       await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
-      await page.locator("[data-draft-questions] tbody tr").first().waitFor({ timeout: 15_000 });
+      await page.locator("[data-role-agents-table] [data-settings-table] tbody tr").first().waitFor({ timeout: 15_000 });
       await page.waitForTimeout(500);
 
-      for (const [table, title] of [["[data-draft-processes]", 2], ["[data-draft-questions]", 0]] as const) {
+      for (const [table, title] of [["[data-supervisors-table]", 0], ["[data-role-agents-table] [data-settings-table]", 0]] as const) {
         // The widths as the table stands, then as it stands while its content is measured, every column at what its
         // name and widest cell take whole: no column stands wider than its content, the title's included, a column
         // under a ceiling stands narrower only where its content passes it, and the table is as wide as its columns or

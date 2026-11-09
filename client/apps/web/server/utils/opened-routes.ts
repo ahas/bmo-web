@@ -131,10 +131,6 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(SUPERVISORS, "GET", /^\/api\/(chat-documents|default-answerer)(?:\/.*)?$/),
   section(SUPERVISORS, "PUT", /^\/api\/default-answerer(?:\/.*)?$/),
   section(SUPERVISORS, "PATCH", /^\/api\/chat-documents(?:\/.*)?$/),
-  // The draft processes and their questions stand under the supervisors' table.
-  section(SUPERVISORS, "GET", /^\/api\/draft-processes(?:\/.*)?$/),
-  section(SUPERVISORS, "POST", /^\/api\/(draft-processes|draft-questions)(?:\/.*)?$/),
-  section(SUPERVISORS, "DELETE", /^\/api\/draft-processes(?:\/.*)?$/),
   // What every part's chooser reads. The provider switches and the fallback are the settings dialog's, which only
   // the administrator opens, so their writes stand with the routes not opened to a member.
   section(AGENT_PARTS, "GET", /^\/api\/(provider-models|providers|fallback|agent-faces|tool-icons)(?:\/.*)?$/),

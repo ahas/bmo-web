@@ -2792,7 +2792,7 @@ Two ways, split because the running places differ.
     stands above it, and the table's own box is the one that scrolls, both ways, with the head of names stuck to its
     top, so its sideways scrollbar sits on the tab's foot however few its rows. The tab's body around it does not
     scroll.
-  - **The 감독관 tab,** holding the draft tables under its own, gives each table only its own height, and the tab's
+  - **The 에이전트 tab,** holding the agents' table under the supervisors', gives each table only its own height, and the tab's
     body is the one box that scrolls up and down, bounded by the panel's width. Each table scrolls sideways in its own
     box, its sideways scrollbar at its own foot, and its head of names stands at the top of the body while that
     table's rows pass under it, leaving with the table's last row. A box that scrolls sideways is the one a head's own
@@ -2921,6 +2921,31 @@ a seat of its role.
   the owner's own text or put back to its file (the agency's `docs/api.md`, 「chat-documents」). A save sends the
   supervisor's change and then the rest, and a refusal keeps every field as written with the reason under the one it
   names.
+- **드래프트 is a block of that dialog, a supervisor's own:** the questions a round's one draft turn follows before
+  it writes the message, and their texts, as the receiver keeps them for that supervisor alone (the receiver's
+  `docs/drafting.md`, 「The process table」 and 「The questions」). Nothing set here stands for another supervisor, and
+  no screen sets a process for all of them: a supervisor the console has set none for follows the receiver's policy,
+  and the block's title then carries `(기본값)`.
+  - **질문 순서** is the questions an ordinary turn's round follows, in order, and **짧은 턴 질문** those of a light
+    turn: each an ordered pick from the supervisor's catalogue, every question under the pack's word for it and one
+    the console added under its own name. The questions chosen stand in order, each with a checkbox, moved up or
+    down or taken out, and one not yet chosen is added before `final`, which stands last in every list that holds a
+    question. The checkbox switches a question off or on where it stands: one unchecked keeps its place, dimmed and
+    struck through, and is left out of what the round follows. `final` writes the message and carries no checkbox.
+    A list with no question says 질문 없음. **짧은 턴 기준** is how short the room's words must be for a light turn,
+    a whole number from 0 to 1,000 characters.
+  - **질문 글** lists the supervisor's catalogue, a line a question: its name, `(기본값)` after one whose text the
+    console has not changed for this supervisor, and its text on one line. Pressing a line opens the text in a box
+    under it, at most 4,000 characters and never empty. 질문 추가 adds a question under a new name, a lowercase word
+    of letters, digits and dashes. A question the console added or changed carries a press at its end that takes
+    the console's text away: one it added leaves the catalogue and both lists, and one the policy holds stands
+    again in the policy's text.
+  - **기본값으로** stands beside the block's title where the supervisor has a process of its own, and puts the two
+    lists and the bound back to the policy's.
+  - **Every change of the block waits for the dialog's one save,** which sends the texts set, then the process, then
+    the texts taken away, so a list never names a question the receiver does not yet hold or no longer holds. A
+    process put back to the policy's takes the supervisor's own row away. What the receiver refuses is said under
+    the block in the pack's sentence for its code, every field kept as written.
 - **기본 응답 감독관** stands above the table, a row of its own: the supervisor that answers every room naming none,
   as the receiver's setting holds it (its `docs/api.md`, 「Supervisors」, `GET` and `PUT /default-answerer`). A list
   of every supervisor the agency lists, each under its own label with its name under it, and no other entry; the
@@ -2944,41 +2969,6 @@ a seat of its role.
   why. It asks first, naming what goes — its settings, sessions and person records — and saying that the rooms it
   answered stay with their messages and documents, a room left naming no supervisor going to the default answerer; a
   removal the receiver refuses says its reason under the table.
-- **The draft process** (드래프트 과정) stands under the table: the questions a round's one draft turn follows
-  before it writes the message, as
-  the receiver keeps it (the receiver's `docs/drafting.md`, 「The process table」). A row per key of a provider, a tier
-  and an agent, each a name or 전체 for any, in the order the receiver lists them. The key is the row's title, its
-  three parts standing together at the head of the row and every value after them at its own width. A line under the table's head says
-  that the questions of a row are followed in one turn, in their order, and that a turn reads the most specific
-  row that matches it, an agent's before a provider's and a provider's before a tier's.
-  - **A row's cells:** 질문 순서, the questions an ordinary turn's round follows, in order; 짧은 턴 질문, those of a
-    light turn; and 짧은 턴 기준, how short the room's words must be for a light turn, in characters. A question
-    the row has switched off stands in its list at its place, dimmed and struck through, and is not followed. A
-    list with no question stands as 질문 없음. A row the receiver's policy holds and the console has not changed
-    carries `(기본값)` after its key.
-  - **Each cell sets that one value,** the row's other values sent with it as they stand, so a policy row a cell is
-    changed on becomes the console's row of the same key. A list's dropdown is an ordered pick from the catalogue,
-    each question under the pack's word for it, and one the console added under its own name; the questions chosen
-    stand in that word, in order, each with a checkbox, moved up or down or taken out, and a question not yet
-    chosen is added before `final`, which stands last in every list that holds a question. The checkbox switches
-    a question off or on where it stands: one unchecked keeps its place in the list and is left out of what the
-    round follows, and checking it again puts it back at that place. `final` writes the message and carries no
-    checkbox. The number takes a whole number, 0 to 1,000 characters.
-  - **추가** in the table's head opens a box of a provider, a tier and an agent, each 전체 or one the receiver keys
-    by; a key that already stands is not offered. The new row starts from the values of the row that key matches
-    now.
-  - **A console's row carries 삭제 at its end,** asked first: the receiver takes the row away, and where the policy
-    holds a row of the same key that row stands again.
-  - **A refused set** says the pack's sentence for the receiver's code under the box or in a notice, and the row
-    stands as the receiver holds it.
-- **The draft questions** (드래프트 질문) stand under the process table: a row per question of the catalogue, its
-  name, the title column, and its text in the language it was written in, on one line under a ceiling of its own,
-  `(기본값)` after the name of one the console has not changed.
-  Pressing a text opens a box of it, at most 4,000 characters and never empty, saved with 저장. 추가 in its head opens
-  a box of a new name — a lowercase word of letters, digits and dashes — and its text. A question the console
-  added or changed carries 삭제 at its end, asked first: the receiver takes the console's text away, so a question
-  the console added leaves the catalogue and one the policy holds stands again in the policy's text. A question
-  a list still names is not taken away, and the refusal says to take it out of the lists first.
 - **A read that fails** says so with a reread in that table's place, and the other tables stand.
 
 - **Under the supervisors stands one table of the roles' agents** (the agency's `docs/role-agents.md`), headed

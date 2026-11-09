@@ -1,8 +1,9 @@
 <template>
-  <!-- A supervisor's settings (docs/web.md, 「Agent management screen」, the supervisors tab): one form with one save at its foot —
+  <!-- A supervisor's settings (docs/web.md, 「Agent management screen」, the agents tab): one form with one save at its foot —
        its own settings, then for a supervisor whose turns its settings' pieces make its generation settings, reference,
        persona and system prompt, and for the one whose turns its window makes the texts its system prompt is composed
-       of. The supervisors tab and the supervisor's own screen open this one dialog. A save sends the supervisor's change and
+       of, then its own draft process and question texts. The agents tab and the supervisor's own screen open this one
+       dialog. A save sends the supervisor's change and
        then the rest; a refusal keeps every field as written with the reason under the one it names. -->
   <SettingsDialog v-model:open="open" wide :title="supervisor?.label ?? props.name" :description="supervisor === null || supervisor.label === props.name ? undefined : props.name" :dirty="form.dirty.value">
     <p v-if="failed" role="alert" class="text-sm text-error">{{ $t("agents.error.supervisors_read_failed") }}</p>
@@ -28,6 +29,13 @@
         <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.title.chat_documents") }}</h3>
         <ChatDocumentsFields />
       </section>
+
+      <!-- The supervisor's own draft process and question texts, as the receiver holds them for it. -->
+      <p v-if="draftFailed" role="alert" class="text-sm text-error">{{ $t("agents.error.draft_processes_read_failed") }}</p>
+      <ContentSkeleton v-else-if="draft === null" :rows="2" :label="$t('agents.status.draft_processes_loading')">
+        <SkeletonBar class="h-8 w-full rounded-md" />
+      </ContentSkeleton>
+      <SupervisorDraftFields v-else :name="props.name" :view="draft" @saved="(saved) => (draft = saved)" />
     </div>
 
     <template #footer="{ close }">
@@ -41,6 +49,7 @@
 import { useFormSave } from "bmo-ui/app/domain/form-save";
 
 import type { SupervisorSettingsView, SupervisorView } from "#shared/axes";
+import type { SupervisorDraftView } from "#shared/drafting";
 
 interface Props {
   // The supervisor's name; its settings are read each time the dialog opens.
@@ -56,8 +65,19 @@ const { t } = useI18n();
 const form = useFormSave(t);
 const supervisor = ref<SupervisorView | null>(null);
 const pieces = ref<SupervisorSettingsView | null>(null);
+const draft = ref<SupervisorDraftView | null>(null);
 const failed = ref(false);
 const piecesFailed = ref(false);
+const draftFailed = ref(false);
+
+// The supervisor's draft settings, read beside its own; a read that fails leaves the rest of the form standing.
+async function readDraft(): Promise<void> {
+  try {
+    draft.value = await $fetch<SupervisorDraftView>(`/api/supervisors/${encodeURIComponent(props.name)}/draft`);
+  } catch {
+    draftFailed.value = true;
+  }
+}
 
 async function saveAll(): Promise<void> {
   if (!(await form.save())) return;
@@ -74,8 +94,10 @@ watch(open, async (now) => {
   form.discard();
   failed.value = false;
   piecesFailed.value = false;
+  draftFailed.value = false;
   supervisor.value = null;
   pieces.value = null;
+  draft.value = null;
 
   try {
     supervisor.value = await $fetch<SupervisorView>(`/api/supervisors/${encodeURIComponent(props.name)}`);
@@ -84,6 +106,8 @@ watch(open, async (now) => {
 
     return;
   }
+
+  void readDraft();
 
   if (supervisor.value.turnShape !== "pieces") return;
 

@@ -1685,6 +1685,8 @@ agents:
     walk_order: 순서대로
     agent_add: 에이전트 추가
     provider_add: 공급자 추가
+    draft_to_default: 기본값으로
+    draft_text_to_default: 기본 글로 되돌리기
   aria:
     callable_of: "{name} 코워커 호출 허용"
     active_of: "{name} 지금"
@@ -1710,16 +1712,12 @@ agents:
     warming_of: "{name} {provider} 캐시 유지"
     warming_cell_of: "{name} 캐시 유지"
     choose_model: 모델 선택
-    draft_light_chars_of: "{key}의 짧은 턴 기준"
-    draft_light_of: "{key}의 짧은 턴 질문"
     draft_move_down: "{name} 아래로"
     draft_move_up: "{name} 위로"
     draft_question_of: "{name} 질문"
     draft_question_on: "{name} 켜기"
     draft_question_remove_of: "{name} 질문 삭제"
-    draft_remove_of: "{key} 행 삭제"
     draft_remove_question: "{name} 제거"
-    draft_rounds_of: "{key}의 질문 순서"
     drag_reorder: 드래그해서 순서 변경
     prefix_document_down: "{path} 아래로"
     prefix_document_path: 프리픽스 문서 경로
@@ -1730,6 +1728,7 @@ agents:
     settings_sections: 설정 섹션
     switch_on: "{name} 켜기"
     vitals: 에이전트 지표
+    draft_add_to: "{list}에 질문 추가"
   error:
     account_fields_needed: 계정 이름과 자격 증명 파일 경로를 입력해 주세요.
     account_order_list: 계정 순서를 목록으로 보내 주세요.
@@ -1756,10 +1755,9 @@ agents:
     chat_document_save_failed: 저장하지 못했습니다.
     chat_document_action: 저장하거나 되돌릴 동작이 필요합니다.
     draft_final_last: 질문이 있는 목록은 final로 끝나야 합니다.
-    draft_key_taken: 이미 있는 행입니다.
     draft_number: "{min}부터 {max}까지의 정수입니다."
-    draft_process_missing: 콘솔이 설정한 행이 없습니다.
-    draft_process_refused: "수신 유닛이 이 행을 받지 않았습니다. 질문은 카탈로그에 있는 이름이어야 하고, 질문이 있는 목록은 final로 끝나야 하며, final은 끌 수 없고, 짧은 턴 기준은 0~1,000자여야 합니다."
+    draft_process_missing: 이 감독관이 따로 정한 드래프트 과정이 없습니다.
+    draft_process_refused: "수신 유닛이 이 드래프트 과정을 받지 않았습니다. 질문은 이 감독관의 질문 글에 있는 이름이어야 하고, 질문이 있는 목록은 final로 끝나야 하며, final은 끌 수 없고, 짧은 턴 기준은 0~1,000자여야 합니다."
     draft_processes_read_failed: 드래프트 과정을 불러오지 못했습니다.
     draft_question_missing: 콘솔에서 추가하거나 바꾼 질문이 아닙니다.
     draft_question_name: 이름은 소문자·숫자·대시로 된 한 단어입니다.
@@ -1767,7 +1765,7 @@ agents:
     draft_question_refused: "수신 유닛이 이 질문을 받지 않았습니다. 이름은 소문자·숫자·대시로 된 한 단어, 질문은 비어 있지 않은 4,000자 이하여야 합니다."
     draft_question_taken: 이미 있는 질문 이름입니다.
     draft_question_text: "질문은 비어 있지 않은 {max}자 이하여야 합니다."
-    draft_unknown_question: 카탈로그에 없는 질문이 있습니다.
+    draft_unknown_question: 질문 글에 없는 질문이 있습니다.
     field_refused: 받아들여지지 않은 값입니다.
     job_prompt_failed: 프롬프트를 불러오지 못했습니다.
     launch_empty: 작업 지시를 입력해 주세요.
@@ -1812,6 +1810,7 @@ agents:
     repository_delete_refused: Job이 체크아웃을 쓰고 있어 저장소를 삭제하지 못했습니다.
     session_history_read_failed: 세션 기록을 불러오지 못했습니다.
     supervisors_read_failed: 감독관을 불러오지 못했습니다.
+    draft_unsound: 드래프트 설정에 고칠 곳이 있습니다.
   label:
     account_chosen: 선택한 계정
     active_forced: 강제 지정
@@ -1836,7 +1835,6 @@ agents:
     call_done: 완료
     call_failed: 실패
     characters_unit: 자
-    column_provider: 공급자
     column_role: 역할
     column_rooms: 방
     context_archive: 지난 대화
@@ -1858,21 +1856,16 @@ agents:
     diff_none: 변경 없음
     diff_omitted: 생략
     diff_removed: "{removed}줄 삭제"
-    draft_agent: 에이전트
-    draft_any: 전체
-    draft_chars: "{n}자 이하"
     draft_light: 짧은 턴 질문
     draft_light_chars: 짧은 턴 기준
     draft_no_questions: 질문 없음
-    draft_processes_help: "한 턴 안에서 메시지를 쓰기 전에 순서대로 따르는 질문입니다. 끈 질문은 자리를 지킨 채 빠집니다. 턴은 맞는 행 가운데 가장 구체적인 행을 따릅니다: 에이전트 행, 공급자 행, 티어 행 순서입니다."
+    draft_processes_help: "이 감독관이 한 턴 안에서 메시지를 쓰기 전에 순서대로 따르는 질문입니다. 끈 질문은 자리를 지킨 채 빠집니다. 따로 정하지 않은 감독관은 기본값을 따릅니다."
     draft_question_final: 메시지 작성
     draft_question_off: 꺼짐
     draft_question_text: 질문
     draft_rounds: 질문 순서
     engine: 엔진
     exec_node: 실행 노드
-    find_draft_process: "드래프트 과정 {key}"
-    find_draft_question: "드래프트 질문 {name}"
     find_registration: "등록 모델 · {name}"
     generation: 생성 파라미터
     group_gate: 게이트
@@ -1958,7 +1951,6 @@ agents:
     thinking: 생각
     this_machine: 이 기기
     this_run: 이 실행
-    tier: 등급
     unit_build: "구현 {n}"
     unit_reopened: "{run}차 {label}"
     unit_round: "{label} {round}회차"
@@ -2057,6 +2049,8 @@ agents:
     used_by_role: "역할 {name}"
     used_by_supervisor: "감독관 {name}"
     work_repository: 작업 저장소
+    draft_chars_unit: 자 이하
+    draft_texts: 질문 글
   message:
     account_delete_confirm: 계정을 삭제할까요?
     catalogue_delete_confirm: 모델 파일을 목록에서 삭제할까요?
@@ -2065,8 +2059,6 @@ agents:
 
       감독관이 답하던 방은 메시지와 문서까지 그대로 남습니다."
     node_checkouts_need_here: 실행 노드가 이 기기일 때만 노드 체크아웃을 둘 수 있습니다.
-    draft_question_remove_confirm: "콘솔에서 추가하거나 바꾼 이 질문의 글을 삭제할까요? 추가한 질문은 목록에서 사라지고, 기본 질문은 기본 글로 돌아갑니다."
-    draft_process_remove_confirm: "이 드래프트 과정 행을 삭제할까요? 정책에 같은 행이 있으면 그 행이 다시 적용됩니다."
     generation_resets: "방 세션 {n}개가 다음 턴부터 새로 시작됩니다."
     log_of_agent: 이 에이전트의 로그
     log_of_watch: 이 워치의 대기 대상과 기록
@@ -2167,10 +2159,7 @@ agents:
     catalogue_add: 모델 파일 추가
     catalogue_uses: 모델 변경 기록
     chat_documents: 시스템 프롬프트
-    draft_process_add: 드래프트 과정 행 추가
-    draft_processes: 드래프트 과정
     draft_question_add: 드래프트 질문 추가
-    draft_questions: 드래프트 질문
     registry: 등록 모델
     registry_add: 등록 모델 추가
     work_log: 로그
@@ -2180,6 +2169,7 @@ agents:
     work_stages: 진행 단계
     role_add: 역할 추가
     role_agents_of: "{name} 에이전트"
+    draft: 드래프트
 gates:
   label:
     classifier: 참조 분류기

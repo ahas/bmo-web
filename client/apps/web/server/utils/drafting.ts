@@ -1,9 +1,12 @@
-// The receiver's draft process (the receiver's `docs/drafting.md`): its table and its questions, read and set for the
-// agents screen, and what a round's process wrote, read for the room's draft chip. A refusal of a set is said by the
-// pack's sentence for the receiver's code on these routes, which says what the receiver checks.
+// The receiver's draft process (the receiver's `docs/drafting.md`): one supervisor's process and its questions, read
+// and set for the supervisor's settings, and what a round's process wrote, read for the room's draft chip. A refusal
+// of a set is said by the pack's sentence for the receiver's code on these routes, which says what the receiver
+// checks.
 import { receiver, receiverCall } from "./receiver";
 
-import type { DraftKey, DraftProcessesView, DraftProcessValues, DraftProcessView, DraftQuestionView, DraftRead, DraftReadHow, DraftRow, DraftSummary, DraftSource, PastCeiling } from "#shared/drafting";
+import { ANY_KEY } from "#shared/drafting";
+
+import type { DraftProcessValues, DraftQuestionView, DraftRead, DraftReadHow, DraftRow, DraftSummary, DraftSource, PastCeiling, SupervisorDraftSave, SupervisorDraftView } from "#shared/drafting";
 import type { components } from "@bmo/receiver-client/schema";
 
 type Schemas = components["schemas"];
@@ -19,25 +22,20 @@ const QUESTION_CODES: Readonly<Record<string, string>> = {
 
 const sourceOf = (source: string): DraftSource => (source === "set" ? "set" : "default");
 
-function processOf(row: Schemas["DraftProcess"]): DraftProcessView {
+function valuesOf(row: Schemas["DraftProcess"]): DraftProcessValues {
   return {
-    provider: row.provider,
-    tier: row.tier,
-    agentName: row.agentName,
     rounds: row.rounds,
     sendFrom: row.sendFrom,
     light: row.light,
     off: row.off,
     lightChars: row.lightChars,
     ceilingSeconds: row.ceilingSeconds,
-    pastCeiling: row.pastCeiling === "skip" ? "skip" : "send",
-    source: sourceOf(row.source)
+    pastCeiling: row.pastCeiling === "skip" ? "skip" : "send"
   };
 }
 
-function questionOf(question: Schemas["DraftQuestion"]): DraftQuestionView {
-  return { name: question.name, text: question.text, source: sourceOf(question.source) };
-}
+// A process that asks nothing, where the receiver answers no row at all.
+const NO_PROCESS: DraftProcessValues = { rounds: [], sendFrom: "", light: [], off: [], lightChars: 0, ceilingSeconds: 0, pastCeiling: "send" };
 
 function rowOf(row: Schemas["DraftRound"]): DraftRow {
   return {
@@ -72,38 +70,50 @@ function readOf(read: Schemas["DraftRead"]): DraftRead[] {
   return [{ path: read.path, holds: read.holds ?? null, how, ...(typeof memoryId === "number" ? { memoryId } : {}) }];
 }
 
-/** The table and the catalogue, read together. */
-export async function readDraftProcesses(): Promise<DraftProcessesView> {
+/** A supervisor's draft process: the row it reads, the policy's, and its catalogue with the policy's texts beside
+ * its own. */
+export async function readSupervisorDraft(agentName: string): Promise<SupervisorDraftView> {
   const asking = receiver();
-  const [rows, questions] = await Promise.all([receiverCall(asking.GET("/draft-processes")), receiverCall(asking.GET("/draft-questions"))]);
+  const [own, every, questions, policyQuestions] = await Promise.all([
+    receiverCall(asking.GET("/draft-processes", { params: { query: { agentName } } })),
+    receiverCall(asking.GET("/draft-processes")),
+    receiverCall(asking.GET("/draft-questions", { params: { query: { agentName } } })),
+    receiverCall(asking.GET("/draft-questions"))
+  ]);
+  const row = own.items[0];
+  const policy = every.items.find((one) => sourceOf(one.source) === "default");
+  const policyTexts = new Map(policyQuestions.items.map((one) => [one.name, one.text]));
 
-  return { rows: rows.items.map(processOf), questions: questions.items.map(questionOf) };
+  return {
+    source: row === undefined ? "default" : sourceOf(row.source),
+    process: row === undefined ? NO_PROCESS : valuesOf(row),
+    policy: policy === undefined ? NO_PROCESS : valuesOf(policy),
+    questions: questions.items.map((one): DraftQuestionView => ({ name: one.name, text: one.text, source: sourceOf(one.source), policyText: policyTexts.get(one.name) ?? null }))
+  };
 }
 
-/** One row set, as the receiver now holds it. */
-export async function writeDraftProcess(key: DraftKey, values: DraftProcessValues): Promise<DraftProcessView> {
-  const saved = await receiverCall(
-    receiver().PUT("/draft-processes/{provider}/{tier}/{agentName}", { params: { path: { ...key } }, body: { ...values } }),
-    { codes: PROCESS_CODES }
-  );
+/** One save of a supervisor's draft settings, in the order that keeps every list naming a question the receiver
+ * holds: the texts set, then the process, then the texts taken away. Answers the settings as the receiver now holds
+ * them. */
+export async function writeSupervisorDraft(agentName: string, save: SupervisorDraftSave): Promise<SupervisorDraftView> {
+  const asking = receiver();
+  const key = { provider: ANY_KEY, tier: ANY_KEY, agentName };
 
-  return processOf(saved);
-}
+  for (const [name, text] of Object.entries(save.texts ?? {})) {
+    await receiverCall(asking.PUT("/draft-questions/{agentName}/{name}", { params: { path: { agentName, name } }, body: { text } }), { codes: QUESTION_CODES });
+  }
 
-/** The console's row of one key taken away. */
-export async function eraseDraftProcess(key: DraftKey): Promise<void> {
-  await receiverCall(receiver().DELETE("/draft-processes/{provider}/{tier}/{agentName}", { params: { path: { ...key } } }), { codes: PROCESS_CODES });
-}
+  if (save.process === null) {
+    await receiverCall(asking.DELETE("/draft-processes/{provider}/{tier}/{agentName}", { params: { path: key } }), { codes: PROCESS_CODES });
+  } else if (save.process !== undefined) {
+    await receiverCall(asking.PUT("/draft-processes/{provider}/{tier}/{agentName}", { params: { path: key }, body: { ...save.process } }), { codes: PROCESS_CODES });
+  }
 
-/** One question's text set, as the receiver now holds it. */
-export async function writeDraftQuestion(name: string, text: string): Promise<DraftQuestionView> {
-  return questionOf(await receiverCall(receiver().PUT("/draft-questions/{name}", { params: { path: { name } }, body: { text } }), { codes: QUESTION_CODES }));
-}
+  for (const name of save.removed ?? []) {
+    await receiverCall(asking.DELETE("/draft-questions/{agentName}/{name}", { params: { path: { agentName, name } } }), { codes: QUESTION_CODES });
+  }
 
-/** The console's text of one question taken away: a question the console added leaves the catalogue, and one the
- * policy holds stands again in the policy's text. */
-export async function eraseDraftQuestion(name: string): Promise<void> {
-  await receiverCall(receiver().DELETE("/draft-questions/{name}", { params: { path: { name } } }), { codes: QUESTION_CODES });
+  return await readSupervisorDraft(agentName);
 }
 
 /** Every row each named round's process wrote, in the order written, its answers whole. */
@@ -148,11 +158,6 @@ export async function draftSummaries(chatId: number, rounds: readonly string[]):
   }
 }
 
-/** A key's place read off a route's text: a name, or `*` for any. */
-export function draftKeyPart(value: unknown): string | null {
-  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
-}
-
 /** The values a set's body names, or null where one is missing or of the wrong sort; what the values say is the
  * receiver's to judge. */
 export function draftValuesOf(body: Record<string, unknown> | null | undefined): DraftProcessValues | null {
@@ -163,7 +168,7 @@ export function draftValuesOf(body: Record<string, unknown> | null | undefined):
   const lightChars = whole(body?.lightChars);
   const ceilingSeconds = whole(body?.ceilingSeconds);
   const pastCeiling = body?.pastCeiling === "send" || body?.pastCeiling === "skip" ? (body.pastCeiling as PastCeiling) : null;
-  // A value the table carries unshown: absent from an older body, empty.
+  // A value the process carries unshown: absent from an older body, empty.
   const sendFrom = body?.sendFrom === undefined ? "" : typeof body.sendFrom === "string" ? body.sendFrom : null;
   // The questions switched off: absent from a body that switches none off.
   const off = body?.off === undefined ? [] : names(body.off);
@@ -171,4 +176,40 @@ export function draftValuesOf(body: Record<string, unknown> | null | undefined):
   if (rounds === null || light === null || off === null || lightChars === null || ceilingSeconds === null || pastCeiling === null || sendFrom === null) return null;
 
   return { rounds, sendFrom, light, off, lightChars, ceilingSeconds, pastCeiling };
+}
+
+/** One save a body names, or null where a part it names is of the wrong sort; a part it leaves out is left as it
+ * stands. */
+export function draftSaveOf(body: Record<string, unknown> | null | undefined): SupervisorDraftSave | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  const save: SupervisorDraftSave = {};
+
+  if (body.process === null) {
+    save.process = null;
+  } else if (body.process !== undefined) {
+    const values = typeof body.process === "object" ? draftValuesOf(body.process as Record<string, unknown>) : null;
+
+    if (values === null) return null;
+
+    save.process = values;
+  }
+
+  if (body.texts !== undefined) {
+    if (typeof body.texts !== "object" || body.texts === null || Array.isArray(body.texts)) return null;
+
+    const texts = Object.entries(body.texts as Record<string, unknown>);
+
+    if (texts.some(([name, text]) => name.trim() === "" || typeof text !== "string" || text.trim() === "")) return null;
+
+    save.texts = Object.fromEntries(texts.map(([name, text]) => [name.trim(), text as string]));
+  }
+
+  if (body.removed !== undefined) {
+    if (!Array.isArray(body.removed) || body.removed.some((one) => typeof one !== "string" || one.trim() === "")) return null;
+
+    save.removed = (body.removed as string[]).map((one) => one.trim());
+  }
+
+  return save;
 }

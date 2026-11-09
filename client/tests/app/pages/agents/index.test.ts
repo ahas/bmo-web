@@ -36,7 +36,8 @@ const popover = await read("../../components/SettingsPopoverCell.vue");
 const input = await read("../../components/SettingsInputCell.vue");
 const generation = await read("../../components/GenerationFields.vue");
 const cells = await Bun.file(new URL("../../../../apps/web/app/domain/settings-cells.ts", import.meta.url)).text();
-const drafts = await read("../../components/AgentsDraftProcesses.vue");
+const draftFields = await read("../../components/SupervisorDraftFields.vue");
+const supervisorDialog = await read("../../components/SupervisorSettingsDialog.vue");
 const settingsTable = await read("../../components/SettingsTable.vue");
 
 const sections = [supervisors, roles, repositories, registry, catalogue];
@@ -114,7 +115,7 @@ describe("every table of the screen", () => {
     expect(templateOf(page)).toContain(`class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'"`);
     expect(scriptOf(page)).toContain('useHeldHeads(() => (tab.value === "supervisors" ? bodyRef.value : null));');
     // Each of the supervisors' tab's tables keeps its own sideways box.
-    for (const source of [supervisors, drafts]) expect(templateOf(source)).not.toContain("overflow-visible");
+    for (const source of [supervisors, roleAgents]) expect(templateOf(source)).not.toContain("overflow-visible");
   });
 
   test("stands every column at its own width, a column whose cells vary in length under a ceiling of its own", () => {
@@ -241,13 +242,23 @@ describe("the supervisors tab", () => {
     expect(templateOf(supervisors)).not.toContain("data-supervisor-settings");
   });
 
-  test("removes a supervisor, asked first, holds a seeded one's removal disabled with why, and the draft process under its table", () => {
+  test("removes a supervisor, asked first, and holds a seeded one's removal disabled with why", () => {
     expect(scriptOf(supervisors)).toContain("disabled: supervisor.seeded || supervisor.defaultAnswerer || removing.value !== \"\"");
     expect(scriptOf(supervisors)).toContain("`/api/supervisors/${encodeURIComponent(supervisor.name)}`, { method: \"DELETE\" }");
     // A supervisor is added through the receiver with the title of the console room it answers alone.
     expect(templateOf(supervisors)).toContain('v-model="draft.room"');
     expect(scriptOf(supervisors)).toContain("description: t(\"agents.message.supervisor_seeded\")");
-    expect(templateOf(supervisors)).toContain("<AgentsDraftProcesses");
+  });
+
+  test("keeps a supervisor's draft process in its own settings dialog, a block of the form's one save, and none on the tab", () => {
+    expect(templateOf(supervisors)).not.toContain("Draft");
+    expect(templateOf(supervisorDialog)).toContain('<SupervisorDraftFields v-else :name="props.name" :view="draft"');
+    expect(scriptOf(supervisorDialog)).toContain("`/api/supervisors/${encodeURIComponent(props.name)}/draft`");
+    expect(scriptOf(draftFields)).toContain("useFormPart({");
+    expect(scriptOf(draftFields)).toContain('{ method: "PATCH", body: draftChange(props.view, form.value) }');
+    // A list may not name the supervisor's own judgement, which is asked before any process.
+    expect(scriptOf(draftFields)).toContain("filter((name) => name !== SUPERVISOR_QUESTION)");
+    for (const field of ['v-model="form[field]" v-model:off="form.off"', 'v-model="form.lightChars"', 'v-model="question.text"']) expect(templateOf(draftFields)).toContain(field);
   });
 });
 

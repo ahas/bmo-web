@@ -1,7 +1,7 @@
 <template>
   <!-- The supervisors (docs/web.md, 「Agent management screen」, the supervisors tab; the agency's docs/supervisors.md): one row each
        in the agency's order, every value a cell of its own that saves it, the row's own presses at its trailing edge;
-       under the table the draft process and its questions. -->
+       under the table the agents of the roles. A supervisor's draft process stands in its settings dialog. -->
   <section class="flex min-w-0 flex-col" :aria-label="$t('agents.label.tab_supervisors')">
     <DataTableSkeleton v-if="supervisors === undefined && !error" :headers="tableHeaders(columns)" :rows="3" :label="$t('agents.status.supervisors_loading')" />
     <ReadFailure
@@ -137,8 +137,6 @@
 
     <!-- The agents of the roles stand under the supervisors: every agent of the screen in the one tab. -->
     <AgentsRoleAgents class="mt-6" :query="props.query" :readonly="props.readonly" />
-
-    <AgentsDraftProcesses class="mt-6" :query="props.query" :readonly="props.readonly" />
 
     <SupervisorSettingsDialog v-if="editing !== ''" v-model:open="editingOpen" :name="editing" :reread="rereadAll" />
 

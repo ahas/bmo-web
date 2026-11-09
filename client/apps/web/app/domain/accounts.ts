@@ -14,6 +14,18 @@ export const ACCOUNT_KINDS = [
   { value: "token", label: "agents.label.account_kind_token" }
 ] as const;
 
+// The name a new account's box opens with: accounts are numbered `claude-01`, `claude-02` and on, so the next is
+// one past the highest number a name of that shape holds, written in two digits.
+export function nextAccountName(names: readonly string[]): string {
+  const highest = names.reduce((most, name) => {
+    const numbered = /^claude-(\d+)$/.exec(name.trim());
+
+    return numbered === null ? most : Math.max(most, Number(numbered[1]));
+  }, 0);
+
+  return `claude-${String(highest + 1).padStart(2, "0")}`;
+}
+
 export function accountKindLabel(t: Translate, kind: ClaudeAccountView["credentialKind"]): string {
   const key = ACCOUNT_KINDS.find((one) => one.value === kind)?.label;
 

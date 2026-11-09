@@ -134,6 +134,15 @@ describe("each account's windows", () => {
     ]);
   });
 
+  test("an account the owner switched off is left out, and so is every account of a provider switched off", () => {
+    const answer = { routes: [], accounts: [{ id: "a", name: "Account A", enabled: true }, { id: "b", name: "Account B", enabled: false }, { id: "c", name: "Account C" }] };
+
+    expect(accountUsages(answer, [account("a"), account("b"), account("c")], null).map((one) => one.id)).toEqual(["a", "c"]);
+    expect(accountUsages(answer, [account("a"), account("b"), account("c")], null, new Set(["claude-code"]))).toEqual([]);
+    expect(accountUsages(answer, [account("a")], null, new Set(["provider-x"])).map((one) => one.id)).toEqual(["a"]);
+    expect(usageView(answer, [account("a"), account("b")], { groups: [], after: 0, before: 1 }, null, new Set()).accounts.map((one) => one.id)).toEqual(["a"]);
+  });
+
   test("an account the fallback does not name stands under its id", () => {
     expect(accountUsages({ routes: [] }, [account("c")], null)[0]).toMatchObject({ id: "c", name: "c", label: "claude-code", inUse: false });
   });

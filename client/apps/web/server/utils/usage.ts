@@ -133,16 +133,36 @@ export function activeUsage(answer: unknown, chatProvider: string | null = null)
   };
 }
 
+/** The accounts the fallback says the owner switched off, by id; one it does not say of is on. */
+function accountsOff(fallback: Held | null): Set<string> {
+  const off = new Set<string>();
+
+  for (const account of Array.isArray(fallback?.accounts) ? fallback.accounts : []) {
+    const id = text(held(account)?.id);
+
+    if (id !== null && held(account)?.enabled === false) off.add(id);
+  }
+
+  return off;
+}
+
 /**
- * Every account the agency lists, in its order, each with its own windows. The account the chat runs on takes the
+ * Every account the agency lists that is switched on, on a provider that is switched on, in its order, each with its
+ * own windows: `providersOff` names the providers the owner switched off. The account the chat runs on takes the
  * slot's windows where its own entry states none, since those are the same login's; no other account takes them.
  */
-export function accountUsages(answer: unknown, accounts: readonly Schemas["Account"][], active: ActiveUsage | null): AccountUsage[] {
+export function accountUsages(
+  answer: unknown,
+  accounts: readonly Schemas["Account"][],
+  active: ActiveUsage | null,
+  providersOff: ReadonlySet<string> = new Set()
+): AccountUsage[] {
   const fallback = held(answer);
   const names = accountNames(fallback);
   const labels = providerLabels(fallback);
+  const off = accountsOff(fallback);
 
-  return accounts.map((account) => {
+  return accounts.filter((account) => !off.has(account.id) && !providersOff.has(account.provider)).map((account) => {
     const inUse = active !== null && active.provider === account.provider && active.account === account.id;
     // An account's own windows as the agency answers them, or read off the usage it last reported where it names
     // none of its own.
@@ -215,9 +235,15 @@ export function workerContexts(usage: Schemas["Usage"]): AgentContext[] {
   });
 }
 
-/** The whole view out of the three answers and the provider the chat agent runs on. */
-export function usageView(fallback: unknown, accounts: readonly Schemas["Account"][], usage: Schemas["Usage"], chatProvider: string | null = null): UsageView {
+/** The whole view out of the three answers, the provider the chat agent runs on and the providers switched off. */
+export function usageView(
+  fallback: unknown,
+  accounts: readonly Schemas["Account"][],
+  usage: Schemas["Usage"],
+  chatProvider: string | null = null,
+  providersOff: ReadonlySet<string> = new Set()
+): UsageView {
   const active = activeUsage(fallback, chatProvider);
 
-  return { active, accounts: accountUsages(fallback, accounts, active), agents: workerUsages(usage), contexts: workerContexts(usage) };
+  return { active, accounts: accountUsages(fallback, accounts, active, providersOff), agents: workerUsages(usage), contexts: workerContexts(usage) };
 }

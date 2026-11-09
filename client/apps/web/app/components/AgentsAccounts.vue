@@ -114,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { ACCOUNT_KINDS, accountChoiceNote, accountLoginText, accountMark } from "~/domain/accounts";
+import { ACCOUNT_KINDS, accountChoiceNote, accountLoginText, accountMark, nextAccountName } from "~/domain/accounts";
 import { movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { usePolling } from "~/domain/polling";
@@ -212,7 +212,8 @@ const formDirty = computed(() => formFields() !== formOpened.value);
 function openAdd(): void {
   adding.value = true;
   editId.value = "";
-  editName.value = "";
+  // The next number of the list's own numbering, which the owner may write over.
+  editName.value = nextAccountName(props.accounts.map((one) => one.name));
   editKind.value = "directory";
   editPath.value = "";
   formOpened.value = formFields();

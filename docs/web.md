@@ -980,10 +980,13 @@ edit to that file alone, once the guide below carries the word.
   two windows' colours, so if either is red the icon is red. Pressing that place opens the same panel
   whether folded or not. Folded, the login the figures are of is named in the mark's own tooltip, since
   there is nowhere else on the bar to say it.
-- **The panel is each account's remaining usage, and nothing else.** Every registered Claude account
-  stands as a group of its own, in the order the agency lists them and under the name the owner gave it,
+- **The panel is each account's remaining usage, and nothing else.** Every Claude account that is switched
+  on, on a provider that is switched on, stands as a group of its own, in the order the agency lists them and
+  under the name the owner gave it — an account or a provider the owner switched off answers nothing, so its
+  figures are not shown, whichever of them the road last ran on —
   holding that account's own session and weekly windows as the share remaining, each with how long is left
-  until it resets; the account the chat runs on now is marked 「사용 중」. Where the chat runs on a provider
+  until it resets; the account the chat agent's own turns run on now is marked 「사용 중」, which says nothing
+  of a role, since each role walks an order of its own. Where the chat runs on a provider
   that holds no login, that slot stands first as a group of its own, marked the same way, with whatever
   windows it reports. A slot or an account the agency reads a balance for — a provider paid by the request, an
   endpoint account — carries it as a row of its own: 「잔액」, the amount in its currency, and how long ago it was
@@ -6087,7 +6090,9 @@ dialog open at 계정.
   Where the chosen account is not the one in use, a line under the list says so, naming the account runs go out on
   and when a rest ends (the agency's `docs/cache-fallback.md`, 「Running on one account now」). 계정 추가 under the
   list opens a box for a new account's name, which of the two ways its credential is reached and the path it is
-  reached by; a row's more-menu edits the same three or removes the account. Dragging a handle saves the whole order
+  reached by; a row's more-menu edits the same three or removes the account. Accounts are numbered by name,
+  `claude-01`, `claude-02` and on, as many as the owner adds: the box for a new one opens with the next number
+  already written, one past the highest the list holds, and the owner may write another name over it. Dragging a handle saves the whole order
   at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is
   refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
   the path is the whole of what is shown.
@@ -7077,7 +7082,7 @@ journalctl --user -u <unit> -f
   Claude Code, or left automatic, also names the account it runs on: one account alone, or the account
   order walked from the top.
 - The remaining-usage popover opens within the window's width and height and a long list scrolls within. It holds the
-  remaining usage of each account alone — a group per registered Claude account holding that account's windows, and the
+  remaining usage of each account alone — a group per Claude account that is switched on holding that account's windows, and the
   slot the chat runs on marked (「Usage in the title bar」) — and no tally of tokens and no list of sessions.
 - A failed read of the popover's figures keeps what was read last on the title bar and in the popover, and the popover says
   the failure above them in the one error band (「How the bot is talked to」 says how a read during a restart reads).

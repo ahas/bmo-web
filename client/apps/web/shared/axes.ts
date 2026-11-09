@@ -110,6 +110,9 @@ export interface RoleView {
   description: string | null;
   prompt: string | null;
   bundles: RoleBundleView[];
+  // The skills its runs carry; null where it names none and its runs carry the whole plugin the agency's release
+  // places for it.
+  skills: string[] | null;
   line: string;
   // Its agents, in the order a run looks for a free one (the agency's `docs/role-agents.md`): each a seat of the
   // role on one road.
@@ -153,10 +156,12 @@ export interface RoleAgentView {
   carries: boolean;
 }
 
-// Every role in the agency's order, every bundle a role may give and every line a role may name.
+// Every role in the agency's order, every bundle a role may give, every skill a role or an agent may name and every
+// line a role may name.
 export interface RolesView {
   roles: RoleView[];
   bundles: RoleBundleView[];
+  skills: string[];
   lines: string[];
 }
 

@@ -3007,21 +3007,26 @@ a seat of its role.
 #### 역할
 
 - **A role is a preset** (the agency's `docs/agent-roles.md`): the prompt its runs open with, the tools its runs
-  are given and the line they go out on. What a run goes out on, how many go at once, whether a run keeps its
+  are given, the skills they carry and the line they go out on. What a run goes out on, how many go at once, whether a run keeps its
   session, the share its session is folded at and whether it may be called as a co-worker are each an agent's,
   and stand in the 에이전트 tab.
 - **One table of the roles the agency holds,** one row each in the order the agency lists them, read from its
   `GET /roles`: 역할, its name alone — the kebab-case key the agency holds it under, never a translated word and
   never the row's label — the title column; 실행 라인, the line its runs go out on; 기능 묶음, the bundles it gives as
   chips, each by the pack's short name for its code and by the agency's label where the pack holds none, or 기능
-  묶음 없음; 역할 프롬프트, 있음 or 없음; and 에이전트, how many of its agents are switched on with how many of its
+  묶음 없음; 스킬, the skills it names on one line under a ceiling of its own, `(기본값)` where it names none and
+  its runs carry the whole plugin the agency's release places for it, and 스킬 없음 for a list that names none;
+  역할 프롬프트, 있음 or 없음; and 에이전트, how many of its agents are switched on with how many of its
   runs go and wait beside it — `2/3 실행 · 1 대기` — and 막힘 where none is. Nothing in the table is pressed but the
   role's name and its more-menu, and the counts are read again every few seconds while the tab stands.
 - **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made,
   and the label the agency keeps for its log as the role is added), 설명, 실행 라인 — a choice of the lines the agency
-  names — 기능 묶음 as a checkbox for every bundle the agency declares, and 역할 프롬프트, a text area as tall as its
-  text, which every run of the role opens with, empty for none. The save sends what changed; an emptied prompt or
-  description is cleared. Under the form a line says the role's agents are added and changed in the 에이전트 tab.
+  names — 기능 묶음 as a checkbox for every bundle the agency declares, 스킬, and 역할 프롬프트, a text area as tall as its
+  text, which every run of the role opens with, empty for none. 스킬 is a switch, 스킬 직접 고르기, off while the
+  role names none — its runs then carry the whole plugin the release places for it — and, switched on, a checkbox
+  for every skill a plugin of the agency's release carries, each by its name; an agent that names skills of its own
+  carries those in place of the role's (「에이전트」 above). The save sends what changed; an emptied prompt or
+  description is cleared, and the switch turned off clears the role's list. Under the form a line says the role's agents are added and changed in the 에이전트 tab.
 - **세션 기록** stands in the same dialog under the form, read from `GET /roles/{name}/sessions`: the sessions the
   role's runs opened, newest first, one row each — the path, the provider and model with its effort, the account
   where the provider holds logins, when it opened and last answered, how many runs it carried, the context its last

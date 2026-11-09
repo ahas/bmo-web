@@ -39,6 +39,32 @@
           </div>
         </UFormField>
 
+        <!-- The skills the role's runs carry: none named leaves them the whole plugin the release places for the
+             role, and a list names them one by one. -->
+        <UFormField :label="$t('agents.label.agent_skills')" name="skills" :error="errorAt('skills')">
+          <div class="flex flex-col gap-3">
+            <USwitch
+              :model-value="form.skills !== null"
+              :label="$t('agents.label.role_skills_own')"
+              :description="$t('agents.label.role_skills_hint')"
+              :disabled="busy"
+              data-role-skills-own
+              @update:model-value="(on: boolean) => (form.skills = on ? [] : null)"
+            />
+            <div v-if="form.skills !== null" class="grid gap-2 sm:grid-cols-2" data-role-skills>
+              <UCheckbox
+                v-for="skill in skillChoices"
+                :key="skill"
+                :model-value="form.skills.includes(skill)"
+                :label="skill"
+                :disabled="busy"
+                :ui="{ label: 'font-mono text-sm' }"
+                @update:model-value="toggleSkill(skill, $event === true)"
+              />
+            </div>
+          </div>
+        </UFormField>
+
         <!-- The prompt every run of the role opens with grows with what it holds, and the dialog's body scrolls. -->
         <UFormField :label="$t('agents.label.role_prompt')" name="prompt" :error="errorAt('prompt')">
           <GrowingTextarea v-model="form.prompt" :rows="6" class="font-mono" :ui="{ base: 'text-sm' }" :disabled="busy" :aria-label="$t('agents.label.role_prompt')" />
@@ -90,11 +116,13 @@ interface RoleForm {
   description: string;
   line: string;
   bundles: string[];
+  // The skills it names, or null where it names none.
+  skills: string[] | null;
   prompt: string;
 }
 
 function emptyForm(): RoleForm {
-  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], prompt: "" };
+  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], skills: null, prompt: "" };
 }
 
 function formOf(held: RoleView): RoleForm {
@@ -103,6 +131,7 @@ function formOf(held: RoleView): RoleForm {
     description: held.description ?? "",
     line: held.line,
     bundles: held.bundles.map((one) => one.name),
+    skills: held.skills === null ? null : [...held.skills],
     prompt: held.prompt ?? ""
   };
 }
@@ -120,7 +149,15 @@ const lineItems = computed(() => {
 
   return (form.value.line === "" || lines.includes(form.value.line) ? lines : [form.value.line, ...lines]).map((line) => ({ label: line, value: line }));
 });
-const FIELDS = ["name", "label", "description", "line", "bundles", "prompt"];
+const FIELDS = ["name", "label", "description", "line", "bundles", "skills", "prompt"];
+
+// Every skill the agency's release carries, with any the role names that it carries no longer, so a name once
+// chosen can still be taken out.
+const skillChoices = computed(() => {
+  const carried = view.value?.skills ?? [];
+
+  return [...carried, ...(form.value.skills ?? []).filter((one) => !carried.includes(one))];
+});
 
 function errorAt(place: string): string | undefined {
   if (refusal.value === null) return undefined;
@@ -135,6 +172,13 @@ function toggleBundle(name: string, on: boolean): void {
   const rest = form.value.bundles.filter((one) => one !== name);
 
   form.value.bundles = on ? [...rest, name] : rest;
+}
+
+// A skill chosen or taken out, the list kept in the order the choices stand in.
+function toggleSkill(name: string, on: boolean): void {
+  const chosen = new Set([...(form.value.skills ?? []).filter((one) => one !== name), ...(on ? [name] : [])]);
+
+  form.value.skills = skillChoices.value.filter((one) => chosen.has(one));
 }
 
 // Every opening starts from what the agency holds now; a role read before the list lands takes it once it does.
@@ -176,6 +220,7 @@ function body(): Record<string, unknown> {
   if (changed("description") && (!adding.value || now.description.trim() !== "")) sent.description = now.description.trim() === "" ? null : now.description;
   if (changed("line")) sent.line = now.line;
   if (changed("bundles")) sent.bundles = now.bundles;
+  if (changed("skills") && (!adding.value || now.skills !== null)) sent.skills = now.skills;
   if (changed("prompt") && (!adding.value || now.prompt.trim() !== "")) sent.prompt = now.prompt.trim() === "" ? null : now.prompt;
 
   return sent;

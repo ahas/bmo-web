@@ -50,7 +50,7 @@ const agency = standIn("AGENCY", (call) => {
   if (call.path === "/supervisors") return answer({ items: [SUPERVISOR], more: false });
   if (call.path === "/supervisors/agent-a" && call.method === "PATCH") return answer({ ...SUPERVISOR, ...call.body });
   if (call.path === "/roles/worker" && call.method === "PATCH") return answer({ ...ROLE, ...call.body });
-  if (call.path === "/roles") return answer({ roles: [ROLE, DOPPELGANGER, OWN_ROLE], bundles: ROLE.bundles, lines: ["worker"] });
+  if (call.path === "/roles") return answer({ roles: [ROLE, DOPPELGANGER, { ...OWN_ROLE, skills: ["skill-b"] }], bundles: ROLE.bundles, skills: ["skill-a", "skill-b"], lines: ["worker"] });
   if (call.path === "/role-agents" && call.method === "POST") return answer({ ...AGENT, name: "worker-04", position: 4, carries: false, ...call.body });
   if (call.path === "/role-agents/worker-01" && call.method === "PATCH") return answer({ ...AGENT, ...call.body });
   if (call.path === "/role-agents/worker-01" && call.method === "DELETE") return answer({ code: "conflict", error: "The agent carries a run." }, 409);
@@ -158,6 +158,21 @@ describe("the roles", () => {
     expect(got.answer?.roles[0]?.maxConcurrent).toBe(2);
     expect(got.answer?.bundles[0]).toEqual({ name: "web.read", label: wording("agents.label.bundle_web_read") });
     expect(got.answer?.lines).toEqual(["worker"]);
+  });
+
+  test("carry a role's skills: the names it gives, none where it names none, every name the release carries, and null to clear them", async () => {
+    const got = await asked(roles, {});
+
+    expect(got.answer?.skills).toEqual(["skill-a", "skill-b"]);
+    expect(got.answer?.roles.map((role) => role.skills)).toEqual([null, null, ["skill-b"]]);
+
+    calls.length = 0;
+
+    expect((await asked(roleChange, { params: { name: "worker" }, body: { skills: [" skill-a "] } })).status).toBe(200);
+    expect((await asked(roleChange, { params: { name: "worker" }, body: { skills: null } })).status).toBe(200);
+    expect(calls.map((call) => call.body)).toEqual([{ skills: ["skill-a"] }, { skills: null }]);
+
+    for (const skills of ["skill-a", [3], [""]]) expect(await asked(roleChange, { params: { name: "worker" }, body: { skills } })).toMatchObject({ status: 400 });
   });
 
   test("refuse a change of another shape before it goes, and a new role missing what the agency requires", async () => {

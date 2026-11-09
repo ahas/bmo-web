@@ -42,6 +42,14 @@
         </span>
       </template>
 
+      <template #skills-cell="{ row }">
+        <span :class="CELL_TEXT" class="w-full">
+          <span v-if="row.original.skills === null" class="text-sm text-muted">{{ $t("agents.label.default_only") }}</span>
+          <span v-else-if="row.original.skills.length === 0" class="text-sm text-muted">{{ $t("agents.label.role_skills_none") }}</span>
+          <span v-else class="max-w-full truncate font-mono text-sm text-highlighted"><SearchText :text="row.original.skills.join(' · ')" :query="props.query" /></span>
+        </span>
+      </template>
+
       <template #line-cell="{ row }">
         <span :class="CELL_TEXT">
           <SearchText class="font-mono text-sm text-highlighted" :text="row.original.line" :query="props.query" />
@@ -115,6 +123,7 @@ const columns = computed<SettingsColumn<RoleView>[]>(() => [
   { id: "role", header: t("agents.label.column_role") },
   { id: "line", header: t("agents.label.run_line") },
   { id: "bundles", header: t("agents.label.column_bundles"), ceiling: 320 },
+  { id: "skills", header: t("agents.label.agent_skills"), ceiling: 288 },
   { id: "prompt", header: t("agents.label.role_prompt") },
   { id: "agents", header: t("agents.label.role_agents") },
   ...(props.readonly ? [] : [{ id: "actions", header: "" }])

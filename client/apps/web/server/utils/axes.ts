@@ -283,6 +283,7 @@ export function roleViewOf(role: Role): RoleView {
     description: role.description,
     prompt: role.prompt,
     bundles: role.bundles.map(bundleOf),
+    skills: role.skills ?? null,
     line: role.line,
     agents: (role.agents ?? []).map(roleAgentViewOf),
     order: roadsOf(role.agents ?? []),
@@ -297,7 +298,7 @@ export function roleViewOf(role: Role): RoleView {
 export async function readRoles(): Promise<RolesView> {
   const answer = await agencyCall(agency().GET("/roles"));
 
-  return { roles: answer.roles.map(roleViewOf), bundles: answer.bundles.map(bundleOf), lines: answer.lines };
+  return { roles: answer.roles.map(roleViewOf), bundles: answer.bundles.map(bundleOf), skills: answer.skills ?? [], lines: answer.lines };
 }
 
 const SESSIONS = ["keep", "fresh"] as const;
@@ -305,7 +306,8 @@ const wholeFrom = (value: unknown, least: number): value is number => typeof val
 
 /**
  * A role's change as a screen sent it, every field checked for its shape and nothing else: a new role needs its name,
- * its label, its bundles and its line; a change any one field. An emptied prompt or description is a cleared one. Null
+ * its label, its bundles and its line; a change any one field. An emptied prompt or description is a cleared one, and
+ * so are skills given as null. Null
  * where the body does not read as one; whether the values stand is the agency's to say.
  */
 export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChange"] & { name?: string }) | null {
@@ -336,6 +338,12 @@ export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChan
     change.line = held.line as string;
   }
 
+  if ("skills" in held) {
+    if (held.skills !== null && (!Array.isArray(held.skills) || !held.skills.every((one) => text(one) !== null))) return null;
+
+    change.skills = held.skills === null ? null : (held.skills as string[]).map((one) => one.trim());
+  }
+
   for (const field of ["prompt", "description"] as const) {
     if (!(field in held)) continue;
     if (held[field] !== null && typeof held[field] !== "string") return null;
@@ -359,6 +367,7 @@ export async function addRole(change: Schemas["RoleChange"] & { name?: string })
 
   if (change.prompt != null) body.prompt = change.prompt;
   if (change.description != null) body.description = change.description;
+  if (change.skills != null) body.skills = change.skills;
 
   return roleViewOf(await agencyCall(agency().POST("/roles", { body })));
 }

@@ -2025,7 +2025,6 @@ agents:
     agent_provider: 공급자
     agent_follows: 요청한 감독관을 따름
     agent_carries: 실행 중
-    agent_keeps_cache: 캐시 유지
     agent_overrides: 역할 위에 덮어쓰기
     agent_overrides_n: "역할 위에 덮어쓰기 · {n}"
     agent_inherits: 비우면 역할 설정

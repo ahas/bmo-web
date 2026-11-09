@@ -2995,9 +2995,11 @@ Two ways, split because the running places differ.
     carries the role's line; and, under a provider, 모델, what `GET /provider-models/{provider}` answers for it, and
     강도, the levels that model takes, standing only where it takes any. A provider picked stands on the first
     model its catalogue serves; 요청한 감독관을 따름 clears the road whole.
-  - **역할 위에 덮어쓰기, folded,** with the count of what it lays over where it lays any: 캐시 유지, a switch;
-    시스템 프롬프트, which then stands in place of the role's; 기능 묶음, a choice of several among the bundles the
-    agency declares; and 스킬, names set apart by commas. Each left empty is the role's own.
+  - **역할 위에 덮어쓰기, folded,** with the count of what it lays over where it lays any: 시스템 프롬프트, which
+    then stands in place of the role's; 기능 묶음, a choice of several among the bundles the agency declares; and
+    스킬, names set apart by commas, each a skill a plugin of the agency's release carries. Each left empty is the
+    role's own. The mark the agency keeps for warming an agent's kept session warms nothing there
+    (the agency's `docs/role-agents.md`, 「What an agent row holds」), so no switch stands for it.
   - **에이전트 추가** under the list adds one in the last place, on the road of the role's last agent, so a seat
     more of the same kind is one press.
   - A change the agency refuses says the pack's sentence for its code, or the agency's own, under the list, and the

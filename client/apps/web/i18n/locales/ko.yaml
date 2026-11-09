@@ -1868,7 +1868,6 @@ agents:
     exec_node: 실행 노드
     find_registration: "등록 모델 · {name}"
     generation: 생성 파라미터
-    group_gate: 게이트
     group_repository: 저장소
     group_role: 역할
     group_runner: 러너
@@ -2214,14 +2213,9 @@ live:
     as_of: "{time} 기준"
     deadline_passed: 기한 지남
     elapsed: "{time} 경과"
-    gate_judged: 판정
-    gate_passed: 통과
-    gate_refused: 거부
     last_check_met: "마지막 확인 {ago} 전 · 충족"
     last_check_timed_out: "마지막 확인 {ago} 전 · 시간 초과"
     last_check_unmet: "마지막 확인 {ago} 전 · 미충족 (종료 {code})"
-    launcher_console: 콘솔에서
-    launcher_room: "{title}에서"
     machine_available: "사용 가능 메모리 {free}/{total} GB"
     machine_browsers: "브라우저 {n}개"
     machine_held: Job 실행 보류
@@ -2260,7 +2254,6 @@ live:
     outcome_unanswered: 응답 실패 보고
     outcome_unclosed: 작업을 닫지 않아 거부됨
     outcome_work_step: 단계 완료
-    overrun: "{time} 초과"
     remaining: "{time} 남음"
     slot_idle: 비어 있음
     slot_reserved: 예약됨
@@ -2290,8 +2283,6 @@ live:
     watch_time: 시각
     watch_title: "워치 #{id} · {name}"
     work_item: "항목 #{id}"
-    work_item_progress: "항목 #{id} · {progress}"
-    work_item_run: "항목 #{id} · {attempt}번째 실행"
     tab_space: 공간
     space_supervisors: 감독관실
     space_lounge: 휴게실
@@ -2319,8 +2310,6 @@ live:
     slots_loading: 역할 슬롯 불러오는 중…
     stopping: 중지 중
     unchecked: 확인 전
-    waiting_answer: 응답 대기
-    waiting_confirmation: 확인 창 대기
     space_loading: 공간을 불러오는 중
 research:
   aria:

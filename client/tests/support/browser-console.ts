@@ -183,7 +183,7 @@ function silentStream(): Response {
   });
 }
 
-// One provider order's entry, as a supervisor's and a role's answer carry it.
+// One provider order's entry, as a supervisor's answer carries it.
 function entry(provider: string, model: string, effort: string | null = null): Record<string, unknown> {
   return { provider, model, effort, thinking: null, answerTokens: null };
 }
@@ -199,12 +199,25 @@ function supervisor(name: string, label: string, extra: Record<string, unknown> 
   };
 }
 
-// One role as the agency's role resource serves it, with how many of its runs go and wait.
+// A role's agents as the agency's role resource serves them: `count` seats of the role on one road, or on none where
+// the road is null, the first `carrying` of them with a run let in.
+function seats(role: string, count: number, road: [string, string, string | null] | null, carrying = 0): Record<string, unknown>[] {
+  return Array.from({ length: count }, (_, index) => ({
+    name: `${role}-${String(index + 1).padStart(2, "0")}`, role, provider: road?.[0] ?? null, model: road?.[1] ?? null, effort: road?.[2] ?? null, thinking: null,
+    answerTokens: null, enabled: true, position: index + 1, keepsCache: false, foldRatio: null, prompt: null, bundles: null, skills: null,
+    followsSupervisor: road === null, carries: index < carrying
+  }));
+}
+
+// One role as the agency's role resource serves it, with its agents and how many of its runs go and wait: two seats on
+// one road where it names no agents of its own.
 function role(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
+  const agents = (extra.agents as Record<string, unknown>[] | undefined) ?? seats(name, 2, ["claude-code", "claude-sonnet-5", "medium"]);
+
   return {
     name, code: name, label, prompt: null, description: null, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }],
-    line: "worker", order: [entry("claude-code", "claude-sonnet-5", "medium")], quotaShare: 0.01, maxConcurrent: 2, sessions: "keep",
-    foldRatio: 0.8, callable: false, running: 0, waiting: 0, provider: "claude-code", waitingFor: null, ...extra
+    line: "worker", maxConcurrent: agents.filter((one) => one.enabled === true).length, followsSupervisor: agents.length > 0 && agents.every((one) => one.provider === null),
+    sessions: "keep", foldRatio: 0.8, callable: false, running: 0, waiting: 0, provider: agents.length === 0 ? null : "claude-code", waitingFor: null, ...extra, agents
   };
 }
 
@@ -230,12 +243,12 @@ function provider(name: string, label: string, extra: Record<string, unknown> = 
 }
 
 const ROLES = [
-  role("worker", "Worker", { maxConcurrent: 3, running: 2, waiting: 1, order: [entry("claude-code", "claude-opus-5-5", "high")] }),
-  role("doppelganger", "Doppelganger", { running: 1 }),
-  role("producer", "Producer", { maxConcurrent: 0 }),
-  role("builder", "Builder", { maxConcurrent: 8 }),
-  role("scout", "Scout", { maxConcurrent: 12, callable: true, sessions: "fresh" }),
-  role("voyager", "Voyager", { line: "search", bundles: [{ name: "web.sites", code: "web-sites", label: "Site tools" }], maxConcurrent: 4 })
+  role("worker", "Worker", { running: 2, waiting: 1, agents: seats("worker", 3, ["claude-code", "claude-opus-5-5", "high"], 2) }),
+  role("doppelganger", "Doppelganger", { running: 1, agents: seats("doppelganger", 2, null, 1) }),
+  role("producer", "Producer", { agents: [] }),
+  role("builder", "Builder", { agents: seats("builder", 8, ["claude-code", "claude-sonnet-5", "medium"]) }),
+  role("scout", "Scout", { callable: true, sessions: "fresh", agents: seats("scout", 12, ["claude-code", "claude-sonnet-5", "medium"]) }),
+  role("voyager", "Voyager", { line: "search", bundles: [{ name: "web.sites", code: "web-sites", label: "Site tools" }], agents: seats("voyager", 4, ["claude-code", "claude-sonnet-5", "medium"]) })
 ];
 
 // One model file as the agency's model resource serves it, and the catalogue as a whole.

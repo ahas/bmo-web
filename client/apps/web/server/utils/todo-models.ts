@@ -73,12 +73,11 @@ export async function todoModelPlan(): Promise<TodoModelPlan> {
   for (const repository of repositories.items) {
     const name = roleOfRepository.get(repository.name) ?? WORKER_ROLE;
     const jobRole = roles.roles.find((role) => role.name === name);
-    const forced = jobRole?.active == null ? null : roadOf(jobRole.active.provider, jobRole.active.model, registered);
-    const ordered = jobRole === undefined || jobRole.provider === null
+    const seated = jobRole === undefined || jobRole.provider === null
       ? null
-      : roadOf(jobRole.provider, jobRole.order.find((entry) => entry.provider === jobRole.provider)?.model, registered);
-    // The role's forced provider, else the pin a repository holds, else the road its jobs' role's order chooses.
-    const road = forced ?? (repository.pin === null ? ordered : roadOf(repository.pin.provider, repository.pin.model, registered));
+      : roadOf(jobRole.provider, roadsOf(jobRole.agents ?? []).find((entry) => entry.provider === jobRole.provider)?.model, registered);
+    // The pin a repository holds, else the road of the agent its jobs' role would let a run in on now.
+    const road = repository.pin === null ? seated : roadOf(repository.pin.provider, repository.pin.model, registered);
 
     if (road !== null) workers[repository.name] = road;
   }

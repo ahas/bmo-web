@@ -13,6 +13,7 @@ const page = await read("./index.vue");
 const supervisors = await read("../../components/AgentsSupervisors.vue");
 const roles = await read("../../components/AgentsRoles.vue");
 const roleDialog = await read("../../components/RoleSettingsDialog.vue");
+const agentsField = await read("../../components/RoleAgentsField.vue");
 const history = await read("../../components/RoleSessionHistory.vue");
 const repositories = await read("../../components/AgentsRepositories.vue");
 const repositoryDialog = await read("../../components/RepositorySettingsDialog.vue");
@@ -183,24 +184,29 @@ describe("a provider order", () => {
   test("opens from its cell in a form of its own with one save", () => {
     expect(templateOf(orderCell)).toContain('<SettingsDialog v-model:open="open" wide');
     expect(templateOf(orderCell)).toContain("<ProviderOrderField");
-    for (const source of [supervisors, roles]) expect(templateOf(source)).toContain("<ProviderOrderCell");
+    expect(templateOf(supervisors)).toContain("<ProviderOrderCell");
+    // A role holds no order: its agents stand in its cell in the order's place.
+    expect(templateOf(roles)).not.toContain("<ProviderOrderCell");
   });
 });
 
-// What a row runs on now and the owner's force (docs/web.md, 「What a row runs on now」): one cell of the same shape on
-// both tables, marking how the provider became active, its list opening on the order's own entry as the default and every model
-// the row's line may run on, a pick saved at once through the row's own route.
+// What a supervisor runs on now and the owner's force (docs/web.md, 「What a supervisor runs on now」): its cell marks
+// how the provider became active, its list opening on the order's own entry as the default and every model the row's
+// line may run on, a pick saved at once through the row's own route. A role's now cell is a reading alone.
 describe("what a row runs on now", () => {
-  test("stands in the now cell of both tables, the waiting said there rather than under the order", () => {
-    for (const source of [supervisors, roles]) {
-      expect(templateOf(source)).toMatch(/#now-cell[\s\S]*<ActiveProviderCell/);
-      expect(templateOf(source)).not.toMatch(/<ProviderOrderCell[^/]*>[\s\S]*waiting_for_quota[\s\S]*<\/ProviderOrderCell>/);
-      expect(templateOf(source)).toContain(':save="(active) => saved(change(row.original.name, { active }))"');
-    }
-    expect(scriptOf(roles)).toContain('{ id: "now", header: t("agents.label.column_now"), ceiling: 256 }');
-    // A supervisor's order's choice is its last turn's road; a role's is its order's entry for its active provider.
+  test("stands in the supervisors' now cell, the waiting said there rather than under the order", () => {
+    expect(templateOf(supervisors)).toMatch(/#now-cell[\s\S]*<ActiveProviderCell/);
+    expect(templateOf(supervisors)).not.toMatch(/<ProviderOrderCell[^/]*>[\s\S]*waiting_for_quota[\s\S]*<\/ProviderOrderCell>/);
+    expect(templateOf(supervisors)).toContain(':save="(active) => saved(change(row.original.name, { active }))"');
+    // A supervisor's order's choice is its last turn's road.
     expect(templateOf(supervisors)).toContain(":road=\"activeRoad(row.original, { model: row.original.model, effort: row.original.effort })\"");
-    expect(templateOf(roles)).toContain(':road="activeRoad(row.original, null)"');
+  });
+
+  test("is read off a role's agents and is not pressed", () => {
+    expect(scriptOf(roles)).toContain('{ id: "now", header: t("agents.label.column_now"), ceiling: 256 }');
+    expect(templateOf(roles)).toMatch(/#now-cell[\s\S]*nextRoad\(row\.original\)/);
+    expect(templateOf(roles)).not.toContain("<ActiveProviderCell");
+    expect(templateOf(roles)).toMatch(/#now-cell[\s\S]*row\.original\.waitingFor/);
   });
 
   test("marks a forced provider apart from the order's choice, each mark named by its tooltip", () => {
@@ -246,18 +252,41 @@ describe("the supervisors tab", () => {
 });
 
 describe("the roles tab", () => {
-  test("sets the cap, the sessions, the threshold and the callability in their cells, the counts read again while it stands", () => {
+  test("sets the sessions, the threshold and the callability in their cells, the counts read again while it stands", () => {
     for (const cell of ["#concurrency-cell", "#sessions-cell", "#threshold-cell", "#callable-cell"]) expect(templateOf(roles)).toContain(cell);
     expect(scriptOf(roles)).toContain("usePolling(");
+    // How many of its runs go at once is the count of its agents, which no cell sets.
+    expect(templateOf(roles)).not.toMatch(/#concurrency-cell[^#]*<SettingsInputCell/);
+    expect(scriptOf(roles)).not.toContain("maxConcurrent?:");
+  });
+
+  test("lists a role's agents in its cell, each on its road, opening the role's dialog", () => {
+    expect(templateOf(roles)).toMatch(/#agents-cell[\s\S]*v-for="agent in row\.original\.agents"/);
+    expect(templateOf(roles)).toMatch(/#agents-cell[\s\S]*agentRoadText\(providers, agent\) \?\? \$t\('agents\.label\.agent_follows'\)/);
+    expect(templateOf(roles)).toMatch(/#agents-cell[\s\S]*@click="openEdit\(row\.original\.name\)"/);
+    expect(templateOf(roles)).toContain("agents.status.agents_none");
+  });
+
+  test("changes a role's agents in its dialog, each saved as it is made through the agents' own routes", () => {
+    expect(templateOf(roleDialog)).toContain("<RoleAgentsField");
+    expect(templateOf(roleDialog)).toContain("agents.message.agents_after_add");
+    for (const call of ['$fetch<RoleAgentView>("/api/role-agents", { method: "POST"', 'method: "PATCH", body', 'method: "DELETE"']) expect(scriptOf(agentsField)).toContain(call);
+    for (const part of ["agent.enabled", "agent.prompt", "agent.bundles", "agent.skills", "agents.label.agent_follows", "agents.action.agent_add"]) {
+      expect(agentsField).toContain(part);
+    }
+    // An agent that carries a run is not removed.
+    expect(templateOf(agentsField)).toContain(':disabled="locked || agent.carries"');
   });
 
   test("keeps the whole of a role in one form with its session history under it", () => {
     expect(templateOf(roleDialog)).toContain("<RoleSessionHistory");
     expect(scriptOf(history)).toContain("/sessions`");
     expect(scriptOf(history)).toContain("useNextPages(");
-    for (const field of ["form.line", "form.bundles", "form.order", "form.maxConcurrent", "form.sessions", "form.threshold", "form.callable", "form.prompt", "form.description"]) {
+    for (const field of ["form.line", "form.bundles", "form.sessions", "form.threshold", "form.callable", "form.prompt", "form.description"]) {
       expect(roleDialog).toContain(field);
     }
+    // A role holds no order and no cap.
+    for (const field of ["form.order", "form.maxConcurrent", "form.quotaShare"]) expect(roleDialog).not.toContain(field);
   });
 });
 

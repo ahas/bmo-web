@@ -4,7 +4,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
-import type { ProviderModelsView, ProviderView, RepositoryView, RolesView, StandInView, SupervisorRoomView, SupervisorView, WorkNodeView } from "../../../apps/web/shared/axes";
+import type { ProviderModelsView, ProviderView, RepositoryView, RoleAgentView, RolesView, StandInView, SupervisorRoomView, SupervisorView, WorkNodeView } from "../../../apps/web/shared/axes";
 
 // The agency's two axes and its places as the agent management screen asks them (the agency's docs/api.md,
 // 「supervisors」, 「roles」, 「repositories, prefix-checks and room-holdings」 and 「providers, models and model files」):
@@ -19,9 +19,18 @@ const SUPERVISOR = {
 };
 const ROLE = {
   name: "worker", code: "worker", label: "Worker", prompt: null, description: null, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }],
-  line: "worker", order: [ENTRY], quotaShare: 0.01, active: null, maxConcurrent: 3, sessions: "keep", foldRatio: 0.8, callable: false, running: 2, waiting: 1,
+  line: "worker", agents: [] as unknown[], maxConcurrent: 2, followsSupervisor: false, sessions: "keep", foldRatio: 0.8, callable: false, running: 2, waiting: 1,
   provider: "claude-code", waitingFor: null
 };
+// An agent of the role on a road, one switched off on the same road, and one that names no road.
+const AGENT = {
+  name: "worker-01", role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, enabled: true, position: 1,
+  keepsCache: false, foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: true
+};
+const AGENT_OFF = { ...AGENT, name: "worker-02", enabled: false, position: 2, carries: false };
+const AGENT_FOLLOWING = { ...AGENT, name: "worker-03", provider: null, model: null, effort: null, position: 3, followsSupervisor: true, carries: false };
+
+ROLE.agents = [AGENT, AGENT_OFF, AGENT_FOLLOWING];
 const REPOSITORY = {
   name: "repo-a", label: null, icon: null, ownerAccount: null, path: "/srv/repo-a", nodeName: null, supportCount: 1, prefixDocuments: ["docs/a.md"],
   preamble: null, rules: null, devCommand: null, pin: null, downgradeHeal: true, sampling: { temperature: 0.7, nonsense: "x" },
@@ -42,6 +51,10 @@ const agency = standIn("AGENCY", (call) => {
   if (call.path === "/supervisors/agent-a" && call.method === "PATCH") return answer({ ...SUPERVISOR, ...call.body });
   if (call.path === "/roles/worker" && call.method === "PATCH") return answer({ ...ROLE, ...call.body });
   if (call.path === "/roles") return answer({ roles: [ROLE, DOPPELGANGER, OWN_ROLE], bundles: ROLE.bundles, lines: ["worker"] });
+  if (call.path === "/role-agents" && call.method === "POST") return answer({ ...AGENT, name: "worker-04", position: 4, carries: false, ...call.body });
+  if (call.path === "/role-agents/worker-01" && call.method === "PATCH") return answer({ ...AGENT, ...call.body });
+  if (call.path === "/role-agents/worker-01" && call.method === "DELETE") return answer({ code: "conflict", error: "The agent carries a run." }, 409);
+  if (call.path === "/role-agents/worker-02" && call.method === "DELETE") return answer({ name: "worker-02" });
   if (call.path === "/supervisors/agent-a" && call.method === "GET") return answer({ ...SUPERVISOR, provider: "deepseek", model: "deepseek-v4-pro" });
   if (call.path === "/supervisors/agent-a/rooms") return answer({ items: [{ roomId: 5, runs: 3, lastRunId: 41, lastRunUnit: "chat-agent-a-41", lastStartedAt: 1_700_000_000_000, lastFinishedAt: null }], more: false });
   if (call.path.startsWith("/stand-in")) return answer({ answers: true, provider: "deepseek", model: "deepseek-v4-pro" });
@@ -74,6 +87,9 @@ const roles = await routeOf<RolesView>("../../apps/web/server/api/roles.get");
 const roleChange = await routeOf<unknown>("../../apps/web/server/api/roles/[name].patch");
 const roleAdd = await routeOf<unknown>("../../apps/web/server/api/roles.post");
 const roleSessions = await routeOf<unknown>("../../apps/web/server/api/roles/[name]/sessions.get");
+const agentAdd = await routeOf<RoleAgentView>("../../apps/web/server/api/role-agents.post");
+const agentChange = await routeOf<RoleAgentView>("../../apps/web/server/api/role-agents/[name].patch");
+const agentRemove = await routeOf<unknown>("../../apps/web/server/api/role-agents/[name].delete");
 const repositories = await routeOf<RepositoryView[]>("../../apps/web/server/api/repositories.get");
 const providerModels = await routeOf<ProviderModelsView>("../../apps/web/server/api/provider-models/[provider].get");
 const providers = await routeOf<ProviderView[]>("../../apps/web/server/api/providers.get");
@@ -122,13 +138,21 @@ describe("the supervisors", () => {
 });
 
 describe("the roles", () => {
-  test("stand by their names, the agency's label kept beside them, with their bundles in the pack's words, their order and their counts", async () => {
+  test("stand by their names, the agency's label kept beside them, with their bundles in the pack's words, their agents and their counts", async () => {
     const got = await asked(roles, {});
 
     expect(got.answer?.roles[0]).toMatchObject({ name: "worker", label: "Worker", running: 2, waiting: 1, sessions: "keep" });
     expect(got.answer?.roles[1]).toMatchObject({ name: "doppelganger", label: "Doppelganger" });
     expect(got.answer?.roles[2]).toMatchObject({ name: "role-own", label: "Own role" });
     expect(got.answer?.roles[0]).not.toHaveProperty("shown");
+    expect(got.answer?.roles[0]?.agents.map((one) => [one.name, one.enabled, one.followsSupervisor, one.carries])).toEqual([
+      ["worker-01", true, false, true],
+      ["worker-02", false, false, false],
+      ["worker-03", true, true, false]
+    ]);
+    // Its roads are those of its agents that are switched on and name one, each once.
+    expect(got.answer?.roles[0]?.order).toEqual([ENTRY]);
+    expect(got.answer?.roles[0]?.maxConcurrent).toBe(2);
     expect(got.answer?.bundles[0]).toEqual({ name: "web.read", label: wording("agents.label.bundle_web_read") });
     expect(got.answer?.lines).toEqual(["worker"]);
   });
@@ -137,33 +161,71 @@ describe("the roles", () => {
     calls.length = 0;
 
     expect(await asked(roleChange, { params: { name: "worker" }, body: { sessions: "sometimes" } })).toMatchObject({ status: 400 });
-    expect(await asked(roleChange, { params: { name: "worker" }, body: { maxConcurrent: -1 } })).toMatchObject({ status: 400 });
-    expect(await asked(roleAdd, { body: { name: "role-b", label: "Role B", bundles: [], line: "worker", order: [ENTRY] } })).toMatchObject({ status: 400 });
+    expect(await asked(roleAdd, { body: { name: "role-b", label: "Role B", bundles: [] } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);
   });
 
-  test("carry a role's force set and cleared, and refuse one on a new role or of another shape", async () => {
-    expect((await asked(roles, {})).answer?.roles[0]?.active).toBeNull();
-
+  test("carry no road of their own: an order, a cap or a forced provider sent for a role goes nowhere", async () => {
     calls.length = 0;
 
-    expect(await asked(roleChange, { params: { name: "worker" }, body: { active: { provider: "claude-code", model: "claude-opus-5-5" } } })).toMatchObject({
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { maxConcurrent: 1 } })).toMatchObject({ status: 400 });
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { order: [ENTRY], active: null } })).toMatchObject({ status: 400 });
+    expect(calls).toEqual([]);
+
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { sessions: "fresh", order: [ENTRY], maxConcurrent: 1 } })).toMatchObject({ status: 200 });
+    expect(calls).toMatchObject([{ method: "PATCH", path: "/roles/worker", body: { sessions: "fresh" } }]);
+    expect(calls[0]?.body).not.toHaveProperty("order");
+    expect(calls[0]?.body).not.toHaveProperty("maxConcurrent");
+  });
+});
+
+describe("a role's agents", () => {
+  test("are added to their role, on a road or on none", async () => {
+    calls.length = 0;
+
+    expect(await asked(agentAdd, { body: { role: "worker", provider: "deepseek", model: "deepseek-v4-pro", effort: null } })).toMatchObject({
       status: 200,
-      answer: { active: { provider: "claude-code", model: "claude-opus-5-5" } }
+      answer: { name: "worker-04", role: "worker", provider: "deepseek", model: "deepseek-v4-pro", effort: null, followsSupervisor: false }
     });
-    expect(await asked(roleChange, { params: { name: "worker" }, body: { active: null } })).toMatchObject({ status: 200, answer: { active: null } });
+    expect(await asked(agentAdd, { body: { role: "worker" } })).toMatchObject({ status: 200, answer: { name: "worker-04" } });
     expect(calls).toMatchObject([
-      { method: "PATCH", path: "/roles/worker", body: { active: { provider: "claude-code", model: "claude-opus-5-5" } } },
-      { method: "PATCH", path: "/roles/worker", body: { active: null } }
+      { method: "POST", path: "/role-agents", body: { role: "worker", provider: "deepseek", model: "deepseek-v4-pro", effort: null } },
+      { method: "POST", path: "/role-agents", body: { role: "worker" } }
     ]);
+  });
 
+  test("are changed a field at a time, a cleared field sent as null", async () => {
     calls.length = 0;
 
-    expect(await asked(roleChange, { params: { name: "worker" }, body: { active: { model: "claude-opus-5-5" } } })).toMatchObject({ status: 400 });
-    expect(await asked(roleAdd, { body: { name: "role-b", label: "Role B", bundles: [], line: "worker", order: [ENTRY], maxConcurrent: 1, active: null } })).toMatchObject({ status: 400 });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { enabled: false } })).toMatchObject({ status: 200, answer: { name: "worker-01", enabled: false } });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { prompt: "  ", bundles: ["web.read"], skills: null, keepsCache: true, position: 2 } })).toMatchObject({
+      status: 200,
+      answer: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true, position: 2 }
+    });
+    expect(calls).toMatchObject([
+      { method: "PATCH", path: "/role-agents/worker-01", body: { enabled: false } },
+      { method: "PATCH", path: "/role-agents/worker-01", body: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true, position: 2 } }
+    ]);
+  });
+
+  test("refuse a body of another shape before it goes", async () => {
+    calls.length = 0;
+
+    expect(await asked(agentAdd, { body: { provider: "deepseek" } })).toMatchObject({ status: 400 });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: {} })).toMatchObject({ status: 400 });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { enabled: "yes" } })).toMatchObject({ status: 400 });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { position: -1 } })).toMatchObject({ status: 400 });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { bundles: [3] } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);
   });
 
+  test("are removed, one that carries a run refused in the pack's words", async () => {
+    expect(await asked(agentRemove, { params: { name: "worker-02" } })).toMatchObject({ status: 200 });
+    expect(await asked(agentRemove, { params: { name: "worker-01" } })).toMatchObject({ status: 409, message: wording("agents.error.role_agent_refused") });
+  });
+});
+
+describe("a role's sessions", () => {
   test("read a role's session history with its context as tokens and a share", async () => {
     const got = await asked(roleSessions, { params: { name: "worker" }, query: { before: "9" } });
 

@@ -7,26 +7,7 @@ import { bundleWordOf, providerLabelOf, roadReasonOf } from "./agency-words";
 import type { Provider, Repository, Role, Supervisor } from "@agency/client";
 import type { components } from "@agency/client/schema";
 import type { GenerationSetting } from "#shared/agency";
-import type {
-  ActiveProviderView,
-  CheckoutView,
-  NodeCheckoutAsk,
-  OrderEntryView,
-  ProviderModelsView,
-  ProviderModelView,
-  ProviderView,
-  QuotaView,
-  RepositoryView,
-  RoleBundleView,
-  RoleSessionPage,
-  RoleSessionView,
-  RolesView,
-  RoleView,
-  StandInView,
-  SupervisorRoomView,
-  SupervisorView,
-  WorkNodeView
-} from "#shared/axes";
+import type { ActiveProviderView, CheckoutView, NodeCheckoutAsk, OrderEntryView, ProviderModelsView, ProviderModelView, ProviderView, QuotaView, RepositoryView, RoleAgentView, RoleBundleView, RoleSessionPage, RoleSessionView, RolesView, RoleView, StandInView, SupervisorRoomView, SupervisorView, WorkNodeView } from "#shared/axes";
 
 type Schemas = components["schemas"];
 
@@ -256,6 +237,42 @@ function bundleOf(bundle: Schemas["RoleBundle"]): RoleBundleView {
   return { name: bundle.name, label: bundleWordOf(bundle.code, bundle.name, bundle.label) };
 }
 
+/** One agent of a role as the screen reads it (docs/web.md, the roles tab). */
+export function roleAgentViewOf(agent: Schemas["RoleAgent"]): RoleAgentView {
+  return {
+    name: agent.name,
+    role: agent.role,
+    provider: agent.provider ?? null,
+    model: agent.model ?? null,
+    effort: agent.effort ?? null,
+    thinking: agent.thinking ?? null,
+    answerTokens: agent.answerTokens ?? null,
+    enabled: agent.enabled,
+    position: agent.position,
+    keepsCache: agent.keepsCache,
+    foldRatio: agent.foldRatio ?? null,
+    prompt: agent.prompt ?? null,
+    bundles: agent.bundles ?? null,
+    skills: agent.skills ?? null,
+    followsSupervisor: agent.followsSupervisor ?? (agent.provider == null),
+    carries: agent.carries ?? false
+  };
+}
+
+/** The roads a role's runs go out on: its agents that are switched on and name one, each road once, in their order. */
+export function roadsOf(agents: readonly Schemas["RoleAgent"][]): OrderEntryView[] {
+  const roads: OrderEntryView[] = [];
+
+  for (const agent of agents) {
+    if (!agent.enabled || agent.provider == null || agent.model == null) continue;
+    if (roads.some((road) => road.provider === agent.provider && road.model === agent.model)) continue;
+
+    roads.push({ provider: agent.provider, model: agent.model, effort: agent.effort ?? null, thinking: agent.thinking ?? null, answerTokens: agent.answerTokens ?? null });
+  }
+
+  return roads;
+}
+
 /** One role as the screen reads it, named by its name on every screen (docs/web.md, the roles tab). */
 export function roleViewOf(role: Role): RoleView {
   return {
@@ -265,9 +282,8 @@ export function roleViewOf(role: Role): RoleView {
     prompt: role.prompt,
     bundles: role.bundles.map(bundleOf),
     line: role.line,
-    order: orderOf(role.order),
-    quotaShare: role.quotaShare,
-    active: activeOf(role.active),
+    agents: (role.agents ?? []).map(roleAgentViewOf),
+    order: roadsOf(role.agents ?? []),
     maxConcurrent: role.maxConcurrent,
     sessions: role.sessions,
     foldRatio: role.foldRatio,
@@ -290,8 +306,8 @@ const wholeFrom = (value: unknown, least: number): value is number => typeof val
 
 /**
  * A role's change as a screen sent it, every field checked for its shape and nothing else: a new role needs its name,
- * its label, its bundles, its line, its order and its cap; a change any one field. An emptied prompt or description is
- * a cleared one. Null where the body does not read as one; whether the values stand is the agency's to say.
+ * its label, its bundles and its line; a change any one field. An emptied prompt or description is a cleared one. Null
+ * where the body does not read as one; whether the values stand is the agency's to say.
  */
 export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChange"] & { name?: string }) | null {
   const held = record(body);
@@ -321,35 +337,6 @@ export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChan
     change.line = held.line as string;
   }
 
-  if ("order" in held) {
-    const order = orderAsked(held.order);
-
-    if (order === null) return null;
-
-    change.order = orderBody(order);
-  }
-
-  if ("quotaShare" in held) {
-    if (typeof held.quotaShare !== "number") return null;
-
-    change.quotaShare = held.quotaShare;
-  }
-
-  if ("active" in held) {
-    const active = activeAsked(held.active);
-
-    // A forced provider is a change of a role already made; a new role starts on its order.
-    if (adding || active === undefined) return null;
-
-    change.active = active;
-  }
-
-  if ("maxConcurrent" in held) {
-    if (!wholeFrom(held.maxConcurrent, 0)) return null;
-
-    change.maxConcurrent = held.maxConcurrent;
-  }
-
   if ("sessions" in held) {
     if (!SESSIONS.includes(held.sessions as (typeof SESSIONS)[number])) return null;
 
@@ -375,7 +362,7 @@ export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChan
     change[field] = text(typeof held[field] === "string" ? (held[field] as string).trim() : null) === null ? null : (held[field] as string);
   }
 
-  if (adding && (change.label === undefined || change.bundles === undefined || change.line === undefined || change.order === undefined || change.maxConcurrent === undefined)) return null;
+  if (adding && (change.label === undefined || change.bundles === undefined || change.line === undefined)) return null;
   if (!adding && Object.keys(change).length === 0) return null;
 
   return change;
@@ -383,13 +370,12 @@ export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChan
 
 /** A new role; on a new role the agency is sent no prompt or description it was not given. */
 export async function addRole(change: Schemas["RoleChange"] & { name?: string }): Promise<RoleView> {
-  const { name, label, bundles, line, order, maxConcurrent } = change;
+  const { name, label, bundles, line } = change;
 
-  if (name === undefined || label == null || bundles == null || line == null || order == null || maxConcurrent == null) throw fail(400, wording("common.error.bad_action"));
+  if (name === undefined || label == null || bundles == null || line == null) throw fail(400, wording("common.error.bad_action"));
 
-  const body: Schemas["RoleAsk"] = { name, label, bundles, line, order, maxConcurrent };
+  const body: Schemas["RoleAsk"] = { name, label, bundles, line };
 
-  if (change.quotaShare != null) body.quotaShare = change.quotaShare;
   if (change.prompt != null) body.prompt = change.prompt;
   if (change.description != null) body.description = change.description;
   if (change.sessions != null) body.sessions = change.sessions;
@@ -410,6 +396,98 @@ const ROLE_REMOVAL_CODES: Readonly<Record<string, string>> = { conflict: "agents
 
 export async function removeRole(name: string): Promise<void> {
   await agencyCall(agency().DELETE("/roles/{roleName}", { params: { path: { roleName: name } } }), { codes: ROLE_REMOVAL_CODES });
+}
+
+// The fields of an agent a screen may send, each with the shape it takes; null clears a field that may be cleared.
+const AGENT_TEXTS = ["provider", "model", "effort", "thinking", "prompt"] as const;
+const AGENT_LISTS = ["bundles", "skills"] as const;
+
+/**
+ * An agent's change as a screen sent it, every field checked for its shape and nothing else: a new agent needs its
+ * role; a change any one field. Null where the body does not read as one; whether the values stand is the agency's to
+ * say.
+ */
+export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["RoleAgentChange"] & { role?: string; name?: string }) | null {
+  const held = record(body);
+  const change: Schemas["RoleAgentChange"] & { role?: string; name?: string } = {};
+
+  if (adding) {
+    if (text(held.role) === null) return null;
+
+    change.role = (held.role as string).trim();
+
+    if ("name" in held && held.name !== null) {
+      if (text(held.name) === null) return null;
+
+      change.name = (held.name as string).trim();
+    }
+  }
+
+  for (const field of AGENT_TEXTS) {
+    if (!(field in held)) continue;
+    if (held[field] !== null && typeof held[field] !== "string") return null;
+
+    const written = typeof held[field] === "string" ? (held[field] as string).trim() : "";
+
+    change[field] = written === "" ? null : written;
+  }
+
+  for (const field of AGENT_LISTS) {
+    if (!(field in held)) continue;
+    if (held[field] !== null && !(Array.isArray(held[field]) && (held[field] as unknown[]).every((one) => text(one) !== null))) return null;
+
+    change[field] = held[field] as string[] | null;
+  }
+
+  for (const field of ["enabled", "keepsCache"] as const) {
+    if (!(field in held)) continue;
+    if (typeof held[field] !== "boolean") return null;
+
+    change[field] = held[field] as boolean;
+  }
+
+  if ("position" in held) {
+    if (!wholeFrom(held.position, 0)) return null;
+
+    change.position = held.position;
+  }
+
+  if ("answerTokens" in held) {
+    if (held.answerTokens !== null && !wholeFrom(held.answerTokens, 1)) return null;
+
+    change.answerTokens = held.answerTokens as number | null;
+  }
+
+  if ("foldRatio" in held) {
+    if (held.foldRatio !== null && typeof held.foldRatio !== "number") return null;
+
+    change.foldRatio = held.foldRatio as number | null;
+  }
+
+  if (!adding && Object.keys(change).length === 0) return null;
+
+  return change;
+}
+
+// An agent that carries a run is not removed, and a name already taken is not given again.
+const AGENT_CODES: Readonly<Record<string, string>> = { conflict: "agents.error.role_agent_refused" };
+
+export async function addRoleAgent(change: Schemas["RoleAgentChange"] & { role?: string; name?: string }): Promise<RoleAgentView> {
+  const { role, ...fields } = change;
+
+  if (role === undefined) throw fail(400, wording("common.error.bad_action"));
+
+  return roleAgentViewOf(await agencyCall(agency().POST("/role-agents", { body: { role, ...fields } }), { codes: AGENT_CODES }));
+}
+
+export async function changeRoleAgent(name: string, change: Schemas["RoleAgentChange"] & { role?: string; name?: string }): Promise<RoleAgentView> {
+  const { role: _role, name: _name, ...body } = change;
+
+  return roleAgentViewOf(await agencyCall(agency().PATCH("/role-agents/{agentName}", { params: { path: { agentName: name } }, body })));
+}
+
+export async function removeRoleAgent(name: string): Promise<void> {
+  await agencyCall(agency().DELETE("/role-agents/{agentName}", { params: { path: { agentName: name } } }), { codes: AGENT_CODES });
 }
 
 function roleSessionOf(session: Schemas["RoleSession"]): RoleSessionView {

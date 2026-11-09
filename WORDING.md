@@ -66,22 +66,25 @@
 - an agent's role, which gives its function bundles → 역할: 역할, 역할 추가, 역할 프롬프트, 종류 기본. A co-work role a
   work key names (`role:`) is 역할 too; where it stands on a screen beside the agent role it is told apart as 작업 키
   역할, and the agent role keeps the bare word. A function bundle → 기능 묶음; how many of a role's runs go at once → 동시
-  실행, with what goes and waits as `2/3 실행 · 1 대기` and a cap of none as 막힘.
+  실행, with what goes and waits as `2/3 실행 · 1 대기` and no agent switched on as 막힘.
+- one seat of a role, on one road → 에이전트: 에이전트, 에이전트 추가, 에이전트 없음. An agent that names no road →
+  요청한 감독관을 따름; what it lays over its role's preset → 역할 위에 덮어쓰기; one that carries a run → 실행 중. Never
+  자리, 인스턴스, 워커 for the seat.
 - supervisor → 감독관: 감독관, 감독관 추가, 감독관의 설정, 감독관 없음, 감독관 중단. Every agent that answers in rooms
   is a supervisor, and every sentence names it 감독관 alone; a screen never calls one 채팅 에이전트 or by a word for a
   partner in a chat.
 - the supervisor that answers every room naming none → 기본 응답 감독관; the supervisor a search or browse run no
   supervisor delegated writes its brain for → 리서치 감독관; the supervisor a group room is added with, one of the
   person adding it owns or 감독관 없음 → 그룹 감독관.
-- a role's slot, one of the runs its cap lets in at once → 역할 슬롯, 슬롯: 역할 슬롯, 작업 중, 예약됨, 비어 있음. Never
+- a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯: 역할 슬롯, 작업 중, 예약됨, 비어 있음. Never
   자리, 칸, 풀.
 - a repository the agency runs jobs in → 저장소: 저장소, 저장소 추가. Never 리포지토리, 레포, 워커 for the place.
-- a supervisor's or a role's provider order → 공급자 순서: 공급자 순서, 공급자 추가; the share of a provider's quota at
+- a supervisor's provider order → 공급자 순서: 공급자 순서, 공급자 추가; the share of a provider's quota at
   which it is passed over → 할당량 기준; a session's compaction threshold → 압축 기준; keeping a prefix warm → 캐시 유지;
   a role's sessions kept or opened anew → 유지, 새로. Never 라우트, 라우팅, 우선순위 목록.
 - a repository, where executing work runs → 저장소: 저장소, 저장소 추가, 작업 저장소; the model a repository pins →
-  고정 모델; no pin → 역할 순서. A deployment's own model → 등록 모델; a file its engine serves → 모델 파일.
-- a supervisor's or a role's active provider, what it runs on now → 지금; the owner forcing one → 강제 지정; no force,
+  고정 모델; no pin → 역할 에이전트. A deployment's own model → 등록 모델; a file its engine serves → 모델 파일.
+- a supervisor's active provider, what it runs on now, and the road a role's next run goes out on → 지금; the owner forcing one → 강제 지정; no force,
   leaving it to the order → 순서에 맡김; the entry it runs on now → 사용 중. What chose a job's road → 항목 지정 (the
   item's own model), 강제 지정, 고정 모델 or 공급자 순서. Never 고정 for a force, which is a repository's pin.
 - a value equal to the default a service states → `<value> (기본값)`, after the value and never in its place; a

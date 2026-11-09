@@ -14,6 +14,11 @@ import type { AgentList } from "../../../apps/web/shared/types";
 let agencyAnswers = true;
 
 const ORDER = [{ provider: "codex", model: "model-a", effort: "high", thinking: null, answerTokens: null }];
+// One agent of a role on that road.
+const AGENTS = (role: string) => [{
+  ...ORDER[0], name: `${role}-01`, role, enabled: true, position: 1, keepsCache: false, foldRatio: null, prompt: null, bundles: null, skills: null,
+  followsSupervisor: false, carries: false
+}];
 
 standIn("AGENCY", (call) => {
   if (!agencyAnswers) return answer({ code: "service-unavailable", error: "the store is not open" }, 503);
@@ -40,12 +45,12 @@ standIn("AGENCY", (call) => {
       roles: [
         {
           name: "worker", code: "worker", label: "Worker", prompt: null, description: null,
-          bundles: [{ name: "graph.read", code: "graph-read", label: "Graph" }], line: "worker", order: ORDER, quotaShare: 0.01,
+          bundles: [{ name: "graph.read", code: "graph-read", label: "Graph" }], line: "worker", agents: AGENTS("worker"),
           maxConcurrent: 3, sessions: "keep", foldRatio: 0.8, callable: false, running: 1, waiting: 0, provider: "codex", waitingFor: null
         },
         {
-          name: "role-x", code: "role-x", label: "Role X", prompt: null, description: null, bundles: [], line: "search", order: ORDER,
-          quotaShare: 0.01, maxConcurrent: 2, sessions: "keep", foldRatio: 0.8, callable: false, running: 0, waiting: 0, provider: null,
+          name: "role-x", code: "role-x", label: "Role X", prompt: null, description: null, bundles: [], line: "search", agents: AGENTS("role-x"),
+          maxConcurrent: 2, sessions: "keep", foldRatio: 0.8, callable: false, running: 0, waiting: 0, provider: null,
           waitingFor: "no quota"
         }
       ],

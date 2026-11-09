@@ -1,0 +1,15 @@
+import { wording } from "#shared/wording";
+
+import type { RoleAgentView } from "#shared/axes";
+
+// An agent added to a role, for a reader who may write the roles tab (the agency's `docs/api.md`, 「roles」; its
+// `docs/role-agents.md`). The body is checked for its shape alone; whether the values stand is the agency's to say.
+export default defineEventHandler(async (event): Promise<RoleAgentView> => {
+  await signedInUser(event);
+
+  const change = roleAgentChangeOf(await readBody<unknown>(event), true);
+
+  if (change === null) throw fail(400, wording("common.error.bad_action"));
+
+  return await addRoleAgent(change);
+});

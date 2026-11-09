@@ -986,7 +986,7 @@ edit to that file alone, once the guide below carries the word.
   figures are not shown, whichever of them the road last ran on —
   holding that account's own session and weekly windows as the share remaining, each with how long is left
   until it resets; the account the chat agent's own turns run on now is marked 「사용 중」, which says nothing
-  of a role, since each role walks an order of its own. Where the chat runs on a provider
+  of a role, since each of a role's agents stands on a road of its own. Where the chat runs on a provider
   that holds no login, that slot stands first as a group of its own, marked the same way, with whatever
   windows it reports. A slot or an account the agency reads a balance for — a provider paid by the request, an
   endpoint account — carries it as a row of its own: 「잔액」, the amount in its currency, and how long ago it was
@@ -2082,10 +2082,10 @@ archive and this week's tokens remain. That is all that can actually be known th
   the holder and how many wait. On a phone the line keeps the memory pressure and the open jobs.
 - **The role slots are a grid of tiles** (역할 슬롯), read from the agency's `GET /slots` and read again every few
   seconds while the screen stands (the agency's `docs/role-slots.md`).
-  1. **One row per role**, in the order the agency lists the roles, with a tile for every slot its cap gives; a
-     role at a cap of 0 has a row only while something of it still runs, is reserved or waits. The row's head names
-     the role by its name, how many of its slots are in use out of the cap, and how many runs wait
-     for one.
+  1. **One row per role**, in the order the agency lists the roles, with a tile for every one of its agents that
+     is switched on; a role with none switched on has a row only while something of it still runs, is reserved or
+     waits. The row's head names the role by its name, how many of its slots are in use out of that count, and how
+     many runs wait for one.
   2. **A tile says at a glance which state its slot is in**: working (a run holds it), reserved (a reservation
      keeps it for an owner who has not used it yet) or idle, by its colour and its mark. A working tile carries the
      repository or folder its run works in.
@@ -2812,24 +2812,23 @@ Two ways, split because the running places differ.
   with the pack's sentence for the agency's code under the field, or, for a choice, says it in a notice. A cell
   showing only what the agency worked out — how many of a role's runs go — is not pressed. A
   cell holding a group of switches — a supervisor's 캐시 유지 — opens them in its dropdown, each taking effect as it is
-  thrown. Dialogs are left only for what is not one cell: a provider order, a whole role, a whole repository, a
-  supervisor's own settings, and asking once before a removal; a row's whole settings open from its more-menu or its
+  thrown. Dialogs are left only for what is not one cell: a provider order, a whole role with its agents, a whole
+  repository, a supervisor's own settings, and asking once before a removal; a row's whole settings open from its more-menu or its
   name, never from a cell.
-- **What a row runs on now** is its active provider (the agency's `docs/provider-order.md`, 「Choosing the provider」),
-  the agency's word, never worked out here, and it stands in the row's 지금 cell, the same for a supervisor and a
-  role. The owner's words: 「현재 활성화된 것을 쓰고, 현재 활성화라는건 내가 수동으로 강제지정하거나 사용량에 의해 자동
+- **What a supervisor runs on now** is its active provider (the agency's `docs/provider-order.md`, 「Choosing the
+  provider」), the agency's word, never worked out here, and it stands in the row's 지금 cell. A role holds no
+  order and no force, so its 지금 cell is a reading alone (「역할」). The owner's words: 「현재 활성화된 것을 쓰고, 현재 활성화라는건 내가 수동으로 강제지정하거나 사용량에 의해 자동
   전환되거나」.
   - **The cell is one line:** the provider by the pack's word for its code, the model whole and its effort, joined
     by middle dots, and before them a compact mark of how the provider became active — 강제 지정 where the owner
     forced it (the agency's `active`, 「A provider the owner forces」), 공급자 순서 where the order chose it — the
     mark's word its tooltip and its accessible name. A forced provider stands with its forced model and the effort
-    the order's entry for that provider names, or none. An order's choice stands as the agency answers it: a
-    supervisor's `provider`, `model` and `effort`, what its last turn went out on; a role's `provider`, on the model
-    and effort its order's entry for that provider names. A row the agency names no active provider for stands as a
-    dash. While its runs wait for quota (`waitingFor`) the cell says so under that line in the warning colour, the
+    the order's entry for that provider names, or none. An order's choice stands as the agency answers it: the
+    supervisor's `provider`, `model` and `effort`, what its last turn went out on. A row the agency names no active
+    provider for stands as a dash. While its runs wait for quota (`waitingFor`) the cell says so under that line in the warning colour, the
     agency's sentence in its tooltip.
-  - **Pressed, it opens the force's list,** a choice saved as it is picked through `PATCH /supervisors/{name}` or
-    `PATCH /roles/{name}` with `active`. It holds 순서에 맡김 — no force, the agency's default, so it reads
+  - **Pressed, it opens the force's list,** a choice saved as it is picked through `PATCH /supervisors/{name}`
+    with `active`. It holds 순서에 맡김 — no force, the agency's default, so it reads
     `순서에 맡김 (기본값)` — and then every model the row's line may run on, a group to each provider whose program
     carries the line, in the agency's order of providers: the group headed by the provider's word, a provider that
     cannot answer now with the pack's sentence for its reason, and under it each model `GET /provider-models/{provider}`
@@ -2839,7 +2838,7 @@ Two ways, split because the running places differ.
     provider's models are read as the list opens, each provider's once while the page stands. Neither the force nor
     its clearing changes the order.
 - **A provider order is one field, edited in its own dialog** (the agency's `docs/provider-order.md`, 「What an order
-  is」), the same for a supervisor and a role. Its cell is one line: the first provider, where the row's runs go
+  is」), a supervisor's alone. Its cell is one line: the first provider, where the row's runs go
   while it has quota, by the pack's word for its code with its model named short (「Model names where room is short」)
   and its effort, marked as the first, and `외 N` after it, muted, for the N providers behind it; an order of one
   provider has no `외`. Pressed, it
@@ -2966,20 +2965,45 @@ Two ways, split because the running places differ.
   the order the agency lists them, read from its `GET /roles`: 역할, its name alone — the kebab-case key the agency
   holds it under, never a translated word and never the row's label — the title column; 기능 묶음, the bundles it gives as chips,
   each by the pack's short name for its code and by the agency's label where the pack holds none, or 기능 묶음 없음;
-  공급자 순서, its order; 지금, its active provider and how it became active, and the force set from it (above,
-  「What a row runs on now」), on one line under a ceiling of its own, and why its runs wait where they wait; 동시
-  실행, its cap, with how many of its runs go and wait beside it — `2/3 실행 · 1 대기` —
-  and 막힘 at a cap of 0; 세션, 유지 or 새로; 압축 기준; and 코워커, whether a run may call it as a co-worker. The
-  counts are read again every few seconds while the tab stands.
-- **The cells set their own values:** 지금 the force, 동시 실행 a whole number from 0, 세션 a choice of 유지 and
-  새로 — 유지 reading `유지 (기본값)` — 압축 기준 a whole percent from 1 to 100, marked `(기본값)` as a supervisor's
-  is, and 코워커 a switch, each through `PATCH /roles/{name}`. A raised cap lets waiting runs in at once; nothing running is stopped by
-  any change (the agency's `docs/agent-roles.md`, 「Changing the roles」).
+  에이전트, its agents (below); 지금, the road its next run goes out on — the provider by the pack's word, the model
+  and the effort of the first of its agents on that provider — and, where no run goes now, why its runs wait in the
+  warning colour; 동시 실행, how many of its agents are switched on, with how many of its runs go and wait beside
+  it — `2/3 실행 · 1 대기` — and 막힘 where none is; 세션, 유지 or 새로; 압축 기준; and 코워커, whether a run may
+  call it as a co-worker. The counts are read again every few seconds while the tab stands.
+- **The 에이전트 cell lists the role's agents** (the agency's `docs/role-agents.md`), one line each in the order a
+  run looks for a free one: the agent's road — its provider's word, its model and its effort — or 요청한 감독관을
+  따름 for an agent that names no road; a dot before the line, lit while the agent carries a run; an agent
+  switched off muted and struck through. A role with no agent says 에이전트 없음 in the warning colour. Pressed,
+  the cell opens the role's dialog, where the agents are changed.
+- **The cells set their own values:** 세션 a choice of 유지 and 새로 — 유지 reading `유지 (기본값)` — 압축 기준 a
+  whole percent from 1 to 100, marked `(기본값)` as a supervisor's is, and 코워커 a switch, each through
+  `PATCH /roles/{name}`. 지금 and 동시 실행 show what the agency worked out of the role's agents and are not
+  pressed. Nothing running is stopped by any change (the agency's `docs/agent-roles.md`, 「Changing the roles」).
 - **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made,
   and the label the agency keeps for its log as the role is added), 설명, 실행 라인 — a choice of the lines the agency names — 기능 묶음 as a checkbox for every bundle the agency
-  declares, 공급자 순서 and 할당량 기준, 동시 실행, 세션, 압축 기준, 코워커 호출 허용, and 역할 프롬프트, a text area
+  declares, 세션, 압축 기준, 코워커 호출 허용, and 역할 프롬프트, a text area
   as tall as its text, which every run of the role opens with, empty for none. The save sends what changed; an
   emptied prompt or description is cleared.
+- **에이전트 stands in the same dialog under the form,** apart from the form's one save: each change of an agent is
+  that agent's own and is saved as it is made, through `POST /role-agents`, `PATCH /role-agents/{name}` and
+  `DELETE /role-agents/{name}`. A role being added takes its agents once it stands, which the dialog says in their
+  place.
+  - **One block per agent,** in the order a run looks for a free one: a switch that turns it on and off; its place;
+    its name; 실행 중 while it carries a run; the buttons moving it up and down, which send each agent whose place
+    changed its new one; and its removal, which stands disabled while it carries a run.
+  - **Its road under them:** 공급자, a choice of 요청한 감독관을 따름 — no road — and every provider whose program
+    carries the role's line; and, under a provider, 모델, what `GET /provider-models/{provider}` answers for it, and
+    강도, the levels that model takes, standing only where it takes any. A provider picked stands on the first
+    model its catalogue serves; 요청한 감독관을 따름 clears the road whole.
+  - **역할 위에 덮어쓰기, folded,** with the count of what it lays over where it lays any: 시스템 프롬프트, which
+    then stands in place of the role's; 기능 묶음, a choice of several among the bundles the agency declares; and
+    스킬, names set apart by commas, each a skill a plugin of the agency's release carries. Each left empty is the
+    role's own. The mark the agency keeps for warming an agent's kept session warms nothing there
+    (the agency's `docs/role-agents.md`, 「What an agent row holds」), so no switch stands for it.
+  - **에이전트 추가** under the list adds one in the last place, on the road of the role's last agent, so a seat
+    more of the same kind is one press.
+  - A change the agency refuses says the pack's sentence for its code, or the agency's own, under the list, and the
+    list stands as it was.
 - **세션 기록** stands in the same dialog under the form, read from `GET /roles/{name}/sessions`: the sessions the
   role's runs opened, newest first, one row each — the path, the provider and model with its effort, the account
   where the provider holds logins, when it opened and last answered, how many runs it carried, the context its last
@@ -2997,7 +3021,7 @@ Two ways, split because the running places differ.
 - **One table of the repositories** (the agency's `docs/repositories.md`), one row each in the order the agency lists
   them: 저장소, its mark, its label and its name, the title column; 경로, its base checkout, with the node it stands on
   where it stands on one; 체크아웃, how many support checkouts stand beside the base and how many of all its checkouts
-  a job holds now; 프리픽스 문서, how many; 고정 모델, the provider and model it pins, named short, or 역할 순서 where it
+  a job holds now; 프리픽스 문서, how many; 고정 모델, the provider and model it pins, named short, or 역할 에이전트 where it
   pins none; and 강등 복원, a switch. Under a repository whose checkout a job holds stands the job's item and role.
   Pressing a row's name opens the repository's dialog; its more-menu holds 편집, 로그 and 삭제.
 - **The repository's dialog** is one form with one 저장 at its foot: 이름 (fixed once made), 표시 이름, 경로, 실행
@@ -3020,7 +3044,7 @@ Two ways, split because the running places differ.
     under them put one at the end. The list is sent whole; an empty list is none.
   - **머리말** is multi-line text standing before every job's prompt in this repository, up to 8,000 characters; **개발
     서버 명령** one shell line, up to 1,000 characters. Both empty are none.
-  - **고정 모델** is a choice of 역할 순서 (no pin) or a provider and one of its models; a model of the registry's
+  - **고정 모델** is a choice of 역할 에이전트 (no pin) or a provider and one of its models; a model of the registry's
     provider chosen brings the 샘플링 block under it, laid out as a supervisor's 생성 파라미터 are (the agency's
     `docs/repositories.md`, 「A pinned model」): one line for every setting the agency's `samplingSettings` names, by
     its name with its bounds, the value the repository holds in its box and a setting it leaves out standing empty,

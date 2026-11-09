@@ -7,14 +7,18 @@ import type { TodoModelPlan } from "../../../apps/web/shared/types";
 
 // What the TODO rows name before an item's job has run, and what chose a running job's road (docs/web.md, the TODO
 // panel's section), in the order the agency chooses a job's road (its docs/repositories.md, 「A model an item names」):
-// the role's forced provider over every repository's pin, the pin over the role's order, and each running job's own
-// road with its `chosenBy`.
+// a repository's pin over the road of the agent its jobs' role would let a run in on, and each running job's own road
+// with its `chosenBy`.
 
 const ENTRY = { provider: "deepseek", model: "deepseek-flash", effort: null, thinking: null, answerTokens: null };
+const AGENT = (name: string, provider: string, model: string, position: number) => ({
+  ...ENTRY, name, role: "worker", provider, model, enabled: true, position, keepsCache: false, foldRatio: null, prompt: null, bundles: null, skills: null,
+  followsSupervisor: false, carries: false
+});
 const ROLE = {
-  name: "worker", code: "worker", label: "Worker", prompt: null, description: null, bundles: [], line: "worker", order: [ENTRY], quotaShare: 0.01,
-  active: null as { provider: string; model: string } | null, maxConcurrent: 3, sessions: "keep", foldRatio: 0.85, callable: false,
-  followsSupervisor: false, running: 1, waiting: 0, provider: "deepseek", waitingFor: null
+  name: "worker", code: "worker", label: "Worker", prompt: null, description: null, bundles: [], line: "worker",
+  agents: [AGENT("worker-01", "deepseek", "deepseek-flash", 1), AGENT("worker-02", "claude-code", "claude-opus-5-5", 2)],
+  maxConcurrent: 2, sessions: "keep", foldRatio: 0.85, callable: false, followsSupervisor: false, running: 1, waiting: 0, provider: "deepseek" as string | null, waitingFor: null
 };
 const REPOSITORY = (name: string, pin: { provider: string; model: string } | null) => ({
   name, label: null, icon: null, ownerAccount: null, path: `/srv/${name}`, nodeName: null, supportCount: 0, prefixDocuments: [], preamble: null,
@@ -45,23 +49,31 @@ standIn("AGENCY", (call) => {
 const plan = await routeOf<TodoModelPlan>("../../apps/web/server/api/todos/model-plan.get");
 
 describe("the model plan", () => {
-  test("names the role's order's choice under a repository's pin where no provider is forced", async () => {
+  test("names a repository's pin, and where it pins none the road of the role's agent on the provider its next run goes out on", async () => {
     role = ROLE;
 
     expect((await asked(plan, {})).answer?.workers).toEqual({ "repo-a": "deepseek/deepseek-flash", "repo-b": "codex/gpt-5.6-sol" });
   });
 
-  test("names the role's forced provider over every repository's pin", async () => {
-    role = { ...ROLE, active: { provider: "claude-code", model: "claude-opus-5-5" }, provider: "claude-code" };
+  test("follows the role to its next agent's road, the pin standing over it", async () => {
+    role = { ...ROLE, provider: "claude-code" };
 
-    expect((await asked(plan, {})).answer?.workers).toEqual({ "repo-a": "claude-code/claude-opus-5-5", "repo-b": "claude-code/claude-opus-5-5" });
+    expect((await asked(plan, {})).answer?.workers).toEqual({ "repo-a": "claude-code/claude-opus-5-5", "repo-b": "codex/gpt-5.6-sol" });
 
     role = ROLE;
   });
 
-  test("reads a forced provider for the repository whose jobs run as that role, and no other", async () => {
+  test("names no road for a repository whose role has no agent that can answer now", async () => {
+    role = { ...ROLE, provider: null };
+
+    expect((await asked(plan, {})).answer?.workers).toEqual({ "repo-b": "codex/gpt-5.6-sol" });
+
     role = ROLE;
-    extraRoles = [{ ...ROLE, name: "producer", active: { provider: "claude-code", model: "claude-opus-5-5" } }];
+  });
+
+  test("reads the role per repository, from its newest job, and no other repository's", async () => {
+    role = ROLE;
+    extraRoles = [{ ...ROLE, name: "producer", provider: "claude-code" }];
     recent = [{ ...JOB(9, 19, { provider: "claude-code", model: "claude-opus-5-5" }, "forced"), roleName: "producer", repositoryName: "repo-a" }];
 
     const answered = await asked(plan, {});

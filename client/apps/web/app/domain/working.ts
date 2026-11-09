@@ -51,29 +51,28 @@ export function turnName(t: Translate, speaker: TurnSpeaker | undefined): string
 }
 
 // The line says who is at it, by the name of the agent answering on that row: a room two agents
-// answer stands a row of each, and each row says its own. While the chat agent's draft turn works, the line says
-// that the message is being written, in place of the state (docs/web.md, the room screen's running line). `draft`
-// is the draft turn under way, null where none is.
+// answer stands a row of each, and each row says its own. It says the state the turn is at, whatever turn it is;
+// what the chat agent's draft turn writes is the message, so its writing is said as that (docs/web.md, the room
+// screen's running line). `draft` is the draft turn under way, null where none is.
 export function phaseLook(t: Translate, name: string, progress: RunProgress | null, draft: DraftStep | null = null): WorkingLook {
-  if (draft === null) return stateLook(t, name, progress);
+  if (draft !== null && progress?.phase === "writing") return { label: draftStepText(t) };
 
-  return { label: draftStepText(t) };
+  return stateLook(t, name, progress);
 }
 
-// The draft turn as its line says it: a round's draft is one turn, and it writes the message.
+// What the draft turn's writing is said as: a round's draft is one turn, and what it writes is the message.
 function draftStepText(t: Translate): string {
   return t("room.status.draft_writing");
 }
 
 // What a running turn is at now, without the agent's name: the reasoning block's face carries the name, and the
-// detail under it says the state. Null while it only thinks, since the face already says that, and null where the
-// pack has no word for a phase the stream named.
+// detail under it says the state — the tool it works, the Job it waits on, or that it writes — whatever turn it is.
+// What the chat agent's draft turn writes is the message, so its writing is said as that. Null while it only thinks,
+// since the face already says that, and null where the pack has no word for a phase the stream named.
 export function phaseDetail(t: Translate, progress: RunProgress | null, draft: DraftStep | null = null): string | null {
-  if (draft !== null) return draftStepText(t);
-
   if (progress === null || progress.phase === "thinking") return null;
 
-  if (progress.phase === "writing") return t("room.status.step_writing");
+  if (progress.phase === "writing") return draft === null ? t("room.status.step_writing") : draftStepText(t);
 
   if (progress.phase === "waiting") {
     const item = progress.waitingFor?.todoId ?? null;
@@ -322,6 +321,15 @@ export function turnActions(lines: readonly AgentLogLine[]): TurnAction[] {
   }
 
   return actions;
+}
+
+// The last thinking block a running turn's picture carries, as its block stands it at the head of the turn's detail:
+// the block with the blank around it taken off, or null where the picture carries none (docs/web.md, the room
+// screen's running line).
+export function thinkingBlock(progress: RunProgress | null): string | null {
+  const block = (progress?.thinking ?? "").trim();
+
+  return block === "" ? null : block;
 }
 
 // What a running turn has written as it works, as its block stands it: the newest of its progress lines, read as the

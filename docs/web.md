@@ -4072,10 +4072,17 @@ Four bounds keep it from growing forever.
     tap on a chip, or on any control a message carries, therefore takes the focus off wherever it stood
     outside that message, so the input box left focused by a send gives it up and a phone does not raise its
     keyboard again on the tap. Only a tap on the input box itself brings the keyboard.
+- **생각** — a message the receiver's record holds under the kind `thinking` (its `docs/messages.md`, 「A working
+  turn's thinking」) is told by that kind and never by its words. It stands in the agent's run as a bubble like any
+  of its lines, its words muted, and its meta line opens on the label 생각 at the leading end, where an answer's
+  chips stand. It is no answer: it carries no chip, no waiting time and no voice briefing chip.
 - **판정** — a person's message carries the verdict mark alone, with no dot and no count, standing just before the
   time: it beats while the message is being judged, then takes the colour of how the whole of it went, and its
-  tooltip names it and what it says. The mark presses nothing and spreads nothing. An agent's answer carries no
-  verdict mark: what judged the round, what drafted and sent the answer, the gates' cards and the situation note
+  tooltip names it and what it says. The mark presses nothing and spreads nothing. A person's message sent within
+  the last ten minutes keeps the mark's room before its time from the start, so the time does not move when the
+  mark comes; a line over or beside a picture keeps none. An agent's answer carries no verdict mark and keeps no
+  room for one, so its waiting time stands by its time at the line's own gap: what judged the round, what
+  drafted and sent the answer, the gates' cards and the situation note
   the round read last all stand in the answer's record, under 판정 기록, and a round that left no answer leaves
   nothing to open.
   - **Which verdicts are a person's message's and which an answer's.** The verdicts of the round's draft process
@@ -4827,18 +4834,21 @@ Four bounds keep it from growing forever.
     every call it has made so far, each with what it was about as the agent's log keeps it. Nothing on the list is
     cut on a line, and nothing of it scrolls in a box of its own: a long word, path or command wraps at the row's
     width, and the row grows by what it holds.
+  - **The turn's last thinking block opens the detail,** where the bot's picture carries one (the receiver's
+    `docs/messages.md`, 「A working turn's thinking」): the block as the run wrote it, its line breaks kept, in the
+    muted ink above the state. A newer block takes its place, a picture carrying none stands nothing there, and it
+    goes with the rest of the running block when the answer takes the row's place. Thinking is never a message of
+    the room and wears no chip or label of its own.
   - **The state names the tool as a person calls it** — 셸, 읽기, 편집, 웹 · web_search — and never by the name the
     CLI sends; a tool the vocabulary does not carry stands under the name it came with. A phase whose stream named
     no tool says 툴 사용 중. A supervisor's turn whose engine a Job holds names the item whose Job it waits on until
     that Job ends (the agency's `docs/supervisors.md`, 「The engine it shares」), read off the bot's picture as well
     as its events, so a screen opened in the middle of the wait shows it; the agents list's row says "Job 종료 대기 중".
-  - **The chat agent's line says when its draft turn is writing the message** (the receiver's `docs/drafting.md`).
-    The receiver tells the draft turn just before it goes out, as a `draft` event of kind `start`, and from that
-    event the line stands as "메시지 작성 중" in place of the state. Until that start — the judgement, the gates
-    and the reference before it — the line says the state alone. The rows the process writes as its turns are
-    answered move the line nothing, and no line waits on one: a round whose draft turn answers a wait tells its
-    start and no row, and its line stands until the turn ends. The
-    process's `end` row brings the line back to the state alone. A
+  - **The line says the state through the chat agent's draft turn too** (the receiver's `docs/drafting.md`): the
+    tool it works, the Job it waits on, or nothing while it only thinks, as on any turn. What a draft turn writes is
+    the message, so its writing is said as "메시지 작성 중" where any other turn's is "답을 쓰는 중". The receiver tells
+    the draft turn just before it goes out, as a `draft` event of kind `start`, and the process's `end` row ends
+    it; the rows the process writes as its turns are answered move the line nothing, and no line waits on one. A
     process that ended with its text withheld or past its ceiling says so in the passing word once the turn has
     ended — "〈이름〉의 답이 점검을 통과하지 못해 보내지 않았습니다.", "〈이름〉가 시간 안에 답을 마치지 못해 보내지 않았습니다." or
     "〈이름〉가 시간 안에 답을 마치지 못해 그때까지의 답을 보냈습니다." — and a skip says it as any silent turn does. A

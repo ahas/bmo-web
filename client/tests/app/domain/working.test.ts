@@ -5,7 +5,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { GENERIC_TOOL_ICON } from "../../../apps/web/app/domain/log";
-import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, progressLines, receivedLine, saidLines, subjectOf, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
+import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, progressLines, receivedLine, saidLines, subjectOf, thinkingBlock, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
 
 import type { AgentLogLine, AgentSummary, LiveRun, RunProgress, TurnAction } from "../../../apps/web/shared/types";
 
@@ -317,6 +317,14 @@ describe("what a running turn has written as it works", () => {
     droppedActions: 0,
     droppedContext: 0,
     ...(said === undefined ? {} : { said })
+  });
+
+  test("the picture's last thinking block stands as it was written, and none where the picture carries none", () => {
+    expect(thinkingBlock({ ...progress([]), thinking: "\n weighing the plan\nthen the second step \n" })).toBe("weighing the plan\nthen the second step");
+    expect(thinkingBlock({ ...progress([]), thinking: "  \n" })).toBeNull();
+    expect(thinkingBlock({ ...progress([]), thinking: null })).toBeNull();
+    expect(thinkingBlock(progress([]))).toBeNull();
+    expect(thinkingBlock(null)).toBeNull();
   });
 
   test("is the newest line apart from the few before it, oldest first", () => {

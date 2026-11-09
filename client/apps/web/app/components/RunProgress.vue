@@ -51,6 +51,9 @@
         }"
       >
         <div class="flex min-w-0 flex-col gap-1">
+          <!-- The run's last thinking block, where the bot's picture carries one: as it was written, its line
+               breaks kept, a newer block taking its place (docs/web.md, the room screen's running line). -->
+          <p v-if="thinking !== null" data-thinking class="text-sm leading-(--chat-meta-line) text-muted whitespace-pre-wrap wrap-anywhere">{{ thinking }}</p>
           <p v-if="detail !== null" class="text-sm leading-(--chat-meta-line) text-muted break-keep wrap-anywhere">{{ detail }}</p>
           <TurnActions v-if="actions.length > 0" :actions="actions" :dropped="dropped" />
         </div>
@@ -61,7 +64,7 @@
 
 <script setup lang="ts">
 import { otherAnswererOf } from "~/domain/agents";
-import { phaseDetail, receivedLine, saidLines, turnName } from "~/domain/working";
+import { phaseDetail, receivedLine, saidLines, thinkingBlock, turnName } from "~/domain/working";
 
 import type { RunState } from "~/domain/events";
 
@@ -77,6 +80,8 @@ const name = computed(() => turnName(t, otherAnswererOf(props.run.speaker)));
 // What the chat agent's draft process is on, which another supervisor's turn runs none of; the detail says it in place of
 // the state.
 const detail = computed(() => phaseDetail(t, props.run.progress, otherAnswererOf(props.run.speaker) === undefined ? props.run.draft ?? null : null));
+// The last thinking block the turn's run wrote, where its picture carries one.
+const thinking = computed(() => thinkingBlock(props.run.progress));
 // What the turn has done so far, oldest first, each at its whole length as the agent's log keeps it.
 const actions = computed(() => props.run.progress?.actions ?? []);
 const dropped = computed(() => props.run.progress?.droppedActions ?? 0);

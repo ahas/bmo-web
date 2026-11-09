@@ -33,6 +33,10 @@ interface KeptFile {
 // own bot account, or a person's account speaking for it.
 type SentVoice = "bot-account" | "human-avatar" | "human-reader";
 
+// The kind the receiver's record holds a thinking block under where it holds one as a message (its `docs/api.md`,
+// 「Messages」).
+const THINKING = "thinking";
+
 interface ReceivedMessage {
   chatId: number;
   messageId: number;
@@ -50,6 +54,8 @@ interface ReceivedMessage {
   // are null on a message a provider carried in.
   agentName: string | null;
   voice: SentVoice | null;
+  // What the record keeps the message as, where it is more than a plain message: a sticker, or a thinking block.
+  kind: string | null;
   files: KeptFile[];
   // Where the record says the message was forwarded from, on a message kept as a forward.
   forwardedFrom: ForwardedFrom | null;
@@ -88,6 +94,7 @@ function receivedOf(message: ReceiverMessage): ReceivedMessage {
     via: message.via,
     agentName: sent.agentName ?? null,
     voice: sent.voice ?? null,
+    kind: message.kind ?? null,
     files: message.files,
     forwardedFrom: message.forwardedFrom ?? null,
     situation: message.situation ?? null,
@@ -379,6 +386,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         ...(voicedBy === undefined ? {} : { voicedBy }),
         ...(speaker === undefined ? {} : { speaker }),
         notice: agent && isSystemNotice(message.text),
+        ...(agent && message.kind === THINKING ? { thinking: true } : {}),
         attachments: files.attachments,
         expressions: files.expressions,
         replyQuote: message.replyToMessageId === null ? null : await quote(message.replyToMessageId),
@@ -409,10 +417,10 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
 
   const [drafts, briefings] = await Promise.all([draftSummaries(chatId, [...last.keys()]), roomBriefings(chatId)]);
 
-  // Each agent line carries its voice briefing chip, standing where the voice engine says the line's full reading
-  // stands (docs/web.md, the room screen's voice briefing chip).
+  // Each agent line but a thinking message carries its voice briefing chip, standing where the voice engine says the
+  // line's full reading stands (docs/web.md, the room screen's voice briefing chip).
   for (const message of built) {
-    if (message.agent === true) message.briefing = lineBriefing(briefings, message.messageId);
+    if (message.agent === true && message.thinking !== true) message.briefing = lineBriefing(briefings, message.messageId);
   }
 
   for (const [round, index] of last) {

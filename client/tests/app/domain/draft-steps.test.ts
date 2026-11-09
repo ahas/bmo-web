@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { stepRoomTurns } from "../../../apps/web/app/domain/events";
-import { draftQuestionLabel, phaseLook, subjectOf } from "../../../apps/web/app/domain/working";
+import { draftQuestionLabel, phaseDetail, phaseLook, subjectOf } from "../../../apps/web/app/domain/working";
 
 import type { RunState } from "../../../apps/web/app/domain/events";
 import type { BotEvent, RunProgress } from "../../../apps/web/shared/types";
@@ -76,9 +76,21 @@ describe("the draft events on the room's turns", () => {
 describe("the running line", () => {
   const state = wording("room.status.agent_thinking", { subject: subjectOf("Bob") });
 
-  test("says the message is being written while the draft turn works, in place of the state", () => {
-    expect(phaseLook(wording, "Bob", thinking, { number: 1, count: 1, question: "intent+facts+final" })).toEqual({ label: wording("room.status.draft_writing") });
-    expect(phaseLook(wording, "Bob", thinking, { number: 1, count: 1, question: "final" })).toEqual({ label: wording("room.status.draft_writing") });
+  test("says the state the turn is at through the draft turn, its writing said as the message being written", () => {
+    const draft = { number: 1, count: 1, question: "intent+facts+final" };
+    const writing: RunProgress = { ...thinking, phase: "writing" };
+    const working: RunProgress = { ...thinking, phase: "tool", tool: "Bash" };
+
+    expect(phaseLook(wording, "Bob", thinking, draft)).toEqual({ label: state });
+    expect(phaseLook(wording, "Bob", working, draft)).toEqual(phaseLook(wording, "Bob", working));
+    expect(phaseLook(wording, "Bob", writing, draft)).toEqual({ label: wording("room.status.draft_writing") });
+    expect(phaseLook(wording, "Bob", writing)).not.toEqual({ label: wording("room.status.draft_writing") });
+
+    expect(phaseDetail(wording, thinking, draft)).toBeNull();
+    expect(phaseDetail(wording, working, draft)).toBe(phaseDetail(wording, working));
+    expect(phaseDetail(wording, working, draft)).not.toBe(wording("room.status.draft_writing"));
+    expect(phaseDetail(wording, writing, draft)).toBe(wording("room.status.draft_writing"));
+    expect(phaseDetail(wording, writing)).toBe(wording("room.status.step_writing"));
   });
 
   test("names each question in the table's lists by the pack's word, the last as the step it is", () => {

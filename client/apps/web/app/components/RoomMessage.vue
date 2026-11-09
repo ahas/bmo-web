@@ -179,7 +179,13 @@
                            them selects them; with a finger, they are selected by holding them once their
                            message is chosen. They break between words, a Korean one included, and fold
                            anywhere only where a run of them is wider than the bubble. -->
-                      <div v-else-if="worded" class="min-w-0 max-w-full grow" :class="wordsWrap" data-words>
+                      <div
+                        v-else-if="worded"
+                        class="min-w-0 max-w-full grow"
+                        :class="[wordsWrap, props.item.thinking ? 'text-muted' : '']"
+                        :data-thinking="props.item.thinking ? '' : undefined"
+                        data-words
+                      >
                         <TelegramText v-if="props.item.shownText" :text="props.item.shownText" :expressions="props.item.expressions" :markdown="props.item.look.markdown" :chat-id="props.chatId" :message-id="props.item.messageId" />
 
                         <!-- A file the browser cannot draw stands as its name while it goes. -->
@@ -308,6 +314,7 @@
                         :clock="message"
                         :after-words="wordsLast || playerLast"
                         :answer="props.item.look.role === 'assistant'"
+                        :thinking="props.item.thinking"
                         @room="metaRoom = $event"
                       >
                         <!-- How long the room waited for this answer; a message the archive holds no

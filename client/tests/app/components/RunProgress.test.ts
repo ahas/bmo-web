@@ -36,6 +36,17 @@ describe("what the block stands while a turn runs", () => {
     expect(received).toBeLessThan(reasoning);
   });
 
+  test("the run's last thinking block opens the reasoning block's detail, above the state and the calls", () => {
+    const reasoning = at("<UChatReasoning");
+    const thinking = at('<p v-if="thinking !== null" data-thinking');
+
+    expect(thinking).toBeGreaterThan(reasoning);
+    expect(thinking).toBeLessThan(at('<p v-if="detail !== null"'));
+    expect(thinking).toBeLessThan(at("<TurnActions"));
+    expect(template).toContain("whitespace-pre-wrap");
+    expect(source).toContain("const thinking = computed(() => thinkingBlock(props.run.progress));");
+  });
+
   test("what the agent writes as it works stands between what opened the turn and what it is at", () => {
     const received = at("<RollingSentence");
     const said = at("data-said ");

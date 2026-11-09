@@ -153,6 +153,17 @@ describe("the judgement", () => {
   test("an answer carries no mark of its own", () => {
     expect(script).toContain("const marked = computed<boolean>(() => !props.answer && (props.judging || verdicts.value.length > 0));");
   });
+
+  test("a thinking message opens its line on its own label, where an answer's chips stand", () => {
+    expect(lead.indexOf("data-thinking-label")).toBeGreaterThan(-1);
+    expect(lead.indexOf("data-thinking-label")).toBeLessThan(lead.indexOf("data-record-chip"));
+    expect(lead).toContain('$t("room.label.thinking_line")');
+    expect(script).toContain("props.figuring ||\n    props.thinking\n);");
+  });
+
+  test("an answer keeps no room for a mark, so its wait stands by its time", () => {
+    expect(script).toContain("const roomForMark = !props.answer && !props.overPicture && !props.besidePicture");
+  });
 });
 
 describe("the chips that stay their own", () => {

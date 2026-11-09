@@ -20,6 +20,13 @@
          a turn would see the line taken away and built again rather than filled. -->
     <div data-meta :data-meta-inline="inline ? '' : undefined" class="flex min-w-0 flex-wrap items-end gap-(--chat-meta-gap) text-sm leading-(--chat-meta-line) whitespace-nowrap tabular-nums" :class="lineLook">
       <span v-if="chipped" data-meta-lead class="flex min-w-0 flex-wrap items-center gap-(--chat-meta-gap)">
+        <!-- A message the record holds under the thinking kind says what it is here, where an answer's chips stand;
+             it carries none of them (docs/web.md, the room screen's thinking messages). -->
+        <span v-if="props.thinking" data-thinking-label class="inline-flex h-(--chat-meta-line) items-center gap-1">
+          <UIcon :name="THINKING_ICON" class="size-4 shrink-0" aria-hidden="true" />
+          {{ $t("room.label.thinking_line") }}
+        </span>
+
         <!-- What the round spent and did is read after the page, and its place at the leading end is kept by one
              chip-sized placeholder until it lands (docs/web.md, the room screen's chip line). -->
         <SkeletonStatus v-if="props.figuring" data-figures-loading class="inline-flex" :label="$t('room.status.figures_loading')">
@@ -322,6 +329,8 @@ interface Props {
   answer?: boolean;
   // Whether what the round this message ends spent and did is still being read.
   figuring?: boolean;
+  // Whether the record holds the message under the thinking kind, which stands under its own label and is no answer.
+  thinking?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -341,7 +350,8 @@ const props = withDefaults(defineProps<Props>(), {
   clock: true,
   afterWords: false,
   figuring: false,
-  answer: false
+  answer: false,
+  thinking: false
 });
 
 // How wide the line stands at the end of the words' last line, which the words keep blank for it;
@@ -697,7 +707,8 @@ const chipped = computed<boolean>(
     drafted.value ||
     judgedRecorded.value ||
     props.briefing !== null ||
-    props.figuring
+    props.figuring ||
+    props.thinking
 );
 
 // Whether the line is more than the time and its marks: a chip, or how long the room waited. Such a
@@ -818,11 +829,15 @@ watch(
 const markClass = computed<string>(() => ["transition-colors", markLook.value.iconClass, !markStood && !beaten.value ? "verdict-pop" : ""].join(" "));
 
 // How long after it was sent a message may still come to be judged: such a message keeps the mark's
-// room from the start, so nothing beside it moves when it comes. A line over a picture keeps none: it
-// stands at the picture's trailing corner and grows away from the time, and room kept there would
-// stand as a hole in the overlay chip.
+// room from the start, so nothing beside it moves when it comes. An answer keeps none, since no mark
+// ever comes to it and the room would stand as a gap between its wait and its time. A line over a
+// picture keeps none: it stands at the picture's trailing corner and grows away from the time, and
+// room kept there would stand as a hole in the overlay chip.
 const JUDGED_WITHIN_SECONDS = 600;
-const roomForMark = !props.overPicture && !props.besidePicture && props.sentAt > 0 && Date.now() / 1000 - props.sentAt < JUDGED_WITHIN_SECONDS;
+const roomForMark = !props.answer && !props.overPicture && !props.besidePicture && props.sentAt > 0 && Date.now() / 1000 - props.sentAt < JUDGED_WITHIN_SECONDS;
+
+// The mark a thinking message's label wears.
+const THINKING_ICON = "i-material-symbols-lightbulb-outline";
 
 
 // The roads that stage walked, where the archive carries them. A judgement the live stream

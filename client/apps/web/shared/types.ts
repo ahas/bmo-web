@@ -370,6 +370,9 @@ export interface ArchivedMessage {
   // Whether the bot sent this message as the service rather than as the chat agent — a system notice, which a
   // screen stands as a system line rather than an answer. Absent where the server did not say.
   notice?: boolean;
+  // Whether the receiver's record holds the message under the thinking kind: an agent's line that is no answer, which
+  // a screen stands under its own label. Absent on every other message.
+  thinking?: boolean;
   // How long the room waited for this answer, in whole seconds, on messages an agent answered with.
   // Null for everything anybody else said, and for an answer the archive holds no measurement
   // of.
@@ -1256,6 +1259,8 @@ export interface RunProgress {
   droppedContext: number;
   // The turn's last few progress lines, oldest first; a bot that tells none leaves it out.
   said?: SaidLine[];
+  // The last thinking block the turn's run wrote, redacted and cut by the bot, on a turn whose picture carries one.
+  thinking?: string | null;
   // The Job the turn waits on, in the waiting phase alone.
   waitingFor?: EngineHold | null;
 }

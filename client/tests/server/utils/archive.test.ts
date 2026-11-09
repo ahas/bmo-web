@@ -27,6 +27,10 @@ const message = (id: number, over: Record<string, unknown> = {}) => ({
   ...over
 });
 
+// A working turn's thinking as the record keeps it: the agent's line under the thinking kind, and a person's words
+// that claim the kind, which no agent sent.
+const thought = message(6, { senderId: 22, senderName: "agent-a", kind: "thinking", text: "weighing the room's words" });
+
 const page = [
   message(1, { forwardedFrom: { room: -5, messageId: 3, senderName: "person-b" } }),
   message(2, { senderId: 22, senderName: "agent-a", answerSeconds: 4, round: "round:-7:1:1" }),
@@ -119,7 +123,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-7/messages") {
     const after = new URL(one.path, "http://receiver").searchParams.get("after");
 
-    return answer(after === null ? { items: page, more: true } : { items: [message(5)], more: false });
+    return answer(after === null ? { items: page, more: true } : { items: [message(5), thought], more: false });
   }
   if (path === "/rooms/-7/messages/1") return answer(page[0]);
   if (path === "/rooms/-7/messages/2") return answer(page[1]);
@@ -248,8 +252,18 @@ describe("a page of a room", () => {
     expect(unlisted!.attachments).toEqual([{ id: 0, kind: "document", name: "lost.pdf", bytes: null, type: null, available: false }]);
   });
 
+  test("a thinking message is told by the kind the record names, and carries no voice briefing chip", async () => {
+    const read = (await readMessagesAfter(-7, 4, 20)).messages;
+
+    expect(read.map((one) => [one.messageId, one.agent, one.thinking === true])).toEqual([
+      [5, false, false],
+      [6, true, true]
+    ]);
+    expect(read[1]!.briefing ?? null).toBeNull();
+  });
+
   test("past a message, and where a day begins", async () => {
-    expect((await readMessagesAfter(-7, 4, 20)).messages.map((one) => one.messageId)).toEqual([5]);
+    expect((await readMessagesAfter(-7, 4, 20)).messages.map((one) => one.messageId)).toEqual([5, 6]);
     expect(await readDayStart(-7, 1_790_000_000)).toEqual({ messageId: 2 });
     expect(await readJudgementPage(-7, null, 20)).toEqual({ judgements: [], hasMore: false });
   });

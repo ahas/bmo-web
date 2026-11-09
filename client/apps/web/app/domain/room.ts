@@ -328,6 +328,9 @@ export interface FeedItem {
   // Whether the bot sent this message as the service rather than as the chat agent, as the server says: the row
   // stands as a system line rather than an answer.
   notice: boolean;
+  // Whether the receiver's record holds the row under the thinking kind, as the server says: an agent's line that is
+  // no answer, standing under its own label with none of an answer's chips.
+  thinking: boolean;
   // On an agent's answer that went out in the owner's own account, the name of that account, which the row names
   // beside the agent's own; absent on every other row.
   voice?: string;
@@ -1257,7 +1260,8 @@ function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): 
     pending: { state: held.state, reason: held.reason, sent: held.messageId !== null },
     run: null,
     skipped: 0,
-    notice: false
+    notice: false,
+    thinking: false
   };
 }
 
@@ -1320,7 +1324,8 @@ export function runItem(run: RunState, speaker: Speaker, avatar: AvatarProps): F
     pending: null,
     run,
     skipped: 0,
-    notice: false
+    notice: false,
+    thinking: false
   };
 }
 
@@ -1666,6 +1671,7 @@ function feedItemOf(
     run: null,
     skipped: skippedTurns(judgements.get(message.messageId) ?? []),
     notice: message.notice === true,
+    thinking: !deleted && message.thinking === true,
     ...(message.voicedBy === undefined ? {} : { voice: message.senderName })
   };
 }

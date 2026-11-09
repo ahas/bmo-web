@@ -765,6 +765,7 @@ room:
     stage_wake_again: 깨우기 조건 재작성
     stage_wording_again: 금지어 재작성
     sticker_preview: 스티커 미리보기
+    thinking_line: 생각
     tokens: 토큰
     tokens_week_total: "이번 주 {week} · 전체 {total}"
     top_speakers: 메시지가 가장 많은 사람

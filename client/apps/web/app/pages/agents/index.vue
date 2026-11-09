@@ -286,7 +286,7 @@ const entries = computed<SettingsEntry[]>(() => {
       fields: [
         { label: t("common.label.name"), text: role.name, shown: true },
         { label: t("agents.label.column_bundles"), text: role.bundles.map((one) => one.label).join(" "), shown: true },
-        { label: t("agents.label.column_sessions"), text: sessionsText(t, role.sessions), shown: true }
+        { label: t("agents.label.run_line"), text: role.line, shown: true }
       ]
     });
   }

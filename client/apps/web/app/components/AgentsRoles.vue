@@ -1,8 +1,8 @@
 <template>
   <!-- The roles the agency holds (docs/web.md, 「Agent management screen」, the roles tab; the agency's
-       docs/agent-roles.md): one row each in its order, every value a cell of its own that saves it, the counts of
-       what goes and waits read again every few seconds. Pressing a role's name opens its dialog; its removal stands
-       in the row's more-menu. -->
+       docs/agent-roles.md): one row each in its order — a role is a preset, its prompt, its tools and its line —
+       with how many agents stand on it and how many of its runs go and wait, read again every few seconds.
+       Pressing a role's name opens its dialog; its removal stands in the row's more-menu. -->
   <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('agents.label.tab_roles')">
     <DataTableSkeleton v-if="!view && !error" layout="fill" :headers="tableHeaders(columns)" :rows="6" :label="$t('agents.status.roles_loading')" />
     <ReadFailure
@@ -42,69 +42,24 @@
         </span>
       </template>
 
-      <!-- Its agents in the order a run looks for a free one, each on its road; pressed, the role's dialog, where they
-           are changed. -->
-      <template #agents-cell="{ row }">
-        <button type="button" :class="CELL_BUTTON" class="w-full" :disabled="props.readonly" :aria-label="$t('agents.aria.agents_of', { name: row.original.name })" @click="openEdit(row.original.name)">
-          <span v-if="row.original.agents.length === 0" class="text-sm text-warning">{{ $t("agents.status.agents_none") }}</span>
-          <span v-else class="flex min-w-0 flex-col gap-0.5 py-1 text-start">
-            <span v-for="agent in row.original.agents" :key="agent.name" class="flex min-w-0 items-center gap-1.5 text-sm" :class="agent.enabled ? 'text-highlighted' : 'text-dimmed line-through'" :data-agent="agent.name">
-              <span class="size-1.5 shrink-0 rounded-full" :class="agent.carries ? 'bg-primary' : agent.enabled ? 'bg-muted' : 'bg-transparent'" />
-              <SearchText class="truncate" :text="agentRoadText(providers, agent) ?? $t('agents.label.agent_follows')" :query="props.query" />
-            </span>
-          </span>
-        </button>
-      </template>
-
-      <!-- The road its next run goes out on, or why none goes now. -->
-      <template #now-cell="{ row }">
-        <span :class="CELL_TEXT" class="w-full">
-          <span v-if="nextRoad(row.original) !== null" class="truncate text-sm text-highlighted">{{ nextRoad(row.original) }}</span>
-          <span v-else class="break-words text-sm text-warning">{{ row.original.waitingFor ?? $t("agents.status.role_blocked") }}</span>
+      <template #line-cell="{ row }">
+        <span :class="CELL_TEXT">
+          <SearchText class="font-mono text-sm text-highlighted" :text="row.original.line" :query="props.query" />
         </span>
       </template>
 
-      <template #concurrency-cell="{ row }">
+      <!-- Whether it carries a prompt of its own, which every run of it opens with. -->
+      <template #prompt-cell="{ row }">
+        <span :class="CELL_TEXT">
+          <span class="text-sm" :class="row.original.prompt === null ? 'text-muted' : 'text-highlighted'">{{ row.original.prompt === null ? $t("agents.label.role_prompt_none") : $t("agents.label.role_prompt_set") }}</span>
+        </span>
+      </template>
+
+      <!-- How many agents stand on it and how many of its runs go and wait; its agents are changed in the agents
+           tab. -->
+      <template #agents-cell="{ row }">
         <span :class="CELL_TEXT">
           <span class="whitespace-nowrap text-sm tabular-nums" :class="row.original.maxConcurrent === 0 ? 'text-warning' : 'text-highlighted'">{{ concurrencyText(row.original) }}</span>
-        </span>
-      </template>
-
-      <template #sessions-cell="{ row }">
-        <SettingsChoiceCell
-          :value="row.original.sessions"
-          :items="sessionItems"
-          :label="$t('agents.aria.sessions_of', { name: row.original.name })"
-          :disabled="props.readonly"
-          :save="(value: string | number) => saved(change(row.original.name, { sessions: String(value) }))"
-        >
-          <span class="whitespace-nowrap text-sm text-highlighted">{{ sessionsText($t, row.original.sessions) }}</span>
-        </SettingsChoiceCell>
-      </template>
-
-      <template #threshold-cell="{ row }">
-        <SettingsInputCell
-          :value="percentOf(row.original.foldRatio)"
-          :label="$t('agents.aria.threshold_of', { name: row.original.name })"
-          :disabled="props.readonly"
-          :min="1"
-          :max="100"
-          :step="1"
-          :save="(value: string) => saved(change(row.original.name, { foldRatio: fractionOf(Number(value)) }))"
-        >
-          <span class="text-sm tabular-nums text-highlighted">{{ thresholdText($t, row.original.foldRatio, defaultThreshold(providers, row.original.order)) }}</span>
-        </SettingsInputCell>
-      </template>
-
-      <template #callable-cell="{ row }">
-        <span :class="CELL_TEXT" class="items-start">
-          <USwitch
-            :model-value="row.original.callable"
-            :loading="switching === row.original.name"
-            :disabled="switching !== '' || props.readonly"
-            :aria-label="$t('agents.aria.callable_of', { name: row.original.name })"
-            @update:model-value="(on: boolean) => void switchCallable(row.original, on)"
-          />
         </span>
       </template>
 
@@ -121,7 +76,7 @@
 
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
 
-    <RoleSettingsDialog v-model:open="editing" :name="editingName" @saved="(role: RoleView) => void savedRole(role)" />
+    <RoleSettingsDialog v-model:open="editing" :name="editingName" @saved="() => void refresh()" />
   </section>
 </template>
 
@@ -129,26 +84,20 @@
 import { matchFields } from "bmo-ui/shared/search";
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
-import { defaultThreshold, fractionOf, percentOf, providerWord, refusalOf, sessionsText, thresholdText, useProviders } from "~/domain/axes";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
 import { usePolling } from "~/domain/polling";
-import { agentRoadText } from "~/domain/role-agents";
 import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
 
 import type { RolesView, RoleView } from "#shared/axes";
 import type { DropdownMenuItem } from "@nuxt/ui";
-import type { CellChoice } from "~/domain/settings-cells";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
 const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
 const { t } = useI18n();
-const { data: providers } = useProviders();
-const island = useIsland(t);
 const askFirst = useConfirm();
 
 // How often what goes and waits is read again while the tab stands and the browser tab is seen.
@@ -164,29 +113,15 @@ usePolling(() => {
 
 const columns = computed<SettingsColumn<RoleView>[]>(() => [
   { id: "role", header: t("agents.label.column_role") },
+  { id: "line", header: t("agents.label.run_line") },
   { id: "bundles", header: t("agents.label.column_bundles"), ceiling: 320 },
+  { id: "prompt", header: t("agents.label.role_prompt") },
   { id: "agents", header: t("agents.label.role_agents") },
-  { id: "now", header: t("agents.label.column_now"), ceiling: 256 },
-  { id: "concurrency", header: t("agents.label.column_max_concurrent") },
-  { id: "sessions", header: t("agents.label.column_sessions") },
-  { id: "threshold", header: t("agents.label.column_threshold") },
-  { id: "callable", header: t("agents.label.column_callable") },
   ...(props.readonly ? [] : [{ id: "actions", header: "" }])
 ]);
 
-const sessionItems = computed<CellChoice[]>(() => (["keep", "fresh"] as const).map((value) => ({ value, label: sessionsText(t, value) })));
-
 function hiddenMatch(role: RoleView) {
   return matchFields([{ label: t("agents.label.description"), text: role.description ?? "", shown: false }], props.query);
-}
-
-// The road of the first of its agents that stands on the provider its next run goes out on; none where no run goes now.
-function nextRoad(role: RoleView): string | null {
-  if (role.provider === null) return null;
-
-  const agent = role.agents.find((one) => one.enabled && one.provider === role.provider) ?? null;
-
-  return agent === null ? providerWord(providers.value, role.provider) : agentRoadText(providers.value, agent);
 }
 
 // How many of its agents are switched on with how many of its runs go and wait beside it, and the closed word where
@@ -197,37 +132,6 @@ function concurrencyText(role: RoleView): string {
   const going = t("agents.label.role_running", { running: countText(role.running), cap: countText(role.maxConcurrent) });
 
   return role.waiting === 0 ? going : `${going} · ${t("agents.label.role_waiting", { n: countText(role.waiting) })}`;
-}
-
-/** One change of a role sent; the table stands as the agency answered it, or the refusal with its field. */
-async function change(name: string, body: { sessions?: string; foldRatio?: number; callable?: boolean }): Promise<{ field: string | null; text: string } | null> {
-  try {
-    const answered = await $fetch<RoleView>(`/api/roles/${encodeURIComponent(name)}`, { method: "PATCH", body });
-
-    if (view.value) view.value = { ...view.value, roles: view.value.roles.map((one) => (one.name === name ? answered : one)) };
-
-    return null;
-  } catch (failure) {
-    return refusalOf(t, failure);
-  }
-}
-
-async function saved(asked: Promise<{ field: string | null; text: string } | null>): Promise<string | null> {
-  return (await asked)?.text ?? null;
-}
-
-const switching = ref("");
-
-async function switchCallable(role: RoleView, on: boolean): Promise<void> {
-  switching.value = role.name;
-
-  try {
-    const refused = await change(role.name, { callable: on });
-
-    if (refused !== null) island.say({ key: `callable:${role.name}`, title: t("common.error.not_saved_named", { name: t("agents.label.column_callable") }), description: refused.text, tone: "error" });
-  } finally {
-    switching.value = "";
-  }
 }
 
 const editing = ref(false);
@@ -241,18 +145,6 @@ function openEdit(name: string): void {
 function openAdd(): void {
   editingName.value = null;
   editing.value = true;
-}
-
-// A role just added holds no agent, so its dialog opens again on it, where its agents are added.
-async function savedRole(role: RoleView): Promise<void> {
-  const added = editingName.value === null;
-
-  await refresh();
-
-  if (!added) return;
-
-  await nextTick();
-  openEdit(role.name);
 }
 
 const removing = ref("");

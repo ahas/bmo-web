@@ -83,11 +83,11 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/agents`, { waitUntil: "load" });
+        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
         await page.locator("#setting-supervisor-agent-a").waitFor({ timeout: 15_000 });
         expect(await page.locator("#setting-supervisor-agent-c").count()).toBe(1);
         expect((await page.locator(`[aria-label="${wording("agents.aria.settings_sections")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(
-          ["agents.label.tab_supervisors", "agents.label.tab_roles", "agents.label.tab_repositories", "agents.label.tab_models", "agents.label.tab_model_files"].map((key) => wording(key))
+          ["agents.label.tab_roles", "agents.label.tab_supervisors", "agents.label.tab_repositories", "agents.label.tab_models", "agents.label.tab_model_files"].map((key) => wording(key))
         );
 
         await page.goto(`${origin}/agents?tab=roles`, { waitUntil: "load" });
@@ -125,7 +125,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     try {
       const page = await context.newPage();
 
-      await page.goto(`${origin}/agents`, { waitUntil: "load" });
+      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
       await page.locator("#setting-supervisor-agent-a").waitFor({ timeout: 15_000 });
 
       // The supervisors' own table, the first of the tab's; the draft tables under it are tables of their own.
@@ -207,10 +207,10 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
 
         // The supervisors' tab scrolls up and down in its body, each table sideways in its own box, and each table's head
         // stands at the body's top as its rows pass, inside the panel's edge.
-        await page.goto(`${origin}/agents`, { waitUntil: "load" });
+        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
         await page.locator("[data-draft-questions] tbody tr").first().waitFor({ timeout: 15_000 });
 
-        for (const table of ["[data-settings-table]:not([data-draft-processes]):not([data-draft-questions])", "[data-draft-processes]", "[data-draft-questions]"]) {
+        for (const table of ["[data-supervisors-table]", "[data-role-agents-table] [data-settings-table]", "[data-draft-processes]", "[data-draft-questions]"]) {
           const stuck = await page.locator(table).evaluate(async (root) => {
             let body = root.parentElement!;
 
@@ -254,7 +254,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/agents?tab=roles`, { waitUntil: "load" });
+        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
 
         const cell = page.locator(`button[aria-label$="${name}"]`).first();
 
@@ -291,20 +291,21 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     }, 60_000);
   }
 
-  test("list a role's agents in its row and change them in its dialog, each change sent as it is made", async () => {
+  test("stand a role's agents as rows of the agents tab, their own settings saved from their cells, and change them in their role's dialog", async () => {
     const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
     const at = cookie.indexOf("=");
     // One role of three agents on one road, the first carrying a run, as the console's own route answers it.
     const seat = (index: number, extra: Record<string, unknown> = {}) => ({
       name: `worker-0${index}`, role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null,
-      enabled: true, position: index, keepsCache: false, foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: index === 1, ...extra
+      enabled: true, position: index, keepsCache: false, sessions: "keep", callable: false, foldRatio: null, prompt: null, bundles: null, skills: null,
+      followsSupervisor: false, carries: index === 1, ...extra
     });
     let agents = [seat(1), seat(2), seat(3)];
     const view = () => ({
       roles: [{
         name: "worker", label: "Worker", description: null, prompt: null, bundles: [{ name: "web.read", label: "Web reading" }], line: "worker", agents,
         order: [{ provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null }],
-        maxConcurrent: agents.filter((one) => one.enabled).length, sessions: "keep", foldRatio: 0.8, callable: false, running: 1, waiting: 0, provider: "claude-code", waitingFor: null
+        maxConcurrent: agents.filter((one) => one.enabled).length, running: 1, waiting: 0, provider: "claude-code", waitingFor: null
       }],
       bundles: [{ name: "web.read", label: "Web reading" }],
       lines: ["worker"]
@@ -342,17 +343,30 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     try {
       const page = await context.newPage();
 
+      // The roles tab stands the role as its preset, with how many of its agents go.
       await page.goto(`${origin}/agents?tab=roles`, { waitUntil: "load" });
       await page.locator("#setting-role-worker").waitFor({ timeout: 15_000 });
-
-      // The row lists its agents, each on its road, and the count of them as the most that go at once.
-      const listed = page.locator("[data-settings-table] tbody tr").first().locator("[data-agent]");
-
-      expect(await listed.count()).toBe(3);
-      expect((await listed.first().innerText()).trim()).toContain("claude-opus-5-5 · high");
       expect(await page.locator("[data-settings-table] tbody tr").first().innerText()).toContain(wording("agents.label.role_running", { running: "1", cap: "3" }));
 
-      await page.locator("#setting-role-worker").click();
+      // The agents tab stands each agent as a row, on its road.
+      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+
+      // Each agent's row carries its name; the table's own measuring row carries none.
+      const rows = page.locator("[data-role-agents-table] tbody tr").filter({ hasText: /worker-0\d/ });
+
+      await rows.first().waitFor({ timeout: 15_000 });
+      expect(await rows.count()).toBe(3);
+      expect(await rows.first().innerText()).toContain("worker-01");
+      expect(await rows.first().innerText()).toContain("claude-opus-5-5 · high");
+
+      // Whether it may be called is its own switch, saved as it is thrown.
+      await rows.nth(1).locator(`[role="switch"][aria-label="${wording("agents.aria.callable_of", { name: "worker-02" })}"]`).click();
+      expect(await until(async () => sent.length, (count) => count === 1)).toBe(1);
+      expect(sent[0]).toEqual({ method: "PATCH", name: "worker-02", body: { callable: true } });
+      sent.length = 0;
+
+      // Its name opens its role's agents.
+      await rows.first().locator("button", { hasText: "worker-01" }).click();
 
       const blocks = page.locator("[data-role-agents] li[data-agent]");
 
@@ -400,7 +414,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     try {
       const page = await context.newPage();
 
-      await page.goto(`${origin}/agents`, { waitUntil: "load" });
+      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
       await page.locator("[data-draft-questions] tbody tr").first().waitFor({ timeout: 15_000 });
       await page.waitForTimeout(500);
 

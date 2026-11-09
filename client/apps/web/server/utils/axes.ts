@@ -250,6 +250,8 @@ export function roleAgentViewOf(agent: Schemas["RoleAgent"]): RoleAgentView {
     enabled: agent.enabled,
     position: agent.position,
     keepsCache: agent.keepsCache,
+    sessions: agent.sessions,
+    callable: agent.callable,
     foldRatio: agent.foldRatio ?? null,
     prompt: agent.prompt ?? null,
     bundles: agent.bundles ?? null,
@@ -285,9 +287,6 @@ export function roleViewOf(role: Role): RoleView {
     agents: (role.agents ?? []).map(roleAgentViewOf),
     order: roadsOf(role.agents ?? []),
     maxConcurrent: role.maxConcurrent,
-    sessions: role.sessions,
-    foldRatio: role.foldRatio,
-    callable: role.callable,
     running: role.running,
     waiting: role.waiting,
     provider: role.provider,
@@ -337,24 +336,6 @@ export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChan
     change.line = held.line as string;
   }
 
-  if ("sessions" in held) {
-    if (!SESSIONS.includes(held.sessions as (typeof SESSIONS)[number])) return null;
-
-    change.sessions = held.sessions as (typeof SESSIONS)[number];
-  }
-
-  if ("foldRatio" in held) {
-    if (typeof held.foldRatio !== "number") return null;
-
-    change.foldRatio = held.foldRatio;
-  }
-
-  if ("callable" in held) {
-    if (typeof held.callable !== "boolean") return null;
-
-    change.callable = held.callable;
-  }
-
   for (const field of ["prompt", "description"] as const) {
     if (!(field in held)) continue;
     if (held[field] !== null && typeof held[field] !== "string") return null;
@@ -378,9 +359,6 @@ export async function addRole(change: Schemas["RoleChange"] & { name?: string })
 
   if (change.prompt != null) body.prompt = change.prompt;
   if (change.description != null) body.description = change.description;
-  if (change.sessions != null) body.sessions = change.sessions;
-  if (change.foldRatio != null) body.foldRatio = change.foldRatio;
-  if (change.callable != null) body.callable = change.callable;
 
   return roleViewOf(await agencyCall(agency().POST("/roles", { body })));
 }
@@ -439,7 +417,13 @@ export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["Rol
     change[field] = held[field] as string[] | null;
   }
 
-  for (const field of ["enabled", "keepsCache"] as const) {
+  if ("sessions" in held) {
+    if (!SESSIONS.includes(held.sessions as (typeof SESSIONS)[number])) return null;
+
+    change.sessions = held.sessions as (typeof SESSIONS)[number];
+  }
+
+  for (const field of ["enabled", "keepsCache", "callable"] as const) {
     if (!(field in held)) continue;
     if (typeof held[field] !== "boolean") return null;
 

@@ -19,13 +19,13 @@ const SUPERVISOR = {
 };
 const ROLE = {
   name: "worker", code: "worker", label: "Worker", prompt: null, description: null, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }],
-  line: "worker", agents: [] as unknown[], maxConcurrent: 2, followsSupervisor: false, sessions: "keep", foldRatio: 0.8, callable: false, running: 2, waiting: 1,
+  line: "worker", agents: [] as unknown[], maxConcurrent: 2, followsSupervisor: false, running: 2, waiting: 1,
   provider: "claude-code", waitingFor: null
 };
 // An agent of the role on a road, one switched off on the same road, and one that names no road.
 const AGENT = {
   name: "worker-01", role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, enabled: true, position: 1,
-  keepsCache: false, foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: true
+  keepsCache: false, sessions: "keep", callable: false, foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: true
 };
 const AGENT_OFF = { ...AGENT, name: "worker-02", enabled: false, position: 2, carries: false };
 const AGENT_FOLLOWING = { ...AGENT, name: "worker-03", provider: null, model: null, effort: null, position: 3, followsSupervisor: true, carries: false };
@@ -141,7 +141,10 @@ describe("the roles", () => {
   test("stand by their names, the agency's label kept beside them, with their bundles in the pack's words, their agents and their counts", async () => {
     const got = await asked(roles, {});
 
-    expect(got.answer?.roles[0]).toMatchObject({ name: "worker", label: "Worker", running: 2, waiting: 1, sessions: "keep" });
+    expect(got.answer?.roles[0]).toMatchObject({ name: "worker", label: "Worker", running: 2, waiting: 1 });
+    // Whether a run keeps its session, its threshold and its callability are its agent's, and no role's.
+    for (const field of ["sessions", "foldRatio", "callable"]) expect(got.answer?.roles[0]).not.toHaveProperty(field);
+    expect(got.answer?.roles[0]?.agents[0]).toMatchObject({ sessions: "keep", callable: false, foldRatio: null });
     expect(got.answer?.roles[1]).toMatchObject({ name: "doppelganger", label: "Doppelganger" });
     expect(got.answer?.roles[2]).toMatchObject({ name: "role-own", label: "Own role" });
     expect(got.answer?.roles[0]).not.toHaveProperty("shown");
@@ -160,20 +163,24 @@ describe("the roles", () => {
   test("refuse a change of another shape before it goes, and a new role missing what the agency requires", async () => {
     calls.length = 0;
 
-    expect(await asked(roleChange, { params: { name: "worker" }, body: { sessions: "sometimes" } })).toMatchObject({ status: 400 });
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { line: 3 } })).toMatchObject({ status: 400 });
     expect(await asked(roleAdd, { body: { name: "role-b", label: "Role B", bundles: [] } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);
   });
 
-  test("carry no road of their own: an order, a cap or a forced provider sent for a role goes nowhere", async () => {
+  test("carry no road and no setting of an agent's: an order, a cap, a forced provider, a sessions setting, a threshold or a callability sent for a role goes nowhere", async () => {
     calls.length = 0;
 
     expect(await asked(roleChange, { params: { name: "worker" }, body: { maxConcurrent: 1 } })).toMatchObject({ status: 400 });
     expect(await asked(roleChange, { params: { name: "worker" }, body: { order: [ENTRY], active: null } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);
 
-    expect(await asked(roleChange, { params: { name: "worker" }, body: { sessions: "fresh", order: [ENTRY], maxConcurrent: 1 } })).toMatchObject({ status: 200 });
-    expect(calls).toMatchObject([{ method: "PATCH", path: "/roles/worker", body: { sessions: "fresh" } }]);
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { sessions: "fresh", foldRatio: 0.5, callable: true } })).toMatchObject({ status: 400 });
+    expect(calls).toEqual([]);
+
+    expect(await asked(roleChange, { params: { name: "worker" }, body: { line: "search", sessions: "fresh", order: [ENTRY], maxConcurrent: 1 } })).toMatchObject({ status: 200 });
+    expect(calls).toMatchObject([{ method: "PATCH", path: "/roles/worker", body: { line: "search" } }]);
+    expect(calls[0]?.body).not.toHaveProperty("sessions");
     expect(calls[0]?.body).not.toHaveProperty("order");
     expect(calls[0]?.body).not.toHaveProperty("maxConcurrent");
   });
@@ -198,12 +205,18 @@ describe("a role's agents", () => {
     calls.length = 0;
 
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { enabled: false } })).toMatchObject({ status: 200, answer: { name: "worker-01", enabled: false } });
+    // Its own settings: whether its runs keep their sessions, its threshold and whether it may be called.
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { sessions: "fresh", callable: true, foldRatio: 0.5 } })).toMatchObject({
+      status: 200,
+      answer: { sessions: "fresh", callable: true, foldRatio: 0.5 }
+    });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { prompt: "  ", bundles: ["web.read"], skills: null, keepsCache: true, position: 2 } })).toMatchObject({
       status: 200,
       answer: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true, position: 2 }
     });
     expect(calls).toMatchObject([
       { method: "PATCH", path: "/role-agents/worker-01", body: { enabled: false } },
+      { method: "PATCH", path: "/role-agents/worker-01", body: { sessions: "fresh", callable: true, foldRatio: 0.5 } },
       { method: "PATCH", path: "/role-agents/worker-01", body: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true, position: 2 } }
     ]);
   });
@@ -216,6 +229,8 @@ describe("a role's agents", () => {
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { enabled: "yes" } })).toMatchObject({ status: 400 });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { position: -1 } })).toMatchObject({ status: 400 });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { bundles: [3] } })).toMatchObject({ status: 400 });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { sessions: "sometimes" } })).toMatchObject({ status: 400 });
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { callable: "yes" } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);
   });
 

@@ -12,13 +12,13 @@ import type { TodoModelPlan } from "../../../apps/web/shared/types";
 
 const ENTRY = { provider: "deepseek", model: "deepseek-flash", effort: null, thinking: null, answerTokens: null };
 const AGENT = (name: string, provider: string, model: string, position: number) => ({
-  ...ENTRY, name, role: "worker", provider, model, enabled: true, position, keepsCache: false, foldRatio: null, prompt: null, bundles: null, skills: null,
+  ...ENTRY, name, role: "worker", provider, model, enabled: true, position, keepsCache: false, sessions: "keep", callable: false, foldRatio: null, prompt: null, bundles: null, skills: null,
   followsSupervisor: false, carries: false
 });
 const ROLE = {
   name: "worker", code: "worker", label: "Worker", prompt: null, description: null, bundles: [], line: "worker",
   agents: [AGENT("worker-01", "deepseek", "deepseek-flash", 1), AGENT("worker-02", "claude-code", "claude-opus-5-5", 2)],
-  maxConcurrent: 2, sessions: "keep", foldRatio: 0.85, callable: false, followsSupervisor: false, running: 1, waiting: 0, provider: "deepseek" as string | null, waitingFor: null
+  maxConcurrent: 2, followsSupervisor: false, running: 1, waiting: 0, provider: "deepseek" as string | null, waitingFor: null
 };
 const REPOSITORY = (name: string, pin: { provider: string; model: string } | null) => ({
   name, label: null, icon: null, ownerAccount: null, path: `/srv/${name}`, nodeName: null, supportCount: 0, prefixDocuments: [], preamble: null,

@@ -2760,14 +2760,19 @@ Two ways, split because the running places differ.
 
 ### Agent management screen
 
+- **Its name on the screen is 에이전시.** The sidebar, the title bar and every sentence that names the screen
+  call it so.
 - **What it is for.** The two axes the agency runs work on and the places it runs it (the agency's
-  `docs/agents.md`, 「Two axes」): the supervisors, the roles and the repositories, and the two things a provider order
+  `docs/agents.md`, 「Two axes」): the roles, the agents — the supervisors and the agents of the roles — and the
+  repositories, and the two things a provider order
   may name of the deployment's own, the registered models and the model files. Everything this screen edits is
   written through the agency's routes; the console keeps none of it.
 - **A section to a tab.** A tab stands only where the reader may read its part, and its 추가 and its row
-  changes stand only where they may write it (「Access」). The tabs are 감독관, 역할, 저장소, 등록 모델 and 모델 파일, keyed in the address as
-  `?tab=supervisors`, `roles`, `repositories`, `models` and `model-files`, so a shared link opens the same section and
-  moving between tabs is a step of the history; a key that names no tab opens 감독관. The tab row stands under the
+  changes stand only where they may write it (「Access」). The tabs are 역할, 에이전트, 저장소, 등록 모델 and 모델 파일, keyed in the address as
+  `?tab=roles`, `supervisors`, `repositories`, `models` and `model-files`, so a shared link opens the same section and
+  moving between tabs is a step of the history; a key that names no tab opens 역할. The 에이전트 tab keeps the key and
+  the access section it stood under as the supervisors' tab; it holds every agent, the supervisors' table first and
+  the table of the roles' agents under it (「에이전트」 below). The tab row stands under the
   title bar and carries, at its right end, the open section's own 추가, the settings search and the one button that
   reads every section again, which spins while it reads. The title bar keeps only what every page carries, and no
   section repeats its tab's name as a title of its own.
@@ -2886,7 +2891,10 @@ Two ways, split because the running places differ.
   order and its share, a pinned model and its sampling — stand together, one gap apart, and groups stand one larger
   gap apart.
 
-#### 감독관
+#### 에이전트
+
+The tab holds every agent of the screen: the supervisors, which answer rooms, and the agents of the roles, each
+a seat of its role.
 
 - **One table of every supervisor** (the agency's `docs/supervisors.md`), one row each in the order the agency lists
   them: 감독관, its mark, its label and its name, the title column; 공급자 순서, its order (above); 지금, its active
@@ -2973,52 +2981,57 @@ Two ways, split because the running places differ.
   a list still names is not taken away, and the refusal says to take it out of the lists first.
 - **A read that fails** says so with a reread in that table's place, and the other tables stand.
 
+- **Under the supervisors stands one table of the roles' agents** (the agency's `docs/role-agents.md`), headed
+  에이전트, one row an agent in its role's order — the roles in the agency's order, each role's agents in the order
+  a run looks for a free one — read from `GET /roles` and read again every few seconds while the tab stands:
+  - 에이전트, its name, with a dot lit while it carries a run and its name muted while it is switched off;
+    역할, its role; 공급자 · 모델, its road — its provider's word, its model and its effort — or 요청한 감독관을 따름
+    for an agent that names no road;
+  - **its own settings, each a cell that saves it** through `PATCH /role-agents/{name}`: 세션, 유지 or 새로,
+    whether its runs keep their sessions; 압축 기준, a whole percent from 1 to 100, the one its provider declares
+    standing marked `(기본값)` where the agent sets none, and a dash for an agent that names no road and sets
+    none; 코워커, a switch, whether a run of another role may call it; 캐시 유지, a switch, whether its last
+    kept session is pinged before its cache cools; and 사용, the switch that turns it on and off.
+  - **Pressing an agent's name opens its role's agents,** a dialog titled with the role (「역할」 above gives the
+    role its preset): one block per agent of that role, in order, saved as each is changed.
+    - **A block's head:** a switch that turns the agent on and off; its place; its name; 실행 중 while it carries a
+      run; the buttons moving it up and down, which send each agent whose place changed its new one; and its
+      removal, which stands disabled while it carries a run.
+    - **Its road under them:** 공급자, a choice of 요청한 감독관을 따름 — no road — and every provider whose program
+      carries the role's line; and, under a provider, 모델, what `GET /provider-models/{provider}` answers for it,
+      and 강도, the levels that model takes, standing only where it takes any. A provider picked stands on the first
+      model its catalogue serves; 요청한 감독관을 따름 clears the road whole.
+    - **역할 위에 덮어쓰기, folded,** with the count of what it lays over where it lays any, each item on its own:
+      시스템 프롬프트, which then stands in place of the role's; 기능 묶음, a choice of several among the bundles the
+      agency declares; and 스킬, names set apart by commas, each a skill a plugin of the agency's release carries.
+      Each left empty is the role's own, whatever the others hold. Above them stands 캐시 유지, the same switch the
+      table holds.
+    - **에이전트 추가** under the list adds one in the last place, on the road of the role's last agent.
+  - **에이전트 추가 at the table's head** offers every role; the one picked is given one more agent in its last
+    place, on the road of its last agent, through `POST /role-agents`, and that role's agents open.
+  - **삭제** stands in each row's more-menu, asked first in a dialog naming the agent, and stands disabled while
+    the agent carries a run, its tooltip saying so.
+  - A change the agency refuses says the pack's sentence for its code, or the agency's own, in the cell or
+    under the table, and the table stands as it was.
+
 #### 역할
 
-- **One table of the roles the agency holds** (the agency's `docs/agent-roles.md`, 「A role's label」), one row each in
-  the order the agency lists them, read from its `GET /roles`: 역할, its name alone — the kebab-case key the agency
-  holds it under, never a translated word and never the row's label — the title column; 기능 묶음, the bundles it gives as chips,
-  each by the pack's short name for its code and by the agency's label where the pack holds none, or 기능 묶음 없음;
-  에이전트, its agents (below); 지금, the road its next run goes out on — the provider by the pack's word, the model
-  and the effort of the first of its agents on that provider — and, where no run goes now, why its runs wait in the
-  warning colour; 동시 실행, how many of its agents are switched on, with how many of its runs go and wait beside
-  it — `2/3 실행 · 1 대기` — and 막힘 where none is; 세션, 유지 or 새로; 압축 기준; and 코워커, whether a run may
-  call it as a co-worker. The counts are read again every few seconds while the tab stands.
-- **The 에이전트 cell lists the role's agents** (the agency's `docs/role-agents.md`), one line each in the order a
-  run looks for a free one: the agent's road — its provider's word, its model and its effort — or 요청한 감독관을
-  따름 for an agent that names no road; a dot before the line, lit while the agent carries a run; an agent
-  switched off muted and struck through. A role with no agent says 에이전트 없음 in the warning colour. Pressed,
-  the cell opens the role's dialog, where the agents are changed.
-- **The cells set their own values:** 세션 a choice of 유지 and 새로 — 유지 reading `유지 (기본값)` — 압축 기준 a
-  whole percent from 1 to 100, marked `(기본값)` as a supervisor's is, and 코워커 a switch, each through
-  `PATCH /roles/{name}`. 지금 and 동시 실행 show what the agency worked out of the role's agents and are not
-  pressed. Nothing running is stopped by any change (the agency's `docs/agent-roles.md`, 「Changing the roles」).
+- **A role is a preset** (the agency's `docs/agent-roles.md`): the prompt its runs open with, the tools its runs
+  are given and the line they go out on. What a run goes out on, how many go at once, whether a run keeps its
+  session, the share its session is folded at and whether it may be called as a co-worker are each an agent's,
+  and stand in the 에이전트 tab.
+- **One table of the roles the agency holds,** one row each in the order the agency lists them, read from its
+  `GET /roles`: 역할, its name alone — the kebab-case key the agency holds it under, never a translated word and
+  never the row's label — the title column; 실행 라인, the line its runs go out on; 기능 묶음, the bundles it gives as
+  chips, each by the pack's short name for its code and by the agency's label where the pack holds none, or 기능
+  묶음 없음; 역할 프롬프트, 있음 or 없음; and 에이전트, how many of its agents are switched on with how many of its
+  runs go and wait beside it — `2/3 실행 · 1 대기` — and 막힘 where none is. Nothing in the table is pressed but the
+  role's name and its more-menu, and the counts are read again every few seconds while the tab stands.
 - **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made,
-  and the label the agency keeps for its log as the role is added), 설명, 실행 라인 — a choice of the lines the agency names — 기능 묶음 as a checkbox for every bundle the agency
-  declares, 세션, 압축 기준, 코워커 호출 허용, and 역할 프롬프트, a text area
-  as tall as its text, which every run of the role opens with, empty for none. The save sends what changed; an
-  emptied prompt or description is cleared.
-- **에이전트 stands in the same dialog under the form,** apart from the form's one save: each change of an agent is
-  that agent's own and is saved as it is made, through `POST /role-agents`, `PATCH /role-agents/{name}` and
-  `DELETE /role-agents/{name}`. A role being added takes its agents once it stands, which the dialog says in their
-  place.
-  - **One block per agent,** in the order a run looks for a free one: a switch that turns it on and off; its place;
-    its name; 실행 중 while it carries a run; the buttons moving it up and down, which send each agent whose place
-    changed its new one; and its removal, which stands disabled while it carries a run.
-  - **Its road under them:** 공급자, a choice of 요청한 감독관을 따름 — no road — and every provider whose program
-    carries the role's line; and, under a provider, 모델, what `GET /provider-models/{provider}` answers for it, and
-    강도, the levels that model takes, standing only where it takes any. A provider picked stands on the first
-    model its catalogue serves; 요청한 감독관을 따름 clears the road whole.
-  - **역할 위에 덮어쓰기, folded,** with the count of what it lays over where it lays any: 시스템 프롬프트, which
-    then stands in place of the role's; 기능 묶음, a choice of several among the bundles the agency declares; and
-    스킬, names set apart by commas, each a skill a plugin of the agency's release carries. Each left empty is the
-    role's own. Above them stands 캐시 유지, a switch: the session the agent's last answered run kept is pinged
-    before its cache cools, on a provider that publishes a cache lifetime (the agency's
-    `docs/keepalive-schedule.md`, 「An agent's kept session」).
-  - **에이전트 추가** under the list adds one in the last place, on the road of the role's last agent, so a seat
-    more of the same kind is one press.
-  - A change the agency refuses says the pack's sentence for its code, or the agency's own, under the list, and the
-    list stands as it was.
+  and the label the agency keeps for its log as the role is added), 설명, 실행 라인 — a choice of the lines the agency
+  names — 기능 묶음 as a checkbox for every bundle the agency declares, and 역할 프롬프트, a text area as tall as its
+  text, which every run of the role opens with, empty for none. The save sends what changed; an emptied prompt or
+  description is cleared. Under the form a line says the role's agents are added and changed in the 에이전트 tab.
 - **세션 기록** stands in the same dialog under the form, read from `GET /roles/{name}/sessions`: the sessions the
   role's runs opened, newest first, one row each — the path, the provider and model with its effort, the account
   where the provider holds logins, when it opened and last answered, how many runs it carried, the context its last

@@ -5,11 +5,12 @@ import { wording } from "../../../apps/web/shared/wording";
 import { AGENT_TABS, isAgentTab, searchSettings, settingsAnchor } from "../../../apps/web/app/domain/agent-settings";
 
 describe("the sections of the agent management screen", () => {
-  test("are the supervisors, the roles, the repositories, the registered models and the model files, in that order", () => {
-    expect(AGENT_TABS.map((tab) => tab.value)).toEqual(["supervisors", "roles", "repositories", "models", "model-files"]);
+  test("are the roles, the agents, the repositories, the registered models and the model files, in that order", () => {
+    // The agents' tab keeps the section it was the supervisors' under, which the addresses and the grants name.
+    expect(AGENT_TABS.map((tab) => tab.value)).toEqual(["roles", "supervisors", "repositories", "models", "model-files"]);
     expect(AGENT_TABS.map((tab) => wording(tab.label))).toEqual([
-      wording("agents.label.tab_supervisors"),
       wording("agents.label.tab_roles"),
+      wording("agents.label.tab_supervisors"),
       wording("agents.label.tab_repositories"),
       wording("agents.label.tab_models"),
       wording("agents.label.tab_model_files")

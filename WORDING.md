@@ -67,6 +67,8 @@
   work key names (`role:`) is 역할 too; where it stands on a screen beside the agent role it is told apart as 작업 키
   역할, and the agent role keeps the bare word. A function bundle → 기능 묶음; how many of a role's runs go at once → 동시
   실행, with what goes and waits as `2/3 실행 · 1 대기` and no agent switched on as 막힘.
+- the screen where the roles, the agents, the repositories and the models are kept → 에이전시. Its tabs → 역할,
+  에이전트, 저장소, 등록 모델, 모델 파일. Never 에이전트 관리 for the screen.
 - one seat of a role, on one road → 에이전트: 에이전트, 에이전트 추가, 에이전트 없음. An agent that names no road →
   요청한 감독관을 따름; what it lays over its role's preset → 역할 위에 덮어쓰기; one that carries a run → 실행 중. Never
   자리, 인스턴스, 워커 for the seat.

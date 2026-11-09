@@ -118,9 +118,6 @@ export interface RoleView {
   order: OrderEntryView[];
   // How many of its agents are switched on: the most of its runs that go at once.
   maxConcurrent: number;
-  sessions: RoleSessions;
-  foldRatio: number;
-  callable: boolean;
   running: number;
   waiting: number;
   // The provider its next run goes out on; none where none of its agents' roads can answer now.
@@ -142,6 +139,10 @@ export interface RoleAgentView {
   enabled: boolean;
   position: number;
   keepsCache: boolean;
+  // Whether its runs keep their sessions, and whether a run of another role may call it as a co-worker.
+  sessions: RoleSessions;
+  callable: boolean;
+  // Its compaction threshold; null where the ratio its provider declares stands.
   foldRatio: number | null;
   prompt: string | null;
   bundles: string[] | null;

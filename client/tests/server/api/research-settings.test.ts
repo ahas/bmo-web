@@ -29,7 +29,12 @@ const research = standIn("RESEARCH", (call) => {
 function role(name: string, callable: boolean): Record<string, unknown> {
   return {
     name, code: name, label: name, prompt: null, description: null, bundles: [], line: "worker", order: [], quotaShare: 0.01,
-    maxConcurrent: 2, sessions: "keep", foldRatio: 0.8, callable, running: 0, waiting: 0, provider: null, waitingFor: null
+    maxConcurrent: 2, running: 0, waiting: 0, provider: null, waitingFor: null,
+    // A role is called through an agent of it that is switched on and marked callable.
+    agents: [{
+      name: `${name}-01`, role: name, provider: null, model: null, effort: null, thinking: null, answerTokens: null, enabled: true, position: 1,
+      keepsCache: false, sessions: "keep", callable, foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: true, carries: false
+    }]
   };
 }
 

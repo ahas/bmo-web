@@ -96,7 +96,7 @@ describe.skipIf(!origin || !touchReady())("the designated agents' names", () => 
       const page = await context.newPage();
 
       try {
-        await page.goto(`${origin}/agents`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "domcontentloaded" });
 
         // The agents table, where the designated branch stands first, names the agent by its own label. On a phone the
         // general tab stacks its sections, so the table is brought into view before it is read.

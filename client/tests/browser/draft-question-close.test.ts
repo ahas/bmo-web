@@ -44,7 +44,7 @@ describe.skipIf(!origin || !touchReady())("a draft question's box", () => {
     try {
       const page = await context.newPage();
 
-      await page.goto(`${origin}/agents`, { waitUntil: "load" });
+      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
 
       const cell = page.locator("[data-draft-questions]").getByRole("button", { name: new RegExp(QUESTION.name) });
 

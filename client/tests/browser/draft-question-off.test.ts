@@ -59,7 +59,7 @@ describe.skipIf(!origin || !touchReady())("a draft process row's list", () => {
     try {
       const page = await context.newPage();
 
-      await page.goto(`${origin}/agents`, { waitUntil: "load" });
+      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
 
       const table = page.locator("[data-draft-processes]");
       const key = [wording("agents.label.draft_any"), wording("agents.label.draft_any"), wording("agents.label.draft_any")].join(" · ");

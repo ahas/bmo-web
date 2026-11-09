@@ -204,7 +204,7 @@ function supervisor(name: string, label: string, extra: Record<string, unknown> 
 function seats(role: string, count: number, road: [string, string, string | null] | null, carrying = 0): Record<string, unknown>[] {
   return Array.from({ length: count }, (_, index) => ({
     name: `${role}-${String(index + 1).padStart(2, "0")}`, role, provider: road?.[0] ?? null, model: road?.[1] ?? null, effort: road?.[2] ?? null, thinking: null,
-    answerTokens: null, enabled: true, position: index + 1, keepsCache: false, foldRatio: null, prompt: null, bundles: null, skills: null,
+    answerTokens: null, enabled: true, position: index + 1, keepsCache: false, sessions: "keep", callable: false, foldRatio: null, prompt: null, bundles: null, skills: null,
     followsSupervisor: road === null, carries: index < carrying
   }));
 }
@@ -217,7 +217,7 @@ function role(name: string, label: string, extra: Record<string, unknown> = {}):
   return {
     name, code: name, label, prompt: null, description: null, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }],
     line: "worker", maxConcurrent: agents.filter((one) => one.enabled === true).length, followsSupervisor: agents.length > 0 && agents.every((one) => one.provider === null),
-    sessions: "keep", foldRatio: 0.8, callable: false, running: 0, waiting: 0, provider: agents.length === 0 ? null : "claude-code", waitingFor: null, ...extra, agents
+    running: 0, waiting: 0, provider: agents.length === 0 ? null : "claude-code", waitingFor: null, ...extra, agents
   };
 }
 
@@ -247,7 +247,7 @@ const ROLES = [
   role("doppelganger", "Doppelganger", { running: 1, agents: seats("doppelganger", 2, null, 1) }),
   role("producer", "Producer", { agents: [] }),
   role("builder", "Builder", { agents: seats("builder", 8, ["claude-code", "claude-sonnet-5", "medium"]) }),
-  role("scout", "Scout", { callable: true, sessions: "fresh", agents: seats("scout", 12, ["claude-code", "claude-sonnet-5", "medium"]) }),
+  role("scout", "Scout", { agents: seats("scout", 12, ["claude-code", "claude-sonnet-5", "medium"]).map((one) => ({ ...one, callable: true, sessions: "fresh" })) }),
   role("voyager", "Voyager", { line: "search", bundles: [{ name: "web.sites", code: "web-sites", label: "Site tools" }], agents: seats("voyager", 4, ["claude-code", "claude-sonnet-5", "medium"]) })
 ];
 

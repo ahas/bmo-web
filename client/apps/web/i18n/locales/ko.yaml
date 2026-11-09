@@ -1007,7 +1007,7 @@ hardware:
 
 screens:
   label:
-    agents: 에이전트 관리
+    agents: 에이전시
     agents_group: "에이전트 · {name}"
     artifact: 아티팩트
     chat_id: 채팅 번호
@@ -1697,10 +1697,10 @@ agents:
     order_entry_remove: "{name} 제거"
     order_model_of: "{name} 모델"
     order_of: "{name} 공급자 순서"
-    agents_of: "{name} 에이전트"
     agent_enabled_of: "{name} 사용"
     agent_provider_of: "{name} 공급자"
     agent_remove: "{name} 제거"
+    agent_keeps_cache_of: "{name} 캐시 유지"
     order_thinking_of: "{name} 생각"
     room_last_run: "{room}, 실행 {n}회, 마지막 실행 {time}, 로그 열기"
     sessions_of: "{name} 세션"
@@ -1952,7 +1952,7 @@ agents:
     switch_off: 끔
     switch_on: 켬
     system_prompt_sent: 보낼 시스템 프롬프트
-    tab_supervisors: 감독관
+    tab_supervisors: 에이전트
     think_off: 생각 끔
     think_on: 생각 켬
     thinking: 생각
@@ -1987,10 +1987,8 @@ agents:
     worker_label: 이름표
     tab_roles: 역할
     column_bundles: 기능 묶음
-    column_max_concurrent: 동시 실행
     find_role: "역할 {name}"
     role_prompt: 역할 프롬프트
-    callable: 코워커 호출 허용
     card_service: 카드 서비스
     checkouts_value: "추가지원 {support} · {held}/{all} 사용 중"
     column_callable: 코워커
@@ -2028,6 +2026,11 @@ agents:
     agent_follows: 요청한 감독관을 따름
     agent_carries: 실행 중
     agent_keeps_cache: 캐시 유지
+    column_agent: 에이전트
+    column_road: 공급자 · 모델
+    column_enabled: 사용
+    role_prompt_set: 있음
+    role_prompt_none: 없음
     agent_keeps_cache_hint: 마지막으로 답한 세션을 캐시가 식기 전에 데웁니다. 캐시 수명을 공개하는 공급자에서만 동작합니다.
     agent_overrides: 역할 위에 덮어쓰기
     agent_overrides_n: "역할 위에 덮어쓰기 · {n}"
@@ -2075,7 +2078,8 @@ agents:
     use_model_confirm: "{engine} 엔진에 {model} 모델을 로드할까요?"
     use_model_moves: "다운로드·확인·설치를 마치고 엔진이 다시 시작될 때까지 {registration} 등록 모델은 응답하지 않습니다."
     role_delete_confirm: 이 역할을 삭제할까요?
-    agents_after_add: 에이전트는 역할을 추가한 뒤에 넣습니다.
+    agents_in_tab: 이 역할의 에이전트는 에이전트 탭에서 추가하고 바꿉니다.
+    agent_delete_confirm: 이 에이전트를 삭제할까요?
     document_to_file: 저장하면 파일 내용으로 돌아갑니다.
     pin_waits: 고정 모델이 응답할 수 없으면 이 저장소의 작업이 기다립니다.
     repository_delete_confirm: 이 저장소를 삭제할까요?
@@ -2135,6 +2139,7 @@ agents:
     vitals_loading: 에이전트 수치 불러오는 중…
     no_roles: 역할 없음
     agents_none: 에이전트 없음
+    agent_in_use: 실행 중이라 삭제할 수 없습니다.
     roles_loading: 역할 불러오는 중…
     catalogue_loading: 모델 파일 불러오는 중…
     no_node_checkouts: 노드 체크아웃 없음
@@ -2174,6 +2179,7 @@ agents:
     work_result: 결과
     work_stages: 진행 단계
     role_add: 역할 추가
+    role_agents_of: "{name} 에이전트"
 gates:
   label:
     classifier: 참조 분류기

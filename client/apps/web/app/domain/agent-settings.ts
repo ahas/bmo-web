@@ -8,8 +8,8 @@ import type { Translate } from "#shared/wording";
 // the agency runs work on, the places it runs it, and the two things a provider order may name of the deployment's
 // own. The tab stands in the address, so a shared link opens the same section; the first is the screen's own address.
 export const AGENT_TABS = [
-  { value: "supervisors", label: "agents.label.tab_supervisors", icon: "i-material-symbols-supervisor-account" },
   { value: "roles", label: "agents.label.tab_roles", icon: "i-material-symbols-badge-outline" },
+  { value: "supervisors", label: "agents.label.tab_supervisors", icon: "i-material-symbols-supervisor-account" },
   { value: "repositories", label: "agents.label.tab_repositories", icon: "i-material-symbols-folder-outline" },
   { value: "models", label: "agents.label.tab_models", icon: "i-material-symbols-model-training" },
   { value: "model-files", label: "agents.label.tab_model_files", icon: "i-material-symbols-deployed-code-outline" }

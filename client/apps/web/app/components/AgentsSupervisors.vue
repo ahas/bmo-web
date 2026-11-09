@@ -34,7 +34,7 @@
 
     <!-- The tab's body scrolls up and down around every table of the tab; each table scrolls sideways in its own box,
          and the screen holds its head at the body's top while its rows pass under it. -->
-    <SettingsTable v-if="supervisors !== undefined && supervisors.length > 0" :data="supervisors" :columns="columns" :row-key="(row: SupervisorView) => row.name">
+    <SettingsTable v-if="supervisors !== undefined && supervisors.length > 0" data-supervisors-table :data="supervisors" :columns="columns" :row-key="(row: SupervisorView) => row.name">
       <template #supervisor-cell="{ row }">
         <NuxtLink
           :id="settingsAnchor(`supervisor-${row.original.name}`)"
@@ -134,6 +134,9 @@
     </SettingsTable>
 
     <p v-if="removeFailed !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ removeFailed }}</p>
+
+    <!-- The agents of the roles stand under the supervisors: every agent of the screen in the one tab. -->
+    <AgentsRoleAgents class="mt-6" :query="props.query" :readonly="props.readonly" />
 
     <AgentsDraftProcesses class="mt-6" :query="props.query" :readonly="props.readonly" />
 

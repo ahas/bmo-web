@@ -39,30 +39,6 @@
           </div>
         </UFormField>
 
-        <!-- Short fields side by side, each as wide as the values it takes. -->
-        <div class="flex flex-wrap items-start gap-4">
-          <UFormField :label="$t('agents.label.column_sessions')" name="sessions" :error="errorAt('sessions')">
-            <USelect v-model="form.sessions" :items="sessionItems" value-key="value" class="w-40" :disabled="busy" :aria-label="$t('agents.label.column_sessions')" />
-          </UFormField>
-          <UFormField :label="$t('agents.label.column_threshold')" name="foldRatio" :error="errorAt('foldRatio')">
-            <NumberInput
-              v-model="form.threshold"
-              :min="1"
-              :max="100"
-              :step="1"
-              :digits="3"
-              :unit="markedDefault($t, '%', isDefaultThreshold(form.threshold, firstThreshold))"
-              :placeholder="firstThreshold === null ? undefined : markedDefault($t, String(percentOf(firstThreshold)), true)"
-              :disabled="busy"
-              :aria-label="$t('agents.label.column_threshold')"
-            />
-          </UFormField>
-        </div>
-
-        <UFormField name="callable" :error="errorAt('callable')">
-          <USwitch v-model="form.callable" :label="$t('agents.label.callable')" :disabled="busy" />
-        </UFormField>
-
         <!-- The prompt every run of the role opens with grows with what it holds, and the dialog's body scrolls. -->
         <UFormField :label="$t('agents.label.role_prompt')" name="prompt" :error="errorAt('prompt')">
           <GrowingTextarea v-model="form.prompt" :rows="6" class="font-mono" :ui="{ base: 'text-sm' }" :disabled="busy" :aria-label="$t('agents.label.role_prompt')" />
@@ -71,13 +47,8 @@
         <p v-if="errorAt('form') !== undefined" role="alert" class="break-words text-sm text-error">{{ errorAt("form") }}</p>
       </form>
 
-      <!-- Its agents, each saved as it is changed, apart from the form's one save; a role being added takes its
-           agents once it stands. -->
-      <section v-if="role !== null" class="flex min-w-0 flex-col gap-2" :aria-label="$t('agents.label.role_agents')">
-        <h3 class="text-sm font-medium text-highlighted">{{ $t("agents.label.role_agents") }}</h3>
-        <RoleAgentsField :model-value="role.agents" :role="role.name" :line="role.line" :bundles="bundleItems" :disabled="busy" @update:model-value="seated" @changed="() => void refresh()" />
-      </section>
-      <p v-else-if="adding" class="text-sm text-muted">{{ $t("agents.message.agents_after_add") }}</p>
+      <!-- A role is a preset: its agents, each a seat of it, are added and changed in the agents tab. -->
+      <p class="text-sm text-muted">{{ $t("agents.message.agents_in_tab") }}</p>
 
       <RoleSessionHistory v-if="!adding && props.name !== null" :role="props.name" />
     </div>
@@ -90,9 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { DEFAULT_ROLE_SESSIONS, defaultThreshold, fractionOf, isDefaultThreshold, markedDefault, percentOf, refusalOf, sessionsText, useProviders } from "~/domain/axes";
+import { refusalOf } from "~/domain/axes";
 
-import type { RoleAgentView, RoleSessions, RolesView, RoleView } from "#shared/axes";
+import type { RolesView, RoleView } from "#shared/axes";
 
 interface Props {
   // The role to edit; none opens the dialog for a new role.
@@ -104,7 +75,6 @@ const open = defineModel<boolean>("open", { required: true });
 const emit = defineEmits<{ saved: [role: RoleView] }>();
 
 const { t } = useI18n();
-const { data: providers } = useProviders();
 const formId = useId();
 
 // The roles tab reads the same answer under the same key.
@@ -114,21 +84,17 @@ const adding = computed(() => props.name === null);
 const role = computed<RoleView | null>(() => (props.name === null ? null : (view.value?.roles.find((one) => one.name === props.name) ?? null)));
 const failed = ref(false);
 
-// A role's fields as the form holds them: the threshold a whole percent, empty where a new role leaves it to its first
-// agent's provider.
+// A role's fields as the form holds them.
 interface RoleForm {
   name: string;
   description: string;
   line: string;
   bundles: string[];
-  sessions: RoleSessions;
-  threshold: number | null;
-  callable: boolean;
   prompt: string;
 }
 
 function emptyForm(): RoleForm {
-  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], sessions: DEFAULT_ROLE_SESSIONS, threshold: null, callable: false, prompt: "" };
+  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], prompt: "" };
 }
 
 function formOf(held: RoleView): RoleForm {
@@ -137,16 +103,11 @@ function formOf(held: RoleView): RoleForm {
     description: held.description ?? "",
     line: held.line,
     bundles: held.bundles.map((one) => one.name),
-    sessions: held.sessions,
-    threshold: percentOf(held.foldRatio),
-    callable: held.callable,
     prompt: held.prompt ?? ""
   };
 }
 
 const form = ref<RoleForm>(emptyForm());
-// The threshold the role is given where it names none: the declared one of its first agent's provider.
-const firstThreshold = computed(() => defaultThreshold(providers.value, role.value?.order ?? []));
 const opened = ref<RoleForm>(emptyForm());
 const busy = ref(false);
 const refusal = ref<{ field: string | null; text: string } | null>(null);
@@ -159,20 +120,7 @@ const lineItems = computed(() => {
 
   return (form.value.line === "" || lines.includes(form.value.line) ? lines : [form.value.line, ...lines]).map((line) => ({ label: line, value: line }));
 });
-const sessionItems = computed(() => (["keep", "fresh"] as const).map((value) => ({ label: sessionsText(t, value), value })));
-
-const bundleItems = computed(() => (view.value?.bundles ?? []).map((one) => ({ label: one.label, value: one.name })));
-
-// The role's agents as the field answered them, so the list stands at once and the tab's next read agrees.
-function seated(agents: RoleAgentView[]): void {
-  if (!view.value || role.value === null) return;
-
-  const name = role.value.name;
-
-  view.value = { ...view.value, roles: view.value.roles.map((one) => (one.name === name ? { ...one, agents } : one)) };
-}
-
-const FIELDS = ["name", "label", "description", "line", "bundles", "sessions", "foldRatio", "callable", "prompt"];
+const FIELDS = ["name", "label", "description", "line", "bundles", "prompt"];
 
 function errorAt(place: string): string | undefined {
   if (refusal.value === null) return undefined;
@@ -228,9 +176,6 @@ function body(): Record<string, unknown> {
   if (changed("description") && (!adding.value || now.description.trim() !== "")) sent.description = now.description.trim() === "" ? null : now.description;
   if (changed("line")) sent.line = now.line;
   if (changed("bundles")) sent.bundles = now.bundles;
-  if (changed("sessions")) sent.sessions = now.sessions;
-  if (changed("threshold") && now.threshold !== null) sent.foldRatio = fractionOf(now.threshold);
-  if (changed("callable")) sent.callable = now.callable;
   if (changed("prompt") && (!adding.value || now.prompt.trim() !== "")) sent.prompt = now.prompt.trim() === "" ? null : now.prompt;
 
   return sent;

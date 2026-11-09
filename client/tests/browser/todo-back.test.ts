@@ -181,7 +181,7 @@ async function visit(page: Page, path: string): Promise<void> {
   await page.goto(`${origin}${path}`, { waitUntil: "load" });
   await page.waitForFunction(
     () => {
-      const app = (window as unknown as { useNuxtApp?: () => { $router?: unknown; isHydrating?: boolean } }).useNuxtApp?.();
+      const app = window.useNuxtApp?.();
 
       return app?.$router !== undefined && app.isHydrating !== true;
     },
@@ -192,7 +192,9 @@ async function visit(page: Page, path: string): Promise<void> {
 
 // A link inside the console naming the item, as an item's number or a notification is.
 async function follow(page: Page): Promise<void> {
-  await page.evaluate((id) => (window as unknown as { useNuxtApp: () => { $router: { push: (to: unknown) => Promise<unknown> } } }).useNuxtApp().$router.push({ query: { todo: String(id) } }), ITEM);
+  await page.evaluate(async (id) => {
+    await window.useNuxtApp?.().$router.push({ query: { todo: String(id) } });
+  }, ITEM);
 }
 
 describe.skipIf(!origin || !touchReady())("the back gesture over the TODO drawer on a phone", () => {

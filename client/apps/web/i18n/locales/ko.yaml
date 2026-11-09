@@ -1796,6 +1796,7 @@ agents:
     supervisor_unknown: "감독관 {supervisor}이(가) 없습니다."
     word_empty: 메시지를 입력해 주세요.
     role_delete_refused: 실행 중이거나 대기 중인 실행이 있거나 정책이 정한 역할이라 삭제하지 못했습니다.
+    role_agent_refused: 실행 중인 에이전트이거나 이미 있는 이름입니다
     roles_read_failed: 역할을 불러오지 못했습니다.
     accounts_read_failed: Claude 계정을 불러오지 못했습니다.
     provider_models_read_failed: 공급자의 모델 목록을 불러오지 못했습니다.

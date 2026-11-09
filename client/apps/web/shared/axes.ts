@@ -111,19 +111,45 @@ export interface RoleView {
   prompt: string | null;
   bundles: RoleBundleView[];
   line: string;
+  // Its agents, in the order a run looks for a free one (the agency's `docs/role-agents.md`): each a seat of the
+  // role on one road.
+  agents: RoleAgentView[];
+  // The roads its runs go out on, read off its agents that are switched on, each once.
   order: OrderEntryView[];
-  quotaShare: number;
-  // The provider the owner forced, or none where its order chooses.
-  active: ActiveProviderView | null;
+  // How many of its agents are switched on: the most of its runs that go at once.
   maxConcurrent: number;
   sessions: RoleSessions;
   foldRatio: number;
   callable: boolean;
   running: number;
   waiting: number;
-  // Its active provider: the forced one, else its order's choice; none where it cannot answer now.
+  // The provider its next run goes out on; none where none of its agents' roads can answer now.
   provider: string | null;
   waitingFor: string | null;
+}
+
+// One agent of a role (the agency's `docs/role-agents.md`, 「What an agent row holds」): its road, a provider and a
+// model or neither, whether it is switched on, its place among its role's, and what it lays over its role's preset,
+// each null where the role's own stands.
+export interface RoleAgentView {
+  name: string;
+  role: string;
+  provider: string | null;
+  model: string | null;
+  effort: string | null;
+  thinking: string | null;
+  answerTokens: number | null;
+  enabled: boolean;
+  position: number;
+  keepsCache: boolean;
+  foldRatio: number | null;
+  prompt: string | null;
+  bundles: string[] | null;
+  skills: string[] | null;
+  // Whether it names no road, so its runs follow the supervisor that asks them.
+  followsSupervisor: boolean;
+  // Whether a run stands let in on it now.
+  carries: boolean;
 }
 
 // Every role in the agency's order, every bundle a role may give and every line a role may name.

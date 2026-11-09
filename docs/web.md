@@ -4834,11 +4834,18 @@ Four bounds keep it from growing forever.
     every call it has made so far, each with what it was about as the agent's log keeps it. Nothing on the list is
     cut on a line, and nothing of it scrolls in a box of its own: a long word, path or command wraps at the row's
     width, and the row grows by what it holds.
-  - **The turn's last thinking block opens the detail,** where the bot's picture carries one (the receiver's
-    `docs/messages.md`, 「A working turn's thinking」): the block as the run wrote it, its line breaks kept, in the
-    muted ink above the state. A newer block takes its place, a picture carrying none stands nothing there, and it
-    goes with the rest of the running block when the answer takes the row's place. Thinking is never a message of
-    the room and wears no chip or label of its own.
+  - **The turn's last thinking block stands under the detail as a two-line preview,** where the bot's picture
+    carries one (the receiver's `docs/messages.md`, 「A working turn's thinking」): the block as the run wrote it,
+    its line breaks kept, in the muted ink, under the state and under every document, brain read and call the
+    turn has made, since it is the newest thing the turn did. It stands whether the detail is spread or folded.
+    - The preview is two lines tall, one where the block is one line. It holds its head for a moment and then
+      moves slowly down the block to its end, where it rests; a newer block takes its place and starts from its
+      own head.
+    - Nothing on it is pressed or scrolled by hand, so a finger moving the conversation passes over it. A reader
+      who asked for less movement sees the block's head standing still.
+    - A picture carrying none stands nothing there, and the preview goes with the rest of the running block when
+      the answer takes the row's place. Thinking is never a message of the room and wears no chip or label of its
+      own.
   - **The state names the tool as a person calls it** — 셸, 읽기, 편집, 웹 · web_search — and never by the name the
     CLI sends; a tool the vocabulary does not carry stands under the name it came with. A phase whose stream named
     no tool says 툴 사용 중. A supervisor's turn whose engine a Job holds names the item whose Job it waits on until

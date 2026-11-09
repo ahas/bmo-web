@@ -5,7 +5,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { GENERIC_TOOL_ICON } from "../../../apps/web/app/domain/log";
-import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, progressLines, receivedLine, saidLines, subjectOf, thinkingBlock, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
+import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, progressLines, receivedLine, saidLines, subjectOf, THINKING_PREVIEW, thinkingBlock, thinkingScrollTop, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
 
 import type { AgentLogLine, AgentSummary, LiveRun, RunProgress, TurnAction } from "../../../apps/web/shared/types";
 
@@ -325,6 +325,19 @@ describe("what a running turn has written as it works", () => {
     expect(thinkingBlock({ ...progress([]), thinking: null })).toBeNull();
     expect(thinkingBlock(progress([]))).toBeNull();
     expect(thinkingBlock(null)).toBeNull();
+  });
+
+  test("the thinking preview holds its block's head, then moves down it at its pace and rests at its end", () => {
+    const { leadMs, pxPerSecond } = THINKING_PREVIEW;
+
+    expect(thinkingScrollTop(0, 200)).toBe(0);
+    expect(thinkingScrollTop(leadMs, 200)).toBe(0);
+    expect(thinkingScrollTop(leadMs + 1_000, 200)).toBe(pxPerSecond);
+    expect(thinkingScrollTop(leadMs + 3_500, 200)).toBe(pxPerSecond * 3.5);
+    expect(thinkingScrollTop(leadMs + 3_600_000, 200)).toBe(200);
+    // A block no taller than the preview has nowhere to move.
+    expect(thinkingScrollTop(leadMs + 5_000, 0)).toBe(0);
+    expect(thinkingScrollTop(leadMs + 5_000, -4)).toBe(0);
   });
 
   test("is the newest line apart from the few before it, oldest first", () => {

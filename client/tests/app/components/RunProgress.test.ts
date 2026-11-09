@@ -36,15 +36,26 @@ describe("what the block stands while a turn runs", () => {
     expect(received).toBeLessThan(reasoning);
   });
 
-  test("the run's last thinking block opens the reasoning block's detail, above the state and the calls", () => {
-    const reasoning = at("<UChatReasoning");
-    const thinking = at('<p v-if="thinking !== null" data-thinking');
+  test("the run's last thinking block stands under the detail, after the state and every call", () => {
+    const thinking = at('<ThinkingPreview v-if="thinking !== null" :text="thinking" />');
 
-    expect(thinking).toBeGreaterThan(reasoning);
-    expect(thinking).toBeLessThan(at('<p v-if="detail !== null"'));
-    expect(thinking).toBeLessThan(at("<TurnActions"));
-    expect(template).toContain("whitespace-pre-wrap");
+    expect(thinking).toBeGreaterThan(at("</UChatReasoning>"));
+    expect(thinking).toBeGreaterThan(at("<TurnActions"));
+    expect(thinking).toBeGreaterThan(at('<p v-if="detail !== null"'));
     expect(source).toContain("const thinking = computed(() => thinkingBlock(props.run.progress));");
+  });
+
+  test("the preview is two lines tall, moves by the frame, takes no finger, and stands still for less movement", async () => {
+    const preview = await Bun.file(new URL("../../../apps/web/app/components/ThinkingPreview.vue", import.meta.url)).text();
+
+    expect(preview).toContain("max-h-[2lh]");
+    expect(preview).toContain("pointer-events-none");
+    expect(preview).toContain("overflow-hidden");
+    expect(preview).toContain("whitespace-pre-wrap");
+    expect(preview).toContain("thinkingScrollTop(now - since, max)");
+    expect(preview).toContain("if (top < max) frame = requestAnimationFrame(move);");
+    expect(preview).toContain('window.matchMedia("(prefers-reduced-motion: reduce)").matches');
+    expect(preview).toContain("watch(() => props.text, () => void nextTick(start));");
   });
 
   test("what the agent writes as it works stands between what opened the turn and what it is at", () => {

@@ -51,13 +51,14 @@
         }"
       >
         <div class="flex min-w-0 flex-col gap-1">
-          <!-- The run's last thinking block, where the bot's picture carries one: as it was written, its line
-               breaks kept, a newer block taking its place (docs/web.md, the room screen's running line). -->
-          <p v-if="thinking !== null" data-thinking class="text-sm leading-(--chat-meta-line) text-muted whitespace-pre-wrap wrap-anywhere">{{ thinking }}</p>
           <p v-if="detail !== null" class="text-sm leading-(--chat-meta-line) text-muted break-keep wrap-anywhere">{{ detail }}</p>
           <TurnActions v-if="actions.length > 0" :actions="actions" :dropped="dropped" />
         </div>
       </UChatReasoning>
+
+      <!-- The run's last thinking block, where the bot's picture carries one: a two-line preview under the detail,
+           since it is the newest thing the turn did, standing whether the detail is spread or folded. -->
+      <ThinkingPreview v-if="thinking !== null" :text="thinking" />
     </ItemTip>
   </div>
 </template>

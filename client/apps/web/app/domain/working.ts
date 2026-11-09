@@ -323,13 +323,25 @@ export function turnActions(lines: readonly AgentLogLine[]): TurnAction[] {
   return actions;
 }
 
-// The last thinking block a running turn's picture carries, as its block stands it at the head of the turn's detail:
-// the block with the blank around it taken off, or null where the picture carries none (docs/web.md, the room
-// screen's running line).
+// The last thinking block a running turn's picture carries, as its block stands it under the turn's detail: the
+// block with the blank around it taken off, or null where the picture carries none (docs/web.md, the room screen's
+// running line).
 export function thinkingBlock(progress: RunProgress | null): string | null {
   const block = (progress?.thinking ?? "").trim();
 
   return block === "" ? null : block;
+}
+
+// How the thinking preview moves down its block: it holds the block's head for a moment, then moves at a pace a
+// reader follows without effort.
+export const THINKING_PREVIEW = { leadMs: 2_000, pxPerSecond: 10 } as const;
+
+// How far down its block the thinking preview stands, in pixels, `elapsedMs` after the block was put in: nothing
+// through the lead, then the pace's distance, and never past `max`, the block's height beyond the preview's own.
+export function thinkingScrollTop(elapsedMs: number, max: number): number {
+  if (max <= 0) return 0;
+
+  return Math.min(max, (Math.max(0, elapsedMs - THINKING_PREVIEW.leadMs) * THINKING_PREVIEW.pxPerSecond) / 1_000);
 }
 
 // What a running turn has written as it works, as its block stands it: the newest of its progress lines, read as the

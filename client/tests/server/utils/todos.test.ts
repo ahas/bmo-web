@@ -213,6 +213,22 @@ describe("what a row carries", () => {
     expect(await readTodoItem(9)).toMatchObject({ worker: null, model: null, ranOn: null, seconds: null, spans: [] });
   });
 
+  test("where its job's close stands, out of the two labels the close writes, and nothing where they say neither", async () => {
+    stand([
+      item(9, { state: "leased", leaseId: 4, labels: { "close-phase": "testing" } }),
+      item(10, { state: "leased", leaseId: 5, labels: { "close-phase": "waiting-live", "close-commit": "0123abcd" } }),
+      item(11, { state: "leased", leaseId: 6, labels: { "close-phase": "waiting-live" } }),
+      item(12, { labels: { "close-phase": "elsewhere", "close-commit": "0123abcd" } }),
+      item(13)
+    ]);
+
+    expect((await readTodoItem(9))?.closing).toEqual({ phase: "testing", commit: null });
+    expect((await readTodoItem(10))?.closing).toEqual({ phase: "waiting-live", commit: "0123abcd" });
+    expect((await readTodoItem(11))?.closing).toEqual({ phase: "waiting-live", commit: null });
+    expect((await readTodoItem(12))?.closing).toBeNull();
+    expect((await readTodoItem(13))?.closing).toBeNull();
+  });
+
   test("the words added to an item are its notes, oldest first", async () => {
     stand([item(9)]);
     held.notes.set(9, [{ id: 3, itemId: 9, actorName: "owner", text: "also this", createdAt: 1_790_000_000_000, labels: {} }]);

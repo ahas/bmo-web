@@ -710,6 +710,10 @@ export interface TodoItem {
   waiting: { what: string; target: WaitTarget; until: number } | null;
   // Whether a backlog deployment holding the queue is waiting for this item's job to end.
   deployWaits: boolean;
+  // Where the job's close stands, as bmo-job's close writes it on the item (its docs/cli.md, 「`bmo-job job
+  // close`」): its check and suite under way, or its commit handed over and waiting to go live, with that commit.
+  // Null where the item's labels say neither.
+  closing: { phase: "testing" | "waiting-live"; commit: string | null } | null;
   // Held while a run of it still goes: the item reads as waiting to stop and stays in the queue until the
   // run has ended (bmo-job's docs/work-orders.md).
   holdPending: boolean;

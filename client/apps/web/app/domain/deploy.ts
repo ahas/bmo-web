@@ -1,7 +1,7 @@
 import { countText } from "./numbers";
 import { formatClock, spanClock } from "bmo-ui/app/domain/time";
 
-import type { DeployCommit, DeployHold, DeployRunView, DeployView } from "#shared/types";
+import type { DeployCommit, DeployHold, DeployRunView, DeployView, TodoItem } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { DeployPart, DeployStage, DeployStep, DeployStepAhead } from "#shared/deploy-progress";
 
@@ -257,35 +257,65 @@ export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease:
   return null;
 }
 
-/** What a TODO row says beside its state while the deployment the title bar reads carries the item. */
-export type ItemDeployPhase = "testing" | "deploying";
+/** What a TODO row says beside its state of where the item's work stands on its way live. */
+export type ItemDeployPhase = "testing" | "waiting-live" | "deploying" | "deploy-failed";
 
 export const ITEM_DEPLOY_LABELS: Record<ItemDeployPhase, string> = {
   testing: "todo.label.deploy_testing",
+  "waiting-live": "todo.label.deploy_waiting_live",
   deploying: "todo.label.deploy_deploying",
+  "deploy-failed": "todo.label.deploy_failed",
 };
+
+/** What of an item its way live is read from. */
+export type ItemOnItsWayLive = Pick<TodoItem, "id" | "done" | "liveState" | "closing">;
 
 const ITEM_MENTION = /#(\d+)/g;
 
-// Whether a carried commit names the item: the item its record names, or a `#NNNN` in its subject.
-function commitNames(commit: DeployCommit, itemId: number): boolean {
-  return commit.todoId === itemId || [...commit.subject.matchAll(ITEM_MENTION)].some((match) => Number(match[1]) === itemId);
+// The fewest letters of a commit two names of it are compared by.
+const COMMIT_LETTERS = 7;
+
+// Whether two names of a commit, either of them shortened, name the same one.
+function sameCommit(one: string, other: string): boolean {
+  if (one.length < COMMIT_LETTERS || other.length < COMMIT_LETTERS) return false;
+
+  return one.startsWith(other) || other.startsWith(one);
+}
+
+// Whether a carried commit names the item: the item its record names, a `#NNNN` in its subject, or the commit
+// the item's close handed over.
+function commitNames(commit: DeployCommit, item: ItemOnItsWayLive): boolean {
+  if (commit.todoId === item.id || [...commit.subject.matchAll(ITEM_MENTION)].some((match) => Number(match[1]) === item.id)) return true;
+
+  return item.closing?.commit != null && sameCommit(commit.commit, item.closing.commit);
 }
 
 /**
- * Where the deployment the title bar reads stands for one item (docs/web.md, the TODO panel's section): a run under
- * way one of whose carried commits names the item is testing while its check stage is under way — or before its
- * first stage, where the plan opens with the check — and deploying through every later stage until it ends. None
- * where no run under way carries the item.
+ * Where one item's work stands on its way live (docs/web.md, the TODO panel's section). A deployment under way one
+ * of whose carried commits names the item is testing while its check stage is under way — or before its first
+ * stage, where the plan opens with the check — and deploying through every later stage. Else the item's own close
+ * says it: testing while a job of the item runs its close, waiting to go live once the close handed its commit
+ * over and no job of the item runs, and failed where the run the title bar reads carried that commit and ended
+ * failed or rolled back. None for a finished item, or one that says neither.
  */
-export function itemDeployPhase(view: DeployView | null | undefined, itemId: number): ItemDeployPhase | null {
+export function itemDeployPhase(view: DeployView | null | undefined, item: ItemOnItsWayLive): ItemDeployPhase | null {
+  if (item.done) return null;
+
   const run = view?.run ?? null;
+  const carried = run !== null && run.carried.some((commit) => commitNames(commit, item));
 
-  if (run === null || run.phase !== "running" || !run.carried.some((commit) => commitNames(commit, itemId))) return null;
+  if (run !== null && carried && run.phase === "running") {
+    const stage = currentStage(run);
 
-  const stage = currentStage(run);
+    if (stage === null) return run.plan[0] === "check" ? "testing" : "deploying";
 
-  if (stage === null) return run.plan[0] === "check" ? "testing" : "deploying";
+    return stage === "check" ? "testing" : "deploying";
+  }
 
-  return stage === "check" ? "testing" : "deploying";
+  const running = item.liveState != null;
+
+  if (item.closing?.phase === "testing") return running ? "testing" : null;
+  if (item.closing?.phase !== "waiting-live" || running) return null;
+
+  return carried && (run?.outcome === "failed" || run?.outcome === "rolled-back") ? "deploy-failed" : "waiting-live";
 }

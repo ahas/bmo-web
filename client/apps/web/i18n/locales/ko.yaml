@@ -1238,7 +1238,9 @@ todo:
     deploy_hold_breaks: 스키마 변경
     deploy_hold_jobs: 기다리는 Job
     deploy_deploying: 배포 중
+    deploy_failed: 배포 실패
     deploy_testing: 테스트 중
+    deploy_waiting_live: 배포 대기
     deploy_waits: 이 Job이 끝나면 배포가 올라감
     detail_description: 지시와 기록
     discussion: 의논

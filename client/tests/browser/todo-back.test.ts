@@ -94,7 +94,7 @@ function item(over: Partial<TodoItem> = {}): TodoItem {
     stopped: null,
     holding: null,
     waiting: null,
-    deployWaits: false,
+    deployWaits: false, closing: null,
     holdPending: false,
     orderActive: false,
     seconds: null,

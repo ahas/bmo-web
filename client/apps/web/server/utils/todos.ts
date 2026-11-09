@@ -126,6 +126,16 @@ function listOf(item: Item): "queue" | "pending" | "held" | "done" {
 
 // The model an item was filed to run on, from the `model` label the chat agent files with it: null where it pins none,
 // the label reading `auto`, and the model named otherwise (docs/web.md, the TODO panel's section).
+// Where the item's close stands, out of the two labels bmo-job's close writes (its docs/cli.md, 「`bmo-job job
+// close`」); none where the phase label is absent or says anything else.
+function closingOf(labels: Record<string, string>): TodoItem["closing"] {
+  const phase = labels["close-phase"];
+
+  if (phase !== "testing" && phase !== "waiting-live") return null;
+
+  return { phase, commit: (labels["close-commit"] ?? "").trim() || null };
+}
+
 function pinnedModel(labels: Record<string, string>): string | null {
   const named = (labels.model ?? "").trim();
 
@@ -166,6 +176,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     holding: null,
     waiting: null,
     deployWaits: false,
+    closing: closingOf(item.labels),
     // A held item with a stop note stands in front of a job that is still winding down until that job ends.
     holdPending: stopped && liveState !== null,
     orderActive: false,

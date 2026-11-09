@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 
 import { deployMarkOf, ENDING_SHOWN_MS, holdLimit, holdWaits, itemDeployPhase, stageRows, stageSpans, stepLabel } from "../../../apps/web/app/domain/deploy";
+import type { ItemOnItsWayLive } from "../../../apps/web/app/domain/deploy";
 
 import type { DeployRunView, DeployView } from "../../../apps/web/shared/types";
 import type { DeployStep } from "../../../apps/web/shared/deploy-progress";
@@ -177,31 +178,69 @@ describe("the deployment mark", () => {
   });
 });
 
-// What a TODO row says beside its state while the deployment the title bar reads carries its item (docs/web.md, the TODO
+// What a TODO row says beside its state of where its item's work stands on its way live (docs/web.md, the TODO
 // panel's section).
-describe("an item a deployment carries", () => {
+describe("an item on its way live", () => {
   const carried = [
     { commit: "a".repeat(40), subject: "Fix the panel (#1201)", todoId: null },
-    { commit: "b".repeat(40), subject: "Fold two things", todoId: 1202 }
+    { commit: "b".repeat(40), subject: "Fold two things", todoId: 1202 },
+    { commit: "c".repeat(40), subject: "Name no item", todoId: null }
   ];
+  const item = (id: number, over: Partial<ItemOnItsWayLive> = {}): ItemOnItsWayLive => ({ id, done: false, liveState: null, closing: null, ...over });
+  const waiting = (commit: string | null): ItemOnItsWayLive["closing"] => ({ phase: "waiting-live", commit });
 
   test("is being tested while the check stage is under way, and before the first stage of a plan that opens with it", () => {
     const testing = view({ run: run({ carried, stages: [{ stage: "check", at: NOW - 1_000 }] }) });
 
-    expect(itemDeployPhase(testing, 1201)).toBe("testing");
-    expect(itemDeployPhase(testing, 1202)).toBe("testing");
-    expect(itemDeployPhase(view({ run: run({ carried, plan: ["check", "build"], stages: [] }) }), 1201)).toBe("testing");
+    expect(itemDeployPhase(testing, item(1201))).toBe("testing");
+    expect(itemDeployPhase(testing, item(1202))).toBe("testing");
+    expect(itemDeployPhase(view({ run: run({ carried, plan: ["check", "build"], stages: [] }) }), item(1201))).toBe("testing");
   });
 
   test("is being put live through every later stage until the run ends", () => {
-    expect(itemDeployPhase(view({ run: run({ carried }) }), 1201)).toBe("deploying");
-    expect(itemDeployPhase(view({ run: run({ carried, stages: [{ stage: "restart", at: NOW }] }) }), 1202)).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1201))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ carried, stages: [{ stage: "restart", at: NOW }] }) }), item(1202))).toBe("deploying");
   });
 
-  test("says nothing of an item no commit names, of a run that ended, or with no run", () => {
-    expect(itemDeployPhase(view({ run: run({ carried }) }), 1203)).toBeNull();
-    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "live" }) }), 1201)).toBeNull();
-    expect(itemDeployPhase(view(), 1201)).toBeNull();
-    expect(itemDeployPhase(null, 1201)).toBeNull();
+  test("is carried by a run whose commit is the one its close handed over, named whole or shortened", () => {
+    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("c".repeat(12)) }))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("d".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("ccc") }))).toBe("waiting-live");
+  });
+
+  test("is being tested while a job of it runs its close, and says nothing of a close no job runs", () => {
+    const closing: ItemOnItsWayLive["closing"] = { phase: "testing", commit: null };
+
+    expect(itemDeployPhase(view(), item(1203, { closing, liveState: "running" }))).toBe("testing");
+    expect(itemDeployPhase(null, item(1203, { closing, liveState: "running" }))).toBe("testing");
+    expect(itemDeployPhase(view(), item(1203, { closing }))).toBeNull();
+  });
+
+  test("waits to go live once its close handed its commit over and no job of it runs", () => {
+    expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view(), item(1203, { closing: waiting(null) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "live" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+  });
+
+  test("says its deployment failed where the run that carried its commit ended failed or rolled back", () => {
+    const failed = view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "failed" }) });
+    const rolledBack = view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "rolled-back" }) });
+
+    expect(itemDeployPhase(failed, item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploy-failed");
+    expect(itemDeployPhase(rolledBack, item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploy-failed");
+    expect(itemDeployPhase(failed, item(1203, { closing: waiting("d".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(failed, item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "stopped" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
+  });
+
+  test("says nothing of an item no commit names, of a run that ended, of a finished item, or with no run", () => {
+    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1204))).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "live" }) }), item(1201))).toBeNull();
+    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1201, { done: true }))).toBeNull();
+    expect(itemDeployPhase(view(), item(1201, { done: true, closing: waiting("c".repeat(40)) }))).toBeNull();
+    expect(itemDeployPhase(view(), item(1201))).toBeNull();
+    expect(itemDeployPhase(null, item(1201))).toBeNull();
   });
 });

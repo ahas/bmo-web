@@ -395,6 +395,17 @@ describe("the block a room shows while the chat agent is answering it", () => {
 
       expect(screen.run()?.progress?.actions.map((action) => action.name)).toEqual(["Bash"]);
       expect(screen.run()?.progress?.droppedActions).toBe(3);
+
+      // The lines the round wrote stand through a picture that has written none, as a later question's first is,
+      // and give way to a picture's own lines.
+      screen.write("bot", botEvent({ type: "run-progress", progress: { ...progress([]), said: [{ text: "looking it up", before: 0 }] } }));
+      screen.write("bot", botEvent({ type: "run-progress", progress: { ...progress([]), said: [] } }));
+
+      expect(screen.run()?.progress?.said?.map((line) => line.text)).toEqual(["looking it up"]);
+
+      screen.write("bot", botEvent({ type: "run-progress", progress: { ...progress([]), said: [{ text: "writing it down", before: 0 }] } }));
+
+      expect(screen.run()?.progress?.said?.map((line) => line.text)).toEqual(["writing it down"]);
     });
   });
 

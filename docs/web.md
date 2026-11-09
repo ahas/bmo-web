@@ -4805,8 +4805,11 @@ Four bounds keep it from growing forever.
   line of words that wraps at the row's width, a long run breaking inside itself, so nothing scrolls the room
   sideways, at a phone's width too. They are no messages: no number, no reply, no menu and no actions. A new line
   comes in under the others and the oldest goes as the picture drops it; what the turn writes last is its answer,
-  which the picture never carries among them. When the answer takes the row's place they go with the rest of the
-  running block, and the answer's record stands them again among its calls (「What the turn did」).
+  which the picture never carries among them. They stand for the whole of the round: each question of the draft
+  process opens a picture of its own, and one that has written no line yet leaves the lines the round wrote before
+  it standing, so the room is never without them between the first line and the answer. When the answer takes the
+  row's place they go with the rest of the running block, and the answer's record stands them again among its calls
+  (「What the turn did」).
 - **Thinking, and using a tool** — that one line is the turn's own account of what it is at: a pressable
   "생각하는 중…" that shimmers while the turn runs, standing at the row's left edge with no name beside it — the
   row's header already names the agent — and under it, spread open while it runs, the turn's detail.

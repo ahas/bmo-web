@@ -942,7 +942,14 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
   // What the turn is doing right now. It replaces the last picture rather than adding to it: it is
   // only where the turn stands at this second.
   if (event.type === "run-progress") {
-    return was === undefined || event.progress === undefined ? rooms : withRoom(rooms, event.chatId, putTurn(held, { ...was, progress: event.progress }));
+    if (was === undefined || event.progress === undefined) return rooms;
+
+    // The lines the round wrote as it worked stand until a picture brings lines of its own: a later question of
+    // the draft process opens a fresh picture, which has written none yet (docs/web.md, the room screen's progress
+    // lines).
+    const said = (event.progress.said ?? []).length > 0 ? event.progress.said : was.progress?.said;
+
+    return withRoom(rooms, event.chatId, putTurn(held, { ...was, progress: said === undefined ? event.progress : { ...event.progress, said } }));
   }
 
   // A question of the draft process starting: the chat agent's turn is now on it. The process's end leaves the line as

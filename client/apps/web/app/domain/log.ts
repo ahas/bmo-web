@@ -32,7 +32,8 @@ export interface LogRow {
 
 // Where in a log a screen is to open: the log's own name for one run, or the second one began
 // and the room it ran for.
-export type LogPlace = { run: string } | { at: number; chat?: number };
+// A run to open at, and whether the log stands that run's lines alone, as a job's log does; or a moment.
+export type LogPlace = { run: string; only?: boolean } | { at: number; chat?: number };
 
 export interface AgentLogFeed {
   rows: ComputedRef<LogRow[]>;
@@ -550,7 +551,8 @@ export function useAgentLog(t: Translate, name: string): AgentLogFeed {
     failure.value = null;
 
     try {
-      const page = await fetchPage({ ...place });
+      // The page is asked at the run or the moment; whether the log stands the run alone is the screen's.
+      const page = await fetchPage("run" in place ? { run: place.run } : { ...place });
 
       merge(page);
       older.value = page.hasOlder === true;

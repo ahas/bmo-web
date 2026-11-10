@@ -44,6 +44,7 @@
             :agent="props.name"
             :place="props.place"
             :run="placeRun"
+            :only="placeOnly"
             :job="isWorker"
             :stepper="isWorker"
             :end="props.end"
@@ -95,6 +96,8 @@ usePolling(() => {
 const placeKey = computed(() => JSON.stringify(props.place));
 // The run the dialog was opened at, whose job the view speaks of.
 const placeRun = computed<string | null>(() => (props.place !== null && "run" in props.place ? props.place.run : null));
+// A job's log stands that one run's lines alone.
+const placeOnly = computed<string | null>(() => (props.place !== null && "run" in props.place && props.place.only === true ? props.place.run : null));
 // A worker's view carries its job and its stages; any other agent's is its log.
 const isWorker = computed(() => catalogueAgents().find((agent) => agent.name === props.name)?.kind === "repository");
 

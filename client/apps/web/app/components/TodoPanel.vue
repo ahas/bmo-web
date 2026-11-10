@@ -574,6 +574,7 @@ import type {
   DeployView,
   QueuePauseChanged,
   RoomSummary,
+  ItemRuns,
   StatusView,
   TodoAction,
   TodoBoard,
@@ -1201,22 +1202,23 @@ const logOpen = useState<boolean>("todo-job-log-open", () => false);
 const logAgent = useState<string | null>("todo-job-log-agent", () => null);
 const logPlace = useState<LogPlace | null>("todo-job-log-place", () => null);
 
-// The row says a job runs it; which agent that job is and the run to follow, the live picture of runs says. A job
-// that ended between the menu opening and the press has no log to follow, so the press answers with the message
-// pill rather than leaving only a line under the list.
+// The row says a job runs it, or ran it; which agent that job is and the run to follow, the live picture of runs
+// says, and where no run of the item is live, the item's runs name its latest job. A job that cannot be found has
+// no log to open, so the press answers with the message pill rather than leaving only a line under the list.
 async function openJobLog(item: TodoItem): Promise<void> {
   try {
     const { live } = await $fetch<StatusView>("/api/status");
     const run = live.find((one) => one.kind === "worker" && one.todoId === item.id);
+    const place = run === undefined ? (await $fetch<ItemRuns>(`/api/todos/${item.id}/runs`)).latest : { agent: run.agent, run: run.unit ?? String(run.id) };
 
-    if (run === undefined) {
+    if (place === null) {
       island.say({ tone: "warning", title: t("todo.error.job_ended", { id: item.id }) });
 
       return;
     }
 
-    logAgent.value = run.agent;
-    logPlace.value = { run: run.unit ?? String(run.id) };
+    logAgent.value = place.agent;
+    logPlace.value = { run: place.run, only: true };
     logOpen.value = true;
   } catch (error) {
     island.fail(error, t("todo.error.job_read_failed", { id: item.id }));

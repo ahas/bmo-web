@@ -840,8 +840,9 @@ export function rowVerbs(item: TodoItem, queue: TodoItem[], now: number = toUnix
   // A request waiting on him, or a row set aside, is still his to approve or throw out; an approved
   // one is his to move or take the approval back from.
   const deciding = held || state === "pending";
-  // Its job's log stands only while one runs: a line nobody is at has none to open.
-  const verbs: RowVerb[] = item.running ? ["log"] : [];
+  // Its job's log stands while one runs, and once the job ended with its commit still on its way live; a line no
+  // job ever ran for has none to open.
+  const verbs: RowVerb[] = item.running || item.closing !== null ? ["log"] : [];
 
   if (state === "pending") verbs.push("approve");
   verbs.push(held ? "release" : "hold");

@@ -42,11 +42,12 @@ test("counts the item's jobs and their time, and reads the road and the newest p
     attempts: 2,
     seconds: 0.02,
     ranOn: { provider: "deepseek", model: "deepseek-flash", changed: false },
-    plan: [{ title: "read", state: "done" }, { title: "build", state: "running" }]
+    plan: [{ title: "read", state: "done" }, { title: "build", state: "running" }],
+    latest: { agent: "worker-a", run: "run-2" }
   });
   expect(agency.asked.map((one) => one.path)).toContain("/log-lines?runId=22&agentName=worker-a&after=0&limit=500");
 });
 
 test("is nothing where no job of the item ran", async () => {
-  expect((await asked(handler, { params: { id: "9" }, query: {} })).answer).toEqual({ attempts: 0, seconds: null, ranOn: null, plan: [] });
+  expect((await asked(handler, { params: { id: "9" }, query: {} })).answer).toEqual({ attempts: 0, seconds: null, ranOn: null, plan: [], latest: null });
 });

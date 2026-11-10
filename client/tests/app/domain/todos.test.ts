@@ -676,6 +676,12 @@ describe("what a row's menu offers", () => {
     expect(rowVerbs(item(2, { running: true }), queue)).toEqual(["log", "hold", "top", "append", "unapprove"]);
   });
 
+  test("a row whose job ended with its commit on its way live still opens that job's log", () => {
+    expect(rowVerbs(item(2, { closing: { phase: "waiting-live", commit: "abc" } }), queue).at(0)).toBe("log");
+    expect(rowVerbs(item(2, { closing: { phase: "testing", commit: null } }), queue).at(0)).toBe("log");
+    expect(rowVerbs(item(2), queue)).not.toContain("log");
+  });
+
   test("taking an approval back stands last, apart from the job's log that opens the menu", () => {
     const verbs = rowVerbs(item(2, { running: true }), queue);
 

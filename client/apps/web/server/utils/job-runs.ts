@@ -202,10 +202,13 @@ export async function itemRunsOf(worker: string | null, todoId: number): Promise
     attempts: jobs.length,
     seconds: ended.length === 0 ? null : ended.reduce((sum, one) => sum + ((one.endedAt ?? one.startedAt) - one.startedAt) / 1000, 0),
     ranOn: null,
-    plan: []
+    plan: [],
+    latest: null
   };
 
   if (latest === undefined || latest.runId === null) return runs;
+
+  runs.latest = { agent: latest.workerName ?? latest.roleName, run: latest.runName ?? String(latest.runId) };
 
   const lines = (await agencyCall(agency().GET("/log-lines", { params: { query: { runId: latest.runId, agentName: latest.workerName ?? latest.roleName, after: 0, limit: RUN_LINES } } }))).items;
 

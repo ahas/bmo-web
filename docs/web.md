@@ -5362,13 +5362,15 @@ Four bounds keep it from growing forever.
   close neither.
 - **A right press, or a held finger, on a line stands that item's menu.** It carries the line's quick acts, so they
   are done without opening it:
-  1. **Job 로그** on a line a job is running for — that job's log, opened at once over the panel at its run and
-     following it, the same log dialog a room's run line opens. A line no job runs for has nothing to show, so the
-     entry is not there. A job that ended between the menu opening and the press answers with the message pill
+  1. **Job 로그** on a line a job is running for, or one whose job has ended and whose commit is still on its way
+     live — that job's log and nothing else: the lines of that one run alone, opened at once over the panel and
+     followed where the run still goes, in the same log dialog a room's run line opens. A line no job ever ran for has nothing to show, so the entry is not
+     there. A line whose job cannot be found, one that ended with no run of its own, answers with the message pill
      saying so; the line under the list is never the only answer. In the opened item the state mark at its head,
      실행 중 and the stage it names, is the same press: it opens that job's log over the item.
      - The job is the one the agency lists as starting or running for the item, read off each job's own state, so
-       a list that answers more than it was asked for never hands the log a job that has ended.
+       a list that answers more than it was asked for never hands the log a job that has ended; where none is
+       running, it is the item's latest job, read with the item's runs, at the run that job went as.
   2. **승인** on a request waiting on them and not set aside.
   3. **보류** on a line not set aside, **보류 해제** on one that is. The hold takes no reason here; one with a reason is
      set from the opened item.

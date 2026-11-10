@@ -15,17 +15,20 @@ import type { H3Event } from "h3";
 /** Where the model stands for the console: `off` before the data move, `on` once it is in force, `down` where the server does not answer. */
 export type ConsoleModel = "off" | "on" | "down";
 
-// How long one reading of where the model stands holds.
+// How long one reading of where the model stands holds, and for the service it was read from alone: a reading
+// of one address says nothing of another.
 const standingHoldMs = 15_000;
-let standing: { at: number; model: ConsoleModel } | null = null;
+let standing: { at: number; model: ConsoleModel; address: string } | null = null;
 
 export async function consoleModel(now: number = Date.now()): Promise<ConsoleModel> {
-  if (standing !== null && now - standing.at < standingHoldMs) return standing.model;
+  const address = process.env.WEB_SERVER_ADDRESS ?? "";
+
+  if (standing !== null && standing.address === address && now - standing.at < standingHoldMs) return standing.model;
 
   const state = await modelState().catch(() => null);
   const model: ConsoleModel = state === null ? "down" : state.inForce ? "on" : "off";
 
-  standing = { at: now, model };
+  standing = { at: now, model, address };
 
   return model;
 }

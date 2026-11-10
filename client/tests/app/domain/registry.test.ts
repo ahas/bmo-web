@@ -22,7 +22,7 @@ import type { ModelView } from "../../../apps/web/shared/agency";
 
 const t = wording;
 
-const model: ModelView = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", healthy: true, lastAnsweredAt: null, cardService: "service-a", roleFiles: true, usedBy: [] };
+const model: ModelView = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", healthy: true, lastAnsweredAt: null, cardService: "service-a", roleFiles: true, arbiterModel: "model-w", usedBy: [] };
 
 describe("what a row says", () => {
   test("a registration is named by the part of its key after the provider", () => {
@@ -33,6 +33,8 @@ describe("what a row says", () => {
 
   test("health is one word and one mark, and nothing where the agency has not answered", () => {
     expect([true, false, null].map((healthy) => healthText(t, healthy))).toEqual([wording("agents.label.registry_healthy"), wording("agents.label.registry_unhealthy"), ""]);
+    // An engine the operator's arbiter set aside says why, in the arbiter's words.
+    expect(healthText(t, false, null, "setlock: pin model-w")).toBe(wording("agents.label.registry_aside", { reason: "setlock: pin model-w" }));
     expect(healthMark(true)).toEqual({ icon: "i-material-symbols-check-circle-outline", tone: "text-success" });
     expect(healthMark(false)).toEqual({ icon: "i-material-symbols-error-outline", tone: "text-error" });
     expect(healthMark(null)).toBeNull();
@@ -48,13 +50,13 @@ describe("what a row says", () => {
 
 describe("what a save of the box asks", () => {
   test("a new registration is its key, the model behind it and its card service, each trimmed", () => {
-    expect(modelCreate({ name: "  model-a-0-1 ", model: " RVN-model ", cardService: " ", roleFiles: false })).toEqual({ key: "registered::model-a-0-1", model: "RVN-model", cardService: null, roleFiles: false });
+    expect(modelCreate({ name: "  model-a-0-1 ", model: " RVN-model ", cardService: " ", roleFiles: false, arbiterModel: " " })).toEqual({ key: "registered::model-a-0-1", model: "RVN-model", cardService: null, roleFiles: false, arbiterModel: null });
   });
 
   test("a change asks for everything but its name, which is fixed once made", () => {
-    expect(modelChange({ name: "model-a-0-1", model: " RVN-model-2 ", cardService: " service-b ", roleFiles: true })).toEqual({ model: "RVN-model-2", cardService: "service-b", roleFiles: true });
-    expect(modelForm(model)).toEqual({ name: "model-a-0-1", model: "RVN-model", cardService: "service-a", roleFiles: true });
-    expect(emptyModelForm()).toEqual({ name: "", model: "", cardService: "", roleFiles: false });
+    expect(modelChange({ name: "model-a-0-1", model: " RVN-model-2 ", cardService: " service-b ", roleFiles: true, arbiterModel: " model-w " })).toEqual({ model: "RVN-model-2", cardService: "service-b", roleFiles: true, arbiterModel: "model-w" });
+    expect(modelForm(model)).toEqual({ name: "model-a-0-1", model: "RVN-model", cardService: "service-a", roleFiles: true, arbiterModel: "model-w" });
+    expect(emptyModelForm()).toEqual({ name: "", model: "", cardService: "", roleFiles: false, arbiterModel: "" });
   });
 
   test("a refusal stands under the field the agency named, or at the box's foot", () => {

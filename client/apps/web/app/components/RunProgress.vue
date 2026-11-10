@@ -35,7 +35,7 @@
          verdict chips under the row open the whole of what the turn did. Under it stand the turn's last call, one
          line that turns like a page as a new call comes, and the last thinking block's tail, streamed in. -->
     <ItemTip v-else :id="waitingItem" as="div" class="flex min-w-0 flex-col gap-1 text-sm leading-(--chat-meta-line)">
-      <UChatShimmer data-state :text="state" :spread="shimmerSpread(state)" class="min-w-0 whitespace-normal break-keep wrap-anywhere" />
+      <UChatShimmer data-state :text="state" class="min-w-0 whitespace-normal break-keep wrap-anywhere" />
       <LastAction v-if="last !== null" :action="last" :at="lastAt" />
       <ThinkingPreview v-if="thinking !== null" :text="thinking" />
     </ItemTip>
@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import { otherAnswererOf } from "~/domain/agents";
-import { lastAction, receivedLine, saidLines, shimmerSpread, stateLine, thinkingBlock, turnName } from "~/domain/working";
+import { lastAction, receivedLine, saidLines, stateLine, thinkingBlock, turnName } from "~/domain/working";
 
 import type { RunState } from "~/domain/events";
 

@@ -5,7 +5,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { GENERIC_TOOL_ICON } from "../../../apps/web/app/domain/log";
-import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, progressLines, receivedLine, saidLines, subjectOf, THINKING_STREAM, thinkingBlock, thinkingResumeFrom, thinkingShown, lastAction, shimmerSpread, stateLine, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
+import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, progressLines, receivedLine, saidLines, subjectOf, THINKING_STREAM, thinkingBlock, thinkingResumeFrom, thinkingShown, lastAction, stateLine, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
 
 import type { AgentLogLine, AgentSummary, LiveRun, RunProgress, TurnAction } from "../../../apps/web/shared/types";
 
@@ -79,15 +79,6 @@ describe("what the room says the answering agent is doing", () => {
     expect(stateLine(wording, progress({ phase: "thinking" }))).toBe(wording("room.status.step_thinking"));
     expect(stateLine(wording, progress({ phase: "writing" }))).toBe(wording("room.status.step_writing"));
     expect(stateLine(wording, progress({ phase: "tool", tool: null }))).toBe(wording("room.status.step_tool"));
-  });
-
-  test("the state line's shimmer travels as far for a Hangul word as for a Latin one of the same width", () => {
-    // A Hangul word is made from code points, so no Korean stands in a test file.
-    const hangul = String.fromCharCode(0xac00, 0xac01, 0xac02, 0xac03, 0x20, 0xac04);
-
-    expect(shimmerSpread("Thinking")).toBe(2);
-    expect(shimmerSpread(hangul)).toBeCloseTo((2 * (6 + 5)) / 6);
-    expect(shimmerSpread("")).toBe(2);
   });
 
   test("the last call is the newest the picture carries, and none where it carries none", () => {

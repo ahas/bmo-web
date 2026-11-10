@@ -121,6 +121,9 @@ describe("what the block stands while a turn runs", () => {
     expect(template).not.toContain("{{ subject }}");
     expect(template).not.toContain("subjectOf");
     expect(template).toContain(':text="state"');
+    // The shimmer moves at the library's own pace: no duration and no spread of the console's.
+    expect(template).not.toContain(":duration");
+    expect(template).not.toContain(":spread");
     expect(template).not.toContain("animate-spin");
     expect(template).not.toContain("@click");
     expect(block).not.toContain("<UButton");

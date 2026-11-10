@@ -349,19 +349,6 @@ export function thinkingResumeFrom(before: string, shown: number, now: string): 
   return now.startsWith(before.slice(0, shown)) && shown <= now.length ? shown : 0;
 }
 
-// How far the state line's shimmer travels per character: the library's two pixels a character, which reads a
-// Latin letter's width; a Hangul syllable is twice as wide, so a line of them travels twice as far in the same
-// time, and the sweep moves at one pace whatever the words.
-export function shimmerSpread(text: string): number {
-  const chars = [...text];
-
-  if (chars.length === 0) return 2;
-
-  const wide = chars.filter((char) => /\p{Script=Hangul}/u.test(char)).length;
-
-  return (2 * (chars.length + wide)) / chars.length;
-}
-
 // What a running turn is at, in the pack's words (docs/web.md, the room screen's running line): the state's detail,
 // or that it only thinks where the detail names nothing.
 export function stateLine(t: Translate, progress: RunProgress | null, draft: DraftStep | null = null): string {

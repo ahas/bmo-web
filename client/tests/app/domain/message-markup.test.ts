@@ -57,6 +57,13 @@ describe("a message, as its chat shows it", () => {
     expect(html).toContain('<a href="https://example.com">here</a>');
   });
 
+  test("shows an apostrophe beside formatting as the character it is, never as its entity", () => {
+    const html = messageMarkup("'the newest word' holds **only** at that pace, isn't it", boxed);
+
+    expect(html).toContain("&#39;the newest word&#39; holds <b>only</b> at that pace, isn&#39;t it");
+    expect(html).not.toContain("&amp;#39;");
+  });
+
   test("shows HTML typed into it as the characters it was typed as", () => {
     const formatted = messageMarkup("<script>alert(1)</script> and **bold**", boxed);
     const plain = messageMarkup("<script>alert(1)</script> plainly", boxed);

@@ -11,7 +11,7 @@ import { linkParts } from "../../shared/links";
 // only a room's bubble needs: it is fetched the first time one does.
 
 const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-const READ: Record<string, string> = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": "\"" };
+const READ: Record<string, string> = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": "\"", "&#39;": "'", "&apos;": "'" };
 
 function escaped(text: string): string {
   return text.replace(/[&<>"']/g, (character) => ESCAPES[character]!);
@@ -19,7 +19,7 @@ function escaped(text: string): string {
 
 // The words as they were before the reading escaped them for its markup.
 function read(text: string): string {
-  return text.replace(/&(?:amp|lt|gt|quot);/g, (entity) => READ[entity]!);
+  return text.replace(/&(?:amp|lt|gt|quot|#39|apos);/g, (entity) => READ[entity]!);
 }
 
 // A run of the markup's words with every bare web address in it a link, as the chat makes one of it.

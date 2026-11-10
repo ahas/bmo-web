@@ -45,7 +45,7 @@ describe("the board's sections", () => {
     expect(template).toContain(`<AgentSpace ref="spaceRef" :now="now * 1000" :rooms="rooms" :shown="tab === 'space'" />`);
     expect(scriptOf(page)).toContain('isLiveTab(route.query.tab) ? route.query.tab : "space"');
     expect(scriptOf(space)).toContain("if (props.shown && document.visibilityState === \"visible\") void load();");
-    expect(scriptOf(space)).toContain("if (!props.shown || box === null || plan === null");
+    expect(scriptOf(space)).toContain("if (scene === null || world === null || !props.shown) {");
     // The tabs the gates, the runners, the job workers and the transport records stood in are gone.
     for (const gone of ["group.key", "status.executions", "recent[", "running["]) expect(template).not.toContain(gone);
   });
@@ -69,31 +69,32 @@ describe("the board's sections", () => {
 // and "Build the feature into the UI too". The stop button stands on every row that names a stop,
 // whichever section it is in, and on a co-worker tile it is aimed at the run that tile works inside.
 describe("the space", () => {
-  test("is one canvas drawn in code, read as its counts and walked as a list of its agents", () => {
+  test("is one city drawn by three.js from boxes made in code, read as its counts and walked as a list of its agents", () => {
     const template = templateOf(space);
 
     expect(template).toContain('role="img"');
     expect(template).toContain(':aria-label="summary"');
     expect(template).toContain(`<ul class="sr-only" :aria-label="$t('live.aria.space_agents')">`);
-    // No picture file is loaded: everything is filled from boxes.
+    // No picture or model file is loaded: everything is boxes made in code, drawn by the scene module.
     expect(space).not.toContain("<img");
     expect(space).not.toContain("new Image(");
-    expect(scriptOf(space)).toContain("for (const face of faces(scale, boxes))");
+    expect(scriptOf(space)).toContain('await import("~/domain/alley/scene")');
+    expect(scriptOf(space)).toContain("worldOf(view.value");
   });
 
-  test("is moved by a drag, zoomed by the wheel, two fingers, the buttons and the keys, and fitted to its box", () => {
+  test("is turned, moved and zoomed by the pointer, the wheel, the buttons and the keys, and fitted to its box", () => {
     const template = templateOf(space);
 
     for (const press of ['@click="zoom(1)"', '@click="zoom(-1)"', '@click="fit()"', '@pointerdown="pressed"', '@keydown="keyed"']) expect(template).toContain(press);
-    expect(scriptOf(space)).toContain('addEventListener("wheel", wheeled, { passive: false })');
-    expect(scriptOf(space)).toContain("if (held.size === 2) {");
+    expect(scriptOf(space)).toContain("scene?.pan(step[0], step[1]);");
+    expect(scriptOf(space)).toContain('event.key === "0"');
   });
 
   test("opens the card of the agent touched, and holds everyone still for a reader who asked for less motion", () => {
-    expect(scriptOf(space)).toContain("chosenName.value = actorAt(here[0], here[1]);");
+    expect(scriptOf(space)).toContain("chosenName.value = scene?.pick(event.clientX, event.clientY) ?? null;");
     expect(templateOf(space)).toContain("data-space-card");
     expect(scriptOf(space)).toContain('still = matchMedia("(prefers-reduced-motion: reduce)").matches;');
-    expect(scriptOf(space)).toContain("tick(plan, folk, Math.min(0.1, Math.max(0, (clock - last) / 1000)), Math.random, still);");
+    expect(scriptOf(space)).toContain("tick(world, folk, seconds, draw, still);");
   });
 });
 

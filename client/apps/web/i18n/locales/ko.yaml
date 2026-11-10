@@ -2285,9 +2285,6 @@ live:
     watch_title: "워치 #{id} · {name}"
     work_item: "항목 #{id}"
     tab_space: 공간
-    space_supervisors: 감독관실
-    space_lounge: 휴게실
-    space_workshop: 작업실
     space_working: "작업 중 {n}"
     space_waiting: "실행 대기 {n}"
     space_idle: "대기 중 {n}"
@@ -2312,6 +2309,9 @@ live:
     stopping: 중지 중
     unchecked: 확인 전
     space_loading: 공간을 불러오는 중
+    space_sign_words: 茶餐廳 金銀珠寶 當 旅館 電器 麵 髮型屋 卡拉OK 藥房 24H 修理 國際 雀 海鮮 금은방 노래방 전파사 국수 여관 凉茶 士多 按摩 影印 找換
+    space_arcade: 遊戲機中心
+    space_unsupported: 이 브라우저는 3D 공간을 그릴 수 없어요. 오른쪽 목록으로 에이전트 상태를 읽을 수 있어요.
 research:
   aria:
     branches_of: "{key} 브랜치"

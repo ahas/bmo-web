@@ -2077,44 +2077,53 @@ archive and this week's tokens remain. That is all that can actually be known th
   and heavy runs it was given and its room, and where the next heavy run goes (the agency's `docs/work-nodes.md`,
   「The rotation」) — and the way to the hardware monitor. Where a command holds the turn the line carries it as one more part,
   the holder and how many wait. On a phone the line keeps the memory pressure and the open jobs.
-- **공간 is one floor seen from above its corner, drawn in voxels** — every wall, desk and person a set of small
-  boxes painted in code on one canvas, with no picture file — read from the console's `GET /api/space` and read
-  again every few seconds while the tab stands.
-  - **Every machine and every repository is a room.** First stand 감독관실, where each supervisor keeps a desk;
-    휴게실, where an agent with no work waits; and 작업실, for work in no repository the agency lists. After them
-    stands every machine the node service lists: the machine's own room, its racks along the far wall with their
-    lamps blinking, quicker while work goes on that machine, and after it a room to each repository standing on it,
-    four desks each. A repository that names no machine stands with the first machine's. The rooms stand in rows in
-    that order, broken where that leaves the floor most nearly square, which is what fits a box best seen from its
-    corner. A room's far walls stand and its near sides are open, and a plate over its far corner names it — the
-    repository's or the machine's label, or the room's own word — smaller the farther the floor stands.
-  - **The floor stands still while the machines, the repositories and the agents listed stay the same,** so a run
-    that starts or ends moves nobody's room.
-  - **Every agent is a person on the floor.** A supervisor wears a headset and a pale top; an agent of a role wears
-    its role's colour, the same for every agent of that role, and its own hair, skin and legs by its name, so one
-    agent looks the same every time. One that works sits at a desk of the room its work is in and types, three dots
-    over its head and a light on its laptop; one with a run in a room whose desks are taken stands in it. One with
-    no work sits on the lounge's sofa or stands before it and strolls to another place now and then. One switched
-    off dozes on the sofa. A supervisor answering a room types at its own desk and sits still otherwise.
-  - **An agent whose work begins walks to its room, and one whose work ends walks back,** along the paths between
-    the rooms and in through a room's open sides, never through a wall. For a reader who asked for less motion
-    nobody walks or strolls: each stands at its place at once.
-  - **The floor fills its box, and the box fills the screen.** On this tab the body under the tab row carries no
-    margin and the box no frame: the floor runs to the screen's edges under the tab row, and the counts, the
-    buttons and an agent's card float over it. 맞춤 scales the floor to the box exactly — the largest it can stand
-    with the whole of it showing, centred — rather than to the nearest step of the zoom, and the floor stands so
-    until it is first moved; the box's resize fits it again.
-  - **The floor is dragged to move it and zoomed by the wheel, two fingers or the buttons** at its corner — 확대,
-    축소 and 맞춤. A zoom from a fitted floor goes to the next step of the zoom past it. The arrow keys
-    move it, `+` and `-` zoom it and `0` fits it.
-  - **Touching an agent opens its card** over the floor's corner: its label, its role or 감독관, and its name; 상태,
+- **공간 is one alley of a walled city seen from above, a miniature in three dimensions** — drawn on one WebGL canvas
+  by three.js from geometry made in code, with no model or picture file; every building, sign and robot is boxes.
+  It is read from the console's `GET /api/space` and read again every few seconds while the tab stands. The look is
+  Kowloon Walled City on a rainy night: blocks of uneven height stacked on one another and leaning over the alleys,
+  caged balconies, air conditioners and pipes on every wall, laundry and wires between rooftops, hanging signs
+  and lightboxes that glow, wet ground that mirrors them, rain, and fog at the far end. Nothing stands in a
+  regular grid: the lots differ in size, the alleys jog, and the heights and overhangs are drawn by a seeded
+  random that stays the same for the same listing.
+  - **Every machine is a district and every repository a workshop.** A machine the node service lists is one
+    district of the city, a cluster of lots with the machine's name on a rooftop sign and its racks blinking in
+    a ground-floor doorway, quicker while work goes on that machine. A repository standing on it is a workshop:
+    a lit ground-floor shopfront in that district, its label on the sign over the door and four desks inside. A
+    repository that names no machine stands in the first district. The supervisors keep MO Co., a workshop of
+    their own with a desk each, and work in no repository the agency lists goes to the open workshop at the
+    alley's end.
+  - **The city stands still while the machines, the repositories and the agents listed stay the same,** so a run
+    that starts or ends moves nobody's workshop.
+  - **Every agent is a MO, one of Moe's robots:** a box body with a screen for a face, buttons under it, thin
+    arms and legs. A supervisor is BMO, mint-green with its own face; an agent of a role wears its role's colour
+    with the role's letter on its side, the same for every agent of that role, so a role is told at a glance and
+    an agent by its name plate. The face says the state: at work it looks at its desk and types, three dots over
+    its head and its screen bright; waiting it smiles; switched off its screen is dark and it dozes. An agent
+    whose work begins walks to its workshop and sits at a free desk, one whose desks are taken stands in the
+    doorway, and one whose work ends walks out again.
+  - **Nobody waits sitting in one place.** An agent with no work picks a rest spot — the noodle stall, a rooftop,
+    the arcade, a vending machine, a stair landing, the shelter under an awning, the cat corner at a dead end, a
+    balcony — stays a while, and strolls to another, choosing by a weighted draw that favours spots it has not
+    just left and spots with room; the spots differ in what one does there, sitting, standing or leaning. An
+    agent switched off dozes where it is. For a reader who asked for less motion nobody walks or strolls: each
+    stands at its place at once.
+  - **The city is turned, moved and zoomed:** a drag turns it around its centre within a tilt that keeps it a
+    miniature seen from above, a drag with two fingers or the right button moves it, and the wheel, two fingers
+    or the buttons at its corner zoom it; 맞춤 fits the whole city to its box, as the city stands until it is first
+    moved, and the box's resize fits it again. The arrow keys move it, `+` and `-` zoom it and `0` fits it. On this
+    tab the body under the tab row carries no margin and the box no frame: the city runs to the screen's edges,
+    and the counts, the buttons and an agent's card float over it.
+  - **The picture is drawn with the glow of its signs** — only what emits light blooms — and with the shallow focus
+    of a miniature, the far end softening; a reader who asked for less motion gets the same picture without the
+    rain falling.
+  - **Touching an agent opens its card** over the city's corner: its label, its role or 감독관, and its name; 상태,
     작업 중, 대기 중 or 꺼짐; for one that works 위치, the repository or the folder its run works in, or the room a
     supervisor answers, 작업, the line naming the work where its asker named one, and 경과, how long it has worked;
     and 실행 경로, the provider and model it works on now, else the road it is set on, else 요청한 감독관을 따름. 로그
     열기 opens the live log of an agent's run as a role slot's tile does, and 에이전트 화면 leads to a supervisor's own
     screen. The agent touched and the one the pointer stands on carry their names on a plate over their heads. A
-    press on the floor closes the card, and so does Esc.
-  - **Over the floor's corner stand its counts:** how many agents work, how many runs wait for a free agent, how
+    press on the city closes the card, and so does Esc.
+  - **Over the city's corner stand its counts:** how many agents work, how many runs wait for a free agent, how
     many agents wait, and how many are switched off.
   - **The space is read without seeing it:** the canvas says its counts as its name, and beside it, out of sight,
     every agent stands as a line with its state that opens the same card.

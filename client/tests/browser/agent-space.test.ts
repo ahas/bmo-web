@@ -45,7 +45,7 @@ afterAll(async () => {
 }, BROWSER_HOOK_MS);
 
 describe.skipIf(!origin || !touchReady())("the agents' space", () => {
-  test("is the live status screen's first tab, painted on one canvas, and opens an agent's card", async () => {
+  test("is the live status screen's first tab, drawn on one canvas, and opens an agent's card", async () => {
     const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
     const at = cookie.indexOf("=");
 
@@ -66,7 +66,7 @@ describe.skipIf(!origin || !touchReady())("the agents' space", () => {
 
       expect(tabs.slice(0, 2)).toEqual([wording("live.label.tab_space"), wording("live.label.tab_slots")]);
       // The tabs of the gates, the runners, the job workers and the transport records stand no more.
-      for (const gone of [wording("agents.label.group_gate"), wording("agents.label.group_runner"), wording("agents.label.group_worker"), "Herdr"]) expect(tabs).not.toContain(gone);
+      for (const gone of [wording("agents.label.group_runner"), wording("agents.label.group_worker"), "Herdr"]) expect(tabs).not.toContain(gone);
       expect((await space.locator("[data-space-counts]").innerText()).split("\n")).toEqual([
         wording("live.label.space_working", { n: "1" }),
         wording("live.label.space_waiting", { n: "1" }),
@@ -74,24 +74,15 @@ describe.skipIf(!origin || !touchReady())("the agents' space", () => {
         wording("live.label.space_off", { n: "1" })
       ]);
 
-      // The canvas is painted: it holds pixels of more than a few colours once the floor has been drawn.
-      const colours = async (): Promise<number> =>
-        await space.locator("canvas").evaluate((canvas: HTMLCanvasElement) => {
-          const data = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data;
-          const seen = new Set<number>();
+      // The city is drawn by the scene: the canvas has WebGL behind it and stands at the box's full size, with no
+      // margin around it, once the scene is ready.
+      await space.locator("[data-space-ready]").waitFor({ timeout: 60_000 });
 
-          for (let index = 0; index < data.length; index += 4 * 97) if (data[index + 3]! > 0) seen.add((data[index]! << 16) | (data[index + 1]! << 8) | data[index + 2]!);
+      const drawn = await space.locator("canvas").evaluate((canvas: HTMLCanvasElement) => ({ width: canvas.width, height: canvas.height, webgl: canvas.getContext("webgl2") !== null || canvas.getContext("webgpu") !== null }));
 
-          return seen.size;
-        });
-      let painted = await colours();
-
-      for (let waited = 0; painted < 12 && waited < 50; waited += 1) {
-        await page.waitForTimeout(100);
-        painted = await colours();
-      }
-
-      expect(painted).toBeGreaterThanOrEqual(12);
+      expect(drawn.width).toBeGreaterThan(300);
+      expect(drawn.height).toBeGreaterThan(300);
+      expect(drawn.webgl).toBe(true);
 
       // An agent's line beside the canvas opens its card: what it is at, where, on what and on which road.
       await space.locator("ul.sr-only button").nth(1).evaluate((button: HTMLElement) => button.click());

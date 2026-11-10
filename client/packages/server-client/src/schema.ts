@@ -297,6 +297,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rooms/{chat}/callers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A room's callers, the users granted ask on it, and whether the signed-in user may change them. */
+        get: operations["roomCallers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rooms/{chat}/callers/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** A user granted ask on a room, by the administrator, the room's leader or a head of the user's unit. */
+        put: operations["grantRoomCaller"];
+        post?: never;
+        /** A user's ask grant on a room taken away, by the administrator, the room's leader or a head of the user's unit. */
+        delete: operations["revokeRoomCaller"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rooms/{chat}/holdings": {
         parameters: {
             query?: never;
@@ -1056,6 +1091,18 @@ export interface components {
             grant: string;
             /** Format: int64 */
             revoked: number;
+        };
+        /** @description One caller of a room: a user granted `ask` on it. */
+        RoomCaller: {
+            name: string;
+            user: string;
+        };
+        /** @description A room's callers, and whether the signed-in user is the administrator or leads the room. */
+        RoomCallers: {
+            callers: components["schemas"]["RoomCaller"][];
+            mayChange: boolean;
+            /** Format: int64 */
+            room: number;
         };
         /** @description A room relation asked of a sender. */
         RoomCheckAsk: {
@@ -1925,6 +1972,106 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    roomCallers: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                chat: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomCallers"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    grantRoomCaller: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                chat: number;
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, upstream-failed, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    revokeRoomCaller: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                chat: number;
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, upstream-failed, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

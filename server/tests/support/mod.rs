@@ -131,7 +131,11 @@ pub async fn connect(database: &str) -> DatabaseConnection {
 
 /// The messages standing in rooms, as the receiver would say who sent them, and the holders declared to it.
 #[derive(Clone, Default)]
-pub struct Messages(Arc<Mutex<HashMap<(i64, i64), i64>>>, pub Arc<Mutex<Vec<(String, String)>>>);
+pub struct Messages(
+  Arc<Mutex<HashMap<(i64, i64), i64>>>,
+  pub Arc<Mutex<Vec<(String, String)>>>,
+  pub Arc<Mutex<HashMap<i64, Vec<i32>>>>,
+);
 
 #[async_trait::async_trait]
 impl Receiver for Messages {
@@ -149,6 +153,10 @@ impl Receiver for Messages {
       .push((unit.to_owned(), address.to_owned()));
 
     Ok(())
+  }
+
+  async fn leaders_of(&self, room: i64) -> Result<Vec<i32>, Refusal> {
+    Ok(self.2.lock().expect("the leaders are readable").get(&room).cloned().unwrap_or_default())
   }
 }
 

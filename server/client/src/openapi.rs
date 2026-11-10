@@ -665,6 +665,45 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "GET",
+    "/rooms/{chat}/callers",
+    "roomCallers",
+    "Grants",
+    "A room's callers, the users granted ask on it, and whether the signed-in user may change them.",
+    params: vec![integer_path("chat"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<RoomCallers>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/rooms/{chat}/callers/{user}",
+    "grantRoomCaller",
+    "Grants",
+    "A user granted ask on a room, by the administrator, the room's leader or a head of the user's unit.",
+    params: vec![integer_path("chat"), string_path("user"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "upstream-failed", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/rooms/{chat}/callers/{user}",
+    "revokeRoomCaller",
+    "Grants",
+    "A user's ask grant on a room taken away, by the administrator, the room's leader or a head of the user's unit.",
+    params: vec![integer_path("chat"), string_path("user"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "upstream-failed", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "PUT",
     "/units/{unit}/heads/{user}",
     "grantHead",

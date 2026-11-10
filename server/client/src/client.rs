@@ -286,6 +286,28 @@ impl AccountClient {
     .await
   }
 
+  /// `GET /rooms/{chat}/callers`, asked as the login `key` acts for.
+  pub async fn room_callers(&self, room: i64, key: &str) -> Answer<RoomCallers> {
+    Self::answered(
+      self
+        .request(Method::GET, &["rooms", &room.to_string(), "callers"])
+        .header(OWNER_KEY, key),
+    )
+    .await
+  }
+
+  /// `PUT /rooms/{chat}/callers/{user}` where `caller`, else `DELETE`, asked as the login `key` acts for.
+  pub async fn set_room_caller(&self, room: i64, user: &str, caller: bool, key: &str) -> Answer<()> {
+    let method = if caller { Method::PUT } else { Method::DELETE };
+
+    Self::nothing(
+      self
+        .request(method, &["rooms", &room.to_string(), "callers", user])
+        .header(OWNER_KEY, key),
+    )
+    .await
+  }
+
   /// `PUT /units/{unit}/heads/{user}` where `head`, else `DELETE`, asked as the login `key` acts for in `role`.
   pub async fn set_head(&self, unit: i64, user: &str, head: bool, key: &str, role: &str) -> Answer<()> {
     let method = if head { Method::PUT } else { Method::DELETE };

@@ -170,6 +170,21 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 - **A sender with no user yet is given one,** with no way to sign in, and linked.
 - **Granting again** moves the expiry and the words.
 
+### A room's callers
+
+| Route | Request | Answer |
+|---|---|---|
+| `GET /rooms/{chat}/callers` | `Owner-Key` | `room`, `callers` (each `user` and `name`, the users granted `ask` on the room directly, in the order they were granted) and `mayChange`, whether the signed-in user is the administrator or leads the room |
+| `PUT /rooms/{chat}/callers/{user}` | `Owner-Key` | 204: the user is granted `ask` on the room |
+| `DELETE /rooms/{chat}/callers/{user}` | `Owner-Key` | 204: the grant is taken away |
+
+- **A room's callers are the users who may call their own supervisor into it by name,** the grant of `ask` on
+  the room to the user (docs/accounts.md, 「A room's callers」).
+- **The signed-in user changes them where they are the administrator, lead the room or head the user's unit:** a
+  room's leader is a user who owns a supervisor the room names, as the receiver answers (「Calls the server
+  makes」), and a head is one whose unit stands at or above the user's. Anyone else is refused 403, and a user of
+  another company than the signed-in user's is refused 403 but for the administrator.
+
 ### Phone keys
 
 | Route | Request | Answer |
@@ -297,9 +312,10 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 |---|---|---|---|
 | the receiver | declare a holder | `PUT /room-holders/{unit}` (`address`, `holdings`) | once as the server starts, so a room's removal asks the server's holdings |
 | the receiver | read a message | `GET /rooms/{chat}/messages/{message}` | a message check's sender |
+| the receiver | read a room's leaders | `GET /rooms/{chat}/leaders` | whether the signed-in user leads a room whose callers they change |
 
 - **A call that does not reach the receiver** is a failure of the call: the start goes on and declares again
-  on its next start; a message check answers 502 `upstream-failed`.
+  on its next start; a message check and a change of a room's callers answer 502 `upstream-failed`.
 
 ## Calls the console makes
 

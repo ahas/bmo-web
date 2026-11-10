@@ -16,6 +16,7 @@ import {
   type Invite,
   type InviteView,
   type Proof,
+  type RoomCallers,
   type Unit,
   type UserNode,
   type UnitRow,
@@ -633,6 +634,23 @@ export async function setHead(unit: number, user: UserId, head: boolean, caller:
   const client = clientOf(options);
   const params = { path: { unit, user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } };
   const reply = await sent(options, head ? client.PUT("/units/{unit}/heads/{user}", { params }) : client.DELETE("/units/{unit}/heads/{user}", { params }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A room's callers, and whether the login may change them, asked as the login `key` acts for. */
+export async function roomCallers(room: number, key: string, options: ServiceOptions = {}): Promise<RoomCallers> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/rooms/{chat}/callers", { params: { path: { chat: room }, header: { "Owner-Key": key } } }));
+
+  return answered(reply);
+}
+
+/** A user made a caller of a room, or no longer one, asked as the login `key` acts for. */
+export async function setRoomCaller(room: number, user: UserId, caller: boolean, key: string, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const params = { path: { chat: room, user }, header: { "Owner-Key": key } };
+  const reply = await sent(options, caller ? client.PUT("/rooms/{chat}/callers/{user}", { params }) : client.DELETE("/rooms/{chat}/callers/{user}", { params }));
 
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }

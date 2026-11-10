@@ -5105,6 +5105,33 @@ Four bounds keep it from growing forever.
   receiver's and turns on the list alone: the console names no provider apart from the others, in its code or in
   what it sends.
 
+#### 내 BMO와 따로 말하기
+
+- **A group room's top bar menu carries 내 BMO와 따로 말하기 for everyone signed in;** a one-to-one or the owner's
+  own chat carries none. It opens a panel at the side over the group room, which stays where it stood.
+- **The panel is the reader's private conversation with their own BMO:** the first supervisor whose owner account
+  is the reader, and the room it answers the reader alone in, read from the agency and the receiver each time the
+  panel opens. Its newest lines stand in order, the BMO's on the left and the reader's on the right, and words
+  typed into its box are said in that private room as the room screen says them. What arrives there while the
+  panel stands open is read again as it comes.
+- **Nothing said in the panel reaches the group room or its minutes:** it stands in the private room alone, where
+  the BMO reads the reader's own thread of the group room as every turn there does. A reader with no BMO of their
+  own, or one that answers no room alone, is told so in the panel.
+
+#### 호출 권한
+
+- **Every room's top bar menu carries 호출 권한 for everyone signed in.** It opens a dialog of the room's callers:
+  the people who may call their own BMO into the room by name, the grant of `ask` on the room (the account
+  service's `docs/accounts.md`, 「A room's callers」).
+- **Each caller stands as a row** with their name and a switch that stands on; turning it off takes the grant away
+  and the row goes. Below the list, a person picked from the directory of the reader's company is added with a
+  switch 호출 허용 that stands on, so the permission is set as the person is added; added with it off, nothing is
+  written.
+- **Who changes it is the account service's to say:** the administrator, the room's leader (the owner of a BMO the
+  room names) or a head of the person's unit. Where the reader is neither the administrator nor the room's leader,
+  a line says that only a head of the person's unit may change it; a refused change is said by the pack's sentence
+  for the account service's code, and the list stands as it was.
+
 #### 방 등록 삭제
 
 - **Every room's top bar menu carries 방 등록 삭제 for the owner alone,** last, in a group of its own.

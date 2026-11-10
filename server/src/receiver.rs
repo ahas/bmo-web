@@ -27,6 +27,9 @@ pub trait Receiver: Send + Sync {
   /// The service declared a holder of the receiver's rooms, under its unit name, at the address the receiver
   /// asks its holdings at.
   async fn declare_holder(&self, unit: &str, address: &str, holdings: &[Holding]) -> Result<(), Refusal>;
+
+  /// The users who lead a room: those who own a supervisor the room names.
+  async fn leaders_of(&self, room: i64) -> Result<Vec<i32>, Refusal>;
 }
 
 /// The refusal of a message the receiver does not hold in a room.
@@ -59,6 +62,11 @@ impl ReceiverClient {
 #[derive(Deserialize)]
 struct Message {
   sender: Option<i64>,
+}
+
+#[derive(Deserialize)]
+struct Leaders {
+  leaders: Vec<i64>,
 }
 
 #[derive(Serialize)]
@@ -109,6 +117,25 @@ impl Receiver for ReceiverClient {
       Err(unreached(call, format!("it answered {}", answer.status())))
     }
   }
+
+  async fn leaders_of(&self, room: i64) -> Result<Vec<i32>, Refusal> {
+    let call = "a room's leaders";
+    let answer = self
+      .http
+      .get(format!("{}/rooms/{room}/leaders", self.base))
+      .bearer_auth(&self.token)
+      .send()
+      .await
+      .map_err(|why| unreached(call, why))?;
+
+    if !answer.status().is_success() {
+      return Err(unreached(call, format!("it answered {}", answer.status())));
+    }
+
+    let leaders = answer.json::<Leaders>().await.map_err(|why| unreached(call, why))?.leaders;
+
+    Ok(leaders.into_iter().filter_map(|leader| i32::try_from(leader).ok()).collect())
+  }
 }
 
 /// The receiver where the settings name none: a message's sender is refused, saying so, and there is no one
@@ -134,5 +161,9 @@ impl Receiver for NoReceiver {
     _holdings: &[Holding],
   ) -> Result<(), Refusal> {
     Ok(())
+  }
+
+  async fn leaders_of(&self, _room: i64) -> Result<Vec<i32>, Refusal> {
+    Ok(vec![])
   }
 }

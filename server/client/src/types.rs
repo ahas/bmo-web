@@ -244,6 +244,22 @@ pub struct UserUnit {
   pub path: Vec<UnitRef>,
 }
 
+/// One caller of a room: a user granted `ask` on it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RoomCaller {
+  pub user: String,
+  pub name: String,
+}
+
+/// A room's callers, and whether the signed-in user is the administrator or leads the room.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RoomCallers {
+  pub room: i64,
+  pub callers: Vec<RoomCaller>,
+  pub may_change: bool,
+}
+
 /// One organisation unit: where it stands, what stands directly under it, who heads it and who stands in it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Unit {

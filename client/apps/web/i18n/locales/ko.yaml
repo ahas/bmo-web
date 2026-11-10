@@ -542,6 +542,8 @@ room:
     attach_media: 사진·동영상
     brain_read_page: 브레인에서 보기
     situation: 방의 상황 보기
+    callers: 호출 권한
+    overlay: 내 BMO와 따로 말하기
     cancel_recording: 녹음 취소
     cancel_reply: 답장 취소
     choose_messages: 메시지 선택
@@ -1699,6 +1701,40 @@ invites:
     name_taken: 이미 쓰이는 아이디입니다.
     no_hub: 기기 연결 허브가 설정되어 있지 않아 초대할 수 없습니다.
     not_found: 초대를 찾을 수 없습니다.
+    unreachable: 계정 서비스에 연결되지 않았습니다.
+overlay:
+  title:
+    panel: 내 BMO
+  label:
+    none: 나만의 BMO가 없어 따로 말할 수 없습니다.
+    empty: 아직 나눈 말이 없습니다.
+    input: 이 방 사람들에게는 보이지 않습니다
+  action:
+    send: 보내기
+  status:
+    loading: 내 BMO 불러오는 중…
+  error:
+    load_failed: 내 BMO를 불러오지 못했습니다.
+    send_failed: 보내지 못했습니다.
+callers:
+  title:
+    dialog: 호출 권한
+  label:
+    about: 이 방에서 이름을 불러 자기 BMO를 부를 수 있는 사람입니다.
+    none: 호출 권한이 있는 사람 없음
+    person: 사람
+    find: 이름으로 찾기
+    allow: 호출 허용
+    heads_only: 이 방의 리더나 관리자가 아니어서, 내가 장인 단위의 사람만 바꿀 수 있습니다.
+  action:
+    add: 추가
+  status:
+    loading: 호출 권한 불러오는 중…
+  error:
+    failed: 호출 권한을 바꾸지 못했습니다.
+    forbidden: 이 사람의 호출 권한을 바꿀 수 없습니다.
+    load_failed: 호출 권한을 불러오지 못했습니다.
+    not_found: 사용자를 찾을 수 없습니다.
     unreachable: 계정 서비스에 연결되지 않았습니다.
 join:
   title:

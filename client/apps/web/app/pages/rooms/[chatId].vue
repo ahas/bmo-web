@@ -87,6 +87,8 @@
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
               <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
               <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
+              <RoomCallersDialog v-model:open="callersOpen" :chat-id="chatId" :title="title" />
+              <RoomOverlay v-if="group" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
               <PictureDialog v-if="administrator" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
               <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
             </template>
@@ -1010,6 +1012,10 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     { label: t("room.action.find"), icon: "i-material-symbols-search", onSelect: openFind },
     // The room's situation note as it stands (docs/web.md, the room screen's situation entry).
     { label: t("room.action.situation"), icon: "i-material-symbols-notes", onSelect: () => { situationOpen.value = true; } },
+    // The reader's own BMO beside a group room, a private conversation over it (docs/web.md, the room screen's overlay).
+    ...(group.value ? [{ label: t("room.action.overlay"), icon: "i-material-symbols-chat-bubble-outline", onSelect: () => { overlayOpen.value = true; } }] : []),
+    // Who may call their own BMO into the room by name (docs/web.md, the room screen's callers entry).
+    { label: t("room.action.callers"), icon: "i-material-symbols-campaign-outline", onSelect: () => { callersOpen.value = true; } },
     { label: t("room.action.choose_messages"), icon: "i-material-symbols-checklist", onSelect: startSelecting },
     { label: t("room.action.copy_all"), icon: "i-material-symbols-content-copy-outline", onSelect: () => void copyAll() },
     // The pinned order is one list for every reader, so only the administrator sets it (docs/web.md, the room
@@ -1042,6 +1048,8 @@ async function pin(on: boolean): Promise<void> {
 
 const providersOpen = ref(false);
 const situationOpen = ref(false);
+const callersOpen = ref(false);
+const overlayOpen = ref(false);
 const pictureOpen = ref(false);
 const removalOpen = ref(false);
 // The room's registration was removed while this screen's own removal dialog stood open.

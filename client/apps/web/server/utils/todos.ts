@@ -142,6 +142,12 @@ function pinnedModel(labels: Record<string, string>): string | null {
   return named === "" || named === "auto" ? null : named;
 }
 
+function pinnedAgent(labels: Record<string, string>): string | null {
+  const named = (labels.agent ?? "").trim();
+
+  return named === "" || named === "auto" ? null : named;
+}
+
 // One item as the row the panel shows, with its reports where they were read, the last note where a screen opens
 // it, and the state the job of it stands in where one is under way.
 function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null, liveState: TodoItem["liveState"] = null, stopped = false): TodoItem {
@@ -167,6 +173,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     priority: item.priority,
     status: item.state,
     model: pinnedModel(item.labels),
+    agent: pinnedAgent(item.labels),
     ranOn: null,
     worker: item.assigneeName,
     cowork: item.cowork,

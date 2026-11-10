@@ -45,7 +45,7 @@ const REPORTS: TodoReport[] = [
 function item(): TodoItem {
   return {
     id: ITEM, title: "item-title", instruction: BRIEF, requester: "Owner", requesterId: null, chatId: null, approved: true, awaitingApproval: false, recommended: false, done: true,
-    running: false, worker: "worker-b", cowork: false, priority: 1, status: "done", model: null, ranOn: null, note: null, reports: REPORTS, unfinished: null,
+    running: false, worker: "worker-b", cowork: false, priority: 1, status: "done", model: null, agent: null, ranOn: null, note: null, reports: REPORTS, unfinished: null,
     unfinishedResolvedAt: null, unfinishedResolution: null, brief: BRIEF, heldAt: null, heldReason: null, heldKind: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
     deployWaits: false, closing: null, holdPending: false, orderActive: false, seconds: null, spans: [], createdAt: NOW - 4_000, doneAt: NOW - 600

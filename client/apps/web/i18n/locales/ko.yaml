@@ -1121,6 +1121,7 @@ todo:
     bad_cowork: 협업 여부가 올바르지 않습니다.
     bad_direction: 옮길 방향이 올바르지 않습니다.
     bad_model: 모델이 올바르지 않습니다.
+    bad_agent: 에이전트 이름이 올바르지 않습니다.
     bad_item_id: 항목 번호가 올바르지 않습니다.
     bad_note: 결재 의견이 너무 길거나 올바르지 않습니다.
     bad_order: 저장할 순서가 올바르지 않습니다.
@@ -1162,7 +1163,7 @@ todo:
     work_order_save_failed: 작업 지시서를 저장하지 못했습니다.
     work_order_stop_failed: 작업 지시서를 중지하지 못했습니다.
     worker_change_failed: 워커를 바꾸지 못했습니다.
-    model_change_failed: 모델을 바꾸지 못했습니다.
+    agent_change_failed: 에이전트를 바꾸지 못했습니다.
   action:
     approve: 승인
     auto_pause: 자동 진행 일시정지
@@ -1213,7 +1214,7 @@ todo:
     item_manage: 항목 상태와 관리
     item_view: 항목 보기
     item_worker: 이 항목을 맡을 워커
-    item_model: 이 항목을 실행할 모델
+    item_agent: 이 항목을 맡을 에이전트
     more_sources: 이 항목 외에 함께 출처로 삼을 미결
     new_body: 새 항목으로 만들 내용
     panel_width: TODO 패널 너비 조절
@@ -1257,6 +1258,7 @@ todo:
     field_merged: 병합
     field_merged_into: "#{id}에 병합"
     field_model: 모델
+    field_agent: 에이전트
     field_note: 결재 의견
     field_report: 보고
     field_requester: 요청
@@ -1265,7 +1267,8 @@ todo:
     field_title: 제목
     field_unfinished: 미결
     field_waiting: 대기
-    field_worker: 워커
+    field_worker: 저장소
+    agent_auto: 자동 (역할 순서)
     filter: 필터
     held_failure: 실패로 보류
     held_pause: 재개 대기
@@ -1443,7 +1446,7 @@ todo:
       미결 내용은 그대로 남아 있습니다."
     unheld: "#{id}의 보류를 해제했습니다.\n원래 순서로 돌아갔습니다."
     worker_assigned: "#{id}번은 {worker}가 맡습니다."
-    model_changed: "#{id}의 모델을 바꿨습니다."
+    agent_changed: "#{id}의 에이전트를 바꿨습니다."
     worker_unassigned: "#{id}의 워커 배정을 해제했습니다.
 
       Built-in 워커가 맡습니다."

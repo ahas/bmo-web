@@ -96,6 +96,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     priority: id,
     status: "waiting",
     model: null,
+    agent: null,
     ranOn: null,
     note: null,
     reports: [],

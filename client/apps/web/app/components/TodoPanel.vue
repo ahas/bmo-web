@@ -405,15 +405,10 @@
                 <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
                 <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
 
-                <!-- The model this item's work will go out on, short, with its whole name on hover, chosen here while
-                     the item is not finished (docs/web.md, the TODO panel's section). -->
-                <ItemModelChip
-                  :item="item"
-                  :editable="!item.done && item.mergedInto === null"
-                  :busy="busy.has(busyKey(item.id, 'model'))"
-                  :query="searched"
-                  @pick="(model: string) => void setModel(item.id, model)"
-                />
+                <!-- The model this item's work will go out on, short, with its whole name on hover, and the agent the
+                     item names where it names one (docs/web.md, the TODO panel's section). -->
+                <ItemModelChip :item="item" :query="searched" />
+                <UBadge v-if="item.agent !== null" color="neutral" variant="subtle" size="sm" icon="i-material-symbols-smart-toy-outline" data-item-agent-named>{{ item.agent }}</UBadge>
 
                 <UBadge v-if="(item.stopped?.failures ?? 0) > 0" color="warning" variant="subtle" size="sm">{{ $t("todo.label.stop_failures", { n: countText(item.stopped!.failures) }) }}</UBadge>
 
@@ -1064,11 +1059,7 @@ async function act(id: number, action: TodoAction, fields: TodoActFields = {}, f
 
 // The model an item's jobs go out on, written to its labels; nothing else about the row moves, and a job already
 // running keeps its road.
-async function setModel(id: number, model: string): Promise<void> {
-  await act(id, "model", { model }, "todo.error.model_change_failed");
 
-  if (failure.value === null) notice.value = t("todo.message.model_changed", { id });
-}
 
 // The auto-progression stopped or started again. The press goes to the bot, which writes the
 // switch and — on a resume — looks at the queue in the same breath; the board is read again after

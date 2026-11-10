@@ -870,6 +870,7 @@ export interface TodoActFields {
   worker?: string | null;
   cowork?: boolean;
   model?: string;
+  agent?: string;
 }
 
 // Which one button is waiting, in the one name the panel holds it under. A press belongs to the

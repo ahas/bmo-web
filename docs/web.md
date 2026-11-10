@@ -5329,23 +5329,28 @@ Four bounds keep it from growing forever.
 - **A line never pushes the panel sideways.** The title gives way and wraps however long it is, and the arrow at the
   line's end keeps its place.
 - **Every line names the model its work will go out on**, short, as a chip beside its state (「Model names where room is
-  short」), in the order the agency chooses a job's road (its `docs/repositories.md`, 「A model an item names」): the
-  model the item names, its `model` label, where the label names one other than `auto`; otherwise its worker's road —
+  short」), in the order the agency chooses a job's road (its `docs/repositories.md`, 「An agent an item names」 and
+  「A model an item names」): the road of the agent the item names, its `agent` label, where it names one; else the
+  model its `model` label names, where an older item still carries one other than `auto`; otherwise its worker's road —
   the provider the owner forced on the role its jobs run as, else the model its repository pins, else the role's
   choice by its order. The role is read per repository, from its newest job, and a repository no recent job shows
-  runs as `worker`, so a provider forced on one role names no other repository's lines. While a job of the item runs, the line names the road that run took, which may differ from the
-  plan. A tooltip names the model whole, and while a job runs it names after it what chose the job's road, the
-  agency's `chosenBy` in the pack's words: 항목 지정, 강제 지정, 고정 모델 or 공급자 순서. The item's detail names
-  the same model in its head, in the same chip.
-- **The chip sets the item's model where the item is not finished,** on the line and in the detail's head alike; a
-  finished or merged item's chip is not pressed. Pressed, it opens the model list: `auto (기본값)` — the item names
-  no model and its job's road is the agency's to choose — then every model the worker line may run on, grouped by
-  provider as the 지금 cell's list offers them (「Agent management screen」, 「What a row runs on now」). The model
-  the item's label names stands chosen, or `auto` where it names none. A choice is saved as it is picked: the console
-  reads the item and writes its labels back whole through bmo-job's `PATCH /items/{itemId}`, `model` set to
-  `<provider>/<model>` or `auto` and every other label kept as it stood, since bmo-job replaces an item's labels whole.
-  The choice reaches the item's next job; a job already running keeps its road. A refusal says why in the line under
-  the list.
+  runs as `worker`, so a provider forced on one role names no other repository's lines. While a job of the item runs,
+  the line names the road that run took, which may differ from the plan. A tooltip names the model whole, and while
+  a job runs it names after it what chose the job's road, the agency's `chosenBy` in the pack's words: 항목 지정,
+  강제 지정, 고정 모델 or 공급자 순서. The item's detail names the same model in its head, in the same chip. The chip
+  is pressed nowhere: the road is read, and chosen through the item's agent. A line whose item names an agent
+  carries the agent's name as a second chip.
+- **An item is given to a repository and an agent.** Its 저장소 is its assignment, the repository whose worker and
+  checkout the work is done in (unassigned is the built-in worker), chosen in the detail's head. Its 에이전트 is the
+  agent the item names its work for, chosen in the detail's head where the item is not finished: 자동 (역할 순서) —
+  the item names no agent and its job takes the first free agent of the role the launch names — then every agent
+  the agency registers that is switched on, grouped by role, each with its road under its name; an agent the label
+  names that the listing does not hold stands as its name alone. The agent the item's label names stands chosen. A
+  choice is saved as it is picked: the console reads the item and writes its labels back whole through bmo-job's
+  `PATCH /items/{itemId}`, `agent` set to the agent's name or `auto` and every other label kept as it stood, since
+  bmo-job replaces an item's labels whole. The choice reaches the item's next job, which runs as that agent's role
+  on that agent's road and waits for that agent; a job already running keeps its agent. A refusal says why in the
+  line under the list.
 - **Pressing a line stands that item's detail as a modal.** It does not spread inside the list — the panel is a
   fixed-width column and a line bears the whole of the original instruction, completion report, talk and buttons pressed
   on it, so spreading below the line pushes the rest of the queue off screen. So, like everything long in this console,
@@ -5618,8 +5623,9 @@ Four bounds keep it from growing forever.
 - **The state tabs and the filter narrow the groups together.** The tabs under the search pick a state — 전체, 대기,
   진행 중, 결재 대기, 보류, 병합됨, 완료. Beside them a filter button opens a popover at every width, the panel being a
   narrow column wherever it stands, and it sets conditions on the table's own columns:
-  - **워커** — the worker that does the line. A line with no assignment is the Built-in worker's, so picking that
-    worker finds those lines too. The workers come from the agents table, with any other name a line still carries.
+  - **저장소** — the repository whose worker does the line. A line with no assignment is the Built-in worker's, so
+    picking that worker finds those lines too. The names come from the agents table, with any other name a line
+    still carries.
   - **미결** — a 미결 still standing, or one already resolved.
   - **협업** — lines run as co-work, or as one session.
   - **요청한 방** and **요청한 사람** — the room a request came from (or none) and the name it was filed under, out of

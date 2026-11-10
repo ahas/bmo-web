@@ -29,6 +29,7 @@ interface TodoBody {
   worker?: unknown;
   cowork?: unknown;
   model?: unknown;
+  agent?: unknown;
 }
 
 const ACTIONS: readonly TodoAction[] = [
@@ -49,7 +50,8 @@ const ACTIONS: readonly TodoAction[] = [
   "release",
   "worker",
   "cowork",
-  "model"
+  "model",
+  "agent"
 ];
 
 // Changing one row of the TODO. The table is bmo-job's to write, so the console asks and
@@ -173,6 +175,14 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
     throw fail(400, wording("todo.error.bad_model"));
   }
 
+  const agent = body?.agent;
+
+  // The agent its jobs go out on: `auto`, or an agent's name as the agency registers it. Whether the agency registers
+  // it is the agency's to say as a job of the item is launched.
+  if (action === "agent" && !isAgentLabel(agent)) {
+    throw fail(400, wording("todo.error.bad_agent"));
+  }
+
   // Each verb is one write on the item, its notes or its queue, as bmo-job's fixed API takes it. A verb the fixed
   // item has no place for — an unfinished note resolved — is refused as one this item cannot take.
   switch (action) {
@@ -202,7 +212,10 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       await patchItem(id, { cowork: cowork === true });
       break;
     case "model":
-      await setModelLabel(id, model as string);
+      await setLabel(id, "model", model as string);
+      break;
+    case "agent":
+      await setLabel(id, "agent", agent as string);
       break;
     case "append":
       await jobCall(job().POST("/items/{itemId}/notes", {
@@ -284,12 +297,16 @@ async function readTodoBoardItems(): Promise<Item[]> {
   return page.items;
 }
 
-// bmo-job replaces an item's labels whole, so the item is read and its labels written back with `model` set and every
-// other label kept as it stood (docs/web.md, the TODO panel's model chip).
-async function setModelLabel(id: number, model: string): Promise<void> {
+// bmo-job replaces an item's labels whole, so the item is read and its labels written back with the one label set
+// and every other kept as it stood (docs/web.md, the TODO panel's agent chooser).
+async function setLabel(id: number, label: "model" | "agent", value: string): Promise<void> {
   const item = await jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } } }));
 
-  await patchItem(id, { labels: { ...item.labels, model } });
+  await patchItem(id, { labels: { ...item.labels, [label]: value } });
+}
+
+function isAgentLabel(value: unknown): value is string {
+  return typeof value === "string" && value.length <= MODEL_LABEL_LIMIT && (value === "auto" || /^[a-z][a-z0-9-]*$/.test(value));
 }
 
 function isModelLabel(value: unknown): value is string {

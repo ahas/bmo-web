@@ -679,6 +679,9 @@ export interface TodoItem {
   priority: number;
   status: string;
   model: string | null;
+  // The agent the item names its work for, its `agent` label; null where it names none and the role's order
+  // chooses (the agency's docs/repositories.md, 「An agent an item names」).
+  agent: string | null;
   // The provider and model the item's work last went out on, which `model` — `auto` above all — does
   // not say: a co-work item's own line as its order keeps it, any other item's latest run. Null until a
   // run of it has gone out (bmo-job's docs/work-orders.md 「The model a step ran on」).
@@ -2185,7 +2188,8 @@ export type TodoAction =
   // Whether its job fans out into branches. Off is what every item runs as unless it is turned on.
   | "cowork"
   // The provider and model its jobs go out on, its `model` label: `<provider>/<model>`, or `auto` for the agency's choice.
-  | "model";
+  | "model"
+  | "agent";
 
 export interface TodoActionResult {
   ok: true;

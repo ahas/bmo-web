@@ -33,6 +33,7 @@ const task = (over: Partial<WorkTask> = {}): WorkTask =>
     id: "stage-0-0",
     role: "scout",
     model: "claude-haiku-4-5-20251001",
+    agent: null,
     instruction: KO.line_35,
     state: "done",
     attempt: 1,

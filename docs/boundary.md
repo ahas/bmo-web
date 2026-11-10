@@ -109,6 +109,13 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | `GET /users/{user}/unit` | | `user`, `unit`, `company`, each a unit reference (`id`, `name`), and `path`: the unit references from the company down to the user's unit; 404 where there is no such user |
 | `GET /units/{unit}` | | `id`, `name`, `parent?`, `company` and `path` as above, `children` (unit references, by name), `heads` (the users granted head of this unit directly) and `members` (the users standing in it); 404 where there is no such unit |
 
+| `GET /units` | the login's user in `Owner-Key` and role in `Owner-Role` | `units`: every unit, each `id`, `name`, `parent?`, `heads` and `members`, companies first and each unit after its parent; 403 for any login but the administrator |
+| `POST /units` | the same headers, and `name`, `parent?` | 201, the unit as `GET /units/{unit}` answers it; a unit with no parent is a new company; 404 where the parent does not stand |
+| `PATCH /units/{unit}` | the same headers, and `name?`, `parent?` | 200, the unit; 409 `other-company` where the new parent stands in another company, 409 `cycle` where it stands under the unit itself |
+| `PUT /units/{unit}/heads/{user}` | the same headers | 204: the user is granted head of the unit |
+| `DELETE /units/{unit}/heads/{user}` | the same headers | 204: the grant is taken away |
+| `PUT /users/{user}/unit` | the same headers, and `unit` | 200, the user's unit as `GET /users/{user}/unit` answers it |
+
 - **A unit** is one of sumida's organisations, named by its whole number. A unit with no parent is a company,
   and its `company` and `path` are itself (`docs/accounts.md`, 「Companies and organisation units」).
 - **`heads`** lists only the grants on the unit itself; whether a user heads a unit, through a grant on a unit

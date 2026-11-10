@@ -12,6 +12,9 @@ import {
   type Sections,
   type Session as WireSession,
   type SessionError,
+  type Unit,
+  type UnitRow,
+  type UserUnit,
   type UserList,
   type UserProfile as WireProfile,
   type WireError
@@ -580,4 +583,62 @@ export async function dropSecret(name: string, role: OwnerRole, options: Service
   );
 
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** Every unit, companies first and each unit after its parent, for the administrator's organisation section. */
+export async function listUnits(caller: ProfileCaller, options: ServiceOptions = {}): Promise<UnitRow[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/units", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  return answered(reply).units;
+}
+
+/** A unit made under a parent, or a new company where none is named. */
+export async function makeUnit(name: string, parent: number | null, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Unit> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/units", {
+      params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: parent === null ? { name } : { name, parent }
+    })
+  );
+
+  return answered(reply);
+}
+
+/** A unit renamed, or moved under another parent of its company. */
+export async function changeUnit(
+  unit: number,
+  change: { name?: string; parent?: number },
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<Unit> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PATCH("/units/{unit}", { params: { path: { unit }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: change })
+  );
+
+  return answered(reply);
+}
+
+/** A user granted head of a unit, or the grant taken away. */
+export async function setHead(unit: number, user: UserId, head: boolean, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const params = { path: { unit, user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } };
+  const reply = await sent(options, head ? client.PUT("/units/{unit}/heads/{user}", { params }) : client.DELETE("/units/{unit}/heads/{user}", { params }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A user placed in a unit. */
+export async function placeUser(user: UserId, unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<UserUnit> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/unit", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: { unit } })
+  );
+
+  return answered(reply);
 }

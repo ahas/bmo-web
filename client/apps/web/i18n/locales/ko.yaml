@@ -1594,6 +1594,7 @@ settings:
     notifications: 알림
     palette: 대화방
     permissions: 권한
+    organization: 조직
     providers: 공급자
     research: 리서치
     research_supervisor: 리서치 감독관
@@ -1641,6 +1642,33 @@ permissions:
   aria:
     read_of: "{name} 읽기"
     write_of: "{name} 쓰기"
+organization:
+  label:
+    units: 조직 단위
+    none: 조직 단위 없음
+    name: 이름
+    parent: 상위 단위
+    parent_hint: 비워 두면 새 회사가 됩니다.
+    new_company: 없음(새 회사)
+    heads: 장
+    members: "구성원 {count}명"
+    row: "장: {heads} · 구성원 {count}명"
+    no_head: 없음
+  action:
+    add: 단위 추가
+    edit: 편집
+    add_head: 장 지정
+    remove_head: "{name} 장 해제"
+    place: 이 단위에 배치
+  status:
+    loading: 조직 불러오는 중…
+  error:
+    bad_request: 이름이나 단위 번호가 올바르지 않습니다.
+    cycle: 단위를 자기 아래 단위 밑으로 옮길 수 없습니다.
+    failed: 조직을 처리하지 못했습니다.
+    not_found: 그 단위나 사용자가 없습니다.
+    other_company: 단위는 다른 회사로 옮길 수 없습니다.
+    unreachable: 계정 서비스에 연결되지 않았습니다.
 secrets:
   title:
     add: 비밀 추가

@@ -314,6 +314,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every unit, companies first and each unit after its parent, for the administrator alone. */
+        get: operations["units"];
+        put?: never;
+        /** A unit made under a parent, or a new company where none is named, by the administrator. */
+        post: operations["makeUnit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/units/{unit}": {
         parameters: {
             query?: never;
@@ -326,6 +344,25 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        /** A unit renamed, or moved under another parent of its company, by the administrator. */
+        patch: operations["changeUnit"];
+        trace?: never;
+    };
+    "/units/{unit}/heads/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** A user granted head of a unit, by the administrator. */
+        put: operations["grantHead"];
+        post?: never;
+        /** A user's head grant on a unit taken away, by the administrator. */
+        delete: operations["revokeHead"];
         options?: never;
         head?: never;
         patch?: never;
@@ -495,7 +532,8 @@ export interface paths {
         };
         /** The unit a user stands in, its company, and the units from the company down to it. */
         get: operations["userUnit"];
-        put?: never;
+        /** A user placed in a unit, by the administrator. */
+        put: operations["placeUser"];
         post?: never;
         delete?: never;
         options?: never;
@@ -768,6 +806,12 @@ export interface components {
             id: number;
             name: string;
         };
+        /** @description A unit to make: a company where it names no parent. */
+        NewUnit: {
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+        };
         /** @description A relation asked of a user on an object of the rules. */
         ObjectCheckAsk: {
             kind: string;
@@ -946,17 +990,42 @@ export interface components {
             parent?: number | null;
             path: components["schemas"]["UnitRef"][];
         };
+        /** @description A unit renamed or moved under another parent of its company. */
+        UnitChange: {
+            name?: string | null;
+            /** Format: int64 */
+            parent?: number | null;
+        };
         /** @description Whether a user heads a unit, asked. */
         UnitCheckAsk: {
             /** Format: int64 */
             unit: number;
             user: string;
         };
+        /** @description The unit a user is placed in. */
+        UnitPlacement: {
+            /** Format: int64 */
+            unit: number;
+        };
         /** @description One organisation unit as another names it: its number and its name. */
         UnitRef: {
             /** Format: int64 */
             id: number;
             name: string;
+        };
+        /** @description One unit of the whole tree, as the administrator reads it. */
+        UnitRow: {
+            heads: string[];
+            /** Format: int64 */
+            id: number;
+            members: string[];
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+        };
+        /** @description Every unit, companies first and each unit after its parent. */
+        Units: {
+            units: components["schemas"]["UnitRow"][];
         };
         /** @description Every user, for the administrator's screen that sets one person's sections. */
         UserList: {
@@ -1725,6 +1794,78 @@ export interface operations {
             };
         };
     };
+    units: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Units"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    makeUnit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewUnit"];
+            };
+        };
+        responses: {
+            /** @description Made. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unit"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     unit: {
         parameters: {
             query?: never;
@@ -1746,6 +1887,116 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    changeUnit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnitChange"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unit"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, other-company, cycle, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    grantHead: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    revokeHead: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2164,6 +2415,46 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    placeUser: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnitPlacement"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserUnit"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

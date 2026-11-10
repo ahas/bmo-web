@@ -263,6 +263,59 @@ impl AccountClient {
     Self::answered(self.request(Method::GET, &["units", &unit.to_string()])).await
   }
 
+  /// `GET /units`, asked as the login `key` acts for in `role`.
+  pub async fn units(&self, key: &str, role: &str) -> Answer<Units> {
+    Self::answered(self.request(Method::GET, &["units"]).header(OWNER_KEY, key).header(OWNER_ROLE, role))
+      .await
+  }
+
+  /// `POST /units`, asked as the login `key` acts for in `role`.
+  pub async fn make_unit(&self, ask: &NewUnit, key: &str, role: &str) -> Answer<Unit> {
+    Self::answered(self.send(Method::POST, &["units"], ask).header(OWNER_KEY, key).header(OWNER_ROLE, role))
+      .await
+  }
+
+  /// `PATCH /units/{unit}`, asked as the login `key` acts for in `role`.
+  pub async fn change_unit(&self, unit: i64, ask: &UnitChange, key: &str, role: &str) -> Answer<Unit> {
+    Self::answered(
+      self
+        .send(Method::PATCH, &["units", &unit.to_string()], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `PUT /units/{unit}/heads/{user}` where `head`, else `DELETE`, asked as the login `key` acts for in `role`.
+  pub async fn set_head(&self, unit: i64, user: &str, head: bool, key: &str, role: &str) -> Answer<()> {
+    let method = if head { Method::PUT } else { Method::DELETE };
+
+    Self::nothing(
+      self
+        .request(method, &["units", &unit.to_string(), "heads", user])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `PUT /users/{user}/unit`, asked as the login `key` acts for in `role`.
+  pub async fn place_user(
+    &self,
+    user: &str,
+    ask: &UnitPlacement,
+    key: &str,
+    role: &str,
+  ) -> Answer<UserUnit> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["users", user, "unit"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `GET /grants?room=`.
   pub async fn grants(&self, room: i64) -> Answer<Grants> {
     Self::answered(self.get(&["grants"], &[("room", room.to_string())])).await

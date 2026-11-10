@@ -217,8 +217,13 @@ section states what each does.
   it, the users granted head of it directly, and the users standing in it.
 - **`POST /checks/unit`** answers whether a user heads a unit: sumida's point check of `manage` on the unit, so a
   head of a unit above it is a head of it too.
-- **Making, naming and moving units and placing users in them** are sumida's own organisation and user routes,
-  reached under `/sumida` as the platform administrator.
+- **Making, naming and moving units, granting and taking away their heads, and placing users in them** are the
+  platform administrator's, on the routes `docs/boundary.md` lists under 「Organisation units」. A unit stays in its
+  company: a move under a parent of another company, or under the unit itself or one below it, is refused, and a
+  unit with no parent is a new company. sumida rebuilds its tree as the units change, so every check reads the
+  tree as it now stands.
+- **The console's organisation screen** draws the units as a tree and does each of these for the administrator
+  (`docs/web.md`, 「Organisation」).
 
 ### The people directory
 
@@ -326,6 +331,9 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **The people tests** read the same company's people by name, unit, job title and contact, across the units
   of one company, see a member's answer carry no contact detail, find nothing of another company, and match no
   contact detail a member may not see.
+- **The organisation tests** make a company and units under it as the administrator, rename and move one, refuse
+  a move into another company and under itself, grant and take away a head, place a user, and refuse every one
+  of these to a member.
 - **The unit tests** stand a company with units under it, read a user's unit, company and path, read a unit's
   children, heads and members, and check that a head of a unit heads the units below it and not the one above.
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**

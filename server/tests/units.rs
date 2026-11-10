@@ -99,12 +99,25 @@ async fn app(scratch: &Scratch) -> Router {
 }
 
 async fn asked(app: &Router, method: Method, path: &str, body: Option<Value>) -> (StatusCode, Value) {
-  let request = Request::builder()
+  asked_as(app, method, path, body, None).await
+}
+
+async fn asked_as(
+  app: &Router,
+  method: Method,
+  path: &str,
+  body: Option<Value>,
+  role: Option<&str>,
+) -> (StatusCode, Value) {
+  let mut request = Request::builder()
     .method(method)
     .uri(path)
     .header("x-real-ip", "127.0.0.1")
     .header(header::AUTHORIZATION, format!("Bearer {TOKEN}"))
     .header(header::CONTENT_TYPE, "application/json");
+  if let Some(role) = role {
+    request = request.header("owner-key", "1").header("owner-role", role);
+  }
   let body = body.map(|body| Body::from(body.to_string())).unwrap_or_else(Body::empty);
   let answer = app.clone().oneshot(request.body(body).unwrap()).await.unwrap();
   let status = answer.status();
@@ -251,4 +264,118 @@ async fn the_people_of_a_company_are_found_across_its_units() {
   let answer = app.clone().oneshot(request(format!("/users/{outsider}/person"))).await.unwrap();
 
   assert_eq!(answer.status(), StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn the_administrator_builds_the_organisation_and_a_member_builds_nothing() {
+  ready();
+  let tree = tree().await;
+  let app = app(&tree.scratch).await;
+  let admin = Some("administrator");
+
+  // A member is refused every one.
+  for (method, path, body) in [
+    (Method::GET, "/units".to_owned(), None),
+    (Method::POST, "/units".to_owned(), Some(json!({ "name": "x" }))),
+    (Method::PUT, format!("/units/{}/heads/{}", tree.team, tree.in_team), None),
+  ] {
+    let (status, said) = asked_as(&app, method, &path, body, Some("member")).await;
+    assert_eq!(status, StatusCode::FORBIDDEN, "{path}: {said}");
+  }
+
+  // A part under the team, and a new company.
+  let (status, part) = asked_as(
+    &app,
+    Method::POST,
+    "/units",
+    Some(json!({ "name": "part-a", "parent": tree.team })),
+    admin,
+  )
+  .await;
+  assert_eq!(status, StatusCode::CREATED, "{part}");
+  assert_eq!(part["company"]["id"], tree.company);
+  let part_id = part["id"].as_i64().unwrap();
+  let (status, other) =
+    asked_as(&app, Method::POST, "/units", Some(json!({ "name": "company-c" })), admin).await;
+  assert_eq!(status, StatusCode::CREATED, "{other}");
+  assert!(other.get("parent").is_none());
+
+  // Renamed and moved under the centre; never into another company, never under itself.
+  let (status, moved) = asked_as(
+    &app,
+    Method::PATCH,
+    &format!("/units/{part_id}"),
+    Some(json!({ "name": "part-b", "parent": tree.centre })),
+    admin,
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK, "{moved}");
+  assert_eq!(moved["name"], "part-b");
+  assert_eq!(moved["parent"], tree.centre);
+  let (status, said) = asked_as(
+    &app,
+    Method::PATCH,
+    &format!("/units/{part_id}"),
+    Some(json!({ "parent": other["id"] })),
+    admin,
+  )
+  .await;
+  assert_eq!(status, StatusCode::CONFLICT, "{said}");
+  assert_eq!(said["code"], "other-company");
+  let (status, said) = asked_as(
+    &app,
+    Method::PATCH,
+    &format!("/units/{}", tree.centre),
+    Some(json!({ "parent": part_id })),
+    admin,
+  )
+  .await;
+  assert_eq!(status, StatusCode::CONFLICT, "{said}");
+  assert_eq!(said["code"], "cycle");
+
+  // A head granted and taken away; a user placed.
+  let path = format!("/units/{part_id}/heads/{}", tree.in_team);
+  assert_eq!(asked_as(&app, Method::PUT, &path, None, admin).await.0, StatusCode::NO_CONTENT);
+  let (_, check) = asked(
+    &app,
+    Method::POST,
+    "/checks/unit",
+    Some(json!({ "unit": part_id, "user": tree.in_team.to_string() })),
+  )
+  .await;
+  assert_eq!(check["allowed"], true, "{check}");
+  assert_eq!(asked_as(&app, Method::DELETE, &path, None, admin).await.0, StatusCode::NO_CONTENT);
+  let (_, check) = asked(
+    &app,
+    Method::POST,
+    "/checks/unit",
+    Some(json!({ "unit": part_id, "user": tree.in_team.to_string() })),
+  )
+  .await;
+  assert_eq!(check["allowed"], false, "{check}");
+  let (status, placed) = asked_as(
+    &app,
+    Method::PUT,
+    &format!("/users/{}/unit", tree.in_team),
+    Some(json!({ "unit": part_id })),
+    admin,
+  )
+  .await;
+  assert_eq!(status, StatusCode::OK, "{placed}");
+  assert_eq!(placed["unit"]["id"], part_id);
+
+  // The whole tree reads companies first, each unit after its parent.
+  let (status, units) = asked_as(&app, Method::GET, "/units", None, admin).await;
+  assert_eq!(status, StatusCode::OK, "{units}");
+  let order: Vec<i64> = units["units"]
+    .as_array()
+    .unwrap()
+    .iter()
+    .map(|one| one["id"].as_i64().unwrap())
+    .collect();
+  let at = |id: i64| order.iter().position(|one| *one == id).unwrap();
+  assert!(at(i64::from(tree.company)) < at(i64::from(tree.centre)));
+  assert!(at(i64::from(tree.centre)) < at(part_id));
+  let part_row = units["units"].as_array().unwrap().iter().find(|one| one["id"] == part_id).unwrap();
+  assert_eq!(part_row["members"], json!([tree.in_team.to_string()]));
 }

@@ -6013,8 +6013,8 @@ dialog open at 계정.
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방, 알림, 보이스브리핑, 공급자, 리서치, 권한 and 비밀 보관함. A member is shown 계정,
-    테마 and 대화방; 알림, 보이스브리핑, 공급자, 리서치, 권한 and 비밀 보관함 are the administrator's.
+  - The sections are 계정, 테마, 대화방, 알림, 보이스브리핑, 공급자, 리서치, 권한, 조직 and 비밀 보관함. A member is shown
+    계정, 테마 and 대화방; 알림, 보이스브리핑, 공급자, 리서치, 권한, 조직 and 비밀 보관함 are the administrator's.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -6028,7 +6028,7 @@ dialog open at 계정.
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
 - **An address opens it at one section:** `?settings=` and a section's key — `account`, `theme`,
-  `palette`, `notifications`, `briefing`, `providers`, `research`, `permissions`, `secrets` — on any address of the console opens the dialog at that
+  `palette`, `notifications`, `briefing`, `providers`, `research`, `permissions`, `organization`, `secrets` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. The key is taken off the address as the dialog opens: what is open over a screen
   is not a place (「Floating things」), so the back gesture closes the dialog, or leaves the section on a
@@ -6044,6 +6044,17 @@ dialog open at 계정.
 - **The platform administrator's row stands with every switch on and nothing to change,** since they pass
   every section; the note above the table says so. A section's defaults and what they mean stand in
   `docs/accounts.md`, 「Console sections」.
+
+#### 조직
+
+- **The units stand as a tree,** companies first and each unit under its parent, indented by its depth; a unit's
+  row carries its name, its heads and how many people stand in it. What a unit is called — 본부, 센터, 팀, 파트 —
+  is its name alone (`docs/accounts.md`, 「Companies and organisation units」).
+- **단위 추가** opens a form of a name and a parent; with no parent the unit is a new company.
+- **A unit's row opens its own form:** its name, its parent among the units of its company, its heads — each
+  taken off by its mark, one added by choosing a person — and its people, one placed in it by choosing a person.
+  A change is saved as it is made, and a refusal — a parent in another company, a parent under the unit itself —
+  is said under the form in words.
 
 #### 계정
 

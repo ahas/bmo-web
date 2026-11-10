@@ -6,15 +6,20 @@
 use axum::Json;
 use axum::Router;
 use axum::extract::{Path, State};
-use axum::routing::{get, post};
-use bmo_web_client::{CheckAnswer, Unit, UnitCheckAsk, UnitRef, UserUnit};
+use axum::http::{HeaderMap, StatusCode};
+use axum::routing::{get, post, put};
+use bmo_web_client::{
+  CheckAnswer, NewUnit, OWNER_ROLE, Unit, UnitChange, UnitCheckAsk, UnitPlacement, UnitRef, UnitRow, Units,
+  UserUnit,
+};
 use sea_orm::ConnectionTrait;
 use sumida::api::authz::Authz;
+use sumida::api::authz::write::{SubjectKey, TupleFilter, TupleWrite};
 
 use crate::ids::{parsed, shown};
 use crate::routes::{Answer, Body, user_in};
 use crate::users::user_subject;
-use crate::{Refusal, Service, all, one};
+use crate::{Refusal, Service, all, one, run};
 
 /// The kind a unit is in sumida's rules, and the permission that says its holder heads it.
 pub const UNIT: &str = "organization";
@@ -25,8 +30,10 @@ const HEAD_GRANT: &str = "manager";
 /// The routes of this module.
 pub fn routes() -> Router<Service> {
   Router::new()
-    .route("/users/{user}/unit", get(user_unit_route))
-    .route("/units/{unit}", get(unit_route))
+    .route("/users/{user}/unit", get(user_unit_route).put(place_route))
+    .route("/units", get(units_route).post(make_route))
+    .route("/units/{unit}", get(unit_route).patch(change_route))
+    .route("/units/{unit}/heads/{user}", put(head_route).delete(unhead_route))
     .route("/checks/unit", post(unit_check))
 }
 
@@ -76,10 +83,14 @@ pub async fn company_of<C: ConnectionTrait>(db: &C, unit: i32) -> Result<Option<
 /// The unit a user stands in, where the user stands.
 pub async fn unit_of_user<C: ConnectionTrait>(db: &C, user: i32) -> Result<Option<i32>, Refusal> {
   Ok(
-    one(db, r#"SELECT "organization_id" FROM "users" WHERE "id" = $1"#, vec![user.into()])
-      .await?
-      .map(|row| row.try_get::<i32>("", "organization_id"))
-      .transpose()?,
+    one(
+      db,
+      r#"SELECT "organization_id" FROM "users" WHERE "id" = $1::bigint"#,
+      vec![user.into()],
+    )
+    .await?
+    .map(|row| row.try_get::<i32>("", "organization_id"))
+    .transpose()?,
   )
 }
 
@@ -110,9 +121,13 @@ pub async fn user_unit<C: ConnectionTrait>(db: &C, user: i32) -> Result<UserUnit
 
 /// One unit: where it stands, what stands directly under it, who is granted head of it, who stands in it.
 pub async fn unit<C: ConnectionTrait>(db: &C, unit: i32) -> Result<Unit, Refusal> {
-  let row = one(db, r#"SELECT "parent_id" FROM "organizations" WHERE "id" = $1"#, vec![unit.into()])
-    .await?
-    .ok_or_else(|| Refusal::absent(format!("no unit {unit}")))?;
+  let row = one(
+    db,
+    r#"SELECT "parent_id" FROM "organizations" WHERE "id" = $1::bigint"#,
+    vec![unit.into()],
+  )
+  .await?
+  .ok_or_else(|| Refusal::absent(format!("no unit {unit}")))?;
   let parent: Option<i32> = row.try_get("", "parent_id")?;
   let (own, company, path) = split(path_of(db, unit).await?, unit)?;
   let children = all(
@@ -173,7 +188,7 @@ pub fn head_grant(unit: i32) -> String {
 
 /// Whether a user heads a unit: a head grant on it or on a unit above it, or the platform administrator.
 pub async fn heads<C: ConnectionTrait>(db: &C, user: i32, unit: i32) -> Result<bool, Refusal> {
-  one(db, r#"SELECT "id" FROM "organizations" WHERE "id" = $1"#, vec![unit.into()])
+  one(db, r#"SELECT "id" FROM "organizations" WHERE "id" = $1::bigint"#, vec![unit.into()])
     .await?
     .ok_or_else(|| Refusal::absent(format!("no unit {unit}")))?;
   let subject = user_subject(db, user).await?;
@@ -204,4 +219,247 @@ async fn unit_check(State(service): State<Service>, Body(ask): Body<UnitCheckAsk
     user: Some(shown(user)),
     sender: None,
   }))
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// The administrator's organisation (docs/accounts.md, 「Companies and organisation units」)
+
+/// Who grants a head: the console's organisation screen.
+const GRANTER: &str = "organisation";
+
+fn administrator(headers: &HeaderMap) -> Result<(), Refusal> {
+  match headers.get(OWNER_ROLE).and_then(|role| role.to_str().ok()) {
+    Some("administrator") => Ok(()),
+    _ => Err(Refusal::forbidden(
+      "the organisation is the administrator's: the call names no `Owner-Role: administrator`",
+    )),
+  }
+}
+
+fn name_of(name: &str) -> Result<String, Refusal> {
+  let name = name.trim();
+
+  if name.is_empty() {
+    Err(Refusal::bad("a unit's name is empty"))
+  } else {
+    Ok(name.to_owned())
+  }
+}
+
+/// Every unit, companies first and each unit after its parent.
+pub async fn every_unit<C: ConnectionTrait>(db: &C) -> Result<Vec<UnitRow>, Refusal> {
+  let rows = all(
+    db,
+    r#"SELECT o."id", o."name", o."parent_id",
+         (SELECT string_agg(t."subject_id", ',' ORDER BY t."subject_id")
+            FROM "relation_tuples" t
+            WHERE t."resource_type" = 'organization' AND t."resource_id" = o."id"::text AND t."relation" = 'manager'
+              AND t."subject_type" = 'user' AND t."subject_relation" = ''
+              AND (t."expires_at" IS NULL OR t."expires_at" > now())) AS "heads",
+         (SELECT string_agg(u."id"::text, ',' ORDER BY u."id") FROM "users" u WHERE u."organization_id" = o."id") AS "members",
+         (SELECT string_agg(lpad(c."ancestor_id"::text, 10, '0'), '/' ORDER BY c."depth" DESC)
+            FROM "org_closure" c WHERE c."descendant_id" = o."id") AS "place"
+       FROM "organizations" o
+       ORDER BY "place""#,
+    vec![],
+  )
+  .await?;
+  let split = |text: Option<String>| -> Vec<String> {
+    text
+      .map(|text| text.split(',').filter(|one| !one.is_empty()).map(str::to_owned).collect())
+      .unwrap_or_default()
+  };
+
+  rows
+    .iter()
+    .map(|row| {
+      Ok(UnitRow {
+        id: i64::from(row.try_get::<i32>("", "id")?),
+        name: row.try_get("", "name")?,
+        parent: row.try_get::<Option<i32>>("", "parent_id")?.map(i64::from),
+        heads: split(row.try_get("", "heads")?),
+        members: split(row.try_get("", "members")?),
+      })
+    })
+    .collect()
+}
+
+/// A unit made under a parent, or a new company where none is named.
+pub async fn make<C: ConnectionTrait>(db: &C, ask: &NewUnit) -> Result<i32, Refusal> {
+  let name = name_of(&ask.name)?;
+  let parent = match ask.parent {
+    Some(parent) => {
+      let parent =
+        i32::try_from(parent).map_err(|_| Refusal::bad(format!("{parent} is no unit's number")))?;
+      one(db, r#"SELECT "id" FROM "organizations" WHERE "id" = $1::bigint"#, vec![parent.into()])
+        .await?
+        .ok_or_else(|| Refusal::absent(format!("no unit {parent}")))?;
+      Some(parent)
+    }
+    None => None,
+  };
+  let row = one(
+    db,
+    r#"INSERT INTO "organizations" ("name", "parent_id") VALUES ($1, $2::bigint) RETURNING "id""#,
+    vec![name.into(), parent.into()],
+  )
+  .await?
+  .ok_or_else(|| Refusal::new(StatusCode::INTERNAL_SERVER_ERROR, "the unit was not made"))?;
+
+  Ok(row.try_get("", "id")?)
+}
+
+/// A unit renamed, or moved under another parent of its own company that does not stand under it.
+pub async fn change<C: ConnectionTrait>(db: &C, unit: i32, ask: &UnitChange) -> Result<(), Refusal> {
+  one(db, r#"SELECT "id" FROM "organizations" WHERE "id" = $1::bigint"#, vec![unit.into()])
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("no unit {unit}")))?;
+
+  if let Some(name) = &ask.name {
+    run(
+      db,
+      r#"UPDATE "organizations" SET "name" = $1 WHERE "id" = $2::bigint"#,
+      vec![name_of(name)?.into(), unit.into()],
+    )
+    .await?;
+  }
+
+  if let Some(parent) = ask.parent {
+    let parent =
+      i32::try_from(parent).map_err(|_| Refusal::bad(format!("{parent} is no unit's number")))?;
+    let parent_company = company_of(db, parent)
+      .await?
+      .ok_or_else(|| Refusal::absent(format!("no unit {parent}")))?;
+
+    if company_of(db, unit).await? != Some(parent_company) {
+      return Err(Refusal::new(StatusCode::CONFLICT, "a unit stays in its company").coded("other-company"));
+    }
+
+    if path_of(db, parent).await?.iter().any(|above| above.id == i64::from(unit)) {
+      return Err(Refusal::new(StatusCode::CONFLICT, "a unit cannot stand under itself").coded("cycle"));
+    }
+
+    run(
+      db,
+      r#"UPDATE "organizations" SET "parent_id" = $1::bigint WHERE "id" = $2::bigint"#,
+      vec![parent.into(), unit.into()],
+    )
+    .await?;
+  }
+
+  Ok(())
+}
+
+/// A user granted head of a unit, or the grant taken away.
+pub async fn set_head<C: ConnectionTrait>(db: &C, unit: i32, user: i32, head: bool) -> Result<(), Refusal> {
+  one(db, r#"SELECT "id" FROM "organizations" WHERE "id" = $1::bigint"#, vec![unit.into()])
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("no unit {unit}")))?;
+  one(db, r#"SELECT "id" FROM "users" WHERE "id" = $1::bigint"#, vec![user.into()])
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
+  let object = unit.to_string();
+
+  if head {
+    Authz::write_unchecked(TupleWrite::new(UNIT, &object, HEAD_GRANT, SubjectKey::user(user)), GRANTER, db)
+      .await?;
+  } else {
+    Authz::revoke_unchecked(
+      TupleFilter::object(UNIT, &object)
+        .relations(&[HEAD_GRANT])
+        .subject(SubjectKey::user(user)),
+      db,
+    )
+    .await?;
+  }
+
+  Ok(())
+}
+
+/// A user placed in a unit.
+pub async fn place<C: ConnectionTrait>(db: &C, user: i32, unit: i32) -> Result<(), Refusal> {
+  one(db, r#"SELECT "id" FROM "organizations" WHERE "id" = $1::bigint"#, vec![unit.into()])
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("no unit {unit}")))?;
+  let moved = run(
+    db,
+    r#"UPDATE "users" SET "organization_id" = $1::bigint WHERE "id" = $2::bigint"#,
+    vec![unit.into(), user.into()],
+  )
+  .await?;
+
+  if moved == 0 {
+    return Err(Refusal::absent(format!("no user {user}")));
+  }
+
+  Ok(())
+}
+
+async fn units_route(State(service): State<Service>, headers: HeaderMap) -> Answer<Units> {
+  administrator(&headers)?;
+
+  Ok(Json(Units {
+    units: every_unit(&service.db).await?,
+  }))
+}
+
+async fn make_route(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Body(ask): Body<NewUnit>,
+) -> Result<(StatusCode, Json<Unit>), Refusal> {
+  administrator(&headers)?;
+  let made = make(&service.db, &ask).await?;
+
+  Ok((StatusCode::CREATED, Json(unit(&service.db, made).await?)))
+}
+
+async fn change_route(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path(asked): Path<String>,
+  Body(ask): Body<UnitChange>,
+) -> Answer<Unit> {
+  administrator(&headers)?;
+  let asked = unit_in(&asked)?;
+  change(&service.db, asked, &ask).await?;
+
+  Ok(Json(unit(&service.db, asked).await?))
+}
+
+async fn head_route(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path((asked, user)): Path<(String, String)>,
+) -> Result<StatusCode, Refusal> {
+  administrator(&headers)?;
+  set_head(&service.db, unit_in(&asked)?, user_in(&user)?, true).await?;
+
+  Ok(StatusCode::NO_CONTENT)
+}
+
+async fn unhead_route(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path((asked, user)): Path<(String, String)>,
+) -> Result<StatusCode, Refusal> {
+  administrator(&headers)?;
+  set_head(&service.db, unit_in(&asked)?, user_in(&user)?, false).await?;
+
+  Ok(StatusCode::NO_CONTENT)
+}
+
+async fn place_route(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path(user): Path<String>,
+  Body(ask): Body<UnitPlacement>,
+) -> Answer<UserUnit> {
+  administrator(&headers)?;
+  let user = user_in(&user)?;
+  let asked =
+    i32::try_from(ask.unit).map_err(|_| Refusal::bad(format!("{} is no unit's number", ask.unit)))?;
+  place(&service.db, user, asked).await?;
+
+  Ok(Json(user_unit(&service.db, user).await?))
 }

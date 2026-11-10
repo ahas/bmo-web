@@ -523,6 +523,84 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/units",
+    "units",
+    "Organisation units",
+    "Every unit, companies first and each unit after its parent, for the administrator alone.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<Units>(&mut generator))],
+    codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/units",
+    "makeUnit",
+    "Organisation units",
+    "A unit made under a parent, or a new company where none is named, by the administrator.",
+    params: vec![owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<NewUnit>())),
+    answers: vec![(201, json_answer::<Unit>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PATCH",
+    "/units/{unit}",
+    "changeUnit",
+    "Organisation units",
+    "A unit renamed, or moved under another parent of its company, by the administrator.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<UnitChange>())),
+    answers: vec![(200, json_answer::<Unit>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "other-company", "cycle", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/units/{unit}/heads/{user}",
+    "grantHead",
+    "Organisation units",
+    "A user granted head of a unit, by the administrator.",
+    params: vec![integer_path("unit"), string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/units/{unit}/heads/{user}",
+    "revokeHead",
+    "Organisation units",
+    "A user's head grant on a unit taken away, by the administrator.",
+    params: vec![integer_path("unit"), string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/users/{user}/unit",
+    "placeUser",
+    "Organisation units",
+    "A user placed in a unit, by the administrator.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<UnitPlacement>())),
+    answers: vec![(200, json_answer::<UserUnit>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/units/{unit}",
     "unit",
     "Organisation units",

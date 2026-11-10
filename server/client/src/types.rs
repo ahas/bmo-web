@@ -258,6 +258,46 @@ pub struct Unit {
   pub members: Vec<String>,
 }
 
+/// One unit of the whole tree, as the administrator reads it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UnitRow {
+  pub id: i64,
+  pub name: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub parent: Option<i64>,
+  pub heads: Vec<String>,
+  pub members: Vec<String>,
+}
+
+/// Every unit, companies first and each unit after its parent.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Units {
+  pub units: Vec<UnitRow>,
+}
+
+/// A unit to make: a company where it names no parent.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct NewUnit {
+  pub name: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub parent: Option<i64>,
+}
+
+/// A unit renamed or moved under another parent of its company.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UnitChange {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub parent: Option<i64>,
+}
+
+/// The unit a user is placed in.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UnitPlacement {
+  pub unit: i64,
+}
+
 /// What a check answered.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct CheckAnswer {

@@ -8,7 +8,7 @@ import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 // A screen whose module could not be read (docs/web.md, 「Screens a unit brings」): its addresses open onto the
 // console's own page under the screen's title, never onto nothing and never onto a page that says it is absent.
 
-const screen = { name: "unit-a", title: "unit-a.title", icon: "i-material-symbols-apps", screenPath: "/unit-a", role: "member", module: "/console/api/unit-a/console/bundle.js", stylesheet: null, words: {}, counted: false } as unknown as ConsoleScreen;
+const screen: ConsoleScreen = { name: "unit-a", title: "unit-a.title", icon: "i-material-symbols-apps", screenPath: "/unit-a", role: "member", module: "/console/api/unit-a/console/bundle.js", stylesheet: null, words: {}, counted: false };
 
 function router() {
   return createRouter({ history: createMemoryHistory(), routes: [{ path: "/", component: {} }] });

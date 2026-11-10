@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../support/globals";
+
 import { wording } from "../../../apps/web/shared/wording";
 import { computed, ref } from "vue";
 
@@ -14,6 +16,7 @@ import KO from "../../fixtures/app/domain/room-feed.test.ko.json";
 // The framework's own, which a test of the module alone does not bring with it.
 const globals: Record<string, unknown> = globalThis;
 
+globalsRestoredAfter(["computed", "ref"]);
 globals.ref = ref;
 globals.computed = computed;
 

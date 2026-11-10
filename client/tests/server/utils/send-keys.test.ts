@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+
+import { globalsRestoredAfter } from "../../support/globals";
 import { mkdirSync, readdirSync, utimesSync } from "node:fs";
 import { join } from "node:path";
 
@@ -10,6 +12,7 @@ import { answerSend, claimSend, readSend, releaseSend, SEND_KEY_SECONDS, sendKey
 // What Nitro would import into the module by itself.
 const globals = globalThis as Record<string, unknown>;
 
+globalsRestoredAfter(["createError", "fail"]);
 globals.createError = (options: { statusCode: number; message: string }) => Object.assign(new Error(options.message), options);
 globals.fail = fail;
 

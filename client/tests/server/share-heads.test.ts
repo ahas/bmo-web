@@ -1,5 +1,7 @@
 import { afterAll, afterEach, describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../support/globals";
+
 import { consoleManifest } from "bmo-ui/shared/console-manifest";
 
 import { attachBundles } from "../../apps/web/server/utils/console-manifests";
@@ -10,6 +12,7 @@ import { attachBundles } from "../../apps/web/server/utils/console-manifests";
 
 const globals: Record<string, unknown> = globalThis;
 
+globalsRestoredAfter(["defineNitroPlugin"]);
 globals.defineNitroPlugin = (plugin: unknown) => plugin;
 
 const { SHARE_HEAD_LANGUAGE, writeShareHead } = await import("../../apps/web/server/plugins/share-heads");

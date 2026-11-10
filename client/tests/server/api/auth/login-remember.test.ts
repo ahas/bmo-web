@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../../support/globals";
+
 import { BROWSER_LOGIN_SECONDS, REMEMBER_LOGIN_SECONDS } from "../../../../apps/web/shared/config";
 import { standInHandler } from "../../../support/route-handler";
 
@@ -22,6 +24,7 @@ const globals: Record<string, unknown> = globalThis;
 let written: Written | null = null;
 let standing: Record<string, unknown> = { user: { name: "owner" }, loggedInAt: 1, remember: false };
 
+globalsRestoredAfter(["changePassword", "checkPassword", "consoleModel", "defineEventHandler", "fail", "findWebUser", "normalizeName", "normalizePassword", "readBody", "renameWebUser", "replaceUserSession", "requireUserSession", "sessionLife", "sessionRemembers", "setUserSession", "signedInUser"]);
 globals.defineEventHandler = (handler: unknown) => handler;
 globals.readBody = async (event: FakeEvent) => event.body;
 globals.fail = (statusCode: number, message: string) => Object.assign(new Error(message), { statusCode });

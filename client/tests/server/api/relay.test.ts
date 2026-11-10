@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../support/globals";
+
 import { consoleManifest } from "bmo-ui/shared/console-manifest";
 
 import { attachBundles } from "../../../apps/web/server/utils/console-manifests";
@@ -16,6 +18,7 @@ const globals: Record<string, unknown> = globalThis;
 // Who is signed in, which a test may take away: the support's signed-in administrator, user 1, by default.
 let session: { user?: { id: number; name: string } } = { user: { id: 1, name: "tester" } };
 
+globalsRestoredAfter(["getUserSession", "useRuntimeConfig"]);
 globals.getUserSession = async () => session;
 // The console served at the root unless a test says otherwise.
 globals.useRuntimeConfig = () => ({ app: { baseURL: "/" } });

@@ -1,4 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
+
+import { globalsRestoredAfter } from "../support/globals";
 import { readdirSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -76,6 +78,7 @@ const routes = [...routeFiles(apiRoot).map(routeOf), ...moduleRoutes];
 const globals: Record<string, unknown> = globalThis;
 let session: Record<string, unknown> = {};
 
+globalsRestoredAfter(["carriesSession", "createError", "defineEventHandler", "getCookie", "getUserSession", "useRuntimeConfig"]);
 globals.defineEventHandler = (handler: unknown) => handler;
 globals.getCookie = () => "sealed";
 globals.useRuntimeConfig = () => ({ session: { name: "nuxt-session" }, app: { baseURL: "/bmo/" } });

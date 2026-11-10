@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../../support/globals";
+
 import { DEFAULT_PALETTE, PALETTES } from "bmo-ui/shared/palettes";
 import { useWebSql } from "../../../../apps/web/server/utils/db";
 import { readPalette, savePalette } from "../../../../apps/web/server/utils/palettes";
@@ -18,6 +20,7 @@ interface FakeEvent {
 const globals: Record<string, unknown> = globalThis;
 let user: string | null = "tester";
 
+globalsRestoredAfter(["defineEventHandler", "fail", "readBody", "readPalette", "savePalette", "signedInUser", "useWebSql"]);
 globals.defineEventHandler = (handler: unknown) => handler;
 globals.signedInUser = async () => {
   if (user === null) {

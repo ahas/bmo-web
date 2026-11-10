@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../support/globals";
+
 import { CONTROL_UNREACHABLE } from "../../../apps/web/shared/config";
 import { wording } from "../../../apps/web/shared/wording";
 import { carries, reasonOf, unitAt, unitFetch } from "../../../apps/web/server/utils/units";
@@ -8,6 +10,7 @@ import { fail } from "../../../apps/web/server/utils/fail";
 // What Nitro would import into the module by itself.
 const globals = globalThis as Record<string, unknown>;
 
+globalsRestoredAfter(["createError", "fail"]);
 globals.createError = (options: { statusCode: number; message: string }) => Object.assign(new Error(options.message), options);
 globals.fail = fail;
 

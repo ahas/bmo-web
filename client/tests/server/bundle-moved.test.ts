@@ -1,5 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../support/globals";
+
 import { consoleManifest } from "bmo-ui/shared/console-manifest";
 
 import { attachBundles } from "../../apps/web/server/utils/console-manifests";
@@ -12,6 +14,7 @@ import { standInHandler } from "../support/route-handler";
 const globals: Record<string, unknown> = globalThis;
 const redirects: { location: string; code: number }[] = [];
 
+globalsRestoredAfter(["defineEventHandler", "getUserSession", "sendRedirect", "useRuntimeConfig"]);
 globals.defineEventHandler = (handler: unknown) => handler;
 globals.useRuntimeConfig = () => ({ app: { baseURL: "/bmo/" } });
 globals.sendRedirect = (_event: unknown, location: string, code: number) => {

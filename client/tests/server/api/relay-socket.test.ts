@@ -1,4 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
+
+import { globalsRestoredAfter } from "../../support/globals";
 import { dirname } from "node:path";
 
 import { consoleManifest } from "bmo-ui/shared/console-manifest";
@@ -23,6 +25,7 @@ const TOKEN = "relayed-token";
 
 const globals: Record<string, unknown> = globalThis;
 
+globalsRestoredAfter(["defineNitroPlugin", "useRuntimeConfig"]);
 globals.defineNitroPlugin = (plugin: unknown) => plugin;
 globals.useRuntimeConfig = () => ({ app: { baseURL: BASE }, session: SESSION });
 

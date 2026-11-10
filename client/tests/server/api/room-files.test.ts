@@ -1,5 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../support/globals";
+
 import { asked, routeOf } from "../../support/nitro";
 
 import type { RoomPicturePage, RoomStats, RoomWindow } from "../../../apps/web/shared/types";
@@ -74,6 +76,7 @@ afterAll(() => {
 
 const globals: Record<string, unknown> = globalThis;
 
+globalsRestoredAfter(["requireReadableRoom", "useAppConfig"]);
 globals.requireReadableRoom = async () => undefined;
 globals.useAppConfig = () => ({ bmoUi: { zone: "Asia/Seoul" } });
 

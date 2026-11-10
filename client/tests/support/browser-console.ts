@@ -57,7 +57,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["monitor-polling", "fixture-password-2372"],
   ["todo-models", "fixture-password-2298"],
   ["work-view", "fixture-password-2311"],
-  ["delegation-marker", "fixture-password-2373"]
+  ["delegation-marker", "fixture-password-2373"],
+  ["screen-stands", "fixture-password-2411"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -275,7 +276,9 @@ const uses: Record<string, unknown>[] = [];
 // A unit that brings a screen of its own under the console's title bar (docs/web.md, 「Screens a unit brings」, 「The
 // title bar」): its manifest, its words and its module, whose one route asks for the console's bar. The screen notes
 // whether the bar's place for its actions stood when it mounted, lays a button there by a deferred teleport and
-// redraws it every few frames, so a place missing at mount shows as an error on the page.
+// redraws it every few frames, so a place missing at mount shows as an error on the page. Its module reads
+// `process.env` where it stands, as a library inside a unit's build does, so the module ends before its routes
+// stand unless the console owes a `process` to it.
 function screenUnit(name: string, path: string): Response | null {
   if (path === "/console-manifest") {
     return Response.json({
@@ -291,6 +294,9 @@ function screenUnit(name: string, path: string): Response | null {
 
 const SLOT = "[data-title-bar-screen-actions]";
 
+// What a library inside a unit's build reads at the top of its module, before any of its own code runs.
+const built = process.env.NODE_ENV;
+
 const Screen = defineComponent({
   setup() {
     const ticks = ref(0);
@@ -302,7 +308,7 @@ const Screen = defineComponent({
     });
     onBeforeUnmount(() => clearInterval(timer));
 
-    return () => h("div", { "data-screen": ${JSON.stringify(name)} }, [
+    return () => h("div", { "data-screen": ${JSON.stringify(name)}, "data-build": String(built) }, [
       h(Teleport, { to: SLOT, defer: true }, [h("button", { type: "button", "data-screen-action": ${JSON.stringify(name)} }, "act " + ticks.value)]),
       h("p", ${JSON.stringify(name)} + " " + ticks.value)
     ]);

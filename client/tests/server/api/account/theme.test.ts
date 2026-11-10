@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../../support/globals";
+
 import { DEFAULT_THEME, THEMES } from "bmo-ui/shared/themes";
 import { useWebSql } from "../../../../apps/web/server/utils/db";
 import { readTheme, saveTheme } from "../../../../apps/web/server/utils/themes";
@@ -18,6 +20,7 @@ interface FakeEvent {
 const globals: Record<string, unknown> = globalThis;
 let user: string | null = "tester";
 
+globalsRestoredAfter(["defineEventHandler", "fail", "readBody", "readTheme", "saveTheme", "signedInUser", "useWebSql"]);
 globals.defineEventHandler = (handler: unknown) => handler;
 globals.signedInUser = async () => {
   if (user === null) {

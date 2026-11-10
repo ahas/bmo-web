@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../../support/globals";
+
 import { useWebSql } from "../../../../apps/web/server/utils/db";
 import { isTabScreen, readTabState, saveTabState, TAB_STATE_MAX_BYTES } from "../../../../apps/web/server/utils/tab-states";
 import { standInHandler } from "../../../support/route-handler";
@@ -19,6 +21,7 @@ interface FakeEvent {
 const globals: Record<string, unknown> = globalThis;
 let user: string | null = "tester";
 
+globalsRestoredAfter(["TAB_STATE_MAX_BYTES", "defineEventHandler", "fail", "getRouterParam", "isTabScreen", "readBody", "readTabState", "requireUserSession", "saveTabState", "signedInUser", "useWebSql"]);
 globals.defineEventHandler = (handler: unknown) => handler;
 globals.requireUserSession = async () => {
   if (user === null) {

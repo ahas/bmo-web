@@ -1,5 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../support/globals";
+
 import { computed, nextTick, ref, watch } from "vue";
 
 import KO from "../../fixtures/app/domain/text-reading.test.ko.json";
@@ -10,6 +12,7 @@ import KO from "../../fixtures/app/domain/text-reading.test.ko.json";
 
 const globals: Record<string, unknown> = globalThis;
 
+globalsRestoredAfter(["computed", "ref", "watch"]);
 globals.ref = ref;
 globals.computed = computed;
 globals.watch = watch;

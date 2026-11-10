@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../support/globals";
+
 import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
@@ -12,6 +14,7 @@ import type { DraftRow, SupervisorDraftView } from "../../../apps/web/shared/dra
 
 const globals: Record<string, unknown> = globalThis;
 
+globalsRestoredAfter(["readableRooms", "requireReadableRoom"]);
 globals.requireReadableRoom = async () => undefined;
 globals.readableRooms = async () => "all";
 

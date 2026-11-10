@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+
+import { globalsRestoredAfter } from "../support/globals";
 import { createApp, createRouter, eventHandler, setResponseHeader, toWebHandler } from "h3";
 
 // The lines every answer of the console carries for the browser (docs/web.md, 「Access」), on an app standing the
@@ -7,6 +9,7 @@ import { createApp, createRouter, eventHandler, setResponseHeader, toWebHandler 
 
 const globals: Record<string, unknown> = globalThis;
 
+globalsRestoredAfter(["defineNitroPlugin"]);
 globals.defineNitroPlugin = (plugin: unknown) => plugin;
 
 const { CONSOLE_HEADERS, dropPoweredBy, standConsoleHeaders, standResponseHeaders } = await import("../../apps/web/server/plugins/response-headers");

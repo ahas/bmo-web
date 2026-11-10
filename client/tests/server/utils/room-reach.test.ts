@@ -1,5 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 
+import { globalsRestoredAfter } from "../../support/globals";
+
 import { standInAccountService } from "../../support/account-service";
 import { ROOM_ID } from "../../support/ids";
 
@@ -50,6 +52,7 @@ process.env.RECEIVER_ADDRESS = `http://127.0.0.1:${receiver.port}`;
 const globals: Record<string, unknown> = globalThis;
 let session: Record<string, unknown> = {};
 
+globalsRestoredAfter(["createError", "fail", "requireUserSession"]);
 globals.requireUserSession = async () => session;
 globals.createError = (error: { statusCode: number; statusMessage?: string; message?: string }) =>
   Object.assign(new Error(error.statusMessage ?? error.message), error);

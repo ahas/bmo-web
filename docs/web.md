@@ -2099,8 +2099,13 @@ archive and this week's tokens remain. That is all that can actually be known th
   - **An agent whose work begins walks to its room, and one whose work ends walks back,** along the paths between
     the rooms and in through a room's open sides, never through a wall. For a reader who asked for less motion
     nobody walks or strolls: each stands at its place at once.
+  - **The floor fills its box, and the box fills the screen.** On this tab the body under the tab row carries no
+    margin and the box no frame: the floor runs to the screen's edges under the tab row, and the counts, the
+    buttons and an agent's card float over it. 맞춤 scales the floor to the box exactly — the largest it can stand
+    with the whole of it showing, centred — rather than to the nearest step of the zoom, and the floor stands so
+    until it is first moved; the box's resize fits it again.
   - **The floor is dragged to move it and zoomed by the wheel, two fingers or the buttons** at its corner — 확대,
-    축소 and 맞춤, which fits the whole floor to its box, as the floor stands until it is first moved. The arrow keys
+    축소 and 맞춤. A zoom from a fitted floor goes to the next step of the zoom past it. The arrow keys
     move it, `+` and `-` zoom it and `0` fits it.
   - **Touching an agent opens its card** over the floor's corner: its label, its role or 감독관, and its name; 상태,
     작업 중, 대기 중 or 꺼짐; for one that works 위치, the repository or the folder its run works in, or the room a
@@ -3020,10 +3025,10 @@ a seat of its role.
 #### 등록 모델
 
 - **One table of the registered models** the agency serves at `/models` (its `docs/api.md`, 「providers, models and
-  model files」), one row each: its name, the model behind it, the supervisors, roles and repositories that name it
-  (`usedBy`), its card service where it names one, and a mark beside its name saying whether its engine answers —
-  응답함, or **마지막 응답** with the moment the engine last answered where it does not answer now and has ever
-  answered, and 응답 안 함 where it has never answered.
+  model files」), one row each: its name, the model behind it, 상태 — a column of its own, a mark and a word saying
+  whether its engine answers: 응답함, or **마지막 응답** with the moment the engine last answered where it does not
+  answer now and has ever answered, and 응답 안 함 where it has never answered — the supervisors, roles and
+  repositories that name it (`usedBy`), and its card service where it names one.
 - **추가** in the tab row opens a box for a new registration's name, fixed once made and written with lowercase
   letters, digits and hyphens beginning with a letter, the model its addresses serve, its card service and whether
   that service keeps role files. A row's more-menu opens the same box to change the registration, or removes it, a

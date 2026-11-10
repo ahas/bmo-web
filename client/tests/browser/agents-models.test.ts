@@ -193,13 +193,14 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
         return {
           pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           menus: buttons.map((one) => one.getBoundingClientRect()).map((one) => ({ width: one.width, height: one.height })),
-          status: [...document.querySelectorAll<HTMLElement>("[data-registration]")].map((one) => one.innerText)
+          status: [...document.querySelectorAll<HTMLElement>("[data-registration-health]")].map((one) => one.innerText)
         };
       });
 
       // The page never scrolls sideways, and every row's menu is the shared small square to press.
       expect(measured.pageOverflow).toBeLessThanOrEqual(1);
       expect(measured.menus.filter((one) => one.width < 28 || one.height < 28)).toEqual([]);
+      // Whether an engine answers stands in a column of its own, apart from the name.
       expect(measured.status.join("\n")).toContain(wording("agents.label.registry_healthy"));
 
       // The box a create opens is centred and whole, its buttons inside the visible screen.

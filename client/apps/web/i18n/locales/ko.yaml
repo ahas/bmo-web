@@ -1923,6 +1923,7 @@ agents:
     reference: 참조 주입
     reference_send: 붙이기
     registry_healthy: 응답함
+    registry_state: 상태
     registry_unhealthy: 응답 안 함
     registry_last_answered: "마지막 응답 {time}"
     restore: 강등 복원

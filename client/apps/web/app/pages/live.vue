@@ -1,5 +1,7 @@
 <template>
-  <UDashboardPanel id="live">
+  <!-- On the space tab the body carries no margin: the floor runs to the screen's edges under the tab row
+       (docs/web.md, 「Live status screen」). -->
+  <UDashboardPanel id="live" :ui="{ body: tab === 'space' ? 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-hidden [&>*]:max-w-none' : undefined }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.live')" icon="i-material-symbols-monitor-heart-outline" />
 

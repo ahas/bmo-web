@@ -1,7 +1,8 @@
 <template>
   <!-- The registered models (docs/web.md, 「Agent management screen」, the registered models tab; the agency's
-       docs/api.md, 「providers, models and model files」): one row each, its name with a mark saying whether its engine
-       answers, the model behind it, what names it and its card service. A row's more-menu changes or removes it. -->
+       docs/api.md, 「providers, models and model files」): one row each, its name, the model behind it, its state — a mark
+       and a word saying whether its engine answers — what names it and its card service. A row's more-menu changes or
+       removes it. -->
   <section class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="$t('agents.label.tab_models')">
     <DataTableSkeleton v-if="models === undefined && !error" layout="fill" :headers="tableHeaders(columns)" :rows="3" :label="$t('agents.status.registry_loading')" />
     <ReadFailure
@@ -17,19 +18,23 @@
     <SettingsTable v-if="models !== undefined && rows.length > 0" layout="fill" :data="rows" :columns="columns" :row-key="(row: RegistryRow) => row.name">
       <template #name-cell="{ row }">
         <span :id="settingsAnchor(`registry-${row.original.name}`)" :class="CELL_TEXT" class="ps-4" :data-registration="row.original.name">
-          <span class="flex min-w-0 items-center gap-2">
-            <SearchText class="truncate text-sm font-medium text-highlighted" :text="row.original.name" :query="props.query" />
-            <span v-if="row.original.health !== null" class="flex shrink-0 items-center gap-1 text-sm text-muted">
-              <UIcon :name="row.original.health.icon" class="size-4 shrink-0" :class="row.original.health.tone" aria-hidden="true" />
-              {{ row.original.health.text }}
-            </span>
-          </span>
+          <SearchText class="truncate text-sm font-medium text-highlighted" :text="row.original.name" :query="props.query" />
         </span>
       </template>
 
       <template #model-cell="{ row }">
         <span :class="CELL_TEXT">
           <SearchText class="whitespace-nowrap font-mono text-sm text-toned" :text="row.original.model.model" :query="props.query" />
+        </span>
+      </template>
+
+      <template #health-cell="{ row }">
+        <span :class="CELL_TEXT" class="text-sm" data-registration-health>
+          <span v-if="row.original.health === null" class="text-muted">—</span>
+          <span v-else class="flex min-w-0 items-center gap-1 whitespace-nowrap text-toned">
+            <UIcon :name="row.original.health.icon" class="size-4 shrink-0" :class="row.original.health.tone" aria-hidden="true" />
+            {{ row.original.health.text }}
+          </span>
         </span>
       </template>
 
@@ -126,6 +131,7 @@ interface RegistryRow {
 const columns = computed<SettingsColumn<RegistryRow>[]>(() => [
   { id: "name", header: t("common.label.name") },
   { id: "model", header: t("common.label.model") },
+  { id: "health", header: t("agents.label.registry_state") },
   { id: "usedBy", header: t("agents.label.used_by"), ceiling: 288 },
   { id: "cardService", header: t("agents.label.card_service") },
   ...(props.readonly ? [] : [{ id: "actions", header: "" }])

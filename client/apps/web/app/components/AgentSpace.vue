@@ -7,7 +7,7 @@
   <div class="relative flex min-h-0 grow flex-col" data-agent-space>
     <ReadFailure :failure="readFailure" :message="failed" :reading="reading" @retry="load()" />
 
-    <div ref="holder" class="relative min-h-80 grow overflow-hidden rounded-lg border border-default bg-elevated/40">
+    <div ref="holder" class="relative min-h-80 grow overflow-hidden bg-elevated/40">
       <canvas
         ref="canvas"
         class="absolute inset-0 size-full touch-none select-none outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -37,10 +37,10 @@
 
       <div class="absolute end-3 top-3 flex flex-col gap-1">
         <UTooltip :text="$t('live.action.zoom_in')" :content="{ side: 'left' }">
-          <UButton icon="i-material-symbols-add" color="neutral" variant="subtle" size="sm" :disabled="level >= UNITS.length - 1" :aria-label="$t('live.action.zoom_in')" @click="zoom(1)" />
+          <UButton icon="i-material-symbols-add" color="neutral" variant="subtle" size="sm" :disabled="unit >= UNITS[UNITS.length - 1]!" :aria-label="$t('live.action.zoom_in')" @click="zoom(1)" />
         </UTooltip>
         <UTooltip :text="$t('live.action.zoom_out')" :content="{ side: 'left' }">
-          <UButton icon="i-material-symbols-remove" color="neutral" variant="subtle" size="sm" :disabled="level <= 0" :aria-label="$t('live.action.zoom_out')" @click="zoom(-1)" />
+          <UButton icon="i-material-symbols-remove" color="neutral" variant="subtle" size="sm" :disabled="unit <= UNITS[0]!" :aria-label="$t('live.action.zoom_out')" @click="zoom(-1)" />
         </UTooltip>
         <UTooltip :text="$t('live.action.zoom_fit')" :content="{ side: 'left' }">
           <UButton icon="i-material-symbols-fit-screen-outline" color="neutral" variant="subtle" size="sm" :aria-label="$t('live.action.zoom_fit')" @click="fit()" />
@@ -251,8 +251,8 @@ interface Sprite {
 // The step of the zoom the floor stands at and how many device pixels a voxel's half-step takes there, the floor's
 // place on the canvas, and whether the reader has moved or zoomed the floor, after which a new picture no longer
 // fits it to the box.
-const level = ref(4);
-const unit = computed(() => UNITS[level.value]!);
+// The unit is a step of the zoom, or between two steps where the fit scaled the floor to the box exactly.
+const unit = ref(UNITS[4]!);
 const camera = { x: 0, y: 0 };
 let roamed = false;
 let scale: Scale = scaleOf(unit.value);
@@ -301,27 +301,32 @@ function reach(at: Scale, floor: Plan): [number, number, number, number] {
   return [-floor.d * TILE * at.dx, -(WALL + 8) * at.dz, floor.w * TILE * at.dx, (floor.w + floor.d) * TILE * at.dy + 3 * at.dz];
 }
 
-function setLevel(next: number): void {
-  level.value = next;
-  scale = scaleOf(UNITS[next]!);
+function setUnit(next: number): void {
+  unit.value = next;
+  scale = scaleOf(next);
   sprites = new Map();
 }
 
-/** The floor fitted to the box: the closest zoom at which all of it shows, centred. */
+/** The floor fitted to the box: scaled to the largest size at which the whole of it shows, and centred. */
 function fit(): void {
   const box = canvas.value;
 
   if (box === null || plan === null || box.width === 0) return;
 
-  let best = 0;
+  // The reach grows with the unit, so the unit that fills the box is read off the reach at one unit; the wall's
+  // height rounds, so the fit is checked and stepped down until the whole floor shows.
+  const [left1, top1, right1, bottom1] = reach(scaleOf(1), plan);
+  let next = Math.min(box.width / (right1 - left1), box.height / (bottom1 - top1), UNITS[UNITS.length - 1]!);
 
-  for (let next = 0; next < UNITS.length; next += 1) {
-    const [left, top, right, bottom] = reach(scaleOf(UNITS[next]!), plan);
+  for (let tries = 0; tries < 8; tries += 1) {
+    const [left, top, right, bottom] = reach(scaleOf(next), plan);
 
-    if (right - left <= box.width * 0.98 && bottom - top <= box.height * 0.98) best = next;
+    if (right - left <= box.width && bottom - top <= box.height) break;
+
+    next *= 0.99;
   }
 
-  setLevel(best);
+  setUnit(Math.max(UNITS[0]!, next));
 
   const [left, top, right, bottom] = reach(scale, plan);
 
@@ -331,16 +336,17 @@ function fit(): void {
 }
 
 // A zoom by one step, the point of the box at `around` staying where it is; the box's middle where none is given.
+// From a fitted floor standing between two steps, the step past it in the direction asked.
 function zoom(by: number, around?: [number, number]): void {
   const box = canvas.value;
-  const next = Math.max(0, Math.min(UNITS.length - 1, level.value + by));
+  const next = by > 0 ? UNITS.find((step) => step > unit.value) : [...UNITS].reverse().find((step) => step < unit.value);
 
-  if (box === null || next === level.value) return;
+  if (box === null || next === undefined) return;
 
   const [px, py] = around ?? [box.width / 2, box.height / 2];
   const [x, y] = floorAt(scale, px - camera.x, py - camera.y);
 
-  setLevel(next);
+  setUnit(next);
 
   const [sx, sy] = project(scale, x, y, 0);
 

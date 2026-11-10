@@ -57,6 +57,7 @@
 </template>
 
 <script setup lang="ts">
+import { provideConsolePeople } from "~/domain/people-offer";
 import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
 import { MEMBER_HOME } from "~/domain/access";
 import { consoleName } from "#shared/agent-names";
@@ -86,6 +87,7 @@ useVisibleShell();
 const route = useRoute();
 // The console's bar, offered to every screen a unit brings.
 provideConsoleTitleBar();
+provideConsolePeople();
 const { t } = useI18n();
 const open = ref(false);
 const sidebarFolded = ref(false);

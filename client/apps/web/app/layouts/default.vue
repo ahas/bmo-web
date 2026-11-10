@@ -146,6 +146,7 @@
 </template>
 
 <script setup lang="ts">
+import { provideConsolePeople } from "~/domain/people-offer";
 import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
 import { useBriefings } from "~/domain/briefing";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
@@ -181,6 +182,7 @@ const titleBarTarget = useTitleBarTarget();
 const route = useRoute();
 // The console's bar, offered to every screen a unit brings.
 provideConsoleTitleBar();
+provideConsolePeople();
 
 // The shell of the console fills what is on the screen rather than what the window says it is.
 // The two are the same until something is laid over the page — a virtual keyboard is, on a phone

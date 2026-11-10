@@ -6746,6 +6746,11 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   — in place of a console page that stood at the same address, a placeholder — and its stylesheet is linked
   once, in a cascade layer of its own above the console's base and below its components and utilities, so a
   class both style reads as the console's and a bundle's copy of a utility never undoes the frame around it. A loaded module stays for the life of the tab; a manifest naming a new one reaches the next tab.
+  - **A screen whose module cannot be read says so in the console's frame.** Where the list names a screen but its
+    module or a file it imports is not answered — its unit down, or restarting between two reads of the list —
+    the screen's addresses open onto the console's own page under the screen's title, saying its service is not
+    answering, with a key that reads the module again. Once it loads, its own routes stand in that page's place
+    and the address opens as it was asked. The address is never left with nothing drawn at it.
   - **A bundle's module reads one `process` the console stands.** A unit builds its bundle for a browser and a
     library inside that build can still read `process.env` or `process.argv` where the built code stands, and the
     console's own browser build names no `process`, so on a page the console draws in the browser nothing would

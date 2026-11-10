@@ -1,6 +1,7 @@
 import { withoutBase } from "ufo";
 
 import { mergeWords, openScreen, screenAt, useConsoleScreens } from "~/domain/console-screens";
+import { standUnavailable } from "~/domain/screen-unavailable";
 
 import type { ConsoleScreen } from "#shared/console-bundles";
 
@@ -39,7 +40,7 @@ export default defineNuxtPlugin({
     if (import.meta.client) {
       const screen = screenAt(screens.value, path);
 
-      if (screen !== null) await openScreen(useRouter(), screen).catch(() => undefined);
+      if (screen !== null) await openScreen(useRouter(), screen).catch(() => standUnavailable(useRouter(), screen));
     }
   }
 });

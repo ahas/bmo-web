@@ -1,5 +1,6 @@
 import { MEMBER_HOME, MEMBER_LAYOUT, isAdministrator } from "~/domain/access";
 import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens } from "~/domain/console-screens";
+import { standUnavailable, unavailableRoute } from "~/domain/screen-unavailable";
 import { loginRoute, returnPath } from "~/domain/login-end";
 import { ensureSectionAccess } from "~/domain/section-access";
 import { homeFor, screenMayRead, sectionsOfPath } from "#shared/sections";
@@ -15,9 +16,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const screen = screenAt(screens, to.path);
 
   if (import.meta.client && screen !== null && !screenOpened(screen)) {
-    const loaded = await openScreen(useRouter(), screen).then(() => true, () => false);
+    const router = useRouter();
+    const loaded = await openScreen(router, screen).then(() => true, () => false);
 
     if (loaded) return navigateTo(to.fullPath, { replace: true });
+
+    // A module that would not load leaves the console's own page at the address, never nothing.
+    if (!router.hasRoute(unavailableRoute(screen))) {
+      standUnavailable(router, screen);
+
+      return navigateTo(to.fullPath, { replace: true });
+    }
   }
 
   // A share link is the one road with no session behind it. Each bundle's share page stands below its

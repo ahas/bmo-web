@@ -7,10 +7,9 @@
        The two lines stand one step apart, and it is the row's own step — the same one between the
        name above them and the chip line below, so the whole row reads at one rhythm. What the turn
        is at right now stands under what opened it and the few lines the agent wrote as it worked,
-       and it spreads the turn's own detail under it:
-       the state in the pack's words and every call the turn has made so far, in the order it made
-       them, whole and never cut. The detail is open while the turn runs, since a reader watching a
-       long turn wants what it is doing rather than only that it is doing something. -->
+       and under the state stand only the newest things the turn did: its last call and the tail of
+       its last thinking block, since a reader watching a long turn wants what it is doing now and
+       the verdict chips open the whole of it. -->
   <div class="flex min-w-0 flex-col items-start gap-(--chat-meta-gap)">
     <!-- What this turn was handed. A turn that read three messages piled up while the last
          answer was being written and a turn that read one look the same otherwise, and a turn
@@ -30,34 +29,14 @@
          where a turn's handed line, state and chip line stand, so a turn beginning or ending moves
          nothing above it. -->
     <ListeningLine v-if="props.run.listening" :name="name" :closes-at="props.run.listening.closesAt" />
-    <!-- The state is the face of the turn's reasoning block: a shimmering press at the row's left
-         edge that says the agent is thinking, and under it the turn's own detail — the state it is at
-         and every document and call it has taken so far, oldest first. The row's own header already
-         names the agent, so no name column stands beside the block and the detail reads from the
-         row's edge. The shimmer is the whole of the sign that the turn is going: no mark spins
-         beside it.
-
-         The detail is the turn's own list, so nothing on it is cut on a line and nothing scrolls in a
-         box of its own: a long word, path or command wraps at the row's width, and the row grows by
-         what it holds (docs/web.md, the room screen's running line). -->
-    <ItemTip v-else :id="waitingItem" as="div" class="flex min-w-0 flex-col text-sm leading-(--chat-meta-line)">
-      <UChatReasoning
-        :streaming="true"
-        class="min-w-0"
-        :ui="{
-          trigger: 'w-auto',
-          label: 'whitespace-normal overflow-visible text-clip',
-          body: 'max-h-none overflow-visible whitespace-normal'
-        }"
-      >
-        <div class="flex min-w-0 flex-col gap-1">
-          <p v-if="detail !== null" class="text-sm leading-(--chat-meta-line) text-muted break-keep wrap-anywhere">{{ detail }}</p>
-          <TurnActions v-if="actions.length > 0" :actions="actions" :dropped="dropped" />
-        </div>
-      </UChatReasoning>
-
-      <!-- The run's last thinking block, where the bot's picture carries one: a two-line preview under the detail,
-           since it is the newest thing the turn did, standing whether the detail is spread or folded. -->
+    <!-- The state is the turn's own account of what it is at: a shimmering line at the row's left edge that says
+         what the turn is doing now — thinking, writing, a named tool in use, or the Job it waits on. The row's own
+         header already names the agent, so no name column stands beside it, and nothing on it presses or folds: the
+         verdict chips under the row open the whole of what the turn did. Under it stand the turn's last call, one
+         line that turns like a page as a new call comes, and the last thinking block's tail, streamed in. -->
+    <ItemTip v-else :id="waitingItem" as="div" class="flex min-w-0 flex-col gap-1 text-sm leading-(--chat-meta-line)">
+      <UChatShimmer data-state :text="state" class="min-w-0 whitespace-normal break-keep wrap-anywhere" />
+      <LastAction v-if="last !== null" :action="last" :at="lastAt" />
       <ThinkingPreview v-if="thinking !== null" :text="thinking" />
     </ItemTip>
   </div>
@@ -65,7 +44,7 @@
 
 <script setup lang="ts">
 import { otherAnswererOf } from "~/domain/agents";
-import { phaseDetail, receivedLine, saidLines, thinkingBlock, turnName } from "~/domain/working";
+import { lastAction, receivedLine, saidLines, stateLine, thinkingBlock, turnName } from "~/domain/working";
 
 import type { RunState } from "~/domain/events";
 
@@ -78,14 +57,14 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 // The line names whoever this row is the turn of, which is the name the answer will stand under.
 const name = computed(() => turnName(t, otherAnswererOf(props.run.speaker)));
-// What the chat agent's draft process is on, which another supervisor's turn runs none of; the detail says it in place of
-// the state.
-const detail = computed(() => phaseDetail(t, props.run.progress, otherAnswererOf(props.run.speaker) === undefined ? props.run.draft ?? null : null));
+// What the turn is at, in the pack's words; the chat agent's draft process, which another supervisor's turn runs
+// none of, names its step there.
+const state = computed(() => stateLine(t, props.run.progress, otherAnswererOf(props.run.speaker) === undefined ? props.run.draft ?? null : null));
 // The last thinking block the turn's run wrote, where its picture carries one.
 const thinking = computed(() => thinkingBlock(props.run.progress));
-// What the turn has done so far, oldest first, each at its whole length as the agent's log keeps it.
-const actions = computed(() => props.run.progress?.actions ?? []);
-const dropped = computed(() => props.run.progress?.droppedActions ?? 0);
+// The last call the turn made, and which call of the turn it is, counting the ones the picture dropped.
+const last = computed(() => lastAction(props.run.progress));
+const lastAt = computed(() => (props.run.progress?.droppedActions ?? 0) + (props.run.progress?.actions.length ?? 0));
 // What the turn has written as it works, the newest apart from the few before it.
 const said = computed(() => saidLines(props.run.progress));
 // What the turn was handed, in the room's own words.

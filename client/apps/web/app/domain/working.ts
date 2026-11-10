@@ -332,16 +332,32 @@ export function thinkingBlock(progress: RunProgress | null): string | null {
   return block === "" ? null : block;
 }
 
-// How the thinking preview moves down its block: it holds the block's head for a moment, then moves at a pace a
-// reader follows without effort.
-export const THINKING_PREVIEW = { leadMs: 2_000, pxPerSecond: 10 } as const;
+// How the thinking preview streams its block in: quickly, so many characters a second.
+export const THINKING_STREAM = { charsPerSecond: 400 } as const;
 
-// How far down its block the thinking preview stands, in pixels, `elapsedMs` after the block was put in: nothing
-// through the lead, then the pace's distance, and never past `max`, the block's height beyond the preview's own.
-export function thinkingScrollTop(elapsedMs: number, max: number): number {
-  if (max <= 0) return 0;
+// How many characters of a block the preview shows `elapsedMs` after it began streaming from `from`, the count it
+// already stood: the pace's characters past it, and never more than the block's `length`.
+export function thinkingShown(elapsedMs: number, from: number, length: number): number {
+  if (length <= from) return length;
 
-  return Math.min(max, (Math.max(0, elapsedMs - THINKING_PREVIEW.leadMs) * THINKING_PREVIEW.pxPerSecond) / 1_000);
+  return Math.min(length, from + Math.floor((Math.max(0, elapsedMs) * THINKING_STREAM.charsPerSecond) / 1_000));
+}
+
+// Where the streaming of a new block goes on from, given what the preview stood of the block before: the count it
+// stood where the new block grows that one, else nothing, since another block starts from its own head.
+export function thinkingResumeFrom(before: string, shown: number, now: string): number {
+  return now.startsWith(before.slice(0, shown)) && shown <= now.length ? shown : 0;
+}
+
+// What a running turn is at, in the pack's words (docs/web.md, the room screen's running line): the state's detail,
+// or that it only thinks where the detail names nothing.
+export function stateLine(t: Translate, progress: RunProgress | null, draft: DraftStep | null = null): string {
+  return phaseDetail(t, progress, draft) ?? t("room.status.step_thinking");
+}
+
+// The last call the turn made, where its picture carries one: the one line the running block stands of its work.
+export function lastAction(progress: RunProgress | null): TurnAction | null {
+  return progress?.actions.at(-1) ?? null;
 }
 
 // What a running turn has written as it works, as its block stands it: the newest of its progress lines, read as the

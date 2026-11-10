@@ -5,7 +5,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 import { GENERIC_TOOL_ICON } from "../../../apps/web/app/domain/log";
-import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, progressLines, receivedLine, saidLines, subjectOf, THINKING_PREVIEW, thinkingBlock, thinkingScrollTop, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
+import { actionLook, brainActions, listeningLines, windowClockLines, outcomeLine, phaseLook, progressLines, receivedLine, saidLines, subjectOf, THINKING_STREAM, thinkingBlock, thinkingResumeFrom, thinkingShown, lastAction, stateLine, turnActions, turnName, useHeldRuns } from "../../../apps/web/app/domain/working";
 
 import type { AgentLogLine, AgentSummary, LiveRun, RunProgress, TurnAction } from "../../../apps/web/shared/types";
 
@@ -72,6 +72,22 @@ describe("what the room says the answering agent is doing", () => {
     });
 
     expect(phaseLook(wording, KO.line_110, called)).toEqual({ label: KO.line_110_2 });
+  });
+
+  test("the state line says what the turn is at, and that it only thinks where the detail names nothing", () => {
+    expect(stateLine(wording, null)).toBe(wording("room.status.step_thinking"));
+    expect(stateLine(wording, progress({ phase: "thinking" }))).toBe(wording("room.status.step_thinking"));
+    expect(stateLine(wording, progress({ phase: "writing" }))).toBe(wording("room.status.step_writing"));
+    expect(stateLine(wording, progress({ phase: "tool", tool: null }))).toBe(wording("room.status.step_tool"));
+  });
+
+  test("the last call is the newest the picture carries, and none where it carries none", () => {
+    const first = { kind: "tool" as const, name: "Read", text: "a.md", state: null };
+    const second = { kind: "tool" as const, name: "Bash", text: "ls", state: null };
+
+    expect(lastAction(null)).toBeNull();
+    expect(lastAction(progress({ actions: [] }))).toBeNull();
+    expect(lastAction(progress({ actions: [first, second] }))).toEqual(second);
   });
 
   test("the tool is named in the word a person calls it by, never in the program's own", () => {
@@ -327,18 +343,24 @@ describe("what a running turn has written as it works", () => {
     expect(thinkingBlock(null)).toBeNull();
   });
 
-  test("the thinking preview holds its block's head, then moves down it at its pace and rests at its end", () => {
-    const { leadMs, pxPerSecond } = THINKING_PREVIEW;
+  test("streams its block in quickly, going on from what it stood of the block before where the new one grows it", () => {
+    const { charsPerSecond } = THINKING_STREAM;
 
-    expect(thinkingScrollTop(0, 200)).toBe(0);
-    expect(thinkingScrollTop(leadMs, 200)).toBe(0);
-    expect(thinkingScrollTop(leadMs + 1_000, 200)).toBe(pxPerSecond);
-    expect(thinkingScrollTop(leadMs + 3_500, 200)).toBe(pxPerSecond * 3.5);
-    expect(thinkingScrollTop(leadMs + 3_600_000, 200)).toBe(200);
-    // A block no taller than the preview has nowhere to move.
-    expect(thinkingScrollTop(leadMs + 5_000, 0)).toBe(0);
-    expect(thinkingScrollTop(leadMs + 5_000, -4)).toBe(0);
+    expect(thinkingShown(0, 0, 200)).toBe(0);
+    expect(thinkingShown(1_000, 0, 200)).toBe(charsPerSecond > 200 ? 200 : charsPerSecond);
+    expect(thinkingShown(100, 0, 200)).toBe(Math.floor(charsPerSecond / 10));
+    expect(thinkingShown(100, 150, 200)).toBe(Math.min(200, 150 + Math.floor(charsPerSecond / 10)));
+    expect(thinkingShown(3_600_000, 0, 200)).toBe(200);
+    // A block no longer than what already stands has nothing more to stream.
+    expect(thinkingShown(5_000, 200, 200)).toBe(200);
+    expect(thinkingShown(5_000, 10, 4)).toBe(4);
+
+    expect(thinkingResumeFrom("First thought", 5, "First thought, then more")).toBe(5);
+    expect(thinkingResumeFrom("First thought", 13, "First thought, then more")).toBe(13);
+    expect(thinkingResumeFrom("First thought", 5, "Another block")).toBe(0);
+    expect(thinkingResumeFrom("", 0, "Another block")).toBe(0);
   });
+
 
   test("is the newest line apart from the few before it, oldest first", () => {
     const said = saidLines(

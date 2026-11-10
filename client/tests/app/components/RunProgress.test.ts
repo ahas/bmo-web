@@ -26,42 +26,65 @@ describe("what the block stands while a turn runs", () => {
     expect(template.length).toBeGreaterThan(500);
   });
 
-  test("the turn's detail stands under what opened it", () => {
+  test("the turn's state stands under what opened it", () => {
     const received = at("<RollingSentence");
-    const reasoning = at("<UChatReasoning");
+    const state = at("<UChatShimmer data-state");
 
-    // What opened the turn, then what it is at right now. The reasoning block is the one that is
-    // reread while the turn runs, so it is held still rather than pushed down the screen by every
-    // call that lands under it.
-    expect(received).toBeLessThan(reasoning);
+    // What opened the turn, then what it is at right now.
+    expect(received).toBeLessThan(state);
   });
 
-  test("the run's last thinking block stands under the detail, after the state and every call", () => {
+  test("the run's last call stands under the state, and the last thinking block's tail under the call", () => {
+    const state = at("<UChatShimmer data-state");
+    const call = at('<LastAction v-if="last !== null" :action="last" :at="lastAt" />');
     const thinking = at('<ThinkingPreview v-if="thinking !== null" :text="thinking" />');
 
-    expect(thinking).toBeGreaterThan(at("</UChatReasoning>"));
-    expect(thinking).toBeGreaterThan(at("<TurnActions"));
-    expect(thinking).toBeGreaterThan(at('<p v-if="detail !== null"'));
+    expect(state).toBeLessThan(call);
+    expect(call).toBeLessThan(thinking);
     expect(source).toContain("const thinking = computed(() => thinkingBlock(props.run.progress));");
+    expect(source).toContain("const last = computed(() => lastAction(props.run.progress));");
+    // Which call of the turn it is counts the ones the picture dropped, so the page turns on every new call.
+    expect(source).toContain("(props.run.progress?.droppedActions ?? 0) + (props.run.progress?.actions.length ?? 0)");
+    // Nothing of the turn's work is stacked here: the verdict chips open the whole of it.
+    expect(template).not.toContain("<TurnActions");
+    expect(template).not.toContain("<UChatReasoning");
   });
 
-  test("the preview is two lines tall, moves by the frame, takes no finger, and stands still for less movement", async () => {
+  test("the last call turns like a page, and takes its place at once for a reader who asked for less movement", async () => {
+    const line = await Bun.file(new URL("../../../apps/web/app/components/LastAction.vue", import.meta.url)).text();
+
+    expect(line).toContain('<Transition name="page">');
+    expect(line).toContain(':key="props.at"');
+    expect(line).toContain("overflow-hidden");
+    expect(line).toContain(".page-enter-from {\n  transform: translateX(100%);");
+    expect(line).toContain(".page-leave-to {\n  transform: translateX(-100%);");
+    expect(line).toContain(".page-leave-active {\n  position: absolute;");
+    expect(line).toContain("@media (prefers-reduced-motion: reduce)");
+    // One line, whole: the badge its sort wears and what it was about, as the agent's log keeps it.
+    expect(line).toContain("actionLook(t, props.action, icons.value)");
+    expect(line).toContain("break-all");
+    expect(line).not.toContain("truncate");
+  });
+
+  test("the preview is two lines tall, streams by the frame with its foot on the newest words, takes no finger, and stands at once for less movement", async () => {
     const preview = await Bun.file(new URL("../../../apps/web/app/components/ThinkingPreview.vue", import.meta.url)).text();
 
     expect(preview).toContain("max-h-[2lh]");
     expect(preview).toContain("pointer-events-none");
     expect(preview).toContain("overflow-hidden");
     expect(preview).toContain("whitespace-pre-wrap");
-    expect(preview).toContain("thinkingScrollTop(now - since, max)");
-    expect(preview).toContain("if (top < max) frame = requestAnimationFrame(move);");
+    expect(preview).toContain("thinkingShown(now - since, from, props.text.length)");
+    expect(preview).toContain("if (shown.value < props.text.length) frame = requestAnimationFrame(move);");
+    expect(preview).toContain("element.scrollTop = element.scrollHeight;");
+    expect(preview).toContain("from = thinkingResumeFrom(before, shown.value, props.text);");
     expect(preview).toContain('window.matchMedia("(prefers-reduced-motion: reduce)").matches');
-    expect(preview).toContain("watch(() => props.text, () => void nextTick(start));");
+    expect(preview).toContain("shown.value = props.text.length;");
   });
 
   test("what the agent writes as it works stands between what opened the turn and what it is at", () => {
     const received = at("<RollingSentence");
     const said = at("data-said ");
-    const reasoning = at("<UChatReasoning");
+    const reasoning = at("<UChatShimmer data-state");
 
     // The agent's words come first and the state under them, as a chat reads a line and then the sign that more
     // is coming; the newest line is the row's own words, the few before it muted.
@@ -87,27 +110,23 @@ describe("what the block stands while a turn runs", () => {
     expect(source).toContain("receivedLine(props.run.received)");
   });
 
-  test("the block's face shimmers at the row's edge, and its body is the turn's own list", () => {
-    const block = template.slice(at("<UChatReasoning"));
+  test("the state shimmers at the row's edge in the pack's words, and nothing on it presses or folds", () => {
+    const block = template.slice(at("<UChatShimmer data-state"));
 
-    // The face is the library's thinking word alone, which the block shimmers for as long as the turn
-    // runs, and it stands at the row's left edge: the row's header names the agent, and a name column
-    // beside the block pushed the detail right. Nothing spins beside it.
+    // The state is the turn's own account — thinking, writing, a named tool, the Job it waits on — which shimmers
+    // for as long as the turn runs, and it stands at the row's left edge: the row's header names the agent, and a
+    // name column beside it pushed the detail right. Nothing spins beside it, and nothing folds.
     expect(template).not.toContain("{{ subject }}");
     expect(template).not.toContain("subjectOf");
-    expect(template).toContain(':streaming="true"');
+    expect(template).toContain(':text="state"');
     expect(template).not.toContain("animate-spin");
-
-    // The detail is the state in the pack's words and every call the turn has made so far, oldest
-    // first, at its whole length. Nothing of it is cut on a line, and nothing scrolls in a box of
-    // its own: the library's truncating label and its bounded body are overridden.
-    expect(block).toContain("whitespace-normal overflow-visible text-clip");
-    expect(block).toContain("max-h-none overflow-visible whitespace-normal");
-    expect(block).toContain("<TurnActions");
+    expect(template).not.toContain("@click");
+    expect(block).not.toContain("<UButton");
+    expect(source).toContain("stateLine(t, props.run.progress,");
   });
 
-  test("the detail line breaks at its spaces, so a tool's name never folds the in-use word in half", () => {
-    const block = template.slice(at("<UChatReasoning"));
+  test("the state line breaks at its spaces, so a tool's name never folds the in-use word in half", () => {
+    const block = template.slice(at("<UChatShimmer data-state"));
 
     // keep-all is what holds a Korean phrase together; anywhere is what lets one long identifier
     // break inside itself rather than run off a phone's width.
@@ -159,6 +178,6 @@ describe("the draft step on the line", () => {
   test("is handed the question the turn is on where the turn is the chat agent's, and none where it is another supervisor's", async () => {
     const shipped = await Bun.file(new URL("../../../apps/web/app/components/RunProgress.vue", import.meta.url)).text();
 
-    expect(shipped).toContain("phaseDetail(t, props.run.progress, otherAnswererOf(props.run.speaker) === undefined ? props.run.draft ?? null : null)");
+    expect(shipped).toContain("stateLine(t, props.run.progress, otherAnswererOf(props.run.speaker) === undefined ? props.run.draft ?? null : null)");
   });
 });

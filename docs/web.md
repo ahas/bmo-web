@@ -4838,23 +4838,24 @@ Four bounds keep it from growing forever.
   it standing, so the room is never without them between the first line and the answer. When the answer takes the
   row's place they go with the rest of the running block, and the answer's record stands them again among its calls
   (「What the turn did」).
-- **Thinking, and using a tool** — that one line is the turn's own account of what it is at: a pressable
-  "생각하는 중…" that shimmers while the turn runs, standing at the row's left edge with no name beside it — the
-  row's header already names the agent — and under it, spread open while it runs, the turn's detail.
-  - **The detail stands in the order the turn made it**, oldest first: the state it is in now — writing the answer,
-    working a named tool, or waiting on the Job that holds its engine — and then every document handed to it and
-    every call it has made so far, each with what it was about as the agent's log keeps it. Nothing on the list is
-    cut on a line, and nothing of it scrolls in a box of its own: a long word, path or command wraps at the row's
-    width, and the row grows by what it holds.
-  - **The turn's last thinking block stands under the detail as a two-line preview,** where the bot's picture
+- **Thinking, and using a tool** — that one line is the turn's own account of what it is at: the state in the
+  pack's words — 생각하는 중 while it only thinks, 답을 쓰는 중, a named tool in use, or the Job it waits on — set as a
+  shimmering line at the row's left edge with no name beside it, since the row's header already names the agent.
+  Nothing on it presses, and nothing of the turn folds or spreads here: the verdict chips under the row open the
+  whole of what the turn did (「What the turn did」), so this block stands only what the turn is at now.
+  - **The turn's last call stands under the state,** one line: the badge its sort wears and what it was about, at
+    its whole length, as the agent's log keeps it. A long word, path or command wraps at the row's width. Nothing
+    before it stands with it: when the turn makes a new call, the line standing moves off to the left and the new
+    one comes in from the right, as a page turns, and the row keeps one line's height. A reader who asked for
+    less movement sees the new line take the place at once.
+  - **The turn's last thinking block stands under the call as a two-line preview,** where the bot's picture
     carries one (the receiver's `docs/messages.md`, 「A working turn's thinking」): the block as the run wrote it,
-    its line breaks kept, in the muted ink, under the state and under every document, brain read and call the
-    turn has made, since it is the newest thing the turn did. It stands whether the detail is spread or folded.
-    - The preview is two lines tall, one where the block is one line. It holds its head for a moment and then
-      moves slowly down the block to its end, where it rests; a newer block takes its place and starts from its
-      own head.
-    - Nothing on it is pressed or scrolled by hand, so a finger moving the conversation passes over it. A reader
-      who asked for less movement sees the block's head standing still.
+    its line breaks kept, in the muted ink. The preview is the block's tail, its last two lines, and the block
+    streams into it: the words come in quickly, a few characters a frame, and the preview keeps its foot on the
+    newest of them, so what was written last is always the two lines in view. A block that grows the one before
+    it goes on from where the preview stands; another block starts from nothing. A reader who asked for less
+    movement sees the tail standing at once.
+    - Nothing on it is pressed or scrolled by hand, so a finger moving the conversation passes over it.
     - A picture carrying none stands nothing there, and the preview goes with the rest of the running block when
       the answer takes the row's place. Thinking is never a message of the room and wears no chip or label of its
       own.

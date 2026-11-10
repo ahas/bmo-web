@@ -57,9 +57,12 @@ globals.fail = (statusCode: number, message: string) => Object.assign(new Error(
 
 const { readableRooms, requireReadableRoom } = await import("../../../apps/web/server/utils/room-reach");
 
+// The addresses are the whole suite's environment, so they go with the stand-ins that answered them.
 afterAll(async () => {
   service.stop();
   await receiver.stop(true);
+  delete process.env.WEB_SERVER_ADDRESS;
+  delete process.env.RECEIVER_ADDRESS;
 });
 
 const event = () => ({ context: {} }) as never;

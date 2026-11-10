@@ -20,7 +20,10 @@ const service = standInAccountService({
 process.env.WEB_SERVER_ADDRESS = service.address;
 process.env.WEB_SERVER_TOKEN = service.token;
 
-afterAll(() => service.stop());
+afterAll(() => {
+  service.stop();
+  delete process.env.WEB_SERVER_ADDRESS;
+});
 
 const read = await routeOf<UserProfile>("../../apps/web/server/api/users/[user]/profile.get");
 const write = await routeOf<UserProfile>("../../apps/web/server/api/users/[user]/profile.put");

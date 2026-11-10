@@ -55,6 +55,7 @@ describe("the relay's path", () => {
     process.env.BINARY_ADDRESS = `http://127.0.0.1:${binary.port}`;
     await handler({ params: { path: "binary/files" }, method: "POST", rawBody: bytes, node: {} } as RouteEvent);
     await binary.stop(true);
+    delete process.env.BINARY_ADDRESS;
 
     expect(heard).toEqual(bytes);
   });

@@ -19,7 +19,10 @@ const service = standInAccountService();
 process.env.WEB_SERVER_ADDRESS = service.address;
 process.env.WEB_SERVER_TOKEN = service.token;
 
-afterAll(() => service.stop());
+afterAll(() => {
+  service.stop();
+  delete process.env.WEB_SERVER_ADDRESS;
+});
 
 const list = await routeOf<SecretList>("../../apps/web/server/api/secrets.get");
 const keep = await routeOf<KeptSecret>("../../apps/web/server/api/secrets.post");

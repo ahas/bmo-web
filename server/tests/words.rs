@@ -195,6 +195,11 @@ async fn still_working_is_the_fixed_lines_own() {
 }
 
 #[tokio::test]
+async fn memory_tidying_is_the_fixed_lines_own() {
+  assert_eq!(rendered("memory-tidying", json!({})).await, FIXED_LINES.memory_tidying);
+}
+
+#[tokio::test]
 async fn supervisor_cut_names_the_supervisor_and_the_guards_reason() {
   assert_eq!(
     rendered("supervisor-cut", json!({ "agent": "agent-a", "reason": "The turn ran too long." })).await,

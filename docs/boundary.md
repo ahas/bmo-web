@@ -216,6 +216,7 @@ falls away after two minutes without one.
   | `supervisor-engine-error` | `kind` | `supervisors.engine_error` of the kind |
   | `supervisor-cut` | `agent`, `reason` | `fixed-lines.supervisor_cut` |
   | `still-working` | none | `fixed-lines.still_working`, said as the chat agent once in a round whose draft turn ran past its bound |
+  | `memory-tidying` | none | `fixed-lines.memory_tidying`, said as the chat agent once to a room whose words arrive while the agent's session is replaced and its memory tidied |
   | `draw` | `label`, `asked`, `result`, `number`, `seed`, `method`, `answered`, `next` | `draws.line`, what was asked by `draws.spec` and what came out by `draws.dice_total` where dice are summed |
 
 - **The chat agent's name** in a line is the server's `names.chat_agent` setting; no name stands in the pack.

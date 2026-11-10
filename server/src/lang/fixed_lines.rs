@@ -14,6 +14,8 @@ pub struct FixedLines {
   pub supervisor_cut: String,
   /// A round's draft turn ran past its bound and goes on.
   pub still_working: String,
+  /// The chat agent's session is replaced and its memory tidied; the answer comes once it is done.
+  pub memory_tidying: String,
 }
 
 crate::part!(pub FIXED_LINES: FixedLines = "fixed-lines");

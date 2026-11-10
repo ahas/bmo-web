@@ -14,3 +14,7 @@ still_working: "아직 답을 준비하고 있어요. 조금만 기다려 주세
 # What a room is told of a supervisor's turn its guard cut short: the supervisor's {name} and the guard's
 # {reason}, the next turn opening a new session.
 supervisor_cut: "{name}의 이번 턴을 끊었어요. {reason} 다음 말부터는 새 세션에서 답해요."
+
+# What a room is told, once, when its words arrive while the chat agent's session is replaced and its memory
+# tidied: the fresh session answers once that is done.
+memory_tidying: "기억 정리 중입니다. 완료 시 대답합니다. 잠시만 기다려주세요."

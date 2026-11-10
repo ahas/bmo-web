@@ -46,6 +46,8 @@ pub enum FixedLine {
   Draw(DrawLine),
   /// A round's draft turn ran past its bound and goes on: said once in the round.
   StillWorking,
+  /// The chat agent's session is replaced and its memory tidied: the room's words wait for the fresh session.
+  MemoryTidying,
   /// A code the pack holds no sentence for.
   #[serde(other)]
   Unknown,
@@ -166,6 +168,7 @@ impl FixedLine {
       }
       Self::Draw(draw) => draw.text(),
       Self::StillWorking => FIXED_LINES.still_working.clone(),
+      Self::MemoryTidying => FIXED_LINES.memory_tidying.clone(),
       Self::Unknown => return None,
     })
   }

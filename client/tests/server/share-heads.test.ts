@@ -171,7 +171,7 @@ describe("the shell goes out as it is", () => {
   });
 
   test("where no unit answers, or the manifest names no share head", async () => {
-    attachBundles([{ ...bundleOf(), unit: { address: "http://127.0.0.1:1", token: null } }]);
+    attachBundles([{ ...bundleOf(), unit: { address: "http://[::1]:1", token: null } }]);
 
     expect(await servedAt("/bmo/notes/share/Ab3_x9")).toEqual([SHELL]);
 

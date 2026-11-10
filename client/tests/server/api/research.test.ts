@@ -160,7 +160,7 @@ describe("reading the research state", () => {
   test("says the research unit does not answer where nothing takes the call", async () => {
     const address = process.env.RESEARCH_ADDRESS;
 
-    process.env.RESEARCH_ADDRESS = "http://127.0.0.1:1";
+    process.env.RESEARCH_ADDRESS = "http://[::1]:1";
 
     try {
       expect(await asked(readState, {})).toMatchObject({ status: 503, message: wording("research.error.unreachable") });

@@ -20,11 +20,11 @@ function refusal(status: number, body: unknown): Response {
 
 describe("where a unit is reached", () => {
   test("a unit is its address without a trailing slash and its token, by its name", () => {
-    expect(unitAt("AGENCY", { AGENCY_ADDRESS: "http://127.0.0.1:1/ ", AGENCY_TOKEN: "a token" })).toEqual({
-      address: "http://127.0.0.1:1",
+    expect(unitAt("AGENCY", { AGENCY_ADDRESS: "http://[::1]:1/ ", AGENCY_TOKEN: "a token" })).toEqual({
+      address: "http://[::1]:1",
       token: "a token"
     });
-    expect(unitAt("CACHE_SIREN", { CACHE_SIREN_ADDRESS: "http://127.0.0.1:2" })).toEqual({ address: "http://127.0.0.1:2", token: null });
+    expect(unitAt("CACHE_SIREN", { CACHE_SIREN_ADDRESS: "http://[::1]:2" })).toEqual({ address: "http://[::1]:2", token: null });
   });
 
   test("a unit whose address is not set is none", () => {

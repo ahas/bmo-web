@@ -95,7 +95,7 @@ describe("a GitHub delivery", () => {
   test("with no agency to hand it to, is 502", async () => {
     const address = process.env.AGENCY_ADDRESS;
 
-    process.env.AGENCY_ADDRESS = "http://127.0.0.1:1";
+    process.env.AGENCY_ADDRESS = "http://[::1]:1";
 
     try {
       expect((await asked(handler, delivery(BODY, {}))).status).toBe(502);

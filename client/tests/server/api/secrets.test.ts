@@ -73,7 +73,7 @@ describe("the secret store's routes", () => {
   });
 
   test("a server that does not answer is said so", async () => {
-    process.env.WEB_SERVER_ADDRESS = "http://127.0.0.1:9";
+    process.env.WEB_SERVER_ADDRESS = "http://[::1]:9";
 
     try {
       expect(await asked(list, {})).toMatchObject({ status: 503, message: wording("secrets.error.unreachable") });

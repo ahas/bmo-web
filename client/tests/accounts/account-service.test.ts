@@ -73,7 +73,7 @@ describe("the model", () => {
   });
 
   test("a server that does not answer has no state", async () => {
-    expect(await modelState({ address: "http://127.0.0.1:9", token: "none" })).toBeNull();
+    expect(await modelState({ address: "http://[::1]:9", token: "none" })).toBeNull();
   });
 
   test("the move is handed in the common wire format and answers its administrator", async () => {

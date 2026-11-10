@@ -67,7 +67,7 @@ test("a screen the reader may not open is not read, and a count that does not an
     bundle("admin", { role: "administrator", sidebarUnread: { path: "/summary", field: "unreadCount" } }),
     bundle("refused", { sidebarUnread: { path: "/refused", field: "unreadCount" } }),
     bundle("broken", { sidebarUnread: { path: "/broken", field: "unreadCount" } }),
-    { ...bundle("gone", { sidebarUnread: { path: "/summary", field: "unreadCount" } }), unit: { address: "http://127.0.0.1:1", token: null } }
+    { ...bundle("gone", { sidebarUnread: { path: "/summary", field: "unreadCount" } }), unit: { address: "http://[::1]:1", token: null } }
   ]);
 
   expect(counts).toEqual({});

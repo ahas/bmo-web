@@ -3,8 +3,8 @@
        on that screen alone beside its name, and at its right end the one set of buttons the layout holds, laid in
        here. The room's bar is the same bar on its translucent ground, which is the room's own wrapper. -->
   <UDashboardNavbar :title="props.title" :icon="props.icon" :ui="props.ui" data-title-bar>
-    <template v-if="$slots.leading" #leading>
-      <slot name="leading" />
+    <template v-if="$slots.leading" #leading="scope">
+      <slot name="leading" v-bind="scope" />
     </template>
     <template v-if="$slots.trailing" #trailing>
       <slot name="trailing" />

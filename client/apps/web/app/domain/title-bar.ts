@@ -16,15 +16,20 @@ export function useTitleBarTarget(): ShallowRef<HTMLElement | null> {
  * provided, the console draws the bar of a bundle route whose meta asks for it, and the screen draws none of its own. */
 export const CONSOLE_TITLE_BAR = "bmo-console-title-bar";
 
-/** What the console tells a screen of its bar: where what acts on the screen as a whole is laid, beside the name. */
+/** What the console tells a screen of its bar: where what acts on the screen as a whole is laid, after the name, and
+ *  where its way back is laid, before the name. */
 export interface ConsoleTitleBarOffer {
   screenActions: string;
+  screenLead: string;
 }
 
 /** The place in the bar a screen teleports what acts on it as a whole into. */
 export const SCREEN_ACTIONS = "[data-title-bar-screen-actions]";
 
+/** The place in the bar, before the name, a screen teleports its way back into. */
+export const SCREEN_LEAD = "[data-title-bar-screen-lead]";
+
 /** Offers the console's bar to every screen under the layout. */
 export function provideConsoleTitleBar(): void {
-  provide<ConsoleTitleBarOffer>(CONSOLE_TITLE_BAR, { screenActions: SCREEN_ACTIONS });
+  provide<ConsoleTitleBarOffer>(CONSOLE_TITLE_BAR, { screenActions: SCREEN_ACTIONS, screenLead: SCREEN_LEAD });
 }

@@ -19,6 +19,14 @@ describe("the page area of a bundle's screen", () => {
     expect(frame).toContain('v-bind="area"');
     expect(frame).toContain('<ConsoleTitleBar v-if="bar !== null" :title="$t(bar.title)" :icon="bar.icon">');
     expect(frame).toContain("data-title-bar-screen-actions");
+    expect(frame).toMatch(/<template #leading="\{ ui \}">\s*<span class="contents" data-title-bar-screen-lead \/>\s*<UIcon :name="bar.icon"/);
+  });
+
+  test("the offer names the place before the name a screen lays its way back, beside the place for its actions", async () => {
+    const source = await read("app/domain/title-bar.ts");
+
+    expect(source).toContain('export const SCREEN_LEAD = "[data-title-bar-screen-lead]";');
+    expect(source).toContain("{ screenActions: SCREEN_ACTIONS, screenLead: SCREEN_LEAD }");
   });
 
   test("the console draws the bar only for a bundle route that asks for it", async () => {

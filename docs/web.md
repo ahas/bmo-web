@@ -147,6 +147,12 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
     meta to take the keyboard's place off the page, and in a browser that does not listen these two values
     make the same place. The remote desktop's own keyboard is the one laid over the page instead
     (the remote unit's documents, 「The on-screen keyboard」).
+    - **The page's body spans that same place.** The shell stands fixed, which leaves the body no height of
+      its own; a library a screen brings reads the room left above and below what it opens from against the
+      body — an editor's menu under its caret — and against a body of no height it finds no room below,
+      so it would always open upward and cut itself to the room above. So the body is held to the visible
+      height from the top of the window (`--bmo-screen-top` and `--bmo-screen` together): the place the
+      shell stands, which scrolls nothing.
     - Whether something overlays is read against the height the shell takes on its own — `100dvh` as the
       browser lays it out, or the window's own height where that is taller — never against the window's
       height alone. A phone's browser can report its window and the visible part of it as one height while
@@ -1828,8 +1834,10 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   layout, provided under the key `bmo-console-title-bar` as bmo-ui's `docs/console-bundles.md` states the contract, and a bundle's route that asks for it — `consoleTitleBar`
   true in the route's meta — is drawn under the console's bar, named by its manifest's title and mark, the sidebar
   button and the set of buttons in it as on every screen. Such a screen draws no bar of its own: what acts on it
-  as a whole it lays beside the name, in the place the offer names (`[data-title-bar-screen-actions]`), by a
-  deferred teleport, and its own panels carry no bar. The bar and that place stand before the screen does, on every
+  as a whole it lays beside the name, in the place the offer names as `screenActions`
+  (`[data-title-bar-screen-actions]`), and its way back before the name, in the place the offer names as
+  `screenLead` (`[data-title-bar-screen-lead]`), each by a deferred teleport, and its own panels carry no bar.
+  The bar and those places stand before the screen does, on every
   road to it — the first load, from a screen of the console's own, from another bundle's screen: the bar follows
   the route being gone to as soon as the navigation is taken, so the place is in the page by the time the screen
   mounts, and it stays while the screen being left still stands, until that screen has gone. Between two bundles'

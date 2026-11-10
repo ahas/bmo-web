@@ -1,6 +1,50 @@
 {
   "components": {
     "schemas": {
+      "AcceptAsk": {
+        "description": "The name and the password an invitation is accepted with.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "password"
+        ],
+        "type": "object"
+      },
+      "Accepted": {
+        "description": "An accepted invitation: the account made, its machine and how to install it.",
+        "properties": {
+          "agent": {
+            "type": "string"
+          },
+          "credential": {
+            "type": "string"
+          },
+          "hubUrl": {
+            "type": "string"
+          },
+          "install": {
+            "$ref": "#/components/schemas/Installs"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "agent",
+          "credential",
+          "hubUrl",
+          "install"
+        ],
+        "type": "object"
+      },
       "CheckAnswer": {
         "description": "What a check answered.",
         "properties": {
@@ -658,6 +702,135 @@
         ],
         "type": "object"
       },
+      "Installs": {
+        "description": "The one-line installs of a machine.",
+        "properties": {
+          "linux": {
+            "type": "string"
+          },
+          "windows": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "linux",
+          "windows"
+        ],
+        "type": "object"
+      },
+      "Invite": {
+        "description": "One invitation, as the one who made it reads it.",
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "expiresAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "head": {
+            "type": "boolean"
+          },
+          "token": {
+            "type": "string"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          }
+        },
+        "required": [
+          "token",
+          "unit",
+          "company",
+          "head",
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "InviteAsk": {
+        "description": "An invitation to make.",
+        "properties": {
+          "head": {
+            "default": false,
+            "type": "boolean"
+          },
+          "hours": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "unit": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "unit",
+          "head"
+        ],
+        "type": "object"
+      },
+      "InviteUnits": {
+        "description": "The units a login may invite into.",
+        "properties": {
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "units"
+        ],
+        "type": "object"
+      },
+      "InviteView": {
+        "description": "An invitation as its link shows it, to a person with no account.",
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "expiresAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "head": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          }
+        },
+        "required": [
+          "unit",
+          "company",
+          "head",
+          "expiresAt",
+          "state"
+        ],
+        "type": "object"
+      },
+      "Invites": {
+        "description": "The open invitations a login reads.",
+        "properties": {
+          "invites": {
+            "items": {
+              "$ref": "#/components/schemas/Invite"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "invites"
+        ],
+        "type": "object"
+      },
       "LoginAsk": {
         "description": "A sign-in's name and password.",
         "properties": {
@@ -1021,6 +1194,18 @@
         },
         "required": [
           "key"
+        ],
+        "type": "object"
+      },
+      "Proof": {
+        "description": "Whether an invited account's machine is attached and the account enabled.",
+        "properties": {
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "active"
         ],
         "type": "object"
       },
@@ -1542,6 +1727,31 @@
         },
         "required": [
           "users"
+        ],
+        "type": "object"
+      },
+      "UserNode": {
+        "description": "The machine an account is bound to and whether it is attached.",
+        "properties": {
+          "agent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attached": {
+            "type": "boolean"
+          },
+          "provenAt": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "attached"
         ],
         "type": "object"
       },
@@ -2212,6 +2422,461 @@
           "Health"
         ],
         "x-codes": []
+      }
+    },
+    "/invites": {
+      "get": {
+        "operationId": "invites",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invites"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The open invitations the login made, or every open one for the administrator.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "forbidden",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "post": {
+        "operationId": "makeInvite",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invite"
+                }
+              }
+            },
+            "description": "Made."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, no-hub, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An invitation made into a unit: by the administrator, or by a head for their unit or one below, never a head's.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
+          "no-hub",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/invites/units": {
+      "get": {
+        "operationId": "inviteUnits",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteUnits"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The units the login may invite into.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "forbidden",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/invites/{token}": {
+      "delete": {
+        "operationId": "dropInvite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-found, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An invitation taken back by whoever made it, or the administrator.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-found",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "get": {
+        "operationId": "invite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: not-found, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An invitation as its link shows it to a person with no account.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "not-found",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/invites/{token}/accept": {
+      "post": {
+        "operationId": "acceptInvite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Accepted"
+                }
+              }
+            },
+            "description": "Made."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, not-found, invite-closed, name-taken, no-hub, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An invitation accepted: a disabled account in its unit, bound to its machine, with the machine's install.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "not-found",
+          "invite-closed",
+          "name-taken",
+          "no-hub",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/invites/{token}/proof": {
+      "post": {
+        "operationId": "proveInvite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proof"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: not-found, invite-open, no-hub, upstream-failed, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Whether the invited account's machine is attached; attached, the account is enabled.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "not-found",
+          "invite-open",
+          "no-hub",
+          "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
       }
     },
     "/phones": {
@@ -3564,6 +4229,60 @@
           "name-taken",
           "conflict",
           "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/node": {
+      "get": {
+        "operationId": "userNode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserNode"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, upstream-failed, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The machine an account is bound to, and whether the hub holds it.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "upstream-failed",
+          "unauthorized",
           "not-in-force",
           "database",
           "failed"

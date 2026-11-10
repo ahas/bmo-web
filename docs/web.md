@@ -6013,8 +6013,8 @@ dialog open at 계정.
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방, 알림, 보이스브리핑, 공급자, 리서치, 권한, 조직 and 비밀 보관함. A member is shown
-    계정, 테마 and 대화방; 알림, 보이스브리핑, 공급자, 리서치, 권한, 조직 and 비밀 보관함 are the administrator's.
+  - The sections are 계정, 테마, 대화방, 초대, 알림, 보이스브리핑, 공급자, 리서치, 권한, 조직 and 비밀 보관함. A member is
+    shown 계정, 테마, 대화방 and 초대; 알림, 보이스브리핑, 공급자, 리서치, 권한, 조직 and 비밀 보관함 are the administrator's.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -6028,7 +6028,7 @@ dialog open at 계정.
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
 - **An address opens it at one section:** `?settings=` and a section's key — `account`, `theme`,
-  `palette`, `notifications`, `briefing`, `providers`, `research`, `permissions`, `organization`, `secrets` — on any address of the console opens the dialog at that
+  `palette`, `invites`, `notifications`, `briefing`, `providers`, `research`, `permissions`, `organization`, `secrets` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. The key is taken off the address as the dialog opens: what is open over a screen
   is not a place (「Floating things」), so the back gesture closes the dialog, or leaves the section on a
@@ -6045,6 +6045,14 @@ dialog open at 계정.
   every section; the note above the table says so. A section's defaults and what they mean stand in
   `docs/accounts.md`, 「Console sections」.
 
+#### 초대
+
+- **A link is made into a unit** the reader may invite into — a unit they head or one below it, or any unit for the
+  administrator — for a span of hours, and the administrator may make it invite the unit's head. Made, it is copied
+  at once with its words: who invites into what, the link, and when it closes (`docs/accounts.md`,
+  「Invitations and a person's machine」).
+- **The open ones are listed,** each copied again or taken back. A reader who may invite into no unit is told so.
+
 #### 조직
 
 - **The units stand as a tree,** companies first and each unit under its parent, indented by its depth; a unit's
@@ -6055,6 +6063,17 @@ dialog open at 계정.
   taken off by its mark, one added by choosing a person — and its people, one placed in it by choosing a person.
   A change is saved as it is made, and a refusal — a parent in another company, a parent under the unit itself —
   is said under the form in words.
+
+#### The join page
+
+- **`/join/<token>` stands on no shell and asks for no sign-in,** as the login does. It shows the unit and its
+  company the invitation is for, and whether it makes the unit's head; an invitation expired or used says so and
+  takes nothing.
+- **A name and a password make the account,** and the page then shows the person's machine's one-line installs,
+  Linux or WSL and Windows, each with its copy mark, and asks every few seconds whether the machine has attached;
+  설치했어요, 확인하기 asks at once. Attached, the account is ready and the page leads to the login.
+- **An account bound to a machine signs in only while its machine is attached;** the login refuses it, saying the
+  machine is not connected, until it attaches again.
 
 #### 계정
 

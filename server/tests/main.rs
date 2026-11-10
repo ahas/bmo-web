@@ -6,6 +6,7 @@ mod support;
 mod document_talk;
 mod grants;
 mod import;
+mod invites;
 mod language_pack;
 mod people;
 mod profiles;

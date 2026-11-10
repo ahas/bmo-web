@@ -189,7 +189,7 @@ pub async fn user_for_sender<C: ConnectionTrait>(db: &C, sender: i64) -> Result<
 }
 
 /// A password hashed as sumida hashes every password.
-fn hashed(password: &str) -> Result<String, Refusal> {
+pub fn hashed(password: &str) -> Result<String, Refusal> {
   sumida::api::util::user::hash_password(password).map_err(|why| {
     Refusal::new(
       axum::http::StatusCode::INTERNAL_SERVER_ERROR,

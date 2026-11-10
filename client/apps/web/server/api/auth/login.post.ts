@@ -1,4 +1,4 @@
-import { sessionUser, signIn, userOf } from "../../utils/account-service";
+import { sessionUser, signIn, userNode, userOf } from "../../utils/account-service";
 
 import { wording } from "#shared/wording";
 
@@ -43,6 +43,16 @@ export default defineEventHandler(async (event): Promise<{ user: AccountUser }> 
 
     if (user === null) {
       throw fail(401, wording("app.error.wrong_credentials"));
+    }
+
+    // An account bound to a machine is used only while the hub holds that machine (docs/accounts.md,
+    // 「Invitations and a person's machine」).
+    if (!user.administrator) {
+      const node = await userNode(user.id);
+
+      if (node.agent !== undefined && !node.attached) {
+        throw fail(403, wording("app.error.machine_gone"));
+      }
     }
 
     await setUserSession(event, { user: { name, id: Number(user.id) }, sid, administrator: user.administrator, loggedInAt: Date.now(), remember }, sessionLife(remember));

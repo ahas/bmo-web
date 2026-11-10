@@ -225,6 +225,25 @@ section states what each does.
 - **The console's organisation screen** draws the units as a tree and does each of these for the administrator
   (`docs/web.md`, 「Organisation」).
 
+### Invitations and a person's machine
+
+- **An invitation is a link that makes one account in one unit,** made by the platform administrator for any unit,
+  or by a head for their unit or one below it. It names whether the person comes in as the unit's head, which only
+  the administrator may give, and how many hours it stands open; past them, or once used, it opens nothing.
+- **The link is opened with no sign-in.** It shows the unit and its company and asks for a name and a password.
+  Accepting it makes the account disabled, in the unit, a head where the invitation says so, with the console
+  sections every user is given, and binds it to the machine name `u<user>`.
+- **An account is enabled only once its machine is proven:** the person installs jake with the command the
+  acceptance answers, which names the machine and carries a credential made for that name alone (jake's
+  `docs/architecture.md`), and the service asks the jake hub whether an agent of that name is attached. Attached,
+  the account is enabled and the machine recorded as proven. The administrator alone may bind an account to
+  another machine.
+- **An account whose machine is gone cannot be used until it is proven again:** the console refuses its sign-in
+  while the hub holds no agent of its machine's name, and lets it in again once one attaches. An account bound to
+  no machine — the administrator's, and every account made before invitations — is held to none of this.
+- **The credential is made with the hub's agent key,** which the service's settings carry beside the hub's address,
+  its control address and its control token; a service whose settings name no hub makes no invitation.
+
 ### The people directory
 
 - **The directory is the users of the reader's own company:** every user whose unit stands under the company
@@ -310,6 +329,8 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_senders` | the link from a chat service's sender to a user |
 | `user_profiles` | a user's job title and contact details, keyed by sumida's user; an account keeping none has no row and reads empty |
 | `grant_words` | the words a grant was made with, beside the grant |
+| `user_invites` | each invitation: its token, its unit, whether it makes a head, who made it, when it closes, and who used it and when |
+| `user_nodes` | the machine each invited account is bound to, and when it was last proven |
 | `settings` | the service's own keys: the mark that the move is written, and the platform administrator's user |
 | `web_users` | the console's own accounts, the sign-in that stands before the model is in force |
 | `web_push_devices` | a user's browsers that take push notices |
@@ -331,6 +352,10 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **The people tests** read the same company's people by name, unit, job title and contact, across the units
   of one company, see a member's answer carry no contact detail, find nothing of another company, and match no
   contact detail a member may not see.
+- **The invitation tests** stand a stand-in hub: a head invites a member into their unit and not a head, an
+  expired or used invitation opens nothing, acceptance makes a disabled account bound to its machine with a
+  credential the hub's key verifies, proof enables it once the hub holds the agent, and the machine check says
+  gone where the hub holds none.
 - **The organisation tests** make a company and units under it as the administrator, rename and move one, refuse
   a move into another company and under itself, grant and take away a head, place a user, and refuse every one
   of these to a member.

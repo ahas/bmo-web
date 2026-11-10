@@ -298,6 +298,92 @@ pub struct UnitPlacement {
   pub unit: i64,
 }
 
+/// An invitation to make.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct InviteAsk {
+  pub unit: i64,
+  #[serde(default)]
+  pub head: bool,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub hours: Option<i64>,
+}
+
+/// One invitation, as the one who made it reads it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Invite {
+  pub token: String,
+  pub unit: UnitRef,
+  pub company: UnitRef,
+  pub head: bool,
+  pub expires_at: i64,
+}
+
+/// The open invitations a login reads.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Invites {
+  pub invites: Vec<Invite>,
+}
+
+/// The units a login may invite into.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct InviteUnits {
+  pub units: Vec<UnitRef>,
+}
+
+/// An invitation as its link shows it, to a person with no account.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct InviteView {
+  pub unit: UnitRef,
+  pub company: UnitRef,
+  pub head: bool,
+  pub expires_at: i64,
+  pub state: String,
+}
+
+/// The name and the password an invitation is accepted with.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AcceptAsk {
+  pub name: String,
+  pub password: String,
+}
+
+/// The one-line installs of a machine.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Installs {
+  pub linux: String,
+  pub windows: String,
+}
+
+/// An accepted invitation: the account made, its machine and how to install it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Accepted {
+  pub user: String,
+  pub agent: String,
+  pub credential: String,
+  pub hub_url: String,
+  pub install: Installs,
+}
+
+/// Whether an invited account's machine is attached and the account enabled.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Proof {
+  pub active: bool,
+}
+
+/// The machine an account is bound to and whether it is attached.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct UserNode {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub agent: Option<String>,
+  pub attached: bool,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub proven_at: Option<i64>,
+}
+
 /// What a check answered.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct CheckAnswer {

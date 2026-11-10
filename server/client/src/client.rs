@@ -316,6 +316,43 @@ impl AccountClient {
     .await
   }
 
+  /// `POST /invites`, asked as the login `key` acts for in `role`.
+  pub async fn make_invite(&self, ask: &InviteAsk, key: &str, role: &str) -> Answer<Invite> {
+    Self::answered(
+      self
+        .send(Method::POST, &["invites"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `GET /invites`, asked as the login `key` acts for in `role`.
+  pub async fn invites(&self, key: &str, role: &str) -> Answer<Invites> {
+    Self::answered(self.request(Method::GET, &["invites"]).header(OWNER_KEY, key).header(OWNER_ROLE, role))
+      .await
+  }
+
+  /// `GET /invites/{token}`.
+  pub async fn invite(&self, token: &str) -> Answer<InviteView> {
+    Self::answered(self.request(Method::GET, &["invites", token])).await
+  }
+
+  /// `POST /invites/{token}/accept`.
+  pub async fn accept_invite(&self, token: &str, ask: &AcceptAsk) -> Answer<Accepted> {
+    Self::answered(self.send(Method::POST, &["invites", token, "accept"], ask)).await
+  }
+
+  /// `POST /invites/{token}/proof`.
+  pub async fn prove_invite(&self, token: &str) -> Answer<Proof> {
+    Self::answered(self.send(Method::POST, &["invites", token, "proof"], &serde_json::json!({}))).await
+  }
+
+  /// `GET /users/{user}/node`.
+  pub async fn user_node(&self, user: &str) -> Answer<UserNode> {
+    Self::answered(self.request(Method::GET, &["users", user, "node"])).await
+  }
+
   /// `GET /grants?room=`.
   pub async fn grants(&self, room: i64) -> Answer<Grants> {
     Self::answered(self.get(&["grants"], &[("room", room.to_string())])).await

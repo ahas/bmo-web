@@ -53,6 +53,13 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "DELETE", path: /^\/api\/_auth\/session$/, scope: "user" },
   { method: "GET", path: /^\/api\/_nuxt_icon\/[^/]+\.json$/, scope: "user" },
   { method: "GET", path: /^\/api\/console-bundles(?:\/unread)?$/, scope: "user" },
+  // Invitations: every signed-in login asks, and the account service decides what each may invite into; the join
+  // page's reads, which stand with or without a session.
+  { method: "GET", path: /^\/api\/invites(?:\/units)?$/, scope: "user" },
+  { method: "POST", path: /^\/api\/invites$/, scope: "user" },
+  { method: "DELETE", path: /^\/api\/invites\/[0-9a-f]+$/, scope: "user" },
+  { method: "GET", path: /^\/api\/join\/[0-9a-f]+$/, scope: "user" },
+  { method: "POST", path: /^\/api\/join\/[0-9a-f]+\/(accept|proof)$/, scope: "user" },
   // The reader's own sections, which the navigation and the page guard read.
   { method: "GET", path: /^\/api\/me\/sections$/, scope: "user" },
 

@@ -33,6 +33,7 @@ app:
   error:
     login_failed: 로그인하지 못했습니다.
     wrong_credentials: 아이디 또는 비밀번호가 맞지 않습니다.
+    machine_gone: 이 계정의 기기(jake)가 연결되어 있지 않습니다. 기기를 다시 연결하면 로그인할 수 있습니다.
     accounts_down: 계정 서비스가 응답하지 않아 지금은 로그인할 수 없습니다.
 
 common:
@@ -1595,6 +1596,7 @@ settings:
     palette: 대화방
     permissions: 권한
     organization: 조직
+    invites: 초대
     providers: 공급자
     research: 리서치
     research_supervisor: 리서치 감독관
@@ -1669,6 +1671,54 @@ organization:
     not_found: 그 단위나 사용자가 없습니다.
     other_company: 단위는 다른 회사로 옮길 수 없습니다.
     unreachable: 계정 서비스에 연결되지 않았습니다.
+invites:
+  label:
+    make: 초대 링크 만들기
+    unit: 단위
+    head: 장으로 초대
+    head_note: 받는 사람이 이 단위의 장이 됩니다.
+    hours: 유효 기간
+    span: "{hours}시간"
+    open: 열린 초대
+    none: 열린 초대 없음
+    no_units: 초대할 수 있는 단위가 없습니다. 단위의 장이나 관리자만 초대할 수 있습니다.
+    until: "{time}까지"
+  action:
+    make: 링크 만들고 복사
+    copy: 초대 문구 복사
+    drop: 취소
+  status:
+    copied: 복사됨
+  message:
+    text: "{company} {unit}에 초대합니다. 아래 링크에서 계정을 만들고 안내에 따라 PC에 jake를 설치하면 계정이 활성화됩니다. {link} (유효 기간: {time}까지)"
+  error:
+    bad_request: 단위나 값이 올바르지 않습니다.
+    closed: 만료되었거나 이미 사용된 초대입니다.
+    failed: 초대를 처리하지 못했습니다.
+    forbidden: 이 단위로 초대할 수 없습니다.
+    name_taken: 이미 쓰이는 아이디입니다.
+    no_hub: 기기 연결 허브가 설정되어 있지 않아 초대할 수 없습니다.
+    not_found: 초대를 찾을 수 없습니다.
+    unreachable: 계정 서비스에 연결되지 않았습니다.
+join:
+  title:
+    create: 초대받은 계정 만들기
+  label:
+    linux: Linux·WSL
+    windows: Windows
+  action:
+    accept: 계정 만들기
+    check: 설치했어요, 확인하기
+    copy: 복사
+  message:
+    invited: "{company} {unit}에 초대되었습니다."
+    invited_head: "{company} {unit}의 장으로 초대되었습니다."
+    until: "{time}까지 유효한 초대입니다."
+    expired: 만료된 초대입니다. 초대한 사람에게 새 링크를 받아 주세요.
+    used: 이미 사용된 초대입니다.
+    install: 계정을 만들었습니다. 이 계정을 쓸 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요. 설치되어 연결되면 계정이 활성화됩니다.
+    waiting: 기기 연결을 기다리는 중입니다…
+    active: 기기가 연결되어 계정이 활성화되었습니다. 이제 로그인할 수 있습니다.
 secrets:
   title:
     add: 비밀 추가

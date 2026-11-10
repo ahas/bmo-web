@@ -178,6 +178,10 @@ async fn serve(settings: Settings) -> Result<(), String> {
     Some(folder) => service.keeping_secrets(secrets::Store::at(folder)),
     None => service,
   };
+  let service = match bmo_web_server::nodes::Nodes::from_settings(&settings.jake) {
+    Some(nodes) => service.with_nodes(nodes),
+    None => service,
+  };
   let app = in_force(service, token).await.map_err(|why| why.to_string())?;
   let address = settings.server.address();
 

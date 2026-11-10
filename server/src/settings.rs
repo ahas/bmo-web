@@ -27,6 +27,23 @@ pub struct Settings {
   /// Nothing set here leaves the secret store standing on no folder.
   #[serde(default)]
   pub secrets: SecretStore,
+  /// Nothing set here makes no invitation and reads every machine as gone.
+  #[serde(default)]
+  pub jake: Jake,
+}
+
+/// The jake hub invited machines attach to (docs/accounts.md, 「Invitations and a person's machine」).
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct Jake {
+  /// The address a machine dials, which its install names.
+  pub hub_url: Option<String>,
+  /// The folder jake's install scripts are served under, `https://host/path`.
+  pub install_base: Option<String>,
+  /// The key a machine's credential is made with, the hub's own.
+  pub agent_key: Option<String>,
+  /// The hub's loopback control address, `http://host:port`.
+  pub control: Option<String>,
+  pub control_token: Option<String>,
 }
 
 /// The folder the secret store writes (docs/accounts.md, 「The secret store」).

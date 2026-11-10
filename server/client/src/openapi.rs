@@ -458,6 +458,110 @@ pub fn openapi() -> Value {
   );
   add!(
     "POST",
+    "/invites",
+    "makeInvite",
+    "Invitations",
+    "An invitation made into a unit: by the administrator, or by a head for their unit or one below, never a head's.",
+    params: vec![owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<InviteAsk>())),
+    answers: vec![(201, json_answer::<Invite>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-found", "no-hub", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/invites",
+    "invites",
+    "Invitations",
+    "The open invitations the login made, or every open one for the administrator.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<Invites>(&mut generator))],
+    codes: vec!["forbidden", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/invites/units",
+    "inviteUnits",
+    "Invitations",
+    "The units the login may invite into.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<InviteUnits>(&mut generator))],
+    codes: vec!["forbidden", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/invites/{token}",
+    "dropInvite",
+    "Invitations",
+    "An invitation taken back by whoever made it, or the administrator.",
+    params: vec![string_path("token"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["forbidden", "not-found", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/invites/{token}",
+    "invite",
+    "Invitations",
+    "An invitation as its link shows it to a person with no account.",
+    params: vec![string_path("token")],
+    body: None,
+    answers: vec![(200, json_answer::<InviteView>(&mut generator))],
+    codes: vec!["not-found", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/invites/{token}/accept",
+    "acceptInvite",
+    "Invitations",
+    "An invitation accepted: a disabled account in its unit, bound to its machine, with the machine's install.",
+    params: vec![string_path("token")],
+    body: Some(json!(generator.subschema_for::<AcceptAsk>())),
+    answers: vec![(201, json_answer::<Accepted>(&mut generator))],
+    codes: vec!["bad-request", "not-found", "invite-closed", "name-taken", "no-hub", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/invites/{token}/proof",
+    "proveInvite",
+    "Invitations",
+    "Whether the invited account's machine is attached; attached, the account is enabled.",
+    params: vec![string_path("token")],
+    body: None,
+    answers: vec![(200, json_answer::<Proof>(&mut generator))],
+    codes: vec!["not-found", "invite-open", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}/node",
+    "userNode",
+    "Invitations",
+    "The machine an account is bound to, and whether the hub holds it.",
+    params: vec![string_path("user")],
+    body: None,
+    answers: vec![(200, json_answer::<UserNode>(&mut generator))],
+    codes: vec!["bad-request", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
     "/checks/room",
     "checkRoom",
     "Checks",

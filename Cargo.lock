@@ -865,6 +865,7 @@ dependencies = [
  "chrono",
  "clap",
  "config",
+ "hmac 0.12.1",
  "http-body-util",
  "indexmap 2.14.2",
  "rand 0.9.5",

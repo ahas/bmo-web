@@ -142,6 +142,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The open invitations the login made, or every open one for the administrator. */
+        get: operations["invites"];
+        put?: never;
+        /** An invitation made into a unit: by the administrator, or by a head for their unit or one below, never a head's. */
+        post: operations["makeInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invites/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The units the login may invite into. */
+        get: operations["inviteUnits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invites/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An invitation as its link shows it to a person with no account. */
+        get: operations["invite"];
+        put?: never;
+        post?: never;
+        /** An invitation taken back by whoever made it, or the administrator. */
+        delete: operations["dropInvite"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invites/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** An invitation accepted: a disabled account in its unit, bound to its machine, with the machine's install. */
+        post: operations["acceptInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invites/{token}/proof": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Whether the invited account's machine is attached; attached, the account is enabled. */
+        post: operations["proveInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/phones": {
         parameters: {
             query?: never;
@@ -436,6 +523,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/node": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The machine an account is bound to, and whether the hub holds it. */
+        get: operations["userNode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}/password": {
         parameters: {
             query?: never;
@@ -580,6 +684,19 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description The name and the password an invitation is accepted with. */
+        AcceptAsk: {
+            name: string;
+            password: string;
+        };
+        /** @description An accepted invitation: the account made, its machine and how to install it. */
+        Accepted: {
+            agent: string;
+            credential: string;
+            hubUrl: string;
+            install: components["schemas"]["Installs"];
+            user: string;
+        };
         /** @description What a check answered. */
         CheckAnswer: {
             allowed: boolean;
@@ -764,6 +881,46 @@ export interface components {
         Holdings: {
             holdings: components["schemas"]["Holding"][];
         };
+        /** @description The one-line installs of a machine. */
+        Installs: {
+            linux: string;
+            windows: string;
+        };
+        /** @description One invitation, as the one who made it reads it. */
+        Invite: {
+            company: components["schemas"]["UnitRef"];
+            /** Format: int64 */
+            expiresAt: number;
+            head: boolean;
+            token: string;
+            unit: components["schemas"]["UnitRef"];
+        };
+        /** @description An invitation to make. */
+        InviteAsk: {
+            /** @default false */
+            head: boolean;
+            /** Format: int64 */
+            hours?: number | null;
+            /** Format: int64 */
+            unit: number;
+        };
+        /** @description The units a login may invite into. */
+        InviteUnits: {
+            units: components["schemas"]["UnitRef"][];
+        };
+        /** @description An invitation as its link shows it, to a person with no account. */
+        InviteView: {
+            company: components["schemas"]["UnitRef"];
+            /** Format: int64 */
+            expiresAt: number;
+            head: boolean;
+            state: string;
+            unit: components["schemas"]["UnitRef"];
+        };
+        /** @description The open invitations a login reads. */
+        Invites: {
+            invites: components["schemas"]["Invite"][];
+        };
         /** @description A sign-in's name and password. */
         LoginAsk: {
             password: string;
@@ -875,6 +1032,10 @@ export interface components {
         /** @description A key asked after. */
         PhoneWhoAsk: {
             key: string;
+        };
+        /** @description Whether an invited account's machine is attached and the account enabled. */
+        Proof: {
+            active: boolean;
         };
         /** @description The sentence a fixed line renders as. */
         Rendered: {
@@ -1030,6 +1191,13 @@ export interface components {
         /** @description Every user, for the administrator's screen that sets one person's sections. */
         UserList: {
             users: components["schemas"]["UserSummary"][];
+        };
+        /** @description The machine an account is bound to and whether it is attached. */
+        UserNode: {
+            agent?: string | null;
+            attached: boolean;
+            /** Format: int64 */
+            provenAt?: number | null;
         };
         /**
          * @description A user's job title and contact details, which the account's holder or an administrator keeps
@@ -1398,6 +1566,243 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    invites: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Invites"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    makeInvite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteAsk"];
+            };
+        };
+        responses: {
+            /** @description Made. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Invite"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, no-hub, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    inviteUnits: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteUnits"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    invite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteView"];
+                };
+            };
+            /** @description A refusal or failure: not-found, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    dropInvite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: forbidden, not-found, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    acceptInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptAsk"];
+            };
+        };
+        responses: {
+            /** @description Made. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Accepted"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, not-found, invite-closed, name-taken, no-hub, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    proveInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proof"];
+                };
+            };
+            /** @description A refusal or failure: not-found, invite-open, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
                 };
             };
         };
@@ -2132,6 +2537,37 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, name-taken, conflict, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    userNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNode"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, upstream-failed, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

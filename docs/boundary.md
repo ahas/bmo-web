@@ -121,6 +121,24 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 - **`heads`** lists only the grants on the unit itself; whether a user heads a unit, through a grant on a unit
   above it as well, is the unit check below.
 
+### Invitations
+
+| Route | Request | Answer |
+|---|---|---|
+| `POST /invites` | the login's user in `Owner-Key` and role in `Owner-Role`; `unit`, `head`, `hours` | 201, the invitation: `token`, `unit` (a unit reference), `company`, `head`, `expiresAt`; 403 for a login that heads no unit at or above it, and for `head` from any login but the administrator; 503 `no-hub` where the settings name no hub |
+| `GET /invites` | the same headers | `invites`: the open ones the login made, or every open one for the administrator, newest first |
+| `GET /invites/units` | the same headers | `units`: the units the login may invite into, each a unit reference |
+| `DELETE /invites/{token}` | the same headers | 204; by the one who made it or the administrator |
+| `GET /invites/{token}` | | `unit`, `company`, `head`, `expiresAt`, `state` (`open`, `expired`, `used`); 404 where no invitation has the token |
+| `POST /invites/{token}/accept` | `name`, `password` | 201, `user`, `agent` (the machine name), `credential`, `hubUrl`, and `install`: `linux` and `windows`, the one-line installs; 409 `invite-closed` where it is expired or used, 409 `name-taken` where the name stands |
+| `POST /invites/{token}/proof` | | `active`: whether the account's machine is attached and the account now enabled |
+| `GET /users/{user}/node` | | `agent?` (the machine bound, none for an account bound to none), `attached`, `provenAt?` |
+
+- **The accept, the proof and the read of an invitation take the server's token alone,** with no owner key: the
+  console calls them for a person who has no account yet, by the token in the link (`docs/accounts.md`,
+  「Invitations and a person's machine」).
+
+### Checks
 ### Checks
 
 | Route | Request | Answer |
@@ -357,6 +375,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | server | `sessions.valkey` | the Valkey sumida keeps its sessions in |
 | server | `receiver.base`, `receiver.token` | the receiver, set together or not at all; with neither, a check or a grant on a message is refused 503 |
 | server | `names.chat_agent` | the name the chat agent goes by in a room, which a fixed line says it as; the server does not stand without one, and a deployment must set it |
+| server | `jake.hub_url`, `jake.install_base`, `jake.agent_key`, `jake.control`, `jake.control_token` | the jake hub an invited machine attaches to, the folder its install scripts are served under, the key its credentials are made with, and the hub's loopback control address and token the service asks which machines are attached; with none, no invitation is made and every machine reads as gone |
 | server | `secrets.dir` | the folder the secret store writes, the data root's `env/`; a leading `~/` stands for the home of the user the server runs as, and `settings.toml` names the data root's `env/` under it |
 | console | `PORT` | the port the console listens on |
 | console | `BMO_WEB_BASE_URL` | the base path every road of the console stands under, fixed as the console is built |

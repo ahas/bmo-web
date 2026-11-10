@@ -12,7 +12,12 @@ import {
   type Sections,
   type Session as WireSession,
   type SessionError,
+  type Accepted,
+  type Invite,
+  type InviteView,
+  type Proof,
   type Unit,
+  type UserNode,
   type UnitRow,
   type UserUnit,
   type UserList,
@@ -639,6 +644,78 @@ export async function placeUser(user: UserId, unit: number, caller: ProfileCalle
     options,
     client.PUT("/users/{user}/unit", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: { unit } })
   );
+
+  return answered(reply);
+}
+
+/** An invitation made into a unit by the login `caller` acts for. */
+export async function makeInvite(unit: number, head: boolean, hours: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Invite> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/invites", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: { unit, head, hours } })
+  );
+
+  return answered(reply);
+}
+
+/** The open invitations the login made, every open one for the administrator. */
+export async function listInvites(caller: ProfileCaller, options: ServiceOptions = {}): Promise<Invite[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/invites", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  return answered(reply).invites;
+}
+
+/** The units the login may invite into. */
+export async function inviteUnits(caller: ProfileCaller, options: ServiceOptions = {}): Promise<{ id: number; name: string }[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/invites/units", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  return answered(reply).units;
+}
+
+/** An invitation taken back. */
+export async function dropInvite(token: string, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.DELETE("/invites/{token}", { params: { path: { token }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** An invitation as its link shows it, or null where no invitation has the token. */
+export async function inviteView(token: string, options: ServiceOptions = {}): Promise<InviteView | null> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/invites/{token}", { params: { path: { token } } }));
+
+  if (reply.response.status === 404) return null;
+
+  return answered(reply);
+}
+
+/** An invitation accepted with a name and a password. */
+export async function acceptInvite(token: string, name: string, password: string, options: ServiceOptions = {}): Promise<Accepted> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/invites/{token}/accept", { params: { path: { token } }, body: { name, password } }));
+
+  return answered(reply);
+}
+
+/** Whether the invited account's machine is attached, the account enabled where it is. */
+export async function proveInvite(token: string, options: ServiceOptions = {}): Promise<Proof> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/invites/{token}/proof", { params: { path: { token } } }));
+
+  return answered(reply);
+}
+
+/** The machine an account is bound to and whether the hub holds it. */
+export async function userNode(id: UserId | number, options: ServiceOptions = {}): Promise<UserNode> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/users/{user}/node", { params: { path: { user: userPath(id) } } }));
 
   return answered(reply);
 }

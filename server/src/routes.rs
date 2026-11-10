@@ -62,6 +62,7 @@ pub async fn stand(
     seen_in_force: Arc::default(),
     watching: crate::watching::state(),
     secrets: None,
+    nodes: None,
   })
 }
 
@@ -199,6 +200,7 @@ fn own() -> Router<Service> {
     .merge(crate::sections::routes())
     .merge(crate::secrets::routes())
     .merge(crate::units::routes())
+    .merge(crate::invites::routes())
 }
 
 async fn health(State(service): State<Service>) -> Json<WireHealth> {

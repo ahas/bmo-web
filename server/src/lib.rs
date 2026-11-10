@@ -9,9 +9,11 @@ pub mod grants;
 pub mod holdings;
 pub mod ids;
 pub mod import;
+pub mod invites;
 pub mod lang;
 pub mod marks;
 pub mod migration;
+pub mod nodes;
 pub mod people;
 pub mod phones;
 pub mod profiles;
@@ -57,12 +59,20 @@ pub struct Service {
   pub watching: Arc<Mutex<watching::Watching>>,
   /// The secret store's folder, none where the settings name none.
   pub secrets: Option<Arc<secrets::Store>>,
+  /// The jake hub invited machines attach to, none where the settings name none.
+  pub nodes: Option<Arc<nodes::Nodes>>,
 }
 
 impl Service {
   /// The same service with its secret store on `store`.
   pub fn keeping_secrets(mut self, store: secrets::Store) -> Self {
     self.secrets = Some(Arc::new(store));
+    self
+  }
+
+  /// The same service asking `nodes` which machines are attached.
+  pub fn with_nodes(mut self, nodes: nodes::Nodes) -> Self {
+    self.nodes = Some(Arc::new(nodes));
     self
   }
 }

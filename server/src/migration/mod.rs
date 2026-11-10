@@ -9,6 +9,7 @@ mod m20261019_000000_extensions;
 pub mod m20261019_000001_tables;
 pub mod m20261019_000002_document_talk;
 pub mod m20261104_000001_user_profiles;
+pub mod m20261111_000001_invites;
 
 pub struct Migrator;
 
@@ -23,6 +24,7 @@ impl MigratorTrait for Migrator {
       Box::new(m20261019_000001_tables::Migration),
       Box::new(m20261019_000002_document_talk::Migration),
       Box::new(m20261104_000001_user_profiles::Migration),
+      Box::new(m20261111_000001_invites::Migration),
     ]
   }
 }

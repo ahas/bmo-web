@@ -34,6 +34,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // lets that one read through without a session.
   if (sharePath(screens, to.path)) return;
 
+  // An invitation's link is opened by a person who has no account yet.
+  if (to.path.startsWith("/join/")) return;
+
   const { loggedIn, session } = useUserSession();
 
   if (to.path === "/login") {

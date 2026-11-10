@@ -5128,8 +5128,8 @@ Four bounds keep it from growing forever.
   switch 호출 허용 that stands on, so the permission is set as the person is added; added with it off, nothing is
   written.
 - **Who changes it is the account service's to say:** the administrator, the room's leader (the owner of a BMO the
-  room names) or a head of the person's unit. Where the reader is neither the administrator nor the room's leader,
-  a line says that only a head of the person's unit may change it; a refused change is said by the pack's sentence
+  room names), a head of the leader's unit, or a head of the person's unit. Where the reader is none of the first
+  three, a line says that only a head of the person's unit may change it; a refused change is said by the pack's sentence
   for the account service's code, and the list stands as it was.
 
 #### 방 등록 삭제

@@ -1725,7 +1725,7 @@ callers:
     person: 사람
     find: 이름으로 찾기
     allow: 호출 허용
-    heads_only: 이 방의 리더나 관리자가 아니어서, 내가 장인 단위의 사람만 바꿀 수 있습니다.
+    heads_only: 이 방을 이끄는 사람이나 그 단위의 장, 관리자가 아니어서 내가 장인 단위의 사람만 바꿀 수 있습니다.
   action:
     add: 추가
   status:

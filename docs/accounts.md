@@ -116,7 +116,8 @@ section states what each does.
 - **A room's callers are the users granted `ask` on the room directly:** each may call their own supervisor into
   the room by name, and the receiver asks the check of `ask` for the sender who calls.
 - **They are set from the console with no message to make the grant on,** by the administrator, by the room's
-  leader, the user who owns a supervisor the room names, or by a head of the user's unit. The person adding a
+  leader, the user who owns a supervisor the room names, by a head of the unit the room belongs to, the leader's, or
+  by a head of the user's unit. The person adding a
   member to a room sets it then, and anyone of them changes it later from the room's list of callers.
 - **Callers stay within one company:** a user of another company than the one who sets it is never made a caller,
   but by the administrator.

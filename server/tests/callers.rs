@@ -125,6 +125,13 @@ async fn a_rooms_callers_are_set_by_the_administrator_its_leader_or_a_head_and_b
   assert_eq!(asked(&app, Method::PUT, &of(head), member).await.0, StatusCode::NO_CONTENT);
   assert_eq!(asked(&app, Method::PUT, &of(outsider), member).await.0, StatusCode::FORBIDDEN);
 
+  // A head of the leader's unit sets a caller too, as one heading the room's unit.
+  let leader = outsider_leader(&scratch, team).await;
+
+  scratch.messages.2.lock().unwrap().insert(ROOM, vec![leader]);
+  assert_eq!(asked(&app, Method::GET, &path, head).await.1["mayChange"], json!(true));
+  scratch.messages.2.lock().unwrap().insert(ROOM, vec![member]);
+
   // The administrator sets anyone.
   assert_eq!(asked(&app, Method::PUT, &of(outsider), admin).await.0, StatusCode::NO_CONTENT);
   assert_eq!(
@@ -139,4 +146,9 @@ async fn a_rooms_callers_are_set_by_the_administrator_its_leader_or_a_head_and_b
     [head.to_string(), outsider.to_string()]
   );
   assert_eq!(asked(&app, Method::PUT, &of(9999), admin).await.0, StatusCode::NOT_FOUND);
+}
+
+// A user standing in the unit given, who leads a room in a test that names them its leader.
+async fn outsider_leader(scratch: &Scratch, unit: i32) -> i32 {
+  placed(scratch, "leader-a", unit, false).await
 }

@@ -113,7 +113,7 @@ async fn may_set<C: ConnectionTrait>(
     return Err(Refusal::forbidden(format!("user {user} stands in another company")));
   }
 
-  if receiver.leaders_of(room).await?.contains(&actor) {
+  if leads(db, receiver, actor, room).await? {
     return Ok(());
   }
 
@@ -127,6 +127,29 @@ async fn may_set<C: ConnectionTrait>(
     "a room's callers are set by the administrator, the room's leader or a head of the user's unit, and user \
      {actor} is none of them for user {user} in room {room}"
   )))
+}
+
+/// Whether a user leads a room or heads the unit it belongs to: the unit of a user who owns a supervisor the room
+/// names, or one above it.
+async fn leads<C: ConnectionTrait>(
+  db: &C,
+  receiver: &dyn Receiver,
+  actor: i32,
+  room: i64,
+) -> Result<bool, Refusal> {
+  for leader in receiver.leaders_of(room).await? {
+    if leader == actor {
+      return Ok(true);
+    }
+
+    if let Some(unit) = unit_of_user(db, leader).await?
+      && heads(db, actor, unit).await?
+    {
+      return Ok(true);
+    }
+  }
+
+  Ok(false)
 }
 
 /// A user made a caller of a room, or no longer one.
@@ -160,12 +183,7 @@ async fn callers_route(
   let actor = signed_in(&service.db, &headers).await?;
   let room = room_in(&asked)?;
   let may_change = administrator(&service.db, actor).await?
-    || service
-      .receiver
-      .leaders_of(room)
-      .await
-      .map(|leaders| leaders.contains(&actor))
-      .unwrap_or(false);
+    || leads(&service.db, service.receiver.as_ref(), actor, room).await.unwrap_or(false);
 
   Ok(Json(RoomCallers {
     room,

@@ -158,8 +158,8 @@ export interface World {
 
 // Floors are this tall; alleys this wide at least and at most; lots this wide at least and at most.
 export const FLOOR = 2.7;
-const ALLEY_LEAST = 2.8;
-const ALLEY_MOST = 3.8;
+const ALLEY_LEAST = 4.5;
+const ALLEY_MOST = 6.5;
 const LOT_LEAST = 6;
 const LOT_MOST = 8.5;
 const CELL = 0.5;
@@ -167,7 +167,7 @@ const CELL = 0.5;
 const EDGE = 3;
 
 // Colours by index: the building palette the renderer reads, concrete and plaster and rust.
-export const BUILDING_COLORS = ["#5b5f66", "#6a6560", "#4f5a5e", "#7a6a55", "#58504b", "#636b63", "#6f5f66", "#4a4f58", "#7d7468", "#55606a"];
+export const BUILDING_COLORS = ["#e9dcc9", "#d9c3b0", "#c9d3d8", "#e3cfa6", "#d6b9b3", "#cdd8c4", "#e0d4e6", "#bfc9d6", "#efe3cf", "#d8cbb8"];
 // The glow palette: neon and window light.
 export const GLOW_COLORS = ["#ff4fa3", "#41d3e6", "#ffd54a", "#7cff6b", "#ff7a3d", "#b388ff", "#ffe9b0", "#9ad8ff"];
 
@@ -224,7 +224,7 @@ interface Plan {
 }
 
 // The street this width runs through the city's middle; the shopfronts stand along it, the rest behind them.
-const STREET = 7;
+const STREET = 9;
 
 // Lots in two rows along the street and rows behind them, each lot its own size and the alleys between them their
 // own width, so no two rows line up. The lots along the street are the first `fronting` of the count, in order.
@@ -316,7 +316,7 @@ interface Built {
 // One building on a lot: a ground block, blocks stacked over it that lean out or step back, and everything on its
 // walls. A shopfront lot leaves its ground floor open on its front: the interior is the room the renderer lights.
 function build(draw: () => number, words: Words, lot: Lot, shopfront: boolean, low: boolean, facing: number | null): Built {
-  const floors = shopfront ? Math.floor(between(draw, 3, 5)) : low ? Math.floor(between(draw, 2, 4)) : Math.floor(between(draw, 4, 9));
+  const floors = shopfront ? Math.floor(between(draw, 2, 4)) : low ? Math.floor(between(draw, 1, 3)) : Math.floor(between(draw, 2, 6));
   const blocks: Block[] = [];
   const fixtures: Fixture[] = [];
   const windows: Window[] = [];
@@ -357,7 +357,7 @@ function build(draw: () => number, words: Words, lot: Lot, shopfront: boolean, l
 
   while (floor < floors) {
     const run = Math.min(floors - floor, Math.floor(between(draw, 1, 4)));
-    const lean = between(draw, -0.5, 0.6);
+    const lean = between(draw, -0.35, 0.25);
 
     // Each run leans out or steps back on its own, never more than a metre past the lot on any side, and never
     // out over the street a shopfront opens on.
@@ -378,25 +378,34 @@ function build(draw: () => number, words: Words, lot: Lot, shopfront: boolean, l
     shade = draw() < 0.4 ? Math.floor(draw() * BUILDING_COLORS.length) : shade;
     blocks.push({ x, y: floor * FLOOR, z, w, h: run * FLOOR, d, color: shade });
 
-    // Windows, cages and air conditioners on the two facades toward the alleys the lot opens on.
+    // Windows, a few cages and air conditioners on every facade, a ledge along each floor line.
     for (const facade of facadesOf({ x, z, w, d, district: lot.district })) {
       const count = Math.max(1, Math.floor(facade.length / 2.2));
 
       for (let level = 0; level < run; level += 1) {
         const y = (floor + level) * FLOOR;
+        const ledge = onFacade(facade, 0, 0.08, y - 0.06);
+
+        fixtures.push({ kind: "pipe", x: ledge.x, y: ledge.y, z: ledge.z, w: facade.length + 0.16, h: 0.14, d: 0.18, yaw: facade.yaw, color: 1, glow: null });
 
         for (let at = 0; at < count; at += 1) {
           const along = (at - (count - 1) / 2) * 2.2 + between(draw, -0.3, 0.3);
           const roll = draw();
           const window = onFacade(facade, along, 0.01, y + 1.0);
 
-          windows.push({ x: window.x, y: window.y, z: window.z, yaw: facade.yaw, glow: roll < 0.38 ? Math.floor(between(draw, 2, GLOW_COLORS.length)) : null });
+          windows.push({ x: window.x, y: window.y, z: window.z, yaw: facade.yaw, glow: roll < 0.45 ? 6 + Math.floor(draw() * 2) : null });
 
-          if (roll > 0.72) {
+          const sill = onFacade(facade, along, 0.06, y + 0.48);
+
+          fixtures.push({ kind: "pipe", x: sill.x, y: sill.y, z: sill.z, w: 0.95, h: 0.06, d: 0.14, yaw: facade.yaw, color: 8, glow: null });
+
+          if (roll > 0.9) {
             const cage = onFacade(facade, along, 0.3, y + 0.8);
+            const slab = onFacade(facade, along, 0.3, y + 0.5);
 
             fixtures.push({ kind: "cage", x: cage.x, y: cage.y, z: cage.z, w: 1.3, h: 1.3, d: 0.6, yaw: facade.yaw, color: 7, glow: null });
-          } else if (roll > 0.52) {
+            fixtures.push({ kind: "pipe", x: slab.x, y: slab.y, z: slab.z, w: 1.4, h: 0.1, d: 0.66, yaw: facade.yaw, color: 1, glow: null });
+          } else if (roll > 0.78) {
             const ac = onFacade(facade, along + 0.6, 0.3, y + 0.5);
 
             fixtures.push({ kind: "ac", x: ac.x, y: ac.y, z: ac.z, w: 0.7, h: 0.5, d: 0.5, yaw: facade.yaw, color: 8, glow: null });
@@ -404,7 +413,7 @@ function build(draw: () => number, words: Words, lot: Lot, shopfront: boolean, l
         }
       }
 
-      if (draw() < 0.5) {
+      if (draw() < 0.25) {
         const pipe = onFacade(facade, between(draw, -facade.length / 2 + 0.4, facade.length / 2 - 0.4), 0.15, floor * FLOOR);
 
         fixtures.push({ kind: "pipe", x: pipe.x, y: pipe.y, z: pipe.z, w: 0.14, h: run * FLOOR, d: 0.14, yaw: facade.yaw, color: 4, glow: null });
@@ -420,14 +429,14 @@ function build(draw: () => number, words: Words, lot: Lot, shopfront: boolean, l
   blocks.push({ x: x - 0.1, y: top, z: z - 0.1, w: w + 0.2, h: 0.35, d: d + 0.2, color: (shade + 3) % BUILDING_COLORS.length });
 
   // Rooftop: a shack, a water tank, a pole, an antenna, a second tank.
-  if (draw() < 0.7) fixtures.push({ kind: "shack", x: x + between(draw, 0.5, Math.max(0.6, w - 3)), y: top, z: z + between(draw, 0.5, Math.max(0.6, d - 3)), w: between(draw, 1.8, 2.6), h: between(draw, 1.6, 2.2), d: between(draw, 1.8, 2.6), yaw: 0, color: 3, glow: null });
-  if (draw() < 0.6) fixtures.push({ kind: "tank", x: x + between(draw, 0.4, Math.max(0.5, w - 1.6)), y: top, z: z + between(draw, 0.4, Math.max(0.5, d - 1.6)), w: 1.2, h: 1.6, d: 1.2, yaw: 0, color: 1, glow: null });
+  if (draw() < 0.35) fixtures.push({ kind: "shack", x: x + between(draw, 0.5, Math.max(0.6, w - 3)), y: top, z: z + between(draw, 0.5, Math.max(0.6, d - 3)), w: between(draw, 1.8, 2.6), h: between(draw, 1.6, 2.2), d: between(draw, 1.8, 2.6), yaw: 0, color: 3, glow: null });
+  if (draw() < 0.4) fixtures.push({ kind: "tank", x: x + between(draw, 0.4, Math.max(0.5, w - 1.6)), y: top, z: z + between(draw, 0.4, Math.max(0.5, d - 1.6)), w: 1.2, h: 1.6, d: 1.2, yaw: 0, color: 1, glow: null });
   fixtures.push({ kind: "pole", x: x + w - 0.5, y: top, z: z + 0.5, w: 0.1, h: between(draw, 2, 4), d: 0.1, yaw: 0, color: 4, glow: null });
   if (draw() < 0.5) fixtures.push({ kind: "pole", x: x + 0.6, y: top, z: z + d - 0.6, w: 0.08, h: between(draw, 1.5, 3), d: 0.08, yaw: 0, color: 7, glow: null });
   if (draw() < 0.5) fixtures.push({ kind: "tank", x: x + between(draw, 0.4, Math.max(0.5, w - 1.2)), y: top, z: z + between(draw, 0.4, Math.max(0.5, d - 1.2)), w: 0.8, h: 1.1, d: 0.8, yaw: 0, color: 9, glow: null });
 
   // Hanging signs out over the front alley, from the second floor up.
-  const signCount = Math.floor(between(draw, 1, 3.5));
+  const signCount = Math.floor(between(draw, 0, 2));
 
   for (let at = 0; at < signCount; at += 1) {
     const y = between(draw, FLOOR + 0.6, Math.max(FLOOR + 1, Math.min(top - 2, 4 * FLOOR)));
@@ -631,7 +640,7 @@ export function worldOf(view: Pick<SpaceView, "nodes" | "repositories" | "agents
 
     if (Math.hypot(from.x - to.x, from.z - to.z) < 22) {
       wires.push({ from: { x: from.x, y: from.y + 1.2, z: from.z }, to: { x: to.x, y: to.y + 1.0, z: to.z }, laundry: false });
-      if (draw() < 0.5) wires.push({ from: { x: from.x + 1, y: Math.min(from.y, to.y) * 0.5 + FLOOR, z: from.z + 0.5 }, to: { x: to.x - 1, y: Math.min(from.y, to.y) * 0.5 + FLOOR + 0.3, z: to.z - 0.5 }, laundry: true });
+      if (draw() < 0.3) wires.push({ from: { x: from.x + 1, y: Math.min(from.y, to.y) * 0.5 + FLOOR, z: from.z + 0.5 }, to: { x: to.x - 1, y: Math.min(from.y, to.y) * 0.5 + FLOOR + 0.3, z: to.z - 0.5 }, laundry: true });
     }
   }
 

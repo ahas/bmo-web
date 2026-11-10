@@ -14,7 +14,7 @@ import type { World } from "./world";
 import type { SpaceNode } from "#shared/space";
 
 // The space on screen (docs/web.md, 「Live status screen」, the space): one renderer on one canvas, the city of a
-// world, a MO for every agent, rain and fog, the glow of the signs and the shallow focus of a miniature, and the
+// world, a MO for every agent, the light of the hour, the glow of what glows at night, the shallow focus of a miniature, and the
 // camera the reader turns, moves and zooms.
 
 export interface Scene {
@@ -51,15 +51,15 @@ export async function makeScene(canvas: HTMLCanvasElement, holder: HTMLElement):
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.25;
+  renderer.toneMappingExposure = 1.55;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   await renderer.init();
 
   const scene = new THREE.Scene();
 
-  scene.background = new THREE.Color("#07090d");
-  scene.fog = new THREE.FogExp2("#0a0d14", 0.0055);
+  scene.background = new THREE.Color("#0c1018");
+  scene.fog = new THREE.FogExp2("#121826", 0.0035);
 
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.5, 400);
 
@@ -83,10 +83,13 @@ export async function makeScene(canvas: HTMLCanvasElement, holder: HTMLElement):
     roamed = true;
   });
 
-  // Light: a cold sky, a faint moon that casts the shadows, and the glow of everything that glows.
-  scene.add(new THREE.HemisphereLight("#5b71a3", "#1a1c24", 2.4));
+  // Light by the hour: the sky and the sun by the clock, the sun low and warm at the day's ends, the sky going
+  // blue and everything that glows coming on as it sets.
+  const sky = new THREE.HemisphereLight("#7d93c4", "#2a2d36", 3.2);
 
-  const moon = new THREE.DirectionalLight("#9fb0dc", 2.2);
+  scene.add(sky);
+
+  const moon = new THREE.DirectionalLight("#b4c3ea", 2.6);
 
   moon.position.set(-20, 40, 10);
   moon.castShadow = true;
@@ -105,7 +108,7 @@ export async function makeScene(canvas: HTMLCanvasElement, holder: HTMLElement):
   scenePass.setMRT(mrtNode);
   scenePass.getTexture("emissive").type = THREE.UnsignedByteType;
 
-  const bloomPass = bloom(scenePass.getTextureNode("emissive"), 1.1, 0.45);
+  const bloomPass = bloom(scenePass.getTextureNode("emissive"), 0.35, 0.3);
   const focusDistance = uniform(50);
   const focalLength = uniform(4);
   const bokehScale = uniform(2.2);
@@ -113,29 +116,6 @@ export async function makeScene(canvas: HTMLCanvasElement, holder: HTMLElement):
   const pipeline = new THREE.RenderPipeline(renderer);
 
   pipeline.outputNode = dofPass;
-
-  // Rain: streaks that fall and start over.
-  const RAIN = 2200;
-  const rainPositions = new Float32Array(RAIN * 3);
-  const rainGeometry = new THREE.BufferGeometry();
-  const rainMaterial = new THREE.PointsMaterial({ color: "#9fb4d6", size: 0.08, transparent: true, opacity: 0.55, sizeAttenuation: true });
-  const rain = new THREE.Points(rainGeometry, rainMaterial);
-  let rainSpan = { width: 60, depth: 60, height: 36 };
-
-  rainGeometry.setAttribute("position", new THREE.BufferAttribute(rainPositions, 3));
-  scene.add(rain);
-
-  const seedRain = (): void => {
-    for (let at = 0; at < RAIN; at += 1) {
-      rainPositions[at * 3] = Math.random() * rainSpan.width;
-      rainPositions[at * 3 + 1] = Math.random() * rainSpan.height;
-      rainPositions[at * 3 + 2] = Math.random() * rainSpan.depth;
-    }
-
-    rainGeometry.attributes.position!.needsUpdate = true;
-  };
-
-  seedRain();
 
   let city: City | null = null;
   let world: World | null = null;
@@ -184,9 +164,6 @@ export async function makeScene(canvas: HTMLCanvasElement, holder: HTMLElement):
     world = next;
     city = makeCity(next);
     scene.add(city.group);
-    rainSpan = { width: next.width + 20, depth: next.depth + 20, height: 36 };
-    rain.position.set(-10, 0, -10);
-    seedRain();
     moon.target.position.set(next.width / 2, 0, next.depth / 2);
     moon.position.set(next.width / 2 - 25, 45, next.depth / 2 + 15);
     moon.shadow.camera.left = -Math.max(next.width, next.depth) * 0.7;
@@ -194,6 +171,7 @@ export async function makeScene(canvas: HTMLCanvasElement, holder: HTMLElement):
     moon.shadow.camera.top = Math.max(next.width, next.depth) * 0.7;
     moon.shadow.camera.bottom = -Math.max(next.width, next.depth) * 0.7;
     moon.shadow.camera.updateProjectionMatrix();
+    lit = -1;
     fit();
   };
 
@@ -284,32 +262,68 @@ export async function makeScene(canvas: HTMLCanvasElement, holder: HTMLElement):
     return [((head.x + 1) / 2) * frame.width, ((1 - head.y) / 2) * frame.height];
   };
 
+  // How much daylight the hour has: none before five and after twenty, full from eight to seventeen.
+  const daylightOf = (date: Date): number => {
+    const hour = date.getHours() + date.getMinutes() / 60;
+
+    if (hour < 5 || hour > 20) return 0;
+    if (hour < 8) return (hour - 5) / 3;
+    if (hour > 17) return (20 - hour) / 3;
+
+    return 1;
+  };
+  const dayBackground = new THREE.Color("#a9c4e6");
+  const nightBackground = new THREE.Color("#0c1018");
+  const dayFog = new THREE.Color("#b7cbe3");
+  const nightFog = new THREE.Color("#121826");
+  const daySky = new THREE.Color("#dfe9f8");
+  const nightSky = new THREE.Color("#4e6494");
+  const dayGround = new THREE.Color("#7f8578");
+  const nightGround = new THREE.Color("#262932");
+  const noonSun = new THREE.Color("#fff3df");
+  const lowSun = new THREE.Color("#ffb27a");
+  const moonLight = new THREE.Color("#8fa3d6");
+  let lit = -1;
+
+  const light = (date: Date): void => {
+    const daylight = daylightOf(date);
+
+    if (Math.abs(daylight - lit) < 0.01) return;
+
+    lit = daylight;
+
+    const low = Math.min(1, Math.max(0, 1 - Math.abs(daylight - 0.5) * 2));
+
+    (scene.background as THREE.Color).copy(nightBackground).lerp(dayBackground, daylight);
+    (scene.fog as THREE.FogExp2).color.copy(nightFog).lerp(dayFog, daylight);
+    sky.color.copy(nightSky).lerp(daySky, daylight);
+    sky.groundColor.copy(nightGround).lerp(dayGround, daylight);
+    sky.intensity = 1.6 + daylight * 0.9;
+    moon.color.copy(moonLight).lerp(noonSun, daylight).lerp(lowSun, low * daylight);
+    moon.intensity = 1.2 + daylight * 2.0;
+
+    const hour = date.getHours() + date.getMinutes() / 60;
+    const angle = ((hour - 6) / 12) * Math.PI;
+    const centre = controls.target;
+
+    moon.position.set(centre.x + Math.cos(angle) * -50, centre.y + Math.max(12, Math.sin(angle) * 55), centre.z + 20);
+    renderer.toneMappingExposure = 1.2 - daylight * 0.15;
+    (scene.fog as THREE.FogExp2).density = 0.0035 - daylight * 0.0018;
+    bloomPass.strength.value = 0.15 + (1 - daylight) * 0.35;
+
+    if (city !== null) for (const one of city.glowing) one.material.emissiveIntensity = one.night * (0.08 + (1 - daylight) * 0.92);
+  };
+
   const frame = (seconds: number, still: boolean): void => {
     clock += seconds;
     controls.update();
+    light(new Date());
 
     // The focus follows the camera's distance to the city's middle, so the far end softens.
     // The focus is the city's middle; what stands as far again from it softens fully, a miniature's shallow depth.
     focusDistance.value = camera.position.distanceTo(controls.target);
     focalLength.value = Math.max(12, focusDistance.value * 0.7);
-    bokehScale.value = still ? 1 : 1.6;
-
-    if (!still) {
-      for (let at = 0; at < RAIN; at += 1) {
-        rainPositions[at * 3 + 1]! -= seconds * 22;
-        rainPositions[at * 3]! -= seconds * 1.5;
-
-        if (rainPositions[at * 3 + 1]! < 0) {
-          rainPositions[at * 3 + 1] = rainSpan.height;
-          rainPositions[at * 3] = Math.random() * rainSpan.width;
-          rainPositions[at * 3 + 2] = Math.random() * rainSpan.depth;
-        }
-      }
-
-      rainGeometry.attributes.position!.needsUpdate = true;
-    }
-
-    rain.visible = !still;
+    bokehScale.value = still ? 0.8 : 1.3;
 
     if (city !== null) {
       for (const [name, lamp] of city.lamps) {
@@ -340,8 +354,6 @@ export async function makeScene(canvas: HTMLCanvasElement, holder: HTMLElement):
     dispose: () => {
       controls.dispose();
       city?.dispose();
-      rainGeometry.dispose();
-      rainMaterial.dispose();
       renderer.dispose();
     }
   };

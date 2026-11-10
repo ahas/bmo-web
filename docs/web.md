@@ -2077,14 +2077,19 @@ archive and this week's tokens remain. That is all that can actually be known th
   and heavy runs it was given and its room, and where the next heavy run goes (the agency's `docs/work-nodes.md`,
   「The rotation」) — and the way to the hardware monitor. Where a command holds the turn the line carries it as one more part,
   the holder and how many wait. On a phone the line keeps the memory pressure and the open jobs.
-- **공간 is one alley of a walled city seen from above, a miniature in three dimensions** — drawn on one WebGL canvas
-  by three.js from geometry made in code, with no model or picture file; every building, sign and robot is boxes.
-  It is read from the console's `GET /api/space` and read again every few seconds while the tab stands. The look is
-  Kowloon Walled City on a rainy night: blocks of uneven height stacked on one another and leaning over the alleys,
-  caged balconies, air conditioners and pipes on every wall, laundry and wires between rooftops, hanging signs
-  and lightboxes that glow, wet ground that mirrors them, rain, and fog at the far end. Nothing stands in a
-  regular grid: the lots differ in size, the alleys jog, and the heights and overhangs are drawn by a seeded
-  random that stays the same for the same listing.
+- **공간 is a small town seen from above, a miniature in three dimensions** — drawn on one WebGL canvas by
+  three.js from geometry made in code, with no model or picture file; every building, sign and robot is boxes.
+  It is read from the console's `GET /api/space` and read again every few seconds while the tab stands. The
+  town is plaster houses of two to six floors in pale colours, each its own size and height, standing apart
+  along a street and the lanes behind it with room to walk between them, with ledges at every floor, sills
+  under the windows, awnings over the shopfronts, a few caged balconies and air conditioners, water tanks and
+  antennas on the roofs, and wires and a line of laundry between them. Nothing stands in a regular grid: the
+  lots differ in size, the lanes differ in width, and the heights and setbacks are drawn by a seeded random
+  that stays the same for the same listing.
+  - **The light is the hour's.** The sky, the sun and the shadows follow the clock of the reader's machine: full
+    day from eight to seventeen, the sun low and warm at either end of it, and night before five and after
+    twenty, when the sky goes blue and the windows, the shop signs and the street bulbs come on. By day they
+    are barely lit.
   - **Every machine is a district and every repository a workshop.** A machine the node service lists is one
     district of the city, a cluster of lots with the machine's name on a rooftop sign and its racks blinking in
     a ground-floor doorway, quicker while work goes on that machine. A repository standing on it is a workshop:
@@ -2113,9 +2118,8 @@ archive and this week's tokens remain. That is all that can actually be known th
     moved, and the box's resize fits it again. The arrow keys move it, `+` and `-` zoom it and `0` fits it. On this
     tab the body under the tab row carries no margin and the box no frame: the city runs to the screen's edges,
     and the counts, the buttons and an agent's card float over it.
-  - **The picture is drawn with the glow of its signs** — only what emits light blooms — and with the shallow focus
-    of a miniature, the far end softening; a reader who asked for less motion gets the same picture without the
-    rain falling.
+  - **The picture is drawn with the glow of what glows at night** — only what emits light blooms, and gently — and
+    with the shallow focus of a miniature, the far end softening a little.
   - **Touching an agent opens its card** over the city's corner: its label, its role or 감독관, and its name; 상태,
     작업 중, 대기 중 or 꺼짐; for one that works 위치, the repository or the folder its run works in, or the room a
     supervisor answers, 작업, the line naming the work where its asker named one, and 경과, how long it has worked;

@@ -1,5 +1,5 @@
 <template>
-  <!-- The agents' space (docs/web.md, 「Live status screen」, the space): one alley of a walled city on a rainy night,
+  <!-- The agents' space (docs/web.md, 「Live status screen」, the space): a small town in the light of the hour,
        drawn by three.js from boxes made in code, every machine a district and every repository a lit workshop; every
        agent a MO that walks to its desk when work begins and strolls between the rest spots when it has none;
        touching one opens a card of its state. -->

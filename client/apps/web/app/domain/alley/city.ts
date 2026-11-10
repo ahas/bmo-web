@@ -12,10 +12,12 @@ export interface City {
   group: THREE.Group;
   // The racks' lamps, by district name, which blink quicker while work goes on that machine.
   lamps: Map<string, THREE.Mesh>;
+  // Everything that glows, with the glow it has at night; by day the scene turns it down.
+  glowing: { material: THREE.MeshStandardMaterial; night: number }[];
   dispose: () => void;
 }
 
-const FIXTURE_COLORS = ["#2a2e35", "#8d8d86", "#7a2d2d", "#6b4a2a", "#3d4248", "#2f3a44", "#1d4f3a", "#9aa0a6", "#6e747c", "#4a5560"];
+const FIXTURE_COLORS = ["#3a3f47", "#f2ede4", "#b8453f", "#8a6a4a", "#6b7078", "#4a5a6a", "#2e7d5b", "#c8ccd1", "#f7f3ea", "#9aa3ad"];
 
 const up = new THREE.Object3D();
 
@@ -26,6 +28,51 @@ function instance(mesh: THREE.InstancedMesh, at: number, x: number, y: number, z
   up.updateMatrix();
   mesh.setMatrixAt(at, up.matrix);
   mesh.setColorAt(at, color);
+}
+
+/** A plaster wall drawn on a canvas: fine grain and a little weathering, tiled over every block. */
+function wallTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+
+  canvas.width = 256;
+  canvas.height = 256;
+
+  const pen = canvas.getContext("2d");
+
+  if (pen !== null) {
+    pen.fillStyle = "#f4f1ea";
+    pen.fillRect(0, 0, 256, 256);
+
+    let seed = 7;
+    const next = (): number => {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+
+      return seed / 0x7fffffff;
+    };
+
+    for (let at = 0; at < 7000; at += 1) {
+      const shade = 200 + Math.floor(next() * 50);
+
+      pen.fillStyle = `rgba(${shade},${shade - 3},${shade - 8},${0.2 + next() * 0.35})`;
+      pen.fillRect(Math.floor(next() * 256), Math.floor(next() * 256), 1 + Math.floor(next() * 3), 1 + Math.floor(next() * 3));
+    }
+
+    for (let at = 0; at < 14; at += 1) {
+      const x = Math.floor(next() * 256);
+
+      pen.fillStyle = `rgba(120,110,100,${0.04 + next() * 0.08})`;
+      pen.fillRect(x, 0, 1 + Math.floor(next() * 3), 80 + Math.floor(next() * 176));
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  return texture;
 }
 
 /** A sign's words drawn on a canvas, lit in its glow colour. */
@@ -81,12 +128,13 @@ function signTexture(sign: Sign): THREE.CanvasTexture {
 export function makeCity(world: World): City {
   const group = new THREE.Group();
   const disposables: { dispose: () => void }[] = [];
+  const glowing: City["glowing"] = [];
   const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
   disposables.push(boxGeometry);
 
   // The ground: dark, wet.
-  const groundMaterial = new THREE.MeshStandardMaterial({ color: "#14171d", roughness: 0.28, metalness: 0.1 });
+  const groundMaterial = new THREE.MeshStandardMaterial({ color: "#6f7a6a", roughness: 0.9, metalness: 0.0 });
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(world.width + 40, world.depth + 40), groundMaterial);
 
   ground.rotation.x = -Math.PI / 2;
@@ -96,7 +144,7 @@ export function makeCity(world: World): City {
   disposables.push(groundMaterial, ground.geometry);
 
   // The street: a lighter, wetter band.
-  const streetMaterial = new THREE.MeshStandardMaterial({ color: "#232833", roughness: 0.18, metalness: 0.15 });
+  const streetMaterial = new THREE.MeshStandardMaterial({ color: "#5a5e66", roughness: 0.85, metalness: 0.0 });
   const street = new THREE.Mesh(new THREE.PlaneGeometry(world.width, world.street[1] - world.street[0]), streetMaterial);
 
   street.rotation.x = -Math.PI / 2;
@@ -106,7 +154,7 @@ export function makeCity(world: World): City {
   disposables.push(streetMaterial, street.geometry);
 
   // Puddles: a few glossy patches.
-  const puddleMaterial = new THREE.MeshStandardMaterial({ color: "#1a2030", roughness: 0.05, metalness: 0.3, transparent: true, opacity: 0.8 });
+  const puddleMaterial = new THREE.MeshStandardMaterial({ color: "#4f5e78", roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.55 });
 
   disposables.push(puddleMaterial);
 
@@ -120,8 +168,11 @@ export function makeCity(world: World): City {
     disposables.push(puddle.geometry);
   }
 
-  // Blocks.
-  const blockMaterial = new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0.0 });
+  // Blocks, in plaster.
+  const wall = wallTexture();
+  const blockMaterial = new THREE.MeshStandardMaterial({ map: wall, roughness: 0.95, metalness: 0.0 });
+
+  disposables.push(wall);
   const blocks = new THREE.InstancedMesh(boxGeometry, blockMaterial, Math.max(1, world.blocks.length));
 
   world.blocks.forEach((block, at) => instance(blocks, at, block.x + block.w / 2, block.y, block.z + block.d / 2, block.w, block.h, block.d, 0, new THREE.Color(BUILDING_COLORS[block.color]!)));
@@ -147,8 +198,10 @@ export function makeCity(world: World): City {
 
     if (lit.length === 0) continue;
 
-    const material = new THREE.MeshStandardMaterial({ roughness: 0.5, emissive: new THREE.Color(GLOW_COLORS[glow]!), emissiveIntensity: 0.9 });
+    const material = new THREE.MeshStandardMaterial({ roughness: 0.5, emissive: new THREE.Color(GLOW_COLORS[glow]!), emissiveIntensity: 0.5 });
     const mesh = new THREE.InstancedMesh(boxGeometry, material, lit.length);
+
+    glowing.push({ material, night: 0.5 });
 
     lit.forEach((fixture, at) => instance(mesh, at, fixture.x, fixture.y, fixture.z, fixture.w, fixture.h, fixture.d, fixture.yaw, new THREE.Color(FIXTURE_COLORS[fixture.color]!)));
     group.add(mesh);
@@ -209,7 +262,7 @@ export function makeCity(world: World): City {
   disposables.push(windowGeometry);
 
   const dark = world.windows.filter((window) => window.glow === null);
-  const darkMaterial = new THREE.MeshStandardMaterial({ color: "#0d1117", roughness: 0.2, metalness: 0.4 });
+  const darkMaterial = new THREE.MeshStandardMaterial({ color: "#3a4a60", roughness: 0.2, metalness: 0.4 });
   const darkMesh = new THREE.InstancedMesh(windowGeometry, darkMaterial, Math.max(1, dark.length));
 
   dark.forEach((window, at) => {
@@ -227,8 +280,10 @@ export function makeCity(world: World): City {
 
     if (lit.length === 0) continue;
 
-    const material = new THREE.MeshStandardMaterial({ color: GLOW_COLORS[glow]!, emissive: new THREE.Color(GLOW_COLORS[glow]!), emissiveIntensity: 0.4, roughness: 0.4 });
+    const material = new THREE.MeshStandardMaterial({ color: "#3a4a60", emissive: new THREE.Color(GLOW_COLORS[glow]!), emissiveIntensity: 0.45, roughness: 0.3, metalness: 0.3 });
     const mesh = new THREE.InstancedMesh(windowGeometry, material, lit.length);
+
+    glowing.push({ material, night: 0.45 });
 
     lit.forEach((window, at) => {
       up.position.set(window.x, window.y, window.z);
@@ -246,14 +301,30 @@ export function makeCity(world: World): City {
     if (sign.w === 0) continue;
 
     const texture = signTexture(sign);
-    const material = new THREE.MeshStandardMaterial({ map: texture, emissiveMap: texture, emissive: new THREE.Color("#ffffff"), emissiveIntensity: 1.6, roughness: 0.5, side: THREE.DoubleSide });
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(sign.w, sign.h), material);
+    const material = new THREE.MeshStandardMaterial({ map: texture, emissiveMap: texture, emissive: new THREE.Color("#ffffff"), emissiveIntensity: 0.7, roughness: 0.5 });
 
-    mesh.position.set(sign.at.x, sign.at.y + (sign.hanging ? 0 : sign.h / 2), sign.at.z);
-    // A hanging sign stands out from the wall, across the alley; a lightbox lies flat on it.
-    mesh.rotation.y = sign.hanging ? sign.yaw + Math.PI / 2 : sign.yaw;
-    group.add(mesh);
-    disposables.push(texture, material, mesh.geometry);
+    glowing.push({ material, night: 0.7 });
+
+    // A sign reads the right way round from either side: two faces back to back, with a thin box between.
+    const geometry = new THREE.PlaneGeometry(sign.w, sign.h);
+    const y = sign.at.y + (sign.hanging ? 0 : sign.h / 2);
+    const yaw = sign.hanging ? sign.yaw + Math.PI / 2 : sign.yaw;
+
+    for (const side of [1, -1]) {
+      const face = new THREE.Mesh(geometry, material);
+
+      face.position.set(sign.at.x + Math.sin(yaw) * 0.03 * side, y, sign.at.z + Math.cos(yaw) * 0.03 * side);
+      face.rotation.y = yaw + (side === 1 ? 0 : Math.PI);
+      group.add(face);
+    }
+
+    const slab = new THREE.Mesh(boxGeometry, barMaterial);
+
+    slab.position.set(sign.at.x, y, sign.at.z);
+    slab.rotation.y = yaw;
+    slab.scale.set(sign.w, sign.h, 0.05);
+    group.add(slab);
+    disposables.push(texture, material, geometry);
 
     if (sign.hanging) {
       // The bracket.
@@ -272,7 +343,7 @@ export function makeCity(world: World): City {
 
     if (rack.w === 1 && rack.x === 0) continue;
 
-    const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.06), new THREE.MeshStandardMaterial({ color: "#7cff6b", emissive: new THREE.Color("#7cff6b"), emissiveIntensity: 1.5 }));
+    const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.06), new THREE.MeshStandardMaterial({ color: "#7cff6b", emissive: new THREE.Color("#7cff6b"), emissiveIntensity: 1.0 }));
 
     lamp.position.set(rack.x + Math.sin(rack.yaw) * (rack.d / 2 + 0.04), rack.y + rack.h * 0.8, rack.z + Math.cos(rack.yaw) * (rack.d / 2 + 0.04));
     lamp.rotation.y = rack.yaw;
@@ -301,7 +372,7 @@ export function makeCity(world: World): City {
 
     wireGeometry.setAttribute("position", new THREE.Float32BufferAttribute(wirePoints, 3));
 
-    const wireMaterial = new THREE.LineBasicMaterial({ color: "#0b0d10" });
+    const wireMaterial = new THREE.LineBasicMaterial({ color: "#2b2f36" });
 
     group.add(new THREE.LineSegments(wireGeometry, wireMaterial));
     disposables.push(wireGeometry, wireMaterial);
@@ -326,6 +397,7 @@ export function makeCity(world: World): City {
   return {
     group,
     lamps,
+    glowing,
     dispose: () => {
       for (const one of disposables) one.dispose();
     }

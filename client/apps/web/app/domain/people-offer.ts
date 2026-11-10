@@ -15,10 +15,12 @@ export interface OfferedPerson {
   jobTitle: string;
 }
 
-/** What the console offers: a search of the reader's organisation, and one account read by its key. */
+/** What the console offers: a search of the reader's organisation, one account read by its key, and the
+ * signed-in reader's own account. */
 export interface ConsolePeopleOffer {
   search: (words: string) => Promise<OfferedPerson[]>;
   person: (user: string) => Promise<OfferedPerson | null>;
+  me: () => Promise<OfferedPerson | null>;
 }
 
 function offered(person: PersonView): OfferedPerson {
@@ -27,6 +29,16 @@ function offered(person: PersonView): OfferedPerson {
 
 /** Offers the directory to every screen under the layout. */
 export function provideConsolePeople(): void {
+  const { user } = useUserSession();
+
+  async function person(key: string): Promise<OfferedPerson | null> {
+    try {
+      return offered(await $fetch<PersonView>(`/api/people/${encodeURIComponent(key)}`));
+    } catch {
+      return null;
+    }
+  }
+
   provide<ConsolePeopleOffer>(CONSOLE_PEOPLE, {
     search: async (words) => {
       if (words.trim() === "") return [];
@@ -35,12 +47,14 @@ export function provideConsolePeople(): void {
 
       return found.slice(0, 20).map(offered);
     },
-    person: async (user) => {
-      try {
-        return offered(await $fetch<PersonView>(`/api/people/${encodeURIComponent(user)}`));
-      } catch {
-        return null;
-      }
+    person,
+    // The login's account is the one its seal names, the owner key the console sets on every relayed call.
+    me: async () => {
+      const id = user.value?.id;
+
+      if (id === undefined || id === null) return null;
+
+      return (await person(String(id))) ?? { user: String(id), name: user.value?.name ?? String(id), organization: "", jobTitle: "" };
     }
   });
 }

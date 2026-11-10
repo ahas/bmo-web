@@ -1837,7 +1837,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   app, or a console without the offer — draws its own, and a route that does not ask stands as its bundle draws it.
 - **A screen a unit brings finds the people of the reader's organization** through the console, which provides,
   under the key `bmo-console-people` as bmo-ui's `docs/console-bundles.md` states the contract, a `search` over the
-  people directory and a `person` read of one account, both the directory's own reads for the signed-in login
+  people directory, a `person` read of one account and a `me` read of the signed-in login's own account, both the directory's own reads for the signed-in login
   (`docs/accounts.md`, 「The people directory」) with the contact fields left out.
 - **The title bar holds only what every screen holds** — the sidebar button, the screen's name, the deployment's
   mark, the TODO button and the usage figures — and beside the name what acts on that screen as a whole. What acts

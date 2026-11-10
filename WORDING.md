@@ -102,6 +102,10 @@
 - the calendar → 캘린더 (the screen, and one calendar in it); an event → 일정, as in 내 일정, 조직 일정; a reminder → 알림; a recurrence → 반복.
 - the theater → 극장: 작품 (a title), 에피소드, 보관함 (the screen of titles), 내 극장, 조직 극장, 플레이리스트, 이어 보기,
   자막, 자막 굽기, 라이브러리 (a folder registered), 색인 and 재색인 (a scan), 업로드, 대사.
+- turn into (a text block's kind) → 종류 변경: 종류 변경, 종류를 변경했습니다, 변경하지 못했습니다; the kinds it
+  offers stand on their own words (본문, 제목 1, 글머리 목록, 인용, 코드 블록). Never 서식 변경, 스타일, 종류로
+  바꾸기. 변환 is no form of it: that word stands only where a file's format is really converted, as an mp3
+  conversion's run names itself.
 - secret, a value a unit reads by its file name → 비밀; the console's store of them → 비밀 보관함; putting a value in
   place of the one a name holds → 교체. Never 시크릿, 키 보관소.
 - retire, take down → 보관; bringing one back → 복원. Switching a piece in or out of use → 켜기, 끄기.

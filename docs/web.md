@@ -3039,16 +3039,12 @@ a seat of its role.
 
 - **One table of the registered models** the agency serves at `/models` (its `docs/api.md`, 「providers, models and
   model files」), one row each: its name, the model behind it, 상태 — a column of its own, a mark and a word saying
-  whether its engine answers: 응답함; **카드 상태** with the operator's arbiter's own words where the registration
-  names its arbiter name and that arbiter has set the model aside (the agency's `asideReason`); else **마지막 응답**
-  with the moment the engine last answered where it does not answer now and has ever answered, and 응답 안 함 where
-  it has never answered — the supervisors, roles and repositories that name it (`usedBy`), and its card service
-  where it names one.
+  whether its engine answers: 응답함, or **마지막 응답** with the moment the engine last answered where it does not
+  answer now and has ever answered, and 응답 안 함 where it has never answered — the supervisors, roles and
+  repositories that name it (`usedBy`), and its card service where it names one.
 - **추가** in the tab row opens a box for a new registration's name, fixed once made and written with lowercase
   letters, digits and hyphens beginning with a letter, the model its addresses serve, its card service and whether
-  that service keeps role files, and 아비터 모델 이름, the word the operator's own arbiter lists the model under at
-  the address's `/arbiter/status`, which the agency reads for the row's 카드 상태; left empty, the engine's own
-  health alone is read. A row's more-menu opens the same box to change the registration, or removes it, a
+  that service keeps role files. A row's more-menu opens the same box to change the registration, or removes it, a
   removal asked first naming the registration and standing disabled while anything names it, its tooltip naming
   what does. A save the agency refuses keeps the box open with the reason under the field it names.
 

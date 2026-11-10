@@ -24,10 +24,9 @@ export function registrationKey(name: string): string {
 
 // What a row says of a registration: whether its addresses answer, or nothing where that is not known. One
 // that does not answer now says when it last did, where it ever has.
-export function healthText(t: Translate, healthy: boolean | null, lastAnsweredAt: number | null = null, asideReason: string | null = null): string {
+export function healthText(t: Translate, healthy: boolean | null, lastAnsweredAt: number | null = null): string {
   if (healthy === null) return "";
   if (healthy) return t("agents.label.registry_healthy");
-  if (asideReason !== null && asideReason !== "") return t("agents.label.registry_aside", { reason: asideReason });
 
   return lastAnsweredAt === null ? t("agents.label.registry_unhealthy") : t("agents.label.registry_last_answered", { time: formatStamp(lastAnsweredAt) });
 }
@@ -47,30 +46,29 @@ export interface ModelForm {
   model: string;
   cardService: string;
   roleFiles: boolean;
-  arbiterModel: string;
 }
 
 export function emptyModelForm(): ModelForm {
-  return { name: "", model: "", cardService: "", roleFiles: false, arbiterModel: "" };
+  return { name: "", model: "", cardService: "", roleFiles: false };
 }
 
 export function modelForm(model: ModelView): ModelForm {
-  return { name: registrationName(model.key), model: model.model, cardService: model.cardService ?? "", roleFiles: model.roleFiles === true, arbiterModel: model.arbiterModel ?? "" };
+  return { name: registrationName(model.key), model: model.model, cardService: model.cardService ?? "", roleFiles: model.roleFiles === true };
 }
 
 // What a new registration asks of the agency: the key its name makes, the model behind it and its card service.
-export function modelCreate(form: ModelForm): { key: string; model: string; cardService: string | null; roleFiles: boolean; arbiterModel: string | null } {
-  return { key: registrationKey(form.name.trim()), model: form.model.trim(), cardService: form.cardService.trim() === "" ? null : form.cardService.trim(), roleFiles: form.roleFiles, arbiterModel: form.arbiterModel.trim() === "" ? null : form.arbiterModel.trim() };
+export function modelCreate(form: ModelForm): { key: string; model: string; cardService: string | null; roleFiles: boolean } {
+  return { key: registrationKey(form.name.trim()), model: form.model.trim(), cardService: form.cardService.trim() === "" ? null : form.cardService.trim(), roleFiles: form.roleFiles };
 }
 
 // What a change asks: everything but its name, which is fixed once made; an emptied card service is none.
-export function modelChange(form: ModelForm): { model: string; cardService: string; roleFiles: boolean; arbiterModel: string | null } {
-  return { model: form.model.trim(), cardService: form.cardService.trim(), roleFiles: form.roleFiles, arbiterModel: form.arbiterModel.trim() === "" ? null : form.arbiterModel.trim() };
+export function modelChange(form: ModelForm): { model: string; cardService: string; roleFiles: boolean } {
+  return { model: form.model.trim(), cardService: form.cardService.trim(), roleFiles: form.roleFiles };
 }
 
 // Where in the box a refusal stands: the field the agency named, or the box as a whole.
-export function modelRefusalPlace(field: string | null | undefined): "name" | "model" | "key" | "cardService" | "roleFiles" | "arbiterModel" | "form" {
-  const places = ["name", "model", "key", "cardService", "roleFiles", "arbiterModel"] as const;
+export function modelRefusalPlace(field: string | null | undefined): "name" | "model" | "key" | "cardService" | "roleFiles" | "form" {
+  const places = ["name", "model", "key", "cardService", "roleFiles"] as const;
 
   return places.find((one) => one === field) ?? "form";
 }

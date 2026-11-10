@@ -83,9 +83,6 @@
           <UInput v-model="form.cardService" class="w-full font-mono" :aria-label="$t('agents.label.card_service')" />
         </UFormField>
 
-        <UFormField :label="$t('agents.label.arbiter_model')" name="arbiterModel" :error="errorAt('arbiterModel')" :help="$t('agents.placeholder.arbiter_model')">
-          <UInput v-model="form.arbiterModel" class="w-full font-mono" :aria-label="$t('agents.label.arbiter_model')" />
-        </UFormField>
         <UFormField name="roleFiles" :error="errorAt('roleFiles')">
           <USwitch v-model="form.roleFiles" :label="$t('agents.label.role_files')" :disabled="form.cardService.trim() === ''" />
         </UFormField>
@@ -147,7 +144,7 @@ const rows = computed<RegistryRow[]>(() => (models.value?.items ?? []).map((one)
     model: one,
     name: registrationName(one.key),
     usedBy: (one.usedBy ?? []).map((used) => usedByText(t, used)),
-    health: mark === null ? null : { ...mark, text: healthText(t, one.healthy, one.lastAnsweredAt ?? null, one.asideReason ?? null) }
+    health: mark === null ? null : { ...mark, text: healthText(t, one.healthy, one.lastAnsweredAt ?? null) }
   };
 }));
 

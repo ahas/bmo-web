@@ -1926,7 +1926,6 @@ agents:
     reference: 참조 주입
     reference_send: 붙이기
     registry_healthy: 응답함
-    registry_aside: "카드 상태: {reason}"
     registry_state: 상태
     registry_unhealthy: 응답 안 함
     registry_last_answered: "마지막 응답 {time}"
@@ -1986,7 +1985,6 @@ agents:
     find_role: "역할 {name}"
     role_prompt: 역할 프롬프트
     card_service: 카드 서비스
-    arbiter_model: 아비터 모델 이름
     checkouts_value: "추가지원 {support} · {held}/{all} 사용 중"
     column_callable: 코워커
     column_checkouts: 체크아웃
@@ -2085,7 +2083,6 @@ agents:
     pin_waits: 고정 모델이 응답할 수 없으면 이 저장소의 작업이 기다립니다.
     repository_delete_confirm: 이 저장소를 삭제할까요?
   placeholder:
-    arbiter_model: 운영자 아비터의 /arbiter/status가 이 모델을 부르는 이름. 비워 두면 엔진의 /health만 읽습니다.
     account_name: claude-01
     directory_path: 설정 디렉터리의 절대 경로
     draft_add_question: 질문 추가

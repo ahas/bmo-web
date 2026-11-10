@@ -109,10 +109,6 @@ export interface ModelView {
   // The arbiter service its engine is, where it names one, and whether that service's instances keep role files.
   cardService?: string | null;
   roleFiles?: boolean;
-  // Why the engine stands aside where it does, in the agency's words — the operator's own arbiter's mode and basis
-  // for a registration that names its arbiter name — and that name, or null.
-  asideReason?: string | null;
-  arbiterModel?: string | null;
   // Every supervisor, role and repository whose order or pin names it, and every model file standing behind it, as
   // the agency names each.
   usedBy?: string[];

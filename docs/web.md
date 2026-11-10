@@ -4960,9 +4960,11 @@ Four bounds keep it from growing forever.
   filling as the turn runs: 「\~48K」, what the turn has written so far. Its mark is the same token mark a finished
   chip wears — the 「\~」 on the estimate and the shimmering line above say the figure is still moving — and
   pressing it spreads one line, 「진행 중」, with the four kinds as a group of bars.
-  - The figure is an estimate while running: the thinking tokens the CLI counts as it goes, and the answer and
-    tool calls written so far measured by their length. The output count the stream carries mid-way is a
-    placeholder, so it is not used.
+  - The figure is an estimate while running: the thinking tokens the CLI counts as it goes, the answer and tool
+    calls written so far measured by their length, and the block the answer is still writing as it streams, which
+    the receiver's picture counts the same way (the receiver's `docs/receiver.md`, 「A turn's progress」), so the
+    figure moves while a block is written rather than only when it ends. The output count the stream carries
+    mid-way is a placeholder, so it is not used.
   - Read, cache read and cache write in the spread are what the turn's requests so far reported: the stream
     states each request's input, cache read and cache write once, and each request is added once.
   - Before anything has been written, the chip stands with what is known — nothing yet, one dash — rather than

@@ -103,7 +103,9 @@ const formFailure = ref("");
 const busy = ref(false);
 
 const adding = ref(false);
-const draft = reactive({ name: "", parent: "" });
+// The parent chosen for a new unit, `NEW_COMPANY` for none: a select item's value is never empty.
+const NEW_COMPANY = "company";
+const draft = reactive({ name: "", parent: NEW_COMPANY });
 const editing = ref(false);
 const openId = ref<number | null>(null);
 const rename = ref("");
@@ -144,7 +146,7 @@ function describe(unit: UnitRow): string {
 // The parents a unit may stand under: for a new unit any unit, with none for a company; for a unit standing, the
 // units of its own company that do not stand under it.
 function parents(of: number | null) {
-  if (of === null) return [{ label: t("organization.label.new_company"), value: "" }, ...tree.value.map((unit) => ({ label: `${"· ".repeat(unit.depth)}${unit.name}`, value: String(unit.id) }))];
+  if (of === null) return [{ label: t("organization.label.new_company"), value: NEW_COMPANY }, ...tree.value.map((unit) => ({ label: `${"· ".repeat(unit.depth)}${unit.name}`, value: String(unit.id) }))];
 
   const company = companyOf(of);
   const below = new Set<number>([of]);
@@ -168,7 +170,7 @@ async function read(): Promise<void> {
 }
 
 function openAdd(): void {
-  Object.assign(draft, { name: "", parent: "" });
+  Object.assign(draft, { name: "", parent: NEW_COMPANY });
   formFailure.value = "";
   adding.value = true;
 }
@@ -198,7 +200,7 @@ async function acting(work: () => Promise<unknown>): Promise<boolean> {
 }
 
 async function add(): Promise<void> {
-  const body = { name: draft.name.trim(), parent: draft.parent === "" ? null : Number(draft.parent) };
+  const body = { name: draft.name.trim(), parent: draft.parent === NEW_COMPANY ? null : Number(draft.parent) };
 
   if (await acting(() => $fetch("/api/organization/units", { method: "POST", body }))) adding.value = false;
 }

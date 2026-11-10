@@ -27,7 +27,7 @@
         v-for="invite in invites"
         :key="invite.token"
         :label="`${invite.unit.name}${invite.head ? ` · ${$t('invites.label.head')}` : ''}`"
-        :description="$t('invites.label.until', { time: formatStamp(invite.expiresAt) })"
+        :description="$t('invites.label.until', { time: formatStamp(invite.expiresAt / 1000) })"
       >
         <UButton color="neutral" variant="ghost" size="xs" :label="copied === invite.token ? $t('invites.status.copied') : $t('invites.action.copy')" @click="copy(invite)" />
         <UButton color="error" variant="ghost" size="xs" :label="$t('invites.action.drop')" @click="drop(invite.token)" />
@@ -41,6 +41,8 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 import { formatStamp } from "bmo-ui/app/domain/time";
+
+import { placeOf } from "~/domain/invites";
 
 import { useAdministrator } from "~/domain/access";
 
@@ -77,7 +79,7 @@ async function read(): Promise<void> {
 
 // The words copied with a link: who invites into what, the link, and when it closes.
 async function copy(invite: Invite): Promise<void> {
-  const text = t("invites.message.text", { company: invite.company.name, unit: invite.unit.name, link: link(invite.token), time: formatStamp(invite.expiresAt) });
+  const text = t("invites.message.text", { place: placeOf(invite), link: link(invite.token), time: formatStamp(invite.expiresAt / 1000) });
 
   await navigator.clipboard?.writeText(text).catch(() => undefined);
   copied.value = invite.token;

@@ -6079,6 +6079,8 @@ dialog open at 계정.
   at once with its words: who invites into what, the link, and when it closes (`docs/accounts.md`,
   「Invitations and a person's machine」).
 - **The open ones are listed,** each copied again or taken back. A reader who may invite into no unit is told so.
+- **Where an invitation leads is said as the company, then the unit under it;** a unit that is the company itself is
+  named once, here, in the copied words and on the join page.
 
 #### 조직
 

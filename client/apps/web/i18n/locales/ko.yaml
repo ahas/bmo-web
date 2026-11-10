@@ -1692,7 +1692,7 @@ invites:
   status:
     copied: 복사됨
   message:
-    text: "{company} {unit}에 초대합니다. 아래 링크에서 계정을 만들고 안내에 따라 PC에 jake를 설치하면 계정이 활성화됩니다. {link} (유효 기간: {time}까지)"
+    text: "{place}에 초대합니다. 아래 링크에서 계정을 만들고 안내에 따라 PC에 jake를 설치하면 계정이 활성화됩니다. {link} (유효 기간: {time}까지)"
   error:
     bad_request: 단위나 값이 올바르지 않습니다.
     closed: 만료되었거나 이미 사용된 초대입니다.
@@ -1747,8 +1747,8 @@ join:
     check: 설치했어요, 확인하기
     copy: 복사
   message:
-    invited: "{company} {unit}에 초대되었습니다."
-    invited_head: "{company} {unit}의 장으로 초대되었습니다."
+    invited: "{place}에 초대되었습니다."
+    invited_head: "{place}의 장으로 초대되었습니다."
     until: "{time}까지 유효한 초대입니다."
     expired: 만료된 초대입니다. 초대한 사람에게 새 링크를 받아 주세요.
     used: 이미 사용된 초대입니다.

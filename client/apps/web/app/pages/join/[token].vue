@@ -16,8 +16,8 @@
         </template>
 
         <template v-else-if="view && accepted === null">
-          <p>{{ $t(view.head ? "join.message.invited_head" : "join.message.invited", { company: view.company.name, unit: view.unit.name }) }}</p>
-          <p class="text-sm text-muted">{{ $t("join.message.until", { time: formatStamp(view.expiresAt) }) }}</p>
+          <p>{{ $t(view.head ? "join.message.invited_head" : "join.message.invited", { place: placeOf(view) }) }}</p>
+          <p class="text-sm text-muted">{{ $t("join.message.until", { time: formatStamp(view.expiresAt / 1000) }) }}</p>
           <UForm id="join-form" :state="form" class="flex flex-col gap-4" @submit="accept">
             <UFormField :label="$t('app.label.user_id')" name="name" required>
               <UInput v-model="form.name" class="w-full" autocomplete="username" />
@@ -54,6 +54,8 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 import { formatStamp } from "bmo-ui/app/domain/time";
+
+import { placeOf } from "~/domain/invites";
 
 import { useVisibleShell } from "~/domain/overlay";
 

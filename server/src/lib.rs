@@ -22,6 +22,7 @@ pub mod secrets;
 pub mod sections;
 pub mod settings;
 pub mod store;
+pub mod units;
 pub mod users;
 pub mod watching;
 pub mod wording;

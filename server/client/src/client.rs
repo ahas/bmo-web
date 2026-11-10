@@ -248,6 +248,21 @@ impl AccountClient {
     Self::answered(self.send(Method::POST, &["checks", "object"], ask)).await
   }
 
+  /// `POST /checks/unit`.
+  pub async fn check_unit(&self, ask: &UnitCheckAsk) -> Answer<CheckAnswer> {
+    Self::answered(self.send(Method::POST, &["checks", "unit"], ask)).await
+  }
+
+  /// `GET /users/{user}/unit`.
+  pub async fn user_unit(&self, user: &str) -> Answer<UserUnit> {
+    Self::answered(self.request(Method::GET, &["users", user, "unit"])).await
+  }
+
+  /// `GET /units/{unit}`.
+  pub async fn unit(&self, unit: i64) -> Answer<Unit> {
+    Self::answered(self.request(Method::GET, &["units", &unit.to_string()])).await
+  }
+
   /// `GET /grants?room=`.
   pub async fn grants(&self, room: i64) -> Answer<Grants> {
     Self::answered(self.get(&["grants"], &[("room", room.to_string())])).await

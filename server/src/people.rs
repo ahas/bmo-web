@@ -1,6 +1,6 @@
 //! The people directory (docs/accounts.md, 「The people directory」; docs/boundary.md, 「Users and senders」):
-//! the users of the reader's own organisation, found by their name, the organisation and the contact details
-//! the reader may see. The contact details stand only for the platform administrator and for the person
+//! the users of the reader's own company, whatever unit of it they stand in, found by their name, their unit and
+//! the contact details the reader may see. The contact details stand only for the platform administrator and for the person
 //! themselves, and a search matches only the fields its reader may see, so a refused field is not an answer
 //! either.
 
@@ -29,12 +29,16 @@ pub struct SearchAsk {
   limit: Option<i64>,
 }
 
-/// Who reads the directory: the login's user, their organisation and whether they are the administrator.
+/// Who reads the directory: the login's user, their company and whether they are the administrator.
 struct Caller {
   user: i32,
-  organization: i32,
+  company: i32,
   administrator: bool,
 }
+
+/// The users a company holds: those whose unit stands under it.
+const IN_COMPANY: &str =
+  r#"u."organization_id" IN (SELECT "descendant_id" FROM "org_closure" WHERE "ancestor_id" = $1)"#;
 
 /// The columns one person is read by.
 const COLUMNS: &str = r#"
@@ -66,9 +70,14 @@ async fn caller<C: ConnectionTrait>(db: &C, headers: &HeaderMap) -> Result<Calle
     .await?
     .ok_or_else(|| Refusal::forbidden("the call names no user of this deployment"))?;
 
+  let unit: i32 = row.try_get("", "organization_id")?;
+  let company = crate::units::company_of(db, unit)
+    .await?
+    .ok_or_else(|| Refusal::forbidden("the reader's unit stands in no company"))?;
+
   Ok(Caller {
     user,
-    organization: row.try_get("", "organization_id")?,
+    company,
     administrator: Authz::is_superuser(&user_subject(db, user).await?, db).await?,
   })
 }
@@ -89,8 +98,8 @@ fn person_of(row: &QueryResult, reader: &Caller) -> Result<Person, Refusal> {
   })
 }
 
-/// The users of the reader's organisation whose name, organisation, job title or permitted contact details
-/// hold the words, in the organisation's order. Words that are empty, and a search that finds none, answer no
+/// The users of the reader's company whose name, unit, job title or permitted contact details hold the words,
+/// in the directory's order. Words that are empty, and a search that finds none, answer no
 /// one.
 async fn search<C: ConnectionTrait>(
   db: &C,
@@ -121,7 +130,7 @@ async fn search<C: ConnectionTrait>(
   };
   let sql = format!(
     r#"SELECT {COLUMNS} {FROM}
-       WHERE u."organization_id" = $1 AND (
+       WHERE {IN_COMPANY} AND (
          strpos(lower(u."username"), lower($2)) > 0
          OR strpos(lower(COALESCE(u."full_name", '')), lower($2)) > 0
          OR strpos(lower(o."name"), lower($2)) > 0
@@ -134,20 +143,20 @@ async fn search<C: ConnectionTrait>(
   let rows = all(
     db,
     &sql,
-    vec![reader.organization.into(), words.to_owned().into(), limit.into(), reader.user.into()],
+    vec![reader.company.into(), words.to_owned().into(), limit.into(), reader.user.into()],
   )
   .await?;
 
   rows.iter().map(|row| person_of(row, reader)).collect()
 }
 
-/// One person of the reader's organisation, or nothing found where the user does not stand or stands in
-/// another organisation.
+/// One person of the reader's company, or nothing found where the user does not stand or stands in another
+/// company.
 async fn of<C: ConnectionTrait>(db: &C, reader: &Caller, user: i32) -> Result<Person, Refusal> {
-  let sql = format!(r#"SELECT {COLUMNS} {FROM} WHERE u."id" = $1 AND u."organization_id" = $2"#);
-  let row = one(db, &sql, vec![user.into(), reader.organization.into()])
+  let sql = format!(r#"SELECT {COLUMNS} {FROM} WHERE {IN_COMPANY} AND u."id" = $2"#);
+  let row = one(db, &sql, vec![reader.company.into(), user.into()])
     .await?
-    .ok_or_else(|| Refusal::absent(format!("no person {user} stands in this organisation")))?;
+    .ok_or_else(|| Refusal::absent(format!("no person {user} stands in this company")))?;
 
   person_of(&row, reader)
 }
@@ -164,7 +173,7 @@ async fn search_route(
   Ok(Json(WirePeople { people }))
 }
 
-/// `GET /users/{user}/person`: one person of the reader's organisation.
+/// `GET /users/{user}/person`: one person of the reader's company.
 async fn person_route(
   State(service): State<Service>,
   Path(user): Path<String>,

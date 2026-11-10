@@ -221,6 +221,43 @@ pub struct ObjectCheckAsk {
   pub user: String,
 }
 
+/// Whether a user heads a unit, asked.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UnitCheckAsk {
+  pub unit: i64,
+  pub user: String,
+}
+
+/// One organisation unit as another names it: its number and its name.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UnitRef {
+  pub id: i64,
+  pub name: String,
+}
+
+/// The unit a user stands in, its company, and the units from the company down to it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UserUnit {
+  pub user: String,
+  pub unit: UnitRef,
+  pub company: UnitRef,
+  pub path: Vec<UnitRef>,
+}
+
+/// One organisation unit: where it stands, what stands directly under it, who heads it and who stands in it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Unit {
+  pub id: i64,
+  pub name: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub parent: Option<i64>,
+  pub company: UnitRef,
+  pub path: Vec<UnitRef>,
+  pub children: Vec<UnitRef>,
+  pub heads: Vec<String>,
+  pub members: Vec<String>,
+}
+
 /// What a check answered.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct CheckAnswer {

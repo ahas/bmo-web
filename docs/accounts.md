@@ -142,10 +142,10 @@ section states what each does.
 - **`GET /users/{user}/sections`** — one user's console sections, each with whether they may read and write
   it: the account's holder's or an administrator's. **`PUT /users/{user}/sections`** writes one user's set
   whole, by an administrator alone (「Console sections」).
-- **`GET /users/search?q=&limit=`** — the people of the reader's own organisation whose name, organisation,
-  job title or permitted contact details hold the words; at most 20 without a `limit`, and never more than 50.
-- **`GET /users/{user}/person`** — one person of the reader's own organisation; 404 where the user does not
-  stand or stands in another organisation (「The people directory」).
+- **`GET /users/search?q=&limit=`** — the people of the reader's own company whose name, unit, job title or
+  permitted contact details hold the words; at most 20 without a `limit`, and never more than 50.
+- **`GET /users/{user}/person`** — one person of the reader's own company; 404 where the user does not stand or
+  stands in another company (「The people directory」).
 
 ### Console sections
 
@@ -200,15 +200,36 @@ section states what each does.
   unit brings is held to its manifest's role as well, so a section alone never opens a screen the unit keeps
   for the administrator.
 
+### Companies and organisation units
+
+- **An organisation unit is one of sumida's organisations,** and the units of a deployment form sumida's tree of
+  them. A unit standing at the top of the tree, with no parent, is a **company**; every other unit belongs to the
+  company at the top of its branch. The words a company calls its units by — division, centre, team, part — are
+  their names alone, and nothing here reads a meaning into them (`STRUCTURE.md`, 「Terms」).
+- **A user stands in exactly one unit,** the organisation sumida keeps on the user, at any depth of the tree, and
+  belongs to that unit's company.
+- **A unit's head is a `manager` of it in sumida's rules,** granted as a relation tuple on the unit. sumida's
+  `manage` permission reads the tuple on the unit and on every unit above it, so a head heads their own unit and
+  everything below it, and the platform administrator heads every unit.
+- **`GET /users/{user}/unit`** answers the user's unit, its company and the path between them, from the company
+  down to the unit, so a caller tells whether one unit stands under another without a call of its own.
+- **`GET /units/{unit}`** answers a unit: its name, its parent, its company, its path, the units directly under
+  it, the users granted head of it directly, and the users standing in it.
+- **`POST /checks/unit`** answers whether a user heads a unit: sumida's point check of `manage` on the unit, so a
+  head of a unit above it is a head of it too.
+- **Making, naming and moving units and placing users in them** are sumida's own organisation and user routes,
+  reached under `/sumida` as the platform administrator.
+
 ### The people directory
 
-- **The directory is the users of the reader's own organisation.** The reader is named by `Owner-Key`; a call
-  naming no user of the deployment is refused 403, and a search never answers a user of another organisation.
+- **The directory is the users of the reader's own company:** every user whose unit stands under the company
+  the reader's unit belongs to. The reader is named by `Owner-Key`; a call naming no user of the deployment is
+  refused 403, and a search never answers a user of another company.
 - **A person answers these fields:** their user id, their name (their full name where they keep one, their
-  user name otherwise), their organisation's name, their job title, and their landline, mobile and email.
+  user name otherwise), their unit's name, their job title, and their landline, mobile and email.
 - **The contact details are read by the platform administrator and by the person themselves.** Everyone else
-  in the organisation reads the name, the organisation and the job title alone; the three contact fields are
-  absent from the answer, not empty.
+  in the company reads the name, the unit and the job title alone; the three contact fields are absent from the
+  answer, not empty.
 - **A search matches only the fields its reader may see.** A member's words are matched against the name, the
   organisation, the job title and their own contact details; the administrator's against every contact detail
   as well, so a refused field is never an answer to a search.
@@ -302,9 +323,11 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **The section tests** stand a user made, read the defaults they are given, have an administrator write one
   person's read and write, and ask the check for a permitted and a refused relation; a user other than the
   administrator is refused the write and the users list.
-- **The people tests** read the same organisation's people by name, organisation, job title and contact, see
-  a member's answer carry no contact detail, find nothing of another organisation, and match no contact detail
-  a member may not see.
+- **The people tests** read the same company's people by name, unit, job title and contact, across the units
+  of one company, see a member's answer carry no contact detail, find nothing of another company, and match no
+  contact detail a member may not see.
+- **The unit tests** stand a company with units under it, read a user's unit, company and path, read a unit's
+  children, heads and members, and check that a head of a unit heads the units below it and not the one above.
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**
 - **The secret store's tests stand on a temporary folder** in place of the data root's `env/`: the modes a write
   leaves, the value kept before, the names refused, and that no answer and no refusal carries a value.

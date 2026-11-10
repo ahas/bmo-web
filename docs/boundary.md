@@ -74,8 +74,8 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 |---|---|---|
 | `GET /senders/{sender}/user` | | `user`: the user the sender is linked to; 404 where none is |
 | `GET /users` | the login's user in `Owner-Key` and role in `Owner-Role` | `users`: each `user`, `name`, `administrator` (boolean); 403 for any login but the administrator |
-| `GET /users/search?q=&limit=` | the login's user in `Owner-Key` | `people`: each `user`, `name`, `organization`, `jobTitle`, and `landline?`, `mobile?`, `email?` for the administrator or the person; at most 20 without `limit`, never more than 50; 403 where the call names no user of the deployment |
-| `GET /users/{user}/person` | the same | 200, one person in the same shape as a search row; 404 where the user does not stand or stands in another organisation |
+| `GET /users/search?q=&limit=` | the login's user in `Owner-Key` | `people`: each `user`, `name`, `organization` (the person's unit), `jobTitle`, and `landline?`, `mobile?`, `email?` for the administrator or the person; at most 20 without `limit`, never more than 50; 403 where the call names no user of the deployment |
+| `GET /users/{user}/person` | the same | 200, one person in the same shape as a search row; 404 where the user does not stand or stands in another company |
 | `GET /users/{user}` | | `user`, `name`, `administrator` (boolean), `senders` |
 | `GET /users/{user}/senders` | | `senders`: the sender numbers linked to the user; 404 where there is no such user |
 | `POST /users/{user}/password` | `current`, `next` | 204; 401 `wrong-password` where `current` does not match |
@@ -92,15 +92,27 @@ types; `server/client/` is the Rust crate the server answers with and that docum
   before a row is read or written. The fields are the account's own, kept by the service; a field left empty
   clears what it held.
 - **A sender** is a whole number, as the receiver names a message's sender.
-- **The people of an organisation are read by its own users.** A search is matched only against the fields its
-  reader may see: the name, the organisation and the job title for every user, and the landline, mobile and
-  email for the platform administrator or the person themselves. A contact field the reader may not see is
+- **The people of a company are read by its own users,** whatever unit of it they stand in. A search is matched
+  only against the fields its reader may see: the name, the unit and the job title for every user, and the
+  landline, mobile and email for the platform administrator or the person themselves. A contact field the reader may not see is
   absent from the answer and is no answer to a search (`docs/accounts.md`, 「The people directory」).
 - **A console section** is named by the first part of its screen's path — `live`, `rooms`, `brain` — or, for
   agent management's five parts, by its tab — `supervisors`, `roles`, `repositories`, `models`, `model-files` —
   and its `read` and `write` are relations of the deployment's `bmo_section` kind, checked through sumida's
   point check. A write is also a read, and the platform administrator passes every section. The set is written
   whole, so a section left out is taken away (`docs/accounts.md`, 「Console sections」).
+
+### Organisation units
+
+| Route | Request | Answer |
+|---|---|---|
+| `GET /users/{user}/unit` | | `user`, `unit`, `company`, each a unit reference (`id`, `name`), and `path`: the unit references from the company down to the user's unit; 404 where there is no such user |
+| `GET /units/{unit}` | | `id`, `name`, `parent?`, `company` and `path` as above, `children` (unit references, by name), `heads` (the users granted head of this unit directly) and `members` (the users standing in it); 404 where there is no such unit |
+
+- **A unit** is one of sumida's organisations, named by its whole number. A unit with no parent is a company,
+  and its `company` and `path` are itself (`docs/accounts.md`, 「Companies and organisation units」).
+- **`heads`** lists only the grants on the unit itself; whether a user heads a unit, through a grant on a unit
+  above it as well, is the unit check below.
 
 ### Checks
 
@@ -109,6 +121,7 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | `POST /checks/room` | `room`, `sender?`, `relation` | `allowed`, `grant`, `user?` |
 | `POST /checks/message` | `room`, `message`, `relation` | `allowed`, `grant`, `user?`, `sender?` |
 | `POST /checks/object` | `kind`, `object`, `relation`, `user` | `allowed`, `grant` |
+| `POST /checks/unit` | `unit`, `user` | `allowed`: whether the user heads the unit or a unit above it, `grant` (`organization:<unit>#manage`); 404 where there is no such unit |
 
 - **`grant`** is what was asked for, `kind:object#relation` (`bmo_room:<room>#<relation>` for a room), as a
   caller names it when it says what a user lacks.

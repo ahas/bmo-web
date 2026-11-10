@@ -496,6 +496,45 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "POST",
+    "/checks/unit",
+    "checkUnit",
+    "Checks",
+    "Whether a user heads an organisation unit, through a head grant on it or on a unit above it.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<UnitCheckAsk>())),
+    answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}/unit",
+    "userUnit",
+    "Organisation units",
+    "The unit a user stands in, its company, and the units from the company down to it.",
+    params: vec![string_path("user")],
+    body: None,
+    answers: vec![(200, json_answer::<UserUnit>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/units/{unit}",
+    "unit",
+    "Organisation units",
+    "One organisation unit: its parent, company and path, the units directly under it, its heads and its members.",
+    params: vec![integer_path("unit")],
+    body: None,
+    answers: vec![(200, json_answer::<Unit>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "GET",
     "/grants",
     "grants",

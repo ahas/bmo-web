@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/checks/unit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Whether a user heads an organisation unit, through a head grant on it or on a unit above it. */
+        post: operations["checkUnit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/grants": {
         parameters: {
             query?: never;
@@ -297,6 +314,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/units/{unit}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One organisation unit: its parent, company and path, the units directly under it, its heads and its members. */
+        get: operations["unit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users": {
         parameters: {
             query?: never;
@@ -444,6 +478,23 @@ export interface paths {
         };
         /** The sender numbers linked to a user. */
         get: operations["userSenders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/unit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The unit a user stands in, its company, and the units from the company down to it. */
+        get: operations["userUnit"];
         put?: never;
         post?: never;
         delete?: never;
@@ -882,6 +933,31 @@ export interface components {
             /** Format: uint16 */
             statusCode: number;
         };
+        /** @description One organisation unit: where it stands, what stands directly under it, who heads it and who stands in it. */
+        Unit: {
+            children: components["schemas"]["UnitRef"][];
+            company: components["schemas"]["UnitRef"];
+            heads: string[];
+            /** Format: int64 */
+            id: number;
+            members: string[];
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+            path: components["schemas"]["UnitRef"][];
+        };
+        /** @description Whether a user heads a unit, asked. */
+        UnitCheckAsk: {
+            /** Format: int64 */
+            unit: number;
+            user: string;
+        };
+        /** @description One organisation unit as another names it: its number and its name. */
+        UnitRef: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+        };
         /** @description Every user, for the administrator's screen that sets one person's sections. */
         UserList: {
             users: components["schemas"]["UserSummary"][];
@@ -903,6 +979,13 @@ export interface components {
         UserSummary: {
             administrator: boolean;
             name: string;
+            user: string;
+        };
+        /** @description The unit a user stands in, its company, and the units from the company down to it. */
+        UserUnit: {
+            company: components["schemas"]["UnitRef"];
+            path: components["schemas"]["UnitRef"][];
+            unit: components["schemas"]["UnitRef"];
             user: string;
         };
         /** @description A user as the console reads them. */
@@ -1090,6 +1173,39 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    checkUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnitCheckAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckAnswer"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -1609,6 +1725,37 @@ export interface operations {
             };
         };
     };
+    unit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unit"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     users: {
         parameters: {
             query?: never;
@@ -1983,6 +2130,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Senders"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    userUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserUnit"];
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */

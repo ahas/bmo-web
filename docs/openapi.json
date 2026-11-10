@@ -1336,6 +1336,96 @@
         ],
         "type": "object"
       },
+      "Unit": {
+        "description": "One organisation unit: where it stands, what stands directly under it, who heads it and who stands in it.",
+        "properties": {
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          },
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "heads": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "members": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parent": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "path": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "company",
+          "path",
+          "children",
+          "heads",
+          "members"
+        ],
+        "type": "object"
+      },
+      "UnitCheckAsk": {
+        "description": "Whether a user heads a unit, asked.",
+        "properties": {
+          "unit": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit",
+          "user"
+        ],
+        "type": "object"
+      },
+      "UnitRef": {
+        "description": "One organisation unit as another names it: its number and its name.",
+        "properties": {
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
       "UserList": {
         "description": "Every user, for the administrator's screen that sets one person's sections.",
         "properties": {
@@ -1392,6 +1482,33 @@
           "user",
           "name",
           "administrator"
+        ],
+        "type": "object"
+      },
+      "UserUnit": {
+        "description": "The unit a user stands in, its company, and the units from the company down to it.",
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "path": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRef"
+            },
+            "type": "array"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "unit",
+          "company",
+          "path"
         ],
         "type": "object"
       },
@@ -1747,6 +1864,60 @@
         "x-codes": [
           "bad-request",
           "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/checks/unit": {
+      "post": {
+        "operationId": "checkUnit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnitCheckAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAnswer"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Whether a user heads an organisation unit, through a head grant on it or on a unit above it.",
+        "tags": [
+          "Checks"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
           "not-in-force",
           "database",
           "failed"
@@ -2588,6 +2759,61 @@
         ]
       }
     },
+    "/units/{unit}": {
+      "get": {
+        "operationId": "unit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One organisation unit: its parent, company and path, the units directly under it, its heads and its members.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/users": {
       "get": {
         "operationId": "users",
@@ -3354,6 +3580,60 @@
         "summary": "The sender numbers linked to a user.",
         "tags": [
           "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/unit": {
+      "get": {
+        "operationId": "userUnit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserUnit"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The unit a user stands in, its company, and the units from the company down to it.",
+        "tags": [
+          "Organisation units"
         ],
         "x-codes": [
           "bad-request",

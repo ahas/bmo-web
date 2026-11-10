@@ -245,10 +245,13 @@ describe("what a row shows", () => {
   test("an auto item names the road its worker goes out on, and a running job's own road over it", () => {
     const plan = todoModelPlan();
 
-    plan.value = { workers: { "bmo-agent": "deepseek/deepseek-flash", worker: "registered/qwen3.8-flash-next-iq3_s" }, running: { 9: "claude-code/claude-opus-5-5" }, chosenBy: {} };
+    plan.value = { workers: { "bmo-agent": "deepseek/deepseek-flash", worker: "registered/qwen3.8-flash-next-iq3_s" }, agents: { "coder-03": "registered/qwen3.8-flash-next" }, running: { 9: "claude-code/claude-opus-5-5" }, chosenBy: {} };
 
     // The worker's own road, the pin it holds or the model its work key maps to.
     expect(itemModel(item(8, { model: null, worker: "bmo-agent" }))).toBe("DS/DSF");
+    // An item that names its agent wears that agent's road over the worker's and over a model label.
+    expect(itemModel(item(8, { model: null, agent: "coder-03", worker: "bmo-agent" }))).toBe("QFN38");
+    expect(itemModel(item(8, { model: "deepseek/deepseek-flash", agent: "coder-03", worker: "bmo-agent" }), true)).toBe("registered/qwen3.8-flash-next");
     expect(itemModel(item(8, { model: null, worker: null }))).toBe("QFN38");
     expect(itemModel(item(8, { model: null, worker: null }), true)).toBe("registered/qwen3.8-flash-next-iq3_s");
     // A registered alias is read as the engine its registration names, with no provider.
@@ -265,7 +268,7 @@ describe("what a row shows", () => {
   });
 
   test("a running job's road stands over the model the item's label names, which reaches only its next job", () => {
-    todoModelPlan().value = { workers: {}, running: { 9: "deepseek/deepseek-flash" }, chosenBy: { 9: "order" } };
+    todoModelPlan().value = { workers: {}, agents: {}, running: { 9: "deepseek/deepseek-flash" }, chosenBy: { 9: "order" } };
 
     expect(itemModel(item(9, { model: "claude-code/claude-opus-5-5" }))).toBe("DS/DSF");
     expect(itemModel(item(8, { model: "claude-code/claude-opus-5-5" }))).toBe("CC/CO55");
@@ -275,8 +278,7 @@ describe("what a row shows", () => {
 
   test("the tooltip names the model whole, and while a job runs what chose its road in the pack's words", () => {
     todoModelPlan().value = {
-      workers: { "bmo-agent": "deepseek/deepseek-flash" },
-      running: { 1: "claude-code/claude-opus-5-5", 2: "claude-code/claude-opus-5-5", 3: "codex/gpt-5.6-sol", 4: "deepseek/deepseek-flash", 5: "deepseek/deepseek-flash" },
+      workers: { "bmo-agent": "deepseek/deepseek-flash" }, agents: {}, running: { 1: "claude-code/claude-opus-5-5", 2: "claude-code/claude-opus-5-5", 3: "codex/gpt-5.6-sol", 4: "deepseek/deepseek-flash", 5: "deepseek/deepseek-flash" },
       chosenBy: { 1: "item", 2: "forced", 3: "pin", 4: "order" }
     };
 

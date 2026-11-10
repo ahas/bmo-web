@@ -79,7 +79,7 @@ const AUTO = item(2);
 const RUNNING = item(3, { running: true, status: "running", progress: null });
 
 // What the workers and the running job go out on: the worker's own road, and the road the running job actually took.
-const PLAN: TodoModelPlan = { workers: { "bmo-a": "deepseek/deepseek-flash" }, running: { 3: "deepseek/deepseek-v4-pro" }, chosenBy: { 3: "order" } };
+const PLAN: TodoModelPlan = { workers: { "bmo-a": "deepseek/deepseek-flash" }, agents: {}, running: { 3: "deepseek/deepseek-v4-pro" }, chosenBy: { 3: "order" } };
 
 let browser: Browser | null = null;
 let cookie = "";

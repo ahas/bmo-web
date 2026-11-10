@@ -78,7 +78,7 @@ const TESTING = item(1, { running: true, status: "running", liveState: "running"
 const WAITING = item(2, { running: true, status: "leased", closing: { phase: "waiting-live", commit: "0123abcd0123" } });
 const PLAIN = item(3);
 
-const PLAN: TodoModelPlan = { workers: {}, running: {}, chosenBy: {} };
+const PLAN: TodoModelPlan = { workers: {}, agents: {}, running: {}, chosenBy: {} };
 
 let browser: Browser | null = null;
 let cookie = "";

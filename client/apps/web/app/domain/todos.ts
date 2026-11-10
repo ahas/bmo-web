@@ -193,11 +193,13 @@ export function jobGoingOn(state: TodoState): boolean {
 }
 
 // The model a row wears, short, or whole where `whole` asks for its tooltip (docs/web.md, the TODO panel's section): while a job
-// of it runs, the road that run actually took; otherwise the model its `model` label names, and where it names none what
-// `auto` resolves to — the road its worker goes out on. A row nothing is known of yet names `auto` itself.
-export function itemModel(item: Pick<TodoItem, "id" | "model" | "worker">, whole = false): string | null {
+// of it runs, the road that run actually took; otherwise the road of the agent its `agent` label names; else the model its
+// `model` label names, and where it names none what `auto` resolves to — the road its worker goes out on. A row nothing
+// is known of yet names `auto` itself.
+export function itemModel(item: Pick<TodoItem, "id" | "model" | "agent" | "worker">, whole = false): string | null {
   const known = todoModelPlan().value;
-  const road = known?.running[item.id] ?? item.model ?? known?.workers[item.worker ?? WORKER_AGENT] ?? null;
+  const named = item.agent === null ? null : (known?.agents[item.agent] ?? null);
+  const road = known?.running[item.id] ?? named ?? item.model ?? known?.workers[item.worker ?? WORKER_AGENT] ?? null;
 
   return road === null ? "auto" : whole ? road : shortModel(road);
 }
@@ -212,7 +214,7 @@ const CHOSEN_BY_WORDS: Record<JobChosenBy, string> = {
 
 // The tooltip a row's model chip carries (docs/web.md, the TODO panel's section): the model whole, and while a job of it
 // runs, after it what chose that job's road where the agency says. None where it would only repeat the chip.
-export function itemModelTip(t: Translate, item: Pick<TodoItem, "id" | "model" | "worker">): string | null {
+export function itemModelTip(t: Translate, item: Pick<TodoItem, "id" | "model" | "agent" | "worker">): string | null {
   const whole = itemModel(item, true)!;
   const running = todoModelPlan().value?.running[item.id];
   const chosen = running === undefined ? undefined : todoModelPlan().value?.chosenBy[item.id];

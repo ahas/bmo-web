@@ -82,6 +82,18 @@ export async function todoModelPlan(): Promise<TodoModelPlan> {
     if (road !== null) workers[repository.name] = road;
   }
 
+  // Every agent's own road, for an item that names its agent (the agency's docs/repositories.md, 「An agent an
+  // item names」); an agent that names none follows its asker and is left out.
+  const agents: Record<string, string> = {};
+
+  for (const role of roles.roles) {
+    for (const agent of role.agents ?? []) {
+      const road = roadOf(agent.provider, agent.model, registered);
+
+      if (road !== null) agents[agent.name] = road;
+    }
+  }
+
   const runningModels: Record<number, string> = {};
   const chosenBy: Record<number, JobChosenBy> = {};
 
@@ -100,5 +112,5 @@ export async function todoModelPlan(): Promise<TodoModelPlan> {
     }
   }
 
-  return { workers, running: runningModels, chosenBy };
+  return { workers, agents, running: runningModels, chosenBy };
 }

@@ -83,6 +83,8 @@ export type JobChosenBy = "item" | "forced" | "pin" | "order";
 // own name, and what chose each running job's road where the agency says.
 export interface TodoModelPlan {
   workers: Record<string, string>;
+  // Each agent's own road by its name, for an item that names its agent.
+  agents: Record<string, string>;
   running: Record<number, string>;
   chosenBy: Record<number, JobChosenBy>;
 }

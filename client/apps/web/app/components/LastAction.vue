@@ -1,8 +1,8 @@
 <template>
-  <!-- The turn's last call, one line (docs/web.md, the room screen's running line): the badge its sort wears and
-       what it was about, at its whole length, the way the agent's log keeps it. A new call turns the page: the line
-       standing moves off to the left while the new one comes in from the right, the row keeping one line's height;
-       a reader who asked for less movement sees the new line take the place at once. -->
+  <!-- The turn's last call (docs/web.md, the room screen's running line): the badge its sort wears and what it was
+       about, the way the agent's log keeps it, on two lines at most and cut with an ellipsis past them. A new call
+       turns the page: the line standing moves off to the left while the new one comes in from the right; a reader
+       who asked for less movement sees the new line take the place at once. -->
   <div class="relative min-w-0 w-full overflow-hidden">
     <Transition name="page">
       <div :key="props.at" class="flex min-w-0 flex-wrap items-baseline gap-2">
@@ -14,8 +14,8 @@
         <UBadge v-if="shown.chip !== null" :color="shown.look.color" variant="subtle" size="sm" :icon="shown.chip.icon" :label="shown.chip.label" class="font-mono" />
         <UBadge v-else :color="shown.look.color" variant="subtle" size="sm" :label="shown.look.label" />
         <!-- A path and a command carry runs with nowhere to break, and on a phone such a run breaks inside itself
-             or it takes the whole page sideways. -->
-        <span class="min-w-0 font-mono text-sm break-all text-muted">{{ shown.text }}</span>
+             or it takes the whole page sideways; past two lines the rest is an ellipsis. -->
+        <span class="line-clamp-2 min-w-0 font-mono text-sm break-all text-muted">{{ shown.text }}</span>
         <UBadge v-if="shown.failed" color="warning" variant="subtle" size="sm" :label="FAILED" />
       </div>
     </Transition>

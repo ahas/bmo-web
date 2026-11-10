@@ -60,8 +60,10 @@ describe("what the block stands while a turn runs", () => {
     expect(line).toContain(".page-leave-to {\n  transform: translateX(-100%);");
     expect(line).toContain(".page-leave-active {\n  position: absolute;");
     expect(line).toContain("@media (prefers-reduced-motion: reduce)");
-    // One line, whole: the badge its sort wears and what it was about, as the agent's log keeps it.
+    // The badge its sort wears and what it was about, as the agent's log keeps it, two lines at most with an
+    // ellipsis past them.
     expect(line).toContain("actionLook(t, props.action, icons.value)");
+    expect(line).toContain("line-clamp-2");
     expect(line).toContain("break-all");
     expect(line).not.toContain("truncate");
   });

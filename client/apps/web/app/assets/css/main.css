@@ -687,3 +687,12 @@
   background-color: color-mix(in oklab, var(--ui-warning) 55%, transparent);
   color: var(--ui-text-highlighted);
 }
+
+/* A file input the console hides stays hidden (docs/web.md, 「Screens a unit brings」). A unit's bundle lays
+   rules of its own on the page unlayered as its module runs, and an unlayered rule beats every rule of every
+   layer, so a utility class alone hands a hidden input back to the page — the browser's own file-picker text
+   under the box it was hidden from. This rule reads the native attribute and stands unlayered and `!important`,
+   above a bundle's rule for the element however that bundle lays its styles. */
+input[type="file"][hidden] {
+  display: none !important;
+}

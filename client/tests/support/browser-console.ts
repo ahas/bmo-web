@@ -58,7 +58,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-models", "fixture-password-2298"],
   ["work-view", "fixture-password-2311"],
   ["delegation-marker", "fixture-password-2373"],
-  ["screen-stands", "fixture-password-2411"]
+  ["screen-stands", "fixture-password-2411"],
+  ["hidden-inputs", "fixture-password-2412"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -278,7 +279,9 @@ const uses: Record<string, unknown>[] = [];
 // whether the bar's place for its actions stood when it mounted, lays a button there by a deferred teleport and
 // redraws it every few frames, so a place missing at mount shows as an error on the page. Its module reads
 // `process.env` where it stands, as a library inside a unit's build does, so the module ends before its routes
-// stand unless the console owes a `process` to it.
+// stand unless the console owes a `process` to it. Opened with `?styles=on` it also lays a plain rule for the
+// `input` element on the page as it runs, unlayered, as an editor library inside a unit's bundle does: what a
+// console control hidden by an attribute is measured against (docs/web.md, 「Screens a unit brings」).
 function screenUnit(name: string, path: string): Response | null {
   if (path === "/console-manifest") {
     return Response.json({
@@ -303,6 +306,16 @@ const Screen = defineComponent({
     let timer = null;
 
     onMounted(() => {
+      // A rule for the element itself, laid on the page unlayered as the screen mounts: the position an
+      // editor library inside a unit's bundle takes, above every rule the console lays in a layer.
+      if (new URLSearchParams(window.location.search).get("styles") === "on" && document.querySelector("[data-bundle-styles]") === null) {
+        const laid = document.createElement("style");
+
+        laid.setAttribute("data-bundle-styles", "on");
+        laid.textContent = "input { display: flex }";
+        document.head.append(laid);
+      }
+
       (globalThis.__screenMounts ??= []).push({ screen: ${JSON.stringify(name)}, slot: document.querySelector(SLOT) !== null });
       timer = setInterval(() => (ticks.value += 1), 50);
     });

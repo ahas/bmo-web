@@ -153,8 +153,10 @@
       </template>
     </ChatInput>
 
-    <input v-if="props.attachable" ref="picker" data-attach-picker type="file" multiple class="hidden" @change="onPick" />
-    <input v-if="props.attachable" ref="mediaPicker" data-attach-media type="file" :accept="MEDIA_ACCEPT" multiple class="hidden" @change="onPick" />
+    <!-- The pickers the clip opens, never drawn: the native attribute, which the console's own rule holds
+         hidden against a unit bundle's styles (docs/web.md, 「Screens a unit brings」). -->
+    <input v-if="props.attachable" ref="picker" data-attach-picker type="file" multiple hidden @change="onPick" />
+    <input v-if="props.attachable" ref="mediaPicker" data-attach-media type="file" :accept="MEDIA_ACCEPT" multiple hidden @change="onPick" />
   </div>
 </template>
 

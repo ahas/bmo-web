@@ -6758,6 +6758,15 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
     utilities, where a browser that scopes styles holds them to the page area of a bundle's screen. A screen's
     `flex-col md:flex-row` then turns to a row at its width as the bundle wrote it, while its plain utilities still
     give way to the console's.
+  - **A console control kept out of the page is kept out by an attribute, not by a class.** A bundle's styles are
+    not all in the stylesheet its manifest names: an editor library inside a bundle's module lays its own rules on
+    the page as it runs, unlayered, and an unlayered rule beats every rule of every layer — the console's utilities
+    among them — whatever the layer order says. So a class hiding a console control from the console's own style
+    keeps nothing out of the page once such a bundle has been in play: the room's prompt box holds two file inputs
+    its clip opens, and a bundle's plain rule for the `input` element paints them back under the box with the
+    browser's own file-picker text. What the console hides and must never show therefore takes the native
+    `hidden` attribute, and that attribute is what one unlayered rule of the console's own stylesheet, written
+    `!important`, reads; it stands above a bundle's rule for the element, however that bundle lays its styles.
   - **A bundle's screen stands in the page area.** The page area beside the sidebar and the task panel is the box a
     bundle's screen is laid out in, a fixed position included: a screen whose root is fixed to the window — a
     dashboard group of its own — fills the page area and never the window, so the sidebar, the task panel and the

@@ -40,7 +40,9 @@
       <p v-if="failure !== ''" role="alert" class="break-words text-sm text-error">{{ failure }}</p>
     </div>
 
-    <input ref="chooser" type="file" accept="image/*" class="hidden" :aria-label="$t('picture.action.choose')" @change="pick" />
+    <!-- The picker this section's own key opens, never drawn: the native attribute, which the console's own
+         rule holds hidden against a unit bundle's styles (docs/web.md, 「Screens a unit brings」). -->
+    <input ref="chooser" type="file" accept="image/*" hidden :aria-label="$t('picture.action.choose')" @change="pick" />
   </div>
 </template>
 

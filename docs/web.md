@@ -6737,6 +6737,15 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   — in place of a console page that stood at the same address, a placeholder — and its stylesheet is linked
   once, in a cascade layer of its own above the console's base and below its components and utilities, so a
   class both style reads as the console's and a bundle's copy of a utility never undoes the frame around it. A loaded module stays for the life of the tab; a manifest naming a new one reaches the next tab.
+  - **A bundle's module reads one `process` the console stands.** A unit builds its bundle for a browser and a
+    library inside that build can still read `process.env` or `process.argv` where the built code stands, and the
+    console's own browser build names no `process`, so on a page the console draws in the browser nothing would
+    stand there and the module would end before its routes do. The loader therefore stands one browser-shaped
+    `process` on the page before any bundle's module runs. It carries `env` and `argv` alone: what a build looks at
+    to tell Node from a browser — `process.versions`, `process.stdout` — stands nowhere, so a read that asks takes
+    the browser path it was built for, and `NODE_ENV` says production because what stands here was built for
+    production. Where the page already carries a `process`, as a development console's own tooling leaves one, the
+    loader changes nothing.
   - **A bundle's variants still win over a plain utility.** A utility under a variant — a width (`md:`), a state
     (`hover:`), a child or a selector of its own — is meant to beat the plain utility it stands beside, and in
     the bundles' layer it would lose to the console's plain copy of that utility. So the console reads the

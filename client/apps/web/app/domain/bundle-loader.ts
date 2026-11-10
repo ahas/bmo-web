@@ -1,5 +1,6 @@
 import { shared as sharedTable } from "#console-shared";
 
+import { standProcess } from "./bundle-process";
 import { variantRules } from "./bundle-variants";
 import { IMPORT_KEY, SHARED_KEY, bare, edited, editsOf, shimSource } from "./module-rewrite";
 
@@ -8,9 +9,10 @@ import type { ConsoleBundleModule } from "bmo-ui/shared/console-manifest";
 
 // A console bundle's module loaded in the browser (docs/web.md, 「Screens a unit brings」): the module is read
 // through the relay, and before it runs every import it makes of a library the console shares is pointed at the
-// console's own copy, so the bundle runs inside the console's app. A file of the bundle it imports is read the same
-// way, one it imports only when reached at the moment it is reached. Each module read is handed to the browser as
-// a module of its own, made from the text as rewritten, so the browser's own loader does the rest.
+// console's own copy, so the bundle runs inside the console's app, on the one `process` `./bundle-process` stands.
+// A file of the bundle it imports is read the same way, one it imports only when reached at the moment it is
+// reached. Each module read is handed to the browser as a module of its own, made from the text as rewritten, so
+// the browser's own loader does the rest.
 
 type Namespace = Record<string, unknown>;
 
@@ -102,9 +104,10 @@ async function imported(base: string, specifier: string): Promise<unknown> {
   return import(/* @vite-ignore */ address);
 }
 
-function standLoader(): void {
+function standPage(): void {
   Reflect.set(globalThis, Symbol.for(SHARED_KEY), namespaces);
   Reflect.set(globalThis, Symbol.for(IMPORT_KEY), imported);
+  standProcess();
 }
 
 const stylesheets = new Set<string>();
@@ -168,7 +171,7 @@ function linkStylesheet(address: string): void {
 
 /** A bundle's module loaded, its stylesheet linked; what it exports as its default. */
 export async function loadBundle(screen: ConsoleScreen): Promise<ConsoleBundleModule> {
-  standLoader();
+  standPage();
 
   if (screen.stylesheet !== null) linkStylesheet(screen.stylesheet);
 

@@ -5641,7 +5641,11 @@ Four bounds keep it from growing forever.
     close runs its check and its suite, which the item's label `close-phase` says as `testing` (bmo-job's
     `docs/cli.md`, 「`bmo-job job close`」), for as long as a job of the item runs. 배포 대기 stands once the close
     handed its commit over, `close-phase` reading `waiting-live`, while no job of the item runs: its work is finished
-    and its commit is not live yet, and the item stays in the queue until it is. While the deployment the title bar
+    and its commit is not live yet, and the item stays in the queue until it is. An item its job held until that
+    commit goes live — held with the label `hold-after-deploy` beside `close-phase` reading `waiting-live`, its
+    last check needing the commit live (bmo-job's `docs/cli.md`, 「`bmo-job todo`」) — is not set aside: it stands
+    in the queue as waiting, never as held, and carries the same words, until its hold is let go once the commit is
+    live and a job of it runs again. While the deployment the title bar
     reads (「Deployment in the title bar」) carries the item — a run one of whose carried commits names the item by its
     number, or is the commit the item's label `close-commit` names — the row says 테스트 중 while that run's
     검사·테스트 stage is under way and 배포 중 through every later stage until the run ends; where that run ended

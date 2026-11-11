@@ -118,7 +118,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     stopped: null,
     holding: null,
     waiting: null,
-    deployWaits: false, closing: null,
+    deployWaits: false, closing: null, deployHeld: false,
     holdPending: false,
     orderActive: false,
     seconds: null,
@@ -319,6 +319,9 @@ describe("where an item stands", () => {
     expect(todoState(item(9, { approved: false, awaitingApproval: true }))).toBe("pending");
     // One that opened by itself under an unattended label carries no approval and is past approval all the same.
     expect(todoState(item(10, { approved: false, awaitingApproval: false }))).toBe("waiting");
+    // Held by its job only until its commit goes live: waiting, its way live said beside it.
+    expect(todoState(item(12, { status: "held", deployHeld: true, closing: { phase: "waiting-live", commit: "abc" } }))).toBe("waiting");
+    expect(todoState(item(13, { status: "held" }))).toBe("held");
     expect(todoState(item(11, { approved: false, awaitingApproval: false, running: true }))).toBe("running");
     expect(approvalLabel(wording, item(10, { approved: false, awaitingApproval: false }))).toBe(wording("todo.label.opened_unattended"));
     expect(approvalLabel(wording, item(12, { approved: true, awaitingApproval: false }))).toBe(wording("todo.label.approved"));

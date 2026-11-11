@@ -49,7 +49,7 @@ function item(): TodoItem {
     rejections: 0,
     unfinishedResolvedAt: null, unfinishedResolution: null, brief: BRIEF, heldAt: null, heldReason: null, heldKind: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
-    deployWaits: false, closing: null, holdPending: false, orderActive: false, seconds: null, spans: [], createdAt: NOW - 4_000, doneAt: NOW - 600
+    deployWaits: false, closing: null, deployHeld: false, holdPending: false, orderActive: false, seconds: null, spans: [], createdAt: NOW - 4_000, doneAt: NOW - 600
   };
 }
 

@@ -192,7 +192,8 @@ export function todoState(item: TodoItem, _now: number = toUnixSeconds(Date.now(
   // Set aside is what a row is before it is anything else: the queue does not see it, so
   // whether it would otherwise be waiting or waiting on him says nothing about where it stands.
   // Until a run of it has ended, though, it is only on its way there.
-  if (item.heldAt !== null || item.status === "held") {
+  // One held by its job only until its commit goes live is waiting, its way live said beside it.
+  if ((item.heldAt !== null || item.status === "held") && !item.deployHeld) {
     return item.holdPending ? "stopping" : "held";
   }
 

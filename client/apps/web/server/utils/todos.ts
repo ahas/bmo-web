@@ -114,9 +114,14 @@ export function approvedItem(item: Pick<Item, "approvals">): boolean {
   return item.approvals.some((approval) => approval.kind === "approval");
 }
 
+// Held by its job only until its close's commit goes live: the hold names that deploy, and the close waits on it.
+function heldForDeploy(item: Item): boolean {
+  return item.state === "held" && (item.labels["hold-after-deploy"] ?? "").trim() !== "" && item.labels["close-phase"] === "waiting-live";
+}
+
 function listOf(item: Item): "queue" | "pending" | "held" | "done" {
   if (item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null) return "done";
-  if (item.state === "held") return "held";
+  if (item.state === "held" && !heldForDeploy(item)) return "held";
   // A draft waits on the owner wherever it was filed; every other state is past approval, an item opened by itself
   // under an unattended label among them (bmo-job's `docs/api.md`, 「Unattended labels」).
   if (item.state === "draft") return "pending";
@@ -184,6 +189,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     waiting: null,
     deployWaits: false,
     closing: closingOf(item.labels),
+    deployHeld: heldForDeploy(item),
     // A held item with a stop note stands in front of a job that is still winding down until that job ends.
     holdPending: stopped && liveState !== null,
     orderActive: false,
@@ -197,7 +203,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     unfinishedResolution: null,
     heldAt: said.heldAt,
     heldReason: said.heldReason,
-    heldKind: item.state === "held" ? (stopped ? "stop" : "pause") : null,
+    heldKind: item.state === "held" && !heldForDeploy(item) ? (stopped ? "stop" : "pause") : null,
     mergedInto: item.mergedInto,
     mergedAt: null,
     mergedIntoTitle: null,

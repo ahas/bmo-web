@@ -122,6 +122,18 @@ describe("the lists each item stands in", () => {
     expect(board.queue.find((one) => one.id === 7)).toMatchObject({ approved: false, awaitingApproval: false });
   });
 
+  test("an item its job held only until its commit goes live stands in the queue as waiting, never set aside", async () => {
+    const waitingLive = { "close-phase": "waiting-live", "close-commit": "abc123", "hold-after-deploy": "abc123" };
+
+    stand([item(31, { state: "held", labels: waitingLive }), item(32, { state: "held", labels: { "close-phase": "waiting-live" } })]);
+
+    const board = await readTodoBoard();
+
+    expect(ids(board.queue)).toEqual([31]);
+    expect(ids(board.held)).toEqual([32]);
+    expect(board.queue[0]).toMatchObject({ deployHeld: true, heldKind: null, closing: { phase: "waiting-live", commit: "abc123" } });
+  });
+
   test("a draft waits on the owner, one the chat agent recommended among them; an approved one stands in the queue", async () => {
     stand([
       item(11, { state: "draft", approvals: [{ callerName: "chat", kind: "recommendation", at: 1_790_000_000_000 }] }),

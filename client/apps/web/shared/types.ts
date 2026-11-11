@@ -2505,7 +2505,8 @@ export interface WorkOrder {
   tasks: WorkTask[];
   history: WorkTask[];
   control: WorkTask | null;
-  worker: string;
+  // The worker the order runs on; null where the order names none, which a screen reads as the item's own worker.
+  worker: string | null;
   cwd: string;
   chatId: number;
   model: string;

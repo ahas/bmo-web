@@ -45,7 +45,7 @@ function orderOf(order: JobWorkOrder, tasks: readonly Task[]): WorkOrder {
     tasks: mapped,
     history: [],
     control: null,
-    worker: "",
+    worker: null,
     cwd: "",
     chatId: 0,
     model: "",

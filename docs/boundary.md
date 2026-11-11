@@ -549,6 +549,8 @@ for it, and no file or table of that unit is read meanwhile.
   assignments stand empty.
 - **A work order's own figures.** The fixed order carries its purpose, directive, steps and tasks; the road each
   task ran, what it spent, the round it belongs to and the end it came to are no part of it, so those stand empty.
+  Nor does it name the worker it runs on: the console's order names none, and a task's work view stands on the
+  item's own worker, the built-in worker where the item names none.
 - **A room removal's counts.** The receiver answers a removal's preview and what it took in its own shape; the
   console's rows, settings and archive copies are no part of that answer, so they stand empty.
 

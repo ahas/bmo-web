@@ -574,7 +574,7 @@
                   </div>
                 </div>
 
-                <WorkOrderPanel part="order" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="openedItem.heldAt !== null" :item="openedItem" />
+                <WorkOrderPanel part="order" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="openedItem.heldAt !== null" :item="openedItem" :worker="openedItem.worker" />
               </template>
             </div>
           </div>

@@ -124,11 +124,12 @@
     <p v-if="fetched && props.part === 'order' && (error || order?.error)" class="mt-2 text-sm whitespace-pre-wrap break-words text-error">{{ error || order?.error }}</p>
 
     <!-- One dialog for the whole list: which step it is reading is what the list hands it. -->
-    <WorkTaskDialog v-model:open="taskOpen" :step="openedStep" :task-id="openedTask" :ended="order?.ended ?? {}" :todo-id="props.todoId" :order-status="order?.status ?? null" :agent="order?.worker ?? null" @changed="order = $event" />
+    <WorkTaskDialog v-model:open="taskOpen" :step="openedStep" :task-id="openedTask" :ended="order?.ended ?? {}" :todo-id="props.todoId" :order-status="order?.status ?? null" :agent="order?.worker ?? props.worker ?? WORKER_AGENT" @changed="order = $event" />
   </section>
 </template>
 <script setup lang="ts">
 import type { WorkOrderView } from "#shared/types";
+import { WORKER_AGENT } from "#shared/config";
 import type { WorkStep } from "~/domain/workorder";
 import { queuePlaceText, workOrderClosing, workOrderStop } from "~/domain/queue-place";
 import { draftRepeatsItem } from "#shared/todo-blocks";

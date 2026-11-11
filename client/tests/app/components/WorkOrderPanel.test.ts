@@ -71,8 +71,8 @@ describe("how a step and a task are opened", () => {
     expect(source).not.toContain("group.title");
   });
 
-  test("and one dialog stands for the whole list rather than one per row", () => {
-    expect(source).toContain(":order-status=\"order?.status ?? null\" :agent=\"order?.worker ?? null\" @changed=\"order = $event\" />");
+  test("and one dialog stands for the whole list rather than one per row, on the item's own worker where the order names none", () => {
+    expect(source).toContain(":order-status=\"order?.status ?? null\" :agent=\"order?.worker ?? props.worker ?? WORKER_AGENT\" @changed=\"order = $event\" />");
     expect(source.match(/WorkTaskDialog/g)?.length).toBe(1);
   });
 });

@@ -202,6 +202,7 @@ fn own() -> Router<Service> {
     .merge(crate::units::routes())
     .merge(crate::callers::routes())
     .merge(crate::invites::routes())
+    .merge(crate::machines::routes())
 }
 
 async fn health(State(service): State<Service>) -> Json<WireHealth> {

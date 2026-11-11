@@ -18,6 +18,7 @@ import {
   type Proof,
   type RoomCallers,
   type Unit,
+  type Rebound,
   type UserNode,
   type UnitRow,
   type UserUnit,
@@ -743,6 +744,36 @@ export async function proveInvite(token: string, options: ServiceOptions = {}): 
 export async function userNode(id: UserId | number, options: ServiceOptions = {}): Promise<UserNode> {
   const client = clientOf(options);
   const reply = await sent(options, client.GET("/users/{user}/node", { params: { path: { user: userPath(id) } } }));
+
+  return answered(reply);
+}
+
+/** An account bound to another machine, the one `agent` names or a fresh name, by the administrator. */
+export async function rebindNode(user: UserId, agent: string | null, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Rebound> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/node", {
+      params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: agent === null ? {} : { agent }
+    })
+  );
+
+  return answered(reply);
+}
+
+/** An account bound to no machine any more, by the administrator. */
+export async function unbindNode(user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.DELETE("/users/{user}/node", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** The account's machine as the hub holds it now, recorded as proven where it does. */
+export async function proveNode(id: UserId | number, options: ServiceOptions = {}): Promise<UserNode> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/users/{user}/node/proof", { params: { path: { user: userPath(id) } } }));
 
   return answered(reply);
 }

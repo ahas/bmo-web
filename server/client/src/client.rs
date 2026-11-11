@@ -386,6 +386,33 @@ impl AccountClient {
     Self::answered(self.request(Method::GET, &["users", user, "node"])).await
   }
 
+  /// `PUT /users/{user}/node`, asked as the login `key` acts for in `role`.
+  pub async fn rebind_node(&self, user: &str, ask: &NodeBinding, key: &str, role: &str) -> Answer<Rebound> {
+    Self::answered(
+      self
+        .send(Method::PUT, &["users", user, "node"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `DELETE /users/{user}/node`, asked as the login `key` acts for in `role`.
+  pub async fn unbind_node(&self, user: &str, key: &str, role: &str) -> Answer<()> {
+    Self::nothing(
+      self
+        .request(Method::DELETE, &["users", user, "node"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
+  /// `POST /users/{user}/node/proof`.
+  pub async fn prove_node(&self, user: &str) -> Answer<UserNode> {
+    Self::answered(self.send(Method::POST, &["users", user, "node", "proof"], &serde_json::json!({}))).await
+  }
+
   /// `GET /grants?room=`.
   pub async fn grants(&self, room: i64) -> Answer<Grants> {
     Self::answered(self.get(&["grants"], &[("room", room.to_string())])).await

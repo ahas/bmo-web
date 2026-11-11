@@ -409,6 +409,25 @@ pub struct UserNode {
   pub left: bool,
 }
 
+/// The machine the administrator binds an account to.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct NodeBinding {
+  /// A machine of this name; where none is named, a fresh name made for the account.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub agent: Option<String>,
+}
+
+/// An account bound to another machine: the machine, how to install it, and whether the hub holds it already.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Rebound {
+  pub agent: String,
+  pub credential: String,
+  pub hub_url: String,
+  pub install: Installs,
+  pub attached: bool,
+}
+
 /// What a check answered.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct CheckAnswer {

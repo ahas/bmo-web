@@ -264,9 +264,19 @@ section states what each does.
   proof that answers active sets it again, so opening the invitation's link once more sets a record that did not
   land. A refusal — 422 `not-a-hub-node`, where the node service keeps no hub node of that name free of every
   service, or agency out of reach — is written to the console's log, and the account stands active all the same.
-- **No route here binds an account to another machine or takes its machine away.** The binding an invitation
-  made stands, and so does agency's record of it; a person is moved to another node with agency's own
-  `bmo-agency node person`.
+- **The administrator binds an account to another machine or takes its machine away.** Bound again, the account
+  is given the machine the administrator names, or a fresh name of its own (`u<user>` and a random tail), so the
+  credential of the machine it was bound to before proves nothing now; the answer carries the new machine's
+  credential and one-line installs, as acceptance does. A name another account is bound to is refused 409
+  `node-taken`, and an account that has left is bound to no machine again, 409 `left`. The binding is proven as it
+  is made where the hub holds the machine already, and otherwise once it attaches, by the console asking again from
+  the organisation screen or by the person's first sign-in after it attaches.
+- **Agency's record follows the binding.** The console's server sets the new machine as the account's node in
+  agency once it is proven, and not before, since agency takes only a hub node the node service keeps; until then
+  the record names the machine it was bound to before. Taken away, the binding is removed and the console's server
+  takes agency's record away with it (`DELETE /person-nodes/{ownerAccount}`), so the account is held to no machine
+  and its runs are placed as any run of no node is. A refusal by agency is said on the organisation screen; at a
+  sign-in it is written to the console's log.
 - **An account whose machine is gone cannot be used until it is proven again:** the console refuses its sign-in
   while the hub holds no agent of its machine's name, and lets it in again once one attaches. An account bound to
   no machine — the administrator's, and every account made before invitations — is held to none of this.

@@ -80,7 +80,12 @@
           <div class="flex flex-wrap items-center gap-1">
             <UBadge v-for="member in open.members" :key="member" :color="gone(member) ? 'error' : 'neutral'" variant="soft" :label="gone(member) ? $t('organization.label.left_member', { name: nameOf(member) }) : nameOf(member)">
               <template v-if="!gone(member)" #trailing>
-                <UButton color="neutral" variant="link" size="xs" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" @click="markLeft(member)" />
+                <UTooltip :text="$t('organization.label.machine', { name: nameOf(member) })">
+                  <UButton color="neutral" variant="link" size="xs" icon="i-material-symbols-computer-outline" :aria-label="$t('organization.label.machine', { name: nameOf(member) })" @click="openMachine(member)" />
+                </UTooltip>
+                <UTooltip :text="$t('organization.action.mark_left', { name: nameOf(member) })">
+                  <UButton color="neutral" variant="link" size="xs" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" @click="markLeft(member)" />
+                </UTooltip>
               </template>
             </UBadge>
             <USelect :model-value="''" :items="people(open.members)" :placeholder="$t('organization.action.place')" class="min-w-48" @update:model-value="(user) => user && place(String(user))" />
@@ -90,6 +95,48 @@
         <UAlert v-if="formFailure !== ''" color="error" variant="subtle" :description="formFailure" />
       </div>
     </SettingsDialog>
+
+    <!-- A person's machine (docs/accounts.md, 「Invitations and a person's machine」): the one their account is bound
+         to, bound to another — the one named, or a fresh name — with its installs until it attaches, or taken away. -->
+    <SettingsDialog v-model:open="machineOpen" :title="machineUser === null ? '' : $t('organization.label.machine', { name: nameOf(machineUser) })" :dirty="false">
+      <ContentSkeleton v-if="machine === null && machineFailure === ''" :rows="1" :label="$t('organization.status.loading')">
+        <SkeletonLine width="w-1/2" />
+      </ContentSkeleton>
+      <template v-else>
+        <div v-if="machine !== null" class="flex items-center gap-2" data-machine>
+          <template v-if="machine.agent !== undefined && machine.agent !== null">
+            <code class="text-sm">{{ machine.agent }}</code>
+            <UBadge :color="machine.attached ? 'success' : 'warning'" variant="soft" :label="machine.attached ? $t('organization.status.attached') : $t('organization.status.waiting')" />
+          </template>
+          <span v-else class="text-sm text-muted">{{ $t("organization.label.machine_none") }}</span>
+        </div>
+
+        <UFormField :label="$t('organization.label.machine_name')">
+          <UInput v-model="machineName" :placeholder="$t('organization.label.machine_name_placeholder')" class="w-full" />
+        </UFormField>
+
+        <div v-if="installs.length > 0" class="flex flex-col gap-2">
+          <p class="whitespace-pre-line text-sm">{{ $t("organization.message.install") }}</p>
+          <div v-for="install in installs" :key="install.label" class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{{ install.label }}</span>
+            <div class="flex items-start gap-2">
+              <code class="min-w-0 flex-1 break-all rounded-md bg-elevated p-2 text-sm">{{ install.line }}</code>
+              <UTooltip :text="$t('common.action.copy')">
+                <UButton color="neutral" variant="ghost" size="xs" icon="i-material-symbols-content-copy-outline" :aria-label="$t('common.action.copy')" @click="copy(install.line)" />
+              </UTooltip>
+            </div>
+          </div>
+        </div>
+
+        <UAlert v-if="machineFailure !== ''" color="error" variant="subtle" :description="machineFailure" />
+      </template>
+
+      <template #footer>
+        <UButton v-if="bound" color="error" variant="ghost" :label="$t('organization.action.unbind')" :loading="machineBusy === 'unbind'" :disabled="machineBusy !== null" @click="unbind" />
+        <UButton v-if="waiting" color="neutral" variant="subtle" :label="$t('organization.action.check')" :loading="machineBusy === 'check'" :disabled="machineBusy !== null" @click="check" />
+        <UButton :label="bound ? $t('organization.action.rebind') : $t('organization.action.bind')" :loading="machineBusy === 'bind'" :disabled="machineBusy !== null || machine === null" @click="bind" />
+      </template>
+    </SettingsDialog>
   </div>
 </template>
 
@@ -98,7 +145,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 
 import { useConfirm } from "~/domain/confirm";
 
-import type { UnitRow, UserSummary } from "@web/server-client";
+import type { Rebound, UnitRow, UserNode, UserSummary } from "@web/server-client";
 
 const { t } = useI18n();
 
@@ -256,5 +303,120 @@ async function place(user: string): Promise<void> {
   await acting(() => $fetch(`/api/organization/users/${encodeURIComponent(user)}/unit`, { method: "PUT", body: { unit } }));
 }
 
+// The person whose machine is open, what the service says of it, and the installs of the machine just bound while
+// it has not attached.
+const machineOpen = ref(false);
+const machineUser = ref<string | null>(null);
+const machine = ref<UserNode | null>(null);
+const machineName = ref("");
+const rebound = ref<Rebound | null>(null);
+const machineFailure = ref("");
+const machineBusy = ref<"bind" | "unbind" | "check" | null>(null);
+let machineTimer: ReturnType<typeof setInterval> | undefined;
+
+const bound = computed(() => typeof machine.value?.agent === "string");
+const waiting = computed(() => bound.value && machine.value?.attached === false);
+const installs = computed(() =>
+  rebound.value === null || !waiting.value || rebound.value.agent !== machine.value?.agent
+    ? []
+    : [
+        { label: t("organization.label.linux"), line: rebound.value.install.linux },
+        { label: t("organization.label.windows"), line: rebound.value.install.windows }
+      ]
+);
+
+function machinePath(): string {
+  return `/api/organization/users/${encodeURIComponent(machineUser.value ?? "")}/node`;
+}
+
+function stopWatching(): void {
+  if (machineTimer !== undefined) clearInterval(machineTimer);
+  machineTimer = undefined;
+}
+
+async function readMachine(): Promise<void> {
+  try {
+    machine.value = await $fetch<UserNode>(machinePath());
+  } catch (error) {
+    machineFailure.value = failureText(error, t("organization.error.failed"));
+  }
+}
+
+function openMachine(user: string): void {
+  stopWatching();
+  machineUser.value = user;
+  machine.value = null;
+  machineName.value = "";
+  rebound.value = null;
+  machineFailure.value = "";
+  machineOpen.value = true;
+  void readMachine();
+}
+
+// The machine just bound is asked after every few seconds until it attaches, and at once when the check is pressed;
+// attached, the console's server sets it as the person's node in agency.
+async function check(): Promise<void> {
+  machineBusy.value = "check";
+  machineFailure.value = "";
+  try {
+    machine.value = await $fetch<UserNode>(`${machinePath()}/proof`, { method: "POST" });
+    if (machine.value.attached) stopWatching();
+  } catch (error) {
+    machineFailure.value = failureText(error, t("organization.error.failed"));
+  } finally {
+    machineBusy.value = null;
+  }
+}
+
+async function bind(): Promise<void> {
+  stopWatching();
+  machineBusy.value = "bind";
+  machineFailure.value = "";
+  try {
+    const name = machineName.value.trim();
+
+    rebound.value = await $fetch<Rebound>(machinePath(), { method: "PUT", body: name === "" ? {} : { agent: name } });
+    machineName.value = "";
+    if (!rebound.value.attached) machineTimer = setInterval(() => void check(), 5000);
+  } catch (error) {
+    machineFailure.value = failureText(error, t("organization.error.failed"));
+  } finally {
+    machineBusy.value = null;
+  }
+  await readMachine();
+}
+
+async function unbind(): Promise<void> {
+  const taken = await confirm({
+    title: t("organization.title.unbind"),
+    item: machine.value?.agent ?? "",
+    effect: t("organization.message.unbind"),
+    confirm: t("organization.action.unbind_confirm")
+  });
+
+  if (!taken) return;
+  stopWatching();
+  machineBusy.value = "unbind";
+  machineFailure.value = "";
+  try {
+    await $fetch(machinePath(), { method: "DELETE" });
+    rebound.value = null;
+  } catch (error) {
+    machineFailure.value = failureText(error, t("organization.error.failed"));
+  } finally {
+    machineBusy.value = null;
+  }
+  await readMachine();
+}
+
+async function copy(text: string): Promise<void> {
+  await navigator.clipboard?.writeText(text).catch(() => undefined);
+}
+
+watch(machineOpen, (now) => {
+  if (!now) stopWatching();
+});
+
 onMounted(() => void read());
+onBeforeUnmount(stopWatching);
 </script>

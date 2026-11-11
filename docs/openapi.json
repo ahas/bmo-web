@@ -994,6 +994,19 @@
         ],
         "type": "object"
       },
+      "NodeBinding": {
+        "description": "The machine the administrator binds an account to.",
+        "properties": {
+          "agent": {
+            "description": "A machine of this name; where none is named, a fresh name made for the account.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
       "ObjectCheckAsk": {
         "description": "A relation asked of a user on an object of the rules.",
         "properties": {
@@ -1213,6 +1226,34 @@
         },
         "required": [
           "active"
+        ],
+        "type": "object"
+      },
+      "Rebound": {
+        "description": "An account bound to another machine: the machine, how to install it, and whether the hub holds it already.",
+        "properties": {
+          "agent": {
+            "type": "string"
+          },
+          "attached": {
+            "type": "boolean"
+          },
+          "credential": {
+            "type": "string"
+          },
+          "hubUrl": {
+            "type": "string"
+          },
+          "install": {
+            "$ref": "#/components/schemas/Installs"
+          }
+        },
+        "required": [
+          "agent",
+          "credential",
+          "hubUrl",
+          "install",
+          "attached"
         ],
         "type": "object"
       },
@@ -4564,6 +4605,74 @@
       }
     },
     "/users/{user}/node": {
+      "delete": {
+        "operationId": "unbindNode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An account bound to no machine any more, by the administrator.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
       "get": {
         "operationId": "userNode",
         "parameters": [
@@ -4609,6 +4718,150 @@
         ],
         "x-codes": [
           "bad-request",
+          "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "rebindNode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NodeBinding"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rebound"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, forbidden, not-found, left, node-taken, no-hub, upstream-failed, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An account bound to another machine by the administrator: the one named, or a fresh name, with its install.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "forbidden",
+          "not-found",
+          "left",
+          "node-taken",
+          "no-hub",
+          "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/node/proof": {
+      "post": {
+        "operationId": "proveNode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserNode"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, no-hub, upstream-failed, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The account's machine as the hub holds it now; held, the moment is recorded as its proof.",
+        "tags": [
+          "Invitations"
+        ],
+        "x-codes": [
+          "bad-request",
+          "no-hub",
           "upstream-failed",
           "unauthorized",
           "not-in-force",

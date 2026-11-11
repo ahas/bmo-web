@@ -1673,10 +1673,19 @@ organization:
     row: "장: {heads} · 구성원 {count}명"
     no_head: 없음
     left_member: "{name} (탈퇴)"
+    machine: "{name} 기기"
+    machine_none: 연결된 기기 없음
+    machine_name: 기기 이름
+    machine_name_placeholder: 비워 두면 새 이름
+    linux: Linux·WSL
+    windows: Windows
   title:
     mark_left: 탈퇴 처리할까요?
+    unbind: 기기 연결을 해제할까요?
   message:
     mark_left: 이 사람은 더 이상 로그인할 수 없고, 이 사람의 BMO도 다시 깨어나지 않습니다. 공개 프로젝트는 위 단위의 장이 계속 읽고, 비공개 프로젝트와 개인 대화, BMO의 기억은 아무도 읽지 못합니다. 되돌릴 수 없습니다.
+    unbind: 이 계정은 연결된 기기 없이 로그인할 수 있고, 이 사람의 BMO와 에이전트는 더 이상 이 기기에서 실행되지 않습니다.
+    install: "연결할 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요.\n연결되면 이 사람의 BMO와 에이전트가 이 기기에서 실행됩니다."
   action:
     add: 단위 추가
     mark_left: "{name} 탈퇴 처리"
@@ -1685,12 +1694,24 @@ organization:
     add_head: 장 지정
     remove_head: "{name} 장 해제"
     place: 이 단위에 배치
+    bind: 기기 연결
+    rebind: 다른 기기로 연결
+    unbind: 기기 연결 해제
+    unbind_confirm: 연결 해제
+    check: 확인하기
   status:
     loading: 조직 불러오는 중…
+    attached: 연결됨
+    waiting: 연결 대기 중
   error:
     bad_request: 이름이나 단위 번호가 올바르지 않습니다.
     cycle: 단위를 자기 아래 단위 밑으로 옮길 수 없습니다.
     failed: 조직을 처리하지 못했습니다.
+    left: 탈퇴한 계정에는 기기를 연결할 수 없습니다.
+    machine_name: 기기 이름은 영문, 숫자, -, _로 63자 이내여야 합니다.
+    no_hub: jake 허브가 설정되지 않아 기기를 연결할 수 없습니다.
+    node_taken: 다른 계정이 이미 이 기기에 연결되어 있습니다.
+    not_a_hub_node: 노드 서비스가 이 기기를 허브 노드로 알지 못해 이 사람의 노드로 설정하지 못했습니다.
     not_found: 그 단위나 사용자가 없습니다.
     other_company: 단위는 다른 회사로 옮길 수 없습니다.
     unreachable: 계정 서비스에 연결되지 않았습니다.

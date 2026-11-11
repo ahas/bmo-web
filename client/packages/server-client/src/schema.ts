@@ -584,8 +584,27 @@ export interface paths {
         };
         /** The machine an account is bound to, and whether the hub holds it. */
         get: operations["userNode"];
-        put?: never;
+        /** An account bound to another machine by the administrator: the one named, or a fresh name, with its install. */
+        put: operations["rebindNode"];
         post?: never;
+        /** An account bound to no machine any more, by the administrator. */
+        delete: operations["unbindNode"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/node/proof": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The account's machine as the hub holds it now; held, the moment is recorded as its proof. */
+        post: operations["proveNode"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1021,6 +1040,11 @@ export interface components {
             /** Format: int64 */
             parent?: number | null;
         };
+        /** @description The machine the administrator binds an account to. */
+        NodeBinding: {
+            /** @description A machine of this name; where none is named, a fresh name made for the account. */
+            agent?: string | null;
+        };
         /** @description A relation asked of a user on an object of the rules. */
         ObjectCheckAsk: {
             kind: string;
@@ -1090,6 +1114,14 @@ export interface components {
             active: boolean;
             /** @description The account, where it is active. */
             user?: string | null;
+        };
+        /** @description An account bound to another machine: the machine, how to install it, and whether the hub holds it already. */
+        Rebound: {
+            agent: string;
+            attached: boolean;
+            credential: string;
+            hubUrl: string;
+            install: components["schemas"]["Installs"];
         };
         /** @description The sentence a fixed line renders as. */
         Rendered: {
@@ -2778,6 +2810,111 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    rebindNode: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NodeBinding"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Rebound"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, left, node-taken, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    unbindNode: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, forbidden, not-found, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    proveNode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNode"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

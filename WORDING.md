@@ -121,7 +121,8 @@
 - download → 다운로드: 다운로드, {name} 다운로드, 다운로드 주소. Never 내려받기. This is the owner's own choice of
   the word.
 - volume → 볼륨; mute, unmute → 음소거, 음소거 해제.
-- machine → 기기: 이 기기, 기기 여유. Never 기계.
+- machine → 기기: 이 기기, 기기 여유, 기기 이름. An account bound to a machine → 기기 연결: 기기 연결, 다른 기기로
+  연결, 기기 연결 해제, 연결됨, 연결 대기 중. Never 기계, and never 바인딩, 묶기 or 풀기 for the binding.
 - render → 렌더링: 렌더링하지 않는 기간. Never 그리다.
 - message, words → 메시지: 메시지를 보내다, 보낼 메시지. A conversation is 대화, an instruction added
   to an item is 지시. Never 말, 할 말, 이야기, 말을 걸다.

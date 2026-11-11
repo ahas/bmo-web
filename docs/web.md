@@ -6155,6 +6155,12 @@ dialog open at 계정.
   taken off by its mark, one added by choosing a person — and its people, one placed in it by choosing a person.
   Each person carries a mark that marks them left, asked first with what it does and that it is not undone
   (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list, said as left, with no mark.
+  Beside it a person carries a mark that opens their machine: the machine their account is bound to and whether it
+  is connected, or none. 기기 연결, or 다른 기기로 연결 where one is bound, binds the account to the machine named in
+  기기 이름, or to a fresh name where it is left empty; a machine not yet connected shows its one-line installs,
+  Linux or WSL and Windows, each with its copy mark, and is asked after every few seconds, 확인하기 asking at once,
+  until it connects and is set as the person's node. 기기 연결 해제 takes the machine away, asked first with what it
+  does (`docs/accounts.md`, 「Invitations and a person's machine」).
   A change is saved as it is made, and a refusal — a parent in another company, a parent under the unit itself —
   is said under the form in words.
 

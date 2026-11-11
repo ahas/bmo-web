@@ -11,8 +11,8 @@ export interface StandInUser {
   password?: string;
   administrator?: boolean;
   senders?: number[];
-  // The machine an invitation bound the account to, and whether the hub holds it now.
-  node?: { agent: string; attached: boolean };
+  // The machine the account is bound to, whether the hub holds it now, and when it was last proven.
+  node?: { agent: string; attached: boolean; provenAt?: number };
 }
 
 export interface StandInGrant {
@@ -31,6 +31,8 @@ export interface StandInSeed {
   grants?: StandInGrant[];
   // A user's console sections; a user named in none is given the defaults.
   sections?: StandInSection[];
+  // The machines the hub holds beside those the seeded users are bound to and attached.
+  hub?: string[];
   // The messages a check on a message reads: room, message, sender.
   messages?: [number, number, number | null][];
 }
@@ -58,6 +60,8 @@ interface StandInOn {
 
 // A body any route of the stand-in reads. A route reads the fields it names; the rest stand unused.
 interface StandInBody {
+  // The machine an account is bound to.
+  agent?: string;
   username?: string;
   password?: string;
   current?: string;
@@ -117,6 +121,8 @@ export interface StandIn {
   secretRoles: (string | null)[];
   // Each user's profile, by the user's id.
   profiles: Map<number, StandInProfile>;
+  // The machines the hub holds beside those the seeded users are bound to and attached.
+  hub: Set<string>;
   stop(): void;
 }
 
@@ -170,6 +176,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const secrets = new Map<string, StandInSecret>();
   const secretRoles: (string | null)[] = [];
   const profiles = new Map<number, StandInProfile>();
+  const hub = new Set(seed.hub ?? []);
   const userOfSender = (sender: number | null): StandInUser | undefined =>
     sender === null ? undefined : users.find((user) => (user.senders ?? []).includes(sender));
   const holds = (kind: string, object: string, relation: string, subjects: string[]): boolean =>
@@ -258,7 +265,41 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
         if (user === undefined) return refused(404, "not-found", "no such user");
 
-        return json({ agent: user.node?.agent ?? null, attached: user.node?.attached ?? false, provenAt: null, left: false });
+        return json({ agent: user.node?.agent ?? null, attached: user.node?.attached ?? false, provenAt: user.node?.provenAt ?? null, left: false });
+      }
+
+      // The machine an account is bound to again or taken away, by the administrator alone, and proven once the hub
+      // holds it.
+      const bindRoute = path.match(/^\/users\/([^/]+)\/node(\/proof)?$/);
+
+      if (bindRoute !== null) {
+        const user = userNamed(decodeURIComponent(bindRoute[1]!));
+
+        if (bindRoute[2] === undefined && request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "a machine is bound by the administrator");
+        if (user === undefined) return refused(404, "not-found", "no such user");
+
+        if (bindRoute[2] !== undefined && request.method === "POST") {
+          if (user.node !== undefined && (user.node.attached || hub.has(user.node.agent))) user.node = { ...user.node, attached: true, provenAt: Date.now() };
+
+          return json({ agent: user.node?.agent ?? null, attached: user.node?.attached ?? false, provenAt: user.node?.provenAt ?? null, left: false });
+        }
+        if (request.method === "PUT") {
+          const agent = body?.agent ?? `u${user.id}-fresh`;
+
+          if (users.some((other) => other !== user && other.node?.agent === agent)) return refused(409, "node-taken", "another account is bound to it");
+
+          const attached = hub.has(agent);
+
+          user.node = { agent, attached, provenAt: attached ? Date.now() : undefined };
+
+          return json({ agent, credential: `${agent}.credential`, hubUrl: "wss://hub.invalid", install: { linux: `install ${agent}`, windows: `install.ps1 ${agent}` }, attached });
+        }
+        if (request.method === "DELETE") {
+          if (user.node === undefined) return refused(404, "not-found", "bound to no machine");
+          user.node = undefined;
+
+          return done();
+        }
       }
 
       // A user's sections, read by their holder or the administrator and written by the administrator alone.
@@ -521,6 +562,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     secrets,
     secretRoles,
     profiles,
+    hub,
     stop() {
       server.stop(true);
     }

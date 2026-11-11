@@ -12,6 +12,7 @@ pub mod ids;
 pub mod import;
 pub mod invites;
 pub mod lang;
+pub mod machines;
 pub mod marks;
 pub mod migration;
 pub mod nodes;

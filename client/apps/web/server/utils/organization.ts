@@ -1,3 +1,5 @@
+import { isError } from "h3";
+
 import { AccountRefusal, AccountServiceDown } from "./account-service";
 import { fail } from "./fail";
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
@@ -18,17 +20,28 @@ const ORGANIZATION_CODES: Record<string, string> = {
   forbidden: "common.error.administrator_only"
 };
 
+/** The codes of the calls on a person's machine (docs/boundary.md, 「Invitations」), over the section's own. */
+export const MACHINE_CODES: Readonly<Record<string, string>> = {
+  "bad-request": "organization.error.machine_name",
+  left: "organization.error.left",
+  "node-taken": "organization.error.node_taken",
+  "no-hub": "organization.error.no_hub"
+};
+
 /** The login a section's call is made for. */
 export function callerOf(signed: SignedIn): ProfileCaller {
   return { key: ownerKeyOf(signed) ?? "", role: ownerRoleOf(signed) };
 }
 
-/** What a call came to, said in the pack's words. */
-export function organizationFailure(error: unknown): Error {
+/** What a call came to, said in the pack's words, a call's own `codes` before the section's; a refusal already said
+ * in them, such as agency's, is handed on as it stands. */
+export function organizationFailure(error: unknown, codes: Readonly<Record<string, string>> = {}): Error {
+  if (isError(error)) return error;
+
   if (error instanceof AccountServiceDown) return fail(503, wording("organization.error.unreachable"));
 
   if (error instanceof AccountRefusal) {
-    const key = ORGANIZATION_CODES[error.code];
+    const key = codes[error.code] ?? ORGANIZATION_CODES[error.code];
 
     return fail(key === undefined ? 502 : error.status, wording(key ?? "organization.error.failed"));
   }

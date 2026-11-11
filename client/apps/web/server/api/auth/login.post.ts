@@ -1,4 +1,5 @@
 import { sessionUser, signIn, userNode, userOf } from "../../utils/account-service";
+import { settleMachine } from "../../utils/person-node";
 
 import { wording } from "#shared/wording";
 
@@ -52,6 +53,12 @@ export default defineEventHandler(async (event): Promise<{ user: AccountUser }> 
 
       if (node.agent !== undefined && !node.attached) {
         throw fail(403, wording("app.error.machine_gone"));
+      }
+
+      // A machine the administrator bound the account to is proven, and set as its node, at the first sign-in
+      // after it attaches; nobody reads a refusal here, so it goes to the log.
+      if (typeof node.agent === "string" && (node.provenAt ?? null) === null) {
+        await settleMachine(user.id).catch((error: unknown) => console.error(`account ${user.id}: its machine could not be settled: ${String(error)}`));
       }
     }
 

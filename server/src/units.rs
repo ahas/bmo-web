@@ -228,7 +228,7 @@ async fn unit_check(State(service): State<Service>, Body(ask): Body<UnitCheckAsk
 /// Who grants a head: the console's organisation screen.
 const GRANTER: &str = "organisation";
 
-fn administrator(headers: &HeaderMap) -> Result<(), Refusal> {
+pub(crate) fn administrator(headers: &HeaderMap) -> Result<(), Refusal> {
   match headers.get(OWNER_ROLE).and_then(|role| role.to_str().ok()) {
     Some("administrator") => Ok(()),
     _ => Err(Refusal::forbidden(

@@ -2,6 +2,7 @@ import { userNode, userOf } from "./account-service";
 import { agency, agencyCall } from "./agency";
 import { orderBody, readSupervisors } from "./axes";
 import { defaultAnswerer } from "./owner";
+import { setPersonNode } from "./person-node";
 import { receiver, receiverCall } from "./receiver";
 
 import type { components } from "@agency/client/schema";
@@ -37,7 +38,7 @@ async function standNode(user: number): Promise<void> {
   if (typeof machine.agent !== "string" || !machine.attached) return;
 
   try {
-    await agencyCall(agency().PUT("/person-nodes/{ownerAccount}", { params: { path: { ownerAccount: String(user) } }, body: { node: machine.agent } }));
+    await setPersonNode(user, machine.agent);
   } catch (error) {
     const code = (error as { data?: { code?: string | null } }).data?.code ?? "no code";
 

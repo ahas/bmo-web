@@ -561,6 +561,45 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "PUT",
+    "/users/{user}/node",
+    "rebindNode",
+    "Invitations",
+    "An account bound to another machine by the administrator: the one named, or a fresh name, with its install.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<NodeBinding>())),
+    answers: vec![(200, json_answer::<Rebound>(&mut generator))],
+    codes: vec!["bad-request", "forbidden", "not-found", "left", "node-taken", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/users/{user}/node",
+    "unbindNode",
+    "Invitations",
+    "An account bound to no machine any more, by the administrator.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "forbidden", "not-found", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/users/{user}/node/proof",
+    "proveNode",
+    "Invitations",
+    "The account's machine as the hub holds it now; held, the moment is recorded as its proof.",
+    params: vec![string_path("user")],
+    body: None,
+    answers: vec![(200, json_answer::<UserNode>(&mut generator))],
+    codes: vec!["bad-request", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "POST",
     "/checks/room",
     "checkRoom",

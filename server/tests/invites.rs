@@ -1,6 +1,7 @@
 //! Invitations and a person's machine (docs/accounts.md, 「Invitations and a person's machine」): who invites into
 //! which unit, an invitation that is closed opens nothing, acceptance makes a disabled account bound to its machine
-//! with a credential made for that name, and the account is enabled once the hub holds the machine.
+//! with a credential made for that name, the account is enabled once the hub holds the machine, and the
+//! administrator binds an account to another machine or takes its machine away.
 
 use std::sync::{Arc, Mutex};
 
@@ -354,4 +355,93 @@ async fn an_expired_invitation_opens_nothing() {
   )
   .await;
   assert_eq!(status, StatusCode::CONFLICT, "{said}");
+}
+
+#[tokio::test]
+async fn the_administrator_binds_an_account_to_another_machine_and_takes_it_away() {
+  ready();
+  let stood = stood().await;
+  let node_path = format!("/users/{}/node", stood.member);
+
+  // Only the administrator binds a machine.
+  let (status, _) =
+    asked(&stood.app, Method::PUT, &node_path, Some(json!({})), Some((stood.head, "member"))).await;
+  assert_eq!(status, StatusCode::FORBIDDEN);
+
+  // Named no machine, the account is given a fresh name of its own, with that name's credential and installs.
+  let (status, rebound) =
+    asked(&stood.app, Method::PUT, &node_path, Some(json!({})), Some((1, "administrator"))).await;
+  assert_eq!(status, StatusCode::OK, "{rebound}");
+  let fresh = rebound["agent"].as_str().unwrap().to_owned();
+  assert!(fresh.starts_with(&format!("u{}-", stood.member)), "{fresh}");
+  assert!(rebound["credential"].as_str().unwrap().starts_with(&format!("{fresh}.")));
+  assert!(rebound["install"]["windows"].as_str().unwrap().contains(&fresh));
+  assert_eq!(rebound["attached"], false);
+
+  // Not proven while the hub does not hold it; proven once it does.
+  let proof_path = format!("{node_path}/proof");
+  let (_, node) = asked(&stood.app, Method::POST, &proof_path, None, None).await;
+  assert_eq!(node["agent"], fresh.as_str());
+  assert_eq!(node["attached"], false);
+  assert!(node.get("provenAt").is_none(), "{node}");
+  stood.hub.0.lock().unwrap().push(fresh.clone());
+  let (_, node) = asked(&stood.app, Method::POST, &proof_path, None, None).await;
+  assert_eq!(node["attached"], true);
+  assert!(node["provenAt"].is_i64(), "{node}");
+
+  // A machine the hub holds already is proven as it is bound; one another account holds is refused.
+  stood.hub.0.lock().unwrap().push("desk-a".into());
+  let (_, rebound) = asked(
+    &stood.app,
+    Method::PUT,
+    &node_path,
+    Some(json!({ "agent": "desk-a" })),
+    Some((1, "administrator")),
+  )
+  .await;
+  assert_eq!(rebound["attached"], true, "{rebound}");
+  let (_, node) = asked(&stood.app, Method::GET, &node_path, None, None).await;
+  assert!(node["provenAt"].is_i64(), "{node}");
+  let (status, said) = asked(
+    &stood.app,
+    Method::PUT,
+    &format!("/users/{}/node", stood.head),
+    Some(json!({ "agent": "desk-a" })),
+    Some((1, "administrator")),
+  )
+  .await;
+  assert_eq!(status, StatusCode::CONFLICT, "{said}");
+  assert_eq!(said["code"], "node-taken");
+  let (status, _) = asked(
+    &stood.app,
+    Method::PUT,
+    &node_path,
+    Some(json!({ "agent": "desk a; true" })),
+    Some((1, "administrator")),
+  )
+  .await;
+  assert_eq!(status, StatusCode::BAD_REQUEST);
+
+  // Taken away, the account is bound to none; a second time there is nothing to take.
+  let (status, _) = asked(&stood.app, Method::DELETE, &node_path, None, Some((1, "administrator"))).await;
+  assert_eq!(status, StatusCode::NO_CONTENT);
+  let (_, node) = asked(&stood.app, Method::GET, &node_path, None, None).await;
+  assert!(node.get("agent").is_none(), "{node}");
+  let (status, _) = asked(&stood.app, Method::DELETE, &node_path, None, Some((1, "administrator"))).await;
+  assert_eq!(status, StatusCode::NOT_FOUND);
+
+  // An account that has left is bound to no machine again.
+  let (status, _) = asked(
+    &stood.app,
+    Method::POST,
+    &format!("/users/{}/leave", stood.member),
+    None,
+    Some((1, "administrator")),
+  )
+  .await;
+  assert_eq!(status, StatusCode::NO_CONTENT);
+  let (status, said) =
+    asked(&stood.app, Method::PUT, &node_path, Some(json!({})), Some((1, "administrator"))).await;
+  assert_eq!(status, StatusCode::CONFLICT, "{said}");
+  assert_eq!(said["code"], "left");
 }

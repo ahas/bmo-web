@@ -294,6 +294,8 @@ async function save(): Promise<void> {
 
   try {
     catalogue.value = await $fetch<CatalogueView>("/api/model-catalogue", { method: "POST", body: catalogueSave(form.value) });
+    // What was saved is the box's saved value from here on, so closing asks nothing (docs/web.md, 「Forms」).
+    formOpened.value = JSON.stringify(form.value);
     editing.value = false;
   } catch (error) {
     const { field, text } = refusalOf(error);

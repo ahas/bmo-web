@@ -217,6 +217,9 @@ async function save(): Promise<void> {
       await $fetch<ModelView>(`/api/models/${encodeURIComponent(editedName.value)}`, { method: "PATCH", body: modelChange(form.value) });
     }
 
+    // What was saved is the box's saved value from here on, so nothing while the list is read again asks to throw it
+    // away (docs/web.md, 「Forms」).
+    formOpened.value = JSON.stringify(form.value);
     await refresh();
     editing.value = false;
   } catch (error) {

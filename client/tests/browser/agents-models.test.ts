@@ -74,6 +74,14 @@ async function addFromTabRow(page: Page): Promise<void> {
   await page.locator("[data-tab-add]").click();
 }
 
+// What stands once a save went through: its box gone and nothing asking to throw changes away (docs/web.md,
+// 「Forms」), so the texts of every dialog still standing, which is none.
+async function standingAfterSave(page: Page): Promise<string[]> {
+  await page.getByRole("dialog").first().waitFor({ state: "detached", timeout: 15_000 }).catch(() => undefined);
+
+  return await page.getByRole("dialog").allInnerTexts();
+}
+
 // A removal asked first in a dialog, answered with its way through.
 async function removeAsked(page: Page): Promise<void> {
   await page.getByRole("menuitem", { name: wording("common.action.delete") }).click();
@@ -110,6 +118,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
       const created = page.locator('[data-registration="model-c"]');
 
       await created.waitFor();
+      expect(await standingAfterSave(page)).toEqual([]);
       expect(await rowText(page, '[data-registration="model-c"]')).toContain("model-c-7b");
 
       // A change, the name fixed once made.
@@ -123,6 +132,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
       await change.getByLabel(wording("common.label.model")).fill("model-c-13b");
       await change.getByRole("button", { name: wording("common.action.save") }).click();
       await rowOf(page, '[data-registration="model-c"]').getByText("model-c-13b").waitFor();
+      expect(await standingAfterSave(page)).toEqual([]);
 
       // A removal, asked first.
       await openMenu(page, '[data-registration="model-c"]', "model-c");
@@ -160,6 +170,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
       const created = page.locator('[data-entry="entry-c"]');
 
       await created.waitFor();
+      expect(await standingAfterSave(page)).toEqual([]);
       expect(await rowText(page, '[data-entry="entry-c"]')).toContain("entry-c.gguf");
 
       await openMenu(page, '[data-entry="entry-c"]', "Entry C");
@@ -170,6 +181,7 @@ describe.skipIf(!origin || !touchReady())("the agents screen's model sections", 
       await change.getByLabel(wording("agents.label.worker_label")).fill("Entry C changed");
       await change.getByRole("button", { name: wording("common.action.save") }).click();
       await rowOf(page, '[data-entry="entry-c"]').getByText("Entry C changed").waitFor();
+      expect(await standingAfterSave(page)).toEqual([]);
 
       await openMenu(page, '[data-entry="entry-c"]', "Entry C changed");
       await removeAsked(page);

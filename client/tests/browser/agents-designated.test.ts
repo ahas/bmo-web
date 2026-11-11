@@ -2,36 +2,47 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
-import KO from "../fixtures/browser/agents-designated.ko.json";
 import { catalogueEntry } from "../support/catalogue";
 
-import type { Browser, BrowserContext } from "playwright-core";
+import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { AgentList } from "../../apps/web/shared/types";
 
-// The agents screen's designated branch names an agent by its own label, never by a room's title (docs/web.md, the
-// agents screen's rule on an agent's own name): a chat session registered for one room carries that room's title, and the
-// agent standing there is named its own. It drives the console given in BMO_CONSOLE_TEST_URL, the one
-// tests/support/browser-console.ts stands up, and serves the catalogue through the page's own route.
+// An agent is named by its own row's label and never by a room's title (docs/web.md, 「Sidebar」, the rule on an
+// agent's own name): the chat agent stands under its own label on its screen, and so does a chat session registered for
+// one room, whose own row carries that room's title; the room's title stands where a room is what is shown — the
+// session under the agent in the sidebar and the room's own screen. It drives the console given in
+// BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves the agent list through the
+// page's own route.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "agent-names", password: "fixture-password-2371" };
+// The room the console's stand-in receiver holds under its own title.
 const ROOM = -9_000_000_000_099;
-const ROOM_TITLE = KO.roomTitle;
-// The agent's own label, which every screen shows, and the name of the room it answers in (the room's title, which the
-// code files hold no Hangul for, comes from the fixture).
+const ROOM_TITLE = "record-room";
+// The chat agent's own label, which every screen names it by.
 const CHAT_LABEL = "BMO";
 
-// Whether what is read comes to hold within the time given.
-async function until<T>(read: () => Promise<T>, holds: (value: T) => boolean, ms = 20_000): Promise<boolean> {
+// What a page's title bar names the screen, once it names what is expected or the time given runs out: an agent's
+// screen names it by its own name until the agent list and the chat agent's label have landed.
+async function titleOf(page: Page, expected: string): Promise<string> {
+  const title = page.locator('[data-title-bar] [data-slot="title"]').first();
+
+  await title.waitFor({ timeout: 30_000 });
+
+  return await until(async () => (await title.innerText()).trim(), (text) => text === expected);
+}
+
+// What is read once it comes to hold, or as it stands when the time given runs out.
+async function until<T>(read: () => Promise<T>, holds: (value: T) => boolean, ms = 20_000): Promise<T> {
   const end = Date.now() + ms;
+  let value = await read();
 
-  while (Date.now() < end) {
-    if (holds(await read())) return true;
-
+  while (!holds(value) && Date.now() < end) {
     await Bun.sleep(150);
+    value = await read();
   }
 
-  return false;
+  return value;
 }
 
 let browser: Browser | null = null;
@@ -51,15 +62,16 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-// The agent list: the chat agent's own supervisor row, answering every room that names nobody, and another supervisor named
-// the way a room's title reads, which no screen may take for the agent's name.
+// The agent list: the chat agent's own supervisor row, answering every room that names nobody with a session in the
+// room, and the chat session registered for that room, whose own row carries the room's title as its label.
 function catalogue(list: AgentList, chatName: string): AgentList {
   return {
     ...list,
     defaultAnswerer: chatName,
     agents: [
       ...list.agents.filter((agent) => agent.name !== chatName),
-      catalogueEntry(chatName, "supervisor", CHAT_LABEL, { defaultAnswerer: true, sessionScope: "agent", turnShape: "window" })
+      catalogueEntry(chatName, "supervisor", CHAT_LABEL, { defaultAnswerer: true, sessionScope: "agent", turnShape: "window", sessions: [{ chatId: ROOM, lastAt: null }] }),
+      catalogueEntry(`chat:${ROOM}`, "supervisor", ROOM_TITLE)
     ]
   };
 }
@@ -75,10 +87,6 @@ async function open(width: number, height: number): Promise<BrowserContext> {
 
     return await route.fulfill({ json: catalogue(list, chatName) });
   });
-  // The chat agent's own face and the picture it stands as: the row wears the picture, not a bare mark.
-  await context.route(/\/api\/agent-faces(\?|$)/, (route) => route.fulfill({ json: [{ name: "agent-a", personId: 8_709_910_429 }] }));
-  await context.route(/\/api\/avatars(\?|$)/, (route) => route.fulfill({ json: [{ kind: "person", id: 8_709_910_429, url: "/api/avatars/person/8709910429?v=1" }] }));
-
   await context.route(/\/api\/status(\?|$)/, async (route) => {
     const status = (await (await route.fetch()).json()) as Record<string, unknown> & { bot?: Record<string, unknown> };
 
@@ -96,30 +104,30 @@ describe.skipIf(!origin || !touchReady())("the designated agents' names", () => 
       const page = await context.newPage();
 
       try {
-        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "domcontentloaded" });
+        // The chat agent's own screen, and the screen of the session it keeps for one room, are both named its own.
+        await page.goto(`${origin}/agents/agent-a`, { waitUntil: "domcontentloaded" });
+        expect(await titleOf(page, CHAT_LABEL)).toBe(CHAT_LABEL);
 
-        // The agents table, where the designated branch stands first, names the agent by its own label. On a phone the
-        // general tab stacks its sections, so the table is brought into view before it is read.
-        await page.locator("#agents-title").waitFor({ timeout: 30_000 });
-        await page.locator("#agents-title").scrollIntoViewIfNeeded();
+        await page.goto(`${origin}/agents/${encodeURIComponent(`chat:${ROOM}`)}`, { waitUntil: "domcontentloaded" });
+        expect(await titleOf(page, CHAT_LABEL)).toBe(CHAT_LABEL);
 
-        const told = async () => await page.evaluate(() => document.body.innerText);
-
-        const there = await until(async () => (await told()).includes(CHAT_LABEL), (there) => there);
-        // The room's own name stands where a room is what is shown: its header keeps it.
+        // The room's own screen is where its title stands.
         await page.goto(`${origin}/rooms/${ROOM}`, { waitUntil: "domcontentloaded" });
-        await page.locator("textarea").first().waitFor({ timeout: 30_000 });
-        expect(await until(async () => await page.evaluate(() => document.body.innerText.includes("record-room")), (there) => there)).toBe(true);
+        expect(await titleOf(page, ROOM_TITLE)).toBe(ROOM_TITLE);
 
-        await page.screenshot({ path: `/tmp/agents-names-${width}.png` });
-        expect(there).toBe(true);
-        // The agent's own name stands, not the room's, and its picture stands with it.
-        expect((await told()).includes(ROOM_TITLE)).toBe(false);
+        // Wide, the sidebar stands beside the screen: the chat agent's entry is its own label, and the room it answers
+        // stands under it by the room's title.
+        if (width >= 1024) {
+          const entry = page.locator('nav a[href$="/agents/agent-a"]').first();
+          const session = page.locator(`nav a[href*="/agents/agent-a?chat=${ROOM}"]`).first();
 
-        // The agent's picture is the domain's own rule (tests/app/domain/agent-face.test.ts): the person picture it has,
-        // a room made for it where that has none, and its letter where neither does — never nothing.
-        await page.screenshot({ path: `/tmp/agents-names-${width}.png` });
+          await session.waitFor({ timeout: 20_000 });
+          expect((await entry.locator('[data-slot="linkLabel"]').innerText()).trim()).toBe(CHAT_LABEL);
+          expect((await session.locator('[data-slot="linkLabel"]').innerText()).trim()).toBe(ROOM_TITLE);
+        }
       } finally {
+        // A status read still in flight as the test ends is let go rather than answered.
+        await context.unrouteAll({ behavior: "ignoreErrors" });
         await context.close();
       }
     }, 120_000);

@@ -26,23 +26,18 @@ function taskOf(task: Task): WorkTask {
   };
 }
 
+// Each step of the fixed order is one task, run in turn, so its tasks are the order's build steps alone and no
+// design stage holds them (docs/boundary.md, 「Gaps the console meets」).
 function orderOf(order: JobWorkOrder, tasks: readonly Task[]): WorkOrder {
-  const mapped = tasks.map(taskOf);
-  const stages = [...new Set(tasks.map((task) => task.stage))].sort((one, other) => one - other).map((stage) => ({
-    title: order.steps[stage] ?? String(stage + 1),
-    tasks: tasks.filter((task) => task.stage === stage).map(taskOf)
-  }));
-  const current = tasks.find((task) => task.state === "current");
-
   return {
     todoId: order.itemId,
     intent: order.purpose,
     instruction: order.directive,
     status: order.state === "draft" ? "draft" : order.state === "done" ? "done" : "active",
     phase: "implementation",
-    stage: current?.stage ?? 0,
-    stages,
-    tasks: mapped,
+    stage: 0,
+    stages: [],
+    tasks: tasks.map(taskOf),
     history: [],
     control: null,
     worker: null,

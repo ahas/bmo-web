@@ -286,6 +286,17 @@ impl AccountClient {
     .await
   }
 
+  /// `POST /users/{user}/leave`, asked as the login `key` acts for in `role`.
+  pub async fn mark_left(&self, user: &str, key: &str, role: &str) -> Answer<()> {
+    Self::nothing(
+      self
+        .request(Method::POST, &["users", user, "leave"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `GET /rooms/{chat}/callers`, asked as the login `key` acts for.
   pub async fn room_callers(&self, room: i64, key: &str) -> Answer<RoomCallers> {
     Self::answered(

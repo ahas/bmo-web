@@ -261,11 +261,19 @@ pub async fn node_of<C: ConnectionTrait>(
     vec![user.into()],
   )
   .await?;
+  let left = one(
+    db,
+    r#"SELECT 1 AS "one" FROM "user_departures" WHERE "user_id" = $1::bigint"#,
+    vec![user.into()],
+  )
+  .await?
+  .is_some();
   let Some(row) = row else {
     return Ok(UserNode {
       agent: None,
       attached: false,
       proven_at: None,
+      left,
     });
   };
   let agent: String = row.try_get("", "agent")?;
@@ -278,6 +286,7 @@ pub async fn node_of<C: ConnectionTrait>(
     agent: Some(agent),
     attached,
     proven_at: row.try_get("", "proven_at")?,
+    left,
   })
 }
 

@@ -9,8 +9,8 @@ use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{get, post, put};
 use bmo_web_client::{
-  CheckAnswer, NewUnit, OWNER_ROLE, Unit, UnitChange, UnitCheckAsk, UnitPlacement, UnitRef, UnitRow, Units,
-  UserUnit,
+  CheckAnswer, NewUnit, OWNER_KEY, OWNER_ROLE, Unit, UnitChange, UnitCheckAsk, UnitPlacement, UnitRef,
+  UnitRow, Units, UserUnit,
 };
 use sea_orm::ConnectionTrait;
 use sumida::api::authz::Authz;
@@ -34,6 +34,7 @@ pub fn routes() -> Router<Service> {
     .route("/units", get(units_route).post(make_route))
     .route("/units/{unit}", get(unit_route).patch(change_route))
     .route("/units/{unit}/heads/{user}", put(head_route).delete(unhead_route))
+    .route("/users/{user}/leave", post(leave_route))
     .route("/checks/unit", post(unit_check))
 }
 
@@ -257,6 +258,8 @@ pub async fn every_unit<C: ConnectionTrait>(db: &C) -> Result<Vec<UnitRow>, Refu
               AND t."subject_type" = 'user' AND t."subject_relation" = ''
               AND (t."expires_at" IS NULL OR t."expires_at" > now())) AS "heads",
          (SELECT string_agg(u."id"::text, ',' ORDER BY u."id") FROM "users" u WHERE u."organization_id" = o."id") AS "members",
+         (SELECT string_agg(u."id"::text, ',' ORDER BY u."id") FROM "users" u
+            JOIN "user_departures" d ON d."user_id" = u."id" WHERE u."organization_id" = o."id") AS "left",
          (SELECT string_agg(lpad(c."ancestor_id"::text, 10, '0'), '/' ORDER BY c."depth" DESC)
             FROM "org_closure" c WHERE c."descendant_id" = o."id") AS "place"
        FROM "organizations" o
@@ -279,6 +282,7 @@ pub async fn every_unit<C: ConnectionTrait>(db: &C) -> Result<Vec<UnitRow>, Refu
         parent: row.try_get::<Option<i32>>("", "parent_id")?.map(i64::from),
         heads: split(row.try_get("", "heads")?),
         members: split(row.try_get("", "members")?),
+        left: split(row.try_get("", "left")?),
       })
     })
     .collect()
@@ -462,4 +466,46 @@ async fn place_route(
   place(&service.db, user, asked).await?;
 
   Ok(Json(user_unit(&service.db, user).await?))
+}
+
+/// An account marked left (docs/accounts.md, 「A person who leaves」): its sign-in disabled for good and the moment
+/// and the marker kept, by the administrator or a head of the unit the user stands in.
+async fn leave_route(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path(user): Path<String>,
+) -> Result<StatusCode, Refusal> {
+  let user = user_in(&user)?;
+  let marker = headers
+    .get(OWNER_KEY)
+    .and_then(|value| value.to_str().ok())
+    .and_then(|key| key.parse::<i32>().ok())
+    .ok_or_else(|| {
+      Refusal::forbidden("a departure is marked by a signed-in user, and the call names none")
+    })?;
+  let unit = unit_of_user(&service.db, user)
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
+
+  if administrator(&headers).is_err() && !heads(&service.db, marker, unit).await? {
+    return Err(Refusal::forbidden(
+      "a departure is marked by the administrator or by a head of the unit the user stands in",
+    ));
+  }
+
+  run(
+    &service.db,
+    r#"UPDATE "users" SET "is_enabled" = false, "updated_at" = now() WHERE "id" = $1::bigint"#,
+    vec![user.into()],
+  )
+  .await?;
+  run(
+    &service.db,
+    r#"INSERT INTO "user_departures" ("user_id", "left_at", "left_by") VALUES ($1::bigint, $2, $3::bigint)
+       ON CONFLICT ("user_id") DO NOTHING"#,
+    vec![user.into(), crate::now_ms().into(), marker.into()],
+  )
+  .await?;
+
+  Ok(StatusCode::NO_CONTENT)
 }

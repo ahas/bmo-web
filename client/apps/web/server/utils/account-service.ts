@@ -655,6 +655,15 @@ export async function setRoomCaller(room: number, user: UserId, caller: boolean,
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }
 
+/** An account marked left, its sign-in disabled. */
+export async function markLeft(user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const params = { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } };
+  const reply = await sent(options, client.POST("/users/{user}/leave", { params }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
 /** A user placed in a unit. */
 export async function placeUser(user: UserId, unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<UserUnit> {
   const client = clientOf(options);

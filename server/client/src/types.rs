@@ -283,6 +283,9 @@ pub struct UnitRow {
   pub parent: Option<i64>,
   pub heads: Vec<String>,
   pub members: Vec<String>,
+  /// The members whose accounts have left.
+  #[serde(default)]
+  pub left: Vec<String>,
 }
 
 /// Every unit, companies first and each unit after its parent.
@@ -398,6 +401,9 @@ pub struct UserNode {
   pub attached: bool,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub proven_at: Option<i64>,
+  /// Whether the account has left.
+  #[serde(default)]
+  pub left: bool,
 }
 
 /// What a check answered.

@@ -704,6 +704,19 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "POST",
+    "/users/{user}/leave",
+    "markLeft",
+    "Organisation units",
+    "An account marked left and its sign-in disabled, by the administrator or a head of the user's unit.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "PUT",
     "/units/{unit}/heads/{user}",
     "grantHead",

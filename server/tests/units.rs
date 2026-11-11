@@ -379,3 +379,65 @@ async fn the_administrator_builds_the_organisation_and_a_member_builds_nothing()
   let part_row = units["units"].as_array().unwrap().iter().find(|one| one["id"] == part_id).unwrap();
   assert_eq!(part_row["members"], json!([tree.in_team.to_string()]));
 }
+
+/// A request made as one user, by their key, in the member role.
+async fn asked_by(app: &Router, method: Method, path: &str, user: i32) -> (StatusCode, Value) {
+  let request = Request::builder()
+    .method(method)
+    .uri(path)
+    .header("x-real-ip", "127.0.0.1")
+    .header(header::AUTHORIZATION, format!("Bearer {TOKEN}"))
+    .header("owner-key", user.to_string())
+    .header("owner-role", "member")
+    .body(Body::empty())
+    .unwrap();
+  let answer = app.clone().oneshot(request).await.unwrap();
+  let status = answer.status();
+  let bytes = answer.into_body().collect().await.unwrap().to_bytes();
+  let said = if bytes.is_empty() { Value::Null } else { serde_json::from_slice(&bytes).unwrap() };
+
+  (status, said)
+}
+
+#[tokio::test]
+async fn a_head_marks_a_person_of_their_unit_left_and_nobody_else_does() {
+  ready();
+  let tree = tree().await;
+  let app = app(&tree.scratch).await;
+
+  head(&tree.scratch, tree.in_centre, tree.centre).await;
+
+  // A person who heads nothing marks nobody left.
+  let (status, said) =
+    asked_by(&app, Method::POST, &format!("/users/{}/leave", tree.in_centre), tree.in_team).await;
+  assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+
+  // A head of a unit above the person's marks them; their sign-in is disabled and the departure is read back.
+  let (status, said) =
+    asked_by(&app, Method::POST, &format!("/users/{}/leave", tree.in_team), tree.in_centre).await;
+  assert_eq!(status, StatusCode::NO_CONTENT, "{said}");
+  let enabled = one(
+    tree.scratch.db(),
+    r#"SELECT "is_enabled" FROM "users" WHERE "id" = $1"#,
+    vec![tree.in_team.into()],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get::<bool>("", "is_enabled")
+  .unwrap();
+  assert!(!enabled);
+  let (_, node) = asked(&app, Method::GET, &format!("/users/{}/node", tree.in_team), None).await;
+  assert_eq!(node["left"], true, "{node}");
+  let (_, units) = asked_as(&app, Method::GET, "/units", None, Some("administrator")).await;
+  let team = units["units"].as_array().unwrap().iter().find(|one| one["id"] == tree.team).unwrap();
+  assert_eq!(team["left"], json!([tree.in_team.to_string()]), "{team}");
+
+  // Marking again changes nothing.
+  assert_eq!(
+    asked_by(&app, Method::POST, &format!("/users/{}/leave", tree.in_team), tree.in_centre)
+      .await
+      .0,
+    StatusCode::NO_CONTENT
+  );
+}

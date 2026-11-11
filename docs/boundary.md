@@ -132,7 +132,8 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | `GET /invites/{token}` | | `unit`, `company`, `head`, `expiresAt`, `state` (`open`, `expired`, `used`); 404 where no invitation has the token |
 | `POST /invites/{token}/accept` | `name`, `password` | 201, `user`, `agent` (the machine name), `credential`, `hubUrl`, and `install`: `linux` and `windows`, the one-line installs; 409 `invite-closed` where it is expired or used, 409 `name-taken` where the name stands |
 | `POST /invites/{token}/proof` | | `active`: whether the account's machine is attached and the account now enabled |
-| `GET /users/{user}/node` | | `agent?` (the machine bound, none for an account bound to none), `attached`, `provenAt?` |
+| `GET /users/{user}/node` | | `agent?` (the machine bound, none for an account bound to none), `attached`, `provenAt?`, `left`, whether the account has left |
+| `POST /users/{user}/leave` | `Owner-Key`, `Owner-Role` | 204: the account is marked left and its sign-in disabled, by the administrator or a head of the user's unit; 403 for anyone else |
 
 - **The accept, the proof and the read of an invitation take the server's token alone,** with no owner key: the
   console calls them for a person who has no account yet, by the token in the link (`docs/accounts.md`,

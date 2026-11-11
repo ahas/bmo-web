@@ -1715,6 +1715,14 @@
             "format": "int64",
             "type": "integer"
           },
+          "left": {
+            "default": [],
+            "description": "The members whose accounts have left.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "members": {
             "items": {
               "type": "string"
@@ -1736,7 +1744,8 @@
           "id",
           "name",
           "heads",
-          "members"
+          "members",
+          "left"
         ],
         "type": "object"
       },
@@ -1782,6 +1791,11 @@
           "attached": {
             "type": "boolean"
           },
+          "left": {
+            "default": false,
+            "description": "Whether the account has left.",
+            "type": "boolean"
+          },
           "provenAt": {
             "format": "int64",
             "type": [
@@ -1791,7 +1805,8 @@
           }
         },
         "required": [
-          "attached"
+          "attached",
+          "left"
         ],
         "type": "object"
       },
@@ -4405,6 +4420,76 @@
         "x-codes": [
           "bad-request",
           "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/leave": {
+      "post": {
+        "operationId": "markLeft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "An account marked left and its sign-in disabled, by the administrator or a head of the user's unit.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
           "not-found",
           "not-in-force",
           "database",

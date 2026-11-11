@@ -78,7 +78,11 @@
 
         <UFormField :label="$t('organization.label.members', { count: open.members.length })">
           <div class="flex flex-wrap items-center gap-1">
-            <UBadge v-for="member in open.members" :key="member" color="neutral" variant="soft" :label="nameOf(member)" />
+            <UBadge v-for="member in open.members" :key="member" :color="gone(member) ? 'error' : 'neutral'" variant="soft" :label="gone(member) ? $t('organization.label.left_member', { name: nameOf(member) }) : nameOf(member)">
+              <template v-if="!gone(member)" #trailing>
+                <UButton color="neutral" variant="link" size="xs" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" @click="markLeft(member)" />
+              </template>
+            </UBadge>
             <USelect :model-value="''" :items="people(open.members)" :placeholder="$t('organization.action.place')" class="min-w-48" @update:model-value="(user) => user && place(String(user))" />
           </div>
         </UFormField>
@@ -92,6 +96,8 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
+import { useConfirm } from "~/domain/confirm";
+
 import type { UnitRow, UserSummary } from "@web/server-client";
 
 const { t } = useI18n();
@@ -103,6 +109,7 @@ const formFailure = ref("");
 const busy = ref(false);
 
 const adding = ref(false);
+const confirm = useConfirm();
 // The parent chosen for a new unit, `NEW_COMPANY` for none: a select item's value is never empty.
 const NEW_COMPANY = "company";
 const draft = reactive({ name: "", parent: NEW_COMPANY });
@@ -166,6 +173,33 @@ async function read(): Promise<void> {
     [units.value, users.value] = await Promise.all([$fetch<UnitRow[]>("/api/organization/units"), $fetch<UserSummary[]>("/api/users")]);
   } catch (error) {
     failure.value = failureText(error, t("organization.error.failed"));
+  }
+}
+
+// Whether a member of the open unit has left.
+function gone(user: string): boolean {
+  return open.value?.left?.includes(user) ?? false;
+}
+
+// A person marked left once the question is answered yes; the units read again so the row says so.
+async function markLeft(user: string): Promise<void> {
+  const taken = await confirm({
+    title: t("organization.title.mark_left"),
+    item: nameOf(user),
+    effect: t("organization.message.mark_left"),
+    confirm: t("organization.action.mark_left_confirm")
+  });
+
+  if (!taken) return;
+  busy.value = true;
+  formFailure.value = "";
+  try {
+    await $fetch(`/api/organization/users/${user}/leave`, { method: "POST" });
+    await read();
+  } catch (error) {
+    formFailure.value = failureText(error, t("organization.error.failed"));
+  } finally {
+    busy.value = false;
   }
 }
 

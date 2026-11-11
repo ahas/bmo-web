@@ -6090,6 +6090,8 @@ dialog open at 계정.
 - **단위 추가** opens a form of a name and a parent; with no parent the unit is a new company.
 - **A unit's row opens its own form:** its name, its parent among the units of its company, its heads — each
   taken off by its mark, one added by choosing a person — and its people, one placed in it by choosing a person.
+  Each person carries a mark that marks them left, asked first with what it does and that it is not undone
+  (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list, said as left, with no mark.
   A change is saved as it is made, and a refusal — a parent in another company, a parent under the unit itself —
   is said under the form in words.
 

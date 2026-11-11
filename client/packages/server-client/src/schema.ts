@@ -541,6 +541,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** An account marked left and its sign-in disabled, by the administrator or a head of the user's unit. */
+        post: operations["markLeft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}/name": {
         parameters: {
             query?: never;
@@ -1226,6 +1243,11 @@ export interface components {
             heads: string[];
             /** Format: int64 */
             id: number;
+            /**
+             * @description The members whose accounts have left.
+             * @default []
+             */
+            left: string[];
             members: string[];
             name: string;
             /** Format: int64 */
@@ -1243,6 +1265,11 @@ export interface components {
         UserNode: {
             agent?: string | null;
             attached: boolean;
+            /**
+             * @description Whether the account has left.
+             * @default false
+             */
+            left: boolean;
             /** Format: int64 */
             provenAt?: number | null;
         };
@@ -2651,6 +2678,40 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    markLeft: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

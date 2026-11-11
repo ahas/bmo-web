@@ -255,6 +255,17 @@ section states what each does.
 - **The credential is made with the hub's agent key,** which the service's settings carry beside the hub's address,
   its control address and its control token; a service whose settings name no hub makes no invitation.
 
+### A person who leaves
+
+- **A person who leaves is marked so, never removed:** the administrator, or a head of the unit the person stands
+  in, marks the account left. Its sign-in is disabled for good, the moment and who marked it are kept, and the
+  account stays in its unit with everything it held, so what it did stays where it was done.
+- **What stays readable is what was public:** the person's public projects and their records go on being read by
+  the heads above, as any public project is (bmo-project's `docs/design.md`). Their private projects, their private
+  conversations and their supervisor's memory are sealed: nobody is given them.
+- **Their supervisor is woken nowhere again,** and a quiet instruction for it is let go (the receiver's
+  `docs/wake.md`): the receiver reads the departure off the account's machine standing.
+
 ### The people directory
 
 - **The directory is the users of the reader's own company:** every user whose unit stands under the company
@@ -342,6 +353,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `grant_words` | the words a grant was made with, beside the grant |
 | `user_invites` | each invitation: its token, its unit, whether it makes a head, who made it, when it closes, and who used it and when |
 | `user_nodes` | the machine each invited account is bound to, and when it was last proven |
+| `user_departures` | each account marked left: when, and by whom |
 | `settings` | the service's own keys: the mark that the move is written, and the platform administrator's user |
 | `web_users` | the console's own accounts, the sign-in that stands before the model is in force |
 | `web_push_devices` | a user's browsers that take push notices |

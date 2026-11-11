@@ -1658,15 +1658,15 @@ organization:
     members: "구성원 {count}명"
     row: "장: {heads} · 구성원 {count}명"
     no_head: 없음
-    left_member: "{name} (떠남)"
+    left_member: "{name} (탈퇴)"
   title:
-    mark_left: 떠남 처리할까요?
+    mark_left: 탈퇴 처리할까요?
   message:
     mark_left: 이 사람은 더 이상 로그인할 수 없고, 이 사람의 BMO도 다시 깨어나지 않습니다. 공개 프로젝트는 위 단위의 장이 계속 읽고, 비공개 프로젝트와 개인 대화, BMO의 기억은 아무도 읽지 못합니다. 되돌릴 수 없습니다.
   action:
     add: 단위 추가
-    mark_left: "{name} 떠남 처리"
-    mark_left_confirm: 떠남 처리
+    mark_left: "{name} 탈퇴 처리"
+    mark_left_confirm: 탈퇴 처리
     edit: 편집
     add_head: 장 지정
     remove_head: "{name} 장 해제"

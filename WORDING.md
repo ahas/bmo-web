@@ -63,6 +63,8 @@
 - forward a message → 전달: 전달, 전달됨, 전달했습니다, 전달하지 못했습니다, 전달할 방. Never 포워딩, 넘기기,
   옮기기 — 옮기기 is moving a message's place, which this console does not do.
 - mention → 멘션: 멘션, 멘션 후보, 멘션할 이름. Never 호출, 부르기, 지칭.
+- a person who leaves the organisation, their account marked so → 탈퇴: 탈퇴, 탈퇴 처리, 탈퇴 처리할까요, (탈퇴) beside
+  a name. Never 떠남, 퇴사, 삭제 — the account is kept, only its sign-in ends.
 - an agent's role, which gives its function bundles → 역할: 역할, 역할 추가, 역할 프롬프트, 종류 기본. A co-work role a
   work key names (`role:`) is 역할 too; where it stands on a screen beside the agent role it is told apart as 작업 키
   역할, and the agent role keeps the bare word. A function bundle → 기능 묶음; how many of a role's runs go at once → 동시

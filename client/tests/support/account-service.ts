@@ -11,6 +11,8 @@ export interface StandInUser {
   password?: string;
   administrator?: boolean;
   senders?: number[];
+  // The machine an invitation bound the account to, and whether the hub holds it now.
+  node?: { agent: string; attached: boolean };
 }
 
 export interface StandInGrant {
@@ -246,6 +248,17 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the users are the administrator's");
 
         return json(users.map((user) => ({ user: String(user.id), name: user.name, administrator: user.administrator === true })));
+      }
+
+      // The machine a user is bound to; a user bound to none answers no agent.
+      const nodeRoute = path.match(/^\/users\/([^/]+)\/node$/);
+
+      if (nodeRoute !== null && request.method === "GET") {
+        const user = userNamed(decodeURIComponent(nodeRoute[1]!));
+
+        if (user === undefined) return refused(404, "not-found", "no such user");
+
+        return json({ agent: user.node?.agent ?? null, attached: user.node?.attached ?? false, provenAt: null, left: false });
       }
 
       // A user's sections, read by their holder or the administrator and written by the administrator alone.

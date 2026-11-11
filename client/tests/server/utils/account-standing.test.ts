@@ -1,18 +1,27 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, spyOn, test } from "bun:test";
 
 import { standInAccountService } from "../../support/account-service";
+import { globalsRestoredAfter } from "../../support/globals";
 import { answer, standIn } from "../../support/units";
 
 import { standAccount } from "../../../apps/web/server/utils/account-standing";
 
 // An account made ready (docs/web.md, 「The join page」): it is given a supervisor of its own, named after the account
 // and shown by the person's name, on the default answerer's order, and one agent of its own for every role with an
-// agent of no account, taking that agent's road; an account that holds one already is given none again.
+// agent of no account, taking that agent's road; an account that holds one already is given none again. Its machine,
+// where the hub holds it, is set in agency as the node its runs stand on (docs/accounts.md, 「Invitations and a
+// person's machine」), and a node agency refuses leaves the account ready.
 
 const ORDER = [{ provider: "codex", model: "model-a", effort: null, thinking: null, answerTokens: null }];
 const ANSWERER = { name: "agent-a", label: "Agent A", ownerAccount: null, provider: "codex", model: "model-a", effort: null, order: ORDER, quotaShare: 0.25, warming: {}, waitingFor: null };
 const AGENT = { name: "worker-01", role: "worker", ownerAccount: null, provider: "deepseek", model: "model-w", effort: "high", thinking: null, answerTokens: null, enabled: true, position: 1, keepsCache: true, sessions: "keep", callable: false, foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: false };
 const role = (name: string, agents: unknown[]) => ({ name, code: name, label: name, prompt: null, description: null, bundles: [], skills: null, line: "worker", agents, maxConcurrent: agents.length, followsSupervisor: false, running: 0, waiting: 0, provider: null, waitingFor: null });
+
+// What Nitro would import into the module by itself: a refusal carries the unit's code as its data.
+const globals = globalThis as Record<string, unknown>;
+
+globalsRestoredAfter(["createError"]);
+globals.createError = (options: { statusCode: number; message: string; data?: unknown }) => Object.assign(new Error(options.message), options);
 
 let supervisors: unknown[] = [ANSWERER];
 
@@ -31,6 +40,10 @@ const agency = standIn("AGENCY", (call) => {
     });
   }
   if (call.method === "POST" && call.path === "/role-agents") return answer({ ...AGENT, ...call.body }, 201);
+  if (call.method === "PUT" && call.path === "/person-nodes/11") return answer({ code: "not-a-hub-node", error: "no hub node is named u11" }, 422);
+  if (call.method === "PUT" && call.path.startsWith("/person-nodes/")) {
+    return answer({ ownerAccount: call.path.slice("/person-nodes/".length), node: call.body?.node, setAt: 1 });
+  }
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
@@ -44,7 +57,13 @@ const receiver = standIn("RECEIVER", (call) => {
   return answer({ code: "no-route", error: "no route" }, 404);
 });
 
-const service = standInAccountService({ users: [{ id: 9, name: "member-a" }] });
+const service = standInAccountService({
+  users: [
+    { id: 9, name: "member-a", node: { agent: "u9", attached: true } },
+    { id: 10, name: "member-b", node: { agent: "u10", attached: false } },
+    { id: 11, name: "member-c", node: { agent: "u11", attached: true } }
+  ]
+});
 
 process.env.WEB_SERVER_ADDRESS = service.address;
 process.env.WEB_SERVER_TOKEN = service.token;
@@ -83,6 +102,29 @@ describe("an account made ready", () => {
       expect(receiver.asked.filter((call) => call.method === "POST")).toHaveLength(0);
     } finally {
       supervisors = [ANSWERER];
+    }
+  });
+
+  test("sets the machine the account is bound to as its node, and none while the hub does not hold it", async () => {
+    agency.asked.length = 0;
+
+    await standAccount(9);
+    await standAccount(10);
+
+    const set = agency.asked.filter((call) => call.method === "PUT");
+
+    expect(set.map((call) => [call.path, call.body])).toEqual([["/person-nodes/9", { node: "u9" }]]);
+  });
+
+  test("a node agency refuses leaves the account ready and says agency's code in the log", async () => {
+    const logged = spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await standAccount(11);
+
+      expect(logged.mock.calls.map((call) => String(call[0]))).toEqual([expect.stringContaining("not-a-hub-node")]);
+    } finally {
+      logged.mockRestore();
     }
   });
 });

@@ -6167,8 +6167,9 @@ dialog open at 계정.
   order and quota share of the supervisor that answers rooms naming none, with a console room of its own and one
   session across its rooms; and, for every role that has an agent of no account, one agent of the account on that
   agent's road and settings, switched on. An account that already holds a supervisor, or an agent of a role, is
-  given none again there. A part that cannot be made is written to the console's log and the account stands
-  ready all the same.
+  given none again there. The machine the account is bound to is set as the node its runs stand on in agency,
+  at every proof that answers it active (`docs/accounts.md`, 「Invitations and a person's machine」). A part that
+  cannot be made is written to the console's log and the account stands ready all the same.
 - **An account bound to a machine signs in only while its machine is attached;** the login refuses it, saying the
   machine is not connected, until it attaches again.
 

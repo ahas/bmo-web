@@ -256,8 +256,17 @@ section states what each does.
 - **An account is enabled only once its machine is proven:** the person installs jake with the command the
   acceptance answers, which names the machine and carries a credential made for that name alone (jake's
   `docs/architecture.md`), and the service asks the jake hub whether an agent of that name is attached. Attached,
-  the account is enabled and the machine recorded as proven. The administrator alone may bind an account to
-  another machine.
+  the account is enabled and the machine recorded as proven.
+- **A proven machine becomes the node the account's runs stand on.** As the proof answers the account active, the
+  console's server reads the machine the account is bound to and sets it in agency's record of the account's node,
+  `PUT /person-nodes/{ownerAccount}` with the user's id and `node` the machine's name (agency's
+  `docs/person-nodes.md`, 「Which node is a person's」), so the person's BMO and agents run on their own PC. Every
+  proof that answers active sets it again, so opening the invitation's link once more sets a record that did not
+  land. A refusal — 422 `not-a-hub-node`, where the node service keeps no hub node of that name free of every
+  service, or agency out of reach — is written to the console's log, and the account stands active all the same.
+- **No route here binds an account to another machine or takes its machine away.** The binding an invitation
+  made stands, and so does agency's record of it; a person is moved to another node with agency's own
+  `bmo-agency node person`.
 - **An account whose machine is gone cannot be used until it is proven again:** the console refuses its sign-in
   while the hub holds no agent of its machine's name, and lets it in again once one attaches. An account bound to
   no machine — the administrator's, and every account made before invitations — is held to none of this.

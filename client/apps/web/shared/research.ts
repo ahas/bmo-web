@@ -28,7 +28,7 @@ export interface ResearchSettingsView {
   source: string;
   engines: SearchEngineState[] | null;
   enginesUnread: string | null;
-  // The roles a search's branches may go out as: those the agency lists as callable, each by its name and the words
+  // The roles a search's branches may go out as: those the agency lists with an agent switched on, each by its name and the words
   // the screen names it by.
   roles: { name: string; label: string }[];
 }

@@ -1,5 +1,5 @@
 import { userNode, userOf } from "./account-service";
-import { agency, agencyCall, agencyRoute } from "./agency";
+import { agency, agencyCall } from "./agency";
 import { orderBody, readSupervisors } from "./axes";
 import { defaultAnswerer } from "./owner";
 import { receiver, receiverCall } from "./receiver";
@@ -29,16 +29,15 @@ export async function standAccount(user: number): Promise<void> {
 }
 
 // The machine the account is bound to, set in agency as the node its runs stand on (docs/accounts.md, 「Invitations and
-// a person's machine」); only a machine the hub holds now is set. The vendored agency client names no type for the
-// route, so it is called by its documented path. Nobody reads this refusal on a screen, so agency's own code goes to
-// the log.
+// a person's machine」); only a machine the hub holds now is set. Nobody reads this refusal on a screen, so agency's
+// own code goes to the log.
 async function standNode(user: number): Promise<void> {
   const machine = await userNode(user);
 
   if (typeof machine.agent !== "string" || !machine.attached) return;
 
   try {
-    await agencyRoute<unknown>("PUT", `/person-nodes/${user}`, { node: machine.agent });
+    await agencyCall(agency().PUT("/person-nodes/{ownerAccount}", { params: { path: { ownerAccount: String(user) } }, body: { node: machine.agent } }));
   } catch (error) {
     const code = (error as { data?: { code?: string | null } }).data?.code ?? "no code";
 
@@ -100,7 +99,6 @@ async function standAgents(user: number): Promise<void> {
       enabled: true,
       keepsCache: shared.keepsCache,
       sessions: shared.sessions,
-      callable: shared.callable,
       foldRatio: shared.foldRatio,
       prompt: shared.prompt,
       bundles: shared.bundles,

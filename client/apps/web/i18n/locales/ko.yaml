@@ -1832,7 +1832,6 @@ agents:
     draft_to_default: 기본값으로
     draft_text_to_default: 기본 글로 되돌리기
   aria:
-    callable_of: "{name} 코워커 호출 허용"
     active_of: "{name} 지금"
     heal_of: "{name} 강등 복원"
     node_checkout_node: 노드 체크아웃을 둘 노드
@@ -1847,6 +1846,7 @@ agents:
     agent_provider_of: "{name} 공급자"
     agent_remove: "{name} 제거"
     agent_keeps_cache_of: "{name} 캐시 유지"
+    provider_prompt_of: "{provider} 프롬프트"
     order_thinking_of: "{name} 생각"
     room_last_run: "{room}, 실행 {n}회, 마지막 실행 {time}, 로그 열기"
     sessions_of: "{name} 세션"
@@ -2125,9 +2125,9 @@ agents:
     column_bundles: 기능 묶음
     find_role: "역할 {name}"
     role_prompt: 역할 프롬프트
+    provider_prompts: 공급자별 프롬프트
     card_service: 카드 서비스
     checkouts_value: "추가지원 {support} · {held}/{all} 사용 중"
-    column_callable: 코워커
     column_checkouts: 체크아웃
     column_heal: 강등 복원
     column_model_defaults: 생성 파라미터

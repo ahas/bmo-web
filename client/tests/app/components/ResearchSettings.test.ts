@@ -19,7 +19,7 @@ describe("the research settings tab", () => {
     expect(agents).not.toContain("<ResearchSettings");
   });
 
-  test("names no source of a value and no default word, and offers the roles the agency lists as callable", () => {
+  test("names no source of a value and no default word, and offers the roles the agency lists with an agent switched on", () => {
     expect(templateOf(settings)).not.toContain("sourceLabel");
     expect(settings).not.toContain("AgentsRouteTable");
     expect(scriptOf(settings)).toContain("roles.map((role) => ({ value: role.name, label: role.label }))");

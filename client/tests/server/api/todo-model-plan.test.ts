@@ -12,7 +12,7 @@ import type { TodoModelPlan } from "../../../apps/web/shared/types";
 
 const ENTRY = { provider: "deepseek", model: "deepseek-flash", effort: null, thinking: null, answerTokens: null };
 const AGENT = (name: string, provider: string, model: string, position: number) => ({
-  ...ENTRY, name, role: "worker", provider, model, enabled: true, position, keepsCache: false, sessions: "keep", callable: false, foldRatio: null, prompt: null, bundles: null, skills: null,
+  ...ENTRY, name, role: "worker", provider, model, enabled: true, position, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
   followsSupervisor: false, carries: false
 });
 const ROLE = {

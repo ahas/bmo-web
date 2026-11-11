@@ -135,7 +135,6 @@ const rows = computed<RoleAgentView[]>(() => (view.value?.roles ?? []).flatMap((
 
 // The switches an agent's row holds, each its own field of the agent.
 const SWITCHES = [
-  { id: "callable", key: "callable", aria: "agents.aria.callable_of" },
   { id: "warm", key: "keepsCache", aria: "agents.aria.agent_keeps_cache_of" },
   { id: "enabled", key: "enabled", aria: "agents.aria.agent_enabled_of" }
 ] as const;
@@ -146,7 +145,6 @@ const columns = computed<SettingsColumn<RoleAgentView>[]>(() => [
   { id: "road", header: t("agents.label.column_road"), ceiling: 320 },
   { id: "sessions", header: t("agents.label.column_sessions") },
   { id: "threshold", header: t("agents.label.column_threshold") },
-  { id: "callable", header: t("agents.label.column_callable") },
   { id: "warm", header: t("agents.label.column_warming") },
   { id: "enabled", header: t("agents.label.column_enabled") },
   ...(props.readonly ? [] : [{ id: "actions", header: "" }])

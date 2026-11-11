@@ -109,6 +109,9 @@ export interface RoleView {
   label: string;
   description: string | null;
   prompt: string | null;
+  // The text a run of the role carries after its prompt, by the provider its program stands on; a provider it names
+  // none for is absent.
+  providerPrompts: Record<string, string>;
   bundles: RoleBundleView[];
   // The skills its runs carry; null where it names none and its runs carry the whole plugin the agency's release
   // places for it.
@@ -142,9 +145,8 @@ export interface RoleAgentView {
   enabled: boolean;
   position: number;
   keepsCache: boolean;
-  // Whether its runs keep their sessions, and whether a run of another role may call it as a co-worker.
+  // Whether its runs keep their sessions.
   sessions: RoleSessions;
-  callable: boolean;
   // Its compaction threshold; null where the ratio its provider declares stands.
   foldRatio: number | null;
   prompt: string | null;

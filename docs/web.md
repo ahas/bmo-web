@@ -2711,7 +2711,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   - **키별 한도** — a research line to a row, the voyager's and the seeker's: **브랜치**, how many pooled branches a
     run of it may open, and **시간**, for how many minutes its web tools stay open.
   - **가져오기** — one row of the four settings every line shares: **브랜치 역할**, the role a search's branches go out
-    as, chosen from the roles the agency lists as callable; **가져오기 전략**, one of 직접 먼저, 브라우저 먼저 and 직접만;
+    as, chosen from the roles the agency lists that have an agent switched on; **가져오기 전략**, one of 직접 먼저, 브라우저 먼저 and 직접만;
     and **호스트 간격** and **엔진 간격**, the milliseconds between two direct requests to one host and between two
     requests to one search engine, each an emptied box standing for the web tools' own value, read as 「The default
     among choices」 says.
@@ -2950,7 +2950,7 @@ a seat of its role.
   - **its own settings, each a cell that saves it** through `PATCH /role-agents/{name}`: 세션, 유지 or 새로,
     whether its runs keep their sessions; 압축 기준, a whole percent from 1 to 100, the one its provider declares
     standing marked `(기본값)` where the agent sets none, and a dash for an agent that names no road and sets
-    none; 코워커, a switch, whether a run of another role may call it; 캐시 유지, a switch, whether its last
+    none; 캐시 유지, a switch, whether its last
     kept session is pinged before its cache cools; and 사용, the switch that turns it on and off.
   - **Pressing an agent's name opens its role's agents,** a dialog titled with the role (「역할」 above gives the
     role its preset): one block per agent of that role, in order, saved as each is changed.
@@ -2978,8 +2978,7 @@ a seat of its role.
 
 - **A role is a preset** (the agency's `docs/agent-roles.md`): the prompt its runs open with, the tools its runs
   are given, the skills they carry and the line they go out on. What a run goes out on, how many go at once, whether a run keeps its
-  session, the share its session is folded at and whether it may be called as a co-worker are each an agent's,
-  and stand in the 에이전트 tab.
+  session and the share its session is folded at are each an agent's, and stand in the 에이전트 tab.
 - **One table of the roles the agency holds,** one row each in the order the agency lists them, read from its
   `GET /roles`: 역할, its name alone — the kebab-case key the agency holds it under, never a translated word and
   never the row's label — the title column; 실행 라인, the line its runs go out on; 기능 묶음, the bundles it gives as
@@ -2992,11 +2991,16 @@ a seat of its role.
 - **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made,
   and the label the agency keeps for its log as the role is added), 설명, 실행 라인 — a choice of the lines the agency
   names — 기능 묶음 as a checkbox for every bundle the agency declares, 스킬, and 역할 프롬프트, a text area as tall as its
-  text, which every run of the role opens with, empty for none. 스킬 is a switch, 스킬 직접 고르기, off while the
+  text, which every run of the role opens with, empty for none; and 공급자별 프롬프트, a text area for every
+  provider whose program carries the role's line, each under the provider's word and as tall as its text, which a run
+  of the role on that provider carries after the role's prompt, empty for none (the agency's `docs/agent-roles.md`,
+  「A role's provider prompts」). A provider the role holds a text for that no longer carries its line stands too, so
+  the text can be emptied. 스킬 is a switch, 스킬 직접 고르기, off while the
   role names none — its runs then carry the whole plugin the release places for it — and, switched on, a checkbox
   for every skill a plugin of the agency's release carries, each by its name; an agent that names skills of its own
   carries those in place of the role's (「에이전트」 above). The save sends what changed; an emptied prompt or
-  description is cleared, and the switch turned off clears the role's list. Under the form a line says the role's agents are added and changed in the 에이전트 tab.
+  description is cleared, a provider's text is sent only where it changed and an emptied one is taken away, and the
+  switch turned off clears the role's list. Under the form a line says the role's agents are added and changed in the 에이전트 tab.
 - **세션 기록** stands in the same dialog under the form, read from `GET /roles/{name}/sessions`: the sessions the
   role's runs opened, newest first, one row each — the path, the provider and model with its effort, the account
   where the provider holds logins, when it opened and last answered, how many runs it carried, the context its last

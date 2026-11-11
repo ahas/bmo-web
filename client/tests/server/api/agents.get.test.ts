@@ -16,7 +16,7 @@ let agencyAnswers = true;
 const ORDER = [{ provider: "codex", model: "model-a", effort: "high", thinking: null, answerTokens: null }];
 // One agent of a role on that road.
 const AGENTS = (role: string) => [{
-  ...ORDER[0], name: `${role}-01`, role, enabled: true, position: 1, keepsCache: false, sessions: "keep", callable: false, foldRatio: null, prompt: null, bundles: null, skills: null,
+  ...ORDER[0], name: `${role}-01`, role, enabled: true, position: 1, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
   followsSupervisor: false, carries: false
 }];
 

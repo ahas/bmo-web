@@ -7,7 +7,7 @@ import { answer, standIn } from "../../support/units";
 import type { ResearchSettingsView } from "../../../apps/web/shared/research";
 
 // The research settings as the research screen's settings tab reads and changes them (docs/web.md, 「Research screen」):
-// the research unit's `GET /research-settings` with the roles the agency lists as callable beside it, and one setting changed through its
+// the research unit's `GET /research-settings` with the roles the agency lists with an agent switched on beside it, and one setting changed through its
 // `PUT`, sent as it stands since the unit keeps every field a change leaves out (bmo-research's docs/api.md,
 // 「research-settings」).
 
@@ -25,15 +25,15 @@ const research = standIn("RESEARCH", (call) => {
   return answer(SETTINGS);
 }, { headers: true });
 
-// A role as the agency's `GET /roles` answers it, callable or not.
-function role(name: string, callable: boolean): Record<string, unknown> {
+// A role as the agency's `GET /roles` answers it, its agent switched on or not.
+function role(name: string, enabled: boolean): Record<string, unknown> {
   return {
     name, code: name, label: name, prompt: null, description: null, bundles: [], line: "worker", order: [], quotaShare: 0.01,
     maxConcurrent: 2, running: 0, waiting: 0, provider: null, waitingFor: null,
-    // A role is called through an agent of it that is switched on and marked callable.
+    // A branch is a run of its role, so a role carries one only through an agent switched on.
     agents: [{
-      name: `${name}-01`, role: name, provider: null, model: null, effort: null, thinking: null, answerTokens: null, enabled: true, position: 1,
-      keepsCache: false, sessions: "keep", callable, foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: true, carries: false
+      name: `${name}-01`, role: name, provider: null, model: null, effort: null, thinking: null, answerTokens: null, enabled, position: 1,
+      keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: true, carries: false
     }]
   };
 }
@@ -46,7 +46,7 @@ const read = await routeOf<ResearchSettingsView>("../../apps/web/server/api/rese
 const change = await routeOf<ResearchSettingsView>("../../apps/web/server/api/research-settings.put");
 
 describe("reading the research settings", () => {
-  test("reads the research unit with its token, the roles the agency lists as callable beside them and each key's branches and clock alone", async () => {
+  test("reads the research unit with its token, the roles the agency lists with an agent switched on beside them and each key's branches and clock alone", async () => {
     const got = await asked(read, {});
 
     expect(got.status).toBe(200);

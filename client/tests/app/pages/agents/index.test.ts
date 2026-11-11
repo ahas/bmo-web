@@ -269,8 +269,8 @@ describe("the roles tab", () => {
     expect(templateOf(roles)).toContain('v-if="row.original.skills === null"');
     expect(templateOf(roles)).toContain('$t("agents.label.role_skills_none")');
     expect(scriptOf(roles)).toContain("usePolling(");
-    // Whether a run keeps its session, its threshold and its callability are an agent's, and no column of a role.
-    for (const cell of ["#sessions-cell", "#threshold-cell", "#callable-cell", "#now-cell", "#concurrency-cell"]) expect(templateOf(roles)).not.toContain(cell);
+    // Whether a run keeps its session and its threshold are an agent's, and no column of a role.
+    for (const cell of ["#sessions-cell", "#threshold-cell", "#now-cell", "#concurrency-cell"]) expect(templateOf(roles)).not.toContain(cell);
     expect(scriptOf(roles)).not.toContain("PATCH");
   });
 
@@ -278,11 +278,11 @@ describe("the roles tab", () => {
     expect(templateOf(roleDialog)).toContain("<RoleSessionHistory");
     expect(scriptOf(history)).toContain("/sessions`");
     expect(scriptOf(history)).toContain("useNextPages(");
-    for (const field of ["form.line", "form.bundles", "form.skills", "form.prompt", "form.description"]) expect(roleDialog).toContain(field);
+    for (const field of ["form.line", "form.bundles", "form.skills", "form.prompt", "form.providerPrompts", "form.description"]) expect(roleDialog).toContain(field);
     // The role's skills are a switch — off for the release's whole plugin — and a checkbox for every skill it carries.
     expect(templateOf(roleDialog)).toContain(`@update:model-value="(on: boolean) => (form.skills = on ? [] : null)"`);
     expect(scriptOf(roleDialog)).toContain('if (changed("skills") && (!adding.value || now.skills !== null)) sent.skills = now.skills;');
-    for (const field of ["form.order", "form.maxConcurrent", "form.quotaShare", "form.sessions", "form.threshold", "form.callable"]) {
+    for (const field of ["form.order", "form.maxConcurrent", "form.quotaShare", "form.sessions", "form.threshold"]) {
       expect(roleDialog).not.toContain(field);
     }
     // Its agents are added and changed in the agents tab, which the dialog says.
@@ -298,8 +298,8 @@ describe("the agents tab", () => {
 
   test("stands an agent of a role as a row whose own settings are cells that save them", () => {
     for (const cell of ["#agent-cell", "#role-cell", "#road-cell", "#sessions-cell", "#threshold-cell"]) expect(templateOf(roleAgents)).toContain(cell);
-    // Whether it may be called, whether its last session is kept warm and whether it is switched on are switches.
-    for (const key of ['key: "callable"', 'key: "keepsCache"', 'key: "enabled"']) expect(scriptOf(roleAgents)).toContain(key);
+    // Whether its last session is kept warm and whether it is switched on are switches.
+    for (const key of ['key: "keepsCache"', 'key: "enabled"']) expect(scriptOf(roleAgents)).toContain(key);
     expect(scriptOf(roleAgents)).toContain('$fetch<RoleAgentView>(`/api/role-agents/${encodeURIComponent(agent.name)}`, { method: "PATCH", body })');
     expect(templateOf(roleAgents)).toContain(":save=\"(value: string | number) => change(row.original, { sessions: String(value) as RoleSessions })\"");
     expect(templateOf(roleAgents)).toContain(":save=\"(value: string) => change(row.original, { foldRatio: fractionOf(Number(value)) })\"");

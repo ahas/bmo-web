@@ -251,7 +251,6 @@ export function roleAgentViewOf(agent: Schemas["RoleAgent"]): RoleAgentView {
     position: agent.position,
     keepsCache: agent.keepsCache,
     sessions: agent.sessions,
-    callable: agent.callable,
     foldRatio: agent.foldRatio ?? null,
     prompt: agent.prompt ?? null,
     bundles: agent.bundles ?? null,
@@ -282,6 +281,7 @@ export function roleViewOf(role: Role): RoleView {
     label: role.label,
     description: role.description,
     prompt: role.prompt,
+    providerPrompts: { ...role.providerPrompts },
     bundles: role.bundles.map(bundleOf),
     skills: role.skills ?? null,
     line: role.line,
@@ -307,7 +307,7 @@ const wholeFrom = (value: unknown, least: number): value is number => typeof val
 /**
  * A role's change as a screen sent it, every field checked for its shape and nothing else: a new role needs its name,
  * its label, its bundles and its line; a change any one field. An emptied prompt or description is a cleared one, and
- * so are skills given as null. Null
+ * so are skills given as null and a provider's prompt emptied or given as null. Null
  * where the body does not read as one; whether the values stand is the agency's to say.
  */
 export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChange"] & { name?: string }) | null {
@@ -351,6 +351,18 @@ export function roleChangeOf(body: unknown, adding: boolean): (Schemas["RoleChan
     change[field] = text(typeof held[field] === "string" ? (held[field] as string).trim() : null) === null ? null : (held[field] as string);
   }
 
+  if ("providerPrompts" in held) {
+    if (held.providerPrompts === null || typeof held.providerPrompts !== "object" || Array.isArray(held.providerPrompts)) return null;
+
+    const prompts = record(held.providerPrompts);
+
+    if (!Object.values(prompts).every((one) => one === null || typeof one === "string")) return null;
+
+    change.providerPrompts = Object.fromEntries(
+      Object.entries(prompts).map(([provider, one]) => [provider, typeof one === "string" && one.trim() !== "" ? one : null])
+    );
+  }
+
   if (adding && (change.label === undefined || change.bundles === undefined || change.line === undefined)) return null;
   if (!adding && Object.keys(change).length === 0) return null;
 
@@ -368,6 +380,10 @@ export async function addRole(change: Schemas["RoleChange"] & { name?: string })
   if (change.prompt != null) body.prompt = change.prompt;
   if (change.description != null) body.description = change.description;
   if (change.skills != null) body.skills = change.skills;
+
+  const prompts = Object.entries(change.providerPrompts ?? {}).filter((entry): entry is [string, string] => entry[1] !== null);
+
+  if (prompts.length > 0) body.providerPrompts = Object.fromEntries(prompts);
 
   return roleViewOf(await agencyCall(agency().POST("/roles", { body })));
 }
@@ -432,7 +448,7 @@ export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["Rol
     change.sessions = held.sessions as (typeof SESSIONS)[number];
   }
 
-  for (const field of ["enabled", "keepsCache", "callable"] as const) {
+  for (const field of ["enabled", "keepsCache"] as const) {
     if (!(field in held)) continue;
     if (typeof held[field] !== "boolean") return null;
 

@@ -9,7 +9,7 @@ import type { ProviderView, RoleAgentView } from "../../../apps/web/shared/axes"
 function agent(name: string, position: number, over: Partial<RoleAgentView> = {}): RoleAgentView {
   return {
     name, role: "coder", provider: "deepseek", model: "deepseek-v4-pro", effort: "high", thinking: null, answerTokens: null, enabled: true, position,
-    keepsCache: false, sessions: "keep", callable: false, foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: false, ...over
+    keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: false, ...over
   };
 }
 

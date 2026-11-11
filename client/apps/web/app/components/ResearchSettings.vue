@@ -194,8 +194,8 @@ usePolling(() => {
   if (document.visibilityState === "visible") void refresh();
 }, POLL_MS);
 
-// The roles the agency lists as callable, each by the words the role tab names it by; the role the settings hold
-// still stands as its own choice where the agency no longer lists it.
+// The roles the agency lists with an agent switched on, each by the words the role tab names it by; the role the
+// settings hold still stands as its own choice where the agency no longer lists it.
 const roleItems = computed<CellChoice[]>(() => {
   const roles = settings.value?.roles ?? [];
   const held = settings.value?.branchRole;

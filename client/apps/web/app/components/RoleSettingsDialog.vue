@@ -70,6 +70,25 @@
           <GrowingTextarea v-model="form.prompt" :rows="6" class="font-mono" :ui="{ base: 'text-sm' }" :disabled="busy" :aria-label="$t('agents.label.role_prompt')" />
         </UFormField>
 
+        <!-- What a run of the role carries after the prompt, by the provider its program stands on: a box for every
+             provider whose program carries the role's line, and for any other the role still holds a text for. -->
+        <UFormField v-if="promptProviders.length > 0" :label="$t('agents.label.provider_prompts')" name="providerPrompts" :error="errorAt('providerPrompts')">
+          <div class="flex flex-col gap-3" data-provider-prompts>
+            <UFormField v-for="provider in promptProviders" :key="provider" :label="providerWord(providers, provider)" :name="`providerPrompts.${provider}`">
+              <GrowingTextarea
+                :model-value="form.providerPrompts[provider] ?? ''"
+                :rows="2"
+                class="font-mono"
+                :ui="{ base: 'text-sm' }"
+                :disabled="busy"
+                :aria-label="$t('agents.aria.provider_prompt_of', { provider: providerWord(providers, provider) })"
+                :data-provider-prompt="provider"
+                @update:model-value="(text: string | undefined) => (form.providerPrompts = { ...form.providerPrompts, [provider]: text ?? '' })"
+              />
+            </UFormField>
+          </div>
+        </UFormField>
+
         <p v-if="errorAt('form') !== undefined" role="alert" class="break-words text-sm text-error">{{ errorAt("form") }}</p>
       </form>
 
@@ -87,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { refusalOf } from "~/domain/axes";
+import { providerWord, refusalOf, useProviders } from "~/domain/axes";
 
 import type { RolesView, RoleView } from "#shared/axes";
 
@@ -105,6 +124,7 @@ const formId = useId();
 
 // The roles tab reads the same answer under the same key.
 const { data: view, refresh } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false });
+const { data: providers } = useProviders();
 
 const adding = computed(() => props.name === null);
 const role = computed<RoleView | null>(() => (props.name === null ? null : (view.value?.roles.find((one) => one.name === props.name) ?? null)));
@@ -119,10 +139,12 @@ interface RoleForm {
   // The skills it names, or null where it names none.
   skills: string[] | null;
   prompt: string;
+  // The text each provider's runs carry after the prompt, an empty one standing for none.
+  providerPrompts: Record<string, string>;
 }
 
 function emptyForm(): RoleForm {
-  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], skills: null, prompt: "" };
+  return { name: "", description: "", line: view.value?.lines[0] ?? "", bundles: [], skills: null, prompt: "", providerPrompts: {} };
 }
 
 function formOf(held: RoleView): RoleForm {
@@ -132,8 +154,21 @@ function formOf(held: RoleView): RoleForm {
     line: held.line,
     bundles: held.bundles.map((one) => one.name),
     skills: held.skills === null ? null : [...held.skills],
-    prompt: held.prompt ?? ""
+    prompt: held.prompt ?? "",
+    providerPrompts: { ...held.providerPrompts }
   };
+}
+
+// The provider prompts as they would be saved: each provider that holds a text, in one order, so a box typed back to
+// what is saved, or one opened and left empty, is no change.
+function settledPrompts(prompts: Record<string, string>): [string, string][] {
+  return Object.entries(prompts)
+    .filter(([, text]) => text.trim() !== "")
+    .sort(([a], [b]) => a.localeCompare(b));
+}
+
+function settled(held: RoleForm): unknown {
+  return { ...held, providerPrompts: settledPrompts(held.providerPrompts) };
 }
 
 const form = ref<RoleForm>(emptyForm());
@@ -141,7 +176,7 @@ const opened = ref<RoleForm>(emptyForm());
 const busy = ref(false);
 const refusal = ref<{ field: string | null; text: string } | null>(null);
 
-const dirty = computed(() => JSON.stringify(form.value) !== JSON.stringify(opened.value));
+const dirty = computed(() => JSON.stringify(settled(form.value)) !== JSON.stringify(settled(opened.value)));
 const complete = computed(() => form.value.name.trim() !== "" && form.value.line !== "");
 
 const lineItems = computed(() => {
@@ -149,7 +184,16 @@ const lineItems = computed(() => {
 
   return (form.value.line === "" || lines.includes(form.value.line) ? lines : [form.value.line, ...lines]).map((line) => ({ label: line, value: line }));
 });
-const FIELDS = ["name", "label", "description", "line", "bundles", "skills", "prompt"];
+const FIELDS = ["name", "label", "description", "line", "bundles", "skills", "prompt", "providerPrompts"];
+
+// The providers a prompt box stands for: every one whose program carries the role's line, in the agency's order, then
+// any other the role holds a text for, so that text can still be emptied.
+const promptProviders = computed<string[]>(() => {
+  const carrying = (providers.value ?? []).filter((one) => one.lines.includes(form.value.line)).map((one) => one.name);
+  const held = Object.keys(opened.value.providerPrompts).filter((one) => !carrying.includes(one));
+
+  return [...carrying, ...held];
+});
 
 // Every skill the agency's release carries, with any the role names that it carries no longer, so a name once
 // chosen can still be taken out.
@@ -222,6 +266,18 @@ function body(): Record<string, unknown> {
   if (changed("bundles")) sent.bundles = now.bundles;
   if (changed("skills") && (!adding.value || now.skills !== null)) sent.skills = now.skills;
   if (changed("prompt") && (!adding.value || now.prompt.trim() !== "")) sent.prompt = now.prompt.trim() === "" ? null : now.prompt;
+
+  // Each provider whose text changed: its text, or null where it was emptied; a new role sends the ones written.
+  const prompts: Record<string, string | null> = {};
+
+  for (const provider of new Set([...Object.keys(now.providerPrompts), ...Object.keys(before.providerPrompts)])) {
+    const text = (now.providerPrompts[provider] ?? "").trim() === "" ? null : (now.providerPrompts[provider] as string);
+    const held = (before.providerPrompts[provider] ?? "").trim() === "" ? null : (before.providerPrompts[provider] as string);
+
+    if (adding.value ? text !== null : text !== held) prompts[provider] = text;
+  }
+
+  if (Object.keys(prompts).length > 0) sent.providerPrompts = prompts;
 
   return sent;
 }

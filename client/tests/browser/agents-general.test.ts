@@ -277,13 +277,13 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     // One role of three agents on one road, the first carrying a run, as the console's own route answers it.
     const seat = (index: number, extra: Record<string, unknown> = {}) => ({
       name: `worker-0${index}`, role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null,
-      enabled: true, position: index, keepsCache: false, sessions: "keep", callable: false, foldRatio: null, prompt: null, bundles: null, skills: null,
+      enabled: true, position: index, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
       followsSupervisor: false, carries: index === 1, ...extra
     });
     let agents = [seat(1), seat(2), seat(3)];
     const view = () => ({
       roles: [{
-        name: "worker", label: "Worker", description: null, prompt: null, bundles: [{ name: "web.read", label: "Web reading" }], line: "worker", agents,
+        name: "worker", label: "Worker", description: null, prompt: null, providerPrompts: {}, bundles: [{ name: "web.read", label: "Web reading" }], skills: null, line: "worker", agents,
         order: [{ provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null }],
         maxConcurrent: agents.filter((one) => one.enabled).length, running: 1, waiting: 0, provider: "claude-code", waitingFor: null
       }],
@@ -339,10 +339,10 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       expect(await rows.first().innerText()).toContain("worker-01");
       expect(await rows.first().innerText()).toContain("claude-opus-5-5 · high");
 
-      // Whether it may be called is its own switch, saved as it is thrown.
-      await rows.nth(1).locator(`[role="switch"][aria-label="${wording("agents.aria.callable_of", { name: "worker-02" })}"]`).click();
+      // Whether its last session is kept warm is its own switch, saved as it is thrown.
+      await rows.nth(1).locator(`[role="switch"][aria-label="${wording("agents.aria.agent_keeps_cache_of", { name: "worker-02" })}"]`).click();
       expect(await until(async () => sent.length, (count) => count === 1)).toBe(1);
-      expect(sent[0]).toEqual({ method: "PATCH", name: "worker-02", body: { callable: true } });
+      expect(sent[0]).toEqual({ method: "PATCH", name: "worker-02", body: { keepsCache: true } });
       sent.length = 0;
 
       // Its name opens its role's agents.
@@ -383,6 +383,75 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       await context.close();
     }
   }, 90_000);
+
+  for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
+    test(`hold a role's provider prompts in its dialog, a box for each provider of its line and for one it still holds, ${width}px wide`, async () => {
+      const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
+      const at = cookie.indexOf("=");
+      // A role on the search line holding a text for a provider whose program no longer carries that line.
+      const held = {
+        name: "voyager", label: "Voyager", description: null, prompt: null, bundles: [], skills: null, line: "search", agents: [], order: [],
+        maxConcurrent: 0, running: 0, waiting: 0, provider: null, waitingFor: null, providerPrompts: { registered: "text-held" }
+      };
+      const sent: unknown[] = [];
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+      await context.route(/\/api\/roles$/, (route) => route.fulfill({ json: { roles: [held], bundles: [], skills: [], lines: ["worker", "search"] } }));
+      await context.route(/\/api\/roles\/voyager$/, async (route) => {
+        sent.push(route.request().postDataJSON());
+
+        await route.fulfill({ json: held });
+      });
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/agents?tab=roles`, { waitUntil: "load" });
+        await page.locator("#setting-role-voyager").click({ timeout: 15_000 });
+
+        const dialog = page.getByRole("dialog");
+        const boxes = dialog.locator("[data-provider-prompts] textarea");
+
+        // The providers whose program carries the search line, in the agency's order, then the one the role still holds.
+        await boxes.nth(2).waitFor({ timeout: 10_000 });
+        expect(await boxes.evaluateAll((all) => all.map((one) => one.closest("[data-provider-prompt]")?.getAttribute("data-provider-prompt")))).toEqual([
+          "claude-code",
+          "deepseek",
+          "registered"
+        ]);
+        // Each box is named by its provider's word, the one its field's label shows, and the held text stands in its own.
+        const word = (await dialog.locator(`label[for="${await boxes.nth(2).getAttribute("id")}"]`).innerText()).trim();
+
+        expect(await dialog.getByRole("textbox", { name: wording("agents.aria.provider_prompt_of", { provider: word }) }).inputValue()).toBe("text-held");
+
+        // Every box stands inside the dialog's width.
+        const inside = await dialog.locator("[data-provider-prompts]").evaluate((list) => {
+          const frame = list.closest("[role=dialog]")!.getBoundingClientRect();
+
+          return [...list.querySelectorAll("textarea")].every((one) => {
+            const box = one.getBoundingClientRect();
+
+            return box.left >= frame.left && box.right <= frame.right;
+          });
+        });
+
+        expect(inside).toBe(true);
+
+        // A box opened and left empty is no change; a text written and one emptied are, and go in one save.
+        const save = dialog.getByRole("button", { name: wording("common.action.save") });
+
+        await boxes.nth(1).fill("");
+        expect(await save.isDisabled()).toBe(true);
+        await boxes.nth(0).fill("text-a");
+        await boxes.nth(2).fill("");
+        await save.click();
+        expect(await until(async () => sent.length, (count) => count === 1)).toBe(1);
+        expect(sent[0]).toEqual({ providerPrompts: { "claude-code": "text-a", registered: null } });
+      } finally {
+        await context.close();
+      }
+    }, 60_000);
+  }
 
   test("stand every column of the agents tab's tables at its own width, the room left over one empty column at the table's edge", async () => {
     const context = await browser!.newContext({ viewport: { width: 1600, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });

@@ -9,11 +9,12 @@ import KO from "../fixtures/browser/item-reports.test.ko.json";
 import type { Browser, BrowserContext } from "playwright-core";
 import type { TodoBoard, TodoItem, TodoReport } from "../../apps/web/shared/types";
 
-// A finished item's reports and the translations under its English texts, as the browser lays them out (docs/web.md,
-// the TODO modal's result and instruction tabs, 「The original, and its translation under it」): every report stands
+// A finished item's reports and the readings of its English texts, as the browser lays them out (docs/web.md, the
+// TODO modal's result and instruction tabs, 「The original, and its translation in its place」): every report stands
 // in the result tab, the closing one first and whole, headed by its kind and moment; the row's mark counts them; each
-// English text stands in its original with a Korean reading under it, each text asked of the translator once however
-// often the item is opened; and each approval stands with its caller and kind, a recommendation apart from approval.
+// English text opens in its original with 번역 보기 above it, the Korean reading taking the original's place when it
+// is pressed and 원문 보기 putting the original back, each text asked of the translator once however often it is
+// pressed; and each approval stands with its caller and kind, a recommendation apart from approval.
 // It drives the console tests/support/browser-console.ts stands up, serving what each place reads through the page's
 // own routes; the suite stands up no console, so there it skips.
 
@@ -45,7 +46,7 @@ const REPORTS: TodoReport[] = [
 function item(): TodoItem {
   return {
     id: ITEM, title: "item-title", instruction: BRIEF, requester: "Owner", requesterId: null, chatId: null, approved: true, awaitingApproval: false, recommended: false, done: true,
-    running: false, worker: "worker-b", cowork: false, priority: 1, status: "done", model: null, agent: null, ranOn: null, note: null, reports: REPORTS, unfinished: null,
+    running: false, worker: "worker-b", priority: 1, status: "done", model: null, agent: null, ranOn: null, note: null, reports: REPORTS, unfinished: null,
     rejections: 0,
     unfinishedResolvedAt: null, unfinishedResolution: null, brief: BRIEF, heldAt: null, heldReason: null, heldKind: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
@@ -117,7 +118,7 @@ async function until<T>(read: () => Promise<T>, holds: (value: T) => boolean, ms
 
 describe.skipIf(!origin || !touchReady())("an item's reports and translations", () => {
   for (const viewport of WIDTHS) {
-    test(`every report stands whole with its translation under it, each text asked once, ${viewport.width}px wide`, async () => {
+    test(`every report stands whole with its reading a press away in its place, each text asked once, ${viewport.width}px wide`, async () => {
       const context = await open(viewport);
 
       asked.length = 0;
@@ -146,25 +147,31 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
         expect(await closing.innerText()).toContain("Last line of the closing report.");
         expect(await closing.evaluate((node) => [node, ...node.querySelectorAll("*")].every((one) => one.scrollHeight <= one.clientHeight + 1 || getComputedStyle(one).overflowY === "visible"))).toBe(true);
 
-        // Under each original its reading lands, headed by the language it is in; the original stays.
-        const reading = closing.locator("[data-reading]");
+        // Each English original opens as it was written, its line above it, and nothing is asked until it is pressed.
+        const line = closing.locator("[data-reading]");
 
-        await until(async () => await reading.innerText(), (text) => text.includes("ko-reading: The skill is committed and pushed."));
-        expect(await reading.innerText()).toContain(wording("documents.label.translation_of", { language: wording("documents.label.language_ko") }));
-        expect(await reading.innerText()).toContain("ko-reading: The skill is committed and pushed.");
+        expect(await line.innerText()).toContain(wording("common.action.show_translation"));
+        expect(asked).toEqual([]);
+
+        // Pressed, the reading takes the original's place, saying the language it came from; 원문 보기 puts it back.
+        await closing.locator("[data-reading-translate]").click();
+        await until(async () => await closing.innerText(), (text) => text.includes("ko-reading: The skill is committed and pushed."));
+        expect(await closing.innerText()).not.toContain("\nThe skill is committed and pushed.");
+        expect(await line.innerText()).toContain(wording("common.label.translated_from", { language: wording("documents.label.language_en") }));
+        await closing.locator("[data-reading-original]").click();
         expect(await closing.innerText()).toContain("The skill is committed and pushed.");
-        await until(async () => await dialog.locator("[data-report]").nth(1).locator("[data-reading]").innerText(), (text) => text.includes(`ko-reading: ${PROGRESS}`));
+        expect(await closing.innerText()).not.toContain("ko-reading:");
 
-        // The instruction tab stands the brief in its original with its reading under it.
+        // The instruction tab stands the brief the same way.
         await dialog.getByRole("tab", { name: wording("todo.label.field_instruction") }).first().click();
 
-        const brief = dialog.locator("[data-reading]").filter({ hasText: `ko-reading: ${BRIEF}` });
+        const briefLine = dialog.locator("[data-reading]").filter({ hasText: wording("common.action.show_translation") }).first();
 
-        expect(await until(async () => await brief.count(), (n) => n === 1)).toBe(1);
-        expect(await dialog.getByText(BRIEF, { exact: true }).count()).toBeGreaterThanOrEqual(1);
+        await briefLine.locator("[data-reading-translate]").click();
+        expect(await until(async () => await dialog.getByText(`ko-reading: ${BRIEF}`).count(), (n) => n >= 1)).toBeGreaterThanOrEqual(1);
 
-        // Closed and opened again in the same tab, nothing is asked again: every text was asked for once. (A tab opened
-        // afresh asks the gate again, which answers what it keeps without its translator.)
+        // Closed and opened again in the same tab, a press asks nothing again: every text was asked for once. (A tab
+        // opened afresh asks the gate again, which answers what it keeps without its translator.)
         await page.keyboard.press("Escape");
         const itemDialogs = page.getByRole("dialog").filter({ has: page.getByRole("tab", { name: wording("todo.label.field_instruction") }) });
 
@@ -176,18 +183,19 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
           await router.push({ query: {} });
           await router.push({ query: { todo: "${ITEM}" } });
         })()`);
-        // The same item opened again keeps the tab being read, and its reading stands at once, from what the tab kept.
+        // The same item opened again opens on the originals, and a press stands the reading at once, from what the tab kept.
         const again = itemDialogs.last();
 
-        await again.locator("[data-reading]").filter({ hasText: `ko-reading: ${BRIEF}` }).waitFor({ timeout: 20_000 });
+        await again.locator("[data-report]").first().waitFor({ timeout: 20_000 });
         await again.getByRole("tab", { name: wording("todo.label.result") }).first().click();
-        expect(await again.locator("[data-report] [data-reading]").first().innerText()).toContain("ko-reading:");
+        await again.locator("[data-report]").first().locator("[data-reading-translate]").click();
+        await until(async () => await again.locator("[data-report]").first().innerText(), (text) => text.includes("ko-reading:"));
         await Bun.sleep(800);
 
         const once = new Set(asked);
 
         expect(asked.length).toBe(once.size);
-        expect([...once].sort()).toEqual([BRIEF, FINAL, PROGRESS].sort());
+        expect([...once].sort()).toEqual([BRIEF, FINAL].sort());
 
         // The sentence that said a work order's translation cannot be had is gone.
         expect(await page.getByText(KO.unavailable).count()).toBe(0);

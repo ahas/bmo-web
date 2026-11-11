@@ -6,9 +6,9 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext } from "playwright-core";
 
-// A brain memory opened from a room's brain chip carries a translate action, and the gate's reading of the words stands
-// under the original (docs/web.md, the translated texts section). The action asks nothing until it is pressed; where the
-// translator answers too busy it stands disabled, saying why.
+// A brain memory opened from a room's brain chip opens on its words with 번역 보기 above them, and the gate's reading
+// takes the words' place when it is pressed, 원문 보기 putting them back (docs/web.md, 「The original, and its translation
+// in its place」). Nothing is asked until the press; where the translator answers too busy the line says so.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves the
 // round's reads, the piece, and the translator through the page's own routes.
@@ -104,14 +104,15 @@ describe.skipIf(!origin || !touchReady())("a brain memory's words", () => {
         await page.locator("[data-brain-reads] button").first().click();
         await page.locator("[data-brain-read-text]").waitFor({ timeout: 20_000 });
 
-        // Nothing was asked before the press.
-        expect(await page.locator("[data-brain-read-translation]").count()).toBe(0);
-
-        await page.locator("[data-brain-translate]").click();
-        await page.locator("[data-brain-read-translation]").waitFor({ timeout: 20_000 });
-
+        // It opens on the words as the brain keeps them, the line above them asking nothing until it is pressed.
         expect((await page.locator("[data-brain-read-text]").innerText()).trim()).toBe(WORDS);
-        expect((await page.locator("[data-brain-read-translation]").innerText()).trim()).toBe(READING);
+
+        // Pressed, the reading takes the words' place, and 원문 보기 puts them back.
+        await page.locator("[data-reading-translate]").click();
+        await page.locator("[data-reading-original]").waitFor({ timeout: 20_000 });
+        expect((await page.locator("[data-brain-read-text]").innerText()).trim()).toBe(READING);
+        await page.locator("[data-reading-original]").click();
+        expect((await page.locator("[data-brain-read-text]").innerText()).trim()).toBe(WORDS);
         await page.screenshot({ path: `/tmp/brain-translation-${width}.png` });
       } finally {
         await context.close();
@@ -119,7 +120,7 @@ describe.skipIf(!origin || !touchReady())("a brain memory's words", () => {
     }, 120_000);
   }
 
-  test("stand disabled, saying why, where the translator answers too busy", async () => {
+  test("say on the line that the translator is too busy, the words standing", async () => {
     const context = await open(1280, 900, "busy");
     const page = await context.newPage();
 
@@ -128,13 +129,13 @@ describe.skipIf(!origin || !touchReady())("a brain memory's words", () => {
       await page.locator("[data-message]").first().waitFor({ timeout: 30_000 });
       await page.locator(`[data-message] button[aria-label*="${label}"]`).first().click();
       await page.locator("[data-brain-reads] button").first().click();
-      await page.locator("[data-brain-translate]").waitFor({ timeout: 20_000 });
+      await page.locator("[data-reading-translate]").waitFor({ timeout: 20_000 });
 
-      await page.locator("[data-brain-translate]").click();
-      await page.waitForFunction(() => document.querySelector("[data-brain-translate]")?.hasAttribute("disabled") === true, undefined, { timeout: 30_000 });
-      expect(await page.locator("[data-brain-translate]").getAttribute("disabled")).not.toBeNull();
-      // The reason it cannot ask stands on the wrapper the tooltip hangs from.
-      expect(await page.locator("[data-brain-translate-holder]").count()).toBe(1);
+      await page.locator("[data-reading-translate]").click();
+      // The line says the translator is too busy, with a retry, and the words stand as they were.
+      await page.locator("[data-reading] [role=alert]").waitFor({ timeout: 30_000 });
+      expect(await page.locator("[data-reading] [role=alert]").innerText()).toContain(wording("common.status.translation_busy"));
+      expect((await page.locator("[data-brain-read-text]").innerText()).trim()).toBe(WORDS);
     } finally {
       await context.close();
     }

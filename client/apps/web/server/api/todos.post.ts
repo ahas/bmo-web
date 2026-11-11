@@ -27,7 +27,6 @@ interface TodoBody {
   text?: unknown;
   sources?: unknown;
   worker?: unknown;
-  cowork?: unknown;
   model?: unknown;
   agent?: unknown;
 }
@@ -49,7 +48,6 @@ const ACTIONS: readonly TodoAction[] = [
   "stop",
   "release",
   "worker",
-  "cowork",
   "model",
   "agent"
 ];
@@ -159,14 +157,6 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
     throw fail(400, wording("todo.error.bad_worker"));
   }
 
-  const cowork = body?.cowork;
-
-  // Whether its job fans out into branches. It is on or it is off, and nothing else is a state
-  // the switch can be in.
-  if (action === "cowork" && typeof cowork !== "boolean") {
-    throw fail(400, wording("todo.error.bad_cowork"));
-  }
-
   const model = body?.model;
 
   // The provider and model its jobs go out on: `auto`, or a provider, a slash and a model. Whether the agency carries
@@ -207,9 +197,6 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       break;
     case "worker":
       await patchItem(id, { assigneeName: worker === null ? null : String(worker) });
-      break;
-    case "cowork":
-      await patchItem(id, { cowork: cowork === true });
       break;
     case "model":
       await setLabel(id, "model", model as string);
@@ -261,7 +248,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   return { ok: true };
 });
 
-async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; cowork?: boolean; position?: number; labels?: Record<string, string> }): Promise<void> {
+async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; position?: number; labels?: Record<string, string> }): Promise<void> {
   await jobCall(job().PATCH("/items/{itemId}", {
     params: { path: { itemId: id } },
     body: change

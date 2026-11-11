@@ -398,6 +398,7 @@ export function workStages(t: Translate, steps: readonly WorkStep[], ended: Read
     owner: stepRoles(step),
     model: stepModelLine(t, step),
     seconds: stepSeconds(step, now),
+    rejections: step.tasks.reduce((sum, task) => sum + (task.rejections ?? 0), 0),
     subs:
       step.tasks.length > 1
         ? step.tasks.map((task, index) => ({
@@ -408,6 +409,7 @@ export function workStages(t: Translate, steps: readonly WorkStep[], ended: Read
             owner: task.role,
             model: taskModelLine(t, task),
             seconds: taskRunSeconds(task, ended, now),
+            rejections: task.rejections ?? 0,
             subs: []
           }))
         : []

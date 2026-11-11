@@ -5,8 +5,8 @@ import type { Reading } from "bmo-ui/app/domain/translation";
 import type { DocumentLanguage } from "#shared/types";
 import type { Ref } from "vue";
 
-// A text a worker or a job wrote, read in the reader's own language under the original (docs/web.md, 「The original,
-// and its translation under it」). The reading is asked of the gate's translating route through the console's own
+// A text a worker or a job wrote, read in the reader's own language in the original's place (docs/web.md, 「The
+// original, and its translation in its place」). The reading is asked of the gate's translating route through the console's own
 // route; the gate keeps every translation under its original, this tab keeps every whole reading for its life, and
 // two places asking for the same text at once share one ask, so a text is asked for once.
 
@@ -140,40 +140,4 @@ export function useAskedReading(
   });
 
   return { reading, blocked, ask: () => void ask() };
-}
-
-/** One text's reading in the reader's language, asked as the text is given and asked again on `retry`. */
-export function useTextReading(text: () => string, language: () => DocumentLanguage): { reading: Ref<TextReading>; retry: () => void } {
-  const reading = ref<TextReading>({ kind: "none" });
-  let generation = 0;
-
-  async function ask(): Promise<void> {
-    const original = text();
-    const into = language();
-    const mine = ++generation;
-
-    if (!hasTranslator() || !wantsReading(original, into)) {
-      reading.value = { kind: "none" };
-      return;
-    }
-
-    reading.value = { kind: "asking" };
-
-    try {
-      const read = await readingOf(original, into);
-
-      if (mine !== generation) return;
-
-      reading.value = read.untranslated === true ? { kind: "busy" } : { kind: "read", text: read.text, whole: read.whole };
-    } catch {
-      // A translator that is named none, refused or failed leaves the original standing alone, and says so.
-      if (mine !== generation) return;
-
-      reading.value = { kind: "failed" };
-    }
-  }
-
-  watch([text, language], () => void ask(), { immediate: true });
-
-  return { reading, retry: () => void ask() };
 }

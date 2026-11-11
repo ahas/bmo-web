@@ -6,10 +6,10 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
-// The room's situation note, opened from the room menu, carries the memory text's translate action: nothing is asked
-// until it is pressed, the reading stands under the note headed by the reader's language, and the note itself stays
-// whole (docs/web.md, the room screen's situation entry and the translated texts section). Where the translator answers
-// too busy the action stands disabled, saying why.
+// The room's situation note, opened from the room menu, opens as written with 번역 보기 above it: nothing is asked until
+// it is pressed, the reading then takes the note's place and 원문 보기 puts it back (docs/web.md, the room screen's
+// situation entry and 「The original, and its translation in its place」). Where the translator answers too busy the
+// line says so.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // the room's note and the translator through the page's own routes.
@@ -88,31 +88,32 @@ describe.skipIf(!origin || !touchReady())("a room's situation note", () => {
       try {
         await openSituation(page);
 
-        // Nothing was asked before the press.
-        expect(await page.locator("[data-situation-read-translation]").count()).toBe(0);
-
-        await page.locator("[data-situation-translate]").click();
-        await page.locator("[data-situation-read-translation]").waitFor({ timeout: 20_000 });
-
-        // The note stands whole above its reading.
+        // It opens on the note as written, the line above it asking nothing until it is pressed.
         expect((await page.locator("[data-situation-note]").innerText()).trim()).toBe(NOTE);
-        expect((await page.locator("[data-situation-read-translation]").innerText()).trim()).toBe(READING);
+
+        // Pressed, the reading takes the note's place, and 원문 보기 puts it back.
+        await page.locator("[data-reading-translate]").click();
+        await page.locator("[data-reading-original]").waitFor({ timeout: 20_000 });
+        expect((await page.locator("[data-situation-note]").innerText()).trim()).toBe(READING);
+        await page.locator("[data-reading-original]").click();
+        expect((await page.locator("[data-situation-note]").innerText()).trim()).toBe(NOTE);
       } finally {
         await context.close();
       }
     }, 120_000);
   }
 
-  test("stands disabled, saying why, where the translator answers too busy", async () => {
+  test("says on the line that the translator is too busy, the note standing", async () => {
     const context = await open(1280, 900, "busy");
     const page = await context.newPage();
 
     try {
       await openSituation(page);
-      await page.locator("[data-situation-translate]").click();
-      await page.waitForFunction(() => document.querySelector("[data-situation-translate]")?.hasAttribute("disabled") === true, undefined, { timeout: 30_000 });
-      // The reason it cannot ask stands on the wrapper the tooltip hangs from.
-      expect(await page.locator("[data-situation-translate-holder]").count()).toBe(1);
+      await page.locator("[data-reading-translate]").click();
+      // The line says the translator is too busy, with a retry, and the note stands as written.
+      await page.locator("[data-reading] [role=alert]").waitFor({ timeout: 30_000 });
+      expect(await page.locator("[data-reading] [role=alert]").innerText()).toContain(wording("common.status.translation_busy"));
+      expect((await page.locator("[data-situation-note]").innerText()).trim()).toBe(NOTE);
     } finally {
       await context.close();
     }

@@ -23,6 +23,16 @@ standIn("JOB", (asked: Asked) => {
     return answer({ itemId: 7, purpose: "Run a PC", directive: "Do it", steps, state: "running", changedAt: 1_790_000_000_000 });
   }
   if (path === "/items/7/work-order/tasks") return answer({ items: tasks, more: false });
+  if (path === "/items/7/reviews") {
+    return answer({
+      items: [
+        { id: 1, itemId: 7, ref: "job:1", stage: 1, round: 1, kind: "report", body: "found", actorName: "agency", labels: {}, createdAt: 1 },
+        { id: 2, itemId: 7, ref: "job:1", stage: 1, round: 2, kind: "rejection", body: "again", actorName: "agent-a", labels: {}, createdAt: 2 },
+        { id: 3, itemId: 7, ref: "job:1", stage: 1, round: 3, kind: "rejection", body: "once more", actorName: "agent-a", labels: {}, createdAt: 3 }
+      ],
+      more: false
+    });
+  }
 
   return answer({ code: "not-found", error: "no such item" }, 404);
 });
@@ -31,6 +41,12 @@ const { readWorkOrder, workOrderView } = await import("../../../apps/web/server/
 const { workSteps } = await import("../../../apps/web/app/domain/workorder");
 
 describe("an item's fixed work order", () => {
+  test("counts each step's rejections from the item's review, by the stage they stand under", async () => {
+    const order = await readWorkOrder(7);
+
+    expect(order?.tasks.map((task) => task.rejections)).toEqual([2, 0, 0]);
+  });
+
   test("stands each step once, as a build step titled by its own step, the current one alone at work", async () => {
     const order = await readWorkOrder(7);
 

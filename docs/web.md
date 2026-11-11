@@ -5482,7 +5482,7 @@ Four bounds keep it from growing forever.
 - **The modal is built as a screen to read one item.** The list line's shape is not carried over — a line shape fitted to
   a narrow column only lines up cell by cell in a wide place. The head stands the number and title uncut, and one line
   below gathers where this item stands now: state, approval (approved or awaiting, and who asked), worker, model,
-  co-work, priority. For an unfinished item the worker, the model and co-work are cells changed right there, and for a
+  priority. For an unfinished item the worker and the model are cells changed right there, and for a
   finished item read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 보고 턴
   (only where there is one), 상태, 지시 and 요청 원문 on the left, 의논 and 관리 on the right.
   - **Left: 결과, 상태, 지시 and 요청 원문** — how the item ended, what became of it and what it says.
@@ -5525,32 +5525,32 @@ Four bounds keep it from growing forever.
       says of the job, so its time, its tool calls, its tokens and how far it has come move as they happen, and the
       작업 단계 move with every task that starts or ends, not only at a job's or a stage's end.
     - **지시** is what the work is told: the item's brief, the chat agent's organized instruction. The brief is written once, in
-      the original a job reads, and stands in that original with its translation under it (「The original, and its
-      translation under it」). Under it stand the chat agent's changes to it, each with when and whether the
+      the original a job reads, and stands in that original with its translation a press away (「The original, and
+      its translation in its place」). Under it stand the chat agent's changes to it, each with when and whether the
       running job has been handed it; and the work order — its draft with 저장, or the order as it runs.
-  - **The original, and its translation under it.** A text a worker or a job wrote is read in the language it was
-    written in and in the reader's own: the brief and each change to it, the running work order's purpose and
-    instruction, each report, and a co-work task's work order and result — and a brain memory opened from a room's
-    record and the room's situation note, where the reading is asked by the 번역 action rather than as the text
-    opens. Each stands as it was written, and under it, headed by the language it is in, its reading in the language
-    the console speaks to its reader — 한국어 번역. The original is never hidden, folded or replaced by its reading, and no press is
-    needed to read what the text says.
+  - **The original, and its translation in its place.** A text a worker or a job wrote is read in the language it
+    was written in or in the reader's own, one at a time in the same place: the brief and each change to it, the
+    running work order's purpose and instruction, each report, a co-work task's work order and result, a brain
+    memory opened from a room's record, and the room's situation note. Each opens as it was written, and a text in
+    another language than the reader's carries one line above it: **번역 보기**. Pressed, it asks the reading, and
+    the reading takes the original's place whole; the line then says the language it was translated from and offers
+    **원문 보기**, which puts the original back — 영어에서 번역됨 · 원문 보기. The reading is never set under the
+    original, and a text in the reader's language carries no line.
     - **The road** is the gate's translating route, `POST /translations`, which the gate's `gate/translate` tool
       and a bundle's screens also take. The console asks it through a route of its own, `POST /api/translations`,
       on its own credential and for the reader's role, rather than through the relay: the relay judges a call by
       the page it came from, and the TODO dialog is the layout's, standing over a bundle's screen as much as over
       the console's own, where a call relayed from that page would be the bundle's and refused. A console that
-      names no gate offers no reading.
+      names no gate offers no reading, and its line stands disabled, saying why.
     - **Each text is asked for once.** The gate keeps every translation it makes under its original and its
       language and answers a kept one without its translator, the tab keeps every whole reading for its life, and
-      two places asking for the same text at once share the one ask. So reopening an item, or another item quoting the
-      same words, asks the translator nothing again.
-    - **It lands as it arrives.** While a reading is on its way, the place under the original says it is being
-      translated; the reading stands the moment it comes, each text on its own, so a short text stands translated
-      before a long one beside it. A text already in the reader's language takes no reading and stands alone.
-    - **What did not come says so,** in one line under the original with **다시 요청**: a translator that refused
-      or failed, or one still too busy after its waits. A reading the translator could not render every part of
-      stands with a line saying that some parts stand in the original.
+      two places asking for the same text at once share the one ask. So pressing it again, reopening an item, or
+      another item quoting the same words, asks the translator nothing again.
+    - **While it is asked,** the line says it is being translated and the original stands; the reading takes its
+      place the moment it comes.
+    - **What did not come says so,** on the same line with **다시 요청**, the original standing: a translator that
+      refused or failed, or one still too busy after its waits. A reading the translator could not render every part
+      of says that some parts stand in the original.
   - **Right: 의논 and 관리** — the talk about the item and what the owner does to it.
     - **의논** is the talk with the chat agent about the item. The talk takes the tab's whole height and the words box, the room's
       own box, attaches to the tab's bottom edge — with no turns yet, while they load and when they fail alike, the empty
@@ -5578,8 +5578,8 @@ Four bounds keep it from growing forever.
     title, role, model and instruction — a list of things to build as its tasks, and any other JSON as its fields. The
     text as it was written stands whole under 원문, never folded. The JSON the bot reads is not changed.
   - A co-worker writes in English (bmo-job's `docs/work-orders.md`, 「Reading a co-worker's English on the console」),
-    so the task's work order and its result each stand in the original with the translation under it (「The original,
-    and its translation under it」). A builder turn's result is laid out from the original and its fields are not
+    so the task's work order and its result each stand in the original with the translation a press away (「The
+    original, and its translation in its place」). A builder turn's result is laid out from the original and its fields are not
     translated: what it holds is the bot's to read, and 원문 under it is the text as written.
   - The verbs the task's state takes — 지시 수정, 건너뛰기, 되돌리기, 다시 실행 — stand in the foot at its right end. What a
     verb asks for before it is sent stands at the end of the body, and the foot then holds 취소 and the verb's own button.
@@ -5596,6 +5596,9 @@ Four bounds keep it from growing forever.
   The second holds the models, which take the free width and slide where they do not fit, then at the right end the
   progress as `n/m p%` for a step of more than one task. A step of several tasks holds them as its sub-stages, a line
   each, and pressing a step or a sub-stage opens the co-work step dialog at it.
+  A step whose work its review sent back carries how many times beside its name, **반려 n회**: the rejection entries of
+  the item's review written under that step's stage (bmo-job's `docs/api.md`, 「Reviews」), so a step handed over
+  again after a later stage sent the work back to it says so.
 - **Boxes grow with their text.** On a phone no box in the modal has a ceiling, so the modal's own scroll is never caught
   by a box; on a wide screen a box stops at a ceiling and scrolls inside, and the talk's box always does, since the talk
   above it must stay in view.
@@ -5626,14 +5629,14 @@ Four bounds keep it from growing forever.
     steps alone: the to-dos synthesis set each run in turn, so which of them is under way is how far the work has come.
     The numerator is the step running now, and a skipped step counts as a passed place. A design step — 계획, 조사, 검토,
     설계 종합 — and 최종 검증 stand as their names alone: a stage's place among the stages says how the plan was cut, not how
-    far the order came. A reopened work order carries which round in front. A single-session job that is not co-work has no count at all so stands
+    far the order came. A reopened work order carries which round in front. A job whose work order holds no step has no count at all so stands
     as one **진행 중**. How many times an item was run is not progress but past history, so it does not stand on this tag and
     is read as the run count on the time line after it ends. This some/some is the one set of rules the bot reads from a work
     order, and the TODO panel, the running-run line, the home screen's worker cell and the in-progress board in the owner's private
     chat all use that one set. The panel re-reads each time the work order takes a step. An item with a set model attaches
     that model too. An item with an assigned worker attaches that worker name too — a line with no assignment stands no tag,
-    and such a line is taken by the Built-in worker. An item to run as co-work carries a **협업** tag — standing only on
-    lines turned on, and the rest run as one session. An item bmo-job marks done while the agency's job for it is
+    and such a line is taken by the Built-in worker. No line is told apart as co-work: how a job reaches its steps,
+    alone or with subagents of its own, is its agent's. An item bmo-job marks done while the agency's job for it is
     still going stands **완료 보고 중** until the agency tells its stream that the job ended (its `job.ended`), however long
     that takes; the agency keeps the job's lease through the close (its `docs/role-slots.md`, 「The line」), so the line
     never falls back to 대기 on its way out. **테스트 중**, **배포 대기**, **배포 중** and **배포 실패** stand on a row,
@@ -5733,7 +5736,6 @@ Four bounds keep it from growing forever.
     picking that worker finds those lines too. The names come from the agents table, with any other name a line
     still carries.
   - **미결** — a 미결 still standing, or one already resolved.
-  - **협업** — lines run as co-work, or as one session.
   - **요청한 방** and **요청한 사람** — the room a request came from (or none) and the name it was filed under, out of
     what the table holds.
 - **Conditions combine and go together with the search.** Every set condition narrows every group at once, and a
@@ -5790,10 +5792,6 @@ Four bounds keep it from growing forever.
   work happens. Choosing **배정 없음** releases the assignment and that item becomes the Built-in worker's. This value is not a
   past record but a future assignment — it is what bmo-job reads on assigning, and the session launches the job on the worker it
   points at. Changing the assignment leaves the item's place, approval and rest unchanged.
-- **Whether to run as co-work is set in the same modal.** Right behind the worker-choosing cell stands a switch — on, that item's
-  job runs splitting branches; off, it runs as one session. Off is every worker's default, so a line nobody turned on is all one
-  session. This too is not a past record but a future setting — it is read on launching a job, and turning it on or off moves the
-  item's place, approval and rest not at all. A line turned on is told by its tag without opening.
 - **A job failure is mended before the queue moves on.** the chat agent is told the job ended in an error, analyses it, runs the repair
   of its cause and then the failed item again; the item stays at the front of its line meanwhile. Failing to finish the same item
   three times, or a chain of repairs failing past its third round, drops it to the hold group as **실패로 보류** — not deleting or closing, so the line, place and record stay, and one hold-release button stands it again. Then the owner

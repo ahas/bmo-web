@@ -17,7 +17,6 @@ interface Item {
   queueName: string;
   priority: number;
   state: string;
-  cowork: boolean;
   assigneeName: string | null;
   requesterName: string | null;
   labels: Record<string, string>;
@@ -39,7 +38,6 @@ function item(id: number, over: Partial<Item> = {}): Item {
     queueName: "default",
     priority: id,
     state: "open",
-    cowork: false,
     assigneeName: null,
     requesterName: "owner",
     labels: {},
@@ -299,15 +297,13 @@ describe("the board narrowed", () => {
   test("by a worker, an unassigned row being the built-in worker's, and co-work", async () => {
     stand([
       item(1, { assigneeName: "worker-b" }),
-      item(2, { cowork: true }),
+      item(2),
       item(3, { state: "done" }),
-      item(4, { state: "done", cowork: true })
+      item(4, { state: "done" })
     ]);
 
     expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, worker: "worker-b" } })).queue)).toEqual([1]);
     expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, worker: "worker" } })).queue)).toEqual([2]);
-    expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, cowork: "on" } })).queue)).toEqual([2]);
-    expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, cowork: "on" } })).done)).toEqual([4]);
     // The fixed item carries no unfinished note, so a condition on one is met by no row.
     expect(ids((await readTodoBoard({ conditions: { ...NO_CONDITIONS, unfinished: "open" } })).done)).toEqual([]);
   });

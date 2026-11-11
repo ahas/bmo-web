@@ -39,7 +39,7 @@ globals.$fetch = async (url: string, options: { body: { originals: string[] } })
 
 mock.module("bmo-ui/app/domain/translation", () => ({ hasTranslator: () => named }));
 
-const { useAskedReading, useTextReading, wantsReading, readerLanguage } = await import("../../../apps/web/app/domain/text-reading");
+const { useAskedReading, wantsReading, readerLanguage } = await import("../../../apps/web/app/domain/text-reading");
 
 const settle = async (): Promise<void> => {
   for (let round = 0; round < 5; round += 1) await nextTick();
@@ -54,14 +54,15 @@ describe("a text's reading", () => {
     expect(readerLanguage("en")).toBe("en");
 
     asks.length = 0;
-    const { reading } = useTextReading(() => KO.done, () => "ko");
+    const { reading, ask } = useAskedReading(() => KO.done, () => "ko");
 
+    ask();
     await settle();
     expect(reading.value).toEqual({ kind: "none" });
     expect(asks).toEqual([]);
   });
 
-  test("an English text is asked for and lands as it arrives, and two places share one ask", async () => {
+  test("an English text is asked for on a press and lands as it arrives, and two places share one ask", async () => {
     asks.length = 0;
     let release: () => void = () => {};
     const gate = new Promise<void>((done) => (release = done));
@@ -71,9 +72,11 @@ describe("a text's reading", () => {
       return texts.map((text) => ({ text: `ko:${text}`, whole: true }));
     };
 
-    const one = useTextReading(() => "Shared words.", () => "ko");
-    const other = useTextReading(() => "Shared words.", () => "ko");
+    const one = useAskedReading(() => "Shared words.", () => "ko");
+    const other = useAskedReading(() => "Shared words.", () => "ko");
 
+    one.ask();
+    other.ask();
     expect(one.reading.value).toEqual({ kind: "asking" });
     release();
     await settle();
@@ -86,17 +89,19 @@ describe("a text's reading", () => {
   test("a reading not whole says so", async () => {
     answer = async (texts) => texts.map((text) => ({ text, whole: false }));
 
-    const { reading } = useTextReading(() => "Partly read.", () => "ko");
+    const { reading, ask } = useAskedReading(() => "Partly read.", () => "ko");
 
+    ask();
     await settle();
     expect(reading.value).toEqual({ kind: "read", text: "Partly read.", whole: false });
   });
 
-  test("a translator too busy reads as busy, a failing one as failed, and retry asks again", async () => {
+  test("a translator too busy reads as busy, a failing one as failed, and a press asks again", async () => {
     answer = async (texts) => texts.map((text) => ({ text, whole: false, untranslated: true }));
 
-    const busy = useTextReading(() => "Busy words.", () => "ko");
+    const busy = useAskedReading(() => "Busy words.", () => "ko");
 
+    busy.ask();
     await settle();
     expect(busy.reading.value).toEqual({ kind: "busy" });
 
@@ -104,14 +109,15 @@ describe("a text's reading", () => {
       throw new Refused(403);
     };
 
-    const failing = useTextReading(() => "Failing words.", () => "ko");
+    const failing = useAskedReading(() => "Failing words.", () => "ko");
 
+    failing.ask();
     await settle();
     expect(failing.reading.value).toEqual({ kind: "failed" });
 
     asks.length = 0;
     answer = async (texts) => texts.map((text) => ({ text: `ko:${text}`, whole: true }));
-    failing.retry();
+    failing.ask();
     await settle();
     expect(failing.reading.value).toEqual({ kind: "read", text: "ko:Failing words.", whole: true });
     expect(asks).toEqual([["Failing words."]]);
@@ -121,10 +127,12 @@ describe("a text's reading", () => {
     named = false;
     asks.length = 0;
 
-    const { reading } = useTextReading(() => "Untranslatable here.", () => "ko");
+    const { reading, blocked, ask } = useAskedReading(() => "Untranslatable here.", () => "ko");
 
+    ask();
     await settle();
     expect(reading.value).toEqual({ kind: "none" });
+    expect(blocked.value).toBe("absent");
     expect(asks).toEqual([]);
     named = true;
   });

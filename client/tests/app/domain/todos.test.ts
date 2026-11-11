@@ -93,7 +93,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     done: false,
     running: false,
     worker: null,
-    cowork: false,
+   
     priority: id,
     status: "waiting",
     model: null,
@@ -526,15 +526,14 @@ describe("the conditions beyond the state", () => {
 
   test("go to the archive as only the ones that are set", () => {
     expect(conditionQuery(NO_CONDITIONS)).toEqual({});
-    expect(conditionQuery({ ...worker, chat: "-1002", cowork: "off" })).toEqual({ worker: "agent-a", chat: "-1002", cowork: "off" });
+    expect(conditionQuery({ ...worker, chat: "-1002" })).toEqual({ worker: "agent-a", chat: "-1002" });
   });
 
   test("are read back from a stored view or a query, and nothing else passes for one", () => {
     expect(conditionsOf(undefined)).toEqual(NO_CONDITIONS);
-    expect(conditionsOf({ worker: " agent-a ", unfinished: "open", cowork: "on", chat: "-1002", requester: "Owner" })).toEqual({
+    expect(conditionsOf({ worker: " agent-a ", unfinished: "open", chat: "-1002", requester: "Owner" })).toEqual({
       worker: "agent-a",
       unfinished: "open",
-      cowork: "on",
       chat: "-1002",
       requester: "Owner"
     });

@@ -734,9 +734,6 @@ export interface TodoItem {
   // assignment and not a record: the queue reads it to decide whose turn the item is, and the
   // job is launched on the worker it names. Null is unassigned, which is the built-in worker.
   worker: string | null;
-  // Whether the job that runs this item fans out into branches. Off is what every item runs as
-  // unless it is turned on, so a row that says nothing is one session.
-  cowork: boolean;
   // How many times this item has been run. One run needs no saying; more than one is what makes
   // a row read as an attempt of this item rather than as a thing of its own.
   attempts: number;
@@ -2245,8 +2242,6 @@ export type TodoAction =
   // Which worker is to do it. An assignment, not a record: it is what the queue reads to decide
   // whose turn the item is.
   | "worker"
-  // Whether its job fans out into branches. Off is what every item runs as unless it is turned on.
-  | "cowork"
   // The provider and model its jobs go out on, its `model` label: `<provider>/<model>`, or `auto` for the agency's choice.
   | "model"
   | "agent";
@@ -2478,6 +2473,8 @@ export interface WorkTask {
   // never counted as done: the record and the screen keep what was achieved apart from what was not.
   skip?: { why: string; at: number };
   attempt: number;
+  // How many times the item's review sent this task's stage back: the rejection entries written under its stage.
+  rejections?: number;
   recoveryProviders?: string[];
   // The provider and model the task's last execution actually went out on, and whether its executions
   // went out on more than one road. The order runner writes it; `model` stays the road the launch asked

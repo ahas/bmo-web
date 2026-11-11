@@ -421,10 +421,6 @@
                   <SearchText :text="item.worker" :query="searched" />
                 </UBadge>
 
-                <!-- Whether its job fans out into branches. Off is what every item runs as unless
-                     he turns it on, so only the ones that do carry the mark. -->
-                <UBadge v-if="item.cowork" color="neutral" variant="outline" size="sm"><SearchText :text="$t('todo.label.field_cowork')" :query="searched" /></UBadge>
-
                 <UIcon v-if="item.note !== null" name="i-material-symbols-format-quote-outline" class="size-4 text-primary" />
 
                 <!-- An item says at a glance that it left an account of itself — how many, where more than one — and
@@ -760,11 +756,6 @@ const conditionFields = computed<{ key: keyof TodoConditions; label: string; ite
       key: "unfinished",
       label: t("todo.label.field_unfinished"),
       items: [any, { label: t("todo.label.unfinished_remaining"), value: "open" }, { label: t("todo.label.unfinished_resolved"), value: "resolved" }]
-    },
-    {
-      key: "cowork",
-      label: t("todo.label.field_cowork"),
-      items: [any, { label: t("todo.label.field_cowork"), value: "on" }, { label: t("todo.label.single_session"), value: "off" }]
     },
     {
       key: "chat",

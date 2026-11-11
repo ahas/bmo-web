@@ -71,7 +71,7 @@ function item(over: Partial<TodoItem> = {}): TodoItem {
     done: false,
     running: true,
     worker: AGENT,
-    cowork: false,
+   
     priority: 1,
     status: "running",
     model: null,

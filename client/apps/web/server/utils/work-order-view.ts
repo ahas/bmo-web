@@ -1,4 +1,5 @@
 import { job, jobCall } from "./job";
+import { readTodoReviews } from "./todos";
 
 import type { Task, WorkOrder as JobWorkOrder } from "bmo-job-client";
 import type { WorkOrder, WorkOrderView, WorkTask } from "#shared/types";
@@ -8,7 +9,7 @@ import type { WorkOrder, WorkOrderView, WorkTask } from "#shared/types";
 // the roads each task ran, what it spent, the round it belongs to — and none of that is part of an item's order,
 // so those stand empty (docs/boundary.md, 「Gaps the console meets」).
 
-function taskOf(task: Task): WorkTask {
+function taskOf(task: Task, rejections: ReadonlyMap<number, number> = new Map()): WorkTask {
   return {
     id: String(task.id),
     title: task.title,
@@ -17,6 +18,7 @@ function taskOf(task: Task): WorkTask {
     instruction: task.title,
     state: task.state === "waiting" ? "pending" : task.state === "current" ? "running" : task.state,
     attempt: 1,
+    rejections: rejections.get(task.stage) ?? 0,
     unit: null,
     jobId: null,
     startedAt: null,
@@ -28,7 +30,7 @@ function taskOf(task: Task): WorkTask {
 
 // Each step of the fixed order is one task, run in turn, so its tasks are the order's build steps alone and no
 // design stage holds them (docs/boundary.md, 「Gaps the console meets」).
-function orderOf(order: JobWorkOrder, tasks: readonly Task[]): WorkOrder {
+function orderOf(order: JobWorkOrder, tasks: readonly Task[], rejections: ReadonlyMap<number, number>): WorkOrder {
   return {
     todoId: order.itemId,
     intent: order.purpose,
@@ -37,7 +39,7 @@ function orderOf(order: JobWorkOrder, tasks: readonly Task[]): WorkOrder {
     phase: "implementation",
     stage: 0,
     stages: [],
-    tasks: tasks.map(taskOf),
+    tasks: tasks.map((task) => taskOf(task, rejections)),
     history: [],
     control: null,
     worker: null,
@@ -49,15 +51,32 @@ function orderOf(order: JobWorkOrder, tasks: readonly Task[]): WorkOrder {
   };
 }
 
+// How many times the item's review sent each stage back, by the stage its rejection entries stand under; a review
+// that cannot be read counts none, since the order stands without it (docs/web.md, 「작업 단계」).
+async function rejectionsByStage(todoId: number): Promise<Map<number, number>> {
+  const counted = new Map<number, number>();
+
+  try {
+    for (const entry of await readTodoReviews(todoId)) {
+      if (entry.kind === "rejection" && entry.stage !== null) counted.set(entry.stage, (counted.get(entry.stage) ?? 0) + 1);
+    }
+  } catch {
+    // The steps stand without their counts.
+  }
+
+  return counted;
+}
+
 /** One item's work order as bmo-job reads it, or null where there is no such item. */
 export async function readWorkOrder(todoId: number): Promise<WorkOrder | null> {
   try {
-    const [order, tasks] = await Promise.all([
+    const [order, tasks, rejections] = await Promise.all([
       jobCall(job().GET("/items/{itemId}/work-order", { params: { path: { itemId: todoId } } })),
-      jobCall(job().GET("/items/{itemId}/work-order/tasks", { params: { path: { itemId: todoId } } }))
+      jobCall(job().GET("/items/{itemId}/work-order/tasks", { params: { path: { itemId: todoId } } })),
+      rejectionsByStage(todoId)
     ]);
 
-    return orderOf(order, tasks.items);
+    return orderOf(order, tasks.items, rejections);
   } catch (error) {
     if ((error as { statusCode?: number }).statusCode === 404) return null;
     throw error;

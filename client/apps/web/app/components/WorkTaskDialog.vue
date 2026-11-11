@@ -30,7 +30,7 @@
 
         <!-- The work view of the task: its work order, what its session is doing, what it spent and called, its log and
              what it left, one under the other (docs/web.md, 「The work view」). A co-worker writes in English, so the
-             work order and the result each stand in the original with the translation under it. -->
+             work order and the result each stand in the original with its translation a press away. -->
         <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <WorkView
             v-if="task && props.agent !== null"

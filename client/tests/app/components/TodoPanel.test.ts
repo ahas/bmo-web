@@ -101,29 +101,13 @@ describe("the word a row wears", () => {
   });
 });
 
-// Whether the item's job fans out into branches. Off is what every row runs as unless he turns
-// it on, so only the ones turned on carry the mark, and the switch stands on the opened row
-// beside the worker it will be run on.
-describe("the co-work of a row", () => {
-  const mark = template.indexOf(`<SearchText :text="$t('todo.label.field_cowork')" :query="searched" /></UBadge>`);
-  const badge = template.slice(template.lastIndexOf("<UBadge", mark), mark);
-  const toggle = tagOf('todo.label.run_cowork', detailTemplate);
-
-  test("marks only the rows it is on for", () => {
-    expect(badge).toContain('v-if="item.cowork"');
-  });
-
-  test("is switched on the opened row, from the row's own value", () => {
-    expect(toggle).toContain("<USwitch");
-    expect(toggle).toContain(':model-value="openedItem.cowork"');
-    // The press reaches the same call it always did, in two steps rather than one: the switch
-    // hands back the value alone, and the row it is about is resolved where the dialog knows it.
-    expect(toggle).toContain('@update:model-value="setOpenCowork"');
-    expect(detailSource).toContain("setCowork(opened.value, on)");
-  });
-
-  test("and the switch stands with the worker it will be run on", () => {
-    expect(detailTemplate.indexOf('todo.aria.item_worker')).toBeLessThan(detailTemplate.indexOf('todo.label.run_cowork'));
+// No row is told apart as co-work: how a job reaches its steps is its agent's, so no mark, switch or condition says
+// it (docs/web.md, the TODO panel's section).
+describe("a row's work", () => {
+  test("carries no co-work mark, switch or condition", () => {
+    expect(template).not.toContain("field_cowork");
+    expect(detailTemplate).not.toContain("run_cowork");
+    expect(source).not.toContain('key: "cowork"');
   });
 });
 
@@ -220,7 +204,7 @@ describe("the words added to an open item", () => {
 
     expect(briefAt).toBeGreaterThan(detailTemplate.indexOf('>{{ $t("todo.title.notes") }}<'));
     expect(briefAt).toBeLessThan(detailTemplate.indexOf('<WorkOrderPanel part="order"'));
-    // The brief and each change to it stand in the original with the translation under it, nothing pressed to read either.
+    // The brief and each change to it stand in the original with the translation a press away in the same place.
     expect(detailTemplate).toContain('<TranslatedText v-else :text="openedItem.brief" />');
     expect(detailTemplate).toContain('<TranslatedText :text="change.text" />');
     expect(detailTemplate).not.toContain("brief_original");

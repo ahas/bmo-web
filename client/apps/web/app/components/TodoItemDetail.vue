@@ -112,19 +112,6 @@
               <span class="text-muted">{{ $t("todo.label.field_worker") }}</span>
               <span class="text-highlighted">{{ openedItem.worker }}</span>
             </span>
-
-            <!-- Whether its job fans out into branches. Off is what every item runs as: a job
-                 is one session unless this says otherwise, whichever worker does it. -->
-            <USwitch
-              v-if="!openedItem.done"
-              :model-value="openedItem.cowork"
-              :label="$t('todo.label.run_cowork')"
-              size="sm"
-              :disabled="busy.has(busyKey(openedItem.id, 'cowork'))"
-              @update:model-value="setOpenCowork"
-            />
-
-            <span v-else-if="openedItem.cowork" class="text-highlighted">{{ $t("todo.status.cowork_ran") }}</span>
           </div>
 
           <!-- A stopped order at the head of its worker's queue, whole: what stopped it, its turn and
@@ -178,7 +165,7 @@
             <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-3">
               <!-- How the item ended, first where it has ended: every report kept of it, the closing one first, and
                    what it left behind, each whole and never folded, so the item reads as the report of itself. Each
-                   report stands in its original with its translation under it. -->
+                   report stands in its original with its translation a press away. -->
               <section v-if="shownLeft === 'result'" class="flex min-w-0 flex-col gap-4" :aria-label="$t('todo.label.result')">
                 <article
                   v-for="report in shownReports"
@@ -551,7 +538,7 @@
               <template v-else-if="shownLeft === 'order'">
                 <!-- The item's brief: the chat agent's organized instruction, the one text a job reads for the
                      item. It is written once, in the original the job reads, and stands in that original with its
-                     translation under it.
+                     translation a press away.
                      Under it, each change the chat agent made to it, with when, and whether the job running
                      then has been handed it. -->
                 <div class="flex flex-col gap-4 rounded-lg border border-default p-3">
@@ -1565,25 +1552,6 @@ async function setAgent(id: number, agent: string): Promise<void> {
   await act(id, "agent", { agent }, "todo.error.agent_change_failed");
 
   if (failure.value === null) notice.value = t("todo.message.agent_changed", { id });
-}
-
-// Whether its job fans out into branches. Nothing else about the row moves: it says how the work
-// will be run, not what the work is, so its place in the queue and everything on it stand.
-// The switch hands back the new value alone, and the row it is about is the one the dialog is
-// reading. That row is resolved here rather than in the template because the handler runs after
-// the press rather than during it, and by then the dialog may have been closed under it.
-function setOpenCowork(on: boolean): void {
-  if (opened.value !== null) {
-    void setCowork(opened.value, on);
-  }
-}
-
-async function setCowork(id: number, on: boolean): Promise<void> {
-  await act(id, "cowork", { cowork: on }, "todo.error.cowork_change_failed");
-
-  if (failure.value === null) {
-    notice.value = on ? t("todo.message.cowork_on", { id }) : t("todo.message.cowork_off", { id });
-  }
 }
 
 async function approve(id: number): Promise<void> {

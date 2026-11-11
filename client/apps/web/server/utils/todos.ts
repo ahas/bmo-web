@@ -181,7 +181,6 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     agent: pinnedAgent(item.labels),
     ranOn: null,
     worker: item.assigneeName,
-    cowork: item.cowork,
     attempts: 1,
     progress: null,
     stopped: null,
@@ -381,7 +380,6 @@ function meets(item: Item, conditions: TodoConditions): boolean {
   const worker = item.assigneeName ?? WORKER_AGENT;
 
   if (conditions.worker !== null && worker !== conditions.worker) return false;
-  if (conditions.cowork !== null && item.cowork !== (conditions.cowork === "on")) return false;
   if (conditions.requester !== null && (item.requesterName ?? "") !== conditions.requester) return false;
   if (conditions.unfinished !== null) return false;
 

@@ -42,11 +42,11 @@ const UIcon = defineComponent({
   }
 });
 
-const sub = (key: string, state: Stage["state"]): Stage => ({ key, state, stateLabel: `state-${state}`, title: `sub-${key}`, owner: "scout", model: "model-a", seconds: 5, subs: [] });
+const sub = (key: string, state: Stage["state"]): Stage => ({ key, state, stateLabel: `state-${state}`, title: `sub-${key}`, owner: "scout", model: "model-a", seconds: 5, rejections: 0, subs: [] });
 const STAGES: Stage[] = [
-  { key: "a", state: "done", stateLabel: "state-done", title: "stage-a", owner: "scout", model: "model-a", seconds: 75, subs: [sub("a1", "done"), sub("a2", "done")] },
-  { key: "b", state: "running", stateLabel: "state-running", title: "stage-b", owner: "builder", model: "model-b", seconds: 3, subs: [] },
-  { key: "c", state: "pending", stateLabel: "state-pending", title: "stage-c", owner: "builder", model: "", seconds: null, subs: [] }
+  { key: "a", state: "done", stateLabel: "state-done", title: "stage-a", owner: "scout", model: "model-a", seconds: 75, rejections: 0, subs: [sub("a1", "done"), sub("a2", "done")] },
+  { key: "b", state: "running", stateLabel: "state-running", title: "stage-b", owner: "builder", model: "model-b", seconds: 3, rejections: 2, subs: [] },
+  { key: "c", state: "pending", stateLabel: "state-pending", title: "stage-c", owner: "builder", model: "", seconds: null, rejections: 0, subs: [] }
 ];
 
 beforeAll(() => {
@@ -62,7 +62,9 @@ async function render(stages: readonly Stage[]): Promise<HTMLElement> {
 
   app.component("UStepper", UStepper);
   app.component("UIcon", UIcon);
-  app.config.globalProperties.$t = (key: string) => key;
+  app.component("UBadge", defineComponent({ props: { label: String }, setup: (props) => () => h("span", { "data-stage-rejections": "" }, props.label) }));
+  app.config.globalProperties.$t = ((key: string, values?: Record<string, unknown>) =>
+    values === undefined ? key : `${key}${JSON.stringify(values)}`) as unknown as typeof app.config.globalProperties.$t;
 
   const holder = document.createElement("div");
 
@@ -83,6 +85,13 @@ describe("the stage stepper", () => {
     expect(items[1]!.querySelector("[data-stage]")?.getAttribute("data-stage")).toBe("running");
     // A stage not begun carries no time.
     expect(items[2]!.querySelector(".tabular-nums")).toBeNull();
+  });
+
+  test("a stage its review sent back says how many times, and one never sent back says nothing", async () => {
+    const shown = await render(STAGES);
+
+    expect(shown.querySelector('[data-item="b"] [data-stage-rejections]')?.textContent).toBe('todo.label.step_rejections{"n":2}');
+    expect(shown.querySelector('[data-item="a"] [data-stage-rejections]')).toBeNull();
   });
 
   test("a stage of several tasks holds them as sub-stages, each pressable on its own", async () => {

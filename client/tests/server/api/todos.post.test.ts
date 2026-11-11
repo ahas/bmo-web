@@ -22,12 +22,12 @@ const job = standIn("JOB", (one) => {
   if (refusal !== null) return answer({ code: refusal.code, error: "refused" }, refusal.status);
 
   if (one.method === "POST" && one.path === "/items") {
-    return answer({ id: 41, itemId: 41, title: "the rest", brief: "carry on with what is left", queueName: "default", priority: 0, state: "draft", cowork: false, assigneeName: null, requesterName: "tester", labels: {}, approvals: [], createdAt: 0, changedAt: 0, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null }, 201);
+    return answer({ id: 41, itemId: 41, title: "the rest", brief: "carry on with what is left", queueName: "default", priority: 0, state: "draft", assigneeName: null, requesterName: "tester", labels: {}, approvals: [], createdAt: 0, changedAt: 0, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null }, 201);
   }
 
   if (one.method === "DELETE") return new Response(null, { status: 204 });
 
-  return answer({ id: 7, itemId: 7, title: "Item 7", brief: "do it", queueName: "default", priority: 0, state: "open", cowork: false, assigneeName: null, requesterName: "tester", labels: itemLabels, approvals: [], createdAt: 0, changedAt: 0, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null });
+  return answer({ id: 7, itemId: 7, title: "Item 7", brief: "do it", queueName: "default", priority: 0, state: "open", assigneeName: null, requesterName: "tester", labels: itemLabels, approvals: [], createdAt: 0, changedAt: 0, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null });
 });
 
 const handler = await routeOf<{ ok: true; raised?: number; stopped?: number }>("../../apps/web/server/api/todos.post");

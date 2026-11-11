@@ -38,7 +38,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     done: false,
     running: false,
     worker: "bmo-a",
-    cowork: false,
+   
     priority: 1,
     status: "waiting",
     model: null,

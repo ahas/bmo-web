@@ -1,6 +1,7 @@
 <template>
   <!-- Work that goes forward in stages, on Nuxt UI's stepper standing upright (docs/web.md, 「The progress stepper」):
-       each stage's dot, title, owner, model and time, and under a stage of several tasks its sub-stages. No stage
+       each stage's dot, title, how many times its review sent it back, owner, model and time, and under a stage of
+       several tasks its sub-stages. No stage
        folds and none has a body; pressing a stage or a sub-stage opens it in the work view. -->
   <UStepper
     :items="items"
@@ -31,6 +32,8 @@
         @click="emit('open', stageOf(item).key)"
       >
         <span class="min-w-0 flex-1 truncate font-medium text-highlighted" :class="{ 'text-muted': stageOf(item).state === 'skipped' }">{{ stageOf(item).title }}</span>
+        <!-- How many times its review sent it back (docs/web.md, 「작업 단계」). -->
+        <UBadge v-if="stageOf(item).rejections > 0" color="warning" variant="subtle" size="sm" class="shrink-0" :label="$t('todo.label.step_rejections', { n: stageOf(item).rejections })" data-stage-rejections />
         <span v-if="stageOf(item).seconds !== null" class="shrink-0 tabular-nums text-muted">{{ spanClock($t, stageOf(item).seconds!) }}</span>
       </button>
     </template>

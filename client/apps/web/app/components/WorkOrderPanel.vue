@@ -70,7 +70,7 @@
       </template>
     </template>
     <template v-else>
-      <!-- The order's purpose and what it says to do, each in the original with its translation under it. -->
+      <!-- The order's purpose and what it says to do, each in the original with its translation a press away. -->
       <TranslatedText :text="order.intent" class="mt-2" text-class="text-sm text-muted" />
       <TranslatedText :text="order.instruction" class="mt-2" text-class="text-sm" />
       <!-- The step the order is at by its name, and how far the build has come counted among the build

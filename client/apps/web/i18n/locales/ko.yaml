@@ -42,6 +42,8 @@ common:
     discard_changes: 저장하지 않은 변경을 버릴까요?
     share_link: 공유 링크
   label:
+    translated_from: "{language}에서 번역됨"
+    translated_in_part_from: "{language}에서 일부 번역됨"
     all: 전체
     auto: 자동
     chat_agent: 채팅 에이전트
@@ -106,7 +108,8 @@ common:
     view: 보기
     volume: 볼륨
   action:
-    translate: 번역
+    show_translation: 번역 보기
+    show_original: 원문 보기
     add: 추가
     cancel: 취소
     choose_all: 전체 선택
@@ -172,11 +175,9 @@ common:
     share_loading: 공유 링크 불러오는 중…
     translating: 번역하는 중…
     translation_busy: 번역기가 바빠 지금은 번역하지 못했습니다.
-    translation_partial: 일부는 번역하지 못해 원문 그대로 둡니다.
     video_loading: 영상 정보 불러오는 중…
   message:
     translator_absent: 번역기가 없어 번역할 수 없습니다.
-    translator_busy: 번역기가 바빠 지금은 번역할 수 없습니다.
     link_copied: 링크를 복사했습니다.
     preview_badge: 진행 중
     preview_field: 검색
@@ -1130,7 +1131,6 @@ todo:
     approvals_load_failed: 결재 기록을 불러오지 못했습니다.
     auto_change_failed: 자동 진행을 바꾸지 못했습니다.
     bad_action: 할 수 없는 동작입니다.
-    bad_cowork: 협업 여부가 올바르지 않습니다.
     bad_direction: 옮길 방향이 올바르지 않습니다.
     bad_model: 모델이 올바르지 않습니다.
     bad_agent: 에이전트 이름이 올바르지 않습니다.
@@ -1147,7 +1147,6 @@ todo:
     cannot_hold: 완료된 항목이거나 이미 보류한 항목입니다.
     cannot_unappend: 이미 삭제된 지시입니다. 목록을 새로고침해 주세요.
     change_failed: TODO를 바꾸지 못했습니다.
-    cowork_change_failed: 협업 여부를 바꾸지 못했습니다.
     create_failed: 새 항목을 만들지 못했습니다.
     hold_release_failed: 배포 대기를 해제하지 못했습니다.
     item_read_failed: "#{id}번을 읽지 못했습니다."
@@ -1263,7 +1262,6 @@ todo:
     end_reason: 종료 사유
     field_checkout: 체크아웃
     field_checkout_reason: "체크아웃 점유 이유: {reason}"
-    field_cowork: 협업
     field_deploy_waits: 배포 대기
     field_id: 번호
     field_instruction: 지시
@@ -1356,11 +1354,9 @@ todo:
     review_turns: 보고 턴
     result: 결과
     round_result: "{round}차 결과"
-    run_cowork: 협업으로 실행
     run_id: "실행 #{id}"
     run_id_took: "실행 #{id} · {time}"
     runner: "{worker} · {road}"
-    single_session: 한 세션
     skip_reason: 건너뛰는 이유
     skipped_at: "건너뛴 이유 · {time}"
     skipped_count: "건너뜀 {n}"
@@ -1381,6 +1377,7 @@ todo:
     state_stopped: 중지됨
     state_waiting: 대기
     step_build: 구현
+    step_rejections: "반려 {n}회"
     step_build_place: "구현 {n}/{of}"
     step_final: 최종 검증
     step_investigate: 조사
@@ -1421,8 +1418,6 @@ todo:
     auto_resumed_hold_stands: "자동 진행을 재개합니다.
 
       배포 대기가 해제되기 전에는 새 Job이 시작되지 않습니다: {hold}"
-    cowork_off: "#{id}번은 한 세션으로 실행합니다."
-    cowork_on: "#{id}번은 협업으로 실행합니다."
     discard_confirm: "#{id}번을 버릴까요?"
     discard_effect: 항목이 삭제되고 되돌릴 수 없습니다.
     discarded: "#{id}번을 버렸습니다."
@@ -1493,7 +1488,6 @@ todo:
     change_handed: "{time} Job에 전달됨"
     change_no_job: 실행 중인 Job 없음 · 다음 Job이 읽음
     change_waiting: Job에 전달 대기
-    cowork_ran: 협업 실행됨
     coworkers_loading: 작업 단계 불러오는 중…
     delivered_suffix: Job에 전달됨
     deploy_hold_after: "{items} 끝나면 올라감"

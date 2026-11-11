@@ -114,7 +114,7 @@ describe("the step verbs in the dialog", () => {
 // this dialog is read in either language. It is the document viewer's own translator behind it, and
 // the switch stands in the tab row's action area rather than on a row of its own.
 describe("reading a co-worker's text in the other language", () => {
-  test("stands the work order and the result each in the original with the translation under it, with no switch", () => {
+  test("stands the work order and the result each in the original with its translation a press away, with no switch", () => {
     expect(source).toContain('<TranslatedText :text="task.instruction" text-class="text-sm" />');
     expect(source).toContain('<TranslatedText v-else :text="task.result" text-class="text-sm" />');
     expect(source).not.toContain("<USwitch");

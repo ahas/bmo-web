@@ -42,6 +42,8 @@ export interface Stage {
   model: string;
   // How long it ran, in seconds, counting a running stage to now; null for one not begun or one with no time.
   seconds: number | null;
+  // How many times its review sent it back; none for a stage no review examines.
+  rejections: number;
   subs: Stage[];
 }
 
@@ -58,6 +60,7 @@ export function planStages(t: Translate, steps: readonly PlanStep[], owner: stri
     owner,
     model: "",
     seconds: null,
+    rejections: 0,
     subs: []
   }));
 }

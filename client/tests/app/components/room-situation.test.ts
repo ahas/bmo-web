@@ -44,19 +44,10 @@ describe("the room's note as it stands", () => {
     expect(dialog).toContain("$t('room.title.situation')");
   });
 
-  test("carries the memory text's translate action, asking nothing until it is pressed", () => {
-    expect(dialog).toContain("data-situation-translate");
-    expect(dialog).toContain("$t('common.action.translate')");
-    expect(dialog).toContain('@click="ask"');
-    expect(dialog).toContain("useAskedReading");
-    expect(dialog).toContain("if (blocked.value === \"absent\")");
-    expect(dialog).toContain("if (blocked.value === \"busy\")");
-  });
-
-  test("stands the reading under the original, headed by the reader's language, with a retry", () => {
-    expect(dialog).toContain("data-situation-reading");
-    expect(dialog).toContain('$t("documents.label.translation_of"');
-    expect(dialog).toContain("data-situation-read-translation");
-    expect(dialog).toContain("$t('common.action.retry_translation')");
+  test("stands the note or its reading in one place, through the translated text's toggle", () => {
+    expect(dialog).toContain('<TranslatedText :text="text">');
+    expect(dialog).toContain("{{ standing }}");
+    expect(dialog).not.toContain("translation_of");
+    expect(dialog).not.toContain("useAskedReading");
   });
 });

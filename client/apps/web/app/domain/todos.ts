@@ -48,7 +48,6 @@ export interface TodoConditions {
   worker: string | null;
   // An outstanding note still standing, or one already resolved.
   unfinished: "open" | "resolved" | null;
-  cowork: "on" | "off" | null;
   // The room a request came from, or NO_ROOM for one filed outside every room.
   chat: string | null;
   requester: string | null;
@@ -57,7 +56,7 @@ export interface TodoConditions {
 // What the room condition's value is for a request filed outside every room.
 export const NO_ROOM = "-";
 
-export const NO_CONDITIONS: TodoConditions = { worker: null, unfinished: null, cowork: null, chat: null, requester: null };
+export const NO_CONDITIONS: TodoConditions = { worker: null, unfinished: null, chat: null, requester: null };
 
 const CONDITION_KEYS = Object.keys(NO_CONDITIONS) as (keyof TodoConditions)[];
 
@@ -423,13 +422,11 @@ export function conditionsOf(value: unknown): TodoConditions {
   const held = value === null || typeof value !== "object" ? {} : (value as Record<string, unknown>);
   const text = (raw: unknown): string | null => (typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null);
   const unfinished = text(held.unfinished);
-  const cowork = text(held.cowork);
   const chat = text(held.chat);
 
   return {
     worker: text(held.worker),
     unfinished: unfinished === "open" || unfinished === "resolved" ? unfinished : null,
-    cowork: cowork === "on" || cowork === "off" ? cowork : null,
     chat: chat === NO_ROOM || (chat !== null && /^-?\d+$/.test(chat)) ? chat : null,
     requester: text(held.requester)
   };
@@ -897,7 +894,6 @@ export interface TodoActFields {
   note?: string;
   why?: string;
   worker?: string | null;
-  cowork?: boolean;
   model?: string;
   agent?: string;
 }
@@ -1238,7 +1234,6 @@ export function todoSearchFields(
     // The model the row's chip shows short, found by its whole name as well, which its tooltip shows.
     { label: t("todo.label.field_model"), text: modelSearchText(item), shown: true },
     { label: t("todo.label.field_worker"), text: item.worker, shown: true },
-    { label: t("todo.label.field_cowork"), text: item.cowork ? t("todo.label.field_cowork") : null, shown: true },
     { label: t("todo.label.field_unfinished"), text: unfinishedLabel(t, item), shown: true },
     { label: t("todo.label.field_requester"), text: pending ? requesterLine(item, rooms) : item.requester, shown: pending },
     { label: t("todo.label.field_stopped"), text: stoppedLine(t, item), shown: true },

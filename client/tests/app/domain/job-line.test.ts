@@ -18,6 +18,7 @@ const job = (over: Partial<JobLine>): JobLine => ({
   finishedAt: null,
   tools: 1234,
   models: [],
+  spent: null,
   ...over
 });
 
@@ -42,5 +43,12 @@ describe("what a worker's job line reads", () => {
     const view = jobLineView(wording, job({ todoId: null, title: null, purpose: KO.line_39, finishedAt: 1_000 + 90 }), 99_999);
 
     expect(view).toMatchObject({ running: false, title: KO.line_41, time: KO.line_41_2, written: "—", models: [] });
+  });
+
+  test("a job whose turn has reported its spend reads what it wrote, ahead of any model's", () => {
+    const spent = { inputTokens: 3, outputTokens: 52_000, cacheReadTokens: 900_000, cacheWriteTokens: 4_000 };
+    const model = { model: "claude-opus-5", inputTokens: null, outputTokens: 7_000, cacheReadTokens: null, cacheWriteTokens: null };
+
+    expect(jobLineView(wording, job({ spent, models: [model] }), 1_000).written).toBe("52K");
   });
 });

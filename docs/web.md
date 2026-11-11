@@ -3268,11 +3268,15 @@ a seat of its role.
     00:12:34」 ticking or how long a finished job took, how many tool calls the job made, subagents' included, and the
     tokens — and the spread work order holds one line per model the job used: the model, 「총 …」 and its four kinds
     as the popover's bar (「Usage in the title bar」). The item's number opens the item.
-  - The figures are bmo-job's (its `docs/reading.md`, "A worker's job line") once the job has ended: what the spans
-    it wrote as it ended say it called and spent. While it runs, bmo-job says neither what its models have spent
-    nor every call it made (`docs/boundary.md`, 「Gaps the console meets」), so they are read off its log as it grows
-    (「The work view」): the calls whose result has come back, and the newest usage record of the job's run, as
-    입력, 출력 and 캐시 읽기. A job whose log holds neither yet, and a finished job that wrote no spend, read 「—」.
+  - While the job runs, the tool calls are read off its log as it grows (「The work view」): the calls whose result
+    has come back.
+  - The tokens are the job's spend. Once the job has ended they are the agency's own figure for its turn. While it
+    runs the agency answers none (`docs/boundary.md`, 「Gaps the console meets」), so they are the newest usage
+    record a pane program's run filed where the log holds one, and otherwise what the console server sums off the
+    run's whole log: the usage each request of the run reported on its lines, every request counted once. While the
+    job runs the head stands them as 입력, 출력 and 캐시 읽기; a finished job's head and a job's compact line stand
+    the 출력 alone. 「—」 stands only for a job whose run has reported no spend yet, and for a finished job that
+    reported none.
   - They are asked again on the poll, whenever a turn ends, and whenever the agency says a job started, changed or
     ended, so the view follows a job without the screen being reopened.
   - A road written before the record carried the round is placed by time instead. The turn's own
@@ -3314,9 +3318,9 @@ a seat of its role.
   2. **지금** says the current stage of the stepper by the stage's own words where the job has stages, and the
      newest call by its description, or the newest line the session wrote; never a tool's or a stage's key.
   3. **The figures are read off the log as it grows** while the job runs: the tool calls are the calls whose result
-     has come back, and the tokens are the newest usage record's — 입력, 출력 and 캐시 읽기 — and once the job has
-     ended its own figures stand. 「—」 stands only where nothing has been read yet. How full the session stands
-     follows, where its record says.
+     has come back, and the tokens are what the job's run has reported spending so far, as 입력, 출력 and 캐시
+     읽기 (the job line, above); once the job has ended its own figures stand. 「—」 stands only where no spend is
+     known yet. How full the session stands follows, where its record says.
   4. **The stages**, where the job is a co-work item or the worker laid out a plan, and **결과**, what the stage or the
      job left — its result, its failure, or why it was skipped — stand at the top of the body, above the log.
   5. **로그** — the session's log, flat, a co-work stage's narrowed to that stage's run, the one part that scrolls.

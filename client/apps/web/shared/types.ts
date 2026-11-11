@@ -1597,6 +1597,9 @@ export interface JobLine {
   // One entry a model, read off the usage rows of a finished job and off the session record of a
   // running one. Empty where neither has anything to say.
   models: Array<TokenSplit & { model: string }>;
+  // What the job's turn spent, every model's together: the agency's own figure once the job has ended, and while it
+  // runs what its run's requests have reported so far. Null where nothing has been reported.
+  spent: TokenSplit | null;
 }
 
 // A job's prompt as a person reads it (the agency's docs/worker-language.md, 「A job's prompt」): its Korean

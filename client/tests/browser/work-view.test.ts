@@ -19,6 +19,8 @@ import type { DraftRead, DraftRow } from "../../apps/web/shared/drafting";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "work-view", password: "fixture-password-2311" };
 const AGENT = "worker";
+// The repository the stand-in console lists, whose screen stands the log of its job under the worker it ran on.
+const REPOSITORY = "repo-a";
 const ITEM = 1;
 const CHAT = 42;
 const NOW = Math.floor(Date.now() / 1000);
@@ -55,7 +57,8 @@ const LOG: AgentLogPage = {
   hasMore: false
 };
 
-const JOB: JobLine = { run: "run-b", agent: "worker-b", todoId: ITEM, title: "item-title", purpose: null, startedAt: NOW - 600, finishedAt: null, tools: 2, models: [] };
+const JOB: JobLine = { run: "run-b", agent: AGENT, todoId: ITEM, title: "item-title", purpose: null, startedAt: NOW - 600, finishedAt: null, tools: 2, models: [],
+  spent: { inputTokens: 1_500, outputTokens: 37_000, cacheReadTokens: 640_000, cacheWriteTokens: 9_000 } };
 
 function task(id: string, state: WorkTask["state"], over: Partial<WorkTask> = {}): WorkTask {
   return { id, title: `task-${id}`, role: "scout", model: "model-a", instruction: `instruction-${id}`, state, attempt: 1, unit: null, jobId: null, startedAt: null, result: null, artifact: null, error: null, ...over };
@@ -127,7 +130,7 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
     await route.fulfill({ json: { ...status, live: [RUN] } });
   });
   await context.route(new RegExp(`/api/agents/${AGENT}/log(\\?|$)`), (route) => route.fulfill({ json: LOG }));
-  await context.route(new RegExp(`/api/agents/${AGENT}/job(\\?|$)`), (route) => route.fulfill({ json: { job: JOB } }));
+  await context.route(new RegExp(`/api/agents/(${AGENT}|${REPOSITORY})/job(\\?|$)`), (route) => route.fulfill({ json: { job: JOB } }));
   await context.route(new RegExp(`/api/agents/${AGENT}/job-prompt(\\?|$)`), (route) => route.fulfill({ json: { prompt: { text: "prompt-ko", english: null } } }));
   await context.route(/\/api\/agents\/agent-a\/log\?/, (route: Route) => {
     const run = new URL(route.request().url()).searchParams.get("run") ?? "";
@@ -173,13 +176,18 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/agents/${AGENT}`, { waitUntil: "load" });
+        await page.goto(`${origin}/agents/${REPOSITORY}`, { waitUntil: "load" });
         await page.locator("[data-tool-call]").nth(1).waitFor({ timeout: 20_000 });
 
         // The job's prompt is read after the log, so it is waited for rather than read the moment the log stands.
         expect(await until(async () => await page.locator("[data-work-order]").innerText(), (text) => text.includes("prompt-ko"))).toContain("prompt-ko");
         expect(await page.locator("li[data-step]").count()).toBe(0);
         expect(await page.locator("[data-agent-log]").count()).toBe(1);
+
+        // A running job whose log holds no usage record stands what its run's requests have reported so far.
+        expect((await page.locator("[data-work-tokens]").innerText()).trim()).toBe(
+          [wording("agents.label.usage_input", { n: "1.5K" }), wording("agents.label.usage_output", { n: "37K" }), wording("agents.label.usage_cache_read", { n: "640K" })].join(" · ")
+        );
 
         // The head stays at the top of the page's body however far its log is scrolled, the log opening at its end.
         const standing = async () =>

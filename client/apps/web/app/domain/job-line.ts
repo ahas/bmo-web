@@ -59,9 +59,12 @@ function tallyOf(split: TokenSplit): TokenSplit & { tokens: number } {
   };
 }
 
-// The tokens the job wrote, every model's together, or a dash where no model said what it wrote.
-function writtenText(models: JobLine["models"]): string {
-  const written = models.filter((model) => model.outputTokens !== null);
+// The tokens the job wrote: what its turn has spent, else every model's together, or a dash where nothing said what
+// it wrote.
+function writtenText(job: JobLine): string {
+  if (job.spent !== null && job.spent.outputTokens !== null) return tokenText(job.spent.outputTokens);
+
+  const written = job.models.filter((model) => model.outputTokens !== null);
 
   return written.length === 0 ? NOTHING : tokenText(written.reduce((sum, model) => sum + (model.outputTokens ?? 0), 0));
 }
@@ -77,7 +80,7 @@ export function jobLineView(t: Translate, job: JobLine, now: number): JobLineVie
       ? t("agents.label.job_running", { time: uptimeClock(now - job.startedAt) })
       : t("agents.label.job_took", { time: durationText(t, (job.finishedAt! - job.startedAt) * 1000) }),
     tools: t("agents.label.job_tools", { n: countText(job.tools) }),
-    written: writtenText(job.models),
+    written: writtenText(job),
     models: job.models.map((model) => {
       const tally = tallyOf(model);
 

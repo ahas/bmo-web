@@ -194,8 +194,9 @@ const calls = computed(() => {
 
   return t("agents.label.job_tools", { n: countText(Math.max(job.value?.tools ?? 0, figures.value.calls)) });
 });
+// While the job runs: the newest usage record its log holds, else what its run's requests have reported so far.
 const tokens = computed(() => {
-  const usage = figures.value.usage;
+  const usage = figures.value.usage ?? job.value?.spent ?? null;
 
   if (view.value === null) return "";
   if (!running.value || usage === null) return view.value.written;

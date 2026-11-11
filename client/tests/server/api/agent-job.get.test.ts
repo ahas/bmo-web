@@ -34,12 +34,47 @@ function jobOf(over: Record<string, unknown>): Record<string, unknown> {
   };
 }
 
+const SPENT = { inputTokens: 5, outputTokens: 1_200, cacheReadTokens: 80_000, cacheWriteTokens: 900 };
+
+// A line of a running job's run, carrying the request it came from as the writer files it, in the model API's names.
+function requestLine(id: number, request: string, output: number): Record<string, unknown> {
+  return {
+    id,
+    runId: 12,
+    agentName: "worker-d",
+    kind: "tool",
+    text: `line ${id}`,
+    at: at + id,
+    fields: {},
+    metadata: { request: { id: request, usage: { input_tokens: 2, output_tokens: output, cache_read_input_tokens: 1_000, cache_creation_input_tokens: 10 } } }
+  };
+}
+
+// The running job's run as it has grown so far: two lines of one request, a result no request stands on, and another
+// request's line; a test adds lines as the run goes on.
+const RUN_LINES: Record<string, unknown>[] = [
+  requestLine(1, "msg-a", 300),
+  requestLine(2, "msg-a", 300),
+  { id: 3, runId: 12, agentName: "worker-d", kind: "tool-result", text: "out", at, fields: {}, metadata: null },
+  requestLine(4, "msg-b", 50)
+];
+
 const agency = standIn("AGENCY", (one) => {
   const url = new URL(one.path, "http://agency");
 
+  if (url.pathname === "/log-lines") {
+    const after = Number(url.searchParams.get("after") ?? "0");
+
+    return answer({ items: RUN_LINES.filter((line) => url.searchParams.get("runId") === "12" && (line.id as number) > after), more: false });
+  }
+
   if (url.pathname === "/jobs") {
     if (url.searchParams.get("repositoryName") === "worker-b") {
-      return answer({ items: [jobOf({ id: 8, runName: "job-unit-1" })], more: false });
+      return answer({ items: [jobOf({ id: 8, runName: "job-unit-1", usage: SPENT })], more: false });
+    }
+
+    if (url.searchParams.get("repositoryName") === "worker-d") {
+      return answer({ items: [jobOf({ id: 12, runId: 12, runName: "job-unit-12", workerName: "worker-d", state: "running", endedAt: null, outcome: null })], more: false });
     }
 
     if (url.searchParams.get("repositoryName") === "worker-c") return answer({ items: [], more: false });
@@ -116,9 +151,28 @@ describe("a worker's job line", () => {
         startedAt: 1_790_000_000,
         finishedAt: 1_790_000_060,
         tools: 0,
-        models: []
+        models: [],
+        spent: SPENT
       }
     });
+  });
+
+  test("a running job's spend is every request its run reported, each once, read on from the last line read", async () => {
+    agency.asked.length = 0;
+
+    const first = await asked(line, { params: { name: "worker-d" } });
+
+    expect(first.answer?.job?.spent).toEqual({ inputTokens: 4, outputTokens: 350, cacheReadTokens: 2_000, cacheWriteTokens: 20 });
+
+    RUN_LINES.push(requestLine(5, "msg-b", 50), requestLine(6, "msg-c", 25));
+
+    const second = await asked(line, { params: { name: "worker-d" } });
+
+    expect(second.answer?.job?.spent).toEqual({ inputTokens: 6, outputTokens: 375, cacheReadTokens: 3_000, cacheWriteTokens: 30 });
+    expect(agency.asked.map((one) => one.path).filter((path) => path.startsWith("/log-lines"))).toEqual([
+      "/log-lines?runId=12&after=0&limit=500",
+      "/log-lines?runId=12&after=4&limit=500"
+    ]);
   });
 
   test("asks for no run where the screen was opened at none, and is nothing for a worker with no job", async () => {

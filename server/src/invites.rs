@@ -299,7 +299,10 @@ pub async fn prove<C: ConnectionTrait>(db: &C, nodes: &Nodes, token: &str) -> Re
   let node = node_of(db, Some(nodes), user).await?;
 
   if !node.attached {
-    return Ok(Proof { active: false });
+    return Ok(Proof {
+      active: false,
+      user: None,
+    });
   }
 
   run(
@@ -315,7 +318,10 @@ pub async fn prove<C: ConnectionTrait>(db: &C, nodes: &Nodes, token: &str) -> Re
   )
   .await?;
 
-  Ok(Proof { active: true })
+  Ok(Proof {
+    active: true,
+    user: Some(shown(user)),
+  })
 }
 
 async fn make_route(

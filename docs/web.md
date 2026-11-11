@@ -6106,6 +6106,13 @@ dialog open at 계정.
 - **A name and a password make the account,** and the page then shows the person's machine's one-line installs,
   Linux or WSL and Windows, each with its copy mark, and asks every few seconds whether the machine has attached;
   설치했어요, 확인하기 asks at once. Attached, the account is ready and the page leads to the login.
+- **An account made ready is given its own BMO and its agents,** by the console's server as the account turns
+  active, each once: a supervisor of the account, named `u<user>` and shown by the person's name, on the provider
+  order and quota share of the supervisor that answers rooms naming none, with a console room of its own and one
+  session across its rooms; and, for every role that has an agent of no account, one agent of the account on that
+  agent's road and settings, switched on. An account that already holds a supervisor, or an agent of a role, is
+  given none again there. A part that cannot be made is written to the console's log and the account stands
+  ready all the same.
 - **An account bound to a machine signs in only while its machine is attached;** the login refuses it, saying the
   machine is not connected, until it attaches again.
 

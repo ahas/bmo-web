@@ -1202,6 +1202,13 @@
         "properties": {
           "active": {
             "type": "boolean"
+          },
+          "user": {
+            "description": "The account, where it is active.",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [

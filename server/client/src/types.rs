@@ -390,6 +390,9 @@ pub struct Accepted {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Proof {
   pub active: bool,
+  /// The account, where it is active.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub user: Option<String>,
 }
 
 /// The machine an account is bound to and whether it is attached.

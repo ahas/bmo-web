@@ -1088,6 +1088,8 @@ export interface components {
         /** @description Whether an invited account's machine is attached and the account enabled. */
         Proof: {
             active: boolean;
+            /** @description The account, where it is active. */
+            user?: string | null;
         };
         /** @description The sentence a fixed line renders as. */
         Rendered: {

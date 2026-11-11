@@ -9,12 +9,13 @@ import type { AgentLogLine, AgentLogPage, ArchivedMessage, JobLine, LiveRun, Sta
 import type { DraftRead, DraftRow } from "../../apps/web/shared/drafting";
 
 // The work view and what stands in it, as the browser lays it out (docs/web.md, 「The work view」, 「A tool call」,
-// 「The progress stepper」, the TODO modal's tabs and the room screen's brain, tool and draft chips): a worker's
-// screen stands its job's work order, its figures, its stages and its flat log, a tool call is one block with its
-// command whole and its result folded past five lines, a work order's stages hold their sub-stages and open the stage
-// dialog with no tab row, the item's tabs stand in one order at both widths, and a round's draft answers and its
-// actions across every run of the round stand whole. It drives the console tests/support/browser-console.ts stands
-// up, serving what each place reads through the page's own routes; the suite stands up no console, so there it skips.
+// 「The progress stepper」, the TODO modal's tabs and the room screen's record chip): a worker's screen stands its job's
+// work order, its figures, its stages and its flat log, a tool call is one block with its command whole and its
+// result folded past five lines, a work order's stages hold their sub-stages and open the stage dialog with no tab
+// row, the item's tabs stand in one order at both widths, and an answer's record stands its brain, tool and draft
+// marks in one button whose panel holds the round's draft answers and its calls across every run of the round whole.
+// It drives the console tests/support/browser-console.ts stands up, serving what each place reads through the page's
+// own routes; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "work-view", password: "fixture-password-2311" };
@@ -152,6 +153,10 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
   });
   await context.route(new RegExp(`/api/rooms/${CHAT}/messages`), (route) => route.fulfill({ json: { messages: [ANSWER], judgements: [], hasMore: false } }));
   await context.route(new RegExp(`/api/rooms/${CHAT}/drafts`), (route) => route.fulfill({ json: { rows: DRAFT_ROWS } }));
+  // What the answer's round did is read after the page, as the room reads every round's figures.
+  await context.route(new RegExp(`/api/rooms/${CHAT}/round-figures`), (route) =>
+    route.fulfill({ json: { items: [{ messageId: ANSWER_ID, round: ANSWER.round, spend: null, actions: ANSWER.actions }] } })
+  );
 
   return context;
 }
@@ -281,23 +286,31 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
 
         await message.waitFor({ timeout: 20_000 });
 
-        await message.getByRole("button", { name: new RegExp(wording("room.label.chip_drafts")) }).click();
-        // A round's answer spreads under its line on a press of the line.
-        await message.locator("[data-draft-round] button").first().click();
-        await message.locator("[data-draft-answer]").first().waitFor({ timeout: 10_000 });
-        expect(await message.locator("[data-draft-answer]").first().innerText()).toContain(DRAFT_ANSWER);
+        // The record's one button stands the round's calls and its drafted questions as marks with their counts.
+        const chip = message.getByRole("button", { name: new RegExp(wording("room.label.chip_record")) });
 
-        await message.getByRole("button", { name: new RegExp(wording("room.label.chip_tools")) }).click();
-        expect(await until(async () => await message.getByText(/brain_recall|ls/).count(), (n) => n >= 2)).toBeGreaterThanOrEqual(2);
+        await chip.waitFor({ timeout: 10_000 });
+        expect((await chip.locator("[data-record-tools]").innerText()).trim()).toBe("2");
+        expect((await chip.locator("[data-record-drafts]").innerText()).trim()).toBe("1");
 
-        await message.getByRole("button", { name: new RegExp(wording("room.label.chip_brain")) }).click();
-        expect(await until(async () => await message.getByText("brain_recall").count(), (n) => n >= 2)).toBeGreaterThanOrEqual(2);
+        // Pressing it spreads one panel: every round stands open with its answer whole, with no press of its own.
+        await chip.click();
+
+        const record = message.locator("[data-record]");
+
+        await record.locator("[data-draft-answer]").first().waitFor({ timeout: 10_000 });
+        expect(await record.locator("[data-draft-answer]").first().innerText()).toContain(DRAFT_ANSWER);
+
+        // The calls are read from every run of the round, the answer's turn and the draft question's alike.
+        expect(await until(async () => await record.locator("[data-tool-call]").count(), (n) => n >= 2)).toBe(2);
+        expect(await record.innerText()).toContain("brain_recall");
+        expect(await record.locator("[data-tool-command]").allInnerTexts()).toContain("ls");
       } finally {
         await context.close();
       }
     }, 90_000);
 
-    test(`what a round's end names as read stands in the brain chip as a diff of new and held, and in the draft spread, ${viewport.width}px wide`, async () => {
+    test(`what a round's end names as read stands in the record once, as a diff of new and held before the calls, ${viewport.width}px wide`, async () => {
       const context = await open(viewport);
       const reads: DraftRead[] = [
         { path: "core/facts.md", holds: "core facts", how: "attached" },
@@ -320,25 +333,34 @@ describe.skipIf(!origin || !touchReady())("the work view", () => {
         const message = page.locator(`[data-message="m${ANSWER_ID}"]`);
 
         await message.waitFor({ timeout: 20_000 });
-        await message.getByRole("button", { name: new RegExp(wording("room.label.chip_brain")) }).click();
 
-        // The chip stands what the session held, then what the round read new as a plus.
-        expect((await message.locator("[data-brain-figure]").innerText()).replace(/\s/g, "")).toMatch(/^1\+\d+$/);
+        const chip = message.getByRole("button", { name: new RegExp(wording("room.label.chip_record")) });
 
-        const spread = message.locator("[data-brain-reads]").first();
+        await chip.waitFor({ timeout: 10_000 });
+        // The record's brain mark stands what the session held, then what the round read new as a plus.
+        expect((await chip.locator("[data-record-brain]").innerText()).replace(/\s/g, "")).toBe("1+2");
 
-        await spread.waitFor({ timeout: 10_000 });
-        // One list read like a diff: what was read new first, as added lines, then what was held, plain.
+        await chip.click();
+
+        const record = message.locator("[data-record]");
+        const spread = record.locator("[data-brain-reads]");
+
+        await spread.first().waitFor({ timeout: 10_000 });
+        // The round's reads stand once, as one list read like a diff: what was read new first, as added lines, then
+        // what was held, plain.
+        expect(await spread.count()).toBe(1);
+        expect(await spread.locator("[data-brain-read]").count()).toBe(3);
+
         const fresh = await spread.locator('[data-brain-read="new"]').allInnerTexts();
 
         expect(fresh.map((one) => one.replace(/^\+\s*/, "").trim())).toEqual(["core facts", "notes/today.md"]);
         expect(await spread.locator('[data-brain-read="held"]').innerText()).toContain("people");
-        // The brain call the log holds follows the pieces.
-        expect(await until(async () => await message.getByText("brain_recall").count(), (n) => n >= 1)).toBeGreaterThanOrEqual(1);
 
-        await message.getByRole("button", { name: new RegExp(wording("room.label.chip_drafts")) }).click();
-        await message.locator("[data-draft-reads]").first().waitFor({ timeout: 10_000 });
-        expect(await message.locator("[data-draft-reads] [data-brain-read]").count()).toBe(3);
+        // The list stands first in the panel, and the brain call the log holds follows it.
+        const call = record.locator("[data-tool-call]").filter({ hasText: "brain_recall" });
+
+        await call.first().waitFor({ timeout: 10_000 });
+        expect(await spread.evaluate((list, after) => (list.compareDocumentPosition(after!) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0, await call.first().elementHandle())).toBe(true);
       } finally {
         await context.close();
       }

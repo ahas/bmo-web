@@ -447,11 +447,11 @@ for it, and no file or table of that unit is read meanwhile.
 - **A repository's own log.** The agency writes a run's log under the supervisor or the role it is for, never under
   a repository, so a repository's screen reads its jobs from `GET /jobs?repositoryName=` and the log of a job by its
   run, and holds no log of the repository across its jobs.
-- **What a running job has spent so far.** The agency's `GET /jobs` and `GET /runs` answer a job's usage only once
-  its turn has ended. Each line of a job's run keeps the metadata its writer filed, and a line a model's request
-  produced carries that request's id and its usage there, the same usage on every line of one request; so the
-  console server reads the run's lines from `GET /log-lines`, newer ones only on each later read, and sums the
-  usage of every request once.
+- **What a job has called and spent so far.** The agency's `GET /jobs` answers a job's usage only once its turn
+  has ended, and no count of its calls. Each line of a job's run keeps the metadata its writer filed, and a line a
+  model's request produced carries that request's id and its usage there, the same usage on every line of one
+  request; so the console server reads the run's lines from `GET /log-lines`, newer ones only on each later read,
+  counts the call results among them and sums the usage of every request once.
 - **What a chat turn was handed, once it has ended.** The receiver composes the reference documents a turn goes out
   with, each in full or as an already-loaded mark, and tells them in its live picture of the running turn only: the
   turn it sends the agency (`POST /sessions/{sessionId}/turns`) carries no list of them, so the agency's log of the

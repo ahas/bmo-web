@@ -3268,8 +3268,8 @@ a seat of its role.
     00:12:34」 ticking or how long a finished job took, how many tool calls the job made, subagents' included, and the
     tokens — and the spread work order holds one line per model the job used: the model, 「총 …」 and its four kinds
     as the popover's bar (「Usage in the title bar」). The item's number opens the item.
-  - While the job runs, the tool calls are read off its log as it grows (「The work view」): the calls whose result
-    has come back.
+  - The tool calls are the calls whose result has come back on the job's run, which the console server counts off
+    the run's whole log, whether the job runs or has ended (`docs/boundary.md`, 「Gaps the console meets」).
   - The tokens are the job's spend. Once the job has ended they are the agency's own figure for its turn. While it
     runs the agency answers none (`docs/boundary.md`, 「Gaps the console meets」), so they are the newest usage
     record a pane program's run filed where the log holds one, and otherwise what the console server sums off the

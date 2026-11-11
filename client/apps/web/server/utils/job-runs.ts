@@ -2,11 +2,12 @@ import { STATUS_HISTORY_LIMIT, WORKER_AGENT } from "#shared/config";
 
 import { agency, agencyCall, agencyRoute } from "./agency";
 import { job as jobService, jobCall } from "./job";
-import { forgetRunSpend, runSpentSoFar } from "./run-spend";
+import { runFigures } from "./run-tally";
 import { planOf } from "../../app/domain/tool-view";
 
 import type { Job as AgencyJob } from "@agency/client";
-import type { ItemRuns, JobLine, JobPrompt, JobRecord, LiveRun, RanOn, TokenSplit } from "#shared/types";
+import type { ItemRuns, JobLine, JobPrompt, JobRecord, LiveRun, RanOn } from "#shared/types";
+import type { RunFigures } from "./run-tally";
 
 // A worker's job and the jobs that have just run, as the agency's fixed API reads them (the agency's `docs/api.md`,
 // 「assignments and jobs」), into the shapes the worker's screen and the live board draw. The agency's times are
@@ -45,6 +46,8 @@ export async function readWorkerJob(worker: string, run: string | null): Promise
 
   if (job === null) return null;
 
+  const figures: RunFigures = job.runId === null ? { calls: 0, spent: null } : await runFigures(job.runId);
+
   return {
     run: job.runName ?? String(job.runId ?? job.id),
     agent: job.workerName ?? job.roleName ?? worker,
@@ -53,22 +56,11 @@ export async function readWorkerJob(worker: string, run: string | null): Promise
     purpose: null,
     startedAt: seconds(job.startedAt),
     finishedAt: job.endedAt === null ? null : seconds(job.endedAt),
-    tools: 0,
+    tools: figures.calls,
     models: [],
-    spent: await jobSpent(job)
+    // The agency's own figure once the turn has ended; what the run has reported so far while it runs.
+    spent: job.endedAt === null ? figures.spent : (job.usage ?? null)
   };
-}
-
-// What a job's turn spent: the agency's own figure once it has ended, and what its run has reported so far while it
-// runs, which the agency answers no figure for.
-async function jobSpent(job: AgencyJob): Promise<TokenSplit | null> {
-  if (job.endedAt !== null) {
-    if (job.runId !== null) forgetRunSpend(job.runId);
-
-    return job.usage ?? null;
-  }
-
-  return job.runId === null ? null : await runSpentSoFar(job.runId);
 }
 
 /** The prompt of the job that line speaks of, or null where the worker has none. */

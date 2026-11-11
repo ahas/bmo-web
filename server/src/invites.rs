@@ -20,7 +20,7 @@ use crate::ids::shown;
 use crate::nodes::{Nodes, agent_of};
 use crate::routes::{Answer, Body, user_in};
 use crate::units::{UNIT, every_unit, heads, path_of};
-use crate::users::{hashed, home};
+use crate::users::{default_role, hashed};
 use crate::{Refusal, Service, all, now_ms, one, run};
 
 /// How long an invitation stands open where the asker names no span, and the longest it may.
@@ -200,7 +200,7 @@ pub async fn accept<C: ConnectionTrait + TransactionTrait>(
     return Err(Refusal::new(StatusCode::CONFLICT, "another user holds this name").coded("name-taken"));
   }
 
-  let (_, role) = home(&txn).await?;
+  let role = default_role(&txn).await?;
   let user: i32 = one(
     &txn,
     r#"INSERT INTO "users" ("username", "password", "role_id", "organization_id", "is_admin", "is_enabled")

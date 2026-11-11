@@ -11,9 +11,9 @@ use sumida::api::authz::write::{SubjectKey, TupleWrite};
 
 use crate::{Refusal, now_ms, one, run};
 
-/// The organization every user of the deployment belongs to, by name.
+/// The name the data move gives the deployment's first company, which may be renamed after it.
 pub const ORGANIZATION: &str = "bmo";
-/// The role every user of the deployment holds, by name.
+/// The deployment's default role, which every user holds, by name.
 pub const ROLE: &str = "member";
 
 /// The subject every member of a room is checked as, in that room alone.
@@ -127,28 +127,46 @@ pub async fn user_subject<C: ConnectionTrait>(db: &C, user: i32) -> Result<Subje
   Ok(SubjectSet::from_parts(keys, ids))
 }
 
-/// The organization and role the data move made, which every user is given.
-pub async fn home<C: ConnectionTrait>(db: &C) -> Result<(i32, i32), Refusal> {
-  let organization = one(
-    db,
-    r#"SELECT "id" FROM "organizations" WHERE "name" = $1 ORDER BY "id" LIMIT 1"#,
-    vec![ORGANIZATION.into()],
+/// What a user cannot be made without, refused alike wherever it is missing.
+fn not_ready(missing: &str) -> Refusal {
+  Refusal::new(
+    axum::http::StatusCode::CONFLICT,
+    format!("the data move has not run, so there is no {missing} to give a user"),
   )
-  .await?;
+  .coded("not-ready")
+}
+
+/// The deployment's default role, which every user is given.
+pub async fn default_role<C: ConnectionTrait>(db: &C) -> Result<i32, Refusal> {
   let role = one(
     db,
     r#"SELECT "id" FROM "roles" WHERE "name" = $1 ORDER BY "id" LIMIT 1"#,
     vec![ROLE.into()],
   )
-  .await?;
+  .await?
+  .ok_or_else(|| not_ready("role"))?;
 
-  match (organization, role) {
-    (Some(organization), Some(role)) => Ok((organization.try_get("", "id")?, role.try_get("", "id")?)),
-    _ => Err(Refusal::new(
-      axum::http::StatusCode::CONFLICT,
-      "the data move has not run, so there is no organization or role to give a user",
-    )),
-  }
+  Ok(role.try_get("", "id")?)
+}
+
+/// The deployment's first company: the unit with no parent made before every other, which the data move
+/// made, whatever it is named now.
+pub async fn first_company<C: ConnectionTrait>(db: &C) -> Result<i32, Refusal> {
+  let company = one(
+    db,
+    r#"SELECT "id" FROM "organizations" WHERE "parent_id" IS NULL ORDER BY "id" LIMIT 1"#,
+    vec![],
+  )
+  .await?
+  .ok_or_else(|| not_ready("company"))?;
+
+  Ok(company.try_get("", "id")?)
+}
+
+/// The organization and role a user made outside an invitation is given: the first company and the
+/// default role.
+pub async fn home<C: ConnectionTrait>(db: &C) -> Result<(i32, i32), Refusal> {
+  Ok((first_company(db).await?, default_role(db).await?))
 }
 
 /// A password no sign-in can match: not a hash at all, so the check refuses it as it refuses a wrong

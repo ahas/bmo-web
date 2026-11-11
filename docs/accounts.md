@@ -107,7 +107,8 @@ section states what each does.
   message it is granted on (its room and id).
   - The granter is that message's sender's user, and sumida checks they may grant it, so nobody gives what they
     do not hold.
-  - A sender with no user yet is given one, with no way to sign in, and linked.
+  - A sender with no user yet is given one in the first company, with the default role and no way to sign in,
+    and linked.
   - Granting again moves the expiry and the words.
 - **`DELETE /grants`** — the same selector and the message it is revoked on, checked the same way.
 
@@ -130,6 +131,10 @@ section states what each does.
   administrator's user, its password carried as it stands; a console holding more than one account is refused
   with 409. The service writes the whole move in one transaction with sumida's own machinery and marks it done
   in its own `settings` table; a second call answers that it is done and writes nothing.
+- **It makes the deployment's first company and its default role,** `member`, which every user holds. The
+  company is named `bmo` at first and may be renamed like any unit; nothing reads it by its name after the
+  move. A user made outside an invitation, by the account command or for a sender, goes into the first
+  company, the unit with no parent made before every other one.
 - **What the move writes is the service's own:** the users, their links to senders, every room's member grant
   at the deployment's defaults, the rules' grants and their words, and a user's id on the console's own tables
   that are keyed by user. A table of another unit is that unit's to key.
@@ -244,6 +249,10 @@ section states what each does.
 - **The link is opened with no sign-in.** It shows the unit and its company and asks for a name and a password.
   Accepting it makes the account disabled, in the unit, a head where the invitation says so, with the console
   sections every user is given, and binds it to the machine name `u<user>`.
+- **Acceptance needs the invitation open, the name free and the default role standing.** The account's
+  organisation is the invitation's unit, so no unit's or company's name is read, and a company renamed after
+  the invitation was made takes it in just the same. Where the default role does not stand, acceptance is refused 409
+  `not-ready`, and the console says the deployment is not ready to make accounts.
 - **An account is enabled only once its machine is proven:** the person installs jake with the command the
   acceptance answers, which names the machine and carries a credential made for that name alone (jake's
   `docs/architecture.md`), and the service asks the jake hub whether an agent of that name is attached. Attached,
@@ -324,9 +333,9 @@ section states what each does.
 
 - **The server's binary makes the user a name signs in as, or gives one standing a new password,** with the
   password read from standard input so it stands in no process listing.
-  - A user made is enabled, in the organization and role every user is given, and given the console sections
-    in force — their rooms read and their account read and written — holding nothing else until it is
-    granted; `--administrator` also makes it the platform administrator.
+  - A user made is enabled, in the first company with the default role (「The data move」), and given the
+    console sections in force — their rooms read and their account read and written — holding nothing else
+    until it is granted; `--administrator` also makes it the platform administrator.
   - A user standing is enabled again with the new password, and keeps its grants and its links.
   - The password is hashed as sumida hashes every password.
 - **It writes the database the service reads,** the one its settings name, and refuses where the data move has

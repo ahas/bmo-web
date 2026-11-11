@@ -13,7 +13,7 @@ use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::nodes::{NodeHub, Nodes};
 use bmo_web_server::one;
 use bmo_web_server::routes::in_force;
-use bmo_web_server::users::set_sign_in;
+use bmo_web_server::users::{ORGANIZATION, set_sign_in};
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
 use tower::ServiceExt;
@@ -171,6 +171,63 @@ async fn a_head_invites_a_member_into_their_unit_and_no_one_else_does() {
     units["units"].as_array().unwrap().iter().any(|unit| unit["id"] == stood.team),
     "{units}"
   );
+}
+
+#[tokio::test]
+async fn a_renamed_company_still_takes_in_invited_and_made_accounts() {
+  ready();
+  let stood = stood().await;
+  let first: i32 = one(
+    stood.scratch.db(),
+    r#"SELECT "id" FROM "organizations" WHERE "name" = $1"#,
+    vec![ORGANIZATION.into()],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get("", "id")
+  .unwrap();
+
+  stood
+    .scratch
+    .run(
+      r#"UPDATE "organizations" SET "name" = 'Renamed Company' WHERE "id" = $1"#,
+      vec![first.into()],
+    )
+    .await;
+
+  let (_, invite) = asked(
+    &stood.app,
+    Method::POST,
+    "/invites",
+    Some(json!({ "unit": first, "head": false })),
+    Some((1, "administrator")),
+  )
+  .await;
+  let token = invite["token"].as_str().unwrap().to_owned();
+  let (status, accepted) = asked(
+    &stood.app,
+    Method::POST,
+    &format!("/invites/{token}/accept"),
+    Some(json!({ "name": "newcomer", "password": "pw" })),
+    None,
+  )
+  .await;
+  assert_eq!(status, StatusCode::CREATED, "{accepted}");
+
+  // A user made outside an invitation still goes into the first company, under its new name.
+  let made = set_sign_in(stood.scratch.db(), "made-later", "the password", false).await.unwrap();
+  let organization: i32 = one(
+    stood.scratch.db(),
+    r#"SELECT "organization_id" FROM "users" WHERE "id" = $1"#,
+    vec![made.user.into()],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get("", "organization_id")
+  .unwrap();
+  assert_eq!(organization, first);
 }
 
 #[tokio::test]

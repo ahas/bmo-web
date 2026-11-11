@@ -1722,6 +1722,7 @@ invites:
     name_taken: 이미 쓰이는 아이디입니다.
     no_hub: 기기 연결 허브가 설정되어 있지 않아 초대할 수 없습니다.
     not_found: 초대를 찾을 수 없습니다.
+    not_ready: 아직 계정을 만들 수 없는 상태입니다. 관리자에게 알려 주세요.
     unreachable: 계정 서비스에 연결되지 않았습니다.
 overlay:
   title:

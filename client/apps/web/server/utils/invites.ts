@@ -10,6 +10,7 @@ const INVITE_CODES: Record<string, string> = {
   "invite-closed": "invites.error.closed",
   "name-taken": "invites.error.name_taken",
   "no-hub": "invites.error.no_hub",
+  "not-ready": "invites.error.not_ready",
   "not-found": "invites.error.not_found",
   "bad-request": "invites.error.bad_request",
   forbidden: "invites.error.forbidden"

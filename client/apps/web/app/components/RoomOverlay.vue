@@ -20,6 +20,7 @@
             </div>
           </div>
 
+          <ULink v-if="overlay.supervisor !== null" :to="`/agents/${encodeURIComponent(overlay.supervisor)}`" class="text-sm text-muted">{{ $t("overlay.action.log") }}</ULink>
           <form class="flex min-w-0 items-end gap-2" @submit.prevent="send">
             <UTextarea v-model="text" :rows="1" autoresize :maxrows="6" class="min-w-0 flex-1" :placeholder="$t('overlay.label.input')" :aria-label="$t('overlay.label.input')" @keydown.enter.exact.prevent="send" />
             <UButton type="submit" icon="i-material-symbols-send-outline" :aria-label="$t('overlay.action.send')" :loading="sending" :disabled="text.trim() === ''" />

@@ -1718,6 +1718,7 @@ overlay:
     input: 이 방 사람들에게는 보이지 않습니다
   action:
     send: 보내기
+    log: 내 BMO의 기록 보기
   status:
     loading: 내 BMO 불러오는 중…
   error:

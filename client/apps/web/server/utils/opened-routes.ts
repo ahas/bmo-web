@@ -62,6 +62,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "POST", path: /^\/api\/join\/[0-9a-f]+\/(accept|proof)$/, scope: "user" },
   // The reader's own sections, which the navigation and the page guard read.
   { method: "GET", path: /^\/api\/me\/sections$/, scope: "user" },
+  // The reader's own supervisors, whose log and turns open to them.
+  { method: "GET", path: /^\/api\/me\/agents$/, scope: "user" },
 
   // The account's own surface.
   section(ACCOUNT, "POST", /^\/api\/account$/),

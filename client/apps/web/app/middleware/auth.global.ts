@@ -52,6 +52,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // holds the permission; a console that cannot read it falls back to the screens a member has always had.
   const access = await ensureSectionAccess().catch(() => null);
 
+  // A person's own BMO's page opens to them whatever sections they hold (docs/web.md, 「Access」).
+  if (await ownAgentPage(to.path)) {
+    setPageLayout(MEMBER_LAYOUT);
+
+    return;
+  }
+
   if (access !== null) {
     if (sectionsOfPath(to.path).length > 0 && !screenMayRead(access, to.path)) {
       return navigateTo(homeFor(access));
@@ -71,3 +78,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   setPageLayout(MEMBER_LAYOUT);
 });
+
+// Whether a path is the page of one of the reader's own supervisors, as the console's server answers them.
+async function ownAgentPage(path: string): Promise<boolean> {
+  const name = /^\/agents\/([^/]+)$/.exec(path)?.[1];
+
+  if (name === undefined) return false;
+
+  const own = await $fetch<string[]>("/api/me/agents").catch(() => [] as string[]);
+
+  return own.includes(decodeURIComponent(name));
+}

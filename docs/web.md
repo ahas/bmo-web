@@ -409,6 +409,9 @@ console page. No answer says which framework drew it. Strict transport is the re
   dialog's, which only the administrator opens. An agent's own page opens on a read of the supervisors, the
   roles or the repositories, and its stop, its settings and the box that launches work stand only where that
   part writes.
+- **A person reads their own BMO's log and turns whatever sections they hold:** the log and the turns of a
+  supervisor whose owner account is the reader open to them, as the agency's list names its owner, and no other
+  agent's do. What runs for them on the shared engines is read there; what runs for another account is not.
 - **The administrator sets one person's sections in the settings.** The 권한 section lists the users, and
   the section chosen stands a table of the console's sections with a switch for its read and one for its
   write; a change is saved as it is made, and a write turns its read on. The platform administrator's own

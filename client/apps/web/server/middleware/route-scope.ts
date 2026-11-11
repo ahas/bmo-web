@@ -1,5 +1,6 @@
 import { withoutBase } from "ufo";
 
+import { readSupervisors } from "../utils/axes";
 import { attachedService, readerMay } from "../utils/console-manifests";
 import { openedRoute } from "../utils/opened-routes";
 import { sectionAccessOf } from "../utils/section-access";
@@ -43,6 +44,13 @@ export default defineEventHandler(async (event) => {
     return;
   }
 
+  // A person reads their own BMO's log and turns, whatever sections they hold (docs/web.md, 「Access」).
+  if (event.method === "GET" && id !== undefined && (await ownAgentRead(path, Number(id)))) {
+    event.context.routeScope = "user";
+
+    return;
+  }
+
   const opened = openedRoute(event.method, path);
 
   if (opened === null || opened.administrator === true) {
@@ -64,3 +72,15 @@ export default defineEventHandler(async (event) => {
 
   event.context.routeScope = opened.scope;
 });
+
+// Whether a path reads the log or the turns of a supervisor whose owner account is the reader.
+async function ownAgentRead(path: string, reader: number): Promise<boolean> {
+  const name = /^\/api\/agents\/([^/]+)\/(?:log|turns)$/.exec(path)?.[1];
+
+  if (name === undefined || !Number.isSafeInteger(reader)) return false;
+
+  const agent = decodeURIComponent(name);
+  const supervisors = await readSupervisors().catch(() => []);
+
+  return supervisors.some((supervisor) => supervisor.name === agent && supervisor.ownerAccount === reader);
+}

@@ -108,7 +108,7 @@ function receivedOf(message: ReceiverMessage): ReceivedMessage {
   };
 }
 
-const ATTACHED: readonly MessageAttachment["kind"][] = ["audio", "video", "document", "sticker"];
+const ATTACHED: readonly MessageAttachment["kind"][] = ["audio", "video", "animation", "document", "sticker"];
 
 // The receiver states its times in epoch milliseconds; a shape the screen draws states them in the unix
 // seconds `bmo-ui` reads, as every other unit adapter here does.

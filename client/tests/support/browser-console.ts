@@ -91,6 +91,18 @@ const UNREAD_CHAT = 43;
 // A room the console made on the record road, its words standing under no chat service: the owner's under their own
 // sender, the chat agent's under no number at all.
 const RECORD_CHAT = -9_000_000_000_099;
+// A room whose messages carry what a messenger sends besides words: an album of three tall pictures, an animated
+// sticker, an animation, and reactions of several people with their pictures.
+const MEDIA_CHAT = 44;
+// A tall picture, as a phone's screenshot stands: drawn as an SVG of that size.
+const TALL = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="591" height="1280"><rect width="591" height="1280" fill="#3a6"/></svg>');
+// An animated sticker: a one-second Lottie scene of one square, gzipped as Telegram keeps it.
+const STICKER = Bun.gzipSync(new TextEncoder().encode(JSON.stringify({
+  v: "5.5.2", fr: 30, ip: 0, op: 30, w: 512, h: 512, layers: [{
+    ty: 4, ind: 1, ip: 0, op: 30, st: 0, ks: { o: { a: 0, k: 100 }, r: { a: 1, k: [{ t: 0, s: [0] }, { t: 30, s: [360] }] }, p: { a: 0, k: [256, 256] }, a: { a: 0, k: [0, 0] }, s: { a: 0, k: [100, 100] } },
+    shapes: [{ ty: "rc", p: { a: 0, k: [0, 0] }, s: { a: 0, k: [200, 200] }, r: { a: 0, k: 0 } }, { ty: "fl", c: { a: 0, k: [0.2, 0.6, 0.9, 1] }, o: { a: 0, k: 100 } }]
+  }]
+})));
 // The person number the chat agent's own words stand under in the owner's room, whose picture is its face.
 const AGENT_FACE = 501;
 // A picture's bytes: one grey pixel.
@@ -572,7 +584,45 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/events") return silentStream();
     if (path === "/owner") return Response.json({ room: OWNER_CHAT, senderId: 1 });
     if (path === "/live") return Response.json({ at: now, compacting: [], queued: [], turns: [] });
-    if (path === "/rooms") return Response.json({ items: [room, behind, recorded], more: false });
+    const media = { ...room, id: MEDIA_CHAT, title: "media-room", ownerRoom: false, workRoom: MEDIA_CHAT, lastMessageAt: LINE_AT - 500 };
+    const shown = (id: number, over: Record<string, unknown>) => ({
+      id, room: MEDIA_CHAT, senderId: 7, senderName: "person-b", sentAt: LINE_AT - 4_000 + id, text: "", imagePath: null,
+      replyToMessageId: null, answerSeconds: null, round: null, album: null, via: null, files: [], ...over
+    });
+    const mediaLine = [
+      ...[1, 2, 3].map((id) => shown(id, { album: 1, imagePath: `images/${MEDIA_CHAT}/${id}.jpg` })),
+      shown(4, { kind: "sticker", files: [{ kind: "sticker", source: "sticker-1.tgs", storedPath: "kept", collectedAt: LINE_AT }] }),
+      shown(5, { files: [{ kind: "animation", source: "video.mp4", storedPath: "kept", collectedAt: LINE_AT }] }),
+      shown(7, { text: "words deleted on the messenger", deletedAt: LINE_AT - 100 }),
+      shown(6, { text: "reacted to", reactions: [{ emoji: "\u{1F44D}", by: "1" }, { emoji: "\u{1F44D}", by: "7" }, { emoji: "\u{2764}\u{FE0F}", by: "8" }] })
+    ];
+
+    if (path === `/rooms/${MEDIA_CHAT}/messages`) {
+      const after = new URL(request.url).searchParams.get("after");
+
+      return Response.json({ items: after === null ? mediaLine : mediaLine.filter((one) => one.id > Number(after)), more: false });
+    }
+
+    const mediaAsked = new RegExp(`^/rooms/${MEDIA_CHAT}/messages/(\\d+)(/[a-z]+)?(/\\d+)?$`).exec(path);
+
+    if (mediaAsked !== null) {
+      const id = Number(mediaAsked[1]);
+
+      if (mediaAsked[2] === "/picture") return new Response(TALL, { headers: { "content-type": "image/svg+xml" } });
+      if (mediaAsked[2] === "/metadata") return Response.json({ metadata: id === 4 ? { sticker: { emoji: "\u{1F600}" } } : null });
+      if (mediaAsked[2] === "/files" && mediaAsked[3] === undefined) {
+        const files = id === 4
+          ? [{ place: 0, kind: "sticker", name: "sticker-1.tgs", size: STICKER.byteLength, type: "application/x-tgsticker", kept: true }]
+          : id === 5 ? [{ place: 0, kind: "animation", name: "video.mp4", size: 4, type: "video/mp4", kept: true }] : [];
+
+        return Response.json({ items: files, more: false });
+      }
+      if (mediaAsked[2] === "/files") return new Response(id === 4 ? STICKER : new Uint8Array(4), { headers: { "content-type": id === 4 ? "application/x-tgsticker" : "video/mp4" } });
+
+      return Response.json(mediaLine.find((one) => one.id === id) ?? mediaLine[0]);
+    }
+
+    if (path === "/rooms") return Response.json({ items: [room, behind, recorded, media], more: false });
     if (path === `/rooms/${RECORD_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
 
@@ -752,7 +802,7 @@ try {
   const move = await fetch(`http://127.0.0.1:${serverPort}/accounts/move`, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
-    body: JSON.stringify({ ownerSenders: [1], rooms: [OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT] })
+    body: JSON.stringify({ ownerSenders: [1], rooms: [OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT] })
   });
 
   if (!move.ok) throw new Error(`the data move was refused: ${move.status} ${await move.text()}`);

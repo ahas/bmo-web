@@ -1,5 +1,22 @@
 <template>
   <UContextMenu :items="menuItems" :disabled="menuOff" :content="menuContent">
+    <!-- The reactions at the menu's head as the messenger offers them: a strip of emojis, the reader's own marked. -->
+    <template #reactions>
+      <span data-reaction-strip class="flex w-full items-center justify-between gap-0.5" role="group" :aria-label="$t('room.action.react')">
+        <button
+          v-for="choice in strip"
+          :key="choice.emoji"
+          type="button"
+          class="grid size-8 place-items-center rounded-full text-lg transition-transform hover:scale-125"
+          :class="choice.mine ? 'bg-primary/15' : ''"
+          :aria-pressed="choice.mine"
+          @click="choice.press()"
+        >
+          {{ choice.emoji }}
+        </button>
+      </span>
+    </template>
+
     <!-- The row's own padding is breathing room for the box it becomes when it is hovered, chosen
          or brought into view, and nothing else: it is the same top and bottom so that box sits
          square around what it holds, and its side room stands outside the column the message reads
@@ -194,10 +211,26 @@
                           {{ props.item.fileName }}
                         </p>
 
-                        <!-- A deleted message keeps its place as one quiet line (docs/web.md, 「What was done to a message」). -->
-                        <p v-else-if="empty" class="text-muted italic" :data-deleted="props.item.deleted ? '' : undefined">
-                          {{ props.item.deleted ? $t("room.label.deleted_message") : $t("room.label.empty_message") }}
-                        </p>
+                        <!-- A deleted message keeps its place as one quiet line (docs/web.md, 「What was done to a message」);
+                             one deleted on its messenger still holds its words, which a press on the line opens. -->
+                        <template v-else-if="empty">
+                          <button
+                            v-if="props.item.deleted && props.item.deletedText"
+                            type="button"
+                            class="text-muted italic underline decoration-dotted underline-offset-2 hover:text-default"
+                            data-deleted
+                            :aria-expanded="showingDeleted"
+                            @click.stop="showingDeleted = !showingDeleted"
+                          >
+                            {{ showingDeleted ? $t("room.label.deleted_message_hide") : $t("room.label.deleted_message_show") }}
+                          </button>
+                          <p v-else class="text-muted italic" :data-deleted="props.item.deleted ? '' : undefined">
+                            {{ props.item.deleted ? $t("room.label.deleted_message") : $t("room.label.empty_message") }}
+                          </p>
+                          <p v-if="showingDeleted && props.item.deletedText" data-deleted-words class="mt-1 border-s-2 border-default ps-2 text-toned whitespace-pre-wrap break-words">
+                            {{ props.item.deletedText }}
+                          </p>
+                        </template>
                       </div>
 
                       <LinkPreviews
@@ -240,6 +273,14 @@
                           <p v-if="transcript !== null" data-transcript class="min-w-0 text-sm break-words whitespace-pre-wrap text-toned">{{ transcript }}</p>
                           <p v-else-if="voiceFailed" data-voice-failed class="text-sm text-dimmed">{{ $t("room.label.voice_failed") }}</p>
                         </div>
+                        <!-- An animation plays where it stands, over and over and without sound, as the messenger
+                             shows one: no player and no file line (docs/web.md, the room screen's animations). -->
+                        <MessageAnimation
+                          v-else-if="attachment.kind === 'animation' && attachment.available"
+                          :attachment="attachment"
+                          :chat-id="props.chatId"
+                          :message-id="props.item.messageId"
+                        />
                         <MessageVideo
                           v-else-if="playable(attachment)"
                           class="self-start"
@@ -250,7 +291,7 @@
                         <!-- A kept file stands as a line of its own: what it is, how large, and the way to
                              take it. The name wraps rather than being cut, since it is the file's own. -->
                         <div
-                          v-if="attachment.kind !== 'sticker' && !heard(attachment)"
+                          v-if="attachment.kind !== 'sticker' && !(attachment.kind === 'animation' && attachment.available) && !heard(attachment)"
                           data-attachment
                           class="flex max-w-full items-center gap-2 rounded-md border border-default py-1 ps-2 pe-1"
                           :class="attachment.available ? '' : 'text-muted'"
@@ -275,22 +316,8 @@
                         </div>
                       </div>
 
-                      <!-- Who reacted to the message, each emoji once with how many put it there, named in its tooltip;
-                           the reader's own senders' in the accent's wash (docs/web.md, 「What was done to a message」). -->
-                      <div v-if="reactions.length > 0" data-reactions class="flex basis-full flex-wrap gap-1 pt-(--chat-meta-gap)">
-                        <HintTip
-                          v-for="reaction in reactions"
-                          :key="reaction.emoji"
-                          :text="reaction.who.join(', ')"
-                          class="inline-flex h-6 items-center gap-1 rounded-full px-2 text-sm tabular-nums"
-                          :class="reaction.mine ? 'bg-primary/15 text-primary' : 'bg-current/10 text-muted'"
-                          :data-reaction="reaction.emoji"
-                          :aria-label="$t('room.aria.reaction', { emoji: reaction.emoji, n: countText(reaction.count) })"
-                        >
-                          <span aria-hidden="true">{{ reaction.emoji }}</span>
-                          <span aria-hidden="true">{{ countText(reaction.count) }}</span>
-                        </HintTip>
-                      </div>
+                      <!-- Reactions where the meta line does not stand: on its own line, as the line would carry them. -->
+                      <RoomReactions v-if="listening && reactions.length > 0" class="basis-full pt-(--chat-meta-gap)" :reactions="reactions" @react="emit('react', props.item.key, $event)" />
 
                       <!-- While the chat agent only listens there is nothing to count, and the time left stands
                            where the line would. -->
@@ -319,6 +346,12 @@
                       >
                         <!-- How long the room waited for this answer; a message the archive holds no
                              measurement of says nothing at all. -->
+                        <!-- Who reacted to the message stands at the line's leading end, the time at its trailing end, on one
+                             line as the messenger lays them (docs/web.md, 「What was done to a message」). -->
+                        <template v-if="reactions.length > 0" #lead>
+                          <RoomReactions :reactions="reactions" @react="emit('react', props.item.key, $event)" />
+                        </template>
+
                         <template v-if="props.item.answerSeconds !== null" #took>
                           <span data-took>{{ $t("room.label.answer_took", { time: spanClock($t, props.item.answerSeconds) }) }}</span>
                         </template>
@@ -388,7 +421,7 @@ import { messageLinks } from "#shared/links";
 
 import { fileSizeText } from "~/domain/attachments";
 import { keepFitted } from "~/domain/bubble-fit";
-import { messageMenu } from "~/domain/messagemenu";
+import { messageMenu, reactionStrip } from "~/domain/messagemenu";
 import { mineReaction } from "~/domain/message-acts";
 import { mediaUrl } from "~/domain/player";
 import { asideSlide, bubbleLook, choosingMotion, nameColour, sendMark, sideLayout, wordsWrap } from "~/domain/room";
@@ -467,6 +500,9 @@ const reactions = computed(() => (props.item.deleted ? [] : (props.item.reaction
 
 // A message that said nothing and carried nothing says that it is empty, in the place its words
 // would have stood; one that carried a picture or a file is that picture or that file alone.
+// Whether the words a message deleted on its messenger still holds stand opened under its line.
+const showingDeleted = ref(false);
+
 const empty = computed<boolean>(
   () => !props.item.shownText && props.item.imageUrl === null && (props.item.attachments ?? []).length === 0
 );
@@ -746,6 +782,9 @@ const menuItems = computed<ContextMenuItem[][]>(() =>
     }
   )
 );
+
+// The emojis at the menu's head, the reader's own marked; each pressed reacts as the menu's act does.
+const strip = computed(() => reactionStrip(mineReaction(props.item), (emoji) => emit("react", props.item.key, emoji)));
 
 // Whether the press now under way came from a finger, and whether the click it ends in was already
 // spent opening the menu.

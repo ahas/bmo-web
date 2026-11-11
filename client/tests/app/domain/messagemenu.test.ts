@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { messageMenu } from "../../../apps/web/app/domain/messagemenu";
+import { messageMenu, REACTION_STRIP_SLOT, reactionStrip } from "../../../apps/web/app/domain/messagemenu";
 import { REACTION_EMOJIS } from "../../../apps/web/app/domain/message-acts";
 
 import type { CopyItem } from "../../../apps/web/app/domain/room-copy";
@@ -44,8 +44,9 @@ describe("the menu on one message", () => {
     const groups = messageMenu(wording, item("words"), spies());
 
     expect(groups.map((group) => group.map((entry) => entry.label))).toEqual([
+      [wording("room.action.react")],
       [wording("room.action.reply")],
-      [wording("room.action.react"), wording("room.action.pin")],
+      [wording("room.action.pin")],
       [wording("common.action.copy"), wording("room.action.copy_text"), wording("room.action.copy_ref")],
       [wording("room.action.select")]
     ]);
@@ -55,15 +56,15 @@ describe("the menu on one message", () => {
     const owner = messageMenu(wording, item("words", { administrator: true }), spies());
     const member = messageMenu(wording, item("words", { administrator: false }), spies());
 
-    expect(owner[0]!.map((entry) => entry.label)).toEqual([wording("room.action.reply"), wording("room.action.forward")]);
-    expect(member[0]!.map((entry) => entry.label)).toEqual([wording("room.action.reply")]);
+    expect(owner[1]!.map((entry) => entry.label)).toEqual([wording("room.action.reply"), wording("room.action.forward")]);
+    expect(member[1]!.map((entry) => entry.label)).toEqual([wording("room.action.reply")]);
   });
 
   test("takes a pin off a pinned message and sets it on one that stands unpinned", () => {
     const pinned = messageMenu(wording, item("words", { pinned: true }), spies());
 
-    expect(pinned[1]![1]!.label).toBe(wording("room.action.unpin"));
-    expect(messageMenu(wording, item("words"), spies())[1]![1]!.label).toBe(wording("room.action.pin"));
+    expect(pinned[2]![0]!.label).toBe(wording("room.action.unpin"));
+    expect(messageMenu(wording, item("words"), spies())[2]![0]!.label).toBe(wording("room.action.pin"));
   });
 
   test("offers the reader's own message an edit and a delete, and another's to the administrator alone", () => {
@@ -71,20 +72,20 @@ describe("the menu on one message", () => {
     const other = messageMenu(wording, item("words", { mine: false }), spies());
     const administrator = messageMenu(wording, item("words", { mine: false, administrator: true }), spies());
 
-    expect(mine[2]!.map((entry) => entry.label)).toEqual([wording("room.action.edit_message"), wording("common.action.delete")]);
-    expect(other[2]!.map((entry) => entry.label)).toEqual([wording("common.action.copy"), wording("room.action.copy_text"), wording("room.action.copy_ref")]);
-    expect(administrator[2]!.map((entry) => entry.label)).toEqual([wording("common.action.delete")]);
+    expect(mine[3]!.map((entry) => entry.label)).toEqual([wording("room.action.edit_message"), wording("common.action.delete")]);
+    expect(other[3]!.map((entry) => entry.label)).toEqual([wording("common.action.copy"), wording("room.action.copy_text"), wording("room.action.copy_ref")]);
+    expect(administrator[3]!.map((entry) => entry.label)).toEqual([wording("common.action.delete")]);
   });
 
-  test("gathers the reactions under one entry, the reader's own marked", () => {
-    const groups = messageMenu(wording, item("words", { reaction: "🎉" }), spies());
-    const reactions = groups[1]![0]!;
+  test("heads the menu with the reactions as one strip, the reader's own marked", () => {
+    const actions = spies();
+    const groups = messageMenu(wording, item("words", { reaction: "🎉" }), actions);
+    const strip = reactionStrip("🎉", actions.react);
 
-    expect(reactions.label).toBe(wording("room.action.react"));
-    const entries = (reactions.children?.[0] ?? []) as MenuEntry[];
-
-    expect(entries.map((entry) => entry.label)).toEqual([...REACTION_EMOJIS]);
-    expect(entries.filter((entry) => entry.icon !== undefined).map((entry) => entry.label)).toEqual(["🎉"]);
+    expect(groups[0]![0]!.label).toBe(wording("room.action.react"));
+    expect((groups[0]![0]! as { slot?: string }).slot).toBe(REACTION_STRIP_SLOT);
+    expect(strip.map((choice) => choice.emoji)).toEqual([...REACTION_EMOJIS]);
+    expect(strip.filter((choice) => choice.mine).map((choice) => choice.emoji)).toEqual(["🎉"]);
   });
 
   test("each entry does its own thing", () => {
@@ -95,8 +96,8 @@ describe("the menu on one message", () => {
       entry.onSelect?.(new Event("select"));
     }
 
-    for (const emoji of (groups[1]![0]!.children?.[0] ?? []) as MenuEntry[]) {
-      emoji.onSelect?.(new Event("select"));
+    for (const choice of reactionStrip(null, actions.react)) {
+      choice.press();
     }
 
     expect(actions.called).toEqual([

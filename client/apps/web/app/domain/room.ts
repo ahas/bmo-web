@@ -311,6 +311,9 @@ export interface FeedItem {
   // What the room's record keeps done to the message (docs/web.md, 「What was done to a message」): whether it was
   // deleted, when it was edited and pinned, in unix seconds, and its reactions as the row stands them.
   deleted?: boolean;
+  // The words a message deleted on its messenger still holds, which the row opens on a press; none where the delete
+  // took them, as the console's own delete does.
+  deletedText?: string;
   editedAt?: number | null;
   pinnedAt?: number | null;
   reactions?: ReactionView[];
@@ -343,22 +346,35 @@ export interface ReactionView {
   count: number;
   mine: boolean;
   who: string[];
+  // The reactors' faces, in the order they reacted: the chip draws them in place of the count while they are few.
+  faces: AvatarProps[];
 }
+
+// How many reactors a chip draws by their faces before it says how many instead, as the messenger does.
+export const REACTION_FACES_MOST = 3;
 
 /** A message's reactions gathered by emoji in the order each first came, each reactor named: an agent by its label,
  * a person by the name the page knows their number by, else the number. */
-export function reactionViews(reactions: readonly MessageReaction[], names: ReadonlyMap<string, string>, mine: readonly number[]): ReactionView[] {
+export function reactionViews(
+  reactions: readonly MessageReaction[],
+  names: ReadonlyMap<string, string>,
+  mine: readonly number[],
+  avatars: AvatarIndex = new Map()
+): ReactionView[] {
   const views = new Map<string, ReactionView>();
   const own = new Set(mine.map(String));
 
   for (const reaction of reactions) {
     if (reaction.emoji === "") continue;
 
-    const view = views.get(reaction.emoji) ?? { emoji: reaction.emoji, count: 0, mine: false, who: [] };
+    const view = views.get(reaction.emoji) ?? { emoji: reaction.emoji, count: 0, mine: false, who: [], faces: [] };
+    const person = /^-?\d+$/.test(reaction.by);
+    const name = names.get(reaction.by) ?? (person ? reaction.by : agentRowName(reaction.by));
 
     view.count += 1;
     view.mine ||= own.has(reaction.by);
-    view.who.push(names.get(reaction.by) ?? (/^-?\d+$/.test(reaction.by) ? reaction.by : agentRowName(reaction.by)));
+    view.who.push(name);
+    view.faces.push(person ? avatarFor(avatars, "person", Number(reaction.by), name) : agentAvatar(avatars, reaction.by));
     views.set(reaction.emoji, view);
   }
 
@@ -1515,7 +1531,7 @@ export function archivedRows(
   const reacted = new Map(messages.map((message) => [message.messageId, message.reactions ?? []]));
 
   for (const item of items) {
-    item.reactions = reactionViews(reacted.get(item.messageId) ?? [], names, mine);
+    item.reactions = reactionViews(reacted.get(item.messageId) ?? [], names, mine, avatars);
   }
 
   return items;
@@ -1645,6 +1661,7 @@ function feedItemOf(
     sentAt: message.sentAt,
     text: message.text,
     shownText: deleted ? "" : shown.text,
+    ...(deleted && shown.text.trim() !== "" ? { deletedText: shown.text } : {}),
     quote: deleted ? null : (message.replyQuote ?? null),
     imageUrl: !pictured ? null : imageUrlFor(message.chatId, message.messageId),
     attachments: deleted ? [] : message.attachments,

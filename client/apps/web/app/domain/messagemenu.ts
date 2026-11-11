@@ -38,19 +38,18 @@ export interface MessageMenuState extends Said {
   reaction?: string | null;
 }
 
-// The reaction submenu: every emoji the console offers, the reader's own marked.
-function reactions(t: Translate, state: MessageMenuState, actions: MessageMenuActions): ContextMenuItem {
-  return {
-    label: t("room.action.react"),
-    icon: "i-material-symbols-add-reaction",
-    children: [
-      REACTION_EMOJIS.map((emoji) => ({
-        label: emoji,
-        ...(state.reaction === emoji ? { icon: "i-material-symbols-check" } : {}),
-        onSelect: () => actions.react(emoji)
-      }))
-    ]
-  };
+// The reactions as the messenger offers them: one strip of every emoji the console offers at the menu's head, drawn
+// by the row's own slot of this name, each emoji pressed putting it on the message or taking the reader's own off.
+export const REACTION_STRIP_SLOT = "reactions";
+
+/** The emojis the strip offers, the reader's own marked, each pressed doing what the menu's act does. */
+export function reactionStrip(reaction: string | null | undefined, react: (emoji: string) => void): { emoji: string; mine: boolean; press: () => void }[] {
+  return REACTION_EMOJIS.map((emoji) => ({ emoji, mine: reaction === emoji, press: () => react(emoji) }));
+}
+
+function reactions(t: Translate): ContextMenuItem {
+  // The strip is one entry: pressing one of its emojis selects the entry, which closes the menu.
+  return { label: t("room.action.react"), slot: REACTION_STRIP_SLOT, onSelect: () => {} };
 }
 
 export function messageMenu(t: Translate, item: MessageMenuState, actions: MessageMenuActions): ContextMenuItem[][] {
@@ -85,7 +84,6 @@ export function messageMenu(t: Translate, item: MessageMenuState, actions: Messa
 
   const acts: ContextMenuItem[] = writable
     ? [
-        reactions(t, item, actions),
         {
           label: item.pinned === true ? t("room.action.unpin") : t("room.action.pin"),
           icon: "i-material-symbols-keep",
@@ -95,6 +93,7 @@ export function messageMenu(t: Translate, item: MessageMenuState, actions: Messa
     : [];
 
   return [
+    writable ? [reactions(t)] : [],
     answer,
     acts,
     own,

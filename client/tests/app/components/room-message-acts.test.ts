@@ -105,8 +105,8 @@ describe("the room screen's acts", () => {
 describe("the reader's reaction", () => {
   test("is found by the emoji one of their own senders put on the message", () => {
     const reactions = [
-      { emoji: "👍", count: 1, mine: false, who: ["person-b"] },
-      { emoji: "🎉", count: 2, mine: true, who: ["person-a", "agent-a"] }
+      { emoji: "👍", count: 1, mine: false, who: ["person-b"], faces: [] },
+      { emoji: "🎉", count: 2, mine: true, who: ["person-a", "agent-a"], faces: [] }
     ];
 
     expect(mineReaction({ reactions })).toBe("🎉");

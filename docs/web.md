@@ -3929,12 +3929,20 @@ Four bounds keep it from growing forever.
     the line carries more than the time and its marks, or spreads anything, it stands under the sticker instead.
   - The same holds for a sticker from any sender and any provider that keeps the sticker's file, a moving one
     included; a sticker whose file is not kept keeps its mark in a bubble.
+  - A sticker plays as the messenger plays it: a picture stands still, a video sticker plays over and over without
+    sound, and an animated sticker, a `.tgs` file, is unpacked in the browser and played over and over as its
+    scene. One whose file cannot be read stands as its mark.
+- **애니메이션** — a GIF or an animation a messenger sent plays where it stands as soon as it stands, over and over and
+  without sound, with no player, no play button and no file line under it, at its own shape within the bubble's
+  widest. A file kept as a plain video keeps its player.
   - Every other message keeps its bubble, and one that carried nothing at all keeps the bubble with its
     empty-message mark.
 - **앨범** — the pictures of one send stand as one row: the row of the first picture, carrying the send's caption
   under the pictures, which stand as one mosaic running to the bubble's edges with a hairline of the bubble's
   ground between cells and no corners of their own, each opening in the viewer on itself.
-  - The mosaic fills the bubble's width with no empty bars: each picture is cut to its cell. Two stand side by
+  - The mosaic fills the bubble's width with no empty bars, tall pictures as much as wide ones: each cell takes its
+    picture's share of its line, so the line's cells together take the whole of it, and each picture is cut to its
+    cell. Two stand side by
     side; three or four whose first is not wide stand as that one large on the leading side with the rest stacked
     beside it at one height; otherwise the first stands over the rest, and five or more stand in rows of three,
     rows of two taking what three would leave alone. Each row stands at the height its pictures fill the width at
@@ -4577,17 +4585,26 @@ Four bounds keep it from growing forever.
   `docs/messages.md`, 「What an agent can send back」) stand on the message itself, in every room the receiver serves
   them for, a record room among them, and follow the receiver's `message-changed` news: the room reads that one
   message again the moment the news comes, as it reads one that was edited.
-  - **A deleted message** stands where it stood as one quiet line in its bubble, 삭제된 메시지, with its time; its
-    words, what it carried and its chips are gone, and its menu offers nothing but its link.
+  - **A deleted message** stands where it stood as one quiet line in its bubble, 삭제된 메시지, with its time; what it
+    carried and its chips are gone, and its menu offers nothing but its link. A message deleted on its messenger keeps
+    its words in the record (the receiver's `docs/messages.md`): its line reads 삭제된 메시지 · 눌러서 보기, and
+    pressing it opens the words under the line, marked off by a rule at their leading edge, and closes them again. A
+    message the console's own delete took keeps no words and has nothing to open.
   - **An edited message** carries 수정됨 on its meta line before its time, and its tooltip says when it changed.
   - **A forwarded message** stands marked over its words: 전달됨 with the name of whoever said the original, from the
     record's `forwardedFrom`, which carries the original's room, message and sender (the receiver's `docs/api.md`,
     「Messages」). Pressing the mark opens the original in its room, the way an address naming a message does; a
     message the record marks none on wears none.
-  - **Reactions** stand in a row of their own at the foot of the bubble's words, above its meta line: each emoji
-    once with how many put it there, tabular, the reactions of the reader's own senders in the accent's wash, and a
-    tooltip naming who put it there — an agent by its label, a person by the name the room knows them by, else
-    their number.
+  - **Reactions** stand as the messenger lays them, at the leading end of the meta line with the time at its trailing
+    end, on one line: each emoji once, with the faces of those who put it there while they are three or fewer and how
+    many once they are more, the reactions of the reader's own senders in the accent's wash, and a tooltip naming who
+    put it there — an agent by its label, a person by the name the room knows them by, else their number. Reactions
+    made on the messenger stand the same way, the record keeping what the chat service says each person has on the
+    message. Pressing a reaction is the reader's own: it takes the reader's off where it is theirs, and puts the same
+    emoji on the message otherwise. Where the meta line does not stand, they stand on a line of their own instead.
+  - **Reacting** is the menu's head: the message's menu opens on a strip of the console's reaction emojis, the
+    reader's own marked, and pressing one puts it on the message, or takes it off where it is the reader's own, and
+    closes the menu.
   - **A pinned message** wears a pin mark on its meta line, and the room's top bar carries a pinned button beside the
     room's menu while the room holds one: the pin mark and, from the sm width, the first line of the pinned message it
     stands at, cut, with that message's words whole in its tooltip and how many are pinned where there are several.

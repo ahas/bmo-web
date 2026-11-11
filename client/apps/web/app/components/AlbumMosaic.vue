@@ -4,11 +4,11 @@
        rest stacked beside it, a hairline of the bubble's own ground between cells and every picture
        cut to its cell. Each opens the room's viewer on itself, which walks on to the others. -->
   <div v-if="layout.kind === 'side'" data-album class="flex h-64 gap-px">
-    <div class="min-w-0 basis-0 overflow-hidden" :style="{ flexGrow: layout.main }">
+    <div class="min-w-0 basis-0 overflow-hidden" :style="{ flexGrow: share(layout.main, layout.main + layout.column) }">
       <MessageImage v-bind="cell(0)" tile flush />
     </div>
-    <div class="flex min-w-0 basis-0 flex-col gap-px" :style="{ flexGrow: layout.column }">
-      <div v-for="one in layout.rest" :key="props.pictures[one.picture]!.src" class="min-h-0 basis-0 overflow-hidden" :style="{ flexGrow: one.share }">
+    <div class="flex min-w-0 basis-0 flex-col gap-px" :style="{ flexGrow: share(layout.column, layout.main + layout.column) }">
+      <div v-for="one in layout.rest" :key="props.pictures[one.picture]!.src" class="min-h-0 basis-0 overflow-hidden" :style="{ flexGrow: share(one.share, layout.rest.reduce((total, other) => total + other.share, 0)) }">
         <MessageImage v-bind="cell(one.picture)" tile flush />
       </div>
     </div>
@@ -20,7 +20,7 @@
         v-for="at in row.pictures"
         :key="props.pictures[at]!.src"
         class="min-w-0 basis-0 overflow-hidden"
-        :style="{ flexGrow: aspects[at] ?? 1 }"
+        :style="{ flexGrow: share(aspects[at] ?? 1, rowSum(row.pictures)) }"
       >
         <MessageImage v-bind="cell(at)" tile flush />
       </div>
@@ -54,6 +54,18 @@ const aspects = computed<(number | null)[]>(() =>
 );
 
 const layout = computed<AlbumLayout>(() => albumLayout(aspects.value));
+
+// A cell's part of its line as a share of the whole line. Flex grow below one in all hands out only that part of the
+// room left over, so tall pictures, whose widths over their heights add up to less than one, would leave the line's
+// end bare: each takes its share instead, and the shares fill the line.
+function share(part: number, whole: number): number {
+  return whole > 0 ? part / whole : 1;
+}
+
+// What a row's pictures' widths over their heights add up to.
+function rowSum(pictures: readonly number[]): number {
+  return pictures.reduce((total, at) => total + (aspects.value[at] ?? 1), 0);
+}
 
 // What one cell's picture is handed: where it loads from, its message and its title.
 function cell(at: number): { src: string; messageId: number | undefined; title: string } {

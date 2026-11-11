@@ -278,7 +278,7 @@ export interface AgentFace {
 
 export interface MessageAttachment {
   id: number;
-  kind: "audio" | "video" | "document" | "sticker";
+  kind: "audio" | "video" | "animation" | "document" | "sticker";
   name: string;
   bytes: number | null;
   type: string | null;

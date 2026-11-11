@@ -20,6 +20,10 @@
          a turn would see the line taken away and built again rather than filled. -->
     <div data-meta :data-meta-inline="inline ? '' : undefined" class="flex min-w-0 flex-wrap items-end gap-(--chat-meta-gap) text-sm leading-(--chat-meta-line) whitespace-nowrap tabular-nums" :class="lineLook">
       <span v-if="chipped" data-meta-lead class="flex min-w-0 flex-wrap items-center gap-(--chat-meta-gap)">
+        <!-- What the message's own row puts first on its line: its reactions, which stand where the messenger puts
+             them, at the leading end of the time's line. -->
+        <slot name="lead" />
+
         <!-- A message the record holds under the thinking kind says what it is here, where an answer's chips stand;
              it carries none of them (docs/web.md, the room screen's thinking messages). -->
         <span v-if="props.thinking" data-thinking-label class="inline-flex h-(--chat-meta-line) items-center gap-1">
@@ -708,7 +712,8 @@ const chipped = computed<boolean>(
     judgedRecorded.value ||
     props.briefing !== null ||
     props.figuring ||
-    props.thinking
+    props.thinking ||
+    slots.lead !== undefined
 );
 
 // Whether the line is more than the time and its marks: a chip, or how long the room waited. Such a

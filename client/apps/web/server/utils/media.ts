@@ -32,7 +32,9 @@ export interface FileOut {
 // served as something the browser has to guess at.
 const TYPES: Record<string, Record<string, string>> = {
   document: {},
-  sticker: { ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".webm": "video/webm" },
+  sticker: { ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".webm": "video/webm", ".tgs": "application/x-tgsticker" },
+  // What a room's animation plays as: a short looping video without sound.
+  animation: { ".mp4": "video/mp4", ".m4v": "video/mp4", ".mov": "video/mp4", ".webm": "video/webm" },
   // What a room's video plays as. A QuickTime file from a phone is the MPEG-4 family inside, so it
   // is named as MP4, which is the type every browser that plays MP4 takes.
   video: {
@@ -88,7 +90,7 @@ export function servedAsFile(kind: string): boolean {
 }
 
 // The kinds a message's files are asked for by. A captured page's kinds belong to a unit not split yet.
-const MESSAGE_KINDS = ["audio", "video", "document", "sticker"];
+const MESSAGE_KINDS = ["audio", "video", "animation", "document", "sticker"];
 
 // What a file kept to be saved goes out as: bytes, never anything a browser would open.
 const KEPT_AS_FILE = "application/octet-stream";
@@ -106,6 +108,8 @@ export async function messageFiles(chatId: number, messageId: number): Promise<R
 
 // The kinds of file a kind is asked for under: a sound or a video may stand as a document, its name saying which.
 function filedUnder(kind: string): string[] {
+  if (kind === "animation") return ["animation", "video"];
+
   return kind === "audio" || kind === "video" ? [kind, "document"] : [kind];
 }
 

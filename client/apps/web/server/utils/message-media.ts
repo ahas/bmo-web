@@ -12,7 +12,7 @@ import type { MessageAttachment, TelegramExpression, VideoShape } from "#shared/
 // message's files and picture」). The browser sees no file's path and nothing of the chat service's own identifiers.
 
 // The kinds of file a message's line stands, in the order its files stand.
-const ATTACHED: readonly string[] = ["audio", "video", "document", "sticker"];
+const ATTACHED: readonly string[] = ["audio", "video", "animation", "document", "sticker"];
 
 // A file the chat agent's own voice made is kept under a name of the deployment's, not one a person gave it.
 const OWN_NAME = "bmo:";

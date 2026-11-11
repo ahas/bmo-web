@@ -52,7 +52,7 @@ function orderOf(order: JobWorkOrder, tasks: readonly Task[], rejections: Readon
 }
 
 // How many times the item's review sent each stage back, by the stage its rejection entries stand under; a review
-// that cannot be read counts none, since the order stands without it (docs/web.md, 「작업 단계」).
+// that cannot be read counts none, since the order stands without it (docs/web.md, the TODO modal's work order steps).
 async function rejectionsByStage(todoId: number): Promise<Map<number, number>> {
   const counted = new Map<number, number>();
 

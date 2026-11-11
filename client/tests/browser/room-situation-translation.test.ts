@@ -6,8 +6,8 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
-// The room's situation note, opened from the room menu, opens as written with 번역 보기 above it: nothing is asked until
-// it is pressed, the reading then takes the note's place and 원문 보기 puts it back (docs/web.md, the room screen's
+// The room's situation note, opened from the room menu, opens as written with the show-translation line above it: nothing is asked until
+// it is pressed, the reading then takes the note's place and the show-original press puts it back (docs/web.md, the room screen's
 // situation entry and 「The original, and its translation in its place」). Where the translator answers too busy the
 // line says so.
 //
@@ -91,7 +91,7 @@ describe.skipIf(!origin || !touchReady())("a room's situation note", () => {
         // It opens on the note as written, the line above it asking nothing until it is pressed.
         expect((await page.locator("[data-situation-note]").innerText()).trim()).toBe(NOTE);
 
-        // Pressed, the reading takes the note's place, and 원문 보기 puts it back.
+        // Pressed, the reading takes the note's place, and the show-original press puts it back.
         await page.locator("[data-reading-translate]").click();
         await page.locator("[data-reading-original]").waitFor({ timeout: 20_000 });
         expect((await page.locator("[data-situation-note]").innerText()).trim()).toBe(READING);

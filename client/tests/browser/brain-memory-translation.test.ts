@@ -6,8 +6,8 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext } from "playwright-core";
 
-// A brain memory opened from a room's brain chip opens on its words with 번역 보기 above them, and the gate's reading
-// takes the words' place when it is pressed, 원문 보기 putting them back (docs/web.md, 「The original, and its translation
+// A brain memory opened from a room's brain chip opens on its words with the show-translation line above them, and the gate's reading
+// takes the words' place when it is pressed, the show-original press putting them back (docs/web.md, 「The original, and its translation
 // in its place」). Nothing is asked until the press; where the translator answers too busy the line says so.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves the
@@ -107,7 +107,7 @@ describe.skipIf(!origin || !touchReady())("a brain memory's words", () => {
         // It opens on the words as the brain keeps them, the line above them asking nothing until it is pressed.
         expect((await page.locator("[data-brain-read-text]").innerText()).trim()).toBe(WORDS);
 
-        // Pressed, the reading takes the words' place, and 원문 보기 puts them back.
+        // Pressed, the reading takes the words' place, and the show-original press puts them back.
         await page.locator("[data-reading-translate]").click();
         await page.locator("[data-reading-original]").waitFor({ timeout: 20_000 });
         expect((await page.locator("[data-brain-read-text]").innerText()).trim()).toBe(READING);

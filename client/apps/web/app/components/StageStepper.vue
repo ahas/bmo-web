@@ -32,7 +32,7 @@
         @click="emit('open', stageOf(item).key)"
       >
         <span class="min-w-0 flex-1 truncate font-medium text-highlighted" :class="{ 'text-muted': stageOf(item).state === 'skipped' }">{{ stageOf(item).title }}</span>
-        <!-- How many times its review sent it back (docs/web.md, 「작업 단계」). -->
+        <!-- How many times its review sent it back (docs/web.md, the TODO modal's work order steps). -->
         <UBadge v-if="stageOf(item).rejections > 0" color="warning" variant="subtle" size="sm" class="shrink-0" :label="$t('todo.label.step_rejections', { n: stageOf(item).rejections })" data-stage-rejections />
         <span v-if="stageOf(item).seconds !== null" class="shrink-0 tabular-nums text-muted">{{ spanClock($t, stageOf(item).seconds!) }}</span>
       </button>

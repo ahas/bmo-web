@@ -12,8 +12,8 @@ import type { TodoBoard, TodoItem, TodoReport } from "../../apps/web/shared/type
 // A finished item's reports and the readings of its English texts, as the browser lays them out (docs/web.md, the
 // TODO modal's result and instruction tabs, 「The original, and its translation in its place」): every report stands
 // in the result tab, the closing one first and whole, headed by its kind and moment; the row's mark counts them; each
-// English text opens in its original with 번역 보기 above it, the Korean reading taking the original's place when it
-// is pressed and 원문 보기 putting the original back, each text asked of the translator once however often it is
+// English text opens in its original with the show-translation line above it, the Korean reading taking the original's place when it
+// is pressed and the show-original press putting the original back, each text asked of the translator once however often it is
 // pressed; and each approval stands with its caller and kind, a recommendation apart from approval.
 // It drives the console tests/support/browser-console.ts stands up, serving what each place reads through the page's
 // own routes; the suite stands up no console, so there it skips.
@@ -153,7 +153,7 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
         expect(await line.innerText()).toContain(wording("common.action.show_translation"));
         expect(asked).toEqual([]);
 
-        // Pressed, the reading takes the original's place, saying the language it came from; 원문 보기 puts it back.
+        // Pressed, the reading takes the original's place, saying the language it came from; the show-original press puts it back.
         await closing.locator("[data-reading-translate]").click();
         await until(async () => await closing.innerText(), (text) => text.includes("ko-reading: The skill is committed and pushed."));
         expect(await closing.innerText()).not.toContain("\nThe skill is committed and pushed.");

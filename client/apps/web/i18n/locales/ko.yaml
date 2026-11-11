@@ -567,6 +567,9 @@ room:
     show_in_message: 메시지에서 보기
     sticker: 스티커
     stop_recording: 녹음 끝내기
+    spoiler_show: 스포일러 표시
+    quote_expand: 인용 확장
+    quote_collapse: 인용 축소
     to_latest: 최신 메시지로
     unpin: 고정 해제
   label:

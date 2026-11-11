@@ -469,8 +469,12 @@ for it, and no file or table of that unit is read meanwhile.
   and how the round's answer was drafted from the receiver's `GET /rounds/drafts`, read once
   for the page's rounds for the draft chip's count, and again for one round, its answers whole, when the chip is
   opened; and each line's voice briefings from the voice engine's `GET /briefings?chatId=`, read once for the page's
-  room, the newest first, for the chip each line carries. The metadata a message arrived with is read only for a message
-  that carries files, since a custom emoji, a sticker and a video's shape each stand on one of its files.
+  room, the newest first, for the chip each line carries. The metadata a message arrived with is read for every
+  message whose row may draw words from it — a message whose page names a file, since a custom emoji, a sticker and
+  a video's shape each stand on one of its files, and a message that is not an agent's answer and has words, since
+  its formatting entities stand in the metadata whatever the message carried. An agent's answer naming no file is
+  drawn as its markdown and is asked nothing. The files a message carried are listed only for a message whose page
+  names one.
 - **Which memory a piece the round read is.** The receiver's round end names each piece it read by its path,
   the index's words for it where the gate's index lists it, and how it was read, and names no memory of the
   brain: the 브레인 list's modal reads a memory only for a piece whose read carries its `memoryId`, and stands the

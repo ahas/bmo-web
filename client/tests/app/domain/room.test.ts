@@ -653,52 +653,52 @@ describe("the mark a kept file or picture leaves in the words", () => {
   const filed = { attachments: [document], pictured: false };
 
   test("is not said again above the file's own line, and a caption after it stays", () => {
-    expect(withoutMediaMark(KO.line_542, filed, [])).toEqual({ text: "", expressions: [] });
-    expect(withoutMediaMark(KO.line_543, filed, []).text).toBe(KO.line_543_2);
+    expect(withoutMediaMark(KO.line_542, filed, { expressions: [], formats: [] })).toEqual({ text: "", expressions: [], formats: [] });
+    expect(withoutMediaMark(KO.line_543, filed, { expressions: [], formats: [] }).text).toBe(KO.line_543_2);
   });
 
   test("is not said again above a kept picture, and a caption after it stays", () => {
     const pictured = { attachments: [], pictured: true };
 
-    expect(withoutMediaMark(KO.line_549, pictured, []).text).toBe("");
-    expect(withoutMediaMark(KO.line_550, pictured, []).text).toBe(KO.line_550_2);
+    expect(withoutMediaMark(KO.line_549, pictured, { expressions: [], formats: [] }).text).toBe("");
+    expect(withoutMediaMark(KO.line_550, pictured, { expressions: [], formats: [] }).text).toBe(KO.line_550_2);
   });
 
   test("stays where no such file or picture stands", () => {
-    expect(withoutMediaMark(KO.line_554, filed, []).text).toBe(KO.line_554);
-    expect(withoutMediaMark(KO.line_555, { attachments: [], pictured: false }, []).text).toBe(KO.line_555);
+    expect(withoutMediaMark(KO.line_554, filed, { expressions: [], formats: [] }).text).toBe(KO.line_554);
+    expect(withoutMediaMark(KO.line_555, { attachments: [], pictured: false }, { expressions: [], formats: [] }).text).toBe(KO.line_555);
   });
 
   test("is not said again above a kept sound, whose player shows its length and whose line its name", () => {
     const sound = { attachments: [{ ...document, kind: "audio" as const, name: "a.mp3" }], pictured: false };
 
-    expect(withoutMediaMark(KO.line_561, sound, []).text).toBe(KO.line_561_2);
-    expect(withoutMediaMark(KO.line_562, sound, []).text).toBe("");
-    expect(withoutMediaMark(KO.line_563, sound, []).text).toBe("");
-    expect(withoutMediaMark(KO.line_564, sound, []).text).toBe("");
-    expect(withoutMediaMark(KO.line_565, sound, []).text).toBe(KO.line_565_2);
-    expect(withoutMediaMark(KO.line_566, filed, []).text).toBe(KO.line_566);
+    expect(withoutMediaMark(KO.line_561, sound, { expressions: [], formats: [] }).text).toBe(KO.line_561_2);
+    expect(withoutMediaMark(KO.line_562, sound, { expressions: [], formats: [] }).text).toBe("");
+    expect(withoutMediaMark(KO.line_563, sound, { expressions: [], formats: [] }).text).toBe("");
+    expect(withoutMediaMark(KO.line_564, sound, { expressions: [], formats: [] }).text).toBe("");
+    expect(withoutMediaMark(KO.line_565, sound, { expressions: [], formats: [] }).text).toBe(KO.line_565_2);
+    expect(withoutMediaMark(KO.line_566, filed, { expressions: [], formats: [] }).text).toBe(KO.line_566);
   });
 
   test("of a sound stays where it names what the line does not", () => {
     const sound = { attachments: [{ ...document, kind: "audio" as const, name: "a.mp3" }], pictured: false };
 
-    expect(withoutMediaMark(KO.line_572, sound, []).text).toBe(KO.line_572);
+    expect(withoutMediaMark(KO.line_572, sound, { expressions: [], formats: [] }).text).toBe(KO.line_572);
   });
 
   test("is not said again above a kept video, whose player shows it and its length", () => {
     const video = { attachments: [{ ...document, kind: "video" as const, name: "video.mp4" }], pictured: false };
 
-    expect(withoutMediaMark(KO.line_578, video, []).text).toBe("");
-    expect(withoutMediaMark(KO.line_579, video, []).text).toBe("");
-    expect(withoutMediaMark(KO.line_580, video, []).text).toBe(KO.line_580_2);
-    expect(withoutMediaMark(KO.line_581, video, []).text).toBe(KO.line_581_2);
-    expect(withoutMediaMark(KO.line_582, filed, []).text).toBe(KO.line_582);
+    expect(withoutMediaMark(KO.line_578, video, { expressions: [], formats: [] }).text).toBe("");
+    expect(withoutMediaMark(KO.line_579, video, { expressions: [], formats: [] }).text).toBe("");
+    expect(withoutMediaMark(KO.line_580, video, { expressions: [], formats: [] }).text).toBe(KO.line_580_2);
+    expect(withoutMediaMark(KO.line_581, video, { expressions: [], formats: [] }).text).toBe(KO.line_581_2);
+    expect(withoutMediaMark(KO.line_582, filed, { expressions: [], formats: [] }).text).toBe(KO.line_582);
   });
 
   test("moves the expressions back by what it took off", () => {
     const expression = { offset: 16, length: 2, attachment: { ...document, kind: "sticker" as const } };
-    const shown = withoutMediaMark(KO.line_587, filed, [expression]);
+    const shown = withoutMediaMark(KO.line_587, filed, { expressions: [expression], formats: [] });
 
     expect(shown.text).toBe(KO.line_589);
     expect(shown.expressions.map((one) => one.offset)).toEqual([1]);

@@ -10,7 +10,7 @@ import { ownerChat } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
 
-import type { ArchivedMessage, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, VoiceBriefing } from "#shared/types";
+import type { ArchivedMessage, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
 import type { ReceiverMessage, ReceiverRoom } from "./receiver";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
@@ -178,16 +178,19 @@ function attachmentsOf(message: ReceivedMessage): MessageAttachment[] {
   });
 }
 
-// What a message carried and the expressions its words drew. Only a message whose page names a file is asked
-// about, since every expression stands on one of its files; a list that cannot be read is no reason to fail the
+// What a message carried and what its words were sent with. Its metadata is asked for when its row may draw words
+// from it — its page names a file, or it is not an agent's answer and has words of its own; an agent's answer
+// without files is drawn as its markdown and asks nothing. A list that cannot be read is no reason to fail the
 // page, and the line names its files as unavailable instead.
-async function mediaOf(chatId: number, message: ReceivedMessage): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[] }> {
-  if (!carriesFiles(message.files)) return { attachments: [], expressions: [] };
+async function mediaOf(chatId: number, message: ReceivedMessage, wordsFromMetadata: boolean): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[]; formats: TelegramFormat[] }> {
+  const listed = carriesFiles(message.files);
+
+  if (!listed && !wordsFromMetadata) return { attachments: [], expressions: [], formats: [] };
 
   try {
-    return await messageMedia(chatId, message.messageId, message.text);
+    return await messageMedia(chatId, message.messageId, message.text, listed);
   } catch {
-    return { attachments: attachmentsOf(message), expressions: [] };
+    return { attachments: attachmentsOf(message), expressions: [], formats: [] };
   }
 }
 
@@ -329,7 +332,7 @@ async function replyQuoteOf(chatId: number, messageId: number, held?: { message:
         senderName: answered.senderName,
         text: answered.text,
         pictured: answered.imagePath !== null,
-        attachment: (await (held?.media ?? mediaOf(chatId, answered))).attachments[0] ?? null
+        attachment: (await (held?.media ?? mediaOf(chatId, answered, false))).attachments[0] ?? null
       };
     }
   } catch {
@@ -345,8 +348,9 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const answerers = room.numbers;
   const agents = new Map(received.map((message) => [senderKey(message), message.agentName !== null || (message.senderId !== null && answerers.has(message.senderId))]));
   const voiced = await ownerVoices(chatId, received, answerers);
-  // Each message's files are read once, and a reply to a message the page holds quotes it from the page.
-  const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message)]));
+  // Each message's files are read once, and a reply to a message the page holds quotes it from the page. A row
+  // draws its words from the metadata it arrived with unless it is an agent's answer, which stands as its markdown.
+  const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message, message.text !== "" && agents.get(senderKey(message)) !== true)]));
   const onPage = new Map(received.map((message) => [message.messageId, message]));
   // Several replies of a page often answer one message; what it said and carried is read once.
   const quoted = new Map<number, Promise<ReplyQuote>>();
@@ -389,6 +393,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         ...(agent && message.kind === THINKING ? { thinking: true } : {}),
         attachments: files.attachments,
         expressions: files.expressions,
+        formats: files.formats,
         replyQuote: message.replyToMessageId === null ? null : await quote(message.replyToMessageId),
         ...(message.forwardedFrom === null ? {} : { forwardedFrom: message.forwardedFrom }),
         ...(message.situation == null ? {} : { situation: message.situation }),

@@ -203,7 +203,7 @@
                         :data-thinking="props.item.thinking ? '' : undefined"
                         data-words
                       >
-                        <TelegramText v-if="props.item.shownText" :text="props.item.shownText" :expressions="props.item.expressions" :markdown="props.item.look.markdown" :chat-id="props.chatId" :message-id="props.item.messageId" />
+                        <TelegramText v-if="props.item.shownText" :text="props.item.shownText" :expressions="props.item.expressions" :formats="props.item.formats" :markdown="props.item.look.markdown" :chat-id="props.chatId" :message-id="props.item.messageId" />
 
                         <!-- A file the browser cannot draw stands as its name while it goes. -->
                         <p v-if="props.item.fileName !== null" class="flex items-center gap-1 text-sm break-all">

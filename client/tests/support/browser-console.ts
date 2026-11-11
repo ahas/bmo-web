@@ -112,6 +112,22 @@ const LINE_AT = Date.now();
 // The base path the console is served under; the tests read theirs off the address they are given.
 const BASE = "/console/";
 
+// A message's formatting entities as the chat service hands them: each phrase located by its offset into the
+// words in UTF-16 code units, in the order given, with whatever else the entity type carries.
+function formatEntities(words: string, placed: readonly [phrase: string, type: string, extra?: Record<string, unknown>][]): Record<string, unknown>[] {
+  let from = 0;
+
+  return placed.map(([phrase, type, extra]) => {
+    const offset = words.indexOf(phrase, from);
+
+    if (offset < 0) throw new Error(`browser-console: ${JSON.stringify(phrase)} not found in ${JSON.stringify(words)} from ${from}`);
+
+    from = offset + phrase.length;
+
+    return { type, offset, length: phrase.length, ...extra };
+  });
+}
+
 const binary = process.env.BMO_WEB_SERVER_BIN?.trim() ?? "";
 
 if (binary === "") {
@@ -589,13 +605,36 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       id, room: MEDIA_CHAT, senderId: 7, senderName: "person-b", sentAt: LINE_AT - 4_000 + id, text: "", imagePath: null,
       replyToMessageId: null, answerSeconds: null, round: null, album: null, via: null, files: [], ...over
     });
+    // A person's words carrying every formatting entity the room screen draws, as the chat service handed them in
+    // the metadata: the inline styles, a spoiler, a text link and a bare auto link on one line (8), a pre with its
+    // language on another (9), and a plain and an expandable quote on a third (10). Offsets are UTF-16 code units
+    // into the metadata's own words, which stand at the head of the stored text here (base 0).
+    const inlineWords = "bold italic under strike code docs secret https://plain.example end";
+    const inlineEntities = formatEntities(inlineWords, [
+      ["bold", "bold"], ["italic", "italic"], ["under", "underline"], ["strike", "strikethrough"], ["code", "code"],
+      ["docs", "text_link", { url: "https://example.org/format" }], ["secret", "spoiler"]
+    ]);
+    const preWords = "before\nlet x = 1\ny = 2\nafter";
+    const preEntities = formatEntities(preWords, [["let x = 1\ny = 2", "pre", { language: "python" }]]);
+    const quoteWords = "lead\nquoted one\nquoted two\nfold head\nfold second\nfold third\nfold fourth\ntrail";
+    const quoteEntities = formatEntities(quoteWords, [
+      ["quoted one\nquoted two", "blockquote"], ["fold head\nfold second\nfold third\nfold fourth", "expandable_blockquote"]
+    ]);
     const mediaLine = [
       ...[1, 2, 3].map((id) => shown(id, { album: 1, imagePath: `images/${MEDIA_CHAT}/${id}.jpg` })),
       shown(4, { kind: "sticker", files: [{ kind: "sticker", source: "sticker-1.tgs", storedPath: "kept", collectedAt: LINE_AT }] }),
       shown(5, { files: [{ kind: "animation", source: "video.mp4", storedPath: "kept", collectedAt: LINE_AT }] }),
       shown(7, { text: "words deleted on the messenger", deletedAt: LINE_AT - 100 }),
-      shown(6, { text: "reacted to", reactions: [{ emoji: "\u{1F44D}", by: "1" }, { emoji: "\u{1F44D}", by: "7" }, { emoji: "\u{2764}\u{FE0F}", by: "8" }] })
+      shown(6, { text: "reacted to", reactions: [{ emoji: "\u{1F44D}", by: "1" }, { emoji: "\u{1F44D}", by: "7" }, { emoji: "\u{2764}\u{FE0F}", by: "8" }] }),
+      shown(8, { text: inlineWords }),
+      shown(9, { text: preWords }),
+      shown(10, { text: quoteWords })
     ];
+    const formats: Record<number, { text: string; entities: Record<string, unknown>[] }> = {
+      8: { text: inlineWords, entities: inlineEntities },
+      9: { text: preWords, entities: preEntities },
+      10: { text: quoteWords, entities: quoteEntities }
+    };
 
     if (path === `/rooms/${MEDIA_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
@@ -609,7 +648,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       const id = Number(mediaAsked[1]);
 
       if (mediaAsked[2] === "/picture") return new Response(TALL, { headers: { "content-type": "image/svg+xml" } });
-      if (mediaAsked[2] === "/metadata") return Response.json({ metadata: id === 4 ? { sticker: { emoji: "\u{1F600}" } } : null });
+      if (mediaAsked[2] === "/metadata") return Response.json({ metadata: id === 4 ? { sticker: { emoji: "\u{1F600}" } } : (formats[id] ?? null) });
       if (mediaAsked[2] === "/files" && mediaAsked[3] === undefined) {
         const files = id === 4
           ? [{ place: 0, kind: "sticker", name: "sticker-1.tgs", size: STICKER.byteLength, type: "application/x-tgsticker", kept: true }]

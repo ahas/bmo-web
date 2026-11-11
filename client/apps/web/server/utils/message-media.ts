@@ -4,12 +4,13 @@ import { fileOut, messageFiles, playedKind } from "./media";
 import { receiver, receiverCall } from "./receiver";
 
 import type { ReceivedFile } from "./media";
-import type { MessageAttachment, TelegramExpression, VideoShape } from "#shared/types";
+import type { MessageAttachment, TelegramExpression, TelegramFormat, TelegramFormatKind, VideoShape } from "#shared/types";
 
 // What a message carried, as the room screen draws it: its files, each with its size and type and whether it can be
-// received, and the custom emoji its words drew, read from the receiver's list of the message's files and the
-// metadata the chat service handed over beside it (the receiver's `docs/boundary-api.md`, 「Reading a room」 and 「A
-// message's files and picture」). The browser sees no file's path and nothing of the chat service's own identifiers.
+// received, and its words read over the metadata the chat service handed over beside it (the receiver's
+// `docs/boundary-api.md`, 「Reading a room」 and 「A message's files and picture」): the custom emoji they drew and
+// the formatting entities they were sent with, each placed on the same base where the metadata's words end the
+// stored ones. The browser sees no file's path and nothing of the chat service's own identifiers.
 
 // The kinds of file a message's line stands, in the order its files stand.
 const ATTACHED: readonly string[] = ["audio", "video", "animation", "document", "sticker"];
@@ -49,10 +50,10 @@ function assetOf(file: ReceivedFile): Asset {
   };
 }
 
-/** A message's files and the expressions its words drew, as the room screen draws them. */
-export async function messageMedia(chatId: number, messageId: number, text: string): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[] }> {
+/** A message's files, the expressions its words drew and the formatting its words were sent with, as the room screen draws them. `listedFiles` says whether the message's page named a file worth listing; without one its files are none. */
+export async function messageMedia(chatId: number, messageId: number, text: string, listedFiles: boolean): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[]; formats: TelegramFormat[] }> {
   const [files, metadata] = await Promise.all([
-    messageFiles(chatId, messageId),
+    listedFiles ? messageFiles(chatId, messageId) : Promise.resolve([] as ReceivedFile[]),
     receiverCall(
       receiver().GET("/rooms/{roomId}/messages/{messageId}/metadata", {
         params: { path: { roomId: chatId, messageId } }
@@ -69,26 +70,36 @@ export async function messageMedia(chatId: number, messageId: number, text: stri
     .filter((asset) => asset.file.kind !== "sticker" || (described?.sticker != null && asset === latestSticker))
     .map((asset) => (asset.attachment.kind === "video" && shape !== null ? { ...asset.attachment, shape } : asset.attachment));
 
-  return { attachments, expressions: expressionsOf(text, described, assets) };
+  return { attachments, expressions: expressionsOf(text, described, assets), formats: formatsOf(text, described) };
+}
+
+// The metadata's own words and where they stand in the stored ones: the room's line may carry marks before them,
+// so every offset of the metadata runs from the head of the stored words on this base. Null where the metadata
+// holds no words the stored ones end with.
+function metadataWords(text: string, metadata: Record<string, unknown> | null): { words: string; base: number } | null {
+  const raw = metadata?.text;
+  const base = typeof raw === "string" && raw.length > 0 && text.endsWith(raw) ? text.length - raw.length : -1;
+
+  return base < 0 || typeof raw !== "string" || !Array.isArray(metadata?.entities) ? null : { words: raw, base };
 }
 
 // The custom emoji a message's words drew, each over the stretch of the words it stands for. They are paired only
 // with the words the chat service handed over as they were, since the room's line may carry marks before them.
 function expressionsOf(text: string, metadata: Record<string, unknown> | null, assets: readonly Asset[]): TelegramExpression[] {
-  const raw = metadata?.text;
-  const base = typeof raw === "string" && raw.length > 0 && text.endsWith(raw) ? text.length - raw.length : -1;
+  const held = metadataWords(text, metadata);
 
-  if (base < 0 || typeof raw !== "string" || !Array.isArray(metadata?.entities)) return [];
+  if (held === null) return [];
 
+  const { words, base } = held;
   const expressions: TelegramExpression[] = [];
   let end = 0;
 
-  for (const entity of [...(metadata.entities as Record<string, unknown>[])].sort((a, b) => Number(a.offset) - Number(b.offset))) {
+  for (const entity of [...(metadata?.entities as Record<string, unknown>[])].sort((a, b) => Number(a.offset) - Number(b.offset))) {
     const { offset, length } = entity as { offset: number; length: number };
     const emoji = typeof entity.custom_emoji_id === "string" ? entity.custom_emoji_id : "";
 
     if (entity.type !== "custom_emoji" || !/^\d+$/.test(emoji) || !Number.isSafeInteger(offset) || !Number.isSafeInteger(length) ||
-      offset < end || length <= 0 || offset + length > raw.length) continue;
+      offset < end || length <= 0 || offset + length > words.length) continue;
 
     const asset = assets.find((one) => one.file.name.startsWith(`emoji-${emoji}.`));
 
@@ -99,6 +110,62 @@ function expressionsOf(text: string, metadata: Record<string, unknown> | null, a
   }
 
   return expressions;
+}
+
+// The formatting each entity type stands for, by the name the row carries it under. An entity of no kind listed
+// here is left unread, as every entity was before the formatting was drawn.
+const FORMAT_KINDS: Record<string, TelegramFormatKind> = {
+  bold: "bold",
+  italic: "italic",
+  underline: "underline",
+  strikethrough: "strikethrough",
+  spoiler: "spoiler",
+  code: "code",
+  pre: "pre",
+  text_link: "link",
+  blockquote: "quote",
+  expandable_blockquote: "expandable_quote"
+};
+
+// The formatting a message's words were sent with, each over the stretch of the words its entity covers, on the
+// same base as the expressions. Entities nest and overlap as the chat sent them, so no one of them bounds the
+// next; only one that could not stand in the metadata's words at all is dropped. A text link's address is carried
+// only when it is an address to a web page.
+function formatsOf(text: string, metadata: Record<string, unknown> | null): TelegramFormat[] {
+  const held = metadataWords(text, metadata);
+
+  if (held === null) return [];
+
+  const { words, base } = held;
+  const formats: TelegramFormat[] = [];
+
+  for (const entity of metadata?.entities as Record<string, unknown>[]) {
+    const kind = FORMAT_KINDS[String(entity.type) as string];
+    const { offset, length } = entity as { offset: number; length: number };
+
+    if (kind === undefined || !Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || length <= 0 ||
+      offset < 0 || offset + length > words.length) continue;
+
+    if (kind === "link") {
+      const url = typeof entity.url === "string" ? entity.url : "";
+
+      if (!/^https?:\/\//.test(url)) continue;
+
+      formats.push({ offset: base + offset, length, kind, url });
+      continue;
+    }
+
+    if (kind === "pre") {
+      const language = typeof entity.language === "string" && entity.language !== "" ? entity.language : undefined;
+
+      formats.push({ offset: base + offset, length, kind, ...(language === undefined ? {} : { language }) });
+      continue;
+    }
+
+    formats.push({ offset: base + offset, length, kind });
+  }
+
+  return formats;
 }
 
 // The shape a video stands in, as the chat service described it when it arrived: its own size, a round note's side,

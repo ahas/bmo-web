@@ -7,8 +7,9 @@ import { answer, standIn } from "../../support/units";
 
 // A room as the receiver keeps it, read from a stand-in receiver into the shapes the room screen draws: the rooms
 // with the owner's own named by the chat agent, a page whose senders are matched against the room's answering
-// agents, the files a message carried with whether each can be received and the expressions its words drew, asked
-// only of a message that carries files, a reply carrying what it answers, and no judgements beside a page.
+// agents, the files a message carried with whether each can be received, and the expressions and formats its words
+// were sent with, read of the metadata for a message that carries files or is not an agent's answer, a reply
+// carrying what it answers, and no judgements beside a page.
 
 const message = (id: number, over: Record<string, unknown> = {}) => ({
   id,
@@ -231,9 +232,12 @@ describe("a page of a room", () => {
       { id: 1, kind: "document", name: "notes.pdf", bytes: null, type: null, available: false }
     ]);
     expect(reply.expressions).toEqual([]);
+    expect(reply.formats).toEqual([]);
     expect(reply.replyQuote).toEqual({ messageId: 1, senderName: "person-a", text: "words 1", pictured: false, attachment: null });
-    // Only the message that carries files is asked about them.
+    // The metadata of the person's words is asked even of a message that carries no file; an agent's answer that
+    // carries none stands as its markdown and is asked nothing; the files are listed only where the page names one.
     expect(receiver.asked.filter((one) => /\/(files|metadata)$/.test(one.path)).map((one) => one.path).sort()).toEqual([
+      "/rooms/-7/messages/1/metadata",
       "/rooms/-7/messages/4/files",
       "/rooms/-7/messages/4/metadata"
     ]);

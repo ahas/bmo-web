@@ -298,6 +298,29 @@ export interface TelegramExpression {
   attachment: MessageAttachment;
 }
 
+// The formatting a Telegram message's words were sent with, read off the entities of the metadata it arrived
+// with and placed on the same base as the expressions, so its offset runs from the head of the words the row
+// stands. Kinds overlap and nest as the chat sent them; only the address of a text link and the language of a
+// pre ride on the kind.
+export type TelegramFormatKind = "bold" | "italic" | "underline" | "strikethrough" | "spoiler" | "code" | "pre" | "link" | "quote" | "expandable_quote";
+
+export interface TelegramFormat {
+  offset: number;
+  length: number;
+  kind: TelegramFormatKind;
+  // The address a text link opens, taken for the row only when it is a web address.
+  url?: string;
+  // The language a pre's fence named.
+  language?: string;
+}
+
+// What a message's words stand under: the custom emoji and the formatting entities read off its metadata, in
+// the coordinates of the words as the archive holds them.
+export interface TelegramWords {
+  expressions: TelegramExpression[];
+  formats: TelegramFormat[];
+}
+
 // What a reply shows of the message it answers: who said it, what it said, and what it carried — a
 // kept picture, and the first file it kept — so the quote can stand a small preview of it. A message
 // the archive does not hold has no speaker, no words and nothing carried.
@@ -361,6 +384,9 @@ export interface ArchivedMessage {
   voiceState?: string | null;
   attachments?: MessageAttachment[];
   expressions?: TelegramExpression[];
+  // The formatting entities its words were sent with, on the same base as the expressions; absent where none
+  // were read, which draws the words as they were before formatting was read.
+  formats?: TelegramFormat[];
   // Whether an agent sent this message, whichever supervisor it is, as the server reads it off the archive;
   // a screen draws an agent's answer by it rather than by any name. Absent where the server did not
   // say, which a screen reads as a person's words.

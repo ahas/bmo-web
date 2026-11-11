@@ -77,7 +77,8 @@ export function sideToRead(stretch: PictureStretch, index: number): "older" | "n
 
 // What the archive's message says beside its picture, without the mark that stands for the picture.
 export function pictureCaption(picture: RoomPicture): string {
-  return withoutMediaMark(picture.text, { attachments: [], pictured: true }, []).text.trim();
+  // A caption's formatting is not read here: the viewer shows the caption whole, as the archive holds its words.
+  return withoutMediaMark(picture.text, { attachments: [], pictured: true }, { expressions: [], formats: [] }).text.trim();
 }
 
 // The name the viewer's head carries: who sent it, when, and where it stands among the room's pictures.

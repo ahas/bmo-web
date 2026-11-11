@@ -1644,10 +1644,12 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 
 - **Room screen** — the bubbles of what an agent said, whichever supervisor said it, drawn as the chat service
   the words went out on shows them (「A bubble reads as its message does in the chat」 below) rather than as the
-  whole of markdown. What a person said is handed over with formatting stripped
-  by Telegram, so it stands as the literal characters. A bubble with a custom emoji inserted among the text
-  stands as literal characters too. Where a picture would sit is recorded as a character position, and
-  stripping formatting shrinks the characters and misaligns that position.
+  whole of markdown. What a person said stands by the formatting entities its metadata carries (「Telegram
+  formatting」 under 「Room screen」), never by markup read out of the words. A bubble whose agent's answer carries a
+  custom emoji among its words is drawn that way too, its formatting standing by the entities rather than by the
+  markdown source: the emoji is placed by its offset into the text as it was written, and reading markup out of
+  that text shrinks the characters and misaligns every position after one. Where a picture would sit is likewise
+  recorded as a character position.
 - **Agent screen** — thinking, words, prompt, notes, end.
 - **TODO item** — the original instruction, approval comments, completion report, an unfinished item and its
   resolution reason, appended words, the turns of that item's talk, and what a job asked.
@@ -3984,7 +3986,29 @@ Four bounds keep it from growing forever.
   address ends where the sentence takes over: at a space, at a Korean letter written straight after it — 「주소에」 — at a
   closing bracket the address did not open, and before the sentence's punctuation after it — a full stop, a comma. A pair of
   brackets inside the address, as a wiki page's name carries, stays in it. The link previews and every screen that draws
-  markdown read addresses by this same rule.
+  markdown read addresses by this same rule. An address carried as an entity of a Telegram message opens the address
+  its entity names, and an address standing inside a message's code or pre is something to copy, not a page to
+  visit, and is made no link. The rule reaches the words inside a quoted block as it reaches those outside one.
+- **Telegram formatting** — the words of a message that is not drawn as markdown stand with the formatting the chat
+  service sent them with. The receiver keeps each message's metadata as it arrived, the Telegram words and their
+  entities among them; for every message whose bubble may draw its words this way — a person's message with words,
+  and any message that carried a file, an agent's answer with a custom emoji among them — the console server reads
+  every formatting entity beside the custom emoji it already reads: bold, italic, underline, strikethrough, spoiler,
+  code, pre with its language, text_link with its url, blockquote and expandable_blockquote, each placed on the
+  same base where the metadata's words end the stored ones. The row carries them beside its expressions as its
+  formats. A message whose metadata carries no formatting entities, and one whose metadata could not be read,
+  carries none and stands exactly as it would without them.
+  - The room screen draws them the way Telegram draws them, nested where entities nest and between the custom
+    emoji and the bare addresses 「링크」 lays out: bold, italic, underline and strikethrough as letter styles on the
+    run they cover; inline code in the monospace face on a surface stepped from the bubble's own ground; a pre in
+    a block of monospace of its own, its language the one its fence gave; a blockquote as a quoted block under a
+    leading rule, and an expandable one standing closed to a few lines until pressed, opening whole on the press
+    and closing again on the next; a spoiler held under cover until pressed, and covered again by the next; a text
+    link opening the address its entity carries in a new tab, the address read by the server for the row and taken
+    only when it is a web address.
+  - A block entity standing inside another stands as a block within the one holding it: a pre inside a quote
+    keeps its own block there, and a nested quote its own rule one step in.
+  - Copying a message copies its words as the archive holds them, formatting aside.
 - **링크 미리보기** — under the words, each distinct address of a message stands a card, up to three a message: the site's
   name, the page's title and what the page says of itself, and the page's picture, from the page's own sharing tags. A
   card is a link to the page and opens in a new tab. Until the page has been read, and where it could not be, the card

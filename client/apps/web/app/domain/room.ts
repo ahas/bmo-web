@@ -23,6 +23,8 @@ import type {
   RoundFiguresOf,
   RoundSpend,
   TelegramExpression,
+  TelegramFormat,
+  TelegramWords,
   TurnActionsRef
 } from "#shared/types";
 import type { DraftSummary } from "#shared/drafting";
@@ -277,6 +279,9 @@ export interface FeedItem {
   album?: AlbumPicture[];
   attachments?: ArchivedMessage["attachments"];
   expressions?: ArchivedMessage["expressions"];
+  // The formatting the message's words were sent with, on the same base as the expressions, moved as the
+  // bubble's words are.
+  formats?: ArchivedMessage["formats"];
   // The name of a file on its way that the browser cannot draw, so the row says what is going.
   fileName: string | null;
   // How long the room waited for this answer, in whole seconds. Null for everything the room
@@ -432,16 +437,17 @@ function escaped(text: string): string {
 }
 
 // A mark at the head of a message says nothing the file's line or the picture under it does not,
-// so the bubble leaves it out and keeps the caption after it. The expressions are placed by their
-// offset into the text, so they move back by what was taken off. A sticker carries no caption, so
-// the words of a message whose sticker is drawn are its mark alone, and none of them is shown.
+// so the bubble leaves it out and keeps the caption after it. The expressions and the formats are
+// placed by their offset into the text, so they move back by what was taken off. A sticker carries
+// no caption, so the words of a message whose sticker is drawn are its mark alone, and none of
+// them is shown.
 export function withoutMediaMark(
   text: string,
   media: CarriedMedia,
-  expressions: readonly TelegramExpression[]
-): { text: string; expressions: TelegramExpression[] } {
+  words: TelegramWords
+): { text: string; expressions: TelegramExpression[]; formats: TelegramFormat[] } {
   if (media.attachments.some((attachment) => attachment.kind === "sticker" && attachment.available)) {
-    return { text: "", expressions: [] };
+    return { text: "", expressions: [], formats: [] };
   }
 
   for (const mark of mediaMarks(media)) {
@@ -454,16 +460,17 @@ export function withoutMediaMark(
     const rest = text.slice(found[0].length);
     const kept = rest.replace(/^\s+/, "");
     const cut = text.length - kept.length;
+    const keptAfter = <T extends { offset: number }>(placements: readonly T[]): T[] =>
+      placements.filter((one) => one.offset >= cut).map((one) => ({ ...one, offset: one.offset - cut }));
 
     return {
       text: kept,
-      expressions: expressions
-        .filter((expression) => expression.offset >= cut)
-        .map((expression) => ({ ...expression, offset: expression.offset - cut }))
+      expressions: keptAfter(words.expressions),
+      formats: keptAfter(words.formats)
     };
   }
 
-  return { text, expressions: [...expressions] };
+  return { text, expressions: [...words.expressions], formats: [...words.formats] };
 }
 
 // What a quote shows a small preview of: the picture the answered message kept, or the first file it
@@ -527,7 +534,7 @@ export function quoteText(t: Translate, quote: ReplyQuote): QuoteLook {
 
   const media = quoteMedia(quote);
   const carried: CarriedMedia = { attachments: quote.attachment ? [quote.attachment] : [], pictured: quote.pictured === true };
-  const caption = withoutMediaMark(quote.text, carried, []).text.replaceAll(/\s+/g, " ").trim();
+  const caption = withoutMediaMark(quote.text, carried, { expressions: [], formats: [] }).text.replaceAll(/\s+/g, " ").trim();
 
   return { name: quote.senderName, words: caption === "" && media !== null ? carriedWords(t, media, quote.text) : caption, media };
 }
@@ -1650,7 +1657,7 @@ function feedItemOf(
   const deleted = message.deletedAt != null;
   const attachments = deleted ? [] : (message.attachments ?? []);
   const pictured = !deleted && message.imagePath !== null;
-  const shown = withoutMediaMark(message.text, { attachments, pictured }, message.expressions ?? []);
+  const shown = withoutMediaMark(message.text, { attachments, pictured }, { expressions: message.expressions ?? [], formats: message.formats ?? [] });
   const bare = !deleted && bareMedia(shown.text, pictured ? ["picture"] : attachments.map((attachment) => attachment.kind));
 
   return {
@@ -1666,6 +1673,7 @@ function feedItemOf(
     imageUrl: !pictured ? null : imageUrlFor(message.chatId, message.messageId),
     attachments: deleted ? [] : message.attachments,
     expressions: shown.expressions,
+    ...(shown.formats.length === 0 ? {} : { formats: shown.formats }),
     fileName: null,
     answerSeconds: message.answerSeconds ?? null,
     look: lookOf(message, avatars, mine, bare),

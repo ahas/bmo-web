@@ -545,7 +545,7 @@ describe("the result of an item", () => {
 
   test("is the left row's first tab, on an item carrying a report or an unfinished note alone, and is the tab it opens on", () => {
     expect(detailSource).toContain("const hasResult = computed(() => openedItem.value !== null && (shownReports.value.length > 0 || openedItem.value.unfinished !== null));");
-    expect(detailSource).toContain("hasResult.value ? [RESULT_TAB, ...BODY_TABS] : BODY_TABS");
+    expect(detailSource).toContain("...(hasResult.value ? [RESULT_TAB] : []), ...(reviews.value.length > 0 ? [reviewTab.value] : []), ...BODY_TABS");
     expect(detailSource).toContain('(props.item.reports.length > 0 || props.item.unfinished !== null) ? "result" : "status"');
     expect(tagOf(':items="leftTabs"', detailTemplate)).toContain('v-model="leftTab"');
     expect(tagOf(':items="detailTabs"', detailTemplate)).toContain('v-model="singleTab"');

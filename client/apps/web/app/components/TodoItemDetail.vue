@@ -329,6 +329,28 @@
                 </div>
               </section>
 
+              <!-- How the item's work was examined: every entry of its review in the order it was written, each whole,
+                   a rejection in the warning colour so its reasons read apart from the rest. -->
+              <section v-else-if="shownLeft === 'review'" class="flex min-w-0 flex-col gap-3" :aria-label="$t('todo.label.review_turns')">
+                <article
+                  v-for="entry in reviews"
+                  :key="entry.id"
+                  class="rounded-md border p-3"
+                  :class="entry.kind === 'rejection' ? 'border-warning/30 bg-warning/5' : entry.kind === 'accepted' ? 'border-success/30 bg-success/5' : 'border-default bg-elevated/40'"
+                  data-review
+                  :data-review-kind="entry.kind"
+                >
+                  <p class="flex flex-wrap items-center gap-x-2 text-sm">
+                    <span class="font-medium" :class="entry.kind === 'rejection' ? 'text-warning' : entry.kind === 'accepted' ? 'text-success' : 'text-highlighted'">{{ $t(REVIEW_KIND_LABELS[entry.kind]) }}</span>
+                    <span class="text-muted">{{ entry.stage === null ? $t("todo.label.review_final", { round: entry.round }) : $t("todo.label.review_stage", { stage: entry.stage, round: entry.round }) }}</span>
+                    <span v-if="entry.check !== null" class="text-muted">{{ reviewCheckLabel($t, entry.check) }}</span>
+                    <span class="text-muted tabular-nums">{{ formatStamp(entry.at) }}</span>
+                    <span v-if="entry.actor !== ''" class="break-all text-muted">{{ entry.actor }}</span>
+                  </p>
+                  <MarkdownText :text="entry.body" class="mt-1 text-sm text-highlighted" />
+                </article>
+              </section>
+
               <!-- What became of the item: its run record and the job running it now, the co-worker list, what its work
                    asked and the approval record. While a job runs, its figures move as they happen. -->
               <section v-else-if="shownLeft === 'status'" class="flex min-w-0 flex-col gap-2" :aria-label="$t('todo.label.field_state')">
@@ -896,6 +918,8 @@ import {
   approvalChangeLine,
   approvalLabel,
   REPORT_KIND_LABELS,
+  REVIEW_KIND_LABELS,
+  reviewCheckLabel,
   busyBlocks,
   busyKey,
   canBottom,
@@ -929,6 +953,7 @@ import type {
   TodoItem,
   TodoNote,
   TodoReport,
+  TodoReview,
   TodoTalk,
   TodoTalkTurn
 } from "#shared/types";
@@ -1079,6 +1104,17 @@ const shownReports = computed<TodoReport[]>(() => {
 // The result tab is there only on an item that carries a report or an outstanding note, and it
 // stands first, because on an item that has ended that is what he opens it to read.
 const RESULT_TAB = { value: "result", label: t("todo.label.result"), icon: "i-material-symbols-task-alt" };
+// The review tab is there only on an item whose review holds an entry, right after the result, its label carrying how
+// many times the work was sent back.
+const reviewTab = computed(() => {
+  const sent = openedItem.value?.rejections ?? 0;
+  const label = sent > 0 ? `${t("todo.label.review_turns")} · ${t("todo.label.rejections", { n: sent })}` : t("todo.label.review_turns");
+
+  return { value: "review", label, icon: "i-material-symbols-fact-check-outline" };
+});
+// The open item's review as this dialog last read it, by the item it was read for.
+const readReviews = ref<{ id: number; reviews: TodoReview[] } | null>(null);
+const reviews = computed<TodoReview[]>(() => (readReviews.value !== null && readReviews.value.id === openedItem.value?.id ? readReviews.value.reviews : []));
 const BODY_TABS = [
   { value: "status", label: t("todo.label.field_state"), icon: "i-material-symbols-monitoring" },
   { value: "order", label: t("todo.label.field_instruction"), icon: "i-material-symbols-assignment-outline" },
@@ -1089,7 +1125,7 @@ const RIGHT_TABS = [
   { value: "manage", label: t("todo.label.manage"), icon: "i-material-symbols-settings-outline" }
 ];
 const hasResult = computed(() => openedItem.value !== null && (shownReports.value.length > 0 || openedItem.value.unfinished !== null));
-const leftTabs = computed(() => (hasResult.value ? [RESULT_TAB, ...BODY_TABS] : BODY_TABS));
+const leftTabs = computed(() => [...(hasResult.value ? [RESULT_TAB] : []), ...(reviews.value.length > 0 ? [reviewTab.value] : []), ...BODY_TABS]);
 // The one row of a narrow dialog carries the names alone: six tabs with their icons are wider than
 // a phone, and a row that scrolls sideways hides the last of them.
 const detailTabs = computed(() => [...leftTabs.value, ...RIGHT_TABS].map(({ value, label }) => ({ value, label })));
@@ -1261,6 +1297,7 @@ function toggled(id: number, closed: boolean, word: string): void {
   notes.value = [];
   noteText.value = "";
   readReports.value = null;
+  readReviews.value = null;
   noteFailure.value = null;
   confirmingNote.value = null;
 
@@ -1271,6 +1308,7 @@ function toggled(id: number, closed: boolean, word: string): void {
     void loadTalk(id);
     void loadNotes(id);
     void loadReports(id);
+    void loadReviews(id);
     void loadApprovals(id);
   }
 }
@@ -1411,7 +1449,26 @@ async function loadApprovals(id: number, quiet = false): Promise<void> {
 function reread(id: number): void {
   void loadNotes(id, true);
   void loadReports(id, true);
+  void loadReviews(id);
   void loadApprovals(id, true);
+}
+
+// The item's review is read when it is opened and again whenever the bot says the queue moved, so an entry written
+// while the dialog stands lands in it. A read that fails leaves what stands.
+let reviewsGeneration = 0;
+async function loadReviews(id: number): Promise<void> {
+  const generation = detailGeneration;
+  const mine = ++reviewsGeneration;
+
+  try {
+    const answer = await $fetch<TodoReview[]>(`/api/todos/${id}/reviews`);
+
+    if (generation === detailGeneration && mine === reviewsGeneration && opened.value === id) {
+      readReviews.value = { id, reviews: answer };
+    }
+  } catch {
+    // The review stands as last read where this read could not be made.
+  }
 }
 
 // One lot of words onto an item that already stands. The bot writes them — which job they landed

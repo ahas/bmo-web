@@ -5,6 +5,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { setModelRegistrations } from "../../../apps/web/shared/model-short";
 import {
   itemModel,
+  reviewCheckLabel,
   itemModelTip,
   boardInOrder,
   busyBlocks,
@@ -101,6 +102,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     note: null,
     reports: [],
     unfinished: null,
+    rejections: 0,
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
     brief: null,
@@ -1009,6 +1011,7 @@ describe("whether a finished item's unfinished note still stands", () => {
       done: true,
       doneAt: 1_756_800_000,
       unfinished: left,
+      rejections: 0,
       unfinishedResolvedAt: 1_756_886_400,
       unfinishedResolution: "Raised as #31."
     });
@@ -1510,5 +1513,13 @@ describe("sending a row to the back", () => {
     expect(canBottom(board.queue, 1)).toBe(true);
     expect(canBottom(board.queue, 3)).toBe(false);
     expect(canBottom(board.queue, 9)).toBe(false);
+  });
+});
+
+describe("a review's checks", () => {
+  test("a check the pack holds is named in its words, and one it does not stands as its own name", () => {
+    expect(reviewCheckLabel(wording, "promises")).toBe(wording("todo.label.review_check_promises"));
+    expect(reviewCheckLabel(wording, "decisions")).toBe(wording("todo.label.review_check_decisions"));
+    expect(reviewCheckLabel(wording, "unheard-of")).toBe("unheard-of");
   });
 });

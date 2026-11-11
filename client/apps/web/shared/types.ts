@@ -651,6 +651,20 @@ export interface TodoReport {
   at: number;
 }
 
+// One entry of an item's review as bmo-job keeps it: its kind, the stage it is about (null for the work whole) and
+// the round, the words whole, who wrote them, the check a question, rejection or pass was on, and when, in unix
+// seconds.
+export interface TodoReview {
+  id: number;
+  kind: "opened" | "report" | "question" | "answer" | "rejection" | "pass" | "escalation" | "ruling" | "accepted";
+  stage: number | null;
+  round: number;
+  body: string;
+  actor: string;
+  check: string | null;
+  at: number;
+}
+
 // One piece of work the owner is owed, as the archive's todos table holds it. The instruction
 // is the owner's words and the chat agent's reply verbatim, which is why an item is worth keeping at all.
 export interface TodoItem {
@@ -742,6 +756,8 @@ export interface TodoItem {
   // them in the order they were written, and what the work left behind. Both empty on an item nobody has reported on, and on one
   // finished before a closing job was asked for its account.
   reports: TodoReport[];
+  // How many times its work was sent back by its review.
+  rejections: number;
   unfinished: string | null;
   // Whether that open matter still stands, and the one line saying what makes it no longer outstanding.
   // The note itself is never taken off the row: what is added is when it was resolved and why.

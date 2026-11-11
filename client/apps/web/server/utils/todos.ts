@@ -6,7 +6,7 @@ import { agency, agencyCall } from "./agency";
 import { job, jobCall } from "./job";
 
 import type { Note, Item, Report, Queue } from "bmo-job-client";
-import type { DeployHold, TodoBoard, TodoChoices, TodoItem, TodoNote, TodoReport, TodoStanding } from "#shared/types";
+import type { DeployHold, TodoBoard, TodoChoices, TodoItem, TodoNote, TodoReport, TodoReview, TodoStanding } from "#shared/types";
 import type { TodoConditions } from "../../app/domain/todos";
 
 // The TODO as bmo-job reads it in its fixed API (bmo-job's `docs/api.md`): the items it keeps, the queues they
@@ -191,6 +191,7 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     spans: [],
     note,
     reports: said.reports,
+    rejections: item.rejections,
     unfinished: null,
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
@@ -272,6 +273,35 @@ async function notesOf(todoId: number): Promise<Note[]> {
 /** Every report bmo-job keeps of an item, oldest first, read afresh. */
 export async function reportsOfItem(todoId: number): Promise<Report[]> {
   return (await jobCall(job().GET("/items/{itemId}/reports", { params: { path: { itemId: todoId } } }))).items;
+}
+
+/** An item's review as the dialog reads it, every entry in the order it was written, afresh. */
+export async function readTodoReviews(todoId: number): Promise<TodoReview[]> {
+  const entries: TodoReview[] = [];
+  let after: number | undefined;
+
+  for (;;) {
+    const page = await jobCall(
+      job().GET("/items/{itemId}/reviews", { params: { path: { itemId: todoId }, query: { after, limit: 500 } } })
+    );
+
+    for (const entry of page.items) {
+      entries.push({
+        id: entry.id,
+        kind: entry.kind,
+        stage: entry.stage ?? null,
+        round: entry.round,
+        body: entry.body,
+        actor: entry.actorName,
+        check: entry.labels.check ?? null,
+        at: Math.floor(entry.createdAt / 1000),
+      });
+    }
+
+    after = page.items.at(-1)?.id;
+
+    if (!page.more || after === undefined) return entries;
+  }
 }
 
 /** An item's reports as the dialog reads them, afresh. */

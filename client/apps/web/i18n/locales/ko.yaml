@@ -1325,6 +1325,7 @@ todo:
     queue_turn_why: "{turn}: {why}"
     recommended_awaiting: 추천됨 · 결재 필요
     removed_at: "삭제 {time}"
+    rejections: "반려 {n}회"
     report_count: "보고 {n}건"
     report_final: 완료 보고
     report_held: 보류 사유
@@ -1334,6 +1335,20 @@ todo:
     requested_room: 요청한 방
     rerun_instruction: 다시 실행할 지시
     resolved_at: "해소 · {time}"
+    review_accepted: 수락
+    review_answer: 답변
+    review_check_decisions: 결정 근거
+    review_check_promises: 약속 이행
+    review_escalation: 소유자 보고
+    review_final: "최종 보고 · {round}차"
+    review_opened: 검수 시작
+    review_pass: 통과
+    review_question: 질의
+    review_rejection: 반려
+    review_report: 보고
+    review_ruling: 소유자 결정
+    review_stage: "{stage}단계 · {round}차"
+    review_turns: 보고 턴
     result: 결과
     round_result: "{round}차 결과"
     run_cowork: 협업으로 실행

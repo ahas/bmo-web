@@ -11,7 +11,7 @@ import { WORKER_AGENT } from "#shared/config";
 import { todoModelPlan } from "./todo-models";
 
 import type { SearchField } from "bmo-ui/shared/search";
-import type { JobChosenBy, RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoReport, TodoSpan } from "#shared/types";
+import type { JobChosenBy, RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoReport, TodoReview, TodoSpan } from "#shared/types";
 import type { BarColor } from "bmo-ui/app/domain/bars";
 import type { Translate } from "#shared/wording";
 
@@ -84,6 +84,31 @@ export const REPORT_KIND_LABELS: Record<TodoReport["kind"], string> = {
   progress: "todo.label.report_progress",
   held: "todo.label.report_held"
 };
+
+// The words an entry of an item's review is headed by, by its kind.
+export const REVIEW_KIND_LABELS: Record<TodoReview["kind"], string> = {
+  opened: "todo.label.review_opened",
+  report: "todo.label.review_report",
+  question: "todo.label.review_question",
+  answer: "todo.label.review_answer",
+  rejection: "todo.label.review_rejection",
+  pass: "todo.label.review_pass",
+  escalation: "todo.label.review_escalation",
+  ruling: "todo.label.review_ruling",
+  accepted: "todo.label.review_accepted"
+};
+
+// The words each check of a review is named by; a check the console does not know stands as its own name.
+const REVIEW_CHECK_LABELS: Readonly<Record<string, string>> = {
+  promises: "todo.label.review_check_promises",
+  decisions: "todo.label.review_check_decisions"
+};
+
+export function reviewCheckLabel(t: (key: string) => string, check: string): string {
+  const key = REVIEW_CHECK_LABELS[check];
+
+  return key === undefined ? check : t(key);
+}
 
 // The row's report mark in words: how many reports the item keeps and of which kinds, in the order they stand.
 export function reportsTip(t: Translate, reports: readonly TodoReport[]): string {

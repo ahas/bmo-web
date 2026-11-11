@@ -80,6 +80,7 @@ function item(over: Partial<TodoItem> = {}): TodoItem {
     note: null,
     reports: [],
     unfinished: null,
+    rejections: 0,
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
     brief: null,

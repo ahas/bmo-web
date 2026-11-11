@@ -409,6 +409,8 @@
                      item names where it names one (docs/web.md, the TODO panel's section). -->
                 <ItemModelChip :item="item" :query="searched" />
                 <UBadge v-if="item.agent !== null" color="neutral" variant="subtle" size="sm" icon="i-material-symbols-smart-toy-outline" data-item-agent-named>{{ item.agent }}</UBadge>
+                <!-- How many times the item's review sent its work back, while it was sent back at all. -->
+                <UBadge v-if="item.rejections > 0" color="warning" variant="subtle" size="sm" icon="i-material-symbols-undo" data-item-rejections>{{ $t("todo.label.rejections", { n: countText(item.rejections) }) }}</UBadge>
 
                 <UBadge v-if="(item.stopped?.failures ?? 0) > 0" color="warning" variant="subtle" size="sm">{{ $t("todo.label.stop_failures", { n: countText(item.stopped!.failures) }) }}</UBadge>
 

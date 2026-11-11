@@ -5385,7 +5385,9 @@ Four bounds keep it from growing forever.
   a job runs it names after it what chose the job's road, the agency's `chosenBy` in the pack's words: 항목 지정,
   강제 지정, 고정 모델 or 공급자 순서. The item's detail names the same model in its head, in the same chip. The chip
   is pressed nowhere: the road is read, and chosen through the item's agent. A line whose item names an agent
-  carries the agent's name as a second chip.
+  carries the agent's name as a second chip. A line whose item's work was sent back by its review carries a badge
+  in the warning colour with how many times, bmo-job's `rejections` of the item (bmo-job's `docs/api.md`,
+  「Reviews」), and none while it was never sent back.
 - **An item is given to a repository and an agent.** Its 저장소 is its assignment, the repository whose worker and
   checkout the work is done in (unassigned is the built-in worker), chosen in the detail's head. Its 에이전트 is the
   agent the item names its work for, chosen in the detail's head where the item is not finished: 자동 (역할 순서) —
@@ -5436,8 +5438,8 @@ Four bounds keep it from growing forever.
   a narrow column only lines up cell by cell in a wide place. The head stands the number and title uncut, and one line
   below gathers where this item stands now: state, approval (approved or awaiting, and who asked), worker, model,
   co-work, priority. For an unfinished item the worker, the model and co-work are cells changed right there, and for a
-  finished item read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 상태,
-  지시 and 요청 원문 on the left, 의논 and 관리 on the right.
+  finished item read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 보고 턴
+  (only where there is one), 상태, 지시 and 요청 원문 on the left, 의논 and 관리 on the right.
   - **Left: 결과, 상태, 지시 and 요청 원문** — how the item ended, what became of it and what it says.
     - **결과** stands only on an item that carries a report or unfinished-items, and it is the first tab of
       the row. It holds every report bmo-job keeps of the item (bmo-job's `docs/api.md`, 「Reports」) — the closing
@@ -5450,6 +5452,13 @@ Four bounds keep it from growing forever.
       words — the **미결 해소** box with its button while the note still stands, and **항목 세우기** under a line —
       because both are written about those words and a box on another tab is written blind. A resolved note carries
       when it was resolved and why under a line in the same cell, not in a cell of its own.
+    - **보고 턴** stands only on an item whose review holds an entry, right after 결과, its label carrying the same
+      badge of times sent back as the line. It holds every entry of the item's review in the order it was written
+      (bmo-job's `docs/api.md`, 「Reviews」): the worker's 보고, the chat agent's 질의 and the worker's 답변, 반려
+      with its reason, 통과 with the check it passed, 오너 보고 and 오너 결정, 수락 and 검수 시작, each headed by its
+      kind, its stage (or 최종 보고 for the work whole) and round, who wrote it and when, and its words at their whole
+      length, read as markdown. A 반려 stands in the warning colour, so the reasons read apart from the rest. The
+      tab reads the review again each time the item is opened and whenever the queue moves.
     - **요청 원문** is what this item is, in the request's own words. Not the instruction poured whole into one box but stood per part in its own cell:
       exchanged conversation, what the work is, conclusion, what to do. A line the chat agent filed itself stands the chat agent's judgement and
       source unfinished-items, a line filed from the console seeing unfinished-items stands the owner's words and source

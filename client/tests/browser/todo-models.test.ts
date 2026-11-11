@@ -47,6 +47,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     note: null,
     reports: [],
     unfinished: null,
+    rejections: 0,
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
     brief: null,

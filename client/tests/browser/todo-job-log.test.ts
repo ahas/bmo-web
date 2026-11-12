@@ -157,11 +157,17 @@ async function open(width: number, height: number, live: LiveRun[]): Promise<Bro
   return context;
 }
 
+// The row, where the panel stands open beside the page, or behind the drawer's button where it does not: whichever
+// of the two the page shows first says which, so a slow first read of the board is waited for rather than taken
+// for a closed panel.
 async function rowOf(page: Page) {
   const row = page.locator(`li[data-todo-id="${ITEM}"]:visible`).first();
+  const opener = page.getByRole("button", { name: wording("todo.action.open_todo") });
 
-  if (!(await row.waitFor({ timeout: 5_000 }).then(() => true, () => false))) {
-    await page.getByRole("button", { name: wording("todo.action.open_todo") }).click();
+  await row.or(opener).first().waitFor({ timeout: 20_000 });
+
+  if (!(await row.isVisible())) {
+    await opener.click();
     await row.waitFor({ timeout: 5_000 });
   }
 

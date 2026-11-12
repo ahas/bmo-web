@@ -380,15 +380,11 @@ describe("a pane program's progress records", () => {
   });
 });
 
-// A view that stands at one run — a job's log opened from its item — reads that run's own lines, and none of the agent's
-// whole log above it: paging the whole log down to the run read every earlier run first, a page at a time.
+// A view that stands at one run — a job's log opened from its item — reads that run's own lines alone, and opens on its
+// newest ones however long the run has gone: reading a job of hours from its start held the view until all of it came.
 describe("a log feed scoped to one run", () => {
-  test("reads the run whole from its start as it opens, asking for that run on every page, and has nothing older", async () => {
+  function feedOf(pages: AgentLogPage[]): { asked: Record<string, unknown>[] } {
     const asked: Record<string, unknown>[] = [];
-    const pages: AgentLogPage[] = [
-      { lines: [line({ id: 10, kind: "start", run: "job-1" }), line({ id: 11, kind: "text", run: "job-1" })], hasMore: true, hasOlder: true },
-      { lines: [line({ id: 12, kind: "text", run: "job-1" })], hasMore: false }
-    ];
 
     Object.assign(globalThis, {
       ref,
@@ -400,16 +396,60 @@ describe("a log feed scoped to one run", () => {
       }
     });
 
+    return { asked };
+  }
+
+  test("opens on the run's newest lines in one read of the opening size, the rest said to wait above", async () => {
+    const { asked } = feedOf([{ lines: [line({ id: 40, kind: "text", run: "job-1" }), line({ id: 42, kind: "text", run: "job-1" })], hasMore: true }]);
     const log = useAgentLog((key) => key, "coder-01", "job-1");
 
     await log.load();
 
-    expect(log.lines.value.map((one) => one.id)).toEqual([10, 11, 12]);
-    expect(asked.map((query) => [query.run, query.after])).toEqual([["job-1", undefined], ["job-1", 11]]);
-    expect(log.older.value).toBe(false);
+    expect(log.lines.value.map((one) => one.id)).toEqual([40, 42]);
+    expect(asked).toEqual([{ run: "job-1", limit: AGENT_LOG_OPENING_SIZE }]);
+    expect(log.older.value).toBe(true);
     expect(log.newer.value).toBe(false);
     expect(log.loading.value).toBe(false);
+  });
+
+  test("reads the run's older lines before the oldest one held, a page at a time, until its start", async () => {
+    const { asked } = feedOf([
+      { lines: [line({ id: 40, kind: "text", run: "job-1" })], hasMore: true },
+      { lines: [line({ id: 10, kind: "start", run: "job-1" }), line({ id: 12, kind: "text", run: "job-1" })], hasMore: false }
+    ]);
+    const log = useAgentLog((key) => key, "coder-01", "job-1");
+
+    await log.load();
+
+    expect(await log.loadOlder()).toBe(2);
+    expect(log.lines.value.map((one) => one.id)).toEqual([10, 12, 40]);
+    expect(asked[1]).toEqual({ before: 40, run: "job-1", limit: AGENT_LOG_PAGE_SIZE });
+    expect(log.older.value).toBe(false);
     expect(await log.loadOlder()).toBe(0);
+  });
+
+  test("follows the run after the newest line held", async () => {
+    const { asked } = feedOf([
+      { lines: [line({ id: 40, kind: "text", run: "job-1" })], hasMore: false },
+      { lines: [line({ id: 44, kind: "text", run: "job-1" })], hasMore: false }
+    ]);
+    const log = useAgentLog((key) => key, "coder-01", "job-1");
+
+    await log.load();
+
+    expect(await log.follow()).toBe(1);
+    expect(asked[1]).toEqual({ after: 40, run: "job-1", limit: AGENT_LOG_PAGE_SIZE });
+  });
+
+  test("a feed opened at a run's head asks for that run from its start", async () => {
+    const { asked } = feedOf([{ lines: [line({ id: 10, kind: "start", run: "job-1" })], hasMore: true }]);
+    const log = useAgentLog((key) => key, "coder-01", "job-1");
+
+    await log.loadAt({ run: "job-1" });
+
+    expect(asked).toEqual([{ run: "job-1", after: 0, limit: AGENT_LOG_PAGE_SIZE }]);
+    expect(log.older.value).toBe(false);
+    expect(log.newer.value).toBe(true);
   });
 });
 

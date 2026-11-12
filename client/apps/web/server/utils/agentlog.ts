@@ -1,4 +1,4 @@
-import { PAGING } from "#shared/config";
+import { AGENT_LOG_RUN_SCAN, PAGING } from "#shared/config";
 
 import { mcpCallOf } from "#shared/mcp-names";
 
@@ -12,7 +12,9 @@ import type { AgentLogLine, AgentLogPage, AgentLogPatch, AgentLogState, AgentLog
 // left, across its runs, oldest line first. A screen opens on the agent's newest page, goes back by the id of the
 // oldest line it holds, follows by the id of the newest, and opens at the page a moment stands in, narrowed to a
 // room where one is named (the agency's `GET /log/agents/{agentName}/lines`). One run's own lines are read from the
-// same log narrowed to that run, where a screen stands at a run (the agency's `GET /log-lines`).
+// same log narrowed to that run, where a screen stands at a run (the agency's `GET /log-lines`): forward from its start
+// or from a line, which is all that read answers, and its newest lines, or the lines before one of it, out of the
+// agent's log with the run's lines kept (docs/web.md, 「Where the log comes from」).
 
 // The most lines one read of the agency answers.
 const AGENCY_PAGE = 500;
@@ -75,6 +77,88 @@ async function linesBefore(agent: string, before: number): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// The id of a run's first line under its agent, or null where it left none: where a read back through the agent's log
+// stops.
+async function firstLineOf(runId: number, owner: string): Promise<number | null> {
+  const page = await agencyCall(agency().GET("/log-lines", { params: { query: { runId, agentName: owner, after: 0, limit: 1 } } }));
+
+  return page.items[0]?.id ?? null;
+}
+
+// The id of a run's newest line before `below`, the run's first line standing before it. A read of the run's own
+// lines answers the first one past an id, so each one-line read either lifts the low end to a line of the run or
+// brings the high end down to the middle, and the stretch between them halves.
+async function lastLineBefore(runId: number, owner: string, first: number, below: number): Promise<number> {
+  let low = first;
+  let high = below - 1;
+
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    const page = await agencyCall(agency().GET("/log-lines", { params: { query: { runId, agentName: owner, after: middle, limit: 1 } } }));
+    const next = page.items[0]?.id;
+
+    if (next !== undefined && next <= high) low = next;
+    else high = middle;
+  }
+
+  return low;
+}
+
+// A run's lines read back through its agent's log, from the newest page or from the page before `before`: the lines
+// of the run it kept, oldest first, and the oldest id it looked at. It stops once it holds `want` of them, has passed
+// the run's first line, has reached the log's first line, or has looked through `AGENT_LOG_RUN_SCAN` lines, so a run
+// with few lines among the agent's never reads the agent's whole log.
+async function scanBack(runId: number, owner: string, before: number | null, want: number, first: number): Promise<{ found: LogLine[]; reached: number | null }> {
+  const found: LogLine[] = [];
+  let cursor = before;
+  let looked = 0;
+
+  for (;;) {
+    const page = await agentLines(owner, { limit: AGENCY_PAGE, ...(cursor === null ? {} : { before: cursor }) });
+    const head = page.items[0];
+
+    if (head === undefined) break;
+
+    found.unshift(...page.items.filter((one) => one.runId === runId));
+    looked += page.items.length;
+    cursor = head.id;
+
+    if (found.length >= want || head.id <= first || !page.hasMore || looked >= AGENT_LOG_RUN_SCAN) break;
+  }
+
+  return { found, reached: cursor };
+}
+
+/** One run's newest lines of an agent's, or the run's lines before `before`, oldest first; `hasMore` says lines of the
+ * run wait above them. The agency reads a run's own lines forward from its start alone, so they are read out of the
+ * agent's log (docs/web.md, 「Where the log comes from」). */
+export async function readRunBack(agent: string, run: string, before: number | null, limit: number): Promise<AgentLogPage> {
+  const named = await runOf(run);
+
+  if (named === null) return UNAVAILABLE;
+
+  const owner = named.agent || agent;
+  const want = Math.min(limit, PAGING.maxSize);
+  const first = await firstLineOf(named.id, owner);
+
+  if (first === null || (before !== null && first >= before)) return { lines: [], hasMore: false };
+
+  let read = await scanBack(named.id, owner, before, want, first);
+
+  // None of the run's lines among those looked through, and its first line not reached: the run ended under later
+  // runs, so its newest line before them is found and the log read back from there.
+  if (read.found.length === 0 && read.reached !== null && read.reached > first) {
+    const last = await lastLineBefore(named.id, owner, first, read.reached);
+
+    read = await scanBack(named.id, owner, last + 1, want, first);
+  }
+
+  const held = read.found.slice(-want).map(asLine);
+  const oldest = held[0];
+
+  return { lines: held, hasMore: oldest !== undefined && oldest.id > first };
 }
 
 // Where a page of an agent's log is read from: no place is its newest page.

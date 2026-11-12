@@ -396,6 +396,9 @@ export const AGENT_LOG_PAGE_SIZE = 200;
 // How many of the newest lines an agent's log opens on at its end: enough to fill the screen, so it is laid out
 // and stood at its end at once, the rest read a page at a time as the reader scrolls up.
 export const AGENT_LOG_OPENING_SIZE = 50;
+// How many lines of an agent's log one read of a run's newest lines, or of the page before a line of the run, looks
+// through for that run's own before it answers with what it found and says the rest waits above.
+export const AGENT_LOG_RUN_SCAN = 2_000;
 export const AGENT_LOG_POLL_MS = 2_000;
 
 // How much of the list of searches one read carries, and the most one read may ever carry however

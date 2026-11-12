@@ -476,6 +476,10 @@ for it, and no file or table of that unit is read meanwhile.
   for a supervisor while Claude Code's road is closed, and no route says whether its turns go out on it now; the
   supervisor's screen says 대신 답하는 중 where its last turn went out on that provider rather than on the first of
   its order, which the supervisor's read answers.
+- **The newest lines of one run.** The agency's `GET /log-lines` narrowed to a run answers from the run's start,
+  oldest first, and pages forward by `after` alone, so no route answers a run's newest lines or the page before a
+  line of it; the console server reads them out of the agent's log from `GET /log/agents/{agentName}/lines`, keeping
+  the run's lines, as `docs/web.md` (「Where the log comes from」) states.
 - **A repository's own log.** The agency writes a run's log under the supervisor or the role it is for, never under
   a repository, so a repository's screen reads its jobs from `GET /jobs?repositoryName=` and the log of a job by its
   run, and holds no log of the repository across its jobs.

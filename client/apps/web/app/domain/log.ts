@@ -480,18 +480,19 @@ export function buildLog(lines: AgentLogLine[]): LogRow[] {
 // did. It is the archive's own answer, so the same run read again reads the same — which is what
 // lets a room show a turn's actions long after the turn ended. A page begins at the run and runs
 // on into what followed it, so what is not this run's is dropped here; a run longer than one page
-// comes back short, and whoever shows it says so rather than passing it off as the whole.
+// comes back short, and whoever shows it says so rather than passing it off as the whole. It is read from its start: the
+// lines after none.
 export async function readRunLines(agent: string, run: string): Promise<AgentLogLine[]> {
   const page = await $fetch<AgentLogPage>(`/api/agents/${encodeURIComponent(agent)}/log`, {
-    query: { run, limit: PAGING.maxSize }
+    query: { run, after: 0, limit: PAGING.maxSize }
   });
 
   return page.lines.filter((line) => line.run === run);
 }
 
-// A feed scoped to one run reads that run's own lines alone — from its start, and on past the last one held — and has
-// nothing older: a view that shows one run never reads the agent's whole log and narrows it down, which would page
-// through every earlier run before it showed anything (docs/web.md, the TODO panel's job log entry).
+// A feed scoped to one run reads that run's own lines alone, every page asked for that run: it opens on the run's
+// newest lines as the whole log opens on its own, however long the run has gone, reads the run's older lines as the
+// reader scrolls up and its newer ones as they come (docs/web.md, the TODO panel's job log entry).
 export function useAgentLog(t: Translate, name: string, run: string | null = null): AgentLogFeed {
   const describe = (error: unknown): string => failureText(error, t("agents.error.log_read_failed"));
 
@@ -534,19 +535,12 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
     failure.value = null;
 
     try {
-      // The whole log opens on its newest lines alone, as many as fill a screen; a run's first page is its start.
-      let page = await fetchPage({}, run === null ? AGENT_LOG_OPENING_SIZE : AGENT_LOG_PAGE_SIZE);
+      // The log, or the one run, opens on its newest lines alone, as many as fill a screen: its end, with what lies
+      // above it read as the reader scrolls up.
+      const page = await fetchPage({}, AGENT_LOG_OPENING_SIZE);
 
       merge(page);
-
-      // The newest page of the whole log is its end. A run's first page is its start, so the rest of the run is read
-      // on while the first read still stands, and the view opens on the whole run at once.
-      while (run !== null && page.hasMore && page.lines.length > 0) {
-        page = await fetchPage({ after: page.lines[page.lines.length - 1]!.id });
-        merge(page);
-      }
-
-      older.value = run === null && page.hasMore;
+      older.value = page.hasMore;
       newer.value = false;
     } catch (error) {
       failure.value = describe(error);
@@ -563,8 +557,9 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
     failure.value = null;
 
     try {
-      // The page is asked at the run or the moment; whether the log stands the run alone is the screen's.
-      const page = await fetchPage("run" in place ? { run: place.run } : { ...place });
+      // The page is asked at the run's start, the lines after none, or at the moment; whether the log stands the run
+      // alone is the screen's.
+      const page = await fetchPage("run" in place ? { run: place.run, after: 0 } : { ...place });
 
       merge(page);
       older.value = run === null && page.hasOlder === true;

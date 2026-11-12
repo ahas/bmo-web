@@ -3411,9 +3411,18 @@ a seat of its role.
   reading the run's stream writes it a line at a time as it reads, and the console reads one agent's whole log —
   every line it left, across its runs — through the agency's `GET /log/agents/{agentName}/lines`. The screen opens
   on the newest page, reads the page before the oldest line it holds and follows the newest, and opens at the page
-  a moment stands in, narrowed to a room where the link names one. A screen opened at one run reads that run from
-  the agency's `GET /log-lines`, narrowed to it, and the lines above it are the same agent log: a page read upward
-  from a run lands on the lines the run before it left.
+  a moment stands in, narrowed to a room where the link names one. A screen opened at one run's head reads that
+  run from the agency's `GET /log-lines`, narrowed to it, and the lines above it are the same agent log: a page read
+  upward from a run lands on the lines the run before it left.
+- **A log that stands one run's lines alone opens on that run's newest lines.** The agency's read of one run answers
+  from the run's start only, so the console server reads the newest of a run, and the page before a line of it it
+  holds, out of the agent's own log: newest page first, keeping that run's lines alone and going back until it
+  holds the page asked for, has passed the run's first line, or has looked through `AGENT_LOG_RUN_SCAN` lines of
+  the agent's. A run that left no line among those, one that ended under later runs, is found by its newest line
+  first — a few one-line reads of the run's own lines after an id, the stretch halved each time — and read back
+  from there. What lies above a page so read is said to wait, and is read as the reader scrolls up; the run's
+  newer lines are read from the run's own lines after the newest one held, and a run read whole from its start, a
+  room's turn among them, asks for the lines after none.
 - **A turn picked up across the agency's restart is logged as it goes.** The agency files what its program's
   record gained while the turn was carried, so the log a screen follows follows that turn rather than standing
   at the last line the process before it wrote. A line of the log marks where the agency takes the turn up, and
@@ -5489,9 +5498,11 @@ Four bounds keep it from growing forever.
   are done without opening it:
   1. **Job 로그** on a line a job is running for, or one whose job has ended and whose commit is still on its way
      live — that job's log and nothing else: the lines of that one run alone, opened at once over the panel and
-     followed where the run still goes, in the same log dialog a room's run line opens. The run's lines are read
-     as the run's own — from its start to the newest one, and on past the last one held — never as pages of the
-     agent's whole log narrowed down, so nothing above the run is read and the dialog stands still once open. A line no job ever ran for has nothing to show, so the entry is not
+     followed where the run still goes, in the same log dialog a room's run line opens. It opens on the run's
+     newest lines alone, as many as fill a screen (`AGENT_LOG_OPENING_SIZE`), stood at its end at once, however
+     long the run has gone: its older lines are read a page at a time as the reader scrolls up, and its newer ones
+     as they come. Only that run's lines stand, never another run's of the same agent (「Where the log comes
+     from」). A line no job ever ran for has nothing to show, so the entry is not
      there. A line whose job cannot be found, one that ended with no run of its own, answers with the message pill
      saying so; the line under the list is never the only answer. In the opened item the state mark at its head,
      실행 중 and the stage it names, is the same press: it opens that job's log over the item.

@@ -3155,7 +3155,10 @@ a seat of its role.
   role across its runs (the agency's `docs/run-records.md`, 「Agent log」); a role's run opened from the sidebar or a
   slot tile opens the role's log at that run. A repository's screen reads the jobs the agency ran in it, newest
   first, and the log of the one going or, with none going, the latest, under the name its lines stand under: the
-  worker the job ran on, whatever role it ran as. It is the log the same job's TODO line opens.
+  agent the job's item named, the one that did the work (the agency's `docs/run-records.md`, 「Agent log」), and
+  the checkout it ran in for a job that named none. A role's screen reads its agents' lines with its own, so the
+  job a role's agent is running stands on the role's screen where its run is marked. It is the log the same job's
+  TODO line opens.
 - **A supervisor's screen names the rooms it has spoken in,** read from the agency's `GET /supervisors/{name}/rooms`
   (its `docs/api.md`, 「supervisors」), in one line under the title bar that scrolls sideways inside itself where it
   runs long: each room by its title with how many of its runs went there, its tooltip saying when the latest began.

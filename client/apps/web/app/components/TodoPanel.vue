@@ -342,57 +342,61 @@
                 </button>
 
               <!-- The lines a row says in words stand under its title, and its chips stand last, at
-                   the row's foot. -->
+                   the row's foot. The lines are a moving list of their own, so one that comes unfolds its
+                   height under the title and one that goes folds it, each holding the space above it as
+                   its own top padding so that space folds with it (docs/web.md, 「Motion」). -->
+              <MovingList tag="div" class="flex flex-col" data-item-lines>
+                <!-- A long wait the running job marked for itself: what it waits on, the target and
+                     what is left of the time it gave. The same mark `bun scripts/running.ts` prints.
+                     It is a line of the row, with no hover or press of its own: the row opens by its
+                     title. -->
+                <p
+                  v-if="waitingLine($t, item, now) !== null"
+                  key="waiting"
+                  class="flex items-start gap-1 pt-1 text-sm break-words"
+                  :class="waitingOverdue(item, now) ? 'badge-ink text-warning' : 'text-muted'"
+                >
+                  <UIcon name="i-material-symbols-hourglass-top" class="mt-0.5 size-4 shrink-0" />
+                  <SearchText class="min-w-0" :text="waitingLine($t, item, now) ?? ''" :query="searched" />
+                </p>
 
-              <!-- A long wait the running job marked for itself: what it waits on, the target and
-                   what is left of the time it gave. The same mark `bun scripts/running.ts` prints.
-                   It is a line of the row, with no hover or press of its own: the row opens by its
-                   title. -->
-              <p
-                v-if="waitingLine($t, item, now) !== null"
-                class="mt-1 flex items-start gap-1 text-sm break-words"
-                :class="waitingOverdue(item, now) ? 'badge-ink text-warning' : 'text-muted'"
-              >
-                <UIcon name="i-material-symbols-hourglass-top" class="mt-0.5 size-4 shrink-0" />
-                <SearchText class="min-w-0" :text="waitingLine($t, item, now) ?? ''" :query="searched" />
-              </p>
+                <!-- The job's own command in the testbed's queue, holding a seat or waiting its place: a line of the row
+                     like the wait above, with no hover or press of its own. The place turns as the line moves up, and
+                     the command is machine text. -->
+                <p v-if="testbedTurns.has(item.id)" key="testbed" class="flex items-start gap-1 pt-1 text-sm break-words text-muted tabular-nums" data-item-testbed>
+                  <UIcon name="i-material-symbols-science-outline" class="mt-0.5 size-4 shrink-0" />
+                  <i18n-t :keypath="testbedLineKey(testbedTurns.get(item.id)!)" tag="span" class="min-w-0" scope="global">
+                    <template #command><span class="font-mono [overflow-wrap:anywhere]">{{ testbedTurns.get(item.id)!.command }}</span></template>
+                    <template #n><RollingNumber :value="testbedTurns.get(item.id)!.place ?? 0" /></template>
+                  </i18n-t>
+                </p>
 
-              <!-- The job's own command in the testbed's queue, holding a seat or waiting its place: a line of the row
-                   like the wait above, with no hover or press of its own. The place turns as the line moves up, and
-                   the command is machine text. -->
-              <p v-if="testbedTurns.has(item.id)" class="mt-1 flex items-start gap-1 text-sm break-words text-muted tabular-nums" data-item-testbed>
-                <UIcon name="i-material-symbols-science-outline" class="mt-0.5 size-4 shrink-0" />
-                <i18n-t :keypath="testbedLineKey(testbedTurns.get(item.id)!)" tag="span" class="min-w-0" scope="global">
-                  <template #command><span class="font-mono [overflow-wrap:anywhere]">{{ testbedTurns.get(item.id)!.command }}</span></template>
-                  <template #n><RollingNumber :value="testbedTurns.get(item.id)!.place ?? 0" /></template>
-                </i18n-t>
-              </p>
+                <!-- A backlog deployment holding the queue until this job ends: a line of the row like
+                     the wait above, with no hover or press of its own. -->
+                <p v-if="deployWaitsLine($t, item) !== null" key="deploy-waits" class="flex items-start gap-1 pt-1 text-sm break-words text-muted">
+                  <UIcon name="i-material-symbols-rocket-launch-outline" class="mt-0.5 size-4 shrink-0 text-info" />
+                  <SearchText class="min-w-0" :text="deployWaitsLine($t, item) ?? ''" :query="searched" />
+                </p>
 
-              <!-- A backlog deployment holding the queue until this job ends: a line of the row like
-                   the wait above, with no hover or press of its own. -->
-              <p v-if="deployWaitsLine($t, item) !== null" class="mt-1 flex items-start gap-1 text-sm break-words text-muted">
-                <UIcon name="i-material-symbols-rocket-launch-outline" class="mt-0.5 size-4 shrink-0 text-info" />
-                <SearchText class="min-w-0" :text="deployWaitsLine($t, item) ?? ''" :query="searched" />
-              </p>
+                <!-- A stopped order at the head of its worker's queue says its turn alone, one short
+                     line; what stopped it and why it waits stand whole in the item's detail, and how
+                     many times it failed is a badge below. -->
+                <p v-if="stoppedLine($t, item) !== null" key="stopped" class="badge-ink pt-1 text-sm break-words text-warning">
+                  <SearchText :text="stoppedLine($t, item) ?? ''" :query="searched" />
+                </p>
 
-              <!-- A stopped order at the head of its worker's queue says its turn alone, one short
-                   line; what stopped it and why it waits stand whole in the item's detail, and how
-                   many times it failed is a badge below. -->
-              <p v-if="stoppedLine($t, item) !== null" class="badge-ink mt-1 text-sm break-words text-warning">
-                <SearchText :text="stoppedLine($t, item) ?? ''" :query="searched" />
-              </p>
+                <!-- A finished row that was merged says where its work was done; an open one says it in
+                     its badge. -->
+                <p v-if="item.done && item.mergedInto !== null" key="merged" class="pt-1 text-sm text-muted">
+                  <SearchText :text="$t('todo.label.field_merged_into', { id: item.mergedInto })" :query="searched" />
+                </p>
 
-              <!-- A finished row that was merged says where its work was done; an open one says it in
-                   its badge. -->
-              <p v-if="item.done && item.mergedInto !== null" class="mt-1 text-sm text-muted">
-                <SearchText :text="$t('todo.label.field_merged_into', { id: item.mergedInto })" :query="searched" />
-              </p>
-
-              <!-- An order holding its worker's checkout and unable to use it: what is in the way, in
-                   the runner's own words. The same line `bun scripts/running.ts` prints. -->
-              <p v-if="item.holding !== null" class="mt-1 text-sm break-words text-muted">
-                <SearchText :text="$t('todo.label.field_checkout_reason', { reason: item.holding })" :query="searched" />
-              </p>
+                <!-- An order holding its worker's checkout and unable to use it: what is in the way, in
+                     the runner's own words. The same line `bun scripts/running.ts` prints. -->
+                <p v-if="item.holding !== null" key="holding" class="pt-1 text-sm break-words text-muted">
+                  <SearchText :text="$t('todo.label.field_checkout_reason', { reason: item.holding })" :query="searched" />
+                </p>
+              </MovingList>
 
               <div class="mt-1 flex flex-wrap items-center gap-1">
                 <!-- Where the item's work stands on its way live — being tested, waiting to go live, being put live, or

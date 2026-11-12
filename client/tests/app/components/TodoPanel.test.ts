@@ -76,6 +76,23 @@ describe("a row of the list", () => {
     }
   });
 
+  // Each line under the title comes and goes by its height through the row's own moving list, and holds the space
+  // above it as its own padding so that space folds with it (docs/web.md, 「Motion」). How the list moves is read in
+  // the browser.
+  test("moves its lines under the title through one moving list, each holding the space above it", () => {
+    const opened = template.indexOf("data-item-lines");
+    const closed = template.indexOf("</MovingList>", opened);
+
+    expect(tagOf("data-item-lines").startsWith("<MovingList")).toBe(true);
+
+    for (const line of ["waitingLine($t, item, now) !== null", 'v-if="testbedTurns.has(item.id)"', "deployWaitsLine($t, item) !== null", "stoppedLine($t, item) !== null", "item.mergedInto !== null", 'v-if="item.holding !== null"']) {
+      const at = template.indexOf(line);
+      const tag = tagOf(line);
+
+      expect({ line, inside: at > opened && at < closed, keyed: tag.includes(" key="), padded: tag.includes("pt-1"), margined: tag.includes("mt-1") }).toEqual({ line, inside: true, keyed: true, padded: true, margined: false });
+    }
+  });
+
   test("gives a job's wait line no hover or press of its own", () => {
     const wait = tagOf('v-if="waitingLine($t, item, now) !== null"');
 

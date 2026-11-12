@@ -302,6 +302,13 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
   - The TODO panel's sections, the room lists on the home and room-list screens and the sidebar's
     rooms are moving lists: a search, a condition, an item added, finished or carried by its
     handle, and a room a message lifts up the list all move this way.
+  - The lines a TODO row carries under its title — a job's long wait, its command in the testbed's
+    queue, the backlog deployment waiting on it, its stop, the item it was merged into and the
+    checkout it is holding — are a moving list of their own inside the row. A line that comes
+    unfolds its height under the title and one that goes folds it, the row growing and shrinking
+    with it and the rows below following, all at `unfold` eased by `move`. Each line holds the space
+    above it as its own top padding, so that space folds with it and nothing jumps at the end. A
+    row as it is first drawn shows its lines at once.
 - **The TODO panel's state tabs move the list as one panel sideways** (`TabSlide`). The list under
   the tabs is one panel keyed by its tab, and the new tab's panel comes in from the side its tab
   stands on in the tab order while the old one leaves to the other side, both together, at `unfold`

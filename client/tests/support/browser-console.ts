@@ -59,6 +59,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-models", "fixture-password-2298"],
   ["todo-assign", "fixture-password-2765"],
   ["todo-testbed", "fixture-password-2771"],
+  ["todo-row-unfold", "fixture-password-2784"],
   ["work-view", "fixture-password-2311"],
   ["delegation-marker", "fixture-password-2373"],
   ["screen-stands", "fixture-password-2411"],

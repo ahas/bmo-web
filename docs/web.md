@@ -4358,22 +4358,25 @@ Four bounds keep it from growing forever.
   briefings of the room, each naming the line it speaks and whether it is the line's summary or its full reading.
   - **Nothing is made until it is pressed.** The chip says where the reading stands, by its mark and its
     tooltip: the voice mark before anything is made and once it is there (보이스브리핑), the mark of spinning
-    work while it is being made (보이스브리핑 만드는 중), and the voice mark in the error colour where it could not
-    be made (보이스브리핑 실패).
+    work while it is being made (보이스브리핑 만드는 중), the voice mark in the error colour where it could not
+    be made (보이스브리핑 실패), and the voice mark again where the engine stopped the reading before it stood, as
+    switching the whole voice briefing off stops every reading not yet ended (보이스브리핑 중지됨 · 다시 요청 가능).
   - **Pressing it spreads the sound's own player**, the one of 「소리 듣기」, which waits for its play press, on
     opening as on a page loading or a tab coming back; pressing the chip again folds it and the sound stops. Played
     to its end, the player folds itself after a moment, unless the reader paused or moved it along while it played,
     or played it again in that moment. Pressed before anything is made, it asks the receiver for the reading (its
     `docs/api.md`, `POST /rooms/{roomId}/messages/{messageId}/reading`) and spreads one line saying it is being
     made, and the player takes that line's place the moment the engine's stream says the reading ended done, for as
-    long as the chip stays spread, waiting for its play press. Pressed after it failed, it asks again. A refusal — the whole briefing switched off, an agent with no voice, a line the receiver does not
+    long as the chip stays spread, waiting for its play press; a reading that ends failed or stopped while the chip
+    stays spread puts its own line there instead. Pressed after it failed or was stopped, it asks again, and the
+    receiver makes a stopped reading anew. A refusal — the whole briefing switched off, an agent with no voice, a line the receiver does not
     hold, a voice engine it could not reach — spreads its sentence in the error colour.
   - **A line read before the engine spoke readings** keeps the voice message the room heard it as, named by the
     engine's row, and its chip plays that voice message.
   - **A jump to the voice message lands on the line**, the briefing player's press among them.
   - **The chip moves as the reading does.** The voice engine's stream says a briefing was taken in, ended, or
-    named its line, and the chip of the line it speaks follows it there: making once it is taken in, there or
-    failed once it ends.
+    named its line, and the chip of the line it speaks follows it there: making once it is taken in, there,
+    failed or stopped once it ends.
 - **기록함** — a chat agent answer carries what its round wrote down: every note of the room, memory, new TODO row
   and word appended to one, made by the turn or by any time the round asked the same session again. The chip
   is the count; pressing it spreads one line per record — where it landed as a badge (메모 #N, 기억 #N, 상황 규칙 #N, 새 항목 #N,

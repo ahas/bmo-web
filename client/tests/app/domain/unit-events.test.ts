@@ -171,6 +171,16 @@ describe("the voice engine's briefings", () => {
     });
   });
 
+  test("a briefing ends done, failed or stopped, and any other state of the engine's is still waiting", () => {
+    const stateOf = (state: unknown) => {
+      const event = voiceEvent({ id: 1, at: 1, kind: "briefing.ended", data: { id: 7, chatId: 42, messageId: 548, kind: "full", state } });
+
+      return event?.type === "voice-briefing" ? event.voice.state : null;
+    };
+
+    expect(["done", "failed", "stopped", "speaking", undefined].map(stateOf)).toEqual(["done", "failed", "stopped", "waiting", "waiting"]);
+  });
+
   test("a kind of no briefing, or a briefing that does not read, is none", () => {
     expect(voiceEvent({ id: 1, at: 1, kind: "synthesis.ended", data: { id: 1, chatId: 2 } })).toBeNull();
     expect(voiceEvent({ id: 1, at: 1, kind: "briefing.created", data: { chatId: 2 } })).toBeNull();

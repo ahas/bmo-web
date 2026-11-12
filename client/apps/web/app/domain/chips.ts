@@ -67,8 +67,8 @@ export function contextChipText(ratio: number): string {
 
 // How the briefing chip looks at each state of the line's full reading. The mark is the chip's own
 // before anything is made and once the reading is there, the spinning mark of work going on while it
-// is being made, and its own again in the error colour where it could not be made; the name says the
-// state in the tooltip.
+// is being made, its own again in the error colour where it could not be made, and its own where it
+// was stopped before it stood, to be asked for again; the name says the state in the tooltip.
 export interface BriefingChip {
   icon: string;
   iconClass: string;
@@ -81,6 +81,8 @@ export function briefingChip(state: MessageBriefing["state"]): BriefingChip {
       return { icon: "i-material-symbols-progress-activity", iconClass: "animate-spin", label: "room.label.chip_briefing_making" };
     case "failed":
       return { icon: CHIP_ICONS.briefing, iconClass: "text-error", label: "room.label.chip_briefing_failed" };
+    case "stopped":
+      return { icon: CHIP_ICONS.briefing, iconClass: "", label: "room.label.chip_briefing_stopped" };
     case "idle":
     case "ready":
       return { icon: CHIP_ICONS.briefing, iconClass: "", label: CHIP_LABELS.briefing };

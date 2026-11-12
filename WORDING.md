@@ -161,6 +161,8 @@
 - launch, start a run → 실행. Never 띄우다, 뜨다, 발사.
 - stop a run → 중지; pause and resume a timer → 정지, 재개; run out of time → 시간 초과. Never 멈추기,
   다시 흐르게, 때를 놓침.
+- a thing a unit stopped before it was made, a voice briefing among them → 중지됨; asking for it again → 다시
+  요청: 보이스브리핑 중지됨 · 다시 요청 가능. Never 재요청, 멈춤.
 - leave the queue → 대기열에서 제외. Never 대기열에서 빠지다.
 - the research unit's words → 리서치, 분류 (a category), 대기열 (its queue), 제외 (dismissing an item), 보류 (a hold on its
   runs), 해당 (a document marked for the owner's word), 브리핑 (a brief), 보안 권고 (an advisory). Never 카테고리, 큐, 기각.

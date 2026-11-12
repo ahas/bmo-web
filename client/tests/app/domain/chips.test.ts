@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { chipLook, contextChipText, recordLook, STILL_CHIP_LOOK, verdictChip } from "../../../apps/web/app/domain/chips";
+import { briefingChip, chipLook, contextChipText, recordLook, STILL_CHIP_LOOK, verdictChip } from "../../../apps/web/app/domain/chips";
 import KO from "../../fixtures/app/domain/chips.test.ko.json";
 
 // What a chip on a message's thin line wears. The rule it is held to is that a pointer is always
@@ -83,5 +83,23 @@ describe("the verdict mark", () => {
 
     expect(looks.map((look) => look.iconClass)).toEqual(["verdict-beat", "text-(--chat-mark-success)", "text-(--chat-mark-error)", ""]);
     expect(looks.map((look) => wording(look.label))).toEqual([KO.line_84, wording("room.label.chip_verdicts_passed"), wording("room.label.chip_verdicts_failed"), KO.line_84_2]);
+  });
+});
+
+// The briefing chip wears the chip's own mark wherever nothing is under way, the error colour only where the
+// reading could not be made, and its name tells a stopped reading, which may be asked for again, from one never
+// asked for (docs/web.md, the room screen's voice briefing chip).
+describe("the briefing chip", () => {
+  test("spins while made, is red once failed, and names a stopped reading apart from an idle one", () => {
+    const looks = (["idle", "making", "ready", "failed", "stopped"] as const).map((state) => briefingChip(state));
+
+    expect(looks.map((look) => look.iconClass)).toEqual(["", "animate-spin", "", "text-error", ""]);
+    expect(looks.map((look) => look.label)).toEqual([
+      "room.label.chip_briefing",
+      "room.label.chip_briefing_making",
+      "room.label.chip_briefing",
+      "room.label.chip_briefing_failed",
+      "room.label.chip_briefing_stopped"
+    ]);
   });
 });

@@ -7,7 +7,7 @@
 // Usage, from `client/`: `BMO_WEB_SERVER_BIN=<the bmo-web-server binary> bun tests/support/browser-console.ts`.
 
 import { spawn, type ChildProcess } from "node:child_process";
-import { appendFileSync, mkdtempSync } from "node:fs";
+import { appendFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -736,7 +736,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
 let stopping = false;
 
-async function stop(): Promise<void> {
+// Stops everything it started; the scratch folder goes with it unless a failed start named the logs kept there.
+async function stop(keepScratch = false): Promise<void> {
   if (stopping) {
     return;
   }
@@ -766,6 +767,7 @@ async function stop(): Promise<void> {
 
   await admin.unsafe(`DROP DATABASE IF EXISTS "${database}" WITH (FORCE)`);
   await admin.close();
+  if (!keepScratch) rmSync(scratch, { recursive: true, force: true });
   process.exit(0);
 }
 
@@ -899,5 +901,5 @@ try {
   console.log(origin);
 } catch (error) {
   console.error(error);
-  await stop();
+  await stop(true);
 }

@@ -35,7 +35,8 @@ console's typecheck and then every test file under `client/tests` in one `bun te
   - the console's development server, under the base path `/console/`, with a build folder of its own,
     `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
 - **What it prints:** the console's address, once it answers.
-- **When it stops:** on an interrupt, stopping everything it started and dropping the database.
+- **When it stops:** on an interrupt, stopping everything it started, dropping the database and removing its scratch
+  directory; where it failed to start it stops the same way but keeps that directory, whose logs the failure names.
 
 The tests serve the rest of what they measure through the page's own routes. The files run one at a time,
 through the testbed, with the address the script printed:

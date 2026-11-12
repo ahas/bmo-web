@@ -248,7 +248,6 @@ export function roleAgentViewOf(agent: Schemas["RoleAgent"]): RoleAgentView {
     thinking: agent.thinking ?? null,
     answerTokens: agent.answerTokens ?? null,
     enabled: agent.enabled,
-    position: agent.position,
     keepsCache: agent.keepsCache,
     sessions: agent.sessions,
     foldRatio: agent.foldRatio ?? null,
@@ -453,12 +452,6 @@ export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["Rol
     if (typeof held[field] !== "boolean") return null;
 
     change[field] = held[field] as boolean;
-  }
-
-  if ("position" in held) {
-    if (!wholeFrom(held.position, 0)) return null;
-
-    change.position = held.position;
   }
 
   if ("answerTokens" in held) {

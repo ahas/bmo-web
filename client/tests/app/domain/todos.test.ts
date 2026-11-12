@@ -238,44 +238,22 @@ describe("what a row shows", () => {
     expect(requesterLine(item(9, { chatId: null }), rooms)).toBe("Owner");
   });
 
-  test("the model is the one the item will go out on, short, and whole for its tooltip", () => {
-    // A pinned item names the model it was filed to run on, whatever its worker would do.
-    expect(itemModel(item(9, { model: "claude-opus-5-5", worker: "bmo-agent" }))).toBe("CC/CO55");
-    expect(itemModel(item(9, { model: "claude-opus-5-5" }), true)).toBe("claude-opus-5-5");
-  });
-
-  test("an auto item names the road its worker goes out on, and a running job's own road over it", () => {
+  test("the model is the road of the agent the item names, and a running job's own road over it", () => {
     const plan = todoModelPlan();
 
-    plan.value = { workers: { "bmo-agent": "deepseek/deepseek-flash", worker: "registered/qwen3.8-flash-next-iq3_s" }, agents: { "coder-03": "registered/qwen3.8-flash-next" }, running: { 9: "claude-code/claude-opus-5-5" }, chosenBy: {} };
+    plan.value = { workers: { "bmo-agent": "deepseek/deepseek-flash" }, agents: { "coder-03": "registered/qwen3.8-flash-next" }, running: { 9: "claude-code/claude-opus-5-5" }, chosenBy: {} };
 
-    // The worker's own road, the pin it holds or the model its work key maps to.
-    expect(itemModel(item(8, { model: null, worker: "bmo-agent" }))).toBe("DS/DSF");
-    // An item that names its agent wears that agent's road over the worker's and over a model label.
+    // An item that names its agent wears that agent's road, whatever an older model label or its worker would say.
     expect(itemModel(item(8, { model: null, agent: "coder-03", worker: "bmo-agent" }))).toBe("QFN38");
     expect(itemModel(item(8, { model: "deepseek/deepseek-flash", agent: "coder-03", worker: "bmo-agent" }), true)).toBe("registered/qwen3.8-flash-next");
-    expect(itemModel(item(8, { model: null, worker: null }))).toBe("QFN38");
-    expect(itemModel(item(8, { model: null, worker: null }), true)).toBe("registered/qwen3.8-flash-next-iq3_s");
-    // A registered alias is read as the engine its registration names, with no provider.
-    setModelRegistrations([{ key: "registered::flash-next-coder", provider: "registered", model: "qwen3.8-flash-next-coder" }]);
-    expect(itemModel(item(8, { model: "registered::flash-next-coder" }))).toBe("QFNC38");
-    setModelRegistrations([]);
+    // An item that names no agent yet has no road chosen, so it wears no model, a label or a worker notwithstanding.
+    expect(itemModel(item(8, { model: "claude-code/claude-opus-5-5", worker: "bmo-agent" }))).toBeNull();
+    expect(itemModel(item(7, { model: null, worker: "unheard-of" }))).toBeNull();
     // A job of the item running names the road that run actually took.
     expect(itemModel(item(9, { model: null, worker: "bmo-agent" }))).toBe("CC/CO55");
     expect(itemModel(item(9, { model: null, worker: "bmo-agent" }), true)).toBe("claude-code/claude-opus-5-5");
-    // Nothing known of it at all still names the plan, as the item was filed.
-    expect(itemModel(item(7, { model: null, worker: "unheard-of" }))).toBe("auto");
 
     plan.value = null;
-  });
-
-  test("a running job's road stands over the model the item's label names, which reaches only its next job", () => {
-    todoModelPlan().value = { workers: {}, agents: {}, running: { 9: "deepseek/deepseek-flash" }, chosenBy: { 9: "order" } };
-
-    expect(itemModel(item(9, { model: "claude-code/claude-opus-5-5" }))).toBe("DS/DSF");
-    expect(itemModel(item(8, { model: "claude-code/claude-opus-5-5" }))).toBe("CC/CO55");
-
-    todoModelPlan().value = null;
   });
 
   test("the tooltip names the model whole, and while a job runs what chose its road in the pack's words", () => {
@@ -290,11 +268,10 @@ describe("what a row shows", () => {
     expect(itemModelTip(wording, item(2))).toBe(wording("todo.label.model_chosen_by", { model: "claude-code/claude-opus-5-5", by: by("todo.label.chosen_forced") }));
     expect(itemModelTip(wording, item(3))).toBe(wording("todo.label.model_chosen_by", { model: "codex/gpt-5.6-sol", by: by("todo.label.chosen_pin") }));
     expect(itemModelTip(wording, item(4))).toBe(wording("todo.label.model_chosen_by", { model: "deepseek/deepseek-flash", by: by("todo.label.chosen_order") }));
-    // A running job the agency names no choice for, and an item no job runs for, carry the model whole alone.
+    // A running job the agency names no choice for carries the model whole alone, and an item that names no agent
+    // carries none.
     expect(itemModelTip(wording, item(5))).toBe("deepseek/deepseek-flash");
-    expect(itemModelTip(wording, item(6, { model: null, worker: "bmo-agent" }))).toBe("deepseek/deepseek-flash");
-    // A chip that already says the model whole carries no tooltip.
-    expect(itemModelTip(wording, item(7, { model: null, worker: "unheard-of" }))).toBeNull();
+    expect(itemModelTip(wording, item(6, { model: null, worker: "bmo-agent" }))).toBeNull();
 
     todoModelPlan().value = null;
   });

@@ -1,11 +1,12 @@
 <template>
   <!-- The agent an item's work is to go out on (docs/web.md, the TODO panel's section): the item's `agent` label as a
-       chooser of every agent the agency registers, grouped by role, each with its road; the auto choice leaves the agent to the
-       role's order. Where the item is not finished the pick is handed up to be saved at once. -->
+       chooser of every agent the agency registers, grouped by role, each with its road, and no automatic choice: a job runs on
+       the agent its item names. Where the item is not finished the pick is handed up to be saved at once. -->
   <USelect
     v-if="props.editable"
     :model-value="chosen"
     :items="items"
+    :placeholder="$t('todo.label.agent_unnamed')"
     value-key="value"
     size="sm"
     class="min-w-44"
@@ -18,7 +19,7 @@
     @update:model-value="pick"
     @update:open="(open: boolean) => open && void read()"
   />
-  <UBadge v-else color="neutral" variant="outline" size="sm" data-item-agent>{{ props.item.agent ?? $t("todo.label.agent_auto") }}</UBadge>
+  <UBadge v-else color="neutral" variant="outline" size="sm" data-item-agent>{{ props.item.agent ?? $t("todo.label.agent_unnamed") }}</UBadge>
 </template>
 
 <script setup lang="ts">
@@ -35,12 +36,9 @@ interface Props {
   busy?: boolean;
 }
 
-// The label value that leaves the agent to the role's order.
-const AUTO = "auto";
-
 const props = withDefaults(defineProps<Props>(), { busy: false });
 const emit = defineEmits<{
-  // The agent chosen by name, or `auto`.
+  // The agent chosen by name.
   pick: [agent: string];
 }>();
 
@@ -62,9 +60,8 @@ async function read(): Promise<void> {
   }
 }
 
-const chosen = computed(() => props.item.agent ?? AUTO);
+const chosen = computed(() => props.item.agent ?? undefined);
 const items = computed<CellChoice[][]>(() => {
-  const head: CellChoice[] = [{ value: AUTO, label: t("todo.label.agent_auto") }];
   const groups: CellChoice[][] = (view.value?.roles ?? []).map((role) => [
     { type: "label", value: `@${role.name}`, label: role.name },
     ...role.agents.filter((agent) => agent.enabled).map((agent) => ({
@@ -74,9 +71,9 @@ const items = computed<CellChoice[][]>(() => {
     }))
   ]);
   // The agent the label names stands even where the listing has not been read yet.
-  const named: CellChoice[][] = chosen.value === AUTO || groups.some((group) => group.some((one) => one.value === chosen.value)) ? [] : [[{ value: chosen.value, label: chosen.value }]];
+  const named: CellChoice[][] = chosen.value === undefined || groups.some((group) => group.some((one) => one.value === chosen.value)) ? [] : [[{ value: chosen.value, label: chosen.value }]];
 
-  return [head, ...named, ...groups];
+  return [...named, ...groups];
 });
 
 function pick(value: unknown): void {

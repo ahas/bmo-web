@@ -143,7 +143,6 @@ export interface RoleAgentView {
   thinking: string | null;
   answerTokens: number | null;
   enabled: boolean;
-  position: number;
   keepsCache: boolean;
   // Whether its runs keep their sessions.
   sessions: RoleSessions;

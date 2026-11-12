@@ -14,7 +14,7 @@ import { standAccount } from "../../../apps/web/server/utils/account-standing";
 
 const ORDER = [{ provider: "codex", model: "model-a", effort: null, thinking: null, answerTokens: null }];
 const ANSWERER = { name: "agent-a", label: "Agent A", ownerAccount: null, provider: "codex", model: "model-a", effort: null, order: ORDER, quotaShare: 0.25, warming: {}, waitingFor: null };
-const AGENT = { name: "worker-01", role: "worker", ownerAccount: null, provider: "deepseek", model: "model-w", effort: "high", thinking: null, answerTokens: null, enabled: true, position: 1, keepsCache: true, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: false };
+const AGENT = { name: "worker-01", role: "worker", ownerAccount: null, provider: "deepseek", model: "model-w", effort: "high", thinking: null, answerTokens: null, enabled: true, keepsCache: true, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: false };
 const role = (name: string, agents: unknown[]) => ({ name, code: name, label: name, prompt: null, description: null, bundles: [], skills: null, line: "worker", agents, maxConcurrent: agents.length, followsSupervisor: false, running: 0, waiting: 0, provider: null, waitingFor: null });
 
 // What Nitro would import into the module by itself: a refusal carries the unit's code as its data.

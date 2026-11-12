@@ -1,13 +1,12 @@
 <template>
   <!-- A role's agents (docs/web.md, 「Agent management screen」, the roles tab; the agency's docs/role-agents.md): one
-       block per agent in the order a run looks for a free one, each a seat of the role on one road — its switch, its
-       name, its provider, model and effort, its place moved by its arrows, and what it lays over its role's preset
-       behind a fold. Each change is one agent's own and is saved as it is made. -->
+       block per agent by name, each one agent of the role on its own road, none standing before another — its switch,
+       its name, its provider, model and effort, and what it lays over its role's preset behind a fold. Each change is one agent's own and is saved as it is made. -->
   <div class="flex min-w-0 flex-col gap-3" data-role-agents>
     <p v-if="agents.length === 0" class="text-sm text-muted">{{ $t("agents.status.agents_none") }}</p>
 
     <ol v-else class="flex min-w-0 flex-col divide-y divide-default rounded-lg border border-default" :aria-label="$t('agents.label.role_agents')">
-      <li v-for="(agent, index) in agents" :key="agent.name" class="flex min-w-0 flex-col gap-2 p-2" :data-agent="agent.name">
+      <li v-for="agent in agents" :key="agent.name" class="flex min-w-0 flex-col gap-2 p-2" :data-agent="agent.name">
         <div class="flex min-w-0 items-center gap-2">
           <USwitch
             :model-value="agent.enabled"
@@ -15,15 +14,8 @@
             :aria-label="$t('agents.aria.agent_enabled_of', { name: agent.name })"
             @update:model-value="(on: boolean) => void save(agent, { enabled: on })"
           />
-          <span class="w-5 shrink-0 text-sm tabular-nums text-muted">{{ index + 1 }}</span>
           <span class="min-w-0 flex-1 truncate font-mono text-sm font-medium" :class="agent.enabled ? 'text-highlighted' : 'text-muted'">{{ agent.name }}</span>
           <UBadge v-if="agent.carries" color="primary" variant="subtle" size="sm">{{ $t("agents.label.agent_carries") }}</UBadge>
-          <UTooltip :text="$t('common.aria.move_up_named', { name: agent.name })">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-upward" :aria-label="$t('common.aria.move_up_named', { name: agent.name })" :disabled="locked || index === 0" @click="void move(index, index - 1)" />
-          </UTooltip>
-          <UTooltip :text="$t('common.aria.move_down_named', { name: agent.name })">
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-arrow-downward" :aria-label="$t('common.aria.move_down_named', { name: agent.name })" :disabled="locked || index === agents.length - 1" @click="void move(index, index + 1)" />
-          </UTooltip>
           <UTooltip :text="$t('agents.aria.agent_remove', { name: agent.name })">
             <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-close" :aria-label="$t('agents.aria.agent_remove', { name: agent.name })" :disabled="locked || agent.carries" @click="void remove(agent)" />
           </UTooltip>
@@ -134,7 +126,7 @@
 import { failureText } from "bmo-ui/app/domain/errors";
 
 import { effortChoices, useProviderModels, useProviders } from "~/domain/axes";
-import { agentOverrides, movedPlaces } from "~/domain/role-agents";
+import { agentOverrides } from "~/domain/role-agents";
 
 import type { RoleAgentView } from "#shared/axes";
 
@@ -286,29 +278,6 @@ async function placed(agent: RoleAgentView, provider: string): Promise<void> {
   }
 
   await save(agent, { provider, model: first.id, effort: null });
-}
-
-// Two agents trade places: each is sent the place the other held.
-async function move(from: number, to: number): Promise<void> {
-  const moved = movedPlaces(agents.value, from, to);
-
-  if (moved === null) return;
-
-  busy.value = true;
-  refusal.value = "";
-
-  try {
-    for (const { name, position } of moved.sent) {
-      await $fetch<RoleAgentView>(`/api/role-agents/${encodeURIComponent(name)}`, { method: "PATCH", body: { position } });
-    }
-
-    agents.value = moved.agents;
-    emit("changed");
-  } catch (failure) {
-    refusal.value = failureText(failure, t("agents.error.agent_save_failed"));
-  } finally {
-    busy.value = false;
-  }
 }
 
 // An agent added stands last, on the road of the role's last agent, so a seat more of the same kind is one press.

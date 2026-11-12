@@ -578,13 +578,13 @@ describe("the model chip and the agent chooser", () => {
     expect(chip).toContain("itemModelTip(t, props.item)");
   });
 
-  test("the agent is chosen in the head among every agent the agency registers, grouped by role, auto first", () => {
+  test("the agent is chosen in the head among every agent the agency registers, grouped by role, with no automatic choice", () => {
     expect(detailTemplate).toContain('<ItemAgentChip');
     expect(detailTemplate).toContain(':editable="!openedItem.done && openedItem.mergedInto === null"');
     expect(agentTemplate).toContain('<USelect\n    v-if="props.editable"');
     expect(agentScript).toContain('$fetch<RolesView>("/api/roles")');
-    expect(agentScript).toContain('{ value: AUTO, label: t("todo.label.agent_auto") }');
-    expect(agentScript).toContain("props.item.agent ?? AUTO");
+    expect(agentScript).not.toContain("AUTO");
+    expect(agentTemplate).toContain(":placeholder=\"$t('todo.label.agent_unnamed')\"");
     // The line names the agent where the item names one.
     expect(template).toContain('data-item-agent-named');
   });

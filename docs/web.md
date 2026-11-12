@@ -2942,8 +2942,8 @@ a seat of its role.
 - **A read that fails** says so with a reread in that table's place, and the other tables stand.
 
 - **Under the supervisors stands one table of the roles' agents** (the agency's `docs/role-agents.md`), headed
-  에이전트, one row an agent in its role's order — the roles in the agency's order, each role's agents in the order
-  a run looks for a free one — read from `GET /roles` and read again every few seconds while the tab stands:
+  에이전트, one row an agent — the roles in the agency's order, each role's agents by name, since they stand in no
+  order of priority — read from `GET /roles` and read again every few seconds while the tab stands:
   - 에이전트, its name, with a dot lit while it carries a run and its name muted while it is switched off;
     역할, its role; 공급자 · 모델, its road — its provider's word, its model and its effort — or 요청한 감독관을 따름
     for an agent that names no road;
@@ -2953,10 +2953,10 @@ a seat of its role.
     none; 캐시 유지, a switch, whether its last
     kept session is pinged before its cache cools; and 사용, the switch that turns it on and off.
   - **Pressing an agent's name opens its role's agents,** a dialog titled with the role (「역할」 above gives the
-    role its preset): one block per agent of that role, in order, saved as each is changed.
-    - **A block's head:** a switch that turns the agent on and off; its place; its name; 실행 중 while it carries a
-      run; the buttons moving it up and down, which send each agent whose place changed its new one; and its
-      removal, which stands disabled while it carries a run.
+    role its preset): one block per agent of that role, by name, saved as each is changed.
+    - **A block's head:** a switch that turns the agent on and off; its name; 실행 중 while it carries a run; and
+      its removal, which stands disabled while it carries a run. No agent stands before another: which one does a
+      job is named by the supervisor that orders it.
     - **Its road under them:** 공급자, a choice of 요청한 감독관을 따름 — no road — and every provider whose program
       carries the role's line; and, under a provider, 모델, what `GET /provider-models/{provider}` answers for it,
       and 강도, the levels that model takes, standing only where it takes any. A provider picked stands on the first
@@ -5432,13 +5432,10 @@ Four bounds keep it from growing forever.
 - **A line never pushes the panel sideways.** The title gives way and wraps however long it is, and the arrow at the
   line's end keeps its place.
 - **Every line names the model its work will go out on**, short, as a chip beside its state (「Model names where room is
-  short」), in the order the agency chooses a job's road (its `docs/repositories.md`, 「An agent an item names」 and
-  「A model an item names」): the road of the agent the item names, its `agent` label, where it names one; else the
-  model its `model` label names, where an older item still carries one other than `auto`; otherwise its worker's road —
-  the provider the owner forced on the role its jobs run as, else the model its repository pins, else the role's
-  choice by its order. The role is read per repository, from its newest job, and a repository no recent job shows
-  runs as `worker`, so a provider forced on one role names no other repository's lines. While a job of the item runs,
-  the line names the road that run took, which may differ from the plan. A tooltip names the model whole, and while
+  short」): the road of the agent the item names, its `agent` label, which is the road its job goes out on (the agency's
+  `docs/repositories.md`, 「An agent an item names」); a line whose item names no agent yet stands no model chip, since
+  no road is chosen for it until its supervisor names one. While a job of the item runs, the line names the road that
+  run took. A tooltip names the model whole, and while
   a job runs it names after it what chose the job's road, the agency's `chosenBy` in the pack's words: 항목 지정,
   강제 지정, 고정 모델 or 공급자 순서. The item's detail names the same model in its head, in the same chip. The chip
   is pressed nowhere: the road is read, and chosen through the item's agent. A line whose item names an agent
@@ -5447,12 +5444,13 @@ Four bounds keep it from growing forever.
   「Reviews」), and none while it was never sent back.
 - **An item is given to a repository and an agent.** Its 저장소 is its assignment, the repository whose worker and
   checkout the work is done in (unassigned is the built-in worker), chosen in the detail's head. Its 에이전트 is the
-  agent the item names its work for, chosen in the detail's head where the item is not finished: 자동 (역할 순서) —
-  the item names no agent and its job takes the first free agent of the role the launch names — then every agent
-  the agency registers that is switched on, grouped by role, each with its road under its name; an agent the label
+  agent the item names its work for, chosen in the detail's head where the item is not finished: every agent the
+  agency registers that is switched on, grouped by role, each with its road under its name, and no automatic choice,
+  since a job runs on the agent its item names and is refused where it names none; an item that names none yet
+  stands 미지정 until its supervisor or the owner names one; an agent the label
   names that the listing does not hold stands as its name alone. The agent the item's label names stands chosen. A
   choice is saved as it is picked: the console reads the item and writes its labels back whole through bmo-job's
-  `PATCH /items/{itemId}`, `agent` set to the agent's name or `auto` and every other label kept as it stood, since
+  `PATCH /items/{itemId}`, `agent` set to the agent's name and every other label kept as it stood, since
   bmo-job replaces an item's labels whole. The choice reaches the item's next job, which runs as that agent's role
   on that agent's road and waits for that agent; a job already running keeps its agent. A refusal says why in the
   line under the list.

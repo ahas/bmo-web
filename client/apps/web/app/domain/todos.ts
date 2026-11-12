@@ -7,7 +7,6 @@ import { CONVERSATION_HEAD, instructionSegments, orderedSegments, PART_ORDER, SA
 import { tokenText } from "./usage";
 import { itemRanModel } from "#shared/ran-model";
 import { shortModel } from "#shared/model-short";
-import { WORKER_AGENT } from "#shared/config";
 import { todoModelPlan } from "./todo-models";
 
 import type { SearchField } from "bmo-ui/shared/search";
@@ -223,15 +222,14 @@ export function jobGoingOn(state: TodoState): boolean {
 }
 
 // The model a row wears, short, or whole where `whole` asks for its tooltip (docs/web.md, the TODO panel's section): while a job
-// of it runs, the road that run actually took; otherwise the road of the agent its `agent` label names; else the model its
-// `model` label names, and where it names none what `auto` resolves to — the road its worker goes out on. A row nothing
-// is known of yet names `auto` itself.
+// of it runs, the road that run actually took; otherwise the road of the agent its `agent` label names, the one its job goes
+// out on. None where the item names no agent yet, since nothing chooses a road for it until one is named.
 export function itemModel(item: Pick<TodoItem, "id" | "model" | "agent" | "worker">, whole = false): string | null {
   const known = todoModelPlan().value;
   const named = item.agent === null ? null : (known?.agents[item.agent] ?? null);
-  const road = known?.running[item.id] ?? named ?? item.model ?? known?.workers[item.worker ?? WORKER_AGENT] ?? null;
+  const road = known?.running[item.id] ?? named;
 
-  return road === null ? "auto" : whole ? road : shortModel(road);
+  return road === null || road === undefined ? null : whole ? road : shortModel(road);
 }
 
 // What chose a running job's road, in the pack's words.
@@ -245,7 +243,10 @@ const CHOSEN_BY_WORDS: Record<JobChosenBy, string> = {
 // The tooltip a row's model chip carries (docs/web.md, the TODO panel's section): the model whole, and while a job of it
 // runs, after it what chose that job's road where the agency says. None where it would only repeat the chip.
 export function itemModelTip(t: Translate, item: Pick<TodoItem, "id" | "model" | "agent" | "worker">): string | null {
-  const whole = itemModel(item, true)!;
+  const whole = itemModel(item, true);
+
+  if (whole === null) return null;
+
   const running = todoModelPlan().value?.running[item.id];
   const chosen = running === undefined ? undefined : todoModelPlan().value?.chosenBy[item.id];
 

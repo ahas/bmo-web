@@ -11,10 +11,10 @@ import type { SpaceView } from "../../../apps/web/shared/space";
 
 const SUPERVISOR = { name: "agent-a", label: "Agent A", provider: "claude-code", model: "model-s", effort: "high", order: [], quotaShare: 0.01, warming: {}, waitingFor: null };
 const QUIET = { ...SUPERVISOR, name: "agent-b", label: null };
-const AGENT = { name: "worker-01", role: "worker", provider: "deepseek", model: "model-w", effort: null, thinking: null, answerTokens: null, enabled: true, position: 1, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: true };
+const AGENT = { name: "worker-01", role: "worker", provider: "deepseek", model: "model-w", effort: null, thinking: null, answerTokens: null, enabled: true, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: true };
 const role = (name: string, waiting: number, agents: unknown[]) => ({ name, code: name, label: name, prompt: null, description: null, bundles: [], skills: null, line: "worker", agents, maxConcurrent: agents.length, followsSupervisor: false, running: 0, waiting, provider: null, waitingFor: null });
 const ROLES = [
-  role("worker", 2, [AGENT, { ...AGENT, name: "worker-02", position: 2, carries: false }, { ...AGENT, name: "worker-03", position: 3, enabled: false, provider: null, model: null }]),
+  role("worker", 2, [AGENT, { ...AGENT, name: "worker-02", carries: false }, { ...AGENT, name: "worker-03", enabled: false, provider: null, model: null }]),
   role("scout", 0, [{ ...AGENT, name: "scout-01", role: "scout" }])
 ];
 const REPOSITORIES = [

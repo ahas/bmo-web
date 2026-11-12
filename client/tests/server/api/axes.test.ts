@@ -24,11 +24,11 @@ const ROLE = {
 };
 // An agent of the role on a road, one switched off on the same road, and one that names no road.
 const AGENT = {
-  name: "worker-01", role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, enabled: true, position: 1,
+  name: "worker-01", role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, enabled: true,
   keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: true
 };
-const AGENT_OFF = { ...AGENT, name: "worker-02", enabled: false, position: 2, carries: false };
-const AGENT_FOLLOWING = { ...AGENT, name: "worker-03", provider: null, model: null, effort: null, position: 3, followsSupervisor: true, carries: false };
+const AGENT_OFF = { ...AGENT, name: "worker-02", enabled: false, carries: false };
+const AGENT_FOLLOWING = { ...AGENT, name: "worker-03", provider: null, model: null, effort: null, followsSupervisor: true, carries: false };
 
 ROLE.agents = [AGENT, AGENT_OFF, AGENT_FOLLOWING];
 const REPOSITORY = {
@@ -52,7 +52,7 @@ const agency = standIn("AGENCY", (call) => {
   if (call.path === "/roles/worker" && call.method === "PATCH") return answer({ ...ROLE, ...call.body });
   if (call.path === "/roles" && call.method === "POST") return answer({ ...ROLE, ...call.body }, 201);
   if (call.path === "/roles") return answer({ roles: [ROLE, DOPPELGANGER, { ...OWN_ROLE, skills: ["skill-b"], providerPrompts: { codex: "text-a" } }], bundles: ROLE.bundles, skills: ["skill-a", "skill-b"], lines: ["worker"] });
-  if (call.path === "/role-agents" && call.method === "POST") return answer({ ...AGENT, name: "worker-04", position: 4, carries: false, ...call.body });
+  if (call.path === "/role-agents" && call.method === "POST") return answer({ ...AGENT, name: "worker-04", carries: false, ...call.body });
   if (call.path === "/role-agents/worker-01" && call.method === "PATCH") return answer({ ...AGENT, ...call.body });
   if (call.path === "/role-agents/worker-01" && call.method === "DELETE") return answer({ code: "conflict", error: "The agent carries a run." }, 409);
   if (call.path === "/role-agents/worker-02" && call.method === "DELETE") return answer({ name: "worker-02" });
@@ -246,14 +246,14 @@ describe("a role's agents", () => {
       status: 200,
       answer: { sessions: "fresh", foldRatio: 0.5 }
     });
-    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { prompt: "  ", bundles: ["web.read"], skills: null, keepsCache: true, position: 2 } })).toMatchObject({
+    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { prompt: "  ", bundles: ["web.read"], skills: null, keepsCache: true } })).toMatchObject({
       status: 200,
-      answer: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true, position: 2 }
+      answer: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true }
     });
     expect(calls).toMatchObject([
       { method: "PATCH", path: "/role-agents/worker-01", body: { enabled: false } },
       { method: "PATCH", path: "/role-agents/worker-01", body: { sessions: "fresh", foldRatio: 0.5 } },
-      { method: "PATCH", path: "/role-agents/worker-01", body: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true, position: 2 } }
+      { method: "PATCH", path: "/role-agents/worker-01", body: { prompt: null, bundles: ["web.read"], skills: null, keepsCache: true } }
     ]);
   });
 
@@ -263,7 +263,6 @@ describe("a role's agents", () => {
     expect(await asked(agentAdd, { body: { provider: "deepseek" } })).toMatchObject({ status: 400 });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: {} })).toMatchObject({ status: 400 });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { enabled: "yes" } })).toMatchObject({ status: 400 });
-    expect(await asked(agentChange, { params: { name: "worker-01" }, body: { position: -1 } })).toMatchObject({ status: 400 });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { bundles: [3] } })).toMatchObject({ status: 400 });
     expect(await asked(agentChange, { params: { name: "worker-01" }, body: { sessions: "sometimes" } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);

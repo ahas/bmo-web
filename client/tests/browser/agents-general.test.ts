@@ -366,19 +366,13 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       await blocks.nth(3).waitFor({ timeout: 10_000 });
       expect(sent[1]).toEqual({ method: "POST", name: null, body: { role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high" } });
 
-      // Moved up, the two agents that trade places are each sent the place they now hold.
-      await page.locator(`li[data-agent="worker-04"] button[aria-label="${wording("common.aria.move_up_named", { name: "worker-04" })}"]`).click();
-      expect(await until(async () => sent.length, (count) => count === 4)).toBe(4);
-      expect(sent.slice(2)).toEqual([
-        { method: "PATCH", name: "worker-04", body: { position: 3 } },
-        { method: "PATCH", name: "worker-03", body: { position: 4 } }
-      ]);
-      expect(await blocks.evaluateAll((all) => all.map((one) => one.getAttribute("data-agent")))).toEqual(["worker-01", "worker-02", "worker-04", "worker-03"]);
+      // No agent stands before another: a block carries no place and no button moving it.
+      expect(await page.locator(`button[aria-label="${wording("common.aria.move_up_named", { name: "worker-04" })}"]`).count()).toBe(0);
 
       // Removed, it leaves the list.
       await page.locator(`li[data-agent="worker-04"] button[aria-label="${wording("agents.aria.agent_remove", { name: "worker-04" })}"]`).click();
       expect(await until(async () => await blocks.count(), (count) => count === 3)).toBe(3);
-      expect(sent[4]).toEqual({ method: "DELETE", name: "worker-04", body: null });
+      expect(sent[2]).toEqual({ method: "DELETE", name: "worker-04", body: null });
     } finally {
       await context.close();
     }

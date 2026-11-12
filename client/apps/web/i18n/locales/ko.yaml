@@ -1279,7 +1279,7 @@ todo:
     field_unfinished: 미결
     field_waiting: 대기
     field_worker: 저장소
-    agent_auto: 자동 (역할 순서)
+    agent_unnamed: 미지정
     filter: 필터
     held_failure: 실패로 보류
     held_pause: 재개 대기

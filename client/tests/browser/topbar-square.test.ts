@@ -165,7 +165,7 @@ describe.skipIf(!origin || !touchReady())("the title bar's icon buttons", () => 
           }
         }
 
-        expect(found.newer!.some((mark) => mark.name === wording("common.aria.refresh_standing", { standing: KO.line_150 }))).toBe(true);
+        expect(found.newer!.some((mark) => mark.name === KO.line_141)).toBe(true);
         // Standing alone only where its words fold away.
         expect(found.running!.some((mark) => mark.name.startsWith(wording("deploy.status.running")))).toBe(viewport.phone);
         expectSquares(found);

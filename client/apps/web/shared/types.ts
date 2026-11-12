@@ -117,96 +117,6 @@ export interface TurnRecord {
 
 /** The emotion a voice briefing is spoken with, as the voice unit names it. */
 export type BriefingEmotion = string;
-/** A machine's standing and every node's reading, as the node unit gives them. */
-/** The share of a stretch some or all tasks stood stalled, in percent, over 10, 60 and 300 seconds. */
-export interface PressureLine {
-  avg10: number;
-  avg60: number;
-  avg300: number;
-}
-
-export interface Pressure {
-  some: PressureLine;
-  // Null for a resource the kernel keeps no `full` line for.
-  full: PressureLine | null;
-}
-
-export interface MachineReading {
-  /** When it was read, in milliseconds. */
-  at: number;
-  load1: number;
-  threads: number;
-  memTotalGb: number;
-  memAvailableGb: number;
-  swapTotalGb: number;
-  swapFreeGb: number;
-  // The free space of the disk the caller named, for a writer that is not the root user; null where
-  // none was named or it could not be read.
-  diskFreeGb: number | null;
-  // Null where the kernel keeps no pressure figures.
-  memory: Pressure | null;
-  cpu: Pressure | null;
-}
-
-/** One process worth naming: a browser, or one holding enough memory to matter. */
-export interface MachineProcess {
-  pid: number;
-  name: string;
-  /** Resident memory and swap together, in megabytes. */
-  megabytes: number;
-  browser: boolean;
-  /** The agent place its environment names, by the place's own name; null for none. */
-  place: string | null;
-}
-
-/** The machines work goes round, as the readings show them (the agency's docs/work-nodes.md, 「The rotation」). */
-export interface NodesReading {
-  machines: { name: string; label: string; node: string | null; jobs: number; runs: number; room: MachineStanding }[];
-  // The machine the next heavy run goes to, by its label; null where no node takes runs.
-  nextRun: string | null;
-}
-
-/** What one job, or one agent with no job open, holds of the machine. */
-export interface MachineHolder {
-  // The agent place the processes name: a worker's name for a job's, the agent's own otherwise.
-  place: string;
-  jobId: number | null;
-  todoId: number | null;
-  megabytes: number;
-  browsers: number;
-}
-
-export interface MachineStanding {
-  // Null where the machine could not be read, which holds nothing.
-  reading: MachineReading | null;
-  jobs: number;
-  browserJobs: number;
-  browsers: number;
-  // Every launch limit met, in a few words each; empty where the machine has room.
-  held: string[];
-  // Whose memory, largest first.
-  holders: MachineHolder[];
-  // The five largest processes, with the place each names.
-  largest: Pick<MachineProcess, "pid" | "name" | "megabytes" | "place">[];
-  // The testbed's queue: who holds the machine's turn for heavy commands, and who waits behind it;
-  // absent from a standing a bot that does not read the testbed wrote.
-  testbed?: TestbedStanding;
-  // The narrow lane's queue beside it (the testbed's docs/testbed.md, 「The lanes」); absent from a standing a bot
-  // that does not read the lanes wrote.
-  narrow?: TestbedStanding;
-}
-
-/** One entry of the testbed's queue, with the job its place names where one is open. */
-export interface TestbedEntry extends TurnEntry {
-  jobId: number | null;
-  todoId: number | null;
-}
-
-export interface TestbedStanding {
-  holder: TestbedEntry | null;
-  waiting: TestbedEntry[];
-}
-
 /** A running item's job in the testbed's queue, as its TODO row's line says it (docs/web.md, the TODO panel's section). */
 export interface ItemTestbedTurn {
   itemId: number;
@@ -1350,7 +1260,7 @@ export interface RunProgress {
 }
 
 // One gate run as the archive kept it: the verdict is what it ended with, and no detail is
-// read here — the live status screen shows nothing anyone said.
+// read here — no screen of what runs shows anything anyone said.
 export interface GateRunRecord {
   id: number;
   agent: string;
@@ -1398,7 +1308,7 @@ export interface JobRecord {
   checkout?: string | null;
 }
 
-// What the live status screen is answered with: the bot's picture of now, and the archive's
+// What the status route is answered with: the bot's picture of now, and the archive's
 // record of what came before. A bot that does not answer leaves the first half empty.
 export interface ExecutionHistory {
   id: string;
@@ -1449,11 +1359,6 @@ export interface StatusView {
   gates: GateRunRecord[];
   runners: RunnerRecord[];
   jobs: JobRecord[];
-  // The machine's room as the bot last read it; null before it has.
-  machine?: MachineStanding | null;
-  // The machines work goes round, with what each was given (the agency's docs/work-nodes.md); null before the bot
-  // has read them.
-  nodes?: NodesReading | null;
 }
 
 export interface AccountUser {
@@ -2004,7 +1909,7 @@ export interface KeepaliveChanged {
   ok: true;
 }
 
-// What the bot answers when one runner is stopped from the live board. The row is closed by the
+// What the bot answers when one runner is stopped from a run's row. The row is closed by the
 // runner itself once the signal reaches it, so this says only which unit was asked to end.
 /**
  * What a stop answers with. The target is the one it reached, and the state says how far it got:

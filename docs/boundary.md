@@ -96,8 +96,9 @@ types; `server/client/` is the Rust crate the server answers with and that docum
   only against the fields its reader may see: the name, the unit and the job title for every user, and the
   landline, mobile and email for the platform administrator or the person themselves. A contact field the reader may not see is
   absent from the answer and is no answer to a search (`docs/accounts.md`, 「The people directory」).
-- **A console section** is named by the first part of its screen's path — `live`, `rooms`, `brain` — or, for
+- **A console section** is named by the first part of its screen's path — `monitor`, `rooms`, `brain` — or, for
   agent management's five parts, by its tab — `supervisors`, `roles`, `repositories`, `models`, `model-files` —
+  or is `live`, what runs now, which no one screen holds —
   and its `read` and `write` are relations of the deployment's `bmo_section` kind, checked through sumida's
   point check. A write is also a read, and the platform administrator passes every section. The set is written
   whole, so a section left out is taken away (`docs/accounts.md`, 「Console sections」).
@@ -545,7 +546,7 @@ for it, and no file or table of that unit is read meanwhile.
   room is placed in the room its item's scope names, read from the job service's item; one whose item names no room
   stands in no room. The
   runs of runners, gates and editors going now, the executions, gate runs, runner records and standing watches that
-  have just run, the machine's standing and the nodes are lists no unit serves, so the live board stands without
+  have just run, the machine's standing and the nodes are lists no unit serves, so the console stands without
   them. The jobs that have just run are the agency's `GET /jobs` at `ended` and `stopped`.
 - **Usage.** The agency's `GET /accounts` carries each Claude account's usage window, as the session and weekly
   share and reset its `PATCH /accounts/{accountId}` records, and answers none today; the provider the chat agent runs

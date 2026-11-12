@@ -3,22 +3,6 @@ import { modelFace } from "~/domain/model-face";
 import type { AgentMode, LiveRun, StopTarget } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
-// Which tab of the live status screen stands: the agents' space or the role slots. One of them stands at a time, and
-// which one is in the address.
-export type LiveTab = "space" | "slots";
-
-export interface LiveTabItem {
-  value: LiveTab;
-  label: string;
-  icon: string;
-}
-
-// The tabs of the live status screen, in the order they stand.
-export const LIVE_TABS: readonly LiveTabItem[] = [
-  { value: "space", label: "live.label.tab_space", icon: "i-material-symbols-view-in-ar-outline" },
-  { value: "slots", label: "live.label.tab_slots", icon: "i-material-symbols-grid-view-outline" }
-];
-
 const DEPTH_LABELS: Record<string, string> = {
   basic: "common.label.depth_basic",
   thorough: "common.label.depth_thorough",
@@ -94,10 +78,6 @@ export function outcomeLabel(t: Translate, outcome: string): string {
   const key = OUTCOME_LABELS[outcome];
 
   return key === undefined ? outcome : t(key);
-}
-
-export function isLiveTab(value: unknown): value is LiveTab {
-  return LIVE_TABS.some((tab) => tab.value === value);
 }
 
 // Seconds as a person watching them tick reads them: under a minute the seconds alone, under an

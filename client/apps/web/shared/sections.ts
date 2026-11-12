@@ -1,6 +1,6 @@
 // The console's sections, the unit of a person's permission (docs/accounts.md, 「Console sections」;
-// docs/web.md, 「Access」): one entry of the navigation from the live status down to the brain, and the
-// rooms and the account beside the flat group. A section is named by the first part of the screen's path.
+// docs/web.md, 「Access」): one entry of the navigation from the mail down to the brain, the rooms and the
+// account beside the flat group, and `live`, what runs now, which no one screen holds. A section is named by the first part of the screen's path.
 
 /** The five parts of agent management, each its own permission (docs/accounts.md, 「Console sections」). */
 export const AGENT_SECTIONS = ["supervisors", "roles", "repositories", "models", "model-files"] as const;

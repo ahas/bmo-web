@@ -1,6 +1,5 @@
 import { AGENT_TABS } from "./agent-settings";
 import { MONITOR_TABS } from "./hardware";
-import { LIVE_TABS } from "./status";
 
 import { avatarFor } from "./avatars";
 import { COUNT_BADGE, countText } from "./numbers";
@@ -65,13 +64,10 @@ export interface ScreenTab {
 // puts its entry here as it brings the screen. A screen a unit brings stands only while its manifest
 // names it, under the manifest's own name and icon (`screensWithBundles`).
 export const SCREENS: readonly Screen[] = [
-  // The live status screen stands on its own above the rest. A section of it is a tab kept in the address, so the
-  // console search lands on the section rather than on the screen.
-  { label: "screens.label.live", to: "/live", icon: "i-material-symbols-monitor-heart-outline", nested: false, tabs: LIVE_TABS },
   // The mailboxes, bmo-mail's bundle. Its screen had places below its address, so they light it too.
   { label: "screens.label.mail", to: "/mail", icon: "i-material-symbols-mail-outline", nested: true, brought: true },
   // The cache siren: what the agents' requests did to the provider's prompt cache, as the siren on this machine sees
-  // it. It stands under the live board because it is the other thing worth glancing at while something runs.
+  // it.
   { label: "screens.label.siren", to: "/siren", icon: "i-material-symbols-e911-emergency-outline", nested: false },
   // The console's own database, read as tables and rows.
   { label: "screens.label.db", to: "/db", icon: "i-material-symbols-database-outline", nested: false },

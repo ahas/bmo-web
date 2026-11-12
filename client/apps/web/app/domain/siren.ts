@@ -286,7 +286,7 @@ export function sirenModelChoices(t: Translate, events: SirenEvent[], chosen: st
 // Where a press on a request goes, or nothing where there is nowhere to go. A request is one
 // call an agent made, and the only place a call is written down line by line is that agent's
 // own log — so a row leads there, opened at the run the call falls in, which is the same rule
-// the live board's rows follow. A room's own session leads to its session log rather than to
+// a role slot's tile follows. A room's own session leads to its session log rather than to
 // the room: what stands in the room is what was said, and what this screen is about is what
 // the session spent saying it.
 //

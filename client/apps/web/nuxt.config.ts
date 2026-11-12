@@ -114,12 +114,7 @@ export default defineNuxtConfig({
         "es-module-lexer",
         "lottie-web",
         "marked",
-        "motion-v",
-        "three/webgpu",
-        "three/tsl",
-        "three/addons/controls/OrbitControls.js",
-        "three/addons/tsl/display/BloomNode.js",
-        "three/addons/tsl/display/DepthOfFieldNode.js"
+        "motion-v"
       ]
     },
     plugins: [yamlData],

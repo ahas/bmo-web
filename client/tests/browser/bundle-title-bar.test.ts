@@ -107,13 +107,13 @@ describe.skipIf(!origin || !touchReady())("a screen a unit brings, under the con
       const errors: string[] = [];
 
       page.on("pageerror", (error) => errors.push(String(error)));
-      await page.goto(`${origin}/live`, { waitUntil: "load" });
+      await page.goto(`${origin}/siren`, { waitUntil: "load" });
       await hydrated(page);
       await go(page, "/screen-a");
       await standing(page, "screen-a");
       await go(page, "/screen-b");
       await standing(page, "screen-b");
-      await go(page, "/live");
+      await go(page, "/siren");
       await page.locator("[data-screen]").waitFor({ state: "detached", timeout: 30_000 });
       await go(page, "/screen-a");
       await standing(page, "screen-a");

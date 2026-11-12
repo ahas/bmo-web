@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 import { Glob } from "bun";
 import { CONTROL_CHECKING, CONTROL_UNREACHABLE } from "../../../apps/web/shared/config";
-import { controlLine, controlLink, controlTone, useControlStatus } from "../../../apps/web/app/domain/control";
+import { controlLine, controlLink, useControlStatus } from "../../../apps/web/app/domain/control";
 
 import type { ControlStatus } from "../../../apps/web/shared/types";
 
@@ -19,12 +19,6 @@ describe("what a screen says of the bot's control API", () => {
     expect(controlLine(wording, "unreachable")).toBe(wording(CONTROL_UNREACHABLE));
     expect(controlLine(wording, "reachable")).toBe("");
     expect(CONTROL_CHECKING).not.toBe(CONTROL_UNREACHABLE);
-  });
-
-  test("only a failure that was met wears the error colour", () => {
-    expect(controlTone("checking")).toBe("neutral");
-    expect(controlTone("reachable")).toBe("neutral");
-    expect(controlTone("unreachable")).toBe("error");
   });
 
   test("a screen's reading starts as asking and settles on the answer or on its failure", async () => {

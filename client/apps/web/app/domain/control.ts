@@ -19,11 +19,6 @@ export function controlLine(t: Translate, link: ControlLink): string {
   return link === "reachable" ? "" : t({ checking: CONTROL_CHECKING, unreachable: CONTROL_UNREACHABLE }[link]);
 }
 
-// Only a failure that was actually met wears the error colour; asking is neutral.
-export function controlTone(link: ControlLink): "neutral" | "error" {
-  return link === "unreachable" ? "error" : "neutral";
-}
-
 export interface ControlReading {
   control: Ref<ControlStatus | null>;
   link: ComputedRef<ControlLink>;

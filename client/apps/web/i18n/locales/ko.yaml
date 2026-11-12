@@ -164,7 +164,6 @@ common:
     move_up_named: "{name} 위로"
     opens_new_tab: (새 탭에서 열림)
     pinned_named: "{name} 고정됨"
-    refresh_standing: "{standing} · 새로고침"
     search_scope: 찾을 범위
     share_address: 공유 링크 주소
   status:
@@ -991,6 +990,7 @@ hardware:
     tab_devices: 기기
     tab_logs: 로그
     tab_services: 서비스
+    tab_slots: 역할 슬롯
     temperature: 온도
     threads: "스레드 {n}"
     tracking: 실시간 추적
@@ -2459,61 +2459,22 @@ gates:
     system_documents: 시스템 문서 분류기
 live:
   action:
-    open_hardware: 하드웨어 모니터
     stop: 중지
-    zoom_in: 확대
-    zoom_out: 축소
-    zoom_fit: 맞춤
-    open_log: 로그 열기
-    open_agent: 에이전트 화면
   aria:
-    machine: "기기 여유: {line}"
-    sections: 상태 섹션
     stop_confirm_named: "{name} 중지 확인"
     stop_named: "{name} 중지"
-    space: "에이전트 공간: 작업 중 {working}, 대기 중 {idle}"
-    space_agents: 에이전트 목록
   error:
-    load_failed: 실시간 상태를 불러오지 못했습니다.
     slots_read_failed: 역할 슬롯을 읽지 못했습니다.
     stop_failed: 실행을 중지하지 못했습니다.
     stop_target_absent: 멈출 실행을 찾지 못했습니다.
     stop_target_needed: 중지할 실행을 지정해 주세요.
     stop_target_wrong: 멈출 대상이 올바르지 않습니다.
-    space_read_failed: 공간을 불러오지 못했습니다.
   label:
-    as_of: "{time} 기준"
     deadline_passed: 기한 지남
     elapsed: "{time} 경과"
     last_check_met: "마지막 확인 {ago} 전 · 충족"
     last_check_timed_out: "마지막 확인 {ago} 전 · 시간 초과"
     last_check_unmet: "마지막 확인 {ago} 전 · 미충족 (종료 {code})"
-    machine_available: "사용 가능 메모리 {free}/{total} GB"
-    machine_browsers: "브라우저 {n}개"
-    machine_held: Job 실행 보류
-    machine_holders: 메모리 사용
-    machine_job: "Job #{job} · {place}"
-    machine_job_item: "Job #{job} · 항목 #{item} · {place}"
-    machine_jobs: "Job {jobs}개 · 브라우저 {browsers}개"
-    machine_jobs_short: "Job {jobs}개"
-    machine_largest: 큰 프로세스
-    machine_load: "부하 {load}/{threads}스레드"
-    machine_next_run: "다음 무거운 실행: {machine}"
-    machine_node_counts: "Job {jobs}회 · 무거운 실행 {runs}회"
-    machine_node_held: "보류: {reasons}"
-    machine_node_room: 여유
-    machine_nodes: 노드 배정
-    machine_pressure: "메모리 압박 {pct}%"
-    machine_pressure_unread: 메모리 압박 확인 불가
-    machine_room: 기기 여유
-    machine_swap: "남은 스왑 {free}/{total} GB"
-    machine_testbed: 테스트베드
-    machine_testbed_held: "실행"
-    machine_testbed_idle: 실행 중인 명령 없음
-    machine_testbed_kept: 순서 보존
-    machine_testbed_part: "테스트베드 사용 중 · 대기 {waiting}개"
-    machine_testbed_waiting: "대기 {n}"
-    machine_unread: 기기 확인 불가
     outcome_blocked: 사용자 응답을 기다리다 멈춤
     outcome_cut_short: 상한 도달로 중단
     outcome_died: 보고 없이 종료됨
@@ -2541,7 +2502,6 @@ live:
     slot_source_search: 검색
     slot_source_translate: 번역
     slot_working: 작업 중
-    tab_slots: 역할 슬롯
     timer_left: "타이머 · {time} 남음"
     timer_passed: 타이머 · 시간 지남
     watch_condition: 조건
@@ -2555,34 +2515,15 @@ live:
     watch_time: 시각
     watch_title: "워치 #{id} · {name}"
     work_item: "항목 #{id}"
-    tab_space: 공간
-    space_working: "작업 중 {n}"
-    space_waiting: "실행 대기 {n}"
-    space_idle: "대기 중 {n}"
-    space_off: "꺼짐 {n}"
-    space_supervisor: 감독관
-    space_state: 상태
-    space_state_working: 작업 중
-    space_state_idle: 대기 중
-    space_state_off: 꺼짐
-    space_place: 위치
-    space_title: 작업
-    space_since: 경과
-    space_road: 실행 경로
     space_follows: 요청한 감독관을 따름
   message:
     stop_confirm: 이 작업의 실행을 중지할까요?
     stop_confirm_default: 실행을 중지할까요?
   status:
-    machine_loading: 기기 여유 불러오는 중…
     no_slots: 역할 없음
     slots_loading: 역할 슬롯 불러오는 중…
     stopping: 중지 중
     unchecked: 확인 전
-    space_loading: 공간을 불러오는 중
-    space_sign_words: 茶餐廳 金銀珠寶 當 旅館 電器 麵 髮型屋 卡拉OK 藥房 24H 修理 國際 雀 海鮮 금은방 노래방 전파사 국수 여관 凉茶 士多 按摩 影印 找換
-    space_arcade: 遊戲機中心
-    space_unsupported: 이 브라우저는 3D 공간을 그릴 수 없어요. 오른쪽 목록으로 에이전트 상태를 읽을 수 있어요.
 research:
   aria:
     branches_of: "{key} 브랜치"
@@ -3337,9 +3278,7 @@ briefing:
     stopped: 보이스브리핑이 중지되었습니다.
 home:
   label:
-    agents_description: 역할 슬롯, 게이트, 러너, 저장소
     bmo_link: 채팅 에이전트 연결
-    live_description: 현재 실행 중인 작업
     loose_job: 항목 없이 실행한 Job
   status:
     bmo_answering: 채팅 에이전트가 답변 중

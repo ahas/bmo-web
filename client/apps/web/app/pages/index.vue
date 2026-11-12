@@ -10,21 +10,6 @@
     <template #body>
       <div class="flex flex-col gap-8">
         <section class="flex flex-col gap-3">
-          <h2 class="text-sm font-semibold text-highlighted">{{ $t("screens.label.live") }}</h2>
-
-          <NuxtLink
-            class="flex items-center gap-3 rounded-lg border border-default px-4 py-3 transition-colors hover:bg-elevated active:bg-accented"
-            to="/live"
-          >
-            <UIcon name="i-material-symbols-monitor-heart-outline" class="size-5 shrink-0 text-dimmed" />
-            <div class="min-w-0 grow">
-              <p class="truncate text-sm font-medium">{{ $t("home.label.live_description") }}</p>
-              <p class="truncate text-sm text-muted">{{ $t("home.label.agents_description") }}</p>
-            </div>
-          </NuxtLink>
-        </section>
-
-        <section class="flex flex-col gap-3">
           <h2 class="text-sm font-semibold text-highlighted">{{ $t("common.label.room") }}</h2>
 
           <UAlert v-if="error" color="error" variant="subtle" :description="$t('common.error.rooms_failed')" />

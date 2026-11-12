@@ -284,7 +284,7 @@ describe.skipIf(!origin || !touchReady())('a screen keeps its frame while it fet
     // Where a region a phone reaches through a drawer is the one fetching, the drawer is opened
     // first: that is where its place is kept, and it is where a reader goes to look.
     for (const [path, title, narrowOpen] of [
-      ['agents', KO.line_280, null], ['live', KO.line_280_2, null], ['siren', KO.line_280_3, null],
+      ['agents', KO.line_280, null], ['monitor?tab=slots', wording('screens.label.monitor'), null], ['siren', KO.line_280_3, null],
       ['db', 'DB', null], ['archive', KO.line_282, null], ['documents', KO.line_282_2, KO.line_282_3],
       ['account', KO.line_283, null], ['', KO.line_283_2, null]
     ] as [string, string, string | null][]) {
@@ -420,7 +420,7 @@ async function openRecorded(width: number): Promise<Page> {
 }
 
 // Every screen that fetches, read from its first frame to the moment its skeletons are gone.
-const SCREENS = ['', 'live', 'mail/', 'archive', 'siren', 'documents', 'db', 'agents', 'graph', 'account'];
+const SCREENS = ['', 'monitor?tab=slots', 'mail/', 'archive', 'siren', 'documents', 'db', 'agents', 'graph', 'account'];
 
 describe.skipIf(!origin || !touchReady())('a skeleton stands once, from the read to its answer', () => {
   for (const width of [1440, 390]) {
@@ -465,31 +465,11 @@ describe.skipIf(!origin || !touchReady())('a skeleton stands once, from the read
   }
 });
 
-// What a screen says of the units it reads while it is still asking and once it failed. The live screen's
-// failure is the one its read is answered with here; a room's box asks the console's own control road, whose
-// receiver stand-in serves no health, so that failure is the real one. The ask is held to be looked at.
+// What a screen says of the units it reads while it is still asking and once it failed. A room's box asks the
+// console's own control road, whose receiver stand-in serves no health, so that failure is the real one. The ask is
+// held to be looked at.
 describe.skipIf(!origin || !touchReady())('asking the bot is not a failure', () => {
   for (const width of [1440, 390]) {
-    test(`the live screen asks calmly and fails briefly at ${width}px`, async () => {
-      const page = await openRecorded(width);
-      let release = () => {};
-      try {
-        const hold = new Promise<void>(resolve => { release = resolve; });
-        await page.route('**/api/status', async route => { await hold; await route.fulfill({ json: { reachable: false, live: [], compacting: [], liveAt: null, gates: [], runners: [], jobs: [], executions: [], watches: [] } }); });
-        await page.goto(`${origin}/live`, { waitUntil: 'domcontentloaded' });
-        await page.waitForFunction(() => (document.querySelector('#__nuxt') as any)?.__vue_app__?.$nuxt?.isHydrating === false);
-        const asking = page.getByRole('button', { name: wording('common.aria.refresh_standing', { standing: wording('control.status.checking') }), exact: true });
-        await asking.waitFor();
-        const calm = await asking.evaluate(e => getComputedStyle(e).color);
-        release();
-        const failed = page.getByRole('button', { name: wording('common.aria.refresh_standing', { standing: wording('control.error.unreachable') }), exact: true });
-        await failed.waitFor();
-        const alarmed = await failed.evaluate(e => getComputedStyle(e).color);
-        // Only the failure wears the error colour, so the two do not read alike.
-        expect(alarmed).not.toBe(calm);
-      } finally { release(); await page.context().close(); }
-    }, 60000);
-
     test(`a room's box says it is asking before it says the bot is gone at ${width}px`, async () => {
       const page = await openRecorded(width);
       let release = () => {};

@@ -1,6 +1,6 @@
 import type { StopTarget } from "./types";
 
-// The role slots as the live status screen draws them (docs/web.md, 「Live status screen」; the agency's
+// The role slots as the monitor's role slots tab draws them (docs/web.md, 「Monitor's role slots tab」; the agency's
 // docs/role-slots.md): a row to a role, a tile to every slot its cap gives, read from the agency's `GET /slots`.
 
 /** What holds a working tile: the run its slot is let in for. */

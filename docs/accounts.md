@@ -165,14 +165,14 @@ section states what each does.
 
 ### Console sections
 
-- **A console section is one entry of the console's navigation,** from the live status down to the brain, and
-  the rooms and the account beside the flat group, or one part of agent management's screen, whose five tabs
-  are its five parts. Each screen is named by the first part of its path; each part of agent management is named
+- **A console section is one entry of the console's navigation,** from the mail down to the brain, and the
+  rooms and the account beside the flat group, or one part of agent management's screen, whose five tabs are
+  its five parts, or `live`, what runs now, which no one screen holds and every screen that shows a run reads. Each screen is named by the first part of its path; each part of agent management is named
   by its tab:
 
   | Section | The screen |
   |---|---|
-  | `live` | the live status |
+  | `live` | what runs now, read across the console: the bot's live picture, the queue and its items, the questions and the deployment |
   | `mail` | bmo-mail's screen |
   | `siren` | the cache siren |
   | `db` | the console's database |
@@ -186,7 +186,7 @@ section states what each does.
   | `models` | agent management's registered models tab |
   | `model-files` | agent management's model files tab |
   | `research` | the research screen |
-  | `monitor` | the machines and the card board |
+  | `monitor` | the machines, the card board and the role slots |
   | `remote` | bmo-remote's screen |
   | `brain` | the brain's screen |
   | `rooms` | the reader's rooms and their messages |

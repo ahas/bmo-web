@@ -5460,7 +5460,9 @@ Four bounds keep it from growing forever.
   are done without opening it:
   1. **Job 로그** on a line a job is running for, or one whose job has ended and whose commit is still on its way
      live — that job's log and nothing else: the lines of that one run alone, opened at once over the panel and
-     followed where the run still goes, in the same log dialog a room's run line opens. A line no job ever ran for has nothing to show, so the entry is not
+     followed where the run still goes, in the same log dialog a room's run line opens. The run's lines are read
+     as the run's own — from its start to the newest one, and on past the last one held — never as pages of the
+     agent's whole log narrowed down, so nothing above the run is read and the dialog stands still once open. A line no job ever ran for has nothing to show, so the entry is not
      there. A line whose job cannot be found, one that ended with no run of its own, answers with the message pill
      saying so; the line under the list is never the only answer. In the opened item the state mark at its head,
      실행 중 and the stage it names, is the same press: it opens that job's log over the item.

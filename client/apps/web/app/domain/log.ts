@@ -489,7 +489,10 @@ export async function readRunLines(agent: string, run: string): Promise<AgentLog
   return page.lines.filter((line) => line.run === run);
 }
 
-export function useAgentLog(t: Translate, name: string): AgentLogFeed {
+// A feed scoped to one run reads that run's own lines alone — from its start, and on past the last one held — and has
+// nothing older: a view that shows one run never reads the agent's whole log and narrows it down, which would page
+// through every earlier run before it showed anything (docs/web.md, the TODO panel's job log entry).
+export function useAgentLog(t: Translate, name: string, run: string | null = null): AgentLogFeed {
   const describe = (error: unknown): string => failureText(error, t("agents.error.log_read_failed"));
 
   const lines = ref<AgentLogLine[]>([]);
@@ -523,7 +526,7 @@ export function useAgentLog(t: Translate, name: string): AgentLogFeed {
   }
 
   async function fetchPage(query: Record<string, number | string | undefined>): Promise<AgentLogPage> {
-    return await $fetch<AgentLogPage>(path, { query: { ...query, limit: AGENT_LOG_PAGE_SIZE } });
+    return await $fetch<AgentLogPage>(path, { query: { ...query, ...(run === null ? {} : { run }), limit: AGENT_LOG_PAGE_SIZE } });
   }
 
   async function load(): Promise<void> {
@@ -531,10 +534,18 @@ export function useAgentLog(t: Translate, name: string): AgentLogFeed {
     failure.value = null;
 
     try {
-      const page = await fetchPage({});
+      let page = await fetchPage({});
 
       merge(page);
-      older.value = page.hasMore;
+
+      // The newest page of the whole log is its end. A run's first page is its start, so the rest of the run is read
+      // on while the first read still stands, and the view opens on the whole run at once.
+      while (run !== null && page.hasMore && page.lines.length > 0) {
+        page = await fetchPage({ after: page.lines[page.lines.length - 1]!.id });
+        merge(page);
+      }
+
+      older.value = run === null && page.hasMore;
       newer.value = false;
     } catch (error) {
       failure.value = describe(error);
@@ -555,7 +566,7 @@ export function useAgentLog(t: Translate, name: string): AgentLogFeed {
       const page = await fetchPage("run" in place ? { run: place.run } : { ...place });
 
       merge(page);
-      older.value = page.hasOlder === true;
+      older.value = run === null && page.hasOlder === true;
       newer.value = page.hasMore;
     } catch (error) {
       failure.value = describe(error);

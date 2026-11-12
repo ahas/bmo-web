@@ -2,9 +2,11 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { answerText, buildLog, GENERIC_TOOL_ICON, kindLook, knownKind, logFigures, lineLook, resultPreview, toolArguments, toolCall, toolChip } from "../../../apps/web/app/domain/log";
+import { computed, ref } from "vue";
 
-import type { AgentLogKind, AgentLogLine, AgentLogState } from "../../../apps/web/shared/types";
+import { answerText, buildLog, GENERIC_TOOL_ICON, kindLook, knownKind, logFigures, lineLook, resultPreview, toolArguments, toolCall, toolChip, useAgentLog } from "../../../apps/web/app/domain/log";
+
+import type { AgentLogKind, AgentLogLine, AgentLogPage, AgentLogState } from "../../../apps/web/shared/types";
 import KO from "../../fixtures/app/domain/log.test.ko.json";
 
 // The host's zone, which a run's clock is read in.
@@ -374,5 +376,38 @@ describe("a pane program's progress records", () => {
     expect(answerText("plain words")).toBe("plain words");
     expect(knownKind("answer")).toBe(true);
     expect(knownKind("heartbeat")).toBe(false);
+  });
+});
+
+// A view that stands at one run — a job's log opened from its item — reads that run's own lines, and none of the agent's
+// whole log above it: paging the whole log down to the run read every earlier run first, a page at a time.
+describe("a log feed scoped to one run", () => {
+  test("reads the run whole from its start as it opens, asking for that run on every page, and has nothing older", async () => {
+    const asked: Record<string, unknown>[] = [];
+    const pages: AgentLogPage[] = [
+      { lines: [line({ id: 10, kind: "start", run: "job-1" }), line({ id: 11, kind: "text", run: "job-1" })], hasMore: true, hasOlder: true },
+      { lines: [line({ id: 12, kind: "text", run: "job-1" })], hasMore: false }
+    ];
+
+    Object.assign(globalThis, {
+      ref,
+      computed,
+      $fetch: async (_path: string, options: { query: Record<string, unknown> }) => {
+        asked.push(options.query);
+
+        return pages.shift()!;
+      }
+    });
+
+    const log = useAgentLog((key) => key, "coder-01", "job-1");
+
+    await log.load();
+
+    expect(log.lines.value.map((one) => one.id)).toEqual([10, 11, 12]);
+    expect(asked.map((query) => [query.run, query.after])).toEqual([["job-1", undefined], ["job-1", 11]]);
+    expect(log.older.value).toBe(false);
+    expect(log.newer.value).toBe(false);
+    expect(log.loading.value).toBe(false);
+    expect(await log.loadOlder()).toBe(0);
   });
 });

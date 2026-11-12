@@ -5633,9 +5633,9 @@ Four bounds keep it from growing forever.
     item with an unfinished job line, so the pin, the 진행 중 filter and its badge never disagree about a line. Each line has a number, title and state;
     under the title stand the lines the row says in words, and its chips — the state, the model, the worker and every other tag —
     stand last, at the row's foot,
-    and an item nobody has taken yet is **대기**, as is an item whose job waits before it launches — for its agent's
-    seat, a road or a card, which the agency's job names as its `heldFor` (its `docs/api.md`, 「assignments and
-    jobs」) — since no worker is being launched for it yet; an item whose job is launching its worker is **시작 중**,
+    and an item nobody has taken yet is **대기**, as is an item whose job waits for its turn — for its agent's seat, a
+    road or a card, which the agency's job names as its `heldFor` (its `docs/api.md`, 「assignments and jobs」),
+    whether before its first turn or before a turn its review asks for — since nothing works on it meanwhile; an item whose job is launching its worker is **시작 중**,
     one its job is working **진행 중**, a work-order-stopped item **멈춤**. A stopped
     item does not leave the line but stands in its priority place, and standing first in its worker line it carries under its
     title, above its chips, the first line of the stop reason, the reason not yet resumed and the counted failure count — reading the bot's

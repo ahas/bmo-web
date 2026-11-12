@@ -213,15 +213,15 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
 }
 
 // The state every item's own job stands in while one is under way: a job is `starting` while its worker is
-// launched and `running` while its turn goes, and both are asked in one list. A `starting` job that names a hold
-// waits — for its agent's seat, a road or a card — and launches nothing yet (agency's `docs/api.md`, 「assignments
-// and jobs」).
+// launched and `running` while its turn goes, and both are asked in one list. A job that names a hold, `starting` or
+// with a turn of its review to come, waits — for its agent's seat, a road or a card — and works on nothing yet
+// (agency's `docs/api.md`, 「assignments and jobs」).
 type LiveJob = { itemId: number; state: string; heldFor: string | null };
 
 function liveStateOfJob(job: LiveJob): NonNullable<TodoItem["liveState"]> {
-  if (job.state === "running") return "running";
+  if (job.heldFor !== null) return "waiting";
 
-  return job.heldFor === null ? "starting" : "waiting";
+  return job.state === "running" ? "running" : "starting";
 }
 
 function isLive(job: LiveJob): boolean {

@@ -163,6 +163,8 @@ describe.skipIf(!origin || !touchReady())("an agent's row under the title bar wh
           expect(await root.locator("[aria-haspopup=menu]").filter({ visible: true }).count()).toBe(0);
         }
       } finally {
+        // A status read still in flight is let go rather than answered into a closing context.
+        await context.unrouteAll({ behavior: "ignoreErrors" });
         await context.close();
       }
     }, 60_000);

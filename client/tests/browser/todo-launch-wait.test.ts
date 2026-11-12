@@ -115,7 +115,7 @@ function recordStates(id: number): void {
 }
 
 async function seen(page: Page): Promise<string[]> {
-  return await page.evaluate(() => [...((window as unknown as { seenStates: string[] }).seenStates ?? [])]);
+  return await page.evaluate((): string[] => [...((Reflect.get(window, "seenStates") as string[] | undefined) ?? [])]);
 }
 
 async function refresh(page: Page): Promise<void> {

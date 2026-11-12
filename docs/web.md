@@ -2909,19 +2909,18 @@ a seat of its role.
   `docs/drafting.md`, 「The process table」 and 「The questions」). Nothing set here stands for another supervisor, and
   no screen sets a process for all of them: a supervisor the console has set none for follows the receiver's policy,
   and the block's title then carries `(기본값)`.
-  - **질문 순서** is the questions an ordinary turn's round follows, in order, and **짧은 턴 질문** those of a light
-    turn: each an ordered pick from the supervisor's catalogue, every question under the pack's word for it and one
+  - **질문 순서** is the questions every turn's round follows, in order, whatever the turn carried — no turn is
+    lighter than another: an ordered pick from the supervisor's catalogue, every question under the pack's word for it and one
     the console added under its own name. The questions chosen stand in order, each with a checkbox, moved up or
     down or taken out, and one not yet chosen is added before `final`, which stands last in every list that holds a
     question. The checkbox switches a question off or on where it stands: one unchecked keeps its place, dimmed and
     struck through, and is left out of what the round follows. `final` writes the message and carries no checkbox.
-    A list with no question says 질문 없음. **짧은 턴 기준** is how short the room's words must be for a light turn,
-    a whole number from 0 to 1,000 characters.
+    A list with no question says 질문 없음.
   - **질문 글** lists the supervisor's catalogue, a line a question: its name, `(기본값)` after one whose text the
     console has not changed for this supervisor, and its text on one line. Pressing a line opens the text in a box
     under it, at most 4,000 characters and never empty. 질문 추가 adds a question under a new name, a lowercase word
     of letters, digits and dashes. A question the console added or changed carries a press at its end that takes
-    the console's text away: one it added leaves the catalogue and both lists, and one the policy holds stands
+    the console's text away: one it added leaves the catalogue and the list, and one the policy holds stands
     again in the policy's text.
   - **기본값으로** stands beside the block's title where the supervisor has a process of its own, and puts the two
     lists and the bound back to the policy's.

@@ -258,7 +258,7 @@ describe("the supervisors tab", () => {
     expect(scriptOf(draftFields)).toContain('{ method: "PATCH", body: draftChange(props.view, form.value) }');
     // A list may not name the supervisor's own judgement, which is asked before any process.
     expect(scriptOf(draftFields)).toContain("filter((name) => name !== SUPERVISOR_QUESTION)");
-    for (const field of ['v-model="form[field]" v-model:off="form.off"', 'v-model="form.lightChars"', 'v-model="question.text"']) expect(templateOf(draftFields)).toContain(field);
+    for (const field of ['v-model="form[field]" v-model:off="form.off"', 'v-model="question.text"']) expect(templateOf(draftFields)).toContain(field);
   });
 });
 

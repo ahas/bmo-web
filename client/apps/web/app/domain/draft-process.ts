@@ -13,10 +13,6 @@ import type { Translate } from "#shared/wording";
 /** The gate's stage its rows of a round's draft process stand under. */
 export const DRAFT_STAGE = "draft";
 
-// The bounds the receiver holds a row's light bound to.
-export const LIGHT_CHARS_MIN = 0;
-export const LIGHT_CHARS_MAX = 1_000;
-
 // The longest text a question takes.
 export const QUESTION_TEXT_MAX = 4_000;
 
@@ -54,9 +50,7 @@ export function draftValues(row: DraftProcessValues): DraftProcessValues {
   return {
     rounds: [...row.rounds],
     sendFrom: row.sendFrom,
-    light: [...row.light],
     off: [...row.off],
-    lightChars: row.lightChars,
     ceilingSeconds: row.ceilingSeconds,
     pastCeiling: row.pastCeiling
   };
@@ -70,10 +64,10 @@ export function switchedQuestion(off: readonly string[], name: string, on: boole
   return off.includes(name) ? [...off] : [...off, name];
 }
 
-/** The questions switched off that a row's lists still hold, in the order given: one taken out of both lists is
- * off no more. */
-export function keptOff(off: readonly string[], rounds: readonly string[], light: readonly string[]): string[] {
-  return off.filter((name) => rounds.includes(name) || light.includes(name));
+/** The questions switched off that a row's list still holds, in the order given: one taken out of the list is off
+ * no more. */
+export function keptOff(off: readonly string[], rounds: readonly string[]): string[] {
+  return off.filter((name) => rounds.includes(name));
 }
 
 /** A list with a question added before `final`, `final` joining it where the list was empty. */
@@ -115,11 +109,6 @@ export function draftListFault(t: Translate, list: readonly string[], catalogue:
   return null;
 }
 
-/** Why a light bound cannot be sent, or null where it can. */
-export function draftNumberFault(t: Translate, value: number, min: number, max: number): string | null {
-  return Number.isInteger(value) && value >= min && value <= max ? null : t("agents.error.draft_number", { min: countText(min), max: countText(max) });
-}
-
 /** Why a new question's name cannot be sent, or null where it can. */
 export function questionNameFault(t: Translate, name: string, taken: readonly string[]): string | null {
   if (!QUESTION_NAME.test(name)) return t("agents.error.draft_question_name");
@@ -135,14 +124,12 @@ export function questionTextFault(t: Translate, text: string): string | null {
 
 // A supervisor's draft block while it is edited.
 
-/** What the block holds: the two lists, what is switched off and the light bound, whether the supervisor keeps a
- * process of its own whatever those say, and its catalogue as it will stand. */
+/** What the block holds: the list, what is switched off, whether the supervisor keeps a process of its own whatever
+ * those say, and its catalogue as it will stand. */
 export interface DraftForm {
   keepOwn: boolean;
   rounds: string[];
-  light: string[];
   off: string[];
-  lightChars: number;
   questions: DraftQuestionView[];
 }
 
@@ -151,9 +138,7 @@ export function draftFormOf(view: SupervisorDraftView): DraftForm {
   return {
     keepOwn: view.source === "set",
     rounds: [...view.process.rounds],
-    light: [...view.process.light],
     off: [...view.process.off],
-    lightChars: view.process.lightChars,
     questions: view.questions.map((one) => ({ ...one }))
   };
 }
@@ -161,16 +146,11 @@ export function draftFormOf(view: SupervisorDraftView): DraftForm {
 const sameList = (one: readonly string[], other: readonly string[]): boolean => one.length === other.length && one.every((name, at) => name === other[at]);
 
 // Whether what the block shows of a process is what another process holds; what is switched off counts only for the
-// questions the lists hold.
+// questions the list holds.
 function sameProcess(form: DraftForm, process: DraftProcessValues): boolean {
-  const off = (list: readonly string[], rounds: readonly string[], light: readonly string[]): string[] => keptOff(list, rounds, light).toSorted();
+  const off = (list: readonly string[], rounds: readonly string[]): string[] => keptOff(list, rounds).toSorted();
 
-  return (
-    sameList(form.rounds, process.rounds) &&
-    sameList(form.light, process.light) &&
-    form.lightChars === process.lightChars &&
-    sameList(off(form.off, form.rounds, form.light), off(process.off, process.rounds, process.light))
-  );
+  return sameList(form.rounds, process.rounds) && sameList(off(form.off, form.rounds), off(process.off, process.rounds));
 }
 
 /** Whether the supervisor follows a process of its own as the block stands: one it keeps, or one that differs from
@@ -181,11 +161,11 @@ export function draftOwn(form: DraftForm, policy: DraftProcessValues): boolean {
 
 /** The block put back to the policy's process, the supervisor keeping none of its own. */
 export function draftToPolicy(form: DraftForm, policy: DraftProcessValues): DraftForm {
-  return { ...form, keepOwn: false, rounds: [...policy.rounds], light: [...policy.light], off: [...policy.off], lightChars: policy.lightChars };
+  return { ...form, keepOwn: false, rounds: [...policy.rounds], off: [...policy.off] };
 }
 
 /** The block with the console's text of one question taken away: a question the policy holds stands again in the
- * policy's text, and one the console added leaves the catalogue and both lists. */
+ * policy's text, and one the console added leaves the catalogue and the list. */
 export function withoutDraftText(form: DraftForm, name: string): DraftForm {
   const question = form.questions.find((one) => one.name === name);
 
@@ -200,7 +180,6 @@ export function withoutDraftText(form: DraftForm, name: string): DraftForm {
   return {
     ...form,
     rounds: withoutQuestion(form.rounds, name),
-    light: withoutQuestion(form.light, name),
     off: form.off.filter((one) => one !== name),
     questions: form.questions.filter((one) => one.name !== name)
   };
@@ -240,7 +219,7 @@ export function draftChange(view: SupervisorDraftView, form: DraftForm): Supervi
   if (!draftOwn(form, view.policy)) {
     if (view.source === "set") save.process = null;
   } else if (view.source === "default" || !sameProcess(form, view.process)) {
-    save.process = { ...draftValues(view.process), rounds: [...form.rounds], light: [...form.light], off: keptOff(form.off, form.rounds, form.light), lightChars: form.lightChars };
+    save.process = { ...draftValues(view.process), rounds: [...form.rounds], off: keptOff(form.off, form.rounds) };
   }
 
   return save;

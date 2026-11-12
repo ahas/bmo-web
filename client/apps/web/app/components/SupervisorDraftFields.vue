@@ -1,7 +1,7 @@
 <template>
   <!-- A supervisor's draft process as a block of its settings form (docs/web.md, 「Agent management screen」, the
-       settings dialog's draft block; the receiver's `docs/drafting.md`): the questions an ordinary and a light turn's
-       round follow, the light bound, and the texts of the supervisor's catalogue. The block is the supervisor's own
+       settings dialog's draft block; the receiver's `docs/drafting.md`): the questions every turn's round follows and
+       the texts of the supervisor's catalogue. The block is the supervisor's own
        and sets nothing for another. Every change waits for the form's one save; what the receiver refuses stands
        under the block, every field kept as written. -->
   <section class="flex min-w-0 flex-col gap-4" data-supervisor-draft :aria-labelledby="titleId">
@@ -13,10 +13,6 @@
 
     <UFormField v-for="field in LIST_FIELDS" :key="field" :label="$t(LIST_LABELS[field])" :name="`draft-${field}`" :error="listFault(field)">
       <DraftListField v-model="form[field]" v-model:off="form.off" :catalogue="listed" :label="$t(LIST_LABELS[field])" :disabled="busy" :data-draft-list="field" />
-    </UFormField>
-
-    <UFormField :label="$t('agents.label.draft_light_chars')" name="draft-light-chars" :error="numberFault ?? undefined">
-      <NumberInput v-model="form.lightChars" :min="LIGHT_CHARS_MIN" :max="LIGHT_CHARS_MAX" :step="1" :digits="5" :unit="$t('agents.label.draft_chars_unit')" :disabled="busy" :aria-label="$t('agents.label.draft_light_chars')" />
     </UFormField>
 
     <!-- The catalogue's texts: a line a question, opened in a box under it. -->
@@ -84,14 +80,11 @@ import { useFormPart } from "bmo-ui/app/domain/form-save";
 import { SUPERVISOR_QUESTION } from "#shared/drafting";
 import { markedDefault } from "~/domain/axes";
 import {
-  LIGHT_CHARS_MAX,
-  LIGHT_CHARS_MIN,
   QUESTION_TEXT_MAX,
   draftChange,
   draftChanges,
   draftFormOf,
   draftListFault,
-  draftNumberFault,
   draftOwn,
   draftTextSet,
   draftToPolicy,
@@ -110,9 +103,9 @@ const emit = defineEmits<{ saved: [view: SupervisorDraftView] }>();
 const { t } = useI18n();
 const titleId = useId();
 
-// The two lists the process holds, each a field of the same kind under its own words.
-const LIST_FIELDS = ["rounds", "light"] as const;
-const LIST_LABELS: Record<(typeof LIST_FIELDS)[number], string> = { rounds: "agents.label.draft_rounds", light: "agents.label.draft_light" };
+// The one list the process holds, every turn's.
+const LIST_FIELDS = ["rounds"] as const;
+const LIST_LABELS: Record<(typeof LIST_FIELDS)[number], string> = { rounds: "agents.label.draft_rounds" };
 
 const form = ref<DraftForm>(draftFormOf(props.view));
 const busy = ref(false);
@@ -123,14 +116,13 @@ const own = computed(() => draftOwn(form.value, props.view.policy));
 // The questions a list may name: the catalogue as the form stands, without the supervisor's own judgement, which is
 // asked before any process.
 const listed = computed(() => form.value.questions.map((one) => one.name).filter((name) => name !== SUPERVISOR_QUESTION));
-const numberFault = computed(() => draftNumberFault(t, form.value.lightChars, LIGHT_CHARS_MIN, LIGHT_CHARS_MAX));
 
 function listFault(field: (typeof LIST_FIELDS)[number]): string | undefined {
   return draftListFault(t, form.value[field], listed.value) ?? undefined;
 }
 
 // Whether every field may be sent as it stands.
-const sound = computed(() => LIST_FIELDS.every((field) => listFault(field) === undefined) && numberFault.value === null && form.value.questions.every((one) => questionTextFault(t, one.text) === null));
+const sound = computed(() => LIST_FIELDS.every((field) => listFault(field) === undefined) && form.value.questions.every((one) => questionTextFault(t, one.text) === null));
 
 function takeAway(name: string): void {
   form.value = withoutDraftText(form.value, name);

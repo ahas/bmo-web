@@ -18,8 +18,8 @@ globalsRestoredAfter(["readableRooms", "requireReadableRoom"]);
 globals.requireReadableRoom = async () => undefined;
 globals.readableRooms = async () => "all";
 
-const POLICY = { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", light: ["final"], off: ["intent"], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send", source: "default" };
-const OWN = { provider: "*", tier: "*", agentName: "agent-a", rounds: ["tone", "final"], sendFrom: "", light: ["final"], off: [], lightChars: 20, ceilingSeconds: 150, pastCeiling: "skip", source: "set" };
+const POLICY = { provider: "*", tier: "*", agentName: "*", rounds: ["intent", "final"], sendFrom: "", off: ["intent"], ceilingSeconds: 150, pastCeiling: "send", source: "default" };
+const OWN = { provider: "*", tier: "*", agentName: "agent-a", rounds: ["tone", "final"], sendFrom: "", off: [], ceilingSeconds: 150, pastCeiling: "skip", source: "set" };
 const POLICY_QUESTIONS = [{ name: "supervisor", text: "Answer?", source: "default" }, { name: "intent", text: "Why?", source: "default" }, { name: "final", text: "Write it.", source: "default" }];
 const OWN_QUESTIONS = [{ name: "supervisor", text: "Answer?", source: "default" }, { name: "intent", text: "Why was it said?", source: "set" }, { name: "final", text: "Write it.", source: "default" }, { name: "tone", text: "Does it fit?", source: "set" }];
 const DRAFT_ROWS = [
@@ -81,7 +81,7 @@ const read = await routeOf<SupervisorDraftView>("../../apps/web/server/api/super
 const save = await routeOf<SupervisorDraftView>("../../apps/web/server/api/supervisors/[name]/draft.patch");
 const drafts = await routeOf<{ rows: DraftRow[] }>("../../apps/web/server/api/rooms/[chatId]/drafts.get");
 
-const VALUES = { rounds: ["information", "final"], sendFrom: "final", light: ["final"], off: ["information"], lightChars: 20, ceilingSeconds: 90, pastCeiling: "skip" };
+const VALUES = { rounds: ["information", "final"], sendFrom: "final", off: ["information"], ceilingSeconds: 90, pastCeiling: "skip" };
 
 // What the writes of one save asked of the receiver, in order: the method and the path.
 const writes = (): string[] => receiver.asked.filter((one) => one.method !== "GET").map((one) => `${one.method} ${decodeURIComponent(one.path)}`);
@@ -94,7 +94,7 @@ describe("reading a supervisor's draft settings", () => {
 
     expect(own.status).toBe(200);
     expect(own.answer?.source).toBe("set");
-    expect(own.answer?.process).toEqual({ rounds: ["tone", "final"], sendFrom: "", light: ["final"], off: [], lightChars: 20, ceilingSeconds: 150, pastCeiling: "skip" });
+    expect(own.answer?.process).toEqual({ rounds: ["tone", "final"], sendFrom: "", off: [], ceilingSeconds: 150, pastCeiling: "skip" });
     expect(own.answer?.policy.rounds).toEqual(["intent", "final"]);
     expect(own.answer?.questions).toEqual([
       { name: "supervisor", text: "Answer?", source: "default", policyText: "Answer?" },
@@ -159,7 +159,7 @@ describe("saving a supervisor's draft settings", () => {
   test("sends nothing for a body of the wrong shape", async () => {
     receiver.asked.length = 0;
 
-    for (const body of [null, { process: { ...VALUES, lightChars: "20" } }, { process: { ...VALUES, pastCeiling: "later" } }, { process: { ...VALUES, rounds: [1] } }, { process: { ...VALUES, off: "information" } }, { texts: { tone: "  " } }, { texts: ["tone"] }, { removed: "tone" }, { removed: [""] }]) {
+    for (const body of [null, { process: { ...VALUES, ceilingSeconds: "20" } }, { process: { ...VALUES, pastCeiling: "later" } }, { process: { ...VALUES, rounds: [1] } }, { process: { ...VALUES, off: "information" } }, { texts: { tone: "  " } }, { texts: ["tone"] }, { removed: "tone" }, { removed: [""] }]) {
       expect(await asked(save, { params: { name: "agent-a" }, body })).toMatchObject({ status: 400, message: wording("common.error.bad_action") });
     }
     expect(receiver.asked).toEqual([]);

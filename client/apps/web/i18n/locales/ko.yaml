@@ -1987,7 +1987,6 @@ agents:
     chat_document_save_failed: 저장하지 못했습니다.
     chat_document_action: 저장하거나 되돌릴 동작이 필요합니다.
     draft_final_last: 질문이 있는 목록은 final로 끝나야 합니다.
-    draft_number: "{min}부터 {max}까지의 정수입니다."
     draft_process_missing: 이 감독관이 따로 정한 드래프트 과정이 없습니다.
     draft_process_refused: "수신 유닛이 이 드래프트 과정을 받지 않았습니다. 질문은 이 감독관의 질문 글에 있는 이름이어야 하고, 질문이 있는 목록은 final로 끝나야 하며, final은 끌 수 없고, 짧은 턴 기준은 0~1,000자여야 합니다."
     draft_processes_read_failed: 드래프트 과정을 불러오지 못했습니다.
@@ -2088,8 +2087,6 @@ agents:
     diff_none: 변경 없음
     diff_omitted: 생략
     diff_removed: "{removed}줄 삭제"
-    draft_light: 짧은 턴 질문
-    draft_light_chars: 짧은 턴 기준
     draft_no_questions: 질문 없음
     draft_processes_help: "이 감독관이 한 턴 안에서 메시지를 쓰기 전에 순서대로 따르는 질문입니다. 끈 질문은 자리를 지킨 채 빠집니다. 따로 정하지 않은 감독관은 기본값을 따릅니다."
     draft_question_final: 메시지 작성
@@ -2281,7 +2278,6 @@ agents:
     used_by_role: "역할 {name}"
     used_by_supervisor: "감독관 {name}"
     work_repository: 작업 저장소
-    draft_chars_unit: 자 이하
     draft_texts: 질문 글
     default_only: "(기본값)"
     role_skills_own: 스킬 직접 고르기

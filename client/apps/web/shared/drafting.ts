@@ -20,14 +20,12 @@ export type DraftSource = "set" | "default";
 
 /** What a supervisor's process holds, as a set sends it. */
 export interface DraftProcessValues {
-  // The questions an ordinary turn's round follows in its one draft turn, in order.
+  // The questions every turn's round follows in its one draft turn, in order.
   rounds: string[];
   // A value the receiver reads no more; the table does not show it and carries it as it stands.
   sendFrom: string;
-  light: string[];
-  // The questions of the two lists that are switched off: each keeps its place and is not followed.
+  // The questions of the list that are switched off: each keeps its place and is not followed.
   off: string[];
-  lightChars: number;
   // Values the receiver reads no more; the table does not show them and carries them as they stand.
   ceilingSeconds: number;
   pastCeiling: PastCeiling;

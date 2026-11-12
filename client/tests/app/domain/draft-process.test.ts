@@ -7,7 +7,6 @@ import {
   draftChanges,
   draftFormOf,
   draftListFault,
-  draftNumberFault,
   draftOutcomeText,
   draftOwn,
   draftRound,
@@ -38,7 +37,7 @@ import type { Judgement } from "../../../apps/web/shared/types";
 
 const CATALOGUE = ["intent", "information", "facts", "promises", "fit", "final"];
 
-const POLICY: DraftProcessValues = { rounds: ["intent", "facts", "final"], sendFrom: "", light: ["final"], off: [], lightChars: 12, ceilingSeconds: 150, pastCeiling: "send" };
+const POLICY: DraftProcessValues = { rounds: ["intent", "facts", "final"], sendFrom: "", off: [], ceilingSeconds: 150, pastCeiling: "send" };
 
 function view(over: Partial<SupervisorDraftView> = {}): SupervisorDraftView {
   return {
@@ -95,17 +94,12 @@ describe("an ordered pick of questions", () => {
   });
 
   test("leaves off only the questions a row's lists still hold", () => {
-    expect(keptOff(["facts", "intent"], ["intent", "final"], ["final"])).toEqual(["intent"]);
-    expect(keptOff(["facts"], ["final"], ["facts", "final"])).toEqual(["facts"]);
+    expect(keptOff(["facts", "intent"], ["intent", "final"])).toEqual(["intent"]);
+    expect(keptOff(["facts"], ["final"])).toEqual([]);
   });
 });
 
 describe("the numbers and the questions", () => {
-  test("a number is a whole number within its bounds", () => {
-    expect(draftNumberFault(wording, 150, 1, 3_600)).toBeNull();
-    for (const value of [0, 3601, 1.5, Number.NaN]) expect(draftNumberFault(wording, value, 1, 3_600)).not.toBeNull();
-  });
-
   test("a new question's name is a lowercase word of letters, digits and dashes no question holds", () => {
     expect(questionNameFault(wording, "tone-check", CATALOGUE)).toBeNull();
     expect(questionNameFault(wording, "Tone", CATALOGUE)).toBe(wording("agents.error.draft_question_name"));
@@ -142,7 +136,7 @@ describe("a supervisor's draft block", () => {
   });
 
   test("keeps a process of its own that says what the policy's says, and takes it away once put back to the policy's", () => {
-    const held = view({ source: "set", process: { ...POLICY, lightChars: 40 } });
+    const held = view({ source: "set", process: { ...POLICY, rounds: ["facts", "final"] } });
     const same = view({ source: "set" });
 
     expect(draftOwn(draftFormOf(same), POLICY)).toBe(true);
@@ -150,7 +144,7 @@ describe("a supervisor's draft block", () => {
 
     const back = draftToPolicy(draftFormOf(held), POLICY);
 
-    expect(back).toMatchObject({ keepOwn: false, lightChars: 12 });
+    expect(back).toMatchObject({ keepOwn: false, rounds: ["intent", "facts", "final"] });
     expect(draftOwn(back, POLICY)).toBe(false);
     expect(draftChange(held, back)).toEqual({ process: null });
   });
@@ -167,10 +161,10 @@ describe("a supervisor's draft block", () => {
     expect(draftTextSet(form.questions[2]!)).toBe(false);
   });
 
-  test("takes the console's text of a question away: the policy's text stands again, and one the console added leaves the catalogue and both lists", () => {
+  test("takes the console's text of a question away: the policy's text stands again, and one the console added leaves the catalogue and the list", () => {
     const set = view({
       source: "set",
-      process: { ...POLICY, rounds: ["intent", "tone", "final"], light: ["tone", "final"], off: ["tone"] },
+      process: { ...POLICY, rounds: ["intent", "tone", "final"], off: ["tone"] },
       questions: [...view().questions.map((one) => (one.name === "intent" ? { ...one, text: "Why was it said?", source: "set" as const } : one)), { name: "tone", text: "Does it fit?", source: "set", policyText: null }]
     });
     const back = withoutDraftText(draftFormOf(set), "intent");
@@ -181,8 +175,8 @@ describe("a supervisor's draft block", () => {
     const gone = withoutDraftText(draftFormOf(set), "tone");
 
     expect(gone.questions.map((one) => one.name)).not.toContain("tone");
-    expect(gone).toMatchObject({ rounds: ["intent", "final"], light: ["final"], off: [] });
-    expect(draftChange(set, gone)).toEqual({ removed: ["tone"], process: { ...POLICY, rounds: ["intent", "final"], light: ["final"], off: [] } });
+    expect(gone).toMatchObject({ rounds: ["intent", "final"], off: [] });
+    expect(draftChange(set, gone)).toEqual({ removed: ["tone"], process: { ...POLICY, rounds: ["intent", "final"], off: [] } });
     expect(withoutDraftText(draftFormOf(set), "nothing")).toEqual(draftFormOf(set));
   });
 });

@@ -26,16 +26,14 @@ function valuesOf(row: Schemas["DraftProcess"]): DraftProcessValues {
   return {
     rounds: row.rounds,
     sendFrom: row.sendFrom,
-    light: row.light,
     off: row.off,
-    lightChars: row.lightChars,
     ceilingSeconds: row.ceilingSeconds,
     pastCeiling: row.pastCeiling === "skip" ? "skip" : "send"
   };
 }
 
 // A process that asks nothing, where the receiver answers no row at all.
-const NO_PROCESS: DraftProcessValues = { rounds: [], sendFrom: "", light: [], off: [], lightChars: 0, ceilingSeconds: 0, pastCeiling: "send" };
+const NO_PROCESS: DraftProcessValues = { rounds: [], sendFrom: "", off: [], ceilingSeconds: 0, pastCeiling: "send" };
 
 function rowOf(row: Schemas["DraftRound"]): DraftRow {
   return {
@@ -164,8 +162,6 @@ export function draftValuesOf(body: Record<string, unknown> | null | undefined):
   const names = (value: unknown): string[] | null => (Array.isArray(value) && value.every((one) => typeof one === "string") ? (value as string[]) : null);
   const whole = (value: unknown): number | null => (typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null);
   const rounds = names(body?.rounds);
-  const light = names(body?.light);
-  const lightChars = whole(body?.lightChars);
   const ceilingSeconds = whole(body?.ceilingSeconds);
   const pastCeiling = body?.pastCeiling === "send" || body?.pastCeiling === "skip" ? (body.pastCeiling as PastCeiling) : null;
   // A value the process carries unshown: absent from an older body, empty.
@@ -173,9 +169,9 @@ export function draftValuesOf(body: Record<string, unknown> | null | undefined):
   // The questions switched off: absent from a body that switches none off.
   const off = body?.off === undefined ? [] : names(body.off);
 
-  if (rounds === null || light === null || off === null || lightChars === null || ceilingSeconds === null || pastCeiling === null || sendFrom === null) return null;
+  if (rounds === null || off === null || ceilingSeconds === null || pastCeiling === null || sendFrom === null) return null;
 
-  return { rounds, sendFrom, light, off, lightChars, ceilingSeconds, pastCeiling };
+  return { rounds, sendFrom, off, ceilingSeconds, pastCeiling };
 }
 
 /** One save a body names, or null where a part it names is of the wrong sort; a part it leaves out is left as it

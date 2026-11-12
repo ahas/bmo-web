@@ -149,7 +149,7 @@
           <div class="flex justify-end gap-2">
             <UButton v-if="view?.hold" class="xl:hidden" color="neutral" variant="outline" size="sm" :label="$t('todo.action.open_todo')" @click="openTodo" />
             <UButton v-if="view?.hold" color="warning" variant="soft" size="sm" :loading="releasing" :label="$t('todo.action.release_hold')" @click="releaseHold" />
-            <UButton v-if="newer" color="primary" variant="soft" size="sm" :icon="DEPLOY_ICON" :label="$t('deploy.action.reload')" @click="reload" />
+            <UButton v-if="newer" color="primary" variant="ghost" size="sm" :icon="DEPLOY_ICON" :label="$t('deploy.action.reload')" @click="reload" />
           </div>
         </template>
       </div>

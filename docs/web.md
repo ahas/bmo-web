@@ -1134,7 +1134,8 @@ edit to that file alone, once the guide below carries the word.
   differs from the page's own, the mark is the deploy icon, Material Symbols' updated deployed code, as an icon
   button in the accent colour at every width — the title bar's own icon button, its words 「새 버전 · 새로고침」 in
   its tooltip and its accessible name; pressing it loads the page again, as the popover's 새로고침 button, which
-  wears the same icon, does. The mark stands in the place the running mark spins in and trades places with it
+  wears the same icon, does: that button's words and icon stand in the accent colour with no ground behind them,
+  the ground showing only under a hover or a press. The mark stands in the place the running mark spins in and trades places with it
   whenever a run of any unit begins or ends, so it is never a circular arrow, which there reads as the spinner
   turned into an arrow; while a run goes, the mark is the plain spinning progress mark, an arc with no arrowhead.
   It is read every time the stream opens, which it does again once

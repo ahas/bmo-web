@@ -74,11 +74,16 @@ afterAll(async () => {
 // Every original the translator was asked for, in the order asked.
 const asked: string[] = [];
 
-async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> {
+// A browser that translates on its own opens a text already read; one that does not opens it as written, its reading a
+// press away. Most of these tests drive the press, so they open with the browser's auto translation off.
+async function open(viewport: (typeof WIDTHS)[number], auto = false): Promise<BrowserContext> {
   const context = await browser!.newContext({ viewport: { width: viewport.width, height: viewport.height }, isMobile: viewport.phone, hasTouch: viewport.phone, serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
 
-  await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+  await context.addCookies([
+    { name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! },
+    ...(auto ? [] : [{ name: "console_auto_translate", value: "false", url: origin! }])
+  ]);
   await context.route(/\/api\/todos(\?|$)/, async (route) => {
     if (route.request().method() !== "GET") return await route.continue();
 
@@ -204,6 +209,33 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
       }
     }, 90_000);
   }
+
+  test("a report in another language opens already read where this browser translates on its own, the original a press away", async () => {
+    const context = await open(WIDTHS[0], true);
+
+    asked.length = 0;
+
+    try {
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/?todo=${ITEM}`, { waitUntil: "load" });
+      await page.getByRole("dialog").locator("[data-report]").first().waitFor({ timeout: 20_000 });
+
+      const closing = page.getByRole("dialog").filter({ hasText: "item-title" }).last().locator("[data-report]").first();
+
+      // Asked as it opens, with nothing pressed, the reading takes the original's place.
+      await until(async () => await closing.innerText(), (text) => text.includes("ko-reading: The skill is committed and pushed."));
+      expect(asked).toContain(FINAL);
+      expect(await closing.locator("[data-reading]").innerText()).toContain(wording("common.label.translated_from", { language: wording("documents.label.language_en") }));
+
+      // The original is a press away, and stays until another text opens.
+      await closing.locator("[data-reading-original]").click();
+      expect(await closing.innerText()).toContain("The skill is committed and pushed.");
+      expect(await closing.innerText()).not.toContain("ko-reading:");
+    } finally {
+      await context.close();
+    }
+  }, 60_000);
 
   test("an approval stands with its caller and kind, and a recommendation apart from it, waiting on the owner", async () => {
     const context = await open(WIDTHS[0]);

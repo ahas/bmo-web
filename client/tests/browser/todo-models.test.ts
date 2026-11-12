@@ -7,9 +7,9 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { TodoBoard, TodoItem, TodoModelPlan } from "../../apps/web/shared/types";
 
-// A TODO row names the model its work will go out on (docs/web.md, the TODO panel's section): the model an item was
-// filed to run on where it pins one, what an `auto` item's worker goes out on, and the road a running job of it
-// actually took — each short (docs/web.md, the section on model names where room is short) at both widths.
+// A TODO row names the model its work will go out on (docs/web.md, the TODO panel's section): the road of the agent the
+// item names, none for an item that names no agent yet, and the road a running job of it actually took — each short
+// (docs/web.md, the section on model names where room is short) at both widths.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // the board and the model plan through the page's own routes.
@@ -74,13 +74,14 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
   };
 }
 
-// The three rows: one filed on a model of its own, one left to its worker, and one a job is running.
-const PINNED = item(1, { model: "claude-opus-5-5" });
-const AUTO = item(2);
+// The three rows: one naming its agent, one naming none yet, and one a job is running.
+const NAMED = item(1, { agent: "coder-03" });
+const UNNAMED = item(2);
 const RUNNING = item(3, { running: true, status: "running", progress: null });
 
-// What the workers and the running job go out on: the worker's own road, and the road the running job actually took.
-const PLAN: TodoModelPlan = { workers: { "bmo-a": "deepseek/deepseek-flash" }, agents: {}, running: { 3: "deepseek/deepseek-v4-pro" }, chosenBy: { 3: "order" } };
+// What the agent and the running job go out on: the agent's own road, and the road the running job actually took. The
+// worker's road names no item's model, since no item goes out on it.
+const PLAN: TodoModelPlan = { workers: { "bmo-a": "deepseek/deepseek-flash" }, agents: { "coder-03": "claude-code/claude-opus-5-5" }, running: { 3: "deepseek/deepseek-v4-pro" }, chosenBy: { 3: "item" } };
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -112,7 +113,7 @@ async function open(width: number, height: number): Promise<BrowserContext> {
     const board = (await (await route.fetch()).json()) as TodoBoard;
 
     await route.fulfill({
-      json: { ...board, pending: [], queue: [PINNED, AUTO, RUNNING], held: [], merged: [], done: [], standing: { ...board.standing, queue: 3, running: 1, waiting: 0 } }
+      json: { ...board, pending: [], queue: [NAMED, UNNAMED, RUNNING], held: [], merged: [], done: [], standing: { ...board.standing, queue: 3, running: 1, waiting: 0 } }
     });
   });
 
@@ -139,7 +140,7 @@ async function modelOf(page: Page, id: number): Promise<string> {
 
 describe.skipIf(!origin || !touchReady())("the model a TODO row names", () => {
   for (const { width, height, phone } of WIDTHS) {
-    test(`a pinned item, an auto item and a running job at ${width}`, async () => {
+    test(`an item naming its agent, one naming none and a running job at ${width}`, async () => {
       const context = await open(width, height);
       const page = await context.newPage();
 
@@ -147,8 +148,8 @@ describe.skipIf(!origin || !touchReady())("the model a TODO row names", () => {
         await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
         await panel(page, phone);
 
-        expect(await modelOf(page, PINNED.id)).toBe("CC/CO55");
-        expect(await modelOf(page, AUTO.id)).toBe("DS/DSF");
+        expect(await modelOf(page, NAMED.id)).toBe("CC/CO55");
+        expect(await page.locator(`[data-todo-id="${UNNAMED.id}"] [data-item-model]`).count()).toBe(0);
         expect(await modelOf(page, RUNNING.id)).toBe("DS/DSPv4");
       } finally {
         await context.close();

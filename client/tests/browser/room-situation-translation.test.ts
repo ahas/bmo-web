@@ -46,7 +46,12 @@ async function open(width: number, height: number, translator: "reads" | "busy")
   const context = await browser!.newContext({ viewport: { width, height }, serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
 
-  await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+  // These tests drive the press, so the browser's auto translation is off (docs/web.md, 「The original, and its translation
+  // in its place」).
+  await context.addCookies([
+    { name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! },
+    { name: "console_auto_translate", value: "false", url: origin! }
+  ]);
   await context.route(new RegExp(`/api/rooms/${CHAT}/messages(\\?|$)`), (route) => route.fulfill({ json: { messages: [], judgements: [], hasMore: false } }));
   await context.route(new RegExp(`/api/rooms/${CHAT}/situation(\\?|$)`), (route) => route.fulfill({ json: { text: NOTE, updatedAt: NOW - 60_000 } }));
   await context.route(/\/api\/translations$/, (route) =>

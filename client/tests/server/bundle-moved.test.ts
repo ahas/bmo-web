@@ -2,9 +2,8 @@ import { afterEach, expect, test } from "bun:test";
 
 import { globalsRestoredAfter } from "../support/globals";
 
-import { consoleManifest } from "bmo-ui/shared/console-manifest";
-
 import { attachBundles } from "../../apps/web/server/utils/console-manifests";
+import { manifestOf } from "../support/console-manifest";
 import { standInHandler } from "../support/route-handler";
 
 // An address under a bundle's former screen path is answered as moved (docs/web.md, 「Screens a unit brings」): a 308 to
@@ -31,7 +30,7 @@ const unit = { address: "http://unit.invalid", token: "token-a" };
 
 attachBundles([
   {
-    manifest: consoleManifest({ name: "unit-a", title: "unit-a.title", icon: "i-material-symbols-circle", screenPath: "/artifact", formerScreenPaths: ["/archive"], serviceName: "unit-a", bundle: "/console/bundle.js", words: "/console/words", role: "member" }),
+    manifest: manifestOf("unit-a", { screenPath: "/artifact", formerScreenPaths: ["/archive"] }),
     unit,
     words: {}
   }

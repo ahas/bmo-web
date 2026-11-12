@@ -3,12 +3,12 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { globalsRestoredAfter } from "../../support/globals";
 import { dirname } from "node:path";
 
-import { consoleManifest } from "bmo-ui/shared/console-manifest";
 import { createApp, createRouter, defineEventHandler, sealSession } from "h3";
 
 import { signIn } from "../../../apps/web/server/utils/account-service";
 import { attachBundles } from "../../../apps/web/server/utils/console-manifests";
 import { standInAccountService } from "../../support/account-service";
+import { manifestOf as readManifest } from "../../support/console-manifest";
 
 import type { Server, WebSocketHandler } from "bun";
 
@@ -75,7 +75,7 @@ process.env.PLAIN_ADDRESS = `http://127.0.0.1:${unit.port}`;
 
 // The manifests the units answered: a member's screen with a socket, one with none, and an administrator's.
 function manifestOf(name: string, websocket: boolean, role: "member" | "administrator") {
-  return consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/bundle.js", words: "/words", role, websocket });
+  return readManifest(name, { bundle: "/bundle.js", words: "/words", role, websocket });
 }
 
 const standing = { address: `http://127.0.0.1:${unit.port}`, token: TOKEN };

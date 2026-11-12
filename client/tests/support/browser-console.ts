@@ -14,6 +14,7 @@ import { join } from "node:path";
 import { SQL } from "bun";
 
 import { connectionOf } from "../../apps/web/server/utils/db";
+import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { addressOf } from "./web-database";
 
@@ -314,10 +315,7 @@ const uses: Record<string, unknown>[] = [];
 // console control hidden by an attribute is measured against (docs/web.md, 「Screens a unit brings」).
 function screenUnit(name: string, path: string): Response | null {
   if (path === "/console-manifest") {
-    return Response.json({
-      name, title: `${name}.title`, icon: "i-material-symbols-widgets", screenPath: `/${name}`, serviceName: name,
-      bundle: "/console/bundle.js", words: "/console/words", role: "member"
-    });
+    return Response.json(manifestFields(name, { icon: "i-material-symbols-widgets" }));
   }
 
   if (path === "/console/words") return Response.json({ ko: { [name]: { title: name } }, en: { [name]: { title: name } } });

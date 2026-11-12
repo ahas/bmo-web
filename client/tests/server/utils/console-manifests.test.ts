@@ -1,14 +1,15 @@
 import { afterAll, expect, test } from "bun:test";
 
-import { consoleManifest } from "bmo-ui/shared/console-manifest";
+import { LAYER_VERSION, consoleManifest } from "bmo-ui/shared/console-manifest";
 
 import { askedBundle, attachBundles, movedPage, namedUnits, readerMay, relayedCall, relayedPath, screenOf, sharePage, withoutConflicts } from "../../../apps/web/server/utils/console-manifests";
+import { manifestFields } from "../../support/console-manifest";
 
 // The manifests the units answer (docs/web.md, 「Screens a unit brings」): every unit the settings name is asked, a
 // manifest that reads brings its bundle with its words, and two that clash bring none.
 
 function manifestOf(fields: Record<string, unknown> = {}) {
-  return { name: "unit-a", title: "unit-a.title", icon: "i-material-symbols-circle", screenPath: "/unit-a", serviceName: "unit-a", bundle: "/console/bundle.js", words: "/console/words", role: "member", ...fields };
+  return manifestFields("unit-a", fields);
 }
 
 const answers: Record<string, () => Response> = {};
@@ -51,6 +52,27 @@ test("a unit that answers no manifest, one that does not read, or words that do 
   answers["/console-manifest"] = () => Response.json(manifestOf());
   delete answers["/console/words"];
   expect(await askedBundle("UNIT_A", unit)).toBeNull();
+});
+
+test("a manifest built on another layer than the console runs brings none, and the log says so once, naming both layers", async () => {
+  const said: string[] = [];
+  const error = console.error;
+
+  console.error = (line: string) => void said.push(line);
+  answers["/console/words"] = () => Response.json({ ko: { "unit-a": { title: "a" } } });
+
+  try {
+    answers["/console-manifest"] = () => Response.json(manifestOf({ layer: "0.1.0-rev.17" }));
+    expect(await askedBundle("UNIT_B", unit)).toBeNull();
+    expect(await askedBundle("UNIT_B", unit)).toBeNull();
+
+    answers["/console-manifest"] = () => Response.json(manifestOf());
+    expect((await askedBundle("UNIT_B", unit))?.manifest.layer).toBe(LAYER_VERSION);
+  } finally {
+    console.error = error;
+  }
+
+  expect(said).toEqual([`console bundles: UNIT_B's bundle is left out: it is built on bmo-ui 0.1.0-rev.17, and the console runs bmo-ui ${LAYER_VERSION}`]);
 });
 
 test("two manifests sharing a name, a screen path or a service name both bring none", () => {

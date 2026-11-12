@@ -11,7 +11,7 @@ answers in English messages and codes, which these packs render.
 | Folder | Holds |
 |---|---|
 | `server/` | the server: the account service on sumida (`src/`, with the deployment's rule file, the routes, the checks, the grants, the data move, the phone keys, the receiver port, the settings, the fixed lines' renderer, the document wording file, the migrations under `src/migration/` and the language pack's parts under `src/lang/`), its binary under `src/bin/`, the service's own contract and client crate under `client/`, the language pack's files under `lang/`, one folder to a language, its settings and sumida's, and its tests under `tests/` with their fixtures under `tests/fixtures/` |
-| `client/` | the console, a Bun workspace of its own with its lockfile: the Nuxt app under `apps/web/`, the TypeScript package generated from the server's OpenAPI document under `packages/server-client/`, the console's tests under `tests/` with their support under `tests/support/`, the packed bmo-ui layer, the console bundles and bmo-text under `vendor/`, and the patches the install applies under `patches/` |
+| `client/` | the console, a Bun workspace of its own with its lockfile: the Nuxt app under `apps/web/`, the TypeScript package generated from the server's OpenAPI document under `packages/server-client/`, the console's tests under `tests/` with their support under `tests/support/`, bmo-ui's release file, the packed bmo-text and the packed clients of the units the console calls under `vendor/`, and the patches the install applies under `patches/` |
 | `.graph/` | the code dependency graph: one node per feature a person names, its files, its exported names, the owner's words for it and what it needs or calls, an area to a file (`api.json`, `calls.json`, `console.json`, `server.json`) with its `settings.toml` beside them, written only by `bmo graph` |
 | `tests/` | the checks that span the repository: its dependencies, Korean, layout, names and personal-data patterns (`docs/checks.md`), run by the server's crate as the module `repository` of its test harness |
 | `deploy/` | the user units a deployment links: the server's, `bmo-web-server.service`, and the console's, `bmo-web.service` |
@@ -48,13 +48,13 @@ the testbed's Korean sweep holds every file to; no code file of this repository 
 
 ## Checks
 
-`bmo-testbed check quick` runs the three sweeps that read the tree before anything runs: Korean in the code,
-the README's folder table and the dependencies the manifests name. The only dependencies from another
-repository are the base libraries `bmo-chat`, `bmo-chat-client`, `bmo-ui` and `bmo-text`, and the console bundles
-`bmo-artifact-client`, `bmo-mail-client`, `bmo-review-client`, `bmo-drive-client` and `bmo-remote-client`, and
-the published clients of the units the console calls, `@agency/client`, `bmo-job-client`, `@bmo/receiver-client`
-and `bmo-brain-client`, as `testbed.toml` declares; the console takes them all from their packs under
-`client/vendor/`. The service's own
+`bmo-testbed check quick` runs the sweeps that read the tree before anything runs: Korean in the code, the
+README's folder table, the dependencies the manifests name, the Cargo profile and the shared versions. The only dependencies from another
+repository are the base libraries `bmo-chat`, `bmo-chat-client`, `bmo-ui` and `bmo-text`, and the published
+clients of the units the console calls, `@agency/client`, `bmo-job-client` and `@bmo/receiver-client`, as
+`testbed.toml` declares; the console takes those it installs from their files under `client/vendor/`, bmo-ui as
+its release verb wrote it. The `shared-versions` sweep holds that file to the release bmo-chat's shared versions
+pin. The service's own
 client crate, `bmo-web-client`, and the package generated from it, `@web/server-client`, are this repository's
 own and are no unit's package. `bun run typecheck` in `client/` checks the console app, the generated TypeScript
 package and the console's tests.

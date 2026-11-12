@@ -561,15 +561,9 @@ answers again (the room screen's **대기**).
 One kind of path stands outside the login: a console bundle's share page, below its screen path at
 `share/<token>`. A link opens one document or file to whoever holds it, with no account and no session.
 The page, its bundle's module, stylesheet and words, and the share reads its manifest names are the only
-paths that answer without one (bmo-ui's `docs/console-bundles.md`, 「Share pages」).
+paths that answer without one, each relayed as bmo-ui's `docs/console-bundles.md` 「Share pages」 states, so the
+link is the whole key and every holder of the token reads the same.
 
-- **The module and the stylesheet are the service's to give.** They are relayed with no session, no owner key
-  and no role, which a service whose manifest names a share read answers as it does its words.
-- **The link is the whole key.** Its address carries a token and nothing besides, and every read its page
-  makes is a share read: a `GET` or `HEAD` whose path a pattern under the manifest's `shareReads` matches,
-  each carrying the token, which the service answers for a live token alone. It is relayed with no session
-  and, whoever is signed in, with no owner key and no role, so every holder of the token reads the same. A
-  manifest that names none has no share read.
 - **What it opens is that one thing** — a document and the pages it refers to, or a file and its
   download — and nothing of the console it came from.
 - **It ends by itself.** Every link carries an expiry chosen when it is made, and past that time it
@@ -6971,26 +6965,34 @@ folder every unit reads its secrets from by file name, written by the server's s
 ## Screens a unit brings
 
 A unit with screens of its own serves them as a console bundle and describes the bundle in a manifest, both by
-bmo-ui's console plugin contract (bmo-ui's `docs/console-bundles.md`). The console attaches each bundle by its
-manifest while it runs: no unit's screen is built into it, and nothing here names one.
+bmo-ui's console plugin contract, bmo-ui's `docs/console-bundles.md`, which is the one statement of what a
+manifest holds, what a bundle and a service owe, and what a console owes them; this section states what the
+console adds of its own. The console attaches each bundle by its manifest while it runs: no unit's screen is built
+into it, and nothing here names one. Of the contract's optional parts it serves every one: the share pages and
+their head, the sidebar count, the moved screens, the notices, the translator, its title bar (「The title bar」) and
+its people directory.
 
+- **The console runs one release of bmo-ui,** the file bmo-ui's release verb wrote for the version bmo-chat's
+  shared versions pin, vendored under `client/vendor/` as it stands, so the version it attaches bundles by is the
+  one bmo-ui's `LAYER_VERSION` answers (the contract's 「The layer a bundle is built on」). The libraries a bundle
+  shares with it are the ones bmo-ui's `CONSOLE_SHARED_LIBRARIES` lists, and the console's build stops where that
+  list names one it does not know how to hand a bundle.
 - **The units asked are every unit the settings name.** The server asks each unit whose `<NAME>_ADDRESS` is set
-  for `GET /console-manifest`, with that unit's token and no owner key or role, when it starts and once a minute
-  after, each ask waiting for its unit's answer; a unit still answering keeps the screens its last answer
-  brought, and is not asked again until it has answered. A unit that answers anything but a 200, or that
-  nothing answers, brings no screen, and nothing says so on a screen. A manifest that does not read through bmo-ui's
-  `consoleManifest`, or whose words do not answer, brings none either, and the server's log names the fault.
-  Two manifests sharing a name, a screen path or a service name both bring none, a screen path standing for its
-  manifest's screen path and every path it names under `formerScreenPaths`.
-- **The list the reader may open is read again as somebody signs in or out,** since a login reaches the console's
-  screens with no new page to read it on, and the sidebar stands whole from the first screen after it.
+  for its manifest, with that unit's token, when it starts and once a minute after, each ask waiting for its
+  unit's answer; a unit still answering keeps the screens its last answer brought, and is not asked again until
+  it has answered. Which answers leave a unit out is the contract's (「How a console finds the services」), and a
+  unit nothing answers, or that answers anything but a 200, is left out with nothing said on a screen.
+- **What the console left out, and why, is in its log.** A manifest that does not read through bmo-ui's
+  `consoleManifest`, one built on another layer than the console runs, one whose words do not answer, and two that
+  clash are each left out with a line in the server's log naming the unit and the reason: for another layer, the
+  manifest's layer and the console's own, so a screen missing from the sidebar after a release of bmo-ui is
+  explained there. A line is written as a reason first stands and again where it changes, never once a minute
+  for a reason that stands, and a unit whose manifest reads again is attached again with no further line.
 - **The service is relayed under the name its manifest gives,** at the address and with the token of the unit
-  that answered it: the paths under its `apiPrefix`, each route its manifest names under `relays` by its method and
-  path, its module and its stylesheet, and nothing else of it. A relayed call waits for the service's answer
-  however long it takes to begin, and ends only when the service answers or its connection is refused or breaks,
-  which is a 503. Its
-  event stream and its socket are relayed where the manifest asks for them, and the notices it names under
-  `pushKinds` are rung (「Notifications」).
+  that answered it, and nothing of it the contract does not let through. A relayed call waits for the service's
+  answer however long it takes to begin, and ends only when the service answers or its connection is refused or
+  breaks, which is a 503. Its event stream and its socket are relayed where the manifest asks for them, and the
+  notices it names are rung (「Notifications」).
 - **A relayed body goes as its bytes, as they come.** It is handed on as a stream, never decoded as text and never
   held whole in the console, and the console sets no ceiling on its size, so a video or a subtitle in any encoding
   reaches the service as the browser sent it.
@@ -6998,37 +7000,31 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
   undone, as `.` or `..` is refused 400 and reaches no unit — a bundle's service or a unit the console calls
   directly — and a socket at such a path is closed as no relay, so what a manifest lets through is all a
   path can reach.
-- **A bundle calls the services it names.** A manifest's `calls` names the other services its screens call
-  through the relay, each by the service name that service's own manifest gives it. A call from a bundle's page,
-  told by the page address the browser sends as the call's referrer, to a service another manifest names is
-  relayed only where the page's manifest names that service, and then as that service's own screen's calls are:
-  only the paths its own manifest lets through, and only for a reader its own role and owner key allow. Any other
-  such call is refused 403, but for a read of that service's module, its stylesheet or a file in its module's
-  folder or below it, such as the chunks a module loads as a screen is reached, so a screen opened from another's
-  page still loads. A unit the console calls directly answers no manifest, and
-  the rule does not reach it.
+- **A bundle's calls to another service** are relayed and refused as the contract's 「How a bundle mounts」 states;
+  the console tells the page a call comes from by the page address the browser sends as the call's referrer. A
+  unit the console calls directly answers no manifest, and the rule does not reach it.
 - **The translator a bundle translates through** is named by the console's environment
   (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_SERVICE` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_PATH`, `docs/boundary.md`,
-  「Settings」), as bmo-ui's runtime configuration reads it; the console's code names none. A bundle's screen asks it
-  through bmo-ui's translation module, and with neither set no screen translates. How many originals one ask
-  carries and how many asks a tab holds out at once are the same configuration's
-  (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_BATCH` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_ASKS_AT_ONCE`), bmo-ui's defaults
-  standing where neither is set.
+  「Settings」), as bmo-ui's runtime configuration reads it; the console's code names none, and with neither set no
+  screen translates. How many originals one ask carries and how many asks a tab holds out at once are the same
+  configuration's (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_BATCH` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_ASKS_AT_ONCE`),
+  bmo-ui's defaults standing where neither is set.
 - **A reader is handed the screens their role opens.** The console's `GET /api/console-bundles` answers the
-  bundles whose manifest's role the signed-in reader's role allows, leaving out one that asks for the owner key
-  where the login has no user: each with its name, title and icon, its screen path, the relay addresses of its
-  module and its stylesheet, its words, and whether its manifest names a `sidebarUnread`, whose count the
-  console reads itself (「Sidebar」). A page drawn on the server reads the same list, so the sidebar
-  names every screen on its first frame, and the words are merged into the console's pack under the bundle's
-  namespace as the list is read.
+  bundles the signed-in reader may open, as the contract's 「Roles and the owner key」 has the console offer them:
+  each with its name, title and icon, its screen path, the relay addresses of its module and its stylesheet, its
+  words, and whether its manifest names a `sidebarUnread`, whose count the console reads itself (「Sidebar」). A
+  page drawn on the server reads the same list, so the sidebar names every screen on its first frame, and the words
+  are merged into the console's pack under the bundle's namespace as the list is read. The list is read again as
+  somebody signs in or out, since a login reaches the console's screens with no new page to read it on, and the
+  sidebar stands whole from the first screen after it.
 - **A screen's module is loaded the first time its path is opened.** The browser reads the module through the
-  relay and, before it runs, points every import of `vue`, `vue-router`, `vue-i18n`, `nuxt/app` and of
-  `@nuxt/ui`'s and bmo-ui's own paths at the console's own copy, so a bundle draws with the console's components
-  and runs inside the console's app. A file of the bundle the module imports is read the same way, one imported
-  only when it is reached at the moment it is reached. The module's routes then stand under the console's frame
-  — in place of a console page that stood at the same address, a placeholder — and its stylesheet is linked
-  once, in a cascade layer of its own above the console's base and below its components and utilities, so a
-  class both style reads as the console's and a bundle's copy of a utility never undoes the frame around it. A loaded module stays for the life of the tab; a manifest naming a new one reaches the next tab.
+  relay and, before it runs, points every import of a shared library at the console's own copy. A file of the
+  bundle the module imports is read the same way, one imported only when it is reached at the moment it is
+  reached. The module's routes then stand under the console's frame — in place of a console page that stood at
+  the same address, a placeholder — and its stylesheet is linked once, in a cascade layer of its own above the
+  console's base and below its components and utilities, so a class both style reads as the console's and a
+  bundle's copy of a utility never undoes the frame around it. A loaded module stays for the life of the tab; a
+  manifest naming a new one reaches the next tab.
   - **A screen whose module cannot be read says so in the console's frame.** Where the list names a screen but its
     module or a file it imports is not answered — its unit down, or restarting between two reads of the list —
     the screen's addresses open onto the console's own page under the screen's title, saying its service is not
@@ -7065,33 +7061,14 @@ manifest while it runs: no unit's screen is built into it, and nothing here name
     page area's edges stand around it as around every page, and no part of another page stands under it.
 - **A bundle's page is drawn in the browser.** The server holds no bundle's module, so an address under a
   bundle's screen path is answered with the app's shell, and the browser draws the page once the module is in.
-- **A screen that moved answers at its old addresses.** An address under a path a manifest names under
-  `formerScreenPaths` — the path itself or one below it, read from the console's base path — is answered by the
-  server with a 308 to the same address under the manifest's screen path, its query kept as it came and the base
-  path kept before it, and the browser carries the fragment on itself. It is answered before any page is drawn
-  and before any sign-in is asked for, to a reader signed in and to one who is not alike, so a share link kept
-  from before the move opens its share page at the new address with no sign-in, and a bookmark of a screen opens
-  the screen. An address of the console's own API or its assets is never read as moved. The server reads the
-  move from bmo-ui's `movedScreenAddress`, and the sidebar names the screen at its current path alone.
-- **A share page reads only its own bundle.** Asked with no session for an address under a screen path's
-  `share/`, the list answers that one bundle's screen path, module, stylesheet and words, and nothing else of any
-  manifest (「Access」).
-- **A share page goes out with its card's head.** A chat app or a browser drawing a card for a share link reads
-  the shell and runs none of it, so the server writes the head into the shell itself (bmo-ui's
-  `docs/console-bundles.md`, 「Share pages」). Serving an address that is a bundle's screen path, `/share/` and one
-  segment, read from the console's base path — the bundle whose screen path is the longest the address stands
-  under — where that bundle's manifest names a `shareHead`, the server asks the unit that answered the manifest
-  for the head at that pattern with the address's token, with the unit's token and no owner key or role, whoever
-  is signed in, and `language` the console's one locale, `ko`. It reads the answer through bmo-ui's `shareHead`
-  and writes into the shell's head, each value escaped as an element's or an attribute's text so none closes its
-  tag: `<title>`, the `description` meta, `og:type`, `og:title`, `og:description`, `og:url`, `og:site_name`,
-  `og:locale` and `og:image`, `twitter:card`, `twitter:title`, `twitter:description` and `twitter:image`, the
-  canonical link at the answer's `url`, and the robots meta asking not to be indexed or followed. The image is
-  the address the console relays the unit's share read at, on the origin of the answer's `url`, and stands only
-  where the path is a share read the manifest names; with no image the card is `summary`, with one
-  `summary_large_image`, and with no description the three description tags are left out. A unit that answers 404
-  or anything but a 200, an answer that does not read, a call that fails, a manifest naming no `shareHead` or any
-  other address leaves the shell as it is. The bundle's page still sets its own head once its module runs.
+- **A screen that moved answers at its old addresses** as the contract's 「A screen that moved」 states, read from
+  the console's base path and kept before the address it moved to, before any page is drawn and before any
+  sign-in is asked for. An address of the console's own API or its assets is never read as moved. The server
+  reads the move from bmo-ui's `movedScreenAddress`, and the sidebar names the screen at its current path alone.
+- **A share page** is served as the contract's 「Share pages」 states (「Access」). Where the bundle's manifest names
+  a `shareHead`, the server asks it in the console's one locale, `ko`, reads the answer through bmo-ui's
+  `shareHead` and writes it into the shell it serves; the bundle's page still sets its own head once its module
+  runs.
 
 ## How the units are talked to
 

@@ -37,3 +37,27 @@ index bf5a45a58fe3c590548394eff6b7b584ed3aa0e8..c4f25db59d44aa71f9455d22765b03e4
  			disabled,
  			open,
  			unmountOnHide,
+diff --git a/dist/Tooltip/TooltipContentImpl.cjs b/dist/Tooltip/TooltipContentImpl.cjs
+index c76d4c1..d94261e 100644
+--- a/dist/Tooltip/TooltipContentImpl.cjs
++++ b/dist/Tooltip/TooltipContentImpl.cjs
+@@ -111,6 +111,7 @@ var TooltipContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE_
+ 			return (0, vue.openBlock)(), (0, vue.createBlock)((0, vue.unref)(require_DismissableLayer_DismissableLayer.DismissableLayer_default), {
+ 				"as-child": "",
+ 				"disable-outside-pointer-events": false,
++				present: (0, vue.unref)(rootContext).open.value,
+ 				onEscapeKeyDown: _cache[0] || (_cache[0] = ($event) => emits("escapeKeyDown", $event)),
+ 				onPointerDownOutside: _cache[1] || (_cache[1] = (event) => {
+ 					if ((0, vue.unref)(rootContext).disableClosingTrigger.value && (0, vue.unref)(rootContext).trigger.value?.contains(event.target)) event.preventDefault();
+diff --git a/dist/Tooltip/TooltipContentImpl.js b/dist/Tooltip/TooltipContentImpl.js
+index 23c910a..d409694 100644
+--- a/dist/Tooltip/TooltipContentImpl.js
++++ b/dist/Tooltip/TooltipContentImpl.js
+@@ -110,6 +110,7 @@ var TooltipContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE_
+ 			return openBlock(), createBlock(unref(DismissableLayer_default), {
+ 				"as-child": "",
+ 				"disable-outside-pointer-events": false,
++				present: unref(rootContext).open.value,
+ 				onEscapeKeyDown: _cache[0] || (_cache[0] = ($event) => emits("escapeKeyDown", $event)),
+ 				onPointerDownOutside: _cache[1] || (_cache[1] = (event) => {
+ 					if (unref(rootContext).disableClosingTrigger.value && unref(rootContext).trigger.value?.contains(event.target)) event.preventDefault();

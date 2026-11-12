@@ -2,9 +2,8 @@ import { afterAll, afterEach, describe, expect, test } from "bun:test";
 
 import { globalsRestoredAfter } from "../support/globals";
 
-import { consoleManifest } from "bmo-ui/shared/console-manifest";
-
 import { attachBundles } from "../../apps/web/server/utils/console-manifests";
+import { manifestOf } from "../support/console-manifest";
 
 // A share page goes out with its card's head (docs/web.md, 「Screens a unit brings」): the shell served at a stand-in
 // bundle's share address carries the tags of the head its unit answers, escaped, and every other address, and one
@@ -36,15 +35,8 @@ const unit = { address: `http://127.0.0.1:${served.port}`, token: "token-a" };
 
 function bundleOf(fields: Record<string, unknown> = {}) {
   return {
-    manifest: consoleManifest({
-      name: "unit-a",
-      title: "unit-a.title",
-      icon: "i-material-symbols-circle",
+    manifest: manifestOf("unit-a", {
       screenPath: "/notes",
-      serviceName: "unit-a",
-      bundle: "/console/bundle.js",
-      words: "/console/words",
-      role: "member",
       shareReads: ["/links/{token}/picture"],
       shareHead: "/links/{token}/head",
       ...fields

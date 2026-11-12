@@ -59,11 +59,13 @@ Stands here as its own place in the Bun workspace under `client/`, re-cut for `a
 | `tsconfig.json`, `.env.example` | `client/apps/web/` of the same names; the sample names every unit's address and token |
 | `.gitignore` | `client/.gitignore` |
 | `bunfig.toml` | `client/bunfig.toml`, holding the tests under `client/tests/`; its preloads were the old test kit's and the old bot's, none of which comes |
-| `patches/reka-ui@2.10.4.patch` | `client/patches/`, the same patch bmo-ui and the bmo-artifact bundle carry, applied in the workspace's lockfile, which holds the packages it shares with bmo-ui at bmo-ui's own versions |
+| `patches/reka-ui@2.10.4.patch` | `client/patches/`, the same file bmo-ui's release carries for the same package, applied in the workspace's lockfile, which holds the packages it shares with bmo-ui at bmo-ui's own versions |
 
-The packs under `client/vendor/` are made with `bun pm pack` in a scratch export (`git archive`) of each
-repository's committed tree, never in its checkout: bmo-ui at revision 0.1.0-rev.17 as its tree stands at commit 431ab14, the same bytes the bundles built on that commit vendor, and the clients of the
-units the console calls. No console bundle is vendored: each is loaded from its unit while the console runs.
+bmo-ui stands under `client/vendor/` as the file its release verb wrote for the version bmo-chat's shared versions
+pin, the bytes its release ledger names, never packed from its source (`docs/web.md`, 「Screens a unit brings」). The
+clients of the units the console calls and bmo-text are made with `bun pm pack` in a scratch export (`git archive`) of each
+repository's committed tree, never in its checkout. No console bundle is vendored: each is loaded from its unit while
+the console runs.
 
 ### The console shell (210 files)
 

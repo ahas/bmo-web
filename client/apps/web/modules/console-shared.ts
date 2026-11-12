@@ -1,13 +1,14 @@
 import { existsSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 
+import { CONSOLE_SHARED_LIBRARIES } from "bmo-ui/shared/console-manifest";
 import { addTemplate, defineNuxtModule, resolvePath } from "nuxt/kit";
 
 // The libraries a console bundle shares with the console (docs/web.md, 「Screens a unit brings」; bmo-ui's
-// `docs/console-bundles.md`, 「What a console owes」): every path of `vue`, `vue-router`, `vue-i18n`, `nuxt/app`,
-// `@nuxt/ui` and bmo-ui a bundle may import, each with the loader of the console's own copy. The browser's bundle
-// loader points a bundle's import of such a path at what the loader answers, so a bundle runs on the one copy the
-// app runs. The list is built from the libraries' own folders and names no bundle.
+// `docs/console-bundles.md`, 「What a console owes」): every path of each library bmo-ui's `CONSOLE_SHARED_LIBRARIES`
+// lists that a bundle may import, each with the loader of the console's own copy. The browser's bundle loader
+// points a bundle's import of such a path at what the loader answers, so a bundle runs on the one copy the app
+// runs. The paths are read from the libraries' own folders and name no bundle.
 
 const SOURCE = /\.(?:vue|ts|js|mjs)$/;
 
@@ -32,6 +33,32 @@ function filesOf(folder: string, prefix: string): [string, string][] {
   return files;
 }
 
+// One line of the shared module: a path a bundle imports, and the console's own copy it loads instead.
+function line(path: string, copy: string): string {
+  return `  ${JSON.stringify(path)}: () => import(${JSON.stringify(copy)}),`;
+}
+
+// How the console hands a bundle each library it shares: the paths of the library a bundle may import, each with
+// the console's copy. A library bmo-ui lists that has no way here stops the build, since a bundle importing it would
+// find nothing in the browser.
+const SHARED_WAYS: Record<string, (layer: string) => Promise<string[]>> = {
+  vue: async () => [line("vue", "vue")],
+  "vue-router": async () => [line("vue-router", "vue-router")],
+  "vue-i18n": async () => [line("vue-i18n", "vue-i18n")],
+  "nuxt/app": async () => [line("nuxt/app", "#app")],
+  "@nuxt/ui": async () => {
+    // The component library's runtime stands beside its module's entry.
+    const runtime = join(dirname(await resolvePath("@nuxt/ui")), "runtime");
+
+    return ["components", "composables"].flatMap((folder) => filesOf(join(runtime, folder), `@nuxt/ui/${folder}`).map(([path, file]) => line(path, file)));
+  },
+  "bmo-ui": async (layer) =>
+    [
+      ...["components", "domain"].flatMap((folder) => filesOf(join(layer, "app", folder), `bmo-ui/app/${folder}`)),
+      ...filesOf(join(layer, "shared"), "bmo-ui/shared")
+    ].map(([path, file]) => line(path, file))
+};
+
 export default defineNuxtModule({
   meta: { name: "bmo-console-shared" },
   async setup(_options, nuxt) {
@@ -40,23 +67,11 @@ export default defineNuxtModule({
 
     if (layer === undefined) throw new Error("The bmo-ui layer is not among the console's layers.");
 
-    // The component library's runtime stands beside its module's entry.
-    const runtime = join(dirname(await resolvePath("@nuxt/ui")), "runtime");
+    const unknown = CONSOLE_SHARED_LIBRARIES.filter((library) => SHARED_WAYS[library] === undefined);
 
-    const paths: [string, string][] = [
-      ...["components", "domain"].flatMap((folder) => filesOf(join(layer, "app", folder), `bmo-ui/app/${folder}`)),
-      ...filesOf(join(layer, "shared"), "bmo-ui/shared"),
-      ...filesOf(join(runtime, "components"), "@nuxt/ui/components"),
-      ...filesOf(join(runtime, "composables"), "@nuxt/ui/composables")
-    ];
+    if (unknown.length > 0) throw new Error(`bmo-ui lists shared libraries the console cannot hand a bundle: ${unknown.join(", ")}`);
 
-    const lines = [
-      `  "vue": () => import("vue"),`,
-      `  "vue-router": () => import("vue-router"),`,
-      `  "vue-i18n": () => import("vue-i18n"),`,
-      `  "nuxt/app": () => import("#app"),`,
-      ...paths.map(([path, file]) => `  ${JSON.stringify(path)}: () => import(${JSON.stringify(file)}),`)
-    ];
+    const lines = (await Promise.all(CONSOLE_SHARED_LIBRARIES.map((library) => SHARED_WAYS[library]!(layer)))).flat();
 
     const template = addTemplate({
       filename: "console-shared.mjs",

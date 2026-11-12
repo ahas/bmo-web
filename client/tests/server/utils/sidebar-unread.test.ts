@@ -1,8 +1,7 @@
 import { afterAll, expect, test } from "bun:test";
 
-import { consoleManifest } from "bmo-ui/shared/console-manifest";
-
 import { countOf, readSidebarCounts } from "../../../apps/web/server/utils/sidebar-unread";
+import { manifestOf } from "../../support/console-manifest";
 
 import type { AttachedBundle } from "../../../apps/web/server/utils/console-manifests";
 
@@ -32,7 +31,7 @@ afterAll(() => void served.stop(true));
 
 function bundle(name: string, fields: Record<string, unknown> = {}): AttachedBundle {
   return {
-    manifest: consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/console/bundle.js", words: "/console/words", role: "member", ...fields }),
+    manifest: manifestOf(name, fields),
     unit: { address, token: `token-${name}` },
     words: {}
   };

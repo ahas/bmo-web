@@ -2,9 +2,8 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
 import { globalsRestoredAfter } from "../../support/globals";
 
-import { consoleManifest } from "bmo-ui/shared/console-manifest";
-
 import { attachBundles } from "../../../apps/web/server/utils/console-manifests";
+import { manifestOf } from "../../support/console-manifest";
 import { routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
@@ -164,7 +163,7 @@ describe("the relay of a service a manifest names", () => {
     }
   });
   const named = (name: string, role: "member" | "administrator") => ({
-    manifest: consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/console/bundle.js", stylesheet: "/console/bundle.css", words: "/console/words", apiPrefix: "/screen", role }),
+    manifest: manifestOf(name, { stylesheet: "/console/bundle.css", apiPrefix: "/screen", role }),
     unit: { address: `http://127.0.0.1:${served.port}`, token: null },
     words: {}
   });
@@ -228,7 +227,7 @@ describe("the relay of a call from a bundle's page", () => {
     }
   });
   const named = (name: string, role: "member" | "administrator", calls: string[] = []) => ({
-    manifest: consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/console/bundle/module-a.js", stylesheet: "/console/bundle/style-a.css", words: "/console/words", apiPrefix: "/console", role, calls }),
+    manifest: manifestOf(name, { bundle: "/console/bundle/module-a.js", stylesheet: "/console/bundle/style-a.css", apiPrefix: "/console", role, calls }),
     unit: { address: `http://127.0.0.1:${served.port}`, token: null },
     words: {}
   });
@@ -311,7 +310,7 @@ describe("the relay of a route a manifest relays", () => {
     }
   });
   const named = (name: string, calls: string[] = [], relays: { method: string; path: string }[] = []) => ({
-    manifest: consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/console/bundle/module-a.js", words: "/console/words", apiPrefix: "/console", role: "administrator", calls, relays }),
+    manifest: manifestOf(name, { bundle: "/console/bundle/module-a.js", apiPrefix: "/console", role: "administrator", calls, relays }),
     unit: { address: `http://127.0.0.1:${served.port}`, token: null },
     words: {}
   });
@@ -402,7 +401,7 @@ describe("the relay of a share read", () => {
     }
   });
   const named = (name: string, role: "member" | "administrator", shareReads?: string[]) => ({
-    manifest: consoleManifest({ name, title: `${name}.title`, icon: "i-material-symbols-circle", screenPath: `/${name}`, serviceName: name, bundle: "/console/bundle.js", words: "/console/words", role, ...(shareReads === undefined ? {} : { shareReads }) }),
+    manifest: manifestOf(name, { role, ...(shareReads === undefined ? {} : { shareReads }) }),
     unit: { address: `http://127.0.0.1:${served.port}`, token: null },
     words: {}
   });

@@ -1,4 +1,4 @@
-import { CONSOLE_MANIFEST_ROUTE, consoleManifest, movedScreenAddress, relaysRoute, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
+import { CONSOLE_MANIFEST_ROUTE, LAYER_VERSION, consoleManifest, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 import { unitHeaders } from "./units";
@@ -9,8 +9,9 @@ import type { ConsoleScreen } from "#shared/console-bundles";
 import type { ConsoleManifest, ConsoleRole, ConsoleWords } from "bmo-ui/shared/console-manifest";
 
 // The console bundles the units bring (docs/web.md, 「Screens a unit brings」; bmo-ui's `docs/console-bundles.md`):
-// every unit the settings name is asked for its manifest, and a unit whose manifest reads brings its bundle, its
-// words and its relay. The list is the console's own and names no unit; a unit is whatever its manifest says.
+// every unit the settings name is asked for its manifest, and a unit whose manifest reads, on the layer the console
+// runs, brings its bundle, its words and its relay. The list is the console's own and names no unit; a unit is
+// whatever its manifest says.
 
 /** One bundle attached: the manifest as it reads, the unit that answered it, and the bundle's words. */
 export interface AttachedBundle {
@@ -84,18 +85,50 @@ async function answered(unit: UnitAddress, path: string): Promise<unknown> {
   return response.json().catch(() => undefined);
 }
 
-/** One unit's bundle, or null where it answers none, its manifest does not read or its words do not answer. */
+// Why each thing the console left out was left out, as its log last said it: a reason is written as it first stands
+// and again where it changes, never at every reading of the manifests while it stands.
+const written = new Map<string, string>();
+
+/** Writes why a thing is left out into the console's log, unless the log already says so; null clears the record. */
+function recordLeftOut(subject: string, reason: string | null): void {
+  if (reason === null) {
+    written.delete(subject);
+
+    return;
+  }
+
+  if (written.get(subject) === reason) return;
+
+  written.set(subject, reason);
+  console.error(`console bundles: ${subject} is left out: ${reason}`);
+}
+
+/**
+ * One unit's bundle, or null where it answers none, its manifest does not read, its bundle is built on another layer
+ * than the console runs or its words do not answer; each but the first says why in the console's log.
+ */
 export async function askedBundle(name: string, unit: UnitAddress): Promise<AttachedBundle | null> {
+  const subject = `${name}'s bundle`;
   const value = await answered(unit, CONSOLE_MANIFEST_ROUTE);
 
-  if (value === undefined) return null;
+  if (value === undefined) {
+    recordLeftOut(subject, null);
+
+    return null;
+  }
 
   let manifest: ConsoleManifest;
 
   try {
     manifest = consoleManifest(value);
   } catch (error) {
-    console.error(`console bundles: ${name}'s manifest is left out: ${(error as Error).message}`);
+    recordLeftOut(subject, (error as Error).message);
+
+    return null;
+  }
+
+  if (!onThisLayer(manifest)) {
+    recordLeftOut(subject, `it is built on bmo-ui ${manifest.layer}, and the console runs bmo-ui ${LAYER_VERSION}`);
 
     return null;
   }
@@ -103,10 +136,12 @@ export async function askedBundle(name: string, unit: UnitAddress): Promise<Atta
   const words = await answered(unit, manifest.words);
 
   if (typeof words !== "object" || words === null || Array.isArray(words)) {
-    console.error(`console bundles: ${name}'s words do not answer at ${manifest.words}; its bundle is left out`);
+    recordLeftOut(subject, `its words do not answer at ${manifest.words}`);
 
     return null;
   }
+
+  recordLeftOut(subject, null);
 
   return { manifest, unit, words: words as ConsoleWords };
 }
@@ -125,7 +160,7 @@ export function withoutConflicts(found: readonly AttachedBundle[]): AttachedBund
   return found.filter((bundle) => {
     const others = found.filter((other) => other !== bundle && clash(bundle.manifest, other.manifest));
 
-    if (others.length > 0) console.error(`console bundles: ${bundle.manifest.name} shares its name, screen or service with another; both are left out`);
+    recordLeftOut(`the bundle ${bundle.manifest.name}`, others.length > 0 ? "it shares its name, screen or service with another, and both are left out" : null);
 
     return others.length === 0;
   });

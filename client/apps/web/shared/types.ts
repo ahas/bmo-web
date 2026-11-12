@@ -454,11 +454,11 @@ export interface MessageReaction {
   by: string;
 }
 
-// A line's full reading (docs/web.md, the room screen's chips): nothing made yet, being made, there to play, or failed
-// to be made. Once it is there, where its sound is served from — the voice message it went out as,
+// A line's full reading (docs/web.md, the room screen's chips): nothing made yet, being made, there to play, failed
+// to be made, or stopped before it stood and to be asked for again. Once it is there, where its sound is served from — the voice message it went out as,
 // for a line read out before readings were kept, or the reading kept on the line — and that sound.
 export interface MessageBriefing {
-  state: "idle" | "making" | "ready" | "failed";
+  state: "idle" | "making" | "ready" | "failed" | "stopped";
   source: "voice" | "kept" | null;
   voiceMessageId: number | null;
   sound: MessageAttachment | null;
@@ -476,7 +476,7 @@ export interface VoiceBriefing {
   messageId: number | null;
   kind: "summary" | "full";
   title: string | null;
-  state: "waiting" | "done" | "failed";
+  state: "waiting" | "done" | "failed" | "stopped";
   durationMs: number | null;
   plays: boolean;
   voiceMessageId: number | null;

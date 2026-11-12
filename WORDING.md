@@ -161,6 +161,8 @@
 - launch, start a run → 실행. Never 띄우다, 뜨다, 발사.
 - stop a run → 중지; pause and resume a timer → 정지, 재개; run out of time → 시간 초과. Never 멈추기,
   다시 흐르게, 때를 놓침.
+- a thing a unit stopped before it was made, a voice briefing among them → 중지됨; asking for it again → 다시
+  요청: 보이스브리핑 중지됨 · 다시 요청 가능. Never 재요청, 멈춤.
 - leave the queue → 대기열에서 제외. Never 대기열에서 빠지다.
 - a job's command in the testbed's queue, on its TODO row → 테스트 중 while it holds a seat, 테스트 대기 <n>번째 while it
   waits, each followed by ` · ` and the command as the testbed names it. Never 검사 중, 차례 대기, 줄 서는 중.

@@ -1,3 +1,5 @@
+import { briefingStateOf } from "#shared/voice-briefings";
+
 import type { BotEvent, VoiceBriefing, WorkOrderProgress } from "#shared/types";
 
 // bmo-job's and the agency's events, as the relay hands them on (docs/web.md, 「How the units are talked to」),
@@ -173,7 +175,7 @@ export function voiceEvent(data: Fields): BotEvent | null {
     messageId,
     kind: row.kind === "full" ? "full" : "summary",
     title: text(row.title),
-    state: row.state === "done" ? "done" : row.state === "failed" ? "failed" : "waiting",
+    state: briefingStateOf(row.state),
     durationMs: number(row.durationMs),
     plays: row.plays !== false,
     voiceMessageId: number(row.voiceMessageId),

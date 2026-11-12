@@ -600,6 +600,7 @@ room:
     chip_briefing: 보이스브리핑
     chip_briefing_failed: 보이스브리핑 실패
     chip_briefing_making: 보이스브리핑 만드는 중
+    chip_briefing_stopped: 보이스브리핑 중지됨 · 다시 요청 가능
     chip_context: 컨텍스트
     chip_record: 판정 기록
     chip_drafts: 드래프트
@@ -3304,6 +3305,7 @@ briefing:
   status:
     making: 보이스브리핑을 만드는 중입니다.
     settings_loading: 보이스브리핑 설정을 읽는 중…
+    stopped: 보이스브리핑이 중지되었습니다.
 home:
   label:
     agents_description: 역할 슬롯, 게이트, 러너, 저장소

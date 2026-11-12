@@ -1,3 +1,4 @@
+import { briefingStateOf } from "#shared/voice-briefings";
 import { wording } from "#shared/wording";
 
 import { unitAt, unitBytes, unitFetch } from "./units";
@@ -42,7 +43,7 @@ export function voiceBriefingOf(row: EngineBriefing): VoiceBriefing {
     messageId: row.messageId === null ? null : Number(row.messageId),
     kind: row.kind === "full" ? "full" : "summary",
     title: row.title ?? null,
-    state: row.state === "done" ? "done" : row.state === "failed" ? "failed" : "waiting",
+    state: briefingStateOf(row.state),
     durationMs: row.durationMs ?? null,
     plays: row.plays !== false,
     voiceMessageId: row.voiceMessageId === null || row.voiceMessageId === undefined ? null : Number(row.voiceMessageId),

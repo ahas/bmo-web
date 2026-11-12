@@ -239,11 +239,13 @@ describe("the full reading of the line", () => {
     expect(script).toContain("if (!readingTouched && !playing) briefingOpen.value = false;");
     expect(script).toContain("`/api/rooms/${props.chatId}/messages/${props.messageId}/reading`, { method: \"POST\" }");
     expect(script).toContain('event.type !== "voice-briefing" || event.voice.kind !== "full"');
+    expect(script).toContain('if (!briefingOpen.value || briefingState.value === "ready" || briefingState.value === "making") return;');
   });
 
-  test("says in the quiet colour that it is being made, and in the error colour only once it failed or was refused", () => {
+  test("says in the quiet colour that it is being made or was stopped, and in the error colour only once it failed or was refused", () => {
     expect(spread).toContain(`<p v-if="briefingRefused !== ''" role="alert" class="text-sm text-error">`);
     expect(spread).toContain(`<p v-else-if="briefingState === 'failed'" class="text-sm text-error">`);
+    expect(spread).toContain(`<p v-else-if="briefingState === 'stopped'" class="text-sm text-dimmed">{{ $t("briefing.status.stopped") }}</p>`);
     expect(spread).toContain(`<p v-else class="text-sm text-dimmed">{{ $t("briefing.status.making") }}</p>`);
   });
 });

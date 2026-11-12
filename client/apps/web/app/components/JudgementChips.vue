@@ -143,6 +143,7 @@
           />
         </div>
         <p v-else-if="briefingState === 'failed'" class="text-sm text-error">{{ $t("briefing.error.not_made") }}</p>
+        <p v-else-if="briefingState === 'stopped'" class="text-sm text-dimmed">{{ $t("briefing.status.stopped") }}</p>
         <p v-else-if="briefingState === 'ready'" class="text-sm text-dimmed">{{ $t("room.label.unreceivable") }}</p>
         <p v-else class="text-sm text-dimmed">{{ $t("briefing.status.making") }}</p>
       </template>
@@ -274,6 +275,7 @@
 import { briefingChip, CHIP_ICONS, CHIP_LABELS, verdictChip } from "~/domain/chips";
 import { briefingSoundUrl, mediaUrl } from "~/domain/player";
 import { BRIEFING_SETTLE_MS } from "~/domain/briefing";
+import { readingStateOf } from "#shared/voice-briefings";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useBotEvents } from "~/domain/events";
 import { readRunLines } from "~/domain/log";
@@ -386,9 +388,9 @@ const briefingSrc = computed(() => {
   return held.id === null ? null : briefingSoundUrl(held.id);
 });
 
-// Spreads the reading's player where it stands; pressed where none was made, or where it failed, asks the receiver
-// for it and spreads the line saying it is being made, which the player takes the place of once the engine says it
-// ended done.
+// Spreads the reading's player where it stands; pressed where none was made, or where it failed or was stopped, asks
+// the receiver for it and spreads the line saying it is being made, which the player takes the place of once the
+// engine says it ended done.
 async function toggleBriefing(): Promise<void> {
   briefingOpen.value = !briefingOpen.value;
   briefingRefused.value = "";
@@ -434,12 +436,13 @@ watch(briefingOpen, (open) => {
   if (open) readingTouched = false;
 });
 
-// The engine's word on the reading this line waits on: ended done, it is there to play; ended failed, it says so.
+// The engine's word on the reading this line waits on: ended done, it is there to play; ended failed or stopped, it
+// says so.
 useBotEvents((event) => {
   if (event.type !== "voice-briefing" || event.voice.kind !== "full" || event.voice.messageId !== props.messageId || event.voice.chatId !== props.chatId) return;
 
   const voice = event.voice;
-  const state: MessageBriefing["state"] = voice.state === "done" ? "ready" : voice.state === "failed" ? "failed" : "making";
+  const state = readingStateOf(voice.state);
 
   briefingHeld.value = { id: voice.id, state, source: voice.spoken ? "kept" : voice.voiceMessageId === null ? null : "voice", voiceMessageId: voice.voiceMessageId };
 });

@@ -14,12 +14,13 @@ const reading = (over: Partial<VoiceBriefing>): VoiceBriefing => ({
 });
 
 describe("a line's briefing", () => {
-  test("stands as never asked for, being made, there or failed", () => {
+  test("stands as never asked for, being made, there, failed or stopped", () => {
     expect(lineBriefing([], 548).state).toBe("idle");
     expect(lineBriefing([reading({ kind: "summary" })], 548).state).toBe("idle");
     expect(lineBriefing([reading({ state: "waiting", id: 3 })], 548)).toMatchObject({ state: "making", briefingId: 3 });
     expect(lineBriefing([reading({ state: "failed", id: 4 })], 548)).toMatchObject({ state: "failed", briefingId: 4 });
     expect(lineBriefing([reading({ id: 5 })], 548)).toMatchObject({ state: "ready", source: "kept", briefingId: 5 });
+    expect(lineBriefing([reading({ state: "stopped", id: 7 })], 548)).toMatchObject({ state: "stopped", source: null, briefingId: 7 });
   });
 
   test("an old reading the engine did not speak plays the voice message the room heard it as", () => {

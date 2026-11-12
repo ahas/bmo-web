@@ -9,8 +9,8 @@ import type { ArchivedMessage } from "../../apps/web/shared/types";
 
 // A line's voice briefing chip (docs/web.md, the room screen's chip): where the line's full reading stands, the
 // chip spreads its player from the voice engine's sound, waiting for its play press even in a browser that would let
-// it start, and folding itself a moment after it played to its end; where none stands, it asks the receiver for one
-// and says it is being made. It drives the console tests/support/browser-console.ts stands up, serving the room's page and
+// it start, and folding itself a moment after it played to its end; where none stands, or the one asked for was
+// stopped, it asks the receiver for one and says it is being made. It drives the console tests/support/browser-console.ts stands up, serving the room's page and
 // the reading through the page's own routes; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
@@ -74,7 +74,8 @@ describe.skipIf(!origin || !touchReady())("a line's voice briefing chip", () => 
           messages: [
             line(701, { state: "ready", source: "kept", voiceMessageId: null, sound: null, briefingId: 77 }),
             line(702, { state: "idle", source: null, voiceMessageId: null, sound: null, briefingId: null }),
-            line(703, { state: "ready", source: "kept", voiceMessageId: null, sound: null, briefingId: 78 })
+            line(703, { state: "ready", source: "kept", voiceMessageId: null, sound: null, briefingId: 78 }),
+            line(704, { state: "stopped", source: null, voiceMessageId: null, sound: null, briefingId: 79 })
           ],
           judgements: [],
           hasMore: false
@@ -83,7 +84,7 @@ describe.skipIf(!origin || !touchReady())("a line's voice briefing chip", () => 
     );
     await context.route(/\/api\/briefings\/77\/sound$/, (route) => route.fulfill({ status: 200, contentType: "audio/ogg", body: Buffer.alloc(0) }));
     await context.route(/\/api\/briefings\/78\/sound/, (route) => route.fulfill({ status: 200, contentType: "audio/wav", body: silence(1) }));
-    await context.route(new RegExp(`/api/rooms/${ROOM}/messages/702/reading$`), (route) => {
+    await context.route(new RegExp(`/api/rooms/${ROOM}/messages/70[24]/reading$`), (route) => {
       asked.push(route.request().method());
 
       return route.fulfill({ json: { state: "making", briefingId: null } });
@@ -122,6 +123,13 @@ describe.skipIf(!origin || !touchReady())("a line's voice briefing chip", () => 
       expect(await reading.locator("audio").evaluate((element: HTMLAudioElement) => ({ paused: element.paused, at: element.currentTime }))).toEqual({ paused: true, at: 0 });
       await reading.getByRole("button", { name: wording("common.action.play") }).click();
       await reading.waitFor({ state: "detached", timeout: 10_000 });
+
+      // A reading the engine stopped is named so on its chip, and pressed it asks again.
+      const stopped = page.locator('[data-message="m704"]');
+
+      await stopped.getByRole("button", { name: wording("room.label.chip_briefing_stopped") }).click();
+      await stopped.getByText(wording("briefing.status.making")).waitFor({ timeout: 10_000 });
+      expect(asked).toEqual(["POST", "POST"]);
     } finally {
       await context.close();
     }

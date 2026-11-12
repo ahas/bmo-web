@@ -1,5 +1,6 @@
 import { PAGING, roomLabel } from "#shared/config";
 import { isSystemNotice } from "#shared/text-marks";
+import { readingStateOf } from "#shared/voice-briefings";
 import { wording } from "#shared/wording";
 
 import { draftSummaries } from "./drafting";
@@ -570,17 +571,19 @@ export async function readJudgementPage(chatId: number, before: number | null, l
 }
 
 /** Where a line's full reading stands, as the voice engine's briefings of its room say: never asked for, being made,
- * there — the engine's own sound, or the voice message a reading from before it spoke readings went out as — or
- * failed. The newest reading of the line is the one that counts. */
+ * there — the engine's own sound, or the voice message a reading from before it spoke readings went out as —,
+ * failed, or stopped before it stood. The newest reading of the line is the one that counts. */
 export function lineBriefing(briefings: readonly VoiceBriefing[], messageId: number): MessageBriefing {
   const reading = briefings.find((one) => one.kind === "full" && one.messageId === messageId);
 
   if (reading === undefined) return { state: "idle", source: null, voiceMessageId: null, sound: null, briefingId: null };
-  if (reading.state === "waiting") return { state: "making", source: null, voiceMessageId: null, sound: null, briefingId: reading.id };
-  if (reading.state === "failed") return { state: "failed", source: null, voiceMessageId: null, sound: null, briefingId: reading.id };
+
+  const state = readingStateOf(reading.state);
+
+  if (state !== "ready") return { state, source: null, voiceMessageId: null, sound: null, briefingId: reading.id };
 
   return {
-    state: "ready",
+    state,
     source: reading.spoken ? "kept" : reading.voiceMessageId === null ? null : "voice",
     voiceMessageId: reading.voiceMessageId,
     sound: null,

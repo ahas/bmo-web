@@ -24,8 +24,8 @@ const REPOSITORY = (name: string, pin: { provider: string; model: string } | nul
   name, label: null, icon: null, ownerAccount: null, path: `/srv/${name}`, nodeName: null, supportCount: 0, prefixDocuments: [], preamble: null,
   rules: null, devCommand: null, pin, downgradeHeal: true, sampling: {}, samplingSettings: [], checkouts: []
 });
-const JOB = (id: number, itemId: number, road: { provider: string; model: string }, chosenBy: string | null) => ({
-  id, itemId, roleName: "worker", state: "running", roads: [road], chosenBy
+const JOB = (id: number, itemId: number, road: { provider: string; model: string }, chosenBy: string | null, state = "running") => ({
+  id, itemId, roleName: "worker", state, roads: [road], chosenBy
 });
 
 let role = ROLE;
@@ -36,10 +36,18 @@ standIn("AGENCY", (call) => {
   if (call.path === "/repositories") return answer({ items: [REPOSITORY("repo-a", null), REPOSITORY("repo-b", { provider: "codex", model: "gpt-5.6-sol" })], more: false });
   if (call.path === "/roles") return answer({ roles: [role, ...extraRoles], bundles: [], lines: ["worker"] });
   if (call.path === "/models") return answer({ items: [], more: false });
-  if (call.path.startsWith("/jobs?") && call.path.includes("state=running")) {
-    return answer({ items: [JOB(1, 11, { provider: "claude-code", model: "claude-opus-5-5" }, "forced"), JOB(2, 12, { provider: "deepseek", model: "deepseek-flash" }, "unheard-of")], more: false });
+  // The jobs under way: two running, one under its orderer's review, and one that ended after the list was asked.
+  if (call.path.startsWith("/jobs?") && call.path.includes("running=true")) {
+    return answer({
+      items: [
+        JOB(1, 11, { provider: "claude-code", model: "claude-opus-5-5" }, "forced"),
+        JOB(2, 12, { provider: "deepseek", model: "deepseek-flash" }, "unheard-of"),
+        JOB(3, 13, { provider: "codex", model: "gpt-5.6-sol" }, null, "reviewing"),
+        JOB(4, 14, { provider: "codex", model: "gpt-5.6-sol" }, null, "ended")
+      ],
+      more: false
+    });
   }
-  if (call.path.startsWith("/jobs?") && call.path.includes("state=starting")) return answer({ items: [], more: false });
   if (call.path.startsWith("/jobs?") && recent !== null) return answer({ items: recent, more: false });
   if (call.path.startsWith("/jobs?")) return answer({ items: [JOB(1, 11, { provider: "claude-code", model: "claude-opus-5-5" }, "forced")], more: false });
 
@@ -85,10 +93,10 @@ describe("the model plan", () => {
     expect((answered.answer as TodoModelPlan).workers["repo-b"]).toBe("codex/gpt-5.6-sol");
   });
 
-  test("names each running job's road and what chose it, leaving out a choice the agency does not name", async () => {
+  test("names each road of a job under way, one under review among them, and what chose it, leaving out a choice the agency does not name", async () => {
     const got = (await asked(plan, {})).answer;
 
-    expect(got?.running).toEqual({ 11: "claude-code/claude-opus-5-5", 12: "deepseek/deepseek-flash" });
+    expect(got?.running).toEqual({ 11: "claude-code/claude-opus-5-5", 12: "deepseek/deepseek-flash", 13: "codex/gpt-5.6-sol" });
     expect(got?.chosenBy).toEqual({ 11: "forced" });
   });
 });

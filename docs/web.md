@@ -5457,8 +5457,8 @@ Four bounds keep it from growing forever.
 - **Every line names the model its work will go out on**, short, as a chip beside its state (「Model names where room is
   short」): the road of the agent the item names, its `agent` label, which is the road its job goes out on (the agency's
   `docs/repositories.md`, 「An agent an item names」); a line whose item names no agent yet stands no model chip, since
-  no road is chosen for it until its supervisor names one. While a job of the item runs, the line names the road that
-  run took. A tooltip names the model whole, and while
+  no road is chosen for it until its supervisor names one. While a job of the item is under way (starting, running or
+  under its orderer's review), the line names the road that run took. A tooltip names the model whole, and while
   a job runs it names after it what chose the job's road, the agency's `chosenBy` in the pack's words: 항목 지정,
   강제 지정, 고정 모델 or 공급자 순서. The item's detail names the same model in its head, in the same chip. The chip
   is pressed nowhere: the road is read, and chosen through the item's agent. A line whose item names an agent

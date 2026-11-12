@@ -1,4 +1,4 @@
-import { agency, agencyCall } from "./agency";
+import { agency, agencyCall, isJobUnderWay } from "./agency";
 
 import type { JobChosenBy, TodoModelPlan } from "#shared/types";
 
@@ -44,14 +44,13 @@ function roadOf(provider: unknown, model: unknown, registered: ReadonlyMap<strin
   return named === "registered" ? `registered/${registered.get(held) ?? held}` : `${named}/${held}`;
 }
 
-/** Each repository's own road, and the road the running job of each item went out on. */
+/** Each repository's own road, and the road the job under way of each item went out on, one under review among them. */
 export async function todoModelPlan(): Promise<TodoModelPlan> {
-  const [repositories, roles, models, running, starting, recent] = await Promise.all([
+  const [repositories, roles, models, underWay, recent] = await Promise.all([
     agencyCall(agency().GET("/repositories")),
     agencyCall(agency().GET("/roles")),
     agencyCall(agency().GET("/models")),
-    agencyCall(agency().GET("/jobs", { params: { query: { state: "running", limit: 200 } } })),
-    agencyCall(agency().GET("/jobs", { params: { query: { state: "starting", limit: 200 } } })),
+    agencyCall(agency().GET("/jobs", { params: { query: { running: true, limit: 200 } } })),
     agencyCall(agency().GET("/jobs", { params: { query: { limit: 200 } } }))
   ]);
 
@@ -97,19 +96,21 @@ export async function todoModelPlan(): Promise<TodoModelPlan> {
   const runningModels: Record<number, string> = {};
   const chosenBy: Record<number, JobChosenBy> = {};
 
-  for (const page of [running, starting]) {
-    const jobRows = (page as { items?: unknown }).items;
+  const jobRows = (underWay as { items?: unknown }).items;
 
-    for (const row of Array.isArray(jobRows) ? jobRows : []) {
-      const job = row as { itemId?: unknown; roads?: unknown; chosenBy?: unknown };
-      const roads = Array.isArray(job.roads) ? job.roads : [];
-      const last = roads.at(-1) as { provider?: unknown; model?: unknown } | undefined;
-      const item = typeof job.itemId === "number" ? job.itemId : null;
-      const road = last === undefined ? null : roadOf(last.provider, last.model, registered);
+  for (const row of Array.isArray(jobRows) ? jobRows : []) {
+    const job = row as { itemId?: unknown; state?: unknown; roads?: unknown; chosenBy?: unknown };
 
-      if (item !== null && road !== null) runningModels[item] = road;
-      if (item !== null && CHOSEN_BY.includes(job.chosenBy as JobChosenBy)) chosenBy[item] = job.chosenBy as JobChosenBy;
-    }
+    // Each job is held to its own state, so a list answering more than its filter asked for names no ended job's road.
+    if (typeof job.state !== "string" || !isJobUnderWay(job.state)) continue;
+
+    const roads = Array.isArray(job.roads) ? job.roads : [];
+    const last = roads.at(-1) as { provider?: unknown; model?: unknown } | undefined;
+    const item = typeof job.itemId === "number" ? job.itemId : null;
+    const road = last === undefined ? null : roadOf(last.provider, last.model, registered);
+
+    if (item !== null && road !== null) runningModels[item] = road;
+    if (item !== null && CHOSEN_BY.includes(job.chosenBy as JobChosenBy)) chosenBy[item] = job.chosenBy as JobChosenBy;
   }
 
   return { workers, agents, running: runningModels, chosenBy };

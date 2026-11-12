@@ -6,7 +6,7 @@ import { answer, standIn } from "../../support/units";
 import type { Asked } from "../../support/units";
 
 // An item's work order read from a stand-in bmo-job and laid out as the console's order: each step of the fixed
-// order is one task, counted from one and run in turn, so the steps stand once each, as the order's build steps.
+// order is one task, counted from one and run in turn, so the steps stand once each, named by their place among them.
 
 const [first, second, third] = ["Lay out the workplace", "Place the runs", "Check on a real machine"];
 const steps = [first, second, third];
@@ -47,7 +47,7 @@ describe("an item's fixed work order", () => {
     expect(order?.tasks.map((task) => task.rejections)).toEqual([2, 0, 0]);
   });
 
-  test("stands each step once, as a build step titled by its own step, the current one alone at work", async () => {
+  test("stands each step once, named by its place and titled by its own step, the current one alone at work", async () => {
     const order = await readWorkOrder(7);
 
     expect(order).not.toBeNull();
@@ -56,9 +56,9 @@ describe("an item's fixed work order", () => {
     const laid = workSteps((key, values) => `${key}${values ? JSON.stringify(values) : ""}`, workOrderView(order!));
 
     expect(laid.map((step) => [step.name, step.title, step.state])).toEqual([
-      ['todo.label.step_build_place{"n":1,"of":3}', first, "done"],
-      ['todo.label.step_build_place{"n":2,"of":3}', second, "running"],
-      ['todo.label.step_build_place{"n":3,"of":3}', third, "pending"]
+      ['todo.label.step_stage_place{"n":1,"of":3}', first, "done"],
+      ['todo.label.step_stage_place{"n":2,"of":3}', second, "running"],
+      ['todo.label.step_stage_place{"n":3,"of":3}', third, "pending"]
     ]);
   });
 });

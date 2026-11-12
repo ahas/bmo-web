@@ -155,7 +155,7 @@ describe("skipped tasks on the panel", () => {
     expect(stepper).toContain(":class=\"{ 'text-muted': sub.state === 'skipped' }\"");
   });
 
-  test("the progress line names the step the order is at and counts the build steps alone, done and skipped apart", () => {
+  test("the progress line names the step the order is at and counts the order's steps, done and skipped apart", () => {
     expect(source).toContain("{{ phaseName($t, order) }}");
     expect(source).toContain("const counts = computed(() => taskCounts(order.value?.tasks ?? []));");
     expect(source).toContain('{{ phaseName($t, order) }} <RollingNumber v-if="counts.total > 0" :value="counts.done" :text="progressText(counts.done, counts.total)" />');

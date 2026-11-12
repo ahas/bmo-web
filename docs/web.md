@@ -5594,7 +5594,11 @@ Four bounds keep it from growing forever.
   work order of stages whose job laid out a plan of its own — the newest plan its latest job wrote with its plan tool,
   as the work view reads it (「The work view」 under 「Agent screen」) — stands that plan's steps on the same stepper,
   each with its state, read again every few seconds while the job runs (「실행 기록」 below); a step of it opens nothing, since the plan is
-  the job's own work and its log is where it is read. A stage of the work order has a head of two
+  the job's own work and its log is where it is read. Each step of an item's work order is one of the stages
+  its orderer set, in their order, so a step is named by its place among them — **단계 1/3** — and titled by
+  the step's own words; no step is named as a kind of work, since the stages are the orderer's and the
+  orderer's words say what each one does. The order's progress line names the same: 단계 and how many of the
+  steps are done. A stage of the work order has a head of two
   lines per step. The first line holds the step's name and its co-worker types, which keep their width, then its
   title, which takes the rest and ends in an ellipsis, and at the right end the time it took, lined up down the list.
   The second holds the models, which take the free width and slide where they do not fit, then at the right end the

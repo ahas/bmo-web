@@ -118,8 +118,8 @@ export function taskCounts(tasks: WorkTask[]): { done: number; skipped: number; 
 // build task, the final turn, or an earlier round. A stage is one step however many tasks it runs.
 export interface WorkStep {
   key: string;
-  // What kind of step it is, by its name (docs/work-orders.md 「What a step is called」): a build
-  // step with which of the build steps it is. An earlier round, standing for a whole run, has none.
+  // What the step is called: a design step by its kind, a step of the order's own stages by its place
+  // among them. An earlier round, standing for a whole run, has none.
   name: string;
   title: string;
   tasks: WorkTask[];
@@ -192,23 +192,24 @@ export function phaseName(t: Translate, order: WorkOrder): string {
     case "synthesis":
       return t("todo.label.step_synthesis");
     case "implementation":
-      return t("todo.label.step_build");
+      return t("todo.label.step_stage");
     default:
       return t("todo.label.step_final");
   }
 }
 
 // The order's steps in the order they ran; a step not yet begun keeps the place the plan gave it,
-// after every step that has. A build step is numbered among the build steps alone.
+// after every step that has. A step of the order's own is one of the stages its orderer set and is named by
+// its place among them alone, its title saying what it does (docs/web.md, 「작업 단계」).
 export function workSteps(t: Translate, order: WorkOrderView): WorkStep[] {
   const ended = order.ended ?? {};
   const rounds = [...new Set(order.history.flatMap((task) => (task.round === undefined ? [] : [task.round])))];
-  const builds = order.tasks.length;
+  const places = order.tasks.length;
   const steps = [
     ...rounds.map((round) => stepOf(`round-${round}`, "", t("todo.label.round_result", { round }), order.history.filter((task) => task.round === round), ended)),
     ...order.history.filter((task) => task.round === undefined).map((task) => stepOf(task.id, controlName(t, task.id), taskTitle(task), [task], ended)),
     ...order.stages.map((stage, index) => stepOf(`stage-${index}`, stageName(t, stage), stage.title, stage.tasks, ended)),
-    ...order.tasks.map((task, index) => stepOf(task.id, t("todo.label.step_build_place", { n: index + 1, of: builds }), taskTitle(task), [task], ended)),
+    ...order.tasks.map((task, index) => stepOf(task.id, t("todo.label.step_stage_place", { n: index + 1, of: places }), taskTitle(task), [task], ended)),
     ...(order.control ? [stepOf(order.control.id, t("todo.label.step_final"), taskTitle(order.control), [order.control], ended)] : [])
   ].filter((step) => step.tasks.length > 0);
 

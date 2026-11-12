@@ -215,7 +215,7 @@ describe("the steps of an order", () => {
     expect(stepHeading(wording, mixed.find((step) => step.title === "Look")!)).toBe([wording("todo.label.task_done"), wording("todo.label.step_investigate"), "scout", "verifier", "Look"].join(" · "));
   });
 
-  test("every step wears the name of its kind, and only a build step is numbered, among the build steps", () => {
+  test("a design step wears the name of its kind, and a step of the order's own is numbered among those steps alone", () => {
     const named = workSteps(
       wording,
       order({
@@ -238,8 +238,8 @@ describe("the steps of an order", () => {
       wording("todo.label.step_investigate"),
       wording("todo.label.step_review"),
       wording("todo.label.step_synthesis"),
-      wording("todo.label.step_build_place", { n: 1, of: 2 }),
-      wording("todo.label.step_build_place", { n: 2, of: 2 }),
+      wording("todo.label.step_stage_place", { n: 1, of: 2 }),
+      wording("todo.label.step_stage_place", { n: 2, of: 2 }),
       wording("todo.label.step_final"),
       wording("todo.label.step_final")
     ]);
@@ -249,7 +249,7 @@ describe("the steps of an order", () => {
     expect(phaseName(wording, order({ phase: "planning" }))).toBe(wording("todo.label.step_plan"));
     expect(phaseName(wording, order({ phase: "research", stage: 1, stages: [{ title: "Find", kind: "investigate", tasks: [] }, { title: "Check", kind: "review", tasks: [] }] }))).toBe(wording("todo.label.step_review"));
     expect(phaseName(wording, order({ phase: "synthesis" }))).toBe(wording("todo.label.step_synthesis"));
-    expect(phaseName(wording, order({ phase: "implementation" }))).toBe(wording("todo.label.step_build"));
+    expect(phaseName(wording, order({ phase: "implementation" }))).toBe(wording("todo.label.step_stage"));
     expect(phaseName(wording, order({ phase: "finalization" }))).toBe(wording("todo.label.step_final"));
   });
 

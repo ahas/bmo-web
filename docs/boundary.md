@@ -562,7 +562,8 @@ for it, and no file or table of that unit is read meanwhile.
 - **A work order's own figures.** The fixed order carries its purpose, directive, steps and tasks; the road each
   task ran, what it spent, the round it belongs to and the end it came to are no part of it, so those stand empty.
   Nor does it carry a design stage: each step is one task, counted from one and run in turn, so its tasks stand
-  as the order's build steps alone, each titled by its own step, and no stage of the console's order holds them.
+  as the order's steps alone, each named by its place among them and titled by its own step, and no stage of
+  the console's order holds them.
   Nor does it name the worker it runs on: the console's order names none, and a task's work view stands on the
   item's own worker, the built-in worker where the item names none.
 - **A room removal's counts.** The receiver answers a removal's preview and what it took in its own shape; the

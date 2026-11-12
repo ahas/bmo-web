@@ -14,6 +14,7 @@
 
     <template #body>
       <HardwareMonitor :key="machine" :url="machineHardwareUrl(machine)" :history-url="machineHistoryUrl(machine)" :live-url="machineLiveUrl(machine)" @read="named" />
+      <NodeRemoval v-if="removable !== null" :node="removable" :label="name ?? removable.label" @removed="void removed()" />
     </template>
   </UDashboardPanel>
 </template>
@@ -21,7 +22,10 @@
 <script setup lang="ts">
 import { LOCAL_MACHINE, machineHardwareUrl, machineHistoryUrl, machineIcon, machineLiveUrl, machineName } from "~/domain/hardware";
 
-import type { MachineHardware } from "#shared/types";
+import { useAdministrator } from "~/domain/access";
+import { useNodes } from "~/domain/nodes";
+
+import type { MachineHardware, MonitorNode } from "#shared/types";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -38,6 +42,21 @@ watch(machine, () => {
   last.value = null;
   failed.value = false;
 });
+
+// A node of the list, not this machine, may be taken off it by the administrator, at the foot of its own monitor.
+const administrator = useAdministrator();
+const { nodes, refresh } = useNodes();
+const router = useRouter();
+const removable = computed<MonitorNode | null>(() => {
+  if (!administrator.value || machine.value === LOCAL_MACHINE) return null;
+
+  return nodes.value.find((node) => node.name === machine.value && !node.thisMachine) ?? null;
+});
+
+async function removed(): Promise<void> {
+  await refresh();
+  await router.push("/monitor");
+}
 
 function named(reading: MachineHardware | null, didFail: boolean): void {
   if (reading !== null) last.value = reading;

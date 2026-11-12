@@ -28,6 +28,7 @@ interface NodeAnswer {
   label: string;
   kind: MonitorNode["kind"];
   thisMachine?: boolean;
+  state?: string;
 }
 
 interface MachineAnswer {
@@ -70,12 +71,21 @@ export async function listNodes(): Promise<MonitorNode[]> {
     const page: Page<NodeAnswer> = await unitFetch<Page<NodeAnswer>>(UNIT, `/nodes${query}`);
     const items = page.items ?? [];
 
-    nodes.push(...items.map((node) => ({ name: node.name, label: node.label, kind: node.kind, thisMachine: node.thisMachine === true })));
+    nodes.push(...items.map((node) => ({ name: node.name, label: node.label, kind: node.kind, thisMachine: node.thisMachine === true, connected: node.state === "connected" })));
 
     if (page.more !== true || items.length === 0) return nodes;
 
     after = items.at(-1)!.name;
   }
+}
+
+/** A node taken off the list; with `leave`, a hub node's agent is first sent a leave through its hub, so it uninstalls
+ * itself and departs rather than coming back on the next pass (the node service's `docs/nodes.md`). */
+export async function removeNode(name: string, leave: boolean): Promise<void> {
+  await unitFetch<null>(UNIT, `/nodes/${encodeURIComponent(name)}${leave ? "?leave=true" : ""}`, { method: "DELETE" }, {
+    passStatus: [409],
+    codes: { conflict: "hardware.error.node_leave_refused" }
+  });
 }
 
 function machineOf(answer: MachineAnswer, now: number = Date.now()): MachineHardware {

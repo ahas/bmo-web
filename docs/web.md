@@ -2471,9 +2471,10 @@ archive and this week's tokens remain. That is all that can actually be known th
   - its name, its live tracking switch (bmo-node's `docs/hardware.md`, 「Tracking」) and its connection type —
     SSH or Jake for a node, 로컬 for this machine;
   - each GPU by its short model name, the maker's and the brand's words dropped (`RTX 3070`);
-  - a bar for each GPU's VRAM and one for RAM, each with its figures in their physical units and its fill after
-    them;
-  - a small copy of its chip at one height on every tile;
+  - one row of two columns: in the first a bar for each GPU's VRAM and one for RAM, each with its figures in
+    their physical units and its fill after them, in the small size so they fit the half width, the bar on a line
+    of its own under them; in the second a small copy of its chip at one height on every tile. A machine whose
+    chip is not read gives the bars the whole row;
   - two live charts side by side over the last minute (bmo-node's `docs/hardware.md`, 「Live」), 사용률 and 온도,
     each drawing the CPU and every GPU as lines of their own colours on one axis, with each one's name in its
     line's colour beside its latest value.
@@ -2488,6 +2489,14 @@ archive and this week's tokens remain. That is all that can actually be known th
   that order; middling, the two columns share the width; narrow, one column in the order CPU, memory, GPU,
   storage, board. The system card carries the live tracking switch, and the CPU card the CPU limit, each written
   to the node service as it is set.
+- **A node is taken off the list at the foot of its own monitor,** by the administrator: a 노드 삭제 section under
+  the cards, never on the title bar, whose button asks first. Where the node is a hub node whose agent is attached,
+  the question offers, checked, to have jake removed from that machine and its connection ended — the node
+  service's removal with `leave`, which has the hub send the agent a leave so it uninstalls itself and departs,
+  since a hub node removed with its agent still attached comes back on the next pass; a hub node whose agent is not
+  attached says it is only taken off the list. A leave the hub does not take removes nothing and is said under the
+  section in the pack's words. Once removed, the screen goes back to the monitor's list. This machine and the
+  machine the console runs on carry no such section.
 - **How it reads.** The overview asks every second, while its tab is visible, for one answer holding every
   machine's recorded reading (the node service's `GET /machines`, which reads no machine), so every tile stands at
   the same moment and no machine's record can hold another tile's request. An answer still out at twice the

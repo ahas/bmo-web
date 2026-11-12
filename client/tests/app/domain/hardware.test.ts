@@ -27,7 +27,7 @@ function hardwareView(cpu: Partial<CpuView>, memory: Partial<MemoryView> = {}): 
 }
 
 function node(name: string, kind: MonitorNode["kind"], thisMachine = false): MonitorNode {
-  return { name, label: name.toUpperCase(), kind, thisMachine };
+  return { name, label: name.toUpperCase(), kind, thisMachine, connected: true };
 }
 
 describe("monitorMachines", () => {

@@ -18,11 +18,17 @@ const node = standIn("NODE", (one) => {
   const [path, query] = one.path.split("?") as [string, string | undefined];
   const params = new URLSearchParams(query ?? "");
 
-  if (path === "/nodes" && !params.has("after")) {
-    return answer({ items: [{ name: "node-a", label: "Node A", kind: "ssh", thisMachine: true }], more: true });
+  if (one.method === "DELETE" && path === "/nodes/node-b") {
+    return params.get("leave") === "true"
+      ? answer({ code: "conflict", error: "the hub refused the leave of node_b: no agent is attached" }, 409)
+      : new Response(null, { status: 204 });
   }
 
-  if (path === "/nodes") return answer({ items: [{ name: "node-b", label: "Node B", kind: "hub", thisMachine: false }], more: false });
+  if (path === "/nodes" && !params.has("after")) {
+    return answer({ items: [{ name: "node-a", label: "Node A", kind: "ssh", thisMachine: true, state: "connected" }], more: true });
+  }
+
+  if (path === "/nodes") return answer({ items: [{ name: "node-b", label: "Node B", kind: "hub", thisMachine: false, state: "disconnected" }], more: false });
 
   if (path === "/machines") {
     return answer({
@@ -104,13 +110,14 @@ const history = await routeOf<HistoryRange>("../../apps/web/server/api/hardware/
 const live = await routeOf<LiveRange>("../../apps/web/server/api/hardware/machines/[name]/live.get");
 const tracking = await routeOf<{ machine: string; on: boolean }>("../../apps/web/server/api/hardware/tracking.post");
 const cards = await routeOf<CardsState>("../../apps/web/server/api/cards/state.get");
+const removal = await routeOf<null>("../../apps/web/server/api/nodes/[name].delete");
 const cardEvents = await routeOf<Response>("../../apps/web/server/api/cards/events.get");
 
 describe("the machines", () => {
-  test("are the node list's, page after page, each by its name, label, kind and whether it is this machine", async () => {
+  test("are the node list's, page after page, each by its name, label, kind, whether it is this machine and whether it is reached", async () => {
     expect(await nodes({})).toEqual([
-      { name: "node-a", label: "Node A", kind: "ssh", thisMachine: true },
-      { name: "node-b", label: "Node B", kind: "hub", thisMachine: false }
+      { name: "node-a", label: "Node A", kind: "ssh", thisMachine: true, connected: true },
+      { name: "node-b", label: "Node B", kind: "hub", thisMachine: false, connected: false }
     ]);
   });
 
@@ -161,6 +168,19 @@ describe("the machines", () => {
     expect(await tracking({ body: { machine: "node-b", on: false } })).toEqual({ machine: "node-b", on: false });
     expect(node.asked.at(-1)).toMatchObject({ method: "PATCH", path: "/machines/node-b", body: { tracking: false } });
     expect(await asked(tracking, { body: { machine: "node-b" } })).toMatchObject({ status: 400, message: wording("hardware.error.tracking_direction") });
+  });
+});
+
+describe("a node's removal", () => {
+  test("asks the node service to remove it, with a leave where one is asked, and says the hub's refusal", async () => {
+    expect(await asked(removal, { params: { name: "node-b" } })).toMatchObject({ answer: null, message: "" });
+    expect(node.asked.at(-1)).toMatchObject({ method: "DELETE", path: "/nodes/node-b" });
+
+    const refused = await asked(removal, { params: { name: "node-b" }, query: { leave: "true" } });
+
+    expect(node.asked.at(-1)).toMatchObject({ method: "DELETE", path: "/nodes/node-b?leave=true" });
+    expect(refused.status).toBe(409);
+    expect(refused.message).toBe(wording("hardware.error.node_leave_refused"));
   });
 });
 

@@ -175,6 +175,8 @@ export interface MonitorNode {
   label: string;
   kind: "ssh" | "hub";
   thisMachine: boolean;
+  // Whether its last check reached it; a hub node's agent is sent a leave only while it is attached.
+  connected: boolean;
 }
 
 // A machine's live tracking or CPU limit as the node service left it once it was changed.

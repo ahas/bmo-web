@@ -294,8 +294,8 @@ function commitNames(commit: DeployCommit, item: ItemOnItsWayLive): boolean {
  * of whose carried commits names the item is testing while its check stage is under way — or before its first
  * stage, where the plan opens with the check — and deploying through every later stage. Else the item's own close
  * says it: testing while a job of the item runs its close, waiting to go live once the close handed its commit
- * over and no job of the item runs, and failed where the run the title bar reads carried that commit and ended
- * failed or rolled back. None for a finished item, or one that says neither.
+ * over, whether or not its job still waits on it, and failed where the run the title bar reads carried that
+ * commit and ended failed or rolled back. None for a finished item, or one that says neither.
  */
 export function itemDeployPhase(view: DeployView | null | undefined, item: ItemOnItsWayLive): ItemDeployPhase | null {
   if (item.done) return null;
@@ -314,7 +314,8 @@ export function itemDeployPhase(view: DeployView | null | undefined, item: ItemO
   const running = item.liveState != null;
 
   if (item.closing?.phase === "testing") return running ? "testing" : null;
-  if (item.closing?.phase !== "waiting-live" || running) return null;
+  // A job's close waits for its commit's deployment, so its job runs on while the commit waits to go live.
+  if (item.closing?.phase !== "waiting-live") return null;
 
   return carried && (run?.outcome === "failed" || run?.outcome === "rolled-back") ? "deploy-failed" : "waiting-live";
 }

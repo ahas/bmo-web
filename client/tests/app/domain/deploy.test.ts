@@ -217,10 +217,10 @@ describe("an item on its way live", () => {
     expect(itemDeployPhase(view(), item(1203, { closing }))).toBeNull();
   });
 
-  test("waits to go live once its close handed its commit over and no job of it runs", () => {
+  test("waits to go live once its close handed its commit over, its job waiting on it or ended", () => {
     expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
     expect(itemDeployPhase(view(), item(1203, { closing: waiting(null) }))).toBe("waiting-live");
-    expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBeNull();
+    expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBe("waiting-live");
     expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "live" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
   });
 
@@ -231,7 +231,7 @@ describe("an item on its way live", () => {
     expect(itemDeployPhase(failed, item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploy-failed");
     expect(itemDeployPhase(rolledBack, item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploy-failed");
     expect(itemDeployPhase(failed, item(1203, { closing: waiting("d".repeat(40)) }))).toBe("waiting-live");
-    expect(itemDeployPhase(failed, item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBeNull();
+    expect(itemDeployPhase(failed, item(1203, { closing: waiting("c".repeat(40)), liveState: "running" }))).toBe("deploy-failed");
     expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "stopped" }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
   });
 

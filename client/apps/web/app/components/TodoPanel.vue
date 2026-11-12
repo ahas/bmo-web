@@ -384,19 +384,18 @@
               </p>
 
               <div class="mt-1 flex flex-wrap items-center gap-1">
-                <UBadge :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="searched" /></UBadge>
-
-                <!-- Where the item's work stands on its way live — being tested, waiting to go live, being put live,
-                     or its deployment failed — as words beside the state: no state, filter or place in the order of
-                     its own. -->
+                <!-- Where the item's work stands on its way live — being tested, waiting to go live, being put live, or
+                     its deployment failed — is what its state chip says while it applies, in place of 진행 중 or 대기:
+                     no state, filter or place in the order of its own. -->
                 <UBadge
                   v-if="itemDeployPhase(deployView, item) !== null"
-                  color="primary"
-                  variant="outline"
+                  :color="stateColour(item)"
+                  variant="subtle"
                   size="sm"
                   icon="i-material-symbols-rocket-launch-outline"
                   data-item-deploy
                 ><SearchText :text="$t(ITEM_DEPLOY_LABELS[itemDeployPhase(deployView, item)!])" :query="searched" /></UBadge>
+                <UBadge v-else :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="searched" /></UBadge>
 
                 <!-- A job standing still behind a question says so on its row (docs/web.md, the TODO panel's section):
                      a badge here, beside the state, so it is seen without opening the item. -->

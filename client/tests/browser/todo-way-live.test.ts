@@ -9,7 +9,7 @@ import type { TodoBoard, TodoItem, TodoModelPlan } from "../../apps/web/shared/t
 
 // A TODO row says where its item's work stands on its way live (docs/web.md, the TODO panel's section): being tested
 // while a job of it runs its close, waiting to go live once the close handed its commit over, and nothing where the
-// item says neither — beside its state, at both widths.
+// item says neither — in its state chip, in place of 진행 중, at both widths.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // the board through the page's own route.
@@ -147,6 +147,7 @@ describe.skipIf(!origin || !touchReady())("what a TODO row says of its item's wa
         await panel(page, phone);
 
         expect(await wayLiveOf(page, TESTING.id)).toBe(wording("todo.label.deploy_testing"));
+        expect(await page.locator(`[data-todo-id="${TESTING.id}"]:visible`).first().innerText()).not.toContain(wording("todo.label.state_running"));
         expect(await wayLiveOf(page, WAITING.id)).toBe(wording("todo.label.deploy_waiting_live"));
         expect(await wayLiveOf(page, PLAIN.id)).toBeNull();
       } finally {

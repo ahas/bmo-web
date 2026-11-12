@@ -5681,12 +5681,14 @@ Four bounds keep it from growing forever.
     alone or with subagents of its own, is its agent's. An item bmo-job marks done while the agency's job for it is
     still going stands **완료 보고 중** until the agency tells its stream that the job ended (its `job.ended`), however long
     that takes; the agency keeps the job's lease through the close (its `docs/role-slots.md`, 「The line」), so the line
-    never falls back to 대기 on its way out. **테스트 중**, **배포 대기**, **배포 중** and **배포 실패** stand on a row,
-    beside its state chip, saying where the item's work stands on its way live. 테스트 중 stands while the job's own
+    never falls back to 대기 on its way out. **테스트 중**, **배포 대기**, **배포 중** and **배포 실패** are what a row's
+    state chip says while they apply, in place of 진행 중 or 대기, saying where the item's work stands on its way live,
+    with the rocket mark. 테스트 중 stands while the job's own
     close runs its check and its suite, which the item's label `close-phase` says as `testing` (bmo-job's
     `docs/cli.md`, 「`bmo-job job close`」), for as long as a job of the item runs. 배포 대기 stands once the close
-    handed its commit over, `close-phase` reading `waiting-live`, while no job of the item runs: its work is finished
-    and its commit is not live yet, and the item stays in the queue until it is. An item its job held until that
+    handed its commit over, `close-phase` reading `waiting-live`, whether or not its job still runs — a job's close
+    waits for its commit's deployment (bmo-job's `docs/cli.md`, 「`bmo-job job close`」): its commit is not live
+    yet, and the item stays in the queue until it is. An item its job held until that
     commit goes live — held with the label `hold-after-deploy` beside `close-phase` reading `waiting-live`, its
     last check needing the commit live (bmo-job's `docs/cli.md`, 「`bmo-job todo`」) — is not set aside: it stands
     in the queue as waiting, never as held, and carries the same words, until its hold is let go once the commit is
@@ -5695,7 +5697,7 @@ Four bounds keep it from growing forever.
     number, or is the commit the item's label `close-commit` names — the row says 테스트 중 while that run's
     검사·테스트 stage is under way and 배포 중 through every later stage until the run ends; where that run ended
     failed or rolled back, the row of an item still waiting on its commit says 배포 실패, until a job of the item
-    runs again or another run stands in the bar. They are words on the row, never a state of their own, a filter
+    runs again or another run stands in the bar. They are the chip's words, never a state of their own, a filter
     chip or a place in the order, and a finished row carries none. A reporting line stays at the top with
     the running ones, where it stood while running, until its job has ended; the 진행 중 filter shows it and its badge counts
     it. Being unfinished work its tag colour is like 진행 중's, and being a completed line it carries no drag handle, has no

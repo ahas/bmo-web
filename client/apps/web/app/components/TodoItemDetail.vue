@@ -72,16 +72,16 @@
               <ItemModelChip :item="ranItem ?? openedItem" />
             </span>
 
-            <!-- The agent the item names its work for: any agent the agency registers, of any role, chosen here while
-                 the item is not finished; its role and its road follow (the agency's docs/repositories.md, 「An agent
-                 an item names」). -->
+            <!-- Whom the item names its work for: any agent the agency registers, of any role, or a model and a role
+                 whose free agent takes it at the launch, chosen here while the item is not finished (the agency's
+                 docs/repositories.md, 「An agent an item names」). -->
             <span class="flex min-w-0 flex-wrap items-center gap-1">
               <span class="text-muted">{{ $t("todo.label.field_agent") }}</span>
               <ItemAgentChip
                 :item="openedItem"
                 :editable="!openedItem.done && openedItem.mergedInto === null"
-                :busy="busy.has(busyKey(openedItem.id, 'agent'))"
-                @pick="(agent: string) => void setAgent(openedItem!.id, agent)"
+                :busy="busy.has(busyKey(openedItem.id, 'agent')) || busy.has(busyKey(openedItem.id, 'model'))"
+                @pick="(assignment: ItemAssignment) => void setAgent(openedItem!.id, assignment)"
               />
             </span>
 
@@ -926,6 +926,7 @@ import {
   unfinishedLabel
 } from "~/domain/todos";
 import { usePolling } from "~/domain/polling";
+import type { ItemAssignment } from "~/domain/item-assignment";
 import type { TodoActFields } from "~/domain/todos";
 
 import type { Ref } from "vue";
@@ -1546,10 +1547,11 @@ async function assignWorker(id: number, chosen: string): Promise<void> {
   }
 }
 
-// The agent its jobs go out on, written to its labels. Nothing else about the row moves, and a job already running
-// keeps its agent.
-async function setAgent(id: number, agent: string): Promise<void> {
-  await act(id, "agent", { agent }, "todo.error.agent_change_failed");
+// Whom its jobs go out on, one agent or a model and a role, written to its labels. Nothing else about the row moves,
+// and a job already running keeps its agent.
+async function setAgent(id: number, assignment: ItemAssignment): Promise<void> {
+  if ("agent" in assignment) await act(id, "agent", { agent: assignment.agent }, "todo.error.agent_change_failed");
+  else await act(id, "model", { model: assignment.model, role: assignment.role ?? undefined }, "todo.error.agent_change_failed");
 
   if (failure.value === null) notice.value = t("todo.message.agent_changed", { id });
 }

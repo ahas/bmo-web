@@ -215,6 +215,23 @@ describe("the lists each item stands in", () => {
     expect((await readTodoItem(1))?.jobAgent).toBe("agent-a");
   });
 
+  test("a row assigned by a model reads its model and role, and the agent its running job took", async () => {
+    stand([
+      item(1, { state: "leased", leaseId: 1, labels: { model: "model-a", role: "role-a" } }),
+      item(2, { state: "open", labels: { model: "model-a", role: "role-a" } }),
+      item(3, { state: "open", labels: { model: "auto", role: "" } })
+    ]);
+    held.jobs = [{ id: 41, itemId: 1, state: "running", heldFor: null, agentName: "agent-a" }];
+
+    const board = await readTodoBoard();
+
+    expect(board.queue.map((row) => [row.id, row.agent, row.model, row.role, row.jobAgent])).toEqual([
+      [1, null, "model-a", "role-a", "agent-a"],
+      [2, null, "model-a", "role-a", null],
+      [3, null, null, null, null]
+    ]);
+  });
+
   test("the finished list is read as far back as the panel asked, and counted whole", async () => {
     stand([1, 2, 3, 4].map((id) => item(id, { state: "done" })));
     job.asked.length = 0;

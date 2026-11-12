@@ -36,7 +36,18 @@ const job = standIn("JOB", (one) => {
 // The jobs the agency answers as running.
 let runningJobs: { id: number; itemId: number; state: string; heldFor: string | null; agentName: string | null }[] = [];
 
-standIn("AGENCY", () => answer({ items: runningJobs, more: false }));
+// One agent of a role as the agency lists it.
+const seat = (name: string, role: string, provider: string | null, model: string | null, enabled = true) => ({ name, role, provider, model, enabled, keepsCache: false, sessions: "keep" });
+// The roles the agency lists: role-a runs model-a on two agents (one switched off) and model-b on one.
+const ROLES = [{
+  name: "role-a", label: "Role A", description: null, prompt: null, providerPrompts: {}, bundles: [], skills: null, line: "default",
+  agents: [seat("agent-a", "role-a", "provider-a", "model-a"), seat("agent-b", "role-a", "provider-b", "model-b"), seat("agent-c", "role-a", "provider-c", "model-c", false)],
+  maxConcurrent: 2, running: 0, waiting: 0, provider: null, waitingFor: null
+}];
+
+const agency = standIn("AGENCY", (one) => one.path.startsWith("/roles")
+  ? answer({ roles: ROLES, bundles: [], skills: [], lines: ["default"] })
+  : answer({ items: runningJobs, more: false }));
 
 const handler = await routeOf<{ ok: true; raised?: number; stopped?: number }>("../../apps/web/server/api/todos.post");
 
@@ -48,6 +59,7 @@ async function post(body: unknown): Promise<{ status: number; message: string }>
 
 function fresh(next: { status: number; code: string; method?: string } | null = null): void {
   job.asked.length = 0;
+  agency.asked.length = 0;
   refusal = next;
 }
 
@@ -117,10 +129,35 @@ describe("approving from the console", () => {
     await post({ action: "approve", id: 7, note: "go ahead" });
     await post({ action: "unapprove", id: 7 });
 
-    expect(job.asked.map((one) => one.body?.approval)).toEqual([
+    expect(job.asked.filter((one) => one.method === "PATCH").map((one) => one.body?.approval)).toEqual([
       {},
       null
     ]);
+  });
+
+  test("refuses an item naming a model no agent of its role runs, the role's agents and models named", async () => {
+    fresh();
+    itemLabels = { model: "model-c", role: "role-a" };
+
+    expect(await post({ action: "approve", id: 7 })).toEqual({
+      status: 422,
+      message: wording("todo.error.no_candidate", { role: "role-a", model: "model-c", agents: "agent-a (model-a), agent-b (model-b)" })
+    });
+    expect(job.asked.filter((one) => one.method === "PATCH")).toEqual([]);
+
+    itemLabels = {};
+  });
+
+  test("approves an item whose role runs its model, and one whose agent stands over its model", async () => {
+    for (const labels of [{ model: "provider-b/model-b", role: "role-a" }, { agent: "agent-c", model: "model-c", role: "role-a" }] as Record<string, string>[]) {
+      fresh();
+      itemLabels = labels;
+
+      expect(await post({ action: "approve", id: 7 })).toMatchObject({ status: 200 });
+      expect(job.asked.at(-1)?.body).toEqual({ approval: {} });
+    }
+
+    itemLabels = {};
   });
 });
 
@@ -170,40 +207,58 @@ describe("what a verb answers", () => {
   });
 });
 
-// The model an item's jobs go out on is its `model` label (docs/web.md, the TODO panel's model chip): bmo-job replaces
-// labels whole, so the item is read and its labels written back with `model` set and every other label kept.
-describe("choosing an item's model", () => {
-  test("reads the item and writes its labels back whole, the model set and the rest kept", async () => {
+// An item names one agent, or a model and the role whose free agent takes it at the launch (docs/web.md, the TODO
+// panel's agent chooser): bmo-job replaces labels whole, so the item is read and its labels written back with the one
+// assignment set, the other taken away and every other label kept.
+describe("choosing whom an item's work runs on", () => {
+  test("a model and a role are written in place of the agent the item named", async () => {
     fresh();
-    itemLabels = { kind: "fix", model: "deepseek/deepseek-flash" };
+    itemLabels = { kind: "fix", agent: "agent-a" };
 
-    expect(await post({ action: "model", id: 7, model: "claude-code/claude-opus-5-5" })).toMatchObject({ status: 200 });
+    expect(await post({ action: "model", id: 7, model: "model-b", role: "role-a" })).toMatchObject({ status: 200 });
     expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["GET /items/7", "PATCH /items/7"]);
-    expect(job.asked[1]?.body).toEqual({ labels: { kind: "fix", model: "claude-code/claude-opus-5-5" } });
+    expect(job.asked[1]?.body).toEqual({ labels: { kind: "fix", model: "model-b", role: "role-a" } });
 
     itemLabels = {};
   });
 
-  test("writes auto to leave the road to the agency, a registered model and an OpenRouter model by their whole names", async () => {
-    for (const model of ["auto", "registered/flash-next", "openrouter/vendor/model-a"]) {
-      fresh();
-      itemLabels = { kind: "fix" };
+  test("an agent is written in place of the model and the role the item named", async () => {
+    fresh();
+    itemLabels = { kind: "fix", model: "model-b", role: "role-a" };
 
-      expect(await post({ action: "model", id: 7, model })).toMatchObject({ status: 200 });
-      expect(job.asked[1]?.body).toEqual({ labels: { kind: "fix", model } });
+    expect(await post({ action: "agent", id: 7, agent: "agent-b" })).toMatchObject({ status: 200 });
+    expect(job.asked[1]?.body).toEqual({ labels: { kind: "fix", agent: "agent-b" } });
+
+    itemLabels = {};
+  });
+
+  test("a model no agent of the role runs switched on is refused with the role's agents and models, nothing written", async () => {
+    fresh();
+
+    expect(await post({ action: "model", id: 7, model: "model-c", role: "role-a" })).toEqual({
+      status: 422,
+      message: wording("todo.error.no_candidate", { role: "role-a", model: "model-c", agents: "agent-a (model-a), agent-b (model-b)" })
+    });
+    expect(await post({ action: "model", id: 7, model: "model-a", role: "role-z" })).toEqual({
+      status: 422,
+      message: wording("todo.error.unknown_role", { role: "role-z" })
+    });
+    expect(job.asked).toEqual([]);
+  });
+
+  test("refuses what is no model or no role, without asking either unit", async () => {
+    fresh();
+
+    for (const model of ["", "auto", "model a", 7, null, undefined, "m".repeat(300)]) {
+      expect(await post({ action: "model", id: 7, model, role: "role-a" })).toEqual({ status: 400, message: wording("todo.error.bad_model") });
     }
 
-    itemLabels = {};
-  });
-
-  test("refuses what is no provider and model, without calling bmo-job", async () => {
-    fresh();
-
-    for (const model of ["", "claude-opus-5-5", "/model-a", "provider-a/", "provider-a/model a", 7, null, undefined, `p/${"m".repeat(300)}`]) {
-      expect(await post({ action: "model", id: 7, model })).toEqual({ status: 400, message: wording("todo.error.bad_model") });
+    for (const role of ["", "Role A", "role:a", 7, null, undefined]) {
+      expect(await post({ action: "model", id: 7, model: "model-a", role })).toEqual({ status: 400, message: wording("todo.error.bad_role") });
     }
 
     expect(job.asked).toEqual([]);
+    expect(agency.asked).toEqual([]);
   });
 });
 

@@ -723,10 +723,15 @@ export interface TodoItem {
   reporting?: boolean;
   priority: number;
   status: string;
+  // The model the item names its work for, its `model` label: the launch seats its job on whichever agent of its role
+  // running that model is free, unless `agent` names one (the agency's docs/repositories.md, 「An agent an item
+  // names」). Null where it names none or `auto`.
   model: string | null;
-  // The agent the item names its work for, its `agent` label; null where it names none and the role's order
-  // chooses (the agency's docs/repositories.md, 「An agent an item names」).
+  // The agent the item names its work for, its `agent` label, which stands over `model`; null where it names none.
   agent: string | null;
+  // The role whose agents a `model` label is taken among, its `role` label; null or absent where it names none and the
+  // role is the one its job runs as.
+  role?: string | null;
   // The agent the job under way for this item runs on, the agency's job `agentName`: what launched it, which a change
   // of the item's label never moves. Null or absent where no job of it is under way.
   jobAgent?: string | null;

@@ -5463,34 +5463,50 @@ Four bounds keep it from growing forever.
 - **A line never pushes the panel sideways.** The title gives way and wraps however long it is, and the arrow at the
   line's end keeps its place.
 - **Every line names the model its work will go out on**, short, as a chip beside its state (「Model names where room is
-  short」): the road of the agent the item names, its `agent` label, which is the road its job goes out on (the agency's
-  `docs/repositories.md`, 「An agent an item names」); a line whose item names no agent yet stands no model chip, since
-  no road is chosen for it until its supervisor names one. While a job of the item is under way (starting, running or
-  under its orderer's review), the line names the road that run took. A tooltip names the model whole, and while
+  short」): the road of the agent the item names, its `agent` label, which is the road its job goes out on, or, where it
+  names no agent, the model its `model` label names (the agency's `docs/repositories.md`, 「An agent an item names」); a
+  line whose item names neither stands no model chip, since no road is chosen for it until its supervisor names one.
+  While a job of the item is under way (starting, running or under its orderer's review), the line names the road that
+  run took. A tooltip names the model whole, and while
   a job runs it names after it what chose the job's road, the agency's `chosenBy` in the pack's words: 항목 지정,
   강제 지정, 고정 모델 or 공급자 순서. The item's detail names the same model in its head, in the same chip. The chip
-  is pressed nowhere: the road is read, and chosen through the item's agent. A line carries as a second chip the
-  agent its work runs on: while a job of the item is under way, the agent that job runs on, the agency's job
-  `agentName`, never the item's label; otherwise the agent its `agent` label names, and none where it names none.
+  is pressed nowhere: the road is read, and chosen through the item's agent. A line carries as a second chip whom its
+  work runs on: while a job of the item is under way, the agent that job runs on, the agency's job `agentName`, never
+  the item's labels, so a line assigned by a model names there the agent its launch took; otherwise the agent its
+  `agent` label names; otherwise, where it names a model, the role it names with 빈 에이전트, its tooltip saying that
+  the agent of that role running that model that is free when the job launches takes it; and none where it names
+  neither.
   A line whose item's work was sent back by its review carries a badge
   in the warning colour with how many times, bmo-job's `rejections` of the item (bmo-job's `docs/api.md`,
   「Reviews」), and none while it was never sent back.
-- **An item is given to a repository and an agent.** Its 저장소 is its assignment, the repository whose worker and
-  checkout the work is done in (unassigned is the built-in worker), chosen in the detail's head. Its 에이전트 is the
-  agent the item names its work for, chosen in the detail's head where the item is not finished: every agent the
-  agency registers that is switched on, grouped by role, each with its road under its name, and no automatic choice,
-  since a job runs on the agent its item names and is refused where it names none; an item that names none yet
-  stands 미지정 until its supervisor or the owner names one; an agent the label
-  names that the listing does not hold stands as its name alone. The agent the item's label names stands chosen.
+- **An item is given to a repository and an agent, or a model and a role.** Its 저장소 is its assignment, the
+  repository whose worker and checkout the work is done in (unassigned is the built-in worker), chosen in the detail's
+  head. Its 에이전트 is whom the item names its work for, chosen in the detail's head where the item is not finished,
+  from one list grouped by role: under each role, first every model its agents switched on run, each once, as
+  `<role> · <model>` with the agents running it under it, and then every agent of the role switched on, each with its
+  road under its name. A model chosen names that role and that model, `model` and `role` labels, and the agency seats
+  the job at its launch on whichever agent of the role running that model is free (the agency's
+  `docs/repositories.md`, 「An agent an item names」); an agent chosen names that one agent, its `agent` label. There
+  is no automatic choice, since a job is refused where its item names neither; an item that names neither yet stands
+  미지정 until its supervisor or the owner names one; an agent or a model the labels name that the listing does not
+  hold stands as its name alone. What the item's labels name stands chosen, the agent where they name both, since an
+  `agent` label stands over a `model` label.
   While a job of the item is under way, 에이전트 stands the agent that job runs on, the agency's job `agentName`,
   read and not chosen, the shared tooltip saying it is the running job's and may be chosen once the job is stopped:
   a job runs on the agent, role and model it was launched with until it is stopped, and
   bmo-job refuses a change of what the job's lease holds fixed (bmo-job's `docs/api.md`, "While leased"). A
   choice is saved as it is picked: the console reads the item and writes its labels back whole through bmo-job's
-  `PATCH /items/{itemId}`, `agent` set to the agent's name and every other label kept as it stood, since
-  bmo-job replaces an item's labels whole. The choice reaches the item's next job, which runs as that agent's role
-  on that agent's road and waits for that agent. A refusal says why in the line under the list; bmo-job's
-  `item-frozen` is said with the job under way and the agent it runs on, read from the agency.
+  `PATCH /items/{itemId}`, since bmo-job replaces an item's labels whole: an agent chosen sets `agent` and takes
+  `model` and `role` away, a model chosen sets `model` and `role` and takes `agent` away, and every other label is
+  kept as it stood, so the item names one assignment. A model is saved only where the role it names holds, among
+  the agents the agency lists switched on, at least one whose road runs it, the model as its road names it or with
+  its provider before it; otherwise the console refuses it, writing nothing, its sentence naming the role, the model
+  and the role's agents with their models, or that the agency holds no such role. Approving an item, from its detail
+  or its line's menu, is refused the same way where it names a model and a role and no agent and no agent of that
+  role runs that model; an item naming a model and no role is left to the agency's own check at its launch, since
+  the role its job would run as is the agency's to say. The choice reaches the item's next job. A refusal says why in
+  the line under the list; bmo-job's `item-frozen` is said with the job under way and the agent it runs on, read from
+  the agency.
 - **Pressing a line stands that item's detail as a modal.** It does not spread inside the list — the panel is a
   fixed-width column and a line bears the whole of the original instruction, completion report, talk and buttons pressed
   on it, so spreading below the line pushes the rest of the queue off screen. So, like everything long in this console,

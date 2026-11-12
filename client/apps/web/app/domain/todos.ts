@@ -225,13 +225,30 @@ export function itemAgent(item: Pick<TodoItem, "agent" | "jobAgent">): string | 
   return item.jobAgent ?? item.agent;
 }
 
+// Whom a row's work goes to when no job of it is under way and it names no agent (docs/web.md, the TODO panel's
+// section): a model and the role whose free agent takes it at the launch, the role null where its label names none.
+// None while a job runs, which names its own agent, and where the item names an agent, which stands over a model.
+export function itemFreeAgent(item: Pick<TodoItem, "agent" | "jobAgent" | "model" | "role">): { role: string | null; model: string } | null {
+  if (itemAgent(item) !== null || item.model === null) return null;
+
+  return { role: item.role ?? null, model: item.model };
+}
+
+// The chip and its tooltip a row assigned by a model and a role wears in place of an agent's name.
+export function freeAgentWords(t: Translate, free: { role: string | null; model: string }): { label: string; tip: string } {
+  return free.role === null
+    ? { label: t("todo.label.assign_free_any"), tip: t("todo.label.assign_free_any_tip", { model: free.model }) }
+    : { label: t("todo.label.assign_free", { role: free.role }), tip: t("todo.label.assign_free_tip", { role: free.role, model: free.model }) };
+}
+
 // The model a row wears, short, or whole where `whole` asks for its tooltip (docs/web.md, the TODO panel's section): while a job
 // of it runs, the road that run actually took; otherwise the road of the agent the row names, the one its job goes
-// out on. None where the item names no agent yet, since nothing chooses a road for it until one is named.
+// out on, or where it names none the model its `model` label names. None where the item names neither yet, since
+// nothing chooses a road for it until one is named.
 export function itemModel(item: Pick<TodoItem, "id" | "model" | "agent" | "jobAgent" | "worker">, whole = false): string | null {
   const known = todoModelPlan().value;
   const agent = itemAgent(item);
-  const named = agent === null ? null : (known?.agents[agent] ?? null);
+  const named = agent === null ? item.model : (known?.agents[agent] ?? null);
   const road = known?.running[item.id] ?? named;
 
   return road === null || road === undefined ? null : whole ? road : shortModel(road);
@@ -906,6 +923,7 @@ export interface TodoActFields {
   why?: string;
   worker?: string | null;
   model?: string;
+  role?: string;
   agent?: string;
 }
 

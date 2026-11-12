@@ -4,6 +4,7 @@ import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields } from "../../app/domain/todos";
 import { agency, agencyCall, isJobUnderWay } from "./agency";
 import { job, jobCall } from "./job";
+import { namedLabel } from "./todo-assignment";
 
 import type { Note, Item, Report, Queue } from "bmo-job-client";
 import type { DeployHold, TodoBoard, TodoChoices, TodoItem, TodoNote, TodoReport, TodoReview, TodoStanding } from "#shared/types";
@@ -129,8 +130,6 @@ function listOf(item: Item): "queue" | "pending" | "held" | "done" {
   return "queue";
 }
 
-// The model an item was filed to run on, from the `model` label the chat agent files with it: null where it pins none,
-// the label reading `auto`, and the model named otherwise (docs/web.md, the TODO panel's section).
 // Where the item's close stands, out of the two labels bmo-job's close writes (its docs/cli.md, 「`bmo-job job
 // close`」); none where the phase label is absent or says anything else.
 function closingOf(labels: Record<string, string>): TodoItem["closing"] {
@@ -139,18 +138,6 @@ function closingOf(labels: Record<string, string>): TodoItem["closing"] {
   if (phase !== "testing" && phase !== "waiting-live") return null;
 
   return { phase, commit: (labels["close-commit"] ?? "").trim() || null };
-}
-
-function pinnedModel(labels: Record<string, string>): string | null {
-  const named = (labels.model ?? "").trim();
-
-  return named === "" || named === "auto" ? null : named;
-}
-
-function pinnedAgent(labels: Record<string, string>): string | null {
-  const named = (labels.agent ?? "").trim();
-
-  return named === "" || named === "auto" ? null : named;
 }
 
 // One item as the row the panel shows, with its reports where they were read, the last note where a screen opens
@@ -178,8 +165,9 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     reporting: item.state === "done" && liveState !== null,
     priority: item.priority,
     status: item.state,
-    model: pinnedModel(item.labels),
-    agent: pinnedAgent(item.labels),
+    model: namedLabel(item.labels, "model"),
+    agent: namedLabel(item.labels, "agent"),
+    role: namedLabel(item.labels, "role"),
     // The agent the job under way runs on, the agency's own word for it, never the item's label (docs/web.md, the TODO
     // panel's section): the label may name the next launch's agent, and the job keeps the one it was launched with.
     jobAgent: live?.agent ?? null,

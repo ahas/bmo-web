@@ -1148,6 +1148,9 @@ todo:
     bad_direction: 옮길 방향이 올바르지 않습니다.
     bad_model: 모델이 올바르지 않습니다.
     bad_agent: 에이전트 이름이 올바르지 않습니다.
+    bad_role: 역할 이름이 올바르지 않습니다.
+    no_candidate: "{role} 역할에 {model} 모델을 실행하는 에이전트가 없습니다.\n{role} 역할의 에이전트: {agents}"
+    unknown_role: "{role} 역할이 에이전시에 없습니다."
     bad_item_id: 항목 번호가 올바르지 않습니다.
     bad_note: 결재 의견이 너무 길거나 올바르지 않습니다.
     bad_order: 저장할 순서가 올바르지 않습니다.
@@ -1294,6 +1297,12 @@ todo:
     field_waiting: 대기
     field_worker: 저장소
     agent_unnamed: 미지정
+    assign_model: "{role} · {model}"
+    assign_model_agents: "빈 에이전트 · {agents}"
+    assign_free: "{role} 빈 에이전트"
+    assign_free_any: 빈 에이전트
+    assign_free_tip: "{role} 역할에서 {model} 모델을 실행하는 에이전트 중 Job을 시작할 때 비어 있는 에이전트가 맡습니다."
+    assign_free_any_tip: "{model} 모델을 실행하는 에이전트 중 Job을 시작할 때 비어 있는 에이전트가 맡습니다."
     agent_job_running: "실행 중인 Job의 에이전트입니다.\nJob을 중지한 뒤 바꿀 수 있습니다."
     filter: 필터
     held_failure: 실패로 보류

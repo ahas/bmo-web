@@ -5,6 +5,8 @@ import { wording } from "../../../apps/web/shared/wording";
 import { setModelRegistrations } from "../../../apps/web/shared/model-short";
 import {
   itemModel,
+  itemFreeAgent,
+  freeAgentWords,
   reviewCheckLabel,
   itemModelTip,
   boardInOrder,
@@ -248,14 +250,31 @@ describe("what a row shows", () => {
     // An item that names its agent wears that agent's road, whatever an older model label or its worker would say.
     expect(itemModel(item(8, { model: null, agent: "coder-03", worker: "bmo-agent" }))).toBe("QFN38");
     expect(itemModel(item(8, { model: "deepseek/deepseek-flash", agent: "coder-03", worker: "bmo-agent" }), true)).toBe("registered/qwen3.8-flash-next");
-    // An item that names no agent yet has no road chosen, so it wears no model, a label or a worker notwithstanding.
-    expect(itemModel(item(8, { model: "claude-code/claude-opus-5-5", worker: "bmo-agent" }))).toBeNull();
+    // An item that names no agent wears the model its label names, whichever free agent runs it at the launch.
+    expect(itemModel(item(8, { model: "claude-code/claude-opus-5-5", worker: "bmo-agent" }))).toBe("CC/CO55");
+    // An item naming neither has no road chosen, so it wears no model, its worker notwithstanding.
     expect(itemModel(item(7, { model: null, worker: "unheard-of" }))).toBeNull();
     // A job of the item running names the road that run actually took.
     expect(itemModel(item(9, { model: null, worker: "bmo-agent" }))).toBe("CC/CO55");
     expect(itemModel(item(9, { model: null, worker: "bmo-agent" }), true)).toBe("claude-code/claude-opus-5-5");
 
     plan.value = null;
+  });
+
+  test("a line assigned by a model names its role's free agent, until a job names the agent it took", () => {
+    const free = itemFreeAgent(item(8, { model: "model-a", role: "role-a", agent: null }));
+
+    expect(free).toEqual({ role: "role-a", model: "model-a" });
+    expect(freeAgentWords(wording, free!)).toEqual({
+      label: wording("todo.label.assign_free", { role: "role-a" }),
+      tip: wording("todo.label.assign_free_tip", { role: "role-a", model: "model-a" })
+    });
+    // A model named with no role is taken among the role its job runs as.
+    expect(freeAgentWords(wording, itemFreeAgent(item(8, { model: "model-a", agent: null }))!).label).toBe(wording("todo.label.assign_free_any"));
+    // An agent stands over a model, and a running job names its own agent.
+    expect(itemFreeAgent(item(8, { model: "model-a", role: "role-a", agent: "agent-a" }))).toBeNull();
+    expect(itemFreeAgent(item(8, { model: "model-a", role: "role-a", agent: null, jobAgent: "agent-b" }))).toBeNull();
+    expect(itemFreeAgent(item(8, { model: null, agent: null }))).toBeNull();
   });
 
   test("the tooltip names the model whole, and while a job runs what chose its road in the pack's words", () => {

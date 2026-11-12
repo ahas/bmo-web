@@ -1,9 +1,10 @@
 <template>
-  <!-- The agent an item's work is to go out on (docs/web.md, the TODO panel's section): the item's `agent` label as a
-       chooser of every agent the agency registers, grouped by role, each with its road, and no automatic choice: a job runs on
-       the agent its item names. Where the item is not finished the pick is handed up to be saved at once. While a job of
-       the item is under way it stands the agent that job runs on, read and not chosen: the job keeps what it was
-       launched with until it is stopped. -->
+  <!-- Whom an item's work is to go out on (docs/web.md, the TODO panel's section): one agent by its `agent` label, or a
+       model and a role by its `model` and `role` labels, the launch then seating the job on whichever agent of that role
+       running that model is free. A chooser grouped by role offers under each role the models its agents switched on
+       run, then those agents, each with its road, and no automatic choice: a job runs on what its item names. Where the
+       item is not finished the pick is handed up to be saved at once. While a job of the item is under way it stands the
+       agent that job runs on, read and not chosen: the job keeps what it was launched with until it is stopped. -->
   <HintTip v-if="running !== null" :text="$t('todo.label.agent_job_running')">
     <UBadge color="neutral" variant="outline" size="sm" icon="i-material-symbols-lock-outline" data-item-agent data-item-agent-running>{{ running }}</UBadge>
   </HintTip>
@@ -24,27 +25,26 @@
     @update:model-value="pick"
     @update:open="(open: boolean) => open && void read()"
   />
-  <UBadge v-else color="neutral" variant="outline" size="sm" data-item-agent>{{ props.item.agent ?? $t("todo.label.agent_unnamed") }}</UBadge>
+  <UBadge v-else color="neutral" variant="outline" size="sm" data-item-agent>{{ shown }}</UBadge>
 </template>
 
 <script setup lang="ts">
-import { agentRoadText } from "~/domain/role-agents";
+import { assignmentChoices, assignmentLabel, assignmentOf, assignmentValue, namedAssignment } from "~/domain/item-assignment";
 
 import type { RolesView } from "#shared/axes";
-import type { CellChoice } from "~/domain/settings-cells";
+import type { ItemAssignment } from "~/domain/item-assignment";
 import type { TodoItem } from "#shared/types";
 
 interface Props {
-  item: Pick<TodoItem, "agent" | "jobAgent">;
-  // Whether the item is not finished, so its agent may still be chosen.
+  item: Pick<TodoItem, "agent" | "jobAgent" | "model" | "role">;
+  // Whether the item is not finished, so its assignment may still be chosen.
   editable: boolean;
   busy?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), { busy: false });
 const emit = defineEmits<{
-  // The agent chosen by name.
-  pick: [agent: string];
+  pick: [assignment: ItemAssignment];
 }>();
 
 const { t } = useI18n();
@@ -66,25 +66,17 @@ async function read(): Promise<void> {
 }
 
 const running = computed(() => props.item.jobAgent ?? null);
-const chosen = computed(() => props.item.agent ?? undefined);
-const items = computed<CellChoice[][]>(() => {
-  const groups: CellChoice[][] = (view.value?.roles ?? []).map((role) => [
-    { type: "label", value: `@${role.name}`, label: role.name },
-    ...role.agents.filter((agent) => agent.enabled).map((agent) => ({
-      value: agent.name,
-      label: agent.name,
-      description: agentRoadText(null, agent) ?? t("live.label.space_follows")
-    }))
-  ]);
-  // The agent the label names stands even where the listing has not been read yet.
-  const named: CellChoice[][] = chosen.value === undefined || groups.some((group) => group.some((one) => one.value === chosen.value)) ? [] : [[{ value: chosen.value, label: chosen.value }]];
-
-  return [...named, ...groups];
-});
+const named = computed(() => namedAssignment(props.item));
+const chosen = computed(() => (named.value === null ? undefined : assignmentValue(named.value)));
+const shown = computed(() => (named.value === null ? t("todo.label.agent_unnamed") : assignmentLabel(t, named.value)));
+const items = computed(() => assignmentChoices(t, view.value?.roles ?? [], named.value));
 
 function pick(value: unknown): void {
   if (typeof value !== "string" || value === chosen.value || props.busy) return;
 
-  emit("pick", value);
+  const assignment = assignmentOf(value);
+
+  // Every model the list offers names its role; one with none is only ever what the labels already name.
+  if ("agent" in assignment || assignment.role !== null) emit("pick", assignment);
 }
 </script>

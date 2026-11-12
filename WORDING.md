@@ -77,6 +77,8 @@
 - one seat of a role, on one road → 에이전트: 에이전트, 에이전트 추가, 에이전트 없음. An agent that names no road →
   요청한 감독관을 따름; what it lays over its role's preset → 역할 위에 덮어쓰기; one that carries a run → 실행 중. Never
   자리, 인스턴스, 워커 for the seat.
+- an item assigned by a model and a role, taken at its launch by whichever agent of the role running the model is
+  free → 빈 에이전트: `<role> 빈 에이전트` on its line, `<role> · <model>` as the choice. Never 아무 에이전트, 자동 배정.
 - supervisor → 감독관: 감독관, 감독관 추가, 감독관의 설정, 감독관 없음, 감독관 중단. Every agent that answers in rooms
   is a supervisor, and every sentence names it 감독관 alone; a screen never calls one 채팅 에이전트 or by a word for a
   partner in a chat.

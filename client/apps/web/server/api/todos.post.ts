@@ -10,6 +10,14 @@ import {
   STOP_REASON_NEEDED
 } from "#shared/config";
 import { wording } from "#shared/wording";
+import {
+  isAssignedModel,
+  isRoleName,
+  labelsNamingAgent,
+  labelsNamingModel,
+  requireCandidateOfLabels,
+  requireModelCandidate
+} from "../utils/todo-assignment";
 
 import type { Item } from "bmo-job-client";
 import type { TodoAction, TodoActionResult } from "#shared/types";
@@ -28,6 +36,7 @@ interface TodoBody {
   sources?: unknown;
   worker?: unknown;
   model?: unknown;
+  role?: unknown;
   agent?: unknown;
 }
 
@@ -158,11 +167,16 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   }
 
   const model = body?.model;
+  const role = body?.role;
 
-  // The provider and model its jobs go out on: `auto`, or a provider, a slash and a model. Whether the agency carries
-  // them is the agency's to say as a job of the item is launched.
-  if (action === "model" && !isModelLabel(model)) {
+  // A model and the role whose agents run it, the launch seating the job on whichever of them is free. Whether the
+  // role holds an agent on that model is checked against the agency's listing before anything is written.
+  if (action === "model" && !isAssignedModel(model)) {
     throw fail(400, wording("todo.error.bad_model"));
+  }
+
+  if (action === "model" && !isRoleName(role)) {
+    throw fail(400, wording("todo.error.bad_role"));
   }
 
   const agent = body?.agent;
@@ -177,6 +191,8 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
   // item has no place for — an unfinished note resolved — is refused as one this item cannot take.
   switch (action) {
     case "approve":
+      // An item naming a model no agent of its role runs is not approved (docs/web.md, the TODO panel's section).
+      await requireCandidateOfLabels((await readItem(id)).labels);
       // Who approves is the caller the console's token names, never a field of the change.
       await patchItem(id, { approval: {} });
       break;
@@ -199,10 +215,11 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       await patchItem(id, { assigneeName: worker === null ? null : String(worker) });
       break;
     case "model":
-      await setLabel(id, "model", model as string);
+      await requireModelCandidate(role as string, model as string);
+      await patchItem(id, { labels: labelsNamingModel((await readItem(id)).labels, model as string, role as string) });
       break;
     case "agent":
-      await setLabel(id, "agent", agent as string);
+      await patchItem(id, { labels: labelsNamingAgent((await readItem(id)).labels, agent as string) });
       break;
     case "append":
       await jobCall(job().POST("/items/{itemId}/notes", {
@@ -301,25 +318,14 @@ async function readTodoBoardItems(): Promise<Item[]> {
   return page.items;
 }
 
-// bmo-job replaces an item's labels whole, so the item is read and its labels written back with the one label set
-// and every other kept as it stood (docs/web.md, the TODO panel's agent chooser).
-async function setLabel(id: number, label: "model" | "agent", value: string): Promise<void> {
-  const item = await jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } } }));
-
-  await patchItem(id, { labels: { ...item.labels, [label]: value } });
+// The item as bmo-job holds it. bmo-job replaces an item's labels whole, so an assignment is written over the labels
+// read here, every other label kept as it stood (docs/web.md, the TODO panel's agent chooser).
+async function readItem(id: number): Promise<Item> {
+  return await jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } } }));
 }
 
 function isAgentLabel(value: unknown): value is string {
   return typeof value === "string" && value.length <= MODEL_LABEL_LIMIT && (value === "auto" || /^[a-z][a-z0-9-]*$/.test(value));
-}
-
-function isModelLabel(value: unknown): value is string {
-  if (typeof value !== "string" || value.length > MODEL_LABEL_LIMIT) return false;
-  if (value === "auto") return true;
-
-  const at = value.indexOf("/");
-
-  return at > 0 && at < value.length - 1 && !/\s/.test(value);
 }
 
 function isOrder(value: unknown): value is number[] {

@@ -560,8 +560,8 @@ describe("the result of an item", () => {
 });
 
 // The model chip and the agent chooser (docs/web.md, the TODO panel's section): the chip names the road on the line
-// and in the opened item's head and is pressed nowhere; the agent an item names is chosen in the head, any agent the
-// agency registers, its pick sent as the `agent` verb.
+// and in the opened item's head and is pressed nowhere; whom an item names is chosen in the head, any agent the agency
+// registers or a model its role's agents run, its pick sent as the `agent` or the `model` verb.
 const chip = await Bun.file(new URL("../../../apps/web/app/components/ItemModelChip.vue", import.meta.url)).text();
 const agentChip = await Bun.file(new URL("../../../apps/web/app/components/ItemAgentChip.vue", import.meta.url)).text();
 
@@ -571,7 +571,9 @@ describe("the model chip and the agent chooser", () => {
   const agentScript = agentChip.slice(agentChip.indexOf("<script"));
 
   test("the chip names the road on the line and in the head and is pressed nowhere", () => {
-    expect(template).toContain('<ItemModelChip :item="item" :query="searched" />');
+    // On the line a tap opens the item, so a finger rests on the chip to read its tooltip; in the head a tap reads it.
+    expect(template).toContain('<ItemModelChip :item="item" :query="searched" press />');
+    expect(chipTemplate).toMatch(/<HintTip [^>]*:press="props.press">/);
     expect(detailTemplate).toContain('<ItemModelChip :item="ranItem ?? openedItem" />');
     expect(chipTemplate).not.toContain("<USelect");
     expect(chipTemplate).toMatch(/<UBadge[^>]*data-item-model/);
@@ -585,8 +587,10 @@ describe("the model chip and the agent chooser", () => {
     expect(agentScript).toContain('$fetch<RolesView>("/api/roles")');
     expect(agentScript).not.toContain("AUTO");
     expect(agentTemplate).toContain(":placeholder=\"$t('todo.label.agent_unnamed')\"");
-    // The line names the agent its work runs on: the running job's own, else the one the item names.
+    // The line names the agent its work runs on: the running job's own, else the one the item names, else the role
+    // whose free agent on its model takes it.
     expect(template).toContain('data-item-agent-named>{{ itemAgent(item) }}');
+    expect(template).toMatch(/<HintTip v-else-if="itemFreeAgent\(item\) !== null"[^>]*press>\s*<UBadge[^>]*data-item-agent-free>/);
   });
 
   test("while a job runs the head stands the agent it runs on, read and not chosen", () => {
@@ -594,9 +598,9 @@ describe("the model chip and the agent chooser", () => {
     expect(agentScript).toContain("props.item.jobAgent ?? null");
   });
 
-  test("sends its pick as the agent verb from the head", () => {
-    expect(detailSource).toContain('await act(id, "agent", { agent }, "todo.error.agent_change_failed");');
-    expect(detailTemplate).toContain('@pick="(agent: string) => void setAgent(');
-    expect(source).not.toContain('"model", { model }');
+  test("sends its pick as the agent or the model verb from the head", () => {
+    expect(detailSource).toContain('await act(id, "agent", { agent: assignment.agent }, "todo.error.agent_change_failed");');
+    expect(detailSource).toContain('await act(id, "model", { model: assignment.model, role: assignment.role ?? undefined }, "todo.error.agent_change_failed");');
+    expect(detailTemplate).toContain('@pick="(assignment: ItemAssignment) => void setAgent(');
   });
 });

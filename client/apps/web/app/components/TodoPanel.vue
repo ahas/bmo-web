@@ -404,11 +404,15 @@
                 <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
                 <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
 
-                <!-- The model this item's work will go out on, short, with its whole name on hover, and the agent its
-                     work runs on: the running job's own while one is under way, else the one the item names
-                     (docs/web.md, the TODO panel's section). -->
-                <ItemModelChip :item="item" :query="searched" />
+                <!-- The model this item's work will go out on, short, with its whole name on hover, and whom its work
+                     runs on: the running job's own agent while one is under way, else the agent the item names, else
+                     the role whose free agent on its model takes it at the launch (docs/web.md, the TODO panel's
+                     section). -->
+                <ItemModelChip :item="item" :query="searched" press />
                 <UBadge v-if="itemAgent(item) !== null" color="neutral" variant="subtle" size="sm" icon="i-material-symbols-smart-toy-outline" data-item-agent-named>{{ itemAgent(item) }}</UBadge>
+                <HintTip v-else-if="itemFreeAgent(item) !== null" :text="freeAgentWords($t, itemFreeAgent(item)!).tip" press>
+                  <UBadge color="neutral" variant="subtle" size="sm" icon="i-material-symbols-groups-outline" data-item-agent-free>{{ freeAgentWords($t, itemFreeAgent(item)!).label }}</UBadge>
+                </HintTip>
                 <!-- How many times the item's review sent its work back, while it was sent back at all. -->
                 <UBadge v-if="item.rejections > 0" color="warning" variant="subtle" size="sm" icon="i-material-symbols-undo" data-item-rejections>{{ $t("todo.label.rejections", { n: countText(item.rejections) }) }}</UBadge>
 
@@ -564,6 +568,8 @@ import {
   conditionCount,
   conditionQuery,
   itemAgent,
+  itemFreeAgent,
+  freeAgentWords,
   NO_CONDITIONS,
   NO_ROOM
 } from "~/domain/todos";

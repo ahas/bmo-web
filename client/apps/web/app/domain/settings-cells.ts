@@ -18,6 +18,7 @@ export interface CellChoice {
   value: string | number;
   label: string;
   description?: string;
+  icon?: string;
   disabled?: boolean;
   type?: "label";
 }

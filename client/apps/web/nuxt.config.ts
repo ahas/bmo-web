@@ -91,11 +91,37 @@ export default defineNuxtConfig({
   // A dev server answers only the hosts it is told of: those `BMO_WEB_DEV_HOSTS` names, comma-separated.
   vite: {
     server: { allowedHosts: (process.env.BMO_WEB_DEV_HOSTS ?? "").split(",").filter((host) => host !== "") },
-    // The development server pre-bundles only what its scan of the console's own files finds. The layer's
-    // modules stand inside node_modules, where the scan does not go, and bmo-ui's time module imports dayjs
-    // and its plugins, which ship as CommonJS. Served unbundled, the browser finds no default export in
-    // dayjs, and the app does not start. So they are named here.
-    optimizeDeps: { include: ["dayjs", "dayjs/plugin/utc", "dayjs/plugin/timezone"] },
+    // The development server pre-bundles at its start only what its scan finds and the names listed here. The
+    // layer's modules stand inside node_modules, where the scan does not go, and bmo-ui's time module imports
+    // dayjs and its plugins, which ship as CommonJS: served unbundled, the browser finds no default export in
+    // dayjs, and the app does not start. The scan starts at the app's entry and reaches the pages only through
+    // Nuxt's generated imports, which it cannot follow, and a library first met once a page stands is bundled
+    // then and reloads every open page, losing what the page held. So the libraries the console's own pages and
+    // screens import are listed too.
+    optimizeDeps: {
+      include: [
+        "dayjs",
+        "dayjs/plugin/utc",
+        "dayjs/plugin/timezone",
+        "dayjs/locale/ko",
+        "@internationalized/date",
+        "bmo-text/markdown",
+        "dompurify",
+        "echarts/core",
+        "echarts/charts",
+        "echarts/components",
+        "echarts/renderers",
+        "es-module-lexer",
+        "lottie-web",
+        "marked",
+        "motion-v",
+        "three/webgpu",
+        "three/tsl",
+        "three/addons/controls/OrbitControls.js",
+        "three/addons/tsl/display/BloomNode.js",
+        "three/addons/tsl/display/DepthOfFieldNode.js"
+      ]
+    },
     plugins: [yamlData],
     build: {
       // Rolldown's notice of how much of a build its plugins took is off. Most of a Nuxt build is plugin

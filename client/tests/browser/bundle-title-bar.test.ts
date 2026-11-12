@@ -32,9 +32,15 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-// A move inside the app, the way the sidebar makes one: the router asked for the path, the page left standing.
+// The app stood in the page the server drew: until the mount carries it, there is no router to make a move with.
+async function hydrated(page: Page): Promise<void> {
+  await page.waitForFunction(() => Reflect.get(document.querySelector("#__nuxt") ?? {}, "__vue_app__") !== undefined, null, { timeout: 30_000 });
+}
+
+// A move inside the app, the way the sidebar makes one: the router asked for the path, the page left standing. What
+// the move brings is waited on by what the page shows, never by the router's own promise.
 async function go(page: Page, path: string): Promise<void> {
-  await page.evaluate(`document.querySelector("#__nuxt").__vue_app__.config.globalProperties.$router.push(${JSON.stringify(path)})`);
+  await page.evaluate(`void document.querySelector("#__nuxt").__vue_app__.config.globalProperties.$router.push(${JSON.stringify(path)})`);
 }
 
 async function mounts(page: Page): Promise<{ screen: string; slot: boolean }[]> {
@@ -85,7 +91,7 @@ describe.skipIf(!origin || !touchReady())("a screen a unit brings, under the con
 
       page.on("pageerror", (error) => errors.push(String(error)));
       await page.goto(`${origin}/live`, { waitUntil: "load" });
-      await page.waitForTimeout(1_000);
+      await hydrated(page);
       await go(page, "/screen-a");
       await standing(page, "screen-a");
       await go(page, "/screen-b");

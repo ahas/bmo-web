@@ -319,6 +319,9 @@ let still = false;
 let last = 0;
 let running = false;
 let watcher: ResizeObserver | null = null;
+// Whether the space has left the page: the scene is made after the mount, and one made once the reader has moved on
+// is dropped rather than drawn into a holder no longer there.
+let left = false;
 
 function frame(clock: number): void {
   if (!running) return;
@@ -359,12 +362,22 @@ onMounted(async () => {
   still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   void load();
 
-  if (canvas.value === null || holder.value === null) return;
+  const into = canvas.value;
+  const box = holder.value;
+
+  if (into === null || box === null) return;
 
   try {
     const { makeScene } = await import("~/domain/alley/scene");
+    const made = await makeScene(into, box);
 
-    scene = await makeScene(canvas.value, holder.value);
+    if (left) {
+      made.dispose();
+
+      return;
+    }
+
+    scene = made;
   } catch (error) {
     console.error("the space could not be drawn", error);
     unsupported.value = true;
@@ -377,13 +390,14 @@ onMounted(async () => {
 
   ready.value = true;
   watcher = new ResizeObserver(() => scene?.resize());
-  watcher.observe(holder.value);
+  watcher.observe(box);
   running = true;
   last = performance.now();
   requestAnimationFrame(frame);
 });
 
 onBeforeUnmount(() => {
+  left = true;
   running = false;
   watcher?.disconnect();
   scene?.dispose();

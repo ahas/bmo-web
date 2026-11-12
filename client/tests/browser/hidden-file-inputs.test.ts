@@ -9,7 +9,8 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 // The file inputs the console hides staying hidden (docs/web.md, 「Screens a unit brings」): the room's prompt box
 // holds the two pickers its clip opens, and a unit's screen laid plain rules for the `input` element on the page as
 // it mounts leaves them out of the page all the same — before any unit's screen has been in play, after one has and
-// the room is come back to, and at a desktop's and a phone's width. The box still takes a file the picker brings.
+// the room is come back to, and at a desktop's and a phone's width. The box still takes a file the picker its
+// clip's menu opens brings.
 // The rule the screen lays is the stand-in unit's, asked for by its address's query; it stands where an editor
 // library inside a real unit's bundle lays its own. It drives the console tests/support/browser-console.ts stands
 // up; the suite stands up no console, so there it skips.
@@ -52,9 +53,10 @@ async function hydrated(page: Page): Promise<void> {
 }
 
 // A move inside the app, the way the sidebar makes one: a page drawn anew would wash the rules the unit's screen
-// laid, and coming back to a room is one move within the app.
+// laid, and coming back to a room is one move within the app. What the move brings is waited on by what the page
+// shows, never by the router's own promise.
 async function go(page: Page, path: string): Promise<void> {
-  await page.evaluate(`document.querySelector("#__nuxt").__vue_app__.config.globalProperties.$router.push(${JSON.stringify(path)})`);
+  await page.evaluate(`void document.querySelector("#__nuxt").__vue_app__.config.globalProperties.$router.push(${JSON.stringify(path)})`);
 }
 
 /** Each file input of the page not drawn, by what marks it: a drawn one is one whose box the page holds. */
@@ -99,11 +101,14 @@ describe.skipIf(!origin || !touchReady())("the file inputs the console hides", (
         expect(await hiddenInputs(page)).toEqual({ media: "none:0", picker: "none:0" });
         await page.screenshot({ path: `/tmp/hidden-file-inputs-${width}.png` });
 
-        // Hidden as a drawn box, the clip is the box's own road still: pressed, it opens the browser's chooser,
-        // and the file that chooser carries stands in the box.
+        // Hidden as a drawn box, the picker is the box's own road still: the clip opens its menu, as it does for
+        // the administrator every fixture account is, the menu's file entry opens the browser's chooser, and the
+        // file that chooser carries stands in the box.
+        await page.locator(`button[aria-label="${wording("room.action.attach_file")}"]`).first().click();
+
         const opening = page.waitForEvent("filechooser", { timeout: 15_000 });
 
-        await page.locator(`button[aria-label="${wording("room.action.attach_file")}"]`).first().click();
+        await page.getByRole("menuitem", { name: wording("room.action.attach_document") }).click();
         (await opening).setFiles({ name: "held.txt", mimeType: "text/plain", buffer: Buffer.from("held by the box\n") });
         await page.locator("[data-picked]").filter({ hasText: "held.txt" }).first().waitFor({ timeout: 20_000 });
       } finally {

@@ -34,6 +34,10 @@ console's typecheck and then every test file under `client/tests` in one `bun te
     console sections are written whole as the administrator's screen writes them;
   - the console's development server, under the base path `/console/`, with a build folder of its own,
     `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
+    The app's own type settings still stand in `.nuxt`, so a checkout the app was never prepared in is prepared
+    first, by `bun run typecheck` in `client/` or `nuxi prepare` in `client/apps/web`. The development server
+    bundles every library the console's own files import before any page opens, as the console's Nuxt settings
+    name them, since one it met only once a page stood would reload every open page and lose what a test built.
 - **What it prints:** the console's address, once it answers.
 - **When it stops:** on an interrupt, stopping everything it started, dropping the database and removing its scratch
   directory; where it failed to start it stops the same way but keeps that directory, whose logs the failure names.

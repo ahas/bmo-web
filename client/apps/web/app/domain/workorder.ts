@@ -200,7 +200,7 @@ export function phaseName(t: Translate, order: WorkOrder): string {
 
 // The order's steps in the order they ran; a step not yet begun keeps the place the plan gave it,
 // after every step that has. A step of the order's own is one of the stages its orderer set and is named by
-// its place among them alone, its title saying what it does (docs/web.md, 「작업 단계」).
+// its place among them alone, its title saying what it does (docs/web.md, the TODO modal's work order steps).
 export function workSteps(t: Translate, order: WorkOrderView): WorkStep[] {
   const ended = order.ended ?? {};
   const rounds = [...new Set(order.history.flatMap((task) => (task.round === undefined ? [] : [task.round])))];

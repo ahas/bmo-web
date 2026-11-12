@@ -8,12 +8,12 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 
 // The voice briefing's player (docs/web.md, 「Messages」, the briefing's player): it floats over the page area like a
 // picture-in-picture window, first at the bottom right above a room's input bar and never under the title row; it
-// is dragged to a side and kept there across a reload; Back stops it and leaves the page where it was. Nothing plays
-// by itself, a briefing that ended a moment ago and the settings' trial voice alike, in a browser that would let it;
-// played to its end it goes a moment later, unless the reader paused it. The voice engine's stream is stood in for
-// by the page's own event route, carrying one summary that ended a moment ago, and its sound by a short silent WAV.
-// It drives the console tests/support/browser-console.ts stands up; the suite stands up no console, so there it
-// skips.
+// is dragged to a side and kept there across a reload; Back stops it and leaves the page where it was. One the reader
+// paused while it played stays at its end until its close mark takes it down, and the settings' trial voice plays in it
+// at the press of the settings' trial button and goes at the next. A briefing playing by itself and going as it ends is
+// briefing-autoplay.test.ts's to measure. The voice engine's stream is stood in for by the page's own event route,
+// carrying one summary that ended a moment ago, and its sound by a short silent WAV. It drives the console
+// tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "briefing-chip", password: "fixture-password-2256" };
@@ -25,7 +25,7 @@ const SCREENS = [
   { width: 360, height: 780, phone: true }
 ] as const;
 
-// Three seconds of silence, 8 kHz mono 8-bit.
+// Silence the seconds given long, 8 kHz mono 8-bit.
 function silence(seconds: number): Buffer {
   const samples = 8_000 * seconds;
   const header = Buffer.alloc(44);
@@ -147,40 +147,8 @@ describe.skipIf(!origin || !touchReady())("the voice briefing's player", () => {
     }, 90_000);
   }
 
-  // Whether the briefing's own sound plays, and how far it has played.
-  async function sound(page: Page): Promise<{ paused: boolean; at: number }> {
-    return await page.evaluate(() => {
-      const element = document.querySelector<HTMLAudioElement>("audio[data-briefing]");
-
-      return { paused: element?.paused ?? true, at: element?.currentTime ?? 0 };
-    });
-  }
-
-  test("waits for its play press, and goes a moment after it played to its end", async () => {
-    const context = await open(SCREENS[0], 1);
-
-    try {
-      const page = await context.newPage();
-
-      await page.goto(`${origin}/`, { waitUntil: "load" });
-
-      const player = page.locator("[data-briefing-popup]");
-
-      await player.waitFor({ timeout: 20_000 });
-      await page.waitForTimeout(1_500);
-      expect(await sound(page)).toEqual({ paused: true, at: 0 });
-      expect(await player.locator("[data-briefing-press]").getAttribute("aria-label")).toBe(wording("briefing.action.listen"));
-
-      await player.locator("[data-briefing-press]").click();
-      await player.locator("[data-briefing-press]").and(page.getByRole("button", { name: wording("briefing.action.pause") })).waitFor({ timeout: 5_000 });
-      await player.waitFor({ state: "detached", timeout: 10_000 });
-    } finally {
-      await context.close();
-    }
-  }, 90_000);
-
   test("stays at its end where the reader paused it, and its close mark stops the listening", async () => {
-    const context = await open(SCREENS[0], 2);
+    const context = await open(SCREENS[0], 3);
 
     try {
       const page = await context.newPage();
@@ -190,13 +158,15 @@ describe.skipIf(!origin || !touchReady())("the voice briefing's player", () => {
       const player = page.locator("[data-briefing-popup]");
       const press = player.locator("[data-briefing-press]");
 
+      // It plays by itself; the reader pauses it and plays it on to its end.
       await player.waitFor({ timeout: 20_000 });
+      await press.and(page.getByRole("button", { name: wording("briefing.action.pause") })).waitFor({ timeout: 10_000 });
       await press.click();
-      await page.waitForTimeout(500);
-      await press.click();
-      await page.getByRole("button", { name: wording("briefing.action.listen") }).waitFor({ timeout: 5_000 });
+      await press.and(page.getByRole("button", { name: wording("briefing.action.listen") })).waitFor({ timeout: 5_000 });
       await press.click();
       await page.waitForFunction(() => document.querySelector<HTMLAudioElement>("audio[data-briefing]")?.ended === true, null, { timeout: 10_000 });
+
+      // Past the moment an untouched one would have gone, it still stands.
       await page.waitForTimeout(3_000);
       expect(await player.count()).toBe(1);
 
@@ -207,7 +177,7 @@ describe.skipIf(!origin || !touchReady())("the voice briefing's player", () => {
     }
   }, 90_000);
 
-  test("brings the settings' trial voice waiting for its play press", async () => {
+  test("plays the settings' trial voice at the press of its button, and takes it down at the next", async () => {
     const context = await open(SCREENS[1]);
 
     // No briefing comes on this stream, so the trial is the one sound the player holds.
@@ -227,8 +197,9 @@ describe.skipIf(!origin || !touchReady())("the voice briefing's player", () => {
       const player = page.locator("[data-briefing-popup]");
 
       await player.waitFor({ timeout: 10_000 });
-      await page.waitForTimeout(1_500);
-      expect(await sound(page)).toEqual({ paused: true, at: 0 });
+      await player.locator("[data-briefing-press]").and(page.getByRole("button", { name: wording("briefing.action.pause") })).waitFor({ timeout: 10_000 });
+      await page.waitForFunction(() => (document.querySelector<HTMLAudioElement>("audio[data-briefing]")?.currentTime ?? 0) > 0, null, { timeout: 10_000 });
+      expect(await trial.innerText()).toBe(wording("briefing.action.stop_trial"));
 
       await trial.click();
       await player.waitFor({ state: "detached", timeout: 10_000 });

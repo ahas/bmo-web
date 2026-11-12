@@ -90,7 +90,7 @@ const top = computed({
   set: (next: number | null | undefined) => keep({ ...position.value, top: next === null || next === undefined ? null : Math.max(0, Math.round(next)) })
 });
 
-// The trial voice through the player: brought to it at a press, where it waits for the play press, and taken down by
+// The trial voice through the player: brought to it at a press, where it plays as a briefing does, and taken down by
 // the same button while it stands. The player's title leads back to the screen it was tried on, with this section
 // open.
 const shown = briefingState();

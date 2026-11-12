@@ -25,8 +25,8 @@ export function useBundleArea() {
 
 /** The bar the console draws over a bundle's screen: the manifest's title and icon, where the route the screen
  * stands at asks for the console's bar in its meta (docs/web.md, 「The title bar」); none where it draws its own. The
- * bar follows the route being gone to from the moment the router takes the navigation, so it and its place for the
- * screen's actions stand before that screen mounts, and it stays while the screen being left still stands. */
+ * bar follows the route being gone to from the moment the router takes the navigation, so it stands before that
+ * screen mounts, and it stays while the screen being left still stands. */
 export function useBundleBar() {
   const shown = useRoute();
   const going = useRouter().currentRoute;

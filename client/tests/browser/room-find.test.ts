@@ -59,10 +59,11 @@ describe.skipIf(!origin || !touchReady())("finding in a room", () => {
         // The count as it stands once a hit is shown.
         const counted = (said: string) => page.waitForFunction((want) => document.querySelector("[data-find-count][data-find-shown]")?.textContent?.trim() === want, said, { timeout: 10_000 });
 
-        await counted("3/3");
+        // Two of the record's messages say it; the third was deleted and shows no words.
+        await counted("2/2");
         await box.press("Enter");
-        await counted("2/3");
-        expect((await count.innerText()).trim()).toBe("2/3");
+        await counted("1/2");
+        expect((await count.innerText()).trim()).toBe("1/2");
 
         // The page holds no page further back, so nothing says the search was cut short.
         expect(await page.getByText(wording("room.status.find_loaded_only")).count()).toBe(0);

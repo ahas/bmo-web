@@ -1,5 +1,8 @@
 <template>
-  <UContainer ref="feed" class="flex min-h-full flex-1 flex-col gap-3 py-4 sm:py-6">
+  <!-- The log fills what the work view leaves under its head and stages, and grows past it with its lines. Its height
+       is never read off the view's own: that counts the head and stages twice, and the view's foot then ends above
+       the log's, where the head held at the top is carried away with the view. -->
+  <UContainer ref="feed" class="flex flex-1 flex-col gap-3 py-4 sm:py-6">
     <UAlert v-if="log.failure.value" color="error" variant="subtle" :description="log.failure.value" />
 
     <!-- The head: reaching it reads the lines above, and once none stand above it says the log starts here. -->

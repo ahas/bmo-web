@@ -213,16 +213,26 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
 }
 
 // The state every item's own job stands in while one is under way: a job is `starting` while its worker is
-// launched and `running` while its turn goes, and both are asked in one list.
+// launched and `running` while its turn goes, and both are asked in one list. A `starting` job that names a hold
+// waits — for its agent's seat, a road or a card — and launches nothing yet (agency's `docs/api.md`, 「assignments
+// and jobs」).
+type LiveJob = { itemId: number; state: string; heldFor: string | null };
+
+function liveStateOfJob(job: LiveJob): NonNullable<TodoItem["liveState"]> {
+  if (job.state === "running") return "running";
+
+  return job.heldFor === null ? "starting" : "waiting";
+}
+
+function isLive(job: LiveJob): boolean {
+  return job.itemId > 0 && (job.state === "starting" || job.state === "running");
+}
+
 async function liveStates(): Promise<Map<number, TodoItem["liveState"]>> {
   try {
     const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { state: "starting,running", limit: 500 } } }));
 
-    return new Map(
-      jobs.items
-        .filter((job) => job.itemId > 0 && (job.state === "starting" || job.state === "running"))
-        .map((job) => [job.itemId, job.state as "starting" | "running"])
-    );
+    return new Map(jobs.items.filter(isLive).map((job) => [job.itemId, liveStateOfJob(job)]));
   } catch {
     // The item list reads either way; a job nothing says of stands no state of its own.
     return new Map();
@@ -233,9 +243,9 @@ async function liveStates(): Promise<Map<number, TodoItem["liveState"]>> {
 async function liveStateOf(id: number): Promise<TodoItem["liveState"]> {
   try {
     const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { itemId: id, state: "starting,running", limit: 5 } } }));
-    const job = jobs.items.find((one) => one.itemId === id && (one.state === "starting" || one.state === "running"));
+    const job = jobs.items.find((one) => one.itemId === id && isLive(one));
 
-    return job === undefined ? null : (job.state as "starting" | "running");
+    return job === undefined ? null : liveStateOfJob(job);
   } catch {
     return null;
   }

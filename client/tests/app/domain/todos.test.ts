@@ -335,6 +335,12 @@ describe("where an item stands", () => {
     expect(todoState(item(2, { running: true, status: "left" }))).toBe("running");
   });
 
+  test("an item whose job waits for its agent's seat waits, and one whose worker is being launched is starting", () => {
+    expect(todoState(item(2, { running: true, liveState: "waiting" }))).toBe("waiting");
+    expect(jobGoingOn(todoState(item(2, { running: true, liveState: "waiting" })))).toBe(false);
+    expect(todoState(item(2, { running: true, liveState: "starting" }))).toBe("starting");
+  });
+
   test("an item no job is going on for waits, whatever its status line was left saying", () => {
     expect(todoState(item(1, { status: "running (Job #91)" }))).toBe("waiting");
     expect(todoState(item(1, { status: "running" }))).toBe("waiting");

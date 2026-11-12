@@ -201,7 +201,12 @@ export function todoState(item: TodoItem, _now: number = toUnixSeconds(Date.now(
     return "pending";
   }
 
-  // A job whose worker is still being launched has started but is not doing the work yet.
+  // A job that waits for its agent's seat, a road or a card launches nothing yet, so its item waits as one nobody
+  // has taken; a job whose worker is being launched has started but is not doing the work yet.
+  if (item.liveState === "waiting") {
+    return "waiting";
+  }
+
   if (item.liveState === "starting") {
     return "starting";
   }

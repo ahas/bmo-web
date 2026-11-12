@@ -715,8 +715,9 @@ export interface TodoItem {
   // that has not finished. The state line is a word somebody typed, so it is not asked.
   running: boolean;
   // The state the job of this item stands in right now, as the agency names it: `starting` while its worker is
-  // launched, `running` while its turn goes. Null or absent where no job of it is under way.
-  liveState?: "starting" | "running" | null;
+  // launched, `running` while its turn goes, and `waiting` while it waits before it launches — for its agent's seat, a
+  // road or a card. Null or absent where no job of it is under way.
+  liveState?: "waiting" | "starting" | "running" | null;
   // Whether the item is done in bmo-job while the agency's job for it still goes: its report is still going out,
   // until the agency says the job ended.
   reporting?: boolean;

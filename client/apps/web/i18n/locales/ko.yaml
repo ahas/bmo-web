@@ -1189,7 +1189,7 @@ todo:
     work_order_stop_failed: 작업 지시서를 중지하지 못했습니다.
     worker_change_failed: 워커를 바꾸지 못했습니다.
     agent_change_failed: 에이전트를 바꾸지 못했습니다.
-    job_runs_on: "Job #{job}이 {agent} 에이전트로 실행 중이라 바꿀 수 없습니다.\nJob을 중지한 뒤 다시 실행할 때 바뀝니다."
+    job_runs_on: "{agent} 에이전트로 실행 중인 Job(#{job})이 있어 바꿀 수 없습니다.\nJob을 중지한 뒤 바꿀 수 있습니다."
   action:
     approve: 승인
     auto_pause: 자동 진행 일시정지

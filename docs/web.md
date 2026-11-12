@@ -5483,7 +5483,8 @@ Four bounds keep it from growing forever.
   stands 미지정 until its supervisor or the owner names one; an agent the label
   names that the listing does not hold stands as its name alone. The agent the item's label names stands chosen.
   While a job of the item is under way, 에이전트 stands the agent that job runs on, the agency's job `agentName`,
-  read and not chosen: a job runs on the agent, role and model it was launched with until it is stopped, and
+  read and not chosen, the shared tooltip saying it is the running job's and may be chosen once the job is stopped:
+  a job runs on the agent, role and model it was launched with until it is stopped, and
   bmo-job refuses a change of what the job's lease holds fixed (bmo-job's `docs/api.md`, "While leased"). A
   choice is saved as it is picked: the console reads the item and writes its labels back whole through bmo-job's
   `PATCH /items/{itemId}`, `agent` set to the agent's name and every other label kept as it stood, since

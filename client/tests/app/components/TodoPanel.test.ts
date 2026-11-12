@@ -590,7 +590,7 @@ describe("the model chip and the agent chooser", () => {
   });
 
   test("while a job runs the head stands the agent it runs on, read and not chosen", () => {
-    expect(agentTemplate).toMatch(/<UTooltip v-if="running !== null"[^>]*>\s*<UBadge[^>]*data-item-agent-running>\{\{ running \}\}/);
+    expect(agentTemplate).toMatch(/<HintTip v-if="running !== null"[^>]*>\s*<UBadge[^>]*data-item-agent-running>\{\{ running \}\}/);
     expect(agentScript).toContain("props.item.jobAgent ?? null");
   });
 

@@ -4,9 +4,9 @@
        the agent its item names. Where the item is not finished the pick is handed up to be saved at once. While a job of
        the item is under way it stands the agent that job runs on, read and not chosen: the job keeps what it was
        launched with until it is stopped. -->
-  <UTooltip v-if="running !== null" :text="$t('todo.label.agent_job_running')">
+  <HintTip v-if="running !== null" :text="$t('todo.label.agent_job_running')">
     <UBadge color="neutral" variant="outline" size="sm" icon="i-material-symbols-lock-outline" data-item-agent data-item-agent-running>{{ running }}</UBadge>
-  </UTooltip>
+  </HintTip>
   <USelect
     v-else-if="props.editable"
     :model-value="chosen"

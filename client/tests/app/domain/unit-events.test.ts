@@ -185,4 +185,15 @@ describe("the voice engine's briefings", () => {
     expect(voiceEvent({ id: 1, at: 1, kind: "synthesis.ended", data: { id: 1, chatId: 2 } })).toBeNull();
     expect(voiceEvent({ id: 1, at: 1, kind: "briefing.created", data: { chatId: 2 } })).toBeNull();
   });
+
+  test("a stop names the room whose briefings it stopped, or none for every room's, and the briefings", () => {
+    const at = 1_800_000_000_000;
+
+    expect(voiceEvent({ id: 41, at, kind: "briefings.stopped", data: { chatId: 42, briefingIds: [7, 8] } })).toEqual({
+      id: 41, at, type: "voice-briefings-stopped", chatId: 0, messageId: null, stoppedRoom: 42, briefingIds: [7, 8]
+    });
+    expect(voiceEvent({ id: 42, at, kind: "briefings.stopped", data: { chatId: null, briefingIds: [] } })).toMatchObject({ stoppedRoom: null, briefingIds: [] });
+    expect(voiceEvent({ id: 43, at, kind: "briefings.stopped", data: { briefingIds: [9] } })).toMatchObject({ stoppedRoom: null, briefingIds: [9] });
+    expect(voiceEvent({ id: 44, at, kind: "briefings.stopped", data: { chatId: "42", briefingIds: [] } })).toBeNull();
+  });
 });

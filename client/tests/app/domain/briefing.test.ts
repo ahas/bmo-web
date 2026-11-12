@@ -4,10 +4,10 @@ import { describe, expect, test } from "bun:test";
 // summary that ended done and is to come to the player comes, and it starts by itself as it comes; a browser that
 // refuses a sound nobody pressed for leaves it waiting for one press. One played to its end goes after a moment
 // unless the reader touched it, a briefing is played once, and stop-listening ends the one playing and all that wait
-// behind it.
+// behind it. The engine stopping a room's briefings, or every room's, silences that room's.
 
 
-const { BRIEFING_TRIAL_KEY, BriefingDesk, briefingOfEvent } = await import("../../../apps/web/app/domain/briefing");
+const { BRIEFING_TRIAL_KEY, BriefingDesk, briefingOfEvent, briefingStopOfEvent } = await import("../../../apps/web/app/domain/briefing");
 
 import type { BriefingShown, BriefingSound, DeskDeps, SoundHandlers } from "../../../apps/web/app/domain/briefing";
 import type { BotEvent, VoiceBriefing } from "../../../apps/web/shared/types";
@@ -291,5 +291,114 @@ describe("the player", () => {
     await Promise.resolve();
     expect(held.shown()).toBeNull();
     expect(held.desk.queued()).toEqual([]);
+  });
+});
+
+// The few turns of the event loop a briefing ending and the next one starting take, with no clock waited on.
+async function settled(): Promise<void> {
+  for (let turn = 0; turn < 5; turn += 1) await Promise.resolve();
+}
+
+// A briefing of a room, ended a moment before the engine's stop or after it.
+const of = (id: number, chatId: number, endedAt = NOW - 1_000) => ({ id, chatId, messageId: 500 + id, endedAt, title: null });
+
+describe("the engine's stop", () => {
+  test("is read off the engine's event, for one room or for every room", () => {
+    const stopped = (stoppedRoom: number | null): BotEvent => ({ id: 2, at: NOW, type: "voice-briefings-stopped", chatId: 0, messageId: null, stoppedRoom, briefingIds: [7] });
+
+    expect(briefingStopOfEvent(stopped(42))).toEqual({ chatId: 42, at: NOW });
+    expect(briefingStopOfEvent(stopped(null))).toEqual({ chatId: null, at: NOW });
+    expect(briefingStopOfEvent(ended())).toBeNull();
+  });
+
+  test("of a room ends its briefing playing and those of it waiting, and the other rooms' play on", async () => {
+    const held = desk();
+
+    await held.desk.hear(of(1, 42));
+    await held.desk.hear(of(2, 42));
+    await held.desk.hear(of(3, 43));
+    expect(held.desk.queued()).toEqual(["briefing:2", "briefing:3"]);
+
+    held.desk.silence({ chatId: 42, at: NOW });
+    expect(held.sounds[0]?.paused).toBe(true);
+    await settled();
+    expect(held.desk.playing()).toBe("briefing:3");
+    expect(held.sounds.map((one) => one.src)).toEqual(["/api/briefings/1/sound", "/api/briefings/3/sound"]);
+  });
+
+  test("of every room ends what plays and all that waits, and leaves the trial voice", async () => {
+    const held = desk();
+
+    await held.desk.hear(of(1, 42));
+    held.desk.trial("/briefing-trial.ogg", "/rooms/1?settings=briefing");
+    await held.desk.hear(of(2, 43));
+
+    held.desk.silence({ chatId: null, at: NOW });
+    await settled();
+    expect(held.desk.playing()).toBe(BRIEFING_TRIAL_KEY);
+    expect(held.desk.queued()).toEqual([]);
+
+    held.desk.silence({ chatId: null, at: NOW });
+    expect(held.desk.playing()).toBe(BRIEFING_TRIAL_KEY);
+  });
+
+  test("leaves a paused briefing, or one waiting for a press, no more standing", async () => {
+    const refused = refusingDesk();
+
+    await refused.desk.hear(of(1, 42));
+    expect(refused.shown()?.phase).toBe("blocked");
+
+    refused.desk.silence({ chatId: null, at: NOW });
+    expect(refused.shown()).toBeNull();
+  });
+
+  test("of another room reaches nothing", async () => {
+    const held = desk();
+
+    await held.desk.hear(of(1, 42));
+    held.desk.silence({ chatId: 43, at: NOW });
+    expect(held.desk.playing()).toBe("briefing:1");
+    expect(held.sounds[0]?.paused).toBe(false);
+  });
+
+  test("keeps a briefing that ended at or before it from ever playing, as the switch comes back on, and plays one that ended after it", async () => {
+    const held = desk();
+
+    held.desk.silence({ chatId: null, at: NOW - 500 });
+    await held.desk.hear(of(1, 42, NOW - 1_000));
+    await held.desk.hear(of(2, 42, NOW - 500));
+    expect(held.desk.playing()).toBeNull();
+
+    held.desk.silence({ chatId: 43, at: NOW });
+    await held.desk.hear(of(3, 43, NOW));
+    expect(held.desk.playing()).toBeNull();
+
+    await held.desk.hear(of(4, 42, NOW - 100));
+    expect(held.desk.playing()).toBe("briefing:4");
+    expect(held.sounds).toHaveLength(1);
+  });
+
+  test("reaches a briefing the tabs are still agreeing on", async () => {
+    let shown: BriefingShown | null = null;
+    let agreed!: () => void;
+    const sounds: StandInSound[] = [];
+    const deps: DeskDeps = {
+      ...depsOf(() => shown, (next) => (shown = next), (src, on) => {
+        const sound = new StandInSound(src, on);
+
+        sounds.push(sound);
+        return sound;
+      }),
+      channel: () => ({ post: () => undefined, close: () => undefined }),
+      wait: () => new Promise<void>((resolve) => (agreed = resolve))
+    };
+    const held = new BriefingDesk(deps);
+    const hearing = held.hear(of(1, 42));
+
+    held.silence({ chatId: 42, at: NOW });
+    agreed();
+    await hearing;
+    expect(held.playing()).toBeNull();
+    expect(sounds).toHaveLength(0);
   });
 });

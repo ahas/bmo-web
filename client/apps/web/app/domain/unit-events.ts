@@ -154,19 +154,46 @@ export function agencyEvent(data: Fields): BotEvent | null {
   return null;
 }
 
+// A briefing's number, which the engine writes as a number or as its digits; null where it is neither.
+function briefingIdOf(value: unknown): number | null {
+  const id = number(value) ?? Number(text(value) ?? Number.NaN);
+
+  return Number.isSafeInteger(id) ? id : null;
+}
+
+// The engine's stop of a room's briefings, or of every room's where it names none.
+function stoppedEvent(data: Fields): BotEvent | null {
+  const stop = fieldsOf(data.data);
+
+  if (stop === null) return null;
+
+  const named = stop.chatId ?? null;
+  const room = named === null ? null : number(named);
+
+  if (named !== null && room === null) return null;
+
+  const briefingIds = (Array.isArray(stop.briefingIds) ? stop.briefingIds : []).map(briefingIdOf).filter((id) => id !== null);
+
+  return { id: number(data.id) ?? 0, at: number(data.at) ?? 0, type: "voice-briefings-stopped", chatId: 0, messageId: null, stoppedRoom: room, briefingIds };
+}
+
 /** One of the voice engine's briefing events as the screens read it (its `docs/boundary-api.md`, 「Events」): what it
- * said of the briefing, and the briefing as it stands; null for any other kind or a briefing that does not read. */
+ * said of the briefing and the briefing as it stands, or the briefings it stopped; null for any other kind or a
+ * briefing that does not read. */
 export function voiceEvent(data: Fields): BotEvent | null {
   const kind = text(data.kind);
+
+  if (kind === "briefings.stopped") return stoppedEvent(data);
+
   const phase = kind === "briefing.created" ? "created" : kind === "briefing.ended" ? "ended" : kind === "briefing.changed" ? "changed" : null;
   const row = fieldsOf(data.data);
 
   if (phase === null || row === null) return null;
 
-  const id = number(row.id) ?? Number(text(row.id) ?? Number.NaN);
+  const id = briefingIdOf(row.id);
   const chatId = number(row.chatId);
 
-  if (!Number.isSafeInteger(id) || chatId === null) return null;
+  if (id === null || chatId === null) return null;
 
   const messageId = number(row.messageId);
   const voice: VoiceBriefing = {

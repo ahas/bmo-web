@@ -52,8 +52,8 @@ export const AGENCY_KINDS = [
 ] as const;
 
 // The voice engine's kinds the screens read (its `docs/boundary-api.md`, 「Events」): a briefing taken in, ended, or
-// naming its line.
-export const VOICE_KINDS = ["briefing.created", "briefing.ended", "briefing.changed"] as const;
+// naming its line, and a room's briefings or every room's stopped.
+export const VOICE_KINDS = ["briefing.created", "briefing.ended", "briefing.changed", "briefings.stopped"] as const;
 
 // How long a stream of bmo-job's or the agency's that ended waits before it is opened again. The receiver's
 // stream is the one the tab's own reconnecting follows; these two are the relay's to keep.

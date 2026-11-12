@@ -16,6 +16,7 @@ import type { Ref } from "vue";
 // A voice briefing heard on the voice engine's stream and played in the console (docs/web.md, 「Messages」, the
 // briefing's player): a summary that ended done and is to play by itself. It stands as a small player of its own
 // while it plays, one tab of the browser plays it, and stop-listening ends it and every one waiting behind it here.
+// The engine stopping a room's briefings, or every room's, silences that room's here as well.
 
 export interface HeardBriefing {
   id: number;
@@ -37,6 +38,17 @@ export function briefingOfEvent(event: BotEvent): HeardBriefing | null {
   if (voice.kind !== "summary" || voice.state !== "done" || !voice.plays || !voice.spoken) return null;
 
   return { id: voice.id, chatId: voice.chatId, messageId: voice.messageId, endedAt: voice.finishedAt ?? event.at, title: voice.title };
+}
+
+// The engine's stop of a room's briefings, or of every room's where `chatId` is null, at the engine's own moment.
+export interface BriefingStop {
+  chatId: number | null;
+  at: number;
+}
+
+/** The stop the engine told, as the player falls silent on it. */
+export function briefingStopOfEvent(event: BotEvent): BriefingStop | null {
+  return event.type === "voice-briefings-stopped" ? { chatId: event.stoppedRoom, at: event.at } : null;
 }
 
 // The key a briefing is known by, so the same briefing heard twice is one.
@@ -252,6 +264,8 @@ export interface DeskDeps {
 // the trial voice is asked for at a press.
 interface Playable {
   key: string;
+  // The room it is a briefing of; none for the trial voice, which no stop reaches.
+  chatId: number | null;
   src: string;
   to: string;
   title: string | null;
@@ -304,6 +318,10 @@ export class BriefingDesk {
   // alone while the other decided on both.
   private readonly early = new Map<string, Claim[]>();
   private readonly channel: ClaimChannel | null;
+  // The latest stop of every room's briefings, and of each room's, by the engine's moment: a briefing that ended at
+  // or before the stop covering its room never comes to the player.
+  private everyRoomStoppedAt = Number.NEGATIVE_INFINITY;
+  private readonly roomStoppedAt = new Map<number, number>();
 
   constructor(private readonly deps: DeskDeps) {
     this.channel = deps.channel((word) => this.word(word));
@@ -320,11 +338,12 @@ export class BriefingDesk {
     // One that ended long before the tab heard of it — handed back by a stream opening again — is left to its line.
     if (this.deps.now() - heard.endedAt > BRIEFING_SHOWN_MS) return;
 
-    if (this.deps.log.has(key) || this.current?.playable.key === key || this.pending.has(key) || this.waiting.some((one) => one.playable.key === key)) {
+    if (this.stopped(heard) || this.deps.log.has(key) || this.current?.playable.key === key || this.pending.has(key) || this.waiting.some((one) => one.playable.key === key)) {
       return;
     }
 
-    if (!(await this.claim(key)) || this.deps.log.has(key)) {
+    // A stop that came while the tabs agreed which of them plays it reaches it too.
+    if (!(await this.claim(key)) || this.deps.log.has(key) || this.stopped(heard)) {
       return;
     }
 
@@ -333,6 +352,7 @@ export class BriefingDesk {
     this.line(
       {
         key,
+        chatId: heard.chatId,
         src: this.deps.src(heard.id),
         to: heard.messageId === null ? `/rooms/${heard.chatId}` : `/rooms/${heard.chatId}?at=${heard.messageId}`,
         title: heard.title
@@ -347,7 +367,43 @@ export class BriefingDesk {
   trial(src: string, to: string): void {
     if (this.current?.playable.key === BRIEFING_TRIAL_KEY || this.waiting.some((one) => one.playable.key === BRIEFING_TRIAL_KEY)) return;
 
-    this.line({ key: BRIEFING_TRIAL_KEY, src, to, title: null }, false);
+    this.line({ key: BRIEFING_TRIAL_KEY, chatId: null, src, to, title: null }, false);
+  }
+
+  // The engine stopped a room's briefings, or every room's (docs/web.md, 「Messages」, the briefing's player): the one
+  // of that room standing in the player ends, those of it waiting go, and none of it that ended at or before the stop
+  // comes afterwards. What else waits plays on after the breath it would have taken anyway.
+  silence(stop: BriefingStop): void {
+    if (stop.chatId === null) {
+      this.everyRoomStoppedAt = Math.max(this.everyRoomStoppedAt, stop.at);
+    } else {
+      this.roomStoppedAt.set(stop.chatId, Math.max(this.roomStoppedAt.get(stop.chatId) ?? Number.NEGATIVE_INFINITY, stop.at));
+    }
+
+    this.forgetOldStops();
+
+    const reaches = (playable: Playable): boolean => playable.chatId !== null && (stop.chatId === null || stop.chatId === playable.chatId);
+
+    this.waiting = this.waiting.filter((one) => !reaches(one.playable));
+
+    if (this.current !== null && reaches(this.current.playable)) {
+      this.finish(this.current.playable.key);
+    }
+  }
+
+  // Whether a stop of its room or of every room came at or after it ended.
+  private stopped(heard: HeardBriefing): boolean {
+    return heard.endedAt <= Math.max(this.everyRoomStoppedAt, this.roomStoppedAt.get(heard.chatId) ?? Number.NEGATIVE_INFINITY);
+  }
+
+  // A room's stop older than a briefing can be and still play reaches nothing more: one that ended before it is
+  // left to its line already.
+  private forgetOldStops(): void {
+    const now = this.deps.now();
+
+    for (const [chatId, at] of this.roomStoppedAt) {
+      if (now - at > BRIEFING_SHOWN_MS) this.roomStoppedAt.delete(chatId);
+    }
   }
 
   // Played now, or behind the one playing and those already waiting.
@@ -730,6 +786,14 @@ export function useBriefings(t: Translate): void {
 
     if (heard !== null) {
       void made().hear(heard);
+
+      return;
+    }
+
+    const stop = briefingStopOfEvent(event);
+
+    if (stop !== null) {
+      made().silence(stop);
     }
   });
 

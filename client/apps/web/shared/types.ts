@@ -1147,6 +1147,9 @@ export type BotEventType =
   // One of the voice engine's briefings was taken in, ended, or named its line (its `docs/boundary-api.md`,
   // 「Events」).
   | "voice-briefing"
+  // The voice engine stopped a room's briefings, or every room's, and the player falls silent for them (its
+  // `docs/boundary-api.md`, 「Briefings」).
+  | "voice-briefings-stopped"
   // A job the agency runs for a room started, changed or ended. What runs now is read from the agency's job
   // list, so the event says only that it moved.
   | "worker-run"
@@ -1261,6 +1264,16 @@ export type BotEvent = BotEventFields & ({
   document?: never;
   review?: never;
 } | {
+  type: "voice-briefings-stopped";
+  // The room whose briefings were stopped, or null for every room's; the event's `chatId` is 0 either way.
+  stoppedRoom: number | null;
+  // The briefings the stop ended.
+  briefingIds: number[];
+  todoId?: never;
+  workOrder?: never;
+  document?: never;
+  review?: never;
+} | {
   type: "agency-run";
   // The agent the run or the session is of, and the run where the event names one; null where it names none.
   agent: string | null;
@@ -1280,7 +1293,7 @@ export type BotEvent = BotEventFields & ({
   document?: never;
   review?: never;
 } | {
-  type: Exclude<BotEventType, "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review" | "agency-turn" | "agency-run" | "voice-briefing">;
+  type: Exclude<BotEventType, "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review" | "agency-turn" | "agency-run" | "voice-briefing" | "voice-briefings-stopped">;
   todoId?: never;
   workOrder?: never;
   document?: never;

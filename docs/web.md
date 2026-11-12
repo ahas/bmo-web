@@ -6560,6 +6560,14 @@ folder every unit reads its secrets from by file name, written by the server's s
   - **One after another.** A briefing that arrives while another plays waits behind it and plays once it has
     ended, after a short pause. **그만듣기**, the close mark, ends the one playing and every one waiting in this
     tab; a briefing this browser has played or stopped is not played again when the stream hands it back.
+  - **A stop from the engine silences the player.** The voice engine says it stopped a room's briefings, or every
+    room's, on its `briefings.stopped` (its `docs/boundary-api.md`, 「Briefings」) — as it does when the whole voice
+    briefing is switched off. Every tab hears it and, for that room or for every room, ends the briefing it stands,
+    whether playing, paused or waiting for a press, and drops every one of that room waiting behind it or still
+    being agreed between the tabs. From then on a briefing of that room that ended at or before the stop, by the
+    engine's own clock, never comes to the player, so turning the switch back on starts nothing that was stopped,
+    while one that ends after the stop plays as it comes. The settings' trial voice belongs to no room and was
+    asked for at a press, so a stop leaves it.
   - **One tab plays.** Several console tabs in one browser agree among themselves which one plays — the tab being
     looked at first, then one merely shown, then a hidden one — so a briefing is heard once per browser.
   - **While it plays its surface swells a little with the sound,** the surface alone, so a press aimed at it never

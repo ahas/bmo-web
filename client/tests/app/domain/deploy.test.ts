@@ -202,6 +202,15 @@ describe("an item on its way live", () => {
     expect(itemDeployPhase(view({ run: run({ carried, stages: [{ stage: "restart", at: NOW }] }) }), item(1202))).toBe("deploying");
   });
 
+  // Several units deploy at once: a run under way that the title bar does not stand still says it carries the item.
+  test("is being put live by any run under way that carries it, not only the one the bar stands", () => {
+    const other = run({ carried: [{ commit: "e".repeat(40), subject: "Keep the toolbar small", todoId: null }] });
+    const behind = run({ carried, stages: [{ stage: "restart", at: NOW }] });
+
+    expect(itemDeployPhase(view({ run: other, runs: [other, behind] }), item(1201))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: other, runs: [other] }), item(1201, { closing: waiting("a".repeat(40)) }))).toBe("waiting-live");
+  });
+
   test("is carried by a run whose commit is the one its close handed over, named whole or shortened", () => {
     expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("deploying");
     expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("c".repeat(12)) }))).toBe("deploying");

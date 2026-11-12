@@ -5700,12 +5700,13 @@ Four bounds keep it from growing forever.
     commit goes live — held with the label `hold-after-deploy` beside `close-phase` reading `waiting-live`, its
     last check needing the commit live (bmo-job's `docs/cli.md`, 「`bmo-job todo`」) — is not set aside: it stands
     in the queue as waiting, never as held, and carries the same words, until its hold is let go once the commit is
-    live and a job of it runs again. While the deployment the title bar
-    reads (「Deployment in the title bar」) carries the item — a run one of whose carried commits names the item by its
-    number, or is the commit the item's label `close-commit` names — the row says 테스트 중 while that run's
-    검사·테스트 stage is under way and 배포 중 through every later stage until the run ends; where that run ended
-    failed or rolled back, the row of an item still waiting on its commit says 배포 실패, until a job of the item
-    runs again or another run stands in the bar. They are the chip's words, never a state of their own, a filter
+    live and a job of it runs again. While any deployment under way carries the item — several units deploy at
+    once, so every run under way is read, not only the one the title bar stands (「Deployment in the title bar」); a
+    run carries the item where one of its carried commits names the item by its number, or is the commit the item's
+    label `close-commit` names — the row says 테스트 중 while that run's 검사·테스트 stage is under way and 배포 중
+    through every later stage until the run ends; where the run the title bar reads ended failed or rolled back,
+    the row of an item still waiting on its commit says 배포 실패, until a job of the item runs again or another run
+    stands in the bar. They are the chip's words, never a state of their own, a filter
     chip or a place in the order, and a finished row carries none. A reporting line stays at the top with
     the running ones, where it stood while running, until its job has ended; the 진행 중 filter shows it and its badge counts
     it. Being unfinished work its tag colour is like 진행 중's, and being a completed line it carries no drag handle, has no

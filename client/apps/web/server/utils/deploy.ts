@@ -67,6 +67,13 @@ export function shownReading(readings: readonly DeployReading[], alive: (pid: nu
   return latest(running, (reading) => reading.record!.startedAt) ?? latest(held, endOf) ?? { unitName: null, record: null, writtenAt: null, root: null };
 }
 
+/** Every run under way, each read with the commits it carries: several units deploy at once. */
+export function runningDeployRuns(readings: readonly DeployReading[], alive: (pid: number) => boolean = processAlive): DeployRunView[] {
+  return readings
+    .filter((reading) => reading.record !== null && deployPhase(reading.record, alive) === "running")
+    .map((reading) => deployRunView(reading.record!, reading.writtenAt, reading.unitName, alive, readDeployCarried(reading)));
+}
+
 export function readDeployReading(path: string | null): Omit<DeployReading, "unitName"> {
   if (path === null) return { record: null, writtenAt: null };
 
@@ -292,10 +299,10 @@ export function deployRunView(record: DeployProgress, writtenAt: number | null, 
  * What a tab is handed. A member hears nothing of a run — not that one goes, what goes live, how far it is or how it
  * ended — nor the hold, and reads only the release, for the new-version mark (docs/web.md, 「Access」).
  */
-export function deployViewFor(reading: DeployReading, hold: DeployView["hold"], release: string, detailed: boolean, alive: (pid: number) => boolean = processAlive, carried: DeployCommit[] = []): DeployView {
+export function deployViewFor(reading: DeployReading, hold: DeployView["hold"], release: string, detailed: boolean, alive: (pid: number) => boolean = processAlive, carried: DeployCommit[] = [], runs: DeployRunView[] = []): DeployView {
   const run = reading.record === null ? null : deployRunView(reading.record, reading.writtenAt, reading.unitName, alive, carried);
 
-  if (detailed) return { release, detailed, run, hold };
+  if (detailed) return { release, detailed, run, runs, hold };
 
   return { release, detailed, run: null, hold: null };
 }

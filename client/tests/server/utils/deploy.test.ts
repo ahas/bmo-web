@@ -32,7 +32,7 @@ standIn("JOB", (one) => (one.path.startsWith("/queues")
     })
   : answer({ code: "not_found" }, 404)));
 
-const { deployRoots, deployViewFor, readDeployCarried, readDeployHoldRow, readDeployReading, readDeployReadings, shownReading } = await import("../../../apps/web/server/utils/deploy");
+const { deployRoots, deployViewFor, readDeployCarried, readDeployHoldRow, readDeployReading, readDeployReadings, runningDeployRuns, shownReading } = await import("../../../apps/web/server/utils/deploy");
 
 const record: DeployProgress = {
   unit: "deploy-unit-a",
@@ -171,6 +171,14 @@ describe("the run the mark stands", () => {
     expect(shown.unitName).toBe("unit-b");
     expect(shownReading([], () => true)).toEqual({ unitName: null, record: null, writtenAt: null, root: null });
   });
+
+  // Several units deploy at once, and a row's chip reads every one under way, not only the one the bar stands.
+  test("every run under way is read, each by its unit, and an ended one is left out", () => {
+    const runs = runningDeployRuns([reading("unit-a", { pid: 1 }), reading("unit-b", { pid: 2 }), reading("unit-c", { pid: 3, ending: { outcome: "live", at: 9_500, why: null } })], () => true);
+
+    expect(runs.map((one) => one.unitName)).toEqual(["unit-a", "unit-b"]);
+    expect(runs.every((one) => one.phase === "running")).toBe(true);
+  });
 });
 
 describe("the deployment a tab is handed", () => {
@@ -181,7 +189,8 @@ describe("the deployment a tab is handed", () => {
       release: "r1",
       detailed: true,
       hold,
-      run: { unitName: "unit-a", phase: "running", startedAt: 1_000, endedAt: null, outcome: null, commit: record.commit, carried: [], plan: record.plan, stages: record.stages, steps: record.steps, ahead: record.ahead, running: record.running }
+      run: { unitName: "unit-a", phase: "running", startedAt: 1_000, endedAt: null, outcome: null, commit: record.commit, carried: [], plan: record.plan, stages: record.stages, steps: record.steps, ahead: record.ahead, running: record.running },
+      runs: []
     });
   });
 

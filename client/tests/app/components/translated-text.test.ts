@@ -39,7 +39,7 @@ describe("a translated text", () => {
   });
 
   // A job's question card is read in the reader's language whole: its question under the one line, and its reason and
-  // options following that line, so 원문 보기 puts all of them back; the answer sent is the option as written.
+  // options following that line, so showing the original puts all of them back; the answer sent is the option as written.
   test("stands for a job's question card, its reason and options following its question", async () => {
     const ask = await Bun.file(new URL("../../../apps/web/app/components/QuestionAsk.vue", import.meta.url)).text();
     const inline = await Bun.file(new URL("../../../apps/web/app/components/TranslatedInline.vue", import.meta.url)).text();

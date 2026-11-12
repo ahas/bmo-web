@@ -5,9 +5,11 @@ import type { DeployView } from "#shared/types";
 // run is under way.
 export default defineEventHandler(async (event): Promise<DeployView> => {
   const signed = await signedInUser(event);
-  const reading = shownReading(readDeployReadings());
+  const readings = readDeployReadings();
+  const reading = shownReading(readings);
   const hold = signed.administrator ? await readDeployHoldRow() : null;
   const carried = signed.administrator ? readDeployCarried(reading) : [];
+  const runs = signed.administrator ? runningDeployRuns(readings) : [];
 
-  return deployViewFor(reading, hold, useRuntimeConfig().app.buildId, signed.administrator, processAlive, carried);
+  return deployViewFor(reading, hold, useRuntimeConfig().app.buildId, signed.administrator, processAlive, carried, runs);
 });

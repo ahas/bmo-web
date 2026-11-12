@@ -3085,6 +3085,8 @@ export interface DeployView {
   release: string;
   detailed: boolean;
   run: DeployRunView | null;
+  /** Every run under way, each with the commits it carries, for the rows whose item one of them carries. */
+  runs?: DeployRunView[];
   hold: DeployHold | null;
 }
 

@@ -302,11 +302,15 @@ export function itemDeployPhase(view: DeployView | null | undefined, item: ItemO
 
   const run = view?.run ?? null;
   const carried = run !== null && run.carried.some((commit) => commitNames(commit, item));
+  // Several units deploy at once: any run under way that carries the item says so, not only the one the bar stands.
+  const under = [...(view?.runs ?? []), ...(run !== null ? [run] : [])].find(
+    (one) => one.phase === "running" && one.carried.some((commit) => commitNames(commit, item))
+  );
 
-  if (run !== null && carried && run.phase === "running") {
-    const stage = currentStage(run);
+  if (under !== undefined) {
+    const stage = currentStage(under);
 
-    if (stage === null) return run.plan[0] === "check" ? "testing" : "deploying";
+    if (stage === null) return under.plan[0] === "check" ? "testing" : "deploying";
 
     return stage === "check" ? "testing" : "deploying";
   }

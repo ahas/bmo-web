@@ -42,7 +42,7 @@
       </div>
 
       <!-- An agent asks in its own language; the question, its reason and its options are read in the reader's
-           together, under the question's one line, and 원문 보기 there puts all of them back. What is sent is
+           together, under the question's one line, and showing the original there puts all of them back. What is sent is
            always the option as it was written. -->
       <TranslatedText :text="card.question" class="mt-1" @shown="readingShown[card.id] = $event" />
       <p class="mt-1 text-sm break-words text-muted">

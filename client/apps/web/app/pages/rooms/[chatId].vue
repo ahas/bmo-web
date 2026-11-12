@@ -159,8 +159,8 @@
                 </p>
               </UContainer>
               <UContainer v-else class="flex min-w-0 items-center gap-2 py-2">
-                <!-- The count follows the checkbox's cell straight on: the cell already keeps room
-                     past the box, which is all the step the two need. -->
+                <!-- The count follows the choose-all control straight on: the control already keeps
+                     room past its words, which is all the step the two need. -->
                 <span class="flex min-w-0 items-center">
                   <ChooseAll :class="CHOOSE_GUTTER" :keys="itemKeys" :selected="selected" @choose="chooseAll" />
                   <RollingSentence class="min-w-0 truncate text-sm text-muted" :keypath="'room.status.selected_count'" :figures="{ n: selected.size }" />

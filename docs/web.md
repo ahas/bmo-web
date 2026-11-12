@@ -71,13 +71,13 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
   screen alone.
   - It is a checkbox, and it stands at the three states the choice can be in: none of the rows shown,
     some of them as the checkbox's own indeterminate, all of them. A press takes the choice to
-    whichever end it is not at, and the name it carries — 전체 선택 or 전체 해제 — is that end, so the
-    tooltip and the accessible name say what pressing would do.
+    whichever end it is not at, and the words beside the box — 전체 선택 or 전체 해제 — name that end,
+    so what it says is what pressing would do.
   - A row of such a list marks itself chosen with a checkbox's own square, so one list is not read as
     two ways of choosing.
-  - The box is smaller than a finger, so it stands in a cell as wide as a toolbar is tall and the
-    whole cell is pressed; the cell carries the hover and the press colors the way a toolbar's other
-    cells do.
+  - The box is smaller than a finger, so the box, its words and the room round them are one pressable
+    control, and its hover and press colors fill that control's own rounded shape, the way a small
+    button's do, never the bar it stands in.
   - What the states mean and what a press means are decided in one place for the whole console rather
     than per screen, so no list answers differently. The list supplies the rows it is showing and what
     was chosen, and receives which of the two ends the press asked for.
@@ -1843,6 +1843,9 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   as a whole it lays beside the name, in the place the offer names as `screenActions`
   (`[data-title-bar-screen-actions]`), and its way back before the name, in the place the offer names as
   `screenLead` (`[data-title-bar-screen-lead]`), each by a deferred teleport, and its own panels carry no bar.
+  bmo-ui's contract names neither place: a screen built to it stands its way back and its actions in its own
+  row under the bar and lays nothing into the bar, so the offer's two places stand empty under it and serve
+  only a screen that still lays into them.
   The bar and those places stand before the screen does, on every
   road to it — the first load, from a screen of the console's own, from another bundle's screen: the bar follows
   the route being gone to as soon as the navigation is taken, so the place is in the page by the time the screen
@@ -1950,24 +1953,20 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   that target with no gutter. It fills the container end to end, its top and bottom borders continuing the tab
   bar's, view switch's and editor's, and its items have no border each but are split by dividers. Overflow
   flows sideways within the toolbar. An item attached to the right end is pushed to the end.
-- **A toolbar's icon button is a square of the toolbar's own height** — 36 pixels, 40 under a finger — so the
-  row reads as one band of equal cells and a finger has the whole height to aim at. The toolbar itself decides
-  it, off what the button holds: a button whose whole content is one mark is an item button, and a select, a
-  switch or a button carrying a word is not. So a toolbar written later is held to it without being told, and
-  the editor's own formatting row is a toolbar of this kind too.
-- **A cell is as wide as what it holds.** A cell of words — the path, a label, a field — keeps the toolbar's
-  own room on either side; a cell holding only buttons — a group of actions, the 더보기 that folds them — keeps
-  none, since its buttons are already the row's squares, so a folded group's 더보기 stands as square as its
-  neighbours. A button carrying a word keeps the component library's own padding and gap rather than the
-  toolbar's. All of it is set once on the toolbar, off what a cell holds.
+- **A toolbar's button is the component library's small button at its own size,** centred in the row with
+  room above and below it; the row is 36 pixels tall, 40 under a finger, and no button is stretched to its
+  height or to a square cell. Its hover and press colours fill its own rounded shape and nothing round it, so a
+  hovered button never paints its cell or the row, and an icon-only button is the library's small square icon
+  button. The toolbar is bmo-ui's and sets all of it once, so a toolbar written later is held to it without
+  being told: a button standing in it is the library's own button, never a bare element dressed as one, since
+  the toolbar tells a button by its being the library's.
+- **A cell is as wide as what it holds.** A cell of words — the path, a label, a field, a switch with its
+  words — keeps the toolbar's own room on either side; a cell holding only buttons — a group of actions, the
+  더보기 that folds them, a view switch — keeps only the small room its buttons stand from the row's edges and
+  from each other. A cell sets no padding of its own over what the toolbar gives it.
 - **A button's word never breaks into two lines**, however narrow the toolbar has been squeezed to, and that
-  too is set once for every button in every toolbar rather than on the buttons one at a time. The square that
-  goes with it is a floor and not a fixed width: a button holding one mark stands exactly as wide as the row is
-  tall, and a button holding more than a mark grows to hold it. Both halves are needed together, because what
-  a stylesheet can read of a button is its elements and not its text — a word written straight beside a mark
-  looks from there exactly like a mark standing alone, and a width it could not push past would fold that word
-  down the middle of the row. A toolbar left with more in it than its container is wide flows sideways, which is
-  the overflow it already has, and never folds a word.
+  too is set once for every button in every toolbar. A toolbar left with more in it than its container is wide
+  flows sideways, which is the overflow it already has, and never folds a word.
 - **A bar gathers by the room it has, not by the window's width.** A toolbar in a side panel, in one half of a
   splitter or over a list standing in a reading column is as narrow as that part however wide the window around
   it is — a list panel beside an open thread is often narrower than a phone — so the room is read off the bar

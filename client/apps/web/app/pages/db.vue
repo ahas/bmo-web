@@ -83,21 +83,21 @@
               />
             </div>
 
-            <button
-              type="button"
-              class="ms-auto text-muted transition-colors hover:bg-elevated hover:text-highlighted active:bg-accented"
-              :disabled="page === null"
-              :aria-label="$t('db.label.schema')"
-              @click="schemaOpen = true"
-            >
-              <UIcon name="i-material-symbols-info-outline" class="size-5 shrink-0" />
-              <!-- The word goes on a phone, and it goes by not being drawn at all rather than by
-                   being hidden where it stands: the toolbar reads a button's own children to tell
-                   an item button from the rest, and a hidden word is a child like any other, so a
-                   button that shows nothing but its mark would still be laid out as though it
-                   carried a word and stand wider than the square the row is made of. -->
-              <span v-if="!narrow">{{ $t("db.label.schema") }}</span>
-            </button>
+            <!-- The library's own button, so the toolbar stands it small with its hover on its own shape; on a
+                 phone it shows its mark alone and the tooltip names it. -->
+            <div class="ms-auto">
+              <UTooltip :text="$t('db.label.schema')" :disabled="!narrow">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-material-symbols-info-outline"
+                  :label="narrow ? undefined : $t('db.label.schema')"
+                  :disabled="page === null"
+                  :aria-label="$t('db.label.schema')"
+                  @click="schemaOpen = true"
+                />
+              </UTooltip>
+            </div>
           </ToolBar>
 
           <p v-if="failed !== ''" class="px-4 py-3 text-sm text-error">{{ failed }}</p>

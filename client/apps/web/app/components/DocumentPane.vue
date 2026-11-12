@@ -15,7 +15,7 @@
     />
 
     <ToolBar :label="$t('documents.aria.toolbar')">
-      <div class="!px-1">
+      <div>
         <UTooltip :text="props.listTool.label">
           <UButton
             color="neutral"
@@ -31,11 +31,9 @@
       </div>
 
       <template v-if="props.document !== null">
-        <div class="!px-0">
-          <TabSwitch :model-value="props.view" :items="views" :label="$t('common.label.view')" :compact="tight" class="border-x-0" @update:model-value="emit('view', $event)" />
-        </div>
+        <TabSwitch :model-value="props.view" :items="views" :label="$t('common.label.view')" :compact="tight" @update:model-value="emit('view', $event)" />
 
-        <div class="!px-3">
+        <div>
           <UTooltip :text="$t('documents.message.translation_unavailable')" :disabled="props.translatable">
             <USwitch
               size="sm"
@@ -48,7 +46,7 @@
           </UTooltip>
         </div>
 
-        <div v-if="translating" class="!px-1" role="status">
+        <div v-if="translating" role="status">
           <UTooltip :text="$t('documents.status.translating')">
             <UButton
               color="neutral"
@@ -63,16 +61,15 @@
         </div>
       </template>
 
-      <div class="ms-auto !px-1">
-        <ActionGroup
-          :actions="actions"
-          :properties="properties"
-          :properties-title="props.document?.title ?? null"
-          :label="$t('common.aria.document_menu')"
-        />
-      </div>
+      <ActionGroup
+        class="ms-auto"
+        :actions="actions"
+        :properties="properties"
+        :properties-title="props.document?.title ?? null"
+        :label="$t('common.aria.document_menu')"
+      />
 
-      <div v-if="!props.narrow" class="!px-1">
+      <div v-if="!props.narrow">
         <UTooltip :text="props.tocTool.label">
           <UButton
             color="neutral"

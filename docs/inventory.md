@@ -62,7 +62,7 @@ Stands here as its own place in the Bun workspace under `client/`, re-cut for `a
 | `patches/reka-ui@2.10.4.patch` | `client/patches/`, the same patch bmo-ui and the bmo-artifact bundle carry, applied in the workspace's lockfile, which holds the packages it shares with bmo-ui at bmo-ui's own versions |
 
 The packs under `client/vendor/` are made with `bun pm pack` in a scratch export (`git archive`) of each
-repository's committed tree, never in its checkout: bmo-ui at revision 0.1.0-rev.17 as its tree stands at commit 70fab4e, and the clients of the
+repository's committed tree, never in its checkout: bmo-ui at revision 0.1.0-rev.17 as its tree stands at commit 431ab14, the same bytes the bundles built on that commit vendor, and the clients of the
 units the console calls. No console bundle is vendored: each is loaded from its unit while the console runs.
 
 ### The console shell (210 files)

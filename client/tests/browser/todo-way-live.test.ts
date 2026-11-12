@@ -9,7 +9,7 @@ import type { TodoBoard, TodoItem, TodoModelPlan } from "../../apps/web/shared/t
 
 // A TODO row says where its item's work stands on its way live (docs/web.md, the TODO panel's section): being tested
 // while a job of it runs its close, waiting to go live once the close handed its commit over, and nothing where the
-// item says neither — in its state chip, in place of 진행 중, at both widths.
+// item says neither — in its state chip, in place of the running word, at both widths.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves
 // the board through the page's own route.

@@ -385,7 +385,7 @@
 
               <div class="mt-1 flex flex-wrap items-center gap-1">
                 <!-- Where the item's work stands on its way live — being tested, waiting to go live, being put live, or
-                     its deployment failed — is what its state chip says while it applies, in place of 진행 중 or 대기:
+                     its deployment failed — is what its state chip says while it applies, in place of the running or waiting word:
                      no state, filter or place in the order of its own. -->
                 <UBadge
                   v-if="itemDeployPhase(deployView, item) !== null"

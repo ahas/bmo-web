@@ -41,7 +41,7 @@ export const STREAM_KEEPALIVE_MS = 5_000;
 export const STREAM_SILENCE_MS = STREAM_KEEPALIVE_MS * 4;
 
 
-// How many of the last runs the live status screen shows for each agent. It is a glance at
+// How many of the last runs are read for each agent. It is a glance at
 // what has just happened, not a log.
 export const STATUS_HISTORY_LIMIT = 10;
 

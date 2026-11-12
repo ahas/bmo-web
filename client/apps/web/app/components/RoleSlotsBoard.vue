@@ -1,6 +1,6 @@
 <template>
-  <!-- The role slots at a glance (docs/web.md, 「Live status screen」): a row to every role, a tile to every slot its cap
-       gives. A working tile opens the live log of the role's run at the place that run began. -->
+  <!-- The role slots at a glance (docs/web.md, 「Monitor's role slots tab」): a row to every role, a tile to every slot
+       its cap gives. A working tile opens the live log of the role's run at the place that run began. -->
   <div class="flex flex-col gap-3">
     <ReadFailure :failure="readFailure" :message="failed" :reading="reading" @retry="load()" />
 
@@ -28,7 +28,7 @@
         <h3 class="text-sm font-medium text-toned tabular-nums">{{ rowHead($t, row) }}</h3>
         <ul :class="GRID" :aria-label="rowHead($t, row)">
           <li v-for="(tile, at) in row.tiles" :key="at">
-            <SlotTile :tile="tile" :now="props.now" :stops="stops" @open="openLog(row.role, tile)" />
+            <SlotTile :tile="tile" :now="now" :stops="stops" @open="openLog(row.role, tile)" />
           </li>
         </ul>
         <!-- A tile is too small to hold the question, so it grows under the row the tile is in, naming that tile. The
@@ -43,7 +43,7 @@
       </div>
     </template>
 
-    <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.role" :place="log.place" :rooms="props.rooms" />
+    <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.role" :place="log.place" :rooms="rooms" />
   </div>
 </template>
 
@@ -59,13 +59,14 @@ import type { RoomSummary, StopTarget } from "#shared/types";
 import type { SlotBoard, SlotTile as SlotTileView } from "#shared/role-slots";
 import type { LogPlace } from "~/domain/log";
 
-const props = withDefaults(defineProps<{ rooms?: RoomSummary[]; now: number }>(), { rooms: () => [] });
-
-// How often the slots are read again while the screen stands and is seen.
+// How often the slots are read again while the tab stands and is seen.
 const POLL_MS = 3_000;
+// The time a working tile has been held is redrawn once a second.
+const TICK_MS = 1_000;
 
-// The tiles of one row: as many to a line as fit at the width a tile reads well at.
-const GRID = "grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2 sm:grid-cols-[repeat(auto-fill,minmax(9rem,1fr))]";
+// The tiles of one row: as many to a line as fit at the width a tile reads well at, its state's words and its stop
+// standing whole beside each other.
+const GRID = "grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-2";
 
 const { t } = useI18n();
 const board = ref<SlotBoard | null>(null);
@@ -73,6 +74,11 @@ const failed = ref("");
 const reading = ref(false);
 const log = ref<{ role: string; place: LogPlace | null } | null>(null);
 const logOpen = ref(false);
+const now = ref(Date.now());
+
+// The rooms, so a chat agent's log is named by its room the way it is named everywhere else.
+const { data: roomList } = useFetch<RoomSummary[]>("/api/rooms", { key: "rooms", lazy: true, server: false, default: () => [] });
+const rooms = computed<RoomSummary[]>(() => roomList.value ?? []);
 
 // A job's run is stopped through its item, and the answer is the bot's own; what the board does with it is read the
 // slots again, since the tile goes when that run does.
@@ -135,4 +141,8 @@ onMounted(() => {
 usePolling(() => {
   if (document.visibilityState === "visible") void load();
 }, POLL_MS);
+
+usePolling(() => {
+  now.value = Date.now();
+}, TICK_MS);
 </script>

@@ -41,7 +41,7 @@ describe.skipIf(!origin || !touchReady())("a room's unread count", () => {
     try {
       const page = await context.newPage();
 
-      await page.goto(`${origin}/live`, { waitUntil: "load" });
+      await page.goto(`${origin}/siren`, { waitUntil: "load" });
 
       const rooms = (await (await page.request.get(`${origin}/api/rooms`)).json()) as { chatId: number; unread: number; firstUnread: number | null }[];
 
@@ -75,8 +75,8 @@ describe.skipIf(!origin || !touchReady())("a room's unread count", () => {
       const first = await context.newPage();
       const second = await context.newPage();
 
-      await first.goto(`${origin}/live`, { waitUntil: "load" });
-      await second.goto(`${origin}/live`, { waitUntil: "load" });
+      await first.goto(`${origin}/siren`, { waitUntil: "load" });
+      await second.goto(`${origin}/siren`, { waitUntil: "load" });
 
       const badge = (page: typeof first) => page.getByRole("link", { name: /unread-room/ }).first();
 

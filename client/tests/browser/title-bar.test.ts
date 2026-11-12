@@ -14,7 +14,7 @@ import type { Browser, Page } from "playwright-core";
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "title-bar", password: "fixture-password-2318" };
-const SCREENS = ["/", "/live", "/siren", "/db", "/documents", "/agents", "/agents/worker", "/monitor", "/rooms", "/rooms/42"];
+const SCREENS = ["/", "/siren", "/db", "/documents", "/agents", "/agents/worker", "/monitor", "/rooms", "/rooms/42"];
 const WIDTHS = [
   { width: 1280, height: 900, phone: false },
   { width: 360, height: 780, phone: true }

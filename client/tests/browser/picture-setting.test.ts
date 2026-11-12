@@ -52,7 +52,7 @@ describe.skipIf(!origin || !touchReady())("a picture set in the console", () => 
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/live?settings=account`, { waitUntil: "load" });
+        await page.goto(`${origin}/siren?settings=account`, { waitUntil: "load" });
 
         const own = page.locator("[data-picture-setting='person']");
 

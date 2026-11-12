@@ -22,7 +22,7 @@ export default defineEventHandler(async (event): Promise<StatusView> => {
     ),
     readLiveRuns().catch((): [] => [])
   ]);
-  const history = { executions: [], watches: [], gates: [], runners: [], jobs, machine: null, nodes: null };
+  const history = { executions: [], watches: [], gates: [], runners: [], jobs };
 
   return snapshot.read === null
     ? { reachable: false, live, compacting: [], liveAt: null, ...history }

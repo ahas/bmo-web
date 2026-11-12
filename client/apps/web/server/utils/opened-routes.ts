@@ -103,7 +103,7 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { ...section(ROOM, "GET", /^\/api\/media\/[^/]+\/-?\d+\/-?\d+$/), scope: "room" },
   section(ROOM, "GET", /^\/api\/avatars(?:\/[^/]+\/[^/]+)?$/),
   { ...section(ROOM, "POST", /^\/api\/push\/watching$/), access: "read" },
-  // The receiver's stream carries the live status screen's news as well.
+  // The receiver's stream carries the news of what runs now as well.
   { method: "GET", path: /^\/api\/events$/, scope: "room", sections: ["rooms", "live"], access: "read" },
 
   // What is running now, its queue, its deployment and the items it works on.
@@ -113,14 +113,12 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(LIVE, "POST", /^\/api\/todos(?:\/.*)?$/),
 
   // Agent management, a permission to each of its five parts (docs/web.md, 「Access」). An agent's own page and
-  // the shared reads a chooser or a mark makes open under any part; the role slots stand on the live status
-  // screen too, and the provider switches and the fallback are read beside every part and written as a
+  // the shared reads a chooser or a mark makes open under any part; the role slots stand on the monitor's
+  // role slots tab too, and the provider switches and the fallback are read beside every part and written as a
   // supervisor's.
   section(AGENT_DETAIL, "GET", /^\/api\/agents\/[^/]+(?:\/.*)?$/),
   section(AGENT_PARTS, "GET", /^\/api\/agents$/),
-  { ...section(["roles", "live"], "GET", /^\/api\/slots$/), access: "read" },
-  // The agents' space, the live status screen's first tab.
-  { ...section(["live"], "GET", /^\/api\/space$/), access: "read" },
+  { ...section(["roles", "monitor"], "GET", /^\/api\/slots$/), access: "read" },
   section(SUPERVISORS, "GET", /^\/api\/supervisors(?:\/.*)?$/),
   section(SUPERVISORS, "POST", /^\/api\/supervisors(?:\/.*)?$/),
   section(SUPERVISORS, "PATCH", /^\/api\/supervisors(?:\/.*)?$/),
@@ -147,7 +145,7 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(AGENT_PARTS, "GET", /^\/api\/(provider-models|providers|fallback|agent-faces|tool-icons)(?:\/.*)?$/),
   // What an agent's own page sends, and the stop a run's row offers.
   section(AGENT_DETAIL, "POST", /^\/api\/(launch|worker-word)(?:\/.*)?$/),
-  section(["live", "supervisors", "roles"], "POST", /^\/api\/run-stop(?:\/.*)?$/),
+  section(["live", "supervisors", "roles", "monitor"], "POST", /^\/api\/run-stop(?:\/.*)?$/),
 
   // The research unit's queue, runs and sources, and the settings every run is held to.
   section(RESEARCH, "GET", /^\/api\/research(?:\/.*)?$/),

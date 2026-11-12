@@ -19,7 +19,7 @@ function target(value: unknown): StopTarget | null {
     : null;
 }
 
-// Ending what is running, from the live board. The agency's fixed API keeps the jobs and the runs: a job is
+// Ending what is running, from a role slot's tile or an agent's own screen. The agency's fixed API keeps the jobs and the runs: a job is
 // stopped by its state, and a run by its own close. Nothing here decides what a stop means or which kind is
 // reached by what: the target travels to the agency, whose own routes have the whole of that. `all` is the
 // owner's one press for everything running.

@@ -5,7 +5,7 @@ import type { SlotRow, SlotTile, SlotTileRun } from "#shared/role-slots";
 import type { Translate } from "#shared/wording";
 import type { LogPlace } from "./log";
 
-// How the live status screen draws the role slots (docs/web.md, 「Live status screen」): a tile to a slot, told apart by
+// How the monitor's role slots tab draws the role slots (docs/web.md, 「Monitor's role slots tab」): a tile to a slot, told apart by
 // what holds it.
 
 export const SLOT_STATE_LABELS: Record<SlotTile["state"], string> = {

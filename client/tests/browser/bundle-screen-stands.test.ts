@@ -79,7 +79,7 @@ describe.skipIf(!origin || !touchReady())("a screen a unit brings standing at it
     const page = await openPage();
 
     try {
-      await page.goto(`${origin}/live`, { waitUntil: "load" });
+      await page.goto(`${origin}/siren`, { waitUntil: "load" });
       await page.waitForTimeout(1_000);
       // A built console's page never carries one; a development console's tooling stood this before the app booted.
       await page.evaluate("delete globalThis.process");

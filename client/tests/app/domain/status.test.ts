@@ -7,11 +7,9 @@ import { wording } from "../../../apps/web/shared/wording";
 import { holdCatalogue } from "../../../apps/web/app/domain/agents";
 
 import {
-  isLiveTab,
   modeLabel,
   modelLabel,
   outcomeLabel,
-  LIVE_TABS,
   stopTargetOf,
   uptimeClock,
 } from "../../../apps/web/app/domain/status";
@@ -52,14 +50,6 @@ test("a Claude model is read under the name its identifier gives, listed or not"
   expect(modelLabel("claude-haiku-4-5-20251001")).toBe("Haiku 4.5");
   expect(modelLabel("claude-opus-9")).toBe("Opus 9");
   expect(modelLabel("gpt-6-astra")).toBe("GPT-6 Astra");
-});
-
-describe("the live status screen's tabs", () => {
-  test("only these are read back from an address", () => {
-    expect(isLiveTab("space")).toBe(true);
-    expect(isLiveTab("slots")).toBe(true);
-    for (const other of ["pool", "gate", "worker", "executions", "all", null]) expect(isLiveTab(other)).toBe(false);
-  });
 });
 
 describe("where a row of the board leads", () => {

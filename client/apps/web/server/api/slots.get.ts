@@ -4,7 +4,7 @@ import { repositorySummary, runPlace, slotRunsOf } from "../utils/agent-list";
 import type { SlotBoard, SlotRow, SlotTile } from "#shared/role-slots";
 import type { AgentSummary, StopTarget } from "#shared/types";
 
-// The role slots as the live status screen draws them (docs/web.md, 「Live status screen」): every role in the order the
+// The role slots as the monitor's role slots tab draws them (docs/web.md, 「Monitor's role slots tab」): every role in the order the
 // agency lists them, with a tile for every slot its cap gives — the runs let in first, then the reservations, then the
 // idle ones — read from the agency's `GET /slots`, whose rows the published client leaves untyped and which are read as
 // its `docs/api.md` states them. A role at a cap of 0 stands only while something of it still runs, is reserved or

@@ -102,7 +102,6 @@ bmo-ui layer's (bmo-ui's `docs/components.md`); this says how the console uses t
   the foot's placeholder stands at most once while the further pages are read.
 - **What it holds the database screen to,** at both widths: each of its two placeholders keeps the dense table's
   own head and row heights, and its head shares the table's left edge.
-- **What it holds the units' line to:** the live screen's button and a room's box show the pack's loading words
-  while the ask is held, then its failure words once the unreachable address has answered, and the button's
-  colour differs between the two.
+- **What it holds the units' line to:** a room's box shows the pack's loading words while the ask is held, then
+  its failure words once the unreachable address has answered.
 - **Not covered here:** every screen's delay and failure paths one by one, and a real finger.

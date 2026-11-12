@@ -10,7 +10,7 @@ import type { ItemRuns, JobLine, JobPrompt, JobRecord, LiveRun, RanOn } from "#s
 import type { RunFigures } from "./run-tally";
 
 // A worker's job and the jobs that have just run, as the agency's fixed API reads them (the agency's `docs/api.md`,
-// 「assignments and jobs」), into the shapes the worker's screen and the live board draw. The agency's times are
+// 「assignments and jobs」), into the shapes the worker's screen and the home screen draw. The agency's times are
 // milliseconds and the console's seconds.
 
 const seconds = (ms: number): number => Math.floor(ms / 1000);
@@ -84,7 +84,7 @@ async function jobNamed(worker: string, run: string | null): Promise<AgencyJob |
   return jobChosen(await jobsOf(worker), run);
 }
 
-/** The jobs that have just run, newest first, as many as the live board shows of a kind. */
+/** The jobs that have just run, newest first, as many as are read of a kind. */
 export async function readRecentJobs(): Promise<JobRecord[]> {
   const [ended, stopped] = await Promise.all([
     agencyCall(agency().GET("/jobs", { params: { query: { state: "ended", limit: STATUS_HISTORY_LIMIT } } })),
@@ -136,7 +136,7 @@ async function roomOf(job: AgencyJob): Promise<number | null> {
   }
 }
 
-// One job under way, as the live board and a room's working line read it: a worker's run, named by the run its
+// One job under way, as the home screen and a room's working line read it: a worker's run, named by the run its
 // log stands under, of the item it is a run of, in the room it reports to. The agency says no model while the
 // job runs, and none of its ceiling, depth or launcher; the job's item is what a stop from the board names.
 function liveRunOf(job: AgencyJob, room: number | null): LiveRun {

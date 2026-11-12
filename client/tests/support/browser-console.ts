@@ -309,8 +309,8 @@ const uses: Record<string, unknown>[] = [];
 
 // A unit that brings a screen of its own under the console's title bar (docs/web.md, 「Screens a unit brings」, 「The
 // title bar」): its manifest, its words and its module, whose one route asks for the console's bar. The screen notes
-// whether the bar's place for its actions stood when it mounted, lays a button there by a deferred teleport and
-// redraws it every few frames, so a place missing at mount shows as an error on the page. Its module reads
+// whether it found the console's offer and the bar standing under its own name when it mounted, and stands its action
+// in its own row under the bar, as bmo-ui's contract asks, redrawing it every few frames. Its module reads
 // `process.env` where it stands, as a library inside a unit's build does, so the module ends before its routes
 // stand unless the console owes a `process` to it. Opened with `?styles=on` it also lays a plain rule for the
 // `input` element on the page as it runs, unlayered, as an editor library inside a unit's bundle does: what a
@@ -323,9 +323,7 @@ function screenUnit(name: string, path: string): Response | null {
   if (path === "/console/words") return Response.json({ ko: { [name]: { title: name } }, en: { [name]: { title: name } } });
 
   if (path === "/console/bundle.js") {
-    const source = `import { Teleport, defineComponent, h, onBeforeUnmount, onMounted, ref } from "vue";
-
-const SLOT = "[data-title-bar-screen-actions]";
+    const source = `import { defineComponent, h, inject, onBeforeUnmount, onMounted, ref } from "vue";
 
 // What a library inside a unit's build reads at the top of its module, before any of its own code runs.
 const built = process.env.NODE_ENV;
@@ -333,6 +331,7 @@ const built = process.env.NODE_ENV;
 const Screen = defineComponent({
   setup() {
     const ticks = ref(0);
+    const offered = inject("bmo-console-title-bar", null) !== null;
     let timer = null;
 
     onMounted(() => {
@@ -346,13 +345,15 @@ const Screen = defineComponent({
         document.head.append(laid);
       }
 
-      (globalThis.__screenMounts ??= []).push({ screen: ${JSON.stringify(name)}, slot: document.querySelector(SLOT) !== null });
+      const named = [...document.querySelectorAll("[data-title-bar] [data-slot=title]")].some((title) => title.textContent.trim() === ${JSON.stringify(name)});
+
+      (globalThis.__screenMounts ??= []).push({ screen: ${JSON.stringify(name)}, offered, bar: named });
       timer = setInterval(() => (ticks.value += 1), 50);
     });
     onBeforeUnmount(() => clearInterval(timer));
 
     return () => h("div", { "data-screen": ${JSON.stringify(name)}, "data-build": String(built) }, [
-      h(Teleport, { to: SLOT, defer: true }, [h("button", { type: "button", "data-screen-action": ${JSON.stringify(name)} }, "act " + ticks.value)]),
+      h("div", { "data-screen-row": ${JSON.stringify(name)} }, [h("button", { type: "button", "data-screen-action": ${JSON.stringify(name)} }, "act " + ticks.value)]),
       h("p", ${JSON.stringify(name)} + " " + ticks.value)
     ]);
   }

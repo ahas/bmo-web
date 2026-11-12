@@ -11,11 +11,12 @@
       class="flex flex-wrap items-center gap-2 border-s-2 border-warning ps-3 text-sm text-toned"
     >
       <span class="min-w-0 break-words">{{ props.question ?? $t("live.message.stop_confirm_default") }}</span>
+      <!-- The question's answers stand at the row's right end, each at its own width. -->
+      <div class="ms-auto flex shrink-0 items-center gap-2">
       <UButton
         :label="$t('live.action.stop')"
         color="error"
         variant="outline"
-        class="min-h-11"
         :loading="props.stops.isSending(props.target)"
         :aria-label="$t('live.aria.stop_named', { name: props.label })"
         @click="props.stops.stop(props.target)"
@@ -24,10 +25,10 @@
         :label="$t('common.action.cancel')"
         color="neutral"
         variant="ghost"
-        class="min-h-11"
         :disabled="props.stops.isSending(props.target)"
         @click="props.stops.cancel()"
       />
+      </div>
     </div>
 
     <p v-if="props.stops.errorOf(props.target) !== ''" role="alert" class="break-words text-sm text-error">

@@ -84,6 +84,8 @@ describe("the menu on one message", () => {
 
     expect(groups[0]![0]!.label).toBe(wording("room.action.react"));
     expect((groups[0]![0]! as { slot?: string }).slot).toBe(REACTION_STRIP_SLOT);
+    // Its emojis are buttons of their own, so the row they stand in draws no highlight under a hover.
+    expect((groups[0]![0]! as { class?: string }).class).toContain("before:hidden");
     expect(strip.map((choice) => choice.emoji)).toEqual([...REACTION_EMOJIS]);
     expect(strip.filter((choice) => choice.mine).map((choice) => choice.emoji)).toEqual(["🎉"]);
   });

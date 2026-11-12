@@ -1,27 +1,26 @@
 import { describe, expect, test } from "bun:test";
 
-// What an agent's own title bar carries about that agent. The week's four kinds stand on the bar
-// itself, in the short hand the owner reads them in, and the mark they stand on opens the rest.
-// Spelt out with their Korean words, their total and what the split cannot account for, that same
-// week runs to four hundred-odd pixels of a bar whose one job is the agent's name; in short hand
-// it is a figure the bar can carry without losing the name.
+// What an agent's own row under its title bar carries about that agent: no figure of its own, but one mark that opens
+// them.
 //
 // What the press opens is the block the home screen puts under this same agent's name, drawn by
 // the same component. One agent's figures are one picture wherever the console shows them; a
 // second spelling of them in a header is a second thing to keep true, and the two would drift the
 // first time either was touched.
 //
-// It is read off the file that ships: a header is laid out by variants and a rendered bar would
+// It is read off the file that ships: a header is laid out by variants and a rendered row would
 // name none of this.
 
 const source = await Bun.file(new URL("../../../../apps/web/app/pages/agents/[name].vue", import.meta.url)).text();
 const template = source.slice(0, source.indexOf("<script"));
 
-// An agent's own run is stopped from its own screen: the button stands beside the uptime that
-// says it is running, and the question grows under the title rather than floating over it.
+// An agent's own run is stopped from its own screen: the button stands in the row whose left says it is running, and
+// the question grows under the row rather than floating over it.
 describe("stopping this agent's own run", () => {
+  const script = source.slice(source.indexOf("<script"));
+
   test("the button stands by what the picture named, and the question stands in place", () => {
-    expect(template).toContain('stopTarget !== null && !stops.isAsking(stopTarget)');
+    expect(script).toContain("if (target !== null && !stops.isAsking(target) && writable.value) {");
     expect(template).toContain(`:label="$t('live.status.stopping')"`);
     expect(template).toContain("<StopConfirm");
     expect(source).toContain("stopTargetOf(run.value)");
@@ -29,7 +28,7 @@ describe("stopping this agent's own run", () => {
   });
 });
 
-describe("what an agent's title bar says about that agent", () => {
+describe("what an agent's row says about that agent", () => {
   test("there is source to read, so nothing below passes on an empty string", () => {
     expect(template.length).toBeGreaterThan(500);
     expect(template).toContain("<ConsoleTitleBar");
@@ -78,9 +77,9 @@ describe("what an agent's title bar says about that agent", () => {
 describe("this agent's own settings", () => {
   const script = source.slice(source.indexOf("<script"));
 
-  test("stand behind one button beside the name, for a supervisor, a role and a repository alike", () => {
-    expect(template).toContain(`<UTooltip v-if="settingsKind !== null && writable" :text="$t('agents.action.settings')">`);
-    expect(template).toContain(`:aria-label="$t('agents.action.settings')"`);
+  test("stand as one of the row's actions, for a supervisor, a role and a repository alike", () => {
+    expect(template).toContain('<ActionGroup :actions="rowActions" data-screen-row-actions />');
+    expect(script).toContain("if (settingsKind.value !== null && writable.value) {");
     expect(script).toContain('if (settingsSupervisors.value?.some((one) => one.name === name) === true) return "supervisor";');
     expect(script).toContain('if (settingsRoles.value?.roles.some((one) => one.name === name) === true) return "role";');
   });
@@ -97,11 +96,5 @@ describe("this agent's own settings", () => {
     expect(template).toContain('<RoleSettingsDialog v-else-if="writable && settingsKind === \'role\'" v-model:open="settingsOpen" :name="name"');
     expect(template).toContain('<RepositorySettingsDialog v-else-if="writable && settingsKind === \'repository\'" v-model:open="settingsOpen" :name="name"');
     expect(template).not.toContain("<WorkerSettingsDialog");
-  });
-
-  test("never put the button at the right end, which keeps what every screen carries", () => {
-    const right = template.slice(template.indexOf("<template #right>"));
-
-    expect(right.slice(0, right.indexOf("</template>"))).not.toContain('agents.action.settings');
   });
 });

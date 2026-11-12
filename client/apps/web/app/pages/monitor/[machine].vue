@@ -10,6 +10,14 @@
           </SkeletonStatus>
         </template>
       </ConsoleTitleBar>
+
+      <!-- The screen's own row under the bar, holding the way back to every machine's monitor at its left end
+           (docs/web.md, 「Monitor screen」). -->
+      <div :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]" data-screen-row>
+        <UTooltip :text="$t('common.action.back')">
+          <UButton to="/monitor" size="sm" square color="neutral" variant="ghost" icon="i-material-symbols-arrow-back" :aria-label="$t('common.action.back')" data-way-back />
+        </UTooltip>
+      </div>
     </template>
 
     <template #body>
@@ -20,6 +28,8 @@
 </template>
 
 <script setup lang="ts">
+import { TAB_ROW_LINE } from "bmo-ui/app/domain/tabs";
+
 import { LOCAL_MACHINE, machineHardwareUrl, machineHistoryUrl, machineIcon, machineLiveUrl, machineName } from "~/domain/hardware";
 
 import { useAdministrator } from "~/domain/access";

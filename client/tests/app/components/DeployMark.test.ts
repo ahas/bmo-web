@@ -18,3 +18,18 @@ describe("the deployment popover", () => {
     expect(mark).toContain("() => [shown.value, view.value?.run?.phase ?? null");
   });
 });
+
+// The mark is the library's own button in the mark's tone, so its hover fills its own rounded shape,
+// and once its words fold away it is the library's square (docs/web.md, 「The title bar」).
+describe("the running mark", () => {
+  const template = mark.slice(0, mark.indexOf("<script"));
+
+  test("is the library's own button, square once its words fold away", () => {
+    const press = template.slice(template.lastIndexOf("<", template.indexOf(":aria-label=\"markWords\"", template.indexOf("<UPopover"))));
+
+    expect(press.startsWith("<UButton")).toBe(true);
+    expect(press.slice(0, press.indexOf(">"))).toContain(":square=\"narrow\"");
+    expect(template).not.toContain("<button");
+    expect(template).not.toContain("hover:");
+  });
+});

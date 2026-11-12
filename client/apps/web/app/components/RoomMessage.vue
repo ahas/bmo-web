@@ -1,19 +1,24 @@
 <template>
   <UContextMenu :items="menuItems" :disabled="menuOff" :content="menuContent">
-    <!-- The reactions at the menu's head as the messenger offers them: a strip of emojis, the reader's own marked. -->
+    <!-- The reactions at the menu's head as the messenger offers them: a strip of emojis, the reader's own marked.
+         Each is the library's square ghost button with the emoji at the icon's size, the reader's own pressed in
+         the accent's soft wash; the strip is as wide as its buttons, one even gap apart. -->
     <template #reactions>
-      <span data-reaction-strip class="flex w-full items-center justify-between gap-0.5" role="group" :aria-label="$t('room.action.react')">
-        <button
+      <span data-reaction-strip class="flex items-center gap-1" role="group" :aria-label="$t('room.action.react')">
+        <UButton
           v-for="choice in strip"
           :key="choice.emoji"
-          type="button"
-          class="grid size-8 place-items-center rounded-full text-lg transition-transform hover:scale-125"
-          :class="choice.mine ? 'bg-primary/15' : ''"
+          color="neutral"
+          variant="ghost"
+          square
+          :active="choice.mine"
+          active-color="primary"
+          active-variant="soft"
           :aria-pressed="choice.mine"
           @click="choice.press()"
         >
-          {{ choice.emoji }}
-        </button>
+          <span class="grid size-5 place-items-center text-lg leading-none">{{ choice.emoji }}</span>
+        </UButton>
       </span>
     </template>
 

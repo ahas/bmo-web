@@ -7,16 +7,18 @@
 
        It is nothing at all while nothing is waiting, so it is never in the way: it exists only
        while a job has stopped and cannot go on without an answer, which is exactly when being
-       interrupted is the right thing. -->
-  <NuxtLink
+       interrupted is the right thing.
+
+       The band states and is not pressed: the one way to the question is the button at its end, so a
+       hover colours that button's own shape and never the band. Its items share one centre line. -->
+  <div
     v-if="card !== null && where !== null"
-    :to="where"
-    class="flex items-center gap-2 border-b border-warning bg-warning/10 px-3 py-2 transition-colors hover:bg-warning/20"
+    class="flex items-center gap-2 border-b border-warning bg-warning/10 px-3 py-1.5"
   >
     <UIcon name="i-material-symbols-contact-support-outline" class="size-4 shrink-0 text-warning" />
 
-    <!-- The question is written in the job's own words and the room it was asked in opens on a
-         press, so the bar shows as much of it as it has room for and sends the reader there. The
+    <!-- The question is written in the job's own words and the room it was asked in opens from the
+         button, so the bar shows as much of it as it has room for and sends the reader there. The
          words that say a job is asking stand where there is room for them; on a phone the mark and
          the colour say it, and the width goes to the question itself and the item it belongs to. -->
     <p class="min-w-0 flex-1 truncate text-sm">
@@ -30,8 +32,8 @@
 
     <UBadge v-if="waiting > 1" color="warning" variant="subtle" size="sm" :label="`+${waiting - 1}`" />
 
-    <UIcon name="i-material-symbols-chevron-right" class="size-4 shrink-0 text-warning" />
-  </NuxtLink>
+    <UButton :to="where" size="sm" color="neutral" variant="outline" class="shrink-0" :label="$t('common.action.open')" />
+  </div>
 </template>
 
 <script setup lang="ts">

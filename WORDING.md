@@ -153,6 +153,7 @@
 - an item's request in its own words → 요청 원문; the talk with the chat agent about an item → 의논. Never 대화 for
   either, which is a room's conversation.
 - collapse, expand a panel → 닫기, 열기; collapse, expand in place → 축소, 확장. Never 접기, 펴기, 펼치기.
+- the way back to the screen the reader came from → 뒤로. Never 돌아가기, 이전 화면.
 - reach a limit → 도달; a match → 일치, 해당; tied to → 연결된. Never 걸리다, 걸린 곳.
 - reach a service → 연결되다: 봇에 연결되지 않아. Never 닿다.
 - request → 요청하다. Never 청하다.
@@ -169,6 +170,9 @@
 - the research unit's words → 리서치, 분류 (a category), 대기열 (its queue), 제외 (dismissing an item), 보류 (a hold on its
   runs), 해당 (a document marked for the owner's word), 브리핑 (a brief), 보안 권고 (an advisory). Never 카테고리, 큐, 기각.
 - set by hand → 수동 지정. Never 손으로 정함.
+- what the machine's background units wrote, the monitor's tab → 로그; one entry of it → 줄: 줄 없음, 찾은 줄 없음; the
+  group a unit stands in → 분류: 전체, 서비스, 백업, 배포, 테스트, 정기 작업; a line's priority → 수준: 오류, 경고, 그 외; a
+  value taken out of a line → 가려진 값. Never 카테고리, 레벨, 기록 for the tab, 마스킹.
 - a job's review → 보고 턴; its entries → 검수 시작, 보고, 질의, 답변, 반려, 통과, 소유자 보고, 소유자 결정, 수락; its checks → 약속 이행, 결정 근거. Never 리젝, 거절, 컨펌.
 - a user's job title and contact details → 프로필: 직함, 유선 전화, 휴대전화, 이메일. Never 직책, 유선번호, 핸드폰, 메일.
 - **One screen speaks in one style.** A notice, a guidance line and an error end in 합니다 and

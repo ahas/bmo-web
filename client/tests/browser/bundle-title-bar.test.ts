@@ -5,12 +5,12 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Page } from "playwright-core";
 
-// The console's title bar and the place in it a screen a unit brings lays its actions stand before that screen does,
-// on every road to it (docs/web.md, 「The title bar」): the first load, from a screen of the console's own, and from
-// another bundle's screen. The two screens the harness's stand-in units bring (tests/support/browser-console.ts)
-// note whether the place stood as they mounted and redraw what they lay in it, so a place standing late shows as an
-// error on the page. It drives the console tests/support/browser-console.ts stands up; the suite stands up no
-// console, so there it skips.
+// The console's title bar stands, named for a screen a unit brings, before that screen does, on every road to it
+// (docs/web.md, 「The title bar」): the first load, from a screen of the console's own, and from another bundle's
+// screen. The bar names the screen alone and holds no place for it, so the screen's action stands in its own row under
+// the bar. The two screens the harness's stand-in units bring (tests/support/browser-console.ts) note whether they
+// found the console's offer and the bar named for them as they mounted. It drives the console
+// tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "bundle-bar", password: "fixture-password-2258" };
@@ -43,19 +43,37 @@ async function go(page: Page, path: string): Promise<void> {
   await page.evaluate(`void document.querySelector("#__nuxt").__vue_app__.config.globalProperties.$router.push(${JSON.stringify(path)})`);
 }
 
-async function mounts(page: Page): Promise<{ screen: string; slot: boolean }[]> {
-  return (await page.evaluate("globalThis.__screenMounts ?? []")) as { screen: string; slot: boolean }[];
+type Mount = { screen: string; offered: boolean; bar: boolean };
+
+async function mounts(page: Page): Promise<Mount[]> {
+  return (await page.evaluate("globalThis.__screenMounts ?? []")) as Mount[];
 }
 
-// The screen standing, its action laid in the bar's place, and some redraws past it.
+// How a screen stood its mount.
+const MOUNTED = (screen: string): Mount => ({ screen, offered: true, bar: true });
+
+// The screen standing with its action in its own row, and what the title bar holds besides its name and the set at
+// its right end: nothing.
 async function standing(page: Page, screen: string): Promise<void> {
-  await page.locator(`[data-screen="${screen}"]`).waitFor({ timeout: 30_000 });
-  await page.locator(`[data-title-bar-screen-actions] [data-screen-action="${screen}"]`).waitFor({ timeout: 5_000 });
-  await page.waitForTimeout(600);
+  await page.locator(`[data-screen="${screen}"] [data-screen-row] [data-screen-action="${screen}"]`).waitFor({ timeout: 30_000 });
+
+  const laid = await page.evaluate(() =>
+    [...document.querySelectorAll("[data-title-bar]")].flatMap((bar) => {
+      const after: string[] = [];
+
+      for (let next = bar.querySelector(":scope > [data-slot=left] > [data-slot=title]")?.nextElementSibling; next; next = next.nextElementSibling) after.push(next.outerHTML.slice(0, 80));
+
+      const right = [...bar.querySelectorAll(":scope > [data-slot=right] :is(button, a)")].filter((part) => part.closest("[data-title-bar-actions]") === null);
+
+      return [...after, ...right.map((part) => part.outerHTML.slice(0, 80))];
+    })
+  );
+
+  expect(laid).toEqual([]);
 }
 
 describe.skipIf(!origin || !touchReady())("a screen a unit brings, under the console's title bar", () => {
-  test("finds the bar's place for its actions as it mounts on the first load, at 360", async () => {
+  test("finds the bar named for it as it mounts on the first load, its action in its own row, at 360", async () => {
     const context = await browser!.newContext({ viewport: { width: 360, height: 780 }, isMobile: true, hasTouch: true, serviceWorkers: "block", reducedMotion: "reduce" });
     const at = cookie.indexOf("=");
 
@@ -72,14 +90,13 @@ describe.skipIf(!origin || !touchReady())("a screen a unit brings, under the con
       await standing(page, "screen-a");
 
       expect(errors).toEqual([]);
-      expect(await mounts(page)).toEqual([{ screen: "screen-a", slot: true }]);
-      expect(await page.locator("[data-title-bar-screen-actions]").count()).toBe(1);
+      expect(await mounts(page)).toEqual([MOUNTED("screen-a")]);
     } finally {
       await context.close();
     }
   }, 180_000);
 
-  test("finds it as it mounts on every move inside the app — from a screen of the console's own, from another bundle's, and back — at 360", async () => {
+  test("finds the bar as it mounts on every move inside the app — from a screen of the console's own, from another bundle's, and back — at 360", async () => {
     const context = await browser!.newContext({ viewport: { width: 360, height: 780 }, isMobile: true, hasTouch: true, serviceWorkers: "block", reducedMotion: "reduce" });
     const at = cookie.indexOf("=");
 
@@ -102,11 +119,7 @@ describe.skipIf(!origin || !touchReady())("a screen a unit brings, under the con
       await standing(page, "screen-a");
 
       expect(errors).toEqual([]);
-      expect(await mounts(page)).toEqual([
-        { screen: "screen-a", slot: true },
-        { screen: "screen-b", slot: true },
-        { screen: "screen-a", slot: true }
-      ]);
+      expect(await mounts(page)).toEqual([MOUNTED("screen-a"), MOUNTED("screen-b"), MOUNTED("screen-a")]);
     } finally {
       await context.close();
     }

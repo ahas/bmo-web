@@ -50,7 +50,19 @@ describe("the mark the figures fold into", () => {
     // The mark is inside the button, not beside it: one press, and the whole of what the bar
     // was saying stands in the popover.
     expect(template.indexOf("<UPopover")).toBeLessThan(template.indexOf("i-material-symbols-speed"));
-    expect(template.indexOf("i-material-symbols-speed")).toBeLessThan(template.indexOf("</button>"));
+    expect(template.indexOf("i-material-symbols-speed")).toBeLessThan(template.indexOf("</UButton>"));
+  });
+
+  // The press is the library's own button, so its hover fills its own rounded shape, and folded it is
+  // the library's square, the one every icon button of the bar is.
+  test("is the library's own button, square once the figures fold away", () => {
+    const press = tagOf(`:aria-label="$t('usage.title.remaining')"`);
+
+    expect(press.startsWith("<UButton")).toBe(true);
+    expect(press).toContain('variant="ghost"');
+    expect(press).toContain(':square="narrow"');
+    expect(template).not.toContain("<button");
+    expect(template).not.toContain("hover:");
   });
 });
 
@@ -58,7 +70,7 @@ describe("the mark the figures fold into", () => {
 // another percentage, so the counts stand with the totals in the popover instead.
 describe("what the wide bar carries", () => {
   // The wide shape of the bar: what stands where the fold is not in force.
-  const wide = template.slice(template.indexOf('<span v-else class="hidden sm:contents">'), template.indexOf("</button>"));
+  const wide = template.slice(template.indexOf('<span v-else class="hidden sm:contents">'), template.indexOf("</UButton>"));
 
   test("the two limit windows, by name and as shares", () => {
     expect(wide).toContain('$t("usage.label.window_session")');

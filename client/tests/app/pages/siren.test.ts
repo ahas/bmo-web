@@ -13,7 +13,6 @@ const source = await Bun.file(new URL("../../../apps/web/app/pages/siren.vue", i
 const template = source.slice(0, source.indexOf("<script"));
 // The popover the standing line opens; the filters fold into a popover of their own before it.
 const STANDING = '<UPopover v-if="standing !== null"';
-const meters = await Bun.file(new URL("../../../apps/web/app/components/UsageMeters.vue", import.meta.url)).text();
 
 // The one element, with its classes: the mark, or the line, or the button that holds both.
 function tagOf(mark: string): string {
@@ -42,21 +41,23 @@ describe("the mark the standing line folds into", () => {
   test("is inside the button that opens the popover, so one press does the whole of it", () => {
     const popover = template.indexOf(STANDING);
     const mark = template.indexOf("i-material-symbols-schedule-outline");
-    const closed = template.indexOf("</button>", popover);
+    const closed = template.indexOf("</UButton>", popover);
 
     expect(popover).toBeGreaterThan(-1);
     expect(mark).toBeGreaterThan(popover);
     expect(mark).toBeLessThan(closed);
   });
 
-  test("wears the same button as the figures beside it in the same bar", () => {
-    // Copied from its neighbour rather than styled afresh: the two are one press apart in one bar
-    // and a second look for the same kind of press is the thing this is here to prevent.
-    const worn = /class="(flex shrink-0 items-center gap-2 rounded-md p-1\.5 text-sm tabular-nums[^"]*)"/.exec(template);
+  test("is the library's own small button, square once folded", () => {
+    // It folds as the usage figures in the title bar fold, and like them it is the library's ghost button with
+    // no hover of its own: a second look for the same kind of press is what this is here to prevent.
+    const press = tagOf(`:aria-label="$t('siren.label.window_last')"`);
 
-    expect(worn).not.toBeNull();
-    expect(meters).toContain("flex shrink-0 items-center gap-2 rounded-md p-1.5 text-sm tabular-nums");
-    expect((worn as RegExpExecArray)[1]).toContain("hover:bg-elevated");
+    expect(press.startsWith("<UButton")).toBe(true);
+    expect(press).toContain('size="sm"');
+    expect(press).toContain('variant="ghost"');
+    expect(press).toContain(':square="narrow"');
+    expect(press).not.toContain("hover:");
   });
 
   test("and is nothing at all while the watch does not answer", () => {

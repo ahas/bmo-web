@@ -6,10 +6,10 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { LiveRun, StatusView } from "../../apps/web/shared/types";
 
-// An agent's screen keeps its title bar whole while the agent runs (docs/web.md, 「Agent screen」):
-// at a phone's width the name stays readable, the uptime and the actions fold behind two marks, and no
-// control in the bar overlaps another; on a desktop the uptime and the stop stand in the bar as words.
-// Each is measured as the browser lays it out.
+// An agent's screen keeps its own row under the title bar whole while the agent runs (docs/web.md, 「Agent screen」):
+// the row stays one line high, at a phone's width the uptime and the actions fold behind two marks, and no part of the
+// row overlaps another; on a desktop the uptime stands in the row as words and the actions as icon buttons. Each is
+// measured as the browser lays it out.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up:
 // the development server on a scratch database, with stand-ins for the units it reads and this file's fixture
@@ -27,8 +27,8 @@ const WIDTHS = [
 ];
 // The uptime as it reads, hours, minutes and seconds.
 const CLOCK = /\d{2}:\d{2}:\d{2}/;
-// The bar's own square, which every mark in it keeps.
-const MARK_PX = 32;
+// The row's one line.
+const ROW_PX = 48;
 
 // The worker at work for twenty-five minutes, stoppable through its item.
 const RUN: LiveRun = {
@@ -48,8 +48,8 @@ const RUN: LiveRun = {
   stop: { kind: "item", id: "1" }
 };
 
-type Part = { name: string; control: boolean; left: number; right: number; width: number; height: number };
-type Bar = { left: number; right: number; parts: Part[]; title: { scroll: number; client: number } };
+type Part = { name: string; mark: boolean; left: number; right: number; width: number; height: number };
+type Row = { left: number; right: number; height: number; parts: Part[] };
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -96,14 +96,13 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
   return context;
 }
 
-// Every part of the title bar a reader sees: its controls, its title and the marks standing for a
-// state, outermost first, as the browser laid them out.
-async function bar(page: Page): Promise<Bar> {
+// Every part of the screen's row a reader sees: its controls and the marks standing for a state, outermost first, as
+// the browser laid them out.
+async function row(page: Page): Promise<Row> {
   return await page.evaluate(() => {
-    const root = document.querySelector<HTMLElement>("[data-slot=root]:has(> [data-slot=left] > [data-slot=toggle])")!;
+    const root = document.querySelector<HTMLElement>("[data-screen-row]")!;
     const box = root.getBoundingClientRect();
-    const title = root.querySelector<HTMLElement>("[data-slot=title]")!;
-    const parts = [...root.querySelectorAll<HTMLElement>("button, a, [data-slot=title], [data-slot=icon], [data-slot=base]")]
+    const parts = [...root.querySelectorAll<HTMLElement>("button, a, [data-slot=base]")]
       .filter((element) => element.getClientRects().length > 0)
       .filter((element, _, all) => !all.some((other) => other !== element && other.contains(element)))
       .map((element) => {
@@ -111,7 +110,7 @@ async function bar(page: Page): Promise<Bar> {
 
         return {
           name: element.getAttribute("aria-label") ?? element.dataset.slot ?? element.tagName,
-          control: element.matches("button, a"),
+          mark: element.matches("button, a") && element.innerText.trim() === "",
           left: part.left,
           right: part.right,
           width: part.width,
@@ -119,7 +118,7 @@ async function bar(page: Page): Promise<Bar> {
         };
       });
 
-    return { left: box.left, right: box.right, parts, title: { scroll: title.scrollWidth, client: title.clientWidth } };
+    return { left: box.left, right: box.right, height: box.height, parts };
   });
 }
 
@@ -130,31 +129,35 @@ function overlaps(parts: readonly Part[]): string[] {
   );
 }
 
-describe.skipIf(!origin || !touchReady())("an agent's title bar while it runs", () => {
+describe.skipIf(!origin || !touchReady())("an agent's row under the title bar while it runs", () => {
   for (const viewport of WIDTHS) {
     test(`stands whole at ${viewport.width}px`, async () => {
       const context = await open(viewport);
 
       try {
         const page = await context.newPage();
-        const root = page.locator("[data-slot=root]:has(> [data-slot=left] > [data-slot=toggle])").first();
+        const root = page.locator("[data-screen-row]").first();
 
         await page.goto(`${origin}/agents/${AGENT}`, { waitUntil: "load" });
-        await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
 
-        // The run has reached the bar: the uptime as words on a desktop, the fold's menu on a phone.
-        await (viewport.phone ? root.locator("[aria-haspopup=menu]") : root.getByText(CLOCK)).first().waitFor();
+        // The run has reached the row: the uptime as words on a desktop, the fold's menu on a phone.
+        await (viewport.phone ? root.locator("[aria-haspopup=menu]") : root.getByText(CLOCK)).first().waitFor({ timeout: 30_000 });
 
-        const found = await bar(page);
+        const found = await row(page);
 
+        expect(Math.round(found.height)).toBe(ROW_PX);
         expect(overlaps(found.parts)).toEqual([]);
         expect(found.parts.filter((part) => part.left < found.left - 0.5 || part.right > found.right + 0.5).map((part) => part.name)).toEqual([]);
-        expect(found.title.scroll).toBeLessThanOrEqual(found.title.client + 1);
+
+        // Every control showing only a mark is the one small square.
+        const marks = found.parts.filter((part) => part.mark);
+
+        expect(marks.length).toBeGreaterThan(0);
+        expect(marks.filter((part) => part.width !== marks[0]!.height || part.height !== marks[0]!.height).map((part) => part.name)).toEqual([]);
 
         if (viewport.phone) {
-          // Folded: no words of the run in the bar, and every control a whole square to press.
+          // Folded: no words of the run in the row.
           expect(await root.getByText(CLOCK).filter({ visible: true }).count()).toBe(0);
-          expect(found.parts.filter((part) => part.control && (part.width < MARK_PX || part.height < MARK_PX)).map((part) => part.name)).toEqual([]);
         } else {
           expect(await root.getByText(CLOCK).filter({ visible: true }).count()).toBe(1);
           expect(await root.locator("[aria-haspopup=menu]").filter({ visible: true }).count()).toBe(0);

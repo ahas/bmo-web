@@ -55,13 +55,15 @@
       <div :aria-busy="reading || (!tablesReady && !failed)" class="flex h-full min-h-0 flex-col">
         <template v-if="mode === 'table'">
           <ToolBar :label="$t('db.label.table')">
-            <div class="min-w-0 flex-1 !px-0 sm:flex-none">
+            <!-- Each cell keeps the toolbar's own room and is as wide as what it holds: the table choice its
+                 own width, at most a share a phone can carry, and the search a phone's short box. -->
+            <div>
               <USelectMenu :content="{ align: 'start' }"
                 :model-value="table ?? undefined"
                 :items="choices"
                 value-key="value"
                 :search-input="{ placeholder: $t('db.placeholder.find_table'), icon: 'i-material-symbols-search' }"
-                class="w-full sm:w-64"
+                class="max-w-36 sm:w-64 sm:max-w-none"
                 size="sm"
                 color="neutral"
                 variant="ghost"
@@ -70,10 +72,10 @@
               />
             </div>
 
-            <div class="min-w-0 flex-1 !px-0 sm:flex-none">
+            <div>
               <UInput
                 v-model="typed"
-                class="w-full sm:w-56"
+                class="w-28 sm:w-56"
                 size="sm"
                 color="neutral"
                 variant="ghost"

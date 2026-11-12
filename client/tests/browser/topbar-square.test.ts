@@ -121,9 +121,13 @@ async function listed(page: Page): Promise<string[]> {
   return [...new Set(hrefs.filter((href) => href.startsWith(`${base}/`)).map((href) => href.slice(base.length)))];
 }
 
-// Every mark a square, and every square the same one.
+// Every mark a square, and every square the same one. A wide bar may hold none: the screens' own actions stand in
+// their rows under the bar, and the shared set stands with its words where there is room for them.
 function expectSquares(found: Record<string, Mark[]>): void {
   const all = Object.values(found).flat();
+
+  if (all.length === 0) return;
+
   const side = all[0]!.height;
 
   expect(all.length).toBeGreaterThan(0);

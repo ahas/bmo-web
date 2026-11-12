@@ -1179,8 +1179,8 @@ edit to that file alone, once the guide below carries the word.
   filled by a chat service handing a person's or a room's photo in and by the console setting one (the receiver's
   `PUT /avatars/{kind}/{subject}`, its `docs/api.md`); the newer of the two stands, and an agent's picture is the
   console's alone, never a provider's. The console sets three:
-  - **an agent's,** by its registration name, on its own page — the 사진 button beside its name, for the
-    administrator — the picture standing under every number the agent's words stand under;
+  - **an agent's,** by its registration name, on its own page — the 사진 button in the page's own row under
+    its name, for the administrator — the picture standing under every number the agent's words stand under;
   - **a room's,** from the room's menu, 방 사진, for the administrator;
   - **one's own,** in 설정 › 계정, 프로필 사진: the sender linked to the account, the owner's for the administrator.
   Each is one shape: the picture standing now, 사진 고르기 picking a file, the picked one shown in its place with
@@ -1680,8 +1680,9 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   written in the document stand as part of the document. Text standing in one line — the flowing question bar,
   a question's reason continuing after a label — takes only in-line formatting: bold and inline code stand as
   formatting, and block syntax like a heading or list and line breaks fold into that one line. A link and an
-  image stand as their own characters. The question bar is a line the whole of which is a link to that
-  question, so standing another link inside it would send one press to two places. Written HTML shown as
+  image stand as their own characters. The question bar's line is read, not pressed — its one way to the
+  question is the 열기 button at its end — so a link standing among the question's words would be a second
+  press hidden inside a line that offers none. Written HTML shown as
   characters is the same as archive text. A search's findings read like archive text but the two differ: the
   voyager's structural lines stand as headings and labels, and an image stands as an image, not a link. But
   that image does not call the outside address as is; only when it is an image recorded in that search record
@@ -1828,45 +1829,52 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 ### The title bar
 
 - **Every screen carries the one title bar, with the same buttons in the same places.** It is one component:
-  the sidebar button, the screen's name and mark, what acts on that screen alone beside its name (an agent's
-  설정 and 중지, a room's menu and its window clock), and at its right end the one set of buttons — the
-  deployment's mark, and for the administrator the TODO button and the usage figures. No screen composes a bar
-  of its own or leaves a button of the set out. The one difference a screen may make is the room's: its bar is
-  the same bar on the translucent ground the room's bars lie over the conversation on.
+  the sidebar button, the screen's name and mark, and at its right end the one set of buttons — the
+  deployment's mark, and for the administrator the TODO button and the usage figures. Nothing but the screen's
+  name and mark stands beside the name: no action, no way back and no switch, not even one that concerns that
+  screen alone, which stands in the screen's own row under the bar (below). No screen composes a bar of its own
+  or leaves a button of the set out. The one difference a screen may make is the room's: its bar is the same bar
+  on the translucent ground the room's bars lie over the conversation on.
 - **The set of buttons is one instance, held by the layout,** and laid into the bar of whichever screen
   stands. A page change moves it into the next screen's bar: nothing in it is stood up again, read again or
   drawn as loading, a button that has its figures keeps showing them, and none of it blinks.
-  `client/tests/browser/title-bar.test.ts` holds that the set is the same element across a page change.
+  `client/tests/browser/title-bar.test.ts` holds that the set is the same element across a page change, and that
+  on an agent's screen and a room's the bar holds nothing past the name but the set, the agent's actions and the
+  room's menu standing in the row under it.
 - **A screen a unit brings stands under the same bar.** The console offers its bar to every screen under its
   layout, provided under the key `bmo-console-title-bar` as bmo-ui's `docs/console-bundles.md` states the contract, and a bundle's route that asks for it — `consoleTitleBar`
   true in the route's meta — is drawn under the console's bar, named by its manifest's title and mark, the sidebar
-  button and the set of buttons in it as on every screen. Such a screen draws no bar of its own: what acts on it
-  as a whole it lays beside the name, in the place the offer names as `screenActions`
-  (`[data-title-bar-screen-actions]`), and its way back before the name, in the place the offer names as
-  `screenLead` (`[data-title-bar-screen-lead]`), each by a deferred teleport, and its own panels carry no bar.
-  bmo-ui's contract names neither place: a screen built to it stands its way back and its actions in its own
-  row under the bar and lays nothing into the bar, so the offer's two places stand empty under it and serve
-  only a screen that still lays into them.
-  The bar and those places stand before the screen does, on every
-  road to it — the first load, from a screen of the console's own, from another bundle's screen: the bar follows
-  the route being gone to as soon as the navigation is taken, so the place is in the page by the time the screen
-  mounts, and it stays while the screen being left still stands, until that screen has gone. Between two bundles'
-  screens it is the same bar and the same place, renamed. A bundle read where nothing offers the bar — its unit's own
-  app, or a console without the offer — draws its own, and a route that does not ask stands as its bundle draws it.
+  button and the set of buttons in it as on every screen. The object offered names the bar alone and holds no
+  place in it for the screen: such a screen draws no bar of its own and lays nothing into the console's, its way
+  back and what acts on it as a whole stand in the screen's own row under the bar, which the screen draws itself
+  (below), and its own panels carry no bar. The bar stands before the screen does, on every road to it — the
+  first load, from a screen of the console's own, from another bundle's screen: the bar follows the route being
+  gone to as soon as the navigation is taken, so it stands named for the screen by the time the screen mounts,
+  and it stays while the screen being left still stands, until that screen has gone. Between two bundles'
+  screens it is the same bar, renamed. A bundle read where nothing offers the bar — its unit's own app, or a
+  console without the offer — draws its own, and a route that does not ask stands as its bundle draws it.
 - **A screen a unit brings finds the people of the reader's organization** through the console, which provides,
   under the key `bmo-console-people` as bmo-ui's `docs/console-bundles.md` states the contract, a `search` over the
   people directory, a `person` read of one account and a `me` read of the signed-in login's own account, both the directory's own reads for the signed-in login
   (`docs/accounts.md`, 「The people directory」) with the contact fields left out.
-- **The title bar holds only what every screen holds** — the sidebar button, the screen's name, the deployment's
-  mark, the TODO button and the usage figures — and beside the name what acts on that screen as a whole. What acts
-  on one screen's content — its filters, its reread, the time its
-  data was read, the original of a document — stands in that screen's own row under the title bar, at the
-  right end of its tab bar, or in its content's title, never in the title bar. The screen's own row is one
-  line high on a phone; filters that do not fit it fold into one button opening them.
+- **What concerns one screen stands in its own row directly under the title bar, never in the bar.** An action
+  on the screen as a whole stands at the row's right end, the screen's status at its left, and the way back to
+  where the reader came from at its left end, before the status. Where the screen already has a row there — its
+  tab bar, its toolbar — that row holds them; otherwise the screen draws one, in the shape of a tab row, and
+  never a second (「Tab bar and toolbar」). What acts on one screen's content — its filters, its reread, the time
+  its data was read, the original of a document — stands in that row too, or in its content's title. The row is
+  one line high, and on a phone it grows no taller: what does not fit folds. Its buttons are the component
+  library's small button at its own size and never wrap their words; one showing only a mark is the small square
+  icon button, with a tooltip naming it. Three actions or fewer stand as icon buttons, and four or more fold into
+  one vertical-dots menu, as almost every group does on a phone; filters that do not fit fold into one button
+  opening them.
 - **A title bar's icon button is a square**, the component library's own icon button: its mark at the
   library's icon size with the same padding on every side, so every button in the bar that shows only a mark
-  is one size. A mark whose words fold away at phone width — the deployment's, the usage figures — becomes
-  that same square from the moment it stands alone. `client/tests/browser/topbar-square.test.ts` measures every
+  is one size. Every button of the set at its right end is the library's own button at its default size — a
+  ghost one, its hover and press filling its own rounded shape and nothing round it — never a bare element
+  dressed as one. A mark whose words fold away at phone width — the deployment's, the usage figures — is the
+  library's square button from the moment it stands alone, so it is that same square.
+  `client/tests/browser/topbar-square.test.ts` measures every
   button in the title bar that shows only a mark, at a desktop width and a phone's, in light and dark.
 
 ### Tab bar and toolbar
@@ -1986,7 +1994,11 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   glance.
   - The control's box is held to the leading edge of its cell rather than centred in it, so it lands wherever
     that cell's own leading room puts it — the same room a row gives its own mark — with nothing measured per
-    screen. The cell stays a square of the bar's own height and the whole of it is pressed.
+    screen. The control is bmo-ui's `ChooseAll`: the box and the words naming what a press does, 전체 선택 or
+    전체 해제, are one pressable shape with a little room round them, rounded like a small button and reaching out
+    before the box by its own room, so the box still stands where the cell puts it. A press anywhere on that shape
+    is one press; its hover and press colours fill that shape alone, never the cell or the row, and the keyboard's
+    ring goes round the whole shape, inside its edge.
   - Where the rows stand in a reading column and the bar does not, the bar's contents stand in that same column,
     and the bar keeps at its trailing edge the room the scrolling body's scrollbar takes. Otherwise the column
     centred inside the scroll and the column centred outside it fall half a scrollbar apart, and the line bends
@@ -2196,7 +2208,9 @@ archive and this week's tokens remain. That is all that can actually be known th
   says it cannot reach in its own words, so no place opening as two blanks is left.
 - **At phone width that row folds.** The three filters fold into one 필터 button carrying how many of them narrow
   the list, and the uptime line folds into one clock icon at the width where the usage display in the title bar
-  folds (sm), in the same shape and opening on the same press. Pressing the clock spreads uptime and last request
+  folds (sm), in the same shape and opening on the same press. Either way it is the library's own small ghost
+  button: the line as its words, and folded the clock as its square icon button, named in a tooltip. Pressing the
+  clock spreads uptime and last request
   each into its own line. The folded and the spread are the same fact from
   one place, so they cannot say different things.
 - The body stands the new tokens burned in the last minute, how many sessions moved in 30 minutes and how many
@@ -2451,11 +2465,12 @@ archive and this week's tokens remain. That is all that can actually be known th
 
 ### Monitor screen
 
-- **`/monitor`, 모니터, is two tabs under the title bar, one level deep:** 기기, every machine's hardware, which
-  bmo-node reads, and 서비스, the card master's board (「Monitor's services tab」). The tab stands in the address
-  (`?tab=`), 기기 being the screen's own address and 서비스 `?tab=services`, so a link opens the same tab and
-  moving between them is a step of the history. Only the open tab reads anything. The console search finds
-  each tab as it finds a screen.
+- **`/monitor`, 모니터, is tabs under the title bar, one level deep:** 기기, every machine's hardware, which
+  bmo-node reads; 서비스, the card master's board (「Monitor's services tab」); and for the administrator alone
+  로그, what the machine's background units wrote (「Monitor's logs tab」). The tab stands in the address
+  (`?tab=`), 기기 being the screen's own address, 서비스 `?tab=services` and 로그 `?tab=logs`, so a link opens the
+  same tab and moving between them is a step of the history; a member who opens `?tab=logs` stands on 기기. Only
+  the open tab reads anything. The console search finds each tab as it finds a screen.
 - `/cards` sends a reader on to `/monitor?tab=services`, so a link made to that address lands on the master's
   board.
 - **기기 shows every machine at a glance** (bmo-node's `docs/hardware.md`, 「Which machines」): this machine first,
@@ -2485,7 +2500,9 @@ archive and this week's tokens remain. That is all that can actually be known th
   never turns on its disks or its cores. A tile opens the machine's own monitor from anywhere on it but its
   switch: `/monitor/local` for this machine, `/monitor/<node>` for a node. A machine that cannot be read says so
   on its tile in the error colour.
-- **A machine's own monitor** is the system card across the top, then one card per piece of hardware, each with
+- **A machine's own monitor** stands under its title bar its own row, holding at its left end the way back to
+  모니터, `/monitor`: the back arrow as a small icon button, its tooltip 뒤로 (「The title bar」). Under the row it
+  is the system card across the top, then one card per piece of hardware, each with
   its live charts of the last minute and its record over the span its dropdown names, from 5분 to 1개월. Cards
   are padded 16px and stand 16px apart. Its columns are decided by the room the monitor itself has: wide, the CPU
   and the storage take a broader column with the memory, every GPU, board and failed services beside them in
@@ -2585,6 +2602,66 @@ archive and this week's tokens remain. That is all that can actually be known th
 - **The events** stand last, newest first: what the master saw change and what it ordered, in its own words.
 - Every figure carries thousands separators and stands in tabular figures, and a value the master could not read
   reads 읽지 못함.
+
+### Monitor's logs tab
+
+- **The 로그 tab of 모니터 reads what the machine's background units wrote**: the units' servers, the timers that
+  back the data up and keep the machine tidy, the testbed's deployments and suites, each a systemd user unit
+  writing to the user journal of the machine the console runs on. The console's server reads that journal with
+  `journalctl --user`, as it reads a deployment unit's for the title bar's popover, and keeps no copy of it. Only
+  the administrator sees the tab, and the route refuses anyone else.
+- **Which units.** A unit whose name begins with the prefix `LOG_UNIT_PREFIX` sets, `bmo-` where it sets none:
+  every line such a unit wrote, and every line the user manager wrote about it (that it started, failed or
+  ended), since the manager's line is often the only one that says a timer's run failed.
+- **Categories are the units' own.** A unit says what it is by the slice it runs in: a unit in the slice
+  `bmo-<key>.slice` (the prefix, a key, `.slice`) stands under the category `<key>`, and a unit in any other
+  slice stands under 서비스, the category of the units' servers. Systemd writes the slice into every line the
+  unit's processes write, so a line carries its category with it, and the repository that ships a unit gives
+  it its slice — in its unit file, or on the line that starts a transient unit — and ships the slice's own unit
+  file, which is how the console learns the category exists. No unit's name is written in the console.
+  - The pack names each category the units bring — 서비스, 백업, 배포, 테스트, 정기 작업 — and a category the
+    pack does not name stands by its key, so a unit that brings a new category is shown before the pack has a
+    word for it. The words are the console's; which unit stands under which category is the unit's.
+  - A line the manager wrote about a unit takes the category of that unit, read from the slice that unit's own
+    lines carry and, for a unit that wrote none, from the slice systemd says it stands in.
+- **The tab's row.** The filters stand at the right end of the monitor's own tab row, never on a row of their
+  own: the category, one dropdown whose first choice is every category together, followed by each category and,
+  under 서비스, each of its units by name; the level, one dropdown — every level, 오류, 경고, or 그 외; and the
+  search box. The filters stand in the address (`category`, `unit`, `level`, `q`), each change replacing the
+  address rather than adding a step. At phone width the three fold into one filter button that opens them,
+  marked while any filter is set.
+- **Levels are the journal's own priority:** 오류 is a line at error or worse (priority 0 to 3), 경고 a line at
+  warning (4), and 그 외 the rest. A unit that wants its failure read as one writes it at that priority; the
+  console never reads a level out of a line's words.
+- **The list** is the newest line first, a row a line, in the console's machine-text font: the time it was written
+  (`YYYY-MM-DD HH:mm:ss`, in tabular figures), the unit's name, and the line's words, which wrap rather than run off
+  the row. Wide, the three stand in columns shared by every row; at phone width the time and the unit stand on one
+  line and the words under them. An error line wears the error colour on its time and unit and a warning the warning
+  colour; a line of 그 외 keeps them muted. The list fills the panel edge to edge as a log does.
+  - **Older lines are read on as the reader scrolls**: a few rows of skeleton stand at the foot while a page
+    comes, and coming into view of the foot asks for the next one. Where a filter keeps few lines, one ask reads
+    up to a bounded stretch of the journal and answers with what it found and where it stopped, so the foot keeps
+    asking until a page is full or the journal's start is reached.
+  - **New lines come in while the tab stands**: every few seconds, while the tab is visible, the console asks
+    for what was written after the newest line it has read and lays it on top. A reader scrolled down is not
+    moved: the rows above grow out of sight. Where more was written in one interval than one ask reads, the
+    list starts again from the newest line.
+  - **The search** matches the words a row shows — the unit's name and the line's words — whole as typed,
+    ignoring case, and marks where they matched, through the console's one list search. It runs on the server
+    over the lines after they are masked, so no search finds a value the screen would not show.
+  - An empty list says so in one line: 줄 없음, or 찾은 줄 없음 where a filter or a search stands.
+- **A secret never reaches the screen.** The server takes out of every line, before it leaves, what has the shape
+  of a credential, and 「«가려진 값»」 stands in its place — the same rule the agency's run log keeps
+  (「What a line never carries」), the value alone going:
+  - the token after an authorization header or a `Bearer` word;
+  - a provider's or a host's key by its known shape (`sk-…`, `ghp_…`, `github_pat_…`, `xox…-…`, `AKIA…`,
+    `AIza…`), a JSON web token, and a private key's block;
+  - the value of a flag whose name says it holds one (`--password`, `--token`, `--secret`, `--api-key`);
+  - the value assigned to a name that says it holds one (`…_TOKEN=`, `…_SECRET=`, `…PASSWORD…=`, `…_KEY=`, and
+    the same names as a JSON field);
+  - the password written into an address (`scheme://user:password@host`);
+  - and any word of 32 characters or more that mixes capitals, small letters and digits, the shape a generated
+    key has and a hash or a commit does not.
 
 ### Research screen
 
@@ -3133,20 +3210,23 @@ a seat of its role.
   the log reads on both ways as the reader reaches either end — the lines above as the head comes into view, the
   lines past what is held as the tail does, skeleton lines standing where they will land — and no button asks
   for more. New lines are not followed automatically; reading on to the log's end resumes following from there.
-- Beside the agent's name in the title bar stand its branch and a chart mark. The mark carries no
-  figure; pressing it spreads this agent's figures — its model, the context its session holds and the
-  week's tokens with their names and a bar — and an agent nothing is known about has no mark. While running, 「업타임 00:00:00」 stands beside it. Not
-  the start time but the length from start to now, redrawn only in that place every second — not redrawing
-  the screen, not asking the bot more. Which agent it is the same header's name already says, so that line
-  carries only the length. The right end of the title bar keeps only what every screen carries.
-- **At phone width the bar keeps the name readable and folds what stands beside it** (sm, the width every
-  title bar folds at). The uptime goes behind the chart mark, standing above the figures when it is pressed,
-  and the mark stands for the uptime alone where the agent has no figures. 중지 and 설정
-  are one group behind the shared vertical-dots menu, whose button spins while a stop is under way. The
-  bar's marks keep the one square every title bar's marks have, and none of them overlaps another.
-  `client/tests/browser/agent-topbar.test.ts` measures the bar of a running worker at 360, 390 and 1280 pixels
-  wide against a dev console, as the other title bar checks do.
-- **설정** stands beside the name, as an icon button, for every agent this screen opens: a supervisor's opens the
+- **The title bar holds the agent's name and its mark alone** — a chat agent's face, every other agent's group's
+  mark — and everything else about the agent stands in the screen's own row under it (「The title bar」). At the
+  row's left stand its branch and, while it runs, 「업타임 00:00:00」, and 중지 중 while a stop is under way. The
+  uptime is not the start time but the length from start to now, redrawn only in that place every second — not
+  redrawing the screen, not asking the bot more. Which agent it is the bar's name already says, so that line
+  carries only the length.
+- At the row's right end stand a chart mark and the agent's actions. The mark carries no figure; pressing it spreads
+  this agent's figures — its model, the context its session holds and the week's tokens with their names and a
+  bar — and an agent nothing is known about has no mark. The actions are 중지 while the agent runs, 사진 for a chat
+  agent, for the administrator (「Profile photos」), and 설정, each a small icon button named by its tooltip, for a
+  reader who may write the agent's part of agent management.
+- **At phone width the row stays one line** (sm). The branch goes, the uptime goes behind the chart mark,
+  standing above the figures when it is pressed, and the mark stands for the uptime alone where the agent has no
+  figures. The actions are one group behind the shared vertical-dots menu, whose button spins while a stop is
+  under way. No part of the row overlaps another. `client/tests/browser/agent-topbar.test.ts` measures the row of
+  a running worker at 360, 390 and 1280 pixels wide against a dev console, as the title bar checks do.
+- **설정** opens, for every agent this screen opens, the dialog of its own kind: a supervisor's opens the
   supervisor's settings dialog of the agent management screen's 감독관 tab, a role's the role's dialog of its 역할
   tab, with its session history, and a repository's the repository's dialog of its 저장소 tab. Saving here is saving
   there: the same route, the same refusals, and the name, marks and model on this screen read again after a save.
@@ -3159,13 +3239,14 @@ a seat of its role.
   job a role's agent is running stands on the role's screen where its run is marked. It is the log the same job's
   TODO line opens.
 - **A supervisor's screen names the rooms it has spoken in,** read from the agency's `GET /supervisors/{name}/rooms`
-  (its `docs/api.md`, 「supervisors」), in one line under the title bar that scrolls sideways inside itself where it
-  runs long: each room by its title with how many of its runs went there, its tooltip saying when the latest began.
-  Pressing one opens this screen's log at that latest run. A room it answers and never spoke in is not among them; which
-  rooms it answers is the 감독관 tab's 방.
-- **대신 답하는 중** stands at the head of that line while the supervisor's last turn went out on the stand-in the
-  agency names for it (`GET /stand-in`, the agency's `docs/cache-fallback.md`) rather than on the first provider of
-  its order, with that provider's word and the model it answers on.
+  (its `docs/api.md`, 「supervisors」), as one menu at the left of the screen's own row, never a row of its own. Its
+  button names the room whose latest run the screen stands at, or 방 at any other run; the menu lists each room, the
+  latest first, by its title, with how many of its runs went there and when the latest began, the room the screen
+  stands at marked. Choosing one opens this screen's log at that latest run. A room it answers and never spoke in is
+  not among them; which rooms it answers is the 감독관 tab's 방.
+- **대신 답하는 중** stands after that menu, in the same row, while the supervisor's last turn went out on the stand-in
+  the agency names for it (`GET /stand-in`, the agency's `docs/cache-fallback.md`) rather than on the first provider
+  of its order, with that provider's word and the model it answers on; on a narrow row its words are cut.
 - A line has a time, a kind and content. There are eight kinds.
   - **시작** — a run opened. Which room's work, and which model and depth it runs at, attach.
   - **생각** — the thinking the run wrote itself.
@@ -3660,14 +3741,21 @@ Four bounds keep it from growing forever.
   | Inks inside a bubble | every secondary colour drawn inside a bubble is derived from that bubble's own ground, the owner's teal and the raised ground of everyone else's alike: its lightness is the ground's, moved a set share of the way to black in the light theme and to white in the dark, and its hue and chroma are its own — the text's for the muted and dimmed letters, the theme colour's for the accent and the success, error, warning, info and secondary colours. So the muted and dimmed letters, a link, a quote's strip, a chip's letters and icon, a verdict's mark and the send mark read at 4.5:1 or better, on the bubble and on the wash an open chip or a soft badge lays over it, in both themes, and keep it when a ground changes colour. The verdict mark's passing and failing colours are a mark's, read at 3:1, so they take a mark ink of their own, moved a smaller share than the letters' inks so their colour stays vivid: the passing green keeps its own chroma, as much of it as the screen shows, in both themes, and only the failing red is held to a chroma the screen still shows at the dark theme's light mark, where a strong red does not fit. They read at 3:1 or better on the same grounds and washes, and keep it when a ground changes colour | |
   | Meta line over a picture | 4px in from the picture's corner, 4px corners, 8px sides | 6px sides |
   | Top bar | 48px, the height every page's top bar has, a 20px picture | |
-  | Picture, name and menu | 12px from the picture to the name and from the name to the menu's dots, the gap read between what the eye sees, so the menu button's own room reaches under the name's end; the menu stays beside the name, all three on one centre line | |
+  | Picture and name | 12px from the picture to the name, both on one centre line, and nothing after the name | |
+  | The room's row | 48px under the title bar's line, one line at every width: the pinned button and the window's time left at its left, the menu's small square button at its right end | |
   | Input bar | 8px above and below the input box; the box 4px round its controls, 32px buttons with 4px corners | |
   | Photo and way down above the input bar | 8px | |
 - **The top bar and the input bar lie over the conversation.** Each runs the panel's full width with no
-  rounding — the top bar at every other page's top bar's height, padding, title and mark size, its edge under
-  it; the input bar along the panel's foot with its edge over it — on a translucent ground that blurs what
-  passes behind it, and the conversation runs to the panel's top and foot underneath them. Only the room's
-  bars are translucent: every other page's top bar stays opaque.
+  rounding — the top bar being the title bar at every other page's top bar's height, padding, title and mark
+  size, with the room's own row under it, its edge under them both; the input bar along the panel's foot with its
+  edge over it — on a translucent ground that blurs what passes behind it, and the conversation runs to the
+  panel's top and foot underneath them. Only the room's bars are translucent: every other page's top bar stays
+  opaque.
+  - The title bar holds the room's picture and name alone (「The title bar」). What acts on the room stands in the
+    room's own row under it, on the same ground: the pinned button (「What was done to a message」) and the
+    window's time left (「The window's time left stands under the top bar」) at its left, and the room's menu, its
+    vertical-dots button, at its right end. The row is one line at every width, and while choosing or finding
+    the row of that mode takes its place, so no second row ever stands under the title bar.
   - What the conversation holds to its top — a date mark, a new part's first line — is held under the top bar,
     and its end stands above the input bar: the conversation keeps the measured height of each bar as room at
     its top and foot, so nothing — the last message — is left behind either bar when
@@ -3680,18 +3768,20 @@ Four bounds keep it from growing forever.
     line written in an input box keeps its breaks while the writing goes on」). Once sent they stand at a
     bubble's breaks, between words and at the bubble's narrower width, and the flight shows them at those
     breaks from its first frame (「What arrives comes in at the end, and nothing standing moves」).
-  - Choosing opens no bar of its own: the top bar grows downward and the choosing row unfolds inside it, on the
-    same ground, under the same edge, and folds back the same way when choosing ends (「선택」). The grown bar lies over
-    the conversation, which keeps only the resting bar's height as its room at the top, so no message moves by a pixel
-    as the bar grows or shrinks; only a day mark held at the top steps down with the bar's foot, and a message
-    scrolled to while choosing stops under the grown bar rather than behind it.
+  - Choosing opens no bar of its own: the choosing row unfolds inside the top bar in the room's row's place, on the
+    same ground, under the same edge, the room's row fading as it comes, and folds back the same way when choosing
+    ends, the room's row coming back (「선택」). Where the choosing row is taller than the room's row the bar grows
+    downward by the difference. The grown bar lies over the conversation, which keeps only the resting bar's height —
+    the title bar and the room's row — as its room at the top, so no message moves by a pixel as the bar grows or
+    shrinks; only a day mark held at the top steps with the bar's foot, and a message scrolled to while choosing
+    stops under the grown bar rather than behind it.
   - The growing touches nothing the conversation is laid out by, so it runs on the compositor and every frame of it
-    is drawn on time. The row is laid out at its full height under the bar from the start and kept clipped; the
-    bar's ground, its edge and its fade slide down over it as one piece, by the row's own height, and the row's
-    contents slide down out of the bar's foot with them; folding is the same slide back. So the folded bar stands
-    right from the first frame drawn, before anything is measured. The conversation's room at the top never
-    changes, and the scroll padding changes once as choosing starts or ends; the day marks alone move with the bar,
-    stepping down at its pace.
+    is drawn on time. The choosing row is laid out at its full height over the room's row from the start and kept
+    clipped; the bar's ground, its edge and its fade slide as one piece from the room's row's foot to the choosing
+    row's, and the choosing row's contents slide down out from under the title bar with them; folding is the same
+    slide back. So the folded bar stands right from the first frame drawn, before anything is measured. The
+    conversation's room at the top never changes, and the scroll padding changes once as choosing starts or ends;
+    the day marks alone move with the bar, stepping at its pace.
   - Opening and closing choosing makes and removes nothing in any message: each message's mark stands drawn all
     along, hidden past its cell's edge while nothing is chosen, and only slides.
   - Words passing under the top bar do not end at a hard line at its foot: the bar's ground fades out a short way
@@ -3699,7 +3789,7 @@ Four bounds keep it from growing forever.
   - The bars' edges run on to the panel's own border, meeting the line beside the panel with no gap, and
     the scrollbar runs between the bars rather than under them: its track starts under the top bar's edge and
     ends over the input bar's, on the panel's edge, so neither bar covers it. The input bar and the choosing
-    row in the top bar keep the scrollbar's room as padding at their trailing edge, so their column is the conversation's.
+    and find rows in the top bar keep the scrollbar's room as padding at their trailing edge, so their column is the conversation's.
     Where the scrollbar is one the console cannot shorten — Firefox's, and a touch screen's own, which lies
     over the conversation and takes no room — it runs the panel's full height and the bars lie over its two
     ends.
@@ -4564,7 +4654,7 @@ Four bounds keep it from growing forever.
   first message in view stays where it stood, and a reader at the room's end stays at the end.
   Neither entering nor leaving touches the input box or where the keyboard is. Exit by Esc or
   cancel. While selecting, Ctrl+C (⌘C on Mac) copies and Ctrl+A (⌘A) selects all. Copying ends selecting on the
-  spot. The three-dot menu beside the room's name also has start selecting and copy all.
+  spot. The room's three-dot menu, at the right end of the room's row, also has start selecting and copy all.
 - **What a copy holds** — a copy is not a visible shape but a record to be read elsewhere. The first line has the room name
   and chat number, each message stands in one line with its time, sender, sender number, message number and body,
   and below it the content of every chip the message carries, whether the chip is open on screen or not, in this
@@ -4670,9 +4760,11 @@ Four bounds keep it from growing forever.
     emoji on the message otherwise. Where the meta line does not stand, they stand on a line of their own instead.
   - **Reacting** is the menu's head: the message's menu opens on a strip of the console's reaction emojis, the
     reader's own marked, and pressing one puts it on the message, or takes it off where it is the reader's own, and
-    closes the menu.
-  - **A pinned message** wears a pin mark on its meta line, and the room's top bar carries a pinned button beside the
-    room's menu while the room holds one: the pin mark and, from the sm width, the first line of the pinned message it
+    closes the menu. Each emoji is the library's own square ghost button, the reader's own standing pressed in the
+    accent's soft wash; the strip is as wide as its buttons with one even gap between them, never spread across the
+    menu, and a hover colours the one button under the pointer and not the menu's row.
+  - **A pinned message** wears a pin mark on its meta line, and the room's row under the title bar carries a pinned
+    button at its left while the room holds one: the pin mark and, from the sm width, the first line of the pinned message it
     stands at, cut, with that message's words whole in its tooltip and how many are pinned where there are several.
     The room's pinned messages are the receiver's answer to `GET /rooms/{roomId}/pins` (the receiver's
     `docs/api.md`, 「Messages」), newest pin first and never a deleted one, read when the room opens, when the record
@@ -5021,9 +5113,9 @@ Four bounds keep it from growing forever.
     time runs out, so the row goes when the window closes and never on a guess of the screen's. The countdown only reads that answer down between reads and
     never closes anything itself.
   - The owner's own chat stands no listening row: every message there reaches the chat agent with no window at all.
-- **The window's time left stands in the top bar.** While the chat agent's window in a group room is open, the
-  room's top bar carries how long it has left, beside the room's name and its menu, whether a turn is running or
-  the listening row stands, so how long the conversation still has is read without going to the room's end. It is
+- **The window's time left stands under the top bar.** While the chat agent's window in a group room is open, the
+  room's row under the title bar carries how long it has left at its left, after the pinned button, whether a turn
+  is running or the listening row stands, so how long the conversation still has is read without going to the room's end. It is
   a listening mark and the time left as a timer reads it, counting down by the second in tabular figures that turn
   as every changing number does, and its tooltip and the name a screen reader hears say that the chat agent
   listens. It counts down from the same answer the listening row counts from and is read on the same occasions
@@ -5154,10 +5246,10 @@ Four bounds keep it from growing forever.
 
 #### 대화에서 찾기
 
-- **Every room's top bar menu carries 대화에서 찾기, for every reader,** first in its first group. It opens a find row
+- **Every room's menu carries 대화에서 찾기, for every reader,** first in its first group. It opens a find row
   in the top bar, where the choosing row stands: a search box, how many messages hold the phrase and which of them
-  is shown, a button to the one before and the one after, and 닫기. The bar grows by the row as it does for
-  choosing, so no message moves.
+  is shown, a button to the one before and the one after, and 닫기. It takes the room's row's place as the choosing
+  row does, so no message moves.
 - **What it finds is the console's list search** (「List search」): the phrase typed, matched whole and without regard
   to case, in what a message shows — its words, its sender's name, the words heard in a voice note and its files'
   names. Every hit standing on the
@@ -5172,7 +5264,7 @@ Four bounds keep it from growing forever.
 
 #### 고정
 
-- **Every room's top bar menu carries 고정, or 고정 해제 for a pinned room, for the owner alone,** in its first
+- **Every room's menu carries 고정, or 고정 해제 for a pinned room, for the owner alone,** in its first
   group after 전체 복사. The pinned order is one list for every reader, so nobody else signed in sees it, and the
   console's server refuses its route for anyone but the administrator.
 - **고정 stands the room last among the pinned, and 고정 해제 takes it out;** the receiver writes the order
@@ -5183,7 +5275,7 @@ Four bounds keep it from growing forever.
 
 #### 채팅 서비스
 
-- **Every room's top bar menu carries 채팅 서비스 for the owner alone,** after 고정. Which providers a room is on
+- **Every room's menu carries 채팅 서비스 for the owner alone,** after 고정. Which providers a room is on
   is one setting of its registration, which the receiver keeps (its `docs/receiver.md`, 「A room's chat
   providers」), so nobody else signed in sees it, and the console's server refuses its routes for anyone but the
   administrator.
@@ -5202,7 +5294,7 @@ Four bounds keep it from growing forever.
 
 #### 내 BMO와 따로 말하기
 
-- **A group room's top bar menu carries 내 BMO와 따로 말하기 for everyone signed in;** a one-to-one or the owner's
+- **A group room's menu carries 내 BMO와 따로 말하기 for everyone signed in;** a one-to-one or the owner's
   own chat carries none. It opens a panel at the side over the group room, which stays where it stood.
 - **The panel is the reader's private conversation with their own BMO:** the first supervisor whose owner account
   is the reader, and the room it answers the reader alone in, read from the agency and the receiver each time the
@@ -5215,7 +5307,7 @@ Four bounds keep it from growing forever.
 
 #### 호출 권한
 
-- **Every room's top bar menu carries 호출 권한 for everyone signed in.** It opens a dialog of the room's callers:
+- **Every room's menu carries 호출 권한 for everyone signed in.** It opens a dialog of the room's callers:
   the people who may call their own BMO into the room by name, the grant of `ask` on the room (the account
   service's `docs/accounts.md`, 「A room's callers」).
 - **Each caller stands as a row** with their name and a switch that stands on; turning it off takes the grant away
@@ -5229,7 +5321,7 @@ Four bounds keep it from growing forever.
 
 #### 방 등록 삭제
 
-- **Every room's top bar menu carries 방 등록 삭제 for the owner alone,** last, in a group of its own.
+- **Every room's menu carries 방 등록 삭제 for the owner alone,** last, in a group of its own.
   Nobody else signed in sees it, and the console's server refuses its two routes for anyone but the
   administrator (the chat library's `docs/protocol.md`, 「Removing a room's registration」).
 - **It opens a dialog that reads what the removal would take before anything is written:**
@@ -5926,6 +6018,11 @@ Four bounds keep it from growing forever.
   not hold. The answering is one card and one press, through the same route a reply from the room takes; a settled
   question stands under it in the words it was settled on. A question that arrived while he was away stands the same:
   the badge is read off the archive as the panel opens.
+- **The question bar says it over every administrator screen.** While a question waits, a band in the warning colour
+  stands over the screen with the question waiting longest — its item, its words on one line, its time left and what
+  the silence settles, and how many more wait — and, at its right end, a small 열기 button that opens the owner's own
+  room, where the card is answered. The band is a line that states, not a press: only the button leads anywhere, and
+  its hover and press colour the button's own rounded shape, never the band. Its items share one centre line.
 - **The recommendation is the job's own, and the card draws it as the job gives it.** A question carries the answer the
   job would take by itself and one line saying why. Where that answer is one of the choices, only that choice wears the
   mark; where it is words the choices do not hold, or the job named none, no choice wears it and the card says plainly
@@ -6528,6 +6625,12 @@ folder every unit reads its secrets from by file name, written by the server's s
     **그만듣기**, its close mark. The press pauses a sound playing and plays one waiting; the title leads to the
     line the briefing speaks, in its room, and leaves it playing. The player names itself 보이스브리핑 to assistive
     technology, and each press names itself in a tooltip.
+  - **Its press and its close mark are the library's own square icon buttons,** ghost and neutral, the visualiser
+    drawn at the library's icon size inside the press, so neither is taller than a button nor paints the player
+    beyond its own rounded shape. The player's surface is dark in both themes, and it is the dark theme's own: the
+    player stands in the dark theme whatever the page's, its surface a step darker than that theme's ground so it
+    stands apart from a dark page too, and the words, the marks and the buttons' hover and press on it are that
+    theme's own colours and read on it as they read on a dark page.
   - **Where it stands:** at first at the bottom right of the page area, on the content's gutter, above whatever
     bar stands at the screen's foot — a room's input bar, the remote screen's row of keys, any bar a screen marks
     as its foot (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」) — so nothing it covers by default is
@@ -6600,6 +6703,8 @@ folder every unit reads its secrets from by file name, written by the server's s
   in the footer at its bottom that stays put while the body scrolls. No section, field, list or switch
   inside it saves on its own: what is changed is held in the form until 저장 sends every changed value
   together, and a dialog closes once its save has gone through.
+- **A foot's buttons stand at their own width at its right end,** never stretched to the foot's width: a card's
+  one action — the login's 로그인, the join page's 계정 만들기 and what follows it — stands there the same way.
 - **저장 is on only while something differs** from what is saved; with nothing changed it stands
   disabled.
 - **저장 saves at once.** No question stands between the press and the save, whatever the save sets off;

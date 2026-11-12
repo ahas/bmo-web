@@ -3,88 +3,78 @@
        unless the launch box stands at the foot (bmo-ui's docs/design.md, 「Room at the foot」). -->
   <UDashboardPanel id="agent" :ui="{ body: launchable === null ? 'p-0 sm:p-0 pb-4 sm:pb-6 overscroll-none' : 'p-0 sm:p-0 overscroll-none' }">
     <template #header>
-      <!-- A chat agent's bar wears its face, every other agent's its group's mark (docs/web.md, 「Profile photos」). -->
+      <!-- A chat agent's bar wears its face, every other agent's its group's mark (docs/web.md, 「Profile photos」). The
+           bar holds the agent's name and mark alone (docs/web.md, 「The title bar」). -->
       <ConsoleTitleBar :title="meta.label" :icon="wearsFace(meta) ? undefined : meta.icon">
         <template v-if="wearsFace(meta)" #leading>
           <AgentMark :agent="meta" size="2xs" class="me-1.5" />
         </template>
-        <!-- What belongs to this agent alone stands beside its name; the right end keeps what every
-             screen carries. -->
-        <template #trailing>
-          <div class="flex min-w-0 items-center gap-2">
-            <span class="hidden text-sm text-muted sm:inline">{{ groupLabel($t, meta.group) }}</span>
-
-            <!-- This agent's own figures, behind one mark: what it is running on, what its session is
-                 carrying, and what its week divided into. The bar carries no figure of them — what a
-                 run spent stands beside that run in the log below.
-
-                 What the press opens is the block the home screen already puts under this agent's
-                 name, drawn by the same component: one agent's figures are one picture wherever the
-                 console shows them, and a second spelling of them here would be a second thing to
-                 keep true. The meters next to this are a different subject — those are the
-                 account's windows, and this is this agent.
-
-                 On a phone the bar has room for the name and two marks beside it, so the uptime
-                 goes behind this mark too, and the mark stands there for the uptime alone where
-                 the agent has no figures. -->
-            <SkeletonStatus v-if="usageInitial" :label="$t('agents.status.vitals_loading')"><SkeletonBar class="size-5 rounded-sm" /></SkeletonStatus>
-            <UPopover v-if="hasFigures || run !== null" :content="{ align: 'start' }" :ui="{ content: 'flex w-80 flex-col gap-2 p-3' }">
-              <UTooltip :text="$t('agents.aria.vitals')">
-                <UButton
-                  class="shrink-0"
-                  :class="{ 'sm:hidden': !hasFigures }"
-                  icon="i-material-symbols-bar-chart"
-                  color="neutral"
-                  variant="ghost"
-                  :aria-label="$t('agents.aria.vitals')"
-                />
-              </UTooltip>
-
-              <template #content>
-                <UBadge v-if="run !== null" class="self-start tabular-nums sm:hidden" color="success" variant="subtle" :label="runningLabel" />
-                <AgentVitals v-if="hasFigures" :loading="usageInitial" :vitals="vitals" :now="now" legend="inline" />
-              </template>
-            </UPopover>
-
-            <!-- The uptime ticks every second, so its digits are the fixed-width ones: a badge
-                 that changes size once a second shoves the whole bar along with it. -->
-            <UBadge v-if="run !== null" class="hidden tabular-nums sm:inline-flex" color="success" variant="subtle" :label="runningLabel" />
-
-            <!-- This agent's own run, stopped from its own screen. What it is stopped by is the
-                 target the bot's picture gives the run, so this screen decides none of it. On a
-                 phone the stop and the settings are one group behind the shared
-                 menu, whose button spins while the stop is under way. -->
-            <div class="hidden items-center gap-2 sm:flex">
-              <UBadge
-                v-if="stopTarget !== null && stops.isStopping(stopTarget)"
-                color="warning"
-                variant="subtle"
-                :label="$t('live.status.stopping')"
-              />
-              <UButton
-                v-else-if="stopTarget !== null && !stops.isAsking(stopTarget) && writable"
-                :label="$t('live.action.stop')"
-                size="sm"
-                color="neutral"
-                variant="outline"
-                :disabled="stops.isSending(stopTarget)"
-                :aria-label="$t('live.aria.stop_named', { name: meta.label })"
-                @click="stops.ask(stopTarget)"
-              />
-
-              <!-- A chat agent's own picture, set in the console, for the administrator (docs/web.md, 「Profile photos」). -->
-              <UTooltip v-if="picturable && writable" :text="$t('picture.label.agent')">
-                <UButton color="neutral" variant="ghost" icon="i-material-symbols-add-photo-alternate-outline" :aria-label="$t('picture.label.agent')" data-agent-picture @click="pictureOpen = true" />
-              </UTooltip>
-              <UTooltip v-if="settingsKind !== null && writable" :text="$t('agents.action.settings')">
-                <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-settings-outline" :aria-label="$t('agents.action.settings')" @click="settingsOpen = true" />
-              </UTooltip>
-            </div>
-
-            <ActionGroup class="sm:hidden" :actions="phoneActions" size="md" />
-          </div>
-        </template>
       </ConsoleTitleBar>
+
+      <!-- The screen's own row under the bar (docs/web.md, 「Agent screen」): what this agent is doing at its left — its
+           group, a supervisor's rooms, the uptime, a stop under way — and what acts on it at its right. On a phone it
+           stays one line: the uptime goes behind the chart mark and the actions fold into the shared menu. -->
+      <div :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]" data-screen-row>
+        <div class="flex min-w-0 flex-1 items-center gap-2" data-screen-row-status>
+          <span class="hidden shrink-0 text-sm text-muted sm:inline">{{ groupLabel($t, meta.group) }}</span>
+
+          <!-- A supervisor's rooms and whether a stand-in answers for it now. -->
+          <SupervisorRooms v-if="settingsKind === 'supervisor'" :name="name" :label="meta.label" :run="placeRun" :rooms="rooms" />
+
+          <!-- The uptime ticks every second, so its digits are the fixed-width ones: a badge
+               that changes size once a second shoves the whole row along with it. -->
+          <UBadge v-if="run !== null" class="hidden shrink-0 tabular-nums sm:inline-flex" color="success" variant="subtle" :label="runningLabel" />
+          <UBadge
+            v-if="stopTarget !== null && stops.isStopping(stopTarget)"
+            class="hidden shrink-0 sm:inline-flex"
+            color="warning"
+            variant="subtle"
+            :label="$t('live.status.stopping')"
+          />
+        </div>
+
+        <!-- The actions stand in the row itself rather than in a box of their own: the group reads the room it has off
+             the element it stands in, and the row is that room.
+
+             This agent's own figures, behind one mark: what it is running on, what its session is
+             carrying, and what its week divided into. The row carries no figure of them — what a
+             run spent stands beside that run in the log below.
+
+             What the press opens is the block the home screen already puts under this agent's
+             name, drawn by the same component: one agent's figures are one picture wherever the
+             console shows them, and a second spelling of them here would be a second thing to
+             keep true. The meters in the title bar are a different subject — those are the
+             account's windows, and this is this agent.
+
+             On a phone the uptime goes behind this mark too, and the mark stands there for the
+             uptime alone where the agent has no figures. -->
+        <SkeletonStatus v-if="usageInitial" :label="$t('agents.status.vitals_loading')"><SkeletonBar class="size-5 rounded-sm" /></SkeletonStatus>
+        <UPopover v-if="hasFigures || run !== null" :content="{ align: 'end' }" :ui="{ content: 'flex w-80 flex-col gap-2 p-3' }">
+          <UTooltip :text="$t('agents.aria.vitals')">
+            <UButton
+              class="shrink-0"
+              :class="{ 'sm:hidden': !hasFigures }"
+              icon="i-material-symbols-bar-chart"
+              size="sm"
+              square
+              color="neutral"
+              variant="ghost"
+              :aria-label="$t('agents.aria.vitals')"
+            />
+          </UTooltip>
+
+          <template #content>
+            <UBadge v-if="run !== null" class="self-start tabular-nums sm:hidden" color="success" variant="subtle" :label="runningLabel" />
+            <AgentVitals v-if="hasFigures" :loading="usageInitial" :vitals="vitals" :now="now" legend="inline" />
+          </template>
+        </UPopover>
+
+        <!-- This agent's own run, stopped from its own screen, its picture and its settings: three or fewer stand
+             as icon buttons, and on a phone they are one group behind the shared menu, whose button spins while a
+             stop is under way. What a run is stopped by is the target the bot's picture gives it, so this screen
+             decides none of it. -->
+        <ActionGroup :actions="rowActions" data-screen-row-actions />
+      </div>
     </template>
 
     <template #body>
@@ -97,9 +87,6 @@
         :stops="stops"
         class="border-b border-default px-4 py-3"
       />
-
-      <!-- A supervisor's screen names the rooms it has spoken in and whether a stand-in answers for it now. -->
-      <SupervisorRooms v-if="settingsKind === 'supervisor'" :name="name" :label="meta.label" :run="placeRun" :rooms="rooms" />
 
       <!-- The work view: the job's work order, what it is doing now, what it spent and called, its stages where it is
            co-work or laid out a plan, and its log (docs/web.md, 「The work view」). -->
@@ -150,6 +137,7 @@
 
 <script setup lang="ts">
 import { useInitialRead } from "bmo-ui/app/domain/loading";
+import { TAB_ROW_LINE } from "bmo-ui/app/domain/tabs";
 import { isAgentName, POLL_INTERVAL_MS, WORKER_AGENT } from "#shared/config";
 import { agentMetaOf, catalogueAgents, groupLabel, launchableAgent, roomTitle, runOfAgent } from "~/domain/agents";
 import { useAgentFace, wearsFace } from "~/domain/agent-face";
@@ -173,8 +161,8 @@ import type { JobLine, LiveRun, RoomSummary, StatusView, StopTarget } from "#sha
 import type { UsageView } from "#shared/types";
 import type { AgentMeta } from "~/domain/agents";
 import type { AgentVitals } from "~/domain/vitals";
-import type { LogPlace } from "~/domain/log";
 import type { BarAction } from "bmo-ui/app/domain/tabs";
+import type { LogPlace } from "~/domain/log";
 
 // Another agent, or another run or moment to open its log at, is another screen.
 definePageMeta({ key: (route) => screenKey(route, ["run", "at", "chat"]) });
@@ -347,8 +335,9 @@ useBackClose(computed(() => stops.asking.value !== null), () => stops.cancel());
 // with it.
 watch(stopTarget, (target) => stops.seen(target === null ? [] : [stopKey(target)]), { immediate: true });
 
-// The same three actions as the wide bar stands them, as the phone's one group behind the menu.
-const phoneActions = computed<BarAction[]>(() => {
+// What acts on this agent from its row: its stop, its picture and its settings, standing as icon buttons and folding
+// into the one menu on a phone.
+const rowActions = computed<BarAction[]>(() => {
   const target = stopTarget.value;
   const actions: BarAction[] = [];
 

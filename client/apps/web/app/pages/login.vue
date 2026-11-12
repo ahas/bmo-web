@@ -32,9 +32,12 @@
       </UForm>
 
       <!-- The one action of the screen, in the card's own footer rather than loose under the
-           fields, so it stands where every other form of this console puts what saves it. -->
+           fields, so it stands where every other form of this console puts what saves it: at the
+           footer's right end, at its own width. -->
       <template #footer>
-        <UButton type="submit" form="login-form" block :label="$t('app.action.login')" :loading="pending" />
+        <div class="flex justify-end">
+          <UButton type="submit" form="login-form" :label="$t('app.action.login')" :loading="pending" />
+        </div>
       </template>
     </UCard>
   </div>

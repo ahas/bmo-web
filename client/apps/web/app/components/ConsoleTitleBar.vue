@@ -1,13 +1,15 @@
 <template>
-  <!-- The one title bar every screen carries (docs/web.md, 「The title bar」): the screen's name and mark, what acts
-       on that screen alone beside its name, and at its right end the one set of buttons the layout holds, laid in
-       here. The room's bar is the same bar on its translucent ground, which is the room's own wrapper. -->
+  <!-- The one title bar every screen carries (docs/web.md, 「The title bar」): the screen's name and mark, nothing
+       beside them, and at its right end the one set of buttons the layout holds, laid in here. What concerns one
+       screen stands in that screen's own row under the bar. The room's bar is the same bar on its translucent
+       ground, which is the room's own wrapper. -->
   <UDashboardNavbar :title="props.title" :icon="props.icon" :ui="props.ui" data-title-bar>
     <template v-if="$slots.leading" #leading="scope">
       <slot name="leading" v-bind="scope" />
     </template>
-    <template v-if="$slots.trailing" #trailing>
-      <slot name="trailing" />
+    <!-- A name still being read stands as its skeleton in the name's own place. -->
+    <template v-if="$slots.title" #title>
+      <slot name="title" />
     </template>
     <template #right>
       <span ref="place" class="contents" data-title-bar-place />

@@ -283,6 +283,16 @@ describe("where a question is answered", () => {
     expect(bar).toContain(":to=\"where\"");
     expect(ask.includes("roomRoute")).toBe(false);
   });
+
+  // The strip states and is not pressed: the way there is the library's button at its end, so a hover
+  // colours that button's own shape and never paints the strip edge to edge.
+  test("by the button at its end alone, so a hover never paints the strip", () => {
+    const strip = bar.slice(0, bar.indexOf("<script"));
+
+    expect(strip).not.toContain("<NuxtLink");
+    expect(strip).not.toContain("hover:");
+    expect(strip).toMatch(/<UButton :to="where" [^>]*:label="\$t\('common\.action\.open'\)"/);
+  });
 });
 
 describe("what an option button does", () => {

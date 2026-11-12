@@ -8,13 +8,22 @@
 
   <!-- While a deployment runs, holds the queue, or has just ended (docs/web.md, 「Deployment in
        the title bar」). Wide, the words stand beside the mark; at phone width the mark alone, its
-       words in its tooltip. Pressed, what stands behind it opens. -->
+       words in its tooltip. Pressed, what stands behind it opens. It is the library's own button in
+       the mark's tone, its hover on its own shape; standing alone it is the library's square, the one
+       every icon button of the bar is. -->
   <UPopover v-else-if="mark !== null" v-model:open="shown" :content="{ align: 'end' }" :ui="{ content: 'w-96 max-w-[calc(100vw-1rem)] p-3' }">
     <UTooltip :text="markWords" :disabled="!narrow">
-      <button type="button" :class="[MARK_BUTTON, toneClass(mark.tone)]" :aria-label="markWords" data-deploy-mark>
+      <UButton
+        :color="mark.tone"
+        variant="ghost"
+        class="min-w-0 shrink-0 tabular-nums sm:shrink"
+        :square="narrow"
+        :aria-label="markWords"
+        data-deploy-mark
+      >
         <UIcon :name="mark.icon" class="size-5 shrink-0" :class="mark.spin ? 'animate-spin' : ''" />
         <span class="hidden min-w-0 truncate sm:inline">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
-      </button>
+      </UButton>
     </UTooltip>
 
     <template #content>
@@ -165,10 +174,6 @@ import { spanClock } from "bmo-ui/app/domain/time";
 import type { DeployLogLine, DeployView } from "#shared/types";
 import type { DeployTone, ProgressState } from "~/domain/deploy";
 
-// Shared with every row of the bar this mark stands on: the press colours its own hover and press.
-// At phone width the mark stands alone, a square of the bar's icon button: the same padding on every
-// side of a mark at the library's icon size.
-const MARK_BUTTON = "flex min-w-0 shrink-0 items-center gap-2 rounded-md p-1.5 text-sm tabular-nums transition-colors hover:bg-elevated active:bg-accented sm:shrink sm:px-2 sm:py-0.5";
 // How often the run's log is read again while its popover stands.
 const LOG_EVERY_MS = 3_000;
 

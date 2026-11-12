@@ -4,7 +4,11 @@
        from there (docs/web.md, 「Messages」, the briefing's player). Its press pauses the sound or plays one waiting,
        its title leads to the line it speaks over how far it has played, and its close mark stops the listening. It
        stands inside the layout rather than over it, so what opens over the screen covers it like the rest. Its dark
-       surface is a layer of its own behind the presses, so the swell with the sound moves the surface alone. -->
+       surface is a layer of its own behind the presses, so the swell with the sound moves the surface alone.
+
+       It stands in the dark theme whatever the page's: its surface is a shade darker than that theme's ground, so it
+       stands apart from a dark page, and its words, marks and the library's buttons on it take that theme's own
+       colours, so a ghost button's hover and press read on it. -->
   <Transition name="bmo-briefing" type="animation">
     <div
       v-if="shown !== null"
@@ -12,7 +16,7 @@
       data-briefing-popup
       role="group"
       :aria-label="$t('briefing.label.title')"
-      class="absolute z-30 flex w-72 max-w-[calc(100%-2*var(--bmo-gutter))] touch-none items-center gap-2 p-1.5 select-none [--bmo-gutter:1rem] sm:[--bmo-gutter:1.5rem]"
+      class="dark absolute z-30 flex w-72 max-w-[calc(100%-2*var(--bmo-gutter))] touch-none items-center gap-2 p-1.5 select-none [--bmo-gutter:1rem] sm:[--bmo-gutter:1.5rem]"
       :class="dragAt === null ? '' : 'cursor-grabbing'"
       :style="placed"
       @pointerdown="grab"
@@ -24,28 +28,23 @@
       <span
         data-briefing-surface
         aria-hidden="true"
-        class="absolute inset-0 -z-10 rounded-2xl bg-zinc-900 shadow-lg shadow-black/40 ring-1 ring-white/15 dark:bg-zinc-800"
+        class="absolute inset-0 -z-10 rounded-2xl bg-neutral-950 shadow-lg shadow-black/40 ring-1 ring-white/15"
         :style="{ scale: swell }"
       />
 
+      <!-- The library's square icon button, the visualiser drawn at the library's icon size in the play mark's place. -->
       <HintTip :text="pressLabel" press class="shrink-0">
-        <button
-          type="button"
-          data-briefing-press
-          class="flex h-9 w-12 cursor-pointer items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 active:bg-white/20 focus-inset"
-          :aria-label="pressLabel"
-          @click="press"
-        >
+        <UButton color="neutral" variant="ghost" square data-briefing-press :aria-label="pressLabel" @click="press">
           <UIcon v-if="waitsForPress" name="i-material-symbols-play-arrow-rounded" class="size-5" />
-          <span v-else aria-hidden="true" class="flex h-5 items-center gap-1">
-            <span v-for="(bar, index) in bars" :key="index" class="w-1 rounded-full bg-white" :style="{ height: `${barHeight(bar)}px` }" />
+          <span v-else aria-hidden="true" class="flex size-5 items-center justify-center gap-0.5">
+            <span v-for="(bar, index) in bars" :key="index" class="w-0.5 rounded-full bg-inverted" :style="{ height: `${barHeight(bar)}px` }" />
           </span>
-        </button>
+        </UButton>
       </HintTip>
 
       <span class="flex min-w-0 flex-1 flex-col gap-1.5">
         <HintTip :text="$t('briefing.action.open')" press class="min-w-0">
-          <button type="button" data-briefing-title class="block w-full cursor-pointer truncate rounded-sm text-start text-sm text-white hover:underline focus-inset" @click="go">
+          <button type="button" data-briefing-title class="block w-full cursor-pointer truncate rounded-sm text-start text-sm text-highlighted hover:underline focus-inset" @click="go">
             {{ title }}
           </button>
         </HintTip>
@@ -57,21 +56,18 @@
           :aria-valuenow="Math.round(played * 100)"
           :aria-valuetext="playedText"
           :aria-label="$t('briefing.label.title')"
-          class="block h-1 overflow-hidden rounded-full bg-white/20"
+          class="block h-1 overflow-hidden rounded-full bg-accented"
         >
-          <span class="block h-full rounded-full bg-white" :style="{ width: `${played * 100}%` }" />
+          <span class="block h-full rounded-full bg-inverted" :style="{ width: `${played * 100}%` }" />
         </span>
       </span>
 
       <HintTip :text="$t('briefing.action.stop')" press class="shrink-0">
         <UButton
           icon="i-material-symbols-close"
-          size="sm"
           color="neutral"
           variant="ghost"
-          class="rounded-full"
           data-briefing-stop
-          :ui="{ base: 'text-zinc-300 hover:bg-white/10 hover:text-white active:bg-white/20' }"
           :aria-label="$t('briefing.action.stop')"
           @click="shown.stop()"
         />

@@ -17,16 +17,17 @@ describe("the page area of a bundle's screen", () => {
     const frame = await read("app/components/BundleScreenFrame.vue");
 
     expect(frame).toContain('v-bind="area"');
-    expect(frame).toContain('<ConsoleTitleBar v-if="bar !== null" :title="$t(bar.title)" :icon="bar.icon">');
-    expect(frame).toContain("data-title-bar-screen-actions");
-    expect(frame).toMatch(/<template #leading="\{ ui \}">\s*<span class="contents" data-title-bar-screen-lead \/>\s*<UIcon :name="bar.icon"/);
+    expect(frame).toContain('<ConsoleTitleBar v-if="bar !== null" :title="$t(bar.title)" :icon="bar.icon" />');
   });
 
-  test("the offer names the place before the name a screen lays its way back, beside the place for its actions", async () => {
+  test("the offer names the bar alone, holding no place in it for the screen", async () => {
     const source = await read("app/domain/title-bar.ts");
+    const frame = await read("app/components/BundleScreenFrame.vue");
+    const bar = await read("app/components/ConsoleTitleBar.vue");
 
-    expect(source).toContain('export const SCREEN_LEAD = "[data-title-bar-screen-lead]";');
-    expect(source).toContain("{ screenActions: SCREEN_ACTIONS, screenLead: SCREEN_LEAD }");
+    expect(source).toContain("provide<ConsoleTitleBarOffer>(CONSOLE_TITLE_BAR, {});");
+    expect(frame).not.toContain("data-title-bar-screen");
+    expect(bar).not.toContain('<slot name="trailing"');
   });
 
   test("the console draws the bar only for a bundle route that asks for it", async () => {

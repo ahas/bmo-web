@@ -102,18 +102,21 @@
                fixed-width digits. Nothing stands here while the watch is unreachable: the body
                says so in its own words. -->
           <UPopover v-if="standing !== null" :content="{ align: 'end' }" :ui="{ content: 'w-56 p-3' }">
-            <!-- On a phone it is an icon alone, named on hover like every icon button and as square as
-                 the bar's icon button. -->
+            <!-- The library's own small button, its hover on its own shape. On a phone it is an icon
+                 alone, the library's square icon button named on hover like every icon button. -->
             <UTooltip :text="$t('siren.label.window_last')" :disabled="!narrow">
-              <button
-                type="button"
-                class="flex shrink-0 items-center gap-2 rounded-md p-1.5 text-sm tabular-nums text-muted transition-colors hover:bg-elevated active:bg-accented sm:shrink sm:px-2 sm:py-0.5"
+              <UButton
+                size="sm"
+                color="neutral"
+                variant="ghost"
+                class="shrink-0 tabular-nums sm:shrink"
+                :square="narrow"
                 :aria-label="$t('siren.label.window_last')"
               >
-                <UIcon name="i-material-symbols-schedule-outline" class="size-5 shrink-0 sm:hidden" />
+                <UIcon name="i-material-symbols-schedule-outline" class="size-4 shrink-0 sm:hidden" />
 
                 <span class="hidden sm:inline">{{ standing.line }}</span>
-              </button>
+              </UButton>
             </UTooltip>
 
             <template #content>

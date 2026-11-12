@@ -45,6 +45,26 @@ describe("a row's menu", () => {
   });
 });
 
+describe("the reactions at the head of a row's menu", () => {
+  const opened = row.indexOf("<template #reactions>");
+  const strip = row.slice(opened, row.indexOf("</template>", opened));
+
+  test("are the library's own square buttons, so a hover colours the one button under it", () => {
+    expect(opened).toBeGreaterThan(-1);
+    expect(strip).toContain("<UButton");
+    expect(strip).toContain('variant="ghost"');
+    expect(strip).toContain("square");
+    expect(strip).toContain(':aria-pressed="choice.mine"');
+    expect(strip).not.toContain("<button");
+    expect(strip).not.toContain("hover:");
+  });
+
+  test("stand at their own width with one even gap, the strip not spread across the menu", () => {
+    expect(strip).not.toContain("w-full");
+    expect(strip).not.toContain("justify-between");
+  });
+});
+
 describe("the room screen's acts", () => {
   test("answers each row's act through the acts' own domain and the owner the room stands", () => {
     expect(screen).toContain('import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, forwardMessage as forwardCopy, mineReaction, pinMessage, reactTo, readPins as loadPins } from "~/domain/message-acts";');

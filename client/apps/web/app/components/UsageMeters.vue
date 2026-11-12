@@ -12,13 +12,16 @@
          The letters here are the interface's own face, not a typewriter's: only the digits want
          a fixed width, and they get it from the figures being tabular rather than from dragging
          the Korean along into a monospace stack that has no Korean in it. -->
-    <!-- On a phone it is an icon alone, named on hover like every icon button and as square as the
-         bar's icon button. The login it stands for is named there too, since the folded mark has
-         nowhere else to say it. -->
+    <!-- The library's own button at the bar's size, its hover on its own shape. On a phone it is an
+         icon alone, the library's square icon button like every icon button of the bar, named on
+         hover. The login it stands for is named there too, since the folded mark has nowhere else to
+         say it. -->
     <UTooltip :text="accountName === null ? $t('usage.title.remaining') : $t('usage.title.remaining_of', { name: accountName })" :disabled="!narrow">
-      <button
-        type="button"
-        class="flex shrink-0 items-center gap-2 rounded-md p-1.5 text-sm tabular-nums transition-colors hover:bg-elevated active:bg-accented sm:shrink sm:px-2 sm:py-0.5"
+      <UButton
+        color="neutral"
+        variant="ghost"
+        class="shrink-0 tabular-nums sm:shrink"
+        :square="narrow"
         :aria-label="$t('usage.title.remaining')"
       >
         <UIcon name="i-material-symbols-speed" class="size-5 shrink-0 sm:hidden" :class="toneClass(loudest)" />
@@ -54,7 +57,7 @@
             </span>
           </template>
         </span>
-      </button>
+      </UButton>
     </UTooltip>
 
     <template #content>

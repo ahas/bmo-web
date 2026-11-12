@@ -42,10 +42,13 @@
         </template>
       </div>
 
+      <!-- The card's one action at the footer's right end, at its own width. -->
       <template #footer>
-        <UButton v-if="view && view.state === 'open' && accepted === null" type="submit" form="join-form" block :label="$t('join.action.accept')" :loading="pending" />
-        <UButton v-else-if="accepted && !active" block color="neutral" variant="subtle" :label="$t('join.action.check')" :loading="pending" @click="prove" />
-        <UButton v-else-if="active" block to="/login" :label="$t('app.action.login')" />
+        <div class="flex justify-end">
+          <UButton v-if="view && view.state === 'open' && accepted === null" type="submit" form="join-form" :label="$t('join.action.accept')" :loading="pending" />
+          <UButton v-else-if="accepted && !active" color="neutral" variant="subtle" :label="$t('join.action.check')" :loading="pending" @click="prove" />
+          <UButton v-else-if="active" to="/login" :label="$t('app.action.login')" />
+        </div>
       </template>
     </UCard>
   </div>

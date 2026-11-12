@@ -76,7 +76,7 @@ const ORDER: WorkOrderView = {
 function item(): TodoItem {
   return {
     id: ITEM, title: "item-title", instruction: "item-instruction", requester: "Owner", requesterId: CHAT, chatId: CHAT, approved: true, awaitingApproval: false, recommended: false, done: false,
-    running: true, worker: null, priority: 1, status: "running", model: null, agent: null, ranOn: null, note: null, reports: [], unfinished: null,
+    running: true, liveState: "running", worker: null, priority: 1, status: "running", model: null, agent: null, ranOn: null, note: null, reports: [], unfinished: null,
     rejections: 0,
     unfinishedResolvedAt: null, unfinishedResolution: null, brief: null, heldAt: null, heldReason: null, heldKind: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,

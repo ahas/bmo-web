@@ -201,16 +201,14 @@ export function todoState(item: TodoItem, _now: number = toUnixSeconds(Date.now(
   }
 
   // A job that waits for its agent's seat, a road or a card launches nothing yet, so its item waits as one nobody
-  // has taken; a job whose worker is being launched has started but is not doing the work yet.
-  if (item.liveState === "waiting") {
-    return "waiting";
-  }
-
+  // has taken; a job whose worker is being launched has started but is not doing the work yet. The item's lease
+  // says nothing here: a launch leases its item before the agency writes its job, so an item leased with no job
+  // under way still waits.
   if (item.liveState === "starting") {
     return "starting";
   }
 
-  return item.running ? "running" : "waiting";
+  return item.liveState === "running" ? "running" : "waiting";
 }
 
 // Whether a job is still going on for a row in this state: under way, winding down on its way to

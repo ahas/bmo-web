@@ -213,24 +213,28 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
 }
 
 // The state every item's own job stands in while one is under way: a job is `starting` while its worker is
-// launched and `running` while its turn goes, and both are asked in one list. A job that names a hold, `starting` or
+// launched, `running` while its turn goes and `reviewing` while its report awaits its orderer's move, its agent's seat
+// still its own; the agency's `running` filter asks all three in one list. A job that names a hold, `starting` or
 // with a turn of its review to come, waits — for its agent's seat, a road or a card — and works on nothing yet
-// (agency's `docs/api.md`, 「assignments and jobs」).
+// (agency's `docs/api.md`, 「assignments and jobs」, and `docs/job-review.md`). An item with no such job has no live
+// state, its lease notwithstanding: a launch leases the item before the agency writes its job.
 type LiveJob = { itemId: number; state: string; heldFor: string | null };
+
+const LIVE_JOB_STATES: ReadonlySet<string> = new Set(["starting", "running", "reviewing"]);
 
 function liveStateOfJob(job: LiveJob): NonNullable<TodoItem["liveState"]> {
   if (job.heldFor !== null) return "waiting";
 
-  return job.state === "running" ? "running" : "starting";
+  return job.state === "starting" ? "starting" : "running";
 }
 
 function isLive(job: LiveJob): boolean {
-  return job.itemId > 0 && (job.state === "starting" || job.state === "running");
+  return job.itemId > 0 && LIVE_JOB_STATES.has(job.state);
 }
 
 async function liveStates(): Promise<Map<number, TodoItem["liveState"]>> {
   try {
-    const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { state: "starting,running", limit: 500 } } }));
+    const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { running: true, limit: 500 } } }));
 
     return new Map(jobs.items.filter(isLive).map((job) => [job.itemId, liveStateOfJob(job)]));
   } catch {
@@ -242,7 +246,7 @@ async function liveStates(): Promise<Map<number, TodoItem["liveState"]>> {
 /** The state the job of one item stands in, or null where no job of it is under way. */
 async function liveStateOf(id: number): Promise<TodoItem["liveState"]> {
   try {
-    const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { itemId: id, state: "starting,running", limit: 5 } } }));
+    const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { itemId: id, running: true, limit: 5 } } }));
     const job = jobs.items.find((one) => one.itemId === id && isLive(one));
 
     return job === undefined ? null : liveStateOfJob(job);
@@ -274,11 +278,12 @@ export async function readTodoItem(id: number): Promise<TodoItem | null> {
 export async function readTodoItems(ids: readonly number[]): Promise<TodoItem[]> {
   if (ids.length === 0) return [];
 
-  const page = await jobCall(
-    job().GET("/items", { params: { query: { ids: [...new Set(ids)].sort((one, other) => one - other).join(","), limit: 500 } } })
-  );
+  const [page, live] = await Promise.all([
+    jobCall(job().GET("/items", { params: { query: { ids: [...new Set(ids)].sort((one, other) => one - other).join(","), limit: 500 } } })),
+    liveStates()
+  ]);
 
-  return page.items.map((item) => itemOf(item));
+  return page.items.map((item) => itemOf(item, [], null, live.get(item.id) ?? null));
 }
 
 async function notesOf(todoId: number): Promise<Note[]> {
@@ -396,10 +401,14 @@ function meets(item: Item, conditions: TodoConditions): boolean {
   return true;
 }
 
-function standingOf(items: readonly Item[]): TodoStanding {
+// A queue line counts as running where its row reads so: its job starting or working, waiting for nothing
+// (docs/web.md, the TODO panel's section).
+function standingOf(items: readonly Item[], live: ReadonlyMap<number, TodoItem["liveState"]>): TodoStanding {
+  const going = (item: Item) => live.get(item.id) === "starting" || live.get(item.id) === "running";
+
   return {
     queue: items.filter((item) => listOf(item) === "queue").length,
-    running: items.filter((item) => item.state === "leased").length,
+    running: items.filter((item) => listOf(item) === "queue" && going(item)).length,
     pending: items.filter((item) => listOf(item) === "pending").length,
     held: items.filter((item) => listOf(item) === "held").length,
     merged: 0
@@ -452,7 +461,7 @@ export async function readTodoBoard(
     doneTotal: finishedFound.length,
     standingNotes: [],
     choices,
-    standing: standingOf(matching),
+    standing: standingOf(matching, live),
     paused: queues.length > 0 && queues.every((queue) => queue.state === "paused"),
     deployHold: holds.length === 0 ? null : holdOf(holds[0])
   };

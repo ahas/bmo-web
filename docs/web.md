@@ -5659,12 +5659,17 @@ Four bounds keep it from growing forever.
     and an item nobody has taken yet is **대기**, as is an item whose job waits for its turn — for its agent's seat, a
     road or a card, which the agency's job names as its `heldFor` (its `docs/api.md`, 「assignments and jobs」),
     whether before its first turn or before a turn its review asks for — since nothing works on it meanwhile; an item whose job is launching its worker is **시작 중**,
-    one its job is working **진행 중**, a work-order-stopped item **멈춤**. A stopped
+    one its job is working, or whose job is `reviewing` — its report awaiting its orderer's move, the job keeping its
+    agent's seat (the agency's `docs/job-review.md`) — **진행 중**, a work-order-stopped item **멈춤**. An item leased
+    with no job of the agency's starting, running or reviewing for it is **대기**: a launch leases its item in bmo-job
+    before the agency writes its job, so the job's state, not the lease, says whether anything works on it, and a
+    launch whose agent is busy reads 대기 from the lease on, never 진행 중 first. A stopped
     item does not leave the line but stands in its priority place, and standing first in its worker line it carries under its
     title, above its chips, the first line of the stop reason, the reason not yet resumed and the counted failure count — reading the bot's
     judgement as is and not guessing separately (bmo-job's `docs/work-orders.md`, 「A stopped work order's turn」). Which of 대기 and
-    진행 중 is answered by the job — an item with an unfinished job line is 진행 중, and the state letters on the item are
-    words a session writes by hand so are not asked. The number a person sees is the item number alone, so no job number
+    진행 중 is answered by the job — an item with an unfinished job line that waits for nothing is 진행 중, and the state
+    letters on the item and its lease are not asked. The 진행 중 tab's badge counts the same lines, and the 대기 tab's badge
+    the rest of the queue. The number a person sees is the item number alone, so no job number
     stands anywhere. **A running line says which step of the work order is under way, by its name** — 진행 중 · 조사,
     진행 중 · 구현 1/4 (bmo-job's `docs/work-orders.md`, 「What a step is called」). Only a build step is counted, among the build
     steps alone: the to-dos synthesis set each run in turn, so which of them is under way is how far the work has come.

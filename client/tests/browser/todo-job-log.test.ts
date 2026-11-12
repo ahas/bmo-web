@@ -70,6 +70,7 @@ function item(over: Partial<TodoItem> = {}): TodoItem {
     recommended: false,
     done: false,
     running: true,
+    liveState: "running",
     worker: AGENT,
    
     priority: 1,

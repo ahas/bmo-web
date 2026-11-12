@@ -109,7 +109,7 @@ describe("the book the numbers are read from", () => {
 
 describe("what the tooltip says of an item", () => {
   test("its number and title, then its worker where it names one and where it stands", () => {
-    expect(itemTipLines(wording, item(1383, { title: "Console tooltip", worker: "worker-b", running: true }))).toEqual({
+    expect(itemTipLines(wording, item(1383, { title: "Console tooltip", worker: "worker-b", running: true, liveState: "running" }))).toEqual({
       head: "#1383 Console tooltip",
       detail: `worker-b · ${wording("todo.label.state_running")}`
     });

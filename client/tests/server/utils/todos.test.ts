@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 
 import "../../support/nitro";
 import { answer, standIn } from "../../support/units";
@@ -6,7 +6,7 @@ import { answer, standIn } from "../../support/units";
 import type { Asked } from "../../support/units";
 
 // The board the TODO panel stands on, read from a stand-in bmo-job: its items, the queues they wait in, and an
-// item's notes and reports. What is pinned here is how those readings become the rows the panel shows: which list
+// item's notes and reports; and from a stand-in agency, the jobs under way for them. What is pinned here is how those readings become the rows the panel shows: which list
 // each item stands in, what a row carries, how the conditions and a search narrow it, and what the board says of
 // the queues' pause and holds.
 
@@ -57,7 +57,8 @@ const held = {
   items: [] as Item[],
   notes: new Map<number, Record<string, unknown>[]>(),
   reports: new Map<number, Record<string, unknown>[]>(),
-  queues: [{ name: "default", state: "open", holds: [] as Record<string, unknown>[], leasedCount: 0, openCount: 0, changedAt: 0 }]
+  queues: [{ name: "default", state: "open", holds: [] as Record<string, unknown>[], leasedCount: 0, openCount: 0, changedAt: 0 }],
+  jobs: [] as { itemId: number; state: string; heldFor: string | null }[]
 };
 
 function stand(items: Item[]): void {
@@ -87,6 +88,21 @@ const job = standIn("JOB", (asked: Asked) => {
   if (url.pathname === "/queues") return answer({ items: held.queues, more: false });
 
   return answer({ code: "no-route", error: "no route" }, 404);
+});
+
+// The agency answers the jobs under way, its `running` filter asking for those starting, running or reviewing.
+const agency = standIn("AGENCY", (asked: Asked) => {
+  const url = new URL(asked.path, "http://agency");
+
+  if (url.pathname !== "/jobs") return answer({ code: "no-route", error: "no route" }, 404);
+
+  const itemId = url.searchParams.get("itemId");
+
+  return answer({ items: held.jobs.filter((one) => itemId === null || String(one.itemId) === itemId), more: false });
+});
+
+afterEach(() => {
+  held.jobs = [];
 });
 
 const { readTodoBoard, readTodoItem, readTodoItems, readTodoNotes, searchedFor, doneLimit } = await import("../../../apps/web/server/utils/todos");
@@ -148,6 +164,7 @@ describe("the lists each item stands in", () => {
 
   test("an unattended item that is leased and running stands in the queue as running, never among what waits on approval", async () => {
     stand([item(21, { state: "leased", leaseId: 9, approvals: [], labels: { lane: "pr-review" } })]);
+    held.jobs = [{ itemId: 21, state: "running", heldFor: null }];
 
     const board = await readTodoBoard();
 
@@ -156,7 +173,7 @@ describe("the lists each item stands in", () => {
     expect(board.queue[0]).toMatchObject({ running: true, approved: false, awaitingApproval: false });
   });
 
-  test("a leased item stands in the queue and reads as running; a held one stands among the holds", async () => {
+  test("a leased item stands in the queue; a held one stands among the holds", async () => {
     stand([item(1, { state: "leased", leaseId: 4 }), item(2, { state: "held" })]);
 
     const board = await readTodoBoard();
@@ -164,7 +181,25 @@ describe("the lists each item stands in", () => {
     expect(ids(board.queue)).toEqual([1]);
     expect(board.queue.map((row) => row.running)).toEqual([true]);
     expect(ids(board.held)).toEqual([2]);
-    expect(board.standing.running).toBe(1);
+  });
+
+  test("a leased item's live state is its job's: none before the job is written, waiting while it waits for a seat", async () => {
+    stand([1, 2, 3, 4, 5].map((id) => item(id, { state: "leased", leaseId: id })));
+    held.jobs = [
+      { itemId: 2, state: "starting", heldFor: "it waits for the agent agent-a of the coder role" },
+      { itemId: 3, state: "starting", heldFor: null },
+      { itemId: 4, state: "running", heldFor: null },
+      { itemId: 5, state: "reviewing", heldFor: null }
+    ];
+
+    const board = await readTodoBoard();
+
+    expect(agency.asked.at(-1)?.path).toContain("running=true");
+    expect(board.queue.map((row) => [row.id, row.liveState])).toEqual([[1, null], [2, "waiting"], [3, "starting"], [4, "running"], [5, "running"]]);
+    // The running tab counts the lines a job works on, never one leased with no job yet or one waiting for its seat.
+    expect(board.standing).toMatchObject({ queue: 5, running: 3 });
+    expect((await readTodoItem(2))?.liveState).toBe("waiting");
+    expect((await readTodoItems([1, 5])).map((row) => row.liveState)).toEqual([null, "running"]);
   });
 
   test("the finished list is read as far back as the panel asked, and counted whole", async () => {

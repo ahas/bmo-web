@@ -77,7 +77,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
 // The three rows: one naming its agent, one naming none yet, and one a job is running.
 const NAMED = item(1, { agent: "coder-03" });
 const UNNAMED = item(2);
-const RUNNING = item(3, { running: true, status: "running", progress: null });
+const RUNNING = item(3, { running: true, liveState: "running", status: "running", progress: null });
 
 // What the agent and the running job go out on: the agent's own road, and the road the running job actually took. The
 // worker's road names no item's model, since no item goes out on it.

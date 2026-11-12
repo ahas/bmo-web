@@ -125,6 +125,8 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     spans: [],
     createdAt: 1_756_800_000,
     doneAt: null,
+    // A running row stands for a leased item whose job the agency says is working.
+    liveState: over.running === true && over.done !== true ? "running" : null,
     ...over
   };
 }
@@ -316,6 +318,14 @@ describe("where an item stands", () => {
     expect(todoState(item(2, { running: true, liveState: "waiting" }))).toBe("waiting");
     expect(jobGoingOn(todoState(item(2, { running: true, liveState: "waiting" })))).toBe(false);
     expect(todoState(item(2, { running: true, liveState: "starting" }))).toBe("starting");
+  });
+
+  test("an item leased before the agency writes its job waits, never reading as running first", () => {
+    const leased = item(2, { running: true, liveState: null });
+
+    expect(todoState(leased)).toBe("waiting");
+    expect(jobGoingOn(todoState(leased))).toBe(false);
+    expect(stateLabel(wording, leased)).toBe(wording("todo.label.state_waiting"));
   });
 
   test("an item no job is going on for waits, whatever its status line was left saying", () => {

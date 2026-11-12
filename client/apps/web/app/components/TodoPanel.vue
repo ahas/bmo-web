@@ -357,6 +357,17 @@
                 <SearchText class="min-w-0" :text="waitingLine($t, item, now) ?? ''" :query="searched" />
               </p>
 
+              <!-- The job's own command in the testbed's queue, holding a seat or waiting its place: a line of the row
+                   like the wait above, with no hover or press of its own. The place turns as the line moves up, and
+                   the command is machine text. -->
+              <p v-if="testbedTurns.has(item.id)" class="mt-1 flex items-start gap-1 text-sm break-words text-muted tabular-nums" data-item-testbed>
+                <UIcon name="i-material-symbols-science-outline" class="mt-0.5 size-4 shrink-0" />
+                <i18n-t :keypath="testbedLineKey(testbedTurns.get(item.id)!)" tag="span" class="min-w-0" scope="global">
+                  <template #command><span class="font-mono [overflow-wrap:anywhere]">{{ testbedTurns.get(item.id)!.command }}</span></template>
+                  <template #n><RollingNumber :value="testbedTurns.get(item.id)!.place ?? 0" /></template>
+                </i18n-t>
+              </p>
+
               <!-- A backlog deployment holding the queue until this job ends: a line of the row like
                    the wait above, with no hover or press of its own. -->
               <p v-if="deployWaitsLine($t, item) !== null" class="mt-1 flex items-start gap-1 text-sm break-words text-muted">
@@ -517,7 +528,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useHoldMenu } from "bmo-ui/app/domain/holdmenu";
 import { usePolling } from "~/domain/polling";
 import { useTodoModelPlan } from "~/domain/todo-models";
-import { useLiveRefresh, useReadFailure } from "~/domain/events";
+import { useLiveRefresh, useReadFailure, useTestbedEvents } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { COUNT_BADGE, countText } from "~/domain/numbers";
@@ -556,6 +567,7 @@ import {
   stateLabel,
   stoppedLine,
   deployWaitsLine,
+  testbedLineKey,
   waitingLine,
   waitingOverdue,
   todoFilters,
@@ -577,6 +589,7 @@ import { movedEnoughToDrag, rowAtPoint, startsRowDrag } from "~/domain/row-drag"
 
 import type {
   DeployView,
+  ItemTestbedTurn,
   QueuePauseChanged,
   RoomSummary,
   ItemRuns,
@@ -649,6 +662,16 @@ const workers = computed(() => agents.value.agents.filter((agent) => agent.kind 
 // The deployment the title bar reads, which says on a row whose item it carries whether it is being tested or put
 // live (docs/web.md, the TODO panel's section).
 const { data: deployView } = useNuxtData<DeployView>("deploy");
+
+// Each running item's turn in the testbed's queue, read again on the stream's `testbed` word and whenever the stream
+// opens (docs/web.md, the TODO panel's section).
+const { data: testbedRead, refresh: readTestbed } = useFetch<{ items: ItemTestbedTurn[] }>("/api/todos/testbed", { key: "todo-testbed", lazy: true, server: false });
+
+useTestbedEvents(() => {
+  void readTestbed();
+});
+
+const testbedTurns = computed(() => new Map((testbedRead.value?.items ?? []).map((turn) => [turn.itemId, turn])));
 
 const board = ref<TodoBoard>(EMPTY);
 // What the jobs have stopped to ask him, and the clock the countdown on an open one is read

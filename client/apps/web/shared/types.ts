@@ -207,6 +207,15 @@ export interface TestbedStanding {
   waiting: TestbedEntry[];
 }
 
+/** A running item's job in the testbed's queue, as its TODO row's line says it (docs/web.md, the TODO panel's section). */
+export interface ItemTestbedTurn {
+  itemId: number;
+  // The command as the testbed names it.
+  command: string;
+  // Its place in its lane's line, counted from one; null while it holds a seat.
+  place: number | null;
+}
+
 /** One entry of the testbed's queue for heavy commands. */
 export interface TurnEntry {
   // The agent place of the job that started it, where one did.

@@ -10,7 +10,7 @@ import { shortModel } from "#shared/model-short";
 import { todoModelPlan } from "./todo-models";
 
 import type { SearchField } from "bmo-ui/shared/search";
-import type { JobChosenBy, RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoReport, TodoReview, TodoSpan } from "#shared/types";
+import type { ItemTestbedTurn, JobChosenBy, RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoReport, TodoReview, TodoSpan } from "#shared/types";
 import type { BarColor } from "bmo-ui/app/domain/bars";
 import type { Translate } from "#shared/wording";
 
@@ -160,6 +160,13 @@ export function waitingOverdue(item: TodoItem, now: number): boolean {
 // The line a running row carries while a backlog deployment holds the queue waiting for its job.
 export function deployWaitsLine(t: Translate, item: TodoItem): string | null {
   return item.deployWaits ? t("todo.label.deploy_waits") : null;
+}
+
+// The sentence of the line a running row carries while its job stands in the testbed's queue: the command holding a
+// seat, or its place in its lane's line (docs/web.md, the TODO panel's section). The row fills in the command and
+// the place, which turns as it moves up.
+export function testbedLineKey(turn: ItemTestbedTurn): string {
+  return turn.place === null ? "todo.label.testbed_holding" : "todo.label.testbed_waiting";
 }
 
 // How wide the panel may be dragged. Narrower than the first and a row is unreadable; wider

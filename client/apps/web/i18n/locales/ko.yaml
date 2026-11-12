@@ -1416,6 +1416,8 @@ todo:
     summary_merged: "병합 {n}"
     summary_pending: "결재 대기 {n}"
     summary_queue: "{n}건"
+    testbed_holding: "테스트 중 · {command}"
+    testbed_waiting: "테스트 대기 {n}번째 · {command}"
     task_done: 완료
     task_failed: 실패
     task_pending: 대기

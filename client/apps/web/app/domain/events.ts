@@ -124,12 +124,23 @@ interface StreamState {
 // of them goes. Every screen reads the same connection: a browser holds only a handful open to
 // one origin, and each of these is a second one held from this app to the bot besides.
 const listeners = new Set<(event: BotEvent) => void>();
-// What hears the console's word that the deployment moved, and that the stream opened.
-const deployListeners = new Set<() => void>();
+// The console's own words that carry nothing but that something moved: the deployment, and the testbed's queue.
+const CONSOLE_WORDS = ["deploy", "testbed"] as const;
 
-// How many screens hold the stream, bot news and the deployment alike.
+type ConsoleWord = (typeof CONSOLE_WORDS)[number];
+
+// What hears each of those words, and that the stream opened.
+const wordListeners = new Map<ConsoleWord, Set<() => void>>(CONSOLE_WORDS.map((word) => [word, new Set()]));
+
+function hearWord(word: ConsoleWord): void {
+  for (const listener of wordListeners.get(word) ?? []) {
+    listener();
+  }
+}
+
+// How many screens hold the stream, bot news and the console's words alike.
 function holders(): number {
-  return listeners.size + deployListeners.size;
+  return [...wordListeners.values()].reduce((sum, heard) => sum + heard.size, listeners.size);
 }
 
 let source: EventSource | null = null;
@@ -396,12 +407,12 @@ function open(): void {
     }
   });
 
-  // The stream has opened. What the deployment did while it was closed was never said on it, and the
-  // stream that opens after bmo-web's own restart is the first to hear of it (docs/web.md, 「Deployment in the
-  // title bar」).
+  // The stream has opened. What the deployment did and how the testbed's queue moved while it was closed was
+  // never said on it, and the stream that opens after bmo-web's own restart is the first to hear of either
+  // (docs/web.md, 「Deployment in the title bar」 and the TODO panel's section).
   source.addEventListener("open", () => {
-    for (const listener of deployListeners) {
-      listener();
+    for (const word of CONSOLE_WORDS) {
+      hearWord(word);
     }
   });
 
@@ -441,14 +452,14 @@ function open(): void {
     }
   });
 
-  // The console's word that the deployment moved. It carries nothing; a listener reads it again.
-  source.addEventListener("deploy", () => {
-    heard = true;
-
-    for (const listener of deployListeners) {
-      listener();
-    }
-  });
+  // The console's words that the deployment moved and that the testbed's queue changed. They carry nothing; a
+  // listener reads again.
+  for (const word of CONSOLE_WORDS) {
+    source.addEventListener(word, () => {
+      heard = true;
+      hearWord(word);
+    });
+  }
 
 
   // The bot is stopping on purpose and the stream is about to end. Nothing changes on the screen
@@ -1300,15 +1311,17 @@ export function useSupervisorsAnswering(): Readonly<Ref<ReadonlySet<string>>> {
 }
 
 
-// The console's word that the deployment moved, on the tab's one stream: called on that word and each
-// time the stream opens or opens again.
-export function useDeployEvents(onChange: () => void): void {
+// One of the console's words on the tab's one stream: called on that word and each time the stream opens or
+// opens again.
+function useConsoleWord(word: ConsoleWord, onChange: () => void): void {
   if (import.meta.server) {
     return;
   }
 
+  const hearing = wordListeners.get(word)!;
+
   onMounted(() => {
-    deployListeners.add(onChange);
+    hearing.add(onChange);
 
     if (holders() === 1) {
       open();
@@ -1316,11 +1329,21 @@ export function useDeployEvents(onChange: () => void): void {
   });
 
   onScopeDispose(() => {
-    deployListeners.delete(onChange);
+    hearing.delete(onChange);
 
     if (holders() === 0) {
       close();
     }
   });
+}
+
+// The console's word that the deployment moved (docs/web.md, 「Deployment in the title bar」).
+export function useDeployEvents(onChange: () => void): void {
+  useConsoleWord("deploy", onChange);
+}
+
+// The console's word that the testbed's queue changed (docs/web.md, the TODO panel's section).
+export function useTestbedEvents(onChange: () => void): void {
+  useConsoleWord("testbed", onChange);
 }
 

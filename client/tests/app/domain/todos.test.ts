@@ -47,6 +47,7 @@ import {
   stopDetail,
   stoppedLine,
   deployWaitsLine,
+  testbedLineKey,
   todoSearchFields,
   waitingLine,
   waitingOverdue,
@@ -1506,6 +1507,12 @@ describe("a running row standing on a wait", () => {
     expect(deployWaitsLine(wording, item(5))).toBeNull();
     expect(fields.find((field) => field.text === wording("todo.label.deploy_waits"))?.shown).toBe(true);
     expect(fields.some((field) => field.text === waitingLine(wording, held, now))).toBe(true);
+  });
+
+  test("the testbed line says a held seat by its own sentence and a wait by the one carrying its place", () => {
+    expect(testbedLineKey({ itemId: 5, command: "cargo test", place: null })).toBe("todo.label.testbed_holding");
+    expect(testbedLineKey({ itemId: 5, command: "check", place: 3 })).toBe("todo.label.testbed_waiting");
+    expect(wording("todo.label.testbed_waiting", { n: "3", command: "check" })).toContain("check");
   });
 });
 

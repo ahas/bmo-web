@@ -230,7 +230,8 @@ function isLive(job: LiveJob): boolean {
   return job.itemId > 0 && isJobUnderWay(job.state);
 }
 
-async function liveStates(): Promise<Map<number, LiveJobOf>> {
+/** The job under way of every item one runs for, by its item; empty where the agency does not answer. */
+export async function liveStates(): Promise<Map<number, LiveJobOf>> {
   try {
     const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { running: true, limit: 500 } } }));
 

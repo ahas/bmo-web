@@ -5747,6 +5747,28 @@ Four bounds keep it from growing forever.
     words with no hover or press of their own, and the row opens by its title like every other line of it. Both
     are searched like every other word on the row. bmo-job's readings carry neither the wait nor the deployment's wait on a
     row yet (`docs/boundary.md`, 「Gaps the console meets」), so neither line stands until they do.
+  - **A running line says when its job stands in the testbed's queue** (the testbed's `docs/testbed.md`, 「The
+    turn」): one line under the title, above the chips, behind a flask, 「테스트 중 · <명령>」 while a command of the
+    job holds a seat of a lane and 「테스트 대기 <n>번째 · <명령>」 while it waits, the command in the testbed's own
+    words and the place counted from one in its lane's line. It is what the job's own checks and tests do while it
+    works — a static check, a test run — and stands beside the state chip, which keeps saying the step under way.
+    - **A command is the job's only through its checkout.** The testbed names each holder and waiter by the
+      checkout it runs in; the agency names each of its repositories' checkouts by its path, with the job holding
+      it. A command belongs to a row where its checkout is a checkout on this machine, or a folder under one,
+      that the agency says the row's own running job holds. A command in a checkout no job holds, or one another
+      job holds, stands on no row, and a job's subagents, running in its checkout, count as the job.
+    - **One line a row.** A held seat comes before a wait, and of several waits the one nearest the front; a
+      command holding several seats is one command.
+    - **It is told live.** The console server reads the testbed's queue every two seconds and tells every open
+      tab's stream a `testbed` word when the queue changed; the panel reads its rows' testbed lines again on that
+      word and every time its stream opens. The line is gone at the first reading after the command leaves the
+      queue, which is when its check ends.
+    - **What the line does not see.** A command the testbed placed on another machine waits and runs in that
+      machine's queue, and a checkout on a work node in that node's, so neither stands on a row.
+    - **A line of the row like the lines above it,** with no hover or press of its own. The command stands in the
+      machine text's font, and the place turns, character by character, as the line moves up. A search neither
+      marks the line nor finds a row by it: a search reaches the items as bmo-job holds them, and the queue is no
+      part of an item.
   - **중단 대기 중** — an item held while a run of it is still going stands in the queue under this word, in the
     warning colour, until the run has ended (bmo-job's `docs/work-orders.md`). The 진행 중 filter shows it, since it is still
     running.

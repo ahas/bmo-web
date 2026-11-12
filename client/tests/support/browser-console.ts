@@ -58,6 +58,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["monitor-polling", "fixture-password-2372"],
   ["todo-models", "fixture-password-2298"],
   ["todo-assign", "fixture-password-2765"],
+  ["todo-testbed", "fixture-password-2771"],
   ["work-view", "fixture-password-2311"],
   ["delegation-marker", "fixture-password-2373"],
   ["screen-stands", "fixture-password-2411"],
@@ -824,6 +825,9 @@ try {
     NUXT_PUBLIC_BMO_UI_TRANSLATOR_PATH: "/translations",
     KEEPALIVE_CONSUMER: "console",
     DEPLOY_ROOTS: scratch,
+    // No testbed program stands there, so the console reads the testbed's queue as empty and never the machine's own;
+    // the test that reads a row's testbed line answers it through the page's own route.
+    TESTBED_BIN: join(scratch, "no-testbed"),
     // A build folder of its own inside the checkout, so a typecheck beside it leaves what it serves alone and its
     // generated modules still resolve the console's packages.
     BMO_WEB_BUILD_DIR: ".nuxt-browser-tests",

@@ -1,6 +1,6 @@
 import { STATUS_HISTORY_LIMIT, WORKER_AGENT } from "#shared/config";
 
-import { agency, agencyCall, agencyRoute } from "./agency";
+import { agency, agencyCall, agencyRoute, isJobUnderWay } from "./agency";
 import { job as jobService, jobCall } from "./job";
 import { runFigures } from "./run-tally";
 import { planOf } from "../../app/domain/tool-view";
@@ -32,10 +32,11 @@ async function jobsOf(name: string): Promise<AgencyJob[]> {
   return asked.items.filter((job) => job.roleName === name);
 }
 
-// The job a line speaks of: the run named where it is one of these jobs, otherwise the one going, otherwise the latest.
+// The job a line speaks of: the run named where it is one of these jobs, otherwise the one going — starting, running
+// or under its orderer's review — otherwise the latest.
 function jobChosen(jobs: readonly AgencyJob[], run: string | null): AgencyJob | null {
   const named = run === null || run.trim() === "" ? undefined : jobs.find((job) => job.runName === run.trim() || String(job.runId ?? job.id) === run.trim());
-  const live = jobs.find((job) => job.state === "running" || job.state === "starting");
+  const live = jobs.find((job) => isJobUnderWay(job.state));
 
   return named ?? live ?? [...jobs].sort((one, other) => other.startedAt - one.startedAt)[0] ?? null;
 }
@@ -164,17 +165,13 @@ function liveRunOf(job: AgencyJob, room: number | null): LiveRun {
 }
 
 /**
- * The jobs running beside the chat, as the agency lists them. A job is `starting` while its worker is launched
- * and `running` while its turn goes, and the list narrows by one state at a time, so both are asked.
+ * The jobs running beside the chat, as the agency's `running` filter lists them: starting, running, or reviewing while
+ * the job's report awaits its orderer's move, which still holds its agent's seat and so is still going.
  */
 export async function readLiveRuns(): Promise<LiveRun[]> {
-  const [starting, running] = await Promise.all([
-    agencyCall(agency().GET("/jobs", { params: { query: { state: "starting", limit: LIVE_JOBS_LIMIT } } })),
-    agencyCall(agency().GET("/jobs", { params: { query: { state: "running", limit: LIVE_JOBS_LIMIT } } }))
-  ]);
-  // A job that moved from starting to running between the two reads is listed by both, and stands once; and each is
-  // held to its own state, so a list answering more than its filter asked for hands on no job that has ended.
-  const jobs = [...new Map([...starting.items, ...running.items].filter((job) => job.state === "starting" || job.state === "running").map((job) => [job.id, job])).values()];
+  const listed = await agencyCall(agency().GET("/jobs", { params: { query: { running: true, limit: LIVE_JOBS_LIMIT } } }));
+  // Each job is held to its own state, so a list answering more than its filter asked for hands on no job that has ended.
+  const jobs = listed.items.filter((job) => isJobUnderWay(job.state));
   const rooms = await Promise.all(jobs.map(roomOf));
 
   return jobs.map((job, at) => liveRunOf(job, rooms[at] ?? null));

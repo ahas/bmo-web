@@ -2,7 +2,7 @@ import { DONE_MAX, DONE_PAGE_SIZE, TODO_REPORTS_FRESH_MS, TODO_SEARCH_LIMIT, WOR
 import { filterRecords } from "bmo-ui/shared/search";
 import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields } from "../../app/domain/todos";
-import { agency, agencyCall } from "./agency";
+import { agency, agencyCall, isJobUnderWay } from "./agency";
 import { job, jobCall } from "./job";
 
 import type { Note, Item, Report, Queue } from "bmo-job-client";
@@ -212,15 +212,12 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
   };
 }
 
-// The state every item's own job stands in while one is under way: a job is `starting` while its worker is
-// launched, `running` while its turn goes and `reviewing` while its report awaits its orderer's move, its agent's seat
-// still its own; the agency's `running` filter asks all three in one list. A job that names a hold, `starting` or
-// with a turn of its review to come, waits — for its agent's seat, a road or a card — and works on nothing yet
-// (agency's `docs/api.md`, 「assignments and jobs」, and `docs/job-review.md`). An item with no such job has no live
-// state, its lease notwithstanding: a launch leases the item before the agency writes its job.
+// The state every item's own job stands in while one is under way, as the agency's `running` filter lists them; a
+// job under its orderer's review still holds its agent's seat, so it stands as running. A job that names a hold,
+// `starting` or with a turn of its review to come, waits — for its agent's seat, a road or a card — and works on
+// nothing yet (agency's `docs/api.md`, 「assignments and jobs」, and `docs/job-review.md`). An item with no such job
+// has no live state, its lease notwithstanding: a launch leases the item before the agency writes its job.
 type LiveJob = { itemId: number; state: string; heldFor: string | null };
-
-const LIVE_JOB_STATES: ReadonlySet<string> = new Set(["starting", "running", "reviewing"]);
 
 function liveStateOfJob(job: LiveJob): NonNullable<TodoItem["liveState"]> {
   if (job.heldFor !== null) return "waiting";
@@ -229,7 +226,7 @@ function liveStateOfJob(job: LiveJob): NonNullable<TodoItem["liveState"]> {
 }
 
 function isLive(job: LiveJob): boolean {
-  return job.itemId > 0 && LIVE_JOB_STATES.has(job.state);
+  return job.itemId > 0 && isJobUnderWay(job.state);
 }
 
 async function liveStates(): Promise<Map<number, TodoItem["liveState"]>> {

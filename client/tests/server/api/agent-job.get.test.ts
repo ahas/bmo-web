@@ -84,18 +84,28 @@ const agency = standIn("AGENCY", (one) => {
       return answer({ items: [jobOf({ id: 12, runId: 12, runName: "job-unit-12", workerName: "worker-d", state: "running", endedAt: null, outcome: null })], more: false });
     }
 
-    if (url.searchParams.get("repositoryName") === "worker-c") return answer({ items: [], more: false });
-
-    if (url.searchParams.get("state") === "starting") {
+    // A job under its orderer's review, begun before the job that has since ended there.
+    if (url.searchParams.get("repositoryName") === "worker-e") {
       return answer({
-        items: [jobOf({ id: 10, runId: 10, runName: "job-unit-10", state: "starting", endedAt: null, outcome: null })],
+        items: [
+          jobOf({ id: 14, runId: 14, runName: "job-unit-14", workerName: "worker-e", startedAt: at + 10_000, endedAt: at + 20_000 }),
+          jobOf({ id: 13, runId: 13, runName: "job-unit-13", workerName: "worker-e", state: "reviewing", endedAt: null, outcome: null })
+        ],
         more: false
       });
     }
 
-    if (url.searchParams.get("state") === "running") {
+    if (url.searchParams.get("repositoryName") === "worker-c") return answer({ items: [], more: false });
+
+    // The jobs under way, newest first, with one that ended between the list and its answer.
+    if (url.searchParams.get("running") === "true") {
       return answer({
-        items: [jobOf({ id: 9, runId: 9, runName: "job-unit-9", state: "running", roomId: null, endedAt: null, outcome: null })],
+        items: [
+          jobOf({ id: 11, runId: 11, runName: "job-unit-11", state: "reviewing", endedAt: null, outcome: null }),
+          jobOf({ id: 10, runId: 10, runName: "job-unit-10", state: "starting", endedAt: null, outcome: null }),
+          jobOf({ id: 9, runId: 9, runName: "job-unit-9", state: "running", roomId: null, endedAt: null, outcome: null }),
+          jobOf({ id: 5, runId: 5, runName: "job-unit-5" })
+        ],
         more: false
       });
     }
@@ -184,6 +194,12 @@ describe("a worker's job line", () => {
     ]);
   });
 
+  test("is the job under its orderer's review before a later one that has ended, as still going", async () => {
+    const read = (await asked(line, { params: { name: "worker-e" } })).answer?.job;
+
+    expect(read).toMatchObject({ run: "job-unit-13", finishedAt: null });
+  });
+
   test("asks for no run where the screen was opened at none, and is nothing for a worker with no job", async () => {
     agency.asked.length = 0;
 
@@ -212,22 +228,41 @@ describe("the prompt of that job", () => {
 });
 
 describe("the jobs running and the jobs that have just run on the live board", () => {
-  test("are the ones the agency lists, with their item and worker", async () => {
+  test("are the ones the agency lists as under way, a job under review among them, with their item and worker", async () => {
     agency.asked.length = 0;
     jobs.asked.length = 0;
 
     const board = (await asked(status, {})).answer;
 
     expect(agency.asked.map((one) => one.path).sort()).toEqual([
+      "/jobs?running=true&limit=500",
       "/jobs?state=ended&limit=10",
-      "/jobs?state=running&limit=500",
-      "/jobs?state=starting&limit=500",
       "/jobs?state=stopped&limit=10"
     ]);
     // A job whose launch named no room is placed by its item's scope.
     expect(jobs.asked.map((one) => one.path)).toEqual(["/items/41"]);
     expect(board?.reachable).toBe(true);
     expect(board?.live).toEqual([
+      {
+        id: 11,
+        kind: "worker",
+        agent: "worker-b",
+        chatId: 90000001,
+        messageId: null,
+        startedAt: 1_790_000_000,
+        unit: "job-unit-11",
+        capSeconds: null,
+        depth: null,
+        model: null,
+        startedBy: null,
+        todoId: 41,
+        repository: "repo-b",
+        checkout: "worker-b",
+        purpose: null,
+        progress: null,
+        waiting: null,
+        stop: { kind: "item", id: "41" }
+      },
       {
         id: 10,
         kind: "worker",

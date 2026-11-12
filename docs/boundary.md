@@ -532,8 +532,8 @@ for it, and no file or table of that unit is read meanwhile.
 - **The rooms each sender has stood in.** The console reads them from the receiver's `POST /rooms/titles`,
   which the receiver's document states for another caller; the console reads it as that document states it.
 - **What is running beside the chat, and what has just run.** The receiver's live picture holds the chat's turns
-  and the rooms folding. The jobs running beside the chat are the agency's `GET /jobs`, read at `starting` and at
-  `running`: each names the item it is a run of, and the item is what a stop names. A job whose launch named no
+  and the rooms folding. The jobs running beside the chat are the agency's `GET /jobs`, read under its `running`
+  filter, so a job `reviewing` while its orderer weighs its report stands among them: each names the item it is a run of, and the item is what a stop names. A job whose launch named no
   room is placed in the room its item's scope names, read from the job service's item; one whose item names no room
   stands in no room. The
   runs of runners, gates and editors going now, the executions, gate runs, runner records and standing watches that

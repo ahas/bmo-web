@@ -3153,8 +3153,8 @@ a seat of its role.
 - **A screen for each axis and place.** A supervisor's screen and a role's read the agency's log of that supervisor or
   role across its runs (the agency's `docs/run-records.md`, 「Agent log」); a role's run opened from the sidebar or a
   slot tile opens the role's log at that run. A repository's screen reads the jobs the agency ran in it, newest
-  first, and the log of the one going or, with none going, the latest, under the name its lines stand under: the
-  agent the job's item named, the one that did the work (the agency's `docs/run-records.md`, 「Agent log」), and
+  first, and the log of the one going (`starting`, `running` or `reviewing`) or, with none going, the latest, under
+  the name its lines stand under: the agent the job's item named, the one that did the work (the agency's `docs/run-records.md`, 「Agent log」), and
   the checkout it ran in for a job that named none. A role's screen reads its agents' lines with its own, so the
   job a role's agent is running stands on the role's screen where its run is marked. It is the log the same job's
   TODO line opens.
@@ -3278,8 +3278,8 @@ a seat of its role.
     worker's job has its job line instead (below).
 - **A job worker's screen carries its job at the head of its work view** (「The work view」), the figures the CLI
   keeps at the foot of its own screen. It speaks of one job: the run the screen was opened at where that run is one
-  of this worker's jobs, otherwise the job the worker is running now, otherwise its last one. A worker with no job
-  yet has none.
+  of this worker's jobs, otherwise the job the worker has going now (starting, running, or under review
+  and still holding its seat), otherwise its last one. A worker with no job yet has none.
   - **작업 지시** is the job's prompt in its Korean reading, and under 영어본 the English its worker was handed
     where that says something else (docs/worker-language.md, 「A job's prompt」), read once the job is known, with a
     skeleton of one line until it lands; it stands on one line in the head and spreads whole when pressed.
@@ -5089,8 +5089,10 @@ Four bounds keep it from growing forever.
     stands (「Deployment in the title bar」).
   - It never wraps: on a screen too narrow for it the line is cut at its edge. It is centred under the conversation,
     and its shimmering words are its only running sign, with no spinning mark beside them.
-  - The jobs are the agency's `GET /jobs` at `starting` and `running`: a job whose launch named no room is placed
-    in the room its item's scope names, and one whose item names no room stands in no room. The line is
+  - The jobs are the agency's `GET /jobs` under its `running` filter, the jobs `starting`, `running` or `reviewing`:
+    a job whose report awaits its orderer's move keeps its agent's seat, its checkout and its lease (the agency's
+    `docs/job-review.md`), so it is still going and stands on the line as one running. A job whose launch named no
+    room is placed in the room its item's scope names, and one whose item names no room stands in no room. The line is
     read again when the agency says a job started, changed or ended, and on the catch-up read a reopened stream
     brings. A watch's check comes from the board's standing watches. The runs of searches, gates and runners going
     now are served by no unit (`docs/boundary.md`, 「Gaps the console meets」), so the line carries none of them.
@@ -5493,7 +5495,7 @@ Four bounds keep it from growing forever.
      there. A line whose job cannot be found, one that ended with no run of its own, answers with the message pill
      saying so; the line under the list is never the only answer. In the opened item the state mark at its head,
      실행 중 and the stage it names, is the same press: it opens that job's log over the item.
-     - The job is the one the agency lists as starting or running for the item, read off each job's own state, so
+     - The job is the one the agency lists as starting, running or reviewing for the item, read off each job's own state, so
        a list that answers more than it was asked for never hands the log a job that has ended; where none is
        running, it is the item's latest job, read with the item's runs, at the run that job went as.
   2. **승인** on a request waiting on them and not set aside.

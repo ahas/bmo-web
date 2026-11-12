@@ -124,3 +124,14 @@ function fieldRefusal(error: Error): Error {
     ? createError({ statusCode: 400, message: wording("agents.error.field_refused"), data: { field: asked.data.field } })
     : error;
 }
+
+// The states a job stands in while it is still going: `starting` while its worker is launched, `running` while its
+// turn goes and `reviewing` while its report awaits its orderer's move, its agent's seat, checkout and lease still its
+// own; the agency's `running` filter asks for all three in one list (its `docs/api.md`, 「assignments and jobs」, and
+// `docs/job-review.md`). The published client names no `reviewing` state, so a state is read here as text.
+const JOB_STATES_UNDER_WAY: ReadonlySet<string> = new Set(["starting", "running", "reviewing"]);
+
+/** Whether a job in this state is still going: starting, running or under its orderer's review. */
+export function isJobUnderWay(state: string): boolean {
+  return JOB_STATES_UNDER_WAY.has(state);
+}

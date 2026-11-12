@@ -1089,7 +1089,7 @@ edit to that file alone, once the guide below carries the word.
   - **Which run stands.** A run under way stands before any that has ended, the one begun last where
     several run at once; with none under way, the one that ended last. For the administrator the run is
     named by its unit, the deploy root's own folder name, at the head of what the mark says after its
-    state: 「배포 중 · bmo-web · 빌드 · 2:14」; a member hears only that a run is under way (「Access」).
+    state: 「배포 중 · bmo-web · 빌드 · 2:14」; a member hears nothing of a run (「Access」).
   - Wide, it is a spinning mark, 「배포 중」, the stage and the time since the deployment began,
     ticking each second in tabular figures. At phone width it is the spinning mark alone, its words
     in its tooltip.
@@ -1150,9 +1150,9 @@ edit to that file alone, once the guide below carries the word.
   screen to hang from, and would stand at the window's corner beside the real one.
 - **The title bar is the only place a deployment stands.** Nothing under a room's conversation says it, since
   it is no run of that room.
-- **A member is told only that the chat agent is being updated:** 「업데이트 중」 and the time since it began, and
-  the 「새 버전」 mark. Pressed, it says that answers may be slow until it ends. The route hands a member
-  nothing of what goes live or how.
+- **A member is told nothing of a deployment:** no mark stands while a run goes, and only the 「새 버전」 mark
+  stands, where the page is older than the console being served, so a member loads the new one. The route hands a
+  member no run at all, nor the hold.
 
 ### Profile photos
 

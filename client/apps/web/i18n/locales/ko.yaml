@@ -3146,7 +3146,6 @@ deploy:
     rolled_back: 배포 실패 · 롤백
     running: 배포 중
     stopped: 배포 안 함
-    updating: 업데이트 중
   action:
     reload: 새로고침
   error:
@@ -3176,7 +3175,6 @@ deploy:
     state_failed: 실패
   message:
     log_empty: 로그 없음
-    updating_slow: 업데이트가 끝날 때까지 응답이 늦을 수 있습니다.
 documents:
   label:
     from_translation: 번역에서

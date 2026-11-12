@@ -48,9 +48,9 @@ describe("the deployment mark", () => {
     expect(deployMarkOf(wording, null, RELEASE, NOW)).toBeNull();
   });
 
-  test("names the stage and the time since the run began, and only that it updates to a member", () => {
+  test("names the stage and the time since the run began, and stands nothing of it for a member", () => {
     expect(deployMarkOf(wording, view({ run: run() }), RELEASE, NOW)).toMatchObject({ kind: "running", spin: true, label: wording("deploy.status.running"), detail: `${wording("deploy.label.stage_build")} · ${CLOCK}` });
-    expect(deployMarkOf(wording, view({ run: run({ stages: [] }), detailed: false }), RELEASE, NOW)).toMatchObject({ kind: "running", label: wording("deploy.status.updating"), detail: CLOCK });
+    expect(deployMarkOf(wording, view({ run: run({ stages: [] }), detailed: false }), RELEASE, NOW)).toBeNull();
   });
 
   test("names the unit whose run it is ahead of the rest, under way and ended alike", () => {

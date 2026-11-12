@@ -189,12 +189,12 @@ describe("the deployment a tab is handed", () => {
     expect(deployViewFor({ unitName: "unit-a", record, writtenAt: 3_000 }, null, "r1", true, () => false).run).toMatchObject({ phase: "cut", endedAt: 3_000 });
   });
 
-  test("a member is handed only that a run is under way, and nothing of a run that ended or of the hold", () => {
+  test("a member is handed nothing of a run, under way or ended, nor of the hold", () => {
     expect(deployViewFor({ unitName: "unit-a", record, writtenAt: 3_000 }, hold, "r1", false, () => true)).toEqual({
       release: "r1",
       detailed: false,
       hold: null,
-      run: { unitName: null, phase: "running", startedAt: 1_000, endedAt: null, outcome: null, commit: null, carried: [], plan: [], stages: [], steps: [], ahead: [], running: null }
+      run: null
     });
     expect(deployViewFor({ unitName: "unit-a", record: { ...record, ending: { outcome: "live", at: 4_000, why: null } }, writtenAt: 4_000 }, null, "r1", false).run).toBeNull();
   });

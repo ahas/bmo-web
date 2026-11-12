@@ -289,20 +289,15 @@ export function deployRunView(record: DeployProgress, writtenAt: number | null, 
 }
 
 /**
- * What a tab is handed. A member hears only that a run is under way and when it began: not what goes live, how
- * far it is, how it ended, nor the hold (docs/web.md, 「Access」).
+ * What a tab is handed. A member hears nothing of a run — not that one goes, what goes live, how far it is or how it
+ * ended — nor the hold, and reads only the release, for the new-version mark (docs/web.md, 「Access」).
  */
 export function deployViewFor(reading: DeployReading, hold: DeployView["hold"], release: string, detailed: boolean, alive: (pid: number) => boolean = processAlive, carried: DeployCommit[] = []): DeployView {
   const run = reading.record === null ? null : deployRunView(reading.record, reading.writtenAt, reading.unitName, alive, carried);
 
   if (detailed) return { release, detailed, run, hold };
 
-  return {
-    release,
-    detailed,
-    run: run === null || run.phase !== "running" ? null : { ...run, unitName: null, commit: null, carried: [], plan: [], stages: [], steps: [], ahead: [], running: null },
-    hold: null
-  };
+  return { release, detailed, run: null, hold: null };
 }
 
 /** The deployment's hold as bmo-job keeps it; none where bmo-job does not answer, since the mark then knows of none. */

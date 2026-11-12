@@ -238,12 +238,11 @@ export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease:
     };
   }
 
-  if (run !== null && run.phase === "running") {
+  // A member is handed no run, so only the administrator's bar stands one.
+  if (run !== null && run.phase === "running" && view.detailed) {
     const elapsed = spanClock(t, (now - run.startedAt) / 1000);
 
-    return view.detailed
-      ? { kind: "running", tone: "primary", icon: "i-material-symbols-progress-activity", spin: true, label: t("deploy.status.running"), detail: runDetail(run, stageLabel(t, currentStage(run)), elapsed) }
-      : { kind: "running", tone: "primary", icon: "i-material-symbols-progress-activity", spin: true, label: t("deploy.status.updating"), detail: elapsed };
+    return { kind: "running", tone: "primary", icon: "i-material-symbols-progress-activity", spin: true, label: t("deploy.status.running"), detail: runDetail(run, stageLabel(t, currentStage(run)), elapsed) };
   }
 
   if (run !== null && run.endedAt !== null && now - run.endedAt < ENDING_SHOWN_MS && view.detailed) {

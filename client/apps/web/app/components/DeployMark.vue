@@ -24,10 +24,7 @@
           <span class="tabular-nums">{{ mark.label }}<template v-if="mark.detail !== ''"> · {{ mark.detail }}</template></span>
         </p>
 
-        <!-- A member is told only that the console is being updated, and what that means for them. -->
-        <p v-if="!detailed" class="text-muted">{{ $t("deploy.message.updating_slow") }}</p>
-
-        <template v-else>
+        <template v-if="detailed">
           <!-- What goes live: the items a hold waits for, and every commit the deploy carries, oldest
                first. A commit whose subject names an item opens that item in the TODO panel. -->
           <div v-if="items.length > 0 || carried.length > 0 || commit !== null" class="flex flex-col gap-1">

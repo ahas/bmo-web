@@ -5567,8 +5567,10 @@ Four bounds keep it from growing forever.
     was written in or in the reader's own, one at a time in the same place: the brief and each change to it, the
     running work order's purpose and instruction, each report, each entry of the item's 보고 턴 — a report, a
     question, an answer, a rejection, a pass —, a co-work task's work order and result, a brain memory opened
-    from a room's record, and the room's situation note. A text in another language than the reader's carries one
-    line above it. Where 자동 번역 is on (「테마」 under the settings), the default, the reading is asked as the text
+    from a room's record, the room's situation note, and a job's question card waiting for an answer — its
+    question, its reason and each option, read together under the question's one line, so 원문 보기 puts all of
+    them back at once, while the answer sent is always the option as it was written. A text in another language
+    than the reader's carries one line above it. Where 자동 번역 is on (「테마」 under the settings), the default, the reading is asked as the text
     opens and takes its place the moment it comes; where it is off the text opens as it was written, the line
     offering **번역 보기**, which, pressed, asks the reading, and the reading takes the original's place whole; the line then says the language it was translated from and offers
     **원문 보기**, which puts the original back — 영어에서 번역됨 · 원문 보기. The reading is never set under the

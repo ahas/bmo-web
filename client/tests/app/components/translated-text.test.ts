@@ -37,4 +37,18 @@ describe("a translated text", () => {
 
     expect(detail).toContain('<TranslatedText :text="entry.body" class="mt-1" />');
   });
+
+  // A job's question card is read in the reader's language whole: its question under the one line, and its reason and
+  // options following that line, so 원문 보기 puts all of them back; the answer sent is the option as written.
+  test("stands for a job's question card, its reason and options following its question", async () => {
+    const ask = await Bun.file(new URL("../../../apps/web/app/components/QuestionAsk.vue", import.meta.url)).text();
+    const inline = await Bun.file(new URL("../../../apps/web/app/components/TranslatedInline.vue", import.meta.url)).text();
+
+    expect(ask).toContain('<TranslatedText :text="card.question" class="mt-1" @shown="readingShown[card.id] = $event" />');
+    expect(ask).toContain(':text="card.why" :follow="readingShown[card.id] === true"');
+    expect(ask).toContain('<TranslatedInline :text="option.text" :follow="readingShown[card.id] === true" />');
+    expect(ask).toContain("@click=\"choose(card, option.number - 1)\"");
+    expect(source).toContain('watch(shown, (now) => emit("shown", now), { immediate: true });');
+    expect(inline).toContain('props.follow && reading.value.kind === "read" ? reading.value.text : props.text');
+  });
 });

@@ -63,6 +63,9 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), { kind: "words", textClass: "text-sm text-highlighted" });
+// Whether the reading stands in the original's place, told as it changes, so a place reading other texts beside
+// this one under its one line follows it.
+const emit = defineEmits<{ shown: [boolean] }>();
 
 const { locale, t } = useI18n();
 const language = computed(() => readerLanguage(locale.value));
@@ -79,6 +82,8 @@ const auto = useAutoTranslate();
 const translated = ref(false);
 const shown = computed(() => translated.value && reading.value.kind === "read");
 const standing = computed(() => (shown.value && reading.value.kind === "read" ? reading.value.text : props.text));
+
+watch(shown, (now) => emit("shown", now), { immediate: true });
 
 watch(
   [() => props.text, auto],

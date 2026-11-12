@@ -41,8 +41,16 @@
         </div>
       </div>
 
-      <MarkdownText :text="card.question" class="mt-1 text-sm text-highlighted" />
-      <p class="mt-1 text-sm break-words text-muted">{{ $t("question.label.why") }} <MarkdownText :text="card.why" kind="line" /></p>
+      <!-- An agent asks in its own language; the question, its reason and its options are read in the reader's
+           together, under the question's one line, and 원문 보기 there puts all of them back. What is sent is
+           always the option as it was written. -->
+      <TranslatedText :text="card.question" class="mt-1" @shown="readingShown[card.id] = $event" />
+      <p class="mt-1 text-sm break-words text-muted">
+        {{ $t("question.label.why") }}
+        <TranslatedInline v-slot="{ text }" :text="card.why" :follow="readingShown[card.id] === true">
+          <MarkdownText :text="text" kind="line" />
+        </TranslatedInline>
+      </p>
 
       <!-- Pressing an option chooses it; it does not send it. A job is standing still behind
            this question and what goes out cannot be taken back — the bot writes the row once and
@@ -64,7 +72,7 @@
         >
           <!-- One run of text, so a long option wraps as a sentence rather than as the button's flex
                items side by side, and the mark stands at its head, where wrapping cannot split it. -->
-          <span>{{ option.number }}. <span v-if="option.recommended" class="whitespace-nowrap">{{ $t("question.label.recommended") }}</span> {{ option.text }}</span>
+          <span>{{ option.number }}. <span v-if="option.recommended" class="whitespace-nowrap">{{ $t("question.label.recommended") }}</span> <TranslatedInline :text="option.text" :follow="readingShown[card.id] === true" /></span>
         </UButton>
       </div>
 
@@ -164,6 +172,8 @@ const words = ref<Record<number, string>>({});
 const answering = ref<number | null>(null);
 const pausing = ref<number | null>(null);
 const questionFailure = ref<string | null>(null);
+// Whether each card's question stands as its reading, which its reason and its options follow.
+const readingShown = ref<Record<number, boolean>>({});
 
 // Pressing an option sets it and sends nothing. Pressing the one already set takes it back, so
 // a press that landed wrong is undone by the same press that made it. Choosing clears whatever

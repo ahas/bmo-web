@@ -249,10 +249,27 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
 });
 
 async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; position?: number; labels?: Record<string, string> }): Promise<void> {
-  await jobCall(job().PATCH("/items/{itemId}", {
-    params: { path: { itemId: id } },
-    body: change
-  }));
+  try {
+    await jobCall(job().PATCH("/items/{itemId}", {
+      params: { path: { itemId: id } },
+      body: change
+    }));
+  } catch (error) {
+    throw await frozenByJob(id, error);
+  }
+}
+
+// bmo-job refuses a change of what a running job's lease holds fixed, `item-frozen` (its docs/api.md, 「While leased」);
+// the refusal is said with the job under way and the agent it runs on, as the agency says them, and stays bmo-job's
+// own where the agency names no such job (docs/web.md, the TODO panel's section).
+async function frozenByJob(id: number, error: unknown): Promise<unknown> {
+  if ((error as { data?: { code?: unknown } }).data?.code !== "item-frozen") return error;
+
+  const live = await liveJobOfItem(id);
+
+  if (live === null || live.agent === null) return error;
+
+  return fail(409, wording("todo.error.job_runs_on", { job: live.job, agent: live.agent }));
 }
 
 // Where a row stands among its queue's others: a step, the head, the foot, or the whole order the drag leaves.

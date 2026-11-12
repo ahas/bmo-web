@@ -727,6 +727,9 @@ export interface TodoItem {
   // The agent the item names its work for, its `agent` label; null where it names none and the role's order
   // chooses (the agency's docs/repositories.md, 「An agent an item names」).
   agent: string | null;
+  // The agent the job under way for this item runs on, the agency's job `agentName`: what launched it, which a change
+  // of the item's label never moves. Null or absent where no job of it is under way.
+  jobAgent?: string | null;
   // The provider and model the item's work last went out on, which `model` — `auto` above all — does
   // not say: a co-work item's own line as its order keeps it, any other item's latest run. Null until a
   // run of it has gone out (bmo-job's docs/work-orders.md 「The model a step ran on」).

@@ -75,6 +75,7 @@ export const JOB_CODES: Readonly<Record<string, string>> = {
   instruction_size: "job.error.instruction_size",
   item_absent: "job.error.item_absent",
   item_closed_already: "job.error.item_closed_already",
+  "item-frozen": "job.error.item_frozen",
   item_launch_takes_no_why: "job.error.item_launch_takes_no_why",
   item_merged: "job.error.item_merged",
   item_not_approved: "job.error.item_not_approved",

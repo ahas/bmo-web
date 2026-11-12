@@ -58,7 +58,7 @@ const held = {
   notes: new Map<number, Record<string, unknown>[]>(),
   reports: new Map<number, Record<string, unknown>[]>(),
   queues: [{ name: "default", state: "open", holds: [] as Record<string, unknown>[], leasedCount: 0, openCount: 0, changedAt: 0 }],
-  jobs: [] as { itemId: number; state: string; heldFor: string | null }[]
+  jobs: [] as { id?: number; itemId: number; state: string; heldFor: string | null; agentName?: string | null }[]
 };
 
 function stand(items: Item[]): void {
@@ -200,6 +200,19 @@ describe("the lists each item stands in", () => {
     expect(board.standing).toMatchObject({ queue: 5, running: 3 });
     expect((await readTodoItem(2))?.liveState).toBe("waiting");
     expect((await readTodoItems([1, 5])).map((row) => row.liveState)).toEqual([null, "running"]);
+  });
+
+  test("a running job's row names the agent the job runs on, never the item's label", async () => {
+    stand([
+      item(1, { state: "leased", leaseId: 1, labels: { agent: "agent-b" } }),
+      item(2, { state: "open", labels: { agent: "agent-b" } })
+    ]);
+    held.jobs = [{ id: 40, itemId: 1, state: "running", heldFor: null, agentName: "agent-a" }];
+
+    const board = await readTodoBoard();
+
+    expect(board.queue.map((row) => [row.id, row.agent, row.jobAgent])).toEqual([[1, "agent-b", "agent-a"], [2, "agent-b", null]]);
+    expect((await readTodoItem(1))?.jobAgent).toBe("agent-a");
   });
 
   test("the finished list is read as far back as the panel asked, and counted whole", async () => {

@@ -219,12 +219,19 @@ export function jobGoingOn(state: TodoState): boolean {
   return state === "starting" || state === "running" || state === "stopping" || state === "reporting";
 }
 
+// The agent a row names (docs/web.md, the TODO panel's section): while a job of it is under way, the agent that job runs
+// on, as the agency says; otherwise the agent its `agent` label names. None where neither names one.
+export function itemAgent(item: Pick<TodoItem, "agent" | "jobAgent">): string | null {
+  return item.jobAgent ?? item.agent;
+}
+
 // The model a row wears, short, or whole where `whole` asks for its tooltip (docs/web.md, the TODO panel's section): while a job
-// of it runs, the road that run actually took; otherwise the road of the agent its `agent` label names, the one its job goes
+// of it runs, the road that run actually took; otherwise the road of the agent the row names, the one its job goes
 // out on. None where the item names no agent yet, since nothing chooses a road for it until one is named.
-export function itemModel(item: Pick<TodoItem, "id" | "model" | "agent" | "worker">, whole = false): string | null {
+export function itemModel(item: Pick<TodoItem, "id" | "model" | "agent" | "jobAgent" | "worker">, whole = false): string | null {
   const known = todoModelPlan().value;
-  const named = item.agent === null ? null : (known?.agents[item.agent] ?? null);
+  const agent = itemAgent(item);
+  const named = agent === null ? null : (known?.agents[agent] ?? null);
   const road = known?.running[item.id] ?? named;
 
   return road === null || road === undefined ? null : whole ? road : shortModel(road);
@@ -240,7 +247,7 @@ const CHOSEN_BY_WORDS: Record<JobChosenBy, string> = {
 
 // The tooltip a row's model chip carries (docs/web.md, the TODO panel's section): the model whole, and while a job of it
 // runs, after it what chose that job's road where the agency says. None where it would only repeat the chip.
-export function itemModelTip(t: Translate, item: Pick<TodoItem, "id" | "model" | "agent" | "worker">): string | null {
+export function itemModelTip(t: Translate, item: Pick<TodoItem, "id" | "model" | "agent" | "jobAgent" | "worker">): string | null {
   const whole = itemModel(item, true);
 
   if (whole === null) return null;

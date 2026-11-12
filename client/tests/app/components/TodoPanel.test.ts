@@ -581,12 +581,17 @@ describe("the model chip and the agent chooser", () => {
   test("the agent is chosen in the head among every agent the agency registers, grouped by role, with no automatic choice", () => {
     expect(detailTemplate).toContain('<ItemAgentChip');
     expect(detailTemplate).toContain(':editable="!openedItem.done && openedItem.mergedInto === null"');
-    expect(agentTemplate).toContain('<USelect\n    v-if="props.editable"');
+    expect(agentTemplate).toContain('<USelect\n    v-else-if="props.editable"');
     expect(agentScript).toContain('$fetch<RolesView>("/api/roles")');
     expect(agentScript).not.toContain("AUTO");
     expect(agentTemplate).toContain(":placeholder=\"$t('todo.label.agent_unnamed')\"");
-    // The line names the agent where the item names one.
-    expect(template).toContain('data-item-agent-named');
+    // The line names the agent its work runs on: the running job's own, else the one the item names.
+    expect(template).toContain('data-item-agent-named>{{ itemAgent(item) }}');
+  });
+
+  test("while a job runs the head stands the agent it runs on, read and not chosen", () => {
+    expect(agentTemplate).toMatch(/<UTooltip v-if="running !== null"[^>]*>\s*<UBadge[^>]*data-item-agent-running>\{\{ running \}\}/);
+    expect(agentScript).toContain("props.item.jobAgent ?? null");
   });
 
   test("sends its pick as the agent verb from the head", () => {

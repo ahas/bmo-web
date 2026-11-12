@@ -155,8 +155,9 @@ function pinnedAgent(labels: Record<string, string>): string | null {
 
 // One item as the row the panel shows, with its reports where they were read, the last note where a screen opens
 // it, and the state the job of it stands in where one is under way.
-function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null, liveState: TodoItem["liveState"] = null, stopped = false): TodoItem {
+function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null, live: LiveJobOf | null = null, stopped = false): TodoItem {
   const said = reportsOf(reports);
+  const liveState = live?.state ?? null;
 
   return {
     id: item.id,
@@ -179,6 +180,9 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     status: item.state,
     model: pinnedModel(item.labels),
     agent: pinnedAgent(item.labels),
+    // The agent the job under way runs on, the agency's own word for it, never the item's label (docs/web.md, the TODO
+    // panel's section): the label may name the next launch's agent, and the job keeps the one it was launched with.
+    jobAgent: live?.agent ?? null,
     ranOn: null,
     worker: item.assigneeName,
     attempts: 1,
@@ -217,7 +221,10 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
 // `starting` or with a turn of its review to come, waits — for its agent's seat, a road or a card — and works on
 // nothing yet (agency's `docs/api.md`, 「assignments and jobs」, and `docs/job-review.md`). An item with no such job
 // has no live state, its lease notwithstanding: a launch leases the item before the agency writes its job.
-type LiveJob = { itemId: number; state: string; heldFor: string | null };
+type LiveJob = { id: number; itemId: number; state: string; heldFor: string | null; agentName?: string | null };
+
+// What a row reads of the job under way for its item: the job, the state it stands in and the agent it runs on.
+type LiveJobOf = { job: number; state: NonNullable<TodoItem["liveState"]>; agent: string | null };
 
 function liveStateOfJob(job: LiveJob): NonNullable<TodoItem["liveState"]> {
   if (job.heldFor !== null) return "waiting";
@@ -225,28 +232,34 @@ function liveStateOfJob(job: LiveJob): NonNullable<TodoItem["liveState"]> {
   return job.state === "starting" ? "starting" : "running";
 }
 
+function liveJobOf(job: LiveJob): LiveJobOf {
+  const agent = (job.agentName ?? "").trim();
+
+  return { job: job.id, state: liveStateOfJob(job), agent: agent === "" ? null : agent };
+}
+
 function isLive(job: LiveJob): boolean {
   return job.itemId > 0 && isJobUnderWay(job.state);
 }
 
-async function liveStates(): Promise<Map<number, TodoItem["liveState"]>> {
+async function liveStates(): Promise<Map<number, LiveJobOf>> {
   try {
     const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { running: true, limit: 500 } } }));
 
-    return new Map(jobs.items.filter(isLive).map((job) => [job.itemId, liveStateOfJob(job)]));
+    return new Map(jobs.items.filter(isLive).map((job) => [job.itemId, liveJobOf(job)]));
   } catch {
     // The item list reads either way; a job nothing says of stands no state of its own.
     return new Map();
   }
 }
 
-/** The state the job of one item stands in, or null where no job of it is under way. */
-async function liveStateOf(id: number): Promise<TodoItem["liveState"]> {
+/** The job under way for one item, its state and its agent, or null where none is. */
+export async function liveJobOfItem(id: number): Promise<LiveJobOf | null> {
   try {
     const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { itemId: id, running: true, limit: 5 } } }));
     const job = jobs.items.find((one) => one.itemId === id && isLive(one));
 
-    return job === undefined ? null : liveStateOfJob(job);
+    return job === undefined ? null : liveJobOf(job);
   } catch {
     return null;
   }
@@ -255,16 +268,16 @@ async function liveStateOf(id: number): Promise<TodoItem["liveState"]> {
 /** One item by its number, or null where there is no such item. */
 export async function readTodoItem(id: number): Promise<TodoItem | null> {
   try {
-    const [item, notes, reports, liveState] = await Promise.all([
+    const [item, notes, reports, live] = await Promise.all([
       jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } } })),
       notesOf(id),
       reportsOfItem(id),
-      liveStateOf(id)
+      liveJobOfItem(id)
     ]);
 
     keptReports.set(id, { changedAt: item.changedAt, readAt: Date.now(), reports });
 
-    return itemOf(item, reports, notes.map((note) => note.text).at(-1) ?? null, liveState, notes.at(-1)?.labels.kind === "stop");
+    return itemOf(item, reports, notes.map((note) => note.text).at(-1) ?? null, live, notes.at(-1)?.labels.kind === "stop");
   } catch (error) {
     if ((error as { statusCode?: number }).statusCode === 404) return null;
     throw error;
@@ -400,8 +413,8 @@ function meets(item: Item, conditions: TodoConditions): boolean {
 
 // A queue line counts as running where its row reads so: its job starting or working, waiting for nothing
 // (docs/web.md, the TODO panel's section).
-function standingOf(items: readonly Item[], live: ReadonlyMap<number, TodoItem["liveState"]>): TodoStanding {
-  const going = (item: Item) => live.get(item.id) === "starting" || live.get(item.id) === "running";
+function standingOf(items: readonly Item[], live: ReadonlyMap<number, LiveJobOf>): TodoStanding {
+  const going = (item: Item) => live.get(item.id)?.state === "starting" || live.get(item.id)?.state === "running";
 
   return {
     queue: items.filter((item) => listOf(item) === "queue").length,

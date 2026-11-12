@@ -9,8 +9,9 @@ import { answer, standIn } from "../../support/units";
 // says what it will not write, by a code the pack says; but a body with nothing in it, or one carrying a document
 // where a paragraph belongs, is refused here: the call costs a round trip and the answer would be the same.
 
-// What bmo-job answers the next write with, where the test is about a refusal of its own.
-let refusal: { status: number; code: string } | null = null;
+// What bmo-job answers the next write with, where the test is about a refusal of its own; with a method, only a call
+// of that method is refused.
+let refusal: { status: number; code: string; method?: string } | null = null;
 // The labels item 7 holds as bmo-job answers it.
 let itemLabels: Record<string, string> = {};
 
@@ -19,7 +20,9 @@ const job = standIn("JOB", (one) => {
     return answer({ items: [{ name: "default", state: "open", holds: [], leasedCount: 0, openCount: 0, changedAt: 0 }], more: false });
   }
 
-  if (refusal !== null) return answer({ code: refusal.code, error: "refused" }, refusal.status);
+  if (refusal !== null && (refusal.method === undefined || refusal.method === one.method)) {
+    return answer({ code: refusal.code, error: "refused" }, refusal.status);
+  }
 
   if (one.method === "POST" && one.path === "/items") {
     return answer({ id: 41, itemId: 41, title: "the rest", brief: "carry on with what is left", queueName: "default", priority: 0, state: "draft", assigneeName: null, requesterName: "tester", labels: {}, approvals: [], createdAt: 0, changedAt: 0, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null }, 201);
@@ -30,6 +33,11 @@ const job = standIn("JOB", (one) => {
   return answer({ id: 7, itemId: 7, title: "Item 7", brief: "do it", queueName: "default", priority: 0, state: "open", assigneeName: null, requesterName: "tester", labels: itemLabels, approvals: [], createdAt: 0, changedAt: 0, endedAt: null, leaseId: null, mergedInto: null, position: 0, scope: null });
 });
 
+// The jobs the agency answers as running.
+let runningJobs: { id: number; itemId: number; state: string; heldFor: string | null; agentName: string | null }[] = [];
+
+standIn("AGENCY", () => answer({ items: runningJobs, more: false }));
+
 const handler = await routeOf<{ ok: true; raised?: number; stopped?: number }>("../../apps/web/server/api/todos.post");
 
 async function post(body: unknown): Promise<{ status: number; message: string }> {
@@ -38,7 +46,7 @@ async function post(body: unknown): Promise<{ status: number; message: string }>
   return { status, message };
 }
 
-function fresh(next: { status: number; code: string } | null = null): void {
+function fresh(next: { status: number; code: string; method?: string } | null = null): void {
   job.asked.length = 0;
   refusal = next;
 }
@@ -196,5 +204,27 @@ describe("choosing an item's model", () => {
     }
 
     expect(job.asked).toEqual([]);
+  });
+});
+
+// A running job keeps the agent it was launched with: bmo-job refuses a change of what the job's lease holds fixed, and
+// the console says the refusal with the job and the agent it runs on (docs/web.md, the TODO panel's agent chooser).
+describe("choosing an item's agent while its job runs", () => {
+  test("is refused with the job under way and the agent it runs on", async () => {
+    fresh({ status: 409, code: "item-frozen", method: "PATCH" });
+    runningJobs = [{ id: 40, itemId: 7, state: "running", heldFor: null, agentName: "agent-a" }];
+
+    expect(await post({ action: "agent", id: 7, agent: "agent-b" })).toEqual({
+      status: 409,
+      message: wording("todo.error.job_runs_on", { job: 40, agent: "agent-a" })
+    });
+
+    runningJobs = [];
+  });
+
+  test("is said in bmo-job's own words where the agency names no job under way", async () => {
+    fresh({ status: 409, code: "item-frozen", method: "PATCH" });
+
+    expect(await post({ action: "agent", id: 7, agent: "agent-b" })).toEqual({ status: 409, message: wording("job.error.item_frozen") });
   });
 });

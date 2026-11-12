@@ -73,11 +73,13 @@ describe.skipIf(!origin || !touchReady())("a room the console made", () => {
         await page.goto(`${origin}/rooms/${RECORD_CHAT}`, { waitUntil: "load" });
         await page.locator("[data-message]").nth(2).waitFor({ timeout: 30_000 });
 
-        // Two put the same emoji on the first message, the reader's own sender among them.
+        // Two put the same emoji on the first message, the reader's own sender among them: the emoji stands once
+        // with its two reactors' faces, as reactors stand while they are three or fewer and a count stands past that.
         const reaction = page.locator('[data-message="m-1"] [data-reaction]');
 
         expect(await reaction.count()).toBe(1);
-        expect((await reaction.innerText()).replace(/\s/g, "")).toBe("\u{1F44D}2");
+        expect(await reaction.getAttribute("data-reaction")).toBe("\u{1F44D}");
+        expect(await reaction.locator("[data-reaction-faces] > *").count()).toBe(2);
         expect(await reaction.getAttribute("class")).toContain("bg-primary/15");
         // The first is pinned, and the room's top bar carries the button that goes to it.
         expect(await page.locator('[data-message="m-1"] [data-pinned]').count()).toBe(1);

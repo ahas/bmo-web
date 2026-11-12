@@ -4,11 +4,12 @@ import { chromium } from "playwright-core";
 import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
-import type { Browser, BrowserContext } from "playwright-core";
+import type { Browser, BrowserContext, Page } from "playwright-core";
 
-// A brain memory opened from a room's brain chip opens on its words with the show-translation line above them, and the gate's reading
-// takes the words' place when it is pressed, the show-original press putting them back (docs/web.md, 「The original, and its translation
-// in its place」). Nothing is asked until the press; where the translator answers too busy the line says so.
+// A brain memory opened from the brain reads of a message's record opens on its words with the show-translation line above
+// them, and the gate's reading takes the words' place when it is pressed, the show-original press putting them back
+// (docs/web.md, 「The original, and its translation in its place」). Nothing is asked until the press; where the
+// translator answers too busy the line says so.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and serves the
 // round's reads, the piece, and the translator through the page's own routes.
@@ -19,8 +20,6 @@ const CHAT = -9_000_000_000_099;
 const NOW = 1_800_000_000_000;
 const WORDS = "The room promised to check the logs at dawn.";
 const READING = "The logs are to be checked at dawn, as the room promised.";
-
-const label = wording("room.label.chip_brain");
 
 const MESSAGE = {
   chatId: CHAT,
@@ -33,8 +32,20 @@ const MESSAGE = {
   replyToMessageId: null,
   agent: true,
   round: "round-a",
-  drafts: { round: "round-a", asked: 0, end: "message", reads: [{ path: "memories/42", holds: null, how: "attached", memoryId: 7 }] },
-  actions: { agent: "agent-a", runs: [], documents: 0, held: 0, tools: 0, brain: 1, records: [] }
+  drafts: { round: "round-a", asked: 0, end: "message", reads: [{ path: "memories/42", holds: null, how: "attached", memoryId: 7 }] }
+};
+
+// What the answer's round did, read after the page as the room reads every round's figures: the agent whose brain
+// the piece is read from.
+const FIGURES = {
+  items: [
+    {
+      messageId: MESSAGE.messageId,
+      round: MESSAGE.round,
+      spend: null,
+      actions: { agent: "agent-a", runs: [], documents: 0, held: 0, tools: 0, brain: 1, records: [] }
+    }
+  ]
 };
 
 const PIECE = {
@@ -53,6 +64,15 @@ async function until<T>(read: () => Promise<T>, holds: (value: T) => boolean, ms
   }
 
   return value;
+}
+
+// The message's one record button, which carries the brain mark among its own (docs/web.md, the room screen's chip
+// line), spread on the round's reads, and the piece among them opened in its modal.
+async function openPiece(page: Page): Promise<void> {
+  const record = page.locator("[data-message]").getByRole("button", { name: new RegExp(wording("room.label.chip_record")) });
+
+  await record.filter({ has: page.locator("[data-record-brain]") }).first().click();
+  await page.locator("[data-brain-reads] button").first().click();
 }
 
 let browser: Browser | null = null;
@@ -84,6 +104,9 @@ async function open(width: number, height: number, translator: "reads" | "busy")
     { name: "console_auto_translate", value: "false", url: origin! }
   ]);
   await context.route(new RegExp(`/api/rooms/${CHAT}/messages(\\?|$)`), (route) => route.fulfill({ json: { messages: [MESSAGE], judgements: [], hasMore: false } }));
+  await context.route(new RegExp(`/api/rooms/${CHAT}/round-figures(\\?|$)`), (route) => route.fulfill({ json: FIGURES }));
+  // The round asked its draft process nothing, so the rows the record reads as it first opens are none.
+  await context.route(new RegExp(`/api/rooms/${CHAT}/drafts(\\?|$)`), (route) => route.fulfill({ json: { rows: [] } }));
   await context.route(new RegExp(`/api/rooms/${CHAT}/brain-piece(\\?|$)`), (route) => route.fulfill({ json: PIECE }));
   await context.route(/\/api\/translations$/, (route) =>
     translator === "reads"
@@ -104,9 +127,7 @@ describe.skipIf(!origin || !touchReady())("a brain memory's words", () => {
         await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "domcontentloaded" });
         await page.locator("[data-message]").first().waitFor({ timeout: 30_000 });
 
-        // The brain chip spreads the round's reads, and the piece opens its modal.
-        await page.locator(`[data-message] button[aria-label*="${label}"]`).first().click();
-        await page.locator("[data-brain-reads] button").first().click();
+        await openPiece(page);
         await page.locator("[data-brain-read-text]").waitFor({ timeout: 20_000 });
 
         // It opens on the words as the brain keeps them, the line above them asking nothing until it is pressed.
@@ -132,8 +153,7 @@ describe.skipIf(!origin || !touchReady())("a brain memory's words", () => {
     try {
       await page.goto(`${origin}/rooms/${CHAT}`, { waitUntil: "domcontentloaded" });
       await page.locator("[data-message]").first().waitFor({ timeout: 30_000 });
-      await page.locator(`[data-message] button[aria-label*="${label}"]`).first().click();
-      await page.locator("[data-brain-reads] button").first().click();
+      await openPiece(page);
       await page.locator("[data-reading-translate]").waitFor({ timeout: 20_000 });
 
       await page.locator("[data-reading-translate]").click();

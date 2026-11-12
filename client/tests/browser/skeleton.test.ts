@@ -276,16 +276,18 @@ describe.skipIf(!origin || !touchReady())('TODO response ownership', () => {
 // Every screen that keeps a place for what it is fetching, at the two widths the rules name: its
 // own title and toolbar stand from the first frame, the busy place stands inside the body, and
 // nothing already on the screen moves when the answer lands. Every read but the login is held, so
-// each region of the screen is caught waiting. A screen of a unit not split yet stands as a
-// placeholder that fetches nothing (docs/boundary.md, 「Screens of units not yet split」), so none is
-// among them.
+// each region of the screen is caught waiting. Only the console's own screens are among them, each
+// held to the title its pack key names: a screen a unit brings is that unit's (docs/web.md, 「Screens a
+// unit brings」), and a unit that answers no manifest has none (docs/boundary.md, 「Screens of units not
+// yet split」).
 describe.skipIf(!origin || !touchReady())('a screen keeps its frame while it fetches', () => {
   for (const width of [1440, 390]) {
     // Where a region a phone reaches through a drawer is the one fetching, the drawer is opened
     // first: that is where its place is kept, and it is where a reader goes to look.
     for (const [path, title, narrowOpen] of [
-      ['agents', KO.line_280, null], ['live', KO.line_280_2, null], ['siren', KO.line_280_3, null],
-      ['db', 'DB', null], ['archive', KO.line_282, null], ['documents', KO.line_282_2, KO.line_282_3],
+      ['agents', wording('screens.label.agents'), null], ['live', wording('screens.label.live'), null],
+      ['siren', wording('screens.label.siren'), null], ['db', 'DB', null],
+      ['documents', wording('screens.label.documents'), KO.line_282_3],
       ['account', KO.line_283, null], ['', KO.line_283_2, null]
     ] as [string, string, string | null][]) {
       test(`${path} at ${width}px`, async () => {

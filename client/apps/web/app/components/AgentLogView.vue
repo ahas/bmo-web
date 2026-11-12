@@ -305,6 +305,12 @@ onMounted(async () => {
     }
   }
 
+  // What stands above the log in the same box — a work view's head, its prompt and its stages, read after the
+  // lines — moves the end too as it arrives, so every block the box holds is watched beside the lines.
+  for (const block of element?.children ?? []) {
+    grewWatch.observe(block);
+  }
+
   await open();
 });
 

@@ -27,6 +27,13 @@ describe("what keeps a reader at the end of a log", () => {
     expect(source).toContain("grewWatch.observe(box)");
   });
 
+  // A work view's head — its prompt and its stages — is read after the lines and stands above them in the same box,
+  // so a log opened at its end would be pushed off it as the head arrives.
+  test("watches every block of the box it scrolls in, so a head standing late above the log keeps the end in view", () => {
+    expect(source).toContain("for (const block of element?.children ?? [])");
+    expect(source).toContain("grewWatch.observe(block)");
+  });
+
   test("carries only a reader who was standing at the end", () => {
     const at = source.indexOf("function onContentGrew()");
     const body = source.slice(at, source.indexOf("}", source.indexOf("{", at) + 1));

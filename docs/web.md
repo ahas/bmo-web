@@ -3328,8 +3328,9 @@ a seat of its role.
   4. **The stages**, where the job is a co-work item or the worker laid out a plan, and **결과**, what the stage or the
      job left — its result, its failure, or why it was skipped — stand at the top of the body, above the log.
   5. **로그** — the session's log, flat, a co-work stage's narrowed to that stage's run, the one part that scrolls.
-     It opens at its end, the newest lines in view, and follows the end while new lines arrive as long as the
-     reader is at the end; scrolling up stops the following, and a 맨 아래로 button standing over the log's foot
+     It opens at its end, the newest lines in view, and stays there while anything in the box it scrolls in
+     grows — its own lines arriving, the window narrowing, or the head above it standing late, its prompt and its
+     stages read after the lines — as long as the reader is at the end; scrolling up stops the following, and a 맨 아래로 button standing over the log's foot
      takes the reader back to the end and following again. A view opened at an older run of the agent's own screen
      opens at that run instead.
   The view grows with its log wherever it stands and is never squeezed to the box it scrolls in, so the head stays in

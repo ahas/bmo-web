@@ -1,10 +1,14 @@
 <template>
-  <!-- The theme section (docs/web.md, 「Settings」): the screen mode, the account's theme, its preview
-       and the way back. A choice takes effect at once and is kept as it is made. -->
+  <!-- The theme section (docs/web.md, 「Settings」): the screen mode, whether a text in another language opens
+       translated, the account's theme, its preview and the way back. A choice takes effect at once and is kept as it is made. -->
   <div class="flex flex-col gap-6">
     <SettingsGroup>
       <SettingsRow :label="$t('app.label.color_mode')">
         <SettingsSegment v-model="mode" :items="modeItems" :label="$t('app.label.color_mode')" />
+      </SettingsRow>
+
+      <SettingsRow :label="$t('app.label.auto_translate')" :description="$t('app.label.auto_translate_description')">
+        <USwitch v-model="autoTranslate" :aria-label="$t('app.label.auto_translate')" data-auto-translate />
       </SettingsRow>
 
       <SettingsRow :label="$t('account.label.theme')" :description="$t('account.label.theme_description')">
@@ -59,9 +63,12 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { PREVIEW_ITEM, useListPreview } from "bmo-ui/app/domain/list-preview";
 import { usePageScheme, usePreviewScheme } from "bmo-ui/app/domain/scheme";
 import { chooseTheme, useTheme } from "~/domain/theme";
+import { useAutoTranslate } from "~/domain/text-reading";
 
 const { t } = useI18n();
 const colorMode = useColorMode();
+// Whether a text in another language opens already read in the reader's own, kept by this browser.
+const autoTranslate = useAutoTranslate();
 
 const mode = computed({
   get: () => colorMode.preference,

@@ -141,3 +141,14 @@ export function useAskedReading(
 
   return { reading, blocked, ask: () => void ask() };
 }
+
+// The cookie this browser keeps whether a text in another language opens already read in the reader's own.
+const AUTO_TRANSLATE_COOKIE = "console_auto_translate";
+// How long the choice is kept: a year, renewed each time it is changed.
+const AUTO_TRANSLATE_KEPT_S = 365 * 24 * 60 * 60;
+
+/** Whether a text a worker or a job wrote in another language opens already read in the reader's own, as this browser
+ * keeps it (docs/web.md, 「The original, and its translation in its place」): on unless it is turned off. */
+export function useAutoTranslate(): Ref<boolean> {
+  return useCookie<boolean>(AUTO_TRANSLATE_COOKIE, { default: () => true, maxAge: AUTO_TRANSLATE_KEPT_S, sameSite: "lax" });
+}

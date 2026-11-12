@@ -7,11 +7,13 @@ const source = await Bun.file(new URL("../../../apps/web/app/components/Translat
 const template = source.slice(0, source.indexOf("<script"));
 
 describe("a translated text", () => {
-  test("opens on the original, its line above it, and asks nothing until the line is pressed", () => {
+  test("stands its line above it, and asks the reading as it opens where this browser translates on its own", () => {
     expect(template.indexOf("data-reading")).toBeLessThan(template.indexOf("<slot"));
     expect(template).toContain("$t('common.action.show_translation')");
     expect(source).toContain("useAskedReading");
-    expect(source).toContain("const translated = ref(false);");
+    expect(source).toContain("const auto = useAutoTranslate();");
+    expect(source).toContain("if (auto.value && wanted.value) show();");
+    expect(source).toContain("{ immediate: true }");
   });
 
   test("puts the reading in the original's place, saying where it came from, and puts the original back", () => {
@@ -26,5 +28,13 @@ describe("a translated text", () => {
     expect(template).toContain("$t('common.action.retry_translation')");
     expect(source).toContain('blocked.value === "absent"');
     expect(template).toContain(':disabled="blockedText !== \'\'"');
+  });
+
+  // Each entry of an item's review turns — a report, a question, an answer, a rejection, a pass — is a text a worker
+  // or a supervisor wrote, read as every other such text is.
+  test("stands for each entry of an item's review turns", async () => {
+    const detail = await Bun.file(new URL("../../../apps/web/app/components/TodoItemDetail.vue", import.meta.url)).text();
+
+    expect(detail).toContain('<TranslatedText :text="entry.body" class="mt-1" />');
   });
 });

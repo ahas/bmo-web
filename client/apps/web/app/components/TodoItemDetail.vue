@@ -334,7 +334,7 @@
                     <span class="text-muted tabular-nums">{{ formatStamp(entry.at) }}</span>
                     <span v-if="entry.actor !== ''" class="break-all text-muted">{{ entry.actor }}</span>
                   </p>
-                  <MarkdownText :text="entry.body" class="mt-1 text-sm text-highlighted" />
+                  <TranslatedText :text="entry.body" class="mt-1" />
                 </article>
               </section>
 

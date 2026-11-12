@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { textLanguage } from "#shared/translation";
 import { languageName } from "~/domain/documents";
-import { readerLanguage, useAskedReading, wantsReading } from "~/domain/text-reading";
+import { readerLanguage, useAskedReading, useAutoTranslate, wantsReading } from "~/domain/text-reading";
 
 import type { MarkdownKind } from "~/domain/markdown";
 import type { DocumentLanguage } from "#shared/types";
@@ -73,16 +73,21 @@ const { reading, blocked, ask } = useAskedReading(
   () => language.value
 );
 
-// Whether the reader asked for the reading in the original's place; another text opens on its original.
+// Whether the reading stands in the original's place: asked as a text opens where this browser translates on its own,
+// else as the reader presses for it; showing the original puts it back until another text opens.
+const auto = useAutoTranslate();
 const translated = ref(false);
 const shown = computed(() => translated.value && reading.value.kind === "read");
 const standing = computed(() => (shown.value && reading.value.kind === "read" ? reading.value.text : props.text));
 
 watch(
-  () => props.text,
+  [() => props.text, auto],
   () => {
     translated.value = false;
-  }
+
+    if (auto.value && wanted.value) show();
+  },
+  { immediate: true }
 );
 
 function show(): void {

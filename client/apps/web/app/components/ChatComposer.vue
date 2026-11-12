@@ -145,7 +145,7 @@
 
       <template #tools>
         <!-- A phone's file picker takes one file a tap, so a touch screen offers its photo picker
-             beside it, where every tap adds one to the choice; a room offers the administrator a secret too. A menu
+             beside it, where every tap adds one to the choice; a clip offers the administrator a secret too. A menu
              that would hold the file picker alone is no menu, and the clip opens the picker at once. -->
         <UDropdownMenu v-if="props.attachable && pickers.length > 1" :items="pickers" :content="pickerMenu">
           <UTooltip :text="$t('room.action.attach_file')">
@@ -219,8 +219,8 @@ interface Props {
   // Who the room offers an @, where the place offers one at all: the people who spoke there and the agents answering
   // it (docs/web.md, the room screen's section on mentions). A place that names none offers no mention.
   mention?: MentionSources;
-  // Whether the clip offers a secret: a room's box, for the administrator alone (docs/web.md, the secret store
-  // section).
+  // Whether the clip offers a secret, which the place grants the administrator alone wherever it offers a clip
+  // (docs/web.md, the secret store section).
   secrets?: boolean;
 }
 
@@ -293,7 +293,7 @@ const pickers = computed<DropdownMenuItem[]>(() => [
 const secretForm = useSecretForm();
 const secretSaved = useSecretSaved();
 const handed = ref<HandedSecret[]>([]);
-const place = computed(() => composerPlace(props.draftId));
+const place = computed(() => composerPlace(props.kind, props.draftId));
 
 // The menu hands the focus back to the clip as it closes, which a form opened from it would read as a press outside
 // itself and close on; so a menu closing on the secret form leaves the focus where the form put it.

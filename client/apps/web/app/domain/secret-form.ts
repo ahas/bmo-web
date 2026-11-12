@@ -63,9 +63,9 @@ export function askSecret(state: Ref<SecretFormState>, ask: SecretAsk, target: S
   state.value = { open: true, ask, target };
 }
 
-/** The place a room's composer answers to, so a save made from it comes back to it alone. */
-export function composerPlace(room: string | number): string {
-  return `room:${room}`;
+/** The place a composer answers to, its box's kind and draft, so a save made from it comes back to it alone. */
+export function composerPlace(kind: string, draft: string | number): string {
+  return `${kind}:${draft}`;
 }
 
 // The read under way, so the request lines of one page ask once between them.

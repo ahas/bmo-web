@@ -3378,11 +3378,13 @@ a seat of its role.
   never becomes something the chat agent said there.
 - **This box is the room's own box** (「Room screen」): the same Enter rule, growth, draft, long-paste marks and
   attachment tray, from one component. On a worker's screen it takes files too — by the clip, a paste or a drop,
-  up to ten at 50MB each — and words may be left out when files are there. The bot writes a word's files
+  up to ten at 50MB each — and words may be left out when files are there. Its clip hands the administrator's
+  secrets as a room's does (「첨부」): the chip goes in as the pack's line naming the secret and its kind, at the end of
+  the word, and the worker reads the stored file by that name. The bot writes a word's files
   into a directory of their own under that worker's workbench (`uploads/<time>-<id>/`, keeping each file's
   name and numbering a repeated one) and ends the words with the list of their paths, so the worker reads
   them with its own tools. A voyager's and a seeker's box offers no clip: those runners are shown
-  the web and nothing on this machine.
+  the web and nothing on this machine, so neither a file nor a stored secret reaches them.
 
 #### Where the log comes from
 
@@ -4559,7 +4561,7 @@ Four bounds keep it from growing forever.
   the rest follow as ordinary messages.
   - **The box carries one tool: the clip.** It takes files on every screen and in every room — a file goes in the way
     words do, as one send with the typed words as its caption, and a picture, a sound or a video picked there stands in
-    the room as it would from a phone — and in a room it hands the administrator's secrets too. It opens a menu
+    the room as it would from a phone — and it hands the administrator's secrets too. It opens a menu
     (「첨부」), and on a phone that menu adds one file a tap. Nothing else stands beside
     it: the voice note's own button and the sticker button are not shown, while the roads that carry a voice note, a
     sticker and a room's own tools stay in the console and on their routes, so what those roads carry still goes in by
@@ -4751,15 +4753,15 @@ Four bounds keep it from growing forever.
   with no words at all — Enter or the send button sends them with the box empty.
   - **The clip opens a menu.** On a touch screen it holds **사진·동영상**, which opens the phone's own photo picker,
     where every tap adds a picture or a video to the choice, since a phone's file picker chooses one file per tap,
-    then **파일**, which opens the file picker; on a screen with a mouse it holds **파일**. In a room the menu ends
-    with **비밀**, for the administrator alone since the store refuses every other role, which opens the secret form
-    (「비밀 보관함」). A menu that would hold 파일 alone is no menu: the clip opens the file picker at once. Both pickers
-    take several files in one choice.
+    then **파일**, which opens the file picker; on a screen with a mouse it holds **파일**. Wherever a clip stands,
+    a room's box and a worker's, the menu ends with **비밀**, for the administrator alone since the store refuses
+    every other role, which opens the secret form (「비밀 보관함」). A menu that would hold 파일 alone is no menu: the
+    clip opens the file picker at once. Both pickers take several files in one choice.
   - **A secret handed in the box.** A save through 비밀 writes the store at once and leaves a chip in the tray naming
     the secret and its kind, with its own way out, which takes the chip and nothing from the store. Sending puts the
-    pack's line naming each secret and its kind in the room after the words written with it, the way words go, so
-    a chip alone sends with the box empty. The chip is the box's alone: no draft, outbox or address holds it, and a
-    reload drops it while the secret stays stored.
+    pack's line naming each secret and its kind in the room, or in the word to the worker, after the words written
+    with it, the way words go, so a chip alone sends with the box empty. The chip is the box's alone: no draft,
+    outbox or address holds it, and a reload drops it while the secret stays stored.
   - **Several files are one send.** They go up together in one request, and the bot puts them into the room as
     Telegram albums, the way a phone sends several at once (the receiver's `docs/boundary-api.md`, `POST /say-file`): photos and
     videos as one album, documents as one, sounds as one, and a GIF alone, since Telegram puts none in an album.
@@ -6352,7 +6354,12 @@ folder every unit reads its secrets from by file name, written by the server's s
   page stays where it was.
   - **The address an agent writes** is its room's screen under the console's public address, which the console's
     settings name (`NUXT_PUBLIC_CONSOLE_ADDRESS`, `docs/boundary.md`, 「Settings」) and the agent is given in its own,
-    with these keys; so the same link pressed in Telegram opens the console at that room with the form.
+    with these keys. Each key is read percent-decoded, so a hidden field's `*` may stand as `%2A` where a chat's
+    formatting would take it as a mark.
+  - **Pressed in Telegram,** the same link opens the console in the browser Telegram hands it to, at that room with
+    the form over it. A browser that holds no login goes by the login screen, which carries the whole address
+    (「Access」), so the form opens once the login ends; a save there answers the room as a press inside the console
+    does.
   - **A reader who is not the administrator** is told in the pill that the store is the administrator's, and no form
     opens.
 - **A request in a room stands as a request.** A message whose words carry a link to such an address — under the

@@ -49,6 +49,7 @@ pub mod room_grants;
 pub mod room_removal;
 pub mod run_stop;
 pub mod search;
+pub mod secret_kinds;
 pub mod sends;
 pub mod sessions;
 pub mod songs;

@@ -16,6 +16,7 @@ mod profiles;
 #[path = "../../tests/repository.rs"]
 mod repository;
 mod routes;
+mod secret_kinds;
 mod secrets;
 mod sections;
 mod units;

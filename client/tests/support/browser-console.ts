@@ -59,7 +59,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["work-view", "fixture-password-2311"],
   ["delegation-marker", "fixture-password-2373"],
   ["screen-stands", "fixture-password-2411"],
-  ["hidden-inputs", "fixture-password-2412"]
+  ["hidden-inputs", "fixture-password-2412"],
+  ["secret-request", "fixture-password-2649"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -797,7 +798,9 @@ try {
     BMO_WEB_SERVER_DATABASE__URL: databaseUrl,
     BMO_WEB_SERVER_SERVER__TOKEN: TOKEN,
     BMO_WEB_SERVER_SERVER__LISTEN: `127.0.0.1:${serverPort}`,
-    BMO_WEB_SERVER_NAMES__CHAT_AGENT: "agent-a"
+    BMO_WEB_SERVER_NAMES__CHAT_AGENT: "agent-a",
+    // The secret store writes into the scratch folder, standing in for the data root's env/.
+    BMO_WEB_SERVER_SECRETS__DIR: join(scratch, "env")
   };
 
   await run(binary, ["migrate"], serverEnv, SERVER_DIR);

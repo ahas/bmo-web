@@ -202,6 +202,7 @@
                         :class="[wordsWrap, props.item.thinking ? 'text-muted' : '']"
                         :data-thinking="props.item.thinking ? '' : undefined"
                         data-words
+                        @click.capture="pressLink"
                       >
                         <TelegramText v-if="props.item.shownText" :text="props.item.shownText" :expressions="props.item.expressions" :formats="props.item.formats" :markdown="props.item.look.markdown" :chat-id="props.chatId" :message-id="props.item.messageId" />
 
@@ -231,6 +232,18 @@
                             {{ props.item.deletedText }}
                           </p>
                         </template>
+                      </div>
+
+                      <!-- An agent's request for a secret stands under the words as a line of its own (docs/web.md,
+                           the secret store section). -->
+                      <div v-if="secretRequests.length > 0" class="flex basis-full flex-col gap-2" data-secret-requests>
+                        <SecretRequestLine
+                          v-for="request in secretRequests"
+                          :key="request.name"
+                          :request="request"
+                          :chat-id="props.chatId"
+                          :sent-at="props.item.sentAt"
+                        />
                       </div>
 
                       <LinkPreviews
@@ -418,6 +431,7 @@
 
 <script setup lang="ts">
 import { messageLinks } from "#shared/links";
+import { secretRequestOfLink } from "#shared/secret-kinds";
 
 import { fileSizeText } from "~/domain/attachments";
 import { keepFitted } from "~/domain/bubble-fit";
@@ -425,6 +439,7 @@ import { messageMenu, reactionStrip } from "~/domain/messagemenu";
 import { mineReaction } from "~/domain/message-acts";
 import { mediaUrl } from "~/domain/player";
 import { asideSlide, bubbleLook, choosingMotion, nameColour, sendMark, sideLayout, wordsWrap } from "~/domain/room";
+import { secretRequestsOf, useConsoleBases, useSecretRequest } from "~/domain/secret-form";
 import { releaseFocusOutside } from "~/domain/tapfocus";
 import { playClock } from "bmo-ui/app/domain/player";
 import { clockUnder, formatStamp, spanClock } from "bmo-ui/app/domain/time";
@@ -496,6 +511,26 @@ const live = computed<LiveTurn | null>(() => {
 });
 
 const links = computed(() => messageLinks(props.item.text));
+
+// The requests for a secret the words carry, each pressed in place rather than followed (docs/web.md, the secret
+// store section).
+const consoleBases = useConsoleBases();
+const secretRequests = computed(() =>
+  props.item.run === null && props.item.pending === null ? secretRequestsOf(props.item.text, props.item.formats, consoleBases.value) : []
+);
+const requestSecret = useSecretRequest();
+
+function pressLink(event: MouseEvent): void {
+  const link = event.target instanceof Element ? event.target.closest("a") : null;
+  const href = link?.getAttribute("href") ?? null;
+  const request = href === null ? null : secretRequestOfLink(href, consoleBases.value);
+
+  if (request === null) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  requestSecret(request, props.chatId, props.item.sentAt);
+}
 const reactions = computed(() => (props.item.deleted ? [] : (props.item.reactions ?? [])));
 
 // A message that said nothing and carried nothing says that it is empty, in the place its words

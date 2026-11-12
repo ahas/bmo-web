@@ -113,6 +113,9 @@
   conversion's run names itself.
 - secret, a value a unit reads by its file name → 비밀; the console's store of them → 비밀 보관함; putting a value in
   place of the one a name holds → 교체. Never 시크릿, 키 보관소.
+- the shape a secret is asked in → 비밀 종류; one of its fields → 항목, its key 키 and its label 이름; fields put
+  together by hand → 직접 구성; a field whose value is drawn as dots → 값 숨김; how a field is typed → 입력 (한 줄,
+  여러 줄, 파일); an agent asking for a secret → 비밀 요청, and one answered → 저장됨. Never 필드, 마스킹, 템플릿.
 - retire, take down → 보관; bringing one back → 복원. Switching a piece in or out of use → 켜기, 끄기.
   Never 내리기, 올리기.
 - fold (a work order) → 종료. 접기 is only ever a panel folding away, and is written as below.

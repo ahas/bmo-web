@@ -13,7 +13,7 @@ console's typecheck and then every test file under `client/tests` in one `bun te
   and its layout check holds every `package.json` to a project or the root's package workspace, which this
   repository does not have. So `client/` stays a project, and its browser files run in its check rather than as
   declared browser files.
-- **Thirty-six browser files drive a running console** rather than a page of their own: each reads the console's
+- **Forty-five browser files drive a running console** rather than a page of their own: each reads the console's
   address from `BMO_CONSOLE_TEST_URL`, except `skeleton`, which reads it from `BMO_SKELETON_TEST_URL`. The suite
   stands up no console, so without those variables they skip; every other browser file runs.
 
@@ -24,6 +24,7 @@ console's typecheck and then every test file under `client/tests` in one `bun te
 - **What it starts:**
   - the account service, the binary `BMO_WEB_SERVER_BIN` names, on a scratch database of the test server
     (`BMO_TEST_POSTGRES`, or the machine's own socket where it names none);
+  - the account service's secret store on a folder of the scratch directory, in place of the data root's `env/`;
   - a stand-in for each unit the console reads, answering the agent list, the owner's room and its figures, an
     empty TODO board and silent event streams, and every other road with the unit's own not-found;
   - the fixture accounts each file signs in with, made by the console's own `user` script. The console reads the

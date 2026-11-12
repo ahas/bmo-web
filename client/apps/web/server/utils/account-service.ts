@@ -28,6 +28,7 @@ import {
 } from "@web/server-client";
 
 import type { PersonView } from "#shared/people";
+import type { SecretFile, SecretKind } from "#shared/secret-kinds";
 import type { KeptSecret } from "#shared/types";
 
 /** The server's base address; `WEB_SERVER_ADDRESS` where none is given. */
@@ -561,7 +562,7 @@ export async function listSecrets(role: OwnerRole, options: ServiceOptions = {})
  */
 export async function keepSecret(
   name: string,
-  value: string,
+  file: SecretFile,
   replace: boolean,
   role: OwnerRole,
   options: ServiceOptions = {}
@@ -571,7 +572,7 @@ export async function keepSecret(
     options,
     client.PUT("/secrets/{name}", {
       params: { path: { name }, header: { "Owner-Role": role } },
-      body: { value, replace }
+      body: { value: file.value, encoding: file.encoding, replace }
     })
   );
   const kept = answered(reply);
@@ -587,6 +588,54 @@ export async function dropSecret(name: string, role: OwnerRole, options: Service
     client.DELETE("/secrets/{name}", {
       params: { path: { name }, header: { "Owner-Role": role } }
     })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A kind as the console reads it, from the server's wire shape. */
+function kindOf(kind: SecretKind): SecretKind {
+  return {
+    key: kind.key,
+    name: kind.name,
+    description: kind.description,
+    fields: kind.fields.map(({ key, label, masked, input, required }) => ({ key, label, masked, input, required }))
+  };
+}
+
+/** Every secret kind, in the order they were added (docs/boundary.md, 「Secret kinds」). */
+export async function listSecretKinds(role: OwnerRole, options: ServiceOptions = {}): Promise<SecretKind[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/secret-kinds", { params: { header: { "Owner-Role": role } } }));
+
+  return answered(reply).kinds.map(kindOf);
+}
+
+/** A kind added, as the server keeps it. */
+export async function addSecretKind(kind: SecretKind, role: OwnerRole, options: ServiceOptions = {}): Promise<SecretKind> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/secret-kinds", { params: { header: { "Owner-Role": role } }, body: kind }));
+
+  return kindOf(answered(reply));
+}
+
+/** A kind changed whole under its key, as the server keeps it. */
+export async function putSecretKind(kind: SecretKind, role: OwnerRole, options: ServiceOptions = {}): Promise<SecretKind> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/secret-kinds/{key}", { params: { path: { key: kind.key }, header: { "Owner-Role": role } }, body: kind })
+  );
+
+  return kindOf(answered(reply));
+}
+
+/** A kind removed; no secret stored is touched. */
+export async function dropSecretKind(key: string, role: OwnerRole, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.DELETE("/secret-kinds/{key}", { params: { path: { key }, header: { "Owner-Role": role } } })
   );
 
   if (!reply.response.ok) throw refusalOf(reply.response, reply.error);

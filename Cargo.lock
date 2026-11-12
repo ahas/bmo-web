@@ -861,6 +861,7 @@ dependencies = [
  "argon2",
  "async-trait",
  "axum",
+ "base64 0.22.1",
  "bmo-web-client",
  "chrono",
  "clap",

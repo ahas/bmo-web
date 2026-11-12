@@ -484,6 +484,27 @@ impl AccountClient {
     Self::nothing(self.request(Method::DELETE, &["secrets", name]).header(OWNER_ROLE, role)).await
   }
 
+  /// `GET /secret-kinds`, asked in `role`.
+  pub async fn secret_kinds(&self, role: &str) -> Answer<SecretKinds> {
+    Self::answered(self.request(Method::GET, &["secret-kinds"]).header(OWNER_ROLE, role)).await
+  }
+
+  /// `POST /secret-kinds`, asked in `role`.
+  pub async fn add_secret_kind(&self, kind: &SecretKind, role: &str) -> Answer<SecretKind> {
+    Self::answered(self.send(Method::POST, &["secret-kinds"], kind).header(OWNER_ROLE, role)).await
+  }
+
+  /// `PUT /secret-kinds/{key}`, the kind's own key the path's, asked in `role`.
+  pub async fn put_secret_kind(&self, kind: &SecretKind, role: &str) -> Answer<SecretKind> {
+    Self::answered(self.send(Method::PUT, &["secret-kinds", &kind.key], kind).header(OWNER_ROLE, role))
+      .await
+  }
+
+  /// `DELETE /secret-kinds/{key}`, asked in `role`.
+  pub async fn delete_secret_kind(&self, key: &str, role: &str) -> Answer<()> {
+    Self::nothing(self.request(Method::DELETE, &["secret-kinds", key]).header(OWNER_ROLE, role)).await
+  }
+
   /// `POST /words/render`.
   pub async fn render_line(&self, ask: &RenderAsk) -> Answer<Rendered> {
     Self::answered(self.send(Method::POST, &["words", "render"], ask)).await

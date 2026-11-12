@@ -1,8 +1,7 @@
 <template>
   <!-- The secret store (docs/web.md, 「Settings」, the secret store section): the names the server's store holds,
-       each with its size and its time and never its value, and the form that hands it a value under a name. The
-       value is typed into a password box that keeps nothing, goes to the console's route in the body and nowhere
-       else, and is emptied as soon as the answer comes. -->
+       each with its size and its time and never its value, the kinds a secret is asked in, and the secret form,
+       the same the composer's clip and an agent's request open. -->
   <div class="flex flex-col gap-6">
     <p class="text-sm text-muted">{{ $t("secrets.label.note") }}</p>
 
@@ -18,17 +17,17 @@
 
     <div v-else-if="secrets === null" class="flex flex-col items-end gap-3">
       <UAlert class="w-full" color="error" variant="subtle" :description="failure" />
-      <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" @click="read" />
+      <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" @click="load" />
     </div>
 
     <template v-else>
       <SettingsGroup :title="$t('secrets.label.kept')">
         <SettingsRow v-if="secrets.length === 0" :label="$t('secrets.label.none')" />
         <SettingsRow
-          v-for="secret in secrets"
+          v-for="secret in sortedSecrets"
           :key="secret.name"
           :label="secret.name"
-          :description="$t('secrets.label.row', { bytes: countText(secret.bytes), time: formatStamp(secret.changedAt) })"
+          :description="$t('secrets.label.row', { bytes: countText(secret.bytes), time: formatStamp(Math.floor(secret.changedAt / 1000)) })"
           :data-secret="secret.name"
         >
           <UButton color="neutral" variant="ghost" size="xs" :label="$t('secrets.action.replace')" :disabled="busy" @click="openForm(secret.name)" />
@@ -40,35 +39,29 @@
         <UButton icon="i-material-symbols-add" :label="$t('secrets.action.add')" data-secret-add @click="openForm(null)" />
       </div>
 
+      <SettingsGroup :title="$t('secrets.label.kinds')">
+        <SettingsRow v-if="(kinds ?? []).length === 0" :label="$t('secrets.label.kinds_none')" />
+        <SettingsRow
+          v-for="kind in kinds ?? []"
+          :key="kind.key"
+          :label="kind.name"
+          :description="kindRow(kind)"
+          :data-secret-kind-row="kind.key"
+        >
+          <UButton color="neutral" variant="ghost" size="xs" :label="$t('common.action.edit')" :disabled="busy" @click="openKind(kind)" />
+          <UButton color="error" variant="ghost" size="xs" :label="$t('common.action.delete')" :disabled="busy" @click="removeKind(kind)" />
+        </SettingsRow>
+      </SettingsGroup>
+
+      <div class="flex justify-end">
+        <UButton color="neutral" variant="subtle" icon="i-material-symbols-add" :label="$t('secrets.action.kind_add')" data-secret-kind-add @click="openKind(null)" />
+      </div>
+
       <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
     </template>
 
-    <SettingsDialog v-model:open="editing" :title="replacing ? $t('secrets.title.replace') : $t('secrets.title.add')" :dirty="dirty">
-      <UForm id="secret-form" :state="form" class="flex flex-col gap-4" autocomplete="off" @submit="submit">
-        <UFormField :label="$t('secrets.label.name')" name="name" required :hint="$t('secrets.label.name_hint')" :error="nameError">
-          <UInput v-model="form.name" class="w-full" autocomplete="off" autocapitalize="off" spellcheck="false" data-secret-name />
-        </UFormField>
-
-        <USwitch
-          v-if="standing"
-          v-model="form.replace"
-          :label="$t('secrets.label.replace')"
-          :description="$t('secrets.label.replace_note', { name: form.name })"
-          data-secret-replace
-        />
-
-        <UFormField :label="$t('secrets.label.value')" name="value" required>
-          <UInput v-model="form.value" class="w-full" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-secret-value />
-        </UFormField>
-
-        <UAlert v-if="formFailure !== ''" color="error" variant="subtle" :description="formFailure" />
-      </UForm>
-
-      <template #footer="{ close }">
-        <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" @click="close()" />
-        <UButton type="submit" form="secret-form" :label="$t('common.action.save')" :loading="busy" :disabled="busy || !ready" />
-      </template>
-    </SettingsDialog>
+    <SecretForm v-model:open="editing" :ask="ask" :kinds="kinds ?? []" :secrets="secrets ?? []" @saved="onSaved" @kind-added="onKindAdded" />
+    <SecretKindForm v-model:open="kindEditing" :kind="kindAsked" @saved="onKindSaved" />
   </div>
 </template>
 
@@ -78,71 +71,52 @@ import { formatStamp } from "bmo-ui/app/domain/time";
 
 import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
-import { SECRET_NAME_MAX, secretNameIsPlain } from "#shared/secrets";
+import { emptyAsk, useSecretLists } from "~/domain/secret-form";
 
-import type { KeptSecret, SecretList } from "#shared/types";
+import type { SecretAsk } from "~/domain/secret-form";
+import type { SecretKind } from "#shared/secret-kinds";
+import type { KeptSecret } from "#shared/types";
 
 const { t } = useI18n();
 const confirm = useConfirm();
 
-const secrets = ref<KeptSecret[] | null>(null);
+const { kinds, secrets, read } = useSecretLists();
 const failure = ref("");
 const busy = ref(false);
 
-async function read(): Promise<void> {
+const sortedSecrets = computed(() => [...(secrets.value ?? [])].sort((one, other) => (one.name < other.name ? -1 : one.name > other.name ? 1 : 0)));
+
+async function load(): Promise<void> {
   failure.value = "";
 
   try {
-    secrets.value = (await $fetch<SecretList>("/api/secrets")).secrets;
+    await read();
   } catch (error) {
     failure.value = failureText(error, t("secrets.error.read_failed"));
   }
 }
 
-// The form: a name, whether to replace the value it holds, and the value, which only this box ever holds.
-const editing = ref(false);
-const replacing = ref(false);
-const formFailure = ref("");
-const form = reactive({ name: "", value: "", replace: false });
+function kindRow(kind: SecretKind): string {
+  const keys = kind.fields.map((field) => field.key).join(", ");
 
-const standing = computed(() => secrets.value?.some((secret) => secret.name === form.name) === true);
-const nameError = computed(() => form.name !== "" && !secretNameIsPlain(form.name) ? t("secrets.error.bad_name", { max: SECRET_NAME_MAX }) : undefined);
-// A name the list holds is written only once replacing it is chosen.
-const ready = computed(() => secretNameIsPlain(form.name) && form.value !== "" && (!standing.value || form.replace));
-const dirty = computed(() => form.value !== "" || (!replacing.value && form.name !== ""));
+  return kind.description === "" ? keys : t("secrets.label.kind_row", { description: kind.description, keys });
+}
+
+// The form, on a name to replace or on none; the value only ever stands in the form's own boxes.
+const editing = ref(false);
+const ask = ref<SecretAsk>(emptyAsk());
 
 function openForm(name: string | null): void {
-  replacing.value = name !== null;
-  Object.assign(form, { name: name ?? "", value: "", replace: name !== null });
-  formFailure.value = "";
+  ask.value = { ...emptyAsk(), name: name ?? "", replace: name !== null };
   editing.value = true;
 }
 
-// The value leaves the page as the dialog does, whichever way it closes.
-watch(editing, (open) => {
-  if (!open) form.value = "";
-});
+function onSaved(kept: KeptSecret): void {
+  secrets.value = [...(secrets.value ?? []).filter((secret) => secret.name !== kept.name), kept];
+}
 
-async function submit(): Promise<void> {
-  if (!ready.value) return;
-
-  busy.value = true;
-  formFailure.value = "";
-
-  const asked = { name: form.name, value: form.value, replace: standing.value && form.replace };
-
-  try {
-    const kept = await $fetch<KeptSecret>("/api/secrets", { method: "POST", body: asked });
-
-    secrets.value = [...(secrets.value ?? []).filter((secret) => secret.name !== kept.name), kept].sort((one, other) => one.name < other.name ? -1 : one.name > other.name ? 1 : 0);
-    form.value = "";
-    editing.value = false;
-  } catch (error) {
-    form.value = "";
-    formFailure.value = failureText(error, t("secrets.error.save_failed"));
-  } finally {
-    busy.value = false;
-  }
+function onKindAdded(kind: SecretKind): void {
+  kinds.value = [...(kinds.value ?? []), kind];
 }
 
 async function remove(name: string): Promise<void> {
@@ -168,5 +142,43 @@ async function remove(name: string): Promise<void> {
   }
 }
 
-onMounted(() => void read());
+// The kind's form, on a kind to change or on a new one.
+const kindEditing = ref(false);
+const kindAsked = ref<SecretKind | null>(null);
+
+function openKind(kind: SecretKind | null): void {
+  kindAsked.value = kind;
+  kindEditing.value = true;
+}
+
+function onKindSaved(kind: SecretKind): void {
+  const standing = (kinds.value ?? []).some((one) => one.key === kind.key);
+
+  kinds.value = standing ? (kinds.value ?? []).map((one) => (one.key === kind.key ? kind : one)) : [...(kinds.value ?? []), kind];
+}
+
+async function removeKind(kind: SecretKind): Promise<void> {
+  const taken = await confirm({
+    title: t("secrets.message.kind_delete_confirm"),
+    item: kind.name,
+    effect: t("secrets.message.kind_delete_effect"),
+    confirm: t("common.action.delete")
+  });
+
+  if (!taken) return;
+
+  busy.value = true;
+  failure.value = "";
+
+  try {
+    await $fetch(`/api/secret-kinds/${encodeURIComponent(kind.key)}`, { method: "DELETE" });
+    kinds.value = (kinds.value ?? []).filter((one) => one.key !== kind.key);
+  } catch (error) {
+    failure.value = failureText(error, t("secrets.error.kind_delete_failed"));
+  } finally {
+    busy.value = false;
+  }
+}
+
+onMounted(() => void load());
 </script>

@@ -48,12 +48,12 @@
       :placeholder="dragging ? $t('room.placeholder.drop_here') : props.placeholder"
       :disabled="props.disabled"
       :busy="props.busy"
-      :holds="attached.length > 0"
+      :holds="attached.length > 0 || handed.length > 0"
       @keydown.esc="emit('escape', $event)"
       @paste="onPaste"
       @submit="submit"
     >
-      <template v-if="$slots.lead || recording || attached.length > 0 || shownPastes.length > 0" #header>
+      <template v-if="$slots.lead || recording || attached.length > 0 || shownPastes.length > 0 || handed.length > 0" #header>
         <div class="flex min-w-0 flex-col gap-2">
           <slot name="lead" />
 
@@ -69,7 +69,28 @@
             </UTooltip>
           </div>
 
-          <ul v-if="attached.length > 0 || shownPastes.length > 0" class="flex flex-wrap gap-2">
+          <ul v-if="attached.length > 0 || shownPastes.length > 0 || handed.length > 0" class="flex flex-wrap gap-2">
+            <!-- A secret saved through the clip stands as its name and kind until it is sent, holding no value
+                 (docs/web.md, the room screen's attachments). -->
+            <li
+              v-for="secret in handed"
+              :key="`secret:${secret.name}`"
+              data-handed-secret
+              class="flex min-w-0 items-center gap-2 rounded-sm border border-default px-2 py-1"
+            >
+              <UIcon name="i-material-symbols-key-outline" class="size-5 shrink-0 text-dimmed" />
+              <span class="max-w-60 truncate text-sm text-muted">{{ $t("secrets.label.handed", { name: secret.name, kind: secret.kind }) }}</span>
+              <UTooltip :text="$t('secrets.action.remove_handed', { name: secret.name })">
+                <UButton
+                  icon="i-material-symbols-close"
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  :aria-label="$t('secrets.action.remove_handed', { name: secret.name })"
+                  @click="unhand(secret.name)"
+                />
+              </UTooltip>
+            </li>
             <li
               v-for="entry in shownPastes"
               :key="entry.key"
@@ -124,8 +145,9 @@
 
       <template #tools>
         <!-- A phone's file picker takes one file a tap, so a touch screen offers its photo picker
-             beside it, where every tap adds one to the choice. -->
-        <UDropdownMenu v-if="props.attachable && touch" :items="pickers" :content="{ side: 'top', align: 'start' }">
+             beside it, where every tap adds one to the choice; a room offers the administrator a secret too. A menu
+             that would hold the file picker alone is no menu, and the clip opens the picker at once. -->
+        <UDropdownMenu v-if="props.attachable && pickers.length > 1" :items="pickers" :content="pickerMenu">
           <UTooltip :text="$t('room.action.attach_file')">
             <UButton
               icon="i-material-symbols-attach-file"
@@ -169,12 +191,14 @@ import { composedText, isPasteEntry, pastedLabel, pastedOf, standingPastes, with
 import { playClock } from "~/domain/player";
 import { TOUCH_QUERY } from "bmo-ui/app/domain/prompt";
 import { useNarrow } from "bmo-ui/app/domain/screen";
+import { askSecret, composerPlace, emptyAsk, handedLines, useSecretForm, useSecretSaved } from "~/domain/secret-form";
 import { recordingType, voiceFileName } from "~/domain/voice";
 
 import type { ComposedMessage, PickedFile } from "~/domain/attachments";
 import type { MentionSources } from "~/domain/mentions";
 import type { DraftKind } from "~/domain/drafts";
 import type { PastedText } from "~/domain/pasted";
+import type { HandedSecret } from "~/domain/secret-form";
 import type { RecordingType } from "~/domain/voice";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
@@ -195,6 +219,9 @@ interface Props {
   // Who the room offers an @, where the place offers one at all: the people who spoke there and the agents answering
   // it (docs/web.md, the room screen's section on mentions). A place that names none offers no mention.
   mention?: MentionSources;
+  // Whether the clip offers a secret: a room's box, for the administrator alone (docs/web.md, the secret store
+  // section).
+  secrets?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -204,7 +231,8 @@ const props = withDefaults(defineProps<Props>(), {
   split: false,
   attachable: false,
   inline: false,
-  mention: undefined
+  mention: undefined,
+  secrets: false
 });
 
 const emit = defineEmits<{ submit: [message: ComposedMessage]; escape: [event: KeyboardEvent] }>();
@@ -255,9 +283,45 @@ const touch = useNarrow(TOUCH_QUERY);
 const MEDIA_ACCEPT = "image/*,video/*";
 
 const pickers = computed<DropdownMenuItem[]>(() => [
-  { label: t("room.action.attach_media"), icon: "i-material-symbols-photo-library-outline", onSelect: () => mediaPicker.value?.click() },
-  { label: t("room.action.attach_document"), icon: "i-material-symbols-draft-outline", onSelect: () => picker.value?.click() }
+  ...(touch.value ? [{ label: t("room.action.attach_media"), icon: "i-material-symbols-photo-library-outline", onSelect: () => mediaPicker.value?.click() }] : []),
+  { label: t("room.action.attach_document"), icon: "i-material-symbols-draft-outline", onSelect: () => picker.value?.click() },
+  ...(props.secrets ? [{ label: t("room.action.attach_secret"), icon: "i-material-symbols-key-outline", onSelect: askHanded }] : [])
 ]);
+
+// The secrets saved through this box's clip: each a name and its kind's words, and never a value. They are this
+// box's alone, kept in no draft, and go into the room as the pack's line when the box is sent.
+const secretForm = useSecretForm();
+const secretSaved = useSecretSaved();
+const handed = ref<HandedSecret[]>([]);
+const place = computed(() => composerPlace(props.draftId));
+
+// The menu hands the focus back to the clip as it closes, which a form opened from it would read as a press outside
+// itself and close on; so a menu closing on the secret form leaves the focus where the form put it.
+let formFromMenu = false;
+const pickerMenu = {
+  side: "top" as const,
+  align: "start" as const,
+  onCloseAutoFocus: (event: Event) => {
+    if (formFromMenu) event.preventDefault();
+
+    formFromMenu = false;
+  }
+};
+
+function askHanded(): void {
+  formFromMenu = true;
+  askSecret(secretForm, emptyAsk(), { kind: "composer", place: place.value });
+}
+
+watch(secretSaved, (saved) => {
+  if (saved === null || saved.target.kind !== "composer" || saved.target.place !== place.value) return;
+
+  handed.value = [...handed.value.filter((one) => one.name !== saved.handed.name), saved.handed];
+});
+
+function unhand(name: string): void {
+  handed.value = handed.value.filter((one) => one.name !== name);
+}
 const box = useTemplateRef<{ focus: () => void; textarea: () => HTMLTextAreaElement | null }>("box");
 
 // Recording stands in the box the way an attachment does: one note at a time, with its own length, and a way to
@@ -288,7 +352,9 @@ function submit(): void {
     return;
   }
 
-  const text = composedText(typed.value, shownPastes.value);
+  const typedText = composedText(typed.value, shownPastes.value);
+  const handedText = handedLines(t, handed.value, false);
+  const text = handedText === "" ? typedText : typedText.trim() === "" ? handedText : `${typedText}\n\n${handedText}`;
 
   if (text.trim() === "" && attached.value.length === 0) {
     return;
@@ -508,6 +574,7 @@ function clear(options: { keepPreviews?: boolean } = {}): void {
   typed.value = "";
   pasted.value = [];
   attached.value = [];
+  handed.value = [];
 }
 
 // The previews still in the tray go back to the browser with the box; the words stay as the draft.

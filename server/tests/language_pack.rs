@@ -61,6 +61,7 @@ fn every_part_reads_as_its_type() {
   assert!(fixed_lines::FIXED_LINES.rest_begins.contains("{chat_agent}"));
   assert!(!particles::PARTICLES.subject.unknown.is_empty());
   assert!(search::SEARCH.reading.untitled.contains("{place}"));
+  assert!(!secret_kinds::SECRET_KINDS.kinds.is_empty());
   assert!(!full_suite::FULL_SUITE.account.is_empty());
   assert!(!generation::GENERATION_WORDS.refusals.number.is_empty());
   assert!(!job_ask::JOB_ASK.refusals.say.is_empty());

@@ -21,6 +21,8 @@ async-trait = "0.1.92"
 # The service's own contract: its bodies as types, its OpenAPI document, and one call for each route.
 bmo-web-client = { path = "client" }
 axum.workspace = true
+# A secret's value sent as base64, decoded under the standard alphabet into the bytes the store writes.
+base64 = "0.22.1"
 chrono = { version = "0.4.45", default-features = false, features = ["std", "clock"] }
 clap = { version = "4.6.7", features = ["derive", "env"] }
 # The settings files and the environment, layered in that order.

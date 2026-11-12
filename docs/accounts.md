@@ -341,12 +341,35 @@ section states what each does.
 - **`PUT /secrets/{name}`** writes a value under a name: whole, to a hidden file of mode 600 beside it, then moved
   onto the name, so a reader never meets half a value. A name that stands already is replaced only where the call
   says so; the value replaced stays as `<name>.previous`, mode 600. It answers the name, the size and the time alone.
+  The value comes as text, or as base64 where the call says so, so a file that is not text is written as its own
+  bytes.
 - **`DELETE /secrets/{name}`** moves the file to `<name>.previous`, in place of any earlier one.
 - **No route reads a value back.** The value goes into the file and nowhere else: the server logs no request and no
   body, and no answer, refusal or line on its error stream carries it.
 - **A name is a plain file name,** with no slash and no leading dot, and not ending in `.previous`, the suffix the
   store keeps the value before for; a name standing as a folder or a link is no secret's, and is refused
   (`docs/boundary.md`, 「The secret store」).
+
+### Secret kinds
+
+- **A kind is the shape a secret is asked in,** kept in the service's database and never holding a value: a key the
+  console's address names it by, a name and a description a person reads, and its fields. Each field has the key its
+  line is written under in the file — the name the unit that reads the file looks for, such as
+  `AWS_ACCESS_KEY_ID` — a label, whether its value is masked as it is typed, how it is typed (one line, several
+  lines, or a file) and whether it is required.
+- **The fields decide the file's shape.** A kind of one field gives a file holding that value alone, the shape a
+  token or a key file has; a kind of several gives one `KEY=VALUE` line to each field given, the shape of an
+  environment file, so its fields are one line each. A several-line or file field stands alone in its kind, and its
+  file is its bytes unchanged. The console's form writes the file by these rules and hands the store the whole of
+  it (`docs/web.md`, 「비밀 보관함」); the store itself knows no kind.
+- **The administrator's alone,** as the store is: the routes list, add, change and remove kinds, and refuse a kind
+  that breaks the rules above (`docs/boundary.md`, 「Secret kinds」). A kind's key does not change once added.
+- **The defaults are seeded once,** by the migration that makes the table, with their names and labels from the
+  server's pack (`secret-kinds`): API key; account login, a user name and a password; AWS access key, the access key
+  id, the secret access key and the region; OAuth client, the client id and the client secret; database connection,
+  the host, the port, the user, the password and the database; SSH private key, one several-line field; and file, one
+  file field, for a certificate, a service account's JSON and the like. From then on they are the owner's to change
+  or remove like any other.
 
 ## The account command
 
@@ -382,6 +405,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_invites` | each invitation: its token, its unit, whether it makes a head, who made it, when it closes, and who used it and when |
 | `user_nodes` | the machine each invited account is bound to, and when it was last proven |
 | `user_departures` | each account marked left: when, and by whom |
+| `secret_kinds` | each secret kind: its key, name, description and fields, and the order kinds were added in |
 | `settings` | the service's own keys: the mark that the move is written, and the platform administrator's user |
 | `web_users` | the console's own accounts, the sign-in that stands before the model is in force |
 | `web_push_devices` | a user's browsers that take push notices |
@@ -414,6 +438,9 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   children, heads and members, and check that a head of a unit heads the units below it and not the one above.
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**
 - **The secret store's tests stand on a temporary folder** in place of the data root's `env/`: the modes a write
-  leaves, the value kept before, the names refused, and that no answer and no refusal carries a value.
+  leaves, the value kept before, the names refused, a base64 value written as its bytes, and that no answer and no
+  refusal carries a value.
+- **The secret kind tests** read the seeded defaults, add, change and remove a kind as the administrator, refuse each
+  rule a kind can break and a key that does not match its path, and refuse every route to a member.
 - **The console's side tests against a stand-in** answering these routes, so a console test needs neither the
   binary nor Valkey.

@@ -14,7 +14,9 @@ use axum::extract::{Path as Segment, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{get, put};
 use axum::{Json, Router};
-use bmo_web_client::{OWNER_ROLE, Secret, SecretAsk, Secrets};
+use base64::Engine;
+use base64::engine::general_purpose::STANDARD;
+use bmo_web_client::{OWNER_ROLE, Secret, SecretAsk, SecretEncoding, Secrets};
 
 use crate::{Refusal, Service};
 
@@ -112,12 +114,12 @@ fn removed_if_there(path: &Path) -> io::Result<()> {
 }
 
 /// `value` written whole to a new file of mode 600 and brought to the disk.
-fn written_whole(path: &Path, value: &str) -> io::Result<()> {
+fn written_whole(path: &Path, value: &[u8]) -> io::Result<()> {
   removed_if_there(path)?;
 
   let mut file = OpenOptions::new().write(true).create_new(true).mode(FILE_MODE).open(path)?;
 
-  file.write_all(value.as_bytes())?;
+  file.write_all(value)?;
   file.sync_all()
 }
 
@@ -185,7 +187,7 @@ impl Store {
 
   /// `value` written under `name`: whole to a hidden file of mode 600 beside it, then moved onto the name. A name
   /// that stands is replaced only where `replace` says so, and the value it held stays as `<name>.previous`.
-  pub fn put(&self, name: &str, value: &str, replace: bool) -> Result<(Secret, Written), Refusal> {
+  pub fn put(&self, name: &str, value: &[u8], replace: bool) -> Result<(Secret, Written), Refusal> {
     named(name)?;
 
     if value.is_empty() {
@@ -262,13 +264,27 @@ impl Store {
   }
 }
 
-/// The call is made for the administrator, as the console hands on the login's role.
-fn administrator(headers: &HeaderMap) -> Result<(), Refusal> {
+/// The call is made for the administrator, as the console hands on the login's role; `what` is what the
+/// refusal says is the administrator's.
+pub fn administrator(headers: &HeaderMap, what: &str) -> Result<(), Refusal> {
   match headers.get(OWNER_ROLE).and_then(|role| role.to_str().ok()) {
     Some(ADMINISTRATOR) => Ok(()),
-    _ => Err(Refusal::forbidden(
-      "the secret store is the administrator's: the call names no `Owner-Role: administrator`",
-    )),
+    _ => Err(Refusal::forbidden(format!(
+      "{what} is the administrator's: the call names no `Owner-Role: administrator`"
+    ))),
+  }
+}
+
+/// What the store refuses a call not made for the administrator as.
+const STORE: &str = "the secret store";
+
+/// The bytes a value carries under its encoding. A value that does not decode is refused naming nothing of it.
+pub fn bytes_of(value: String, encoding: SecretEncoding) -> Result<Vec<u8>, Refusal> {
+  match encoding {
+    SecretEncoding::Text => Ok(value.into_bytes()),
+    SecretEncoding::Base64 => STANDARD.decode(value).map_err(|_| {
+      Refusal::bad("the value does not decode as base64 under the standard alphabet").coded("bad-value")
+    }),
   }
 }
 
@@ -300,7 +316,7 @@ pub fn routes() -> Router<Service> {
 
 /// `GET /secrets`: every secret's name, size and time.
 pub async fn list(State(service): State<Service>, headers: HeaderMap) -> Result<Json<Secrets>, Refusal> {
-  administrator(&headers)?;
+  administrator(&headers, STORE)?;
 
   let store = store_of(&service)?;
   let secrets = blocking(move || store.list()).await?;
@@ -316,12 +332,14 @@ pub async fn write(
   Segment(name): Segment<String>,
   body: Bytes,
 ) -> Result<(StatusCode, Json<Secret>), Refusal> {
-  administrator(&headers)?;
+  administrator(&headers, STORE)?;
 
-  let ask: SecretAsk = serde_json::from_slice(&body)
-    .map_err(|_| Refusal::bad("the body does not read as a secret's `value` and `replace?`"))?;
+  let ask: SecretAsk = serde_json::from_slice(&body).map_err(|_| {
+    Refusal::bad("the body does not read as a secret's `value`, `replace?` and `encoding?`")
+  })?;
   let store = store_of(&service)?;
-  let (kept, written) = blocking(move || store.put(&name, &ask.value, ask.replace)).await?;
+  let value = bytes_of(ask.value, ask.encoding)?;
+  let (kept, written) = blocking(move || store.put(&name, &value, ask.replace)).await?;
   let status = match written {
     Written::Made => StatusCode::CREATED,
     Written::Replaced => StatusCode::OK,
@@ -336,7 +354,7 @@ pub async fn delete(
   headers: HeaderMap,
   Segment(name): Segment<String>,
 ) -> Result<StatusCode, Refusal> {
-  administrator(&headers)?;
+  administrator(&headers, STORE)?;
 
   let store = store_of(&service)?;
 

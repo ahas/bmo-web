@@ -33,7 +33,7 @@ describe("the secret store's routes", () => {
     const made = await asked(keep, { body: { name: "unit-a.token", value: VALUE } });
 
     expect(made.answer).toEqual({ name: "unit-a.token", bytes: VALUE.length, changedAt: expect.any(Number) });
-    expect(service.secrets.get("unit-a.token")?.value).toBe(VALUE);
+    expect(service.secrets.get("unit-a.token")?.bytes.toString()).toBe(VALUE);
     expect(service.secretRoles.at(-1)).toBe("administrator");
 
     const read = await asked(list, {});
@@ -49,7 +49,7 @@ describe("the secret store's routes", () => {
 
     expect(again).toMatchObject({ status: 409, message: wording("secrets.error.exists") });
     expect(JSON.stringify(again)).not.toContain("another value");
-    expect(service.secrets.get("unit-b.token")?.value).toBe(VALUE);
+    expect(service.secrets.get("unit-b.token")?.bytes.toString()).toBe(VALUE);
 
     expect((await asked(keep, { body: { name: "unit-b.token", value: "another value", replace: true } })).answer?.bytes).toBe("another value".length);
   });
@@ -65,6 +65,14 @@ describe("the secret store's routes", () => {
     expect(await asked(keep, { body: { name: "unit-c.token" } })).toMatchObject({ status: 400 });
     expect(await asked(drop, { params: { name: "../web.toml" } })).toMatchObject({ status: 400 });
     expect(service.secretRoles.length).toBe(heard);
+  });
+
+  test("a file's bytes travel as base64, and the server writes them as themselves", async () => {
+    const bytes = Buffer.from([0, 255, 128, 10]);
+    const made = await asked(keep, { body: { name: "unit-e.bin", value: bytes.toString("base64"), encoding: "base64" } });
+
+    expect(made.answer?.bytes).toBe(bytes.length);
+    expect(service.secrets.get("unit-e.bin")?.bytes).toEqual(bytes);
   });
 
   test("a delete takes the name out of the list, and one that stands nowhere is said so", async () => {

@@ -226,7 +226,7 @@ falls away after two minutes without one.
 | Route | Request | Answer |
 |---|---|---|
 | `GET /secrets` | | `secrets`: each `name`, `bytes` and `changedAt`, every secret the store holds, in the order of their names |
-| `PUT /secrets/{name}` | `value`, `replace?` | `name`, `bytes`, `changedAt`; 201 where the name was new, 200 where it replaced a value; 409 `secret-exists` where the name stands and `replace` is not true |
+| `PUT /secrets/{name}` | `value`, `replace?`, `encoding?` | `name`, `bytes`, `changedAt`; 201 where the name was new, 200 where it replaced a value; 409 `secret-exists` where the name stands and `replace` is not true |
 | `DELETE /secrets/{name}` | | 204; 404 where no secret stands under the name |
 
 - **Every route of the store takes `Owner-Role: administrator`,** the role the console hands on for the login it
@@ -240,8 +240,11 @@ falls away after two minutes without one.
   whose `.previous` stands so.
 - **A value is never answered.** No route reads a value back: the list carries names, sizes and times, and a write
   answers the name, its size and its time. A refusal never carries the value either; a body that does not read as
-  `value` and `replace?` is refused 400 `bad-request` naming the shape asked for, never what was sent, and an empty
-  value 400 `empty-value`.
+  `value`, `replace?` and `encoding?` is refused 400 `bad-request` naming the shape asked for, never what was sent,
+  and an empty value 400 `empty-value`.
+- **`encoding` says how `value` carries its bytes:** `text`, where it is absent, writes the value's own UTF-8 bytes;
+  `base64` writes the bytes the value decodes to under the standard alphabet, so a file that is not text reaches
+  the store unchanged. A value that does not decode is refused 400 `bad-value`, naming nothing of it.
 - **A write is atomic.** The value is written as it was sent, whole, to a hidden file beside the name with mode
   600, and moved onto the name; the value it replaces stays as `<name>.previous`, mode 600, in place of any earlier
   one. A delete moves the file to `<name>.previous` the same way. A folder that does not stand yet is made, mode
@@ -250,6 +253,30 @@ falls away after two minutes without one.
   file and anything not a regular file are not.
 - **The store's routes answer 503 `not-in-force`** while the account model is not in force, as every route of the
   server's own does.
+
+### Secret kinds
+
+| Route | Request | Answer |
+|---|---|---|
+| `GET /secret-kinds` | | `kinds`: every kind, in the order they were added |
+| `POST /secret-kinds` | a kind | the kind as kept, 201; 409 `kind-exists` where a kind stands under its `key` |
+| `PUT /secret-kinds/{key}` | a kind, its `key` the path's | the kind as kept; 404 where no kind stands under the key |
+| `DELETE /secret-kinds/{key}` | | 204; 404 where no kind stands under the key |
+
+- **A kind is a shape the console's secret form asks a value in,** and never a value (`docs/accounts.md`,
+  「Secret kinds」): `key`, `name`, `description` and `fields`, each field its `key`, `label`, `masked`, `input` and
+  `required`.
+- **Every route takes `Owner-Role: administrator`,** as the store's do, and any other role, or none, is refused 403
+  `forbidden`. They answer 503 `not-in-force` while the account model is not in force.
+- **A kind that breaks a rule is refused 400 `bad-kind`,** its sentence naming the rule:
+  - `key` is one to 64 of `a`–`z`, `0`–`9` and `-`, beginning with a letter; `name` is one to 100 characters and
+    `description` at most 500.
+  - `fields` holds one to 20 fields with keys unlike each other. A field's `key` is one to 128 of `A`–`Z`, `a`–`z`,
+    `0`–`9` and `_`, beginning with no digit; its `label` is one to 100 characters; its `input` is `line`, `lines` or
+    `file`.
+  - A kind of several fields takes `line` fields alone, since its file is one `KEY=VALUE` line to a field; a `lines`
+    or `file` field stands alone in its kind.
+  - A body whose `key` is not the path's is refused 400 `bad-kind` as well: a kind's key does not change.
 
 ### Fixed lines
 
@@ -337,7 +364,7 @@ carries neither.
 
 | Unit | What the console reaches it for | Routes |
 |---|---|---|
-| the server (this repository) | sign-in, the session, users, the people directory, phone keys, grants, checks, the model; the users list and each user's console sections; a user's profile and sections, each call with the signed-in login's user in `Owner-Key` and role in `Owner-Role`; the secret store, each call with the signed-in login's role in `Owner-Role` | every route above |
+| the server (this repository) | sign-in, the session, users, the people directory, phone keys, grants, checks, the model; the users list and each user's console sections; a user's profile and sections, each call with the signed-in login's user in `Owner-Key` and role in `Owner-Role`; the secret store and its kinds, each call with the signed-in login's role in `Owner-Role` | every route above |
 | the agency (`docs/api.md`) | the supervisors, each with its provider order, its quota share, the provider the owner forced as its active provider, its warming per provider, its compaction threshold, its repository, gates and sampling and what it runs on now, read and changed, the rooms each has spoken in with its latest run there, and the stand-in that answers for it; the roles, each with its bundles, line, provider order, the provider the owner forced as its active provider, the text each provider's runs carry beside its prompt, cap, sessions setting and compaction threshold, read, added, changed and removed, and each role's session history; the repositories, each with its path, node, checkouts, checkouts on the work nodes, prefix documents, preamble, rules, dev command, pinned model, the sampling it sends a pinned registration with the settings that sampling may hold, and downgrade heal, read, added, changed and removed; the nodes the node service keeps, each with whether it takes jobs; the models a provider holds, each with its declared thinking and answer ceiling, for an order's chooser; every role's slots, read for the sidebar and the slot tiles; the tasks a supervisor delegated to its double, read for the owner's own chat's marker; the providers, each with its switch, quota and declared compaction threshold, and a provider's switch thrown; the registered models and the model files; the chat agent's composed documents; a supervisor's own settings — its generation settings, its reference switch and its persona — read and changed; the sessions each supervisor holds; the research supervisor its own settings hold, read and changed; the log lines of a run, and one supervisor's or role's log across its runs — its newest page, the page before or after an id, the page at a moment; a word said to a worker, with the files it carries; the Claude accounts with each one's usage window, and what was spent over the week; the jobs and their prompts, by item, repository or running, each running job with the road it took and what chose it, and the jobs running now; its turns going out and ending, its runs and sessions made, changed and stopped, and its jobs starting, changing and ending, relayed to each tab; GitHub's webhook deliveries, handed on; an account made ready by its invitation given its agents and its machine as the node its runs stand on, and that node set again or taken away as the administrator binds the account to another machine or to none | `GET /supervisors`, `GET`/`PATCH /supervisors/{supervisorName}`, `GET /supervisors/{supervisorName}/rooms`, `GET`/`POST /roles`, `GET`/`PATCH`/`DELETE /roles/{roleName}`, `GET /roles/{roleName}/sessions`, `GET`/`POST /repositories`, `GET`/`PATCH`/`DELETE /repositories/{repositoryName}` (`nodeCheckouts` and `sampling` among a change's fields), `POST /repositories/{repositoryName}/words`, `GET /nodes`, `GET /provider-models/{providerName}`, `GET /slots`, `GET /delegations` (with `ended=1`, for the latest ended one), `GET /providers`, `PATCH /providers/{providerName}`, `GET`/`POST /models`, `GET`/`PATCH`/`DELETE /models/{modelKey}`, `GET`/`POST /model-catalogue`, `GET /chat-documents`, `PATCH /chat-documents/{documentName}`, `POST /github/deliveries` (GitHub's webhook deliveries, handed on unchanged with their GitHub headers and no sign-in, `docs/web.md`, 「Access」), `GET`/`PATCH /fallback`, `GET /accounts`, `GET /stand-in`, `GET /usage` (over the last seven days), `GET /prompt-documents`, `PATCH /prompt-documents/{documentName}`, `GET`/`PATCH /supervisors/{supervisorName}/settings`, `GET`/`PATCH /settings` (`researchSupervisor`), `GET /sessions`, `GET /jobs`, `GET /jobs/{jobId}/prompt`, `PATCH /jobs/{jobId}`, `GET /runs`, `GET /log-lines`, `GET /log/agents/{agentName}/lines` (a supervisor's or a role's name), `POST /role-agents`, `PUT`/`DELETE /person-nodes/{ownerAccount}` (the account's user id and, to set it, its machine's name, `docs/accounts.md`, 「Invitations and a person's machine」), `GET /events?kinds=turn.created,turn.ended,job.created,job.changed,job.ended,run.created,run.changed,run.stopped,session.created,session.changed,supervisor.changed,role.changed,repository.changed,repository.deleted,slot-request.changed` |
 | bmo-job (`docs/api.md`) | the TODO panel: every item, each item opened with its approvals' callers and kinds, the verbs on an item — an approval given under the caller the console's token names, the model its labels name, its notes, reports and review, its work order and tasks; answering a question and stopping its clock; the queues' pause and holds, and the deployment's hold let go | `GET`/`POST /items`, `GET`/`PATCH /items/{itemId}`, `GET`/`POST /items/{itemId}/notes`, `DELETE /items/{itemId}/notes/{noteId}`, `GET /items/{itemId}/reports`, `GET /items/{itemId}/reviews`, `GET`/`PUT`/`PATCH /items/{itemId}/work-order`, `GET`/`PATCH /items/{itemId}/work-order/tasks/{taskId}`, `GET /questions`, `GET`/`PATCH /questions/{questionId}`, `POST /questions/{questionId}/replies`, `GET`/`PATCH /queues`, `GET /events?after=&run=` (relayed to each tab from that tab's cursor; opened with no cursor where the tab holds none, and again where bmo-job answers that the cursor stands before the events it still keeps, so the relay goes on from the events still to come) |
 | the receiver (`docs/api.md`) | the room list, a room's title and its line, page by page, past a message, one message and where a day begins; a message's files, their bytes, its picture and the metadata it arrived with, for a message that carries files; a room's pictures, its figures and the chat agent's window there; the profile pictures the archive keeps for rooms and people, listed page by page, and one such picture; the numbers an agent's words stand under, to know whether a message is an agent's and which face a chat agent wears; the agent whose words a send of its own carries and the voice it went out in, and whether a number is the owner's own account, for a send that names no agent; the default answerer setting, the supervisor that answers every room naming none, read and set; the supervisors added with a console room of their own and removed, and the rooms each answers; a message reacted to, pinned, edited or deleted, and a sticker sent, as the signed-in person's own, under the sender the room knows them by, and a room's pinned messages; a message the owner forwards into another room, kept there as his and marked with where it came from; the senders each room has, for which rooms a user reads; the owner's private chat; the owner's words, files and voice notes; the event stream and the live board; removing a room; the rooms' pinned order, a room pinned and let go; the chat providers a room may be on, and the ones it is on, read and set whole; a room added from a chat service's account, its rooms and its contacts listed page by page, or a conversation it starts with them, and a group's own supervisor named on it as it stands; what opened a turn; a turn of the talk about a document; a supervisor's draft process and its questions, its row set and taken away, a question's text set and taken away for it, and what each round's draft process wrote | `GET /rooms`, `GET /rooms/{roomId}/title`, `GET /rooms/{roomId}/answerers`, `GET`/`PUT /default-answerer`, `POST /supervisors` (with the signed-in login's user id as `ownerAccount`, and `sessionScope` `agent` where it is a person's), `DELETE /supervisors/{supervisorName}`, `GET /supervisors/{supervisorName}/rooms`, `GET /rooms/{roomId}/own-number`, `GET /rooms/{roomId}/messages`, `GET /rooms/{roomId}/day-start`, `GET /rooms/{roomId}/messages/{messageId}`, `GET /rooms/{roomId}/messages/{messageId}/files`, `GET /rooms/{roomId}/messages/{messageId}/files/{place}` (with `download=true` for a file to keep, and the `Range` the browser asked with), `GET /rooms/{roomId}/messages/{messageId}/picture`, `GET /rooms/{roomId}/messages/{messageId}/metadata`, `GET /rooms/{roomId}/messages/{messageId}/sender-is-owner`, `GET /rooms/{roomId}/pins`, `POST /rooms/{roomId}/messages/{messageId}/forwards`, `PUT`/`DELETE /rooms/{roomId}/messages/{messageId}/reactions/mine`, `PUT /rooms/{roomId}/messages/{messageId}/pin`, `PATCH`/`DELETE /rooms/{roomId}/messages/{messageId}`, `GET /stickers`, `POST /rooms/{roomId}/stickers`, `GET /rooms/{roomId}/pictures`, `GET /avatars`, `GET /rooms/{roomId}/avatar`, `GET /people/{personId}/avatar`, `GET /rooms/{roomId}/figures?zone=` (the zone the console shows every time in), `GET /rooms/{roomId}/window`, `GET /rooms/{roomId}/situation`, `GET /owner`, `POST /owner/messages`, `POST /owner/message-files` (with `voice` for a recording), `GET /events`, `GET /live`, `DELETE /rooms/{roomId}` (with `dryRun` for the preview), `POST`/`DELETE /pinned-rooms`, `GET /providers`, `GET /providers/{key}/rooms`, `GET /providers/{key}/contacts`, `POST /rooms`, `PUT /rooms/{roomId}/supervisors` (a group's own supervisor), `GET`/`PUT /rooms/{roomId}/providers`, `GET /rounds/openings`, `GET /rounds/openings/{instructionId}`, `POST /talks` (with a `document` topic, the earlier turns and the words just said), `GET /draft-processes` (with `agentName` for the row a supervisor reads), `PUT`/`DELETE /draft-processes/{provider}/{tier}/{agentName}` (a supervisor's row, its provider and tier `*`), `GET /draft-questions` (with `agentName` for a supervisor's catalogue), `PUT`/`DELETE /draft-questions/{agentName}/{name}`, `GET /rounds/drafts`, `GET /health` |
@@ -403,6 +430,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `WEB_SERVER_ADDRESS`, `WEB_SERVER_TOKEN` | the server |
 | console | `WEB_DATABASE_URL` | the server's PostgreSQL database, where the console's own tables stand |
 | console | `NUXT_PUBLIC_CHAT_AGENT_NAME`, `NUXT_PUBLIC_CHAT_AGENT_LABEL` | the name the chat agent's messages stand under, and the label a room calls it by |
+| console | `NUXT_PUBLIC_CONSOLE_ADDRESS` | the console's public address, its scheme, public name and base path, which a link to one of its screens is written under; the console reads a link under it as its own (`docs/web.md`, 「비밀 보관함」), and a unit that writes such a link, the chat agent asking for a secret among them, is given the same address in its own settings |
 | console | `AGENCY_ADDRESS`, `AGENCY_TOKEN` | the agency |
 | console | `JOB_ADDRESS`, `JOB_TOKEN` | bmo-job |
 | console | `RECEIVER_ADDRESS`, `RECEIVER_TOKEN` | the receiver |
@@ -595,7 +623,8 @@ shown as.
 
 The console answers under one base path, the one its settings name, behind the deployment's proxy. The proxy
 hands on the base path as it is, and flows the event streams unbuffered. The port the console listens on and the
-public name stand in the console's settings (「Settings」) and are not written into this repository.
+public name stand in the console's settings (「Settings」), the public name in `NUXT_PUBLIC_CONSOLE_ADDRESS`, and are
+not written into this repository.
 
 | Road under the base path | Where it goes |
 |---|---|

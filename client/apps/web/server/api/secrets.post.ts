@@ -11,12 +11,13 @@ interface SecretBody {
   name?: unknown;
   value?: unknown;
   replace?: unknown;
+  encoding?: unknown;
 }
 
 // A secret written under a name (docs/web.md, 「Settings」, the secret store section). The name travels in the body
 // with the value, never in the address, so nothing typed into the form stands in an address a proxy logs. The
 // answer is what the server answered, the name, the size and the time; the value goes to the server and nowhere
-// else, and nothing here logs the body.
+// else, and nothing here logs the body. A file that is not text comes as base64, which the server decodes.
 export default defineEventHandler(async (event): Promise<KeptSecret> => {
   const signed = await requireAdministrator(event);
   const body = await readBody<SecretBody>(event);
@@ -27,7 +28,9 @@ export default defineEventHandler(async (event): Promise<KeptSecret> => {
   if (typeof body?.value !== "string" || body.value === "") throw fail(400, wording("secrets.error.empty_value"));
 
   try {
-    return await keepSecret(name, body.value, body.replace === true, ownerRoleOf(signed));
+    const encoding = body.encoding === "base64" ? "base64" : "text";
+
+    return await keepSecret(name, { value: body.value, encoding }, body.replace === true, ownerRoleOf(signed));
   } catch (error) {
     throw secretFailure(error, "secrets.error.save_failed");
   }

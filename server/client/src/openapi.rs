@@ -18,9 +18,9 @@ const SCHEMAS: &str = "/components/schemas";
 const DESCRIPTION: &str = "The web console's server: the account service on sumida, which holds the users, the \
   senders linked to them, the grants they hold, the account model they stand in, the room holdings the \
   receiver asks about, the fixed lines a room says, and the secret store, which writes the files every unit \
-  reads its secrets from and answers no value. Its own routes answer in the common wire format: \
-  camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as \
-  a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the \
+  reads its secrets from and answers no value, with the kinds its form asks a value in. Its own routes answer \
+  in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit \
+  integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the \
   session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as \
   the digits of sumida's whole number, a string a caller hands on as it stands.";
 
@@ -90,7 +90,7 @@ fn owner_role() -> Value {
     "name": "Owner-Role",
     "in": "header",
     "required": true,
-    "description": "The role of the login the call is made for; the store answers `administrator` alone, and a profile answers its holder or an administrator.",
+    "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
     "schema": { "type": "string", "enum": ["administrator", "member"] },
   })
 }
@@ -929,11 +929,11 @@ pub fn openapi() -> Value {
     "/secrets/{name}",
     "putSecret",
     "Secret store",
-    "Writes a value under a name, atomically and with mode 600, keeping the value it replaces as <name>.previous; answers the name, its size and its time alone.",
+    "Writes a value under a name, atomically and with mode 600, keeping the value it replaces as <name>.previous; the value is text, or base64 where encoding says so; answers the name, its size and its time alone.",
     params: vec![string_path("name"), owner_role()],
     body: Some(json!(generator.subschema_for::<SecretAsk>())),
     answers: vec![(200, json_answer::<Secret>(&mut generator)), (201, json_answer::<Secret>(&mut generator))],
-    codes: vec!["bad-request", "bad-name", "empty-value", "unauthorized", "forbidden", "secret-exists", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
+    codes: vec!["bad-request", "bad-name", "bad-value", "empty-value", "unauthorized", "forbidden", "secret-exists", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );
@@ -947,6 +947,58 @@ pub fn openapi() -> Value {
     body: None,
     answers: vec![(204, no_answer())],
     codes: vec!["bad-name", "unauthorized", "forbidden", "not-found", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/secret-kinds",
+    "secretKinds",
+    "Secret kinds",
+    "Every secret kind, the shapes the console's secret form asks a value in, in the order they were added.",
+    params: vec![owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<SecretKinds>(&mut generator))],
+    codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/secret-kinds",
+    "addSecretKind",
+    "Secret kinds",
+    "Adds a secret kind after the ones that stand; answers the kind as kept.",
+    params: vec![owner_role()],
+    body: Some(json!(generator.subschema_for::<SecretKind>())),
+    answers: vec![(201, json_answer::<SecretKind>(&mut generator))],
+    codes: vec!["bad-request", "bad-kind", "unauthorized", "forbidden", "kind-exists", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/secret-kinds/{key}",
+    "putSecretKind",
+    "Secret kinds",
+    "Changes a secret kind in its place, its key the path's; answers the kind as kept.",
+    params: vec![string_path("key"), owner_role()],
+    body: Some(json!(generator.subschema_for::<SecretKind>())),
+    answers: vec![(200, json_answer::<SecretKind>(&mut generator))],
+    codes: vec!["bad-request", "bad-kind", "unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/secret-kinds/{key}",
+    "deleteSecretKind",
+    "Secret kinds",
+    "Removes a secret kind; no secret written in its shape is touched.",
+    params: vec![string_path("key"), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["unauthorized", "forbidden", "not-found", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

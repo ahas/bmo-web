@@ -5,6 +5,8 @@
 // passes every check; a sender is checked as their linked user and the room's members; a standing rule
 // opens its room; an expired grant is none.
 
+import type { SecretKind } from "../../apps/web/shared/secret-kinds";
+
 export interface StandInUser {
   id: number;
   name: string;
@@ -80,9 +82,10 @@ interface StandInBody {
   words?: string;
   key?: string;
   token?: string;
-  // A secret's value and whether it replaces the one its name holds.
+  // A secret's value, whether it replaces the one its name holds, and how the value carries its bytes.
   value?: unknown;
   replace?: boolean;
+  encoding?: unknown;
   // A user's profile.
   jobTitle?: string;
   landline?: string;
@@ -101,8 +104,21 @@ export interface StandInProfile {
 }
 
 // A secret the stand-in's store holds: the value a test reads back to see it arrived, and when it was written.
+// A kind as a body carries it, read whole; the kind's own rules are the server's tests'.
+function kindOf(body: unknown): SecretKind {
+  const raw = (typeof body === "object" && body !== null ? body : {}) as Record<string, unknown>;
+
+  return {
+    key: String(raw.key ?? ""),
+    name: String(raw.name ?? ""),
+    description: String(raw.description ?? ""),
+    fields: Array.isArray(raw.fields) ? (raw.fields as SecretKind["fields"]) : []
+  };
+}
+
 export interface StandInSecret {
-  value: string;
+  // The bytes written, as the server writes them: a text value's own, a base64 value's decoded.
+  bytes: Buffer;
   changedAt: number;
 }
 
@@ -119,6 +135,8 @@ export interface StandIn {
   // The secret store's files by name, and the role each call on the store was made in.
   secrets: Map<string, StandInSecret>;
   secretRoles: (string | null)[];
+  // The secret kinds by key, in the order they were added.
+  kinds: Map<string, SecretKind>;
   // Each user's profile, by the user's id.
   profiles: Map<number, StandInProfile>;
   // The machines the hub holds beside those the seeded users are bound to and attached.
@@ -175,6 +193,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const state = { inForce: seed.inForce ?? true };
   const secrets = new Map<string, StandInSecret>();
   const secretRoles: (string | null)[] = [];
+  const kinds = new Map<string, SecretKind>();
   const profiles = new Map<number, StandInProfile>();
   const hub = new Set(seed.hub ?? []);
   const userOfSender = (sender: number | null): StandInUser | undefined =>
@@ -510,7 +529,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       if (secret !== null) {
         const role = request.headers.get("owner-role");
         const name = secret[1] === undefined ? null : decodeURIComponent(secret[1]);
-        const kept = (one: string) => ({ name: one, bytes: Buffer.byteLength(secrets.get(one)!.value), changedAt: secrets.get(one)!.changedAt });
+        const kept = (one: string) => ({ name: one, bytes: secrets.get(one)!.bytes.length, changedAt: secrets.get(one)!.changedAt });
 
         secretRoles.push(role);
 
@@ -528,12 +547,49 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
           if (standing && body.replace !== true) return refused(409, "secret-exists", "a secret stands under the name");
 
-          secrets.set(name, { value: body.value, changedAt: Date.now() });
+          secrets.set(name, { bytes: Buffer.from(body.value, body.encoding === "base64" ? "base64" : "utf8"), changedAt: Date.now() });
 
           return json(kept(name), standing ? 200 : 201);
         }
 
         if (!secrets.delete(name)) return refused(404, "not-found", "no secret stands under the name");
+
+        return done();
+      }
+
+      // The secret kinds, the administrator's as the store is; the kind's own rules are the server's tests'.
+      const kind = path.match(/^\/secret-kinds(?:\/([^/]+))?$/);
+
+      if (kind !== null) {
+        const key = kind[1] === undefined ? null : decodeURIComponent(kind[1]);
+
+        if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the secret kinds are the administrator's");
+        if (key === null && request.method === "GET") return json({ kinds: [...kinds.values()] });
+
+        if (key === null) {
+          const asked = kindOf(body);
+
+          if (kinds.has(asked.key)) return refused(409, "kind-exists", "a kind stands under the key");
+          if (asked.fields.length === 0) return refused(400, "bad-kind", "a kind holds one field or more");
+
+          kinds.set(asked.key, asked);
+
+          return json(asked, 201);
+        }
+
+        if (!kinds.has(key)) return refused(404, "not-found", "no kind stands under the key");
+
+        if (request.method === "PUT") {
+          const asked = kindOf(body);
+
+          if (asked.key !== key) return refused(400, "bad-kind", "a kind's key does not change");
+
+          kinds.set(key, asked);
+
+          return json(asked);
+        }
+
+        kinds.delete(key);
 
         return done();
       }
@@ -561,6 +617,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     state,
     secrets,
     secretRoles,
+    kinds,
     profiles,
     hub,
     stop() {

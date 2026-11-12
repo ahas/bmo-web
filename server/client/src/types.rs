@@ -157,12 +157,25 @@ pub struct Secrets {
   pub secrets: Vec<Secret>,
 }
 
-/// A value written under a name, replacing the one the name holds only where `replace` says so.
+/// How a secret's `value` carries its bytes: as its own UTF-8 text, or as base64 under the standard alphabet,
+/// so a file that is not text reaches the store unchanged.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum SecretEncoding {
+  #[default]
+  Text,
+  Base64,
+}
+
+/// A value written under a name, replacing the one the name holds only where `replace` says so; `encoding` says
+/// how the value carries its bytes, text where it is absent.
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct SecretAsk {
   pub value: String,
   #[serde(default)]
   pub replace: bool,
+  #[serde(default)]
+  pub encoding: SecretEncoding,
 }
 
 // The value never reaches a log line through a debug print.
@@ -172,8 +185,44 @@ impl std::fmt::Debug for SecretAsk {
       .debug_struct("SecretAsk")
       .field("value", &format_args!("({} bytes)", self.value.len()))
       .field("replace", &self.replace)
+      .field("encoding", &self.encoding)
       .finish()
   }
+}
+
+/// How a secret kind's field is typed: one line, several lines, or a file.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum SecretInput {
+  Line,
+  Lines,
+  File,
+}
+
+/// One field of a secret kind: the key its line is written under in the file, the label a person reads,
+/// whether its value is masked as it is typed, how it is typed, and whether it is required.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SecretField {
+  pub key: String,
+  pub label: String,
+  pub masked: bool,
+  pub input: SecretInput,
+  pub required: bool,
+}
+
+/// A shape the console's secret form asks a value in, never a value (docs/accounts.md, 「Secret kinds」).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SecretKind {
+  pub key: String,
+  pub name: String,
+  pub description: String,
+  pub fields: Vec<SecretField>,
+}
+
+/// Every secret kind, in the order they were added.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SecretKinds {
+  pub kinds: Vec<SecretKind>,
 }
 
 /// The senders linked to a user.

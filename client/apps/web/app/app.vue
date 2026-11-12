@@ -9,6 +9,7 @@
     </NuxtLayout>
 
     <SettingsModal v-if="loggedIn" />
+    <SecretRequestHost v-if="loggedIn" />
     <MessageIsland />
     <CutLineTip />
   </UApp>

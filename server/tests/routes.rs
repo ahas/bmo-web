@@ -124,6 +124,8 @@ async fn the_health_answers_without_a_token_and_every_other_route_refuses_withou
     (Method::GET, "/rooms/-100/holdings"),
     (Method::GET, "/secrets"),
     (Method::PUT, "/secrets/a-name"),
+    (Method::GET, "/secret-kinds"),
+    (Method::POST, "/secret-kinds"),
   ] {
     for token in [None, Some("not the token")] {
       let (status, said) = asked(&app, method.clone(), path, None, token).await;

@@ -379,6 +379,7 @@
             :label="$t('room.label.messages')"
             :placeholder="composerPlaceholder"
             :mention="mentionSources"
+            :secrets="administrator"
             @escape="onEscape"
             @submit="send"
           >
@@ -469,6 +470,7 @@ import { bodyOf, copyChipsOf, messageRef, reportOf } from "~/domain/room-copy";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, forwardMessage as forwardCopy, mineReaction, pinMessage, reactTo, readPins as loadPins } from "~/domain/message-acts";
 import { TURN_ENDED, useBotEvents, useLiveRefresh, useReadFailure, useRoomRun } from "~/domain/events";
+import { firstOpening, handedLines, secretRequestsOf, useConsoleBases, useSecretForm, useSecretRequest, useSecretSaved } from "~/domain/secret-form";
 import { useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { useConfirm } from "~/domain/confirm";
@@ -1319,6 +1321,7 @@ watch(
 
     arrivals.value = new Set([...arrivals.value, ...rising]);
     void settleAnswers(settling);
+    openArrivedRequest(rising.map((key) => rows.get(key)).filter((row) => row !== undefined));
 
     // A message arriving while the reader stands away is counted on the way down.
     if (awayFromEnd.value) {
@@ -1331,6 +1334,37 @@ watch(
     }, 1000);
   }
 );
+
+// A request for a secret arriving at the end of the room open in front opens the form for its first request, once
+// for each message in this tab; one read in by paging or opening the room opens nothing (docs/web.md, the secret
+// store section).
+const secretForm = useSecretForm();
+const secretSaved = useSecretSaved();
+const consoleBases = useConsoleBases();
+const requestSecret = useSecretRequest();
+
+function openArrivedRequest(arrived: readonly FeedItem[]): void {
+  if (!administrator.value || document.visibilityState !== "visible" || secretForm.value.open || document.querySelector("[role=dialog]") !== null) {
+    return;
+  }
+
+  for (const row of arrived) {
+    const request = row.run === null && row.pending === null ? secretRequestsOf(row.text, row.formats, consoleBases.value)[0] : undefined;
+
+    if (request !== undefined && firstOpening(`${chatId}:${row.messageId}`)) {
+      requestSecret(request, chatId, row.sentAt);
+
+      return;
+    }
+  }
+}
+
+// A save from a request answered over this room puts the pack's line in it, the way words typed here go.
+watch(secretSaved, (saved) => {
+  if (saved === null || saved.target.kind !== "request" || saved.target.room !== String(chatId)) return;
+
+  void send({ text: handedLines(t, [saved.handed], true), files: [] }, false);
+});
 
 // Every row the feed is showing, in the order they stand.
 const rowKeys = computed<string[]>(() => days.value.flatMap((day) => day.items).map((item) => item.key));
@@ -2116,15 +2150,16 @@ onScopeDispose(release);
 
 // Pressing send puts the words and the files in the feed at once and hands them to the bot
 // afterwards, so nothing waits on the round trip. The box and the tray are emptied here
-// because what was in them is standing in the conversation now.
-async function send(message: ComposedMessage): Promise<void> {
+// because what was in them is standing in the conversation now. Words the console puts in the room
+// itself go the same road and leave the box, and the reply it holds, as they stand.
+async function send(message: ComposedMessage, fromBox = true): Promise<void> {
   if (message.files.some((file) => file.voice !== undefined) && message.files.length > 1) {
     island.say({ title: t("room.error.voice_with_files"), tone: "warning" });
 
     return;
   }
 
-  const fresh = outboxOf(message.text, message.files, toUnixSeconds(Date.now()), replyTarget.value);
+  const fresh = outboxOf(message.text, message.files, toUnixSeconds(Date.now()), fromBox ? replyTarget.value : null);
 
   if (fresh.length === 0) {
     return;
@@ -2148,15 +2183,18 @@ async function send(message: ComposedMessage): Promise<void> {
   );
 
   // Where each message rises from, read while the input box still holds it.
-  const starts = back ? [] : riseStarts(fresh);
+  const starts = back || !fromBox ? [] : riseStarts(fresh);
 
   if (!back) {
     bottom?.catchUp();
   }
 
   outbox.value = [...outbox.value, ...fresh];
-  composer.value?.clear({ keepPreviews: true });
-  replyTarget.value = null;
+
+  if (fromBox) {
+    composer.value?.clear({ keepPreviews: true });
+    replyTarget.value = null;
+  }
 
   if (back) {
     await scrollToBottom();

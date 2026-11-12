@@ -4559,7 +4559,8 @@ Four bounds keep it from growing forever.
   the rest follow as ordinary messages.
   - **The box carries one tool: the clip.** It takes files on every screen and in every room — a file goes in the way
     words do, as one send with the typed words as its caption, and a picture, a sound or a video picked there stands in
-    the room as it would from a phone. A phone's clip opens a menu that adds one file a tap. Nothing else stands beside
+    the room as it would from a phone — and in a room it hands the administrator's secrets too. It opens a menu
+    (「첨부」), and on a phone that menu adds one file a tap. Nothing else stands beside
     it: the voice note's own button and the sticker button are not shown, while the roads that carry a voice note, a
     sticker and a room's own tools stay in the console and on their routes, so what those roads carry still goes in by
     the ways that already had it.
@@ -4748,10 +4749,17 @@ Four bounds keep it from growing forever.
   screen, or paste from the clipboard. All three work and several may be pasted at once. What is pasted stands as
   a line with its name and size before sending, a photo with a preview, and can be removed one by one. Files go
   with no words at all — Enter or the send button sends them with the box empty.
-  - **The clip on a touch screen** opens a menu of two, since a phone's file picker chooses one file per tap:
-    **사진·동영상** opens the phone's own photo picker, where every tap adds a picture or a video to the choice,
-    and **파일** opens the file picker. On a screen with a mouse the clip opens the file picker at once. Both
-    pickers take several files in one choice.
+  - **The clip opens a menu.** On a touch screen it holds **사진·동영상**, which opens the phone's own photo picker,
+    where every tap adds a picture or a video to the choice, since a phone's file picker chooses one file per tap,
+    then **파일**, which opens the file picker; on a screen with a mouse it holds **파일**. In a room the menu ends
+    with **비밀**, for the administrator alone since the store refuses every other role, which opens the secret form
+    (「비밀 보관함」). A menu that would hold 파일 alone is no menu: the clip opens the file picker at once. Both pickers
+    take several files in one choice.
+  - **A secret handed in the box.** A save through 비밀 writes the store at once and leaves a chip in the tray naming
+    the secret and its kind, with its own way out, which takes the chip and nothing from the store. Sending puts the
+    pack's line naming each secret and its kind in the room after the words written with it, the way words go, so
+    a chip alone sends with the box empty. The chip is the box's alone: no draft, outbox or address holds it, and a
+    reload drops it while the secret stays stored.
   - **Several files are one send.** They go up together in one request, and the bot puts them into the room as
     Telegram albums, the way a phone sends several at once (the receiver's `docs/boundary-api.md`, `POST /say-file`): photos and
     videos as one album, documents as one, sounds as one, and a GIF alone, since Telegram puts none in an album.
@@ -6120,8 +6128,8 @@ dialog open at 계정.
     puts the control under it, at the right.
   - Everything in it takes effect as it is changed: a choice, a switch. Nothing
     waits for a save, and the dialog closes at once. Its forms are each a dialog of its own, with its own
-    저장 at its foot: the name and the password and the profile opened from 계정, and a secret opened from
-    비밀 보관함.
+    저장 at its foot: the name and the password and the profile opened from 계정, and a secret and a secret kind
+    opened from 비밀 보관함.
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
@@ -6304,27 +6312,75 @@ folder every unit reads its secrets from by file name, written by the server's s
 - **보관된 비밀** lists every secret the store holds, one row each: its name as the row's label, and under it its size
   in bytes and when it last changed. Nothing of a value is read or shown: no route of the console or the server
   answers one. A store holding none says 보관된 비밀 없음.
-  - Each row carries 교체, which opens the form on that name with replacing already chosen, and 삭제, which asks
-    first, naming the secret and that its value is kept as `<name>.previous`; a delete that goes through takes the
-    row away.
-- **비밀 추가** opens the form, a dialog of its own (「Forms」): 이름 and 값.
+  - Each row carries 교체, which opens the secret form on that name with replacing already chosen, and 삭제, which
+    asks first, naming the secret and that its value is kept as `<name>.previous`; a delete that goes through takes
+    the row away.
+- **비밀 추가** opens the secret form (below), the same form the composer's clip and an agent's request open.
+- **비밀 종류** lists the kinds the form asks a value in (`docs/accounts.md`, 「Secret kinds」), one row each in the
+  order they were added: the kind's name as the row's label, its description and its fields' keys under it, and 편집
+  and 삭제. 삭제 asks first, naming the kind and that no secret stored is touched.
+  - **종류 추가** and 편집 open the kind's form, a dialog of its own (「Forms」): 키, for a kind being added alone, in
+    English lower case letters, digits and hyphens, beginning with a letter; 이름; 설명; and 항목, the fields, each a
+    row of its 키, 이름, 입력 (한 줄, 여러 줄 or 파일), 값 숨김 and 필수, removed by its own mark, with 항목 추가 under
+    them. A rule the kind breaks is said under the field it names, and 저장 stays off while one is broken.
+- **The secret form** is one dialog (「Forms」), whichever way it opens: 종류, 이름, the kind's fields and 저장 at its
+  foot.
+  - 종류 lists every kind by its name, and 직접 구성 last; the chosen kind's description stands under the list.
+    Choosing one stands its fields under 이름, each under its label, a required one marked so.
+  - A 한 줄 field is one box, a password box with the browser's filling turned off where its value is hidden, shown
+    as dots alone. A 여러 줄 field is a box that grows with its text, its letters drawn as dots where its value is
+    hidden, with 파일에서 불러오기 under it, which reads a chosen file into the box as text. A 파일 field chooses a file
+    and shows its name and size.
+  - 직접 구성 stands the fields as a list of their own: 항목 추가 adds a row of 키, 입력 and 값 숨김, its value box under
+    it, each row removed by its own mark, under the rules a kind is held to. **종류로 저장**, a switch, keeps the
+    fields as a new kind under the 키 and the 종류 이름 written under it; the kind is added before the value goes, and
+    a kind refused stops the save with its reason.
   - 이름 takes a plain file name, English letters, digits, `.`, `_` and `-`, beginning with no dot and not ending in
-    `.previous`; another is said under the field and 저장 stays off.
-  - 값 is a password box with the browser's filling turned off: what is pasted is shown as dots alone, and it is sent
-    as it was pasted.
-  - A name the list holds already shows 기존 값 교체 under 이름, a switch that starts off, and 저장 stays off until it
-    is on; a name new to the list shows nothing there.
-  - 저장 sends the name, the value and whether to replace. The value box is emptied as soon as the answer comes,
-    whether the save went through or was refused. A save that went through closes the dialog and the row stands with
-    its new size and time; a refusal stays in the dialog with its reason under the form.
+    `.previous`; another is said under the field and 저장 stays off. A name the list holds already shows 기존 값 교체
+    under 이름, a switch that starts off, and 저장 stays off until it is on; a name new to the list shows nothing
+    there.
+  - **The file follows the fields** (`docs/accounts.md`, 「Secret kinds」): a kind of one field writes its value alone,
+    as it was typed or pasted; one of several writes a `KEY=VALUE` line for each field holding a value, in the
+    kind's order, the value as typed; a 파일 field writes the file's bytes unchanged. 저장 stays off while a required
+    field is empty, and an optional one left empty writes no line.
+  - 저장 sends the name, the file and whether to replace, and nothing else. The value boxes are emptied, and a file
+    chosen let go, as soon as the answer comes, whether the save went through or was refused. A save that went
+    through closes the dialog; a refusal stays in the dialog with its reason under the form.
+- **An agent's request is an address.** `?secret=<name>` on any address of the console opens the secret form over that
+  screen, filled in: the name; the kind `kind=<key>` names, or, where `fields=<KEY>,<KEY>*` stands instead, those
+  fields under 직접 구성, each one line, a key ending in `*` hidden; and `for=<purpose>`, which stands as a line at the
+  form's head saying what the secret is for. A kind the console holds none of leaves 종류 unchosen. The keys are taken
+  off the address as the form opens, as `?settings=` is (「Settings」), so the back gesture closes the form and the
+  page stays where it was.
+  - **The address an agent writes** is its room's screen under the console's public address, which the console's
+    settings name (`NUXT_PUBLIC_CONSOLE_ADDRESS`, `docs/boundary.md`, 「Settings」) and the agent is given in its own,
+    with these keys; so the same link pressed in Telegram opens the console at that room with the form.
+  - **A reader who is not the administrator** is told in the pill that the store is the administrator's, and no form
+    opens.
+- **A request in a room stands as a request.** A message whose words carry a link to such an address — under the
+  console's public address or the address the console is being read at — stands each one under its words as a
+  highlighted line: a key mark, 비밀 요청, the name, the kind's name or the fields' keys, and the purpose where the link
+  carries one. Pressing the line, or the link among the words, opens the form in place, with no navigation.
+  - Once the store holds the name, changed at or after the message's time, the line reads 저장됨; a press opens the
+    form again, with replacing chosen. A member's line never reads saved, and a press answers the refusal.
+  - **A request arriving opens the form by itself, once.** A message carrying one that arrives at the end of a room
+    whose screen is open and in front — the tab shown, nothing open over the screen — opens the form for its first
+    request. Closing the form leaves the line to press later, and the same message never opens it again in this tab;
+    a message read in by opening the room, paging or going to it opens nothing.
+  - **A save answers the room.** A save from a request opened over a room's screen puts the pack's line naming the
+    secret and its kind in that room, by the room's own road as words typed there, and the request's line then
+    reads 저장됨. A save from the composer leaves its chip (「첨부」), and one from this section puts nothing in any
+    room.
 - **The value goes nowhere but the store.** It is never put in the address, the tab's kept state, the browser's
-  storage or a draft (「Unsent words」). The console's route that writes takes the name and the value in its body,
-  never in its address, so nothing typed into the form stands in an address a proxy logs; it hands them to the server
-  and answers what the server answered, the name, the size and the time, and neither the route nor the server logs a
-  body. A delete names in its address only a name the list already shows.
-- **The administrator's alone.** A member is not shown the section, and the console's routes for it answer them as
-  if nothing stood there (「Access」); the console hands each call on with the login's role, which the server holds
-  to `administrator` itself.
+  storage, a draft (「Unsent words」), the outbox, a chip or a line put in a room; a kind holds its fields' shapes and
+  never a value. The console's route that writes takes the name and the value in its body, never in its address, so
+  nothing typed into the form stands in an address a proxy logs; it hands them to the server and answers what the
+  server answered, the name, the size and the time, and neither the route nor the server logs a body. A file that is
+  not text goes as base64, and the server writes its bytes. A delete names in its address only a name the list
+  already shows.
+- **The administrator's alone.** A member is not shown the section, the clip's 비밀 or the form, and the console's
+  routes for the store and its kinds answer them as if nothing stood there (「Access」); the console hands each call on
+  with the login's role, which the server holds to `administrator` itself.
 
 ### Messages
 

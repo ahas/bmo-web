@@ -22,6 +22,7 @@ pub mod profiles;
 pub mod receiver;
 pub mod routes;
 pub mod rules;
+pub mod secret_kinds;
 pub mod secrets;
 pub mod sections;
 pub mod settings;

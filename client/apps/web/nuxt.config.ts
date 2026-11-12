@@ -81,6 +81,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       chatAgent: { name: "", label: "" },
+      // The console's public address, its scheme, public name and base path, set at run time as
+      // `NUXT_PUBLIC_CONSOLE_ADDRESS`: a link under it is read as the console's own (docs/web.md, the secret store section).
+      consoleAddress: "",
       // The installed app's shell version, which the shell-version module states as the build stands.
       shellVersion: ""
     }

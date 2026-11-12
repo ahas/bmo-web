@@ -1,6 +1,6 @@
 //! The secret store (docs/accounts.md, 「The secret store」; docs/boundary.md, 「The secret store」) on a temporary
 //! folder standing in for the data root's `env/`: the modes a write leaves, the value kept before, the names
-//! refused, and that no answer and no refusal carries a value — the store by itself, and its routes as a caller
+//! refused, a base64 value written as its bytes, and that no answer and no refusal carries a value — the store by itself, and its routes as a caller
 //! asks them, with the role the console hands on.
 
 use crate::support;
@@ -12,6 +12,8 @@ use std::path::Path;
 use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
+use base64::Engine;
+use base64::engine::general_purpose::STANDARD;
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::secrets::{self, Store, Written, named};
 use http_body_util::BodyExt;
@@ -40,7 +42,7 @@ fn a_value_is_written_with_mode_600_into_a_folder_made_with_mode_700_and_listed_
 
   assert_eq!(store.list().unwrap(), vec![]);
 
-  let (kept, written) = store.put("openrouter.token", VALUE, false).unwrap();
+  let (kept, written) = store.put("openrouter.token", VALUE.as_bytes(), false).unwrap();
 
   assert_eq!(written, Written::Made);
   assert_eq!(kept.name, "openrouter.token");
@@ -59,15 +61,15 @@ fn a_name_that_stands_is_replaced_only_where_asked_and_its_value_is_kept_before(
   let (_root, env) = folder();
   let store = Store::at(&env);
 
-  store.put("mail.token", VALUE, false).unwrap();
+  store.put("mail.token", VALUE.as_bytes(), false).unwrap();
 
-  let refused = store.put("mail.token", OTHER_VALUE, false).unwrap_err();
+  let refused = store.put("mail.token", OTHER_VALUE.as_bytes(), false).unwrap_err();
 
   assert_eq!(refused.status, StatusCode::CONFLICT);
   assert_eq!(refused.code, "secret-exists");
   assert_eq!(fs::read_to_string(env.join("mail.token")).unwrap(), VALUE);
 
-  let (kept, written) = store.put("mail.token", OTHER_VALUE, true).unwrap();
+  let (kept, written) = store.put("mail.token", OTHER_VALUE.as_bytes(), true).unwrap();
 
   assert_eq!(written, Written::Replaced);
   assert_eq!(kept.bytes, OTHER_VALUE.len() as i64);
@@ -87,7 +89,7 @@ fn a_delete_moves_the_file_aside_and_a_name_that_stands_nowhere_is_not_found() {
   let (_root, env) = folder();
   let store = Store::at(&env);
 
-  store.put("drive.token", VALUE, false).unwrap();
+  store.put("drive.token", VALUE.as_bytes(), false).unwrap();
   store.remove("drive.token").unwrap();
 
   assert!(!env.join("drive.token").exists());
@@ -138,7 +140,7 @@ fn a_name_standing_as_a_folder_or_a_link_is_no_secret_and_is_neither_listed_nor_
   fs::write(env.join(".hidden"), VALUE).unwrap();
 
   for name in ["a-folder", "a-link", "kept"] {
-    let refused = store.put(name, OTHER_VALUE, true).unwrap_err();
+    let refused = store.put(name, OTHER_VALUE.as_bytes(), true).unwrap_err();
 
     assert_eq!(refused.status, StatusCode::CONFLICT, "{name}");
     assert_eq!(refused.code, "not-a-file", "{name}");
@@ -155,7 +157,7 @@ fn a_name_standing_as_a_folder_or_a_link_is_no_secret_and_is_neither_listed_nor_
 #[test]
 fn an_empty_value_is_refused() {
   let (_root, env) = folder();
-  let refused = Store::at(&env).put("empty", "", false).unwrap_err();
+  let refused = Store::at(&env).put("empty", b"", false).unwrap_err();
 
   assert_eq!(refused.status, StatusCode::BAD_REQUEST);
   assert_eq!(refused.code, "empty-value");
@@ -339,6 +341,31 @@ async fn a_body_or_a_name_that_does_not_read_is_refused_without_repeating_what_w
   assert_eq!(status, StatusCode::BAD_REQUEST);
   assert_eq!(read(&said)["code"], "empty-value");
   assert!(!env.exists());
+}
+
+#[tokio::test]
+async fn a_base64_value_is_written_as_the_bytes_it_decodes_to_and_one_that_does_not_decode_is_refused() {
+  let (_root, env) = folder();
+  let (_scratch, app) = app(&env).await;
+  // Bytes no UTF-8 text holds, as a key file or an archive carries them.
+  let bytes = [0x00, 0xff, 0xfe, 0x80, b'\n', 0xc3];
+  let ask = json!({ "value": STANDARD.encode(bytes), "encoding": "base64" }).to_string();
+  let (status, made) =
+    asked(&app, Method::PUT, "/secrets/agent-a.key", Some(ask), Some("administrator")).await;
+
+  assert_eq!(status, StatusCode::CREATED, "{made}");
+  assert_eq!(read(&made)["bytes"], bytes.len());
+  assert_eq!(fs::read(env.join("agent-a.key")).unwrap(), bytes);
+
+  let undecodable = "not base64, and never answered!";
+  let ask = json!({ "value": undecodable, "encoding": "base64" }).to_string();
+  let (status, said) =
+    asked(&app, Method::PUT, "/secrets/agent-b.key", Some(ask), Some("administrator")).await;
+
+  assert_eq!(status, StatusCode::BAD_REQUEST);
+  assert_eq!(read(&said)["code"], "bad-value");
+  assert!(!said.contains(undecodable), "{said}");
+  assert!(!env.join("agent-b.key").exists());
 }
 
 #[tokio::test]

@@ -1,7 +1,7 @@
 <!-- One machine on the monitor overview (docs/web.md, 「Monitor screen」): its own mark and name, its
      connection type, each GPU by its short name, one row holding a bar for each GPU's VRAM and one for
-     RAM with their figures in their physical units and their fill after them, small, beside a small
-     copy of its chip at one height on every tile, and two charts of the last minute, use and temperature, each drawing the
+     RAM with their figures in their physical units, small, beside a narrow small copy of its chip at one
+     height on every tile, a line for the CPU and each GPU with its latest use and temperature, and two charts of the last minute, use and temperature, each drawing the
      CPU and every GPU on one axis, filled from the machine's live record. The reading is the
      overview's one recorded answer for every tile, so no tile asks for itself. What the machine is,
      its OS and its CPU's model, and its storage devices stand only on the machine's own monitor, so a
@@ -43,11 +43,14 @@
 
       <SkeletonStatus v-else-if="initial" as="div" :label="$t('common.status.loading_named', { name: name ?? machineKindWord($t, machine.kind) })" class="flex flex-col gap-4">
         <SkeletonBar class="h-5 w-40 max-w-full" />
-        <div class="grid grid-cols-2 items-start gap-x-4">
+        <div class="grid grid-cols-[4fr_1fr] items-start gap-x-4">
           <div class="flex flex-col gap-2">
             <SkeletonBar v-for="n in 2" :key="n" class="h-8 w-full" />
           </div>
           <SkeletonBar class="h-20 w-full rounded-none" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <SkeletonBar v-for="n in 2" :key="n" class="h-5 w-full" />
         </div>
         <div class="grid grid-cols-2 gap-x-4">
           <div v-for="n in 2" :key="n" class="flex flex-col gap-1">
@@ -69,17 +72,30 @@
         </dl>
 
         <!-- The memories and the chip share one row, the bars in the first column and the chip in the second. -->
-        <div class="grid grid-cols-2 items-start gap-x-4" data-tile-figures>
-          <HardwareMeters shares small :class="hardware.cpu.chip === null ? 'col-span-2' : ''">
-            <HardwareMeter v-for="gpu in hardware.gpus" :key="gpu.index" :label="hardware.gpus.length > 1 ? `VRAM ${gpu.index}` : 'VRAM'" :value="vramText($t, gpu.memoryUsedMb, gpu.memoryTotalMb)" :widest="vramWidest($t, gpu.memoryTotalMb)" :share="gpu.memoryShare" :heat="fillHeat(gpu.memoryShare)" :criteria="fillCriteria($t)" percent />
-            <HardwareMeter label="RAM" :value="fillText($t, hardware.memory.usedKb, hardware.memory.totalKb)" :widest="fillWidest($t, hardware.memory.totalKb)" :share="hardware.memory.share" :heat="fillHeat(hardware.memory.share)" :criteria="fillCriteria($t)" percent />
+        <div class="grid grid-cols-[4fr_1fr] items-start gap-x-4" data-tile-figures>
+          <HardwareMeters small :class="hardware.cpu.chip === null ? 'col-span-2' : ''">
+            <HardwareMeter v-for="gpu in hardware.gpus" :key="gpu.index" :label="hardware.gpus.length > 1 ? `VRAM ${gpu.index}` : 'VRAM'" :value="vramText($t, gpu.memoryUsedMb, gpu.memoryTotalMb)" :widest="vramWidest($t, gpu.memoryTotalMb)" :share="gpu.memoryShare" :heat="fillHeat(gpu.memoryShare)" :criteria="fillCriteria($t)" />
+            <HardwareMeter label="RAM" :value="fillText($t, hardware.memory.usedKb, hardware.memory.totalKb)" :widest="fillWidest($t, hardware.memory.totalKb)" :share="hardware.memory.share" :heat="fillHeat(hardware.memory.share)" :criteria="fillCriteria($t)" />
           </HardwareMeters>
 
           <HardwareChip v-if="hardware.cpu.chip !== null" :chip="hardware.cpu.chip" :limit="cpuLimitOf(reading)?.celsius ?? null" compact />
         </div>
 
+        <!-- Each piece on one line, its use and temperature after its name, each figure as wide as its widest form. -->
+        <ul class="flex flex-col gap-1 text-sm" data-tile-pieces>
+          <li v-for="piece in pieces" :key="piece.key" class="flex min-w-0 items-center justify-between gap-2">
+            <span class="min-w-0 truncate" :class="piece.colour">{{ piece.label }}</span>
+            <span class="shrink-0 whitespace-nowrap tabular-nums" :class="piece.read ? '' : 'text-muted'">
+              <SteadyFigure :widest="USE_WIDEST">{{ piece.use }}</SteadyFigure>
+              <span class="text-muted"> · </span>
+              <SteadyFigure :widest="tempWidest">{{ piece.temp }}</SteadyFigure>
+            </span>
+          </li>
+        </ul>
+
         <div class="grid grid-cols-2 gap-x-4">
           <HardwareLiveChart
+            :legend="false"
             v-for="figure in figures"
             :key="figure.metric"
             :label="figure.label"
@@ -102,7 +118,7 @@
 <script setup lang="ts">
 import { identityMark } from "~/domain/avatars";
 import { livePoints } from "~/domain/hardware-chart";
-import { celsiusText, cpuLimitOf, fillCriteria, fillHeat, fillText, fillWidest, gpuShortName, LIVE_CHART_SECONDS, LIVE_GAP_SECONDS, machineIcon, machineKindWord, machineName, percentValue, seriesColour, UNREAD, useHardwareTracking, useMachineLive, vramText, vramWidest } from "~/domain/hardware";
+import { celsiusText, cpuLimitOf, wholeCelsiusText, fillCriteria, fillHeat, fillText, fillWidest, gpuShortName, LIVE_CHART_SECONDS, LIVE_GAP_SECONDS, machineIcon, machineKindWord, machineName, percentValue, seriesColour, UNREAD, useHardwareTracking, useMachineLive, vramText, vramWidest } from "~/domain/hardware";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { formatTime } from "bmo-ui/app/domain/time";
 
@@ -138,6 +154,35 @@ function liveSeries(metric: string): LiveSeries[] {
 
   return pieces.map((piece, place) => ({ ...piece, colour: seriesColour(place), points: livePoints(live.points.value, piece.key) }));
 }
+
+// The widest a use reads, and a temperature, so a figure changing never moves the line.
+const USE_WIDEST = "100%";
+const tempWidest = computed(() => wholeCelsiusText(t, 100));
+
+// The CPU and every GPU on a line each: its use and its temperature, each its latest reading, a dash where none was read.
+const pieces = computed(() => {
+  const use = figures.value[0]!.series;
+  const temp = figures.value[1]!.series;
+  const last = (one: LiveSeries | undefined): number | null => {
+    const point = one?.points.findLast((reading) => reading !== null);
+
+    return point === undefined || point === null ? null : point.value;
+  };
+
+  return use.map((one, place) => {
+    const used = last(one);
+    const heat = last(temp[place]);
+
+    return {
+      key: one.key,
+      label: one.label,
+      colour: one.colour.text,
+      read: used !== null || heat !== null,
+      use: used === null ? t(UNREAD) : percentValue(used),
+      temp: wholeCelsiusText(t, heat)
+    };
+  });
+});
 
 const figures = computed(() => [
   { metric: "use", label: t("hardware.label.usage"), series: liveSeries("use"), format: percentValue },

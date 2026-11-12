@@ -2471,13 +2471,16 @@ archive and this week's tokens remain. That is all that can actually be known th
   - its name, its live tracking switch (bmo-node's `docs/hardware.md`, 「Tracking」) and its connection type —
     SSH or Jake for a node, 로컬 for this machine;
   - each GPU by its short model name, the maker's and the brand's words dropped (`RTX 3070`);
-  - one row of two columns: in the first a bar for each GPU's VRAM and one for RAM, each with its figures in
-    their physical units and its fill after them, in the small size so they fit the half width, the bar on a line
-    of its own under them; in the second a small copy of its chip at one height on every tile. A machine whose
-    chip is not read gives the bars the whole row;
+  - one row of two columns, the first four times as wide as the second: in the first a bar for each GPU's VRAM
+    and one for RAM, each with its figures in their physical units and no share beside them, in the small size, the
+    bar on a line of its own under them; in the second a small copy of its chip at one height on every tile. A
+    machine whose chip is not read gives the bars the whole row;
+  - one line for the CPU and one for every GPU, each its name in its line's colour and its latest use and
+    temperature after it, a middle dot between them — 「CPU 1% · 34°C」 — each figure in the width of its widest
+    form so nothing moves as it changes;
   - two live charts side by side over the last minute (bmo-node's `docs/hardware.md`, 「Live」), 사용률 and 온도,
-    each drawing the CPU and every GPU as lines of their own colours on one axis, with each one's name in its
-    line's colour beside its latest value.
+    each drawing the CPU and every GPU as lines of their own colours on one axis, the lines above carrying their
+    latest values, so a chart stands its name alone over its drawing.
 - The OS, the CPU's model and the storage devices stand only on the machine's own monitor, so a tile's height
   never turns on its disks or its cores. A tile opens the machine's own monitor from anywhere on it but its
   switch: `/monitor/local` for this machine, `/monitor/<node>` for a node. A machine that cannot be read says so

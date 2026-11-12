@@ -1,13 +1,13 @@
 <!-- One figure of several pieces of one machine over the last minute (docs/web.md, 「Monitor
      screen」): a line for each piece on one axis from nought to its top, each in its own hue and
-     broken where it was not read. Over it stands the figure's name, then each piece's name in its
-     line's colour with its latest value. Hovering or touching it stands a guide on the nearest
+     broken where it was not read. Over it stands the figure's name, then, where the chart carries its
+     own legend, each piece's name in its line's colour with its latest value. Hovering or touching it stands a guide on the nearest
      reading with its time and every piece's value there. -->
 <template>
   <figure class="flex min-w-0 flex-col gap-1">
     <figcaption class="flex min-w-0 flex-col gap-1 text-sm">
       <span class="truncate text-muted">{{ label }}</span>
-      <span v-for="one in series" :key="one.key" class="flex min-w-0 items-center justify-between gap-2">
+      <span v-for="one in legend ? series : []" :key="one.key" class="flex min-w-0 items-center justify-between gap-2">
         <span class="min-w-0 truncate" :class="one.colour.text">{{ one.label }}</span>
         <span class="shrink-0 whitespace-nowrap tabular-nums" :class="latest(one) === null ? 'text-muted' : ''">{{ latest(one) ?? empty }}</span>
       </span>
@@ -50,9 +50,11 @@ import { chartExtent, chartRuns, chartTop, chartX, linePath, nearestPoint } from
 
 import type { ChartFrame, LiveSeries } from "~/domain/hardware-chart";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   label: string;
   series: LiveSeries[];
+  // Whether each piece's name and latest value stand over the drawing; a place that says them elsewhere hides them.
+  legend?: boolean;
   // The instants the axis runs between.
   from: number;
   to: number;
@@ -65,7 +67,7 @@ const props = defineProps<{
   empty: string;
   // What a reader of the drawing is told it shows.
   summary: string;
-}>();
+}>(), { legend: true });
 
 const WIDTH = 1000;
 const HEIGHT = 100;

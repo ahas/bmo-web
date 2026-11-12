@@ -113,6 +113,24 @@ describe.skipIf(!origin || !touchReady())("the monitor's devices tab", () => {
       await page.waitForFunction(() => document.querySelectorAll("[data-machine-tile] figure svg path").length > 0, undefined, { timeout: 10_000 });
       expect(await page.locator("[data-machine-tile] figure svg path").count()).toBeGreaterThan(0);
 
+      // Each piece stands on one line, its use and temperature after its name with a middle dot between, and the
+      // memory bars take four parts of the row to the chip's one (docs/web.md, 「Monitor screen」).
+      const first = page.locator("[data-machine-tile] [data-tile-pieces] li").first();
+      const line = (await first.innerText()).replace(/\s+/g, " ").trim();
+
+      expect(line).toMatch(/^CPU \d+% · \d+°C$/);
+      // It is one line on the screen, its figures beside each other rather than stacked.
+      expect((await first.boundingBox())!.height).toBeLessThan(28);
+
+      const columns = await page.locator("[data-machine-tile] [data-tile-figures]").first().evaluate((row) => getComputedStyle(row).gridTemplateColumns.split(" ").map(parseFloat));
+
+      expect(columns[0]! / columns[1]!).toBeGreaterThan(3.5);
+
+      // With the chip narrow and no shares beside them, the memories' names and figures stand whole.
+      const clipped = await page.locator("[data-machine-tile] [data-tile-figures] dl span").evaluateAll((all) => all.filter((one) => one.scrollWidth > one.clientWidth + 1).map((one) => one.textContent));
+
+      expect(clipped).toEqual([]);
+
       const batch = await askedFrom(page, "batch");
 
       expect(await askedFrom(page, "machine")).toEqual([]);

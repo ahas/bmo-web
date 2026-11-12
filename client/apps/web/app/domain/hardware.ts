@@ -214,6 +214,11 @@ export function celsiusText(t: Translate, celsius: number | null): string {
   return celsius === null ? t(UNREAD) : `${celsius.toFixed(1)} °C`;
 }
 
+/** A temperature in whole degrees, for a line that sums a piece up beside its use: 「34°C」. */
+export function wholeCelsiusText(t: Translate, celsius: number | null): string {
+  return celsius === null ? t(UNREAD) : `${Math.round(celsius)}°C`;
+}
+
 export function wattsText(t: Translate, watts: number | "denied" | null): string {
   return typeof watts === "number" ? `${wattsFigure(watts)} W` : t(UNREAD);
 }

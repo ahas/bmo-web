@@ -141,6 +141,12 @@ describe("a page of older lines", () => {
     expect(page).toMatchObject({ next: null, head: "c9", gap: false });
   });
 
+  test("puts the manager's lines about a category's slice under that category", async () => {
+    const { run } = standInMachine([{ cursor: "c1", unit: "init.scope", slice: "-.slice", about: "bmo-backup.slice", message: "Created slice bmo-backup.slice." }]);
+
+    expect((await readOlderLogLines(ALL, null, reading(run))).lines.map((one) => [one.unit, one.category])).toEqual([["bmo-backup.slice", "backup"]]);
+  });
+
   test("stops at the page's size and goes on from its last line, and the next page names no head", async () => {
     const { run, calls } = standInMachine(journal);
     const first = await readOlderLogLines(ALL, null, reading(run), 3);

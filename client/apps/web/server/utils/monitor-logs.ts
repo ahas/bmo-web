@@ -189,7 +189,8 @@ async function lineOf(entry: JournalEntry, reading: LogReading): Promise<LogLine
 
   if (unit === null || !unit.startsWith(reading.prefix)) return null;
 
-  const slice = entry.managerUnit === null ? entry.slice : await reading.slices.sliceOf(unit);
+  // A category's slice is the category itself, so the manager's lines about it stand under the category it names.
+  const slice = unit.endsWith(SLICE_SUFFIX) ? unit : entry.managerUnit === null ? entry.slice : await reading.slices.sliceOf(unit);
 
   return {
     id: entry.cursor,

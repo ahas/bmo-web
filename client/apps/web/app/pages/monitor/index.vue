@@ -3,7 +3,9 @@
      The tab stands in the address, so a link opens it and moving between them is a step of the history; only the open
      tab reads anything. The logs tab's filters stand at the right end of the same row. -->
 <template>
-  <UDashboardPanel id="monitor" :ui="{ body: '[&>*]:max-w-none' }">
+  <!-- The logs are a log, so they reach the panel's edges with no padding round them; the other tabs keep the
+       panel's room. -->
+  <UDashboardPanel id="monitor" :ui="{ body: tab === 'logs' ? 'p-0 sm:p-0 [&>*]:max-w-none' : '[&>*]:max-w-none' }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.monitor')" icon="i-material-symbols-monitor-heart-outline" />
 
@@ -20,7 +22,7 @@
           :aria-label="$t('hardware.aria.monitor_tabs')"
           @update:model-value="(value: string | number) => setTab(String(value))"
         />
-        <MonitorLogFilters v-if="tab === 'logs'" class="shrink-0 ps-2 pe-2 sm:pe-0" />
+        <MonitorLogFilters v-if="tab === 'logs'" class="shrink-0 ps-2 pe-4 sm:pe-0" />
       </div>
     </template>
 

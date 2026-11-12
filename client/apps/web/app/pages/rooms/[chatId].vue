@@ -62,7 +62,7 @@
           <div
             ref="roomRow"
             :class="[
-              'pointer-events-auto flex h-12 min-w-0 items-center gap-2 ps-2 pe-4 transition-[opacity,visibility] sm:ps-4',
+              'pointer-events-auto flex h-12 min-w-0 items-center gap-2 px-4 transition-[opacity,visibility]',
               choosingMotion,
               barGrown ? 'invisible opacity-0' : ''
             ]"

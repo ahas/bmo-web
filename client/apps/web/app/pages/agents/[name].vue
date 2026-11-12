@@ -14,7 +14,7 @@
       <!-- The screen's own row under the bar (docs/web.md, 「Agent screen」): what this agent is doing at its left — its
            group, a supervisor's rooms, the uptime, a stop under way — and what acts on it at its right. On a phone it
            stays one line: the uptime goes behind the chart mark and the actions fold into the shared menu. -->
-      <div :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]" data-screen-row>
+      <div :class="['flex h-12 shrink-0 items-center gap-2 px-4', TAB_ROW_LINE]" data-screen-row>
         <div class="flex min-w-0 flex-1 items-center gap-2" data-screen-row-status>
           <span class="hidden shrink-0 text-sm text-muted sm:inline">{{ groupLabel($t, meta.group) }}</span>
 

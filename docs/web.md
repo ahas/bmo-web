@@ -2623,7 +2623,8 @@ archive and this week's tokens remain. That is all that can actually be known th
     pack does not name stands by its key, so a unit that brings a new category is shown before the pack has a
     word for it. The words are the console's; which unit stands under which category is the unit's.
   - A line the manager wrote about a unit takes the category of that unit, read from the slice that unit's own
-    lines carry and, for a unit that wrote none, from the slice systemd says it stands in.
+    lines carry and, for a unit that wrote none, from the slice systemd says it stands in; its lines about a
+    category's own slice stand under that category.
 - **The tab's row.** The filters stand at the right end of the monitor's own tab row, never on a row of their
   own: the category, one dropdown whose first choice is every category together, followed by each category and,
   under 서비스, each of its units by name; the level, one dropdown — every level, 오류, 경고, or 그 외; and the

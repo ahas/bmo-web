@@ -393,6 +393,9 @@ export function questionSettledNotice(t: Translate, by: QuestionSettler | null, 
 // How many lines of an agent's log one page carries, and how often the screen asks the
 // archive for what came after the last line it has. It asks the archive, not the bot.
 export const AGENT_LOG_PAGE_SIZE = 200;
+// How many of the newest lines an agent's log opens on at its end: enough to fill the screen, so it is laid out
+// and stood at its end at once, the rest read a page at a time as the reader scrolls up.
+export const AGENT_LOG_OPENING_SIZE = 50;
 export const AGENT_LOG_POLL_MS = 2_000;
 
 // How much of the list of searches one read carries, and the most one read may ever carry however

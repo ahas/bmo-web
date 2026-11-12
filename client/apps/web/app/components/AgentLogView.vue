@@ -7,7 +7,7 @@
       <p v-if="!log.older.value && shownRows.length > 0" class="text-sm text-dimmed">{{ $t("agents.message.log_start") }}</p>
     </div>
 
-    <ContentSkeleton v-if="log.loading.value && rows.length === 0" :rows="3" listClass="flex flex-col gap-3" :label="$t('agents.status.log_loading')">
+    <ContentSkeleton v-if="(log.loading.value || !opened) && rows.length === 0" :rows="3" listClass="flex flex-col gap-3" :label="$t('agents.status.log_loading')">
       <ProgressStepSkeleton />
     </ContentSkeleton>
     <!-- An empty log is the whole of the body, so its line stands in the middle of it. -->
@@ -19,7 +19,8 @@
 
     <!-- One agent's log, flat: a line after another in the order written, a run opening at its start line and ending at
          its end line with what it spent under it (docs/web.md, 「The log is flat」). -->
-    <ul v-if="shownRows.length > 0" class="flex flex-col gap-3" :aria-label="$t('agents.title.work_log')" data-agent-log>
+    <!-- Laid out unseen and stood at its opening place first, then shown, so nothing is seen scrolling. -->
+    <ul v-if="shownRows.length > 0" class="flex flex-col gap-3" :class="{ invisible: !opened }" :aria-label="$t('agents.title.work_log')" data-agent-log>
       <template v-for="row in shownRows" :key="row.key">
         <AgentLogRow :row="row" />
 
@@ -46,7 +47,7 @@
     <div ref="tail" class="min-h-1" />
 
     <!-- Once the reader has scrolled up off the end, a way back to it that follows the end again. -->
-    <div v-if="!stick && shownRows.length > 0" class="pointer-events-none sticky bottom-4 z-10 flex justify-end">
+    <div v-if="opened && !stick && shownRows.length > 0" class="pointer-events-none sticky bottom-4 z-10 flex justify-end">
       <UTooltip :text="$t('agents.action.to_end')">
         <UButton
           class="pointer-events-auto shadow-md"
@@ -80,6 +81,9 @@ import type { AgentLogLine, RunProgress } from "#shared/types";
 import type { LogPlace, LogRow } from "~/domain/log";
 import type { SpendChip } from "~/domain/turns";
 
+// The most frames the log is stood at its end for while its rows settle, before it is shown regardless.
+const SETTLE_FRAMES_MOST = 30;
+
 interface Props {
   name: string;
   // Where to open: at one run's place, or at the end of the log where it is still being written.
@@ -105,6 +109,10 @@ const log = useAgentLog(t, props.name, props.only);
 // Whether the reader is still at the newest line. New lines arrive while they read, so what
 // keeps the view at the end is this, not the scroll position.
 const stick = ref(true);
+
+// Whether the log stands at its opening place and is shown. Until then its lines are laid out unseen and nothing
+// above or below them is read, so the reader never sees it scroll into place.
+const opened = ref(false);
 
 const rows = computed(() => log.rows.value);
 
@@ -221,8 +229,8 @@ const following = ref(false);
 // failed; the failure above the log says why.
 const head = useTemplateRef<HTMLElement>("head");
 const tail = useTemplateRef<HTMLElement>("tail");
-const headBusy = computed(() => log.loading.value || log.loadingOlder.value);
-const tailBusy = computed(() => log.loading.value || following.value);
+const headBusy = computed(() => !opened.value || log.loading.value || log.loadingOlder.value);
+const tailBusy = computed(() => !opened.value || log.loading.value || following.value);
 const atHead = useFootInView(head, headBusy, { rootMargin: "200px" });
 const atTail = useFootInView(tail, tailBusy, { rootMargin: "200px" });
 
@@ -269,27 +277,54 @@ async function toEnd(): Promise<void> {
   await scrollToBottom();
 }
 
+// The lines stood at the end while they settle: a row's height can still change for a few frames after it is drawn
+// (its markdown, its chips), so the end is taken again each frame until the height holds for two frames in a row.
+async function settleAtEnd(): Promise<void> {
+  await nextTick();
+
+  const element = scroller();
+
+  if (element === null) return;
+
+  let held = 0;
+  let height = -1;
+
+  for (let frame = 0; frame < SETTLE_FRAMES_MOST && held < 2; frame += 1) {
+    element.scrollTop = element.scrollHeight;
+    held = element.scrollHeight === height ? held + 1 : 0;
+    height = element.scrollHeight;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  element.scrollTop = element.scrollHeight;
+  stick.value = true;
+}
+
 async function open(): Promise<void> {
   const asked = props.place;
 
-  if (asked === null || props.end) {
-    await log.load();
-    await scrollToBottom();
+  try {
+    if (asked === null || props.end) {
+      await log.load();
+      await settleAtEnd();
 
-    return;
+      return;
+    }
+
+    await log.loadAt(asked);
+    await nextTick();
+
+    // The run stands at the head of what was loaded, so the top of it is where the reader lands.
+    const element = scroller();
+
+    if (element !== null) {
+      element.scrollTop = 0;
+    }
+
+    stick.value = false;
+  } finally {
+    opened.value = true;
   }
-
-  await log.loadAt(asked);
-  await nextTick();
-
-  // The run stands at the head of what was loaded, so the top of it is where the reader lands.
-  const element = scroller();
-
-  if (element !== null) {
-    element.scrollTop = 0;
-  }
-
-  stick.value = false;
 }
 
 onMounted(async () => {

@@ -77,3 +77,28 @@ describe("reading on past either end of a log", () => {
     expect(source).toContain('<p v-if="!log.older.value && shownRows.length > 0" class="text-sm text-dimmed">');
   });
 });
+
+// Opened at its end, the log was drawn and then scrolled down where the reader could watch it travel, and the head
+// in view on the way read older pages that pushed the end further off. It is laid out unseen and stood at its end
+// first, nothing above it read until then, and only then shown.
+describe("opening a log at its end", () => {
+  test("lays its lines out unseen and shows them once they stand at the end", () => {
+    expect(source).toContain(':class="{ invisible: !opened }"');
+    expect(source).toContain("await settleAtEnd();");
+    expect(source).toContain("opened.value = true;");
+  });
+
+  test("reads nothing above or past its lines before it stands at its opening place", () => {
+    expect(source).toContain("const headBusy = computed(() => !opened.value ||");
+    expect(source).toContain("const tailBusy = computed(() => !opened.value ||");
+  });
+
+  test("stands at the end again each frame until the height holds", () => {
+    const at = source.indexOf("async function settleAtEnd()");
+    const body = source.slice(at, source.indexOf("\n}\n", at));
+
+    expect(body).toContain("element.scrollTop = element.scrollHeight;");
+    expect(body).toContain("held < 2");
+    expect(body).toContain("requestAnimationFrame");
+  });
+});

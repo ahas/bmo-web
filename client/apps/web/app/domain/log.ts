@@ -1,4 +1,4 @@
-import { AGENT_LOG_PAGE_SIZE, PAGING } from "#shared/config";
+import { AGENT_LOG_OPENING_SIZE, AGENT_LOG_PAGE_SIZE, PAGING } from "#shared/config";
 import { valueText } from "./value-text";
 import { failureText } from "bmo-ui/app/domain/errors";
 
@@ -525,8 +525,8 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
     return added;
   }
 
-  async function fetchPage(query: Record<string, number | string | undefined>): Promise<AgentLogPage> {
-    return await $fetch<AgentLogPage>(path, { query: { ...query, ...(run === null ? {} : { run }), limit: AGENT_LOG_PAGE_SIZE } });
+  async function fetchPage(query: Record<string, number | string | undefined>, limit = AGENT_LOG_PAGE_SIZE): Promise<AgentLogPage> {
+    return await $fetch<AgentLogPage>(path, { query: { ...query, ...(run === null ? {} : { run }), limit } });
   }
 
   async function load(): Promise<void> {
@@ -534,7 +534,8 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
     failure.value = null;
 
     try {
-      let page = await fetchPage({});
+      // The whole log opens on its newest lines alone, as many as fill a screen; a run's first page is its start.
+      let page = await fetchPage({}, run === null ? AGENT_LOG_OPENING_SIZE : AGENT_LOG_PAGE_SIZE);
 
       merge(page);
 

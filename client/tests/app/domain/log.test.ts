@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
+import { AGENT_LOG_OPENING_SIZE, AGENT_LOG_PAGE_SIZE } from "../../../apps/web/shared/config";
 
 import { computed, ref } from "vue";
 
@@ -409,5 +410,35 @@ describe("a log feed scoped to one run", () => {
     expect(log.newer.value).toBe(false);
     expect(log.loading.value).toBe(false);
     expect(await log.loadOlder()).toBe(0);
+  });
+});
+
+// The whole log opens on as many of its newest lines as fill a screen, so it stands at its end at once; the older
+// ones come a full page at a time as the reader scrolls up.
+describe("a whole agent log opening at its end", () => {
+  test("asks for the opening size first and a full page for each older read", async () => {
+    const asked: Record<string, unknown>[] = [];
+    const pages: AgentLogPage[] = [
+      { lines: [line({ id: 20, kind: "text", run: "a" })], hasMore: true },
+      { lines: [line({ id: 19, kind: "text", run: "a" })], hasMore: false }
+    ];
+
+    Object.assign(globalThis, {
+      ref,
+      computed,
+      $fetch: async (_path: string, options: { query: Record<string, unknown> }) => {
+        asked.push(options.query);
+
+        return pages.shift()!;
+      }
+    });
+
+    const log = useAgentLog((key) => key, "coder-01");
+
+    await log.load();
+    await log.loadOlder();
+
+    expect(asked.map((query) => query.limit)).toEqual([AGENT_LOG_OPENING_SIZE, AGENT_LOG_PAGE_SIZE]);
+    expect(AGENT_LOG_OPENING_SIZE).toBeLessThan(AGENT_LOG_PAGE_SIZE);
   });
 });

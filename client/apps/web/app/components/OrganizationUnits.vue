@@ -42,7 +42,7 @@
           <SettingsRow v-if="chosen.heads.length === 0" :label="$t('organization.label.no_heads')" />
           <SettingsRow v-for="head in chosen.heads" :key="head" :label="nameOf(head)" data-unit-head>
             <UTooltip :text="$t('organization.action.remove_head', { name: nameOf(head) })">
-              <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-remove-outline" :aria-label="$t('organization.action.remove_head', { name: nameOf(head) })" :disabled="busy" @click="setHead(head, false)" />
+              <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-remove-outline" :aria-label="$t('organization.action.remove_head', { name: nameOf(head) })" :loading="working === `head:${head}`" :disabled="busy" @click="setHead(head, false)" />
             </UTooltip>
           </SettingsRow>
         </SettingsGroup>
@@ -56,6 +56,8 @@
             :search-input="{ placeholder: $t('organization.placeholder.find_person') }"
             :disabled="busy"
             class="w-full sm:w-64"
+            :ui="PICKER_UI"
+            :loading="working === 'heads'"
             data-unit-add-head
             @update:model-value="(user: unknown) => user && setHead(String(user), true)"
           />
@@ -74,7 +76,7 @@
                 <UButton color="neutral" variant="ghost" icon="i-material-symbols-computer-outline" :aria-label="$t('organization.label.machine', { name: nameOf(member) })" @click="openMachine(member)" />
               </UTooltip>
               <UTooltip :text="$t('organization.action.mark_left', { name: nameOf(member) })">
-                <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" :disabled="busy" @click="markLeft(member)" />
+                <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" :loading="working === `left:${member}`" :disabled="busy" @click="markLeft(member)" />
               </UTooltip>
             </div>
           </SettingsRow>
@@ -89,6 +91,8 @@
             :search-input="{ placeholder: $t('organization.placeholder.find_person') }"
             :disabled="busy"
             class="w-full sm:w-64"
+            :ui="PICKER_UI"
+            :loading="working === 'members'"
             data-unit-place
             @update:model-value="(user: unknown) => user && place(String(user))"
           />
@@ -204,6 +208,8 @@ const users = ref<UserSummary[]>([]);
 const failure = ref("");
 const formFailure = ref("");
 const busy = ref(false);
+// Which change of the unit is under way, so the control that asked for it spins until it is done.
+const working = ref<string | null>(null);
 
 function isCompany(unit: UnitRow): boolean {
   return unit.parent === undefined || unit.parent === null;
@@ -314,8 +320,9 @@ async function read(): Promise<void> {
 
 // A record of the unit changed as it is done, a head or a person; the units read again so the lists say so, and a
 // refusal said under them.
-async function acting(work: () => Promise<unknown>, said: Ref<string>): Promise<boolean> {
+async function acting(work: () => Promise<unknown>, said: Ref<string>, what: string | null = null): Promise<boolean> {
   busy.value = true;
+  working.value = what;
   said.value = "";
   try {
     await work();
@@ -328,19 +335,20 @@ async function acting(work: () => Promise<unknown>, said: Ref<string>): Promise<
     return false;
   } finally {
     busy.value = false;
+    working.value = null;
   }
 }
 
 function setHead(user: string, head: boolean): void {
   const unit = chosen.value?.id;
 
-  if (unit !== undefined) void acting(() => $fetch(`/api/organization/units/${unit}/heads/${encodeURIComponent(user)}`, { method: head ? "PUT" : "DELETE" }), failure);
+  if (unit !== undefined) void acting(() => $fetch(`/api/organization/units/${unit}/heads/${encodeURIComponent(user)}`, { method: head ? "PUT" : "DELETE" }), failure, head ? "heads" : `head:${user}`);
 }
 
 function place(user: string): void {
   const unit = chosen.value?.id;
 
-  if (unit !== undefined) void acting(() => $fetch(`/api/organization/users/${encodeURIComponent(user)}/unit`, { method: "PUT", body: { unit } }), failure);
+  if (unit !== undefined) void acting(() => $fetch(`/api/organization/users/${encodeURIComponent(user)}/unit`, { method: "PUT", body: { unit } }), failure, "members");
 }
 
 // A person marked left once the question is answered yes.
@@ -352,8 +360,11 @@ async function markLeft(user: string): Promise<void> {
     confirm: t("organization.action.mark_left_confirm")
   });
 
-  if (taken) await acting(() => $fetch(`/api/organization/users/${encodeURIComponent(user)}/leave`, { method: "POST" }), failure);
+  if (taken) await acting(() => $fetch(`/api/organization/users/${encodeURIComponent(user)}/leave`, { method: "POST" }), failure, `left:${user}`);
 }
+
+// A person picker's words name its action rather than hint at a value, so they read at the words' own colour.
+const PICKER_UI = { placeholder: "text-default" };
 
 // A new unit: a name and a parent, with no parent a new company. The parent chosen for none is `NEW_COMPANY`, since a
 // select item's value is never empty.

@@ -128,6 +128,101 @@ async function overflow(page: Page): Promise<number> {
   return await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 }
 
+// The contrast an element's words are drawn at against the ground under them, each colour read back as the browser
+// paints it and a translucent one laid over what stands beneath.
+async function contrast(page: Page, selector: string): Promise<{ text: string; ratio: number }[]> {
+  return await page.locator(selector).evaluateAll((elements) => {
+    const canvas = document.createElement("canvas");
+    const pen = canvas.getContext("2d", { willReadFrequently: true })!;
+
+    canvas.width = canvas.height = 1;
+
+    const painted = (colour: string): [number, number, number, number] => {
+      pen.clearRect(0, 0, 1, 1);
+      pen.fillStyle = colour;
+      pen.fillRect(0, 0, 1, 1);
+
+      const [r, g, b, a] = pen.getImageData(0, 0, 1, 1).data;
+
+      return [r!, g!, b!, a! / 255];
+    };
+    const over = (top: [number, number, number, number], under: [number, number, number]): [number, number, number] =>
+      [0, 1, 2].map((at) => top[at]! * top[3] + under[at]! * (1 - top[3])) as [number, number, number];
+    const ground = (element: Element | null): [number, number, number] => {
+      const layers: [number, number, number, number][] = [];
+
+      for (let one = element; one !== null; one = one.parentElement) {
+        const layer = painted(getComputedStyle(one).backgroundColor);
+
+        if (layer[3] > 0) layers.push(layer);
+        if (layer[3] === 1) break;
+      }
+
+      return layers.reverse().reduce<[number, number, number]>((under, layer) => over(layer, under), [255, 255, 255]);
+    };
+    const light = (rgb: [number, number, number]): number => {
+      const [r, g, b] = rgb.map((value) => {
+        const channel = value / 255;
+
+        return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+      });
+
+      return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+    };
+
+    return elements
+      .filter((element) => (element as HTMLElement).innerText.trim() !== "")
+      .map((element) => {
+        const under = ground(element);
+        const words = over(painted(getComputedStyle(element).color), under);
+        const [high, low] = [light(words), light(under)].sort((a, b) => b - a);
+
+        return { text: (element as HTMLElement).innerText.trim(), ratio: Math.round(((high! + 0.05) / (low! + 0.05)) * 100) / 100 };
+      });
+  });
+}
+
+// An element's ground at rest, under the pointer and pressed.
+async function grounds(page: Page, selector: string): Promise<{ rest: string; hover: string; press: string }> {
+  const target = page.locator(selector).first();
+  const read = async (): Promise<string> => await target.evaluate((one) => getComputedStyle(one).backgroundColor);
+
+  await page.mouse.move(0, 0);
+
+  const rest = await read();
+
+  await target.hover();
+
+  const hover = await read();
+
+  await page.mouse.down();
+
+  const press = await read();
+
+  // Let go away from it, so the press is no click and opens nothing.
+  await page.mouse.move(0, 0);
+  await page.mouse.up();
+
+  return { rest, hover, press };
+}
+
+// Whether an element reached by the keyboard draws a ring.
+async function ringed(page: Page, selector: string): Promise<{ visible: boolean; ring: string }> {
+  const target = page.locator(selector).first();
+
+  await page.keyboard.press("Shift");
+  await target.focus();
+
+  return await target.evaluate((one) => {
+    const style = getComputedStyle(one);
+    const outline = (from: CSSStyleDeclaration): string => (from.outlineStyle === "none" ? "" : `${from.outlineWidth} ${from.outlineStyle} ${from.outlineColor}`);
+    // A link the library rings on a pseudo-element in its place draws the console's ring there.
+    const drawn = [style, getComputedStyle(one, "::before"), getComputedStyle(one, "::after")].map(outline).find((ring) => ring !== "");
+
+    return { visible: one.matches(":focus-visible"), ring: drawn ?? (style.boxShadow === "none" ? "" : style.boxShadow) };
+  });
+}
+
 describe.skipIf(!origin || !touchReady())("the settings dialog and the organisation settings screen", () => {
   for (const [width, height] of [[1280, 900], [360, 780]] as const) {
     for (const scheme of ["light", "dark"] as const) {
@@ -138,6 +233,20 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           const page = await context.newPage();
 
           expect(await dialogSections(page, "/")).toEqual(ADMINISTRATOR_PERSONAL.map((key) => wording(key)));
+
+          // The console search finds each tab of the screen, and choosing one lands on it.
+          if (width >= 1024) {
+            await page.keyboard.press("Escape");
+            await page.getByRole("dialog").first().waitFor({ state: "hidden", timeout: 10_000 });
+            await page.keyboard.press("Control+K");
+            await page.keyboard.type(wording("settings.label.secrets"));
+
+            const hit = page.getByRole("option", { name: new RegExp(wording("settings.label.secrets")) }).first();
+
+            await hit.waitFor({ timeout: 10_000 });
+            await hit.click();
+            await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("tab") === "secrets", { timeout: 10_000 });
+          }
 
           // A link made before a section moved lands on its tab.
           await page.goto(`${origin}/?settings=providers`, { waitUntil: "load" });
@@ -177,6 +286,61 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await page.waitForURL((url) => url.searchParams.get("unit") === String(company), { timeout: 10_000 });
           await page.locator(`[data-unit-chosen="${company}"]`).waitFor({ timeout: 10_000 });
 
+          // On a phone the back gesture closes the tree's drawer and leaves the unit where it was.
+          if (width < 1024) {
+            await page.locator("[data-unit-tree-open]").click();
+
+            const drawer = page.getByRole("dialog").last();
+
+            await drawer.waitFor({ timeout: 10_000 });
+            await page.goBack();
+            await drawer.waitFor({ state: "hidden", timeout: 10_000 });
+            expect(new URL(page.url()).searchParams.get("unit")).toBe(String(company));
+          }
+
+          // Back on the team: its words read at 4.5:1 or better on their ground, the tree's too where it stands.
+          await page.goto(`${origin}/organization?unit=${team}`, { waitUntil: "load" });
+          await standing(page);
+          await chosen.waitFor({ timeout: 20_000 });
+
+          const low = (await contrast(page, `[data-unit-chosen="${team}"] :is(h2, span, p, button, [data-slot="label"]), [data-unit-tree] [data-slot="linkLabel"], [aria-label="${wording("organization.aria.tabs")}"] [role="tab"]`)).filter((one) => one.ratio < 4.5);
+
+          expect(low).toEqual([]);
+
+          // The buttons this screen draws change on hover and on press, and the keyboard rings them.
+          for (const selector of ["[data-unit-edit]", `[data-unit-chosen="${team}"] [data-unit-member] button`]) {
+            const seen = await grounds(page, selector);
+
+            expect({ selector, hover: seen.hover !== seen.rest, press: seen.press !== seen.rest }).toEqual({ selector, hover: true, press: true });
+          }
+
+          for (const selector of ["[data-unit-edit]", ...(width >= 1024 ? ["[data-unit-tree] [role=\"treeitem\"]"] : ["[data-unit-tree-open]"])]) {
+            const focus = await ringed(page, selector);
+
+            expect({ selector, visible: focus.visible, ringed: focus.ring !== "", width: focus.ring.startsWith("2px") || focus.ring.includes("0px 0px 0px 2px") }).toEqual({ selector, visible: true, ringed: true, width: true });
+          }
+
+          // A head taken away: the button that asked spins while the change is under way.
+          await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
+          await page.goto(`${origin}/organization?unit=${team}`, { waitUntil: "load" });
+          await standing(page);
+
+          let release: () => void = () => undefined;
+          const held = new Promise<void>((resolve) => (release = resolve));
+
+          await page.route(/\/api\/organization\/units\/\d+\/heads\//, async (route) => {
+            await held;
+            await route.continue();
+          });
+
+          const remove = page.locator(`[data-unit-chosen="${team}"] [data-unit-head] button`).first();
+
+          await remove.click();
+          await remove.locator(".animate-spin").waitFor({ timeout: 10_000 });
+          release();
+          await page.locator(`[data-unit-chosen="${team}"] [data-unit-head] button`).waitFor({ state: "detached", timeout: 10_000 });
+          await page.unroute(/\/api\/organization\/units\/\d+\/heads\//);
+
           // The unit's form has one save, shut while nothing differs.
           await page.locator("[data-unit-edit]").click();
 
@@ -214,6 +378,30 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await page.goto(`${origin}/organization`, { waitUntil: "load" });
           await standing(page);
           expect(await tabNames(page)).toEqual([wording("settings.label.invites")]);
+
+          // A head asks for a link into their unit, and the service takes the ask as theirs: a link stands among the
+          // open ones, or, where the deployment names no machine hub to bind the new account to, the service's
+          // refusal says so in the pack's words rather than that they may not invite.
+          const drop = page.getByRole("button", { name: wording("invites.action.drop"), exact: true });
+          const open = await drop.count();
+
+          await page.getByRole("button", { name: wording("invites.action.make"), exact: true }).click();
+
+          const answered = await page.waitForFunction(
+            ([name, before, refusal]) => {
+              const made = [...document.querySelectorAll("button")].filter((one) => one.textContent?.trim() === name).length === before + 1;
+              const refused = document.querySelector('[role="alert"]')?.textContent?.trim() === refusal;
+
+              return made ? "made" : refused ? "refused" : false;
+            },
+            [wording("invites.action.drop"), open, wording("invites.error.no_hub")] as const,
+            { timeout: 10_000 }
+          );
+
+          if ((await answered.jsonValue()) === "made") {
+            await drop.last().click();
+            await page.waitForFunction(([name, before]) => [...document.querySelectorAll("button")].filter((one) => one.textContent?.trim() === name).length === before, [wording("invites.action.drop"), open] as const, { timeout: 10_000 });
+          }
 
           if (width >= 1024) await entry.first().waitFor({ timeout: 20_000 });
 

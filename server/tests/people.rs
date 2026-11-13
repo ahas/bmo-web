@@ -252,3 +252,64 @@ async fn a_login_that_names_no_user_is_refused_and_an_empty_search_answers_nobod
   assert_eq!(status, StatusCode::OK, "{said}");
   assert!(people(&said).is_empty(), "{said}");
 }
+
+#[tokio::test]
+async fn the_members_list_is_the_whole_company_by_key_and_name_alone() {
+  ready();
+  let scratch = moved("member-f").await;
+  let app = app(&scratch).await;
+  let boss = owner(&app).await;
+  let member = one(scratch.db(), r#"SELECT "id" FROM "users" WHERE "username" = 'member-f'"#, vec![])
+    .await
+    .unwrap()
+    .unwrap()
+    .try_get::<i32>("", "id")
+    .unwrap();
+  let outside = set_sign_in(scratch.db(), "outsider", "the password", false).await.unwrap().user;
+  let other = one(
+    scratch.db(),
+    r#"INSERT INTO "organizations" ("name") VALUES ('elsewhere') RETURNING "id""#,
+    vec![],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get::<i32>("", "id")
+  .unwrap();
+
+  scratch
+    .run(
+      r#"UPDATE "users" SET "organization_id" = $1 WHERE "id" = $2"#,
+      vec![other.into(), outside.into()],
+    )
+    .await;
+
+  // A member reads every person of their company, the administrator and themselves among them, each by key and
+  // name and nothing else, and nobody of another company.
+  let key = member.to_string();
+  let (status, said) = asked(&app, "/users/members", Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let members = said["members"].as_array().expect("members is a list");
+  let keys: Vec<&str> = members.iter().map(|one| one["user"].as_str().unwrap()).collect();
+
+  assert!(keys.contains(&key.as_str()), "{said}");
+  assert!(keys.contains(&boss.as_str()), "{said}");
+  assert!(!keys.contains(&outside.to_string().as_str()), "{said}");
+  for one in members {
+    let mut fields: Vec<&str> = one.as_object().unwrap().keys().map(String::as_str).collect();
+
+    fields.sort_unstable();
+    assert_eq!(fields, vec!["name", "user"], "{said}");
+  }
+  let named = members.iter().find(|one| one["user"] == key.as_str()).unwrap();
+
+  assert_eq!(named["name"], "member-f", "{said}");
+
+  // A call naming no user of the deployment is refused, as a search is.
+  for key in [None, Some("999999")] {
+    let (status, said) = asked(&app, "/users/members", key, Some("member")).await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+  }
+}

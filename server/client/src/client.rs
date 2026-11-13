@@ -150,6 +150,17 @@ impl AccountClient {
     .await
   }
 
+  /// `GET /users/members`, asked as the login `key` acts for in `role`.
+  pub async fn members(&self, key: &str, role: &str) -> Answer<Members> {
+    Self::answered(
+      self
+        .request(Method::GET, &["users", "members"])
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `GET /users/{user}/person`, asked as the login `key` acts for in `role`.
   pub async fn person(&self, user: &str, key: &str, role: &str) -> Answer<Person> {
     Self::answered(

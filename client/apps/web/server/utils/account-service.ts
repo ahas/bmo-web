@@ -6,6 +6,8 @@
 import {
   accountServiceClient,
   type AccountServiceClient,
+  type Member,
+  type Members,
   type People as WirePeople,
   type Person as WirePerson,
   type SectionRow,
@@ -317,6 +319,17 @@ export async function searchPeople(
   );
 
   return answered<WirePeople>(reply).people.map(personView);
+}
+
+/** Every member of the reader's company, each by account key and name alone, in the directory's order. */
+export async function companyMembers(caller: ProfileCaller, options: ServiceOptions = {}): Promise<Member[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/members", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+  );
+
+  return answered<Members>(reply).members;
 }
 
 /** One person of the reader's organisation, or null where none stands there or in another organisation. */

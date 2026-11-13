@@ -151,18 +151,28 @@ function screenPaths(manifest: ConsoleManifest): string[] {
   return [manifest.screenPath, ...manifest.formerScreenPaths];
 }
 
-/** The bundles with every two that share a name, a screen path or a service name left out, both of them; a former
- * screen path counts as a screen path. */
+/** The service the console answers itself: the members of the reader's company (docs/web.md, 「Screens a unit
+ * brings」), which a bundle names under `calls` as it names any service. */
+export const CONSOLE_PEOPLE_SERVICE = "people";
+
+// Why a bundle is left out by itself, or null where nothing of its own leaves it out.
+function ownClash(manifest: ConsoleManifest): string | null {
+  return manifest.serviceName === CONSOLE_PEOPLE_SERVICE ? `its service is named ${CONSOLE_PEOPLE_SERVICE}, which the console answers itself` : null;
+}
+
+/** The bundles with every two that share a name, a screen path or a service name left out, both of them, and every
+ * one whose service bears a name the console answers itself; a former screen path counts as a screen path. */
 export function withoutConflicts(found: readonly AttachedBundle[]): AttachedBundle[] {
   const clash = (one: ConsoleManifest, other: ConsoleManifest) =>
     one.name === other.name || one.serviceName === other.serviceName || screenPaths(one).some((path) => screenPaths(other).includes(path));
 
   return found.filter((bundle) => {
     const others = found.filter((other) => other !== bundle && clash(bundle.manifest, other.manifest));
+    const reason = ownClash(bundle.manifest) ?? (others.length > 0 ? "it shares its name, screen or service with another, and both are left out" : null);
 
-    recordLeftOut(`the bundle ${bundle.manifest.name}`, others.length > 0 ? "it shares its name, screen or service with another, and both are left out" : null);
+    recordLeftOut(`the bundle ${bundle.manifest.name}`, reason);
 
-    return others.length === 0;
+    return reason === null;
   });
 }
 
@@ -317,13 +327,19 @@ export function bundleFiles(manifest: ConsoleManifest, path: string): boolean {
   return bundleFile(manifest, path) || (folder !== "/" && path.startsWith(folder) && below.every((step) => step !== "" && step !== "." && step !== ".."));
 }
 
+/** Whether a page names a service it calls: a page that is no bundle's screen does, and a bundle's page does where
+ * the service is its own or its manifest names it under `calls`. */
+export function pageNames(page: AttachedBundle | null, serviceName: string): boolean {
+  return page === null || screensCall(page.manifest, serviceName);
+}
+
 /**
  * Whether a call from a page reaches a service a manifest names (docs/web.md, 「Screens a unit brings」): a page that
  * is no bundle's screen, the service's own bundle's page, and a page whose manifest names the service under `calls`
  * reach it; any other bundle's page reaches only a read of the service's own files.
  */
 export function pageReaches(page: AttachedBundle | null, called: AttachedBundle, method: string, path: string): boolean {
-  if (page === null || screensCall(page.manifest, called.manifest.serviceName)) return true;
+  if (pageNames(page, called.manifest.serviceName)) return true;
 
   return (method === "GET" || method === "HEAD") && bundleFiles(called.manifest, path);
 }

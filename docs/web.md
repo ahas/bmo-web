@@ -7083,6 +7083,21 @@ its people directory.
 - **A bundle's calls to another service** are relayed and refused as the contract's 「How a bundle mounts」 states;
   the console tells the page a call comes from by the page address the browser sends as the call's referrer. A
   unit the console calls directly answers no manifest, and the rule does not reach it.
+- **The members of the reader's company are a service the console answers itself,** under the name `people`.
+  A screen that picks a person to share with — or for anything else that needs the whole company at hand — asks
+  `GET` at the relay address for `people` and `/members`, and the console answers it from the account service's
+  members list (`docs/accounts.md`, 「The people directory」): `members`, each person's `user`, the account key
+  written as the owner key is, and `name`, and nothing more, in the directory's order. The console knows the
+  account service; a bundle knows the name and the path alone.
+  - **It is read by a reader signed in,** and a request with no session is refused 401. A member reaches it
+    where their account section is read, as the directory's other reads (「Access」), and is answered as if
+    nothing stood there otherwise; the administrator reaches it always. A login with no user of the account
+    service reads an empty list.
+  - **A bundle's page reaches it only where its manifest names `people` under `calls`,** the page told by the
+    call's referrer as for every service; any other bundle's page is refused 403. A page of the console's own
+    reaches it.
+  - **The name is the console's.** A manifest whose service is named `people` is left out, with a line in the
+    log saying why.
 - **The translator a bundle translates through** is named by the console's environment
   (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_SERVICE` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_PATH`, `docs/boundary.md`,
   「Settings」), as bmo-ui's runtime configuration reads it; the console's code names none, and with neither set no

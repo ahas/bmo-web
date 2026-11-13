@@ -543,6 +543,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every member of the reader's company, each by their account key and name alone, in the directory's order. */
+        get: operations["members"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/search": {
         parameters: {
             query?: never;
@@ -1034,6 +1051,18 @@ export interface components {
             /** @description Omitted, the session lasts as long as the browser keeps it; true gives it the longer window. */
             rememberMe?: boolean | null;
             username: string;
+        };
+        /**
+         * @description One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people
+         *     directory」): the account key and the name, nothing more.
+         */
+        Member: {
+            name: string;
+            user: string;
+        };
+        /** @description Every member of the reader's company, in the directory's order. */
+        Members: {
+            members: components["schemas"]["Member"][];
         };
         /** @description A room relation asked of a message's sender. */
         MessageCheckAsk: {
@@ -2853,6 +2882,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserList"];
+                };
+            };
+            /** @description A refusal or failure: unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    members: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Members"];
                 };
             };
             /** @description A refusal or failure: unauthorized, forbidden, not-in-force, database, failed */

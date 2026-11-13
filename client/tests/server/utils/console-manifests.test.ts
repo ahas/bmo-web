@@ -102,6 +102,23 @@ test("a former screen path counts as a screen path, so two manifests sharing one
   expect(formerOverOther.map((one) => one.manifest.name)).toEqual(["unit-c"]);
 });
 
+test("a manifest whose service bears the name the console answers itself brings none, and the log says why", () => {
+  const bundle = (fields: Record<string, unknown>) => ({ manifest: consoleManifest(manifestOf(fields)), unit, words: {} });
+  const said: string[] = [];
+  const error = console.error;
+
+  console.error = (line: string) => said.push(line);
+  try {
+    const kept = withoutConflicts([bundle({ name: "unit-p", title: "unit-p.title", screenPath: "/unit-p", serviceName: "people" }), bundle({})]);
+
+    expect(kept.map((one) => one.manifest.name)).toEqual(["unit-a"]);
+  } finally {
+    console.error = error;
+  }
+
+  expect(said).toEqual(["console bundles: the bundle unit-p is left out: its service is named people, which the console answers itself"]);
+});
+
 test("a page under a bundle's former screen path, read from the base path, moved to the same address under its screen path, base path and query kept", () => {
   attachBundles([
     { manifest: consoleManifest(manifestOf({ screenPath: "/artifact", formerScreenPaths: ["/archive"] })), unit, words: {} },

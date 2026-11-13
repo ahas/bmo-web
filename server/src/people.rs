@@ -2,14 +2,14 @@
 //! the users of the reader's own company, whatever unit of it they stand in, found by their name, their unit and
 //! the contact details the reader may see. The contact details stand only for the platform administrator and for the person
 //! themselves, and a search matches only the fields its reader may see, so a refused field is not an answer
-//! either.
+//! either. The members list answers the whole company, each person by key and name alone.
 
 use axum::Json;
 use axum::Router;
 use axum::extract::{Path, Query, State};
 use axum::http::HeaderMap;
 use axum::routing::get;
-use bmo_web_client::{OWNER_KEY, People as WirePeople, Person};
+use bmo_web_client::{Member, Members, OWNER_KEY, People as WirePeople, Person};
 use sea_orm::{ConnectionTrait, QueryResult};
 use serde::Deserialize;
 use sumida::api::authz::Authz;
@@ -56,6 +56,9 @@ const FROM: &str = r#"
   JOIN "organizations" o ON o."id" = u."organization_id"
   LEFT JOIN "user_profiles" p ON p."user_id" = u."id"
 "#;
+
+/// The order the directory answers people in: by name, then by user id.
+const ORDER: &str = r#"ORDER BY lower(COALESCE(NULLIF(u."full_name", ''), u."username")), u."id""#;
 
 /// The login reading the directory, refused where the call names no user of this deployment.
 async fn caller<C: ConnectionTrait>(db: &C, headers: &HeaderMap) -> Result<Caller, Refusal> {
@@ -137,7 +140,7 @@ async fn search<C: ConnectionTrait>(
          OR strpos(lower(COALESCE(p."job_title", '')), lower($2)) > 0
          {contact}
        )
-       ORDER BY lower(COALESCE(NULLIF(u."full_name", ''), u."username")), u."id"
+       {ORDER}
        LIMIT $3"#
   );
   let rows = all(
@@ -148,6 +151,27 @@ async fn search<C: ConnectionTrait>(
   .await?;
 
   rows.iter().map(|row| person_of(row, reader)).collect()
+}
+
+/// Every member of the reader's company, by account key and name alone, in the directory's order.
+async fn members<C: ConnectionTrait>(db: &C, reader: &Caller) -> Result<Vec<Member>, Refusal> {
+  let sql = format!(
+    r#"SELECT u."id", COALESCE(NULLIF(u."full_name", ''), u."username") AS "name"
+       FROM "users" u
+       WHERE {IN_COMPANY}
+       {ORDER}"#
+  );
+  let rows = all(db, &sql, vec![reader.company.into()]).await?;
+
+  rows
+    .iter()
+    .map(|row| {
+      Ok(Member {
+        user: crate::ids::shown(row.try_get("", "id")?),
+        name: row.try_get("", "name")?,
+      })
+    })
+    .collect()
 }
 
 /// One person of the reader's company, or nothing found where the user does not stand or stands in another
@@ -173,6 +197,15 @@ async fn search_route(
   Ok(Json(WirePeople { people }))
 }
 
+/// `GET /users/members`: every member of the reader's company.
+async fn members_route(State(service): State<Service>, headers: HeaderMap) -> Answer<Members> {
+  let reader = caller(&service.db, &headers).await?;
+
+  Ok(Json(Members {
+    members: members(&service.db, &reader).await?,
+  }))
+}
+
 /// `GET /users/{user}/person`: one person of the reader's company.
 async fn person_route(
   State(service): State<Service>,
@@ -189,5 +222,6 @@ async fn person_route(
 pub fn routes() -> Router<Service> {
   Router::new()
     .route("/users/search", get(search_route))
+    .route("/users/members", get(members_route))
     .route("/users/{user}/person", get(person_route))
 }

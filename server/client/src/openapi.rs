@@ -341,6 +341,19 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/users/members",
+    "members",
+    "Users and senders",
+    "Every member of the reader's company, each by their account key and name alone, in the directory's order.",
+    params: vec![owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<Members>(&mut generator))],
+    codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/users/{user}/person",
     "person",
     "Users and senders",

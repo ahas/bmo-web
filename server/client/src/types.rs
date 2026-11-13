@@ -110,6 +110,20 @@ pub struct People {
   pub people: Vec<Person>,
 }
 
+/// One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people
+/// directory」): the account key and the name, nothing more.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Member {
+  pub user: String,
+  pub name: String,
+}
+
+/// Every member of the reader's company, in the directory's order.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Members {
+  pub members: Vec<Member>,
+}
+
 /// A user's sections, in the console's navigation order; every write is also a read.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Sections {

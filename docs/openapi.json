@@ -854,6 +854,37 @@
         ],
         "type": "object"
       },
+      "Member": {
+        "description": "One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people\ndirectory」): the account key and the name, nothing more.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name"
+        ],
+        "type": "object"
+      },
+      "Members": {
+        "description": "Every member of the reader's company, in the directory's order.",
+        "properties": {
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/Member"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "members"
+        ],
+        "type": "object"
+      },
       "MessageCheckAsk": {
         "description": "A room relation asked of a message's sender.",
         "properties": {
@@ -4682,6 +4713,73 @@
           }
         ],
         "summary": "Every user with their name and whether they are the platform administrator, for the administrator alone.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/members": {
+      "get": {
+        "operationId": "members",
+        "parameters": [
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Members"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every member of the reader's company, each by their account key and name alone, in the directory's order.",
         "tags": [
           "Users and senders"
         ],

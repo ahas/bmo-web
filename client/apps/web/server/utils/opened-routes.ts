@@ -75,8 +75,9 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(ACCOUNT, "PUT", /^\/api\/tab-states\/[^/]+$/),
   // Whose sender is the account's and the room's; the account is what every reader keeps.
   section(ACCOUNT, "GET", /^\/api\/owner$/),
-  // The people directory and a person's page are the account section's.
+  // The people directory, its members list and a person's page are the account section's.
   section(ACCOUNT, "GET", /^\/api\/people\/search$/),
+  section(ACCOUNT, "GET", /^\/api\/people\/members$/),
   section(ACCOUNT, "GET", /^\/api\/people\/\d+$/),
 
   // The rooms a reader may read, their messages, files, pictures and the stream that carries their news.

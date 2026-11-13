@@ -304,9 +304,9 @@ section states what each does.
 - **The contact details are read by the platform administrator and by the person themselves.** Everyone else
   in the company reads the name, the unit and the job title alone; the three contact fields are absent from the
   answer, not empty.
-- **The members list is every person of the reader's company,** the users of the company at the top of the
-  reader's branch of the tree, each by their user id and their name alone, in the directory's order and with no
-  limit: what a picker needs to find a person and show them, and nothing of their unit, job title or contact.
+- **The members list is every person of the reader's company who has not left,** the users of the company at the
+  top of the reader's branch of the tree but those marked left (「A person who leaves」), each by their user id and
+  their name alone, in the directory's order and with no limit: what a picker needs to find a person and show them, and nothing of their unit, job title or contact.
   It is refused as a search is, for a call naming no user of the deployment or a reader whose unit stands in no
   company. The console hands it to the screens a unit brings (`docs/web.md`, 「Screens a unit brings」).
 - **A search matches only the fields its reader may see.** A member's words are matched against the name, the

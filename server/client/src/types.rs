@@ -118,7 +118,7 @@ pub struct Member {
   pub name: String,
 }
 
-/// Every member of the reader's company, in the directory's order.
+/// Every member of the reader's company who has not left, in the directory's order.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Members {
   pub members: Vec<Member>,

@@ -550,7 +550,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every member of the reader's company, each by their account key and name alone, in the directory's order. */
+        /** Every member of the reader's company but those marked left, each by their account key and name alone, in the directory's order. */
         get: operations["members"];
         put?: never;
         post?: never;
@@ -1060,7 +1060,7 @@ export interface components {
             name: string;
             user: string;
         };
-        /** @description Every member of the reader's company, in the directory's order. */
+        /** @description Every member of the reader's company who has not left, in the directory's order. */
         Members: {
             members: components["schemas"]["Member"][];
         };

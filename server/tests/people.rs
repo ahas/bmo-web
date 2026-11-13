@@ -283,9 +283,17 @@ async fn the_members_list_is_the_whole_company_by_key_and_name_alone() {
       vec![other.into(), outside.into()],
     )
     .await;
+  let gone = set_sign_in(scratch.db(), "member-gone", "the password", false).await.unwrap().user;
+
+  scratch
+    .run(
+      r#"INSERT INTO "user_departures" ("user_id", "left_at", "left_by") VALUES ($1::bigint, 0, $1::bigint)"#,
+      vec![gone.into()],
+    )
+    .await;
 
   // A member reads every person of their company, the administrator and themselves among them, each by key and
-  // name and nothing else, and nobody of another company.
+  // name and nothing else, and nobody of another company or who has left.
   let key = member.to_string();
   let (status, said) = asked(&app, "/users/members", Some(&key), Some("member")).await;
 
@@ -296,6 +304,7 @@ async fn the_members_list_is_the_whole_company_by_key_and_name_alone() {
   assert!(keys.contains(&key.as_str()), "{said}");
   assert!(keys.contains(&boss.as_str()), "{said}");
   assert!(!keys.contains(&outside.to_string().as_str()), "{said}");
+  assert!(!keys.contains(&gone.to_string().as_str()), "{said}");
   for one in members {
     let mut fields: Vec<&str> = one.as_object().unwrap().keys().map(String::as_str).collect();
 

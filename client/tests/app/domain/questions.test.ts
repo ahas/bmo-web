@@ -189,17 +189,17 @@ describe("what stands over every screen while a job waits", () => {
     expect(questionState(asked({ dueAt: now - 1 }), now)).toBe("missed");
   });
 
-  test("a stopped question still stands, and says it is stopped and how long the stop holds", () => {
-    const [card] = openQuestions(wording, [asked({ dueAt: now + 1_790, pausedLeft: 40 })], now);
+  test("a stopped question still stands with no due time, and says it is stopped and what it recommends", () => {
+    const [card] = openQuestions(wording, [asked({ dueAt: 0, pausedLeft: 0 })], now);
 
     expect(card?.paused).toBe(true);
     expect(card?.answerable).toBe(true);
-    expect(card?.status).toBe(wording("question.status.paused", { time: KO.line_179, number: "2" }));
+    expect(card?.status).toBe(wording("question.status.paused", { number: "2" }));
     expect(questionCard(wording, asked(), now).paused).toBe(false);
   });
 
   test("and stands behind a question whose minute is still running", () => {
-    const stopped = asked({ id: 1, todoId: 10, dueAt: now + 1_790, pausedLeft: 40 });
+    const stopped = asked({ id: 1, todoId: 10, dueAt: 0, pausedLeft: 0 });
     const running = asked({ id: 2, todoId: 11, dueAt: now + 50 });
 
     expect(openQuestions(wording, [stopped, running], now).map((card) => card.todoId)).toEqual([11, 10]);

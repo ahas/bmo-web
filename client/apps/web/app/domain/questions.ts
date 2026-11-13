@@ -56,6 +56,9 @@ export function questionState(question: JobQuestion, now: number = toUnixSeconds
     return question.settledBy === "deadline" ? "deadline" : "owner";
   }
 
+  // A stopped question waits however long he takes, so it stays open whatever its due time.
+  if (question.pausedLeft !== null) return "open";
+
   // A question whose wait has run out is settled by its own launcher within the second, so a
   // row still open past its due time is one whose job is no longer there to read an answer.
   return question.dueAt > now ? "open" : "missed";
@@ -88,11 +91,13 @@ export function questionCard(t: Translate, question: JobQuestion, now: number = 
 // each one, and the order that matters is which will be taken out of his hands soonest — it is
 // sorted here rather than left to the order they arrived in, because the strip over every screen
 // carries the first of them and that choice has to be the urgent one however the list was read. A
-// stopped question's due time is the end of its stop, so it stands behind every running minute.
+// stopped question waits however long he takes, so it stands behind every running minute.
 export function openQuestions(t: Translate, questions: JobQuestion[], now: number = toUnixSeconds(Date.now())): QuestionCard[] {
+  const stopped = (question: JobQuestion): number => Number(question.pausedLeft !== null);
+
   return questions
     .filter((question) => questionState(question, now) === "open")
-    .sort((left, right) => left.dueAt - right.dueAt || left.id - right.id)
+    .sort((left, right) => stopped(left) - stopped(right) || left.dueAt - right.dueAt || left.id - right.id)
     .map((question) => questionCard(t, question, now));
 }
 
@@ -120,8 +125,8 @@ export function questionSummary(t: Translate, questions: JobQuestion[], now: num
 function statusLine(t: Translate, question: JobQuestion, state: QuestionState, now: number): string {
   if (state === "open" && question.pausedLeft !== null) {
     return question.recommended === null
-      ? t("question.status.paused_alone", { time: remainingLabel(t, question.dueAt - now) })
-      : t("question.status.paused", { time: remainingLabel(t, question.dueAt - now), number: question.recommended + 1 });
+      ? t("question.status.paused_alone")
+      : t("question.status.paused", { number: question.recommended + 1 });
   }
 
   if (state === "open") {

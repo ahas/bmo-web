@@ -7,9 +7,12 @@ import type { JobQuestion } from "#shared/types";
 export default defineEventHandler(async (event): Promise<JobQuestion[]> => {
   await requireUserSession(event);
 
-  const page = await jobCall(job().GET("/questions", { params: { query: { state: "open", limit: 500 } } }));
+  // A stopped question still waits on him, so it is read with the open ones and stays on its card.
+  const pages = await Promise.all(
+    (["open", "paused"] as const).map((state) => jobCall(job().GET("/questions", { params: { query: { state, limit: 500 } } })))
+  );
 
-  return page.items.map((question) => {
+  return pages.flatMap((page) => page.items).map((question) => {
     const named = question.recommendation?.answer?.trim() ?? null;
     const at = named === null ? -1 : question.choices.findIndex((choice) => choice.trim() === named);
 
@@ -26,7 +29,8 @@ export default defineEventHandler(async (event): Promise<JobQuestion[]> => {
       dueAt: question.dueAt === null ? 0 : Math.floor(question.dueAt / 1000),
       chosen: null,
       answer: null,
-      pausedLeft: null,
+      // bmo-job keeps a stopped question's time left to itself and reads no due time while it stands stopped.
+      pausedLeft: question.state === "paused" ? 0 : null,
       settledAt: null,
       settledBy: null
     };

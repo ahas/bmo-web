@@ -5978,15 +5978,12 @@ Four bounds keep it from growing forever.
   keeps them from standing together. Conversely choosing a choice clears written words.
 - **The deadline can be stopped.** A question has one minute on it. It keeps a job from standing long while the owner is not watching,
   but it is short for reading the choices slowly while watching. So beside the card's remaining time stands 「타이머 정지」. Pressing
-  writes the time left then to the line and stops the clock, and the card and band say it is stopped. While stopped the recommendation
-  is not adopted on its own — the deadline is measured by the job that asked, and the job follows the deadline that line says each time
-  it reads it. Answering by number in Telegram, and choosing or writing in the console, stay open while stopped. 「타이머 재개」 counts
-  again from the time left when stopped.
-- **A stop has an end too.** Left stopped, the job stands holding its checkout's lock, and the next item bound to that checkout stands
-  too. So a stop is up to 30 minutes. While stopped the card and band count the time left until the stop ends, and with no answer in
-  it, it goes to the recommendation and the chat hears the stop got no answer and went to the recommendation. Resuming and stopping
-  again puts 30 minutes on anew — pressing means they are at the screen, so each press is worth a new wait. Stopping and resuming, like an
-  answer, are written by the bot on that line, and neither changes an already-decided question.
+  it moves the question to stopped in bmo-job, which keeps the time it had left and reads no due time while it stands stopped, so
+  nothing is adopted on its own while stopped. The console reads the stopped questions with the open ones, so a stopped card
+  stays where it stood, and the card and band say it is stopped and name the recommendation without counting, there being no due
+  time to count to. Answering by number in Telegram, and choosing or writing in the console, stay open while stopped. 「타이머 재개」
+  opens it again, counting from the time it had left. Stopping and resuming, like an answer, are bmo-job's to write on that
+  question, and neither changes an already-decided one.
 - The same question is aimed at by chat, console and time together. The three decide the same line with the same conditional write, so
   the first to reach stays and a later one overwrites nothing and hears what it was already decided by. A decided question stays with
   the item that asked and is read on opening that line. Answered by the owner, gone to the recommendation on no answer, and missed with nobody

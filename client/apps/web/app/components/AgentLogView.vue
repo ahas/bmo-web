@@ -84,9 +84,6 @@ import type { AgentLogLine, RunProgress } from "#shared/types";
 import type { LogPlace, LogRow } from "~/domain/log";
 import type { SpendChip } from "~/domain/turns";
 
-// The most frames the log is stood at its end for while its rows settle, before it is shown regardless.
-const SETTLE_FRAMES_MOST = 30;
-
 interface Props {
   name: string;
   // Where to open: at one run's place, or at the end of the log where it is still being written.
@@ -280,10 +277,11 @@ async function toEnd(): Promise<void> {
   await scrollToBottom();
 }
 
-// The lines stood at the end while they settle: a row's height can still change for a few frames after it is drawn
-// (its markdown, its chips), so the end is taken again each frame until the lines' own height holds for two frames in
-// a row. Only the lines are waited for: what the box holds beside them — the work view's head, its prompt and its
-// stages — arrives on its own reads, and the end is kept as it does by the watch on every block of the box.
+// The lines stood at the end and shown at the first frame they stand there in. Nothing else is waited for: the rest of
+// the page starting holds the frames after that one back, and a wait for a row's height to hold would keep the newest
+// lines unseen for as long as that takes. A row that settles its height later — its markdown, its chip arriving —
+// moves the end as anything else in the box does, and the watch on every block of the box carries a reader standing
+// there along.
 async function settleAtEnd(): Promise<void> {
   await nextTick();
 
@@ -291,17 +289,8 @@ async function settleAtEnd(): Promise<void> {
 
   if (element === null) return;
 
-  const lines = (): number => feedRef.value?.$el?.querySelector<HTMLElement>("[data-agent-log]")?.offsetHeight ?? 0;
-  let held = 0;
-  let height = -1;
-
-  for (let frame = 0; frame < SETTLE_FRAMES_MOST && held < 2; frame += 1) {
-    element.scrollTop = element.scrollHeight;
-    held = lines() === height ? held + 1 : 0;
-    height = lines();
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-  }
-
+  element.scrollTop = element.scrollHeight;
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   element.scrollTop = element.scrollHeight;
   stick.value = true;
 }

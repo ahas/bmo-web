@@ -93,23 +93,15 @@ describe("opening a log at its end", () => {
     expect(source).toContain("const tailBusy = computed(() => !opened.value ||");
   });
 
-  test("stands at the end again each frame until the height holds", () => {
+  // The rest of the page starting holds the frames back, so a wait for a row's height to hold would keep the newest
+  // lines unseen for as long as that takes (docs/web.md, 「The work view」).
+  test("stands at the end and shows its lines at the first frame they stand there in, waiting for nothing else", () => {
     const at = source.indexOf("async function settleAtEnd()");
     const body = source.slice(at, source.indexOf("\n}\n", at));
 
-    expect(body).toContain("element.scrollTop = element.scrollHeight;");
-    expect(body).toContain("held < 2");
-    expect(body).toContain("requestAnimationFrame");
-  });
-
-  // The head, its prompt and its stages are read beside the lines and land later; waiting for the whole box to hold
-  // would keep the newest lines unseen until they had (docs/web.md, 「The work view」).
-  test("waits for its own lines' height alone, never for what the box holds beside them", () => {
-    const at = source.indexOf("async function settleAtEnd()");
-    const body = source.slice(at, source.indexOf("\n}\n", at));
-
-    expect(body).toContain('querySelector<HTMLElement>("[data-agent-log]")?.offsetHeight');
-    expect(body).toContain("held = lines() === height ? held + 1 : 0;");
-    expect(body).not.toContain("element.scrollHeight === height");
+    expect(body.match(/element\.scrollTop = element\.scrollHeight;/g)?.length).toBe(2);
+    expect(body.match(/requestAnimationFrame/g)?.length).toBe(1);
+    expect(body).not.toContain("for (");
+    expect(body).toContain("stick.value = true;");
   });
 });

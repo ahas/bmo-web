@@ -3357,8 +3357,10 @@ a seat of its role.
      It opens at its end on its newest lines alone, as many as fill a screen (`AGENT_LOG_OPENING_SIZE`), the rest
      read a page at a time as the reader scrolls up; they are laid out and stood at the end while unseen, the
      skeleton standing, and only then shown, so nothing is seen scrolling and no older page is read before the
-     log stands at its end. Only the log's own lines are waited for: they are shown the moment their own height
-     holds, and nothing read beside them — the head, its prompt, its stages, a chip — holds that first paint back.
+     log stands at its end. They are shown at the first frame they stand at the end in: nothing read or drawn beside
+     them — the head, its prompt, its stages, a chip, the rest of the page starting — holds that first paint back, and
+     a row that settles its height after it, its markdown or its chip arriving, is followed as anything else that grows
+     in the box is.
      It stays there while anything in the box it scrolls in
      grows — its own lines arriving, the window narrowing, or the head above it standing late, its prompt and its
      stages read after the lines — as long as the reader is at the end; scrolling up stops the following, and a 맨 아래로 button standing over the log's foot

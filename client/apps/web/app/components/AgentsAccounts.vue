@@ -3,7 +3,7 @@
        「Organisation settings」, the providers tab). A row is carried by its handle alone, by the mouse and the finger
        the same way, and the order is saved the moment it is dropped. What a row says of a credential is the path it
        is reached by — no cell and no box here has a token to show, because none is ever sent to this screen. A new
-       login is added from the screen's create button, which opens the box this list keeps. -->
+       login is added from the tab row's add, which opens the box this list keeps. -->
   <section class="flex flex-col gap-3" aria-labelledby="accounts-title">
     <h3 id="accounts-title" class="flex min-h-8 items-center text-sm font-semibold text-highlighted">{{ $t("agents.title.accounts") }}</h3>
 
@@ -290,6 +290,6 @@ async function remove(): Promise<void> {
   }
 }
 
-// The box for a new login, which the screen's create button opens.
+// The box for a new login, which the tab row's add opens.
 defineExpose({ openAdd });
 </script>

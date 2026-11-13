@@ -1286,7 +1286,7 @@ Four groups.
   as a chat number. A room the console made itself — one made for the supervisors it names — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
   conversation.
-  - **The 추가 button beside the group's name adds a room,** for the administrator, in a dialog of choices made in
+  - **The 추가 button beside the group's name adds a room,** the heading's grey icon in the phone's drawer as on a wide screen (「The title bar」), for the administrator, in a dialog of choices made in
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
     「Rooms」):
     - **A chat service:** every one the receiver names that takes a mode, each with the modes it states said
@@ -1876,16 +1876,19 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   icon button, with a tooltip naming it. Three actions or fewer stand as icon buttons, and four or more fold into
   one vertical-dots menu, as almost every group does on a phone; filters that do not fit fold into one button
   opening them.
-- **A screen creates from bmo-ui's one create button** (`CreateButton`, bmo-ui's `docs/components.md`,
-  「Creating」), and from no button of its own: no primary button stands in the row and no create button carries
-  a mark and a word. A screen stands one, named by what it creates, and what a press does is the screen's. On a
-  wide screen it is the grey icon at the right end of the screen's row, after the row's other actions, its
-  tooltip naming what it creates and its key, `n`; on a phone it floats at the screen's bottom right and nothing
-  stands for it in the row, and the screen's scrolling body ends with the layer's `--bmo-create-room` as room
-  for it, so its last row scrolls clear of the button. Where a screen's tabs create different things, the open
-  tab names what it creates and what a press does, and a tab that creates nothing stands no button. A second
-  thing a part of the screen makes, under the part's own heading, is the heading's grey icon with its name as
-  its tooltip, never a second create button.
+- **An add that belongs to a row stays in that row at every width.** A tab row's add, which makes a new thing
+  of what the open tab holds, and the add beside a list's, a section's or the sidebar's heading are that row's
+  grey icon on a phone as on a wide screen: bmo-ui's icon button (`IconButton`) with the add mark, neutral and
+  ghost at the row's own button size, its tooltip naming what it adds, at the row's right end after the row's
+  other actions or beside the heading it belongs to. It never floats over the screen, and the body under it
+  keeps no room for a floating button. Where a screen's tabs add different things, the open tab names what its
+  add makes and what a press does, and a tab that adds nothing stands no button. No primary button stands in a
+  row, and no add carries a mark and a word.
+- **Only a screen's one main new item floats,** a new note or a new mail of a unit's screen: that alone is
+  bmo-ui's create button (`CreateButton`, bmo-ui's `docs/components.md`, 「Creating」), the grey icon at the
+  right end of the screen's row on a wide screen and floating at the screen's bottom right on a phone, with the
+  screen's scrolling body ending in the layer's `--bmo-create-room`. The console's own screens make nothing of
+  that kind: every add they stand belongs to a row, so none of them stands the create button.
 - **A title bar's icon button is a square**, the component library's own icon button: its mark at the
   library's icon size with the same padding on every side, so every button in the bar that shows only a mark
   is one size. Every button of the set at its right end is the library's own button at its default size — a
@@ -2624,7 +2627,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   **설정**, holding what every research run is held to, the research supervisor and the search engines (「설정」
   below). The tab stands in the
   address, the first standing where it names none, and moving to another is a step of the history. The open tab's
-  own create is the screen's create button (「The title bar」): 항목 요청 on 대기열, 토픽 추가 on 토픽, 출처 추가
+  own add is the tab row's grey icon at its right end at every width (「The title bar」): 항목 요청 on 대기열, 토픽 추가 on 토픽, 출처 추가
   on 출처, and none on 설정. The one failure for the whole unit stands over either.
 - **분류** stands first on 대기열.
   - Its head says whether the loop runs — 실행 중 while any category runs, 모두 중지됨 where every one is
@@ -2791,7 +2794,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   the access section it stood under as the supervisors' tab; it holds every agent, the supervisors' table first and
   the table of the roles' agents under it (「에이전트」 below). The tab row stands under the
   title bar and carries, at its right end, the settings search, the one button that reads every section again,
-  which spins while it reads, and last the open section's 추가, the screen's create button (「The title bar」)
+  which spins while it reads, and last the open section's 추가, the row's grey icon on a phone too (「The title bar」)
   named by what the section adds: 역할 추가, 감독관 추가, 저장소 추가, 등록 모델 추가 or 모델 파일 추가. The title bar keeps only what every page carries, and no
   section repeats its tab's name as a title of its own.
 - **The settings search** looks over every section at once: section names, supervisors by their names, labels and
@@ -6431,8 +6434,8 @@ research screen (「Research screen」).
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), so their shell lists 조직 설정 too and the screen holds 초대 alone; a member who heads none is listed
   no entry, and the address shows them 초대 saying they may invite into no unit.
-- **The tab row** stands under the title bar, the tabs filling it and the open tab's own create at its right end
-  where the tab has one, the screen's create button (「The title bar」): 조직 추가 on 조직도, 초대 링크 만들기 on
+- **The tab row** stands under the title bar, the tabs filling it and the open tab's own add at its right end
+  where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도, 초대 링크 만들기 on
   초대, Claude 계정 추가 on 공급자 and 비밀 추가 on 비밀 보관함. On a narrow screen the tabs keep one line and scroll
   sideways.
 - **A tab's content** stands in groups under small headings as the settings dialog's sections do, in a column no
@@ -6497,7 +6500,7 @@ research screen (「Research screen」).
 
 #### 초대
 
-- **초대 링크 만들기**, the tab's create button, opens a dialog of the unit, 조직장으로 초대 for the administrator, and
+- **초대 링크 만들기**, the tab row's add, opens a dialog of the unit, 조직장으로 초대 for the administrator, and
   the span, with 링크 만들고 복사 at its foot; it stands off while the reader may invite into no unit.
 - **A link is made into a unit** the reader may invite into — a unit they head or one below it, or any unit for the
   administrator — for a span of hours, and the administrator may make it invite the unit's head. Made, it is copied
@@ -6554,7 +6557,7 @@ research screen (「Research screen」).
   disabled on an account that is off; the chosen row's menu holds 순서대로 in its place, which lets the choice go.
   Where the chosen account is not the one in use, a line under the list says so, naming the account runs go out on
   and when a rest ends (the agency's `docs/cache-fallback.md`, 「Running on one account now」). Claude 계정
-  추가, the tab's create button, opens a box for a new account's name, which of the two ways its credential is reached and the path it is
+  추가, the tab row's add, opens a box for a new account's name, which of the two ways its credential is reached and the path it is
   reached by; a row's more-menu edits the same three or removes the account. Accounts are numbered by name,
   `claude-01`, `claude-02` and on, as many as the owner adds: the box for a new one opens with the next number
   already written, one past the highest the list holds, and the owner may write another name over it. Dragging a handle saves the whole order
@@ -6577,7 +6580,7 @@ folder every unit reads its secrets from by file name, written by the server's s
   - Each row carries 교체, which opens the secret form on that name with replacing already chosen, and 삭제, which
     asks first, naming the secret and that its value is kept as `<name>.previous`; a delete that goes through takes
     the row away.
-- **비밀 추가**, the tab's create button, opens the secret form (below), the same form the composer's clip and an agent's request open.
+- **비밀 추가**, the tab row's add, opens the secret form (below), the same form the composer's clip and an agent's request open.
 - **비밀 종류** lists the kinds the form asks a value in (`docs/accounts.md`, 「Secret kinds」), one row each in the
   order they were added: the kind's name as the row's label, its description and its fields' keys under it, and 편집
   and 삭제. 삭제 asks first, naming the kind and that no secret stored is touched.

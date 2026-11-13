@@ -45,12 +45,12 @@ describe("the research screen", () => {
     expect(scriptOf(page)).toContain("const shown = computed(() => queueOrder(items.value ?? []));");
   });
 
-  test("stands the queue, the sources and the settings on three tabs, the tab in the address and its create at the row's end", () => {
+  test("stands the queue, the sources and the settings on three tabs, the tab in the address and its add at the row's end", () => {
     expect(templateOf(page)).toContain('<UTabs\n          :model-value="tab"\n          :items="tabItems"');
     expect(templateOf(page)).toContain("<template v-if=\"!failedFirst && tab === 'queue'\">");
     expect(templateOf(page)).toContain("<ResearchSources v-if=\"!failedFirst && tab === 'sources'\" ref=\"sourcesRef\"");
     expect(templateOf(page)).toContain("<ResearchSettings v-if=\"tab === 'settings'\"");
-    expect(templateOf(page)).toContain('<CreateButton :label="create.addLabel" :disabled="create.addDisabled" data-tab-add @click="create.openAdd()" />');
+    expect(templateOf(page)).toContain('<IconButton\n          v-if="create !== null"\n          size="sm"\n          :icon="TAB_ADD_ICON"\n          :label="create.addLabel"\n          :disabled="create.addDisabled"\n          data-tab-add\n          @click="create.openAdd()"\n        />');
     expect(scriptOf(page)).toContain('openAdd: () => sourcesRef.value?.openAdd()');
     expect(scriptOf(page)).toContain('addLabel: t("research.title.ask")');
     expect(scriptOf(page)).toContain('void router.push({ query: { ...route.query, tab: next === "queue" ? undefined : next } });');

@@ -219,6 +219,6 @@ async function remove(repository: RepositoryView): Promise<void> {
   }
 }
 
-// The screen's create button names this section's create by its word and opens it.
+// The tab row's add names this section's add by its word and opens it.
 defineExpose({ addLabel: computed(() => t("agents.title.repository_add")), openAdd, refresh });
 </script>

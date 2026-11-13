@@ -1,6 +1,6 @@
 <template>
   <!-- Invitations (docs/web.md, 「Organisation settings」, the invitations tab): a link made into a unit the reader
-       heads, or any for the administrator, in a dialog the screen's create button opens, copied with its words and
+       heads, or any for the administrator, in a dialog the tab row's add opens, copied with its words and
        when it closes; the open ones listed, each copied again or taken back. -->
   <div class="flex flex-col gap-6">
     <p v-if="units !== null && units.length === 0" class="text-sm text-muted">{{ $t("invites.label.no_units") }}</p>

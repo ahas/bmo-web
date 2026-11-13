@@ -55,9 +55,9 @@ describe("the screen's sections", () => {
     }
   });
 
-  test("keep the top bar to what every page carries and put the search, the reread and the create on the tab row", () => {
+  test("keep the top bar to what every page carries and put the search, the reread and the add on the tab row", () => {
     expect(templateOf(page)).toContain(':loading="rereading"');
-    expect(templateOf(page)).toContain('<UTheme v-if="mayWriteCurrent && addLabel !== null" :props="TAB_ROW_BUTTONS">\n          <CreateButton :label="addLabel" data-tab-add @click="section?.openAdd?.()" />');
+    expect(templateOf(page)).toContain('<IconButton v-if="mayWriteCurrent && addLabel !== null" size="sm" :icon="TAB_ADD_ICON" :label="addLabel" data-tab-add @click="section?.openAdd?.()" />');
     for (const source of sections) expect(scriptOf(source)).toMatch(/defineExpose\(\{ addLabel: computed\(\(\) => t\("agents\.title\.[a-z_]+_add"\)\), openAdd, refresh \}\)/);
   });
 
@@ -111,7 +111,7 @@ describe("every table of the screen", () => {
   });
 
   test("scrolls each tab up and down in one box: a table's own in a tab of one table, the body around the supervisors' tables", () => {
-    expect(templateOf(page)).toContain(`class="flex min-h-0 min-w-0 flex-1 flex-col" :class="[tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden', mayWriteCurrent ? 'pb-(--bmo-create-room)' : '']"`);
+    expect(templateOf(page)).toContain(`class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'"`);
     expect(scriptOf(page)).toContain('useHeldHeads(() => (tab.value === "supervisors" ? bodyRef.value : null));');
     // Each of the supervisors' tab's tables keeps its own sideways box.
     for (const source of [supervisors, roleAgents]) expect(templateOf(source)).not.toContain("overflow-visible");

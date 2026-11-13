@@ -1,10 +1,10 @@
 <template>
   <!-- The agent settings, a section to a tab. The tab row carries the search over every section, the
-       button that reads them all again and the open section's create; the section fills what is left, with one box that scrolls
+       button that reads them all again and the open section's add; the section fills what is left, with one box that scrolls
        up and down: a tab of one table scrolls in the table's own box and the body around it stands
        still, while the agents' tab, the supervisors' table with the roles' agents under it, scrolls in the body,
-       each table scrolling sideways in its own box with its head held at the body's top. The body keeps room at
-       its foot for the create button where it floats on a phone. -->
+       each table scrolling sideways in its own box with its head held at the body's top. The open section's add
+       stays in the tab row at every width. -->
   <UDashboardPanel id="catalogue" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.agents')" icon="i-material-symbols-list-alt-outline" />
@@ -71,15 +71,13 @@
           />
         </UTooltip>
 
-        <!-- The open section's own create, the screen's create button, stands last, where the reader may write it. -->
-        <UTheme v-if="mayWriteCurrent && addLabel !== null" :props="TAB_ROW_BUTTONS">
-          <CreateButton :label="addLabel" data-tab-add @click="section?.openAdd?.()" />
-        </UTheme>
+        <!-- The open section's own add, the row's grey icon at every width, stands last, where the reader may write it. -->
+        <IconButton v-if="mayWriteCurrent && addLabel !== null" size="sm" :icon="TAB_ADD_ICON" :label="addLabel" data-tab-add @click="section?.openAdd?.()" />
       </div>
     </template>
 
     <template #body>
-      <div ref="body" class="flex min-h-0 min-w-0 flex-1 flex-col" :class="[tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden', mayWriteCurrent ? 'pb-(--bmo-create-room)' : '']">
+      <div ref="body" class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'">
         <AgentsSupervisors v-if="tab === 'supervisors'" ref="section" :query="query" :readonly="!mayWriteCurrent" />
         <AgentsRoles v-else-if="tab === 'roles'" ref="section" :query="query" :readonly="!mayWriteCurrent" />
         <AgentsRepositories v-else-if="tab === 'repositories'" ref="section" :query="query" :readonly="!mayWriteCurrent" />
@@ -107,7 +105,7 @@ import { useHeldHeads } from "~/domain/held-heads";
 import { mayRead, mayWrite } from "#shared/sections";
 import { usedByText, registrationName } from "~/domain/registry";
 import { defaultThreshold, sessionsText, thresholdText, entryText, useProviders } from "~/domain/axes";
-import { TAB_ROW_BUTTONS } from "~/domain/tab-create";
+import { TAB_ADD_ICON } from "~/domain/tab-create";
 
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
 import type { TabCreate } from "~/domain/tab-create";

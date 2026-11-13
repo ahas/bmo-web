@@ -2,7 +2,7 @@
   <!-- The providers tab of the organisation settings screen (docs/web.md, 「Organisation settings」, the providers
        tab): every provider the agency carries, in its order, with what it has left, why it cannot answer now and the
        owner's switch, each taking effect as it is thrown; under them the Claude accounts the Claude Code provider
-       walks, a new one added from the screen's create button. No key the agency holds is read here. -->
+       walks, a new one added from the tab row's add. No key the agency holds is read here. -->
   <div class="flex flex-col gap-6">
     <SettingsGroup :title="$t('agents.title.providers')">
       <ContentSkeleton v-if="providers === undefined && status !== 'error'" :rows="4" listClass="flex flex-col divide-y divide-default" :label="$t('agents.status.providers_loading')">

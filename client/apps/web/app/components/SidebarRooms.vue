@@ -7,10 +7,8 @@
   <nav :aria-label="heading" class="flex flex-col">
     <div class="flex items-center">
       <UNavigationMenu as="div" class="min-w-0 flex-1" :items="[{ label: heading, type: 'label' }]" :collapsed="collapsed" orientation="vertical" />
-      <!-- The add button beside the heading, where the reader may add a room. -->
-      <UTooltip v-if="addable && !collapsed" :text="$t('room.title.room_add')">
-        <UButton class="me-1 shrink-0" size="xs" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('room.title.room_add')" @click="emit('add')" />
-      </UTooltip>
+      <!-- The add beside the heading, the heading's grey icon at every width, where the reader may add a room. -->
+      <IconButton v-if="addable && !collapsed" class="me-1" size="xs" icon="i-material-symbols-add" :label="$t('room.title.room_add')" data-room-add @click="emit('add')" />
     </div>
     <MovingList v-if="rooms.length > 0" tag="div" class="flex flex-col">
       <div v-for="room in rooms" :key="String(room.to)">

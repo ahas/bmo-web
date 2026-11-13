@@ -25,15 +25,21 @@
           @update:model-value="(value: string | number) => setTab(String(value))"
         />
 
-        <!-- The open tab's own create, the screen's create button, stands at the right end of the row. -->
-        <UTheme v-if="create !== null" :props="TAB_ROW_BUTTONS">
-          <CreateButton :label="create.addLabel" :disabled="create.addDisabled" data-tab-add @click="create.openAdd()" />
-        </UTheme>
+        <!-- The open tab's own add, the row's grey icon at every width, stands at the right end of the row. -->
+        <IconButton
+          v-if="create !== null"
+          size="sm"
+          :icon="TAB_ADD_ICON"
+          :label="create.addLabel"
+          :disabled="create.addDisabled"
+          data-tab-add
+          @click="create.openAdd()"
+        />
       </div>
     </template>
 
     <template #body>
-      <div class="flex grow flex-col gap-6" :class="create === null ? '' : 'pb-(--bmo-create-room)'">
+      <div class="flex grow flex-col gap-6">
         <!-- One failure for the whole unit: the state is the screen's first read, and the queue reads the same
              unit, so a unit not answering is said once with its reread. Once something was read the band stands
              above it, and what was read stays. -->
@@ -133,7 +139,7 @@ import { useNextPages } from "~/domain/next-pages";
 import { ITEM_CHANGES, ITEM_STATES, RESEARCH_TABS, followOfAddress, followOfItem, isResearchTab, itemStateLook, mergedPages, queueOrder } from "~/domain/research";
 import { useFootInView } from "bmo-ui/app/domain/foot";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
-import { TAB_ROW_BUTTONS } from "~/domain/tab-create";
+import { TAB_ADD_ICON } from "~/domain/tab-create";
 
 import type { ResearchItem, ResearchQueuePage, ResearchStateChange, ResearchStateView } from "#shared/research";
 import type { ItemChange, ResearchFollow, ResearchTab } from "~/domain/research";

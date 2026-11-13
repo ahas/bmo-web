@@ -69,7 +69,7 @@ async function openMenu(page: Page, row: string, name: string): Promise<void> {
   await page.getByRole("menuitem", { name: wording("common.action.edit") }).waitFor();
 }
 
-// The screen's create button, standing in the tab row or floating on a phone.
+// The open section's add, standing in the tab row at every width.
 async function addFromTabRow(page: Page): Promise<void> {
   await page.locator("[data-tab-add]").click();
 }

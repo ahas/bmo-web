@@ -6,17 +6,17 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
-// The screens that create from a tab row stand bmo-ui's one create button there (docs/web.md, 「The title bar」): on a
-// desk's width the grey icon last in the row, named with its key in its tooltip, the key pressing it; on a phone the
-// button floating at the bottom right with nothing of it in the row, and the scrolling body keeping room at its foot
-// for it. Each screen is read at both widths, in light and in dark.
+// An add that belongs to a row stays in that row at every width (docs/web.md, 「The title bar」): a tab row's add is
+// the row's grey icon last in the row, named by its tooltip, on a desk's width and on a phone alike, with nothing
+// floating over the screen for it and no room kept for a floating button at the body's foot; the sidebar's room add
+// stays beside the rooms' heading in the phone's drawer. Each is read at both widths, in light and in dark.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
-const ACCOUNT = { name: "create-button", password: "fixture-password-2830" };
+const ACCOUNT = { name: "row-add", password: "fixture-password-2885" };
 
-// Each screen with a tab row that creates, and what its create is named.
+// Each screen with a tab row that adds, and what its add is named.
 const SCREENS = [
   { path: "/agents", label: "agents.title.role_add" },
   { path: "/research", label: "research.title.ask" },
@@ -59,71 +59,91 @@ async function contextFor(size: { width: number; height: number }, scheme: "ligh
   return context;
 }
 
-// A screen opened, the console's app standing on it and its create button drawn.
+// A screen opened, the console's app standing on it and its add drawn.
 async function open(page: Page, path: string): Promise<void> {
   await page.goto(`${origin}${path}`, { waitUntil: "load" });
   await page.waitForFunction(() => window.useNuxtApp?.().isHydrating === false, null, { timeout: 30_000 });
   await page.locator("[data-tab-add]").waitFor({ timeout: 20_000 });
 }
 
-// Where the create button stands against the tab row and the screen, and the room the scrolling body keeps for it.
+// Where the tab row's add stands against its row, and whether anything floats or keeps room for a floating button.
 async function placeOf(page: Page) {
   return await page.evaluate(() => {
     const button = document.querySelector<HTMLElement>("[data-tab-add]")!;
     const row = document.querySelector<HTMLElement>('[role="tablist"]')!.closest<HTMLElement>(".h-12")!;
     const box = button.getBoundingClientRect();
-    const foot = button.closest<HTMLElement>("[data-screen-foot]");
-    const padded = document.querySelector<HTMLElement>('[class*="pb-(--bmo-create-room)"]');
+    const line = row.getBoundingClientRect();
     const rightmost = Math.max(...[...row.querySelectorAll<HTMLElement>("button, input")].map((one) => one.getBoundingClientRect().right));
 
     return {
       inRow: row.contains(button),
       lastInRow: Math.round(box.right) === Math.round(rightmost),
+      centred: Math.abs(box.top + box.height / 2 - (line.top + line.height / 2)) <= 1,
       background: getComputedStyle(button).backgroundColor,
-      floating: foot !== null && getComputedStyle(foot).position === "fixed",
-      fromRight: Math.round(window.innerWidth - box.right),
-      fromBottom: Math.round(window.innerHeight - box.bottom),
-      height: Math.round(box.height),
-      room: padded === null ? -1 : parseFloat(getComputedStyle(padded).paddingBottom)
+      floats: document.querySelectorAll("[data-screen-foot]").length > 0,
+      roomKept: document.querySelectorAll('[class*="pb-(--bmo-create-room)"]').length > 0,
+      height: Math.round(box.height)
     };
   });
 }
 
-describe.skipIf(!origin)("the create button", () => {
+// The tab row's add on every screen: in its row, last, centred on it, a ghost at rest and nothing floating.
+async function readEveryScreen(page: Page): Promise<number[]> {
+  const heights: number[] = [];
+
+  for (const screen of SCREENS) {
+    await open(page, screen.path);
+
+    const place = await placeOf(page);
+
+    expect({ path: screen.path, inRow: place.inRow, lastInRow: place.lastInRow, centred: place.centred, floats: place.floats, roomKept: place.roomKept }).toEqual({
+      path: screen.path,
+      inRow: true,
+      lastInRow: true,
+      centred: true,
+      floats: false,
+      roomKept: false
+    });
+    // A ghost button paints nothing at rest.
+    expect(place.background).toMatch(/rgba\(0, 0, 0, 0\)|transparent/);
+    expect(await page.locator("[data-tab-add]").getAttribute("aria-label")).toBe(wording(screen.label));
+    heights.push(place.height);
+  }
+
+  return heights;
+}
+
+// The sidebar's room add beside the rooms' heading: the heading's grey icon, centred on its line, never floating.
+async function roomAddBesideHeading(page: Page): Promise<void> {
+  const add = page.locator("[data-room-add]");
+
+  await add.waitFor({ timeout: 20_000 });
+  expect(await add.getAttribute("aria-label")).toBe(wording("room.title.room_add"));
+  expect(
+    await add.evaluate((button) => {
+      const mark = button.getBoundingClientRect();
+      const head = button.closest("nav")!.firstElementChild!.getBoundingClientRect();
+
+      return { centred: Math.abs(mark.top + mark.height / 2 - (head.top + head.height / 2)) <= 1, floats: button.closest("[data-screen-foot]") !== null };
+    })
+  ).toEqual({ centred: true, floats: false });
+}
+
+describe.skipIf(!origin)("the row adds", () => {
   for (const scheme of ["light", "dark"] as const) {
-    test(`stands last in the tab row on a desk's width, named with its key, in ${scheme}`, async () => {
+    test(`stand last in their tab rows on a desk's width, named by their tooltips, in ${scheme}`, async () => {
       const context = await contextFor(WIDE, scheme);
 
       try {
         const page = await context.newPage();
 
-        for (const screen of SCREENS) {
-          await open(page, screen.path);
+        // The row's small square button, as every button of a tab row is.
+        expect(new Set(await readEveryScreen(page))).toEqual(new Set([28]));
 
-          const place = await placeOf(page);
-
-          // The row's small square button, as every button of a tab row is.
-          expect({ path: screen.path, inRow: place.inRow, lastInRow: place.lastInRow, floating: place.floating, height: place.height, room: place.room }).toEqual({
-            path: screen.path,
-            inRow: true,
-            lastInRow: true,
-            floating: false,
-            height: 28,
-            room: 0
-          });
-          // A ghost button paints nothing at rest.
-          expect(place.background).toMatch(/rgba\(0, 0, 0, 0\)|transparent/);
-          expect(await page.locator("[data-tab-add]").getAttribute("aria-label")).toBe(wording(screen.label));
-
-          await page.locator("[data-tab-add]").hover();
-
-          // The shared tooltip, the library's floating content, named by what the button creates.
-          const tooltip = page.locator("[data-reka-popper-content-wrapper]").filter({ hasText: wording(screen.label) }).first();
-
-          await tooltip.waitFor({ timeout: 5_000 });
-          expect((await tooltip.locator("kbd").allInnerTexts()).join("").toLowerCase()).toBe("n");
-          await page.mouse.move(0, 0);
-        }
+        // The shared tooltip, the library's floating content, names what the add makes.
+        await page.locator("[data-tab-add]").hover();
+        await page.locator("[data-reka-popper-content-wrapper]").filter({ hasText: wording("secrets.action.add") }).first().waitFor({ timeout: 5_000 });
+        await page.mouse.move(0, 0);
 
         // A kind, the secrets' tab's second make, is the grey icon centred on the kinds' heading, named by its tooltip.
         const kindAdd = page.locator("[data-secret-kind-add]");
@@ -139,14 +159,10 @@ describe.skipIf(!origin)("the create button", () => {
           })
         ).toBeLessThanOrEqual(1);
 
-        // Its key presses it: on the secrets' tab, n opens the secret form, once the store's names are read.
-        await page.locator("[data-tab-add]:enabled").waitFor({ timeout: 20_000 });
-        await page.locator("body").click({ position: { x: 640, y: 780 } });
-        await page.keyboard.press("n");
-        await page.getByRole("dialog").waitFor({ timeout: 10_000 });
+        await roomAddBesideHeading(page);
 
-        // A link is made in the dialog the invitations' create opens: the unit, the administrator's head switch and
-        // the span, with the make at its foot.
+        // A link is made in the dialog the invitations' add opens: the unit, the administrator's head switch and the
+        // span, with the make at its foot.
         await open(page, "/organization?tab=invites");
         await page.locator("[data-tab-add]:enabled").click({ timeout: 20_000 });
 
@@ -162,29 +178,18 @@ describe.skipIf(!origin)("the create button", () => {
       }
     }, 120_000);
 
-    test(`floats at the bottom right on a phone, the body keeping room for it, in ${scheme}`, async () => {
+    test(`stay in their rows on a phone, with nothing floating over the screen for them, in ${scheme}`, async () => {
       const context = await contextFor(PHONE, scheme);
 
       try {
         const page = await context.newPage();
 
-        for (const screen of SCREENS) {
-          await open(page, screen.path);
+        // One size on every screen, the row's own small button.
+        expect(new Set(await readEveryScreen(page)).size).toBe(1);
 
-          const place = await placeOf(page);
-
-          // The layer's largest icon button, whatever size the row hands its own.
-          expect({ path: screen.path, inRow: place.inRow, floating: place.floating, height: place.height, fromRight: place.fromRight, fromBottom: place.fromBottom }).toEqual({
-            path: screen.path,
-            inRow: false,
-            floating: true,
-            height: 40,
-            fromRight: 16,
-            fromBottom: 16
-          });
-          // The last row scrolls clear of the button: the room is the button and its gap from the edge.
-          expect(place.room).toBeGreaterThanOrEqual(place.height + place.fromBottom);
-        }
+        // The room add stands beside the rooms' heading in the drawer the title bar's toggle opens.
+        await page.locator("[data-title-bar] [data-slot='toggle']").tap();
+        await roomAddBesideHeading(page);
       } finally {
         await context.close();
       }

@@ -1,8 +1,8 @@
 <template>
   <!-- The organisation settings screen (docs/web.md, 「Organisation settings」): what is set for the whole deployment
-       or for other people, a tab to a section. The tab row stands under the title bar with the open tab's own create
-       at its right end where it has one, the screen's create button; the tab's content scrolls in the body, in a
-       reading column at the screen's left, its end keeping room for the button where it floats on a phone. -->
+       or for other people, a tab to a section. The tab row stands under the title bar with the open tab's own add
+       at its right end where it has one, the row's grey icon at every width; the tab's content scrolls in the body,
+       in a reading column at the screen's left. -->
   <UDashboardPanel id="organization" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.organization')" icon="i-material-symbols-domain" />
@@ -21,14 +21,20 @@
           @update:model-value="(value: string | number) => setTab(String(value))"
         />
 
-        <UTheme v-if="addLabel !== null" :props="TAB_ROW_BUTTONS">
-          <CreateButton :label="addLabel" :disabled="section?.addDisabled ?? false" data-tab-add @click="section?.openAdd?.()" />
-        </UTheme>
+        <IconButton
+          v-if="addLabel !== null"
+          size="sm"
+          :icon="TAB_ADD_ICON"
+          :label="addLabel"
+          :disabled="section?.addDisabled ?? false"
+          data-tab-add
+          @click="section?.openAdd?.()"
+        />
       </div>
     </template>
 
     <template #body>
-      <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto" data-organization-body :class="addLabel === null ? '' : 'pb-(--bmo-create-room)'">
+      <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto" data-organization-body>
         <div class="flex w-full min-w-0 flex-1 flex-col px-4 py-4 sm:px-6" :class="tab.wide ? '' : 'max-w-3xl'">
           <component :is="tabComponent" ref="section" />
         </div>
@@ -42,7 +48,7 @@ import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import { useAdministrator } from "~/domain/access";
 import { ORGANIZATION_TABS, organizationAddress, organizationMovedAway, organizationTabOf, organizationTabsFor } from "~/domain/organization";
-import { TAB_ROW_BUTTONS } from "~/domain/tab-create";
+import { TAB_ADD_ICON } from "~/domain/tab-create";
 
 import type { TabCreate } from "~/domain/tab-create";
 import type { Component } from "vue";

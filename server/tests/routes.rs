@@ -122,8 +122,8 @@ async fn the_health_answers_without_a_token_and_every_other_route_refuses_withou
     (Method::POST, "/checks/room"),
     (Method::GET, "/grants?room=-100"),
     (Method::GET, "/rooms/-100/holdings"),
-    (Method::GET, "/secrets"),
-    (Method::PUT, "/secrets/a-name"),
+    (Method::GET, "/users/1/secrets"),
+    (Method::PUT, "/users/1/secrets/a-name"),
     (Method::GET, "/secret-kinds"),
     (Method::POST, "/secret-kinds"),
   ] {

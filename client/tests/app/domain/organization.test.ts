@@ -19,40 +19,46 @@ import type { UnitBranch, UnitPlace, UnitStanding } from "../../../apps/web/app/
 import { SETTINGS_SECTIONS, sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
-// The settings dialog holds what a person sets for themselves alone, the voice briefing among it, and the organisation
+// The settings dialog holds what a person sets for themselves alone, their secrets and the voice briefing among it, and the organisation
 // settings screen what is set for the whole deployment or for other people, a tab to a section; the research
 // supervisor stands on the research screen (docs/web.md, 「Settings」 and 「Organisation settings」).
 
 describe("the settings dialog", () => {
   test("holds the personal sections alone, the voice briefing under its own name", () => {
-    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "theme", "palette", "notifications", "briefing"]);
+    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "secrets", "theme", "palette", "notifications", "briefing"]);
     expect(SETTINGS_SECTIONS.find((section) => section.key === "briefing")?.label).toBe("settings.label.briefing");
   });
 
-  test("shows a member their account, theme and palette, and the administrator the notifications and the player too", () => {
-    expect(sectionsFor(false).map((section) => section.key)).toEqual(["account", "theme", "palette"]);
-    expect(sectionsFor(true).map((section) => section.key)).toEqual(["account", "theme", "palette", "notifications", "briefing"]);
+  test("shows a member their account, secrets, theme and palette, and the administrator the notifications and the player too", () => {
+    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "secrets", "theme", "palette"]);
+    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "secrets", "theme", "palette", "notifications", "briefing"]);
+  });
+
+  test("shows no secrets to a login with no user, which holds no space", () => {
+    expect(sectionsFor(true, false).map((section) => section.key)).not.toContain("secrets");
   });
 
   test("leads every key that moved to its tab of the organisation settings screen, and keeps its own keys", () => {
-    for (const key of ["organization", "invites", "permissions", "providers", "secrets"]) {
+    for (const key of ["organization", "invites", "permissions", "providers", "secret-kinds"]) {
       expect({ key, moved: organizationTabNamed(key)?.value ?? null }).toEqual({ key, moved: key });
     }
 
     expect(organizationTabNamed("account")).toBeNull();
     expect(organizationTabNamed("research")).toBeNull();
     expect(organizationTabNamed("briefing")).toBeNull();
+    expect(organizationTabNamed("secrets")).toBeNull();
   });
 });
 
 describe("the organisation settings screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "invites", "permissions", "providers", "secrets"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "invites", "permissions", "providers", "secret-kinds"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
     expect(organizationMovedAway("research")).toEqual({ path: "/research", query: { tab: "settings" } });
     expect(organizationMovedAway("briefing")).toEqual({ path: ORGANIZATION_PATH, query: { settings: "briefing" } });
+    expect(organizationMovedAway("secrets")).toEqual({ path: ORGANIZATION_PATH, query: { settings: "secrets" } });
 
     for (const key of [...ORGANIZATION_TABS.map((tab) => tab.value), "account", "toString", undefined, ["research"]]) {
       expect({ key, moved: organizationMovedAway(key) }).toEqual({ key, moved: null });
@@ -65,14 +71,14 @@ describe("the organisation settings screen", () => {
   });
 
   test("opens the first tab a reader may for a key naming none of theirs", () => {
-    expect(organizationTabOf("secrets", organizationTabsFor(true)).value).toBe("secrets");
-    expect(organizationTabOf("secrets", organizationTabsFor(false)).value).toBe("invites");
+    expect(organizationTabOf("secret-kinds", organizationTabsFor(true)).value).toBe("secret-kinds");
+    expect(organizationTabOf("secret-kinds", organizationTabsFor(false)).value).toBe("invites");
     expect(organizationTabOf(undefined, organizationTabsFor(true)).value).toBe("organization");
   });
 
   test("keeps a tab in the address, the first being the screen's own, and lets the chosen unit go with the tab it stood on", () => {
     expect(organizationAddress("organization", { unit: "3" })).toEqual({ path: ORGANIZATION_PATH, query: {} });
-    expect(organizationAddress("secrets", { unit: "3", tab: "invites" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "secrets" } });
+    expect(organizationAddress("secret-kinds", { unit: "3", tab: "invites" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "secret-kinds" } });
   });
 
   test("stands in the sidebar and the search with its tabs, after the console's other screens", () => {
@@ -85,7 +91,7 @@ describe("the organisation settings screen", () => {
       "/organization?tab=invites",
       "/organization?tab=permissions",
       "/organization?tab=providers",
-      "/organization?tab=secrets"
+      "/organization?tab=secret-kinds"
     ]);
   });
 });

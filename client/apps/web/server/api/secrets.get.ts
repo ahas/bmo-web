@@ -1,17 +1,18 @@
 import { listSecrets } from "../utils/account-service";
-import { ownerRoleOf } from "../utils/owner-key";
-import { secretFailure } from "../utils/secrets";
+import { secretFailure, secretSpaceOf } from "../utils/secrets";
 
 import type { SecretList } from "#shared/types";
 
-// The secret store's list (docs/web.md, 「Organisation settings」, the secret store tab): every name the store holds
-// with its size and its time, and never a value. It is the administrator's, and the server holds the role it is
-// handed to that too.
+// The signed-in login's own secrets (docs/web.md, 「Settings」, the secret store section): every name their space
+// holds with its size and its time, and never a value. The server holds the user it is handed to the space's own; a
+// login that holds no space is answered as if nothing stood there.
 export default defineEventHandler(async (event): Promise<SecretList> => {
-  const signed = await requireAdministrator(event);
+  const user = secretSpaceOf(await signedInUser(event));
+
+  if (user === null) return { secrets: [] };
 
   try {
-    return { secrets: await listSecrets(ownerRoleOf(signed)) };
+    return { secrets: await listSecrets(user) };
   } catch (error) {
     throw secretFailure(error, "secrets.error.read_failed");
   }

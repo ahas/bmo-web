@@ -71,6 +71,12 @@ export const openedRoutes: readonly OpenedRoute[] = [
   section(ACCOUNT, "PUT", /^\/api\/account\/(palette|theme)$/),
   section(ACCOUNT, "GET", /^\/api\/users\/\d+\/profile$/),
   section(ACCOUNT, "PUT", /^\/api\/users\/\d+\/profile$/),
+  // The reader's own secrets, in their own space, and the kinds every person's form asks in; changing a kind is the
+  // administrator's alone.
+  section(ACCOUNT, "GET", /^\/api\/secrets$/),
+  section(ACCOUNT, "POST", /^\/api\/secrets$/),
+  section(ACCOUNT, "DELETE", /^\/api\/secrets\/[^/]+$/),
+  section(ACCOUNT, "GET", /^\/api\/secret-kinds$/),
   section(ACCOUNT, "GET", /^\/api\/tab-states\/[^/]+$/),
   section(ACCOUNT, "PUT", /^\/api\/tab-states\/[^/]+$/),
   // Whose sender is the account's and the room's; the account is what every reader keeps.

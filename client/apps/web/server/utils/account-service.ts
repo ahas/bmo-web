@@ -560,33 +560,37 @@ export async function runMove(
 /** The role a login acts in, as the console hands it on in `Owner-Role` (docs/boundary.md, 「Calls the console makes」). */
 export type OwnerRole = "administrator" | "member";
 
-/** Every secret the store holds, in the order of their names, asked in the login's role. */
-export async function listSecrets(role: OwnerRole, options: ServiceOptions = {}): Promise<KeptSecret[]> {
+/**
+ * Every secret a person's own space holds, in the order of their names, asked by that person: `user` is the login's
+ * user, handed on in `Owner-Key` and named in the path alike, so no call reaches another person's space.
+ */
+export async function listSecrets(user: string, options: ServiceOptions = {}): Promise<KeptSecret[]> {
   const client = clientOf(options);
   const reply = await sent(
     options,
-    client.GET("/secrets", { params: { header: { "Owner-Role": role } } })
+    client.GET("/users/{user}/secrets", { params: { path: { user }, header: { "Owner-Key": user } } })
   );
 
   return answered(reply).secrets.map(({ name, bytes, changedAt }) => ({ name, bytes, changedAt }));
 }
 
 /**
- * A value written under a name, replacing the one the name holds only where `replace` says so; the name, its
- * size and its time, never the value. A refusal is the server's code, which never carries the value either.
+ * A value written under a name in the login's own space, replacing the one the name holds only where `replace` says
+ * so; the name, its size and its time, never the value. A refusal is the server's code, which never carries the
+ * value either.
  */
 export async function keepSecret(
   name: string,
   file: SecretFile,
   replace: boolean,
-  role: OwnerRole,
+  user: string,
   options: ServiceOptions = {}
 ): Promise<KeptSecret> {
   const client = clientOf(options);
   const reply = await sent(
     options,
-    client.PUT("/secrets/{name}", {
-      params: { path: { name }, header: { "Owner-Role": role } },
+    client.PUT("/users/{user}/secrets/{name}", {
+      params: { path: { user, name }, header: { "Owner-Key": user } },
       body: { value: file.value, encoding: file.encoding, replace }
     })
   );
@@ -595,13 +599,13 @@ export async function keepSecret(
   return { name: kept.name, bytes: kept.bytes, changedAt: kept.changedAt };
 }
 
-/** The secret under a name moved aside to `<name>.previous`. */
-export async function dropSecret(name: string, role: OwnerRole, options: ServiceOptions = {}): Promise<void> {
+/** The secret under a name in the login's own space moved aside to `<name>.previous`. */
+export async function dropSecret(name: string, user: string, options: ServiceOptions = {}): Promise<void> {
   const client = clientOf(options);
   const reply = await sent(
     options,
-    client.DELETE("/secrets/{name}", {
-      params: { path: { name }, header: { "Owner-Role": role } }
+    client.DELETE("/users/{user}/secrets/{name}", {
+      params: { path: { user, name }, header: { "Owner-Key": user } }
     })
   );
 
@@ -618,10 +622,10 @@ function kindOf(kind: SecretKind): SecretKind {
   };
 }
 
-/** Every secret kind, in the order they were added (docs/boundary.md, 「Secret kinds」). */
-export async function listSecretKinds(role: OwnerRole, options: ServiceOptions = {}): Promise<SecretKind[]> {
+/** Every secret kind, in the order they were added (docs/boundary.md, 「Secret kinds」), the deployment's for any login. */
+export async function listSecretKinds(options: ServiceOptions = {}): Promise<SecretKind[]> {
   const client = clientOf(options);
-  const reply = await sent(options, client.GET("/secret-kinds", { params: { header: { "Owner-Role": role } } }));
+  const reply = await sent(options, client.GET("/secret-kinds", {}));
 
   return answered(reply).kinds.map(kindOf);
 }

@@ -390,7 +390,7 @@
             :label="$t('room.label.messages')"
             :placeholder="composerPlaceholder"
             :mention="mentionSources"
-            :secrets="administrator"
+            :secrets="signedUser !== null"
             @escape="onEscape"
             @submit="send"
           >
@@ -453,7 +453,7 @@
 import { MotionConfig } from "motion-v";
 
 import { countText } from "~/domain/numbers";
-import { roomMayWrite, useAdministrator } from "~/domain/access";
+import { roomMayWrite, useAdministrator, useSignedUser } from "~/domain/access";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { POLL_INTERVAL_MS } from "#shared/config";
@@ -593,6 +593,8 @@ const askFirst = useConfirm();
 // A member reads the conversation; writing to it follows the rooms section's write, and its session
 // information and the bar's tools are the administrator's (docs/web.md, 「Access」).
 const administrator = useAdministrator();
+// A reader with a user of their own holds a secret space, so the clip hands their secrets.
+const signedUser = useSignedUser();
 const access = useSectionAccess();
 const accessReady = useSectionAccessReady();
 const writable = computed<boolean>(() => roomMayWrite(access.value, administrator.value, accessReady.value));

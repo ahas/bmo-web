@@ -2213,7 +2213,7 @@
     }
   },
   "info": {
-    "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the room holdings the receiver asks about, the fixed lines a room says, and the secret store, which writes the files every unit reads its secrets from and answers no value, with the kinds its form asks a value in. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
+    "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the room holdings the receiver asks about, the fixed lines a room says, and the secret store, which writes each person's secrets as files in a space of their own, the administrator's the folder every unit reads the deployment's secrets from, and answers no value, with the kinds its form asks a value in. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
     "title": "bmo-web-server",
     "version": "0.1.0-rev.1"
   },
@@ -2728,7 +2728,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -2793,7 +2793,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -2873,7 +2873,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -2948,7 +2948,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -3629,21 +3629,6 @@
     "/secret-kinds": {
       "get": {
         "operationId": "secretKinds",
-        "parameters": [
-          {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
-            "in": "header",
-            "name": "Owner-Role",
-            "required": true,
-            "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "content": {
@@ -3663,7 +3648,7 @@
                 }
               }
             },
-            "description": "A refusal or failure: unauthorized, forbidden, not-in-force, database, failed"
+            "description": "A refusal or failure: unauthorized, not-in-force, database, failed"
           }
         },
         "security": [
@@ -3671,13 +3656,12 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Every secret kind, the shapes the console's secret form asks a value in, in the order they were added.",
+        "summary": "Every secret kind, the shapes every person's secret form asks a value in, in the order they were added; read by any caller.",
         "tags": [
           "Secret kinds"
         ],
         "x-codes": [
           "unauthorized",
-          "forbidden",
           "not-in-force",
           "database",
           "failed"
@@ -3687,7 +3671,7 @@
         "operationId": "addSecretKind",
         "parameters": [
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -3766,7 +3750,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -3824,7 +3808,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -3884,219 +3868,6 @@
           "unauthorized",
           "forbidden",
           "not-found",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      }
-    },
-    "/secrets": {
-      "get": {
-        "operationId": "secrets",
-        "parameters": [
-          {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
-            "in": "header",
-            "name": "Owner-Role",
-            "required": true,
-            "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Secrets"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: unauthorized, forbidden, no-secret-store, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Every secret the store holds, by its name, with its size and when it last changed; never a value.",
-        "tags": [
-          "Secret store"
-        ],
-        "x-codes": [
-          "unauthorized",
-          "forbidden",
-          "no-secret-store",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      }
-    },
-    "/secrets/{name}": {
-      "delete": {
-        "operationId": "deleteSecret",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
-            "in": "header",
-            "name": "Owner-Role",
-            "required": true,
-            "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Done; no content."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-name, unauthorized, forbidden, not-found, not-a-file, no-secret-store, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Moves a secret's file to <name>.previous.",
-        "tags": [
-          "Secret store"
-        ],
-        "x-codes": [
-          "bad-name",
-          "unauthorized",
-          "forbidden",
-          "not-found",
-          "not-a-file",
-          "no-secret-store",
-          "not-in-force",
-          "database",
-          "failed"
-        ]
-      },
-      "put": {
-        "operationId": "putSecret",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
-            "in": "header",
-            "name": "Owner-Role",
-            "required": true,
-            "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SecretAsk"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Secret"
-                }
-              }
-            },
-            "description": "Answered."
-          },
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Secret"
-                }
-              }
-            },
-            "description": "Made."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WireError"
-                }
-              }
-            },
-            "description": "A refusal or failure: bad-request, bad-name, bad-value, empty-value, unauthorized, forbidden, secret-exists, not-a-file, no-secret-store, not-in-force, database, failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Writes a value under a name, atomically and with mode 600, keeping the value it replaces as <name>.previous; the value is text, or base64 where encoding says so; answers the name, its size and its time alone.",
-        "tags": [
-          "Secret store"
-        ],
-        "x-codes": [
-          "bad-request",
-          "bad-name",
-          "bad-value",
-          "empty-value",
-          "unauthorized",
-          "forbidden",
-          "secret-exists",
-          "not-a-file",
-          "no-secret-store",
           "not-in-force",
           "database",
           "failed"
@@ -4293,7 +4064,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -4358,7 +4129,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -4499,7 +4270,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -4597,7 +4368,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -4674,7 +4445,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -4745,7 +4516,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -4826,7 +4597,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -4893,7 +4664,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -4976,7 +4747,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -5106,7 +4877,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -5235,7 +5006,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -5355,7 +5126,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -5559,7 +5330,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -5636,7 +5407,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -5711,7 +5482,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -5776,6 +5547,234 @@
         ]
       }
     },
+    "/users/{user}/secrets": {
+      "get": {
+        "operationId": "secrets",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Secrets"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-secret-store, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every secret the user's own space holds, by its name, with its size and when it last changed; never a value. Asked by that user alone.",
+        "tags": [
+          "Secret store"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "no-secret-store",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/secrets/{name}": {
+      "delete": {
+        "operationId": "deleteSecret",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-name, unauthorized, forbidden, not-found, not-a-file, no-secret-store, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Moves a secret's file in the user's own space to <name>.previous. Asked by that user alone.",
+        "tags": [
+          "Secret store"
+        ],
+        "x-codes": [
+          "bad-name",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "not-a-file",
+          "no-secret-store",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "putSecret",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Secret"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Secret"
+                }
+              }
+            },
+            "description": "Made."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, bad-name, bad-value, empty-value, unauthorized, forbidden, not-found, secret-exists, not-a-file, no-secret-store, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Writes a value under a name in the user's own space, atomically and with mode 600, keeping the value it replaces as <name>.previous; the value is text, or base64 where encoding says so; answers the name, its size and its time alone. Asked by that user alone.",
+        "tags": [
+          "Secret store"
+        ],
+        "x-codes": [
+          "bad-request",
+          "bad-name",
+          "bad-value",
+          "empty-value",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "secret-exists",
+          "not-a-file",
+          "no-secret-store",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
     "/users/{user}/sections": {
       "get": {
         "operationId": "userSections",
@@ -5798,7 +5797,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -5873,7 +5872,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,
@@ -6066,7 +6065,7 @@
             }
           },
           {
-            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
             "in": "header",
             "name": "Owner-Role",
             "required": true,

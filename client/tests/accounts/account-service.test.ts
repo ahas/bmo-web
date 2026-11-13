@@ -159,51 +159,53 @@ describe("the secret store", () => {
   const VALUE = "a value no answer carries";
   const text = (value: string) => ({ value, encoding: "text" as const });
 
-  test("a value is written under a name in the login's role, and the answers name it without the value", async () => {
-    const kept = await keepSecret("unit-a.token", text(VALUE), false, "administrator", options);
+  test("a value is written under a name in the login's own space, and the answers name it without the value", async () => {
+    const kept = await keepSecret("unit-a.token", text(VALUE), false, "1", options);
 
     expect(kept).toEqual({ name: "unit-a.token", bytes: VALUE.length, changedAt: expect.any(Number) });
     expect(service.secrets.get("unit-a.token")?.bytes.toString()).toBe(VALUE);
-    expect(await listSecrets("administrator", options)).toEqual([kept]);
-    expect(JSON.stringify(await listSecrets("administrator", options))).not.toContain(VALUE);
-    expect(service.secretRoles.at(-1)).toBe("administrator");
+    expect(await listSecrets("1", options)).toEqual([kept]);
+    expect(JSON.stringify(await listSecrets("1", options))).not.toContain(VALUE);
+    expect(service.secretKeys.at(-1)).toBe("1");
+  });
+
+  test("a member's secret stands in a space of their own, which the administrator's list never shows", async () => {
+    await keepSecret("own.token", text(VALUE), false, "2", options);
+
+    expect(service.secrets.has("users/2/own.token")).toBe(true);
+    expect((await listSecrets("2", options)).map((one) => one.name)).toEqual(["own.token"]);
+    expect((await listSecrets("1", options)).map((one) => one.name)).not.toContain("own.token");
   });
 
   test("a name that stands is replaced only where asked, and a delete takes it out of the list", async () => {
-    await keepSecret("unit-b.token", text(VALUE), false, "administrator", options);
+    await keepSecret("unit-b.token", text(VALUE), false, "1", options);
 
-    await expect(keepSecret("unit-b.token", text("another"), false, "administrator", options)).rejects.toMatchObject({ status: 409, code: "secret-exists" });
-    expect((await keepSecret("unit-b.token", text("another"), true, "administrator", options)).bytes).toBe("another".length);
+    await expect(keepSecret("unit-b.token", text("another"), false, "1", options)).rejects.toMatchObject({ status: 409, code: "secret-exists" });
+    expect((await keepSecret("unit-b.token", text("another"), true, "1", options)).bytes).toBe("another".length);
 
-    await dropSecret("unit-b.token", "administrator", options);
+    await dropSecret("unit-b.token", "1", options);
 
-    expect((await listSecrets("administrator", options)).map((one) => one.name)).not.toContain("unit-b.token");
-    await expect(dropSecret("unit-b.token", "administrator", options)).rejects.toMatchObject({ status: 404, code: "not-found" });
+    expect((await listSecrets("1", options)).map((one) => one.name)).not.toContain("unit-b.token");
+    await expect(dropSecret("unit-b.token", "1", options)).rejects.toMatchObject({ status: 404, code: "not-found" });
   });
 
   test("a file's bytes go as base64 and are written as themselves", async () => {
     const bytes = Buffer.from([0, 255, 128, 10]);
 
-    expect((await keepSecret("unit-d.bin", { value: bytes.toString("base64"), encoding: "base64" }, false, "administrator", options)).bytes).toBe(4);
+    expect((await keepSecret("unit-d.bin", { value: bytes.toString("base64"), encoding: "base64" }, false, "1", options)).bytes).toBe(4);
     expect(service.secrets.get("unit-d.bin")?.bytes).toEqual(bytes);
   });
 
-  test("a kind is added, changed whole and removed in the login's role", async () => {
+  test("a kind is added, changed whole and removed in the login's role, and read by any login", async () => {
     const kind = { key: "unit-login", name: "unit login", description: "", fields: [{ key: "USER", label: "user", masked: false, input: "line" as const, required: true }] };
 
     expect(await addSecretKind(kind, "administrator", options)).toEqual(kind);
     expect(await putSecretKind({ ...kind, name: "renamed" }, "administrator", options)).toMatchObject({ name: "renamed" });
-    expect((await listSecretKinds("administrator", options)).map((one) => one.name)).toContain("renamed");
+    expect((await listSecretKinds(options)).map((one) => one.name)).toContain("renamed");
 
+    await expect(addSecretKind({ ...kind, key: "another" }, "member", options)).rejects.toMatchObject({ status: 403, code: "forbidden" });
     await dropSecretKind(kind.key, "administrator", options);
 
-    expect((await listSecretKinds("administrator", options)).map((one) => one.key)).not.toContain(kind.key);
-    await expect(listSecretKinds("member", options)).rejects.toMatchObject({ status: 403, code: "forbidden" });
-  });
-
-  test("a member's role is refused by the server", async () => {
-    await expect(listSecrets("member", options)).rejects.toMatchObject({ status: 403, code: "forbidden" });
-    await expect(keepSecret("unit-c.token", text(VALUE), false, "member", options)).rejects.toMatchObject({ status: 403 });
-    expect(service.secrets.has("unit-c.token")).toBe(false);
+    expect((await listSecretKinds(options)).map((one) => one.key)).not.toContain(kind.key);
   });
 });

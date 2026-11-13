@@ -1,8 +1,8 @@
 <template>
   <!-- The same box a room is written in, speaking to this screen's agent instead. On a runner's
        screen it launches a run; on a worker's it says something to that worker itself, which
-       launches nothing. A word may carry files and the administrator's secrets, which the worker
-       reads; a runner is shown the web and nothing on this machine, so its box offers no clip. A
+       launches nothing. A word may carry files and the reader's own secrets, which the worker
+       uses by name; a runner is shown the web and nothing on this machine, so its box offers no clip. A
        search picks its depth in the foot; the others have nothing to pick. -->
   <ChatComposer
     ref="composer"
@@ -13,7 +13,7 @@
     :disabled="!reachable"
     :busy="sending"
     :attachable="props.agent === 'worker'"
-    :secrets="administrator"
+    :secrets="signedUser !== null"
     @submit="launch"
   >
     <template #tools>
@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import { SEARCH_DEPTHS } from "#shared/config";
-import { useAdministrator } from "~/domain/access";
+import { useSignedUser } from "~/domain/access";
 import { controlLine } from "~/domain/control";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { depthLabel } from "~/domain/status";
@@ -59,7 +59,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const reachable = computed(() => props.link === "reachable");
-const administrator = useAdministrator();
+const signedUser = useSignedUser();
 
 const emit = defineEmits<{ launched: [] }>();
 

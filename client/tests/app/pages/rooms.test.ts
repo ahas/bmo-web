@@ -14,7 +14,7 @@ const script = page.slice(page.indexOf("<script"));
 
 describe("the room screen's write controls", () => {
   test("stand for a reader whose rooms section writes", () => {
-    expect(script).toContain('import { roomMayWrite, useAdministrator } from "~/domain/access";');
+    expect(script).toContain('import { roomMayWrite, useAdministrator, useSignedUser } from "~/domain/access";');
     expect(script).toContain('import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";');
     expect(script).toContain("const writable = computed<boolean>(() => roomMayWrite(access.value, administrator.value, accessReady.value));");
   });

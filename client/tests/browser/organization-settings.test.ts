@@ -24,10 +24,10 @@ const MEMBER = { name: "org-member", password: "fixture-password-2667" };
 const MOVERS = ["org-move-a", "org-move-b", "org-move-c"];
 const RUN = Date.now().toString(36);
 
-const PERSONAL = ["settings.label.account", "settings.label.theme", "settings.label.palette"];
+const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
-const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "settings.label.secrets", "research.title.supervisor"];
-const TABS = ["organization.label.chart", "settings.label.invites", "settings.label.permissions", "settings.label.providers", "settings.label.secrets"];
+const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
+const TABS = ["organization.label.chart", "settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds"];
 
 let browser: Browser | null = null;
 const cookies = new Map<string, string>();
@@ -330,13 +330,13 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
             await page.keyboard.press("Escape");
             await page.getByRole("dialog").first().waitFor({ state: "hidden", timeout: 10_000 });
             await page.keyboard.press("Control+K");
-            await page.keyboard.type(wording("settings.label.secrets"));
+            await page.keyboard.type(wording("secrets.label.kinds"));
 
-            const hit = page.getByRole("option", { name: new RegExp(wording("settings.label.secrets")) }).first();
+            const hit = page.getByRole("option", { name: new RegExp(wording("secrets.label.kinds")) }).first();
 
             await hit.waitFor({ timeout: 10_000 });
             await hit.click();
-            await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("tab") === "secrets", { timeout: 10_000 });
+            await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("tab") === "secret-kinds", { timeout: 10_000 });
           }
 
           // A link made before a section moved lands on its tab.
@@ -355,6 +355,11 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await page.goto(`${origin}/organization?tab=briefing`, { waitUntil: "load" });
           await page.waitForURL((url) => url.pathname.endsWith("/organization") && !url.searchParams.has("tab") && !url.searchParams.has("settings"), { timeout: 20_000 });
           await page.getByRole("dialog").first().locator("[data-briefing-trial]").waitFor({ timeout: 20_000 });
+
+          // The secrets' old tab leads to the reader's own secrets in the settings dialog.
+          await page.goto(`${origin}/organization?tab=secrets`, { waitUntil: "load" });
+          await page.waitForURL((url) => url.pathname.endsWith("/organization") && !url.searchParams.has("tab") && !url.searchParams.has("settings"), { timeout: 20_000 });
+          await page.getByRole("dialog").first().locator("[data-secret-add]").waitFor({ timeout: 20_000 });
 
           // The units tab: the unit chosen by its address, its company above its name.
           await page.goto(`${origin}/organization?unit=${team}`, { waitUntil: "load" });

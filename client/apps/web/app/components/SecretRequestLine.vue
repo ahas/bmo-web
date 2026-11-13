@@ -25,8 +25,9 @@
 </template>
 
 <script setup lang="ts">
-import { useAdministrator } from "~/domain/access";
+import { useAdministrator, useSignedUser } from "~/domain/access";
 import { requestKindWords, savedSince, useSecretLists, useSecretRequest } from "~/domain/secret-form";
+import { requestIsFor } from "#shared/secret-kinds";
 
 import type { SecretRequest } from "#shared/secret-kinds";
 
@@ -42,15 +43,18 @@ const props = defineProps<Props>();
 
 const { t } = useI18n();
 const administrator = useAdministrator();
+const reader = useSignedUser();
 const { kinds, secrets, read } = useSecretLists();
 const requestSecret = useSecretRequest();
 
-const saved = computed(() => administrator.value && savedSince(secrets.value, props.request.name, props.sentAt * 1000));
+// Whether the request fills the reader's own space, so their list says whether it was answered.
+const theirs = computed(() => requestIsFor(props.request, reader.value, administrator.value));
+const saved = computed(() => theirs.value && savedSince(secrets.value, props.request.name, props.sentAt * 1000));
 const kindText = computed(() => requestKindWords(t, props.request, kinds.value));
 
-// The lists are read once for the tab, by the first request line an administrator is shown.
+// The lists are read once for the tab, by the first request line shown to the reader it is for.
 onMounted(() => {
-  if (administrator.value && secrets.value === null) void read().catch(() => undefined);
+  if (theirs.value && secrets.value === null) void read().catch(() => undefined);
 });
 
 function press(): void {

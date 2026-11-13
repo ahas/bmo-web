@@ -132,9 +132,10 @@ export interface StandIn {
   keys: Map<string, { user: number; key: string }>;
   moves: StandInMove[];
   state: { inForce: boolean };
-  // The secret store's files by name, and the role each call on the store was made in.
+  // The secret store's files by their address under `env/`, the administrator's by name and anyone else's as
+  // `users/<user>/<name>`, and the user each call on the store was made by.
   secrets: Map<string, StandInSecret>;
-  secretRoles: (string | null)[];
+  secretKeys: (string | null)[];
   // The secret kinds by key, in the order they were added.
   kinds: Map<string, SecretKind>;
   // Each user's profile, by the user's id.
@@ -192,7 +193,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const moves: StandInMove[] = [];
   const state = { inForce: seed.inForce ?? true };
   const secrets = new Map<string, StandInSecret>();
-  const secretRoles: (string | null)[] = [];
+  const secretKeys: (string | null)[] = [];
   const kinds = new Map<string, SecretKind>();
   const profiles = new Map<number, StandInProfile>();
   const hub = new Set(seed.hub ?? []);
@@ -522,19 +523,26 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
           : json({ user: String(user.id), name: user.name, hash });
       }
 
-      // The secret store, as the server's own tests hold it: the administrator's alone, a plain name, and no value
-      // ever answered.
-      const secret = path.match(/^\/secrets(?:\/([^/]+))?$/);
+      // The secret store, as the server's own tests hold it: each space its own user's alone, the administrator's
+      // the store's own folder, a plain name, and no value ever answered.
+      const secret = path.match(/^\/users\/([^/]+)\/secrets(?:\/([^/]+))?$/);
 
       if (secret !== null) {
-        const role = request.headers.get("owner-role");
-        const name = secret[1] === undefined ? null : decodeURIComponent(secret[1]);
-        const kept = (one: string) => ({ name: one, bytes: secrets.get(one)!.bytes.length, changedAt: secrets.get(one)!.changedAt });
+        const key = request.headers.get("owner-key");
+        const owner = users.find((user) => String(user.id) === secret[1]);
+        const name = secret[2] === undefined ? null : decodeURIComponent(secret[2]);
+        const space = owner?.administrator === true ? "" : `users/${secret[1]}/`;
+        const kept = (one: string) => ({ name: one, bytes: secrets.get(space + one)!.bytes.length, changedAt: secrets.get(space + one)!.changedAt });
 
-        secretRoles.push(role);
+        secretKeys.push(key);
 
-        if (role !== "administrator") return refused(403, "forbidden", "the secret store is the administrator's");
-        if (name === null) return json({ secrets: [...secrets.keys()].sort().map(kept) });
+        if (key !== secret[1]) return refused(403, "forbidden", "a person's secrets are their own");
+        if (owner === undefined) return refused(404, "not-found", "no such user");
+        if (name === null) {
+          const names = [...secrets.keys()].filter((one) => one.startsWith(space) && !one.slice(space.length).includes("/")).map((one) => one.slice(space.length));
+
+          return json({ secrets: names.sort().map(kept) });
+        }
         if (!/^[A-Za-z0-9._-]{1,200}$/.test(name) || name.startsWith(".") || name.endsWith(".previous")) {
           return refused(400, "bad-name", "the name is no secret's");
         }
@@ -543,28 +551,29 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
           if (typeof body?.value !== "string") return refused(400, "bad-request", "the body does not read as a secret's");
           if (body.value === "") return refused(400, "empty-value", "the value is empty");
 
-          const standing = secrets.has(name);
+          const standing = secrets.has(space + name);
 
           if (standing && body.replace !== true) return refused(409, "secret-exists", "a secret stands under the name");
 
-          secrets.set(name, { bytes: Buffer.from(body.value, body.encoding === "base64" ? "base64" : "utf8"), changedAt: Date.now() });
+          secrets.set(space + name, { bytes: Buffer.from(body.value, body.encoding === "base64" ? "base64" : "utf8"), changedAt: Date.now() });
 
           return json(kept(name), standing ? 200 : 201);
         }
 
-        if (!secrets.delete(name)) return refused(404, "not-found", "no secret stands under the name");
+        if (!secrets.delete(space + name)) return refused(404, "not-found", "no secret stands under the name");
 
         return done();
       }
 
-      // The secret kinds, the administrator's as the store is; the kind's own rules are the server's tests'.
+      // The secret kinds, read by any call and changed by the administrator alone; the kind's own rules are the
+      // server's tests'.
       const kind = path.match(/^\/secret-kinds(?:\/([^/]+))?$/);
 
       if (kind !== null) {
         const key = kind[1] === undefined ? null : decodeURIComponent(kind[1]);
 
-        if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the secret kinds are the administrator's");
         if (key === null && request.method === "GET") return json({ kinds: [...kinds.values()] });
+        if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the secret kinds are the administrator's");
 
         if (key === null) {
           const asked = kindOf(body);
@@ -616,7 +625,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     moves,
     state,
     secrets,
-    secretRoles,
+    secretKeys,
     kinds,
     profiles,
     hub,

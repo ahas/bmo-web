@@ -491,24 +491,26 @@ impl AccountClient {
     Self::answered(self.request(Method::GET, &["rooms", &chat.to_string(), "holdings"])).await
   }
 
-  /// `GET /secrets`, asked in `role`, the role the console's login acts in.
-  pub async fn secrets(&self, role: &str) -> Answer<Secrets> {
-    Self::answered(self.request(Method::GET, &["secrets"]).header(OWNER_ROLE, role)).await
+  /// `GET /users/{user}/secrets`, asked by `user`, the user the console's login is, in their own space.
+  pub async fn secrets(&self, user: &str) -> Answer<Secrets> {
+    Self::answered(self.request(Method::GET, &["users", user, "secrets"]).header(OWNER_KEY, user)).await
   }
 
-  /// `PUT /secrets/{name}`, asked in `role`.
-  pub async fn put_secret(&self, name: &str, ask: &SecretAsk, role: &str) -> Answer<Secret> {
-    Self::answered(self.send(Method::PUT, &["secrets", name], ask).header(OWNER_ROLE, role)).await
+  /// `PUT /users/{user}/secrets/{name}`, asked by `user` in their own space.
+  pub async fn put_secret(&self, user: &str, name: &str, ask: &SecretAsk) -> Answer<Secret> {
+    Self::answered(self.send(Method::PUT, &["users", user, "secrets", name], ask).header(OWNER_KEY, user))
+      .await
   }
 
-  /// `DELETE /secrets/{name}`, asked in `role`.
-  pub async fn delete_secret(&self, name: &str, role: &str) -> Answer<()> {
-    Self::nothing(self.request(Method::DELETE, &["secrets", name]).header(OWNER_ROLE, role)).await
+  /// `DELETE /users/{user}/secrets/{name}`, asked by `user` in their own space.
+  pub async fn delete_secret(&self, user: &str, name: &str) -> Answer<()> {
+    Self::nothing(self.request(Method::DELETE, &["users", user, "secrets", name]).header(OWNER_KEY, user))
+      .await
   }
 
-  /// `GET /secret-kinds`, asked in `role`.
-  pub async fn secret_kinds(&self, role: &str) -> Answer<SecretKinds> {
-    Self::answered(self.request(Method::GET, &["secret-kinds"]).header(OWNER_ROLE, role)).await
+  /// `GET /secret-kinds`.
+  pub async fn secret_kinds(&self) -> Answer<SecretKinds> {
+    Self::answered(self.request(Method::GET, &["secret-kinds"])).await
   }
 
   /// `POST /secret-kinds`, asked in `role`.

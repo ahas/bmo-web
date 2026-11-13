@@ -113,8 +113,8 @@
   offers stand on their own words (본문, 제목 1, 글머리 목록, 인용, 코드 블록). Never 서식 변경, 스타일, 종류로
   바꾸기. 변환 is no form of it: that word stands only where a file's format is really converted, as an mp3
   conversion's run names itself.
-- secret, a value a unit reads by its file name → 비밀; the console's store of them → 비밀 보관함; putting a value in
-  place of the one a name holds → 교체. Never 시크릿, 키 보관소.
+- secret, a value a unit reads by its file name → 비밀; the console's store of them, each person's own → 비밀 보관함,
+  and one's own → 내 비밀; putting a value in place of the one a name holds → 교체. Never 시크릿, 키 보관소, 개인 금고.
 - the shape a secret is asked in → 비밀 종류; one of its fields → 항목, its key 키 and its label 이름; fields put
   together by hand → 직접 구성; a field whose value is drawn as dots → 값 숨김; how a field is typed → 입력 (한 줄,
   여러 줄, 파일); an agent asking for a secret → 비밀 요청, and one answered → 저장됨. Never 필드, 마스킹, 템플릿.

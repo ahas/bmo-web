@@ -10,7 +10,7 @@
 - **It stands on its own PostgreSQL database** and on a Valkey for sumida's sessions. Its tables are its own:
   sumida's, and the ones its migrations make (「The tables」 below). No other unit's table is read or written.
 - **Beside its database it writes one folder:** the data root's `env/`, where the secret store keeps the files every
-  unit reads its secrets from (「The secret store」 below).
+  unit reads its secrets from, and under it each person's own secret space (「The secret store」 below).
 - **It answers on a runtime of its own, two threads named `account-service`.** sumida reads the operating
   system and the device out of the user agent of every request that reads a session, through about a thousand
   patterns built ASCII-only, and keeps what it read for the last 256 user agents. Each thread that runs the
@@ -26,7 +26,8 @@ flowchart TD
   Server --> Store[the secret store]
   Sumida --> PG[(the server's database)]
   Own --> PG
-  Store --> Env[(the data root's env/)]
+  Store --> Env[(the data root's env/: the administrator's space)]
+  Env --> Spaces[(env/users/user/: each other person's space)]
   Sumida --> Valkey[(Valkey)]
 ```
 
@@ -192,7 +193,7 @@ section states what each does.
   | `remote` | bmo-remote's screen |
   | `brain` | the brain's screen |
   | `rooms` | the reader's rooms and their messages |
-  | `account` | the reader's own account and its settings |
+  | `account` | the reader's own account, its settings and its secrets |
 
 - **Agent management's screen opens on any one of its parts the reader may read,** and each tab on its own
   part alone. Its shared reads — the agent list, a provider's models, the provider switches and the fallback,
@@ -353,19 +354,48 @@ section states what each does.
 
 ### The secret store
 
-- **The store is the data root's `env/` folder,** the one the server's `secrets.dir` setting names. Every unit of the
-  platform reads a secret from a file there, by the file's name its own settings carry, so the store's whole work is
-  to write a file under a name; agents and settings are then given the name, never the value.
-- **It is the administrator's.** The console hands on the signed-in login's role in `Owner-Role`, and every route of
-  the store refuses any role but `administrator`.
-- **`GET /secrets`** lists the names standing there, each with its size and the time it last changed, and never
-  what a file holds.
-- **`PUT /secrets/{name}`** writes a value under a name: whole, to a hidden file of mode 600 beside it, then moved
-  onto the name, so a reader never meets half a value. A name that stands already is replaced only where the call
-  says so; the value replaced stays as `<name>.previous`, mode 600. It answers the name, the size and the time alone.
-  The value comes as text, or as base64 where the call says so, so a file that is not text is written as its own
-  bytes.
-- **`DELETE /secrets/{name}`** moves the file to `<name>.previous`, in place of any earlier one.
+- **The store is the data root's `env/` folder,** the one the server's `secrets.dir` setting names, and its whole
+  work is to write a file under a name; agents and settings are then given the name, never the value.
+- **A secret is a person's.** The store holds one space for each person, and a space is listed, written and
+  emptied by its own person alone: the console hands on the signed-in login's user in `Owner-Key`, and every route
+  of the store refuses a call whose key is not the space's user. Nobody lists another person's names, the
+  administrator included; a login with no user holds no space.
+- **Where a space stands:**
+  - **The platform administrator's space is `env/` itself.** The platform's own work runs on the administrator's
+    accounts (「The data move」), every unit reads the deployment's secrets there by the file name its own settings
+    carry, and every secret the store wrote before people held spaces of their own stands there; so it is all the
+    administrator's, read where it always was, and nothing moves.
+  - **Every other person's space is `users/<user>/` under it,** `<user>` being their user's id written as a decimal
+    number, the key `Owner-Key` carries and the one their supervisor `u<user>` is named by. The login name, which a
+    person may change, names no space. The folder is made, mode 700, at the person's first write, and `users` itself
+    is no secret's name in `env/`, since a folder stands there under it.
+  - **The space follows the administrator's place,** read from the service's `settings` at each call: a user who
+    stops being the platform administrator writes into `users/<user>/` from then on, and what they wrote in `env/`
+    stays the deployment's, with the user who is made the administrator.
+- **A secret's address** is its space and its name, relative to `env/`: `<name>` for the administrator's, and
+  `users/<user>/<name>` for anyone else's.
+- **Who reads a secret:**
+  - **A unit reads the deployment's secrets** by the path its own settings name under `env/`, as it always has.
+  - **The administrator's agents** (the supervisor of no account, and the workers and runners it orders) are handed
+    a name and read it in `env/`, where the chat agent's request names it (agency's chat procedure 「Asking for a
+    secret」).
+  - **A person's own secret is read on this machine, by a unit acting for that person,** which takes the person from
+    the account its caller's credential names, never from an argument, and reads `users/<user>/<name>`. A person's
+    agents stand on their own PC (agency's `docs/person-nodes.md`, 「Which node is a person's」), where the data
+    root's credentials are never sent (agency's `docs/work-nodes.md`, 「The link」); so they hand the name to such a
+    unit, reached through the tool host's port the link carries back, and never read the file. A unit that comes to
+    need a person's secret adds that reading by this address; none reads a person's space today.
+  - **The console and this service never read a value back.**
+- **A person who leaves keeps their space as it stood,** sealed with their other private records (「A person who
+  leaves」): their sign-in disabled, nobody lists it, and nothing reads it for them.
+- **`GET /users/{user}/secrets`** lists the names standing in the person's space, each with its size and the time it
+  last changed, and never what a file holds. The administrator's lists `env/`'s own files, never a folder under it.
+- **`PUT /users/{user}/secrets/{name}`** writes a value under a name in the person's space: whole, to a hidden file
+  of mode 600 beside it, then moved onto the name, so a reader never meets half a value. A name that stands already
+  is replaced only where the call says so; the value replaced stays as `<name>.previous`, mode 600. It answers the
+  name, the size and the time alone. The value comes as text, or as base64 where the call says so, so a file that is
+  not text is written as its own bytes.
+- **`DELETE /users/{user}/secrets/{name}`** moves the file to `<name>.previous`, in place of any earlier one.
 - **No route reads a value back.** The value goes into the file and nowhere else: the server logs no request and no
   body, and no answer, refusal or line on its error stream carries it.
 - **A name is a plain file name,** with no slash and no leading dot, and not ending in `.previous`, the suffix the
@@ -384,8 +414,9 @@ section states what each does.
   environment file, so its fields are one line each. A several-line or file field stands alone in its kind, and its
   file is its bytes unchanged. The console's form writes the file by these rules and hands the store the whole of
   it (`docs/web.md`, 「비밀 보관함」); the store itself knows no kind.
-- **The administrator's alone,** as the store is: the routes list, add, change and remove kinds, and refuse a kind
-  that breaks the rules above (`docs/boundary.md`, 「Secret kinds」). A kind's key does not change once added.
+- **The deployment's, kept by the administrator.** Every person's secret form asks in the same kinds, so any login
+  reads them; the administrator alone adds, changes and removes one, and the routes refuse a kind that breaks the
+  rules above (`docs/boundary.md`, 「Secret kinds」). A kind's key does not change once added.
 - **The defaults are seeded once,** by the migration that makes the table, with their names and labels from the
   server's pack (`secret-kinds`): API key; account login, a user name and a password; AWS access key, the access key
   id, the secret access key and the region; OAuth client, the client id and the client secret; database connection,
@@ -463,8 +494,11 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **Every route of `docs/boundary.md`'s 「What the server serves」 answers in a test.**
 - **The secret store's tests stand on a temporary folder** in place of the data root's `env/`: the modes a write
   leaves, the value kept before, the names refused, a base64 value written as its bytes, and that no answer and no
-  refusal carries a value.
+  refusal carries a value; the administrator's space at the folder and a member's under `users/<user>/`, neither
+  listing the other's, and every route refused to a key that is not its space's user, the administrator's
+  included.
 - **The secret kind tests** read the seeded defaults, add, change and remove a kind as the administrator, refuse each
-  rule a kind can break and a key that does not match its path, and refuse every route to a member.
+  rule a kind can break and a key that does not match its path, read the kinds as a member, and refuse a member
+  every change.
 - **The console's side tests against a stand-in** answering these routes, so a console test needs neither the
   binary nor Valkey.

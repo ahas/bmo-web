@@ -11,7 +11,7 @@ import type { ArchivedMessage, MessagePage, SecretList, TelegramFormat } from ".
 // A secret handed to an agent (docs/web.md, 「Settings」, the secret store section): the clip offering it in a room's box
 // and a worker's, the form asking it in every kind the server seeds, a request link pressed in place, a request
 // arriving that opens the form once by itself, a link pressed in Telegram reaching the form through the login, and a
-// reader who is not the administrator refused. No value stands in any request but the
+// request answered by the reader it is for alone. No value stands in any request but the
 // store's write, nor in the browser's storage. The room is a fixture this test serves through the page's own routes;
 // the console around it, with the account service and its secret store on a scratch folder, is the one given in
 // BMO_CONSOLE_TEST_URL, which tests/support/browser-console.ts stands up. The suite stands up no console, so there it
@@ -431,7 +431,7 @@ describe.skipIf(!origin || !touchReady())("a secret handed to an agent", () => {
     }
   }, TEST_MS);
 
-  test("an address opens the form and is taken off, and a member is refused rather than shown the form", async () => {
+  test("an address opens the form and is taken off, and a member is shown it for their own request alone", async () => {
     const room = new Room();
     const sent: Sent[] = [];
 
@@ -456,8 +456,13 @@ describe.skipIf(!origin || !touchReady())("a secret handed to an agent", () => {
       const page = await member.newPage();
 
       await page.goto(`${origin}/rooms/${CHAT}?secret=refused.token&kind=api-key`, { waitUntil: "load" });
-      await page.getByText(wording("common.error.administrator_only")).first().waitFor({ timeout: 20_000 });
+      await page.getByText(wording("secrets.error.not_for_you")).first().waitFor({ timeout: 20_000 });
       expect(await page.locator("[data-secret-form]").count()).toBe(0);
+
+      const session = (await (await fetch(`${origin}/api/_auth/session`, { headers: { cookie: memberCookie } })).json()) as { user?: { id?: number } };
+
+      await page.goto(`${origin}/rooms/${CHAT}?secret=own.token&kind=api-key&user=${session.user?.id}`, { waitUntil: "load" });
+      await page.locator("[data-secret-form]").waitFor({ timeout: 20_000 });
     } finally {
       await member.close();
     }

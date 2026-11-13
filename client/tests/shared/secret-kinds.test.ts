@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { kindFaults, requestFieldsOf, secretFileOf, secretRequestOf, secretRequestOfLink, withoutRequest } from "../../apps/web/shared/secret-kinds";
+import { kindFaults, requestFieldsOf, requestRefusalOf, secretFileOf, secretRequestOf, secretRequestOfLink, withoutRequest } from "../../apps/web/shared/secret-kinds";
 
 import type { SecretField, SecretKind } from "../../apps/web/shared/secret-kinds";
 
@@ -54,7 +54,7 @@ describe("the file the fields make", () => {
 
 describe("a request an address carries", () => {
   test("names the secret, its kind or its fields, and what it is for", () => {
-    expect(secretRequestOf({ secret: "unit.token", kind: "api-key", for: "the deploy" })).toEqual({ name: "unit.token", kind: "api-key", fields: null, purpose: "the deploy" });
+    expect(secretRequestOf({ secret: "unit.token", kind: "api-key", for: "the deploy" })).toEqual({ name: "unit.token", kind: "api-key", fields: null, purpose: "the deploy", user: null });
     expect(secretRequestOf({ secret: "unit.env", fields: "USER,PASS*" })?.fields).toEqual([
       { key: "USER", label: "USER", masked: false, input: "line", required: true },
       { key: "PASS", label: "PASS", masked: true, input: "line", required: true }
@@ -67,7 +67,26 @@ describe("a request an address carries", () => {
   });
 
   test("is taken off the address, and the rest of the query stays", () => {
-    expect(withoutRequest({ secret: "a", kind: "b", fields: "C", for: "d", tab: "x" })).toEqual({ tab: "x" });
+    expect(withoutRequest({ secret: "a", kind: "b", fields: "C", for: "d", user: "7", tab: "x" })).toEqual({ tab: "x" });
+  });
+
+  test("names whose space it fills: a user by their id, and none for the platform administrator's", () => {
+    expect(secretRequestOf({ secret: "a.token", user: "7" })?.user).toBe(7);
+
+    for (const user of [undefined, "", "seven", "-7", "7.5"]) {
+      expect({ user, read: secretRequestOf({ secret: "a.token", user })?.user }).toEqual({ user, read: null });
+    }
+  });
+
+  test("is answered by the reader it is for alone", () => {
+    const deployment = secretRequestOf({ secret: "a.token" })!;
+    const personal = secretRequestOf({ secret: "a.token", user: "7" })!;
+
+    expect(requestRefusalOf(deployment, 1, true)).toBeNull();
+    expect(requestRefusalOf(deployment, 7, false)).toBe("secrets.error.not_for_you");
+    expect(requestRefusalOf(personal, 7, false)).toBeNull();
+    expect(requestRefusalOf(personal, 1, true)).toBe("secrets.error.not_for_you");
+    expect(requestRefusalOf(deployment, null, true)).toBe("secrets.error.no_space");
   });
 
   test("is read from a link only under one of the console's own addresses", () => {

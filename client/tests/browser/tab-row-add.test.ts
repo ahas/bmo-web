@@ -23,7 +23,7 @@ const SCREENS = [
   { path: "/organization", label: "organization.action.add" },
   { path: "/organization?tab=invites", label: "invites.label.make" },
   { path: "/organization?tab=providers", label: "agents.title.account_add" },
-  { path: "/organization?tab=secrets", label: "secrets.action.add" }
+  { path: "/organization?tab=secret-kinds", label: "secrets.action.kind_add" }
 ];
 
 const WIDE = { width: 1280, height: 800 };
@@ -145,16 +145,19 @@ describe.skipIf(!origin)("the row adds", () => {
 
         // The shared tooltip, the library's floating content, names what the add makes.
         await page.locator("[data-tab-add]").hover();
-        await page.locator("[data-reka-popper-content-wrapper]").filter({ hasText: wording("secrets.action.add") }).first().waitFor({ timeout: 5_000 });
+        await page.locator("[data-reka-popper-content-wrapper]").filter({ hasText: wording("secrets.action.kind_add") }).first().waitFor({ timeout: 5_000 });
         await page.mouse.move(0, 0);
 
-        // A kind, the secrets' tab's second make, is the grey icon centred on the kinds' heading, named by its tooltip.
-        const kindAdd = page.locator("[data-secret-kind-add]");
+        // A secret, made in the reader's own store in the settings dialog, is the grey icon centred on the list's
+        // heading, named by its tooltip.
+        await page.goto(`${origin}/?settings=secrets`, { waitUntil: "load" });
 
-        await kindAdd.waitFor({ timeout: 20_000 });
-        expect(await kindAdd.getAttribute("aria-label")).toBe(wording("secrets.action.kind_add"));
+        const secretAdd = page.locator("[data-secret-add]");
+
+        await secretAdd.waitFor({ timeout: 20_000 });
+        expect(await secretAdd.getAttribute("aria-label")).toBe(wording("secrets.action.add"));
         expect(
-          await kindAdd.evaluate((button) => {
+          await secretAdd.evaluate((button) => {
             const mark = button.getBoundingClientRect();
             const head = button.closest("section")!.querySelector("h3")!.getBoundingClientRect();
 

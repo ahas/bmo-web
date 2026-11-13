@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAdministrator } from "~/domain/access";
+import { useAdministrator, useSignedUser } from "~/domain/access";
 import { useOpenings } from "bmo-ui/app/domain/openings";
 import { organizationAddress, organizationMovedAway, organizationTabNamed } from "~/domain/organization";
 import { SETTINGS_SECTIONS, openSettings, sectionOf, sectionsFor, settingsAsked, useSettings } from "~/domain/settings-dialog";
@@ -74,6 +74,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const administrator = useAdministrator();
+const signedUser = useSignedUser();
 const narrow = useNarrow();
 const state = useSettings();
 
@@ -97,7 +98,7 @@ function focusing(region: () => HTMLElement | null): { onOpenAutoFocus: (event: 
 const DIALOG = focusing(() => (narrow.value ? listBody.value : sectionBody.value));
 const SHEET = focusing(() => sheetBody.value);
 
-const sections = computed(() => sectionsFor(administrator.value));
+const sections = computed(() => sectionsFor(administrator.value, signedUser.value !== null));
 const section = computed(() => sectionOf(state.value.section, sections.value));
 const sectionLabel = computed(() => t(section.value.label));
 

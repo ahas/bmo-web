@@ -303,7 +303,7 @@ async fn a_kind_that_breaks_a_rule_is_refused_naming_it_and_its_bounds_are_taken
 }
 
 #[tokio::test]
-async fn every_route_is_refused_to_a_role_other_than_the_administrator() {
+async fn any_call_reads_the_kinds_and_every_change_is_refused_to_a_role_other_than_the_administrator() {
   let (_scratch, app) = app().await;
   let before = kinds(&app).await;
   let kind = a_kind();
@@ -312,8 +312,12 @@ async fn every_route_is_refused_to_a_role_other_than_the_administrator() {
   changed["name"] = json!("Token");
 
   for role in [None, Some("member"), Some("Administrator")] {
+    let (status, read) = asked(&app, Method::GET, "/secret-kinds", None, role).await;
+
+    assert_eq!(status, StatusCode::OK, "as {role:?}");
+    assert_eq!(read["kinds"].as_array().unwrap(), &before);
+
     for (method, path, body) in [
-      (Method::GET, "/secret-kinds", None),
       (Method::POST, "/secret-kinds", Some(&kind)),
       (Method::PUT, "/secret-kinds/api-key", Some(&changed)),
       (Method::DELETE, "/secret-kinds/api-key", None),

@@ -160,14 +160,15 @@ export function secretFileOf(fields: readonly SecretField[], values: FieldValues
 }
 
 // An agent's request for a secret, carried by an address of the console (docs/web.md, the secret store section): the name, the
-// kind or the fields to ask it in, and what it is for.
+// kind or the fields to ask it in, what it is for, and whose space it fills.
 
 export const SECRET_QUERY = "secret";
 export const KIND_QUERY = "kind";
 export const FIELDS_QUERY = "fields";
 export const PURPOSE_QUERY = "for";
+export const USER_QUERY = "user";
 
-const REQUEST_KEYS = [SECRET_QUERY, KIND_QUERY, FIELDS_QUERY, PURPOSE_QUERY];
+const REQUEST_KEYS = [SECRET_QUERY, KIND_QUERY, FIELDS_QUERY, PURPOSE_QUERY, USER_QUERY];
 
 /** The mark after a field's key in `fields=` that hides its value. */
 const HIDDEN_MARK = "*";
@@ -179,6 +180,33 @@ export interface SecretRequest {
   // The fields a request names where it names no kind: each one line, labelled by its key.
   fields: SecretField[] | null;
   purpose: string;
+  // The user whose space the request fills, its id; null for the platform administrator's, as every request an agent
+  // of no account writes is.
+  user: number | null;
+}
+
+/** The user `user=` names: a whole number written in digits, or none. */
+function requestUserOf(text: string | null): number | null {
+  const digits = (text ?? "").trim();
+
+  return /^\d{1,15}$/.test(digits) ? Number(digits) : null;
+}
+
+/**
+ * Whether a request is the reader's to answer: one naming a user is that user's, one naming none the platform
+ * administrator's, and a reader with no user of their own answers none.
+ */
+export function requestIsFor(request: SecretRequest, reader: number | null, administrator: boolean): boolean {
+  if (reader === null) return false;
+
+  return request.user === null ? administrator : request.user === reader;
+}
+
+/** The pack's key a reader is refused a request with: one who holds no space, or one it is not for; null where it is theirs. */
+export function requestRefusalOf(request: SecretRequest, reader: number | null, administrator: boolean): string | null {
+  if (reader === null) return "secrets.error.no_space";
+
+  return requestIsFor(request, reader, administrator) ? null : "secrets.error.not_for_you";
 }
 
 /** The fields `fields=KEY,KEY*` names: each one line under its key, one ending in `*` hidden. */
@@ -214,7 +242,8 @@ export function secretRequestOf(query: Readonly<Record<string, unknown>>): Secre
     name: name.trim(),
     kind: kind === null || kind.trim() === "" ? null : kind.trim(),
     fields: kind === null && fields !== null ? requestFieldsOf(fields) : null,
-    purpose: (firstOf(query[PURPOSE_QUERY]) ?? "").trim()
+    purpose: (firstOf(query[PURPOSE_QUERY]) ?? "").trim(),
+    user: requestUserOf(firstOf(query[USER_QUERY]))
   };
 }
 

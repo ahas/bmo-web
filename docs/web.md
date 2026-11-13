@@ -3448,9 +3448,10 @@ a seat of its role.
   never becomes something the chat agent said there.
 - **This box is the room's own box** (「Room screen」): the same Enter rule, growth, draft, long-paste marks and
   attachment tray, from one component. On a worker's screen it takes files too — by the clip, a paste or a drop,
-  up to ten at 50MB each — and words may be left out when files are there. Its clip hands the administrator's
+  up to ten at 50MB each — and words may be left out when files are there. Its clip hands the reader's own
   secrets as a room's does (「첨부」): the chip goes in as the pack's line naming the secret and its kind, at the end of
-  the word, and the worker reads the stored file by that name. The bot writes a word's files
+  the word, and the worker uses the stored secret by that name, read where its space stands (`docs/accounts.md`,
+  「The secret store」). The bot writes a word's files
   into a directory of their own under that worker's workbench (`uploads/<time>-<id>/`, keeping each file's
   name and numbering a repeated one) and ends the words with the list of their paths, so the worker reads
   them with its own tools. A voyager's and a seeker's box offers no clip: those runners are shown
@@ -4658,7 +4659,7 @@ Four bounds keep it from growing forever.
   the rest follow as ordinary messages.
   - **The box carries one tool: the clip.** It takes files on every screen and in every room — a file goes in the way
     words do, as one send with the typed words as its caption, and a picture, a sound or a video picked there stands in
-    the room as it would from a phone — and it hands the administrator's secrets too. It opens a menu
+    the room as it would from a phone — and it hands the reader's own secrets too. It opens a menu
     (「첨부」), and on a phone that menu adds one file a tap. Nothing else stands beside
     it: the voice note's own button and the sticker button are not shown, while the roads that carry a voice note, a
     sticker and a room's own tools stay in the console and on their routes, so what those roads carry still goes in by
@@ -4853,10 +4854,10 @@ Four bounds keep it from growing forever.
   - **The clip opens a menu.** On a touch screen it holds **사진·동영상**, which opens the phone's own photo picker,
     where every tap adds a picture or a video to the choice, since a phone's file picker chooses one file per tap,
     then **파일**, which opens the file picker; on a screen with a mouse it holds **파일**. Wherever a clip stands,
-    a room's box and a worker's, the menu ends with **비밀**, for the administrator alone since the store refuses
-    every other role, which opens the secret form (「비밀 보관함」). A menu that would hold 파일 alone is no menu: the
+    a room's box and a worker's, the menu ends with **비밀**, for every login with a user of its own, which opens the
+    secret form (「비밀 보관함」) and saves into the reader's own space. A menu that would hold 파일 alone is no menu: the
     clip opens the file picker at once. Both pickers take several files in one choice.
-  - **A secret handed in the box.** A save through 비밀 writes the store at once and leaves a chip in the tray naming
+  - **A secret handed in the box.** A save through 비밀 writes the reader's space at once and leaves a chip in the tray naming
     the secret and its kind, with its own way out, which takes the chip and nothing from the store. Sending puts the
     pack's line naming each secret and its kind in the room, or in the word to the worker, after the words written
     with it, the way words go, so a chip alone sends with the box empty. The chip is the box's alone: no draft,
@@ -6319,8 +6320,8 @@ Four bounds keep it from growing forever.
 ### Settings
 
 The settings are one large dialog over whatever screen is open, opened by 설정 in the user menu at the
-sidebar's foot (「Sidebar」). They hold what a person sets for themselves alone: their account, what this
-browser shows them, and the voice briefing, which is spoken to the administrator alone and so is theirs to
+sidebar's foot (「Sidebar」). They hold what a person sets for themselves alone: their account, their own
+secrets, what this browser shows them, and the voice briefing, which is spoken to the administrator alone and so is theirs to
 switch. What is set for the whole deployment or for other people stands on its own screen, 조직 설정
 (「Organisation settings」), and what the research unit's runs are held to on the research screen (「Research
 screen」). The dialog is no screen of its own: `/account` takes the reader home with the dialog open at 계정.
@@ -6329,9 +6330,10 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 테마 and 대화방;
-    알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for the
-    administrator alone.
+  - The sections are 계정, 비밀 보관함, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 비밀 보관함,
+    테마 and 대화방; 알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for
+    the administrator alone. A login with no user of the account service, which holds no secret space, is not
+    shown 비밀 보관함.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -6343,11 +6345,11 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `theme`,
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `secrets`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A key that names none of the dialog's sections but a tab of 조직 설정 — `organization`,
-  `invites`, `permissions`, `providers`, `secrets` — takes the reader to that tab instead, and `research` to the
+  `invites`, `permissions`, `providers`, `secret-kinds` — takes the reader to that tab instead, and `research` to the
   research screen's 설정 tab, so a link made before a section moved still lands where it stands now. The key is
   taken off the address as the dialog opens: what
   is open over a screen is not a place (「Floating things」), so the back gesture closes the dialog, or leaves
@@ -6366,6 +6368,96 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   none, with 변경 opening the form: the four fields and 저장, open only while one differs. The account's holder
   or an administrator reads and writes it; the console hands the login's own user and role to the service, and
   another login's call is refused.
+
+#### 비밀 보관함
+
+The way a person hands their own agents and units a secret — an API key, a token, a password — without the value
+passing through a room, a transcript or a log. A value saved here is a file in the reader's own secret space,
+written by the server's secret store (`docs/accounts.md`, 「The secret store」): the data root's `env/` for the
+platform administrator, the folder every unit reads the deployment's secrets from by file name, and
+`env/users/<user>/` for anyone else. From then on an agent or a unit's settings is given the name alone. Each
+person sees their own space and nobody else's, the administrator included.
+
+- **The section opens on one muted line** saying so: the secrets are the reader's own, and agents are given the
+  name, never the value.
+- **보관된 비밀** lists every secret the reader's space holds, one row each: its name as the row's label, and under it
+  its size in bytes and when it last changed. Nothing of a value is read or shown: no route of the console or the
+  server answers one. A space holding none says 보관된 비밀 없음.
+  - Each row carries 교체, which opens the secret form on that name with replacing already chosen, and 삭제, which
+    asks first, naming the secret and that its value is kept as `<name>.previous`; a delete that goes through takes
+    the row away.
+- **비밀 추가**, the button at the head of 보관된 비밀, opens the secret form (below), the same form the composer's clip
+  and an agent's request open.
+- The kinds the form asks in are the deployment's, kept on 조직 설정's 비밀 종류 (「Organisation settings」).
+- **The secret form** is one dialog (「Forms」), whichever way it opens: 종류, 이름, the kind's fields and 저장 at its
+  foot.
+  - 종류 lists every kind by its name, and 직접 구성 last; the chosen kind's description stands under the list.
+    Choosing one stands its fields under 이름, each under its label, a required one marked so.
+  - A 한 줄 field is one box, a password box with the browser's filling turned off where its value is hidden, shown
+    as dots alone. A 여러 줄 field is a box that grows with its text, its letters drawn as dots where its value is
+    hidden, with 파일에서 불러오기 under it, which reads a chosen file into the box as text. A 파일 field chooses a file
+    and shows its name and size.
+  - 직접 구성 stands the fields as a list of their own: 항목 추가 adds a row of 키, 입력 and 값 숨김, its value box under
+    it, each row removed by its own mark, under the rules a kind is held to. **종류로 저장**, a switch shown to the
+    administrator alone, keeps the fields as a new kind under the 키 and the 종류 이름 written under it; the kind is
+    added before the value goes, and a kind refused stops the save with its reason.
+  - 이름 takes a plain file name, English letters, digits, `.`, `_` and `-`, beginning with no dot and not ending in
+    `.previous`; another is said under the field and 저장 stays off. A name the reader's space holds already shows 기존 값 교체
+    under 이름, a switch that starts off, and 저장 stays off until it is on; a name new to the list shows nothing
+    there.
+  - **The file follows the fields** (`docs/accounts.md`, 「Secret kinds」): a kind of one field writes its value alone,
+    as it was typed or pasted; one of several writes a `KEY=VALUE` line for each field holding a value, in the
+    kind's order, the value as typed; a 파일 field writes the file's bytes unchanged. 저장 stays off while a required
+    field is empty, and an optional one left empty writes no line.
+  - 저장 sends the name, the file and whether to replace, and nothing else. The value boxes are emptied, and a file
+    chosen let go, as soon as the answer comes, whether the save went through or was refused. A save that went
+    through closes the dialog; a refusal stays in the dialog with its reason under the form.
+- **An agent's request is an address.** `?secret=<name>` on any address of the console opens the secret form over that
+  screen, filled in: the name; the kind `kind=<key>` names, or, where `fields=<KEY>,<KEY>*` stands instead, those
+  fields under 직접 구성, each one line, a key ending in `*` hidden; and `for=<purpose>`, which stands as a line at the
+  form's head saying what the secret is for. A kind the console holds none of leaves 종류 unchosen. The keys are taken
+  off the address as the form opens, as `?settings=` is (「Settings」), so the back gesture closes the form and the
+  page stays where it was.
+  - **`user=<user>` names whose space the request is for:** the user an agent of a person's account runs for, its id
+    as a decimal number. A request naming none is the platform administrator's, as every request written by an agent
+    of no account is, so a link written before people held spaces still fills the space its reader's units read.
+    The form saves into the reader's own space, and opens only for the reader the request is for.
+  - **The address an agent writes** is its room's screen under the console's public address, which the console's
+    settings name (`NUXT_PUBLIC_CONSOLE_ADDRESS`, `docs/boundary.md`, 「Settings」) and the agent is given in its own,
+    with these keys. Each key is read percent-decoded, so a hidden field's `*` may stand as `%2A` where a chat's
+    formatting would take it as a mark.
+  - **Pressed in Telegram,** the same link opens the console in the browser Telegram hands it to, at that room with
+    the form over it. A browser that holds no login goes by the login screen, which carries the whole address
+    (「Access」), so the form opens once the login ends; a save there answers the room as a press inside the console
+    does.
+  - **A reader the request is not for** is told in the pill that it asks for another person's secret, and no form
+    opens; a login with no user is told it holds no secret space.
+- **A request in a room stands as a request.** A message whose words carry a link to such an address — under the
+  console's public address or the address the console is being read at — stands each one under its words as a
+  highlighted line: a key mark, 비밀 요청, the name, the kind's name or the fields' keys, and the purpose where the link
+  carries one. Pressing the line, or the link among the words, opens the form in place, with no navigation.
+  - Once the space the request is for holds the name, changed at or after the message's time, the line reads 저장됨
+    for that space's person; a press opens the form again, with replacing chosen. For any other reader the line never
+    reads saved, and a press answers the refusal.
+  - **A request arriving opens the form by itself, once.** A message carrying one that arrives at the end of a room
+    whose screen is open and in front — the tab shown, nothing open over the screen — opens the form for its first
+    request. Closing the form leaves the line to press later, and the same message never opens it again in this tab;
+    a message read in by opening the room, paging or going to it opens nothing.
+  - **A save answers the room.** A save from a request opened over a room's screen puts the pack's line naming the
+    secret and its kind in that room, by the room's own road as words typed there, and the request's line then
+    reads 저장됨. A save from the composer leaves its chip (「첨부」), and one from this section puts nothing in any
+    room.
+- **The value goes nowhere but the store.** It is never put in the address, the tab's kept state, the browser's
+  storage, a draft (「Unsent words」), the outbox, a chip or a line put in a room; a kind holds its fields' shapes and
+  never a value. The console's route that writes takes the name and the value in its body, never in its address, so
+  nothing typed into the form stands in an address a proxy logs; it hands them to the server and answers what the
+  server answered, the name, the size and the time, and neither the route nor the server logs a body. A file that is
+  not text goes as base64, and the server writes its bytes. A delete names in its address only a name the list
+  already shows.
+- **Each person's own.** The console's routes for the store act on the signed-in login's own space alone, handing each
+  call on with the login's user, which the server holds to the space's own; no route names another person's space,
+  so not even the administrator reads one. A login with no user is shown neither the section, the clip's 비밀 nor
+  the form, and the routes answer it as if nothing stood there (「Access」).
 
 #### 테마
 
@@ -6429,24 +6521,24 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 
 조직 설정 is the screen of what is set for the whole deployment or for other people: the organisation's units and
 who stands in them, the invitations into them, each person's sections, the providers and the Claude accounts every
-run goes out on, and the secret store. What a person sets for themselves alone, the voice briefing among it, is
-the settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
+run goes out on, and the kinds every person's secret form asks in. What a person sets for themselves alone, their
+secrets and the voice briefing among it, is the settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
 
-- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대, 권한, 공급자 and 비밀 보관함, keyed
-  in the address as `?tab=` with `invites`, `permissions`, `providers` and `secrets`, 조직도 being the screen's own
+- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대, 권한, 공급자 and 비밀 종류, keyed
+  in the address as `?tab=` with `invites`, `permissions`, `providers` and `secret-kinds`, 조직도 being the screen's own
   address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
   the reader may open opens the first they may. The console search finds each tab as it finds every screen's.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
-  on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑, over this
-  screen. The address is replaced rather than stepped, so the back gesture does not return to the old key.
+  on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
+  to its 비밀 보관함, each over this screen. The address is replaced rather than stepped, so the back gesture does not return to the old key.
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 설정 for them after the console's
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), so their shell lists 조직 설정 too and the screen holds 초대 alone; a member who heads none is listed
   no entry, and the address shows them 초대 saying they may invite into no unit.
 - **The tab row** stands under the title bar, the tabs filling it and the open tab's own add at its right end
   where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도, 초대 링크 만들기 on
-  초대, Claude 계정 추가 on 공급자 and 비밀 추가 on 비밀 보관함. On a narrow screen the tabs keep one line and scroll
+  초대, Claude 계정 추가 on 공급자 and 종류 추가 on 비밀 종류. On a narrow screen the tabs keep one line and scroll
   sideways.
 - **A tab's content** stands in groups under small headings as the settings dialog's sections do, in a column no
   wider than a reading column at the screen's left, and scrolls in the screen's body.
@@ -6584,91 +6676,19 @@ research screen (「Research screen」).
   the path is the whole of what is shown.
 - Every change here takes effect as it is made, as everything on this screen does.
 
-#### 비밀 보관함
+#### 비밀 종류
 
-The way the owner hands the platform a secret — an API key, a token, a password a unit reads — without the value
-passing through a room, a transcript or a log. A value saved here is a file under the data root's `env/`, the
-folder every unit reads its secrets from by file name, written by the server's secret store (`docs/accounts.md`,
-「The secret store」); from then on an agent or a unit's settings is given the name alone.
+The kinds every person's secret form asks a value in (`docs/accounts.md`, 「Secret kinds」), the deployment's, kept
+by the administrator. Every login reads them, since every person's form asks in them; no secret is listed here.
 
-- **The section opens on one muted line** saying so: agents are given the name, never the value.
-- **보관된 비밀** lists every secret the store holds, one row each: its name as the row's label, and under it its size
-  in bytes and when it last changed. Nothing of a value is read or shown: no route of the console or the server
-  answers one. A store holding none says 보관된 비밀 없음.
-  - Each row carries 교체, which opens the secret form on that name with replacing already chosen, and 삭제, which
-    asks first, naming the secret and that its value is kept as `<name>.previous`; a delete that goes through takes
-    the row away.
-- **비밀 추가**, the tab row's add, opens the secret form (below), the same form the composer's clip and an agent's request open.
-- **비밀 종류** lists the kinds the form asks a value in (`docs/accounts.md`, 「Secret kinds」), one row each in the
-  order they were added: the kind's name as the row's label, its description and its fields' keys under it, and 편집
-  and 삭제. 삭제 asks first, naming the kind and that no secret stored is touched.
-  - **종류 추가**, the grey icon beside the 비밀 종류 heading, and 편집 open the kind's form, a dialog of its own (「Forms」): 키, for a kind being added alone, in
-    English lower case letters, digits and hyphens, beginning with a letter; 이름; 설명; and 항목, the fields, each a
-    row of its 키, 이름, 입력 (한 줄, 여러 줄 or 파일), 값 숨김 and 필수, removed by its own mark, with 항목 추가 under
-    them. A rule the kind breaks is said under the field it names, and 저장 stays off while one is broken.
-- **The secret form** is one dialog (「Forms」), whichever way it opens: 종류, 이름, the kind's fields and 저장 at its
-  foot.
-  - 종류 lists every kind by its name, and 직접 구성 last; the chosen kind's description stands under the list.
-    Choosing one stands its fields under 이름, each under its label, a required one marked so.
-  - A 한 줄 field is one box, a password box with the browser's filling turned off where its value is hidden, shown
-    as dots alone. A 여러 줄 field is a box that grows with its text, its letters drawn as dots where its value is
-    hidden, with 파일에서 불러오기 under it, which reads a chosen file into the box as text. A 파일 field chooses a file
-    and shows its name and size.
-  - 직접 구성 stands the fields as a list of their own: 항목 추가 adds a row of 키, 입력 and 값 숨김, its value box under
-    it, each row removed by its own mark, under the rules a kind is held to. **종류로 저장**, a switch, keeps the
-    fields as a new kind under the 키 and the 종류 이름 written under it; the kind is added before the value goes, and
-    a kind refused stops the save with its reason.
-  - 이름 takes a plain file name, English letters, digits, `.`, `_` and `-`, beginning with no dot and not ending in
-    `.previous`; another is said under the field and 저장 stays off. A name the list holds already shows 기존 값 교체
-    under 이름, a switch that starts off, and 저장 stays off until it is on; a name new to the list shows nothing
-    there.
-  - **The file follows the fields** (`docs/accounts.md`, 「Secret kinds」): a kind of one field writes its value alone,
-    as it was typed or pasted; one of several writes a `KEY=VALUE` line for each field holding a value, in the
-    kind's order, the value as typed; a 파일 field writes the file's bytes unchanged. 저장 stays off while a required
-    field is empty, and an optional one left empty writes no line.
-  - 저장 sends the name, the file and whether to replace, and nothing else. The value boxes are emptied, and a file
-    chosen let go, as soon as the answer comes, whether the save went through or was refused. A save that went
-    through closes the dialog; a refusal stays in the dialog with its reason under the form.
-- **An agent's request is an address.** `?secret=<name>` on any address of the console opens the secret form over that
-  screen, filled in: the name; the kind `kind=<key>` names, or, where `fields=<KEY>,<KEY>*` stands instead, those
-  fields under 직접 구성, each one line, a key ending in `*` hidden; and `for=<purpose>`, which stands as a line at the
-  form's head saying what the secret is for. A kind the console holds none of leaves 종류 unchosen. The keys are taken
-  off the address as the form opens, as `?settings=` is (「Settings」), so the back gesture closes the form and the
-  page stays where it was.
-  - **The address an agent writes** is its room's screen under the console's public address, which the console's
-    settings name (`NUXT_PUBLIC_CONSOLE_ADDRESS`, `docs/boundary.md`, 「Settings」) and the agent is given in its own,
-    with these keys. Each key is read percent-decoded, so a hidden field's `*` may stand as `%2A` where a chat's
-    formatting would take it as a mark.
-  - **Pressed in Telegram,** the same link opens the console in the browser Telegram hands it to, at that room with
-    the form over it. A browser that holds no login goes by the login screen, which carries the whole address
-    (「Access」), so the form opens once the login ends; a save there answers the room as a press inside the console
-    does.
-  - **A reader who is not the administrator** is told in the pill that the store is the administrator's, and no form
-    opens.
-- **A request in a room stands as a request.** A message whose words carry a link to such an address — under the
-  console's public address or the address the console is being read at — stands each one under its words as a
-  highlighted line: a key mark, 비밀 요청, the name, the kind's name or the fields' keys, and the purpose where the link
-  carries one. Pressing the line, or the link among the words, opens the form in place, with no navigation.
-  - Once the store holds the name, changed at or after the message's time, the line reads 저장됨; a press opens the
-    form again, with replacing chosen. A member's line never reads saved, and a press answers the refusal.
-  - **A request arriving opens the form by itself, once.** A message carrying one that arrives at the end of a room
-    whose screen is open and in front — the tab shown, nothing open over the screen — opens the form for its first
-    request. Closing the form leaves the line to press later, and the same message never opens it again in this tab;
-    a message read in by opening the room, paging or going to it opens nothing.
-  - **A save answers the room.** A save from a request opened over a room's screen puts the pack's line naming the
-    secret and its kind in that room, by the room's own road as words typed there, and the request's line then
-    reads 저장됨. A save from the composer leaves its chip (「첨부」), and one from this section puts nothing in any
-    room.
-- **The value goes nowhere but the store.** It is never put in the address, the tab's kept state, the browser's
-  storage, a draft (「Unsent words」), the outbox, a chip or a line put in a room; a kind holds its fields' shapes and
-  never a value. The console's route that writes takes the name and the value in its body, never in its address, so
-  nothing typed into the form stands in an address a proxy logs; it hands them to the server and answers what the
-  server answered, the name, the size and the time, and neither the route nor the server logs a body. A file that is
-  not text goes as base64, and the server writes its bytes. A delete names in its address only a name the list
-  already shows.
-- **The administrator's alone.** A member is not shown the section, the clip's 비밀 or the form, and the console's
-  routes for the store and its kinds answer them as if nothing stood there (「Access」); the console hands each call on
-  with the login's role, which the server holds to `administrator` itself.
+- **The kinds stand one row each,** under no heading of their own, in the order they were added: the kind's name as the row's label, its
+  description and its fields' keys under it, and 편집 and 삭제. 삭제 asks first, naming the kind and that no
+  secret stored is touched. A deployment holding none says 비밀 종류 없음.
+- **종류 추가**, the tab row's add, and 편집 open the kind's form, a dialog of its own (「Forms」): 키, for a kind
+  being added alone, in English lower case letters, digits and hyphens, beginning with a letter; 이름; 설명; and 항목,
+  the fields, each a row of its 키, 이름, 입력 (한 줄, 여러 줄 or 파일), 값 숨김 and 필수, removed by its own mark, with
+  항목 추가 under them. A rule the kind breaks is said under the field it names, and 저장 stays off while one is
+  broken.
 
 ### Messages
 

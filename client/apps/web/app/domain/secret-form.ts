@@ -1,8 +1,8 @@
 import { useIsland } from "bmo-ui/app/domain/island";
 
-import { useAdministrator } from "~/domain/access";
+import { useAdministrator, useSignedUser } from "~/domain/access";
 import { messageLinks } from "#shared/links";
-import { FIELD_KEY_MAX, FIELD_LABEL_MAX, KIND_DESCRIPTION_MAX, KIND_FIELDS_MAX, KIND_KEY_MAX, KIND_NAME_MAX, SECRET_QUERY, secretRequestOfLink } from "#shared/secret-kinds";
+import { FIELD_KEY_MAX, FIELD_LABEL_MAX, KIND_DESCRIPTION_MAX, KIND_FIELDS_MAX, KIND_KEY_MAX, KIND_NAME_MAX, SECRET_QUERY, requestRefusalOf, secretRequestOfLink } from "#shared/secret-kinds";
 
 import type { KindFault, KindProblem, SecretField, SecretInput, SecretKind, SecretKindList, SecretRequest } from "#shared/secret-kinds";
 import type { KeptSecret, SecretList } from "#shared/types";
@@ -10,8 +10,9 @@ import type { Translate } from "#shared/wording";
 import type { ComputedRef, Ref } from "vue";
 
 // The secret form (docs/web.md, the secret store section): one dialog over whatever screen is open, opened by the composer's
-// clip and by an agent's request, and what a save hands back to whoever opened it. The settings section opens a
-// form of its own. Nothing here ever holds a value: the form's own boxes are the only place one stands.
+// clip and by an agent's request, and what a save hands back to whoever opened it. Every save goes to the reader's
+// own space. The settings section opens a form of its own. Nothing here ever holds a value: the form's own boxes are
+// the only place one stands.
 
 /** What the form is opened with: a name, the kind or the fields to ask in, and what the secret is for. */
 export interface SecretAsk {
@@ -71,7 +72,7 @@ export function composerPlace(kind: string, draft: string | number): string {
 // The read under way, so the request lines of one page ask once between them.
 let reading: Promise<[SecretKindList, SecretList]> | null = null;
 
-/** The kinds and the secrets the store holds, read once for every form and request in the tab. */
+/** The kinds and the secrets the reader's own space holds, read once for every form and request in the tab. */
 export function useSecretLists(): {
   kinds: Ref<SecretKind[] | null>;
   secrets: Ref<KeptSecret[] | null>;
@@ -94,7 +95,7 @@ export function useSecretLists(): {
   return { kinds, secrets, read };
 }
 
-/** Whether the store holds a secret under the name, changed at or after a moment in milliseconds. */
+/** Whether the reader's space holds a secret under the name, changed at or after a moment in milliseconds. */
 export function savedSince(secrets: readonly KeptSecret[] | null, name: string, since: number): boolean {
   return secrets?.some((secret) => secret.name === name && secret.changedAt >= since) === true;
 }
@@ -179,19 +180,22 @@ export function requestKindWords(t: Translate, request: SecretRequest, kinds: re
 }
 
 /**
- * The press on a request in a room: the form opened in place over the room, replacing where the store holds the name
- * since the message, and the refusal, not the form, for a reader who is not the administrator.
+ * The press on a request in a room: the form opened in place over the room, replacing where the reader's space holds
+ * the name since the message, and the refusal, not the form, for a reader the request is not for.
  */
 export function useSecretRequest(): (request: SecretRequest, room: number, sentAt: number) => void {
   const { t } = useI18n();
   const island = useIsland(t);
   const administrator = useAdministrator();
+  const reader = useSignedUser();
   const form = useSecretForm();
   const { secrets } = useSecretLists();
 
   return (request, room, sentAt) => {
-    if (!administrator.value) {
-      island.say({ title: t("common.error.administrator_only"), tone: "warning" });
+    const refusal = requestRefusalOf(request, reader.value, administrator.value);
+
+    if (refusal !== null) {
+      island.say({ title: t(refusal), tone: "warning" });
 
       return;
     }

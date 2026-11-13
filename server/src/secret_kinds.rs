@@ -1,7 +1,8 @@
 //! The secret kinds (docs/accounts.md, 「Secret kinds」; docs/boundary.md, 「Secret kinds」): the shapes the
-//! console's secret form asks a value in, kept in the service's database and never holding a value. The
-//! administrator lists, adds, changes and removes them; a kind that breaks a rule of their shape is refused
-//! naming the rule. The file a kind's fields give is the console's to write; the store knows no kind.
+//! console's secret form asks a value in, kept in the service's database and never holding a value. They are the
+//! deployment's, so any call reads them, and the administrator alone adds, changes and removes one; a kind that
+//! breaks a rule of their shape is refused naming the rule. The file a kind's fields give is the console's to
+//! write; the store knows no kind.
 
 use std::collections::HashSet;
 
@@ -151,10 +152,9 @@ fn no_kind() -> Refusal {
   Refusal::absent("no kind stands under the key")
 }
 
-/// `GET /secret-kinds`: every kind, in the order they were added.
-async fn list(State(service): State<Service>, headers: HeaderMap) -> Answer<SecretKinds> {
-  administrator(&headers, KINDS)?;
-
+/// `GET /secret-kinds`: every kind, in the order they were added, for any call, since every person's form asks
+/// in them.
+async fn list(State(service): State<Service>) -> Answer<SecretKinds> {
   let rows = all(
     &service.db,
     r#"SELECT "key", "name", "description", "fields"::text AS "fields" FROM "secret_kinds"

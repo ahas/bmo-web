@@ -52,7 +52,8 @@
         @file="(chosen) => chooseFile(field.key, chosen)"
       />
 
-      <template v-if="composing">
+      <!-- The kinds are the deployment's, so keeping fields as one is the administrator's alone. -->
+      <template v-if="composing && administrator">
         <USwitch v-model="form.saveAsKind" :label="$t('secrets.label.save_as_kind')" data-secret-save-kind />
         <div v-if="form.saveAsKind" class="flex min-w-0 gap-2">
           <UFormField :label="$t('secrets.label.kind_key')" :hint="$t('secrets.label.kind_key_hint')" class="min-w-0 flex-1" :error="newKindErrors.key">
@@ -77,6 +78,7 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
+import { useAdministrator } from "~/domain/access";
 import { INPUT_LABELS, faultText, kindWords } from "~/domain/secret-form";
 import { SECRET_INPUTS, fieldFaults, fieldsReady, kindFaults, secretFileOf } from "#shared/secret-kinds";
 import { SECRET_NAME_MAX, secretNameIsPlain } from "#shared/secrets";
@@ -98,6 +100,7 @@ const emit = defineEmits<{ saved: [kept: KeptSecret, kind: string]; kindAdded: [
 const open = defineModel<boolean>("open", { default: false });
 
 const { t } = useI18n();
+const administrator = useAdministrator();
 
 // The kind chooser's value for fields composed by hand, which no kind's key can be.
 const COMPOSE = ":compose";

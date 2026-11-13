@@ -356,7 +356,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every secret kind, the shapes the console's secret form asks a value in, in the order they were added. */
+        /** Every secret kind, the shapes every person's secret form asks a value in, in the order they were added; read by any caller. */
         get: operations["secretKinds"];
         put?: never;
         /** Adds a secret kind after the ones that stand; answers the kind as kept. */
@@ -380,41 +380,6 @@ export interface paths {
         post?: never;
         /** Removes a secret kind; no secret written in its shape is touched. */
         delete: operations["deleteSecretKind"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/secrets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Every secret the store holds, by its name, with its size and when it last changed; never a value. */
-        get: operations["secrets"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/secrets/{name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Writes a value under a name, atomically and with mode 600, keeping the value it replaces as <name>.previous; the value is text, or base64 where encoding says so; answers the name, its size and its time alone. */
-        put: operations["putSecret"];
-        post?: never;
-        /** Moves a secret's file to <name>.previous. */
-        delete: operations["deleteSecret"];
         options?: never;
         head?: never;
         patch?: never;
@@ -728,6 +693,41 @@ export interface paths {
         /** Writes a user's job title and contact details whole, by the account's holder or an administrator. */
         post: operations["setUserProfile"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/secrets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every secret the user's own space holds, by its name, with its size and when it last changed; never a value. Asked by that user alone. */
+        get: operations["secrets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/secrets/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Writes a value under a name in the user's own space, atomically and with mode 600, keeping the value it replaces as <name>.previous; the value is text, or base64 where encoding says so; answers the name, its size and its time alone. Asked by that user alone. */
+        put: operations["putSecret"];
+        post?: never;
+        /** Moves a secret's file in the user's own space to <name>.previous. Asked by that user alone. */
+        delete: operations["deleteSecret"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1827,7 +1827,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -1861,7 +1861,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -1899,7 +1899,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -1964,7 +1964,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -2320,10 +2320,7 @@ export interface operations {
     secretKinds: {
         parameters: {
             query?: never;
-            header: {
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
-                "Owner-Role": "administrator" | "member";
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2338,7 +2335,7 @@ export interface operations {
                     "application/json": components["schemas"]["SecretKinds"];
                 };
             };
-            /** @description A refusal or failure: unauthorized, forbidden, not-in-force, database, failed */
+            /** @description A refusal or failure: unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2353,7 +2350,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -2389,7 +2386,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -2427,7 +2424,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -2445,117 +2442,6 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: unauthorized, forbidden, not-found, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    secrets: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
-                "Owner-Role": "administrator" | "member";
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Secrets"];
-                };
-            };
-            /** @description A refusal or failure: unauthorized, forbidden, no-secret-store, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    putSecret: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
-                "Owner-Role": "administrator" | "member";
-            };
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SecretAsk"];
-            };
-        };
-        responses: {
-            /** @description Answered. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Secret"];
-                };
-            };
-            /** @description Made. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Secret"];
-                };
-            };
-            /** @description A refusal or failure: bad-request, bad-name, bad-value, empty-value, unauthorized, forbidden, secret-exists, not-a-file, no-secret-store, not-in-force, database, failed */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WireError"];
-                };
-            };
-        };
-    };
-    deleteSecret: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
-                "Owner-Role": "administrator" | "member";
-            };
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Done; no content. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description A refusal or failure: bad-name, unauthorized, forbidden, not-found, not-a-file, no-secret-store, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2694,7 +2580,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -2728,7 +2614,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -2797,7 +2683,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -2837,7 +2723,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -2872,7 +2758,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -2907,7 +2793,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -2947,7 +2833,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -2981,7 +2867,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -3018,7 +2904,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path?: never;
@@ -3083,7 +2969,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -3181,7 +3067,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -3221,7 +3107,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -3319,7 +3205,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -3355,7 +3241,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -3391,7 +3277,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -3425,13 +3311,128 @@ export interface operations {
             };
         };
     };
+    secrets: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secrets"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-secret-store, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    putSecret: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecretAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secret"];
+                };
+            };
+            /** @description Made. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secret"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, bad-name, bad-value, empty-value, unauthorized, forbidden, not-found, secret-exists, not-a-file, no-secret-store, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    deleteSecret: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                user: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-name, unauthorized, forbidden, not-found, not-a-file, no-secret-store, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
     userSections: {
         parameters: {
             query?: never;
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -3467,7 +3468,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {
@@ -3569,7 +3570,7 @@ export interface operations {
             header: {
                 /** @description The user of the login the call is made for, its id written as a decimal number. */
                 "Owner-Key": string;
-                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
                 "Owner-Role": "administrator" | "member";
             };
             path: {

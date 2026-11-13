@@ -36,6 +36,16 @@ export function useAdministrator(): ComputedRef<boolean> {
 }
 
 /**
+ * The account service's user the one signed in is, read off the session the browser holds; null for a console
+ * login, which names none. Whose own space a secret saved here goes to (docs/web.md, the secret store section).
+ */
+export function useSignedUser(): ComputedRef<number | null> {
+  const { user } = useUserSession();
+
+  return computed(() => user.value?.id ?? null);
+}
+
+/**
  * Whether the room screen writes for a reader (docs/web.md, 「Access」): the platform administrator always,
  * and a member whose rooms section writes once that permission has been read. Nothing is granted before it
  * is read, so a member keeps the read-only screen rather than a box the routes would refuse.

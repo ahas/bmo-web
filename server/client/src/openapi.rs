@@ -17,8 +17,9 @@ const SCHEMAS: &str = "/components/schemas";
 
 const DESCRIPTION: &str = "The web console's server: the account service on sumida, which holds the users, the \
   senders linked to them, the grants they hold, the account model they stand in, the room holdings the \
-  receiver asks about, the fixed lines a room says, and the secret store, which writes the files every unit \
-  reads its secrets from and answers no value, with the kinds its form asks a value in. Its own routes answer \
+  receiver asks about, the fixed lines a room says, and the secret store, which writes each person's secrets \
+  as files in a space of their own, the administrator's the folder every unit reads the deployment's secrets \
+  from, and answers no value, with the kinds its form asks a value in. Its own routes answer \
   in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit \
   integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the \
   session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as \
@@ -90,7 +91,7 @@ fn owner_role() -> Value {
     "name": "Owner-Role",
     "in": "header",
     "required": true,
-    "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+    "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
     "schema": { "type": "string", "enum": ["administrator", "member"] },
   })
 }
@@ -939,37 +940,37 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
-    "/secrets",
+    "/users/{user}/secrets",
     "secrets",
     "Secret store",
-    "Every secret the store holds, by its name, with its size and when it last changed; never a value.",
-    params: vec![owner_role()],
+    "Every secret the user's own space holds, by its name, with its size and when it last changed; never a value. Asked by that user alone.",
+    params: vec![string_path("user"), owner_key()],
     body: None,
     answers: vec![(200, json_answer::<Secrets>(&mut generator))],
-    codes: vec!["unauthorized", "forbidden", "no-secret-store", "not-in-force", "database", "failed"],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "no-secret-store", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );
   add!(
     "PUT",
-    "/secrets/{name}",
+    "/users/{user}/secrets/{name}",
     "putSecret",
     "Secret store",
-    "Writes a value under a name, atomically and with mode 600, keeping the value it replaces as <name>.previous; the value is text, or base64 where encoding says so; answers the name, its size and its time alone.",
-    params: vec![string_path("name"), owner_role()],
+    "Writes a value under a name in the user's own space, atomically and with mode 600, keeping the value it replaces as <name>.previous; the value is text, or base64 where encoding says so; answers the name, its size and its time alone. Asked by that user alone.",
+    params: vec![string_path("user"), string_path("name"), owner_key()],
     body: Some(json!(generator.subschema_for::<SecretAsk>())),
     answers: vec![(200, json_answer::<Secret>(&mut generator)), (201, json_answer::<Secret>(&mut generator))],
-    codes: vec!["bad-request", "bad-name", "bad-value", "empty-value", "unauthorized", "forbidden", "secret-exists", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
+    codes: vec!["bad-request", "bad-name", "bad-value", "empty-value", "unauthorized", "forbidden", "not-found", "secret-exists", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );
   add!(
     "DELETE",
-    "/secrets/{name}",
+    "/users/{user}/secrets/{name}",
     "deleteSecret",
     "Secret store",
-    "Moves a secret's file to <name>.previous.",
-    params: vec![string_path("name"), owner_role()],
+    "Moves a secret's file in the user's own space to <name>.previous. Asked by that user alone.",
+    params: vec![string_path("user"), string_path("name"), owner_key()],
     body: None,
     answers: vec![(204, no_answer())],
     codes: vec!["bad-name", "unauthorized", "forbidden", "not-found", "not-a-file", "no-secret-store", "not-in-force", "database", "failed"],
@@ -981,11 +982,11 @@ pub fn openapi() -> Value {
     "/secret-kinds",
     "secretKinds",
     "Secret kinds",
-    "Every secret kind, the shapes the console's secret form asks a value in, in the order they were added.",
-    params: vec![owner_role()],
+    "Every secret kind, the shapes every person's secret form asks a value in, in the order they were added; read by any caller.",
+    params: vec![],
     body: None,
     answers: vec![(200, json_answer::<SecretKinds>(&mut generator))],
-    codes: vec!["unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    codes: vec!["unauthorized", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

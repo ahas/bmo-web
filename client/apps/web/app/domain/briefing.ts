@@ -361,9 +361,9 @@ export class BriefingDesk {
     );
   }
 
-  // The trial voice, brought to the same player at a press (docs/web.md, 「Settings」, the voice briefing section), where
-  // it plays as a briefing does: no other tab claims it or hears of it, nothing keeps it, and it stands once however
-  // often it is pressed while it stands or waits.
+  // The trial voice, brought to the same player at a press (docs/web.md, 「Settings」, the briefing player section),
+  // where it plays as a briefing does: no other tab claims it or hears of it, nothing keeps it, and it stands once
+  // however often it is pressed while it stands or waits.
   trial(src: string, to: string): void {
     if (this.current?.playable.key === BRIEFING_TRIAL_KEY || this.waiting.some((one) => one.playable.key === BRIEFING_TRIAL_KEY)) return;
 

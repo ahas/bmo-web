@@ -13,7 +13,7 @@ console's typecheck and then every test file under `client/tests` in one `bun te
   and its layout check holds every `package.json` to a project or the root's package workspace, which this
   repository does not have. So `client/` stays a project, and its browser files run in its check rather than as
   declared browser files.
-- **Fifty browser files drive a running console** rather than a page of their own: each reads the console's
+- **Fifty-one browser files drive a running console** rather than a page of their own: each reads the console's
   address from `BMO_CONSOLE_TEST_URL`, except `skeleton`, which reads it from `BMO_SKELETON_TEST_URL`. The suite
   stands up no console, so without those variables they skip; every other browser file runs.
 

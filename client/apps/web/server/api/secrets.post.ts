@@ -14,10 +14,10 @@ interface SecretBody {
   encoding?: unknown;
 }
 
-// A secret written under a name (docs/web.md, 「Settings」, the secret store section). The name travels in the body
-// with the value, never in the address, so nothing typed into the form stands in an address a proxy logs. The
-// answer is what the server answered, the name, the size and the time; the value goes to the server and nowhere
-// else, and nothing here logs the body. A file that is not text comes as base64, which the server decodes.
+// A secret written under a name (docs/web.md, 「Organisation settings」, the secret store tab). The name travels in the
+// body with the value, never in the address, so nothing typed into the form stands in an address a proxy logs. The
+// answer is what the server answered, the name, the size and the time; the value goes to the server and nowhere else,
+// and nothing here logs the body. A file that is not text comes as base64, which the server decodes.
 export default defineEventHandler(async (event): Promise<KeptSecret> => {
   const signed = await requireAdministrator(event);
   const body = await readBody<SecretBody>(event);

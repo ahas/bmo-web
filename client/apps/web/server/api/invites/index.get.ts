@@ -4,8 +4,8 @@ import { callerOf } from "../../utils/organization";
 
 import type { Invite } from "@web/server-client";
 
-// The open invitations the reader made, every open one for the administrator (docs/web.md, 「Settings」, the
-// invitations section).
+// The open invitations the reader made, every open one for the administrator (docs/web.md, 「Organisation settings」,
+// the invitations tab).
 export default defineEventHandler(async (event): Promise<Invite[]> => {
   const signed = await signedInUser(event);
 

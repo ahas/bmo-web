@@ -1,7 +1,7 @@
 import { setHead } from "../../../../../utils/account-service";
 import { callerOf, organizationFailure, unitNumber } from "../../../../../utils/organization";
 
-// A user's head grant on a unit taken away (docs/web.md, 「Settings」, the organisation section).
+// A user's head grant on a unit taken away (docs/web.md, 「Organisation settings」, the units tab).
 export default defineEventHandler(async (event): Promise<null> => {
   const signed = await requireAdministrator(event);
   const unit = unitNumber(getRouterParam(event, "unit"));

@@ -1076,6 +1076,7 @@ screens:
     live: 실시간 상태
     mail: 메일
     monitor: 모니터
+    organization: 조직 설정
     remote: 원격
     research: 리서치
     search: 검색
@@ -1666,10 +1667,10 @@ settings:
   label:
     account: 계정
     briefing: 보이스브리핑
+    briefing_player: 브리핑 플레이어
     notifications: 알림
     palette: 대화방
     permissions: 권한
-    organization: 조직
     invites: 초대
     providers: 공급자
     research: 리서치
@@ -1719,39 +1720,42 @@ permissions:
     read_of: "{name} 읽기"
     write_of: "{name} 쓰기"
 organization:
+  aria:
+    tabs: 조직 설정 탭
+  placeholder:
+    find_person: 이름으로 찾기
   label:
-    units: 조직 단위
-    none: 조직 단위 없음
+    chart: 조직도
+    none: 조직 없음
     name: 이름
-    parent: 상위 단위
-    parent_hint: 비워 두면 새 회사가 됩니다.
-    new_company: 없음(새 회사)
-    heads: 장
+    parent: 상위 조직
+    new_company: 없음 (새 회사)
+    heads: 조직장
+    no_heads: 조직장 없음
+    no_members: 구성원 없음
     members: "구성원 {count}명"
-    row: "장: {heads} · 구성원 {count}명"
-    no_head: 없음
     left_member: "{name} (탈퇴)"
     machine: "{name} 기기"
     machine_none: 연결된 기기 없음
     machine_name: 기기 이름
-    machine_name_placeholder: 비워 두면 새 이름
+    machine_name_placeholder: 자동 이름
     linux: Linux·WSL
     windows: Windows
   title:
     mark_left: 탈퇴 처리할까요?
     unbind: 기기 연결을 해제할까요?
   message:
-    mark_left: 이 사람은 더 이상 로그인할 수 없고, 이 사람의 BMO도 다시 깨어나지 않습니다. 공개 프로젝트는 위 단위의 장이 계속 읽고, 비공개 프로젝트와 개인 대화, BMO의 기억은 아무도 읽지 못합니다. 되돌릴 수 없습니다.
+    mark_left: 이 사람은 더 이상 로그인할 수 없고, 이 사람의 BMO도 다시 깨어나지 않습니다. 공개 프로젝트는 상위 조직의 조직장이 계속 읽고, 비공개 프로젝트와 개인 대화, BMO의 기억은 아무도 읽지 못합니다. 되돌릴 수 없습니다.
     unbind: 이 계정은 연결된 기기 없이 로그인할 수 있고, 이 사람의 BMO와 에이전트는 더 이상 이 기기에서 실행되지 않습니다.
     install: "연결할 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요.\n연결되면 이 사람의 BMO와 에이전트가 이 기기에서 실행됩니다."
   action:
-    add: 단위 추가
+    add: 조직 추가
     mark_left: "{name} 탈퇴 처리"
     mark_left_confirm: 탈퇴 처리
     edit: 편집
-    add_head: 장 지정
-    remove_head: "{name} 장 해제"
-    place: 이 단위에 배치
+    add_head: 조직장 지정
+    remove_head: "{name} 조직장 해제"
+    place: 구성원 추가
     bind: 기기 연결
     rebind: 다른 기기로 연결
     unbind: 기기 연결 해제
@@ -1762,28 +1766,28 @@ organization:
     attached: 연결됨
     waiting: 연결 대기 중
   error:
-    bad_request: 이름이나 단위 번호가 올바르지 않습니다.
-    cycle: 단위를 자기 아래 단위 밑으로 옮길 수 없습니다.
+    bad_request: 이름이나 조직 번호가 올바르지 않습니다.
+    cycle: 조직을 자기 하위 조직 밑으로 옮길 수 없습니다.
     failed: 조직을 처리하지 못했습니다.
     left: 탈퇴한 계정에는 기기를 연결할 수 없습니다.
     machine_name: 기기 이름은 영문, 숫자, -, _로 63자 이내여야 합니다.
     no_hub: jake 허브가 설정되지 않아 기기를 연결할 수 없습니다.
     node_taken: 다른 계정이 이미 이 기기에 연결되어 있습니다.
     not_a_hub_node: 노드 서비스가 이 기기를 허브 노드로 알지 못해 이 사람의 노드로 설정하지 못했습니다.
-    not_found: 그 단위나 사용자가 없습니다.
-    other_company: 단위는 다른 회사로 옮길 수 없습니다.
+    not_found: 그 조직이나 사용자가 없습니다.
+    other_company: 조직은 다른 회사로 옮길 수 없습니다.
     unreachable: 계정 서비스에 연결되지 않았습니다.
 invites:
   label:
     make: 초대 링크 만들기
-    unit: 단위
-    head: 장으로 초대
-    head_note: 받는 사람이 이 단위의 장이 됩니다.
+    unit: 조직
+    head: 조직장으로 초대
+    head_note: 받는 사람이 이 조직의 조직장이 됩니다.
     hours: 유효 기간
     span: "{hours}시간"
     open: 열린 초대
     none: 열린 초대 없음
-    no_units: 초대할 수 있는 단위가 없습니다. 단위의 장이나 관리자만 초대할 수 있습니다.
+    no_units: 초대할 수 있는 조직이 없습니다. 조직장이나 관리자만 초대할 수 있습니다.
     until: "{time}까지"
   action:
     make: 링크 만들고 복사
@@ -1794,10 +1798,10 @@ invites:
   message:
     text: "{place}에 초대합니다. 아래 링크에서 계정을 만들고 안내에 따라 PC에 jake를 설치하면 계정이 활성화됩니다. {link} (유효 기간: {time}까지)"
   error:
-    bad_request: 단위나 값이 올바르지 않습니다.
+    bad_request: 조직이나 값이 올바르지 않습니다.
     closed: 만료되었거나 이미 사용된 초대입니다.
     failed: 초대를 처리하지 못했습니다.
-    forbidden: 이 단위로 초대할 수 없습니다.
+    forbidden: 이 조직으로 초대할 수 없습니다.
     name_taken: 이미 쓰이는 아이디입니다.
     no_hub: 기기 연결 허브가 설정되어 있지 않아 초대할 수 없습니다.
     not_found: 초대를 찾을 수 없습니다.
@@ -1827,7 +1831,7 @@ callers:
     person: 사람
     find: 이름으로 찾기
     allow: 호출 허용
-    heads_only: 이 방을 이끄는 사람이나 그 단위의 장, 관리자가 아니어서 내가 장인 단위의 사람만 바꿀 수 있습니다.
+    heads_only: 이 방을 이끄는 사람이나 그 조직의 조직장, 관리자가 아니어서 내가 조직장인 조직의 사람만 바꿀 수 있습니다.
   action:
     add: 추가
   status:

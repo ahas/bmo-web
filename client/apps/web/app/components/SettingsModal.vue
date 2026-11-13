@@ -59,7 +59,8 @@
 <script setup lang="ts">
 import { useAdministrator } from "~/domain/access";
 import { useOpenings } from "bmo-ui/app/domain/openings";
-import { openSettings, sectionOf, sectionsFor, settingsAsked, useSettings } from "~/domain/settings-dialog";
+import { organizationAddress, organizationTabNamed } from "~/domain/organization";
+import { SETTINGS_SECTIONS, openSettings, sectionOf, sectionsFor, settingsAsked, useSettings } from "~/domain/settings-dialog";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
@@ -151,6 +152,16 @@ async function answerAddress(): Promise<void> {
   const asked = settingsAsked(route.query);
 
   if (asked === null) {
+    return;
+  }
+
+  // A key the dialog holds no section for but a tab of the organisation settings screen does was made before that tab
+  // moved there: it leads to the tab, and the dialog stays shut (docs/web.md, 「Settings」).
+  const moved = SETTINGS_SECTIONS.some((one) => one.key === asked.key) ? null : organizationTabNamed(asked.key);
+
+  if (moved !== null) {
+    await router.replace(organizationAddress(moved.value));
+
     return;
   }
 

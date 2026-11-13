@@ -137,6 +137,12 @@
 - default → 기본값, standing only as the mark after the default value (above). Never 처음 값.
 - section → 섹션. Never 구역.
 - organisation → 조직: 조직, 같은 조직, 조직 이름. Never 단체, 기관.
+- an organisation unit, one of the tree a deployment's people stand in → 조직: 조직 추가, 상위 조직, 하위 조직; the
+  tree of them → 조직도; a unit at the tree's top → 회사, a new one 새 회사. Never 단위, the English unit's twin.
+- a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.
+- the people standing in a unit → 구성원: 구성원 추가, 구성원 n명. Never 배치 for placing a person in a unit.
+- the screen of what is set for the whole deployment or for other people → 조직 설정; the dialog of what a person
+  sets for themselves → 설정.
 - a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.
 - permission → 권한: 권한, 권한이 있습니다, 권한이 없습니다. Never 허가, 접근 권한.
 - read a section → 읽기: 읽기, 읽을 수 있습니다. Never 조회 for a section's read.

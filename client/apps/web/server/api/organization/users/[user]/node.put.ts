@@ -4,9 +4,9 @@ import { setPersonNode } from "../../../../utils/person-node";
 
 import type { Rebound } from "@web/server-client";
 
-// A person's account bound to another machine, the one named or a fresh name, and set as their node in agency at
-// once where the hub holds it already; otherwise the proof sets it once it attaches (docs/web.md, 「Settings」, the
-// organisation section; docs/accounts.md, 「Invitations and a person's machine」).
+// A person's account bound to another machine, the one named or a fresh name, and set as their node in agency at once
+// where the hub holds it already; otherwise the proof sets it once it attaches (docs/web.md, 「Organisation settings」,
+// the units tab; docs/accounts.md, 「Invitations and a person's machine」).
 export default defineEventHandler(async (event): Promise<Rebound> => {
   const signed = await requireAdministrator(event);
   const user = String(getRouterParam(event, "user") ?? "");

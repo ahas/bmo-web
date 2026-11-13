@@ -5,8 +5,8 @@ import { secretFailure } from "../../utils/secrets";
 import { SECRET_NAME_MAX, secretNameIsPlain } from "#shared/secrets";
 import { wording } from "#shared/wording";
 
-// A secret taken out of the list (docs/web.md, 「Settings」, the secret store section): the server moves its file
-// aside to `<name>.previous`. The name is one the list showed, so it may stand in the address.
+// A secret taken out of the list (docs/web.md, 「Organisation settings」, the secret store tab): the server moves its
+// file aside to `<name>.previous`. The name is one the list showed, so it may stand in the address.
 export default defineEventHandler(async (event): Promise<{ name: string }> => {
   const signed = await requireAdministrator(event);
   const name = getRouterParam(event, "name", { decode: true }) ?? "";

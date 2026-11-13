@@ -1,7 +1,8 @@
 <template>
-  <!-- The research section (docs/web.md, 「Settings」, the research section): the supervisor a search or browse run no supervisor
-       delegated writes its brain for, as the agency's own settings hold it. A choice is saved as it is made; one the
-       agency refused goes back to what it holds, the reason under the row. -->
+  <!-- The research tab of the organisation settings screen (docs/web.md, 「Organisation settings」, the research tab):
+       the supervisor a search or browse run no supervisor delegated writes its brain for, as the agency's own
+       settings hold it. A choice is saved as it is made; one the agency refused goes back to what it holds, the
+       reason under the row. -->
   <div class="flex flex-col gap-6">
     <ContentSkeleton v-if="chosen === null && failure === ''" :rows="1" listClass="flex flex-col divide-y divide-default" :label="$t('settings.status.research_loading')">
       <div class="flex items-center gap-4 py-3">

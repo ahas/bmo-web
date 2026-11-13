@@ -1,5 +1,6 @@
 import { AGENT_TABS } from "./agent-settings";
 import { MONITOR_TABS } from "./hardware";
+import { ORGANIZATION_PATH, ORGANIZATION_TABS } from "./organization";
 
 import { avatarFor } from "./avatars";
 import { COUNT_BADGE, countText } from "./numbers";
@@ -25,6 +26,9 @@ export interface Screen {
   brought?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
+  // Whether a member's shell lists it only for a member who may invite into some unit, rather than by a section of
+  // their permission (docs/web.md, 「Organisation settings」).
+  inviters?: true;
   // Whether the screen's entry carries a sidebar count, which the console reads itself (bmo-ui's
   // `docs/console-bundles.md`, the sidebar count; docs/web.md, 「Sidebar」). Only a screen a unit brings whose
   // manifest names one carries it.
@@ -92,7 +96,10 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS },
   // A machine's terminals and desktop, bmo-remote's bundle. It stands last because it reaches the machine
   // rather than reading anything kept; its full-screen pages stand below its address.
-  { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true, brought: true }
+  { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true, brought: true },
+  // What is set for the whole deployment or for other people, a tab to a section. It stands after every screen that
+  // reads or reaches something, being where they are set up.
+  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, inviters: true }
 ];
 
 /**

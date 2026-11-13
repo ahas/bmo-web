@@ -3,8 +3,8 @@ import { fail } from "./fail";
 
 import { wording } from "#shared/wording";
 
-// The invitations' refusals as the console says them (docs/web.md, 「Settings」, the invitations section, and 「The
-// join page」): the account service's codes (docs/boundary.md, 「Invitations」) to the pack's keys.
+// The invitations' refusals as the console says them (docs/web.md, 「Organisation settings」, the invitations tab, and
+// 「The join page」): the account service's codes (docs/boundary.md, 「Invitations」) to the pack's keys.
 
 const INVITE_CODES: Record<string, string> = {
   "invite-closed": "invites.error.closed",

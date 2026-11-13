@@ -1,9 +1,10 @@
 import type { Component, Ref } from "vue";
 import type { LocationQuery } from "vue-router";
 
-// The settings dialog (docs/web.md, 「Settings」): one dialog over whatever screen is open, a list of
-// sections beside the open one. Each section is a component of its own; this is only the order they
-// are listed in and what the list shows of each.
+// The settings dialog (docs/web.md, 「Settings」): one dialog over whatever screen is open, a list of sections beside
+// the open one, each what a person sets for themselves alone. Each section is a component of its own; this is only
+// the order they are listed in and what the list shows of each. What is set for the whole deployment or for other
+// people is the organisation settings screen's (domain/organization).
 
 export interface SettingsSection {
   // Its key in an address, `?settings=<key>`.
@@ -21,14 +22,8 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "account", label: "settings.label.account", icon: "i-material-symbols-person-outline", administrator: false, load: () => import("~/components/SettingsAccount.vue") },
   { key: "theme", label: "settings.label.theme", icon: "i-material-symbols-contrast", administrator: false, load: () => import("~/components/SettingsTheme.vue") },
   { key: "palette", label: "settings.label.palette", icon: "i-material-symbols-chat-bubble-outline", administrator: false, load: () => import("~/components/SettingsPalette.vue") },
-  { key: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", administrator: false, load: () => import("~/components/SettingsInvites.vue") },
   { key: "notifications", label: "settings.label.notifications", icon: "i-material-symbols-notifications-outline", administrator: true, load: () => import("~/components/SettingsNotifications.vue") },
-  { key: "briefing", label: "settings.label.briefing", icon: "i-material-symbols-record-voice-over-outline", administrator: true, load: () => import("~/components/SettingsBriefing.vue") },
-  { key: "providers", label: "settings.label.providers", icon: "i-material-symbols-hub-outline", administrator: true, load: () => import("~/components/SettingsProviders.vue") },
-  { key: "research", label: "settings.label.research", icon: "i-material-symbols-travel-explore", administrator: true, load: () => import("~/components/SettingsResearch.vue") },
-  { key: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", administrator: true, load: () => import("~/components/SettingsPermissions.vue") },
-  { key: "organization", label: "settings.label.organization", icon: "i-material-symbols-account-tree-outline", administrator: true, load: () => import("~/components/SettingsOrganization.vue") },
-  { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: true, load: () => import("~/components/SettingsSecrets.vue") }
+  { key: "briefing", label: "settings.label.briefing_player", icon: "i-material-symbols-record-voice-over-outline", administrator: true, load: () => import("~/components/SettingsBriefing.vue") }
 ];
 
 // The key an address opens the dialog by.

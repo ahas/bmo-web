@@ -61,6 +61,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-assign", "fixture-password-2765"],
   ["todo-testbed", "fixture-password-2771"],
   ["todo-row-unfold", "fixture-password-2784"],
+  ["org-settings", "fixture-password-2666"],
   ["work-view", "fixture-password-2311"],
   ["delegation-marker", "fixture-password-2373"],
   ["screen-stands", "fixture-password-2411"],
@@ -79,6 +80,14 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
     password: "fixture-password-2401",
     sections: [
       { section: "rooms", read: true, write: true },
+      { section: "account", read: true, write: true }
+    ]
+  },
+  {
+    name: "org-member",
+    password: "fixture-password-2667",
+    sections: [
+      { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: true }
     ]
   },

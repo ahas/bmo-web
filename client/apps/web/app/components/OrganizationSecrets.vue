@@ -1,7 +1,7 @@
 <template>
-  <!-- The secret store (docs/web.md, 「Settings」, the secret store section): the names the server's store holds,
-       each with its size and its time and never its value, the kinds a secret is asked in, and the secret form,
-       the same the composer's clip and an agent's request open. -->
+  <!-- The secret store (docs/web.md, 「Organisation settings」, the secret store tab): the names the server's store
+       holds, each with its size and its time and never its value, the kinds a secret is asked in, and the secret
+       form, the same the composer's clip and an agent's request open. -->
   <div class="flex flex-col gap-6">
     <p class="text-sm text-muted">{{ $t("secrets.label.note") }}</p>
 

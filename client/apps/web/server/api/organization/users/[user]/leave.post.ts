@@ -1,8 +1,8 @@
 import { markLeft } from "../../../../utils/account-service";
 import { callerOf, organizationFailure } from "../../../../utils/organization";
 
-// A person marked left: their account's sign-in disabled for good (docs/web.md, 「Settings」, the organisation
-// section; docs/accounts.md, 「A person who leaves」).
+// A person marked left: their account's sign-in disabled for good (docs/web.md, 「Organisation settings」, the units
+// tab; docs/accounts.md, 「A person who leaves」).
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await requireAdministrator(event);
   const user = String(getRouterParam(event, "user") ?? "");

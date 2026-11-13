@@ -9,8 +9,9 @@ import { wording } from "#shared/wording";
 import type { ProfileCaller } from "./account-service";
 import type { SignedIn } from "./accounts";
 
-// The organisation section's calls and refusals (docs/web.md, 「Settings」, the organisation section): the administrator's login handed on,
-// and the account service's codes (docs/boundary.md, 「Organisation units」) said in the pack's words.
+// The organisation section's calls and refusals (docs/web.md, 「Organisation settings」, the units tab): the
+// administrator's login handed on, and the account service's codes (docs/boundary.md, 「Organisation units」) said in
+// the pack's words.
 
 const ORGANIZATION_CODES: Record<string, string> = {
   "other-company": "organization.error.other_company",

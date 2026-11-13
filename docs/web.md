@@ -419,7 +419,7 @@ console page. No answer says which framework drew it. Strict transport is the re
 - **A person reads their own BMO's log and turns whatever sections they hold:** the log and the turns of a
   supervisor whose owner account is the reader open to them, as the agency's list names its owner, and no other
   agent's do. What runs for them on the shared engines is read there; what runs for another account is not.
-- **The administrator sets one person's sections in the settings.** The 권한 section lists the users, and
+- **The administrator sets one person's sections on 조직 설정.** Its 권한 tab lists the users, and
   the section chosen stands a table of the console's sections with a switch for its read and one for its
   write; a change is saved as it is made, and a write turns its read on. The platform administrator's own
   row stands with every switch on and no change to make: they pass every section.
@@ -437,12 +437,13 @@ nothing.
   that names no sumida session is a console login, which stands only before the model and is the
   administrator's, as the routes read it.
 - **Each screen says which section it belongs to, and a member opens the ones their permission reads.** A
-  member opens the settings sections their account reads, the rooms they may read, and the screens units
+  member opens the settings sections their account reads, 조직 설정's 초대 where they head a unit, the rooms they may read, and the screens units
   bring whose manifest's role is `member` and whose section the administrator has left read — and, where the
   manifest asks for the owner key, only when their login has a user; asking for a section they may not read
   takes them to the first one they may.
 - **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the console's own
-  sections they may read, the screens units bring that they may open, their rooms and the user menu: no agents
+  sections they may read, 조직 설정 where they head a unit, the screens units bring that they may open, their rooms
+  and the user menu: no agents
   block, nodes or search, no queue panel, question bar or briefing player, and nothing in it reports which room
   the tab shows. Its sidebar hears the bot's stream for
   one thing, a message landing in one of their rooms, which moves the room's unread count and place
@@ -1252,9 +1253,9 @@ Four groups.
 
 - **The screens** — in this order **mail**, **cache siren**, **DB**,
   **파일**, **아티팩트**, **document viewer**, **code review**, **agent management**, **리서치**, **monitor**, **게이트**
-  and **remote**, and after them any other screen a unit brings, the brain's among them. Cache siren,
-  DB, document viewer, agent management, 리서치 and monitor are the console's own and always stand; mail, 파일, 아티팩트, code
-  review, 게이트 and remote, and the screens after them, are the units' own and stand only while their unit answers
+  and **remote**, then **조직 설정**, and after them any other screen a unit brings, the brain's among them. Cache
+  siren, DB, document viewer, agent management, 리서치, monitor and 조직 설정 are the console's own and always stand;
+  mail, 파일, 아티팩트, code review, 게이트 and remote, and the screens after them, are the units' own and stand only while their unit answers
   its manifest, under the manifest's own name and icon (「Screens a unit brings」). The monitor's second tab is the
   card board, `/cards` leading there, and its third the role slots, `/live` leading there.
   This group does not fold — it is a flat list of screens with no branch to fold, and the fold the sidebar
@@ -3104,7 +3105,7 @@ a seat of its role.
 
 #### Around the tabs
 
-- **The provider switches and the Claude accounts** are the settings dialog's 공급자 section (「Settings」), since
+- **The provider switches and the Claude accounts** are 조직 설정's 공급자 tab (「Organisation settings」), since
   they are no supervisor's, role's or repository's.
 - **The research unit's settings** are the research screen's 설정 tab (「Research screen」).
 - The run prompt put into a job, search or gate has nothing to do with the length of one Telegram message. A web
@@ -6235,15 +6236,18 @@ Four bounds keep it from growing forever.
 ### Settings
 
 The settings are one large dialog over whatever screen is open, opened by 설정 in the user menu at the
-sidebar's foot (「Sidebar」). They are no screen of their own: `/account` takes the reader home with the
-dialog open at 계정.
+sidebar's foot (「Sidebar」). They hold what a person sets for themselves alone: their account and what this
+browser shows them. What is set for the whole deployment or for other people stands on its own screen,
+조직 설정 (「Organisation settings」). The dialog is no screen of its own: `/account` takes the reader home with
+the dialog open at 계정.
 
 - **The dialog is a list of sections and the open section beside it.** The list stands in a column at
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방, 초대, 알림, 보이스브리핑, 공급자, 리서치, 권한, 조직 and 비밀 보관함. A member is
-    shown 계정, 테마, 대화방 and 초대; 알림, 보이스브리핑, 공급자, 리서치, 권한, 조직 and 비밀 보관함 are the administrator's.
+  - The sections are 계정, 테마, 대화방, 알림 and 브리핑 플레이어. A member is shown 계정, 테마 and 대화방;
+    알림 and 브리핑 플레이어 are the administrator's, since the console rings and plays briefings for the
+    administrator alone.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -6251,76 +6255,19 @@ dialog open at 계정.
     puts the control under it, at the right.
   - Everything in it takes effect as it is changed: a choice, a switch. Nothing
     waits for a save, and the dialog closes at once. Its forms are each a dialog of its own, with its own
-    저장 at its foot: the name and the password and the profile opened from 계정, and a secret and a secret kind
-    opened from 비밀 보관함.
+    저장 at its foot: the name and the password and the profile opened from 계정.
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
 - **An address opens it at one section:** `?settings=` and a section's key — `account`, `theme`,
-  `palette`, `invites`, `notifications`, `briefing`, `providers`, `research`, `permissions`, `organization`, `secrets` — on any address of the console opens the dialog at that
+  `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
-  names none of them. The key is taken off the address as the dialog opens: what is open over a screen
-  is not a place (「Floating things」), so the back gesture closes the dialog, or leaves the section on a
-  narrow screen, and the page stays where it was. Opened from the user menu it starts at 계정, and on a
-  narrow screen at the list.
-
-#### 권한
-
-- **사용자** chooses one person the console's users, by their name.
-- **섹션** is a table of every console section in the navigation's order, from 실시간 상태 down to 브레인 (`docs/accounts.md`, 「Console sections」),
-  with 방 and 계정 among them, and a 읽기 switch and a 쓰기 switch for each. A change is saved as it is made;
-  a 쓰기 turned on turns its 읽기 on, and a 읽기 turned off turns its 쓰기 off.
-- **The platform administrator's row stands with every switch on and nothing to change,** since they pass
-  every section; the note above the table says so. A section's defaults and what they mean stand in
-  `docs/accounts.md`, 「Console sections」.
-
-#### 초대
-
-- **A link is made into a unit** the reader may invite into — a unit they head or one below it, or any unit for the
-  administrator — for a span of hours, and the administrator may make it invite the unit's head. Made, it is copied
-  at once with its words: who invites into what, the link, and when it closes (`docs/accounts.md`,
-  「Invitations and a person's machine」).
-- **The open ones are listed,** each copied again or taken back. A reader who may invite into no unit is told so.
-- **Where an invitation leads is said as the company, then the unit under it;** a unit that is the company itself is
-  named once, here, in the copied words and on the join page.
-
-#### 조직
-
-- **The units stand as a tree,** companies first and each unit under its parent, indented by its depth; a unit's
-  row carries its name, its heads and how many people stand in it. What a unit is called — 본부, 센터, 팀, 파트 —
-  is its name alone (`docs/accounts.md`, 「Companies and organisation units」).
-- **단위 추가** opens a form of a name and a parent; with no parent the unit is a new company.
-- **A unit's row opens its own form:** its name, its parent among the units of its company, its heads — each
-  taken off by its mark, one added by choosing a person — and its people, one placed in it by choosing a person.
-  Each person carries a mark that marks them left, asked first with what it does and that it is not undone
-  (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list, said as left, with no mark.
-  Beside it a person carries a mark that opens their machine: the machine their account is bound to and whether it
-  is connected, or none. 기기 연결, or 다른 기기로 연결 where one is bound, binds the account to the machine named in
-  기기 이름, or to a fresh name where it is left empty; a machine not yet connected shows its one-line installs,
-  Linux or WSL and Windows, each with its copy mark, and is asked after every few seconds, 확인하기 asking at once,
-  until it connects and is set as the person's node. 기기 연결 해제 takes the machine away, asked first with what it
-  does (`docs/accounts.md`, 「Invitations and a person's machine」).
-  A change is saved as it is made, and a refusal — a parent in another company, a parent under the unit itself —
-  is said under the form in words.
-
-#### The join page
-
-- **`/join/<token>` stands on no shell and asks for no sign-in,** as the login does. It shows the unit and its
-  company the invitation is for, and whether it makes the unit's head; an invitation expired or used says so and
-  takes nothing.
-- **A name and a password make the account,** and the page then shows the person's machine's one-line installs,
-  Linux or WSL and Windows, each with its copy mark, and asks every few seconds whether the machine has attached;
-  설치했어요, 확인하기 asks at once. Attached, the account is ready and the page leads to the login.
-- **An account made ready is given its own BMO and its agents,** by the console's server as the account turns
-  active, each once: a supervisor of the account, named `u<user>` and shown by the person's name, on the provider
-  order and quota share of the supervisor that answers rooms naming none, with a console room of its own and one
-  session across its rooms; and, for every role that has an agent of no account, one agent of the account on that
-  agent's road and settings, switched on. An account that already holds a supervisor, or an agent of a role, is
-  given none again there. The machine the account is bound to is set as the node its runs stand on in agency,
-  at every proof that answers it active (`docs/accounts.md`, 「Invitations and a person's machine」). A part that
-  cannot be made is written to the console's log and the account stands ready all the same.
-- **An account bound to a machine signs in only while its machine is attached;** the login refuses it, saying the
-  machine is not connected, until it attaches again.
+  names none of them. A key that names none of the dialog's sections but a tab of 조직 설정 — `organization`,
+  `invites`, `permissions`, `providers`, `research`, `secrets` — takes the reader to that tab instead, so a link
+  made before the tab moved there still lands on it. The key is taken off the address as the dialog opens: what
+  is open over a screen is not a place (「Floating things」), so the back gesture closes the dialog, or leaves
+  the section on a narrow screen, and the page stays where it was. Opened from the user menu it starts at 계정,
+  and on a narrow screen at the list.
 
 #### 계정
 
@@ -6371,12 +6318,8 @@ dialog open at 계정.
   effect as it is switched, and 테스트 발송 and 알림 끄기 stand under them. The account's other devices
   follow, each a row with when it subscribed and what it hears, and 알림 끄기 for that device.
 
-#### 보이스브리핑
+#### 브리핑 플레이어
 
-- The voice briefing's one switch, the receiver's (its `docs/api.md`, `GET`/`PUT /voice-briefing`): **전체
-  보이스브리핑**, whether anything is spoken at all. It is set as it is pressed. A briefing it speaks comes to the
-  console's player as it ends and plays by itself, so nothing stands beside the switch: there is no second switch
-  for the player. One the receiver refused springs back, and the refusal stands under the section in one line.
 - **The player, placed and tried** (「Messages」, the briefing's player). **위치** chooses 왼쪽 or 오른쪽 and **높이**
   the height in pixels from the top of the page area, a number box with px after it that stands empty, holding
   기본값, where the player keeps its first place — as low as the page area lets it, above whatever bar stands at
@@ -6389,7 +6332,98 @@ dialog open at 계정.
     it stands and takes it down.
   - The trial is this tab's alone: no other tab hears of it and nothing keeps it. Pressed while a briefing plays,
     it waits behind it as another briefing would, and the player's press during it leads back to the screen it
-    was tried on, with the settings open at 보이스브리핑.
+    was tried on, with the settings open at 브리핑 플레이어.
+
+### Organisation settings
+
+조직 설정 is the screen of what is set for the whole deployment or for other people: the organisation's units and
+who stands in them, the invitations into them, each person's sections, the providers and the Claude accounts every
+run goes out on, the research supervisor, the voice briefing's switch and the secret store. What a person sets for
+themselves alone is the settings dialog's (「Settings」).
+
+- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대, 권한, 공급자, 리서치, 보이스브리핑
+  and 비밀 보관함, keyed in the address as `?tab=` with `invites`, `permissions`, `providers`, `research`, `briefing`
+  and `secrets`, 조직도 being the screen's own address; a shared link opens the same tab, moving between tabs is a
+  step of the history, and a key naming no tab the reader may open opens the first they may. The console search
+  finds each tab as it finds every screen's.
+- **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 설정 for them after the console's
+  own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
+  machine」), so their shell lists 조직 설정 too and the screen holds 초대 alone; a member who heads none is listed
+  no entry, and the address shows them 초대 saying they may invite into no unit.
+- **The tab row** stands under the title bar, the tabs filling it and the open tab's own 추가 at its right end where
+  the tab has one; on a narrow screen the tabs keep one line and scroll sideways.
+- **A tab's content** stands in groups under small headings as the settings dialog's sections do, in a column no
+  wider than a reading column at the screen's left, and scrolls in the screen's body.
+
+#### 조직도
+
+- **The tree of units and the unit chosen stand side by side.** At the left the units stand as a tree, Nuxt UI's own,
+  companies at its top and each unit under its parent, every branch open; at the right the unit chosen. Choosing one
+  is a step of the history and stands in the address as `?unit=` and its number, so a shared link opens the same
+  unit; where the address names none, the first company is chosen with no step. What a unit is called — 본부, 센터,
+  팀, 파트 — is its name alone (`docs/accounts.md`, 「Companies and organisation units」).
+- **On a narrow screen the unit chosen fills the body,** and the tree opens as a bottom drawer from the button at
+  the head of the unit, which carries the unit's name; choosing a unit there closes the drawer.
+- **조직 추가** stands at the tab row's right end and opens a form of a name and a parent, each unit offered by its
+  path from its company; with no parent, 없음 (새 회사), the unit is a new company. It has one 저장 at its foot.
+- **The unit chosen** is headed by its name and the path above it, with 편집 at the head's right end, which opens
+  the unit's form: its name and, for a unit under a company, its parent among the units of its company that do not
+  stand under it, with one 저장 at its foot, open only while a field differs from what is saved. A refusal — a
+  parent in another company, a parent under the unit itself — is said under the form in words.
+- **조직장** lists the unit's heads, one row each with its name and a mark that takes the head away, and 조직장 지정
+  under them, a list of every person searched by name; a person chosen is made a head as they are chosen.
+- **구성원** lists the people standing in the unit, its heading carrying how many, one row each: the name, (탈퇴)
+  beside a person who left, and two marks at the row's end for a person who has not. 구성원 추가 under them is the
+  same searched list, and a person chosen is placed in the unit as they are chosen.
+  - The machine mark opens the person's machine in a dialog: the machine their account is bound to and whether it
+    is connected, or none. 기기 연결, or 다른 기기로 연결 where one is bound, binds the account to the machine named in
+    기기 이름, or to a fresh name where it is left empty; a machine not yet connected shows its one-line installs,
+    Linux or WSL and Windows, each with its copy mark, and is asked after every few seconds, 확인하기 asking at once,
+    until it connects and is set as the person's node. 기기 연결 해제 takes the machine away, asked first with what it
+    does (`docs/accounts.md`, 「Invitations and a person's machine」).
+  - The leave mark marks the person left, asked first with what it does and that it is not undone
+    (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list.
+- Each mark is an icon button with its name as its tooltip. A head or a person taken away or added, and a person
+  marked left, takes effect as it is done, each being a record of its own; a refusal is said under the list.
+
+#### 초대
+
+- **A link is made into a unit** the reader may invite into — a unit they head or one below it, or any unit for the
+  administrator — for a span of hours, and the administrator may make it invite the unit's head. Made, it is copied
+  at once with its words: who invites into what, the link, and when it closes (`docs/accounts.md`,
+  「Invitations and a person's machine」).
+- **The open ones are listed,** each copied again or taken back. A reader who may invite into no unit is told so.
+- **Where an invitation leads is said as the company, then the unit under it;** a unit that is the company itself is
+  named once, here, in the copied words and on the join page.
+
+#### The join page
+
+- **`/join/<token>` stands on no shell and asks for no sign-in,** as the login does. It shows the unit and its
+  company the invitation is for, and whether it makes the unit's head; an invitation expired or used says so and
+  takes nothing.
+- **A name and a password make the account,** and the page then shows the person's machine's one-line installs,
+  Linux or WSL and Windows, each with its copy mark, and asks every few seconds whether the machine has attached;
+  설치했어요, 확인하기 asks at once. Attached, the account is ready and the page leads to the login.
+- **An account made ready is given its own BMO and its agents,** by the console's server as the account turns
+  active, each once: a supervisor of the account, named `u<user>` and shown by the person's name, on the provider
+  order and quota share of the supervisor that answers rooms naming none, with a console room of its own and one
+  session across its rooms; and, for every role that has an agent of no account, one agent of the account on that
+  agent's road and settings, switched on. An account that already holds a supervisor, or an agent of a role, is
+  given none again there. The machine the account is bound to is set as the node its runs stand on in agency,
+  at every proof that answers it active (`docs/accounts.md`, 「Invitations and a person's machine」). A part that
+  cannot be made is written to the console's log and the account stands ready all the same.
+- **An account bound to a machine signs in only while its machine is attached;** the login refuses it, saying the
+  machine is not connected, until it attaches again.
+
+#### 권한
+
+- **사용자** chooses one person the console's users, by their name.
+- **섹션** is a table of every console section in the navigation's order, from 실시간 상태 down to 브레인 (`docs/accounts.md`, 「Console sections」),
+  with 방 and 계정 among them, and a 읽기 switch and a 쓰기 switch for each. A change is saved as it is made;
+  a 쓰기 turned on turns its 읽기 on, and a 읽기 turned off turns its 쓰기 off.
+- **The platform administrator's row stands with every switch on and nothing to change,** since they pass
+  every section; the note above the table says so. A section's defaults and what they mean stand in
+  `docs/accounts.md`, 「Console sections」.
 
 #### 공급자
 
@@ -6416,7 +6450,7 @@ dialog open at 계정.
   at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is
   refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
   the path is the whole of what is shown.
-- Every change here takes effect as it is made, as the dialog's do.
+- Every change here takes effect as it is made, as everything on this screen does.
 
 #### 리서치
 
@@ -6426,6 +6460,13 @@ dialog open at 계정.
   after them; the one the agency holds now is the one chosen. A choice is saved as it is made; one the agency
   refuses goes back to what it holds, its reason said under the row. Where the agency does not answer, the row
   says so with a button that reads it again.
+
+#### 보이스브리핑
+
+- The voice briefing's one switch, the receiver's (its `docs/api.md`, `GET`/`PUT /voice-briefing`): **전체
+  보이스브리핑**, whether anything is spoken at all. It is set as it is pressed. A briefing it speaks comes to the
+  console's player as it ends and plays by itself, so nothing stands beside the switch: there is no second switch
+  for the player. One the receiver refused springs back, and the refusal stands under the tab in one line.
 
 #### 비밀 보관함
 

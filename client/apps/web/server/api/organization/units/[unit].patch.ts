@@ -3,7 +3,7 @@ import { callerOf, organizationFailure, unitNumber } from "../../../utils/organi
 
 import type { Unit } from "@web/server-client";
 
-// A unit renamed, or moved under another parent of its company (docs/web.md, 「Settings」, the organisation section).
+// A unit renamed, or moved under another parent of its company (docs/web.md, 「Organisation settings」, the units tab).
 export default defineEventHandler(async (event): Promise<Unit> => {
   const signed = await requireAdministrator(event);
   const unit = unitNumber(getRouterParam(event, "unit"));

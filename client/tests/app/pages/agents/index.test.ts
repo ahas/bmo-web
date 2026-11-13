@@ -24,10 +24,10 @@ const catalogue = await read("../../components/AgentsCatalogue.vue");
 const orderField = await read("../../components/ProviderOrderField.vue");
 const orderCell = await read("../../components/ProviderOrderCell.vue");
 const activeCell = await read("../../components/ActiveProviderCell.vue");
-const providersSection = await read("../../components/SettingsProviders.vue");
+const providersSection = await read("../../components/OrganizationProviders.vue");
 const accounts = await read("../../components/AgentsAccounts.vue");
 const axes = await Bun.file(new URL("../../../../apps/web/app/domain/axes.ts", import.meta.url)).text();
-const settingsDialog = await Bun.file(new URL("../../../../apps/web/app/domain/settings-dialog.ts", import.meta.url)).text();
+const organization = await Bun.file(new URL("../../../../apps/web/app/domain/organization.ts", import.meta.url)).text();
 const css = await Bun.file(new URL("../../../../apps/web/app/assets/css/main.css", import.meta.url)).text();
 const dialog = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/SettingsDialog.vue"))).text();
 const table = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/DataTable.vue"))).text();
@@ -355,8 +355,8 @@ describe("the model screens", () => {
 });
 
 describe("the providers and the Claude accounts", () => {
-  test("stand in the settings dialog's providers section, each switch taking effect as it is thrown", () => {
-    expect(settingsDialog).toContain('{ key: "providers", label: "settings.label.providers"');
+  test("stand on the organisation settings screen's providers tab, each switch taking effect as it is thrown", () => {
+    expect(organization).toContain('{ value: "providers", label: "settings.label.providers"');
     expect(templateOf(providersSection)).toContain("<AgentsAccounts");
     expect(scriptOf(providersSection)).toContain("`/api/providers/${encodeURIComponent(provider.name)}`, { method: \"PATCH\", body: { enabled: on } }");
   });

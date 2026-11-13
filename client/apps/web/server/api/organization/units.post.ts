@@ -3,7 +3,8 @@ import { callerOf, organizationFailure, unitNumber } from "../../utils/organizat
 
 import type { Unit } from "@web/server-client";
 
-// A unit made under a parent, or a new company where none is named (docs/web.md, 「Settings」, the organisation section).
+// A unit made under a parent, or a new company where none is named (docs/web.md, 「Organisation settings」, the units
+// tab).
 export default defineEventHandler(async (event): Promise<Unit> => {
   const signed = await requireAdministrator(event);
   const body = await readBody<{ name?: unknown; parent?: unknown }>(event);

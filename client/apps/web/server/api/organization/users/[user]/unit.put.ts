@@ -3,7 +3,7 @@ import { callerOf, organizationFailure, unitNumber } from "../../../../utils/org
 
 import type { UserUnit } from "@web/server-client";
 
-// A user placed in a unit (docs/web.md, 「Settings」, the organisation section).
+// A user placed in a unit (docs/web.md, 「Organisation settings」, the units tab).
 export default defineEventHandler(async (event): Promise<UserUnit> => {
   const signed = await requireAdministrator(event);
   const user = String(getRouterParam(event, "user") ?? "");

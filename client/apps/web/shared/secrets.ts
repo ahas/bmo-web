@@ -1,4 +1,4 @@
-// The name a secret is kept under in the server's store (docs/web.md, 「Settings」, the secret store section;
+// The name a secret is kept under in the server's store (docs/web.md, 「Organisation settings」, the secret store tab;
 // docs/boundary.md, 「The secret store」): a plain file name of letters, digits, `.`, `_` and `-`, beginning with no
 // dot and not ending in the suffix the store keeps the value before under. The server holds the same rule; the
 // console says it before asking.

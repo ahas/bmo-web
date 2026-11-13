@@ -1,8 +1,8 @@
 <template>
-  <!-- The Claude logins the agency holds, in the order the Claude Code provider walks them (docs/web.md, 「Settings」,
-       the providers section). A row is carried by its handle alone, by the mouse and the finger the same way, and the
-       order is saved the moment it is dropped. What a row says of a credential is the path it is reached by — no cell
-       and no box here has a token to show, because none is ever sent to this screen. -->
+  <!-- The Claude logins the agency holds, in the order the Claude Code provider walks them (docs/web.md,
+       「Organisation settings」, the providers tab). A row is carried by its handle alone, by the mouse and the finger
+       the same way, and the order is saved the moment it is dropped. What a row says of a credential is the path it
+       is reached by — no cell and no box here has a token to show, because none is ever sent to this screen. -->
   <section class="flex flex-col gap-3" aria-labelledby="accounts-title">
     <h3 id="accounts-title" class="flex min-h-8 items-center text-sm font-semibold text-highlighted">{{ $t("agents.title.accounts") }}</h3>
 

@@ -99,6 +99,15 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: true }
     ]
+  },
+  // The members of the company, read by a member who reads their account section.
+  {
+    name: "people-reader",
+    password: "fixture-password-2801",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: false }
+    ]
   }
 ];
 
@@ -326,10 +335,11 @@ const uses: Record<string, unknown>[] = [];
 // `process.env` where it stands, as a library inside a unit's build does, so the module ends before its routes
 // stand unless the console owes a `process` to it. Opened with `?styles=on` it also lays a plain rule for the
 // `input` element on the page as it runs, unlayered, as an editor library inside a unit's bundle does: what a
-// console control hidden by an attribute is measured against (docs/web.md, 「Screens a unit brings」).
-function screenUnit(name: string, path: string): Response | null {
+// console control hidden by an attribute is measured against (docs/web.md, 「Screens a unit brings」). The services its
+// manifest names under `calls` are the ones its pages reach besides its own.
+function screenUnit(name: string, path: string, calls: readonly string[] = []): Response | null {
   if (path === "/console-manifest") {
-    return Response.json(manifestFields(name, { icon: "i-material-symbols-widgets" }));
+    return Response.json(manifestFields(name, { icon: "i-material-symbols-widgets", calls }));
   }
 
   if (path === "/console/words") return Response.json({ ko: { [name]: { title: name } }, en: { [name]: { title: name } } });
@@ -745,7 +755,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
   },
   BRAIN: () => null,
-  SCREEN_A: (path) => screenUnit(HARNESS_SCREEN_UNITS[0], path),
+  // The first screen names the console's own members service under `calls`, and the second names nothing.
+  SCREEN_A: (path) => screenUnit(HARNESS_SCREEN_UNITS[0], path, ["people"]),
   SCREEN_B: (path) => screenUnit(HARNESS_SCREEN_UNITS[1], path),
   ARTIFACT: () => null,
   TELEGRAM: () => null,

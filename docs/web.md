@@ -7164,9 +7164,9 @@ its people directory.
 - **The members of the reader's company are a service the console answers itself,** under the name `people`.
   A screen that picks a person to share with — or for anything else that needs the whole company at hand — asks
   `GET` at the relay address for `people` and `/members`, and the console answers it from the account service's
-  members list (`docs/accounts.md`, 「The people directory」), which leaves out a person marked left: `members`, each person's `user`, the account key
-  written as the owner key is, and `name`, and nothing more, in the directory's order. The console knows the
-  account service; a bundle knows the name and the path alone.
+  members list (`docs/accounts.md`, 「The people directory」), which leaves out a person marked left: `members`,
+  each person's `user`, the account key written as the owner key is, and `name`, and nothing more, in the
+  directory's order. The console knows the account service; a bundle knows the name and the path alone.
   - **It is read by a reader signed in,** and a request with no session is refused 401. A member reaches it
     where their account section is read, as the directory's other reads (「Access」), and is answered as if
     nothing stood there otherwise; the administrator reaches it always. A login with no user of the account

@@ -222,7 +222,7 @@ section states what each does.
 
 - **An organisation unit is one of sumida's organisations,** and the units of a deployment form sumida's tree of
   them. A unit standing at the top of the tree, with no parent, is a **company**; every other unit belongs to the
-  company at the top of its branch. The words a company calls its units by — division, centre, team, part — are
+  company at the top of its branch, and a company holds units under units to any depth. The words a company calls its units by — division, centre, team, part — are
   their names alone, and nothing here reads a meaning into them (`STRUCTURE.md`, 「Terms」).
 - **A user stands in exactly one unit,** the organisation sumida keeps on the user, at any depth of the tree, and
   belongs to that unit's company.

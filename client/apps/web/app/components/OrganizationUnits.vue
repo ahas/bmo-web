@@ -16,7 +16,7 @@
 
     <div v-else class="flex min-w-0 flex-1 gap-6">
       <nav v-if="!narrow" class="w-64 shrink-0" :aria-label="$t('organization.label.chart')" data-unit-tree>
-        <UTree v-bind="treeProps" />
+        <OrganizationUnitTree v-model:expanded="expanded" :units="units" :chosen="chosen.id" @choose="choose" />
       </nav>
 
       <section class="flex min-w-0 max-w-3xl flex-1 flex-col gap-6" :data-unit-chosen="chosen.id">
@@ -104,7 +104,7 @@
 
     <UDrawer v-if="narrow" v-model:open="treeOpen" :title="$t('organization.label.chart')">
       <template #body>
-        <UTree v-bind="treeProps" />
+        <OrganizationUnitTree v-model:expanded="expanded" :units="units ?? []" :chosen="chosen?.id ?? null" @choose="choose" />
       </template>
     </UDrawer>
 
@@ -192,8 +192,8 @@ import { useNarrow } from "bmo-ui/app/domain/screen";
 
 import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
+import { branchesAbove, branchesOpenAtFirst, isCompany, unitPath } from "~/domain/organization";
 
-import type { TreeItem } from "@nuxt/ui";
 import type { Ref } from "vue";
 import type { Rebound, UnitRow, UserNode, UserSummary } from "@web/server-client";
 
@@ -211,21 +211,13 @@ const busy = ref(false);
 // Which change of the unit is under way, so the control that asked for it spins until it is done.
 const working = ref<string | null>(null);
 
-function isCompany(unit: UnitRow): boolean {
-  return unit.parent === undefined || unit.parent === null;
-}
-
 function unitOf(id: number): UnitRow | null {
   return units.value?.find((unit) => unit.id === id) ?? null;
 }
 
 // The units from the company down to the one named.
 function pathOf(id: number): UnitRow[] {
-  const path: UnitRow[] = [];
-
-  for (let unit = unitOf(id); unit !== null; unit = isCompany(unit) ? null : unitOf(unit.parent!)) path.unshift(unit);
-
-  return path;
+  return unitPath(units.value ?? [], id);
 }
 
 // A unit's path as words: with itself for a choice among units, without it above its own name.
@@ -242,44 +234,45 @@ const chosen = computed<UnitRow | null>(() => {
   return asked ?? units.value?.find(isCompany) ?? null;
 });
 
-// The tree, Nuxt UI's own: companies at its top, each unit under its parent, every branch open.
-type UnitItem = TreeItem & { id: number };
+// The branches standing open, by their keys: every company's and every one down to the unit chosen at first, and
+// then what the reader opens and closes, kept across every change made on the tab. The unit chosen, wherever it
+// moves, and a unit just made always stand in view (docs/web.md, 「Organisation settings」, its chart).
+const expanded = ref<string[]>([]);
 
-const tree = computed(() => {
-  const items = new Map<number, UnitItem>();
-  const roots: UnitItem[] = [];
+function openBranches(ids: number[]): void {
+  const keys = ids.map(String).filter((key) => !expanded.value.includes(key));
 
-  for (const unit of units.value ?? []) items.set(unit.id, { id: unit.id, label: unit.name, icon: isCompany(unit) ? "i-material-symbols-domain" : "i-material-symbols-groups-outline", defaultExpanded: true });
+  if (keys.length > 0) expanded.value = [...expanded.value, ...keys];
+}
 
-  for (const unit of units.value ?? []) {
-    const item = items.get(unit.id)!;
-    const parent = isCompany(unit) ? undefined : items.get(unit.parent!);
+// The chosen unit's path, so a unit moved under another parent opens its new branches too.
+const chosenPath = computed(() => (chosen.value === null ? "" : pathOf(chosen.value.id).map((unit) => unit.id).join("/")));
+let openedAtFirst = false;
 
-    if (parent === undefined) roots.push(item);
-    else parent.children = [...(parent.children ?? []), item];
-  }
+watch(
+  chosenPath,
+  () => {
+    const all = units.value;
+    const unit = chosen.value?.id ?? null;
 
-  return { roots, items };
-});
+    if (all === null) return;
+    if (!openedAtFirst) openBranches(branchesOpenAtFirst(all, unit));
+    else if (unit !== null) openBranches(branchesAbove(all, unit));
+    openedAtFirst = true;
+  },
+  { immediate: true }
+);
 
 const treeOpen = ref(false);
 
 // Choosing a unit is a step of the history and stands in the address, so a shared link opens the same unit.
-function choose(item: UnitItem | undefined): void {
+function choose(unit: number): void {
   treeOpen.value = false;
 
-  if (item === undefined || item.id === chosen.value?.id) return;
+  if (unit === chosen.value?.id) return;
 
-  void router.push({ query: { ...route.query, unit: String(item.id) } });
+  void router.push({ query: { ...route.query, unit: String(unit) } });
 }
-
-const treeProps = computed(() => ({
-  items: tree.value.roots,
-  modelValue: chosen.value === null ? undefined : tree.value.items.get(chosen.value.id),
-  getKey: (item: UnitItem) => String(item.id),
-  color: "neutral" as const,
-  "onUpdate:modelValue": (item: unknown) => choose(item as UnitItem | undefined)
-}));
 
 function nameOf(user: string): string {
   return users.value.find((one) => one.user === user)?.name ?? user;
@@ -381,7 +374,10 @@ function openAdd(): void {
 async function add(): Promise<void> {
   const body = { name: draft.name.trim(), parent: draft.parent === NEW_COMPANY ? null : Number(draft.parent) };
 
-  if (await acting(() => $fetch("/api/organization/units", { method: "POST", body }), formFailure)) adding.value = false;
+  if (!(await acting(() => $fetch("/api/organization/units", { method: "POST", body }), formFailure))) return;
+
+  adding.value = false;
+  if (body.parent !== null) openBranches([...branchesAbove(units.value ?? [], body.parent), body.parent]);
 }
 
 // The unit's own form: its name and its parent, held until its one save sends what differs from what is saved.

@@ -1,6 +1,19 @@
 import { describe, expect, test } from "bun:test";
 
-import { ORGANIZATION_PATH, ORGANIZATION_TABS, organizationAddress, organizationTabNamed, organizationTabOf, organizationTabsFor } from "../../../apps/web/app/domain/organization";
+import {
+  ORGANIZATION_PATH,
+  ORGANIZATION_TABS,
+  branchesAbove,
+  branchesOpenAtFirst,
+  organizationAddress,
+  organizationTabNamed,
+  organizationTabOf,
+  organizationTabsFor,
+  unitBranches,
+  unitPath
+} from "../../../apps/web/app/domain/organization";
+
+import type { UnitBranch, UnitPlace } from "../../../apps/web/app/domain/organization";
 import { SETTINGS_SECTIONS, sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
@@ -62,5 +75,52 @@ describe("the organisation settings screen", () => {
       "/organization?tab=briefing",
       "/organization?tab=secrets"
     ]);
+  });
+});
+
+// Three levels under one company and a second company beside it, given children before their parents.
+const UNITS: UnitPlace[] = [
+  { id: 4, name: "part-a", parent: 3 },
+  { id: 3, name: "team-a", parent: 2 },
+  { id: 5, name: "team-b", parent: 2 },
+  { id: 2, name: "company-a", parent: null },
+  { id: 6, name: "company-b" }
+];
+
+// A tree as nested names, a branch's children in brackets after it.
+function shape(branches: UnitBranch<UnitPlace>[]): unknown[] {
+  return branches.map(({ unit, children }) => (children.length === 0 ? unit.name : [unit.name, shape(children)]));
+}
+
+describe("the units tab's tree", () => {
+  test("stands the companies at its top and every unit under its parent, three levels deep", () => {
+    expect(shape(unitBranches(UNITS))).toEqual([["company-a", [["team-a", ["part-a"]], "team-b"]], "company-b"]);
+  });
+
+  test("stands a unit whose parent it does not hold at its top", () => {
+    expect(shape(unitBranches(UNITS.filter((unit) => unit.id !== 3)))).toEqual(["part-a", ["company-a", ["team-b"]], "company-b"]);
+  });
+
+  test("walks a unit's path from its company down, and none for a unit it does not hold", () => {
+    expect(unitPath(UNITS, 4).map((unit) => unit.name)).toEqual(["company-a", "team-a", "part-a"]);
+    expect(unitPath(UNITS, 6).map((unit) => unit.name)).toEqual(["company-b"]);
+    expect(unitPath(UNITS, 9)).toEqual([]);
+  });
+
+  test("ends a path that loops back on itself", () => {
+    const looped: UnitPlace[] = [
+      { id: 1, name: "a", parent: 2 },
+      { id: 2, name: "b", parent: 1 }
+    ];
+
+    expect(unitPath(looped, 1).map((unit) => unit.name)).toEqual(["b", "a"]);
+  });
+
+  test("opens every company at first and every branch down to the unit chosen", () => {
+    expect(branchesOpenAtFirst(UNITS, null)).toEqual([2, 6]);
+    expect(branchesOpenAtFirst(UNITS, 2)).toEqual([2, 6]);
+    expect(branchesOpenAtFirst(UNITS, 4)).toEqual([2, 6, 3]);
+    expect(branchesAbove(UNITS, 4)).toEqual([2, 3]);
+    expect(branchesAbove(UNITS, 2)).toEqual([]);
   });
 });

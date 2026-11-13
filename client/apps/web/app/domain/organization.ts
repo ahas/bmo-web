@@ -63,3 +63,68 @@ export function useMayInvite(): ComputedRef<boolean> {
 
   return computed(() => (data.value ?? []).length > 0);
 }
+
+// The units tab's tree (docs/web.md, 「Organisation settings」, its chart): companies at its top, each unit under its
+// parent to any depth. A unit is read by its number, its name and its parent alone, so the tree stands on whatever
+// row the service answers.
+export interface UnitPlace {
+  id: number;
+  name: string;
+  parent?: number | null;
+}
+
+export interface UnitBranch<Unit extends UnitPlace> {
+  unit: Unit;
+  children: UnitBranch<Unit>[];
+}
+
+/** Whether a unit stands at the tree's top: a company, with no parent. */
+export function isCompany(unit: UnitPlace): boolean {
+  return unit.parent === undefined || unit.parent === null;
+}
+
+/**
+ * The units as a tree in the order they are given: a company, or a unit whose parent is not among them, at the top,
+ * and every other unit under its parent.
+ */
+export function unitBranches<Unit extends UnitPlace>(units: readonly Unit[]): UnitBranch<Unit>[] {
+  const branches = new Map(units.map((unit) => [unit.id, { unit, children: [] as UnitBranch<Unit>[] }]));
+  const roots: UnitBranch<Unit>[] = [];
+
+  for (const branch of branches.values()) {
+    const parent = isCompany(branch.unit) ? undefined : branches.get(branch.unit.parent!);
+
+    (parent?.children ?? roots).push(branch);
+  }
+
+  return roots;
+}
+
+/** The units from the company down to the one named, itself last; none where it is not among them. */
+export function unitPath<Unit extends UnitPlace>(units: readonly Unit[], id: number): Unit[] {
+  const byId = new Map(units.map((unit) => [unit.id, unit]));
+  const path: Unit[] = [];
+  let unit = byId.get(id);
+
+  // A unit met twice ends the walk, so a parent that loops back cannot keep it going.
+  while (unit !== undefined && !path.includes(unit)) {
+    path.unshift(unit);
+    unit = isCompany(unit) ? undefined : byId.get(unit.parent!);
+  }
+
+  return path;
+}
+
+/** The branches to open so a unit is in view: every unit above it, from its company down. */
+export function branchesAbove(units: readonly UnitPlace[], id: number): number[] {
+  return unitPath(units, id)
+    .slice(0, -1)
+    .map((unit) => unit.id);
+}
+
+/** The branches open at first: every company's, and every one down to the unit chosen. */
+export function branchesOpenAtFirst(units: readonly UnitPlace[], chosen: number | null): number[] {
+  const open = units.filter(isCompany).map((unit) => unit.id);
+
+  return [...new Set(chosen === null ? open : [...open, ...branchesAbove(units, chosen)])];
+}

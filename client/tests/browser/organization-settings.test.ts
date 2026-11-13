@@ -4,12 +4,13 @@ import { chromium } from "playwright-core";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import { wording } from "../../apps/web/shared/wording";
 
-import type { Browser, BrowserContext, Page } from "playwright-core";
+import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // The settings dialog holds what a person sets for themselves alone, and the organisation settings screen what is set
 // for the whole deployment or for other people, a tab to a section; its units tab stands the units as a tree beside
 // the unit chosen, the tree a bottom drawer on a narrow screen (docs/web.md, 「Settings」 and 「Organisation settings」).
-// Each is read at a desk's width and a phone's, in light and in dark, by the administrator and by a member who heads
+// The tree opens and closes each branch in place, three levels deep, without choosing. Each is read at a desk's width
+// and a phone's, in light and in dark, by the administrator and by a member who heads
 // a unit and one who heads none.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up.
@@ -28,6 +29,7 @@ let browser: Browser | null = null;
 const cookies = new Map<string, string>();
 let company = 0;
 let team = 0;
+let part = 0;
 let member = "";
 
 async function login(account: { name: string; password: string }): Promise<string> {
@@ -57,9 +59,10 @@ beforeAll(async () => {
   cookies.set(ADMINISTRATOR.name, await login(ADMINISTRATOR));
   cookies.set(MEMBER.name, await login(MEMBER));
 
-  // A company and a team under it, named for this run, with the member standing in the team.
+  // A company, a team under it and a part under the team, named for this run, with the member standing in the team.
   company = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `company-${RUN}`, parent: null })).id;
   team = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `team-${RUN}`, parent: company })).id;
+  part = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `part-${RUN}`, parent: team })).id;
   member = (await administer<{ user: string; name: string }[]>("/api/users", "GET")).find((one) => one.name === MEMBER.name)!.user;
   await administer(`/api/organization/users/${encodeURIComponent(member)}/unit`, "PUT", { unit: team });
 
@@ -223,8 +226,92 @@ async function ringed(page: Page, selector: string): Promise<{ visible: boolean;
   });
 }
 
+// The units tab's tree where it stands: beside the unit at a desk's width, in its drawer on a phone.
+async function unitTree(page: Page, width: number): Promise<Locator> {
+  if (width >= 1024) return page.locator("[data-unit-tree]");
+
+  await page.locator("[data-unit-tree-open]").click();
+
+  const drawer = page.getByRole("dialog").last();
+
+  await drawer.waitFor({ timeout: 10_000 });
+
+  return drawer;
+}
+
+// The names of the units the tree shows of this run's, with their depth.
+async function shownUnits(tree: Locator): Promise<string[]> {
+  return tree
+    .locator('[role="treeitem"]')
+    .evaluateAll((rows, run) => rows.filter((row) => row.textContent?.includes(`-${run}`)).map((row) => `${row.getAttribute("aria-level")}:${row.textContent?.trim()}`), RUN);
+}
+
 describe.skipIf(!origin || !touchReady())("the settings dialog and the organisation settings screen", () => {
   for (const [width, height] of [[1280, 900], [360, 780]] as const) {
+    test(`the units' tree opens and closes three levels in place, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height, "light");
+      const [first, second, third] = [`1:company-${RUN}`, `2:team-${RUN}`, `3:part-${RUN}`];
+
+      try {
+        const page = await context.newPage();
+
+        // At first the company stands open and the team under it closed.
+        await page.goto(`${origin}/organization?unit=${company}`, { waitUntil: "load" });
+        await standing(page);
+        await page.locator(`[data-unit-chosen="${company}"]`).waitFor({ timeout: 20_000 });
+
+        const tree = await unitTree(page, width);
+        const row = (name: string) => tree.locator('[role="treeitem"]', { hasText: `${name}-${RUN}` });
+        const toggle = (name: string) => row(name).locator("[data-unit-branch-toggle]");
+
+        expect(await shownUnits(tree)).toEqual([first, second]);
+        expect(await row("part").count()).toBe(0);
+        expect(await toggle("team").getAttribute("aria-label")).toBe(wording("organization.action.expand"));
+
+        // The team's chevron opens the third level without choosing the team, and the drawer stays open.
+        await toggle("team").click();
+        await row("part").waitFor({ timeout: 10_000 });
+        expect(await shownUnits(tree)).toEqual([first, second, third]);
+        expect(await toggle("team").getAttribute("aria-label")).toBe(wording("organization.action.collapse"));
+        expect(new URL(page.url()).searchParams.get("unit")).toBe(String(company));
+        expect(await row("part").locator("[data-unit-branch-toggle]").count()).toBe(0);
+
+        // A branch's chevron makes its row no taller than a unit's with none, and each level stands further in.
+        const boxes = await Promise.all(["company", "team", "part"].map(async (name) => (await row(name).locator('[data-slot="linkLabel"]').boundingBox())!));
+        const heights = await Promise.all(["company", "team", "part"].map(async (name) => (await row(name).boundingBox())!.height));
+
+        expect(new Set(heights).size).toBe(1);
+        expect(boxes[0]!.x).toBeLessThan(boxes[1]!.x);
+        expect(boxes[1]!.x).toBeLessThan(boxes[2]!.x);
+
+        // The company's chevron closes both levels under it, and opening it again shows them as they were left.
+        await toggle("company").click();
+        await row("team").waitFor({ state: "detached", timeout: 10_000 });
+        expect(await shownUnits(tree)).toEqual([first]);
+        await toggle("company").click();
+        await row("part").waitFor({ timeout: 10_000 });
+        expect(await shownUnits(tree)).toEqual([first, second, third]);
+
+        // A press on a unit with units under it chooses it and leaves its branch open.
+        await row("team").getByText(`team-${RUN}`, { exact: true }).click();
+        await page.waitForURL((url) => url.searchParams.get("unit") === String(team), { timeout: 10_000 });
+        await page.locator(`[data-unit-chosen="${team}"]`).waitFor({ timeout: 10_000 });
+
+        const again = await unitTree(page, width);
+
+        expect(await shownUnits(again)).toEqual([first, second, third]);
+
+        // A link to the third level opens the branches down to it.
+        await page.goto(`${origin}/organization?unit=${part}`, { waitUntil: "load" });
+        await standing(page);
+        await page.locator(`[data-unit-chosen="${part}"]`).waitFor({ timeout: 20_000 });
+        expect(await page.locator(`[data-unit-chosen="${part}"]`).innerText()).toContain(`company-${RUN} › team-${RUN}`);
+        expect(await shownUnits(await unitTree(page, width))).toEqual([first, second, third]);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
     for (const scheme of ["light", "dark"] as const) {
       test(`the administrator's, at ${width}px in ${scheme}`, async () => {
         const context = await contextFor(ADMINISTRATOR.name, width, height, scheme);

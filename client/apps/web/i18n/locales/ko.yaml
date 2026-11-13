@@ -1766,6 +1766,8 @@ organization:
     unbind: 기기 연결 해제
     unbind_confirm: 연결 해제
     check: 확인하기
+    expand: 하위 조직 확장
+    collapse: 하위 조직 축소
   status:
     loading: 조직 불러오는 중…
     attached: 연결됨

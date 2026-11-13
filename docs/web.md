@@ -6388,12 +6388,22 @@ themselves alone is the settings dialog's (「Settings」).
 #### 조직도
 
 - **The tree of units and the unit chosen stand side by side.** At the left the units stand as a tree, Nuxt UI's own,
-  companies at its top and each unit under its parent, every branch open; at the right the unit chosen. Choosing one
-  is a step of the history and stands in the address as `?unit=` and its number, so a shared link opens the same
-  unit; where the address names none, the first company is chosen with no step. What a unit is called — 본부, 센터,
-  팀, 파트 — is its name alone (`docs/accounts.md`, 「Companies and organisation units」).
+  companies at its top and each unit under its parent, nested as deep as the units are, each level indented under
+  the one above; at the right the unit chosen. Choosing one is a step of the history and stands in the address as
+  `?unit=` and its number, so a shared link opens the same unit; where the address names none, the first company is
+  chosen with no step. What a unit is called — 본부, 센터, 팀, 파트 — is its name alone (`docs/accounts.md`,
+  「Companies and organisation units」).
+- **A branch opens and closes in place.** A unit with units under it carries a chevron at its row's end, whose
+  tooltip says 하위 조직 확장 or 하위 조직 축소; pressing it shows or hides the units under it without choosing it,
+  and the arrow keys do the same on a unit the keyboard stands on. Pressing a unit's name chooses it and leaves its
+  branch as it is. A branch closed keeps what stood open inside it, so opening it again shows it as it was left.
+- **What stands open.** At first every company's branch is open, and every branch down to the unit chosen; whenever
+  the unit chosen changes or moves, the branches down to it open, and a unit made under a parent opens the branches
+  down to that parent, so the unit chosen and a unit just made are always in view. Nothing else is opened or closed
+  for the reader, and what they opened and closed stands while the tab does, across every change made on it.
 - **On a narrow screen the unit chosen fills the body,** and the tree opens as a bottom drawer from the button at
-  the head of the unit, which carries the unit's name; choosing a unit there closes the drawer.
+  the head of the unit, which carries the unit's name; choosing a unit there closes the drawer, and opening or
+  closing a branch leaves it open.
 - **조직 추가** stands at the tab row's right end and opens a form of a name and a parent, each unit offered by its
   path from its company; with no parent, 없음 (새 회사), the unit is a new company. It has one 저장 at its foot.
 - **The unit chosen** is headed by its name and the path above it, with 편집 at the head's right end, which opens

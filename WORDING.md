@@ -146,6 +146,8 @@
 - a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.
 - what another person shared with the reader → 공유받은 항목: 공유받은 항목, 공유받은 항목 없음; the person who
   shared it → 공유한 사람: 공유한 사람, 공유한 사람: {name}. Never 공유된 항목, 받은 공유.
+- the people a thing is shared with → 공유 대상: 공유 대상, 공유 대상 없음. Never 공유한 사람, which is the
+  sharer, nor 공유받은 사람.
 - read-only, what the reader may read and never change → 읽기 전용. Never 읽기만 가능, 열람 전용.
 - permission → 권한: 권한, 권한이 있습니다, 권한이 없습니다. Never 허가, 접근 권한.
 - read a section → 읽기: 읽기, 읽을 수 있습니다. Never 조회 for a section's read.

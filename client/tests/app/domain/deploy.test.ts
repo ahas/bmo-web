@@ -226,6 +226,15 @@ describe("an item on its way live", () => {
     expect(itemDeployPhase(view(), item(1203, { closing }))).toBeNull();
   });
 
+  test("waits to go live once its close merged its commit for its repository's batch deployment", () => {
+    const batch = (commit: string | null): ItemOnItsWayLive["closing"] => ({ phase: "waiting-batch", commit });
+
+    expect(itemDeployPhase(view(), item(1203, { closing: batch("c".repeat(40)) }))).toBe("waiting-live");
+    expect(itemDeployPhase(view(), item(1203, { closing: batch(null), liveState: "running" }))).toBe("waiting-live");
+    expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: batch("c".repeat(40)) }))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ carried, phase: "ended", endedAt: NOW, outcome: "failed" }) }), item(1203, { closing: batch("c".repeat(40)) }))).toBe("deploy-failed");
+  });
+
   test("waits to go live once its close handed its commit over, its job waiting on it or ended", () => {
     expect(itemDeployPhase(view(), item(1203, { closing: waiting("c".repeat(40)) }))).toBe("waiting-live");
     expect(itemDeployPhase(view(), item(1203, { closing: waiting(null) }))).toBe("waiting-live");

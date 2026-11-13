@@ -685,7 +685,7 @@ export interface TodoItem {
   // Where the job's close stands, as bmo-job's close writes it on the item (its docs/cli.md, 「`bmo-job job
   // close`」): its check and suite under way, or its commit handed over and waiting to go live, with that commit.
   // Null where the item's labels say neither.
-  closing: { phase: "testing" | "waiting-live"; commit: string | null } | null;
+  closing: { phase: "testing" | "waiting-batch" | "waiting-live"; commit: string | null } | null;
   // Held by its job only until its close's commit goes live, its last check needing that commit (docs/web.md, the
   // TODO panel's section): it stands in the queue as waiting with the words of its way live, never as held.
   deployHeld: boolean;

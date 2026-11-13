@@ -115,9 +115,15 @@ export function approvedItem(item: Pick<Item, "approvals">): boolean {
   return item.approvals.some((approval) => approval.kind === "approval");
 }
 
-// Held by its job only until its close's commit goes live: the hold names that deploy, and the close waits on it.
+// Whether a close's phase says its commit waits to go live: merged and waiting for its repository's batch deployment,
+// or handed over by an older close.
+function waitsToGoLive(phase: string | undefined): boolean {
+  return phase === "waiting-batch" || phase === "waiting-live";
+}
+
+// Held by its job only until its close's commit goes live: the hold names that deploy, and the commit waits for it.
 function heldForDeploy(item: Item): boolean {
-  return item.state === "held" && (item.labels["hold-after-deploy"] ?? "").trim() !== "" && item.labels["close-phase"] === "waiting-live";
+  return item.state === "held" && (item.labels["hold-after-deploy"] ?? "").trim() !== "" && waitsToGoLive(item.labels["close-phase"]);
 }
 
 function listOf(item: Item): "queue" | "pending" | "held" | "done" {
@@ -135,7 +141,7 @@ function listOf(item: Item): "queue" | "pending" | "held" | "done" {
 function closingOf(labels: Record<string, string>): TodoItem["closing"] {
   const phase = labels["close-phase"];
 
-  if (phase !== "testing" && phase !== "waiting-live") return null;
+  if (phase !== "testing" && phase !== "waiting-batch" && phase !== "waiting-live") return null;
 
   return { phase, commit: (labels["close-commit"] ?? "").trim() || null };
 }

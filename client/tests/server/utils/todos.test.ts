@@ -136,6 +136,15 @@ describe("the lists each item stands in", () => {
     expect(board.queue.find((one) => one.id === 7)).toMatchObject({ approved: false, awaitingApproval: false });
   });
 
+  test("an item held until its merged commit's batch deployment stands in the queue as waiting, its phase read", async () => {
+    stand([item(33, { state: "held", labels: { "close-phase": "waiting-batch", "close-commit": "def456", "hold-after-deploy": "def456" } })]);
+
+    const board = await readTodoBoard();
+
+    expect(ids(board.queue)).toEqual([33]);
+    expect(board.queue[0]).toMatchObject({ deployHeld: true, closing: { phase: "waiting-batch", commit: "def456" } });
+  });
+
   test("an item its job held only until its commit goes live stands in the queue as waiting, never set aside", async () => {
     const waitingLive = { "close-phase": "waiting-live", "close-commit": "abc123", "hold-after-deploy": "abc123" };
 

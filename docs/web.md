@@ -5759,12 +5759,14 @@ Four bounds keep it from growing forever.
     never falls back to 대기 on its way out. **테스트 중**, **배포 대기**, **배포 중** and **배포 실패** are what a row's
     state chip says while they apply, in place of 진행 중 or 대기, saying where the item's work stands on its way live,
     with the rocket mark. 테스트 중 stands while the job's own
-    close runs its check and its suite, which the item's label `close-phase` says as `testing` (bmo-job's
+    close runs its check, which the item's label `close-phase` says as `testing` (bmo-job's
     `docs/cli.md`, 「`bmo-job job close`」), for as long as a job of the item runs. 배포 대기 stands once the close
-    handed its commit over, `close-phase` reading `waiting-live`, whether or not its job still runs — a job's close
-    waits for its commit's deployment (bmo-job's `docs/cli.md`, 「`bmo-job job close`」): its commit is not live
-    yet, and the item stays in the queue until it is. An item its job held until that
-    commit goes live — held with the label `hold-after-deploy` beside `close-phase` reading `waiting-live`, its
+    merged its commit, `close-phase` reading `waiting-batch` — or `waiting-live` on an item an older close left —
+    whether or not its job still runs: the close ends at the merge and the commit waits for its repository's batch
+    deployment (bmo-job's `docs/deploy.md`, 「A job closes」), not live yet, and the item stays in the queue until it
+    is. An item its job held until that
+    commit goes live — held with the label `hold-after-deploy` beside `close-phase` reading `waiting-batch` or
+    `waiting-live`, its
     last check needing the commit live (bmo-job's `docs/cli.md`, 「`bmo-job todo`」) — is not set aside: it stands
     in the queue as waiting, never as held, and carries the same words, until its hold is let go once the commit is
     live and a job of it runs again. While any deployment under way carries the item — several units deploy at

@@ -531,6 +531,6 @@ watch(machineOpen, (now) => {
 onMounted(() => void read());
 onBeforeUnmount(stopWatching);
 
-// The tab row's add button stands for this tab and opens its form.
+// The tab's create: a unit, by its form.
 defineExpose({ addLabel: computed(() => t("organization.action.add")), openAdd });
 </script>

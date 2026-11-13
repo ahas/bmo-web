@@ -1,8 +1,8 @@
 <template>
   <!-- The organisation settings screen (docs/web.md, 「Organisation settings」): what is set for the whole deployment
-       or for other people, a tab to a section. The tab row stands under the title bar with the open tab's own add
-       button at its right end where it has one; the tab's content scrolls in the body, in a reading column at the
-       screen's left. -->
+       or for other people, a tab to a section. The tab row stands under the title bar with the open tab's own create
+       at its right end where it has one, the screen's create button; the tab's content scrolls in the body, in a
+       reading column at the screen's left, its end keeping room for the button where it floats on a phone. -->
   <UDashboardPanel id="organization" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.organization')" icon="i-material-symbols-domain" />
@@ -21,14 +21,14 @@
           @update:model-value="(value: string | number) => setTab(String(value))"
         />
 
-        <UTooltip v-if="addLabel !== null" :text="addLabel">
-          <UButton class="shrink-0" size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="addLabel" data-tab-add @click="section?.openAdd?.()" />
-        </UTooltip>
+        <UTheme v-if="addLabel !== null" :props="TAB_ROW_BUTTONS">
+          <CreateButton :label="addLabel" :disabled="section?.addDisabled ?? false" data-tab-add @click="section?.openAdd?.()" />
+        </UTheme>
       </div>
     </template>
 
     <template #body>
-      <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
+      <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto" :class="addLabel === null ? '' : 'pb-(--bmo-create-room)'">
         <div class="flex w-full min-w-0 flex-1 flex-col px-4 py-4 sm:px-6" :class="tab.wide ? '' : 'max-w-3xl'">
           <component :is="tabComponent" ref="section" />
         </div>
@@ -42,7 +42,9 @@ import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import { useAdministrator } from "~/domain/access";
 import { ORGANIZATION_TABS, organizationAddress, organizationTabOf, organizationTabsFor } from "~/domain/organization";
+import { TAB_ROW_BUTTONS } from "~/domain/tab-create";
 
+import type { TabCreate } from "~/domain/tab-create";
 import type { Component } from "vue";
 
 // A member opens it for invitations where they head a unit; the tab says so where they head none (docs/web.md,
@@ -91,7 +93,7 @@ const tabComponent = computed(() => {
   return components.get(value)!;
 });
 
-// The open tab's own add, which it names and opens itself; a tab with none leaves the row without the button.
-const section = useTemplateRef<{ addLabel?: string; openAdd?: () => void }>("section");
+// The open tab's own create, which it names and opens itself; a tab with none leaves the row without the button.
+const section = useTemplateRef<TabCreate>("section");
 const addLabel = computed(() => section.value?.addLabel ?? null);
 </script>

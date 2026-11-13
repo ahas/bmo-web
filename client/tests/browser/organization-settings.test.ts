@@ -466,12 +466,16 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await standing(page);
           expect(await tabNames(page)).toEqual([wording("settings.label.invites")]);
 
-          // A head asks for a link into their unit, and the service takes the ask as theirs: a link stands among the
-          // open ones, or, where the deployment names no machine hub to bind the new account to, the service's
-          // refusal says so in the pack's words rather than that they may not invite.
+          // A head asks for a link into their unit from the screen's create button and its dialog, and the service
+          // takes the ask as theirs: a link stands among the open ones, or, where the deployment names no machine hub
+          // to bind the new account to, the service's refusal says so in the pack's words rather than that they may
+          // not invite.
           const drop = page.getByRole("button", { name: wording("invites.action.drop"), exact: true });
           const open = await drop.count();
+          const create = page.getByRole("button", { name: wording("invites.label.make"), exact: true });
 
+          await create.and(page.locator(":enabled")).waitFor({ timeout: 10_000 });
+          await create.click();
           await page.getByRole("button", { name: wording("invites.action.make"), exact: true }).click();
 
           const answered = await page.waitForFunction(

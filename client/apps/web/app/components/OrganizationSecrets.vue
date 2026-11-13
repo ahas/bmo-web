@@ -1,7 +1,8 @@
 <template>
   <!-- The secret store (docs/web.md, 「Organisation settings」, the secret store tab): the names the server's store
        holds, each with its size and its time and never its value, the kinds a secret is asked in, and the secret
-       form, the same the composer's clip and an agent's request open. -->
+       form, the same the composer's clip and an agent's request open. A secret is added from the screen's create
+       button, which the tab names and opens; a kind from the mark beside the kinds' heading. -->
   <div class="flex flex-col gap-6">
     <p class="text-sm text-muted">{{ $t("secrets.label.note") }}</p>
 
@@ -35,11 +36,13 @@
         </SettingsRow>
       </SettingsGroup>
 
-      <div class="flex justify-end">
-        <UButton icon="i-material-symbols-add" :label="$t('secrets.action.add')" data-secret-add @click="openForm(null)" />
-      </div>
-
       <SettingsGroup :title="$t('secrets.label.kinds')">
+        <template #aside>
+          <UTooltip :text="$t('secrets.action.kind_add')">
+            <UButton size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="$t('secrets.action.kind_add')" data-secret-kind-add @click="openKind(null)" />
+          </UTooltip>
+        </template>
+
         <SettingsRow v-if="(kinds ?? []).length === 0" :label="$t('secrets.label.kinds_none')" />
         <SettingsRow
           v-for="kind in kinds ?? []"
@@ -52,10 +55,6 @@
           <UButton color="error" variant="ghost" size="xs" :label="$t('common.action.delete')" :disabled="busy" @click="removeKind(kind)" />
         </SettingsRow>
       </SettingsGroup>
-
-      <div class="flex justify-end">
-        <UButton color="neutral" variant="subtle" icon="i-material-symbols-add" :label="$t('secrets.action.kind_add')" data-secret-kind-add @click="openKind(null)" />
-      </div>
 
       <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
     </template>
@@ -181,4 +180,7 @@ async function removeKind(kind: SecretKind): Promise<void> {
 }
 
 onMounted(() => void load());
+
+// The tab's create: a secret, by the secret form, standing off until the store's names are read.
+defineExpose({ addLabel: computed(() => t("secrets.action.add")), addDisabled: computed(() => secrets.value === null), openAdd: () => openForm(null) });
 </script>

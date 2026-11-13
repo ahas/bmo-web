@@ -9,7 +9,9 @@
     <div class="flex h-12 shrink-0 items-center justify-between gap-2 px-4">
       <h2 class="text-sm font-medium text-highlighted">{{ $t("agents.label.role_agents") }}</h2>
       <UDropdownMenu v-if="!props.readonly" :items="addItems" :content="{ align: 'end' }">
-        <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-add" :label="$t('agents.action.agent_add')" :loading="adding" data-agent-add />
+        <UTooltip :text="$t('agents.action.agent_add')">
+          <UButton color="neutral" variant="ghost" size="sm" icon="i-material-symbols-add" :aria-label="$t('agents.action.agent_add')" :loading="adding" data-agent-add />
+        </UTooltip>
       </UDropdownMenu>
     </div>
 

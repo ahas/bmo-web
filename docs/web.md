@@ -1869,6 +1869,16 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   icon button, with a tooltip naming it. Three actions or fewer stand as icon buttons, and four or more fold into
   one vertical-dots menu, as almost every group does on a phone; filters that do not fit fold into one button
   opening them.
+- **A screen creates from bmo-ui's one create button** (`CreateButton`, bmo-ui's `docs/components.md`,
+  「Creating」), and from no button of its own: no primary button stands in the row and no create button carries
+  a mark and a word. A screen stands one, named by what it creates, and what a press does is the screen's. On a
+  wide screen it is the grey icon at the right end of the screen's row, after the row's other actions, its
+  tooltip naming what it creates and its key, `n`; on a phone it floats at the screen's bottom right and nothing
+  stands for it in the row, and the screen's scrolling body ends with the layer's `--bmo-create-room` as room
+  for it, so its last row scrolls clear of the button. Where a screen's tabs create different things, the open
+  tab names what it creates and what a press does, and a tab that creates nothing stands no button. A second
+  thing a part of the screen makes, under the part's own heading, is the heading's grey icon with its name as
+  its tooltip, never a second create button.
 - **A title bar's icon button is a square**, the component library's own icon button: its mark at the
   library's icon size with the same padding on every side, so every button in the bar that shows only a mark
   is one size. Every button of the set at its right end is the library's own button at its default size — a
@@ -2606,8 +2616,8 @@ archive and this week's tokens remain. That is all that can actually be known th
   holding the categories, the queue and an item's run; **토픽**, holding the topics; **출처**, holding the sources; and
   **설정**, holding what every research run is held to and the search engines (「설정」 below). The tab stands in the
   address, the first standing where it names none, and moving to another is a step of the history. The open tab's
-  own add stands at the right end of the row as an icon button naming itself in a tooltip: 항목 요청 on 대기열, 토픽
-  추가 on 토픽, 출처 추가 on 출처. The one failure for the whole unit stands over either.
+  own create is the screen's create button (「The title bar」): 항목 요청 on 대기열, 토픽 추가 on 토픽, 출처 추가
+  on 출처, and none on 설정. The one failure for the whole unit stands over either.
 - **분류** stands first on 대기열.
   - Its head says whether the loop runs — 실행 중 while any category runs, 모두 중지됨 where every one is
     stopped — with when a category's state last changed, and one button that changes every category at once:
@@ -2763,8 +2773,9 @@ archive and this week's tokens remain. That is all that can actually be known th
   moving between tabs is a step of the history; a key that names no tab opens 역할. The 에이전트 tab keeps the key and
   the access section it stood under as the supervisors' tab; it holds every agent, the supervisors' table first and
   the table of the roles' agents under it (「에이전트」 below). The tab row stands under the
-  title bar and carries, at its right end, the open section's own 추가, the settings search and the one button that
-  reads every section again, which spins while it reads. The title bar keeps only what every page carries, and no
+  title bar and carries, at its right end, the settings search, the one button that reads every section again,
+  which spins while it reads, and last the open section's 추가, the screen's create button (「The title bar」)
+  named by what the section adds: 역할 추가, 감독관 추가, 저장소 추가, 등록 모델 추가 or 모델 파일 추가. The title bar keeps only what every page carries, and no
   section repeats its tab's name as a title of its own.
 - **The settings search** looks over every section at once: section names, supervisors by their names, labels and
   the names they are called by, roles by their names, labels and bundles, repositories by their names, labels and
@@ -2986,7 +2997,8 @@ a seat of its role.
       Each left empty is the role's own, whatever the others hold. Above them stands 캐시 유지, the same switch the
       table holds.
     - **에이전트 추가** under the list adds one in the last place, on the road of the role's last agent.
-  - **에이전트 추가 at the table's head** offers every role; the one picked is given one more agent in its last
+  - **에이전트 추가 at the table's head**, the heading's grey icon with its name as its tooltip, offers every role in
+    a menu dropping from it; the one picked is given one more agent in its last
     place, on the road of its last agent, through `POST /role-agents`, and that role's agents open.
   - **삭제** stands in each row's more-menu, asked first in a dialog naming the agent, and stands disabled while
     the agent carries a run, its tooltip saying so.
@@ -6380,8 +6392,10 @@ themselves alone is the settings dialog's (「Settings」).
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), so their shell lists 조직 설정 too and the screen holds 초대 alone; a member who heads none is listed
   no entry, and the address shows them 초대 saying they may invite into no unit.
-- **The tab row** stands under the title bar, the tabs filling it and the open tab's own 추가 at its right end where
-  the tab has one; on a narrow screen the tabs keep one line and scroll sideways.
+- **The tab row** stands under the title bar, the tabs filling it and the open tab's own create at its right end
+  where the tab has one, the screen's create button (「The title bar」): 조직 추가 on 조직도, 초대 링크 만들기 on
+  초대, Claude 계정 추가 on 공급자 and 비밀 추가 on 비밀 보관함. On a narrow screen the tabs keep one line and scroll
+  sideways.
 - **A tab's content** stands in groups under small headings as the settings dialog's sections do, in a column no
   wider than a reading column at the screen's left, and scrolls in the screen's body.
 
@@ -6428,10 +6442,12 @@ themselves alone is the settings dialog's (「Settings」).
 
 #### 초대
 
+- **초대 링크 만들기**, the tab's create button, opens a dialog of the unit, 조직장으로 초대 for the administrator, and
+  the span, with 링크 만들고 복사 at its foot; it stands off while the reader may invite into no unit.
 - **A link is made into a unit** the reader may invite into — a unit they head or one below it, or any unit for the
   administrator — for a span of hours, and the administrator may make it invite the unit's head. Made, it is copied
   at once with its words: who invites into what, the link, and when it closes (`docs/accounts.md`,
-  「Invitations and a person's machine」).
+  「Invitations and a person's machine」), and the dialog closes; a refusal is said in the dialog.
 - **The open ones are listed,** each copied again or taken back. A reader who may invite into no unit is told so.
 - **Where an invitation leads is said as the company, then the unit under it;** a unit that is the company itself is
   named once, here, in the copied words and on the join page.
@@ -6482,8 +6498,8 @@ themselves alone is the settings dialog's (「Settings」).
   owner chose carries 고른 계정. A row's more-menu holds 지금 이 계정으로, which makes that account the chosen one,
   disabled on an account that is off; the chosen row's menu holds 순서대로 in its place, which lets the choice go.
   Where the chosen account is not the one in use, a line under the list says so, naming the account runs go out on
-  and when a rest ends (the agency's `docs/cache-fallback.md`, 「Running on one account now」). 계정 추가 under the
-  list opens a box for a new account's name, which of the two ways its credential is reached and the path it is
+  and when a rest ends (the agency's `docs/cache-fallback.md`, 「Running on one account now」). Claude 계정
+  추가, the tab's create button, opens a box for a new account's name, which of the two ways its credential is reached and the path it is
   reached by; a row's more-menu edits the same three or removes the account. Accounts are numbered by name,
   `claude-01`, `claude-02` and on, as many as the owner adds: the box for a new one opens with the next number
   already written, one past the highest the list holds, and the owner may write another name over it. Dragging a handle saves the whole order
@@ -6522,11 +6538,11 @@ folder every unit reads its secrets from by file name, written by the server's s
   - Each row carries 교체, which opens the secret form on that name with replacing already chosen, and 삭제, which
     asks first, naming the secret and that its value is kept as `<name>.previous`; a delete that goes through takes
     the row away.
-- **비밀 추가** opens the secret form (below), the same form the composer's clip and an agent's request open.
+- **비밀 추가**, the tab's create button, opens the secret form (below), the same form the composer's clip and an agent's request open.
 - **비밀 종류** lists the kinds the form asks a value in (`docs/accounts.md`, 「Secret kinds」), one row each in the
   order they were added: the kind's name as the row's label, its description and its fields' keys under it, and 편집
   and 삭제. 삭제 asks first, naming the kind and that no secret stored is touched.
-  - **종류 추가** and 편집 open the kind's form, a dialog of its own (「Forms」): 키, for a kind being added alone, in
+  - **종류 추가**, the grey icon beside the 비밀 종류 heading, and 편집 open the kind's form, a dialog of its own (「Forms」): 키, for a kind being added alone, in
     English lower case letters, digits and hyphens, beginning with a letter; 이름; 설명; and 항목, the fields, each a
     row of its 키, 이름, 입력 (한 줄, 여러 줄 or 파일), 값 숨김 and 필수, removed by its own mark, with 항목 추가 under
     them. A rule the kind breaks is said under the field it names, and 저장 stays off while one is broken.

@@ -252,5 +252,6 @@ async function remove(model: ModelView): Promise<void> {
   }
 }
 
-defineExpose({ openAdd, refresh });
+// The screen's create button names this section's create by its word and opens it.
+defineExpose({ addLabel: computed(() => t("agents.title.registry_add")), openAdd, refresh });
 </script>

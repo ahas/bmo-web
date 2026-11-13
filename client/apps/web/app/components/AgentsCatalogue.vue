@@ -339,5 +339,6 @@ async function remove(entry: CatalogueEntryView): Promise<void> {
   }
 }
 
-defineExpose({ openAdd, refresh });
+// The screen's create button names this section's create by its word and opens it.
+defineExpose({ addLabel: computed(() => t("agents.title.catalogue_add")), openAdd, refresh });
 </script>

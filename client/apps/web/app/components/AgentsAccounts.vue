@@ -2,7 +2,8 @@
   <!-- The Claude logins the agency holds, in the order the Claude Code provider walks them (docs/web.md,
        「Organisation settings」, the providers tab). A row is carried by its handle alone, by the mouse and the finger
        the same way, and the order is saved the moment it is dropped. What a row says of a credential is the path it
-       is reached by — no cell and no box here has a token to show, because none is ever sent to this screen. -->
+       is reached by — no cell and no box here has a token to show, because none is ever sent to this screen. A new
+       login is added from the screen's create button, which opens the box this list keeps. -->
   <section class="flex flex-col gap-3" aria-labelledby="accounts-title">
     <h3 id="accounts-title" class="flex min-h-8 items-center text-sm font-semibold text-highlighted">{{ $t("agents.title.accounts") }}</h3>
 
@@ -72,10 +73,6 @@
       <UIcon name="i-material-symbols-swap-horiz" class="size-4 shrink-0 text-warning" />
       <span class="min-w-0 break-words">{{ choiceNote }}</span>
     </p>
-
-    <div class="flex justify-end">
-      <UButton color="neutral" variant="subtle" icon="i-material-symbols-person-add-outline" :label="$t('agents.title.account_add')" @click="openAdd" />
-    </div>
 
     <p v-if="failed !== ''" role="alert" class="break-words text-sm text-error">{{ failed }}</p>
 
@@ -293,4 +290,6 @@ async function remove(): Promise<void> {
   }
 }
 
+// The box for a new login, which the screen's create button opens.
+defineExpose({ openAdd });
 </script>

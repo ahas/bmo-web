@@ -1,25 +1,9 @@
 <template>
   <!-- Invitations (docs/web.md, 「Organisation settings」, the invitations tab): a link made into a unit the reader
-       heads, or any for the administrator, copied with its words and when it closes; the open ones listed, each
-       copied again or taken back. -->
+       heads, or any for the administrator, in a dialog the screen's create button opens, copied with its words and
+       when it closes; the open ones listed, each copied again or taken back. -->
   <div class="flex flex-col gap-6">
     <p v-if="units !== null && units.length === 0" class="text-sm text-muted">{{ $t("invites.label.no_units") }}</p>
-
-    <SettingsGroup v-if="units !== null && units.length > 0" :title="$t('invites.label.make')">
-      <SettingsRow :label="$t('invites.label.unit')">
-        <USelect v-model="unit" :items="units.map((one) => ({ label: one.name, value: String(one.id) }))" class="min-w-48" />
-      </SettingsRow>
-      <SettingsRow v-if="administrator" :label="$t('invites.label.head')" :description="$t('invites.label.head_note')">
-        <USwitch v-model="head" />
-      </SettingsRow>
-      <SettingsRow :label="$t('invites.label.hours')">
-        <USelect v-model="hours" :items="spans" class="min-w-32" />
-      </SettingsRow>
-    </SettingsGroup>
-
-    <div v-if="units !== null && units.length > 0" class="flex justify-end">
-      <UButton icon="i-material-symbols-link" :label="$t('invites.action.make')" :loading="busy" :disabled="unit === ''" @click="make" />
-    </div>
 
     <SettingsGroup :title="$t('invites.label.open')">
       <SettingsRow v-if="invites.length === 0" :label="$t('invites.label.none')" />
@@ -35,6 +19,29 @@
     </SettingsGroup>
 
     <p v-if="failure !== ''" role="alert" class="text-sm text-error">{{ failure }}</p>
+
+    <SettingsDialog v-model:open="making" :title="$t('invites.label.make')">
+      <form id="invite-form" class="flex flex-col gap-4" @submit.prevent="make">
+        <UFormField :label="$t('invites.label.unit')" name="unit">
+          <USelect v-model="unit" :items="(units ?? []).map((one) => ({ label: one.name, value: String(one.id) }))" class="w-full" :aria-label="$t('invites.label.unit')" />
+        </UFormField>
+
+        <UFormField v-if="administrator" :label="$t('invites.label.head')" :description="$t('invites.label.head_note')" name="head">
+          <USwitch v-model="head" :aria-label="$t('invites.label.head')" />
+        </UFormField>
+
+        <UFormField :label="$t('invites.label.hours')" name="hours">
+          <USelect v-model="hours" :items="spans" class="w-full" :aria-label="$t('invites.label.hours')" />
+        </UFormField>
+
+        <p v-if="makeFailure !== ''" role="alert" class="break-words text-sm text-error">{{ makeFailure }}</p>
+      </form>
+
+      <template #footer="{ close }">
+        <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy" @click="close()" />
+        <UButton type="submit" form="invite-form" :label="$t('invites.action.make')" :loading="busy" :disabled="busy || unit === ''" />
+      </template>
+    </SettingsDialog>
   </div>
 </template>
 
@@ -59,6 +66,8 @@ const head = ref(false);
 const hours = ref("72");
 const busy = ref(false);
 const failure = ref("");
+const making = ref(false);
+const makeFailure = ref("");
 const copied = ref("");
 
 const spans = computed(() => [24, 72, 168, 720].map((span) => ({ label: t("invites.label.span", { hours: span }), value: String(span) })));
@@ -85,16 +94,22 @@ async function copy(invite: Invite): Promise<void> {
   copied.value = invite.token;
 }
 
+function openMake(): void {
+  makeFailure.value = "";
+  making.value = true;
+}
+
 async function make(): Promise<void> {
   busy.value = true;
-  failure.value = "";
+  makeFailure.value = "";
   try {
     const made = await $fetch<Invite>("/api/invites", { method: "POST", body: { unit: Number(unit.value), head: head.value, hours: Number(hours.value) } });
 
     invites.value = [made, ...invites.value];
     await copy(made);
+    making.value = false;
   } catch (error) {
-    failure.value = failureText(error, t("invites.error.failed"));
+    makeFailure.value = failureText(error, t("invites.error.failed"));
   } finally {
     busy.value = false;
   }
@@ -110,4 +125,8 @@ async function drop(token: string): Promise<void> {
 }
 
 onMounted(() => void read());
+
+// The tab's create: a link, by its dialog, standing off until the units the reader may invite into are read and
+// while there are none.
+defineExpose({ addLabel: computed(() => t("invites.label.make")), addDisabled: computed(() => (units.value ?? []).length === 0), openAdd: openMake });
 </script>

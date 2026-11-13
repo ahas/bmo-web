@@ -433,5 +433,6 @@ async function add(): Promise<void> {
   }
 }
 
-defineExpose({ openAdd, refresh });
+// The screen's create button names this section's create by its word and opens it.
+defineExpose({ addLabel: computed(() => t("agents.title.supervisor_add")), openAdd, refresh });
 </script>

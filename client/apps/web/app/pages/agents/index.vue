@@ -1,9 +1,10 @@
 <template>
-  <!-- The agent settings, a section to a tab. The tab row carries the search over every section and
-       the button that reads them all again; the section fills what is left, with one box that scrolls
+  <!-- The agent settings, a section to a tab. The tab row carries the search over every section, the
+       button that reads them all again and the open section's create; the section fills what is left, with one box that scrolls
        up and down: a tab of one table scrolls in the table's own box and the body around it stands
        still, while the agents' tab, the supervisors' table with the roles' agents under it, scrolls in the body,
-       each table scrolling sideways in its own box with its head held at the body's top. -->
+       each table scrolling sideways in its own box with its head held at the body's top. The body keeps room at
+       its foot for the create button where it floats on a phone. -->
   <UDashboardPanel id="catalogue" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.agents')" icon="i-material-symbols-list-alt-outline" />
@@ -21,11 +22,6 @@
           :aria-label="$t('agents.aria.settings_sections')"
           @update:model-value="(value: string | number) => setTab(String(value))"
         />
-
-        <!-- The open section's own action stands first, at the right end of the row, where the reader may write it. -->
-        <UTooltip v-if="mayWriteCurrent" :text="addLabel">
-          <UButton class="shrink-0" size="sm" color="neutral" variant="ghost" icon="i-material-symbols-add" :aria-label="addLabel" data-tab-add @click="openAdd" />
-        </UTooltip>
 
         <!-- The search: a box beside the tabs where there is room, a button opening the same search
              where there is not. -->
@@ -74,16 +70,21 @@
             @click="reread"
           />
         </UTooltip>
+
+        <!-- The open section's own create, the screen's create button, stands last, where the reader may write it. -->
+        <UTheme v-if="mayWriteCurrent && addLabel !== null" :props="TAB_ROW_BUTTONS">
+          <CreateButton :label="addLabel" data-tab-add @click="section?.openAdd?.()" />
+        </UTheme>
       </div>
     </template>
 
     <template #body>
-      <div ref="body" class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'">
-        <AgentsSupervisors v-if="tab === 'supervisors'" ref="supervisorsRef" :query="query" :readonly="!mayWriteCurrent" />
-        <AgentsRoles v-else-if="tab === 'roles'" ref="rolesRef" :query="query" :readonly="!mayWriteCurrent" />
-        <AgentsRepositories v-else-if="tab === 'repositories'" ref="repositoriesRef" :query="query" :readonly="!mayWriteCurrent" />
-        <AgentsRegistry v-else-if="tab === 'models'" ref="registryRef" :query="query" :readonly="!mayWriteCurrent" />
-        <AgentsCatalogue v-else ref="catalogueRef" :query="query" :readonly="!mayWriteCurrent" />
+      <div ref="body" class="flex min-h-0 min-w-0 flex-1 flex-col" :class="[tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden', mayWriteCurrent ? 'pb-(--bmo-create-room)' : '']">
+        <AgentsSupervisors v-if="tab === 'supervisors'" ref="section" :query="query" :readonly="!mayWriteCurrent" />
+        <AgentsRoles v-else-if="tab === 'roles'" ref="section" :query="query" :readonly="!mayWriteCurrent" />
+        <AgentsRepositories v-else-if="tab === 'repositories'" ref="section" :query="query" :readonly="!mayWriteCurrent" />
+        <AgentsRegistry v-else-if="tab === 'models'" ref="section" :query="query" :readonly="!mayWriteCurrent" />
+        <AgentsCatalogue v-else ref="section" :query="query" :readonly="!mayWriteCurrent" />
       </div>
 
       <SettingsDialog v-model:open="searchOpen" :title="$t('agents.placeholder.find_settings')">
@@ -106,8 +107,10 @@ import { useHeldHeads } from "~/domain/held-heads";
 import { mayRead, mayWrite } from "#shared/sections";
 import { usedByText, registrationName } from "~/domain/registry";
 import { defaultThreshold, sessionsText, thresholdText, entryText, useProviders } from "~/domain/axes";
+import { TAB_ROW_BUTTONS } from "~/domain/tab-create";
 
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
+import type { TabCreate } from "~/domain/tab-create";
 import type { CatalogueView, ModelPage } from "#shared/agency";
 import type { RepositoryView, RolesView, SupervisorView } from "#shared/axes";
 
@@ -177,28 +180,9 @@ function setTab(next: string): void {
   void router.push({ query: { ...route.query, tab: addressOf(next) } });
 }
 
-// Each section's own add, which the tab row's button opens.
-const supervisorsRef = useTemplateRef<{ openAdd: () => void }>("supervisorsRef");
-const rolesRef = useTemplateRef<{ openAdd: () => void }>("rolesRef");
-const repositoriesRef = useTemplateRef<{ openAdd: () => void }>("repositoriesRef");
-const registryRef = useTemplateRef<{ openAdd: () => void }>("registryRef");
-const catalogueRef = useTemplateRef<{ openAdd: () => void }>("catalogueRef");
-
-const ADD_LABELS: Record<AgentTab, string> = {
-  supervisors: "agents.title.supervisor_add",
-  roles: "agents.title.role_add",
-  repositories: "agents.title.repository_add",
-  models: "agents.title.registry_add",
-  "model-files": "agents.title.catalogue_add"
-};
-
-const addLabel = computed(() => t(ADD_LABELS[tab.value]));
-
-function openAdd(): void {
-  const section = { supervisors: supervisorsRef, roles: rolesRef, repositories: repositoriesRef, models: registryRef, "model-files": catalogueRef }[tab.value];
-
-  section.value?.openAdd();
-}
+// The open section's own create, which it names and opens itself.
+const section = useTemplateRef<TabCreate>("section");
+const addLabel = computed(() => section.value?.addLabel ?? null);
 
 // Every section's read, under the keys the sections read them by, so the search looks over all of them at once.
 // Only the parts the reader may read are asked for; the rest answer a member as absent.

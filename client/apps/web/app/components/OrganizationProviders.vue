@@ -2,7 +2,7 @@
   <!-- The providers tab of the organisation settings screen (docs/web.md, 「Organisation settings」, the providers
        tab): every provider the agency carries, in its order, with what it has left, why it cannot answer now and the
        owner's switch, each taking effect as it is thrown; under them the Claude accounts the Claude Code provider
-       walks. No key the agency holds is read here. -->
+       walks, a new one added from the screen's create button. No key the agency holds is read here. -->
   <div class="flex flex-col gap-6">
     <SettingsGroup :title="$t('agents.title.providers')">
       <ContentSkeleton v-if="providers === undefined && status !== 'error'" :rows="4" listClass="flex flex-col divide-y divide-default" :label="$t('agents.status.providers_loading')">
@@ -45,7 +45,7 @@
       </template>
     </SettingsGroup>
 
-    <AgentsAccounts v-if="fallback.accounts.length > 0 || fallbackStatus === 'success'" :accounts="fallback.accounts" :reread="rereadFallback" />
+    <AgentsAccounts v-if="fallback.accounts.length > 0 || fallbackStatus === 'success'" ref="accountsRef" :accounts="fallback.accounts" :reread="rereadFallback" />
     <p v-else-if="fallbackStatus === 'error'" role="alert" class="text-sm text-error">{{ $t("agents.error.accounts_read_failed") }}</p>
   </div>
 </template>
@@ -93,4 +93,9 @@ async function throwSwitch(provider: ProviderView, on: boolean): Promise<void> {
     switching.value = "";
   }
 }
+
+// The tab's create: a Claude login, by the accounts' box, standing off until the accounts are read.
+const accountsRef = useTemplateRef<{ openAdd: () => void }>("accountsRef");
+
+defineExpose({ addLabel: computed(() => t("agents.title.account_add")), addDisabled: computed(() => accountsRef.value === null), openAdd: () => accountsRef.value?.openAdd() });
 </script>

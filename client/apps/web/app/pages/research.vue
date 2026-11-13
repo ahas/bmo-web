@@ -25,50 +25,15 @@
           @update:model-value="(value: string | number) => setTab(String(value))"
         />
 
-        <!-- The open tab's own action stands at the right end of the row. -->
-        <UTooltip v-if="tab === 'queue'" :text="$t('research.title.ask')">
-          <UButton
-            class="shrink-0"
-            size="sm"
-            color="neutral"
-            variant="ghost"
-            icon="i-material-symbols-add"
-            :aria-label="$t('research.title.ask')"
-            :disabled="(stateView?.categories.length ?? 0) === 0"
-            @click="openAsk(null)"
-          />
-        </UTooltip>
-
-        <UTooltip v-else-if="tab === 'topics'" :text="$t('research.title.topic_add')">
-          <UButton
-            class="shrink-0"
-            size="sm"
-            color="neutral"
-            variant="ghost"
-            icon="i-material-symbols-add"
-            :aria-label="$t('research.title.topic_add')"
-            :disabled="stateView === null"
-            @click="topicsRef?.openAdd()"
-          />
-        </UTooltip>
-
-        <UTooltip v-else-if="tab === 'sources'" :text="$t('research.title.source_add')">
-          <UButton
-            class="shrink-0"
-            size="sm"
-            color="neutral"
-            variant="ghost"
-            icon="i-material-symbols-add"
-            :aria-label="$t('research.title.source_add')"
-            :disabled="(stateView?.categories.length ?? 0) === 0"
-            @click="sourcesRef?.openAdd()"
-          />
-        </UTooltip>
+        <!-- The open tab's own create, the screen's create button, stands at the right end of the row. -->
+        <UTheme v-if="create !== null" :props="TAB_ROW_BUTTONS">
+          <CreateButton :label="create.addLabel" :disabled="create.addDisabled" data-tab-add @click="create.openAdd()" />
+        </UTheme>
       </div>
     </template>
 
     <template #body>
-      <div class="flex grow flex-col gap-6">
+      <div class="flex grow flex-col gap-6" :class="create === null ? '' : 'pb-(--bmo-create-room)'">
         <!-- One failure for the whole unit: the state is the screen's first read, and the queue reads the same
              unit, so a unit not answering is said once with its reread. Once something was read the band stands
              above it, and what was read stays. -->
@@ -168,9 +133,11 @@ import { useNextPages } from "~/domain/next-pages";
 import { ITEM_CHANGES, ITEM_STATES, RESEARCH_TABS, followOfAddress, followOfItem, isResearchTab, itemStateLook, mergedPages, queueOrder } from "~/domain/research";
 import { useFootInView } from "bmo-ui/app/domain/foot";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
+import { TAB_ROW_BUTTONS } from "~/domain/tab-create";
 
 import type { ResearchItem, ResearchQueuePage, ResearchStateChange, ResearchStateView } from "#shared/research";
 import type { ItemChange, ResearchFollow, ResearchTab } from "~/domain/research";
+import type { TabCreate } from "~/domain/tab-create";
 
 const { t } = useI18n();
 const island = useIsland(t);
@@ -182,6 +149,23 @@ const tab = computed<ResearchTab>(() => (isResearchTab(route.query.tab) ? route.
 const tabItems = RESEARCH_TABS.map((one) => ({ ...one, label: t(one.label) }));
 const sourcesRef = useTemplateRef<{ openAdd: () => void }>("sourcesRef");
 const topicsRef = useTemplateRef<{ openAdd: () => void }>("topicsRef");
+
+// The open tab's own create: an ask on the queue's, a topic, a source; the settings' makes nothing. An ask and a
+// source stand off until a category is known to put them under, a topic until the state is read.
+const create = computed<(Required<TabCreate> & { addLabel: string }) | null>(() => {
+  const noCategory = (stateView.value?.categories.length ?? 0) === 0;
+
+  switch (tab.value) {
+    case "queue":
+      return { addLabel: t("research.title.ask"), addDisabled: noCategory, openAdd: () => openAsk(null) };
+    case "topics":
+      return { addLabel: t("research.title.topic_add"), addDisabled: stateView.value === null, openAdd: () => topicsRef.value?.openAdd() };
+    case "sources":
+      return { addLabel: t("research.title.source_add"), addDisabled: noCategory, openAdd: () => sourcesRef.value?.openAdd() };
+    default:
+      return null;
+  }
+});
 
 // The tab stands in the address, and moving to another is a step of the history.
 function setTab(next: string): void {

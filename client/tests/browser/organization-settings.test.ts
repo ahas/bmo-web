@@ -575,6 +575,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         expect(said[0]).toContain(wording("organization.label.head_dropped", { unit: `from-${width}-${RUN}` }));
         expect(said[0]).toContain(`${wording("organization.label.role_head")} → ${wording("organization.label.role_member")}`);
         expect(said[1]).toContain(`${wording("organization.label.role_member")} → ${wording("organization.label.role_head")}`);
+        expect((await contrast(page, "[data-move-row] > span, [data-unit-chosen-count]")).filter((one) => one.ratio < 4.5)).toEqual([]);
         expect(await overflow(page)).toBeLessThanOrEqual(0);
 
         // Closed at the preview, the move writes nothing.

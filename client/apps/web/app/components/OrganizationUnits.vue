@@ -69,7 +69,7 @@
           <SettingsGroup :title="$t('organization.label.members', { count: countText(chosen.members.length) })">
             <div v-if="choosable.length > 0" class="flex min-h-12 items-center gap-2" data-unit-choice>
               <ChooseAll :keys="choosable" :selected="selected" @choose="chooseAll" />
-              <span v-if="selected.size > 0" class="truncate text-sm text-muted tabular-nums" data-unit-chosen-count>{{ $t("organization.label.chosen", { count: countText(selected.size) }) }}</span>
+              <span v-if="selected.size > 0" class="text-sm whitespace-nowrap text-muted tabular-nums" data-unit-chosen-count>{{ $t("organization.label.chosen", { count: countText(selected.size) }) }}</span>
               <UButton class="ms-auto shrink-0" color="neutral" variant="subtle" icon="i-material-symbols-move-item-outline" :label="$t('organization.action.move')" :disabled="selected.size === 0 || busy" data-unit-move @click="openMove" />
             </div>
             <SettingsRow v-if="chosen.members.length === 0" :label="$t('organization.label.no_members')" />
@@ -85,7 +85,7 @@
                 <UCheckbox :model-value="selected.has(member)" :aria-label="$t('organization.action.choose_person', { name: nameOf(member) })" />
               </div>
               <div v-else :class="CHOOSE_CELL" />
-              <span class="min-w-0 flex-1 truncate text-sm text-highlighted">{{ gone(member) ? $t("organization.label.left_member", { name: nameOf(member) }) : nameOf(member) }}</span>
+              <span class="min-w-0 flex-1 text-sm break-words text-highlighted">{{ gone(member) ? $t("organization.label.left_member", { name: nameOf(member) }) : nameOf(member) }}</span>
               <div v-if="!gone(member)" class="flex shrink-0 items-center gap-1" data-member-marks>
                 <UTooltip :text="$t('organization.label.machine', { name: nameOf(member) })">
                   <UButton color="neutral" variant="ghost" icon="i-material-symbols-computer-outline" :aria-label="$t('organization.label.machine', { name: nameOf(member) })" @click="openMachine(member)" />
@@ -222,7 +222,7 @@
           <template v-else>
             <span class="text-sm text-muted" data-move-units>{{ row.from === row.to ? pathText(row.to, true) : `${pathText(row.from, true)} → ${pathText(row.to, true)}` }}</span>
             <span class="text-sm" data-move-roles>{{ row.wasHead === row.head ? roleName(row.head) : `${roleName(row.wasHead)} → ${roleName(row.head)}` }}</span>
-            <span v-if="row.headDropped" class="text-sm text-warning" data-move-head-dropped>{{ $t("organization.label.head_dropped", { unit: unitOf(row.from)?.name ?? "" }) }}</span>
+            <span v-if="row.headDropped" class="flex items-center gap-1 text-sm font-medium text-highlighted" data-move-head-dropped><UIcon name="i-material-symbols-person-remove-outline" class="size-4 shrink-0 text-muted" />{{ $t("organization.label.head_dropped", { unit: unitOf(row.from)?.name ?? "" }) }}</span>
           </template>
         </div>
       </div>

@@ -121,8 +121,12 @@
       :title="$t('screens.label.search')"
       :description="$t('screens.label.find_description')"
     />
+    <!-- The drawer stands in the app's own host for floating parts, right after the app, rather than at the page's
+         end: a menu or a dialog opened over it is added at the end, and whatever stood last there is styled again
+         whole, every row of the panel with it (docs/web.md, the TODO panel's section). -->
     <UDrawer
       v-model:open="todoOpen"
+      portal="#teleports"
       direction="right"
       title="TODO"
       :description="$t('screens.label.todo_description')"

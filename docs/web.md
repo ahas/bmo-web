@@ -5510,7 +5510,9 @@ Four bounds keep it from growing forever.
   the page. A link or a notification naming the same item again opens it again.
 - After login, the same TODO panel stands on the right of every page. Being in the common layout, moving pages keeps
   the open item, search and scroll state. On a narrow screen it becomes a drawer opened by each page's top-bar
-  「TODO 열기」 button.
+  「TODO 열기」 button. The drawer stands right after the app rather than at the page's end, so a menu or a dialog
+  opened over it, which is added at the page's end, leaves the drawer's last edge and every row in it as they were
+  drawn (「Floating things」).
 - **The panel's head stands at the page top bar's height**, taken from the same header-height token, so the two
   bottom borders are one straight line across the window. The token is 48px, for the top bar, the sidebar's head
   and this head alike.

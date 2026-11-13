@@ -341,7 +341,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           expect(await tabNames(page)).toEqual(TABS.map((key) => wording(key)));
 
           // The keys of the sections that moved away lead to where they stand now: the research supervisor on the
-          // research screen's settings tab, the voice briefing's switch in the settings dialog over this screen.
+          // research screen's settings tab, the voice briefing section of the settings dialog over this screen.
           for (const old of [`${origin}/?settings=research`, `${origin}/organization?tab=research`]) {
             await page.goto(old, { waitUntil: "load" });
             await page.waitForURL((url) => url.pathname.endsWith("/research") && url.searchParams.get("tab") === "settings", { timeout: 20_000 });
@@ -350,7 +350,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           await page.goto(`${origin}/organization?tab=briefing`, { waitUntil: "load" });
           await page.waitForURL((url) => url.pathname.endsWith("/organization") && !url.searchParams.has("tab") && !url.searchParams.has("settings"), { timeout: 20_000 });
-          await page.getByRole("dialog").first().locator('[data-briefing-switch="on"], [role="alert"]').first().waitFor({ timeout: 20_000 });
+          await page.getByRole("dialog").first().locator("[data-briefing-trial]").waitFor({ timeout: 20_000 });
 
           // The units tab: the unit chosen by its address, its company above its name.
           await page.goto(`${origin}/organization?unit=${team}`, { waitUntil: "load" });

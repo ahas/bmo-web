@@ -54,6 +54,11 @@ BMO_SKELETON_TEST_URL=<the address> bmo-testbed run -- bun test tests/browser/sk
 
 The first command stands until interrupted, so it runs in a shell of its own beside the others.
 
+The console the script stands up listens on this machine's loopback address alone, so a file is run on the
+machine that stands it. Where the machine's testbed placement sends a run to another machine, the file runs
+there, finds no console at the address and skips every test, and the testbed's line counts them skipped. A file
+that drives the console through HTTP alone and opens no browser is then run with `bun test` on this machine.
+
 ## The repository-wide checks
 
 The checks that span the repository stand in the root's `tests/`, in `repository.rs`. The root is a Cargo

@@ -7,6 +7,13 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { TodoBoard, TodoItem } from "../../apps/web/shared/types";
 
+declare global {
+  interface Window {
+    // The press's moment and the menu's first frame, as the page's own probe writes them.
+    menuTiming: { pressAt: number; shownAt: number };
+  }
+}
+
 // The TODO panel's row menu on a board of hundreds of rows stands within 100 ms of the right press, at either
 // width: the list's one menu is drawn apart from the list, so opening it over a row draws no row again
 // (docs/web.md, 「Floating things」 and the TODO panel's section). The time is read in the page, from the press
@@ -114,7 +121,7 @@ async function open(width: number, height: number): Promise<BrowserContext> {
   await context.addInitScript(() => {
     const state = { pressAt: 0, shownAt: 0 };
 
-    (window as unknown as { menuTiming: typeof state }).menuTiming = state;
+    window.menuTiming = state;
     window.addEventListener("contextmenu", () => {
       state.pressAt = performance.now();
       state.shownAt = 0;
@@ -148,10 +155,10 @@ async function showList(page: Page): Promise<void> {
 // How long the menu took to stand over the row, and what it offered.
 async function pressRow(page: Page, id: number): Promise<{ ms: number; acts: string[] }> {
   await page.locator(`li[data-todo-id="${id}"]:visible`).first().click({ button: "right" });
-  await page.waitForFunction(() => (window as unknown as { menuTiming: { shownAt: number } }).menuTiming.shownAt > 0, null, { timeout: 10_000 });
+  await page.waitForFunction(() => window.menuTiming.shownAt > 0, null, { timeout: 10_000 });
 
   const ms = await page.evaluate(() => {
-    const timing = (window as unknown as { menuTiming: { pressAt: number; shownAt: number } }).menuTiming;
+    const timing = window.menuTiming;
 
     return timing.shownAt - timing.pressAt;
   });

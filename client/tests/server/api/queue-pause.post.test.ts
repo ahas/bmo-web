@@ -23,7 +23,8 @@ describe("pausing the auto-progression", () => {
     job.asked.length = 0;
 
     expect((await asked(handler, { body: { paused: true } })).answer).toEqual({ ok: true, paused: true, queue: null, deployHold: false });
-    expect(job.asked.filter((one) => one.method === "PATCH").map((one) => one.path)).toEqual(["/queues/default", "/queues/jobs"]);
+    // The queues are asked side by side, so they are read in no order.
+    expect(job.asked.filter((one) => one.method === "PATCH").map((one) => one.path).sort()).toEqual(["/queues/default", "/queues/jobs"]);
     expect(job.asked.filter((one) => one.method === "PATCH").map((one) => one.body)).toEqual([{ state: "paused" }, { state: "paused" }]);
 
     expect((await asked(handler, { body: { paused: false } })).answer).toEqual({ ok: true, paused: false, queue: null, deployHold: false });

@@ -7,6 +7,13 @@ import { JOB_LOG } from "../support/job-log";
 import type { Browser, BrowserContext } from "playwright-core";
 import type { LiveRun, StatusView, TodoBoard, TodoItem } from "../../apps/web/shared/types";
 
+declare global {
+  interface Window {
+    // The moment the log was first shown, as the page's own probe writes it.
+    logShown?: { newestInView: boolean };
+  }
+}
+
 // A running job's log opened from the TODO panel stands its newest lines the moment it is shown (docs/web.md, 「The work
 // view」 and 「Where the log comes from」): the job's run is named in the ledger for the worker it was ordered for while
 // its lines stand under the seat that ran it, in a log of thousands of lines whose results run to tens of thousands of
@@ -78,7 +85,7 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
   await context.route(new RegExp(`/api/todos/${JOB_LOG.item}$`), (route) => route.fulfill({ json: item() }));
   // The moment the log is first shown, whether its newest line stands in view then.
   await context.addInitScript((newest: string) => {
-    const seen = window as unknown as { logShown?: { newestInView: boolean } };
+    const seen = window;
 
     new MutationObserver(() => {
       const log = [...document.querySelectorAll("[role=dialog] [data-agent-log]")].find((one) => !one.classList.contains("invisible"));
@@ -119,7 +126,7 @@ describe.skipIf(!origin || !touchReady())("a long job's log opened from the TODO
 
         await newest.waitFor({ timeout: 10_000 });
         expect(await newest.isVisible()).toBe(true);
-        expect(await page.evaluate(() => (window as unknown as { logShown?: { newestInView: boolean } }).logShown)).toEqual({ newestInView: true });
+        expect(await page.evaluate(() => window.logShown)).toEqual({ newestInView: true });
       } finally {
         await context.close();
       }

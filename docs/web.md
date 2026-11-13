@@ -437,10 +437,17 @@ nothing.
   that names no sumida session is a console login, which stands only before the model and is the
   administrator's, as the routes read it.
 - **Each screen says which section it belongs to, and a member opens the ones their permission reads.** A
-  member opens the settings sections their account reads, 조직 설정's 초대 where they head a unit, the rooms they may read, and the screens units
-  bring whose manifest's role is `member` and whose section the administrator has left read — and, where the
-  manifest asks for the owner key, only when their login has a user; asking for a section they may not read
-  takes them to the first one they may.
+  console screen belongs to the section its address names, agent management's and the monitor's as their parts
+  stand, and a member opens every one of them whose section they read, each screen holding back by itself what
+  is the administrator's alone, as the research screen's 리서치 감독관. A screen whose address names no section
+  opens to a member only where it says a member may: the settings sections their account reads and 조직 설정's
+  초대 where they head a unit. Beside them stand the rooms they may read, and the screens units bring whose
+  manifest's role is `member` and whose section the administrator has left read — and, where the manifest asks
+  for the owner key, only when their login has a user.
+- **Asking for a screen a member may not open takes them to the first one they may:** the first screen of the
+  navigation, the console's own or a unit's, standing under a section they read, else their rooms. The way there
+  never leads back to the address refused: where the first one they may open is that address, as for a member who
+  reads no section at all, it stands, and its routes answer as if nothing stood there.
 - **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the console's own
   sections they may read, 조직 설정 where they head a unit, the screens units bring that they may open, their rooms
   and the user menu: no agents

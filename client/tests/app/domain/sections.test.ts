@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import {
-  accessMap, accessOf, agentSectionsRead, homeFor, isConsoleSection, mayRead, mayReadAny, mayWrite, screenMayRead, sectionsOfPath
+  accessMap, accessOf, agentSectionsRead, homeFor, inConsoleSections, isConsoleSection, mayRead, mayReadAny, mayWrite, screenMayRead, sectionsOfPath
 } from "../../../apps/web/shared/sections";
 import { permissionSections } from "../../../apps/web/app/domain/permissions";
 
@@ -67,10 +67,21 @@ describe("a person's permission on a section", () => {
     expect(screenMayRead(access, "/a-unit-screen")).toBe(true);
   });
 
-  test("the home is the first section the person reads, and agent management's first part opens its screen", () => {
-    expect(homeFor(access)).toBe("/agents");
-    expect(homeFor(accessMap([{ section: "supervisors", read: true, write: false }]))).toBe("/agents");
-    expect(homeFor(accessMap([{ section: "rooms", read: true, write: false }]))).toBe("/rooms");
+  test("the home is the first screen of the navigation under a section the person reads, else their rooms", () => {
+    const navigation = ["/mail", "/db", "/agents", "/research", "/monitor"];
+
+    expect(homeFor(access, navigation)).toBe("/agents");
+    expect(homeFor(accessMap([{ section: "research", read: true, write: false }]), navigation)).toBe("/research");
+    expect(homeFor(accessMap([{ section: "rooms", read: true, write: false }]), navigation)).toBe("/rooms");
+    // A section no screen of the navigation stands for is never answered as one.
+    expect(homeFor(accessMap([{ section: "live", read: true, write: false }]), navigation)).toBe("/rooms");
+  });
+
+  test("a path stands under the console's sections where every section it names is the console's", () => {
+    expect(inConsoleSections("/research")).toBe(true);
+    expect(inConsoleSections("/agents/agent-a")).toBe(true);
+    expect(inConsoleSections("/")).toBe(false);
+    expect(inConsoleSections("/organization")).toBe(false);
   });
 });
 

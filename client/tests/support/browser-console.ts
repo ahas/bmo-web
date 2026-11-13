@@ -115,6 +115,31 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "rooms", read: true, write: false },
       { section: "account", read: true, write: false }
     ]
+  },
+  // The research screen opened to a member, research the first section they read.
+  {
+    name: "research-reader",
+    password: "fixture-password-2880",
+    sections: [
+      { section: "research", read: true, write: false },
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: false }
+    ]
+  },
+  // Each of the console's own screens opened to a member who reads its section.
+  {
+    name: "section-reader",
+    password: "fixture-password-2881",
+    sections: [
+      { section: "siren", read: true, write: false },
+      { section: "db", read: true, write: false },
+      { section: "documents", read: true, write: false },
+      { section: "supervisors", read: true, write: false },
+      { section: "research", read: true, write: false },
+      { section: "monitor", read: true, write: false },
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: false }
+    ]
   }
 ];
 
@@ -903,7 +928,7 @@ try {
   // 「Access」): the model names the one account the data move made the platform administrator's, while every
   // fixture account made with --administrator carries that in its seal. Removing the model's name leaves each
   // login standing as its seal recorded it, so every account a file signs in with is the administrator its file
-  // waits for, and the two members, made without the flag, stay members.
+  // waits for, and the members, made without the flag, stay members.
   const fixture = new SQL(connectionOf(databaseUrl) as SQL.Options);
 
   await fixture.unsafe('DELETE FROM "settings" WHERE "key" = $1', ["users_administrator"]);

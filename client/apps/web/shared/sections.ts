@@ -96,11 +96,16 @@ export function mayReadAny(access: SectionAccessMap, sections: readonly string[]
  * console section is a unit's own, opened by its manifest's role alone.
  */
 export function screenMayRead(access: SectionAccessMap, path: string): boolean {
+  if (!inConsoleSections(path)) return true;
+
+  return mayReadAny(access, sectionsOfPath(path));
+}
+
+/** Whether a screen's path stands under the console's own sections, so its section, not the screen, says who opens it. */
+export function inConsoleSections(path: string): boolean {
   const sections = sectionsOfPath(path);
 
-  if (sections.length === 0 || sections.some((section) => !isConsoleSection(section))) return true;
-
-  return mayReadAny(access, sections);
+  return sections.length > 0 && sections.every(isConsoleSection);
 }
 
 /** The permissions a list of rows stands, by section. */
@@ -108,16 +113,10 @@ export function accessMap(rows: readonly SectionRow[]): SectionAccessMap {
   return Object.fromEntries(rows.map((row) => [row.section, { read: row.read, write: row.write }]));
 }
 
-/** The first address a reader may open, for a login whose own screen is refused. */
-export function homeFor(access: SectionAccessMap): string {
-  for (const section of CONSOLE_SECTIONS) {
-    if (!mayRead(access, section)) continue;
-
-    // Agent management's parts all open its one screen.
-    if (isAgentSection(section)) return "/agents";
-
-    return `/${section}`;
-  }
-
-  return "/rooms";
+/**
+ * The first screen a reader may open, for an address they may not (docs/web.md, 「Access」): the first of the
+ * navigation's screens, given in its order, that stands under a section they read, else their rooms.
+ */
+export function homeFor(access: SectionAccessMap, screens: readonly string[]): string {
+  return screens.find((path) => inConsoleSections(path) && screenMayRead(access, path)) ?? "/rooms";
 }

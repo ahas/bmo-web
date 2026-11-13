@@ -3,7 +3,8 @@ import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens } from
 import { standUnavailable, unavailableRoute } from "~/domain/screen-unavailable";
 import { loginRoute, returnPath } from "~/domain/login-end";
 import { ensureSectionAccess } from "~/domain/section-access";
-import { homeFor, screenMayRead, sectionsOfPath } from "#shared/sections";
+import { screensWithBundles } from "~/domain/screens";
+import { homeFor, inConsoleSections, screenMayRead } from "#shared/sections";
 
 // Nothing but the login page is readable without a session; the API refuses on its own side. The
 // login screen carries the address asked for, so the next login returns there, and says the login
@@ -60,11 +61,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   if (access !== null) {
-    if (sectionsOfPath(to.path).length > 0 && !screenMayRead(access, to.path)) {
-      return navigateTo(homeFor(access));
-    }
+    // A console page opens on its section's read, a page under no section where it says a member may, and a unit's
+    // screen where its manifest opens it to them.
+    const page = inConsoleSections(to.path) ? to.matched.length > 0 : to.meta.member === true;
+    const opens = screenMayRead(access, to.path) && (page || screen !== null);
+    const home = homeFor(access, screensWithBundles(screens).map((one) => one.to));
 
-    if (to.meta.member !== true && screen === null) return navigateTo(homeFor(access));
+    // The way to the first screen they may open never leads back to the address refused, which stands instead.
+    if (!opens && home !== to.path) return navigateTo(home);
 
     setPageLayout(MEMBER_LAYOUT);
 

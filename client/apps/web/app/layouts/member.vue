@@ -110,7 +110,7 @@ const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.valu
 const bundles = useConsoleScreens();
 const access = useSectionAccess();
 const accessReady = useSectionAccessReady();
-const home = computed(() => (accessReady.value ? homeFor(access.value) : MEMBER_HOME));
+const home = computed(() => (accessReady.value ? homeFor(access.value, screensWithBundles(bundles.value).map((one) => one.to)) : MEMBER_HOME));
 // The rooms list is the section's own; a reader whose rooms section is closed sees none of it.
 const roomsRead = computed(() => !accessReady.value || accessOf(access.value, "rooms").read);
 // The organisation settings screen stands for a member who heads a unit, whose screen holds its invitations tab alone

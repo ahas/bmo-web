@@ -13,7 +13,7 @@ console's typecheck and then every test file under `client/tests` in one `bun te
   and its layout check holds every `package.json` to a project or the root's package workspace, which this
   repository does not have. So `client/` stays a project, and its browser files run in its check rather than as
   declared browser files.
-- **Fifty-five browser files drive a running console** rather than a page of their own: each reads the console's
+- **Fifty-six browser files drive a running console** rather than a page of their own: each reads the console's
   address from `BMO_CONSOLE_TEST_URL`, except `skeleton`, which reads it from `BMO_SKELETON_TEST_URL`. The suite
   stands up no console, so without those variables they skip; every other browser file runs.
 
@@ -30,8 +30,8 @@ console's typecheck and then every test file under `client/tests` in one `bun te
   - the fixture accounts each file signs in with, made by the console's own `user` script. The console reads the
     administrator from the account model each time, and the data move names only one user there, so the harness
     removes that name: each login then stands as its seal recorded it, every account a file signs in with being
-    the administrator its file waits for, and the two members a room's write stands on staying members, whose
-    console sections are written whole as the administrator's screen writes them;
+    the administrator its file waits for, and the members, made without the flag, staying members, whose console
+    sections are written whole as the administrator's screen writes them;
   - the console's development server, under the base path `/console/`, with a build folder of its own,
     `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
     The app's own type settings still stand in `.nuxt`, so a checkout the app was never prepared in is prepared

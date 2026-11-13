@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { AGENT_LOG_POLL_MS } from "../../apps/web/shared/config";
 import { JOB_LOG } from "../support/job-log";
 
 import type { Browser, BrowserContext } from "playwright-core";
@@ -17,8 +18,10 @@ declare global {
 // A running job's log opened from the TODO panel stands its newest lines the moment it is shown (docs/web.md, 「The work
 // view」 and 「Where the log comes from」): the job's run is named in the ledger for the worker it was ordered for while
 // its lines stand under the seat that ran it, in a log of thousands of lines whose results run to tens of thousands of
-// characters, and the console server reads the run's newest lines out of the seat's log. The log's own lines are what
-// is read, through the console's own server and the agency's stand-in (tests/support/job-log.ts).
+// characters, and the console server reads the run's newest lines out of the seat's log. The seat's own screen opens on
+// the same log's newest lines, and while its opening read is out nothing reads the log again, so a slow first answer is
+// never joined by a second, larger one. The log's own lines are what is read, through the console's own server and the
+// agency's stand-in (tests/support/job-log.ts).
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up; the suite
 // stands up no console, so there it skips.
@@ -64,7 +67,8 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> {
+// A context signed in at the viewport's size, whose page notes the moment the log under `where` is first shown.
+async function open(viewport: (typeof WIDTHS)[number], where: string): Promise<BrowserContext> {
   const context = await browser!.newContext({ viewport: { width: viewport.width, height: viewport.height }, isMobile: viewport.phone, hasTouch: viewport.phone, serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
 
@@ -84,11 +88,11 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
   });
   await context.route(new RegExp(`/api/todos/${JOB_LOG.item}$`), (route) => route.fulfill({ json: item() }));
   // The moment the log is first shown, whether its newest line stands in view then.
-  await context.addInitScript((newest: string) => {
+  await context.addInitScript(({ newest, where }: { newest: string; where: string }) => {
     const seen = window;
 
     new MutationObserver(() => {
-      const log = [...document.querySelectorAll("[role=dialog] [data-agent-log]")].find((one) => !one.classList.contains("invisible"));
+      const log = [...document.querySelectorAll(where)].find((one) => !one.classList.contains("invisible"));
 
       if (log === undefined || seen.logShown !== undefined) return;
 
@@ -105,7 +109,7 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
         newestInView: last?.textContent?.includes(newest) === true && box !== undefined && frame !== undefined && box.top < frame.bottom && box.bottom > frame.top
       };
     }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
-  }, JOB_LOG.newest);
+  }, { newest: JOB_LOG.newest, where });
 
   return context;
 }
@@ -113,7 +117,7 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
 describe.skipIf(!origin || !touchReady())("a long job's log opened from the TODO panel", () => {
   for (const viewport of WIDTHS) {
     test(`stands its newest line in view the moment it is shown, ${viewport.width}px wide`, async () => {
-      const context = await open(viewport);
+      const context = await open(viewport, "[role=dialog] [data-agent-log]");
 
       try {
         const page = await context.newPage();
@@ -123,6 +127,49 @@ describe.skipIf(!origin || !touchReady())("a long job's log opened from the TODO
 
         const dialog = page.getByRole("dialog").filter({ has: page.locator("[data-agent-log]") }).last();
         const newest = dialog.getByText(JOB_LOG.newest, { exact: true });
+
+        await newest.waitFor({ timeout: 10_000 });
+        expect(await newest.isVisible()).toBe(true);
+        expect(await page.evaluate(() => window.logShown)).toEqual({ newestInView: true });
+      } finally {
+        await context.close();
+      }
+    }, 60_000);
+  }
+});
+
+describe.skipIf(!origin || !touchReady())("a seat's own screen over its long log", () => {
+  for (const viewport of WIDTHS) {
+    test(`reads its log once while the first read is out, then stands its newest line in view, ${viewport.width}px wide`, async () => {
+      const context = await open(viewport, "[data-agent-log]");
+
+      try {
+        const page = await context.newPage();
+        const log = new RegExp(`/api/agents/${JOB_LOG.seat}/log\\?`);
+        let reads = 0;
+        let release = (): void => undefined;
+        const held = new Promise<void>((resolve) => (release = resolve));
+
+        // The stream is down, so the screen's clock is what would read the log again; the first read is held.
+        await page.route(/\/api\/events/, (route) => route.abort());
+        await page.route(log, async (route) => {
+          reads += 1;
+
+          if (reads === 1) await held;
+
+          await route.continue();
+        });
+        await page.clock.install();
+
+        const first = page.waitForRequest(log, { timeout: 20_000 });
+
+        await page.goto(`${origin}/agents/${JOB_LOG.seat}`, { waitUntil: "load" });
+        await first;
+        await page.clock.runFor(AGENT_LOG_POLL_MS * 3);
+        expect(reads).toBe(1);
+        release();
+
+        const newest = page.locator("[data-agent-log]").getByText(JOB_LOG.newest, { exact: true });
 
         await newest.waitFor({ timeout: 10_000 });
         expect(await newest.isVisible()).toBe(true);

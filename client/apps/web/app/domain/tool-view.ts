@@ -8,6 +8,9 @@ import { valueText } from "./value-text";
 // How many lines of a result always stand; the rest folds.
 export const RESULT_SHOWN_LINES = 5;
 
+// How many characters of those lines stand at most, so a result of a few very long lines folds as one of many does.
+export const RESULT_SHOWN_CHARS = 1_000;
+
 // The arguments of a call, each value as it was sent: a string as it stands, anything else as its named fields and
 // rows, one to a line under the argument.
 export function callArguments(text: string): Map<string, string> {
@@ -178,17 +181,21 @@ export function searchLines(result: string): SearchLine[] {
   });
 }
 
-/** A result's lines split into what always stands and what folds. */
-export function resultParts(result: string): { shown: string; hidden: string; hiddenCount: number } {
+/** What of a result always stands — its first lines, cut at `RESULT_SHOWN_CHARS` — and how many lines fold under it,
+ * the line the cut fell in among them. */
+export function resultParts(result: string): { shown: string; hiddenCount: number } {
   const lines = result.replace(/\n$/, "").split("\n");
+  const head = lines.slice(0, RESULT_SHOWN_LINES).join("\n");
 
-  if (lines.length <= RESULT_SHOWN_LINES) return { shown: lines.join("\n"), hidden: "", hiddenCount: 0 };
+  if (head.length <= RESULT_SHOWN_CHARS) return { shown: head, hiddenCount: Math.max(0, lines.length - RESULT_SHOWN_LINES) };
 
-  return {
-    shown: lines.slice(0, RESULT_SHOWN_LINES).join("\n"),
-    hidden: lines.slice(RESULT_SHOWN_LINES).join("\n"),
-    hiddenCount: lines.length - RESULT_SHOWN_LINES
-  };
+  // The cut never parts the two halves of one character.
+  const at = /[\uD800-\uDBFF]/.test(head.charAt(RESULT_SHOWN_CHARS - 1)) ? RESULT_SHOWN_CHARS - 1 : RESULT_SHOWN_CHARS;
+  const shown = head.slice(0, at);
+  // The lines standing whole are those before the one the cut fell in, and that one too where the cut is its end.
+  const whole = shown.split("\n").length - (head.charAt(at) === "\n" ? 0 : 1);
+
+  return { shown, hiddenCount: lines.length - whole };
 }
 
 /** One step of a plan a session laid out with its plan tool: its words and its state. */

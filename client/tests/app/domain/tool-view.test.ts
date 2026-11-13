@@ -60,8 +60,14 @@ describe("how a result is coloured", () => {
 
 describe("a result's fold", () => {
   test("keeps its first five lines and counts the rest", () => {
-    expect(resultParts("1\n2\n3\n4\n5\n6\n7\n")).toEqual({ shown: "1\n2\n3\n4\n5", hidden: "6\n7", hiddenCount: 2 });
+    expect(resultParts("1\n2\n3\n4\n5\n6\n7\n")).toEqual({ shown: "1\n2\n3\n4\n5", hiddenCount: 2 });
     expect(resultParts("1\n2").hiddenCount).toBe(0);
+  });
+
+  test("cuts those lines at a thousand characters, the line the cut fell in counted among the hidden", () => {
+    expect(resultParts(`${"a".repeat(600)}\n${"b".repeat(600)}\nc`)).toEqual({ shown: `${"a".repeat(600)}\n${"b".repeat(399)}`, hiddenCount: 2 });
+    expect(resultParts(`${"a".repeat(1_000)}\nb`)).toEqual({ shown: "a".repeat(1_000), hiddenCount: 1 });
+    expect(resultParts(`${"a".repeat(999)}😀`).shown).toBe("a".repeat(999));
   });
 });
 

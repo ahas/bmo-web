@@ -355,9 +355,13 @@ onBeforeUnmount(() => {
 // the moment the agency's stream says one of this agent's runs or sessions moved, a turn went out or
 // ended or a job moved (docs/web.md, 「The flat log」), and on the clock while that stream is down.
 // The agency announces no single line, so while one of the agent's runs is going the clock carries
-// its lines as well; a log whose runs have all ended reads on the stream alone.
+// its lines as well; a log whose runs have all ended reads on the stream alone. Nothing is read until the log stands
+// at its opening place, so a slow opening read is never joined by a second, larger one: a word of the stream or a turn
+// of the clock that came meanwhile is owed, and read once it stands.
+const opening = computed(() => !opened.value || log.loading.value);
+
 function followEnd(): void {
-  if (!log.newer.value) {
+  if (!opening.value && !log.newer.value) {
     void follow();
   }
 }
@@ -373,7 +377,8 @@ const runGoing = computed(() => {
 useLiveRefresh(followEnd, {
   on: ["agency-run", "agency-turn", "worker-run"],
   where: (event) => event.type !== "agency-run" || event.agent === null || event.agent === props.name,
-  everyMs: AGENT_LOG_POLL_MS
+  everyMs: AGENT_LOG_POLL_MS,
+  busy: () => opening.value
 });
 usePolling(() => {
   if (runGoing.value) followEnd();

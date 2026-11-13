@@ -283,11 +283,11 @@
           </section>
         </ContentSkeleton>
 
-        <!-- A right press or a held finger on a row stands that row's own menu: its worker's status
-             and the acts its state allows, without opening it (docs/web.md, the TODO panel's section). One menu
-             serves every row; which row it was asked over is read off the press. -->
-        <UContextMenu :items="rowMenu" @update:open="onRowMenu">
-        <div ref="menuSurface" @pointerdown.capture="notePointer" @contextmenu.capture="noteRowPress" @click.capture="swallowLift">
+        <!-- A right press or a held finger on a row stands that row's own menu: the acts its state allows,
+             without opening it (docs/web.md, the TODO panel's section). One menu serves every row, drawn apart
+             from the list; which row it was asked over is read off the press, which hands it that row's acts. -->
+        <PointMenu ref="rowMenu" @update:open="onRowMenu" />
+        <div ref="menuSurface" @pointerdown.capture="notePointer" @contextmenu="askRowMenu" @click.capture="swallowLift">
         <section v-for="section in (loaded ? sections : [])" :key="section.key" class="mb-4 last:mb-0">
           <p class="px-1 pb-1 text-sm font-medium text-muted">{{ section.label }}</p>
 
@@ -297,12 +297,16 @@
           <MovingList class="flex flex-col gap-1">
             <!-- A row is two columns: the handle's own, which every row keeps whether or not it can
                  be carried, and the content, whose lines all start on one edge. On a phone the
-                 number stands on a line of its own above the title, so the title has the width. -->
+                 number stands on a line of its own above the title, so the title has the width. A row off
+                 screen skips its styling and layout until it comes near, so a change over the whole page, a menu
+                 standing over it among them, costs the rows in view alone (docs/web.md, 「Floating things」); the
+                 clip that skipping brings leaves more room outside the row than the keyboard's ring takes, its width and
+                 its gap, as a plain length: the browser takes no sum there. -->
             <li
               v-for="item in section.items"
               :key="item.id"
               :data-todo-id="item.id"
-              class="relative grid grid-cols-[1rem_minmax(0,1fr)] gap-x-1 rounded-lg border py-2 ps-1 pe-2 transition-colors hover:bg-elevated/50"
+              class="relative grid grid-cols-[1rem_minmax(0,1fr)] gap-x-1 rounded-lg border py-2 ps-1 pe-2 transition-colors hover:bg-elevated/50 [content-visibility:auto] [contain-intrinsic-size:auto_4.5rem] [overflow-clip-margin:0.5rem]"
               :class="rowMark(item.id)"
             >
               <div class="row-span-6 flex justify-center">
@@ -499,7 +503,6 @@
           </template>
         </section>
         </div>
-        </UContextMenu>
       </div>
     </TabSlide>
   </aside>
@@ -683,9 +686,11 @@ const board = ref<TodoBoard>(EMPTY);
 // every screen is looking at the same list, so the panel and the strip cannot disagree about
 // whether a job is still waiting. The clock moves on its own second.
 const { all: questions } = useOpenQuestions(t);
+// Each second the clock moves draws the lines again, so only the panel being looked at moves it; a hidden one's stands
+// still until it is shown (docs/web.md, the TODO panel's section).
 const now = ref(toUnixSeconds(Date.now()));
 usePolling(() => {
-  now.value = toUnixSeconds(Date.now());
+  if (showsDetail.value) now.value = toUnixSeconds(Date.now());
 }, TICK_MS);
 // Which question is being answered, what is typed into each one's own box, and what came back
 // when an answer arrived too late.
@@ -723,6 +728,11 @@ const opened = ref<number | null>(null);
 const PANEL_QUERY = "(min-width: 1280px)";
 const wideEnoughForAside = useNarrow(PANEL_QUERY);
 const showsDetail = computed(() => (props.place === "aside" ? wideEnoughForAside.value : !wideEnoughForAside.value));
+
+// A panel coming into view reads its lines against the present at once, not a second later.
+watch(showsDetail, (shown) => {
+  if (shown) now.value = toUnixSeconds(Date.now());
+});
 
 // Whether a row stands its lines under its title, on the same width every dialog in this console
 // changes shape at.
@@ -1152,33 +1162,36 @@ const ROW_VERBS: Record<RowVerb, { label: string; icon: string; done?: string }>
   drop: { label: "todo.action.discard", icon: "i-material-symbols-delete-outline" }
 };
 
-// The row the menu was last asked over, read off the press that asked: the menu says nothing of
-// where it was opened.
+// The list's one menu, drawn apart from the list: a press on a row hands it that row's acts and the point pressed,
+// so nothing the list draws reads the menu, and opening it, closing it or asking it over another row draws no row
+// again (docs/web.md, 「Floating things」).
 const menuSurface = useTemplateRef<HTMLElement>("menuSurface");
-const menuRow = ref<TodoItem | null>(null);
+const rowMenu = useTemplateRef<{ openAt: (acts: ContextMenuItem[][], at: { x: number; y: number }) => void }>("rowMenu");
 // The row whose approval the menu was asked to take back, waiting on the question it grew.
 const unapproving = ref<number | null>(null);
 
-function noteRowPress(event: MouseEvent): void {
-  const id = Number((event.target as Element | null)?.closest("[data-todo-id]")?.getAttribute("data-todo-id") ?? Number.NaN);
+// A right press over the list, or the held finger's: never the browser's own menu, and the row's menu where the
+// press landed on a row something can be done to. A press over no row opens none, nor does a finger resting on a
+// row's handle, which is carrying the row rather than asking about it. A press already turned away, the browser's
+// own long press under a finger, is left alone.
+function askRowMenu(event: MouseEvent): void {
+  if (event.defaultPrevented) return;
+
+  event.preventDefault();
+
+  const target = event.target as Element | null;
+  const id = Number(target?.closest("[data-todo-id]")?.getAttribute("data-todo-id") ?? Number.NaN);
   const item = Number.isInteger(id) ? itemOf(id) : undefined;
 
-  menuRow.value = item ?? null;
+  if (item === undefined || target?.closest("[data-drag-handle]") != null) return;
 
-  // A press over no row, or over a row nothing can be done to, opens no menu; nor does a finger
-  // resting on a row's handle, which is carrying the row rather than asking about it.
-  const onHandle = (event.target as Element | null)?.closest("[data-drag-handle]") != null;
+  const acts = rowActs(item);
 
-  if (item === undefined || onHandle || rowVerbs(item, board.value.queue, now.value).length === 0) {
-    event.preventDefault();
-  }
+  if (acts.length > 0) rowMenu.value?.openAt(acts, { x: event.clientX, y: event.clientY });
 }
 
-const rowMenu = computed<ContextMenuItem[][]>(() => {
-  const item = menuRow.value;
-
-  if (item === null) return [];
-
+// The acts of one row's menu, in their groups.
+function rowActs(item: TodoItem): ContextMenuItem[][] {
   const verbs = rowVerbs(item, board.value.queue, now.value);
   const entry = (verb: RowVerb): ContextMenuItem => ({
     label: t(ROW_VERBS[verb].label),
@@ -1196,7 +1209,7 @@ const rowMenu = computed<ContextMenuItem[][]>(() => {
   ]
     .filter((group) => group.length > 0)
     .map((group) => group.map(entry));
-});
+}
 
 // A held finger opens the menu through the console's one long press; the finger's lift that follows
 // is not also a press on the row under it.

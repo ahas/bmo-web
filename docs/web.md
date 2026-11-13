@@ -5551,7 +5551,9 @@ Four bounds keep it from growing forever.
   does not exceed the window and scrolls within. Closing is by the close button, an outside press, Esc and back, and
   whichever way it closes it passes the same place. What draws the modal is the one panel being looked at — on a narrow
   screen the side column floats too but is hidden by a class, and drawing both would stand two modals and one back would
-  close neither.
+  close neither. Only the panel being looked at keeps its clock moving, the second the lines' times, waits and
+  countdowns are read against, which draws its lines again each second; the hidden one's clock stands still until it
+  is the one looked at, and moves to the present the moment it is.
 - **A right press, or a held finger, on a line stands that item's menu.** It carries the line's quick acts, so they
   are done without opening it:
   1. **Job 로그** on a line a job is running for, or one whose job has ended and whose commit is still on its way
@@ -5579,6 +5581,9 @@ Four bounds keep it from growing forever.
      further step, then **취소** and **결재 취소**; 버리기, the one act here that cannot be taken back, asks first in
      a dialog naming the item.
   - An act the line's state does not allow is not in the menu at all, and a finished or merged line opens no menu.
+  - The menu is the list's one menu drawn apart from it (「Floating things」): the press reads which line it landed
+    on and hands the menu that line's acts, so on a board of hundreds of lines the menu stands within 100 ms of
+    the press, at either width, and no line is drawn again as it opens, closes or moves to another line.
   - Every other act goes through the same road as the opened item's buttons, and what it did, or why it was
     refused, stands in the line under the list.
   - The hold is the console's one held finger (「A held finger」), so a finger scrolling the list never opens the menu,
@@ -6846,6 +6851,17 @@ folder every unit reads its secrets from by file name, written by the server's s
   goes, so a box that refuses being empty never flashes its refusal on the way out; it starts again from the saved
   value the next time it opens. What is held is only what is drawn: the thing is
   told to close at once and closes at once.
+- **A menu asked over a row of a long list is drawn apart from the list.** One menu serves the list and holds its
+  own state, whether it is open, where it stands and the acts it carries; a press on a row hands it that row's acts
+  and the point pressed, and it opens there. The list is never inside the menu, nor does the list read the menu's
+  state, so opening the menu, closing it or asking it over another row draws none of the list's rows again, and
+  the time the menu takes to stand does not grow with the list.
+  - A layer standing over the page changes something the whole page is styled by — the page's own scroll and
+    presses held while a menu stands, an edge of the page's last layer — and the browser then works out again the
+    look of everything under it. So a row of such a list off screen skips its styling and layout until it comes
+    near (`content-visibility: auto`, with the height it last stood at kept for the scroll), and that work covers
+    the rows in view alone. The clip the skipping brings leaves the room of the keyboard's focus ring outside the
+    row, so the ring stands whole (「Focus」).
 - **A dialog grows out of the control that opened it.** It fades in while growing from where the pressed control
   stands, and fades and shrinks back into it as it goes, so where it came from is seen rather than remembered. The
   control is the press made just before it opened, wherever it stood — a menu's choice already gone by then

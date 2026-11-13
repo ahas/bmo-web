@@ -171,8 +171,11 @@
 - a thing a unit stopped before it was made, a voice briefing among them → 중지됨; asking for it again → 다시
   요청: 보이스브리핑 중지됨 · 다시 요청 가능. Never 재요청, 멈춤.
 - leave the queue → 대기열에서 제외. Never 대기열에서 빠지다.
-- a job's command in the testbed's queue, on its TODO row → 테스트 중 while it holds a seat, 테스트 대기 <n>번째 while it
-  waits, each followed by ` · ` and the command as the testbed names it. Never 검사 중, 차례 대기, 줄 서는 중.
+- a job's command in the testbed's queue, on its TODO row → 테스트베드 실행 while it holds a seat, 테스트베드 대기 <n>번째
+  while it waits, each followed by ` · ` and the command as the testbed names it. Never 테스트 중, 검사 중, 차례 대기,
+  줄 서는 중: the command is often no test, and 테스트 중 would read as the close's check.
+- a job's close checking its change before the merge, the chip on its TODO row → 병합 확인 중; its commit merged and
+  waiting for the batch deployment → 배포 대기. Never 테스트 중, which reads as the testbed's run.
 - the research unit's words → 리서치, 분류 (a category), 대기열 (its queue), 제외 (dismissing an item), 보류 (a hold on its
   runs), 해당 (a document marked for the owner's word), 브리핑 (a brief), 보안 권고 (an advisory). Never 카테고리, 큐, 기각.
 - set by hand → 수동 지정. Never 손으로 정함.

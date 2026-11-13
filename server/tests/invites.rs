@@ -1,5 +1,7 @@
 //! Invitations and a person's machine (docs/accounts.md, 「Invitations and a person's machine」): who invites into
-//! which unit, an invitation that is closed opens nothing, acceptance makes a disabled account bound to its machine
+//! which unit, read with its parent and its company, an invitation into a unit at any depth or into the company itself
+//! accepted into that unit with its role, an invitation the table already holds taken as it was made, an invitation
+//! that is closed opens nothing, acceptance makes a disabled account bound to its machine
 //! with a credential made for that name, the account is enabled once the hub holds the machine, and the
 //! administrator binds an account to another machine or takes its machine away.
 
@@ -35,6 +37,7 @@ struct Stood {
   app: Router,
   hub: Arc<StandInHub>,
   scratch: Scratch,
+  company: i32,
   team: i32,
   head: i32,
   member: i32,
@@ -102,6 +105,7 @@ async fn stood() -> Stood {
     app,
     hub,
     scratch,
+    company,
     team,
     head,
     member,
@@ -163,15 +167,150 @@ async fn a_head_invites_a_member_into_their_unit_and_no_one_else_does() {
   .await;
   assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
 
-  // The head lists it, and reads the unit among those they may invite into.
+  // The head lists it, and reads their unit, with its parent and its company, as all they may invite into.
   let (_, listed) = asked(&stood.app, Method::GET, "/invites", None, Some((stood.head, "member"))).await;
   assert_eq!(listed["invites"].as_array().unwrap().len(), 1, "{listed}");
   let (_, units) =
     asked(&stood.app, Method::GET, "/invites/units", None, Some((stood.head, "member"))).await;
-  assert!(
-    units["units"].as_array().unwrap().iter().any(|unit| unit["id"] == stood.team),
-    "{units}"
+  assert_eq!(
+    units["units"],
+    json!([{ "id": stood.team, "name": "team-a", "parent": stood.company,
+             "company": { "id": stood.company, "name": "company-a" } }]),
   );
+}
+
+/// An invitation accepted, answering the account it made.
+async fn accepted_as(stood: &Stood, token: &str, name: &str) -> i32 {
+  let (status, accepted) = asked(
+    &stood.app,
+    Method::POST,
+    &format!("/invites/{token}/accept"),
+    Some(json!({ "name": name, "password": "pw" })),
+    None,
+  )
+  .await;
+  assert_eq!(status, StatusCode::CREATED, "{accepted}");
+
+  accepted["user"].as_str().unwrap().parse().unwrap()
+}
+
+/// The unit an account stands in.
+async fn unit_of(stood: &Stood, user: i32) -> i32 {
+  one(
+    stood.scratch.db(),
+    r#"SELECT "organization_id" FROM "users" WHERE "id" = $1"#,
+    vec![user.into()],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get("", "organization_id")
+  .unwrap()
+}
+
+/// Whether a user heads a unit, through a grant on it or above it.
+async fn heads(stood: &Stood, user: i32, unit: i32) -> bool {
+  let (_, check) = asked(
+    &stood.app,
+    Method::POST,
+    "/checks/unit",
+    Some(json!({ "unit": unit, "user": user.to_string() })),
+    None,
+  )
+  .await;
+
+  check["allowed"].as_bool().unwrap()
+}
+
+#[tokio::test]
+async fn an_invitation_into_a_nested_unit_or_the_company_takes_the_person_in_there_with_its_role() {
+  ready();
+  let stood = stood().await;
+  let made = |name: &'static str, parent: i32| {
+    let db = stood.scratch.db().clone();
+    async move {
+      one(
+        &db,
+        r#"INSERT INTO "organizations" ("name", "parent_id") VALUES ($1, $2) RETURNING "id""#,
+        vec![name.into(), parent.into()],
+      )
+      .await
+      .unwrap()
+      .unwrap()
+      .try_get::<i32>("", "id")
+      .unwrap()
+    }
+  };
+  let part = made("part-a", stood.team).await;
+  let cell = made("cell-a", part).await;
+
+  // The administrator reads the unit three levels down after its parent, under its company.
+  let (_, units) = asked(&stood.app, Method::GET, "/invites/units", None, Some((1, "administrator"))).await;
+  let units = units["units"].as_array().unwrap();
+  let place = |id: i32| units.iter().position(|unit| unit["id"] == id).unwrap();
+  assert!(
+    place(stood.company) < place(stood.team)
+      && place(stood.team) < place(part)
+      && place(part) < place(cell)
+  );
+  assert_eq!(units[place(cell)]["parent"], part);
+  assert_eq!(units[place(cell)]["company"], json!({ "id": stood.company, "name": "company-a" }));
+
+  // Its head, invited there, stands there heading it and nothing above it.
+  let (_, invite) = asked(
+    &stood.app,
+    Method::POST,
+    "/invites",
+    Some(json!({ "unit": cell, "head": true })),
+    Some((1, "administrator")),
+  )
+  .await;
+  assert_eq!(invite["company"]["id"], stood.company, "{invite}");
+  let user = accepted_as(&stood, invite["token"].as_str().unwrap(), "cell-head").await;
+  assert_eq!(unit_of(&stood, user).await, cell);
+  assert!(heads(&stood, user, cell).await);
+  assert!(!heads(&stood, user, part).await);
+
+  // A member invited into the company itself stands in it, heading nothing.
+  let (_, invite) = asked(
+    &stood.app,
+    Method::POST,
+    "/invites",
+    Some(json!({ "unit": stood.company, "head": false })),
+    Some((1, "administrator")),
+  )
+  .await;
+  assert_eq!(invite["unit"]["id"], stood.company, "{invite}");
+  let user = accepted_as(&stood, invite["token"].as_str().unwrap(), "company-member").await;
+  assert_eq!(unit_of(&stood, user).await, stood.company);
+  assert!(!heads(&stood, user, stood.company).await);
+}
+
+#[tokio::test]
+async fn an_invitation_the_table_already_holds_is_taken_as_it_was_made() {
+  ready();
+  let stood = stood().await;
+
+  stood
+    .scratch
+    .run(
+      r#"INSERT INTO "user_invites" ("token", "unit_id", "head", "made_by", "created_at", "expires_at")
+         VALUES ('standing', $1::bigint, true, $2::bigint, 0, 9223372036854775807)"#,
+      vec![stood.team.into(), stood.head.into()],
+    )
+    .await;
+
+  let (_, listed) = asked(&stood.app, Method::GET, "/invites", None, Some((stood.head, "member"))).await;
+  assert_eq!(listed["invites"][0]["token"], "standing", "{listed}");
+  assert_eq!(listed["invites"][0]["unit"]["id"], stood.team);
+  assert_eq!(listed["invites"][0]["head"], true);
+  let (_, view) = asked(&stood.app, Method::GET, "/invites/standing", None, None).await;
+  assert_eq!(view["state"], "open", "{view}");
+  assert_eq!(view["company"]["id"], stood.company);
+
+  let user = accepted_as(&stood, "standing", "standing-head").await;
+  assert_eq!(unit_of(&stood, user).await, stood.team);
+  assert!(heads(&stood, user, stood.team).await);
 }
 
 #[tokio::test]

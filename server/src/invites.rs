@@ -2,14 +2,16 @@
 //! 「Invitations」): a link that makes one disabled account in one unit, bound to the machine named after it, and the
 //! account enabled once the jake hub holds that machine.
 
+use std::collections::HashMap;
+
 use axum::Json;
 use axum::Router;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{get, post};
 use bmo_web_client::{
-  AcceptAsk, Accepted, Installs, Invite, InviteAsk, InviteUnits, InviteView, Invites, OWNER_KEY,
-  OWNER_ROLE, Proof, UnitRef, UserNode,
+  AcceptAsk, Accepted, Installs, Invite, InviteAsk, InviteUnit, InviteUnits, InviteView, Invites,
+  OWNER_KEY, OWNER_ROLE, Proof, UnitRef, UserNode,
 };
 use rand::RngCore;
 use sea_orm::{ConnectionTrait, TransactionTrait};
@@ -356,17 +358,28 @@ async fn list_route(State(service): State<Service>, headers: HeaderMap) -> Answe
   Ok(Json(Invites { invites }))
 }
 
+/// The units a login may invite into, each with its parent and its company, in the tree's order: every unit comes
+/// after its parent, so its company is known by the time it is read.
 async fn units_route(State(service): State<Service>, headers: HeaderMap) -> Answer<InviteUnits> {
   let (by, administrator) = login(&headers)?;
+  let mut companies: HashMap<i64, UnitRef> = HashMap::new();
   let mut units = Vec::new();
 
   for unit in every_unit(&service.db).await? {
-    let id = i32::try_from(unit.id).unwrap_or_default();
+    let own = UnitRef {
+      id: unit.id,
+      name: unit.name.clone(),
+    };
+    let company = unit.parent.and_then(|parent| companies.get(&parent).cloned()).unwrap_or(own);
 
-    if administrator || heads(&service.db, by, id).await? {
-      units.push(UnitRef {
+    companies.insert(unit.id, company.clone());
+
+    if administrator || heads(&service.db, by, i32::try_from(unit.id).unwrap_or_default()).await? {
+      units.push(InviteUnit {
         id: unit.id,
         name: unit.name,
+        parent: unit.parent,
+        company,
       });
     }
   }

@@ -422,10 +422,20 @@ pub struct Invites {
   pub invites: Vec<Invite>,
 }
 
-/// The units a login may invite into.
+/// One unit a login may invite into: its parent, absent for a company, and its company, itself for a company.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct InviteUnit {
+  pub id: i64,
+  pub name: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub parent: Option<i64>,
+  pub company: UnitRef,
+}
+
+/// The units a login may invite into, companies first and each unit after its parent.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct InviteUnits {
-  pub units: Vec<UnitRef>,
+  pub units: Vec<InviteUnit>,
 }
 
 /// An invitation as its link shows it, to a person with no account.

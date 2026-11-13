@@ -132,7 +132,7 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 |---|---|---|
 | `POST /invites` | the login's user in `Owner-Key` and role in `Owner-Role`; `unit`, `head`, `hours` | 201, the invitation: `token`, `unit` (a unit reference), `company`, `head`, `expiresAt`; 403 for a login that heads no unit at or above it, and for `head` from any login but the administrator; 503 `no-hub` where the settings name no hub |
 | `GET /invites` | the same headers | `invites`: the open ones the login made, or every open one for the administrator, newest first |
-| `GET /invites/units` | the same headers | `units`: the units the login may invite into, each a unit reference |
+| `GET /invites/units` | the same headers | `units`: the units the login may invite into, each `id`, `name`, `parent?` (the unit it stands under, absent for a company) and `company` (a unit reference, itself for a company), companies first and each unit after its parent |
 | `DELETE /invites/{token}` | the same headers | 204; by the one who made it or the administrator |
 | `GET /invites/{token}` | | `unit`, `company`, `head`, `expiresAt`, `state` (`open`, `expired`, `used`); 404 where no invitation has the token |
 | `POST /invites/{token}/accept` | `name`, `password` | 201, `user`, `agent` (the machine name), `credential`, `hubUrl`, and `install`: `linux` and `windows`, the one-line installs; 409 `invite-closed` where it is expired or used, 409 `name-taken` where the name stands, 409 `not-ready` where the deployment's default role does not stand |

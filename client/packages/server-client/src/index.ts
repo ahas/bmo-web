@@ -38,6 +38,7 @@ export type RoomCallers = Schemas["RoomCallers"];
 export type UnitRow = Schemas["UnitRow"];
 export type Units = Schemas["Units"];
 export type Invite = Schemas["Invite"];
+export type InviteUnit = Schemas["InviteUnit"];
 export type InviteView = Schemas["InviteView"];
 export type Accepted = Schemas["Accepted"];
 export type Proof = Schemas["Proof"];

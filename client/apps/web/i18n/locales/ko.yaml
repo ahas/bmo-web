@@ -1805,9 +1805,9 @@ organization:
 invites:
   label:
     make: 초대 링크 만들기
+    company: 회사
     unit: 조직
-    head: 조직장으로 초대
-    head_note: 받는 사람이 이 조직의 조직장이 됩니다.
+    role: 역할
     hours: 유효 기간
     span: "{hours}시간"
     open: 열린 초대
@@ -1879,7 +1879,7 @@ join:
     copy: 복사
   message:
     invited: "{place}에 초대되었습니다."
-    invited_head: "{place}의 장으로 초대되었습니다."
+    invited_head: "{place}에 조직장으로 초대되었습니다."
     until: "{time}까지 유효한 초대입니다."
     expired: 만료된 초대입니다. 초대한 사람에게 새 링크를 받아 주세요.
     used: 이미 사용된 초대입니다.

@@ -6500,13 +6500,21 @@ research screen (「Research screen」).
 
 #### 초대
 
-- **초대 링크 만들기**, the tab row's add, opens a dialog of the unit, 조직장으로 초대 for the administrator, and
-  the span, with 링크 만들고 복사 at its foot; it stands off while the reader may invite into no unit.
-- **A link is made into a unit** the reader may invite into — a unit they head or one below it, or any unit for the
-  administrator — for a span of hours, and the administrator may make it invite the unit's head. Made, it is copied
-  at once with its words: who invites into what, the link, and when it closes (`docs/accounts.md`,
-  「Invitations and a person's machine」), and the dialog closes; a refusal is said in the dialog.
-- **The open ones are listed,** each copied again or taken back. A reader who may invite into no unit is told so.
+- **초대 링크 만들기**, the tab row's add, opens a dialog of 회사, 조직, 역할 and 유효 기간, with 링크 만들고
+  복사 at its foot; it stands off while the reader may invite into no unit.
+- **회사 chooses the company,** among the companies of the units the reader may invite into, the first of them
+  chosen at first. **조직 is that company's tree** of the units the reader may invite into, drawn as the 조직도
+  tab draws its tree: the company itself at its top for the administrator, a head's own unit at its top for a
+  head, every unit under its parent to any depth. A press chooses a unit, the company itself among them, and the
+  chosen unit's path from the company down stands above the tree. The top of the tree is chosen at first with its
+  branch open, and choosing another company chooses the top of its tree the same way.
+- **역할 is the person's role in the unit,** 구성원 or 조직장, 구성원 at first. 조직장 is the administrator's alone
+  to give, so for a head it stands in the list and cannot be chosen.
+- **A link is made into the unit and role chosen** for the span of hours. Made, it is copied at once with its
+  words: who invites into what, the link, and when it closes (`docs/accounts.md`, 「Invitations and a person's
+  machine」), and the dialog closes; a refusal is said in the dialog.
+- **The open ones are listed,** each by where it leads and the role it gives, copied again or taken back. A reader
+  who may invite into no unit is told so.
 - **Where an invitation leads is said as the company, then the unit under it;** a unit that is the company itself is
   named once, here, in the copied words and on the join page.
 

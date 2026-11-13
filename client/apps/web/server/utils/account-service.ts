@@ -17,6 +17,7 @@ import {
   type SessionError,
   type Accepted,
   type Invite,
+  type InviteUnit,
   type InviteView,
   type Proof,
   type RoomCallers,
@@ -770,7 +771,7 @@ export async function listInvites(caller: ProfileCaller, options: ServiceOptions
 }
 
 /** The units the login may invite into. */
-export async function inviteUnits(caller: ProfileCaller, options: ServiceOptions = {}): Promise<{ id: number; name: string }[]> {
+export async function inviteUnits(caller: ProfileCaller, options: ServiceOptions = {}): Promise<InviteUnit[]> {
   const client = clientOf(options);
   const reply = await sent(options, client.GET("/invites/units", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
 

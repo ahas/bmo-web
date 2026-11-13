@@ -226,6 +226,9 @@ section states what each does.
   their names alone, and nothing here reads a meaning into them (`STRUCTURE.md`, 「Terms」).
 - **A user stands in exactly one unit,** the organisation sumida keeps on the user, at any depth of the tree, and
   belongs to that unit's company.
+- **A person's role in their unit is its head or a member,** the two places a move and an invitation name. What a
+  person may open in the console is not a role's: it is their own sections, set one person at a time (「Console
+  sections」).
 - **A unit's head is a `manager` of it in sumida's rules,** granted as a relation tuple on the unit. sumida's
   `manage` permission reads the tuple on the unit and on every unit above it, so a head heads their own unit and
   everything below it, and the platform administrator heads every unit.
@@ -253,8 +256,12 @@ section states what each does.
 ### Invitations and a person's machine
 
 - **An invitation is a link that makes one account in one unit,** made by the platform administrator for any unit,
-  or by a head for their unit or one below it. It names whether the person comes in as the unit's head, which only
-  the administrator may give, and how many hours it stands open; past them, or once used, it opens nothing.
+  or by a head for their unit or one below it. The unit is a company itself or a unit under it at any depth. It
+  names the person's role there, the unit's head or a member, the head being the administrator's alone to give,
+  and how many hours it stands open; past them, or once used, it opens nothing.
+- **The units a login may invite into are answered with their parents and their company,** each unit after its
+  parent, so the maker chooses a company and then a unit of its tree. A head reads their own unit and those below
+  it, their own unit standing at the top of what they read under its company.
 - **The link is opened with no sign-in.** It shows the unit and its company and asks for a name and a password.
   Accepting it makes the account disabled, in the unit, a head where the invitation says so, with the console
   sections every user is given, and binds it to the machine name `u<user>`.
@@ -442,10 +449,12 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 - **The people tests** read the same company's people by name, unit, job title and contact, across the units
   of one company, see a member's answer carry no contact detail, find nothing of another company, and match no
   contact detail a member may not see.
-- **The invitation tests** stand a stand-in hub: a head invites a member into their unit and not a head, an
-  expired or used invitation opens nothing, acceptance makes a disabled account bound to its machine with a
-  credential the hub's key verifies, proof enables it once the hub holds the agent, and the machine check says
-  gone where the hub holds none.
+- **The invitation tests** stand a stand-in hub: a head invites a member into their unit and not a head, reads
+  the units they may invite into with their parents and their company, an invitation into a unit three levels
+  down makes its head there and one into the company itself a member of it, an invitation already standing in the
+  table is listed, viewed and accepted into its unit and role as it was made, an expired or used invitation opens
+  nothing, acceptance makes a disabled account bound to its machine with a credential the hub's key verifies,
+  proof enables it once the hub holds the agent, and the machine check says gone where the hub holds none.
 - **The organisation tests** make a company and units under it as the administrator, rename and move one, refuse
   a move into another company and under itself, grant and take away a head, place a user, and refuse every one
   of these to a member.

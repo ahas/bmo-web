@@ -1045,9 +1045,18 @@ export interface components {
             /** Format: int64 */
             unit: number;
         };
-        /** @description The units a login may invite into. */
+        /** @description One unit a login may invite into: its parent, absent for a company, and its company, itself for a company. */
+        InviteUnit: {
+            company: components["schemas"]["UnitRef"];
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+        };
+        /** @description The units a login may invite into, companies first and each unit after its parent. */
         InviteUnits: {
-            units: components["schemas"]["UnitRef"][];
+            units: components["schemas"]["InviteUnit"][];
         };
         /** @description An invitation as its link shows it, to a person with no account. */
         InviteView: {

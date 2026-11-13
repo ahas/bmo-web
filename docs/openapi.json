@@ -772,12 +772,40 @@
         ],
         "type": "object"
       },
+      "InviteUnit": {
+        "description": "One unit a login may invite into: its parent, absent for a company, and its company, itself for a company.",
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/UnitRef"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parent": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "company"
+        ],
+        "type": "object"
+      },
       "InviteUnits": {
-        "description": "The units a login may invite into.",
+        "description": "The units a login may invite into, companies first and each unit after its parent.",
         "properties": {
           "units": {
             "items": {
-              "$ref": "#/components/schemas/UnitRef"
+              "$ref": "#/components/schemas/InviteUnit"
             },
             "type": "array"
           }

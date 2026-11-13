@@ -14,6 +14,11 @@ setup = ["cd client && bun install --frozen-lockfile"]
 # The server's tests make their own scratch databases on the server, so no template is named.
 [test.database]
 
+[runner]
+# The console-driven browser files read the address of a console standing on this machine's loopback, so a run
+# naming one stays on this machine (docs/checks.md, 「Running the console-driven browser files」).
+local_variables = ["BMO_CONSOLE_TEST_URL", "BMO_SKELETON_TEST_URL"]
+
 [check]
 # The sweeps that read the tree before anything runs: Korean in the code, the README's folder table, the
 # dependencies the manifests name, and the shared versions the manifests and the lock hold to. The ledger is the

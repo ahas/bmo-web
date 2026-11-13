@@ -164,15 +164,15 @@ describe.skipIf(!origin)("the row adds", () => {
 
         await roomAddBesideHeading(page);
 
-        // A link is made in the dialog the invitations' add opens: the unit, the administrator's head switch and the
-        // span, with the make at its foot.
+        // A link is made in the dialog the invitations' add opens: the company, the unit, the role and the span,
+        // with the make at its foot.
         await open(page, "/organization?tab=invites");
         await page.locator("[data-tab-add]:enabled").click({ timeout: 20_000 });
 
         const dialog = page.getByRole("dialog");
 
         await dialog.waitFor({ timeout: 10_000 });
-        for (const field of ["invites.label.unit", "invites.label.head", "invites.label.hours"]) {
+        for (const field of ["invites.label.company", "invites.label.unit", "invites.label.role", "invites.label.hours"]) {
           await dialog.getByText(wording(field), { exact: true }).first().waitFor({ timeout: 5_000 });
         }
         await dialog.getByRole("button", { name: wording("invites.action.make"), exact: true }).waitFor({ timeout: 5_000 });

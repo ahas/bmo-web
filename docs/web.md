@@ -3236,9 +3236,10 @@ a seat of its role.
      command words, the options, the quoted strings, the variables, and the pipes, redirections and separators,
      each a colour of its own. A shell command that visibly writes a file — a redirection into it, `tee`, `sed -i`
      — names that file on its top line after its description.
-  3. **Under it, the result,** which folds as the change below does. Its first five lines always stand; where it
-     runs longer, the lines past them are not drawn at all until a press under them, which shows how many are
-     hidden, spreads them, and the same press folds them back. It is coloured by the console's one code highlighter, the chat's code blocks' own, in the language
+  3. **Under it, the result,** which folds as the change below does. Its first five lines always stand, cut at a
+     thousand characters where they run longer, so a result of a few very long lines folds as a result of many
+     does; where it runs past that, the rest is not drawn at all until a press under it, which shows how many
+     lines are hidden, the line the cut fell in among them, spreads them, and the same press folds them back. It is coloured by the console's one code highlighter, the chat's code blocks' own, in the language
      the call's target names: a file tool's result and a shell command that reads one file by that file's
      extension; a search's result line by line, each by its own path's extension, the path and the line number
      coloured apart from the text; and only where no extension is known, by what the text is — JSON, a diff or a
@@ -3361,7 +3362,8 @@ a seat of its role.
      log stands at its end. They are shown at the first frame they stand at the end in: nothing read or drawn beside
      them — the head, its prompt, its stages, a chip, the rest of the page starting — holds that first paint back, and
      a row that settles its height after it, its markdown or its chip arriving, is followed as anything else that grows
-     in the box is.
+     in the box is. Nothing reads the log again while that opening read is out: the stream's word and the clock that
+     follow new lines wait until the log stands, so a slow first answer is never joined by a second, larger one.
      It stays there while anything in the box it scrolls in
      grows — its own lines arriving, the window narrowing, or the head above it standing late, its prompt and its
      stages read after the lines — as long as the reader is at the end; scrolling up stops the following, and a 맨 아래로 button standing over the log's foot

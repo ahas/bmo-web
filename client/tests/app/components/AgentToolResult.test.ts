@@ -59,6 +59,17 @@ describe("a long tool result", () => {
     expect(shown.querySelector("[data-result-press]")?.textContent).toContain("19,995");
   });
 
+  test("a result of a few lines tens of thousands of characters long draws its first thousand characters alone", async () => {
+    const long = ["a".repeat(30_000), "b".repeat(30_000), "c".repeat(30_000)];
+    const shown = await render(long.join("\n"));
+    const text = shown.querySelector("[data-tool-result] pre")?.textContent ?? "";
+
+    expect(text).toBe("a".repeat(1_000));
+    expect(shown.innerHTML).not.toContain("bbb");
+    expect(shown.innerHTML.length).toBeLessThan(2_000);
+    expect(shown.querySelector("[data-result-press]")?.textContent).toContain("3");
+  });
+
   test("a result of five lines or fewer stands whole, with no press", async () => {
     const shown = await render(LINES.slice(0, 5).join("\n"));
 

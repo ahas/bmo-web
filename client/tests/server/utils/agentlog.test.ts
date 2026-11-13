@@ -139,7 +139,8 @@ const agency = standIn("AGENCY", (call) => {
 
   if (agentPath !== null) return answer(agentPage(url, decodeURIComponent(agentPath[1]!)));
 
-  // One run's own lines, as the agency answers them: forward from its start or from a line, and nothing else.
+  // One run's own lines, as the agency answers them: forward from its start or from a line, and nothing else, every
+  // filter it is given holding, the agent's among them.
   const after = Number(url.searchParams.get("after") ?? "0");
   const limit = Number(url.searchParams.get("limit") ?? "500");
   const agent = url.searchParams.get("agentName");
@@ -147,7 +148,8 @@ const agency = standIn("AGENCY", (call) => {
   const job = JOB_OF_RUN.get(runId);
   const found = ALL.filter((one) =>
     (one.id as number) > after &&
-    (job === undefined ? (one.ledgerRunId ?? one.runId) === runId && (agent === null || one.agentName === agent) : one.jobId === job)
+    (agent === null || one.agentName === agent) &&
+    (job === undefined ? (one.ledgerRunId ?? one.runId) === runId : one.jobId === job)
   );
 
   return answer({ items: found.slice(0, limit).map((one) => ({ ...one, runId })), more: found.length > limit });
@@ -237,6 +239,7 @@ describe("an agent's log read by its run from its start", () => {
     expect(page.hasOlder).toBe(false);
     expect(agency.asked.map((one) => one.path)).toEqual([
       "/runs?names=run-a&limit=1",
+      "/log-lines?runId=7&after=0&limit=1",
       "/log-lines?runId=7&agentName=agent-a&after=0&limit=500",
       `${AGENT_LINES}?before=1&limit=1`
     ]);
@@ -295,7 +298,7 @@ describe("an agent's log read by its run from its newest line", () => {
     expect(page.hasMore).toBe(true);
     expect(agency.asked.map((one) => one.path)).toEqual([
       `/runs?names=${LONG.name}&limit=1`,
-      `/log-lines?runId=${LONG.id}&agentName=${CODER}&after=0&limit=1`,
+      `/log-lines?runId=${LONG.id}&after=0&limit=1`,
       `${CODER_LINES_PATH}?limit=500`
     ]);
   });
@@ -375,7 +378,7 @@ describe("a job's log read by its run", () => {
     expect(page.hasMore).toBe(true);
     expect(agency.asked.map((one) => one.path)).toEqual([
       `/runs?names=${JOB.run}&limit=1`,
-      `/log-lines?runId=${JOB.ledger}&agentName=${WORKER}&after=0&limit=1`,
+      `/log-lines?runId=${JOB.ledger}&after=0&limit=1`,
       `${SEAT_LINES_PATH}?limit=500`
     ]);
   });

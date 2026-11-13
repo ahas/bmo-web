@@ -3428,8 +3428,10 @@ a seat of its role.
   every line it left, across its runs — through the agency's `GET /log/agents/{agentName}/lines`. The screen opens
   on the newest page, reads the page before the oldest line it holds and follows the newest, and opens at the page
   a moment stands in, narrowed to a room where the link names one. A screen opened at one run's head reads that
-  run from the agency's `GET /log-lines`, narrowed to it, and the lines above it are the same agent log: a page read
-  upward from a run lands on the lines the run before it left.
+  run from the agency's `GET /log-lines`, narrowed to it and to the agent its first line names — never the agent the
+  run ledger names it for, since a job's run is named for the checkout it ran in while its lines stand under the
+  agent that ran it — and the lines above it are the same agent log: a page read upward from a run lands on the
+  lines the run before it left.
 - **A log that stands one run's lines alone opens on that run's newest lines.** The agency's read of one run answers
   from the run's start only, so the console server reads the newest of a run, and the page before a line of it it
   holds, out of the log of the agent its lines stand under: the agent the run's first line names, which for a job is

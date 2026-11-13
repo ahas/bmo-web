@@ -27,9 +27,9 @@ export default defineEventHandler(async (event): Promise<AgentLogPage> => {
   // A screen that stands at one run reads that run: after the last line the reader holds, after none reading it from
   // its start; else its lines before the oldest one the reader holds, or its newest lines where it holds none.
   if (run !== "") {
-    if (after !== null) return await readRunPage(name, run, after, limit);
+    if (after !== null) return await readRunPage(run, after, limit);
 
-    return await readRunBack(name, run, before === null || before <= 0 ? null : before, limit);
+    return await readRunBack(run, before === null || before <= 0 ? null : before, limit);
   }
 
   const at = readMoment(query.at);

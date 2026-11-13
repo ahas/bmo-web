@@ -27,30 +27,32 @@ function pageWindow(limit: number): number {
   return Math.min(limit, PAGING.maxSize) + 1;
 }
 
-// The run a screen names by its own name, as the agency numbers it, with the agent its lines are written under: a
-// co-work stage's run is named from its order, whose worker need not be the agent that ran it.
-async function runOf(run: string): Promise<{ id: number; agent: string } | null> {
+// The run a screen names by its own name, as the agency numbers it. The agent the ledger names it for is not the one
+// its lines stand under — a job's run is named for the checkout it ran in, while its lines stand under the agent that
+// ran it — so the run's lines are those of the agent its first line names (`firstLineOf`).
+async function runOf(run: string): Promise<number | null> {
   const page = await agencyCall(agency().GET("/runs", { params: { query: { names: run, limit: 1 } } }));
-  const found = page.items[0];
 
-  return found === undefined ? null : { id: found.id, agent: found.agentName };
+  return page.items[0]?.id ?? null;
 }
 
 /** One run's lines of an agent's, oldest first, after `after` where it is given; `hasMore` says another page waits. */
-export async function readRunPage(agent: string, run: string, after: number, limit: number): Promise<AgentLogPage> {
-  const named = await runOf(run);
+export async function readRunPage(run: string, after: number, limit: number): Promise<AgentLogPage> {
+  const runId = await runOf(run);
 
-  if (named === null) return UNAVAILABLE;
+  if (runId === null) return UNAVAILABLE;
 
-  const runId = named.id;
-  const owner = named.agent || agent;
+  const first = await firstLineOf(runId);
+
+  if (first === null) return { lines: [], hasMore: false, hasOlder: false };
+
   const window = pageWindow(limit);
   const found: AgentLogLine[] = [];
   let cursor = after;
 
   for (;;) {
     const page = await agencyCall(
-      agency().GET("/log-lines", { params: { query: { runId, agentName: owner, after: cursor, limit: AGENCY_PAGE } } })
+      agency().GET("/log-lines", { params: { query: { runId, agentName: first.agentName, after: cursor, limit: AGENCY_PAGE } } })
     );
 
     found.push(...page.items.map(asLine));
@@ -61,10 +63,10 @@ export async function readRunPage(agent: string, run: string, after: number, lim
   }
 
   const held = found.slice(0, window - 1);
-  const first = held[0];
+  const oldest = held[0];
 
   // What stands above the run is asked of the agent its lines stand under, not the one the ledger names the run for.
-  return { lines: held, hasMore: found.length > window - 1, hasOlder: first !== undefined && (await linesBefore(first.agent, first.id)) };
+  return { lines: held, hasMore: found.length > window - 1, hasOlder: oldest !== undefined && (await linesBefore(oldest.agent, oldest.id)) };
 }
 
 // Whether any line of the agent's stands before one the page holds: a run's own read cannot say, so the agent's log
@@ -80,10 +82,11 @@ async function linesBefore(agent: string, before: number): Promise<boolean> {
   }
 }
 
-// A run's first line, or null where it left none: where a read back through the agent's log stops, and the line that
-// names the agent the run's lines stand under and the job they carry where it is a job's run.
-async function firstLineOf(runId: number, owner: string): Promise<LogLine | null> {
-  const page = await agencyCall(agency().GET("/log-lines", { params: { query: { runId, agentName: owner, after: 0, limit: 1 } } }));
+// A run's first line, or null where it left none, read by the run alone: where a read back through the agent's log
+// stops, and the line that names the agent the run's lines stand under and the job they carry where it is a job's run.
+// Another agent's lines the same run carries are not the run's as this agent's log shows it.
+async function firstLineOf(runId: number): Promise<LogLine | null> {
+  const page = await agencyCall(agency().GET("/log-lines", { params: { query: { runId, after: 0, limit: 1 } } }));
 
   return page.items[0] ?? null;
 }
@@ -142,27 +145,26 @@ async function scanBack(runId: number, first: LogLine, before: number | null, wa
 /** One run's newest lines of an agent's, or the run's lines before `before`, oldest first; `hasMore` says lines of the
  * run wait above them. The agency reads a run's own lines forward from its start alone, so they are read out of the
  * agent's log (docs/web.md, 「Where the log comes from」). */
-export async function readRunBack(agent: string, run: string, before: number | null, limit: number): Promise<AgentLogPage> {
-  const named = await runOf(run);
+export async function readRunBack(run: string, before: number | null, limit: number): Promise<AgentLogPage> {
+  const runId = await runOf(run);
 
-  if (named === null) return UNAVAILABLE;
+  if (runId === null) return UNAVAILABLE;
 
-  const owner = named.agent || agent;
   const want = Math.min(limit, PAGING.maxSize);
-  const first = await firstLineOf(named.id, owner);
+  const first = await firstLineOf(runId);
 
   if (first === null || (before !== null && first.id >= before)) return { lines: [], hasMore: false };
 
   // The run's lines are read out of the log of the agent its first line names: a job's run stands in the ledger under
-  // the worker it was ordered for, while its lines stand under the seat that ran it.
-  let read = await scanBack(named.id, first, before, want);
+  // the checkout it ran in, while its lines stand under the agent that ran it.
+  let read = await scanBack(runId, first, before, want);
 
   // None of the run's lines among those looked through, and its first line not reached: the run ended under later
   // runs, so its newest line before them is found and the log read back from there.
   if (read.found.length === 0 && read.reached !== null && read.reached > first.id) {
-    const last = await lastLineBefore(named.id, owner, first.id, read.reached);
+    const last = await lastLineBefore(runId, first.agentName, first.id, read.reached);
 
-    read = await scanBack(named.id, first, last + 1, want);
+    read = await scanBack(runId, first, last + 1, want);
   }
 
   const held = read.found.slice(-want).map(asLine);

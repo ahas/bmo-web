@@ -2504,9 +2504,10 @@ archive and this week's tokens remain. That is all that can actually be known th
      many runs wait for one.
   2. **A tile says at a glance which state its slot is in**: working (a run holds it), reserved (a reservation
      keeps it for an owner who has not used it yet) or idle, by its colour and its mark. A working tile carries the
-     repository or folder its run works in.
+     agent its run is on and its model, as the agency's `GET /slots` names them, and under them the repository or
+     folder its run works in.
   3. **Hovering a tile** shows its state and what holds it: the line naming the work it was asked for where its
-     asker named one, the path, the source that asked it — 잡, 위임, 협업, 네이티브 and the rest by the pack's word for
+     asker named one, the agent, the path, the source that asked it — 잡, 위임, 협업, 네이티브 and the rest by the pack's word for
      the source — the provider and model, and how long it has been there.
   4. **Pressing a working tile opens the live log** of what the slot holds, in the order the agency's `docs/api.md`
      (「slots」) gives: a job's run where the agency names the job (`jobId`), from that run's start and following its

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { activeRoad, activeRoadText, ceilingDefault, defaultThreshold, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
 import { headOffset } from "../../../apps/web/app/domain/held-heads";
-import { slotLogPlace, tileLines } from "../../../apps/web/app/domain/role-slots";
+import { slotLogPlace, tileLines, tileWho } from "../../../apps/web/app/domain/role-slots";
 import { wording } from "../../../apps/web/shared/wording";
 
 import type { OrderEntryView, ProviderModelsView, ProviderView } from "../../../apps/web/shared/axes";
@@ -52,9 +52,17 @@ describe("a model's declared run settings", () => {
 
 describe("a slot tile's lines", () => {
   test("name the work its run was asked for after its state", () => {
-    const lines = tileLines(t, { state: "working", run: { place: "repo-a", path: "/srv/repo-a", source: "job", provider: null, model: null, since: null, title: "Title A", log: "run-a", session: null, stop: null } }, 0);
+    const lines = tileLines(t, { state: "working", run: { place: "repo-a", path: "/srv/repo-a", source: "job", provider: null, model: null, agent: null, since: null, title: "Title A", log: "run-a", session: null, stop: null } }, 0);
 
     expect(lines).toEqual([`${wording("live.label.slot_working")} · job`, "Title A", "/srv/repo-a"]);
+  });
+
+  test("name the agent its run is on, and the tile carries the agent and its model", () => {
+    const run = { place: "repo-a", path: "/srv/repo-a", source: "job", provider: null, model: "model-a", agent: "agent-a", since: null, title: null, log: "run-a", session: null, stop: null };
+
+    expect(tileLines(t, { state: "working", run }, 0)).toContain("agent-a");
+    expect(tileWho(run)).toContain("agent-a");
+    expect(tileWho({ ...run, agent: null, model: null })).toBeNull();
   });
 });
 

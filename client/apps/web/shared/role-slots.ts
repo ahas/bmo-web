@@ -12,6 +12,8 @@ export interface SlotTileRun {
   source: string;
   provider: string | null;
   model: string | null;
+  // The agent the run is on, by its registered name, where the agency names one.
+  agent: string | null;
   // Since when the run holds the slot, in epoch milliseconds; none where the agency does not say.
   since: number | null;
   // The line naming the work the slot was asked for, where its asker named one.

@@ -40,6 +40,13 @@ export function slotLogPlace(run: Pick<SlotTileRun, "log" | "session" | "since">
 
 /** The lines a tile's tooltip carries: its state and the source that asked for it, then what holds it — the line
  * naming its work, the path, the provider and model, and how long it has been there. `now` is in epoch milliseconds. */
+// The line a working tile carries under its state: the agent its run is on and its model, whichever the agency names.
+export function tileWho(run: SlotTileRun): string | null {
+  const parts = [run.agent, run.model === null ? null : modelLabel(run.model)].filter((part): part is string => part !== null);
+
+  return parts.length === 0 ? null : parts.join(" · ");
+}
+
 export function tileLines(t: Translate, tile: SlotTile, now: number): string[] {
   const run = tile.run;
   const state = t(SLOT_STATE_LABELS[tile.state]);
@@ -49,6 +56,7 @@ export function tileLines(t: Translate, tile: SlotTile, now: number): string[] {
   return [
     `${state} · ${run.source}`,
     ...(run.title === null ? [] : [run.title]),
+    ...(run.agent === null ? [] : [run.agent]),
     run.path ?? run.place,
     ...([run.provider, run.model === null ? null : modelLabel(run.model)].some((part) => part !== null)
       ? [[run.provider, run.model === null ? null : modelLabel(run.model)].filter((part): part is string => part !== null).join(" · ")]

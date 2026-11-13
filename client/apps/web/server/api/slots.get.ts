@@ -75,6 +75,7 @@ export default defineEventHandler(async (event): Promise<SlotBoard> => {
             source: slotSourceOf(run.source),
             provider: run.provider === null ? null : providerLabelOf(undefined, run.provider),
             model: run.model,
+            agent: run.agent,
             since: run.since,
             title: run.title,
             log: job?.run ?? run.runName,

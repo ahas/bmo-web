@@ -25,6 +25,7 @@
           <UIcon :name="SLOT_STATE_ICONS[props.tile.state]" class="size-4 shrink-0" :class="props.tile.state === 'working' ? 'animate-spin [animation-duration:3s]' : ''" />
           <span class="truncate text-sm font-medium">{{ $t(SLOT_STATE_LABELS[props.tile.state]) }}</span>
         </span>
+        <span v-if="props.tile.run !== null && tileWho(props.tile.run) !== null" class="truncate text-sm">{{ tileWho(props.tile.run) }}</span>
         <span v-if="props.tile.run !== null" class="truncate text-sm text-toned">{{ props.tile.run.place }}</span>
       </component>
 
@@ -50,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { SLOT_STATE_ICONS, SLOT_STATE_LABELS, tileLines } from "~/domain/role-slots";
+import { SLOT_STATE_ICONS, SLOT_STATE_LABELS, tileLines, tileWho } from "~/domain/role-slots";
 
 import type { SlotTile } from "#shared/role-slots";
 import type { Stops } from "~/domain/stopping";

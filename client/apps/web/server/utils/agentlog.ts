@@ -81,10 +81,13 @@ async function linesBefore(agent: string, before: number): Promise<boolean> {
 
 // The id of a run's first line under its agent, or null where it left none: where a read back through the agent's log
 // stops.
-async function firstLineOf(runId: number, owner: string): Promise<number | null> {
+// A run's first line, and the job its lines carry where it is a job's run: an agent's log names a job's lines by
+// their job, not by the run (the agency's `docs/api.md`, 「log-lines」).
+async function firstLineOf(runId: number, owner: string): Promise<{ id: number; jobId: number | null } | null> {
   const page = await agencyCall(agency().GET("/log-lines", { params: { query: { runId, agentName: owner, after: 0, limit: 1 } } }));
+  const line = page.items[0];
 
-  return page.items[0]?.id ?? null;
+  return line === undefined ? null : { id: line.id, jobId: line.jobId ?? null };
 }
 
 // The id of a run's newest line before `below`, the run's first line standing before it. A read of the run's own
@@ -110,7 +113,14 @@ async function lastLineBefore(runId: number, owner: string, first: number, below
 // of the run it kept, oldest first, and the oldest id it looked at. It stops once it holds `want` of them, has passed
 // the run's first line, has reached the log's first line, or has looked through `AGENT_LOG_RUN_SCAN` lines, so a run
 // with few lines among the agent's never reads the agent's whole log.
-async function scanBack(runId: number, owner: string, before: number | null, want: number, first: number): Promise<{ found: LogLine[]; reached: number | null }> {
+async function scanBack(
+  runId: number,
+  owner: string,
+  before: number | null,
+  want: number,
+  first: number,
+  jobId: number | null
+): Promise<{ found: LogLine[]; reached: number | null }> {
   const found: LogLine[] = [];
   let cursor = before;
   let looked = 0;
@@ -121,7 +131,7 @@ async function scanBack(runId: number, owner: string, before: number | null, wan
 
     if (head === undefined) break;
 
-    found.unshift(...page.items.filter((one) => one.runId === runId));
+    found.unshift(...page.items.filter((one) => one.id >= first && (one.runId === runId || (jobId !== null && one.jobId === jobId))));
     looked += page.items.length;
     cursor = head.id;
 
@@ -141,18 +151,19 @@ export async function readRunBack(agent: string, run: string, before: number | n
 
   const owner = named.agent || agent;
   const want = Math.min(limit, PAGING.maxSize);
-  const first = await firstLineOf(named.id, owner);
+  const head = await firstLineOf(named.id, owner);
 
-  if (first === null || (before !== null && first >= before)) return { lines: [], hasMore: false };
+  if (head === null || (before !== null && head.id >= before)) return { lines: [], hasMore: false };
 
-  let read = await scanBack(named.id, owner, before, want, first);
+  const first = head.id;
+  let read = await scanBack(named.id, owner, before, want, first, head.jobId);
 
   // None of the run's lines among those looked through, and its first line not reached: the run ended under later
   // runs, so its newest line before them is found and the log read back from there.
   if (read.found.length === 0 && read.reached !== null && read.reached > first) {
     const last = await lastLineBefore(named.id, owner, first, read.reached);
 
-    read = await scanBack(named.id, owner, last + 1, want, first);
+    read = await scanBack(named.id, owner, last + 1, want, first, head.jobId);
   }
 
   const held = read.found.slice(-want).map(asLine);

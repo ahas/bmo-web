@@ -44,7 +44,18 @@ function coderLine(id: number): Record<string, unknown> {
 }
 
 const CODER_LINES = Array.from({ length: 3_100 }, (_, index) => coderLine(1_001 + index));
-const ALL = [...LINES, ...CODER_LINES];
+
+// A job's run, whose lines an agent's log names by their job alone: under the agent they carry no run, and a read of
+// the run's own lines answers them with the ledger's run.
+const WORKER = "agent-w";
+const JOB = { id: 12, name: "job-77", job: 77 };
+const JOB_LINES: Record<string, unknown>[] = Array.from({ length: 80 }, (_, index) => ({
+  ...line(5_001 + index, WORKER, "text"),
+  runId: 0,
+  jobId: JOB.job,
+  ledgerRunId: JOB.id
+}));
+const ALL = [...LINES, ...CODER_LINES, ...JOB_LINES];
 
 // The ids of one run's lines in the coder's log, oldest first.
 function idsOf(run: { id: number }): number[] {
@@ -89,7 +100,8 @@ const RUNS = [
   ledgerRun(8, "run-b", "agent-a"),
   ledgerRun(OLD.id, OLD.name, CODER),
   ledgerRun(LONG.id, LONG.name, CODER),
-  ledgerRun(SPARSE.id, SPARSE.name, CODER)
+  ledgerRun(SPARSE.id, SPARSE.name, CODER),
+  ledgerRun(JOB.id, JOB.name, WORKER)
 ];
 
 const agency = standIn("AGENCY", (call) => {
@@ -110,9 +122,9 @@ const agency = standIn("AGENCY", (call) => {
   const limit = Number(url.searchParams.get("limit") ?? "500");
   const agent = url.searchParams.get("agentName");
   const runId = Number(url.searchParams.get("runId") ?? "0");
-  const found = ALL.filter((one) => one.runId === runId && (one.id as number) > after && (agent === null || one.agentName === agent));
+  const found = ALL.filter((one) => (one.ledgerRunId ?? one.runId) === runId && (one.id as number) > after && (agent === null || one.agentName === agent));
 
-  return answer({ items: found.slice(0, limit), more: found.length > limit });
+  return answer({ items: found.slice(0, limit).map((one) => ({ ...one, runId })), more: found.length > limit });
 });
 
 // The paths the agency was asked, the run's own one-line reads apart from every other read.
@@ -240,6 +252,13 @@ describe("an agent's log read by its run from its start", () => {
 // A screen standing at one run opens on its newest lines, however long it has gone: the agency reads a run's own lines
 // forward from its start alone, so they are read back out of the agent's log with the run's lines kept.
 describe("an agent's log read by its run from its newest line", () => {
+  test("finds a job's run by its job, whose lines the agent's log names by their job and no run", async () => {
+    const page = (await asked(handler, { params: { name: WORKER }, query: { run: JOB.name, limit: "50" } })).answer!;
+
+    expect(page.lines.map((one) => one.id)).toEqual(JOB_LINES.slice(-50).map((one) => one.id as number));
+    expect(page.hasMore).toBe(true);
+  });
+
   test("opens on the run's newest lines alone out of the agent's newest page, never reading the run from its start", async () => {
     agency.asked.length = 0;
 

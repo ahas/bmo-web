@@ -3427,7 +3427,8 @@ a seat of its role.
   from the run's start only, so the console server reads the newest of a run, and the page before a line of it it
   holds, out of the agent's own log: newest page first, keeping that run's lines alone and going back until it
   holds the page asked for, has passed the run's first line, or has looked through `AGENT_LOG_RUN_SCAN` lines of
-  the agent's. A run that left no line among those, one that ended under later runs, is found by its newest line
+  the agent's. A job's lines stand in the agent's log under their job and no run, so the run's lines kept there are
+  those carrying its run or, for a job's run, the job its first line carries. A run that left no line among those, one that ended under later runs, is found by its newest line
   first — a few one-line reads of the run's own lines after an id, the stretch halved each time — and read back
   from there. What lies above a page so read is said to wait, and is read as the reader scrolls up; the run's
   newer lines are read from the run's own lines after the newest one held, and a run read whole from its start, a

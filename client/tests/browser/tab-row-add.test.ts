@@ -117,7 +117,8 @@ async function readEveryScreen(page: Page): Promise<number[]> {
 
 // The sidebar's room add beside the rooms' heading: the heading's grey icon, centred on its line, never floating.
 async function roomAddBesideHeading(page: Page): Promise<void> {
-  const add = page.locator("[data-room-add]");
+  // A phone keeps the desk's sidebar in the page, hidden, beside the drawer it opens, so the add read is the one shown.
+  const add = page.locator("[data-room-add]:visible");
 
   await add.waitFor({ timeout: 20_000 });
   expect(await add.getAttribute("aria-label")).toBe(wording("room.title.room_add"));

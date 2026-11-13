@@ -871,7 +871,7 @@
         "type": "object"
       },
       "Members": {
-        "description": "Every member of the reader's company, in the directory's order.",
+        "description": "Every member of the reader's company who has not left, in the directory's order.",
         "properties": {
           "members": {
             "items": {
@@ -4779,7 +4779,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Every member of the reader's company, each by their account key and name alone, in the directory's order.",
+        "summary": "Every member of the reader's company but those marked left, each by their account key and name alone, in the directory's order.",
         "tags": [
           "Users and senders"
         ],

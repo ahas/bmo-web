@@ -153,12 +153,13 @@ async fn search<C: ConnectionTrait>(
   rows.iter().map(|row| person_of(row, reader)).collect()
 }
 
-/// Every member of the reader's company, by account key and name alone, in the directory's order.
+/// Every member of the reader's company who has not left, by account key and name alone, in the directory's order.
 async fn members<C: ConnectionTrait>(db: &C, reader: &Caller) -> Result<Vec<Member>, Refusal> {
   let sql = format!(
     r#"SELECT u."id", COALESCE(NULLIF(u."full_name", ''), u."username") AS "name"
        FROM "users" u
        WHERE {IN_COMPANY}
+         AND NOT EXISTS (SELECT 1 FROM "user_departures" d WHERE d."user_id" = u."id")
        {ORDER}"#
   );
   let rows = all(db, &sql, vec![reader.company.into()]).await?;

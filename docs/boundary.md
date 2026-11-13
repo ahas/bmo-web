@@ -75,7 +75,7 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | `GET /senders/{sender}/user` | | `user`: the user the sender is linked to; 404 where none is |
 | `GET /users` | the login's user in `Owner-Key` and role in `Owner-Role` | `users`: each `user`, `name`, `administrator` (boolean); 403 for any login but the administrator |
 | `GET /users/search?q=&limit=` | the login's user in `Owner-Key` | `people`: each `user`, `name`, `organization` (the person's unit), `jobTitle`, and `landline?`, `mobile?`, `email?` for the administrator or the person; at most 20 without `limit`, never more than 50; 403 where the call names no user of the deployment |
-| `GET /users/members` | the same | `members`: each `user` and `name` of every user of the reader's company, in the directory's order and with no limit; 403 where the call names no user of the deployment or the reader's unit stands in no company |
+| `GET /users/members` | the same | `members`: each `user` and `name` of every user of the reader's company but those marked left, in the directory's order and with no limit; 403 where the call names no user of the deployment or the reader's unit stands in no company |
 | `GET /users/{user}/person` | the same | 200, one person in the same shape as a search row; 404 where the user does not stand or stands in another company |
 | `GET /users/{user}` | | `user`, `name`, `administrator` (boolean), `senders` |
 | `GET /users/{user}/senders` | | `senders`: the sender numbers linked to the user; 404 where there is no such user |

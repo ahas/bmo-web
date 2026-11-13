@@ -344,7 +344,7 @@ pub fn openapi() -> Value {
     "/users/members",
     "members",
     "Users and senders",
-    "Every member of the reader's company, each by their account key and name alone, in the directory's order.",
+    "Every member of the reader's company but those marked left, each by their account key and name alone, in the directory's order.",
     params: vec![owner_key(), owner_role()],
     body: None,
     answers: vec![(200, json_answer::<Members>(&mut generator))],

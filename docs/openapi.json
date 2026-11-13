@@ -1111,6 +1111,21 @@
         ],
         "type": "object"
       },
+      "PeopleMove": {
+        "description": "Several people moved into one unit in one act.",
+        "properties": {
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/PersonMove"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "people"
+        ],
+        "type": "object"
+      },
       "Person": {
         "description": "One person of the reader's organisation in the console's directory (docs/accounts.md, 「The people\ndirectory」). The contact fields stand only for the platform administrator and for the person themselves.",
         "properties": {
@@ -1150,6 +1165,27 @@
           "name",
           "organization",
           "jobTitle"
+        ],
+        "type": "object"
+      },
+      "PersonMove": {
+        "description": "One person of a move into a unit: the unit they stood in when the move was shown, and whether they head the\nunit they go to.",
+        "properties": {
+          "from": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "head": {
+            "type": "boolean"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "from",
+          "head"
         ],
         "type": "object"
       },
@@ -4652,6 +4688,96 @@
           "unauthorized",
           "forbidden",
           "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/units/{unit}/members": {
+      "post": {
+        "operationId": "movePeople",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "unit",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PeopleMove"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, left, moved, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Several people moved into a unit in one act, each its head or a member, by the administrator.",
+        "tags": [
+          "Organisation units"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "left",
+          "moved",
           "not-in-force",
           "database",
           "failed"

@@ -28,7 +28,7 @@
     </template>
 
     <template #body>
-      <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto" :class="addLabel === null ? '' : 'pb-(--bmo-create-room)'">
+      <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto" data-organization-body :class="addLabel === null ? '' : 'pb-(--bmo-create-room)'">
         <div class="flex w-full min-w-0 flex-1 flex-col px-4 py-4 sm:px-6" :class="tab.wide ? '' : 'max-w-3xl'">
           <component :is="tabComponent" ref="section" />
         </div>

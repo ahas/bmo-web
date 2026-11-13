@@ -101,6 +101,12 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   },
+  // The people the organisation chart moves into another unit together, who never sign in.
+  ...["org-move-a", "org-move-b", "org-move-c"].map((name, at) => ({
+    name,
+    password: `fixture-password-286${at}`,
+    sections: [{ section: "account", read: true, write: true }]
+  })),
   // The members of the company, read by a member who reads their account section.
   {
     name: "people-reader",

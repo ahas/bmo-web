@@ -343,6 +343,17 @@ impl AccountClient {
     .await
   }
 
+  /// `POST /units/{unit}/members`, asked as the login `key` acts for in `role`.
+  pub async fn move_people(&self, unit: i64, ask: &PeopleMove, key: &str, role: &str) -> Answer<Unit> {
+    Self::answered(
+      self
+        .send(Method::POST, &["units", &unit.to_string(), "members"], ask)
+        .header(OWNER_KEY, key)
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `PUT /users/{user}/unit`, asked as the login `key` acts for in `role`.
   pub async fn place_user(
     &self,

@@ -63,24 +63,40 @@
           />
         </div>
 
-        <SettingsGroup :title="$t('organization.label.members', { count: countText(chosen.members.length) })">
-          <SettingsRow v-if="chosen.members.length === 0" :label="$t('organization.label.no_members')" />
-          <SettingsRow
-            v-for="member in chosen.members"
-            :key="member"
-            :label="gone(member) ? $t('organization.label.left_member', { name: nameOf(member) }) : nameOf(member)"
-            data-unit-member
-          >
-            <div v-if="!gone(member)" class="flex items-center gap-1">
-              <UTooltip :text="$t('organization.label.machine', { name: nameOf(member) })">
-                <UButton color="neutral" variant="ghost" icon="i-material-symbols-computer-outline" :aria-label="$t('organization.label.machine', { name: nameOf(member) })" @click="openMachine(member)" />
-              </UTooltip>
-              <UTooltip :text="$t('organization.action.mark_left', { name: nameOf(member) })">
-                <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" :loading="working === `left:${member}`" :disabled="busy" @click="markLeft(member)" />
-              </UTooltip>
+        <!-- Several people are chosen at once, a run of them by Shift or a held finger, and moved into another unit
+             together after the move's preview (docs/web.md, 「Organisation settings」, the units tab). -->
+        <div ref="memberList">
+          <SettingsGroup :title="$t('organization.label.members', { count: countText(chosen.members.length) })">
+            <div v-if="choosable.length > 0" class="flex min-h-12 items-center gap-2" data-unit-choice>
+              <ChooseAll :keys="choosable" :selected="selected" @choose="chooseAll" />
+              <span v-if="selected.size > 0" class="truncate text-sm text-muted tabular-nums" data-unit-chosen-count>{{ $t("organization.label.chosen", { count: countText(selected.size) }) }}</span>
+              <UButton class="ms-auto shrink-0" color="neutral" variant="subtle" icon="i-material-symbols-move-item-outline" :label="$t('organization.action.move')" :disabled="selected.size === 0 || busy" data-unit-move @click="openMove" />
             </div>
-          </SettingsRow>
-        </SettingsGroup>
+            <SettingsRow v-if="chosen.members.length === 0" :label="$t('organization.label.no_members')" />
+            <div
+              v-for="member in chosen.members"
+              :key="member"
+              :class="memberRowClass(member)"
+              data-unit-member
+              :data-member-row="member"
+              :data-member-choosable="gone(member) ? undefined : ''"
+            >
+              <div v-if="!gone(member)" :class="[CHOOSE_CELL, 'cursor-pointer hover:bg-elevated active:bg-elevated']" data-member-check @click="pick(member, $event.shiftKey)">
+                <UCheckbox :model-value="selected.has(member)" :aria-label="$t('organization.action.choose_person', { name: nameOf(member) })" />
+              </div>
+              <div v-else :class="CHOOSE_CELL" />
+              <span class="min-w-0 flex-1 truncate text-sm text-highlighted">{{ gone(member) ? $t("organization.label.left_member", { name: nameOf(member) }) : nameOf(member) }}</span>
+              <div v-if="!gone(member)" class="flex shrink-0 items-center gap-1" data-member-marks>
+                <UTooltip :text="$t('organization.label.machine', { name: nameOf(member) })">
+                  <UButton color="neutral" variant="ghost" icon="i-material-symbols-computer-outline" :aria-label="$t('organization.label.machine', { name: nameOf(member) })" @click="openMachine(member)" />
+                </UTooltip>
+                <UTooltip :text="$t('organization.action.mark_left', { name: nameOf(member) })">
+                  <UButton color="neutral" variant="ghost" icon="i-material-symbols-person-off-outline" :aria-label="$t('organization.action.mark_left', { name: nameOf(member) })" :loading="working === `left:${member}`" :disabled="busy" @click="markLeft(member)" />
+                </UTooltip>
+              </div>
+            </div>
+          </SettingsGroup>
+        </div>
         <div class="-mt-3 flex justify-end">
           <USelectMenu
             :model-value="undefined"
@@ -183,16 +199,59 @@
         <UButton :label="bound ? $t('organization.action.rebind') : $t('organization.action.bind')" :loading="machineBusy === 'bind'" :disabled="machineBusy !== null || machine === null" @click="bind" />
       </template>
     </SettingsDialog>
+
+    <!-- A move of the people chosen (docs/web.md, 「Organisation settings」, the units tab): the unit they go to and
+         the role each takes there, then who goes where, shown once before the one act writes the whole set. Closing
+         it at either step writes nothing. -->
+    <SettingsDialog v-model:open="moving" :title="moveStep === 'form' ? $t('organization.action.move') : $t('organization.action.preview')" :dirty="moveDirty">
+      <UForm v-if="moveStep === 'form'" id="unit-move-form" :state="moveDraft" class="flex flex-col gap-4" @submit="previewMove">
+        <UFormField :label="$t('organization.label.move_to')" name="to" required>
+          <USelect v-model="moveDraft.to" :items="destinations" class="w-full" data-move-to />
+        </UFormField>
+        <SettingsGroup :title="$t('organization.label.role')">
+          <SettingsRow v-for="user in moveDraft.people" :key="user" :label="nameOf(user)" data-move-person>
+            <USelect v-model="moveDraft.roles[user]" :items="roleItems" class="w-28" :aria-label="$t('organization.label.role_of', { name: nameOf(user) })" data-move-role />
+          </SettingsRow>
+        </SettingsGroup>
+      </UForm>
+
+      <div v-else class="flex flex-col divide-y divide-default" data-move-preview>
+        <div v-for="row in plan" :key="row.user" class="flex flex-col gap-1 py-3" data-move-row>
+          <span class="text-sm font-medium text-highlighted">{{ nameOf(row.user) }}</span>
+          <span v-if="row.unchanged" class="text-sm text-muted">{{ $t("organization.label.unchanged") }}</span>
+          <template v-else>
+            <span class="text-sm text-muted" data-move-units>{{ row.from === row.to ? pathText(row.to, true) : `${pathText(row.from, true)} → ${pathText(row.to, true)}` }}</span>
+            <span class="text-sm" data-move-roles>{{ row.wasHead === row.head ? roleName(row.head) : `${roleName(row.wasHead)} → ${roleName(row.head)}` }}</span>
+            <span v-if="row.headDropped" class="text-sm text-warning" data-move-head-dropped>{{ $t("organization.label.head_dropped", { unit: unitOf(row.from)?.name ?? "" }) }}</span>
+          </template>
+        </div>
+      </div>
+
+      <UAlert v-if="moveFailure !== ''" color="error" variant="subtle" :description="moveFailure" class="whitespace-pre-line" />
+
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" data-move-cancel @click="close()" />
+        <template v-if="moveStep === 'form'">
+          <UButton type="submit" form="unit-move-form" :label="$t('organization.action.preview')" :disabled="moveDraft.to === ''" data-move-preview-open />
+        </template>
+        <template v-else>
+          <UButton color="neutral" variant="subtle" :label="$t('common.action.back')" :disabled="moveBusy" data-move-back @click="moveStep = 'form'" />
+          <UButton :label="$t('organization.action.move_confirm')" :loading="moveBusy" :disabled="moveBusy || plan.every((row) => row.unchanged)" data-move-apply @click="applyMove" />
+        </template>
+      </template>
+    </SettingsDialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { CHOOSE_CELL } from "bmo-ui/app/domain/chooseall";
+import { draggedSelection, useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
 import { useConfirm } from "~/domain/confirm";
 import { countText } from "~/domain/numbers";
-import { branchesAbove, branchesOpenAtFirst, isCompany, unitPath } from "~/domain/organization";
+import { branchesAbove, branchesOpenAtFirst, isCompany, movePlan, unitPath } from "~/domain/organization";
 
 import type { Ref } from "vue";
 import type { Rebound, UnitRow, UserNode, UserSummary } from "@web/server-client";
@@ -354,6 +413,135 @@ async function markLeft(user: string): Promise<void> {
   });
 
   if (taken) await acting(() => $fetch(`/api/organization/users/${encodeURIComponent(user)}/leave`, { method: "POST" }), failure, `left:${user}`);
+}
+
+// The people chosen in the unit chosen, by their ids, and the person last pressed, from whom a press with Shift chooses
+// the run. The choice belongs to the unit chosen: choosing another gives it up.
+const selected = ref(new Set<string>());
+const anchor = ref<string | null>(null);
+const memberList = ref<HTMLElement | null>(null);
+
+// The people who may be chosen, in the order they stand: everyone in the unit who has not left.
+const choosable = computed(() => (chosen.value === null ? [] : chosen.value.members.filter((member) => !gone(member))));
+
+watch(
+  () => chosen.value?.id,
+  () => {
+    selected.value = new Set();
+    anchor.value = null;
+  }
+);
+
+function pick(user: string, run: boolean): void {
+  if (run && anchor.value !== null) {
+    selected.value = draggedSelection(choosable.value, selected.value, anchor.value, user);
+
+    return;
+  }
+
+  const next = new Set(selected.value);
+
+  if (!next.delete(user)) next.add(user);
+  selected.value = next;
+  anchor.value = user;
+}
+
+function chooseAll(all: boolean): void {
+  selected.value = all ? new Set(choosable.value) : new Set();
+  anchor.value = null;
+}
+
+// A finger held on a person chooses them, and one that goes on to move chooses every person it passes, the
+// console's own gesture for every list that chooses more than one.
+useDragSelect({
+  surface: () => memberList.value,
+  scroller: () => memberList.value?.closest<HTMLElement>("[data-organization-body]") ?? null,
+  rowMark: "data-member-row",
+  choosableMark: "data-member-choosable",
+  keys: () => choosable.value,
+  selected,
+  hold: (user) => {
+    selected.value = new Set([...selected.value, user]);
+    anchor.value = user;
+  }
+});
+
+// A person's row, and the tint behind the people chosen one after another, which reads as one box: rounded at the
+// run's two ends, with no line between its rows, lying behind them so a run joining or parting moves nothing.
+function memberRowClass(member: string): string[] {
+  const members = chosen.value?.members ?? [];
+  const at = members.indexOf(member);
+  const on = (index: number) => index >= 0 && index < members.length && selected.value.has(members[index]!);
+  const classes = ["relative isolate flex items-center gap-2 py-2"];
+
+  if (!on(at)) return classes;
+
+  classes.push("before:absolute before:-inset-x-2 before:top-0 before:-z-10 before:bg-primary/10 before:content-['']");
+  classes.push(on(at + 1) ? "border-transparent before:-bottom-px" : "before:bottom-0 before:rounded-b-lg");
+  if (!on(at - 1)) classes.push("before:rounded-t-lg");
+
+  return classes;
+}
+
+// A move of the people chosen: the unit they go to, every unit offered by its path, and the role each takes there,
+// then the preview of who goes where, read off the units as last read, and the one act that writes it.
+const moving = ref(false);
+const moveStep = ref<"form" | "preview">("form");
+const moveBusy = ref(false);
+const moveFailure = ref("");
+const moveDraft = reactive<{ to: string; people: string[]; roles: Record<string, "member" | "head"> }>({ to: "", people: [], roles: {} });
+const moveDirty = computed(() => moveDraft.to !== "" || Object.values(moveDraft.roles).includes("head"));
+const destinations = computed(() => (units.value ?? []).map((unit) => ({ label: pathText(unit.id, true), value: String(unit.id) })));
+const roleItems = computed(() => [
+  { label: t("organization.label.role_member"), value: "member" },
+  { label: t("organization.label.role_head"), value: "head" }
+]);
+const plan = computed(() =>
+  movePlan(
+    units.value ?? [],
+    moveDraft.people.map((user) => ({ user, head: moveDraft.roles[user] === "head" })),
+    Number(moveDraft.to)
+  )
+);
+
+function roleName(head: boolean): string {
+  return head ? t("organization.label.role_head") : t("organization.label.role_member");
+}
+
+function openMove(): void {
+  const people = choosable.value.filter((member) => selected.value.has(member));
+
+  Object.assign(moveDraft, { to: "", people, roles: Object.fromEntries(people.map((user) => [user, "member"])) });
+  moveStep.value = "form";
+  moveFailure.value = "";
+  moving.value = true;
+}
+
+function previewMove(): void {
+  if (moveDraft.to === "") return;
+
+  moveFailure.value = "";
+  moveStep.value = "preview";
+}
+
+// The whole set in one act, each person named with the unit they stood in when it was shown; a refusal moves nobody
+// and reads the units again, so the preview shows where everyone now stands.
+async function applyMove(): Promise<void> {
+  const people = plan.value.map((row) => ({ user: row.user, from: row.from, head: row.head }));
+
+  moveBusy.value = true;
+  moveFailure.value = "";
+  try {
+    await $fetch(`/api/organization/units/${Number(moveDraft.to)}/members`, { method: "POST", body: { people } });
+    moving.value = false;
+    selected.value = new Set();
+    anchor.value = null;
+  } catch (error) {
+    moveFailure.value = failureText(error, t("organization.error.failed"));
+  } finally {
+    moveBusy.value = false;
+  }
+  await read();
 }
 
 // A person picker's words name its action rather than hint at a value, so they read at the words' own colour.

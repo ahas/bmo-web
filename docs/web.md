@@ -6458,6 +6458,22 @@ research screen (「Research screen」).
 - **구성원** lists the people standing in the unit, its heading carrying how many, one row each: the name, (탈퇴)
   beside a person who left, and two marks at the row's end for a person who has not. 구성원 추가 under them is the
   same searched list, and a person chosen is placed in the unit as they are chosen.
+  - Every person who has not left carries a checkbox at the row's start, so several are chosen at once. A press
+    with Shift chooses the run from the person pressed before to this one, and on a touch screen a held finger
+    chooses the person under it and every person it then passes, as every list that chooses more than one does.
+    The band at the list's head holds the control that chooses every person or gives the choice up, how many
+    are chosen, and 조직 이동, open while anyone is chosen. People chosen one after another stand in one box. The
+    choice belongs to the unit chosen: choosing another unit gives it up.
+  - 조직 이동 opens a dialog of two steps. The first asks for 이동할 조직, every unit offered by its path from its
+    company, the unit chosen among them so a role alone can change, and the 역할 each person takes there, 구성원
+    or 조직장, 구성원 at first; 미리 보기 at its foot, open once a unit is chosen, goes on. The second shows who
+    goes where before anything is written, a row each: the name, the unit they stand in now and the unit they go
+    to, each by its path, their role before and after, 조직장 해제 with the unit they leave where they headed it,
+    and 변경 없음 for a person whom the act leaves as they stand. 뒤로 goes back to the first step, and 이동
+    writes the whole set in one act (`docs/accounts.md`, 「Companies and organisation units」); closing the
+    dialog at either step writes nothing. Once written, the dialog closes, the choice is given up and the units
+    are read again. A refusal is said in the dialog and nobody is moved; where someone moved a person meanwhile,
+    the units are read again and the dialog says to look again.
   - The machine mark opens the person's machine in a dialog: the machine their account is bound to and whether it
     is connected, or none. 기기 연결, or 다른 기기로 연결 where one is bound, binds the account to the machine named in
     기기 이름, or to a fresh name where it is left empty; a machine not yet connected shows its one-line installs,

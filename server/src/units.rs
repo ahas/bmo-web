@@ -1,7 +1,7 @@
 //! Companies and organisation units (docs/accounts.md, 「Companies and organisation units」; docs/boundary.md,
 //! 「Organisation units」): sumida's organisations read as a tree whose tops are the companies, the unit a user
-//! stands in, and whether a user heads a unit, which is sumida's `manage` on it and so reaches every unit below
-//! a head's own.
+//! stands in, several people moved into a unit in one act, and whether a user heads a unit, which is sumida's
+//! `manage` on it and so reaches every unit below a head's own.
 
 use axum::Json;
 use axum::Router;
@@ -9,10 +9,10 @@ use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{get, post, put};
 use bmo_web_client::{
-  CheckAnswer, NewUnit, OWNER_KEY, OWNER_ROLE, Unit, UnitChange, UnitCheckAsk, UnitPlacement, UnitRef,
-  UnitRow, Units, UserUnit,
+  CheckAnswer, NewUnit, OWNER_KEY, OWNER_ROLE, PeopleMove, Unit, UnitChange, UnitCheckAsk, UnitPlacement,
+  UnitRef, UnitRow, Units, UserUnit,
 };
-use sea_orm::ConnectionTrait;
+use sea_orm::{ConnectionTrait, TransactionTrait};
 use sumida::api::authz::Authz;
 use sumida::api::authz::write::{SubjectKey, TupleFilter, TupleWrite};
 
@@ -34,6 +34,7 @@ pub fn routes() -> Router<Service> {
     .route("/units", get(units_route).post(make_route))
     .route("/units/{unit}", get(unit_route).patch(change_route))
     .route("/units/{unit}/heads/{user}", put(head_route).delete(unhead_route))
+    .route("/units/{unit}/members", post(move_route))
     .route("/users/{user}/leave", post(leave_route))
     .route("/checks/unit", post(unit_check))
 }
@@ -399,6 +400,120 @@ pub async fn place<C: ConnectionTrait>(db: &C, user: i32, unit: i32) -> Result<(
   Ok(())
 }
 
+/// One person of a move, read off the ask.
+struct Mover {
+  user: i32,
+  from: i32,
+  head: bool,
+}
+
+/// The people a move names, each once; refused before anything is read where it names none, names one twice or
+/// names what is no user's id or no unit's number.
+fn movers(ask: &PeopleMove) -> Result<Vec<Mover>, Refusal> {
+  if ask.people.is_empty() {
+    return Err(Refusal::bad("a move names nobody"));
+  }
+
+  let mut movers: Vec<Mover> = Vec::with_capacity(ask.people.len());
+
+  for person in &ask.people {
+    let user = user_in(&person.user)?;
+    let from = i32::try_from(person.from)
+      .map_err(|_| Refusal::bad(format!("{} is no unit's number", person.from)))?;
+
+    if movers.iter().any(|named| named.user == user) {
+      return Err(Refusal::bad(format!("user {user} is named twice")));
+    }
+
+    movers.push(Mover {
+      user,
+      from,
+      head: person.head,
+    });
+  }
+
+  Ok(movers)
+}
+
+/// Several people moved into a unit in one act (docs/accounts.md, 「Companies and organisation units」): each
+/// placed in it, holding its head or not as asked, and no longer granted head of the unit they leave. Written
+/// in one transaction, so one refusal leaves everybody where they stood; the transaction is committed or rolled
+/// back before the answer, never left to its drop.
+pub async fn move_people<C: ConnectionTrait + TransactionTrait>(
+  db: &C,
+  unit: i32,
+  ask: &PeopleMove,
+) -> Result<(), Refusal> {
+  let movers = movers(ask)?;
+  let txn = db.begin().await?;
+
+  match moved_into(&txn, unit, &movers).await {
+    Ok(()) => {
+      txn.commit().await?;
+
+      Ok(())
+    }
+    Err(refused) => {
+      txn.rollback().await?;
+
+      Err(refused)
+    }
+  }
+}
+
+async fn moved_into<C: ConnectionTrait>(db: &C, unit: i32, movers: &[Mover]) -> Result<(), Refusal> {
+  one(db, r#"SELECT "id" FROM "organizations" WHERE "id" = $1::bigint"#, vec![unit.into()])
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("no unit {unit}")))?;
+
+  // Every person is read, and held against another change, before anybody is written.
+  for mover in movers {
+    let row = one(
+      db,
+      r#"SELECT u."organization_id",
+           EXISTS (SELECT 1 FROM "user_departures" d WHERE d."user_id" = u."id") AS "has_left"
+         FROM "users" u
+         WHERE u."id" = $1::bigint
+         FOR UPDATE OF u"#,
+      vec![mover.user.into()],
+    )
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("no user {}", mover.user)))?;
+
+    if row.try_get::<bool>("", "has_left")? {
+      return Err(
+        Refusal::new(StatusCode::CONFLICT, "an account that has left is moved nowhere").coded("left"),
+      );
+    }
+
+    if row.try_get::<i32>("", "organization_id")? != mover.from {
+      return Err(
+        Refusal::new(
+          StatusCode::CONFLICT,
+          format!("user {} no longer stands in unit {}", mover.user, mover.from),
+        )
+        .coded("moved"),
+      );
+    }
+  }
+
+  for mover in movers {
+    if mover.from != unit {
+      set_head(db, mover.from, mover.user, false).await?;
+      place(db, mover.user, unit).await?;
+    }
+
+    // Taken away first, so a head named again holds one grant, as a head granted once does.
+    set_head(db, unit, mover.user, false).await?;
+
+    if mover.head {
+      set_head(db, unit, mover.user, true).await?;
+    }
+  }
+
+  Ok(())
+}
+
 async fn units_route(State(service): State<Service>, headers: HeaderMap) -> Answer<Units> {
   administrator(&headers)?;
 
@@ -466,6 +581,19 @@ async fn place_route(
   place(&service.db, user, asked).await?;
 
   Ok(Json(user_unit(&service.db, user).await?))
+}
+
+async fn move_route(
+  State(service): State<Service>,
+  headers: HeaderMap,
+  Path(asked): Path<String>,
+  Body(ask): Body<PeopleMove>,
+) -> Answer<Unit> {
+  administrator(&headers)?;
+  let asked = unit_in(&asked)?;
+  move_people(&service.db, asked, &ask).await?;
+
+  Ok(Json(unit(&service.db, asked).await?))
 }
 
 /// An account marked left (docs/accounts.md, 「A person who leaves」): its sign-in disabled for good and the moment

@@ -141,6 +141,12 @@
   tree of them → 조직도; a unit at the tree's top → 회사, a new one 새 회사. Never 단위, the English unit's twin.
 - a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.
 - the people standing in a unit → 구성원: 구성원 추가, 구성원 n명. Never 배치 for placing a person in a unit.
+- people moved into another unit in one act → 조직 이동: 조직 이동, 이동할 조직, 이동. Never 옮기기, 발령 or 배치 for
+  people; a unit moved under another parent is still 옮기다.
+- a person's place in the unit they stand in, on the organisation chart → 역할, its values 조직장 and 구성원.
+  Everywhere else 역할 is an agent's role (below).
+- what an act will write, shown before it is written → 미리 보기; a row the act leaves as it stands → 변경 없음.
+  Never 사전 확인, 변화 없음.
 - the screen of what is set for the whole deployment or for other people → 조직 설정; the dialog of what a person
   sets for themselves → 설정.
 - a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.
@@ -168,7 +174,7 @@
 - reach a limit → 도달; a match → 일치, 해당; tied to → 연결된. Never 걸리다, 걸린 곳.
 - reach a service → 연결되다: 봇에 연결되지 않아. Never 닿다.
 - request → 요청하다. Never 청하다.
-- choose, pick → 선택: 선택해 주세요, 선택 취소. Never 고르기, 골라 주세요, 물리기.
+- choose, pick → 선택: 선택해 주세요, 선택 취소, {n}명 선택. Never 고르기, 골라 주세요, 물리기.
 - enter text → 입력: 입력해 주세요, {n}자 이내로 입력. Never 적어 주세요.
 - launch, start a run → 실행. Never 띄우다, 뜨다, 발사.
 - the moments a job or a run started and ended → 시작, 끝, each before its time: `시작 {time}`, `끝 {time}`, as

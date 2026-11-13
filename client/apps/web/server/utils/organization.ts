@@ -29,6 +29,12 @@ export const MACHINE_CODES: Readonly<Record<string, string>> = {
   "no-hub": "organization.error.no_hub"
 };
 
+/** The codes of a move of several people (docs/boundary.md, 「Organisation units」), over the section's own. */
+export const MOVE_CODES: Readonly<Record<string, string>> = {
+  left: "organization.error.move_left",
+  moved: "organization.error.moved"
+};
+
 /** The login a section's call is made for. */
 export function callerOf(signed: SignedIn): ProfileCaller {
   return { key: ownerKeyOf(signed) ?? "", role: ownerRoleOf(signed) };

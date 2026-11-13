@@ -526,6 +526,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/units/{unit}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Several people moved into a unit in one act, each its head or a member, by the administrator. */
+        post: operations["movePeople"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users": {
         parameters: {
             query?: never;
@@ -1133,6 +1150,10 @@ export interface components {
         People: {
             people: components["schemas"]["Person"][];
         };
+        /** @description Several people moved into one unit in one act. */
+        PeopleMove: {
+            people: components["schemas"]["PersonMove"][];
+        };
         /**
          * @description One person of the reader's organisation in the console's directory (docs/accounts.md, 「The people
          *     directory」). The contact fields stand only for the platform administrator and for the person themselves.
@@ -1144,6 +1165,16 @@ export interface components {
             mobile?: string | null;
             name: string;
             organization: string;
+            user: string;
+        };
+        /**
+         * @description One person of a move into a unit: the unit they stood in when the move was shown, and whether they head the
+         *     unit they go to.
+         */
+        PersonMove: {
+            /** Format: int64 */
+            from: number;
+            head: boolean;
             user: string;
         };
         /** @description A token issued before the model, carried onto a key of the same text. */
@@ -2851,6 +2882,46 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    movePeople: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; the secret store and its kinds answer `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                unit: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PeopleMove"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unit"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, left, moved, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

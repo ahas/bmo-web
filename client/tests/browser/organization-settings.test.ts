@@ -9,7 +9,9 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 // The settings dialog holds what a person sets for themselves alone, and the organisation settings screen what is set
 // for the whole deployment or for other people, a tab to a section; its units tab stands the units as a tree beside
 // the unit chosen, the tree a bottom drawer on a narrow screen (docs/web.md, 「Settings」 and 「Organisation settings」).
-// The tree opens and closes each branch in place, three levels deep, without choosing. Each is read at a desk's width
+// The tree opens and closes each branch in place, three levels deep, without choosing. Several people chosen at once,
+// a run of them by Shift, move into another unit with their roles in one act after its preview, and a preview
+// closed moves nobody. Each is read at a desk's width
 // and a phone's, in light and in dark, by the administrator and by a member who heads
 // a unit and one who heads none.
 //
@@ -18,6 +20,8 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ADMINISTRATOR = { name: "org-settings", password: "fixture-password-2666" };
 const MEMBER = { name: "org-member", password: "fixture-password-2667" };
+// The people moved together, who stand in the console's fixture and never sign in.
+const MOVERS = ["org-move-a", "org-move-b", "org-move-c"];
 const RUN = Date.now().toString(36);
 
 const PERSONAL = ["settings.label.account", "settings.label.theme", "settings.label.palette"];
@@ -406,8 +410,9 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           expect(low).toEqual([]);
 
-          // The buttons this screen draws change on hover and on press, and the keyboard rings them.
-          for (const selector of ["[data-unit-edit]", `[data-unit-chosen="${team}"] [data-unit-member] button`]) {
+          // The buttons this screen draws change on hover and on press, a person's checkbox cell among them, and the
+          // keyboard rings them.
+          for (const selector of ["[data-unit-edit]", `[data-unit-chosen="${team}"] [data-member-marks] button`, `[data-unit-chosen="${team}"] [data-member-check]`]) {
             const seen = await grounds(page, selector);
 
             expect({ selector, hover: seen.hover !== seen.rest, press: seen.press !== seen.rest }).toEqual({ selector, hover: true, press: true });
@@ -515,5 +520,81 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         }
       }, 120_000);
     }
+  }
+
+  for (const [width, height] of [[1280, 800], [360, 780]] as const) {
+    test(`several people move into another unit with their roles in one confirmed act, at ${width}px`, async () => {
+      // Two units of this run and width, the three people standing in the first, the first of them its head.
+      const from = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `from-${width}-${RUN}`, parent: company })).id;
+      const to = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `to-${width}-${RUN}`, parent: company })).id;
+      const everyone = await administer<{ user: string; name: string }[]>("/api/users", "GET");
+      const [first, second, third] = MOVERS.map((name) => everyone.find((one) => one.name === name)!.user);
+
+      for (const user of [first!, second!, third!]) await administer(`/api/organization/users/${encodeURIComponent(user)}/unit`, "PUT", { unit: from });
+      await administer(`/api/organization/units/${from}/heads/${encodeURIComponent(first!)}`, "PUT");
+
+      const unitRow = async (id: number) => (await administer<{ id: number; heads: string[]; members: string[] }[]>("/api/organization/units", "GET")).find((one) => one.id === id)!;
+      const context = await contextFor(ADMINISTRATOR.name, width, height, "light");
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/organization?unit=${from}`, { waitUntil: "load" });
+        await standing(page);
+
+        const rowOf = (name: string) => page.locator("[data-unit-member]").filter({ hasText: name });
+
+        await rowOf(MOVERS[2]!).waitFor({ timeout: 20_000 });
+
+        // The first pressed, the third pressed with Shift: the run of three is chosen.
+        await rowOf(MOVERS[0]!).locator("[data-member-check]").click();
+        await rowOf(MOVERS[2]!).locator("[data-member-check]").click({ modifiers: ["Shift"] });
+        expect(await page.locator("[data-unit-chosen-count]").innerText()).toBe(wording("organization.label.chosen", { count: "3" }));
+
+        // The unit they go to and the second made its head, then who goes where, shown before anything is written.
+        const preview = async (): Promise<void> => {
+          await page.locator("[data-unit-move]").click();
+
+          const dialog = page.getByRole("dialog").last();
+
+          await dialog.locator("[data-move-to]").click();
+          await page.getByRole("option", { name: `company-${RUN} › to-${width}-${RUN}`, exact: true }).click();
+          await dialog.locator("[data-move-person]").filter({ hasText: MOVERS[1]! }).locator("[data-move-role]").click();
+          await page.getByRole("option", { name: wording("organization.label.role_head"), exact: true }).click();
+          await dialog.locator("[data-move-preview-open]").click();
+          await dialog.locator("[data-move-row]").nth(2).waitFor({ timeout: 10_000 });
+        };
+
+        await preview();
+
+        const rows = page.getByRole("dialog").last().locator("[data-move-row]");
+        const said = await rows.allInnerTexts();
+
+        expect(said).toHaveLength(3);
+        for (const row of said) expect(row).toContain(`company-${RUN} › from-${width}-${RUN} → company-${RUN} › to-${width}-${RUN}`);
+        expect(said[0]).toContain(wording("organization.label.head_dropped", { unit: `from-${width}-${RUN}` }));
+        expect(said[0]).toContain(`${wording("organization.label.role_head")} → ${wording("organization.label.role_member")}`);
+        expect(said[1]).toContain(`${wording("organization.label.role_member")} → ${wording("organization.label.role_head")}`);
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+
+        // Closed at the preview, the move writes nothing.
+        await page.getByRole("dialog").last().locator("[data-move-cancel]").click();
+        await page.getByRole("button", { name: wording("common.action.discard"), exact: true }).click();
+        await page.locator("[data-move-preview]").waitFor({ state: "detached", timeout: 10_000 });
+        expect(await unitRow(from)).toMatchObject({ heads: [first], members: [first, second, third] });
+        expect(await unitRow(to)).toMatchObject({ heads: [], members: [] });
+
+        // Confirmed, the three move in one act, the second as the head and the first no longer heading the unit left.
+        await preview();
+        await page.getByRole("dialog").last().locator("[data-move-apply]").click();
+        await page.locator("[data-move-preview]").waitFor({ state: "detached", timeout: 10_000 });
+        await page.locator("[data-unit-member]").first().waitFor({ state: "detached", timeout: 10_000 });
+        expect(await unitRow(to)).toMatchObject({ heads: [second], members: [first, second, third] });
+        expect(await unitRow(from)).toMatchObject({ heads: [], members: [] });
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
   }
 });

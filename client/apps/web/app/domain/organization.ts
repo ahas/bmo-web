@@ -141,3 +141,39 @@ export function branchesOpenAtFirst(units: readonly UnitPlace[], chosen: number 
 
   return [...new Set(chosen === null ? open : [...open, ...branchesAbove(units, chosen)])];
 }
+
+// A move of several people into one unit (docs/web.md, 「Organisation settings」, its chart): what the act will write,
+// read off the units as they were last read, so the dialog shows who goes where before anything is written and the
+// act names, for each person, the unit they stood in when it was shown.
+export interface UnitStanding extends UnitPlace {
+  heads: string[];
+  members: string[];
+}
+
+/** One person of a move: where they stand now and go, and whether they head the one and will head the other. */
+export interface MoveRow {
+  user: string;
+  from: number;
+  to: number;
+  // Whether they are granted head of the unit they stand in now, and whether they will head the unit they go to.
+  wasHead: boolean;
+  head: boolean;
+  // Whether the act takes away their head grant on the unit they leave.
+  headDropped: boolean;
+  // Whether the act leaves them as they stand.
+  unchanged: boolean;
+}
+
+/** What moving people into a unit, each heading it or not, writes for each; a person no unit holds is left out. */
+export function movePlan(units: readonly UnitStanding[], people: readonly { user: string; head: boolean }[], to: number): MoveRow[] {
+  return people.flatMap(({ user, head }) => {
+    const from = units.find((unit) => unit.members.includes(user));
+
+    if (from === undefined) return [];
+
+    const wasHead = from.heads.includes(user);
+    const moving = from.id !== to;
+
+    return [{ user, from: from.id, to, wasHead, head, headDropped: moving && wasHead, unchanged: !moving && wasHead === head }];
+  });
+}

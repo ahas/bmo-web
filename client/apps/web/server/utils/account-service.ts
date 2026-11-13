@@ -8,6 +8,7 @@ import {
   type AccountServiceClient,
   type Member,
   type Members,
+  type PersonMove,
   type People as WirePeople,
   type Person as WirePerson,
   type SectionRow,
@@ -733,6 +734,17 @@ export async function placeUser(user: UserId, unit: number, caller: ProfileCalle
   const reply = await sent(
     options,
     client.PUT("/users/{user}/unit", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: { unit } })
+  );
+
+  return answered(reply);
+}
+
+/** Several people moved into a unit in one act, each its head or a member; the unit as it then stands. */
+export async function movePeople(unit: number, people: PersonMove[], caller: ProfileCaller, options: ServiceOptions = {}): Promise<Unit> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/units/{unit}/members", { params: { path: { unit }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: { people } })
   );
 
   return answered(reply);

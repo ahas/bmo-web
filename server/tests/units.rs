@@ -441,3 +441,87 @@ async fn a_head_marks_a_person_of_their_unit_left_and_nobody_else_does() {
     StatusCode::NO_CONTENT
   );
 }
+
+#[tokio::test]
+async fn several_people_move_into_a_unit_in_one_act_each_with_their_role() {
+  ready();
+  let tree = tree().await;
+  let app = app(&tree.scratch).await;
+  let admin = Some("administrator");
+  let part = unit(&tree.scratch, "part-a", Some(tree.team)).await;
+  let also_in_team = placed(&tree.scratch, "member-team-b", tree.team).await;
+  head(&tree.scratch, tree.in_centre, tree.centre).await;
+  let path = format!("/units/{part}/members");
+  let unit_of = |user: i32| format!("/users/{user}/unit");
+
+  // A member moves nobody.
+  let body = json!({ "people": [{ "user": tree.in_team.to_string(), "from": tree.team, "head": false }] });
+  let (status, said) = asked_as(&app, Method::POST, &path, Some(body), Some("member")).await;
+  assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+
+  // Two people from two units in one act: one a member, the centre's head made the part's head and no longer
+  // the centre's.
+  let body = json!({ "people": [
+    { "user": tree.in_team.to_string(), "from": tree.team, "head": false },
+    { "user": tree.in_centre.to_string(), "from": tree.centre, "head": true },
+  ] });
+  let (status, moved) = asked_as(&app, Method::POST, &path, Some(body), admin).await;
+  assert_eq!(status, StatusCode::OK, "{moved}");
+  assert_eq!(moved["members"], json!([tree.in_team.to_string(), tree.in_centre.to_string()]));
+  assert_eq!(moved["heads"], json!([tree.in_centre.to_string()]));
+  let (_, centre) = asked(&app, Method::GET, &format!("/units/{}", tree.centre), None).await;
+  assert_eq!(centre["heads"], json!([]), "{centre}");
+
+  // A role changed without a move: the member made head, the head made a member.
+  let body = json!({ "people": [
+    { "user": tree.in_team.to_string(), "from": part, "head": true },
+    { "user": tree.in_centre.to_string(), "from": part, "head": false },
+  ] });
+  let (status, moved) = asked_as(&app, Method::POST, &path, Some(body), admin).await;
+  assert_eq!(status, StatusCode::OK, "{moved}");
+  assert_eq!(moved["heads"], json!([tree.in_team.to_string()]));
+
+  // One person moved meanwhile refuses the whole act, and nobody moves.
+  let body = json!({ "people": [
+    { "user": also_in_team.to_string(), "from": tree.team, "head": false },
+    { "user": tree.in_team.to_string(), "from": tree.team, "head": false },
+  ] });
+  let (status, said) =
+    asked_as(&app, Method::POST, &format!("/units/{}/members", tree.centre), Some(body), admin).await;
+  assert_eq!(status, StatusCode::CONFLICT, "{said}");
+  assert_eq!(said["code"], "moved");
+  let (_, stands) = asked(&app, Method::GET, &unit_of(also_in_team), None).await;
+  assert_eq!(stands["unit"]["id"], tree.team, "{stands}");
+
+  // An account that has left is moved nowhere.
+  let (status, _) =
+    asked_as(&app, Method::POST, &format!("/users/{also_in_team}/leave"), None, admin).await;
+  assert_eq!(status, StatusCode::NO_CONTENT);
+  let body = json!({ "people": [{ "user": also_in_team.to_string(), "from": tree.team, "head": false }] });
+  let (status, said) = asked_as(&app, Method::POST, &path, Some(body), admin).await;
+  assert_eq!(status, StatusCode::CONFLICT, "{said}");
+  assert_eq!(said["code"], "left");
+
+  // Nobody, somebody named twice, and a unit that does not stand.
+  for (target, body, refused) in [
+    (path.clone(), json!({ "people": [] }), StatusCode::BAD_REQUEST),
+    (
+      path.clone(),
+      json!({ "people": [
+        { "user": tree.in_team.to_string(), "from": part, "head": false },
+        { "user": tree.in_team.to_string(), "from": part, "head": true },
+      ] }),
+      StatusCode::BAD_REQUEST,
+    ),
+    (
+      "/units/999999/members".to_owned(),
+      json!({ "people": [{ "user": tree.in_team.to_string(), "from": part, "head": false }] }),
+      StatusCode::NOT_FOUND,
+    ),
+  ] {
+    let (status, said) = asked_as(&app, Method::POST, &target, Some(body), admin).await;
+    assert_eq!(status, refused, "{target}: {said}");
+  }
+  let (_, stands) = asked(&app, Method::GET, &unit_of(tree.in_team), None).await;
+  assert_eq!(stands["unit"]["id"], part, "{stands}");
+}

@@ -240,6 +240,13 @@ section states what each does.
   company: a move under a parent of another company, or under the unit itself or one below it, is refused, and a
   unit with no parent is a new company. sumida rebuilds its tree as the units change, so every check reads the
   tree as it now stands.
+- **Several people are moved into one unit in one act,** each with their place in it: its head or a member. The
+  act names, for each person, the unit they stood in when it was shown, and is written in one transaction, so a
+  person moved by someone else since, an account that has left, or a person or unit that does not stand refuses
+  it whole and nobody is moved. A person coming from another unit is no longer granted head of the unit they
+  leave, since heading a unit one has left would keep its permissions; a grant on a unit above it is the higher
+  unit's and stays. A person already standing in the unit keeps standing there and takes the place named, so one
+  act also changes a role without a move.
 - **The console's organisation screen,** 조직 설정's 조직도 tab, draws the units as a tree and does each of these for
   the administrator (`docs/web.md`, 「조직도」).
 

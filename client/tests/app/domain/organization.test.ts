@@ -5,6 +5,7 @@ import {
   ORGANIZATION_TABS,
   branchesAbove,
   branchesOpenAtFirst,
+  movePlan,
   organizationAddress,
   organizationMovedAway,
   organizationTabNamed,
@@ -14,7 +15,7 @@ import {
   unitPath
 } from "../../../apps/web/app/domain/organization";
 
-import type { UnitBranch, UnitPlace } from "../../../apps/web/app/domain/organization";
+import type { UnitBranch, UnitPlace, UnitStanding } from "../../../apps/web/app/domain/organization";
 import { SETTINGS_SECTIONS, sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
@@ -133,5 +134,34 @@ describe("the units tab's tree", () => {
     expect(branchesOpenAtFirst(UNITS, 4)).toEqual([2, 6, 3]);
     expect(branchesAbove(UNITS, 4)).toEqual([2, 3]);
     expect(branchesAbove(UNITS, 2)).toEqual([]);
+  });
+});
+
+// A move of several people shows who goes where before anything is written (docs/web.md, 「Organisation settings」,
+// its chart): each person from the unit they stand in, their role before and after, and the head grant the move takes.
+describe("a move of several people", () => {
+  const units: UnitStanding[] = [
+    { id: 1, name: "company-a", parent: null, heads: [], members: [] },
+    { id: 2, name: "team-a", parent: 1, heads: ["10"], members: ["10", "11"] },
+    { id: 3, name: "team-b", parent: 1, heads: ["12"], members: ["12"] }
+  ];
+
+  test("moves each person from the unit they stand in, and takes away the head grant of the unit a head leaves", () => {
+    expect(movePlan(units, [{ user: "10", head: false }, { user: "11", head: true }], 3)).toEqual([
+      { user: "10", from: 2, to: 3, wasHead: true, head: false, headDropped: true, unchanged: false },
+      { user: "11", from: 2, to: 3, wasHead: false, head: true, headDropped: false, unchanged: false }
+    ]);
+  });
+
+  test("changes a role without a move, and marks a person it leaves as they stand", () => {
+    expect(movePlan(units, [{ user: "11", head: true }, { user: "12", head: true }], 3).map(({ user, headDropped, unchanged }) => ({ user, headDropped, unchanged }))).toEqual([
+      { user: "11", headDropped: false, unchanged: false },
+      { user: "12", headDropped: false, unchanged: true }
+    ]);
+    expect(movePlan(units, [{ user: "10", head: false }], 2)[0]).toMatchObject({ wasHead: true, head: false, headDropped: false, unchanged: false });
+  });
+
+  test("leaves out a person no unit holds", () => {
+    expect(movePlan(units, [{ user: "99", head: false }], 3)).toEqual([]);
   });
 });

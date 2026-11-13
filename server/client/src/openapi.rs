@@ -808,6 +808,19 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "POST",
+    "/units/{unit}/members",
+    "movePeople",
+    "Organisation units",
+    "Several people moved into a unit in one act, each its head or a member, by the administrator.",
+    params: vec![integer_path("unit"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<PeopleMove>())),
+    answers: vec![(200, json_answer::<Unit>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "left", "moved", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "GET",
     "/units/{unit}",
     "unit",

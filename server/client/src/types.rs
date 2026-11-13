@@ -380,6 +380,21 @@ pub struct UnitPlacement {
   pub unit: i64,
 }
 
+/// One person of a move into a unit: the unit they stood in when the move was shown, and whether they head the
+/// unit they go to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PersonMove {
+  pub user: String,
+  pub from: i64,
+  pub head: bool,
+}
+
+/// Several people moved into one unit in one act.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PeopleMove {
+  pub people: Vec<PersonMove>,
+}
+
 /// An invitation to make.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct InviteAsk {

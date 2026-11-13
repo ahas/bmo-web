@@ -1424,6 +1424,8 @@ todo:
     span_times: "{n}회"
     span_tokens: "토큰 {tokens}"
     span_total: "총 {time}"
+    state_deploy: 배포 대기
+    state_deploying: 배포 중
     state_done: 완료
     state_held: 보류
     state_merged: 병합됨
@@ -1445,6 +1447,8 @@ todo:
     stop_failures: "실패 {n}번"
     stop_reason: 중지 사유
     stop_reason_line: "중지 사유: {reason}"
+    summary_deploy: "배포 대기 {n}"
+    summary_deploying: "배포 중 {n}"
     summary_held: "보류 {n}"
     summary_merged: "병합 {n}"
     summary_pending: "결재 대기 {n}"

@@ -60,6 +60,7 @@ import {
   todoTimeline,
   todoState,
   todoSummary,
+  todoFilters,
   unfinishedLabel,
   unfinishedState,
   approvalChangeIcon,
@@ -135,7 +136,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
 }
 
 const CHOICES: TodoBoard["choices"] = { workers: [], chats: [], requesters: [] };
-const NO_STANDING: TodoBoard["standing"] = { queue: 0, running: 0, pending: 0, held: 0, merged: 0 };
+const NO_STANDING: TodoBoard["standing"] = { queue: 0, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 0 };
 
 const board: TodoBoard = {
   queue: [item(1), item(2, { running: true, status: "running (Job #91)" }), item(3)],
@@ -145,7 +146,7 @@ const board: TodoBoard = {
   doneTotal: 1,
   standingNotes: [],
   choices: CHOICES,
-  standing: { queue: 3, running: 1, pending: 1, held: 0, merged: 0 },
+  standing: { queue: 3, running: 1, deploy: 0, deploying: 0, pending: 1, held: 0, merged: 0 },
   paused: false, deployHold: null
 };
 
@@ -313,13 +314,52 @@ describe("moving an item within the queue", () => {
   });
 });
 
+// Work merged and waiting for its deployment, or being put live by one, stands apart from the queue's own: a state,
+// a filter, a count and a colour of its own (docs/web.md, the TODO panel's section).
+describe("an item whose close merged its commit", () => {
+  const merged = (id: number, over: Partial<TodoItem> = {}) => item(id, { closing: { phase: "waiting-batch", commit: "abc" }, ...over });
+
+  test("waits for its deployment, is being put live while one carries it, and runs while a job of it goes", () => {
+    expect(todoState(merged(31))).toBe("deploy");
+    expect(todoState(merged(32, { deploying: true }))).toBe("deploying");
+    expect(todoState(merged(33, { liveState: "running" }))).toBe("running");
+    expect(todoState(item(34, { closing: { phase: "testing", commit: null } }))).toBe("waiting");
+    expect(stateColour(merged(31))).toBe("info");
+    expect(stateColour(merged(32, { deploying: true }))).toBe("secondary");
+    expect(stateColour(item(35))).toBe("neutral");
+  });
+
+  test("is counted apart from what waits in the queue, and shown under its own filters", () => {
+    const deployBoard: TodoBoard = {
+      ...board,
+      queue: [...board.queue, merged(31), merged(32, { deploying: true })],
+      standing: { ...board.standing, queue: 5, deploy: 2, deploying: 1 }
+    };
+
+    expect(filterCount(deployBoard, "waiting", NOW)).toBe(2);
+    expect(filterCount(deployBoard, "deploy", NOW)).toBe(1);
+    expect(filterCount(deployBoard, "deploying", NOW)).toBe(1);
+    expect(todoFilters()).toContain("deploy");
+    expect(todoFilters()).toContain("deploying");
+
+    const rows = (filter: TodoFilter) =>
+      todoSections(wording, deployBoard, { filter, conditions: NO_CONDITIONS }, NOW).flatMap((section) => section.items.map((one) => one.id));
+
+    expect(rows("deploy")).toEqual([31]);
+    expect(rows("deploying")).toEqual([32]);
+    expect(rows("waiting")).not.toContain(31);
+    expect(todoSummary(wording, deployBoard, NOW)).toContain(wording("todo.label.summary_deploy", { n: 1 }));
+    expect(todoSummary(wording, deployBoard, NOW)).toContain(wording("todo.label.summary_deploying", { n: 1 }));
+  });
+});
+
 describe("where an item stands", () => {
   test("waiting on the owner, waiting in the queue, being done, or done", () => {
     expect(todoState(item(9, { approved: false, awaitingApproval: true }))).toBe("pending");
     // One that opened by itself under an unattended label carries no approval and is past approval all the same.
     expect(todoState(item(10, { approved: false, awaitingApproval: false }))).toBe("waiting");
-    // Held by its job only until its commit goes live: waiting, its way live said beside it.
-    expect(todoState(item(12, { status: "held", deployHeld: true, closing: { phase: "waiting-live", commit: "abc" } }))).toBe("waiting");
+    // Held by its job only until its commit goes live: its work is merged and waits for the deployment.
+    expect(todoState(item(12, { status: "held", deployHeld: true, closing: { phase: "waiting-live", commit: "abc" } }))).toBe("deploy");
     expect(todoState(item(13, { status: "held" }))).toBe("held");
     expect(todoState(item(11, { approved: false, awaitingApproval: false, running: true }))).toBe("running");
     expect(approvalLabel(wording, item(10, { approved: false, awaitingApproval: false }))).toBe(wording("todo.label.opened_unattended"));
@@ -1111,7 +1151,7 @@ describe("what a search found", () => {
 // is out of sight everywhere except its own chip — which is the whole of what he asked for.
 describe("an item set aside", () => {
   const aside = item(7, { heldAt: 1_756_900_000, heldReason: "not now" });
-  const board: TodoBoard = { queue: [item(1)], pending: [item(9, { approved: false, awaitingApproval: true })], held: [aside], merged: [], done: [], doneTotal: 0, standingNotes: [], choices: CHOICES, standing: { queue: 1, running: 0, pending: 1, held: 1, merged: 0 }, paused: false, deployHold: null };
+  const board: TodoBoard = { queue: [item(1)], pending: [item(9, { approved: false, awaitingApproval: true })], held: [aside], merged: [], done: [], doneTotal: 0, standingNotes: [], choices: CHOICES, standing: { queue: 1, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 0 }, paused: false, deployHold: null };
 
   test("is neither waiting nor waiting on him: it waits on nothing", () => {
     expect(todoState(aside)).toBe("held");
@@ -1162,7 +1202,7 @@ describe("an item merged into another", () => {
     doneTotal: 0,
     standingNotes: [],
     choices: CHOICES,
-    standing: { queue: 1, running: 0, pending: 0, held: 0, merged: 1 },
+    standing: { queue: 1, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 1 },
     paused: false, deployHold: null
   };
 

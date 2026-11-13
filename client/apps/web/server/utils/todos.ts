@@ -414,6 +414,8 @@ function standingOf(items: readonly Item[], live: ReadonlyMap<number, LiveJobOf>
   return {
     queue: items.filter((item) => listOf(item) === "queue").length,
     running: items.filter((item) => listOf(item) === "queue" && going(item)).length,
+    deploy: items.filter((item) => listOf(item) === "queue" && !going(item) && waitsToGoLive(item.labels["close-phase"])).length,
+    deploying: 0,
     pending: items.filter((item) => listOf(item) === "pending").length,
     held: items.filter((item) => listOf(item) === "held").length,
     merged: 0

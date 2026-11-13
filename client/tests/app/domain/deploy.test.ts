@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { deployMarkOf, ENDING_SHOWN_MS, holdLimit, holdWaits, itemDeployPhase, stageRows, stageSpans, stepLabel } from "../../../apps/web/app/domain/deploy";
+import { deployMarkOf, ENDING_SHOWN_MS, holdLimit, holdWaits, ITEM_DEPLOY_COLOURS, itemDeployPhase, stageRows, stageSpans, stepLabel, withDeploying } from "../../../apps/web/app/domain/deploy";
+import type { TodoBoard, TodoItem } from "../../../apps/web/shared/types";
 import type { ItemOnItsWayLive } from "../../../apps/web/app/domain/deploy";
 
 import type { DeployRunView, DeployView } from "../../../apps/web/shared/types";
@@ -188,6 +189,17 @@ describe("an item on its way live", () => {
   ];
   const item = (id: number, over: Partial<ItemOnItsWayLive> = {}): ItemOnItsWayLive => ({ id, done: false, liveState: null, closing: null, ...over });
   const waiting = (commit: string | null): ItemOnItsWayLive["closing"] => ({ phase: "waiting-live", commit });
+
+  test("marks the board's rows a run under way carries as being put live, and counts them, each phase in a colour of its own", () => {
+    const row = (id: number, commit: string) => ({ ...item(id, { closing: waiting(commit) }) }) as unknown as TodoItem;
+    const board = { queue: [row(1201, "x".repeat(40)), row(1203, "d".repeat(40))], standing: { queue: 2, running: 0, deploy: 2, deploying: 0, pending: 0, held: 0, merged: 0 } } as unknown as TodoBoard;
+    const marked = withDeploying(board, view({ run: run({ carried }) }));
+
+    expect(marked.queue.map((one) => one.deploying === true)).toEqual([true, false]);
+    expect(marked.standing.deploying).toBe(1);
+    expect(withDeploying(board, null).standing.deploying).toBe(0);
+    expect(new Set(Object.values(ITEM_DEPLOY_COLOURS)).size).toBe(3);
+  });
 
   test("is being put live while the run's check stage is under way, and before the first stage of a plan that opens with it", () => {
     const checking = view({ run: run({ carried, stages: [{ stage: "check", at: NOW - 1_000 }] }) });

@@ -20,7 +20,7 @@ afterAll(async () => { await browser?.close(); });
 const empty: TodoBoard = {
   queue: [], pending: [], held: [], merged: [], done: [], doneTotal: 0, standingNotes: [],
   choices: { workers: [], chats: [], requesters: [] },
-  standing: { queue: 0, running: 0, pending: 0, held: 0, merged: 0 },
+  standing: { queue: 0, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 0 },
   paused: false, deployHold: null
 };
 

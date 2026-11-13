@@ -23,9 +23,21 @@ export interface TodoSection {
 }
 
 // Where one item stands, in the words the panel speaks: waiting on the owner, waiting in the
-// queue, being launched, being done by a job, held while its run still goes, done but still being
-// reported, set aside, merged into another item and waiting for it, or done.
-export type TodoState = "pending" | "waiting" | "starting" | "running" | "stopping" | "reporting" | "held" | "merged" | "done";
+// queue, being launched, being done by a job, its work merged and waiting for its deployment or being
+// put live by one, held while its run still goes, done but still being reported, set aside, merged into another item and
+// waiting for it, or done.
+export type TodoState =
+  | "pending"
+  | "waiting"
+  | "starting"
+  | "running"
+  | "deploy"
+  | "deploying"
+  | "stopping"
+  | "reporting"
+  | "held"
+  | "merged"
+  | "done";
 
 // What the filter chips name. Reporting and waiting-to-stop are not among them: each is a state a
 // row wears on its way out, not one anybody would sit and watch a list of. A job is still going on
@@ -59,7 +71,7 @@ export const NO_CONDITIONS: TodoConditions = { worker: null, unfinished: null, c
 
 const CONDITION_KEYS = Object.keys(NO_CONDITIONS) as (keyof TodoConditions)[];
 
-const FILTERS: readonly TodoFilter[] = ["all", "waiting", "running", "pending", "held", "merged", "done"];
+const FILTERS: readonly TodoFilter[] = ["all", "waiting", "running", "deploy", "deploying", "pending", "held", "merged", "done"];
 
 export const DEFAULT_VIEW: TodoView = { filter: "all", conditions: NO_CONDITIONS };
 
@@ -70,6 +82,8 @@ const STATE_LABELS: Record<Exclude<TodoState, "stopping">, string> = {
   waiting: "todo.label.state_waiting",
   starting: "todo.label.state_starting",
   running: "todo.label.state_running",
+  deploy: "todo.label.state_deploy",
+  deploying: "todo.label.state_deploying",
   reporting: "todo.label.state_reporting",
   held: "todo.label.state_held",
   merged: "todo.label.state_merged",
@@ -215,7 +229,17 @@ export function todoState(item: TodoItem, _now: number = toUnixSeconds(Date.now(
     return "starting";
   }
 
-  return item.liveState === "running" ? "running" : "waiting";
+  if (item.liveState === "running") {
+    return "running";
+  }
+
+  // A close that merged its commit leaves its work done and the item waiting for its repository's deployment
+  // alone, which is no work for the queue to take.
+  if (item.closing?.phase !== "waiting-batch" && item.closing?.phase !== "waiting-live") {
+    return "waiting";
+  }
+
+  return item.deploying === true ? "deploying" : "deploy";
 }
 
 // Whether a job is still going on for a row in this state: under way, winding down on its way to
@@ -328,6 +352,8 @@ const STATE_ICONS: Record<TodoState, string> = {
   waiting: "i-material-symbols-schedule-outline",
   starting: "i-material-symbols-progress-activity",
   running: "i-material-symbols-progress-activity",
+  deploy: "i-material-symbols-rocket-outline",
+  deploying: "i-material-symbols-rocket-launch-outline",
   stopping: "i-material-symbols-pause-circle-outline",
   reporting: "i-material-symbols-progress-activity",
   held: "i-material-symbols-pause-circle-outline",
@@ -347,11 +373,20 @@ export function stateIcon(item: TodoItem, now: number = toUnixSeconds(Date.now()
 export function stateColour(
   item: TodoItem,
   now: number = toUnixSeconds(Date.now())
-): "primary" | "success" | "warning" | "neutral" {
+): "primary" | "secondary" | "info" | "success" | "warning" | "neutral" {
   const state = todoState(item, now);
 
   if (state === "done") {
     return "success";
+  }
+
+  // Work already merged stands apart from the queue's own: waiting for its deployment, or being put live.
+  if (state === "deploy") {
+    return "info";
+  }
+
+  if (state === "deploying") {
+    return "secondary";
   }
 
   if (state === "pending" || state === "stopping" || (state === "waiting" && item.stopped !== null)) {
@@ -1074,11 +1109,19 @@ export function boardInOrder(board: TodoBoard, order: number[]): TodoBoard {
 // how the queue stands.
 export function todoSummary(t: Translate, board: TodoBoard, now: number = toUnixSeconds(Date.now())): string {
   const waiting = board.standing.pending;
-  const queue = board.standing.queue + reportingOf(board, now).length;
+  const queue = board.standing.queue - board.standing.deploy + reportingOf(board, now).length;
   // What is set aside is counted in the header even though its rows are not shown. Out of the
   // way is the point of it; forgotten is not, and a number he can see is what keeps the two
   // apart.
   const parts = [t("todo.label.summary_queue", { n: queue })];
+
+  if (board.standing.deploying > 0) {
+    parts.push(t("todo.label.summary_deploying", { n: board.standing.deploying }));
+  }
+
+  if (board.standing.deploy - board.standing.deploying > 0) {
+    parts.push(t("todo.label.summary_deploy", { n: board.standing.deploy - board.standing.deploying }));
+  }
 
   if (waiting > 0) {
     parts.push(t("todo.label.summary_pending", { n: waiting }));
@@ -1104,9 +1147,13 @@ export function filterCount(board: TodoBoard, filter: TodoFilter, now: number = 
 
   switch (filter) {
     case "waiting":
-      return standing.queue - standing.running;
+      return standing.queue - standing.running - standing.deploy;
     case "running":
       return standing.running + reportingOf(board, now).length;
+    case "deploy":
+      return standing.deploy - standing.deploying;
+    case "deploying":
+      return standing.deploying;
     case "pending":
       return standing.pending;
     case "held":
@@ -1200,7 +1247,7 @@ function holdsFilter(key: TodoSection["key"], filter: TodoFilter, searching: boo
   }
 
   if (key === "queue") {
-    return filter === "waiting" || filter === "running";
+    return filter === "waiting" || filter === "running" || filter === "deploy" || filter === "deploying";
   }
 
   return key === filter;

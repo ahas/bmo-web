@@ -132,7 +132,7 @@ describe("the lists each item stands in", () => {
     expect(ids(board.merged)).toEqual([]);
     expect(ids(board.done)).toEqual([5, 4, 3]);
     expect(board.doneTotal).toBe(3);
-    expect(board.standing).toEqual({ queue: 2, running: 0, pending: 1, held: 1, merged: 0 });
+    expect(board.standing).toEqual({ queue: 2, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 0 });
     expect(board.queue.find((one) => one.id === 7)).toMatchObject({ approved: false, awaitingApproval: false });
   });
 
@@ -143,6 +143,19 @@ describe("the lists each item stands in", () => {
 
     expect(ids(board.queue)).toEqual([33]);
     expect(board.queue[0]).toMatchObject({ deployHeld: true, closing: { phase: "waiting-batch", commit: "def456" } });
+  });
+
+  test("an open item whose close merged its commit is counted apart as waiting for its deployment", async () => {
+    stand([
+      item(34, { state: "open", labels: { "close-phase": "waiting-batch", "close-commit": "aaa111" } }),
+      item(35, { state: "open", labels: { "close-phase": "waiting-live", "close-commit": "bbb222" } }),
+      item(36, { state: "open" })
+    ]);
+
+    const board = await readTodoBoard();
+
+    expect(ids(board.queue)).toEqual([34, 35, 36]);
+    expect(board.standing).toMatchObject({ queue: 3, running: 0, deploy: 2, deploying: 0 });
   });
 
   test("an item its job held only until its commit goes live stands in the queue as waiting, never set aside", async () => {

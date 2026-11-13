@@ -690,6 +690,9 @@ export interface TodoItem {
   // Held by its job only until its close's commit goes live, its last check needing that commit (docs/web.md, the
   // TODO panel's section): it stands in the queue as waiting with the words of its way live, never as held.
   deployHeld: boolean;
+  // Whether a deployment under way carries the item's commit: set by the panel from the deploy view it reads, which the
+  // board does not carry, and absent on the board as the server answers it.
+  deploying?: boolean;
   // Held while a run of it still goes: the item reads as waiting to stop and stays in the queue until the
   // run has ended (bmo-job's docs/work-orders.md).
   holdPending: boolean;
@@ -788,6 +791,12 @@ export interface TodoStanding {
   queue: number;
   // The rows of the queue a run is going on for, a held one still ending included.
   running: number;
+  // The rows of the queue whose close merged their commit and that wait, no run going, for its deployment, those a
+  // deployment under way carries among them.
+  deploy: number;
+  // Of those, the rows a deployment under way carries: counted by the panel from the deploy view, 0 as the server
+  // answers it.
+  deploying: number;
   pending: number;
   held: number;
   merged: number;

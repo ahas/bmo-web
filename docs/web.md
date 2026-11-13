@@ -5776,9 +5776,14 @@ Four bounds keep it from growing forever.
     alone or with subagents of its own, is its agent's. An item bmo-job marks done while the agency's job for it is
     still going stands **완료 보고 중** until the agency tells its stream that the job ended (its `job.ended`), however long
     that takes; the agency keeps the job's lease through the close (its `docs/role-slots.md`, 「The line」), so the line
-    never falls back to 대기 on its way out. **배포 대기**, **배포 중** and **배포 실패** are what a row's
-    state chip says while they apply, in place of 진행 중 or 대기, saying where the item's work stands on its way live,
-    with the rocket mark. A job's own close checking its change before the merge, the item's label `close-phase`
+    never falls back to 대기 on its way out. **배포 대기** and **배포 중** are states of their own, each with its own
+    filter chip, count and colour, apart from 대기: an item whose close merged its commit has its work done, and no
+    queue would take it again. 배포 대기 (the console's info colour) stands for such an item no job runs on, and
+    배포 중 (its secondary colour) for one a deployment under way carries, which the panel reads from the deploy view
+    the title bar reads (「Deployment in the title bar」), since the board carries no deployment. The strip counts
+    them apart from the queue's own, and the 대기 chip counts neither. **배포 실패** is the chip's word, in the
+    error colour, on a row still waiting on its commit whose deployment failed. The chip says each with the rocket
+    mark. A job's own close checking its change before the merge, the item's label `close-phase`
     reading `testing` (bmo-job's `docs/cli.md`, 「`bmo-job job close`」), changes no chip: the row stays 진행 중, and its
     testbed line says the check it runs, as every command of the job's in the testbed's queue is said there
     (the running line's testbed words below). 배포 대기 stands once the close
@@ -5796,8 +5801,7 @@ Four bounds keep it from growing forever.
     label `close-commit` names — the row says 배포 중 through every stage of that run, its 검사·테스트 stage among them,
     until the run ends; where the run the title bar reads ended failed or rolled back,
     the row of an item still waiting on its commit says 배포 실패, until a job of the item runs again or another run
-    stands in the bar. They are the chip's words, never a state of their own, a filter
-    chip or a place in the order, and a finished row carries none. A reporting line stays at the top with
+    stands in the bar. They take no place in the order of their own, and a finished row carries none. A reporting line stays at the top with
     the running ones, where it stood while running, until its job has ended; the 진행 중 filter shows it and its badge counts
     it. Being unfinished work its tag colour is like 진행 중's, and being a completed line it carries no drag handle, has no
     place in the order a drop saves, and opening it has no button to press.

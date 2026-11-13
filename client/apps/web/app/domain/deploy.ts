@@ -1,7 +1,7 @@
 import { countText } from "./numbers";
 import { formatClock, spanClock } from "bmo-ui/app/domain/time";
 
-import type { DeployCommit, DeployHold, DeployRunView, DeployView, TodoItem } from "#shared/types";
+import type { DeployCommit, DeployHold, DeployRunView, DeployView, TodoBoard, TodoItem } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { DeployPart, DeployStage, DeployStep, DeployStepAhead } from "#shared/deploy-progress";
 
@@ -315,4 +315,20 @@ export function itemDeployPhase(view: DeployView | null | undefined, item: ItemO
   if (item.closing?.phase !== "waiting-batch" && item.closing?.phase !== "waiting-live") return null;
 
   return carried && (run?.outcome === "failed" || run?.outcome === "rolled-back") ? "deploy-failed" : "waiting-live";
+}
+
+/** The colour a row's way-live chip wears: waiting for its deployment, being put live, or its deployment failed. */
+export const ITEM_DEPLOY_COLOURS: Record<ItemDeployPhase, "info" | "secondary" | "error"> = {
+  "waiting-live": "info",
+  deploying: "secondary",
+  "deploy-failed": "error"
+};
+
+/** The board with each queue row a deployment under way carries marked so, and their count, from the deploy view the
+ * board does not carry: what tells the panel's rows being put live from those waiting for a deployment. */
+export function withDeploying(board: TodoBoard, view: DeployView | null | undefined): TodoBoard {
+  const queue = board.queue.map((item) => (itemDeployPhase(view, item) === "deploying" ? { ...item, deploying: true } : item));
+  const deploying = queue.filter((item) => item.deploying === true && item.liveState == null).length;
+
+  return { ...board, queue, standing: { ...board.standing, deploying } };
 }

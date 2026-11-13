@@ -403,12 +403,11 @@
               </MovingList>
 
               <div class="mt-1 flex flex-wrap items-center gap-1">
-                <!-- Where the item's work stands on its way live — being tested, waiting to go live, being put live, or
-                     its deployment failed — is what its state chip says while it applies, in place of the running or waiting word:
-                     no state, filter or place in the order of its own. -->
+                <!-- Where the item's work stands on its way live — waiting to go live, being put live, or its deployment
+                     failed — is what its state chip says while it applies, in the colour of that phase. -->
                 <UBadge
                   v-if="itemDeployPhase(deployView, item) !== null"
-                  :color="stateColour(item)"
+                  :color="ITEM_DEPLOY_COLOURS[itemDeployPhase(deployView, item)!]"
                   variant="subtle"
                   size="sm"
                   icon="i-material-symbols-rocket-launch-outline"
@@ -543,7 +542,7 @@ import { questionsOfTodo, questionSummary, useOpenQuestions } from "~/domain/que
 import { useTodoPanelLayout, useTodoView } from "~/domain/todo-settings";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { holdWaits } from "~/domain/queue-place";
-import { ITEM_DEPLOY_LABELS, itemDeployPhase } from "~/domain/deploy";
+import { ITEM_DEPLOY_COLOURS, ITEM_DEPLOY_LABELS, itemDeployPhase, withDeploying } from "~/domain/deploy";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { useConfirm } from "~/domain/confirm";
 import { matchFields } from "bmo-ui/shared/search";
@@ -637,7 +636,7 @@ const EMPTY: TodoBoard = {
   doneTotal: 0,
   standingNotes: [],
   choices: { workers: [], chats: [], requesters: [] },
-  standing: { queue: 0, running: 0, pending: 0, held: 0, merged: 0 },
+  standing: { queue: 0, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 0 },
   paused: false,
   deployHold: null
 };
@@ -681,6 +680,9 @@ useTestbedEvents(() => {
 const testbedTurns = computed(() => new Map((testbedRead.value?.items ?? []).map((turn) => [turn.itemId, turn])));
 
 const board = ref<TodoBoard>(EMPTY);
+// The board with the rows a deployment under way carries told from those still waiting for one, which the deploy view
+// says and the board does not: what the sections, the chips' counts and the strip read.
+const shownBoard = computed(() => withDeploying(board.value, deployView.value));
 // What the jobs have stopped to ask him, and the clock the countdown on an open one is read
 // against. The questions are the console's own one reading of them — the strip that stands over
 // every screen is looking at the same list, so the panel and the strip cannot disagree about
@@ -833,7 +835,7 @@ function setCondition(key: keyof TodoConditions, choice: string): void {
 // holds none carries nothing, so a badge is always news.
 const filterTabs = computed(() =>
   todoFilters().map((choice) => {
-    const count = loaded.value ? filterCount(board.value, choice, now.value) : null;
+    const count = loaded.value ? filterCount(shownBoard.value, choice, now.value) : null;
 
     return {
       value: choice,
@@ -850,7 +852,7 @@ function awaitsAnswer(todoId: number): boolean {
 }
 // The rows are read against the panel's own clock, so a row whose reporting grace has run out
 // leaves the queue on its own, with nothing asked of the archive for it.
-const sections = computed(() => todoSections(t, board.value, view.value, now.value, search.value.trim() !== ""));
+const sections = computed(() => todoSections(t, shownBoard.value, view.value, now.value, search.value.trim() !== ""));
 
 // The tab is what the list is: a search or a condition narrows the same list, and its rows move within it, while
 // another tab is another list.
@@ -864,7 +866,7 @@ const doneTailLine = computed(() =>
   doneTail(t, { shown: board.value.done.length, total: board.value.doneTotal, searching: search.value.trim() !== "" })
 );
 const queueRows = computed(() => sections.value.find((section) => section.key === "queue")?.items ?? []);
-const summary = computed(() => todoSummary(t, board.value));
+const summary = computed(() => todoSummary(t, shownBoard.value));
 
 // Dragging the edge: leftward widens, and the width is written down as it settles.
 function onDragStart(event: PointerEvent): void {

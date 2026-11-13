@@ -162,6 +162,8 @@ section states what each does.
   permitted contact details hold the words; at most 20 without a `limit`, and never more than 50.
 - **`GET /users/{user}/person`** — one person of the reader's own company; 404 where the user does not stand or
   stands in another company (「The people directory」).
+- **`GET /users/members`** — every person of the reader's own company who has not left, by user id and name
+  alone, with no limit (「The people directory」).
 
 ### Console sections
 
@@ -306,7 +308,8 @@ section states what each does.
   answer, not empty.
 - **The members list is every person of the reader's company who has not left,** the users of the company at the
   top of the reader's branch of the tree but those marked left (「A person who leaves」), each by their user id and
-  their name alone, in the directory's order and with no limit: what a picker needs to find a person and show them, and nothing of their unit, job title or contact.
+  their name alone, in the directory's order and with no limit: what a picker needs to find a person and show
+  them, and nothing of their unit, job title or contact.
   It is refused as a search is, for a call naming no user of the deployment or a reader whose unit stands in no
   company. The console hands it to the screens a unit brings (`docs/web.md`, 「Screens a unit brings」).
 - **A search matches only the fields its reader may see.** A member's words are matched against the name, the

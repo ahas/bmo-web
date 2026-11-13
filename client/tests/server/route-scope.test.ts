@@ -149,12 +149,13 @@ describe("a console route as another user meets it", () => {
     expect(await answer({ file: "repositories.get", method: "GET", path: "/api/repositories" })).toBe(404);
   });
 
-  test("a reader whose account section is closed reaches neither the people search nor a person's page", async () => {
+  test("a reader whose account section is closed reaches neither the people search, the members list nor a person's page", async () => {
     service.sections.set(4, new Map());
     session = { user: { name: "no-account", id: 4 }, sid: "bmo.sid=no-account", administrator: false };
 
     expect(await answer({ file: "people/search.get", method: "GET", path: "/api/people/search" })).toBe(404);
     expect(await answer({ file: "people/[user].get", method: "GET", path: "/api/people/1" })).toBe(404);
+    expect(await answer({ file: "people/members.get", method: "GET", path: "/api/people/members" })).toBe(404);
   });
 
   test("the administrator and a console login reach every route", async () => {

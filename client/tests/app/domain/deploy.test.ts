@@ -191,8 +191,8 @@ describe("an item on its way live", () => {
   const waiting = (commit: string | null): ItemOnItsWayLive["closing"] => ({ phase: "waiting-live", commit });
 
   test("marks the board's rows a run under way carries as being put live, and counts them, each phase in a colour of its own", () => {
-    const row = (id: number, commit: string) => ({ ...item(id, { closing: waiting(commit) }) }) as unknown as TodoItem;
-    const board = { queue: [row(1201, "x".repeat(40)), row(1203, "d".repeat(40))], standing: { queue: 2, running: 0, deploy: 2, deploying: 0, pending: 0, held: 0, merged: 0 } } as unknown as TodoBoard;
+    const row = (id: number, commit: string) => item(id, { closing: waiting(commit) }) as TodoItem;
+    const board = { queue: [row(1201, "x".repeat(40)), row(1203, "d".repeat(40))], standing: { queue: 2, running: 0, deploy: 2, deploying: 0, pending: 0, held: 0, merged: 0 } } as TodoBoard;
     const marked = withDeploying(board, view({ run: run({ carried }) }));
 
     expect(marked.queue.map((one) => one.deploying === true)).toEqual([true, false]);

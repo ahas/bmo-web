@@ -21,6 +21,14 @@ const detailTemplate = detailSource.slice(0, detailSource.indexOf("<script"));
 const waitSource = await Bun.file(new URL("../../../apps/web/app/components/TodoWaitLine.vue", import.meta.url)).text();
 const waitTemplate = waitSource.slice(0, waitSource.indexOf("<script"));
 const WAIT_LINE = '<TodoWaitLine v-if="item.waiting !== null"';
+// What a row holds is a part of its own inside the panel's row, so what it draws is read off its own file.
+const rowSource = await Bun.file(new URL("../../../apps/web/app/components/TodoRow.vue", import.meta.url)).text();
+const rowTemplate = rowSource.slice(0, rowSource.indexOf("<script"));
+
+// Every expression a template binds, attribute or interpolation.
+function bindingsOf(drawn: string): string[] {
+  return [...drawn.matchAll(/\s(?:[:@#]|v-)[\w.:-]*="([^"]*)"|\{\{([^}]*)\}\}/g)].map((found) => found[1] ?? found[2] ?? "");
+}
 
 // The opening tag of the one element a mark stands in, with its attributes and nothing of what
 // it holds: the mark may be inside the tag or in the element's own text, and either way it is
@@ -45,17 +53,17 @@ const row = tagOf('v-for="item in section.items"');
 // item's own field and nothing else.
 describe("the checkout a row's order is holding", () => {
   test("the reason is shown from the item, under its own label", () => {
-    const line = template.slice(template.indexOf('v-if="item.holding !== null"'), template.indexOf("</p>", template.indexOf('v-if="item.holding !== null"')));
+    const line = rowTemplate.slice(rowTemplate.indexOf('v-if="item.holding !== null"'), rowTemplate.indexOf("</p>", rowTemplate.indexOf('v-if="item.holding !== null"')));
 
     expect(line).toContain("todo.label.field_checkout_reason");
-    expect(template).toContain(":text=\"$t('todo.label.field_checkout_reason', { reason: item.holding })\"");
+    expect(rowTemplate).toContain(":text=\"$t('todo.label.field_checkout_reason', { reason: item.holding })\"");
   });
 });
 
 describe("a row of the list", () => {
   test("there is a template to read, so nothing below passes on an empty string", () => {
     expect(template.length).toBeGreaterThan(500);
-    expect(template).toContain('<SearchText :text="stateLabel($t, item)" :query="searched" />');
+    expect(rowTemplate).toContain('<SearchText :text="stateLabel($t, item)" :query="query" />');
     expect(row).toContain("<li");
   });
 
@@ -68,13 +76,13 @@ describe("a row of the list", () => {
   // What a row says in words stands under its title and its chips stand last, so a line such as
   // a job's wait never sits squeezed under a run of chips.
   test("stands its lines of words under the title and its chips at its foot", () => {
-    const chips = template.indexOf('<div class="mt-1 flex flex-wrap items-center gap-1">');
-    const title = template.indexOf('@click="toggle(item.id)"');
+    const chips = rowTemplate.indexOf('<div class="mt-1 flex flex-wrap items-center gap-1">');
+    const title = rowTemplate.indexOf("@click=\"emit('open', item.id)\"");
 
     expect(chips).toBeGreaterThan(-1);
 
     for (const line of [WAIT_LINE, "deployWaitsLine($t, item) !== null", "stoppedLine($t, item) !== null", "item.mergedInto !== null", 'v-if="item.holding !== null"']) {
-      const at = template.indexOf(line);
+      const at = rowTemplate.indexOf(line);
 
       expect({ line, underTitle: at > title, aboveChips: at < chips }).toEqual({ line, underTitle: true, aboveChips: true });
     }
@@ -84,14 +92,14 @@ describe("a row of the list", () => {
   // above it as its own padding so that space folds with it (docs/web.md, 「Motion」). How the list moves is read in
   // the browser.
   test("moves its lines under the title through one moving list, each holding the space above it", () => {
-    const opened = template.indexOf("data-item-lines");
-    const closed = template.indexOf("</MovingList>", opened);
+    const opened = rowTemplate.indexOf("data-item-lines");
+    const closed = rowTemplate.indexOf("</MovingList>", opened);
 
-    expect(tagOf("data-item-lines").startsWith("<MovingList")).toBe(true);
+    expect(tagOf("data-item-lines", rowTemplate).startsWith("<MovingList")).toBe(true);
 
-    for (const line of [WAIT_LINE, 'v-if="testbedTurns.has(item.id)"', "deployWaitsLine($t, item) !== null", "stoppedLine($t, item) !== null", "item.mergedInto !== null", 'v-if="item.holding !== null"']) {
-      const at = template.indexOf(line);
-      const tag = tagOf(line);
+    for (const line of [WAIT_LINE, 'v-if="testbedTurn !== null"', "deployWaitsLine($t, item) !== null", "stoppedLine($t, item) !== null", "item.mergedInto !== null", 'v-if="item.holding !== null"']) {
+      const at = rowTemplate.indexOf(line);
+      const tag = tagOf(line, rowTemplate);
       // The wait line is a part of its own, whose padding stands on its own element.
       const drawn = line === WAIT_LINE ? tagOf("<p", waitTemplate) : tag;
 
@@ -109,19 +117,40 @@ describe("a row of the list", () => {
   });
 
   // A second's tick redraws the parts of a row that show a time and never the list (docs/web.md, the TODO panel's
-  // section), so no binding the panel's own template draws the list with reads the clock.
+  // section), so no binding the panel's own template or a row's draws the list with reads the clock.
   test("reads the clock in no binding of its own", () => {
-    const bindings = [...template.matchAll(/\s(?:[:@#]|v-)[\w.:-]*="([^"]*)"|\{\{([^}]*)\}\}/g)].map((found) => found[1] ?? found[2] ?? "");
+    for (const drawn of [template, rowTemplate]) {
+      const bindings = bindingsOf(drawn);
 
-    expect(bindings.length).toBeGreaterThan(0);
-    expect(bindings.filter((binding) => /\bnow\b/.test(binding))).toEqual([]);
+      expect(bindings.length).toBeGreaterThan(0);
+      expect(bindings.filter((binding) => /\bnow\b/.test(binding))).toEqual([]);
+    }
+  });
+
+  // A row is drawn again only when what it is handed changed (docs/web.md, the TODO panel's section). The moving
+  // list redraws every part that is its own item, so the row's part stands inside the item rather than being it.
+  test("holds its part inside the moving list's item, never as the item itself", () => {
+    const item = template.indexOf('v-for="item in section.items"');
+    const rowPart = template.indexOf("<TodoRow\n");
+
+    expect(row.startsWith("<li")).toBe(true);
+    expect({ afterItem: rowPart > item, insideItem: rowPart < template.indexOf("</li>", item) }).toEqual({ afterItem: true, insideItem: true });
+    expect(tagOf("<TodoRow\n")).not.toContain("v-for");
+    expect(rowTemplate).not.toContain("<li");
+  });
+
+  // What is typed stands in the search box alone, so a keystroke draws the box and no row: the panel reads only the
+  // phrase the box hands it.
+  test("reads nothing typed into the search box in a binding of its own", () => {
+    expect(template).toContain('<TodoSearchBox :reading="pending" :tally="searchTallyLine" @search="onSearch" />');
+    expect(bindingsOf(template).filter((binding) => /\bsearch\b/.test(binding))).toEqual([]);
   });
 });
 
 
 describe("the word a row wears", () => {
-  const badge = tagOf('<SearchText :text="stateLabel($t, item)"');
-  const badgeTag = template.slice(template.lastIndexOf("<UBadge", template.indexOf('<SearchText :text="stateLabel($t, item)"')), template.indexOf('<SearchText :text="stateLabel($t, item)"'));
+  const badge = tagOf('<SearchText :text="stateLabel($t, item)"', rowTemplate);
+  const badgeTag = rowTemplate.slice(rowTemplate.lastIndexOf("<UBadge", rowTemplate.indexOf('<SearchText :text="stateLabel($t, item)"')), rowTemplate.indexOf('<SearchText :text="stateLabel($t, item)"'));
 
   test("takes its colour from the one place that decides it", () => {
     expect(badge).toContain('<SearchText');
@@ -581,8 +610,8 @@ describe("the result of an item", () => {
   });
 
   test("the row's report mark stands for any report, with how many where more than one", () => {
-    expect(template).toContain('<UTooltip v-if="item.reports.length > 0" :text="reportsTip($t, item.reports)">');
-    expect(template).toContain('<template v-if="item.reports.length > 1">{{ countText(item.reports.length) }}</template>');
+    expect(rowTemplate).toContain('<UTooltip v-if="item.reports.length > 0" :text="reportsTip($t, item.reports)">');
+    expect(rowTemplate).toContain('<template v-if="item.reports.length > 1">{{ countText(item.reports.length) }}</template>');
   });
 
   test("carries no box inside the unfinished note's box: the resolution stands under a line", () => {
@@ -604,7 +633,7 @@ describe("the model chip and the agent chooser", () => {
 
   test("the chip names the road on the line and in the head and is pressed nowhere", () => {
     // On the line a tap opens the item, so a finger rests on the chip to read its tooltip; in the head a tap reads it.
-    expect(template).toContain('<ItemModelChip :item="item" :query="searched" press />');
+    expect(rowTemplate).toContain('<ItemModelChip :item="item" :query="query" press />');
     expect(chipTemplate).toMatch(/<HintTip [^>]*:press="props.press">/);
     expect(detailTemplate).toContain('<ItemModelChip :item="ranItem ?? openedItem" />');
     expect(chipTemplate).not.toContain("<USelect");
@@ -621,8 +650,8 @@ describe("the model chip and the agent chooser", () => {
     expect(agentTemplate).toContain(":placeholder=\"$t('todo.label.agent_unnamed')\"");
     // The line names the agent its work runs on: the running job's own, else the one the item names, else the role
     // whose free agent on its model takes it.
-    expect(template).toContain('data-item-agent-named>{{ itemAgent(item) }}');
-    expect(template).toMatch(/<HintTip v-else-if="itemFreeAgent\(item\) !== null"[^>]*press>\s*<UBadge[^>]*data-item-agent-free>/);
+    expect(rowTemplate).toContain('data-item-agent-named>{{ itemAgent(item) }}');
+    expect(rowTemplate).toMatch(/<HintTip v-else-if="itemFreeAgent\(item\) !== null"[^>]*press>\s*<UBadge[^>]*data-item-agent-free>/);
   });
 
   test("while a job runs the head stands the agent it runs on, read and not chosen", () => {

@@ -5,7 +5,7 @@ import { describe, expect, test } from "bun:test";
 
 const read = async (path: string) => await Bun.file(new URL(`../../../apps/web/${path}`, import.meta.url)).text();
 
-const panel = await read("app/components/TodoPanel.vue");
+const row = await read("app/components/TodoRow.vue");
 const badge = await read("app/components/TodoQuestionBadge.vue");
 const item = await read("app/components/TodoItemDetail.vue");
 const ask = await read("app/components/QuestionAsk.vue");
@@ -13,7 +13,7 @@ const ask = await read("app/components/QuestionAsk.vue");
 describe("a job standing on a question", () => {
   // The badge is a part of its own, which reads the panel's clock itself (docs/web.md, the TODO panel's section).
   test("marks its row in the list and on the board", () => {
-    expect(panel).toContain('<TodoQuestionBadge v-if="askedOf.has(item.id)"');
+    expect(row).toContain('<TodoQuestionBadge v-if="questions !== null" :questions="questions" />');
     expect(badge).toContain("data-awaiting-question");
     expect(badge).toContain('$t("todo.label.awaiting_question")');
     expect(badge).toContain('questionState(question, clock.value) === "open"');

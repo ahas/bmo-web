@@ -133,37 +133,7 @@
       </UButton>
     </div>
 
-    <!-- Looking for one row among all of them. It reaches the archive rather than the rows on
-         the screen, so the queue and the requests waiting on him are searched along with every
-         finished item, and it matches what a row shows as well as what the item holds. -->
-    <div class="border-b border-default px-3 py-2">
-      <UInput
-        v-model="search"
-        size="sm"
-        class="w-full"
-        icon="i-material-symbols-search"
-        :placeholder="$t('todo.placeholder.search')"
-        :aria-label="$t('todo.aria.search')"
-        :maxlength="TODO_SEARCH_LIMIT"
-        :loading="pending && search.trim() !== ''"
-        @update:model-value="onSearch"
-      >
-        <template v-if="search !== ''" #trailing>
-          <UTooltip :text="$t('todo.action.clear_search')">
-            <UButton
-              icon="i-material-symbols-close"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-              :aria-label="$t('todo.action.clear_search')"
-              @click="clearSearch"
-            />
-          </UTooltip>
-        </template>
-      </UInput>
-
-      <p v-if="(search.trim() !== '' || conditionsSet > 0) && loaded && !pending" class="mt-1 px-1 text-sm text-muted">{{ searchTally($t, board) }}</p>
-    </div>
+    <TodoSearchBox :reading="pending" :tally="searchTallyLine" @search="onSearch" />
 
     <!-- What is shown and in what order; both are kept in this browser. -->
     <div :class="['flex h-10 shrink-0 items-center gap-1 px-3', TAB_ROW_LINE]">
@@ -295,13 +265,13 @@
 
 
           <MovingList class="flex flex-col gap-1">
-            <!-- A row is two columns: the handle's own, which every row keeps whether or not it can
-                 be carried, and the content, whose lines all start on one edge. On a phone the
-                 number stands on a line of its own above the title, so the title has the width. A row off
-                 screen skips its styling and layout until it comes near, so a change over the whole page, a menu
-                 standing over it among them, costs the rows in view alone (docs/web.md, 「Floating things」); the
-                 clip that skipping brings leaves more room outside the row than the keyboard's ring takes, its width and
-                 its gap, as a plain length: the browser takes no sum there. -->
+            <!-- A row is two columns: the handle's own, which every row keeps whether or not it can be carried, and
+                 the content, whose lines all start on one edge. What it holds is a part of its own inside the moving
+                 list's item, drawn again only when what it is handed changed (docs/web.md, the TODO panel's section).
+                 A row off screen skips its styling and layout until it comes near, so a change over the whole page, a
+                 menu standing over it among them, costs the rows in view alone (docs/web.md, 「Floating things」); the
+                 clip that skipping brings leaves more room outside the row than the keyboard's ring takes, its width
+                 and its gap, as a plain length: the browser takes no sum there. -->
             <li
               v-for="item in section.items"
               :key="item.id"
@@ -309,169 +279,22 @@
               class="relative grid grid-cols-[1rem_minmax(0,1fr)] gap-x-1 rounded-lg border py-2 ps-1 pe-2 transition-colors hover:bg-elevated/50 [content-visibility:auto] [contain-intrinsic-size:auto_4.5rem] [overflow-clip-margin:0.5rem]"
               :class="rowMark(item.id)"
             >
-              <div class="row-span-6 flex justify-center">
-                <!-- The handle is the only thing that starts a drag: a press anywhere else on the
-                     row opens it, and a touch anywhere else on the panel scrolls it. The handle
-                     alone takes the browser's own touch gestures off, so a finger that starts here
-                     carries the row instead of scrolling. The arrows in the opened row do the same
-                     thing by keyboard. -->
-                <span
-                  v-if="canDrag(item, view, searched !== '')"
-                  data-drag-handle
-                  class="mt-0.5 shrink-0 cursor-grab touch-none select-none text-muted hover:text-highlighted active:text-primary"
-                  role="img"
-                  :aria-label="$t('todo.aria.drag_reorder')"
-                  @pointerdown="onHandleDown(item.id, $event)"
-                >
-                  <UIcon name="i-material-symbols-drag-indicator" class="size-4" />
-                </span>
-              </div>
-
-                <!-- A press opens the row's detail over the list, so the mark is the one every
-                     row that opens a dialog in this console carries, and it says the same thing
-                     whichever row is open. The keyboard reaching it rings the whole row in the
-                     row's own corners, while a press is still taken by the title alone. -->
-                <!-- The title gives way and wraps, so however long it is the mark stays at the row's
-                     end and the panel never scrolls sideways. -->
-                <button
-                  type="button"
-                  class="flex min-w-0 items-start gap-2 text-start after:pointer-events-none after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none focus-visible:after:outline-solid focus-visible:after:outline-offset-(--bmo-focus-gap)"
-                  @click="toggle(item.id)"
-                >
-                  <span class="flex min-w-0 flex-1" :class="narrow ? 'flex-col' : 'items-start gap-2'">
-                    <SearchText class="shrink-0 text-sm text-muted tabular-nums" :text="`#${item.id}`" :query="searched" />
-                    <SearchText class="min-w-0 flex-1 text-sm text-highlighted [overflow-wrap:anywhere]" :text="item.title" :query="searched" />
-                  </span>
-                  <UIcon name="i-material-symbols-chevron-right" class="mt-0.5 size-4 shrink-0 text-muted" />
-                </button>
-
-              <!-- The lines a row says in words stand under its title, and its chips stand last, at
-                   the row's foot. The lines are a moving list of their own, so one that comes unfolds its
-                   height under the title and one that goes folds it, each holding the space above it as
-                   its own top padding so that space folds with it (docs/web.md, 「Motion」). -->
-              <MovingList tag="div" class="flex flex-col" data-item-lines>
-                <!-- A long wait the running job marked for itself, which reads the panel's clock on its own. -->
-                <TodoWaitLine v-if="item.waiting !== null" key="waiting" :item="item" :query="searched" />
-
-                <!-- The job's own command in the testbed's queue, holding a seat or waiting its place: a line of the row
-                     like the wait above, with no hover or press of its own. The place turns as the line moves up, and
-                     the command is machine text. -->
-                <p v-if="testbedTurns.has(item.id)" key="testbed" class="flex items-start gap-1 pt-1 text-sm break-words text-muted tabular-nums" data-item-testbed>
-                  <UIcon name="i-material-symbols-science-outline" class="mt-0.5 size-4 shrink-0" />
-                  <i18n-t :keypath="testbedLineKey(testbedTurns.get(item.id)!)" tag="span" class="min-w-0" scope="global">
-                    <template #command><span class="font-mono [overflow-wrap:anywhere]">{{ testbedTurns.get(item.id)!.command }}</span></template>
-                    <template #n><RollingNumber :value="testbedTurns.get(item.id)!.place ?? 0" /></template>
-                  </i18n-t>
-                </p>
-
-                <!-- A backlog deployment holding the queue until this job ends: a line of the row like
-                     the wait above, with no hover or press of its own. -->
-                <p v-if="deployWaitsLine($t, item) !== null" key="deploy-waits" class="flex items-start gap-1 pt-1 text-sm break-words text-muted">
-                  <UIcon name="i-material-symbols-rocket-launch-outline" class="mt-0.5 size-4 shrink-0 text-info" />
-                  <SearchText class="min-w-0" :text="deployWaitsLine($t, item) ?? ''" :query="searched" />
-                </p>
-
-                <!-- A stopped order at the head of its worker's queue says its turn alone, one short
-                     line; what stopped it and why it waits stand whole in the item's detail, and how
-                     many times it failed is a badge below. -->
-                <p v-if="stoppedLine($t, item) !== null" key="stopped" class="badge-ink pt-1 text-sm break-words text-warning">
-                  <SearchText :text="stoppedLine($t, item) ?? ''" :query="searched" />
-                </p>
-
-                <!-- A finished row that was merged says where its work was done; an open one says it in
-                     its badge. -->
-                <p v-if="item.done && item.mergedInto !== null" key="merged" class="pt-1 text-sm text-muted">
-                  <SearchText :text="$t('todo.label.field_merged_into', { id: item.mergedInto })" :query="searched" />
-                </p>
-
-                <!-- An order holding its worker's checkout and unable to use it: what is in the way, in
-                     the runner's own words. The same line `bun scripts/running.ts` prints. -->
-                <p v-if="item.holding !== null" key="holding" class="pt-1 text-sm break-words text-muted">
-                  <SearchText :text="$t('todo.label.field_checkout_reason', { reason: item.holding })" :query="searched" />
-                </p>
-              </MovingList>
-
-              <div class="mt-1 flex flex-wrap items-center gap-1">
-                <!-- Where the item's work stands on its way live — waiting to go live, being put live, or its deployment
-                     failed — is what its state chip says while it applies, in the colour of that phase. -->
-                <UBadge
-                  v-if="itemDeployPhase(deployView, item) !== null"
-                  :color="ITEM_DEPLOY_COLOURS[itemDeployPhase(deployView, item)!]"
-                  variant="subtle"
-                  size="sm"
-                  icon="i-material-symbols-rocket-launch-outline"
-                  data-item-deploy
-                ><SearchText :text="$t(ITEM_DEPLOY_LABELS[itemDeployPhase(deployView, item)!])" :query="searched" /></UBadge>
-                <UBadge v-else :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="searched" /></UBadge>
-
-                <!-- A job standing still behind a question it asked, which reads the panel's clock on its own. -->
-                <TodoQuestionBadge v-if="askedOf.has(item.id)" :questions="askedOf.get(item.id)!" />
-
-                <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
-                <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
-
-                <!-- The model this item's work will go out on, short, with its whole name on hover, and whom its work
-                     runs on: the running job's own agent while one is under way, else the agent the item names, else
-                     the role whose free agent on its model takes it at the launch (docs/web.md, the TODO panel's
-                     section). -->
-                <ItemModelChip :item="item" :query="searched" press />
-                <UBadge v-if="itemAgent(item) !== null" color="neutral" variant="subtle" size="sm" icon="i-material-symbols-smart-toy-outline" data-item-agent-named>{{ itemAgent(item) }}</UBadge>
-                <HintTip v-else-if="itemFreeAgent(item) !== null" :text="freeAgentWords($t, itemFreeAgent(item)!).tip" press>
-                  <UBadge color="neutral" variant="subtle" size="sm" icon="i-material-symbols-groups-outline" data-item-agent-free>{{ freeAgentWords($t, itemFreeAgent(item)!).label }}</UBadge>
-                </HintTip>
-                <!-- How many times the item's review sent its work back, while it was sent back at all. -->
-                <UBadge v-if="item.rejections > 0" color="warning" variant="subtle" size="sm" icon="i-material-symbols-undo" data-item-rejections>{{ $t("todo.label.rejections", { n: countText(item.rejections) }) }}</UBadge>
-
-                <UBadge v-if="(item.stopped?.failures ?? 0) > 0" color="warning" variant="subtle" size="sm">{{ $t("todo.label.stop_failures", { n: countText(item.stopped!.failures) }) }}</UBadge>
-
-                <!-- Which worker is to do it. Only an assignment of his own stands here: a row that
-                     names none goes to the built-in worker, and saying so on every row would be a
-                     badge on nearly all of them. -->
-                <UBadge v-if="item.worker !== null" color="info" variant="outline" size="sm">
-                  <SearchText :text="item.worker" :query="searched" />
-                </UBadge>
-
-                <UIcon v-if="item.note !== null" name="i-material-symbols-format-quote-outline" class="size-4 text-primary" />
-
-                <!-- An item says at a glance that it left an account of itself — how many, where more than one — and
-                     that it left something undone; the accounts themselves are read by opening the row. -->
-                <UTooltip v-if="item.reports.length > 0" :text="reportsTip($t, item.reports)">
-                  <span class="flex items-center gap-0.5 text-sm text-success tabular-nums" :aria-label="reportsTip($t, item.reports)" data-report-mark>
-                    <UIcon name="i-material-symbols-description-outline" class="size-4" />
-                    <template v-if="item.reports.length > 1">{{ countText(item.reports.length) }}</template>
-                  </span>
-                </UTooltip>
-
-                <!-- An outstanding note that has been resolved still stands on the row and still says what was
-                     left; it is no longer one of the leftovers, and the badge reads that way. -->
-                <UBadge
-                  v-if="unfinishedLabel($t, item) !== null"
-                  :color="canResolve(item) ? 'warning' : 'neutral'"
-                  variant="subtle"
-                  size="sm"
-                >
-                  <SearchText :text="unfinishedLabel($t, item) ?? ''" :query="searched" />
-                </UBadge>
-
-                <SearchText
-                  v-if="todoState(item) === 'pending'"
-                  class="text-sm text-muted"
-                  :text="requesterLine(item, rooms)"
-                  :query="searched"
-                />
-              </div>
-
-              <!-- Where the search found this row, when it is in nothing the row shows. -->
-              <SearchHit class="mt-1" :match="rowMatches.get(item.id) ?? null" :query="searched" />
-
-              <!-- Taking the approval back, asked again on the row it is about. -->
-              <TodoUnapproveStep
-                v-if="unapproving === item.id && rowVerbs(item, board.queue).includes('unapprove')"
-                class="col-start-2 mt-2"
-                :id="item.id"
-                :busy="busy.has(busyKey(item.id, 'unapprove'))"
-                @confirm="unapprove(item)"
-                @cancel="unapproving = null"
+              <TodoRow
+                :item="item"
+                :query="searched"
+                :narrow="narrow"
+                :draggable="canDrag(item, view, searched !== '')"
+                :deploy-phase="itemDeployPhase(deployView, item)"
+                :testbed-turn="testbedTurns.get(item.id) ?? null"
+                :questions="askedOf.get(item.id) ?? null"
+                :match="rowMatches.get(item.id) ?? null"
+                :rooms="rooms"
+                :unapproving="unapproving === item.id && rowVerbs(item, board.queue).includes('unapprove')"
+                :unapprove-busy="unapproving === item.id && busy.has(busyKey(item.id, 'unapprove'))"
+                @open="toggle"
+                @handle-down="onHandleDown"
+                @unapprove="unapprove"
+                @cancel-unapprove="unapproving = null"
               />
             </li>
           </MovingList>
@@ -514,7 +337,7 @@
 </template>
 
 <script setup lang="ts">
-import { APPEND_LIMIT, DONE_PAGE_SIZE, TODO_SEARCH_LIMIT } from "#shared/config";
+import { APPEND_LIMIT, DONE_PAGE_SIZE } from "#shared/config";
 import { todoOfQuery } from "#shared/paths";
 import { todoClosed, useAskedTodo } from "~/domain/todo-address";
 import { useAgentCatalogue } from "~/domain/catalogue";
@@ -525,13 +348,13 @@ import { useTodoModelPlan } from "~/domain/todo-models";
 import { useLiveRefresh, useReadFailure, useTestbedEvents } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
-import { COUNT_BADGE, countText } from "~/domain/numbers";
+import { COUNT_BADGE } from "~/domain/numbers";
 import { questionSummary, useOpenQuestions } from "~/domain/questions";
 import { provideTodoClock } from "~/domain/todo-clock";
 import { useTodoPanelLayout, useTodoView } from "~/domain/todo-settings";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { holdWaits } from "~/domain/queue-place";
-import { ITEM_DEPLOY_COLOURS, ITEM_DEPLOY_LABELS, itemDeployPhase, withDeploying } from "~/domain/deploy";
+import { itemDeployPhase, withDeploying } from "~/domain/deploy";
 import { useIsland } from "bmo-ui/app/domain/island";
 import { useConfirm } from "~/domain/confirm";
 import { matchFields } from "bmo-ui/shared/search";
@@ -543,8 +366,6 @@ import {
   searchTally,
   busyKey,
   canDrag,
-  canResolve,
-  stateIcon,
   clampPanelWidth,
   EDGE_STEP_MS,
   edgeScrollStep,
@@ -555,28 +376,17 @@ import {
   queueOrder,
   queueSection,
   reorderedQueue,
-  reportsTip,
-  requesterLine,
   rowVerbs,
-  stateColour,
-  stateLabel,
-  stoppedLine,
-  deployWaitsLine,
-  testbedLineKey,
   todoFilters,
   todoSearchFields,
   todoSections,
   todoWaitingSections,
-  todoState,
   todoSummary,
-  unfinishedLabel,
   conditionCount,
   conditionQuery,
-  itemAgent,
-  itemFreeAgent,
-  freeAgentWords,
   NO_CONDITIONS,
-  NO_ROOM
+  NO_ROOM,
+  sameItemsKept
 } from "~/domain/todos";
 import { movedEnoughToDrag, rowAtPoint, startsRowDrag } from "~/domain/row-drag";
 
@@ -694,8 +504,10 @@ onScopeDispose(() => { boardGeneration++; });
 // A read for the next page of finished items, which is its own wait: the list stays on the
 // screen and only its foot says that more is coming.
 const loadingMore = ref(false);
-// What he is looking for, and the wait that keeps a read off every keystroke.
+// What he is looking for, as the search box hands it over, and the wait that keeps a read off every keystroke. What
+// the list is drawn from reads only whether there is a phrase at all, so a keystroke draws no row.
 const search = ref("");
+const hasPhrase = computed(() => search.value.trim() !== "");
 // The phrase the rows on the screen were found with, which is what their marks are drawn from.
 const searched = ref("");
 let searching: ReturnType<typeof setTimeout> | null = null;
@@ -848,10 +660,16 @@ const askedOf = computed(() => {
 
   return asked;
 });
-const sections = computed(() => todoSections(t, shownBoard.value, view.value, search.value.trim() !== ""));
+const sections = computed(() => todoSections(t, shownBoard.value, view.value, hasPhrase.value));
 
 // Where each row on the screen matched the phrase it was found with, read once as the answer arrives: a wait line is
-// matched as it read in that second, so the clock redraws no row for it.
+// matched as it read in that second, so the clock redraws no row for it. An item a re-read kept as it was, found by the
+// same phrase against the same rooms, keeps where it was found, so its row is handed nothing new.
+let matchesBefore: { query: string; rooms: RoomSummary[] | null | undefined; found: WeakMap<TodoItem, SearchMatch | null> } = {
+  query: "",
+  rooms: null,
+  found: new WeakMap()
+};
 const rowMatches = computed(() => {
   const matches = new Map<number, SearchMatch | null>();
 
@@ -860,10 +678,17 @@ const rowMatches = computed(() => {
   }
 
   const at = toUnixSeconds(Date.now());
+  const same = matchesBefore.query === searched.value && matchesBefore.rooms === rooms.value;
+  const kept = same ? matchesBefore.found : new WeakMap<TodoItem, SearchMatch | null>();
 
   for (const item of sections.value.flatMap((section) => section.items)) {
-    matches.set(item.id, matchFields(todoSearchFields(t, item, rooms.value ?? [], at), searched.value));
+    const match = kept.has(item) ? kept.get(item)! : matchFields(todoSearchFields(t, item, rooms.value ?? [], at), searched.value);
+
+    kept.set(item, match);
+    matches.set(item.id, match);
   }
+
+  matchesBefore = { query: searched.value, rooms: rooms.value, found: kept };
 
   return matches;
 });
@@ -875,9 +700,13 @@ const filterIndex = computed(() => todoFilters().indexOf(view.value.filter));
 
 // The titles that stand while the board is still being read, with how many placeholder rows go
 // under each.
-const waitingSections = computed(() => todoWaitingSections(t, view.value, search.value.trim() !== ""));
+const waitingSections = computed(() => todoWaitingSections(t, view.value, hasPhrase.value));
 const doneTailLine = computed(() =>
-  doneTail(t, { shown: board.value.done.length, total: board.value.doneTotal, searching: search.value.trim() !== "" })
+  doneTail(t, { shown: board.value.done.length, total: board.value.doneTotal, searching: hasPhrase.value })
+);
+// How many rows the search and the conditions found, once the answer stands.
+const searchTallyLine = computed(() =>
+  (hasPhrase.value || conditionsSet.value > 0) && loaded.value && !pending.value ? searchTally(t, board.value) : null
 );
 const queueRows = computed(() => sections.value.find((section) => section.key === "queue")?.items ?? []);
 const summary = computed(() => todoSummary(t, shownBoard.value));
@@ -936,7 +765,8 @@ async function read(limit: number, more = false): Promise<void> {
       query: { done: limit, ...(query === "" ? {} : { q: query }), ...conditionQuery(conditions) }
     });
     if (generation !== boardGeneration || query !== search.value.trim() || conditions !== view.value.conditions) return;
-    board.value = answer;
+    // Every item that came back as it was stays the one its row was drawn from.
+    board.value = sameItemsKept(board.value, answer);
     searched.value = query;
     loaded.value = true;
   } catch (error) {
@@ -973,7 +803,8 @@ async function loadMore(): Promise<void> {
 // What he is looking for. Every keystroke would be a read of the archive, so it waits for him to
 // stop typing; the list goes back to the first page each time, since the run he had scrolled
 // through belongs to what he was looking at before.
-function onSearch(): void {
+function onSearch(phrase: string): void {
+  search.value = phrase;
   boardGeneration++;
   pending.value = true;
   loadingMore.value = false;
@@ -985,11 +816,6 @@ function onSearch(): void {
     searching = null;
     void reloadFromTop();
   }, SEARCH_SETTLE_MS);
-}
-
-function clearSearch(): void {
-  search.value = "";
-  onSearch();
 }
 
 async function reloadFromTop(): Promise<void> {

@@ -324,10 +324,25 @@ export const ITEM_DEPLOY_COLOURS: Record<ItemDeployPhase, "info" | "secondary" |
   "deploy-failed": "error"
 };
 
+// Each item marked as being put live, made once for as long as the item stands, so the mark read again against a new
+// deploy view or a re-read that kept the item hands its row the same item.
+const markedDeploying = new WeakMap<TodoItem, TodoItem>();
+
+function deployingItem(item: TodoItem): TodoItem {
+  let marked = markedDeploying.get(item);
+
+  if (marked === undefined) {
+    marked = { ...item, deploying: true };
+    markedDeploying.set(item, marked);
+  }
+
+  return marked;
+}
+
 /** The board with each queue row a deployment under way carries marked so, and their count, from the deploy view the
  * board does not carry: what tells the panel's rows being put live from those waiting for a deployment. */
 export function withDeploying(board: TodoBoard, view: DeployView | null | undefined): TodoBoard {
-  const queue = board.queue.map((item) => (itemDeployPhase(view, item) === "deploying" ? { ...item, deploying: true } : item));
+  const queue = board.queue.map((item) => (itemDeployPhase(view, item) === "deploying" ? deployingItem(item) : item));
   const deploying = queue.filter((item) => item.deploying === true && item.liveState == null).length;
 
   return { ...board, queue, standing: { ...board.standing, deploying } };

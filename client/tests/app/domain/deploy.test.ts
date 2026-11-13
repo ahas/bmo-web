@@ -197,6 +197,8 @@ describe("an item on its way live", () => {
 
     expect(marked.queue.map((one) => one.deploying === true)).toEqual([true, false]);
     expect(marked.standing.deploying).toBe(1);
+    // Read again, a row hands back the one marked item it handed before, so its row is handed nothing new.
+    expect(withDeploying(board, view({ run: run({ carried }) })).queue[0]).toBe(marked.queue[0]!);
     expect(withDeploying(board, null).standing.deploying).toBe(0);
     expect(new Set(Object.values(ITEM_DEPLOY_COLOURS)).size).toBe(3);
   });

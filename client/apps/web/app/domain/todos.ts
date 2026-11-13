@@ -1083,8 +1083,55 @@ export function boardInOrder(board: TodoBoard, order: number[]): TodoBoard {
   return {
     ...board,
     queue: board.queue
-      .map((item) => ({ ...item, priority: places.get(item.id) ?? item.priority }))
+      .map((item) => {
+        const priority = places.get(item.id) ?? item.priority;
+
+        // A row whose place the order leaves as it was stays the item its row was drawn from.
+        return priority === item.priority ? item : { ...item, priority };
+      })
       .sort((left, right) => left.priority - right.priority || left.id - right.id)
+  };
+}
+
+// The written form of each item already compared, so an item in hand is written once however many answers it is
+// compared with. Items are never changed in place: a change is a new item.
+const itemForms = new WeakMap<TodoItem, string>();
+
+function itemForm(item: TodoItem): string {
+  let form = itemForms.get(item);
+
+  if (form === undefined) {
+    form = JSON.stringify(item);
+    itemForms.set(item, form);
+  }
+
+  return form;
+}
+
+// The board an answer brings, with every item that came back exactly as it was kept as the very item already in
+// hand, so a row drawn from it is handed nothing new and is not drawn again (docs/web.md, the TODO panel's section).
+// Items arrive as JSON, so their written forms are what is compared.
+export function sameItemsKept(before: TodoBoard, answer: TodoBoard): TodoBoard {
+  const known = new Map<number, TodoItem>();
+
+  for (const item of [...before.queue, ...before.pending, ...before.held, ...before.merged, ...before.done]) {
+    known.set(item.id, item);
+  }
+
+  const kept = (items: TodoItem[]): TodoItem[] =>
+    items.map((item) => {
+      const had = known.get(item.id);
+
+      return had !== undefined && itemForm(had) === itemForm(item) ? had : item;
+    });
+
+  return {
+    ...answer,
+    queue: kept(answer.queue),
+    pending: kept(answer.pending),
+    held: kept(answer.held),
+    merged: kept(answer.merged),
+    done: kept(answer.done)
   };
 }
 

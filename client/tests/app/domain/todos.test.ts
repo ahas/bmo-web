@@ -10,6 +10,7 @@ import {
   reviewCheckLabel,
   itemModelTip,
   boardInOrder,
+  sameItemsKept,
   busyBlocks,
   busyKey,
   canDrag,
@@ -859,6 +860,34 @@ describe("dragging a row to a place of its own", () => {
     expect(moved.pending).toEqual(board.pending);
     expect(moved.done).toEqual(board.done);
     expect(board.queue.map((entry) => entry.id)).toEqual([1, 2, 3]);
+  });
+
+  test("a row whose place the order leaves as it was stays the item it was", () => {
+    const moved = boardInOrder(board, [2, 1, 3]);
+
+    expect(moved.queue.find((entry) => entry.id === 3)).toBe(board.queue.find((entry) => entry.id === 3)!);
+    expect(moved.queue.find((entry) => entry.id === 1)).not.toBe(board.queue.find((entry) => entry.id === 1)!);
+  });
+});
+
+// A re-read hands the rows that came back as they were the very items already in hand, so the panel draws again only
+// the rows that changed (docs/web.md, the TODO panel's section).
+describe("a re-read of the board", () => {
+  test("keeps every item that came back as it was, wherever it stands, and takes the changed ones as they came", () => {
+    const answer: TodoBoard = structuredClone(board);
+
+    answer.queue[1] = { ...answer.queue[1]!, title: "a changed title" };
+    // An item that moved to another list is still the same item.
+    answer.done = [...answer.done, structuredClone(board.queue[2]!)];
+    answer.queue = answer.queue.slice(0, 2);
+
+    const kept = sameItemsKept(board, answer);
+
+    expect(kept.queue[0]).toBe(board.queue[0]!);
+    expect(kept.queue[1]).toBe(answer.queue[1]!);
+    expect(kept.done.at(-1)).toBe(board.queue[2]!);
+    expect(kept.pending.every((entry, at) => entry === board.pending[at])).toBe(true);
+    expect(kept.doneTotal).toBe(answer.doneTotal);
   });
 });
 

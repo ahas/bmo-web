@@ -5598,6 +5598,16 @@ Four bounds keep it from growing forever.
   line once its words change, never the list, and its cost does not grow with the number of lines: on a board of
   hundreds of lines a right press or a key that lands on a tick is answered as quickly as one that does not. Where
   a search found a line is read once, when its answer arrives.
+- **A line is drawn again only when what it shows changed.** What a line holds is a part of its own, drawn from its
+  item and the few things about it the panel hands it: the phrase it was found with, whether it can be carried, its
+  deployment's phase, its turn in the testbed's queue, the questions its job asked and where the search found it.
+  A part handed the same as before is not drawn again. It stands inside the moving list's item rather than being
+  it, since the moving list draws again every part that is its own item; the item itself carries only the line's
+  frame and the mark of a drag. A re-read of the board keeps every item
+  that came back as it was, and a line found by the same phrase keeps where it was found, so a re-read draws again
+  only the lines that changed. The search box keeps what is typed in it to itself and hands the panel the phrase,
+  so a keystroke draws the box and no line; the list is drawn again when the answer arrives. On a board of
+  hundreds of lines a keystroke or a re-read costs a small part of what drawing every line again would.
 - **A right press, or a held finger, on a line stands that item's menu.** It carries the line's quick acts, so they
   are done without opening it:
   1. **Job 로그** on a line a job is running for, or one whose job has ended and whose commit is still on its way

@@ -74,8 +74,8 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
   };
 }
 
-// The three rows: one whose job runs its close, which keeps its running word, one whose commit waits to go live, and one that
-// says neither.
+// The three rows: one whose job runs its close, which keeps its running word, one whose commit waits to go live,
+// and one that says neither.
 const TESTING = item(1, { running: true, status: "running", liveState: "running", closing: { phase: "testing", commit: null } });
 const WAITING = item(2, { running: true, status: "leased", closing: { phase: "waiting-live", commit: "0123abcd0123" } });
 const PLAIN = item(3);

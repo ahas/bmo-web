@@ -2,7 +2,8 @@
   <!-- The units tab's tree (docs/web.md, 「Organisation settings」, its chart): companies at its top, each unit
        under its parent to any depth. A press on a unit chooses it and leaves its branch as it is; the chevron at a
        branch's end, or an arrow key, opens or closes the branch in place. What stands open is the screen's, so it
-       outlives the drawer. -->
+       outlives the drawer. Every name stands whole: the tree is as wide as its widest row, and what holds it scrolls
+       sideways where it is wider. -->
   <UTree
     v-model:expanded="expanded"
     :items="items"
@@ -10,16 +11,10 @@
     :get-key="(item: UnitItem) => String(item.id)"
     :as="{ link: 'div' }"
     color="neutral"
-    :ui="{ linkLabel: 'min-w-0 flex-1' }"
+    :ui="{ linkLabel: 'flex-1 overflow-visible text-clip whitespace-nowrap' }"
     :on-toggle="keepOnPress"
     @update:model-value="(item: unknown) => choose(item as UnitItem | undefined)"
   >
-    <!-- A name the column's width cuts short reads whole in a tooltip; a tap chooses the unit, so a finger rests on
-         it to read it. -->
-    <template #item-label="{ item }">
-      <HintTip :text="item.label" cut press class="block min-w-0 truncate text-start">{{ item.label }}</HintTip>
-    </template>
-
     <!-- The chevron's own box overhangs the row's line rather than making a branch's row taller than a leaf's. -->
     <template #item-trailing="{ item, expanded: open, handleToggle }">
       <UTooltip v-if="item.children?.length" :text="$t(open ? 'organization.action.collapse' : 'organization.action.expand')">

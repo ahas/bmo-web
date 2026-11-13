@@ -17,7 +17,8 @@ export interface OrganizationTab {
   icon: string;
   // Whether a member who heads a unit opens it as well as the administrator.
   inviters: boolean;
-  // Whether its content takes the screen's whole width rather than a reading column.
+  // Whether its content is laid across the whole body, unpadded and scrolling its own regions, rather than standing in
+  // the body's centred reading column.
   wide: boolean;
   // The tab's own component, loaded when it is first opened.
   load: () => Promise<{ default: Component }>;

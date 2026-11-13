@@ -3,17 +3,18 @@
        「Organisation settings」, the providers tab). A row is carried by its handle alone, by the mouse and the finger
        the same way, and the order is saved the moment it is dropped. What a row says of a credential is the path it
        is reached by — no cell and no box here has a token to show, because none is ever sent to this screen. A new
-       login is added from the tab row's add, which opens the box this list keeps. -->
-  <section class="flex flex-col gap-3" aria-labelledby="accounts-title">
+       login is added from the tab row's add, which opens the box this list keeps. The list stands as a group under its
+       heading, its rows parted by hairlines with no box round them, as the providers above it do. -->
+  <section class="flex flex-col" aria-labelledby="accounts-title">
     <h3 id="accounts-title" class="flex min-h-8 items-center text-sm font-semibold text-highlighted">{{ $t("agents.title.accounts") }}</h3>
 
-    <ol ref="list" class="flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default" :aria-label="$t('agents.title.accounts')">
+    <ol ref="list" class="flex flex-col divide-y divide-default" :aria-label="$t('agents.title.accounts')">
       <li
         v-for="(one, index) in shown"
         :key="one.id"
         :data-order-index="index"
         :data-account="one.id"
-        class="grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-1 py-1 pe-2"
+        class="grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-1 py-1"
         :class="[drag.mark(index), !one.enabled && 'bg-elevated/40']"
       >
         <span
@@ -66,7 +67,7 @@
         </span>
       </li>
 
-      <li v-if="shown.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.no_accounts") }}</li>
+      <li v-if="shown.length === 0" class="py-3 text-sm text-highlighted">{{ $t("agents.status.no_accounts") }}</li>
     </ol>
 
     <p v-if="choiceNote !== ''" class="flex items-center gap-2 text-sm text-toned" data-choice-note>

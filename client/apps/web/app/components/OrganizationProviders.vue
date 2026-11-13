@@ -2,13 +2,13 @@
   <!-- The providers tab of the organisation settings screen (docs/web.md, 「Organisation settings」, the providers
        tab): every provider the agency carries, in its order, with what it has left, why it cannot answer now and the
        owner's switch, each taking effect as it is thrown; under them the Claude accounts the Claude Code provider
-       walks, a new one added from the tab row's add. No key the agency holds is read here. -->
-  <div class="flex flex-col gap-6">
+       walks, a new one added from the tab row's add. No key the agency holds is read here. Both stand as groups under
+       their headings, each keeping its place with a skeleton while it is first read. -->
+  <div class="flex flex-col gap-4">
     <SettingsGroup :title="$t('agents.title.providers')">
-      <ContentSkeleton v-if="providers === undefined && status !== 'error'" :rows="4" listClass="flex flex-col divide-y divide-default" :label="$t('agents.status.providers_loading')">
+      <ContentSkeleton v-if="providers === undefined && status !== 'error' && !providersRetrying" :rows="4" listClass="flex flex-col divide-y divide-default" :label="$t('agents.status.providers_loading')">
         <div class="flex items-center gap-4 py-3">
-          <SkeletonBar class="size-4 shrink-0 rounded-full" />
-          <div class="flex min-w-0 flex-1 flex-col gap-1">
+          <div class="flex min-w-0 flex-1 flex-col">
             <SkeletonLine width="w-1/3" />
             <SkeletonLine width="w-1/2" />
           </div>
@@ -18,20 +18,21 @@
 
       <div v-else-if="providers === undefined" class="flex flex-col items-end gap-3 py-3">
         <UAlert class="w-full" color="error" variant="subtle" :description="$t('agents.error.providers_read_failed')" />
-        <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="status === 'pending'" @click="refresh()" />
+        <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="providersRetrying" @click="retryProviders" />
       </div>
 
       <template v-else>
       <div v-for="one in providers" :key="one.name" :data-provider="one.name" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3" :class="one.enabled ? '' : 'opacity-60'">
-        <div class="flex min-w-0 grow basis-40 items-start gap-2">
-          <UIcon :name="markOf(one).icon" class="mt-0.5 size-4 shrink-0" :class="markOf(one).tone" />
-          <div class="flex min-w-0 flex-col">
+        <!-- The status mark follows the name on its line, so the row's words start at the group's edge. -->
+        <div class="flex min-w-0 grow basis-40 flex-col">
+          <span class="flex min-w-0 items-center gap-2">
             <span class="text-sm text-highlighted">{{ one.label }}</span>
-            <span v-if="quotaText($t, one.quota) !== ''" class="text-sm tabular-nums text-muted">{{ quotaText($t, one.quota) }}</span>
-            <HintTip v-if="one.reason !== null" :text="one.reasonEnglish ?? undefined" :disabled="one.reasonEnglish === null" class="min-w-0">
-              <span class="break-words text-sm text-warning">{{ one.reason }}</span>
-            </HintTip>
-          </div>
+            <UIcon :name="markOf(one).icon" class="size-4 shrink-0" :class="markOf(one).tone" />
+          </span>
+          <span v-if="quotaText($t, one.quota) !== ''" class="text-sm tabular-nums text-muted">{{ quotaText($t, one.quota) }}</span>
+          <HintTip v-if="one.reason !== null" :text="one.reasonEnglish ?? undefined" :disabled="one.reasonEnglish === null" class="min-w-0">
+            <span class="break-words text-sm text-warning">{{ one.reason }}</span>
+          </HintTip>
         </div>
         <USwitch
           class="ms-auto"
@@ -46,7 +47,22 @@
     </SettingsGroup>
 
     <AgentsAccounts v-if="fallback.accounts.length > 0 || fallbackStatus === 'success'" ref="accountsRef" :accounts="fallback.accounts" :reread="rereadFallback" />
-    <p v-else-if="fallbackStatus === 'error'" role="alert" class="text-sm text-error">{{ $t("agents.error.accounts_read_failed") }}</p>
+    <SettingsGroup v-else :title="$t('agents.title.accounts')">
+      <div v-if="fallbackStatus === 'error' || retrying" class="flex flex-col items-end gap-3 py-3">
+        <UAlert class="w-full" color="error" variant="subtle" :description="$t('agents.error.accounts_read_failed')" />
+        <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="retrying" @click="retryAccounts" />
+      </div>
+      <ContentSkeleton v-else :rows="1" listClass="flex flex-col divide-y divide-default" :label="$t('agents.status.accounts_loading')">
+        <div class="grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-1 py-1">
+          <span class="flex size-11 items-center justify-center"><SkeletonBar class="size-5 rounded-sm" /></span>
+          <span class="flex min-w-0 flex-col py-1">
+            <SkeletonLine width="w-1/3" />
+            <SkeletonLine width="w-1/2" />
+          </span>
+          <SkeletonBar class="h-5 w-40 shrink-0 rounded-md" />
+        </div>
+      </ContentSkeleton>
+    </SettingsGroup>
   </div>
 </template>
 
@@ -68,6 +84,30 @@ const { data: fallback, refresh: refreshFallback, status: fallbackStatus } = use
 
 async function rereadFallback(): Promise<void> {
   await refreshFallback();
+}
+
+// A failed first read of the providers asked again: the failure stands, its button spinning, until the answer lands.
+const providersRetrying = ref(false);
+
+async function retryProviders(): Promise<void> {
+  providersRetrying.value = true;
+  try {
+    await refresh();
+  } finally {
+    providersRetrying.value = false;
+  }
+}
+
+// A failed first read of the accounts asked again: the failure stands, its button spinning, until the answer lands.
+const retrying = ref(false);
+
+async function retryAccounts(): Promise<void> {
+  retrying.value = true;
+  try {
+    await refreshFallback();
+  } finally {
+    retrying.value = false;
+  }
 }
 
 // A provider that is off, one that cannot answer now, and one that can.

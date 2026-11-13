@@ -11,7 +11,8 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 // the unit chosen, the tree a bottom drawer on a narrow screen (docs/web.md, 「Settings」 and 「Organisation settings」).
 // The tree opens and closes each branch in place, three levels deep, without choosing. Several people chosen at once,
 // a run of them by Shift, move into another unit with their roles in one act after its preview, and a preview
-// closed moves nobody. Each is read at a desk's width
+// closed moves nobody. The tree and the unit chosen are regions of their own behind a splitter, every name and path
+// whole, and every other tab stands in a reading column centred in the body. Each is read at a desk's width
 // and a phone's, in light and in dark, by the administrator and by a member who heads
 // a unit and one who heads none.
 //
@@ -316,6 +317,154 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
       }
     }, 120_000);
 
+    test(`the screen's regions and its reading column, at ${width}px`, async () => {
+      // A unit of a company of its own, its name and its path longer than a phone's line and than the tree's region.
+      const words = "a-long-unit-name-that-runs-past-the-region";
+      const top = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `regions_${RUN} first step of the path`, parent: null })).id;
+      const middle = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `second step of the path ${RUN}`, parent: top })).id;
+      const deep = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `${words}_${RUN}`, parent: middle })).id;
+      // One person standing in it and heading it, so both its lists hold a row.
+      const person = (await administer<{ user: string; name: string }[]>("/api/users", "GET")).find((one) => one.name === MOVERS[0])!.user;
+
+      await administer(`/api/organization/users/${encodeURIComponent(person)}/unit`, "PUT", { unit: deep });
+      await administer(`/api/organization/units/${deep}/heads/${encodeURIComponent(person)}`, "PUT");
+      const context = await contextFor(ADMINISTRATOR.name, width, height, "light");
+
+      try {
+        const page = await context.newPage();
+
+        await page.goto(`${origin}/organization?unit=${deep}`, { waitUntil: "load" });
+        await standing(page);
+
+        const chosen = page.locator(`[data-unit-chosen="${deep}"]`);
+
+        await chosen.waitFor({ timeout: 20_000 });
+
+        const shape = await page.evaluate(() => {
+          const box = (selector: string) => document.querySelector(selector)?.getBoundingClientRect() ?? null;
+          const cut = (element: Element | null) => element !== null && (element as HTMLElement).scrollWidth > (element as HTMLElement).clientWidth;
+          const tree = document.querySelector<HTMLElement>("[data-unit-tree]");
+          const unit = document.querySelector<HTMLElement>("[data-unit-scroll]")!;
+
+          return {
+            tree: box("[data-unit-tree]"),
+            handle: box("#organization-splitter-handle-0"),
+            unit: box("[data-unit-scroll]"),
+            unitScrolls: getComputedStyle(unit).overflowY,
+            treeScrolls: tree === null ? null : getComputedStyle(tree).overflowX,
+            treeWider: tree === null ? null : tree.scrollWidth > tree.clientWidth,
+            cutNames: [...document.querySelectorAll('[data-unit-tree] [data-slot="linkLabel"]')].filter(cut).length,
+            pathCut: cut(document.querySelector("[data-unit-path]")),
+            pathLines: Math.round(box("[data-unit-path]")!.height / parseFloat(getComputedStyle(document.querySelector("[data-unit-path]")!).lineHeight)),
+            name: box("[data-unit-chosen] h2, [data-unit-tree-open]"),
+            edit: box("[data-unit-edit]"),
+            heading: box("[data-unit-chosen] h3"),
+            addHead: box("[data-unit-add-head]"),
+            // A row's own height, its hairline above it left out.
+            rows: ["[data-unit-head]", "[data-unit-member]"].map((selector) => {
+              const row = document.querySelector(selector)!;
+
+              return row.getBoundingClientRect().height - parseFloat(getComputedStyle(row).borderTopWidth);
+            })
+          };
+        });
+
+        // The path stands whole, wrapping on a phone; the name takes its own row, and the edit button the row under it.
+        expect(shape.pathCut).toBe(false);
+        if (width < 1024) expect(shape.pathLines).toBeGreaterThan(1);
+        expect(shape.edit!.top).toBeGreaterThanOrEqual(shape.name!.bottom);
+        expect(Math.abs(shape.edit!.right - shape.unit!.right + 16)).toBeLessThanOrEqual(1);
+
+        // A head's row and a person's row stand at one height.
+        expect(shape.rows[0]).toBe(shape.rows[1]);
+
+        // The heads' picker stands at its heading's right end, on the heading's centre line.
+        expect(Math.abs(shape.addHead!.top + shape.addHead!.height / 2 - (shape.heading!.top + shape.heading!.height / 2))).toBeLessThanOrEqual(1);
+
+        if (width >= 1024) {
+          // Two regions meeting the splitter's one-pixel line, each scrolling on its own; the tree's names whole, the
+          // tree scrolling sideways where it is wider than its region.
+          expect(shape.handle!.width).toBe(1);
+          expect(Math.abs(shape.tree!.right - shape.handle!.left)).toBeLessThanOrEqual(0.5);
+          expect(Math.abs(shape.unit!.left - shape.handle!.right)).toBeLessThanOrEqual(0.5);
+          expect({ unit: shape.unitScrolls, tree: shape.treeScrolls }).toEqual({ unit: "auto", tree: "auto" });
+          expect(shape.cutNames).toBe(0);
+          expect(shape.treeWider).toBe(true);
+        } else {
+          expect(shape.tree).toBeNull();
+        }
+
+        // On a phone the unit's name, cut short by the button that opens the tree, reads whole in its tooltip.
+        if (width < 1024) {
+          const name = page.locator("[data-unit-name]");
+
+          expect(await name.evaluate((one) => one.scrollWidth > one.clientWidth)).toBe(true);
+          await name.hover();
+          expect(await page.locator('[role="tooltip"]').first().innerText({ timeout: 5_000 })).toBe(`${words}_${RUN}`);
+          await page.mouse.move(0, 0);
+        }
+
+        // A first read refused says why in the tab's place, and its refresh button spins while the read is asked again.
+        let refused = true;
+
+        await page.route(/\/api\/invites$/, async (route) => {
+          if (refused) return await route.fulfill({ status: 500, contentType: "application/json", body: "{}" });
+          await new Promise((resolve) => setTimeout(resolve, 1_000));
+          await route.continue().catch(() => undefined);
+        });
+        await page.goto(`${origin}/organization?tab=invites`, { waitUntil: "load" });
+        await standing(page);
+
+        const retry = page.locator("[data-organization-body]").getByRole("button", { name: wording("common.action.refresh"), exact: true });
+
+        await retry.waitFor({ timeout: 20_000 });
+        expect(await retry.locator("xpath=..").locator('[data-slot="description"]').innerText()).toBe(wording("invites.error.failed"));
+        refused = false;
+        await retry.click();
+        await retry.locator(".animate-spin").waitFor({ timeout: 5_000 });
+        await retry.waitFor({ state: "detached", timeout: 15_000 });
+        await page.unroute(/\/api\/invites$/);
+
+        // Every other tab stands in a reading column centred in the body: 768px of content at most, the body's 16px
+        // padding on every side outside it.
+        for (const tab of ["invites", "permissions", "providers", "secret-kinds"]) {
+          await page.goto(`${origin}/organization?tab=${tab}`, { waitUntil: "load" });
+          await standing(page);
+
+          const column = page.locator("[data-organization-column]");
+
+          await column.waitFor({ timeout: 20_000 });
+
+          const laid = await page.evaluate(() => {
+            const body = document.querySelector<HTMLElement>("[data-organization-body]")!;
+            const style = getComputedStyle(body);
+            const outer = body.getBoundingClientRect();
+            const inner = document.querySelector("[data-organization-column]")!.getBoundingClientRect();
+            const row = document.querySelector('[role="tablist"]')!.getBoundingClientRect();
+            const open = document.querySelector('[role="tablist"] [role="tab"][data-state="active"]')!.getBoundingClientRect();
+
+            return {
+              padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
+              width: inner.width,
+              room: outer.width - 32,
+              sides: [inner.left - outer.left, outer.right - inner.right],
+              openInRow: open.left >= row.left - 0.5 && open.right <= row.right + 0.5
+            };
+          });
+
+          expect({ tab, padding: laid.padding }).toEqual({ tab, padding: ["16px", "16px", "16px", "16px"] });
+          expect(laid.width).toBe(Math.min(768, laid.room));
+          expect(Math.abs(laid.sides[0]! - laid.sides[1]!)).toBeLessThanOrEqual(1);
+          // The open tab stands in the row's view, on a phone where the row scrolls sideways.
+          expect({ tab, openInRow: laid.openInRow }).toEqual({ tab, openInRow: true });
+        }
+
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
     for (const scheme of ["light", "dark"] as const) {
       test(`the administrator's, at ${width}px in ${scheme}`, async () => {
         const context = await contextFor(ADMINISTRATOR.name, width, height, scheme);
@@ -492,7 +641,10 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           // takes the ask as theirs: a link stands among the open ones, or, where the deployment names no machine hub
           // to bind the new account to, the service's refusal says so in the pack's words rather than that they may
           // not invite.
-          const drop = page.getByRole("button", { name: wording("invites.action.drop"), exact: true });
+          const drop = page.locator("[data-invite-drop]");
+
+          await page.locator(`[aria-label="${wording("invites.status.loading")}"]`).waitFor({ state: "detached", timeout: 20_000 });
+
           const open = await drop.count();
           const create = page.getByRole("button", { name: wording("invites.label.make"), exact: true });
 
@@ -501,19 +653,19 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await page.getByRole("button", { name: wording("invites.action.make"), exact: true }).click();
 
           const answered = await page.waitForFunction(
-            ([name, before, refusal]) => {
-              const made = [...document.querySelectorAll("button")].filter((one) => one.textContent?.trim() === name).length === before + 1;
+            ([before, refusal]) => {
+              const made = document.querySelectorAll("[data-invite-drop]").length === before + 1;
               const refused = document.querySelector('[role="alert"]')?.textContent?.trim() === refusal;
 
               return made ? "made" : refused ? "refused" : false;
             },
-            [wording("invites.action.drop"), open, wording("invites.error.no_hub")] as const,
+            [open, wording("invites.error.no_hub")] as const,
             { timeout: 10_000 }
           );
 
           if ((await answered.jsonValue()) === "made") {
             await drop.last().click();
-            await page.waitForFunction(([name, before]) => [...document.querySelectorAll("button")].filter((one) => one.textContent?.trim() === name).length === before, [wording("invites.action.drop"), open] as const, { timeout: 10_000 });
+            await page.waitForFunction((before) => document.querySelectorAll("[data-invite-drop]").length === before, open, { timeout: 10_000 });
           }
 
           if (width >= 1024) await entry.first().waitFor({ timeout: 20_000 });

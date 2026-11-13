@@ -1,21 +1,23 @@
 <template>
   <!-- The secret kinds (docs/web.md, 「Organisation settings」, its kinds tab): the shapes every person's secret form
        asks a value in, the deployment's, kept by the administrator. A kind is added from the screen's create button,
-       which the tab names and opens; no secret is listed here. -->
-  <div class="flex flex-col gap-6">
+       which the tab names and opens; no secret is listed here. A row's two actions are icon buttons named by their
+       tooltips. -->
+  <div class="flex flex-col gap-4">
     <ContentSkeleton v-if="kinds === null && failure === ''" :rows="2" listClass="flex flex-col divide-y divide-default" :label="$t('secrets.status.kinds_loading')">
       <div class="flex items-center gap-4 py-3">
-        <div class="flex min-w-0 flex-1 flex-col gap-1">
+        <div class="flex min-w-0 flex-1 flex-col">
           <SkeletonLine width="w-1/3" />
           <SkeletonLine width="w-1/2" />
         </div>
-        <SkeletonBar class="h-6 w-20 shrink-0 rounded-md" />
+        <SkeletonBar class="size-8 shrink-0 rounded-md" />
+        <SkeletonBar class="size-8 shrink-0 rounded-md" />
       </div>
     </ContentSkeleton>
 
     <div v-else-if="kinds === null" class="flex flex-col items-end gap-3">
       <UAlert class="w-full" color="error" variant="subtle" :description="failure" />
-      <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" @click="load" />
+      <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="reading" @click="load" />
     </div>
 
     <template v-else>
@@ -28,8 +30,8 @@
           :description="kindRow(kind)"
           :data-secret-kind-row="kind.key"
         >
-          <UButton color="neutral" variant="ghost" size="xs" :label="$t('common.action.edit')" :disabled="busy" @click="openKind(kind)" />
-          <UButton color="error" variant="ghost" size="xs" :label="$t('common.action.delete')" :disabled="busy" @click="removeKind(kind)" />
+          <IconButton icon="i-material-symbols-edit-outline" :label="$t('common.action.edit')" :disabled="busy" data-secret-kind-edit @click="openKind(kind)" />
+          <IconButton color="error" icon="i-material-symbols-delete-outline" :label="$t('common.action.delete')" :disabled="busy" data-secret-kind-delete @click="removeKind(kind)" />
         </SettingsRow>
       </SettingsGroup>
 
@@ -55,14 +57,19 @@ const confirm = useConfirm();
 const { kinds } = useSecretLists();
 const failure = ref("");
 const busy = ref(false);
+const reading = ref(false);
 
+// A failure stands until a read goes through, so a read asked again from it spins on its button.
 async function load(): Promise<void> {
-  failure.value = "";
+  reading.value = true;
 
   try {
     kinds.value = (await $fetch<SecretKindList>("/api/secret-kinds")).kinds;
+    failure.value = "";
   } catch (error) {
     failure.value = failureText(error, t("secrets.error.kinds_read_failed"));
+  } finally {
+    reading.value = false;
   }
 }
 

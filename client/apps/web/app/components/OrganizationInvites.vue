@@ -2,20 +2,41 @@
   <!-- Invitations (docs/web.md, 「Organisation settings」, the invitations tab): a link made into a unit the reader
        heads, or any for the administrator, chosen as a company and then a unit of its tree, with the role the person
        takes there, in a dialog the tab row's add opens; copied with its words and when it closes; the open
-       ones listed, each copied again or taken back. -->
-  <div class="flex flex-col gap-6">
+       ones listed, each copied again or taken back by its two marks. While they are first read the list keeps its
+       place with a skeleton, and a read that failed says why in its place. -->
+  <div class="flex flex-col gap-4">
     <p v-if="units !== null && units.length === 0" class="text-sm text-muted">{{ $t("invites.label.no_units") }}</p>
 
     <SettingsGroup :title="$t('invites.label.open')">
-      <SettingsRow v-if="invites.length === 0" :label="$t('invites.label.none')" />
+      <ContentSkeleton v-if="!loaded && readFailure === ''" :rows="1" listClass="flex flex-col divide-y divide-default" :label="$t('invites.status.loading')">
+        <div class="flex items-center gap-4 py-3">
+          <div class="flex min-w-0 flex-1 flex-col">
+            <SkeletonLine width="w-1/2" />
+            <SkeletonLine width="w-1/3" />
+          </div>
+          <SkeletonBar class="size-8 shrink-0 rounded-md" />
+          <SkeletonBar class="size-8 shrink-0 rounded-md" />
+        </div>
+      </ContentSkeleton>
+      <div v-else-if="!loaded" class="flex flex-col items-end gap-3 py-3">
+        <UAlert class="w-full" color="error" variant="subtle" :description="readFailure" />
+        <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="reading" @click="load" />
+      </div>
+      <SettingsRow v-else-if="invites.length === 0" :label="$t('invites.label.none')" />
       <SettingsRow
         v-for="invite in invites"
         :key="invite.token"
         :label="`${placeOf(invite)} · ${$t(invite.head ? 'organization.label.role_head' : 'organization.label.role_member')}`"
         :description="$t('invites.label.until', { time: formatStamp(invite.expiresAt / 1000) })"
+        data-invite
       >
-        <UButton color="neutral" variant="ghost" size="xs" :label="copied === invite.token ? $t('invites.status.copied') : $t('invites.action.copy')" @click="copy(invite)" />
-        <UButton color="error" variant="ghost" size="xs" :label="$t('invites.action.drop')" @click="drop(invite.token)" />
+        <IconButton
+          :icon="copied === invite.token ? 'i-material-symbols-check' : 'i-material-symbols-content-copy-outline'"
+          :label="copied === invite.token ? $t('invites.status.copied') : $t('invites.action.copy')"
+          data-invite-copy
+          @click="copy(invite)"
+        />
+        <IconButton color="error" icon="i-material-symbols-link-off" :label="$t('invites.action.drop')" data-invite-drop @click="drop(invite.token)" />
       </SettingsRow>
     </SettingsGroup>
 
@@ -29,8 +50,8 @@
 
         <!-- The chosen company's tree, as the units tab draws it; the path down to the unit chosen reads above it. -->
         <UFormField :label="$t('invites.label.unit')" :description="chosenPath" name="unit">
-          <div role="group" :aria-label="$t('invites.label.unit')" data-invite-unit-tree>
-            <OrganizationUnitTree v-model:expanded="expanded" :units="treeUnits" :chosen="unit" @choose="(id: number) => (unit = id)" />
+          <div role="group" class="overflow-x-auto [scrollbar-width:thin]" :aria-label="$t('invites.label.unit')" data-invite-unit-tree>
+            <OrganizationUnitTree v-model:expanded="expanded" class="w-max min-w-full" :units="treeUnits" :chosen="unit" @choose="(id: number) => (unit = id)" />
           </div>
         </UFormField>
 
@@ -77,6 +98,10 @@ const role = ref<"member" | "head">("member");
 const expanded = ref<string[]>([]);
 const hours = ref("72");
 const busy = ref(false);
+// Whether the units and the open links have been read, a read under way, and why the last read failed.
+const loaded = ref(false);
+const reading = ref(false);
+const readFailure = ref("");
 const failure = ref("");
 const making = ref(false);
 const makeFailure = ref("");
@@ -111,13 +136,18 @@ function link(token: string): string {
   return `${window.location.origin}${config.app.baseURL.replace(/\/$/, "")}/join/${token}`;
 }
 
-async function read(): Promise<void> {
-  failure.value = "";
+// A failure stands until a read goes through, so a read asked again from it spins on its button.
+async function load(): Promise<void> {
+  reading.value = true;
   try {
     [units.value, invites.value] = await Promise.all([$fetch<InviteUnit[]>("/api/invites/units"), $fetch<Invite[]>("/api/invites")]);
+    readFailure.value = "";
+    loaded.value = true;
     if (unit.value === null && companyItems.value.length > 0) chooseCompany(companyItems.value[0]!.value);
   } catch (error) {
-    failure.value = failureText(error, t("invites.error.failed"));
+    readFailure.value = failureText(error, t("invites.error.failed"));
+  } finally {
+    reading.value = false;
   }
 }
 
@@ -159,7 +189,7 @@ async function drop(token: string): Promise<void> {
   }
 }
 
-onMounted(() => void read());
+onMounted(() => void load());
 
 // The tab's create: a link, by its dialog, standing off until the units the reader may invite into are read and
 // while there are none.

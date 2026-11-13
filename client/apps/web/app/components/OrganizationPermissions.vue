@@ -2,7 +2,7 @@
   <!-- The sections one person may use (docs/web.md, 「Access」): the administrator picks a user, and each section
        of the console stands a row with its read and its write. A change is saved as it is made; a write is also a
        read. The platform administrator passes every section, so their row stands closed to change. -->
-  <div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-4">
     <ContentSkeleton v-if="users === null && failure === ''" :rows="1" listClass="flex flex-col divide-y divide-default" :label="$t('permissions.status.users_loading')">
       <div class="flex items-center gap-4 py-3">
         <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -15,7 +15,7 @@
 
     <div v-else-if="users === null" class="flex flex-col items-end gap-3">
       <UAlert class="w-full" color="error" variant="subtle" :description="failure" />
-      <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" @click="read" />
+      <UButton color="neutral" variant="subtle" icon="i-material-symbols-refresh" :label="$t('common.action.refresh')" :loading="reading" @click="read" />
     </div>
 
     <SettingsGroup v-else-if="users.length === 0">
@@ -109,6 +109,7 @@ const rows = ref<PermissionRow[] | null>(null);
 const saving = ref(false);
 const changing = ref("");
 const failure = ref("");
+const reading = ref(false);
 
 const target = computed(() => users.value?.find((user) => user.user === chosen.value) ?? null);
 const items = computed(() => (users.value ?? []).map((user) => ({ label: user.name, value: user.user })));
@@ -120,17 +121,21 @@ const columns = computed<SettingsColumn<PermissionRow>[]>(() => [
 
 const sections = computed(() => permissionSections(useConsoleScreens().value));
 
+// A failure stands until the people are read, so a read asked again from it spins on its button.
 async function read(): Promise<void> {
-  failure.value = "";
+  reading.value = true;
 
   try {
     users.value = await $fetch<UserSummary[]>("/api/users");
+    failure.value = "";
 
     const first = users.value[0];
 
     if (first !== undefined) await choose(first.user);
   } catch (error) {
     failure.value = failureText(error, t("permissions.error.users_read_failed"));
+  } finally {
+    reading.value = false;
   }
 }
 

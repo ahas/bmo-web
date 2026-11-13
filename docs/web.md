@@ -6539,9 +6539,16 @@ research screen (「Research screen」).
 - **The tab row** stands under the title bar, the tabs filling it and the open tab's own add at its right end
   where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도, 초대 링크 만들기 on
   초대, Claude 계정 추가 on 공급자 and 종류 추가 on 비밀 종류. On a narrow screen the tabs keep one line and scroll
-  sideways.
-- **A tab's content** stands in groups under small headings as the settings dialog's sections do, in a column no
-  wider than a reading column at the screen's left, and scrolls in the screen's body.
+  sideways, and the open tab is scrolled into view whenever it changes, so it never stands behind the row's add or
+  past its edge.
+- **A tab's content** stands in groups under small headings as the settings dialog's sections do, in a reading
+  column centred in the screen's body: 768px of content at most, the body's padding outside it, 16px on every side
+  at every width. The groups stand 16px apart, and the body scrolls on its own edge. 조직도 lays its two regions
+  across the whole body instead (below). Each tab's lists keep their place with skeletons shaped like their rows
+  while they are first read, and a read that failed says its reason in their place with 새로고침, which spins while
+  the read is asked again; the reason stands until a read goes through.
+- **Two or three actions on one row are icon buttons,** each named by its tooltip: a link's copy and its taking back
+  on 초대, and a kind's 편집 and 삭제 on 비밀 종류.
 
 #### 조직도
 
@@ -6551,6 +6558,12 @@ research screen (「Research screen」).
   `?unit=` and its number, so a shared link opens the same unit; where the address names none, the first company is
   chosen with no step. What a unit is called — 본부, 센터, 팀, 파트 — is its name alone (`docs/accounts.md`,
   「Companies and organisation units」).
+- **The two are regions of their own across the whole body,** parted by a splitter whose hairline is dragged to widen
+  either, the widths kept in this browser. Each scrolls on its own, its scrollbar on its own edge. The tree reaches
+  its region's edges, its rows keeping their own inner padding, and every unit's name stands whole: where the tree
+  is wider than its region it scrolls sideways, and no name is cut. The unit chosen stands in a reading column
+  centred in its region, with the body's 16px padding outside it. While the units are first read, each region keeps
+  its place with a skeleton shaped like its rows.
 - **A branch opens and closes in place.** A unit with units under it carries a chevron at its row's end, whose
   tooltip says 하위 조직 확장 or 하위 조직 축소; pressing it shows or hides the units under it without choosing it,
   and the arrow keys do the same on a unit the keyboard stands on. Pressing a unit's name chooses it and leaves its
@@ -6560,19 +6573,22 @@ research screen (「Research screen」).
   down to that parent, so the unit chosen and a unit just made are always in view. Nothing else is opened or closed
   for the reader, and what they opened and closed stands while the tab does, across every change made on it.
 - **On a narrow screen the unit chosen fills the body,** and the tree opens as a bottom drawer from the button at
-  the head of the unit, which carries the unit's name; choosing a unit there closes the drawer, and opening or
-  closing a branch leaves it open.
+  the head of the unit, which carries the unit's name, a name it cuts short reading whole in its tooltip; choosing a
+  unit there closes the drawer, and opening or closing a branch leaves it open.
 - **조직 추가** stands at the tab row's right end and opens a form of a name and a parent, each unit offered by its
   path from its company; with no parent, 없음 (새 회사), the unit is a new company. It has one 저장 at its foot.
-- **The unit chosen** is headed by its name and the path above it, with 편집 at the head's right end, which opens
-  the unit's form: its name and, for a unit under a company, its parent among the units of its company that do not
+- **The unit chosen** is headed by its name on a row of its own, with the path above it standing whole, wrapping onto
+  more lines between its steps where the row is too narrow. 편집 stands on the row under the name, at its right end,
+  and opens the unit's form: its name and, for a unit under a company, its parent among the units of its company that do not
   stand under it, with one 저장 at its foot, open only while a field differs from what is saved. A refusal — a
   parent in another company, a parent under the unit itself — is said under the form in words.
 - **조직장** lists the unit's heads, one row each with its name and a mark that takes the head away, and 조직장 지정
-  under them, a list of every person searched by name; a person chosen is made a head as they are chosen.
+  at the right end of its heading, a list of every person searched by name; a person chosen is made a head as they
+  are chosen.
 - **구성원** lists the people standing in the unit, its heading carrying how many, one row each: the name, (탈퇴)
-  beside a person who left, and two marks at the row's end for a person who has not. 구성원 추가 under them is the
-  same searched list, and a person chosen is placed in the unit as they are chosen.
+  beside a person who left, and two marks at the row's end for a person who has not. 구성원 추가 at the right end of
+  its heading is the same searched list, and a person chosen is placed in the unit as they are chosen. A heading's
+  list keeps the room its words need and shrinks with the heading on a narrow screen.
   - Every person who has not left carries a checkbox at the row's start, so several are chosen at once. A press
     with Shift chooses the run from the person pressed before to this one, and on a touch screen a held finger
     chooses the person under it and every person it then passes, as every list that chooses more than one does.
@@ -6615,8 +6631,9 @@ research screen (「Research screen」).
 - **A link is made into the unit and role chosen** for the span of hours. Made, it is copied at once with its
   words: who invites into what, the link, and when it closes (`docs/accounts.md`, 「Invitations and a person's
   machine」), and the dialog closes; a refusal is said in the dialog.
-- **The open ones are listed,** each by where it leads and the role it gives, copied again or taken back. A reader
-  who may invite into no unit is told so.
+- **The open ones are listed,** each by where it leads, the role it gives and when it closes, copied again or taken
+  back by its two marks; the copy mark turns to a check once the link is copied. A reader who may invite into no unit
+  is told so.
 - **Where an invitation leads is said as the company, then the unit under it;** a unit that is the company itself is
   named once, here, in the copied words and on the join page.
 
@@ -6652,13 +6669,14 @@ research screen (「Research screen」).
 #### 공급자
 
 - **공급자** — every provider the agency carries (its `docs/api.md`, 「providers, models and model files」), one row
-  each in the order it lists them: a status mark, the pack's word for its code, what it has left as the agency reads
-  its quota — the share left and the window that counted, a balance for one that keeps one, or nothing for one that
+  each in the order it lists them: the pack's word for its code with a status mark after it, what it has left as
+  the agency reads its quota — the share left and the window that counted, a balance for one that keeps one, or nothing for one that
   reports none — the pack's sentence for the reason it cannot answer now where it cannot, with the agency's own
   English as its tooltip, and the owner's switch. Lowering a switch turns that provider off at once and every
   order passes it over; its row stands dimmed. Turning off the last one on is refused by the agency, its sentence said
   in a notice. While a stand-in is answering, its row carries 대신 답하는 중. No key the agency holds is read here.
-- **Claude 계정** — the Claude accounts in the order the Claude Code provider walks them, one row each: a drag
+- **Claude 계정** — the Claude accounts in the order the Claude Code provider walks them, a group under its heading as
+  공급자 is, its rows parted by hairlines with no box round them, one row each: a drag
   handle, the place in the order, a mark saying whether that login is standing, near its end or gone — a login near
   its end also carrying how long is left, and one that has ended carrying 로그인 필요 — the name the owner gave it,
   where its credential is reached, a configuration directory or a token file shown as that path, the up and down

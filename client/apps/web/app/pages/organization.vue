@@ -1,13 +1,14 @@
 <template>
   <!-- The organisation settings screen (docs/web.md, 「Organisation settings」): what is set for the whole deployment
        or for other people, a tab to a section. The tab row stands under the title bar with the open tab's own add
-       at its right end where it has one, the row's grey icon at every width; the tab's content scrolls in the body,
-       in a reading column at the screen's left. -->
+       at its right end where it has one, the row's grey icon at every width, and the open tab scrolled into the row's
+       view. A tab's content stands in a reading column centred in the body, the body's padding outside it, and the
+       body scrolls; a tab laid across the whole body takes it unpadded and scrolls its own regions. -->
   <UDashboardPanel id="organization" :ui="{ body: 'p-0 sm:p-0 gap-0 [&>*]:max-w-none' }">
     <template #header>
       <ConsoleTitleBar :title="$t('screens.label.organization')" icon="i-material-symbols-domain" />
 
-      <div :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]">
+      <div ref="tabRow" :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE]">
         <UTabs
           :model-value="tab.value"
           :items="tabItems"
@@ -34,8 +35,11 @@
     </template>
 
     <template #body>
-      <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto" data-organization-body>
-        <div class="flex w-full min-w-0 flex-1 flex-col px-4 py-4 sm:px-6" :class="tab.wide ? '' : 'max-w-3xl'">
+      <div v-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>
+        <component :is="tabComponent" ref="section" />
+      </div>
+      <div v-else class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
+        <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
           <component :is="tabComponent" ref="section" />
         </div>
       </div>
@@ -49,6 +53,7 @@ import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { useAdministrator } from "~/domain/access";
 import { ORGANIZATION_TABS, organizationAddress, organizationMovedAway, organizationTabOf, organizationTabsFor } from "~/domain/organization";
 import { TAB_ADD_ICON } from "~/domain/tab-create";
+import { revealOpenTab } from "~/domain/tab-row";
 
 import type { TabCreate } from "~/domain/tab-create";
 import type { Component } from "vue";
@@ -96,6 +101,16 @@ function setTab(next: string): void {
 
   void router.push(organizationAddress(next, route.query));
 }
+
+// The open tab brought into the row's view as it changes and as the row first stands, on a phone where the row
+// scrolls sideways.
+const tabRow = useTemplateRef<HTMLElement>("tabRow");
+
+watch(
+  () => [tab.value.value, tabRow.value] as const,
+  () => void nextTick(() => revealOpenTab(tabRow.value)),
+  { immediate: true, flush: "post" }
+);
 
 // Each tab's component, made once and loaded the first time it is opened.
 const components = new Map<string, Component>();

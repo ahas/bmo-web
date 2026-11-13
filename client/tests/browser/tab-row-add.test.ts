@@ -73,11 +73,13 @@ async function placeOf(page: Page) {
     const row = document.querySelector<HTMLElement>('[role="tablist"]')!.closest<HTMLElement>(".h-12")!;
     const box = button.getBoundingClientRect();
     const line = row.getBoundingClientRect();
-    const rightmost = Math.max(...[...row.querySelectorAll<HTMLElement>("button, input")].map((one) => one.getBoundingClientRect().right));
+    // The tabs scroll sideways inside their own list, so a tab past the screen's edge is no control after the add.
+    const controls = [...row.querySelectorAll<HTMLElement>("button, input")].filter((one) => one.closest('[role="tablist"]') === null);
+    const rightmost = Math.max(...controls.map((one) => one.getBoundingClientRect().right));
 
     return {
       inRow: row.contains(button),
-      lastInRow: Math.round(box.right) === Math.round(rightmost),
+      lastInRow: Math.round(box.right) === Math.round(rightmost) && box.right <= line.right && box.right <= window.innerWidth,
       centred: Math.abs(box.top + box.height / 2 - (line.top + line.height / 2)) <= 1,
       background: getComputedStyle(button).backgroundColor,
       floats: document.querySelectorAll("[data-screen-foot]").length > 0,

@@ -145,6 +145,9 @@
   sets for themselves → 설정.
 - a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.
 - permission → 권한: 권한, 권한이 있습니다, 권한이 없습니다. Never 허가, 접근 권한.
+- share a thing with people → 공유: 공유, 공유 대상 (the people it is shared with), 공유 대상 없음, 공유하지 못했습니다; what
+  each may do with it → 읽기, 편집, the permission dropdown named `{name}의 권한`. Never 멤버, 구성원 for the people it
+  is shared with, which stays for the people standing in a unit, and never 보기, 쓰기 for the two permissions.
 - read a section → 읽기: 읽기, 읽을 수 있습니다. Never 조회 for a section's read.
 - write a section → 쓰기: 쓰기, 쓸 수 있습니다. Never 편집 for a section's write.
 - health check → 헬스 체크; the one run before anything changes → 사전 헬스 체크. Never 생존 확인.

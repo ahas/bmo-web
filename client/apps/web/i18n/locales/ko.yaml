@@ -42,7 +42,7 @@ common:
   title:
     delete_named: "{name} 삭제"
     discard_changes: 저장하지 않은 변경을 버릴까요?
-    share_link: 공유 링크
+    share: 공유
   label:
     translated_from: "{language}에서 번역됨"
     translated_in_part_from: "{language}에서 일부 번역됨"
@@ -67,6 +67,7 @@ common:
     left_minutes: "{n}분 남음"
     left_under_minute: 1분 미만 남음
     link: 링크
+    members: 공유 대상
     minutes: "{m}분"
     minutes_seconds: "{m}분 {s}초"
     model: 모델
@@ -82,6 +83,8 @@ common:
     palette_teal: 청록
     palette_violet: 보라
     path: 경로
+    permission_edit: 편집
+    permission_read: 읽기
     picture_caption: 캡션
     picture_resolution: 해상도
     picture_resolution_value: "{width} × {height}"
@@ -144,11 +147,14 @@ common:
     refresh: 새로고침
     retry_translation: 다시 요청
     save: 저장
+    share: 공유
     unmute: 음소거 해제
     unpin: 고정 해제
     unshare: 공유 해제
     zoom_in: 확대
     zoom_out: 축소
+  placeholder:
+    member_search: 이름, 조직, 직함으로 검색
   aria:
     close_named: "{name} 닫기"
     column_width: "{name} 너비"
@@ -158,6 +164,7 @@ common:
     enlarge_named: "{name} 크게 보기"
     image_zoom: "{title}, 휠이나 두 손가락으로 확대"
     increase: 증가
+    member_permission: "{name}의 권한"
     menu_of: "{name} 메뉴"
     more_notices: "알림 {n}건 더 있음"
     move_down_named: "{name} 아래로"
@@ -171,6 +178,8 @@ common:
     copied: 복사됨
     loading: 불러오는 중…
     loading_named: "{name} 불러오는 중…"
+    members_loading: 공유 대상 불러오는 중…
+    no_members: 공유 대상 없음
     no_rooms: 기록된 방 없음
     picture_loading: 사진 불러오는 중…
     reconnecting: 다시 연결하는 중
@@ -199,6 +208,10 @@ common:
     file_too_large: 한 파일에 50MB까지 보낼 수 있습니다.
     image_unavailable: 이미지를 불러올 수 없습니다.
     link_copy_failed: 링크를 복사하지 못했습니다.
+    member_change_failed: 권한을 변경하지 못했습니다.
+    member_search_failed: 사람을 검색하지 못했습니다.
+    member_share_failed: 공유하지 못했습니다.
+    members_read_failed: 공유 대상을 불러오지 못했습니다.
     not_saved_named: "{name} 저장 안 됨"
     not_sent: 보내지 못했습니다.
     picture_failed: 사진을 불러오지 못했습니다.

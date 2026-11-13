@@ -1717,7 +1717,7 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   over its top right corner, in every place above that has blocks; inline code and a text standing in one line
   carry none.
   - The button is always shown, so a finger reaches it without hovering, and carries hover and press colours.
-    It names itself 「복사」 beside it on hover and on focus.
+    It names itself 「복사」 in the shared tooltip on hover, on focus and under a held finger (「Tooltips」).
   - A press puts the lines inside the fence on the clipboard as written — without the language name, the
     blank lines around them or the trailing space, keeping the first line's indent — and the button shows a
     check and says 「복사됨」 for a moment before going back.
@@ -6925,6 +6925,11 @@ by the administrator. Every login reads them, since every person's form asks in 
     line that slides rather than ending in an ellipsis is read whole by its sliding and has none.
   - What the tooltip holds is what the line holds: a value the server sent already cut, such as a
     database cell's head, shows that head whole and no more.
+- **Every button the renderer writes as markup names itself the same way, with nothing written for
+  it.** A code block's copy button and a diagram's zoom buttons carry their names beside their
+  accessible names, and one layer standing over the whole console, the shared library's, brings up
+  the shared tooltip over such a button under the pointer, a keyboard focus or a held finger. A name
+  a press changes, such as 「복사됨」 after a copy, comes up over the button at once.
 
 #### An item by its number
 

@@ -12,6 +12,7 @@
     <SecretRequestHost v-if="loggedIn" />
     <MessageIsland />
     <CutLineTip />
+    <MarkupButtonTip />
   </UApp>
 </template>
 

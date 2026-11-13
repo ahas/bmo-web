@@ -5632,9 +5632,20 @@ Four bounds keep it from growing forever.
       **추천**, the chat agent's word for it, which moves nothing and stands apart in its own colour so it is never
       read as the owner's. An approval taken back is gone from the item and from the record. The 실행 기록 always stands, saying which run is going if a job runs and that there is none yet if no job
       has run — an empty place saying nothing would leave the reader unable to tell no record from unread.
-      While a job of the item runs, 상태 reads its job line again every few seconds and on every word the agency
-      says of the job, so its time, its tool calls, its tokens and how far it has come move as they happen, and the
-      작업 단계 move with every task that starts or ends, not only at a job's or a stage's end.
+      Under that line stands the item's last job, whether it runs or has ended: its time (실행 중 ticking, or how long
+      it took), its tool calls and the tokens it wrote, counted as a worker's job line counts them (「Agent
+      screen」), and beside them when it started and, once it has ended, when it ended — 시작 and 끝 with the
+      moment in the console's shown time, as its other moments read. An ended job keeps its line for as long as it is
+      the item's last, so an item opened long after its work still says how its last job went. The figures and the
+      two stamps share one line where the card is wide enough, the stamps go under the figures where it is not, and
+      each stamp takes its own line where even the two are too wide, so no dot is left at a line's end. Until the item's
+      runs are first read, an item that runs or is done keeps the line's place, line for line; one that waits keeps
+      none, having perhaps never run. Its time while it runs, its tool calls and its tokens turn as numbers do while
+      they are read.
+      While a job of the item runs, 상태 reads it again every few seconds, so its time, its tool calls, its tokens and
+      how far it has come move as they happen, and the 작업 단계 move with every task that starts or ends, not only at a
+      job's or a stage's end. It reads it again as the item's job starts and as it ends — the board the dialog stands
+      over is read again on every word the agency says of a job — so the ended job stands its own figures and its end.
     - **지시** is what the work is told: the item's brief, the chat agent's organized instruction. The brief is written once, in
       the original a job reads, and stands in that original with its translation a press away (「The original, and
       its translation in its place」). Under it stand the chat agent's changes to it, each with when and whether the
@@ -6198,8 +6209,11 @@ Four bounds keep it from growing forever.
   flowed by, opening one item reads how it ended and what remained. An item with no such record is an old item closed before jobs were asked to report,
   and it is not backfilled.
 - In the 상태 tab, the **실행 기록** cell stands how long the work took as a bar. What it counts is read from the agency's jobs
-  of the item on its worker (its `GET /jobs`), as the dialog opens and every few seconds while a job of it runs: how many ran
-  it, their time, and, from the latest job's own lines, the road it answered on and the plan it laid out. The time of every job that carried this item summed stands at the top,
+  of the item on its worker (its `GET /jobs`), as the dialog opens, as a job of it starts, every few seconds while it runs,
+  and once more when it ends: how many ran it, their time, and of the latest job its
+  start and end as its record holds them, its tool calls and tokens as its line counts them, and, from its own lines,
+  the road it answered on and the plan it laid out. The latest job is the one of the item that started last, picked
+  from the item's own jobs, never from the worker's other work. The time of every job that carried this item summed stands at the top,
   and an item run twice or more attaches how many times beside it. A failed attempt is time the item paid so it is summed too, and a still-running job is
   counted as none — while running, one line attaches which run is going. An item with no job run stands one line that no job has run yet, and an item run
   before spans were recorded stands only the total time with no bar below.

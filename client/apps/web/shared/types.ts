@@ -66,8 +66,9 @@ export interface ItemRuns {
   ranOn: RanOn | null;
   // The newest plan its latest job laid out with its plan tool.
   plan: { title: string; state: "pending" | "running" | "done" }[];
-  // Its latest job, where one ran as a run of its own: the agent it ran as, and the run to open its log at.
-  latest: { agent: string; run: string } | null;
+  // Its latest job, where one ran as a run of its own, as a job line reads it: the agent it ran as and the run to open
+  // its log at, when it started and ended, its tool calls and its tokens.
+  latest: JobLine | null;
 }
 
 export interface RanOn {

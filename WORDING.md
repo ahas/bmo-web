@@ -166,6 +166,8 @@
 - choose, pick → 선택: 선택해 주세요, 선택 취소. Never 고르기, 골라 주세요, 물리기.
 - enter text → 입력: 입력해 주세요, {n}자 이내로 입력. Never 적어 주세요.
 - launch, start a run → 실행. Never 띄우다, 뜨다, 발사.
+- the moments a job or a run started and ended → 시작, 끝, each before its time: `시작 {time}`, `끝 {time}`, as
+  a run's log names them. Never 완료 for the end, which a stopped or failed job never reached, and never 종료.
 - stop a run → 중지; pause and resume a timer → 정지, 재개; run out of time → 시간 초과. Never 멈추기,
   다시 흐르게, 때를 놓침.
 - a thing a unit stopped before it was made, a voice briefing among them → 중지됨; asking for it again → 다시

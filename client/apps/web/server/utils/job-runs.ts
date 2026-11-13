@@ -45,13 +45,17 @@ function jobChosen(jobs: readonly AgencyJob[], run: string | null): AgencyJob | 
 export async function readWorkerJob(worker: string, run: string | null): Promise<JobLine | null> {
   const job = jobChosen(await jobsOf(worker), run);
 
-  if (job === null) return null;
+  return job === null ? null : await jobLineOf(job, job.agentName ?? job.workerName ?? job.roleName ?? worker);
+}
 
+// One job as its line reads it, under the agent its log lines stand under: when it started and ended as its record
+// holds them, and its tool calls and tokens as its run counts them.
+async function jobLineOf(job: AgencyJob, agent: string): Promise<JobLine> {
   const figures: RunFigures = job.runId === null ? { calls: 0, spent: null } : await runFigures(job.runId);
 
   return {
     run: job.runName ?? String(job.runId ?? job.id),
-    agent: job.agentName ?? job.workerName ?? job.roleName ?? worker,
+    agent,
     todoId: job.itemId,
     title: null,
     purpose: null,
@@ -194,9 +198,9 @@ function roadOf(text: string): RanOn | null {
 }
 
 /**
- * The jobs of an item on its worker, read from the agency: how many ran it and for how long, the road its latest
- * answered on and the newest plan it laid out of its own (docs/web.md, 「The work view」). A job's lines stand under the
- * worker it ran on.
+ * The jobs of an item on its worker, read from the agency: how many ran it and for how long, and of its latest — the
+ * item's own job that started last — its line, the road it answered on and the newest plan it laid out of its own
+ * (docs/web.md, the TODO modal's state tab). A job's lines stand under the worker it ran on.
  */
 export async function itemRunsOf(worker: string | null, todoId: number): Promise<ItemRuns> {
   // The item's own jobs, asked by its number, on its worker where it names one; each is held to the item as well.
@@ -214,9 +218,14 @@ export async function itemRunsOf(worker: string | null, todoId: number): Promise
 
   if (latest === undefined || latest.runId === null) return runs;
 
-  runs.latest = { agent: latest.agentName ?? latest.workerName ?? latest.roleName, run: latest.runName ?? String(latest.runId) };
+  const agent = latest.agentName ?? latest.workerName ?? latest.roleName;
+  const [jobLine, read] = await Promise.all([
+    jobLineOf(latest, agent),
+    agencyCall(agency().GET("/log-lines", { params: { query: { runId: latest.runId, agentName: agent, after: 0, limit: RUN_LINES } } }))
+  ]);
+  const lines = read.items;
 
-  const lines = (await agencyCall(agency().GET("/log-lines", { params: { query: { runId: latest.runId, agentName: latest.agentName ?? latest.workerName ?? latest.roleName, after: 0, limit: RUN_LINES } } }))).items;
+  runs.latest = jobLine;
 
   for (const line of [...lines].reverse()) {
     if (runs.ranOn === null && line.kind === "answer") runs.ranOn = roadOf(line.text);

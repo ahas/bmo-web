@@ -338,8 +338,8 @@
                 </article>
               </section>
 
-              <!-- What became of the item: its run record and the job running it now, the co-worker list, what its work
-                   asked and the approval record. While a job runs, its figures move as they happen. -->
+              <!-- What became of the item: its run record and its last job, the co-worker list, what its work asked and
+                   the approval record. While a job runs, its figures move as they happen. -->
               <section v-else-if="shownLeft === 'status'" class="flex min-w-0 flex-col gap-2" :aria-label="$t('todo.label.field_state')">
                   <!-- The merge on both sides: the item this one's work went to, and the items whose
                        work this one carries. Each number opens that item. -->
@@ -372,7 +372,7 @@
                   <div class="rounded-lg border border-default p-3">
                     <p class="text-sm font-medium text-muted">{{ $t("todo.title.run_log") }}</p>
                     <p v-if="jobRecordLine($t, ranItem ?? openedItem) !== null" class="mt-1 text-sm text-muted">{{ jobRecordLine($t, ranItem ?? openedItem) }}</p>
-                    <ItemRunFigures :todo-id="openedItem.id" :running="openedItem.running" />
+                    <ItemRunFigures :job="lastJob" :running="openedItem.running" />
                     <TodoTime :item="ranItem ?? openedItem" />
                   </div>
 
@@ -932,6 +932,7 @@ import type { TodoActFields } from "~/domain/todos";
 import type { Ref } from "vue";
 import type {
   ItemRuns,
+  JobLine,
   JobQuestion,
   RoomSummary,
   TodoAction,
@@ -1016,8 +1017,10 @@ const narrow = useNarrow();
 const openedItem = useHeldWhileClosing(() => props.item);
 const openedStop = computed(() => (openedItem.value === null ? null : stopDetail(t, openedItem.value)));
 
-// What the jobs that carried the item say of it — how many ran it and for how long, the road its latest answered on
-// and the plan it laid out of its own — read as it opens and every few seconds while a job of it runs.
+// What the jobs that carried the item say of it — how many ran it and for how long, its latest job's line, the road
+// that job answered on and the plan it laid out of its own — read as it opens, as a job of it starts, every few
+// seconds while it runs, and once more as it ends, so the line stands the ended job's own figures and its end
+// (docs/web.md, the TODO modal's state tab).
 const itemRuns = ref<ItemRuns | null>(null);
 const RUNS_READ_MS = 3000;
 
@@ -1042,6 +1045,17 @@ watch(() => openedItem.value?.id ?? null, (id) => {
 usePolling(() => {
   if (openedItem.value?.running) void readRuns();
 }, RUNS_READ_MS);
+// The panel reads the board again whenever the agency says a job started, changed or ended, so the item's own running
+// state is that news here: a job that starts is read at once, and one that ends once more for its own figures.
+watch(() => openedItem.value?.running ?? false, () => void readRuns());
+
+// The item's last job once its runs are read. Before that, an item that runs or is done had one, so its place is kept
+// (undefined); an item that waits may have none, so nothing is kept for it (null).
+const lastJob = computed<JobLine | null | undefined>(() => {
+  if (itemRuns.value !== null) return itemRuns.value.latest;
+
+  return openedItem.value?.running || openedItem.value?.done ? undefined : null;
+});
 
 // The item as its record reads it once its runs are read.
 const ranItem = computed<TodoItem | null>(() => {

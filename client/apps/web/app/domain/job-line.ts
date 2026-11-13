@@ -59,14 +59,21 @@ function tallyOf(split: TokenSplit): TokenSplit & { tokens: number } {
   };
 }
 
-// The tokens the job wrote: what its turn has spent, else every model's together, or a dash where nothing said what
-// it wrote.
-function writtenText(job: JobLine): string {
-  if (job.spent !== null && job.spent.outputTokens !== null) return tokenText(job.spent.outputTokens);
+// The tokens the job wrote: what its turn has spent, else every model's together, or null where nothing said what it
+// wrote.
+export function writtenTokens(job: JobLine): number | null {
+  if (job.spent !== null && job.spent.outputTokens !== null) return job.spent.outputTokens;
 
   const written = job.models.filter((model) => model.outputTokens !== null);
 
-  return written.length === 0 ? NOTHING : tokenText(written.reduce((sum, model) => sum + (model.outputTokens ?? 0), 0));
+  return written.length === 0 ? null : written.reduce((sum, model) => sum + (model.outputTokens ?? 0), 0);
+}
+
+// Those tokens as a line reads them, or a dash where nothing said what the job wrote.
+function writtenText(job: JobLine): string {
+  const tokens = writtenTokens(job);
+
+  return tokens === null ? NOTHING : tokenText(tokens);
 }
 
 export function jobLineView(t: Translate, job: JobLine, now: number): JobLineView {

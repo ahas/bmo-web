@@ -540,8 +540,8 @@ describe("the result of an item", () => {
     expect(detailSource).toContain('rightTab.value = "talk";');
   });
 
-  test("while a job runs the state tab reads its figures again as they happen", () => {
-    expect(detailTemplate).toContain('<ItemRunFigures :todo-id="openedItem.id" :running="openedItem.running" />');
+  test("the state tab stands the item's last job as its runs read it, whether that job runs or has ended", () => {
+    expect(detailTemplate).toContain('<ItemRunFigures :job="lastJob" :running="openedItem.running" />');
   });
 
   test("is the left row's first tab, on an item carrying a report or an unfinished note alone, and is the tab it opens on", () => {

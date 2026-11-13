@@ -1346,6 +1346,8 @@ todo:
     held_stop: 중지
     held_stopping: 중지 중
     item_head: "#{id} {title}"
+    job_ended_at: "끝 {time}"
+    job_started_at: "시작 {time}"
     manage: 관리
     merged_done: "{target}에 병합되어 함께 완료"
     merged_done_since: "{since} {target}에 병합되어 함께 완료"

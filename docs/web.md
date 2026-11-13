@@ -5725,8 +5725,9 @@ Four bounds keep it from growing forever.
     order: 결과, 상태, 지시, 요청 원문, 의논, 관리. That row carries the tab names without their icons, so all six fit a
     phone's width rather than scrolling the last of them out of sight.
   - Opening an item selects **결과** where it stands and **상태** otherwise, in the left column and in the single row
-    alike, and the right column opens on **의논**. The choice is made each time another item is opened, so an item
-    that reaches its end while open keeps the tab being read.
+    alike, and the right column opens on **의논**. The choice is made each time an item is opened, the item just
+    closed opened again among them, and never while it stands open: an item that reaches its end while open, or
+    that a re-read of the board hands back after a moment of none, keeps the tab being read.
   - The modal is a page of its own, so each action stands beside the section it acts on rather than in a common foot.
 - **The co-work step dialog** opens from a stage or a sub-stage of the 작업 단계, and is the work view
   (「The work view」 under 「Agent screen」) of that stage's task: a head of the stage's own line, one scroll for the

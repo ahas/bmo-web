@@ -188,11 +188,12 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
           await router.push({ query: {} });
           await router.push({ query: { todo: "${ITEM}" } });
         })()`);
-        // The same item opened again opens on the originals, and a press stands the reading at once, from what the tab kept.
+        // The same item opened again opens on its result tab, not the tab it was closed on, and on the originals; a press
+        // stands the reading at once, from what the tab kept.
         const again = itemDialogs.last();
 
         await again.locator("[data-report]").first().waitFor({ timeout: 20_000 });
-        await again.getByRole("tab", { name: wording("todo.label.result") }).first().click();
+        expect(await again.getByRole("tab", { selected: true }).first().innerText()).toContain(wording("todo.label.result"));
         await again.locator("[data-report]").first().locator("[data-reading-translate]").click();
         await until(async () => await again.locator("[data-report]").first().innerText(), (text) => text.includes("ko-reading:"));
         await Bun.sleep(800);

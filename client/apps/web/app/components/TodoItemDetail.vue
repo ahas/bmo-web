@@ -1140,14 +1140,15 @@ const singleTab = ref("status");
 // is chosen when an item is opened and not as it changes, so an item that ends while it is being read keeps the tab
 // he is on; one whose result goes away while it stands on it falls back to its state rather than to a tab that is no
 // longer there.
-// The item last opened, so a re-read that hands the same item back after a moment of none keeps the tab being read.
-let lastOpened: number | null = null;
+// The open item whose tabs were chosen, so a re-read that hands it back after a moment of none keeps the tab being
+// read. The reader closing it lets it go, so the same item opened again opens on its first tab.
+let tabsChosenFor: number | null = null;
 
 watch(
   () => props.item?.id ?? null,
   (id) => {
-    if (id !== null && id !== lastOpened) {
-      lastOpened = id;
+    if (id !== null && id !== tabsChosenFor) {
+      tabsChosenFor = id;
       const first = props.item !== null && (props.item.reports.length > 0 || props.item.unfinished !== null) ? "result" : "status";
       leftTab.value = first;
       singleTab.value = first;
@@ -1283,6 +1284,8 @@ function questionTone(card: QuestionCard): string {
 // it, so saving does not wipe it by accident, and closing leaves nothing behind.
 function toggled(id: number, closed: boolean, word: string): void {
   detailGeneration++;
+
+  if (closed) tabsChosenFor = null;
 
   confirming.value = null;
   unapproving.value = null;

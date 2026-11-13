@@ -1268,16 +1268,15 @@ Four groups.
   This group does not fold — it is a flat list of screens with no branch to fold, and the fold the sidebar
   remembers is only the agent group's below.
   - **A screen a unit brings may carry a count its manifest declares** (bmo-ui's `docs/console-bundles.md`, the
-    sidebar count): the console reads it as itself, from its own server, with its own credential for the unit
-    and the reader's owner key and role, never as a call from whatever bundle's page is open. The sidebar asks the
+    sidebar count): the console reads it from its own server, as the contract has it read, never as a call from
+    whatever bundle's page is open. The sidebar asks the
     console's `GET /api/console-bundles/unread`, which reads every count the reader's screens declare side by side
     and answers each that answered, by the address of the screen it stands on, so no bundle's page ever reaches
     another unit for it. The console draws a positive count at the line's end as a count badge (「Count badges」)
     in the primary colour, the reader's mail count among them. Folded, it stands on the icon's rim at about two
     o'clock instead, as the rooms' dots do, with the number itself in a pill there, placed from the row's centre
-    so the folded column keeps one centre. A count of none draws nothing. The console reads the counts when the
-    sidebar stands and again on its own pacing clock while the tab is open and shown, and a count that does not
-    answer leaves the last one standing; none is drawn before one has answered.
+    so the folded column keeps one centre. The console reads the counts when the sidebar stands and again on its
+    own pacing clock while the tab is open and shown.
 - **Rooms** — the rooms stand in the order the receiver's room list gives them, the pinned first. The owner's private
   chat is the room the receiver's `GET /owner` names — a room the console made on the record road as readily as a chat
   service's one-to-one — and stands under the chat agent's label; every other room, the owner's chat-service
@@ -1850,21 +1849,16 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   on an agent's screen and a room's the bar holds nothing past the name but the set, the agent's actions and the
   room's menu standing in the row under it.
 - **A screen a unit brings stands under the same bar.** The console offers its bar to every screen under its
-  layout, provided under the key `bmo-console-title-bar` as bmo-ui's `docs/console-bundles.md` states the contract, and a bundle's route that asks for it — `consoleTitleBar`
-  true in the route's meta — is drawn under the console's bar, named by its manifest's title and mark, the sidebar
-  button and the set of buttons in it as on every screen. The object offered names the bar alone and holds no
-  place in it for the screen: such a screen draws no bar of its own and lays nothing into the console's, its way
-  back and what acts on it as a whole stand in the screen's own row under the bar, which the screen draws itself
-  (below), and its own panels carry no bar. The bar stands before the screen does, on every road to it — the
-  first load, from a screen of the console's own, from another bundle's screen: the bar follows the route being
-  gone to as soon as the navigation is taken, so it stands named for the screen by the time the screen mounts,
-  and it stays while the screen being left still stands, until that screen has gone. Between two bundles'
-  screens it is the same bar, renamed. A bundle read where nothing offers the bar — its unit's own app, or a
-  console without the offer — draws its own, and a route that does not ask stands as its bundle draws it.
-- **A screen a unit brings finds the people of the reader's organization** through the console, which provides,
-  under the key `bmo-console-people` as bmo-ui's `docs/console-bundles.md` states the contract, a `search` over the
-  people directory, a `person` read of one account and a `me` read of the signed-in login's own account, both the directory's own reads for the signed-in login
-  (`docs/accounts.md`, 「The people directory」) with the contact fields left out.
+  layout as bmo-ui's `docs/console-bundles.md` states the offer and the asking (「How a bundle mounts」, the title
+  bar). Over a bundle's route that asks, the bar holds the sidebar button and the set of buttons as on every
+  screen, and the screen's own row under it is drawn by the screen (below); its own panels carry no bar. The bar
+  follows the route being gone to as soon as the navigation is taken, so it stands named for the screen by the
+  time the screen mounts on every road to it, and it stays until the screen being left has gone. Between two
+  bundles' screens it is the same bar, renamed.
+- **A screen a unit brings finds the people of the reader's organization** through the console's people
+  directory, offered as bmo-ui's `docs/console-bundles.md` states it (「How a bundle mounts」, the people
+  directory); each of its reads is the account service's own read of the directory for the signed-in login
+  (`docs/accounts.md`, 「The people directory」).
 - **What concerns one screen stands in its own row directly under the title bar, never in the bar.** An action
   on the screen as a whole stands at the row's right end, the screen's status at its left, and the way back to
   where the reader came from at its left end, before the status. Where the screen already has a row there — its
@@ -7248,8 +7242,8 @@ bmo-ui's console plugin contract, bmo-ui's `docs/console-bundles.md`, which is t
 manifest holds, what a bundle and a service owe, and what a console owes them; this section states what the
 console adds of its own. The console attaches each bundle by its manifest while it runs: no unit's screen is built
 into it, and nothing here names one. Of the contract's optional parts it serves every one: the share pages and
-their head, the sidebar count, the moved screens, the notices, the translator, its title bar (「The title bar」) and
-its people directory.
+their head, the sidebar count, the moved screens, the notices, the translator, its title bar (「The title bar」),
+its people directory and the members of the reader's company.
 
 - **The console runs one release of bmo-ui,** the file bmo-ui's release verb wrote for the version bmo-chat's
   shared versions pin, vendored under `client/vendor/` as it stands, so the version it attaches bundles by is the
@@ -7262,8 +7256,9 @@ its people directory.
   it has answered. Which answers leave a unit out is the contract's (「How a console finds the services」), and a
   unit nothing answers, or that answers anything but a 200, is left out with nothing said on a screen.
 - **What the console left out, and why, is in its log.** A manifest that does not read through bmo-ui's
-  `consoleManifest`, one built on another layer than the console runs, one whose words do not answer, and two that
-  clash are each left out with a line in the server's log naming the unit and the reason: for another layer, the
+  `consoleManifest`, one built on another layer than the console runs, one whose words do not answer, one whose
+  service bears the name the console answers its company's members under (below), and two that clash are each
+  left out with a line in the server's log naming the unit and the reason: for another layer, the
   manifest's layer and the console's own, so a screen missing from the sidebar after a release of bmo-ui is
   explained there. A line is written as a reason first stands and again where it changes, never once a minute
   for a reason that stands, and a unit whose manifest reads again is attached again with no further line.
@@ -7282,21 +7277,14 @@ its people directory.
 - **A bundle's calls to another service** are relayed and refused as the contract's 「How a bundle mounts」 states;
   the console tells the page a call comes from by the page address the browser sends as the call's referrer. A
   unit the console calls directly answers no manifest, and the rule does not reach it.
-- **The members of the reader's company are a service the console answers itself,** under the name `people`.
-  A screen that picks a person to share with — or for anything else that needs the whole company at hand — asks
-  `GET` at the relay address for `people` and `/members`, and the console answers it from the account service's
-  members list (`docs/accounts.md`, 「The people directory」), which leaves out a person marked left: `members`,
-  each person's `user`, the account key written as the owner key is, and `name`, and nothing more, in the
-  directory's order. The console knows the account service; a bundle knows the name and the path alone.
-  - **It is read by a reader signed in,** and a request with no session is refused 401. A member reaches it
-    where their account section is read, as the directory's other reads (「Access」), and is answered as if
-    nothing stood there otherwise; the administrator reaches it always. A login with no user of the account
-    service reads an empty list.
-  - **A bundle's page reaches it only where its manifest names `people` under `calls`,** the page told by the
-    call's referrer as for every service; any other bundle's page is refused 403. A page of the console's own
-    reaches it.
-  - **The name is the console's.** A manifest whose service is named `people` is left out, with a line in the
-    log saying why.
+- **The members of the reader's company are a service the console answers itself,** as the contract's 「How a
+  bundle mounts」 (the company's members) and 「What a console owes」 state it: its name, its one read, what it
+  answers, to whom, and to which bundle's page. What the console adds of its own:
+  - **It reads them from the account service's members list** (`docs/accounts.md`, 「The people directory」),
+    with the reader's owner key and role.
+  - **Its own permission to read its people is the account section:** a member reads the list where their account
+    section is read, as the directory's other reads (「Access」).
+  - **A login with no account,** as the contract names it, is one with no user of the account service.
 - **The translator a bundle translates through** is named by the console's environment
   (`NUXT_PUBLIC_BMO_UI_TRANSLATOR_SERVICE` and `NUXT_PUBLIC_BMO_UI_TRANSLATOR_PATH`, `docs/boundary.md`,
   「Settings」), as bmo-ui's runtime configuration reads it; the console's code names none, and with neither set no

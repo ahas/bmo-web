@@ -5570,9 +5570,9 @@ Four bounds keep it from growing forever.
   is pressed nowhere: the road is read, and chosen through the item's agent. A line carries as a second chip whom its
   work runs on: while a job of the item is under way, the agent that job runs on, the agency's job `agentName`, never
   the item's labels, so a line assigned by a model names there the agent its launch took; otherwise the agent its
-  `agent` label names; otherwise, where it names a model, the role it names with 빈 에이전트, its tooltip saying that
-  the agent of that role running that model that is free when the job launches takes it; and none where it names
-  neither.
+  `agent` label names; otherwise, where it names a model, the role it names alone (미지정 where it names none), its
+  tooltip saying that the agent of that role running that model that is free when the job launches takes it; and
+  none where it names neither.
   A line whose item's work was sent back by its review carries a badge
   in the warning colour with how many times, bmo-job's `rejections` of the item (bmo-job's `docs/api.md`,
   「Reviews」), and none while it was never sent back.

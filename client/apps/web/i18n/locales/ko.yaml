@@ -1330,8 +1330,8 @@ todo:
     agent_unnamed: 미지정
     assign_model: "{role} · {model}"
     assign_model_agents: "빈 에이전트 · {agents}"
-    assign_free: "{role} 빈 에이전트"
-    assign_free_any: 빈 에이전트
+    assign_free: "{role}"
+    assign_free_any: 미지정
     assign_free_tip: "{role} 역할에서 {model} 모델을 실행하는 에이전트 중 Job을 시작할 때 비어 있는 에이전트가 맡습니다."
     assign_free_any_tip: "{model} 모델을 실행하는 에이전트 중 Job을 시작할 때 비어 있는 에이전트가 맡습니다."
     agent_job_running: "실행 중인 Job의 에이전트입니다.\nJob을 중지한 뒤 바꿀 수 있습니다."

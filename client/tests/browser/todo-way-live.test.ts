@@ -74,7 +74,8 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
   };
 }
 
-// The three rows: one whose job runs its close, one whose commit waits to go live, and one that says neither.
+// The three rows: one whose job runs its close, which keeps 진행 중, one whose commit waits to go live, and one that
+// says neither.
 const TESTING = item(1, { running: true, status: "running", liveState: "running", closing: { phase: "testing", commit: null } });
 const WAITING = item(2, { running: true, status: "leased", closing: { phase: "waiting-live", commit: "0123abcd0123" } });
 const PLAIN = item(3);
@@ -138,7 +139,7 @@ async function wayLiveOf(page: Page, id: number): Promise<string | null> {
 
 describe.skipIf(!origin || !touchReady())("what a TODO row says of its item's way live", () => {
   for (const { width, height, phone } of WIDTHS) {
-    test(`a row being tested, a row waiting to go live and a row that says neither at ${width}`, async () => {
+    test(`a row whose close checks its change, a row waiting to go live and a row that says neither at ${width}`, async () => {
       const context = await open(width, height);
       const page = await context.newPage();
 
@@ -146,8 +147,8 @@ describe.skipIf(!origin || !touchReady())("what a TODO row says of its item's wa
         await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
         await panel(page, phone);
 
-        expect(await wayLiveOf(page, TESTING.id)).toBe(wording("todo.label.deploy_testing"));
-        expect(await page.locator(`[data-todo-id="${TESTING.id}"]:visible`).first().innerText()).not.toContain(wording("todo.label.state_running"));
+        expect(await wayLiveOf(page, TESTING.id)).toBeNull();
+        expect(await page.locator(`[data-todo-id="${TESTING.id}"]:visible`).first().innerText()).toContain(wording("todo.label.state_running"));
         expect(await wayLiveOf(page, WAITING.id)).toBe(wording("todo.label.deploy_waiting_live"));
         expect(await wayLiveOf(page, PLAIN.id)).toBeNull();
       } finally {

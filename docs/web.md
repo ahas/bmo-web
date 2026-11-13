@@ -5758,11 +5758,12 @@ Four bounds keep it from growing forever.
     alone or with subagents of its own, is its agent's. An item bmo-job marks done while the agency's job for it is
     still going stands **완료 보고 중** until the agency tells its stream that the job ended (its `job.ended`), however long
     that takes; the agency keeps the job's lease through the close (its `docs/role-slots.md`, 「The line」), so the line
-    never falls back to 대기 on its way out. **테스트 중**, **배포 대기**, **배포 중** and **배포 실패** are what a row's
+    never falls back to 대기 on its way out. **배포 대기**, **배포 중** and **배포 실패** are what a row's
     state chip says while they apply, in place of 진행 중 or 대기, saying where the item's work stands on its way live,
-    with the rocket mark. 테스트 중 stands while the job's own
-    close runs its check, which the item's label `close-phase` says as `testing` (bmo-job's
-    `docs/cli.md`, 「`bmo-job job close`」), for as long as a job of the item runs. 배포 대기 stands once the close
+    with the rocket mark. A job's own close checking its change before the merge, the item's label `close-phase`
+    reading `testing` (bmo-job's `docs/cli.md`, 「`bmo-job job close`」), changes no chip: the row stays 진행 중, and its
+    testbed line says the check it runs, as every command of the job's in the testbed's queue is said there
+    (the running line's testbed words below). 배포 대기 stands once the close
     merged its commit, `close-phase` reading `waiting-batch` — or `waiting-live` on an item an older close left —
     whether or not its job still runs: the close ends at the merge and the commit waits for its repository's batch
     deployment (bmo-job's `docs/deploy.md`, 「A job closes」), not live yet, and the item stays in the queue until it
@@ -5774,8 +5775,8 @@ Four bounds keep it from growing forever.
     live and a job of it runs again. While any deployment under way carries the item — several units deploy at
     once, so every run under way is read, not only the one the title bar stands (「Deployment in the title bar」); a
     run carries the item where one of its carried commits names the item by its number, or is the commit the item's
-    label `close-commit` names — the row says 테스트 중 while that run's 검사·테스트 stage is under way and 배포 중
-    through every later stage until the run ends; where the run the title bar reads ended failed or rolled back,
+    label `close-commit` names — the row says 배포 중 through every stage of that run, its 검사·테스트 stage among them,
+    until the run ends; where the run the title bar reads ended failed or rolled back,
     the row of an item still waiting on its commit says 배포 실패, until a job of the item runs again or another run
     stands in the bar. They are the chip's words, never a state of their own, a filter
     chip or a place in the order, and a finished row carries none. A reporting line stays at the top with

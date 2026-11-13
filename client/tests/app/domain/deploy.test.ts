@@ -189,12 +189,12 @@ describe("an item on its way live", () => {
   const item = (id: number, over: Partial<ItemOnItsWayLive> = {}): ItemOnItsWayLive => ({ id, done: false, liveState: null, closing: null, ...over });
   const waiting = (commit: string | null): ItemOnItsWayLive["closing"] => ({ phase: "waiting-live", commit });
 
-  test("is being tested while the check stage is under way, and before the first stage of a plan that opens with it", () => {
-    const testing = view({ run: run({ carried, stages: [{ stage: "check", at: NOW - 1_000 }] }) });
+  test("is being put live while the run's check stage is under way, and before the first stage of a plan that opens with it", () => {
+    const checking = view({ run: run({ carried, stages: [{ stage: "check", at: NOW - 1_000 }] }) });
 
-    expect(itemDeployPhase(testing, item(1201))).toBe("testing");
-    expect(itemDeployPhase(testing, item(1202))).toBe("testing");
-    expect(itemDeployPhase(view({ run: run({ carried, plan: ["check", "build"], stages: [] }) }), item(1201))).toBe("testing");
+    expect(itemDeployPhase(checking, item(1201))).toBe("deploying");
+    expect(itemDeployPhase(checking, item(1202))).toBe("deploying");
+    expect(itemDeployPhase(view({ run: run({ carried, plan: ["check", "build"], stages: [] }) }), item(1201))).toBe("deploying");
   });
 
   test("is being put live through every later stage until the run ends", () => {
@@ -218,11 +218,11 @@ describe("an item on its way live", () => {
     expect(itemDeployPhase(view({ run: run({ carried }) }), item(1203, { closing: waiting("ccc") }))).toBe("waiting-live");
   });
 
-  test("is being tested while a job of it runs its close, and says nothing of a close no job runs", () => {
+  test("says nothing while a close checks its change before the merge, the row's testbed line saying it", () => {
     const closing: ItemOnItsWayLive["closing"] = { phase: "testing", commit: null };
 
-    expect(itemDeployPhase(view(), item(1203, { closing, liveState: "running" }))).toBe("testing");
-    expect(itemDeployPhase(null, item(1203, { closing, liveState: "running" }))).toBe("testing");
+    expect(itemDeployPhase(view(), item(1203, { closing, liveState: "running" }))).toBeNull();
+    expect(itemDeployPhase(null, item(1203, { closing, liveState: "running" }))).toBeNull();
     expect(itemDeployPhase(view(), item(1203, { closing }))).toBeNull();
   });
 

@@ -257,10 +257,9 @@ export function deployMarkOf(t: Translate, view: DeployView | null, pageRelease:
 }
 
 /** What a TODO row says beside its state of where the item's work stands on its way live. */
-export type ItemDeployPhase = "testing" | "waiting-live" | "deploying" | "deploy-failed";
+export type ItemDeployPhase = "waiting-live" | "deploying" | "deploy-failed";
 
 export const ITEM_DEPLOY_LABELS: Record<ItemDeployPhase, string> = {
-  testing: "todo.label.deploy_testing",
   "waiting-live": "todo.label.deploy_waiting_live",
   deploying: "todo.label.deploy_deploying",
   "deploy-failed": "todo.label.deploy_failed",
@@ -307,17 +306,10 @@ export function itemDeployPhase(view: DeployView | null | undefined, item: ItemO
     (one) => one.phase === "running" && one.carried.some((commit) => commitNames(commit, item))
   );
 
-  if (under !== undefined) {
-    const stage = currentStage(under);
+  // A run that carries the item puts it live through every stage, its check and suite among them.
+  if (under !== undefined) return "deploying";
 
-    if (stage === null) return under.plan[0] === "check" ? "testing" : "deploying";
-
-    return stage === "check" ? "testing" : "deploying";
-  }
-
-  const running = item.liveState != null;
-
-  if (item.closing?.phase === "testing") return running ? "testing" : null;
+  // A close checking its change before the merge has no chip: the row's testbed line says what it runs.
   // A close ends at the merge and its commit waits for its repository's batch deployment, as one an older close
   // handed over waits to go live.
   if (item.closing?.phase !== "waiting-batch" && item.closing?.phase !== "waiting-live") return null;

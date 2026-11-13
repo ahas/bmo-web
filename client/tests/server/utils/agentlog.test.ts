@@ -45,17 +45,34 @@ function coderLine(id: number): Record<string, unknown> {
 
 const CODER_LINES = Array.from({ length: 3_100 }, (_, index) => coderLine(1_001 + index));
 
-// A job's run, whose lines an agent's log names by their job alone: under the agent they carry no run, and a read of
-// the run's own lines answers them with the ledger's run.
-const WORKER = "agent-w";
-const JOB = { id: 12, name: "job-77", job: 77 };
-const JOB_LINES: Record<string, unknown>[] = Array.from({ length: 80 }, (_, index) => ({
-  ...line(5_001 + index, WORKER, "text"),
+// A job's run whose lines stand under the very agent the ledger names it for: under the agent they carry their job and
+// no run, and a read of the run's own lines answers them with the ledger's run.
+const LEDGER_AGENT = "agent-v";
+const JOB_HERE = { id: 14, name: "job-77", job: 77 };
+const JOB_HERE_LINES: Record<string, unknown>[] = Array.from({ length: 80 }, (_, index) => ({
+  ...line(7_001 + index, LEDGER_AGENT, "text"),
   runId: 0,
-  jobId: JOB.job,
-  ledgerRunId: JOB.id
+  jobId: JOB_HERE.job,
+  ledgerRunId: JOB_HERE.id
 }));
-const ALL = [...LINES, ...CODER_LINES, ...JOB_LINES];
+
+// A seat that ran two jobs one after the other, the second still going. A job's lines stand under the seat, carrying
+// the job's run by name and a run id of nought, while the ledger names the job's run for the worker it was ordered
+// for, a name no line stands under.
+const SEAT = "agent-s";
+const SEAT_LINES_PATH = `/log/agents/${SEAT}/lines`;
+const WORKER = "agent-w";
+const EARLIER_JOB = { id: 41, run: "job-41", ledger: 13 };
+const JOB = { id: 42, run: "job-42", ledger: 12 };
+
+function seatLine(id: number): Record<string, unknown> {
+  const job = id <= 5_400 ? EARLIER_JOB : JOB;
+
+  return { ...line(id, SEAT, "text", { run: job.run }), runId: 0, jobId: job.id };
+}
+
+const SEAT_LINES = Array.from({ length: 1_000 }, (_, index) => seatLine(5_001 + index));
+const ALL = [...LINES, ...CODER_LINES, ...JOB_HERE_LINES, ...SEAT_LINES];
 
 // The ids of one run's lines in the coder's log, oldest first.
 function idsOf(run: { id: number }): number[] {
@@ -101,8 +118,13 @@ const RUNS = [
   ledgerRun(OLD.id, OLD.name, CODER),
   ledgerRun(LONG.id, LONG.name, CODER),
   ledgerRun(SPARSE.id, SPARSE.name, CODER),
-  ledgerRun(JOB.id, JOB.name, WORKER)
+  ledgerRun(JOB_HERE.id, JOB_HERE.name, LEDGER_AGENT),
+  ledgerRun(JOB.ledger, JOB.run, WORKER),
+  ledgerRun(EARLIER_JOB.ledger, EARLIER_JOB.run, WORKER)
 ];
+
+// The job a ledger run of a job stands for: the agency reads such a run's own lines as the job's.
+const JOB_OF_RUN = new Map([JOB, EARLIER_JOB].map((job) => [job.ledger, job.id]));
 
 const agency = standIn("AGENCY", (call) => {
   const url = new URL(call.path, "http://agency");
@@ -122,7 +144,11 @@ const agency = standIn("AGENCY", (call) => {
   const limit = Number(url.searchParams.get("limit") ?? "500");
   const agent = url.searchParams.get("agentName");
   const runId = Number(url.searchParams.get("runId") ?? "0");
-  const found = ALL.filter((one) => (one.ledgerRunId ?? one.runId) === runId && (one.id as number) > after && (agent === null || one.agentName === agent));
+  const job = JOB_OF_RUN.get(runId);
+  const found = ALL.filter((one) =>
+    (one.id as number) > after &&
+    (job === undefined ? (one.ledgerRunId ?? one.runId) === runId && (agent === null || one.agentName === agent) : one.jobId === job)
+  );
 
   return answer({ items: found.slice(0, limit).map((one) => ({ ...one, runId })), more: found.length > limit });
 });
@@ -253,9 +279,9 @@ describe("an agent's log read by its run from its start", () => {
 // forward from its start alone, so they are read back out of the agent's log with the run's lines kept.
 describe("an agent's log read by its run from its newest line", () => {
   test("finds a job's run by its job, whose lines the agent's log names by their job and no run", async () => {
-    const page = (await asked(handler, { params: { name: WORKER }, query: { run: JOB.name, limit: "50" } })).answer!;
+    const page = (await asked(handler, { params: { name: LEDGER_AGENT }, query: { run: JOB_HERE.name, limit: "50" } })).answer!;
 
-    expect(page.lines.map((one) => one.id)).toEqual(JOB_LINES.slice(-50).map((one) => one.id as number));
+    expect(page.lines.map((one) => one.id)).toEqual(JOB_HERE_LINES.slice(-50).map((one) => one.id as number));
     expect(page.hasMore).toBe(true);
   });
 
@@ -333,6 +359,42 @@ describe("an agent's log read by its run from its newest line", () => {
     const page = (await asked(handler, { params: { name: CODER }, query: { run: "run-gone" } })).answer!;
 
     expect(page).toEqual({ lines: [], hasMore: false, unavailable: true });
+  });
+});
+
+// A job's log opened from the TODO panel stands at the job's run on the seat that ran it.
+describe("a job's log read by its run", () => {
+  test("opens on the job's newest lines out of the seat's own log, never asking the worker the ledger names", async () => {
+    agency.asked.length = 0;
+
+    const page = (await asked(handler, { params: { name: SEAT }, query: { run: JOB.run, limit: "50" } })).answer!;
+    const job = SEAT_LINES.filter((one) => one.jobId === JOB.id).map((one) => one.id as number);
+
+    expect(page.lines.map((one) => one.id)).toEqual(job.slice(-50));
+    expect(page.lines.every((one) => one.run === JOB.run && one.agent === SEAT)).toBe(true);
+    expect(page.hasMore).toBe(true);
+    expect(agency.asked.map((one) => one.path)).toEqual([
+      `/runs?names=${JOB.run}&limit=1`,
+      `/log-lines?runId=${JOB.ledger}&agentName=${WORKER}&after=0&limit=1`,
+      `${SEAT_LINES_PATH}?limit=500`
+    ]);
+  });
+
+  test("keeps another job's lines of the same seat out, reading back to the job's first line", async () => {
+    const page = (await asked(handler, { params: { name: SEAT }, query: { run: EARLIER_JOB.run, limit: "500" } })).answer!;
+
+    expect(page.lines.map((one) => one.id)).toEqual(SEAT_LINES.filter((one) => one.jobId === EARLIER_JOB.id).map((one) => one.id as number));
+    expect(page.hasMore).toBe(false);
+  });
+
+  test("read from its start, asks the seat's log whether lines stand above it", async () => {
+    agency.asked.length = 0;
+
+    const page = (await asked(handler, { params: { name: SEAT }, query: { run: JOB.run, after: "0", limit: "10" } })).answer!;
+
+    expect(page.lines[0]?.id).toBe(5_401);
+    expect(page.hasOlder).toBe(true);
+    expect(agency.asked.at(-1)?.path).toBe(`${SEAT_LINES_PATH}?before=5401&limit=1`);
   });
 });
 

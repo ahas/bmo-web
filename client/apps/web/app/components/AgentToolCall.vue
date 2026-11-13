@@ -1,8 +1,9 @@
 <template>
   <!-- One call as the terminal draws it (docs/web.md, 「A tool call」): its description on the top line, then one block
        in the look a diff is drawn in — the command under a prompt of oh-my-zsh's pure theme in the console's ANSI
-       palette, never folded, and under it what came back: the change it made, never folded, or its result, whose
-       lines past the first five fold. Nothing of the call stands as its raw JSON. -->
+       palette, never folded, and under it what came back: the change it made, its lines folded under its head, or its
+       result, whose lines past the first five fold. What is folded is not drawn until it is spread. Nothing of the
+       call stands as its raw JSON. -->
   <div class="flex min-w-0 flex-col gap-1" data-tool-call>
     <p class="flex min-w-0 items-start gap-2 text-sm">
       <!-- A call still running spins its mark until its result comes back. -->
@@ -57,11 +58,26 @@
       </div>
 
       <template v-for="result in results" :key="result.line.id">
-        <!-- A change stands as Claude Code draws it, every line, with its numbers and marks. -->
+        <!-- A change stands as Claude Code draws it, with its numbers and marks: each file under a head of its own, its
+             lines folded and drawn only once the head is pressed to spread them. -->
         <div v-if="result.changes !== null" class="flex min-w-0 flex-col gap-1 border-t border-default py-1" data-tool-change>
           <template v-for="(file, index) in result.changes.files" :key="index">
-            <p class="px-2 break-all text-highlighted">{{ fileHead(file) }}</p>
-            <AgentLogDiff :view="file" bare />
+            <button
+              type="button"
+              class="flex min-w-0 items-center gap-2 px-2 text-start hover:bg-elevated active:bg-accented"
+              :aria-expanded="spreadFiles.has(fileKey(result.line, index))"
+              data-tool-change-head
+              @click="toggleFile(result.line, index)"
+            >
+              <UIcon
+                name="i-material-symbols-chevron-right"
+                aria-hidden="true"
+                class="size-4 shrink-0 text-dimmed transition-transform"
+                :class="spreadFiles.has(fileKey(result.line, index)) ? 'rotate-90' : ''"
+              />
+              <span class="min-w-0 break-all text-highlighted">{{ fileHead(file) }}</span>
+            </button>
+            <AgentLogDiff v-if="spreadFiles.has(fileKey(result.line, index))" :view="file" bare />
           </template>
           <p class="px-2 font-sans text-sm text-muted">{{ result.changes.summary }}</p>
           <p v-if="result.changes.more !== null" class="px-2 font-sans text-sm text-dimmed">{{ result.changes.more }}</p>
@@ -147,5 +163,21 @@ function lookOf(result: AgentLogLine) {
 // A file's head as the terminal writes it.
 function fileHead(file: DiffView): string {
   return file.head;
+}
+
+// The files of a recorded change whose lines are spread, each by its result line and its place in that change.
+const spreadFiles = ref(new Set<string>());
+
+function fileKey(result: AgentLogLine, index: number): string {
+  return `${result.id}:${index}`;
+}
+
+function toggleFile(result: AgentLogLine, index: number): void {
+  const key = fileKey(result, index);
+  const next = new Set(spreadFiles.value);
+
+  if (!next.delete(key)) next.add(key);
+
+  spreadFiles.value = next;
 }
 </script>

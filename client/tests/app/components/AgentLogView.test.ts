@@ -101,4 +101,15 @@ describe("opening a log at its end", () => {
     expect(body).toContain("held < 2");
     expect(body).toContain("requestAnimationFrame");
   });
+
+  // The head, its prompt and its stages are read beside the lines and land later; waiting for the whole box to hold
+  // would keep the newest lines unseen until they had (docs/web.md, 「The work view」).
+  test("waits for its own lines' height alone, never for what the box holds beside them", () => {
+    const at = source.indexOf("async function settleAtEnd()");
+    const body = source.slice(at, source.indexOf("\n}\n", at));
+
+    expect(body).toContain('querySelector<HTMLElement>("[data-agent-log]")?.offsetHeight');
+    expect(body).toContain("held = lines() === height ? held + 1 : 0;");
+    expect(body).not.toContain("element.scrollHeight === height");
+  });
 });

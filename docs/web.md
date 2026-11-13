@@ -3234,9 +3234,9 @@ a seat of its role.
      command words, the options, the quoted strings, the variables, and the pipes, redirections and separators,
      each a colour of its own. A shell command that visibly writes a file — a redirection into it, `tee`, `sed -i`
      — names that file on its top line after its description.
-  3. **Under it, the result,** the only part of a call that folds. Its first five lines always stand; where it
-     runs longer, a press under them shows how many lines are hidden and spreads them, and the same press folds
-     them back. It is coloured by the console's one code highlighter, the chat's code blocks' own, in the language
+  3. **Under it, the result,** which folds as the change below does. Its first five lines always stand; where it
+     runs longer, the lines past them are not drawn at all until a press under them, which shows how many are
+     hidden, spreads them, and the same press folds them back. It is coloured by the console's one code highlighter, the chat's code blocks' own, in the language
      the call's target names: a file tool's result and a shell command that reads one file by that file's
      extension; a search's result line by line, each by its own path's extension, the path and the line number
      coloured apart from the text; and only where no extension is known, by what the text is — JSON, a diff or a
@@ -3249,8 +3249,9 @@ a seat of its role.
      head naming it (`Update(<path>)`, `Write(<path>)`, or `Updated <path> (+n -m)` for a file a shell command
      changed) with how many lines went in and out, and under it the changed lines with a `+` or `-` mark, context
      lines unmarked, added and removed lines in the success and error tones of the brain chip's added lines, with
-     their line numbers where the record knows them. The lines start folded under the head, which is pressed to
-     spread them and again to fold them. The path is relative to the checkout where it lies inside it, and on a
+     their line numbers where the record knows them. The lines start folded under the head and are not drawn until
+     it is pressed to spread them, and again to fold them; a recorded patch gives each file it touched a head of its
+     own, folded the same way. The path is relative to the checkout where it lies inside it, and on a
      phone a long line wraps inside the block.
   - The screen is sent only the patch, the file path and the result's type out of the stored structured result,
     never the whole of it; a patch past the size the screen is sent stands as the ordinary result instead.
@@ -3355,7 +3356,9 @@ a seat of its role.
      It opens at its end on its newest lines alone, as many as fill a screen (`AGENT_LOG_OPENING_SIZE`), the rest
      read a page at a time as the reader scrolls up; they are laid out and stood at the end while unseen, the
      skeleton standing, and only then shown, so nothing is seen scrolling and no older page is read before the
-     log stands at its end. It stays there while anything in the box it scrolls in
+     log stands at its end. Only the log's own lines are waited for: they are shown the moment their own height
+     holds, and nothing read beside them — the head, its prompt, its stages, a chip — holds that first paint back.
+     It stays there while anything in the box it scrolls in
      grows — its own lines arriving, the window narrowing, or the head above it standing late, its prompt and its
      stages read after the lines — as long as the reader is at the end; scrolling up stops the following, and a 맨 아래로 button standing over the log's foot
      takes the reader back to the end and following again. A view opened at an older run of the agent's own screen
@@ -3425,11 +3428,14 @@ a seat of its role.
   upward from a run lands on the lines the run before it left.
 - **A log that stands one run's lines alone opens on that run's newest lines.** The agency's read of one run answers
   from the run's start only, so the console server reads the newest of a run, and the page before a line of it it
-  holds, out of the agent's own log: newest page first, keeping that run's lines alone and going back until it
-  holds the page asked for, has passed the run's first line, or has looked through `AGENT_LOG_RUN_SCAN` lines of
-  the agent's. A job's lines stand in the agent's log under their job and no run, so the run's lines kept there are
-  those carrying its run or, for a job's run, the job its first line carries. A run that left no line among those, one that ended under later runs, is found by its newest line
-  first — a few one-line reads of the run's own lines after an id, the stretch halved each time — and read back
+  holds, out of the log of the agent its lines stand under: the agent the run's first line names, which for a job is
+  the seat that ran it rather than the worker the run ledger names, and which is the only log that holds them.
+  Whether lines stand above a run read from its start is asked of that same agent's log. A job's lines stand in the
+  agent's log under their job and no run, so the run's lines kept there are those carrying its run or, for a job's
+  run, the job its first line carries. The read goes newest page first, keeping that run's lines alone and going
+  back until it holds the page asked for, has passed the run's first line, or has looked through
+  `AGENT_LOG_RUN_SCAN` lines of the agent's. A run that left no line among those, one that ended under later runs, is
+  found by its newest line first — a few one-line reads of the run's own lines after an id, the stretch halved each time — and read back
   from there. What lies above a page so read is said to wait, and is read as the reader scrolls up; the run's
   newer lines are read from the run's own lines after the newest one held, and a run read whole from its start, a
   room's turn among them, asks for the lines after none.

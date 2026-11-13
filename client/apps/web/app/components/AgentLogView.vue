@@ -281,7 +281,9 @@ async function toEnd(): Promise<void> {
 }
 
 // The lines stood at the end while they settle: a row's height can still change for a few frames after it is drawn
-// (its markdown, its chips), so the end is taken again each frame until the height holds for two frames in a row.
+// (its markdown, its chips), so the end is taken again each frame until the lines' own height holds for two frames in
+// a row. Only the lines are waited for: what the box holds beside them — the work view's head, its prompt and its
+// stages — arrives on its own reads, and the end is kept as it does by the watch on every block of the box.
 async function settleAtEnd(): Promise<void> {
   await nextTick();
 
@@ -289,13 +291,14 @@ async function settleAtEnd(): Promise<void> {
 
   if (element === null) return;
 
+  const lines = (): number => feedRef.value?.$el?.querySelector<HTMLElement>("[data-agent-log]")?.offsetHeight ?? 0;
   let held = 0;
   let height = -1;
 
   for (let frame = 0; frame < SETTLE_FRAMES_MOST && held < 2; frame += 1) {
     element.scrollTop = element.scrollHeight;
-    held = element.scrollHeight === height ? held + 1 : 0;
-    height = element.scrollHeight;
+    held = lines() === height ? held + 1 : 0;
+    height = lines();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   }
 

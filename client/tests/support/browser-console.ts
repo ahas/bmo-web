@@ -16,6 +16,7 @@ import { SQL } from "bun";
 import { connectionOf } from "../../apps/web/server/utils/db";
 import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
+import { jobLogAnswer } from "./job-log";
 import { addressOf } from "./web-database";
 
 const CLIENT = new URL("../..", import.meta.url).pathname;
@@ -64,7 +65,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["delegation-marker", "fixture-password-2373"],
   ["screen-stands", "fixture-password-2411"],
   ["hidden-inputs", "fixture-password-2412"],
-  ["secret-request", "fixture-password-2649"]
+  ["secret-request", "fixture-password-2649"],
+  ["agent-log-open", "fixture-password-2809"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -375,6 +377,11 @@ const notFound = () => Response.json({ code: "not-found", error: "not served by 
 // not-found. The tests serve the rest of what they measure through the page's routes themselves.
 const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
   AGENCY: async (path, request) => {
+    // A long job's log, read by its run from the TODO panel (tests/support/job-log.ts).
+    const jobLog = jobLogAnswer(new URL(request.url));
+
+    if (jobLog !== null) return jobLog;
+
     // The two axes and the places: two supervisors — the default answerer, whose turns its window makes, and a
     // supervisor of the room scope, whose turns its settings' pieces make — a handful of roles with runs going and waiting, and three
     // repositories, one with a job holding a checkout.

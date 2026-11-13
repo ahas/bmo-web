@@ -38,8 +38,14 @@ describe("a call", () => {
     expect(call).toContain("data-tool-settled");
   });
 
-  test("stands a recorded change as the terminal draws it, and any other result under its fold", () => {
-    expect(call).toContain('<AgentLogDiff :view="file" bare />');
+  test("stands a recorded change as the terminal draws it, each file's lines drawn only once its head is pressed", () => {
+    expect(call).toContain('<AgentLogDiff v-if="spreadFiles.has(fileKey(result.line, index))" :view="file" bare />');
+    expect(call).toContain('@click="toggleFile(result.line, index)"');
+    // No diff of the call is drawn while it is folded.
+    expect(call.match(/<AgentLogDiff /g)?.length).toBe(call.match(/<AgentLogDiff v-if="/g)?.length);
+  });
+
+  test("stands any other result under its fold", () => {
     expect(call).toContain('<AgentToolResult v-else-if="result.line.text.trim() !== \'\'"');
     expect(result).toContain("resultParts(props.text)");
     expect(result).toContain("$t('agents.label.result_more', { n: countText(parts.hiddenCount) })");

@@ -63,7 +63,8 @@ export async function readRunPage(agent: string, run: string, after: number, lim
   const held = found.slice(0, window - 1);
   const first = held[0];
 
-  return { lines: held, hasMore: found.length > window - 1, hasOlder: first !== undefined && (await linesBefore(owner, first.id)) };
+  // What stands above the run is asked of the agent its lines stand under, not the one the ledger names the run for.
+  return { lines: held, hasMore: found.length > window - 1, hasOlder: first !== undefined && (await linesBefore(first.agent, first.id)) };
 }
 
 // Whether any line of the agent's stands before one the page holds: a run's own read cannot say, so the agent's log
@@ -79,15 +80,19 @@ async function linesBefore(agent: string, before: number): Promise<boolean> {
   }
 }
 
-// The id of a run's first line under its agent, or null where it left none: where a read back through the agent's log
-// stops.
-// A run's first line, and the job its lines carry where it is a job's run: an agent's log names a job's lines by
-// their job, not by the run (the agency's `docs/api.md`, 「log-lines」).
-async function firstLineOf(runId: number, owner: string): Promise<{ id: number; jobId: number | null } | null> {
+// A run's first line, or null where it left none: where a read back through the agent's log stops, and the line that
+// names the agent the run's lines stand under and the job they carry where it is a job's run.
+async function firstLineOf(runId: number, owner: string): Promise<LogLine | null> {
   const page = await agencyCall(agency().GET("/log-lines", { params: { query: { runId, agentName: owner, after: 0, limit: 1 } } }));
-  const line = page.items[0];
 
-  return line === undefined ? null : { id: line.id, jobId: line.jobId ?? null };
+  return page.items[0] ?? null;
+}
+
+// Whether a line of the agent's log is the run's: one carrying the run, or, for a job's run, the job its first line
+// carries, since an agent's log names a job's lines by their job and no run (docs/web.md, 「Where the log comes
+// from」).
+function ofRun(line: LogLine, runId: number, first: LogLine): boolean {
+  return line.id >= first.id && (line.runId === runId || (first.jobId !== null && line.jobId === first.jobId));
 }
 
 // The id of a run's newest line before `below`, the run's first line standing before it. A read of the run's own
@@ -113,29 +118,22 @@ async function lastLineBefore(runId: number, owner: string, first: number, below
 // of the run it kept, oldest first, and the oldest id it looked at. It stops once it holds `want` of them, has passed
 // the run's first line, has reached the log's first line, or has looked through `AGENT_LOG_RUN_SCAN` lines, so a run
 // with few lines among the agent's never reads the agent's whole log.
-async function scanBack(
-  runId: number,
-  owner: string,
-  before: number | null,
-  want: number,
-  first: number,
-  jobId: number | null
-): Promise<{ found: LogLine[]; reached: number | null }> {
+async function scanBack(runId: number, first: LogLine, before: number | null, want: number): Promise<{ found: LogLine[]; reached: number | null }> {
   const found: LogLine[] = [];
   let cursor = before;
   let looked = 0;
 
   for (;;) {
-    const page = await agentLines(owner, { limit: AGENCY_PAGE, ...(cursor === null ? {} : { before: cursor }) });
+    const page = await agentLines(first.agentName, { limit: AGENCY_PAGE, ...(cursor === null ? {} : { before: cursor }) });
     const head = page.items[0];
 
     if (head === undefined) break;
 
-    found.unshift(...page.items.filter((one) => one.id >= first && (one.runId === runId || (jobId !== null && one.jobId === jobId))));
+    found.unshift(...page.items.filter((one) => ofRun(one, runId, first)));
     looked += page.items.length;
     cursor = head.id;
 
-    if (found.length >= want || head.id <= first || !page.hasMore || looked >= AGENT_LOG_RUN_SCAN) break;
+    if (found.length >= want || head.id <= first.id || !page.hasMore || looked >= AGENT_LOG_RUN_SCAN) break;
   }
 
   return { found, reached: cursor };
@@ -151,25 +149,26 @@ export async function readRunBack(agent: string, run: string, before: number | n
 
   const owner = named.agent || agent;
   const want = Math.min(limit, PAGING.maxSize);
-  const head = await firstLineOf(named.id, owner);
+  const first = await firstLineOf(named.id, owner);
 
-  if (head === null || (before !== null && head.id >= before)) return { lines: [], hasMore: false };
+  if (first === null || (before !== null && first.id >= before)) return { lines: [], hasMore: false };
 
-  const first = head.id;
-  let read = await scanBack(named.id, owner, before, want, first, head.jobId);
+  // The run's lines are read out of the log of the agent its first line names: a job's run stands in the ledger under
+  // the worker it was ordered for, while its lines stand under the seat that ran it.
+  let read = await scanBack(named.id, first, before, want);
 
   // None of the run's lines among those looked through, and its first line not reached: the run ended under later
   // runs, so its newest line before them is found and the log read back from there.
-  if (read.found.length === 0 && read.reached !== null && read.reached > first) {
-    const last = await lastLineBefore(named.id, owner, first, read.reached);
+  if (read.found.length === 0 && read.reached !== null && read.reached > first.id) {
+    const last = await lastLineBefore(named.id, owner, first.id, read.reached);
 
-    read = await scanBack(named.id, owner, last + 1, want, first, head.jobId);
+    read = await scanBack(named.id, first, last + 1, want);
   }
 
   const held = read.found.slice(-want).map(asLine);
   const oldest = held[0];
 
-  return { lines: held, hasMore: oldest !== undefined && oldest.id > first };
+  return { lines: held, hasMore: oldest !== undefined && oldest.id > first.id };
 }
 
 // Where a page of an agent's log is read from: no place is its newest page.

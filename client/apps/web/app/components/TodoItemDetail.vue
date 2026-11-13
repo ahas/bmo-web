@@ -27,6 +27,13 @@
             <span class="shrink-0 text-sm tabular-nums text-muted">#{{ openedItem?.id }}</span>
             <p class="min-w-0 flex-1 text-base font-semibold break-words text-highlighted">{{ openedItem?.title }}</p>
 
+            <!-- The dialog's one add: a new item raised out of the unfinished note. It belongs to this row, so it is
+                 contained and stands here at every width at the row's own button size, never floating over a screen's
+                 own create button (docs/web.md, the add that belongs to a row). -->
+            <UTheme v-if="openedItem !== null && openedItem.unfinished !== null" :props="ROW_BUTTONS">
+              <CreateButton contained :label="$t('todo.action.create_item')" @click="startRaise(openedItem.id)" />
+            </UTheme>
+
             <UTooltip :text="$t('common.action.close')">
               <UButton
                 size="sm"
@@ -236,82 +243,72 @@
                        outstanding note is prose with no dividers, so which strand this is is his to say: he
                        names it and writes what it is, and the note rides onto the new row whole so
                        it can be read a month later. This is what makes resolving reachable — a
-                       note is resolved once every strand is done or standing as its own row. -->
-                  <div class="-mx-3 mt-4 border-t border-default px-3 pt-4">
-                    <UButton
-                      v-if="!raising.has(openedItem.id)"
+                       note is resolved once every strand is done or standing as its own row. The
+                       form opens from the head's create button and stands nothing here until then. -->
+                  <div v-if="raising.has(openedItem.id)" class="-mx-3 mt-4 border-t border-default px-3 pt-4">
+                    <UInput
+                      ref="raiseTitleBox"
+                      v-model="raiseTitle"
+                      class="w-full"
                       size="sm"
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-material-symbols-playlist-add"
-                      :label="$t('todo.action.create_item')"
-                      @click="openRaise(openedItem.id)"
+                      :maxlength="RAISE_TITLE_LIMIT"
+                      :placeholder="$t('todo.label.new_title')"
+                      :aria-label="$t('todo.label.new_title')"
                     />
 
-                    <template v-else>
-                      <UInput
-                        v-model="raiseTitle"
-                        class="w-full"
+                    <GrowingTextarea
+                      v-model="raiseSaid"
+                      class="mt-2"
+                      :rows="2"
+                      size="sm"
+                      :maxlength="RAISE_LIMIT"
+                      :placeholder="$t('todo.placeholder.new_body')"
+                      :aria-label="$t('todo.aria.new_body')"
+                    />
+
+                    <!-- One strand of work is often left in two notes at once: #164 came out of
+                         both #87 and #88. The row he is standing on is always a source and says
+                         so as a fixed chip; the rest he names here, out of the notes still
+                         standing. What he picks rides onto the new row, and each of those notes
+                         settles when this row and its siblings are done. -->
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                      <span class="text-sm text-muted">{{ $t("todo.label.sources") }}</span>
+                      <UBadge color="neutral" variant="subtle" size="sm" :label="`#${openedItem.id}`" />
+
+                      <USelectMenu
+                        v-model="raiseSources"
+                        :content="{ align: 'start' }"
+                        :items="otherNotes(openedItem.id)"
+                        value-key="value"
+                        multiple
+                        searchable
                         size="sm"
-                        :maxlength="RAISE_TITLE_LIMIT"
-                        :placeholder="$t('todo.label.new_title')"
-                        :aria-label="$t('todo.label.new_title')"
+                        class="min-w-40"
+                        :search-input="{ placeholder: $t('todo.placeholder.source_search') }"
+                        :placeholder="$t('todo.placeholder.more_sources')"
+                        :aria-label="$t('todo.aria.more_sources')"
                       />
+                    </div>
 
-                      <GrowingTextarea
-                        v-model="raiseSaid"
-                        class="mt-2"
-                        :rows="2"
+                    <div class="mt-2 flex flex-wrap justify-end gap-2">
+                      <UButton
                         size="sm"
-                        :maxlength="RAISE_LIMIT"
-                        :placeholder="$t('todo.placeholder.new_body')"
-                        :aria-label="$t('todo.aria.new_body')"
+                        color="primary"
+                        variant="subtle"
+                        icon="i-material-symbols-playlist-add"
+                        :label="$t('todo.action.submit_for_approval')"
+                        :disabled="raiseTitle.trim() === '' || raiseSaid.trim() === ''"
+                        :loading="busy.has(busyKey(openedItem.id, 'raise'))"
+                        @click="raise(openedItem.id)"
                       />
-
-                      <!-- One strand of work is often left in two notes at once: #164 came out of
-                           both #87 and #88. The row he is standing on is always a source and says
-                           so as a fixed chip; the rest he names here, out of the notes still
-                           standing. What he picks rides onto the new row, and each of those notes
-                           settles when this row and its siblings are done. -->
-                      <div class="mt-2 flex flex-wrap items-center gap-2">
-                        <span class="text-sm text-muted">{{ $t("todo.label.sources") }}</span>
-                        <UBadge color="neutral" variant="subtle" size="sm" :label="`#${openedItem.id}`" />
-
-                        <USelectMenu
-                          v-model="raiseSources"
-                          :content="{ align: 'start' }"
-                          :items="otherNotes(openedItem.id)"
-                          value-key="value"
-                          multiple
-                          searchable
-                          size="sm"
-                          class="min-w-40"
-                          :search-input="{ placeholder: $t('todo.placeholder.source_search') }"
-                          :placeholder="$t('todo.placeholder.more_sources')"
-                          :aria-label="$t('todo.aria.more_sources')"
-                        />
-                      </div>
-
-                      <div class="mt-2 flex flex-wrap justify-end gap-2">
-                        <UButton
-                          size="sm"
-                          color="primary"
-                          variant="subtle"
-                          icon="i-material-symbols-playlist-add"
-                          :label="$t('todo.action.submit_for_approval')"
-                          :disabled="raiseTitle.trim() === '' || raiseSaid.trim() === ''"
-                          :loading="busy.has(busyKey(openedItem.id, 'raise'))"
-                          @click="raise(openedItem.id)"
-                        />
-                        <UButton
-                          size="sm"
-                          color="neutral"
-                          variant="ghost"
-                          :label="$t('todo.action.give_up')"
-                          @click="closeRaise(openedItem.id)"
-                        />
-                      </div>
-                    </template>
+                      <UButton
+                        size="sm"
+                        color="neutral"
+                        variant="ghost"
+                        :label="$t('todo.action.give_up')"
+                        @click="closeRaise(openedItem.id)"
+                      />
+                    </div>
                   </div>
                 </div>
               </section>
@@ -1182,6 +1179,10 @@ const raiseSaid = ref("");
 // The other notes he named as sources of the row he is raising. The row he is standing on is
 // always one and is never in here: it is not his to unpick.
 const raiseSources = ref<number[]>([]);
+// The raising form's title box, which the head's create button puts the typing in.
+const raiseTitleBox = useTemplateRef<{ inputRef: HTMLInputElement | null }>("raiseTitleBox");
+// The head row's buttons are the library's small ones, and the create button standing among them takes that size.
+const ROW_BUTTONS = { button: { size: "sm" } } as const;
 // What is typed into the box beside the hold button, where he wants to say why.
 const holdWhy = ref("");
 // What is typed into the box beside the stop button. A stop takes a reason, so the button waits.
@@ -1645,6 +1646,17 @@ function openRaise(id: number): void {
   raiseTitle.value = "";
   raiseSaid.value = "";
   raiseSources.value = [];
+}
+
+// The head's create button: the result comes forward wherever the reader stood, with the raising form
+// open under the note and its title box holding the typing. A form already open keeps what is typed in it.
+function startRaise(id: number): void {
+  leftTab.value = "result";
+  singleTab.value = "result";
+  if (!raising.value.has(id)) {
+    openRaise(id);
+  }
+  void nextTick(() => raiseTitleBox.value?.inputRef?.focus());
 }
 
 // The notes he may name beside the one he is standing on. Every item whose outstanding note is

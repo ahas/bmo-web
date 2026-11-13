@@ -1882,13 +1882,15 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   ghost at the row's own button size, its tooltip naming what it adds, at the row's right end after the row's
   other actions or beside the heading it belongs to. It never floats over the screen, and the body under it
   keeps no room for a floating button. Where a screen's tabs add different things, the open tab names what its
-  add makes and what a press does, and a tab that adds nothing stands no button. No primary button stands in a
-  row, and no add carries a mark and a word.
+  add makes and what a press does, and a tab that adds nothing stands no button. The add in the head of a dialog
+  or a drawer is bmo-ui's create button marked as contained (`CreateButton`, bmo-ui's `docs/components.md`,
+  「Creating」): the same grey icon in its row at every width, answering no key and naming none. No primary button
+  stands in a row, and no add carries a mark and a word.
 - **Only a screen's one main new item floats,** a new note or a new mail of a unit's screen: that alone is
   bmo-ui's create button (`CreateButton`, bmo-ui's `docs/components.md`, 「Creating」), the grey icon at the
   right end of the screen's row on a wide screen and floating at the screen's bottom right on a phone, with the
   screen's scrolling body ending in the layer's `--bmo-create-room`. The console's own screens make nothing of
-  that kind: every add they stand belongs to a row, so none of them stands the create button.
+  that kind: every add they stand belongs to a row, so none of them stands a create button that floats.
 - **A title bar's icon button is a square**, the component library's own icon button: its mark at the
   library's icon size with the same padding on every side, so every button in the bar that shows only a mark
   is one size. Every button of the set at its right end is the library's own button at its default size — a
@@ -5644,7 +5646,9 @@ Four bounds keep it from growing forever.
   - The hold is the console's one held finger (「A held finger」), so a finger scrolling the list never opens the menu,
     and the lift that follows a hold does not open the line as well.
 - **The modal is built as a screen to read one item.** The list line's shape is not carried over — a line shape fitted to
-  a narrow column only lines up cell by cell in a wide place. The head stands the number and title uncut, and one line
+  a narrow column only lines up cell by cell in a wide place. The head stands the number and title uncut, with
+  **항목 만들기** before the close mark on an item carrying an unfinished-item (the dialog's contained create button,
+  「An add that belongs to a row stays in that row at every width」), and one line
   below gathers where this item stands now: state, approval (approved or awaiting, and who asked), worker, model,
   priority. For an unfinished item the worker and the model are cells changed right there, and for a
   finished item read-only tags. The body is two sets of tabs, in one order across both: 결과 (only where there is one), 보고 턴
@@ -5658,8 +5662,10 @@ Four bounds keep it from growing forever.
       own: a report is the item's account of itself, and a part of it put away behind a press is a part not read.
       The tab reads the reports again each time the item is opened and whenever the queue moves, so a report
       written while the dialog is open stands without reopening it. What is done about an unfinished-item stands inside the unfinished-item's own cell and under its
-      words — the **미결 해소** box with its button while the note still stands, and **항목 세우기** under a line —
-      because both are written about those words and a box on another tab is written blind. A resolved note carries
+      words — the **미결 해소** box with its button while the note still stands, and the form raising a new item
+      under a line once the head's **항목 만들기** is pressed — because both are written about those words and a box
+      on another tab is written blind. That press brings 결과 forward, wherever the reader stood, with the form
+      open under the note and its title box holding the typing; the cell stands no button of its own for it. A resolved note carries
       when it was resolved and why under a line in the same cell, not in a cell of its own.
     - **보고 턴** stands only on an item whose review holds an entry, right after 결과, its label carrying the same
       badge of times sent back as the line. It holds every entry of the item's review in the order it was written
@@ -6148,8 +6154,8 @@ Four bounds keep it from growing forever.
   text. Reading the branches is what the talk does, so the paragraph is left and cutting is the reader's. An already-resolved unfinished-item
   stands, below the original, the reason it is no longer unfinished, so the chat agent does not speak of it as still remaining work.
 - **What can be done after talking is right there.** Having talked over an unfinished-item, the owner has three acts — mark that unfinished-item
-  resolved, stand a new item from it, or leave it. The former two stand as buttons in the unfinished-item cell. Resolve was there before, and
-  **이 미결에서 항목 세우기** stands with it now. Writing the title and what to do stands that line as awaiting approval, and **the
+  resolved, stand a new item from it, or leave it. Resolving stands as a button in the unfinished-item cell, and standing a new item is
+  **항목 만들기** in the dialog's head, which opens its form in that same cell under the words. Writing the title and what to do stands that line as awaiting approval, and **the
   unfinished-item original attaches whole to the new item** — so a month later reading that line alone tells what it is. Standing it is not
   approval. It stands beside other requests awaiting the owner's approval. The original line changes nothing — the unfinished-item original stays on
   it and is not resolved. Standing stays after resolving too. Resolving says it is no longer remaining work, not that the text is gone, so

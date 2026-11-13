@@ -481,7 +481,8 @@ describe("the detail of a row", () => {
     const manage = detailTemplate.slice(detailTemplate.lastIndexOf('v-else-if="openedItem !== null"'));
 
     expect(result).toContain(`:aria-label="$t('todo.aria.resolve_reason')"`);
-    expect(result).toContain(`:label="$t('todo.action.create_item')"`);
+    expect(result).toContain('<div v-if="raising.has(openedItem.id)"');
+    expect(result).not.toContain("todo.action.create_item");
     for (const key of keysSaying(KO.line_437)) {
       expect(manage).not.toContain(key);
     }
@@ -570,6 +571,25 @@ describe("the result of an item", () => {
       expect(status).not.toContain(mark);
       expect(detailTemplate.split(mark).length).toBe(2);
     }
+  });
+
+  // A new item raised out of the note is the dialog's one add, so it stands in the head row as the layer's
+  // contained create button, which never floats and answers no key, and only where there is a note to raise from.
+  test("raises a new item from the head's contained create button, which brings the result forward with its form", () => {
+    const head = detailTemplate.slice(0, detailTemplate.indexOf("common.action.close"));
+    const button = tagOf("<CreateButton", head);
+    const raising = detailSource.slice(detailSource.indexOf("function startRaise("), detailSource.indexOf("// The notes he may name"));
+
+    expect(head).toContain('<UTheme v-if="openedItem !== null && openedItem.unfinished !== null" :props="ROW_BUTTONS">');
+    expect(button).toContain(" contained ");
+    expect(button).toContain(`:label="$t('todo.action.create_item')"`);
+    expect(button).toContain('@click="startRaise(openedItem.id)"');
+    expect(button).not.toContain("shortcut");
+    expect(detailTemplate.split("todo.action.create_item").length).toBe(2);
+    expect(raising).toContain('leftTab.value = "result"');
+    expect(raising).toContain('singleTab.value = "result"');
+    expect(raising).toContain("raiseTitleBox.value?.inputRef?.focus()");
+    expect(result).toContain('ref="raiseTitleBox"');
   });
 
   test("the tabs stand in one order across both columns: result, state, instruction, the request, then the talk and management", () => {

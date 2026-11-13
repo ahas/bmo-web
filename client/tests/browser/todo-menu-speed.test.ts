@@ -11,13 +11,18 @@ declare global {
   interface Window {
     // The press's moment and the menu's first frame, as the page's own probe writes them.
     menuTiming: { pressAt: number; shownAt: number };
+    // Each one-second interval a TODO panel set, with when its latest ticks began and what each cost.
+    panelTicks: Array<Array<{ start: number; cost: number }>>;
   }
 }
 
 // The TODO panel's row menu on a board of hundreds of rows stands within 100 ms of the right press, at either
-// width: the list's one menu is drawn apart from the list, so opening it over a row draws no row again
-// (docs/web.md, 「Floating things」 and the TODO panel's section). The time is read in the page, from the press
-// reaching the window to the frame after the menu stood in it.
+// width, and a press that lands on the panel's one-second tick waits for nothing: the list's one menu is drawn
+// apart from the list, so opening it over a row draws no row again, and the tick redraws only the parts of a row
+// that show a time, so it costs less than a frame however long the list is (docs/web.md, 「Floating things」 and
+// the TODO panel's section). The press's time is read in the page, from the moment the pointer went down, which
+// counts any work the press queued behind, to the frame after the menu stood. Each press is aimed just after the
+// shown panel's tick, which is why the file waits on the page's own second: the tick is what it measures.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, and
 // serves the board through the page's own routes.
@@ -26,6 +31,10 @@ const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "stepper", password: "fixture-password-2206" };
 const ROWS = 400;
 const BOUND_MS = 100;
+// How far after a tick's start a press is aimed, well inside the time a tick that drew the list again took.
+const AIM_MS = 8;
+// What one tick of the panel's clock may cost: less than a frame.
+const TICK_BOUND_MS = 16;
 const NOW = Math.floor(Date.now() / 1000);
 
 // An approved row waiting its turn in the queue: one every act but the job's log can be done to.
@@ -117,13 +126,40 @@ async function open(width: number, height: number): Promise<BrowserContext> {
 
     await route.fulfill({ json: { ...board, queue: QUEUE, standing: { ...board.standing, queue: ROWS } } });
   });
-  // The press's moment and the menu's first frame, read in the page.
+  // The press's moment, the menu's first frame and the panels' ticks, read in the page.
   await context.addInitScript(() => {
     const state = { pressAt: 0, shownAt: 0 };
+    const original = window.setInterval.bind(window);
 
     window.menuTiming = state;
-    window.addEventListener("contextmenu", () => {
-      state.pressAt = performance.now();
+    window.panelTicks = [];
+    // A one-second interval set from a TODO panel is timed from its start to the end of its task, the page's flush
+    // of what it changed included.
+    window.setInterval = ((run: TimerHandler, ms?: number, ...rest: unknown[]) => {
+      if (ms !== 1000 || typeof run !== "function" || !(new Error().stack ?? "").includes("TodoPanel")) {
+        return original(run, ms, ...rest);
+      }
+
+      const ticks: Array<{ start: number; cost: number }> = [];
+
+      window.panelTicks.push(ticks);
+
+      return original(() => {
+        const start = performance.now();
+        const ended = new MessageChannel();
+
+        run();
+        ended.port1.onmessage = () => {
+          ticks.push({ start, cost: performance.now() - start });
+          if (ticks.length > 8) ticks.shift();
+        };
+        ended.port2.postMessage(null);
+      }, ms);
+    }) as typeof window.setInterval;
+    window.addEventListener("pointerdown", (event) => {
+      if (event.button !== 2) return;
+
+      state.pressAt = event.timeStamp;
       state.shownAt = 0;
     }, { capture: true });
     new MutationObserver(() => {
@@ -152,9 +188,32 @@ async function showList(page: Page): Promise<void> {
   }
 }
 
-// How long the menu took to stand over the row, and what it offered.
+// How long until just after the shown panel's next tick. Its interval is the costliest of the panels': a hidden
+// panel's clock stands still, and where no tick costs anything which one is aimed at makes no difference.
+async function untilTick(page: Page): Promise<number> {
+  await page.waitForFunction(() => window.panelTicks.some((ticks) => ticks.length > 0), null, { timeout: 10_000 });
+
+  return await page.evaluate((aim) => {
+    const cost = (ticks: Array<{ cost: number }>): number => Math.max(0, ...ticks.map((tick) => tick.cost));
+    const shown = window.panelTicks.reduce((best, ticks) => (cost(ticks) > cost(best) ? ticks : best));
+    let at = (shown.at(-1)?.start ?? performance.now()) + 1000 + aim;
+
+    while (at - performance.now() < 50) at += 1000;
+
+    return at - performance.now();
+  }, AIM_MS);
+}
+
+// How long the menu took to stand over the row when pressed just after a tick, and what it offered.
 async function pressRow(page: Page, id: number): Promise<{ ms: number; acts: string[] }> {
-  await page.locator(`li[data-todo-id="${id}"]:visible`).first().click({ button: "right" });
+  const row = page.locator(`li[data-todo-id="${id}"]:visible`).first();
+
+  await row.scrollIntoViewIfNeeded();
+
+  const box = (await row.boundingBox())!;
+
+  await page.waitForTimeout(await untilTick(page));
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
   await page.waitForFunction(() => window.menuTiming.shownAt > 0, null, { timeout: 10_000 });
 
   const ms = await page.evaluate(() => {
@@ -185,17 +244,20 @@ describe.skipIf(!origin || !touchReady())("the TODO row menu on a board of many 
         // The first press brings in the menu's own code; every later one is what a reader waits on.
         await pressRow(page, 1);
 
-        // Over another row each time, from the head of the list to its end. The panel draws its whole list again
-        // once a second for its clock, and a press that lands on that work waits for it, so the bound holds on the
-        // middle of the presses: the menu's own time, which no longer grows with the list.
+        // Over another row each time, from the head of the list to its end, each just after a tick. The menu's own
+        // opening and a re-read of the board can land on a press now and then, so the bound holds on the middle of the
+        // presses, while every tick the panel took meanwhile is held to the tick's own bound.
         const ids = [2, 3, ROWS / 2, ROWS - 1, ROWS];
-        const presses: Array<{ ms: number; acts: string[] }> = [];
+        const presses: Array<{ id: number; ms: number; acts: string[] }> = [];
 
-        for (const id of ids) presses.push(await pressRow(page, id));
+        for (const id of ids) presses.push({ id, ...(await pressRow(page, id)) });
 
         const times = presses.map((press) => press.ms).sort((a, b) => a - b);
+        const ticks = await page.evaluate(() => window.panelTicks.flat().map((tick) => tick.cost));
 
         expect(times[Math.floor(times.length / 2)]!).toBeLessThan(BOUND_MS);
+        expect(ticks.length).toBeGreaterThan(0);
+        expect(Math.max(...ticks)).toBeLessThan(TICK_BOUND_MS);
         // The row's own acts: a row behind another in the queue can be moved to the top.
         expect(presses[2]!.acts).toContain(wording("todo.action.move_top"));
       } finally {

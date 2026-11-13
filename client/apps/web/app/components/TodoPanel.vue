@@ -316,7 +316,7 @@
                      carries the row instead of scrolling. The arrows in the opened row do the same
                      thing by keyboard. -->
                 <span
-                  v-if="canDrag(item, view, now, searched !== '')"
+                  v-if="canDrag(item, view, searched !== '')"
                   data-drag-handle
                   class="mt-0.5 shrink-0 cursor-grab touch-none select-none text-muted hover:text-highlighted active:text-primary"
                   role="img"
@@ -350,19 +350,8 @@
                    height under the title and one that goes folds it, each holding the space above it as
                    its own top padding so that space folds with it (docs/web.md, 「Motion」). -->
               <MovingList tag="div" class="flex flex-col" data-item-lines>
-                <!-- A long wait the running job marked for itself: what it waits on, the target and
-                     what is left of the time it gave. The same mark `bun scripts/running.ts` prints.
-                     It is a line of the row, with no hover or press of its own: the row opens by its
-                     title. -->
-                <p
-                  v-if="waitingLine($t, item, now) !== null"
-                  key="waiting"
-                  class="flex items-start gap-1 pt-1 text-sm break-words"
-                  :class="waitingOverdue(item, now) ? 'badge-ink text-warning' : 'text-muted'"
-                >
-                  <UIcon name="i-material-symbols-hourglass-top" class="mt-0.5 size-4 shrink-0" />
-                  <SearchText class="min-w-0" :text="waitingLine($t, item, now) ?? ''" :query="searched" />
-                </p>
+                <!-- A long wait the running job marked for itself, which reads the panel's clock on its own. -->
+                <TodoWaitLine v-if="item.waiting !== null" key="waiting" :item="item" :query="searched" />
 
                 <!-- The job's own command in the testbed's queue, holding a seat or waiting its place: a line of the row
                      like the wait above, with no hover or press of its own. The place turns as the line moves up, and
@@ -415,9 +404,8 @@
                 ><SearchText :text="$t(ITEM_DEPLOY_LABELS[itemDeployPhase(deployView, item)!])" :query="searched" /></UBadge>
                 <UBadge v-else :color="stateColour(item)" variant="subtle" size="sm" :icon="stateIcon(item)"><SearchText :text="stateLabel($t, item)" :query="searched" /></UBadge>
 
-                <!-- A job standing still behind a question says so on its row (docs/web.md, the TODO panel's section):
-                     a badge here, beside the state, so it is seen without opening the item. -->
-                <UBadge v-if="awaitsAnswer(item.id)" color="warning" variant="subtle" size="sm" icon="i-material-symbols-help-outline" data-awaiting-question>{{ $t("todo.label.awaiting_question") }}</UBadge>
+                <!-- A job standing still behind a question it asked, which reads the panel's clock on its own. -->
+                <TodoQuestionBadge v-if="askedOf.has(item.id)" :questions="askedOf.get(item.id)!" />
 
                 <!-- The chat agent's recommendation stands apart from approval: the row still waits on the owner. -->
                 <UBadge v-if="item.recommended && item.awaitingApproval" color="info" variant="subtle" size="sm" icon="i-material-symbols-thumb-up-outline" data-recommended>{{ $t("todo.label.approval_recommended") }}</UBadge>
@@ -474,11 +462,11 @@
               </div>
 
               <!-- Where the search found this row, when it is in nothing the row shows. -->
-              <SearchHit class="mt-1" :match="rowMatch(item)" :query="searched" />
+              <SearchHit class="mt-1" :match="rowMatches.get(item.id) ?? null" :query="searched" />
 
               <!-- Taking the approval back, asked again on the row it is about. -->
               <TodoUnapproveStep
-                v-if="unapproving === item.id && rowVerbs(item, board.queue, now).includes('unapprove')"
+                v-if="unapproving === item.id && rowVerbs(item, board.queue).includes('unapprove')"
                 class="col-start-2 mt-2"
                 :id="item.id"
                 :busy="busy.has(busyKey(item.id, 'unapprove'))"
@@ -538,7 +526,8 @@ import { useLiveRefresh, useReadFailure, useTestbedEvents } from "~/domain/event
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { COUNT_BADGE, countText } from "~/domain/numbers";
-import { questionsOfTodo, questionSummary, useOpenQuestions } from "~/domain/questions";
+import { questionSummary, useOpenQuestions } from "~/domain/questions";
+import { provideTodoClock } from "~/domain/todo-clock";
 import { useTodoPanelLayout, useTodoView } from "~/domain/todo-settings";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { holdWaits } from "~/domain/queue-place";
@@ -574,8 +563,6 @@ import {
   stoppedLine,
   deployWaitsLine,
   testbedLineKey,
-  waitingLine,
-  waitingOverdue,
   todoFilters,
   todoSearchFields,
   todoSections,
@@ -595,6 +582,7 @@ import { movedEnoughToDrag, rowAtPoint, startsRowDrag } from "~/domain/row-drag"
 
 import type {
   DeployView,
+  JobQuestion,
   ItemTestbedTurn,
   QueuePauseChanged,
   RoomSummary,
@@ -688,12 +676,15 @@ const shownBoard = computed(() => withDeploying(board.value, deployView.value));
 // every screen is looking at the same list, so the panel and the strip cannot disagree about
 // whether a job is still waiting. The clock moves on its own second.
 const { all: questions } = useOpenQuestions(t);
-// Each second the clock moves draws the lines again, so only the panel being looked at moves it; a hidden one's stands
-// still until it is shown (docs/web.md, the TODO panel's section).
+// The second the lines' times, waits and countdowns are read against. Only the panel being looked at moves it; a hidden
+// one's stands still until it is shown. It is handed to the parts of a line that show a time, which read it on their
+// own, so nothing the list itself is drawn from reads it and a tick redraws those parts alone (docs/web.md, the TODO
+// panel's section).
 const now = ref(toUnixSeconds(Date.now()));
 usePolling(() => {
   if (showsDetail.value) now.value = toUnixSeconds(Date.now());
 }, TICK_MS);
+provideTodoClock(now);
 // Which question is being answered, what is typed into each one's own box, and what came back
 // when an answer arrived too late.
 const pending = ref(false);
@@ -835,7 +826,7 @@ function setCondition(key: keyof TodoConditions, choice: string): void {
 // holds none carries nothing, so a badge is always news.
 const filterTabs = computed(() =>
   todoFilters().map((choice) => {
-    const count = loaded.value ? filterCount(shownBoard.value, choice, now.value) : null;
+    const count = loaded.value ? filterCount(shownBoard.value, choice) : null;
 
     return {
       value: choice,
@@ -846,13 +837,36 @@ const filterTabs = computed(() =>
   })
 );
 const questionCount = computed(() => questionSummary(t, questions.value, now.value));
-// Whether a job for this item stands still behind a question it asked, which its row says plainly.
-function awaitsAnswer(todoId: number): boolean {
-  return questionsOfTodo(t, questions.value, todoId, now.value).some((card) => card.state === "open");
-}
-// The rows are read against the panel's own clock, so a row whose reporting grace has run out
-// leaves the queue on its own, with nothing asked of the archive for it.
-const sections = computed(() => todoSections(t, shownBoard.value, view.value, now.value, search.value.trim() !== ""));
+// The questions not yet settled, by the item whose job asked them: what a row's badge reads, against the clock, to say
+// whether its job stands still behind one.
+const askedOf = computed(() => {
+  const asked = new Map<number, JobQuestion[]>();
+
+  for (const question of questions.value) {
+    if (question.settledAt === null) asked.set(question.todoId, [...(asked.get(question.todoId) ?? []), question]);
+  }
+
+  return asked;
+});
+const sections = computed(() => todoSections(t, shownBoard.value, view.value, search.value.trim() !== ""));
+
+// Where each row on the screen matched the phrase it was found with, read once as the answer arrives: a wait line is
+// matched as it read in that second, so the clock redraws no row for it.
+const rowMatches = computed(() => {
+  const matches = new Map<number, SearchMatch | null>();
+
+  if (searched.value === "") {
+    return matches;
+  }
+
+  const at = toUnixSeconds(Date.now());
+
+  for (const item of sections.value.flatMap((section) => section.items)) {
+    matches.set(item.id, matchFields(todoSearchFields(t, item, rooms.value ?? [], at), searched.value));
+  }
+
+  return matches;
+});
 
 // The tab is what the list is: a search or a condition narrows the same list, and its rows move within it, while
 // another tab is another list.
@@ -909,11 +923,6 @@ function onDragStart(event: PointerEvent): void {
 // One read of the whole board. The finished list comes as far back as it is asked for, and what
 // is being searched for goes with it: the search reaches the archive, not the rows in hand, so
 // a row still in the queue is found as readily as one finished months ago.
-// Where one row matched the phrase it was found with.
-function rowMatch(item: TodoItem): SearchMatch | null {
-  return matchFields(todoSearchFields(t, item, rooms.value ?? [], now.value), searched.value);
-}
-
 async function read(limit: number, more = false): Promise<void> {
   const generation = ++boardGeneration;
   const query = search.value.trim();
@@ -1194,7 +1203,7 @@ function askRowMenu(event: MouseEvent): void {
 
 // The acts of one row's menu, in their groups.
 function rowActs(item: TodoItem): ContextMenuItem[][] {
-  const verbs = rowVerbs(item, board.value.queue, now.value);
+  const verbs = rowVerbs(item, board.value.queue);
   const entry = (verb: RowVerb): ContextMenuItem => ({
     label: t(ROW_VERBS[verb].label),
     icon: ROW_VERBS[verb].icon,
@@ -1530,11 +1539,11 @@ function rowMark(id: number): string {
 async function saveOrder(dragged: number, onto: number): Promise<void> {
   // The whole queue, whatever the tab hides of it: the order the bot is asked to write is the
   // whole of its queue, and the waiting tab leaves out rows that are still part of it.
-  const rows = queueSection(board.value, now.value);
-  const order = reorderedQueue(rows, dragged, onto, now.value);
+  const rows = queueSection(board.value);
+  const order = reorderedQueue(rows, dragged, onto);
   const before = board.value;
 
-  if (sameOrder(order, queueOrder(rows, now.value))) {
+  if (sameOrder(order, queueOrder(rows))) {
     return;
   }
 

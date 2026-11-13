@@ -5577,8 +5577,15 @@ Four bounds keep it from growing forever.
   whichever way it closes it passes the same place. What draws the modal is the one panel being looked at — on a narrow
   screen the side column floats too but is hidden by a class, and drawing both would stand two modals and one back would
   close neither. Only the panel being looked at keeps its clock moving, the second the lines' times, waits and
-  countdowns are read against, which draws its lines again each second; the hidden one's clock stands still until it
-  is the one looked at, and moves to the present the moment it is.
+  countdowns are read against; the hidden one's clock stands still until it is the one looked at, and moves to the
+  present the moment it is.
+- **The clock redraws only what reads it.** Where a line stands, which section and tab it falls in, its handle and
+  its menu's acts are read from the item alone and never from the clock. What does read it is drawn apart, each in
+  its own place: a line's marked wait with the time left and its overdue colour, the badge saying a job stands still
+  behind an open question, and the opened item's own times. So a second's tick redraws those parts alone, a wait
+  line once its words change, never the list, and its cost does not grow with the number of lines: on a board of
+  hundreds of lines a right press or a key that lands on a tick is answered as quickly as one that does not. Where
+  a search found a line is read once, when its answer arrives.
 - **A right press, or a held finger, on a line stands that item's menu.** It carries the line's quick acts, so they
   are done without opening it:
   1. **Job 로그** on a line a job is running for, or one whose job has ended and whose commit is still on its way

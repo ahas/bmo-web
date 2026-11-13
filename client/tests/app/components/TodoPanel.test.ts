@@ -17,6 +17,10 @@ const template = source.slice(0, source.indexOf("<script"));
 // The open row's dialog is a component of its own, and what it draws is read off its own file.
 const detailSource = await Bun.file(new URL("../../../apps/web/app/components/TodoItemDetail.vue", import.meta.url)).text();
 const detailTemplate = detailSource.slice(0, detailSource.indexOf("<script"));
+// A row's wait line reads the panel's clock on its own, so what it draws is read off its own file.
+const waitSource = await Bun.file(new URL("../../../apps/web/app/components/TodoWaitLine.vue", import.meta.url)).text();
+const waitTemplate = waitSource.slice(0, waitSource.indexOf("<script"));
+const WAIT_LINE = '<TodoWaitLine v-if="item.waiting !== null"';
 
 // The opening tag of the one element a mark stands in, with its attributes and nothing of what
 // it holds: the mark may be inside the tag or in the element's own text, and either way it is
@@ -69,7 +73,7 @@ describe("a row of the list", () => {
 
     expect(chips).toBeGreaterThan(-1);
 
-    for (const line of ["waitingLine($t, item, now) !== null", "deployWaitsLine($t, item) !== null", "stoppedLine($t, item) !== null", "item.mergedInto !== null", 'v-if="item.holding !== null"']) {
+    for (const line of [WAIT_LINE, "deployWaitsLine($t, item) !== null", "stoppedLine($t, item) !== null", "item.mergedInto !== null", 'v-if="item.holding !== null"']) {
       const at = template.indexOf(line);
 
       expect({ line, underTitle: at > title, aboveChips: at < chips }).toEqual({ line, underTitle: true, aboveChips: true });
@@ -85,21 +89,32 @@ describe("a row of the list", () => {
 
     expect(tagOf("data-item-lines").startsWith("<MovingList")).toBe(true);
 
-    for (const line of ["waitingLine($t, item, now) !== null", 'v-if="testbedTurns.has(item.id)"', "deployWaitsLine($t, item) !== null", "stoppedLine($t, item) !== null", "item.mergedInto !== null", 'v-if="item.holding !== null"']) {
+    for (const line of [WAIT_LINE, 'v-if="testbedTurns.has(item.id)"', "deployWaitsLine($t, item) !== null", "stoppedLine($t, item) !== null", "item.mergedInto !== null", 'v-if="item.holding !== null"']) {
       const at = template.indexOf(line);
       const tag = tagOf(line);
+      // The wait line is a part of its own, whose padding stands on its own element.
+      const drawn = line === WAIT_LINE ? tagOf("<p", waitTemplate) : tag;
 
-      expect({ line, inside: at > opened && at < closed, keyed: tag.includes(" key="), padded: tag.includes("pt-1"), margined: tag.includes("mt-1") }).toEqual({ line, inside: true, keyed: true, padded: true, margined: false });
+      expect({ line, inside: at > opened && at < closed, keyed: tag.includes(" key="), padded: drawn.includes("pt-1"), margined: drawn.includes("mt-1") }).toEqual({ line, inside: true, keyed: true, padded: true, margined: false });
     }
   });
 
   test("gives a job's wait line no hover or press of its own", () => {
-    const wait = tagOf('v-if="waitingLine($t, item, now) !== null"');
+    const wait = tagOf("<p", waitTemplate);
 
     expect(wait.startsWith("<p")).toBe(true);
     expect(wait).not.toContain("hover:");
     expect(wait).not.toContain("active:");
     expect(wait).not.toContain("@click");
+  });
+
+  // A second's tick redraws the parts of a row that show a time and never the list (docs/web.md, the TODO panel's
+  // section), so no binding the panel's own template draws the list with reads the clock.
+  test("reads the clock in no binding of its own", () => {
+    const bindings = [...template.matchAll(/\s(?:[:@#]|v-)[\w.:-]*="([^"]*)"|\{\{([^}]*)\}\}/g)].map((found) => found[1] ?? found[2] ?? "");
+
+    expect(bindings.length).toBeGreaterThan(0);
+    expect(bindings.filter((binding) => /\bnow\b/.test(binding))).toEqual([]);
   });
 });
 
@@ -452,7 +467,7 @@ describe("the detail of a row", () => {
 
   test("names itself TODO in its head and leaves the counts to the tabs", () => {
     expect(template).toContain('<h2 class="shrink-0 text-base font-semibold text-highlighted">TODO</h2>');
-    expect(source).toContain("filterCount(shownBoard.value, choice, now.value)");
+    expect(source).toContain("filterCount(shownBoard.value, choice)");
   });
 
   test("offers no other order than the queue's, and says nothing about a filter taking the handles away", () => {

@@ -197,7 +197,7 @@ export const PANEL_DEFAULT_WIDTH = 320;
 // An item bmo-job marks done while the agency's job for it is still going is reporting, until the agency says the job
 // ended; no clock of the console's bounds it, since a job whose runner died is ended by the agency's own sweep
 // (docs/web.md, the TODO panel's section).
-export function todoState(item: TodoItem, _now: number = toUnixSeconds(Date.now())): TodoState {
+export function todoState(item: TodoItem): TodoState {
   if (item.done) {
     return item.reporting === true || (item.liveState ?? null) !== null ? "reporting" : "done";
   }
@@ -314,8 +314,8 @@ export function itemModelTip(t: Translate, item: Pick<TodoItem, "id" | "model" |
 // has been run is not said here: that is history rather than progress, and the time line under the
 // account says it once the runs have ended. A one-session job has nothing to count, so it is
 // running alone.
-export function stateLabel(t: Translate, item: TodoItem, now: number = toUnixSeconds(Date.now())): string {
-  const state = todoState(item, now);
+export function stateLabel(t: Translate, item: TodoItem): string {
+  const state = todoState(item);
 
   // A row waiting because its work order stopped says so: it is not waiting its turn like the rows
   // around it, and what stopped it is read under the badge.
@@ -361,8 +361,8 @@ const STATE_ICONS: Record<TodoState, string> = {
   done: "i-material-symbols-check-circle-outline"
 };
 
-export function stateIcon(item: TodoItem, now: number = toUnixSeconds(Date.now())): string {
-  const state = todoState(item, now);
+export function stateIcon(item: TodoItem): string {
+  const state = todoState(item);
 
   if (state === "waiting" && item.stopped !== null) return "i-material-symbols-stop-circle-outline";
   // The owner's own stop wears a raised hand, told apart from a hold at a glance.
@@ -370,11 +370,8 @@ export function stateIcon(item: TodoItem, now: number = toUnixSeconds(Date.now()
   return STATE_ICONS[state];
 }
 
-export function stateColour(
-  item: TodoItem,
-  now: number = toUnixSeconds(Date.now())
-): "primary" | "secondary" | "info" | "success" | "warning" | "neutral" {
-  const state = todoState(item, now);
+export function stateColour(item: TodoItem): "primary" | "secondary" | "info" | "success" | "warning" | "neutral" {
+  const state = todoState(item);
 
   if (state === "done") {
     return "success";
@@ -567,19 +564,18 @@ export function todoSections(
   t: Translate,
   board: TodoBoard,
   view: TodoView = DEFAULT_VIEW,
-  now: number = toUnixSeconds(Date.now()),
   // Whether something is being looked for. What is set aside is out of the way by default, but a
   // search is deliberate looking: hiding a row he is searching for would make the search lie
   // about what the table holds.
   searching: boolean = false
 ): TodoSection[] {
-  const reporting = reportingOf(board, now);
+  const reporting = reportingOf(board);
   const held: Record<TodoSection["key"], TodoItem[]> = {
     pending: board.pending,
-    queue: queueWith(board.queue, reporting, now),
+    queue: queueWith(board.queue, reporting),
     held: board.held,
     merged: board.merged,
-    done: board.done.filter((item) => todoState(item, now) !== "reporting")
+    done: board.done.filter((item) => todoState(item) !== "reporting")
   };
 
   const shown = SECTIONS
@@ -587,7 +583,7 @@ export function todoSections(
     .map((section) => ({ key: section.key, label: t(section.label), empty: t(section.empty), items: held[section.key] }))
     .map((section) => ({
       ...section,
-      items: section.items.filter((item) => shownBy(todoState(item, now), view.filter))
+      items: section.items.filter((item) => shownBy(todoState(item), view.filter))
     }));
 
   // Under a condition an empty section is the ordinary case rather than news — an outstanding note is only ever
@@ -922,8 +918,8 @@ export function canTop(queue: TodoItem[], id: number): boolean {
 // finished or merged row is acted on by nobody, so it offers nothing and opens no menu.
 export type RowVerb = "log" | "approve" | "unapprove" | "hold" | "release" | "top" | "done" | "append" | "drop";
 
-export function rowVerbs(item: TodoItem, queue: TodoItem[], now: number = toUnixSeconds(Date.now())): RowVerb[] {
-  const state = todoState(item, now);
+export function rowVerbs(item: TodoItem, queue: TodoItem[]): RowVerb[] {
+  const state = todoState(item);
 
   if (state === "done" || state === "reporting" || state === "merged") {
     return [];
@@ -999,13 +995,8 @@ export function busyBlocks(busy: ReadonlySet<string>, id: number, action: TodoAc
 // standing in the queue while its report goes out; and a finished row or one waiting on the
 // owner is not in the queue at all, an unapproved request having no place in the order until he
 // approves it.
-export function canDrag(
-  item: TodoItem,
-  view: TodoView = DEFAULT_VIEW,
-  now: number = toUnixSeconds(Date.now()),
-  searching: boolean = false
-): boolean {
-  return !dragBlocked(view, searching) && todoState(item, now) === "waiting";
+export function canDrag(item: TodoItem, view: TodoView = DEFAULT_VIEW, searching: boolean = false): boolean {
+  return !dragBlocked(view, searching) && todoState(item) === "waiting";
 }
 
 // Whether the handles are taken away. Dragging saves the whole queue in the order its rows stand
@@ -1019,8 +1010,8 @@ export function dragBlocked(view: TodoView, searching: boolean = false): boolean
 
 // The whole queue section as the order is saved from, whatever tab is showing: the rows a tab hides
 // are still part of the order the bot is asked to write.
-export function queueSection(board: TodoBoard, now: number = toUnixSeconds(Date.now())): TodoItem[] {
-  return queueWith(board.queue, reportingOf(board, now), now);
+export function queueSection(board: TodoBoard): TodoItem[] {
+  return queueWith(board.queue, reportingOf(board));
 }
 
 // How near an edge a held row has to come before the list creeps, and how far it creeps in one
@@ -1057,17 +1048,12 @@ function step(near: number): number {
 // nothing. The pin is applied last, so a row aimed at the pinned one, or anywhere above it,
 // lands directly under it — the topmost place a waiting row can hold — and the order that goes
 // to the bot is the order the section will stand the rows up in.
-export function reorderedQueue(
-  rows: TodoItem[],
-  draggedId: number,
-  overId: number,
-  now: number = toUnixSeconds(Date.now())
-): number[] {
+export function reorderedQueue(rows: TodoItem[], draggedId: number, overId: number): number[] {
   const from = rows.findIndex((row) => row.id === draggedId);
   const to = rows.findIndex((row) => row.id === overId);
 
   if (from === -1 || to === -1 || from === to) {
-    return queueOrder(rows, now);
+    return queueOrder(rows);
   }
 
   const dragged = rows.filter((row) => row.id === draggedId);
@@ -1077,16 +1063,15 @@ export function reorderedQueue(
   return queueOrder(
     from < to
       ? [...rest.slice(0, at + 1), ...dragged, ...rest.slice(at + 1)]
-      : [...rest.slice(0, at), ...dragged, ...rest.slice(at)],
-    now
+      : [...rest.slice(0, at), ...dragged, ...rest.slice(at)]
   );
 }
 
 // The ids the bot is asked to write, read off rows standing in some order of their own: the pin
 // first, and what is only reporting left out — that row stands in the section but is finished,
 // so it is no part of the bot's open queue.
-export function queueOrder(rows: TodoItem[], now: number = toUnixSeconds(Date.now())): number[] {
-  return openOf(pinned(rows, now));
+export function queueOrder(rows: TodoItem[]): number[] {
+  return openOf(pinned(rows));
 }
 
 // The board as it stands once that order is written: the queue numbered from the front, which
@@ -1107,9 +1092,9 @@ export function boardInOrder(board: TodoBoard, order: number[]): TodoBoard {
 // an item that is reporting is counted there as long as it stands there.
 // It counts the whole queue, not what a search or a condition left on the screen: the strip says
 // how the queue stands.
-export function todoSummary(t: Translate, board: TodoBoard, now: number = toUnixSeconds(Date.now())): string {
+export function todoSummary(t: Translate, board: TodoBoard): string {
   const waiting = board.standing.pending;
-  const queue = board.standing.queue - board.standing.deploy + reportingOf(board, now).length;
+  const queue = board.standing.queue - board.standing.deploy + reportingOf(board).length;
   // What is set aside is counted in the header even though its rows are not shown. Out of the
   // way is the point of it; forgotten is not, and a number he can see is what keeps the two
   // apart.
@@ -1142,14 +1127,14 @@ export function todoSummary(t: Translate, board: TodoBoard, now: number = toUnix
 // a condition left on the screen, or null for a tab that carries none: all is the sum of the
 // rest and done only ever grows. The queue splits between waiting and running, and a row that is
 // reporting is counted under running as the tab shows it.
-export function filterCount(board: TodoBoard, filter: TodoFilter, now: number = toUnixSeconds(Date.now())): number | null {
+export function filterCount(board: TodoBoard, filter: TodoFilter): number | null {
   const standing = board.standing;
 
   switch (filter) {
     case "waiting":
       return standing.queue - standing.running - standing.deploy;
     case "running":
-      return standing.running + reportingOf(board, now).length;
+      return standing.running + reportingOf(board).length;
     case "deploy":
       return standing.deploy - standing.deploying;
     case "deploying":
@@ -1186,23 +1171,20 @@ function openOf(rows: TodoItem[]): number[] {
 }
 
 // The finished items whose run is still writing its report.
-function reportingOf(board: TodoBoard, now: number): TodoItem[] {
-  return board.done.filter((item) => todoState(item, now) === "reporting");
+function reportingOf(board: TodoBoard): TodoItem[] {
+  return board.done.filter((item) => todoState(item) === "reporting");
 }
 
 // The queue with the reporting items standing back in it, each where its own priority puts it,
 // and the pin over the whole of it. The archive's own order is priority then id, and the sort is
 // stable, so every row that was already in the queue stays exactly where the archive handed it
 // over, only under whatever the pin lifts.
-function queueWith(queue: TodoItem[], reporting: TodoItem[], now: number): TodoItem[] {
+function queueWith(queue: TodoItem[], reporting: TodoItem[]): TodoItem[] {
   if (reporting.length === 0) {
-    return pinned(queue, now);
+    return pinned(queue);
   }
 
-  return pinned(
-    [...queue, ...reporting].sort((left, right) => left.priority - right.priority || left.id - right.id),
-    now
-  );
+  return pinned([...queue, ...reporting].sort((left, right) => left.priority - right.priority || left.id - right.id));
 }
 
 // The one pin, and the section and a drop's saved order both come through it, so the list shown
@@ -1216,8 +1198,8 @@ function queueWith(queue: TodoItem[], reporting: TodoItem[], now: number): TodoI
 // the rows as they stand on the screen. A pin the saved order could not say would put a row at a
 // place that means nothing in stored terms, and then the screen would no longer be what gets
 // saved — which is the very thing the hidden handles under a filter are for.
-function pinned(rows: TodoItem[], now: number): TodoItem[] {
-  const going = (row: TodoItem): boolean => jobGoingOn(todoState(row, now));
+function pinned(rows: TodoItem[]): TodoItem[] {
+  const going = (row: TodoItem): boolean => jobGoingOn(todoState(row));
   const running = rows.filter(going);
 
   if (running.length === 0) {
@@ -1308,12 +1290,12 @@ export function todoSearchFields(
   rooms: RoomSummary[],
   now: number = toUnixSeconds(Date.now())
 ): SearchField[] {
-  const pending = todoState(item, now) === "pending";
+  const pending = todoState(item) === "pending";
 
   return [
     { label: t("todo.label.field_id"), text: `#${item.id}`, shown: true },
     { label: t("todo.label.field_title"), text: item.title, shown: true },
-    { label: t("todo.label.field_state"), text: stateLabel(t, item, now), shown: true },
+    { label: t("todo.label.field_state"), text: stateLabel(t, item), shown: true },
     // The model the row's chip shows short, found by its whole name as well, which its tooltip shows.
     { label: t("todo.label.field_model"), text: modelSearchText(item), shown: true },
     { label: t("todo.label.field_worker"), text: item.worker, shown: true },

@@ -1,7 +1,6 @@
 import { computed, reactive, type ComputedRef } from "vue";
 
 import { stateLabel } from "./todos";
-import { toUnixSeconds } from "bmo-ui/app/domain/time";
 
 import type { TodoItem } from "#shared/types";
 import type { Translate } from "#shared/wording";
@@ -147,9 +146,9 @@ export interface ItemTipLines {
 
 // What the tooltip says of an item: its number and title, then its worker and where it stands in
 // the words the TODO panel gives it.
-export function itemTipLines(t: Translate, item: TodoItem, now: number = toUnixSeconds(Date.now())): ItemTipLines {
+export function itemTipLines(t: Translate, item: TodoItem): ItemTipLines {
   return {
     head: t("todo.label.item_head", { id: item.id, title: item.title }),
-    detail: [item.worker, stateLabel(t, item, now)].filter((part) => part !== null).join(" · ")
+    detail: [item.worker, stateLabel(t, item)].filter((part) => part !== null).join(" · ")
   };
 }

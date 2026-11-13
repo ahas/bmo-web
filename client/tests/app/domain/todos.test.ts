@@ -336,20 +336,20 @@ describe("an item whose close merged its commit", () => {
       standing: { ...board.standing, queue: 5, deploy: 2, deploying: 1 }
     };
 
-    expect(filterCount(deployBoard, "waiting", NOW)).toBe(2);
-    expect(filterCount(deployBoard, "deploy", NOW)).toBe(1);
-    expect(filterCount(deployBoard, "deploying", NOW)).toBe(1);
+    expect(filterCount(deployBoard, "waiting")).toBe(2);
+    expect(filterCount(deployBoard, "deploy")).toBe(1);
+    expect(filterCount(deployBoard, "deploying")).toBe(1);
     expect(todoFilters()).toContain("deploy");
     expect(todoFilters()).toContain("deploying");
 
     const rows = (filter: TodoFilter) =>
-      todoSections(wording, deployBoard, { filter, conditions: NO_CONDITIONS }, NOW).flatMap((section) => section.items.map((one) => one.id));
+      todoSections(wording, deployBoard, { filter, conditions: NO_CONDITIONS }).flatMap((section) => section.items.map((one) => one.id));
 
     expect(rows("deploy")).toEqual([31]);
     expect(rows("deploying")).toEqual([32]);
     expect(rows("waiting")).not.toContain(31);
-    expect(todoSummary(wording, deployBoard, NOW)).toContain(wording("todo.label.summary_deploy", { n: 1 }));
-    expect(todoSummary(wording, deployBoard, NOW)).toContain(wording("todo.label.summary_deploying", { n: 1 }));
+    expect(todoSummary(wording, deployBoard)).toContain(wording("todo.label.summary_deploy", { n: 1 }));
+    expect(todoSummary(wording, deployBoard)).toContain(wording("todo.label.summary_deploying", { n: 1 }));
   });
 });
 
@@ -418,35 +418,35 @@ describe("an item whose job is still writing its report", () => {
   test("a done item whose agency job is still going is reporting, and wears the reporting word", () => {
     const held = item(5, { done: true, liveState: "running", doneAt: REPORTED, status: "done" });
 
-    expect(todoState(held, NOW)).toBe("reporting");
-    expect(stateLabel(wording, held, NOW)).toBe(wording("todo.label.state_reporting"));
+    expect(todoState(held)).toBe("reporting");
+    expect(stateLabel(wording, held)).toBe(wording("todo.label.state_reporting"));
   });
 
   test("the same item is done once the agency says its job ended", () => {
     const held = item(5, { done: true, liveState: null, doneAt: REPORTED, status: "done" });
 
-    expect(todoState(held, NOW)).toBe("done");
-    expect(stateLabel(wording, held, NOW)).toBe(wording("todo.label.state_done"));
+    expect(todoState(held)).toBe("done");
+    expect(stateLabel(wording, held)).toBe(wording("todo.label.state_done"));
   });
 
   test("no clock bounds it: however long ago it was marked done, it reports until its job ends", () => {
     const held = (ago: number): TodoItem => item(5, { done: true, liveState: "running", doneAt: NOW - ago });
 
-    expect(todoState(held(60), NOW)).toBe("reporting");
-    expect(todoState(held(24 * 60 * 60), NOW)).toBe("reporting");
-    expect(todoState(item(5, { done: true, liveState: "running", doneAt: null }), NOW)).toBe("reporting");
-    expect(todoState(item(5, { done: true, liveState: null, doneAt: NOW }), NOW)).toBe("done");
+    expect(todoState(held(60))).toBe("reporting");
+    expect(todoState(held(24 * 60 * 60))).toBe("reporting");
+    expect(todoState(item(5, { done: true, liveState: "running", doneAt: null }))).toBe("reporting");
+    expect(todoState(item(5, { done: true, liveState: null, doneAt: NOW }))).toBe("done");
   });
 
   test("the server's own word that it reports stands as well", () => {
-    expect(todoState(item(5, { done: true, reporting: true }), NOW)).toBe("reporting");
+    expect(todoState(item(5, { done: true, reporting: true }))).toBe("reporting");
   });
 
   test("the row stays at the head of the queue with the running ones, and not among the finished", () => {
     const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, priority: 2, status: "done" });
-    const sections = todoSections(wording, { ...board, done: [reporting, ...board.done] }, { ...DEFAULT_VIEW, filter: "all" }, NOW);
+    const sections = todoSections(wording, { ...board, done: [reporting, ...board.done] }, { ...DEFAULT_VIEW, filter: "all" });
 
-    expect(jobGoingOn(todoState(reporting, NOW))).toBe(true);
+    expect(jobGoingOn(todoState(reporting))).toBe(true);
     expect(sections[1]?.items.map((entry) => entry.id)).toEqual([2, 5, 1, 3]);
     expect(sections[2]?.items.map((entry) => entry.id)).toEqual([4]);
   });
@@ -455,28 +455,28 @@ describe("an item whose job is still writing its report", () => {
     const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, priority: 2, status: "done" });
     const withReporting = { ...board, done: [reporting, ...board.done] };
     const shownUnder = (filter: TodoFilter) =>
-      todoSections(wording, withReporting, { ...DEFAULT_VIEW, filter }, NOW).flatMap((section) => section.items.map((entry) => entry.id));
+      todoSections(wording, withReporting, { ...DEFAULT_VIEW, filter }).flatMap((section) => section.items.map((entry) => entry.id));
 
     expect(shownUnder("running")).toEqual([2, 5]);
     expect(shownUnder("waiting")).toEqual([1, 3]);
-    expect(filterCount(withReporting, "running", NOW)).toBe(filterCount(board, "running", NOW)! + 1);
-    expect(filterCount(withReporting, "waiting", NOW)).toBe(filterCount(board, "waiting", NOW));
+    expect(filterCount(withReporting, "running")).toBe(filterCount(board, "running")! + 1);
+    expect(filterCount(withReporting, "waiting")).toBe(filterCount(board, "waiting"));
   });
 
   test("the header counts it with the queue it is standing in", () => {
     const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, priority: 2 });
 
-    expect(todoSummary(wording, { ...board, done: [reporting, ...board.done] }, NOW)).toBe(summary(4, 1));
-    expect(todoSummary(wording, board, NOW)).toBe(summary(3, 1));
+    expect(todoSummary(wording, { ...board, done: [reporting, ...board.done] })).toBe(summary(4, 1));
+    expect(todoSummary(wording, board)).toBe(summary(3, 1));
   });
 
   test("the other four states are what they were", () => {
-    expect(todoState(item(1), NOW)).toBe("waiting");
-    expect(todoState(item(2, { running: true }), NOW)).toBe("running");
-    expect(todoState(item(9, { approved: false, awaitingApproval: true, running: true }), NOW)).toBe("pending");
-    expect(todoState(item(4, { done: true, doneAt: REPORTED }), NOW)).toBe("done");
+    expect(todoState(item(1))).toBe("waiting");
+    expect(todoState(item(2, { running: true }))).toBe("running");
+    expect(todoState(item(9, { approved: false, awaitingApproval: true, running: true }))).toBe("pending");
+    expect(todoState(item(4, { done: true, doneAt: REPORTED }))).toBe("done");
 
-    const sections = todoSections(wording, board, { ...DEFAULT_VIEW, filter: "all" }, NOW);
+    const sections = todoSections(wording, board, { ...DEFAULT_VIEW, filter: "all" });
 
     expect(sections[1]?.items.map((entry) => entry.id)).toEqual([2, 1, 3]);
     expect(sections[2]?.items.map((entry) => entry.id)).toEqual([4]);
@@ -489,20 +489,20 @@ describe("the colour a row's word wears", () => {
   const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, status: "done" });
 
   test("each state wears its own, and done wears the console's word for finished", () => {
-    expect(stateColour(item(4, { done: true }), NOW)).toBe("success");
-    expect(stateColour(item(2, { running: true }), NOW)).toBe("primary");
-    expect(stateColour(item(9, { approved: false, awaitingApproval: true }), NOW)).toBe("warning");
-    expect(stateColour(item(1), NOW)).toBe("neutral");
-    expect(stateColour(item(7, { heldAt: NOW }), NOW)).toBe("neutral");
+    expect(stateColour(item(4, { done: true }))).toBe("success");
+    expect(stateColour(item(2, { running: true }))).toBe("primary");
+    expect(stateColour(item(9, { approved: false, awaitingApproval: true }))).toBe("warning");
+    expect(stateColour(item(1))).toBe("neutral");
+    expect(stateColour(item(7, { heldAt: NOW }))).toBe("neutral");
   });
 
   test("a done row whose run is still going wears what a running row wears", () => {
-    expect(todoState(reporting, NOW)).toBe("reporting");
-    expect(stateColour(reporting, NOW)).toBe(stateColour(item(2, { running: true }), NOW));
+    expect(todoState(reporting)).toBe("reporting");
+    expect(stateColour(reporting)).toBe(stateColour(item(2, { running: true })));
   });
 
   test("done is told apart by its colour from every state standing beside it", () => {
-    const done = stateColour(item(4, { done: true }), NOW);
+    const done = stateColour(item(4, { done: true }));
 
     for (const other of [
       item(2, { running: true }),
@@ -511,9 +511,9 @@ describe("the colour a row's word wears", () => {
       item(9, { approved: false, awaitingApproval: true }),
       reporting
     ]) {
-      const state = todoState(other, NOW);
+      const state = todoState(other);
 
-      expect({ state, sameAsDone: stateColour(other, NOW) === done }).toEqual({ state, sameAsDone: false });
+      expect({ state, sameAsDone: stateColour(other) === done }).toEqual({ state, sameAsDone: false });
     }
   });
 });
@@ -524,26 +524,26 @@ describe("an item held while it still runs", () => {
   const stopping = item(8, { heldAt: NOW, running: true, holdPending: true });
 
   test("reads as waiting to stop in the warning colour, and as held once nothing of it runs", () => {
-    expect(todoState(stopping, NOW)).toBe("stopping");
-    expect(stateLabel(wording, stopping, NOW)).toBe(wording("todo.label.held_pending"));
-    expect(stateColour(stopping, NOW)).toBe("warning");
-    expect(todoState(item(8, { heldAt: NOW }), NOW)).toBe("held");
+    expect(todoState(stopping)).toBe("stopping");
+    expect(stateLabel(wording, stopping)).toBe(wording("todo.label.held_pending"));
+    expect(stateColour(stopping)).toBe("warning");
+    expect(todoState(item(8, { heldAt: NOW }))).toBe("held");
   });
 
   // The kinds of setting aside never share a word, and none of them is a bare pause.
   test("says who set it aside: the owner's stop reads as stopping then stopped, a failure hold as held for failures", () => {
     const stopped = item(9, { heldAt: NOW, running: true, holdPending: true, heldKind: "stop", heldReason: "wrong direction" });
-    expect(stateLabel(wording, stopped, NOW)).toBe(wording("live.status.stopping"));
-    expect(stateColour(stopped, NOW)).toBe("warning");
-    expect(stateIcon(stopped, NOW)).toBe("i-material-symbols-back-hand-outline");
+    expect(stateLabel(wording, stopped)).toBe(wording("live.status.stopping"));
+    expect(stateColour(stopped)).toBe("warning");
+    expect(stateIcon(stopped)).toBe("i-material-symbols-back-hand-outline");
     const ended = item(9, { heldAt: NOW, heldKind: "stop", heldReason: "wrong direction" });
-    expect(stateLabel(wording, ended, NOW)).toBe(wording("todo.label.held_stop"));
-    expect(stateColour(ended, NOW)).toBe("neutral");
-    expect(stateLabel(wording, item(10, { heldAt: NOW, heldKind: "failure" }), NOW)).toBe(wording("todo.label.held_failure"));
-    expect(stateLabel(wording, item(13, { heldAt: NOW, running: true, holdPending: true, heldKind: "pause" }), NOW)).toBe(wording("todo.label.held_pausing"));
-    expect(stateLabel(wording, item(13, { heldAt: NOW, heldKind: "pause" }), NOW)).toBe(wording("todo.label.held_pause"));
-    expect(stateLabel(wording, item(11, { heldAt: NOW }), NOW)).toBe(wording("todo.label.held_plain"));
-    expect(stateIcon(item(11, { heldAt: NOW }), NOW)).toBe("i-material-symbols-pause-circle-outline");
+    expect(stateLabel(wording, ended)).toBe(wording("todo.label.held_stop"));
+    expect(stateColour(ended)).toBe("neutral");
+    expect(stateLabel(wording, item(10, { heldAt: NOW, heldKind: "failure" }))).toBe(wording("todo.label.held_failure"));
+    expect(stateLabel(wording, item(13, { heldAt: NOW, running: true, holdPending: true, heldKind: "pause" }))).toBe(wording("todo.label.held_pausing"));
+    expect(stateLabel(wording, item(13, { heldAt: NOW, heldKind: "pause" }))).toBe(wording("todo.label.held_pause"));
+    expect(stateLabel(wording, item(11, { heldAt: NOW }))).toBe(wording("todo.label.held_plain"));
+    expect(stateIcon(item(11, { heldAt: NOW }))).toBe("i-material-symbols-pause-circle-outline");
   });
 
   test("can be stopped while something of it is in flight, unless it is already his stop", () => {
@@ -561,7 +561,7 @@ describe("an item held while it still runs", () => {
   test("stands in the queue section, shown by the all and running tabs and hidden by the waiting tab", () => {
     const withStopping: TodoBoard = { ...board, queue: [...board.queue, stopping] };
     const ids = (filter: TodoFilter) =>
-      todoSections(wording, withStopping, { ...DEFAULT_VIEW, filter }, NOW).flatMap((section) => section.items.map((one) => one.id));
+      todoSections(wording, withStopping, { ...DEFAULT_VIEW, filter }).flatMap((section) => section.items.map((one) => one.id));
 
     expect(ids("all")).toContain(8);
     expect(ids("running")).toContain(8);
@@ -595,17 +595,17 @@ describe("the conditions beyond the state", () => {
   });
 
   test("leave standing only the sections that hold something", () => {
-    const sections = todoSections(wording, { ...board, queue: [] }, { ...DEFAULT_VIEW, conditions: worker }, NOW);
+    const sections = todoSections(wording, { ...board, queue: [] }, { ...DEFAULT_VIEW, conditions: worker });
 
     expect(sections.map((section) => section.key)).toEqual(["pending", "done"]);
-    expect(todoSections(wording, { ...board, queue: [] }, DEFAULT_VIEW, NOW).map((section) => section.key)).toEqual(["pending", "queue", "done"]);
+    expect(todoSections(wording, { ...board, queue: [] }, DEFAULT_VIEW).map((section) => section.key)).toEqual(["pending", "queue", "done"]);
   });
 
   test("take the handles away, since the rows between are hidden", () => {
     const view = { ...DEFAULT_VIEW, conditions: worker };
 
     expect(dragBlocked(view)).toBe(true);
-    expect(canDrag(item(1), view, NOW)).toBe(false);
+    expect(canDrag(item(1), view)).toBe(false);
   });
 });
 
@@ -789,7 +789,7 @@ describe("dragging a row to a place of its own", () => {
   // The queue section as the panel shows it, with a row that is done and still reporting
   // standing in it where its priority puts it.
   const reporting = item(5, { done: true, liveState: "running", doneAt: REPORTED, priority: 2, status: "done" });
-  const shown = todoSections(wording, { ...board, queue, done: [reporting, ...board.done] }, { ...DEFAULT_VIEW, filter: "all" }, NOW);
+  const shown = todoSections(wording, { ...board, queue, done: [reporting, ...board.done] }, { ...DEFAULT_VIEW, filter: "all" });
   const withReporting = shown[1]?.items ?? [];
 
   test("dragging a row up puts it before the row it was dropped on", () => {
@@ -818,16 +818,16 @@ describe("dragging a row to a place of its own", () => {
 
   test("a row that is only reporting is no part of the order the bot is asked for", () => {
     expect(withReporting.map((entry) => entry.id)).toEqual([5, 1, 2, 3]);
-    expect(reorderedQueue(withReporting, 3, 1, NOW)).toEqual([3, 1, 2]);
-    expect(reorderedQueue(withReporting, 1, 5, NOW)).toEqual([1, 2, 3]);
+    expect(reorderedQueue(withReporting, 3, 1)).toEqual([3, 1, 2]);
+    expect(reorderedQueue(withReporting, 1, 5)).toEqual([1, 2, 3]);
   });
 
   test("only a row that is waiting carries a handle", () => {
-    expect(canDrag(item(1), DEFAULT_VIEW, NOW)).toBe(true);
-    expect(canDrag(item(2, { running: true }), DEFAULT_VIEW, NOW)).toBe(false);
-    expect(canDrag(reporting, DEFAULT_VIEW, NOW)).toBe(false);
-    expect(canDrag(item(4, { done: true, doneAt: REPORTED }), DEFAULT_VIEW, NOW)).toBe(false);
-    expect(canDrag(item(9, { approved: false, awaitingApproval: true }), DEFAULT_VIEW, NOW)).toBe(false);
+    expect(canDrag(item(1), DEFAULT_VIEW)).toBe(true);
+    expect(canDrag(item(2, { running: true }), DEFAULT_VIEW)).toBe(false);
+    expect(canDrag(reporting, DEFAULT_VIEW)).toBe(false);
+    expect(canDrag(item(4, { done: true, doneAt: REPORTED }), DEFAULT_VIEW)).toBe(false);
+    expect(canDrag(item(9, { approved: false, awaitingApproval: true }), DEFAULT_VIEW)).toBe(false);
   });
 
   test("the waiting tab drags like the whole list, and no other tab or search does", () => {
@@ -836,17 +836,17 @@ describe("dragging a row to a place of its own", () => {
 
     expect(dragBlocked(DEFAULT_VIEW)).toBe(false);
     expect(dragBlocked(waiting)).toBe(false);
-    expect(canDrag(item(1), waiting, NOW)).toBe(true);
+    expect(canDrag(item(1), waiting)).toBe(true);
     expect(dragBlocked(held)).toBe(true);
     expect(dragBlocked(DEFAULT_VIEW, true)).toBe(true);
-    expect(canDrag(item(1), DEFAULT_VIEW, NOW, true)).toBe(false);
+    expect(canDrag(item(1), DEFAULT_VIEW, true)).toBe(false);
   });
 
   test("an order dropped under the waiting tab still names the running row it hid", () => {
-    const rows = queueSection(board, NOW);
+    const rows = queueSection(board);
 
     expect(rows.map((row) => row.id)).toEqual([2, 1, 3]);
-    expect(reorderedQueue(rows, 3, 1, NOW)).toEqual([2, 3, 1]);
+    expect(reorderedQueue(rows, 3, 1)).toEqual([2, 3, 1]);
   });
 
   test("the rows stand in the saved order at once, numbered from the front", () => {
@@ -880,7 +880,7 @@ describe("the row a job is going on for standing first", () => {
 
   // The queue section as the panel stands it up.
   function shownOf(board: TodoBoard): TodoItem[] {
-    return todoSections(wording, board, { ...DEFAULT_VIEW, filter: "all" }, NOW)[1]?.items ?? [];
+    return todoSections(wording, board, { ...DEFAULT_VIEW, filter: "all" })[1]?.items ?? [];
   }
 
   test("it stands at the head of the queue, whatever number it holds", () => {
@@ -906,7 +906,7 @@ describe("the row a job is going on for standing first", () => {
   test("so do the rows winding down on their way to being held", () => {
     const stopping = item(4, { heldAt: NOW, running: true, holdPending: true, heldKind: "pause" });
 
-    expect(todoState(stopping, NOW)).toBe("stopping");
+    expect(todoState(stopping)).toBe("stopping");
     expect(shownOf({ ...held, queue: [item(1), item(2), running, stopping, item(5)] }).map((entry) => entry.id)).toEqual([3, 4, 1, 2, 5]);
   });
 
@@ -914,16 +914,16 @@ describe("the row a job is going on for standing first", () => {
     const idle = { ...held, queue: [item(1), item(2), item(4)] };
 
     expect(shownOf(idle).map((entry) => entry.id)).toEqual([1, 2, 4]);
-    expect(reorderedQueue(idle.queue, 4, 1, NOW)).toEqual([4, 1, 2]);
-    expect(reorderedQueue(idle.queue, 1, 4, NOW)).toEqual([2, 4, 1]);
+    expect(reorderedQueue(idle.queue, 4, 1)).toEqual([4, 1, 2]);
+    expect(reorderedQueue(idle.queue, 1, 4)).toEqual([2, 4, 1]);
   });
 
   test("a row dropped on it lands directly under it", () => {
     const shown = shownOf(held);
 
-    expect(reorderedQueue(shown, 5, 3, NOW)).toEqual([3, 5, 1, 2, 4]);
-    expect(reorderedQueue(shown, 4, 3, NOW)).toEqual([3, 4, 1, 2, 5]);
-    expect(reorderedQueue(shown, 1, 3, NOW)).toEqual([3, 1, 2, 4, 5]);
+    expect(reorderedQueue(shown, 5, 3)).toEqual([3, 5, 1, 2, 4]);
+    expect(reorderedQueue(shown, 4, 3)).toEqual([3, 4, 1, 2, 5]);
+    expect(reorderedQueue(shown, 1, 3)).toEqual([3, 1, 2, 4, 5]);
   });
 
   test("nothing at all comes to stand above it, however the drop was aimed", () => {
@@ -931,7 +931,7 @@ describe("the row a job is going on for standing first", () => {
 
     for (const dragged of [1, 2, 4, 5]) {
       for (const over of [1, 2, 3, 4, 5]) {
-        const order = reorderedQueue(shown, dragged, over, NOW);
+        const order = reorderedQueue(shown, dragged, over);
 
         expect(order[0]).toBe(3);
         expect([...order].sort()).toEqual([1, 2, 3, 4, 5]);
@@ -942,20 +942,20 @@ describe("the row a job is going on for standing first", () => {
   test("a drop that stays clear of it is the drop it always was", () => {
     const shown = shownOf(held);
 
-    expect(reorderedQueue(shown, 5, 1, NOW)).toEqual([3, 5, 1, 2, 4]);
-    expect(reorderedQueue(shown, 1, 4, NOW)).toEqual([3, 2, 4, 1, 5]);
-    expect(reorderedQueue(shown, 2, 2, NOW)).toEqual([3, 1, 2, 4, 5]);
+    expect(reorderedQueue(shown, 5, 1)).toEqual([3, 5, 1, 2, 4]);
+    expect(reorderedQueue(shown, 1, 4)).toEqual([3, 2, 4, 1, 5]);
+    expect(reorderedQueue(shown, 2, 2)).toEqual([3, 1, 2, 4, 5]);
   });
 
   test("what a drop saves is the list the section shows, drop after drop", () => {
     let board = held;
 
     for (const [dragged, over] of [[5, 3], [1, 4], [2, 5], [4, 3], [1, 2]] as const) {
-      const order = reorderedQueue(shownOf(board), dragged, over, NOW);
+      const order = reorderedQueue(shownOf(board), dragged, over);
 
       board = boardInOrder(board, order);
 
-      expect(queueOrder(shownOf(board), NOW)).toEqual(order);
+      expect(queueOrder(shownOf(board))).toEqual(order);
       expect(board.queue[0]?.id).toBe(3);
       expect(board.queue[0]?.priority).toBe(1);
     }
@@ -1174,7 +1174,7 @@ describe("an item set aside", () => {
   });
 
   test("shows while something is being searched for: a search that hid it would be lying", () => {
-    const keys = todoSections(wording, board, { ...DEFAULT_VIEW, filter: "all" }, undefined, true).map((s) => s.key);
+    const keys = todoSections(wording, board, { ...DEFAULT_VIEW, filter: "all" }, true).map((s) => s.key);
 
     expect(keys).toContain("held");
   });
@@ -1226,7 +1226,7 @@ describe("an item merged into another", () => {
   test("stays out of the way until its chip or a search asks for it", () => {
     expect(todoSections(wording, board).map((section) => section.key)).not.toContain("merged");
     expect(todoSections(wording, board, { ...DEFAULT_VIEW, filter: "merged" }).map((section) => section.key)).toEqual(["merged"]);
-    expect(todoSections(wording, board, DEFAULT_VIEW, undefined, true).map((section) => section.key)).toContain("merged");
+    expect(todoSections(wording, board, DEFAULT_VIEW, true).map((section) => section.key)).toContain("merged");
     expect(filterLabel(wording, "merged")).toBe(wording("todo.label.state_merged"));
     expect(isTodoFilter("merged")).toBe(true);
   });

@@ -21,9 +21,9 @@ const MEMBER = { name: "org-member", password: "fixture-password-2667" };
 const RUN = Date.now().toString(36);
 
 const PERSONAL = ["settings.label.account", "settings.label.theme", "settings.label.palette"];
-const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing_player"];
-const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "settings.label.research", "settings.label.secrets", "settings.label.briefing"];
-const TABS = ["organization.label.chart", "settings.label.invites", "settings.label.permissions", "settings.label.providers", "settings.label.research", "settings.label.briefing", "settings.label.secrets"];
+const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
+const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "settings.label.secrets", "research.title.supervisor"];
+const TABS = ["organization.label.chart", "settings.label.invites", "settings.label.permissions", "settings.label.providers", "settings.label.secrets"];
 
 let browser: Browser | null = null;
 const cookies = new Map<string, string>();
@@ -339,6 +339,18 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await page.goto(`${origin}/?settings=providers`, { waitUntil: "load" });
           await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("tab") === "providers", { timeout: 20_000 });
           expect(await tabNames(page)).toEqual(TABS.map((key) => wording(key)));
+
+          // The keys of the sections that moved away lead to where they stand now: the research supervisor on the
+          // research screen's settings tab, the voice briefing's switch in the settings dialog over this screen.
+          for (const old of [`${origin}/?settings=research`, `${origin}/organization?tab=research`]) {
+            await page.goto(old, { waitUntil: "load" });
+            await page.waitForURL((url) => url.pathname.endsWith("/research") && url.searchParams.get("tab") === "settings", { timeout: 20_000 });
+            await page.locator("#research-supervisor-title").waitFor({ timeout: 20_000 });
+          }
+
+          await page.goto(`${origin}/organization?tab=briefing`, { waitUntil: "load" });
+          await page.waitForURL((url) => url.pathname.endsWith("/organization") && !url.searchParams.has("tab") && !url.searchParams.has("settings"), { timeout: 20_000 });
+          await page.getByRole("dialog").first().locator('[data-briefing-switch="on"], [role="alert"]').first().waitFor({ timeout: 20_000 });
 
           // The units tab: the unit chosen by its address, its company above its name.
           await page.goto(`${origin}/organization?unit=${team}`, { waitUntil: "load" });

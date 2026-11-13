@@ -2,9 +2,10 @@ import type { Component, Ref } from "vue";
 import type { LocationQuery } from "vue-router";
 
 // The settings dialog (docs/web.md, 「Settings」): one dialog over whatever screen is open, a list of sections beside
-// the open one, each what a person sets for themselves alone. Each section is a component of its own; this is only
-// the order they are listed in and what the list shows of each. What is set for the whole deployment or for other
-// people is the organisation settings screen's (domain/organization).
+// the open one, each what a person sets for themselves alone, the voice briefing spoken to the administrator among
+// them. Each section is a component of its own; this is only the order they are listed in and what the list shows of
+// each. What is set for the whole deployment or for other people is the organisation settings screen's
+// (domain/organization).
 
 export interface SettingsSection {
   // Its key in an address, `?settings=<key>`.
@@ -23,7 +24,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "theme", label: "settings.label.theme", icon: "i-material-symbols-contrast", administrator: false, load: () => import("~/components/SettingsTheme.vue") },
   { key: "palette", label: "settings.label.palette", icon: "i-material-symbols-chat-bubble-outline", administrator: false, load: () => import("~/components/SettingsPalette.vue") },
   { key: "notifications", label: "settings.label.notifications", icon: "i-material-symbols-notifications-outline", administrator: true, load: () => import("~/components/SettingsNotifications.vue") },
-  { key: "briefing", label: "settings.label.briefing_player", icon: "i-material-symbols-record-voice-over-outline", administrator: true, load: () => import("~/components/SettingsBriefing.vue") }
+  { key: "briefing", label: "settings.label.briefing", icon: "i-material-symbols-record-voice-over-outline", administrator: true, load: () => import("~/components/SettingsBriefing.vue") }
 ];
 
 // The key an address opens the dialog by.

@@ -59,7 +59,7 @@
 <script setup lang="ts">
 import { useAdministrator } from "~/domain/access";
 import { useOpenings } from "bmo-ui/app/domain/openings";
-import { organizationAddress, organizationTabNamed } from "~/domain/organization";
+import { organizationAddress, organizationMovedAway, organizationTabNamed } from "~/domain/organization";
 import { SETTINGS_SECTIONS, openSettings, sectionOf, sectionsFor, settingsAsked, useSettings } from "~/domain/settings-dialog";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 
@@ -155,12 +155,15 @@ async function answerAddress(): Promise<void> {
     return;
   }
 
-  // A key the dialog holds no section for but a tab of the organisation settings screen does was made before that tab
-  // moved there: it leads to the tab, and the dialog stays shut (docs/web.md, 「Settings」).
-  const moved = SETTINGS_SECTIONS.some((one) => one.key === asked.key) ? null : organizationTabNamed(asked.key);
+  // A key the dialog holds no section for was made before its section moved away: one a tab of the organisation
+  // settings screen holds leads to that tab, and one that moved on from there to where it stands now, the dialog
+  // staying shut (docs/web.md, 「Settings」).
+  const own = SETTINGS_SECTIONS.some((one) => one.key === asked.key);
+  const tab = own ? null : organizationTabNamed(asked.key);
+  const moved = own ? null : tab !== null ? organizationAddress(tab.value) : organizationMovedAway(asked.key);
 
   if (moved !== null) {
-    await router.replace(organizationAddress(moved.value));
+    await router.replace(moved);
 
     return;
   }

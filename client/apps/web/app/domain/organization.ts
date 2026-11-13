@@ -1,6 +1,8 @@
 import type { Component, ComputedRef } from "vue";
 import type { LocationQuery } from "vue-router";
 
+import { SETTINGS_QUERY } from "./settings-dialog";
+
 // The organisation settings screen (docs/web.md, 「Organisation settings」): what is set for the whole deployment or
 // for other people, a tab to a section. Each tab is a component of its own; this is only the order they stand in,
 // what each tab is called and who may open it.
@@ -26,10 +28,21 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", inviters: true, wide: false, load: () => import("~/components/OrganizationInvites.vue") },
   { value: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
   { value: "providers", label: "settings.label.providers", icon: "i-material-symbols-hub-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationProviders.vue") },
-  { value: "research", label: "settings.label.research", icon: "i-material-symbols-travel-explore", inviters: false, wide: false, load: () => import("~/components/OrganizationResearch.vue") },
-  { value: "briefing", label: "settings.label.briefing", icon: "i-material-symbols-record-voice-over-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationBriefing.vue") },
   { value: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationSecrets.vue") }
 ];
+
+// Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
+// still lands on it: the research supervisor with the research unit's settings, the voice briefing in the settings
+// dialog over this screen.
+const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery }>> = {
+  research: { path: "/research", query: { tab: "settings" } },
+  briefing: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "briefing" } }
+};
+
+/** The address a key of a tab that moved away from this screen now leads to, where it names one. */
+export function organizationMovedAway(key: unknown): { path: string; query: LocationQuery } | null {
+  return typeof key === "string" && Object.hasOwn(MOVED_AWAY, key) ? MOVED_AWAY[key]! : null;
+}
 
 /** The tabs a reader opens: every one for the administrator, the inviters' for a member. */
 export function organizationTabsFor(administrator: boolean): OrganizationTab[] {

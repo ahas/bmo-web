@@ -1685,23 +1685,14 @@ settings:
   label:
     account: 계정
     briefing: 보이스브리핑
-    briefing_player: 브리핑 플레이어
     notifications: 알림
     palette: 대화방
     permissions: 권한
     invites: 초대
     providers: 공급자
-    research: 리서치
-    research_supervisor: 리서치 감독관
-    research_supervisor_note: 감독관이 맡기지 않은 검색·브라우즈 실행이 브레인을 남길 감독관입니다.
     secrets: 비밀 보관함
     supervisor_none: 감독관 없음
     theme: 테마
-  status:
-    research_loading: 리서치 설정을 불러오는 중
-  error:
-    research_read_failed: 리서치 감독관을 읽지 못했습니다.
-    research_write_failed: 리서치 감독관을 저장하지 못했습니다.
   action:
     back: 뒤로
 people:
@@ -2573,6 +2564,7 @@ research:
     ask_failed: 요청하지 못했습니다.
     ask_refused: 리서치 유닛이 이 이름이나 주소를 받아들이지 않았습니다.
     dismiss_conflict: 이 항목은 지금 상태에서 제외할 수 없습니다.
+    supervisor_read_failed: 리서치 감독관을 읽지 못했습니다.
     dismiss_failed: 제외하지 못했습니다.
     engines_unread: "검색 엔진 상태를 읽지 못했습니다: {reason}"
     failed: 리서치 유닛이 요청을 처리하지 못했습니다.
@@ -2746,6 +2738,7 @@ research:
     strategy_direct_only: 직접만
     strategy_direct_then_browser: 직접 먼저
     stuck_count: "막힘 {n}"
+    supervisor: 감독관
     suspended_until: 중단 해제
     tab_queue: 대기열
     tab_settings: 설정
@@ -2786,6 +2779,7 @@ research:
     settings_loading: 리서치 설정을 불러오는 중
     sources_loading: 출처를 불러오는 중
     state_loading: 리서치 상태를 불러오는 중
+    supervisor_loading: 리서치 감독관을 불러오는 중
     topics_loading: 토픽을 불러오는 중
     no_topics: 등록된 토픽 없음
   title:
@@ -2800,6 +2794,7 @@ research:
     source_add: 출처 추가
     source_edit: "출처 #{id} 편집"
     sources: 출처
+    supervisor: 리서치 감독관
     topic_add: 토픽 추가
     topic_edit: "{name} 토픽 편집"
   action:

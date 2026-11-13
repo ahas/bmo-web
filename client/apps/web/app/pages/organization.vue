@@ -41,7 +41,7 @@
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
 import { useAdministrator } from "~/domain/access";
-import { ORGANIZATION_TABS, organizationAddress, organizationTabOf, organizationTabsFor } from "~/domain/organization";
+import { ORGANIZATION_TABS, organizationAddress, organizationMovedAway, organizationTabOf, organizationTabsFor } from "~/domain/organization";
 import { TAB_ROW_BUTTONS } from "~/domain/tab-create";
 
 import type { TabCreate } from "~/domain/tab-create";
@@ -61,13 +61,21 @@ const tabs = computed(() => organizationTabsFor(administrator.value));
 const tab = computed(() => organizationTabOf(route.query.tab ?? ORGANIZATION_TABS[0]!.value, tabs.value));
 const tabItems = computed(() => tabs.value.map((one) => ({ value: one.value, icon: one.icon, label: t(one.label) })));
 
-// An address naming a tab the reader may not open is moved to the first one they may, with no step of the history.
+// An address naming a tab that moved away is taken to where its section stands now, and one naming a tab the reader
+// may not open to the first one they may, each with no step of the history.
 watch(
   tabs,
   (list) => {
     if (!import.meta.client) return;
 
     const asked = route.query.tab;
+    const moved = organizationMovedAway(asked);
+
+    if (moved !== null) {
+      void router.replace(moved);
+
+      return;
+    }
 
     if (asked === undefined || list.some((one) => one.value === asked)) return;
 

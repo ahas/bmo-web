@@ -89,7 +89,7 @@ export const SCREENS: readonly Screen[] = [
   // its address are the agents' own, so they do not light it.
   { label: "screens.label.agents", to: "/agents", icon: "i-material-symbols-list-alt-outline", nested: false, tabs: AGENT_TABS },
   // The research unit watched at work: whether its loop runs, its categories and its queue, each item's run opening
-  // over the list. It stands under agent management, whose searcher tab holds what every research run is held to.
+  // over the list; its settings tab holds what every research run is held to and the research supervisor.
   { label: "screens.label.research", to: "/research", icon: "i-material-symbols-travel-explore", nested: false },
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.

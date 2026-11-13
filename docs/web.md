@@ -476,7 +476,7 @@ nothing.
   and the index names every room and person; a member's feed draws every face by its initials.
 - **On the account, a member changes their name, password, job title and contact details and sees and revokes
   their phones.**
-  The notifications, the app download and the briefing player are the administrator's, and the
+  The notifications, the app download and the voice briefing are the administrator's, and the
   screen reads none of them for a member.
 
 **A login that ends leads to the login screen, from any screen, and back after the next login.**
@@ -2609,12 +2609,13 @@ archive and this week's tokens remain. That is all that can actually be known th
   「state」, 「categories」, 「queue」 and 「research runs」). It is the console's own screen, reading the unit
   through the console's server at the address `RESEARCH_ADDRESS` names, and it stands in the reading column as a
   list screen, its panel body the one scroll. Beside them it reads and changes the settings every research run is
-  held to and reads the search engines' state (its `docs/api.md`, 「research-settings」), and adds, changes and takes
-  away the topics, the categories of the shape `topic`; nothing else of the unit: the other categories' own settings,
+  held to and reads the search engines' state (its `docs/api.md`, 「research-settings」), reads and changes, for the
+  administrator, the research supervisor the agency's own settings hold, and adds, changes and takes away the topics, the categories of the shape `topic`; nothing else of the unit: the other categories' own settings,
   the recipients and the stack stay the unit's routes.
 - **Four tabs,** Nuxt UI's link tabs in a row under the title bar as the agent management screen's: **대기열** first,
   holding the categories, the queue and an item's run; **토픽**, holding the topics; **출처**, holding the sources; and
-  **설정**, holding what every research run is held to and the search engines (「설정」 below). The tab stands in the
+  **설정**, holding what every research run is held to, the research supervisor and the search engines (「설정」
+  below). The tab stands in the
   address, the first standing where it names none, and moving to another is a step of the history. The open tab's
   own create is the screen's create button (「The title bar」): 항목 요청 on 대기열, 토픽 추가 on 토픽, 출처 추가
   on 출처, and none on 설정. The one failure for the whole unit stands over either.
@@ -2745,10 +2746,19 @@ archive and this week's tokens remain. That is all that can actually be known th
     and **호스트 간격** and **엔진 간격**, the milliseconds between two direct requests to one host and between two
     requests to one search engine, each an emptied box standing for the web tools' own value, read as 「The default
     among choices」 says.
+  - **리서치 감독관** — the administrator's alone, and not shown to a member who opens the screen: the supervisor
+    whose brain a search or browse run writes into where no supervisor delegated the run, as the agency's own
+    settings hold it (its `docs/api.md`, 「settings」, `researchSupervisor`), said in one muted line under the
+    section's head. One row whose one cell chooses it from every supervisor the agency lists, each under its own
+    label with its name under it, and 감독관 없음 after them; it is saved as it is chosen, as the tab's other cells
+    are, and one the agency refuses stays as the agency holds it, its reason said in a notice. It is read apart
+    from the research unit, once when the tab opens, so where the agency does not answer the section alone says so
+    with a way to ask again, and the research unit's sections stand as they read.
   - **검색 엔진** — every search engine the web tools answer for, one row each: its name, its category, its state as a
     mark and a word — 정상, 저하, 중단 — and where they are known why, when it was last seen and, for one suspended,
     how long it stays so. Where the engines could not be read, one line says why in their place.
-  - Both are read when the tab opens and again every fifteen seconds while it is seen.
+  - The research unit's settings and its engines are read when the tab opens and again every fifteen seconds while
+    it is seen.
 - **How it reads.** The unit serves no event stream, so the screen asks on its own clock: the state, the
   categories and the queue on opening and every ten seconds while the browser tab is seen, and the sources the same
   while their own tab stands, and an open run and its log
@@ -3120,7 +3130,8 @@ a seat of its role.
 
 - **The provider switches and the Claude accounts** are 조직 설정's 공급자 tab (「Organisation settings」), since
   they are no supervisor's, role's or repository's.
-- **The research unit's settings** are the research screen's 설정 tab (「Research screen」).
+- **The research unit's settings and the research supervisor** are the research screen's 설정 tab (「Research
+  screen」).
 - The run prompt put into a job, search or gate has nothing to do with the length of one Telegram message. A web
   control request takes up to a million characters, and whether it can enter the model is decided by the chosen
   model's context and that run's system prompt. Words sent to a room and attached to an upload take up to 100,000
@@ -6278,17 +6289,18 @@ Four bounds keep it from growing forever.
 ### Settings
 
 The settings are one large dialog over whatever screen is open, opened by 설정 in the user menu at the
-sidebar's foot (「Sidebar」). They hold what a person sets for themselves alone: their account and what this
-browser shows them. What is set for the whole deployment or for other people stands on its own screen,
-조직 설정 (「Organisation settings」). The dialog is no screen of its own: `/account` takes the reader home with
-the dialog open at 계정.
+sidebar's foot (「Sidebar」). They hold what a person sets for themselves alone: their account, what this
+browser shows them, and the voice briefing, which is spoken to the administrator alone and so is theirs to
+switch. What is set for the whole deployment or for other people stands on its own screen, 조직 설정
+(「Organisation settings」), and what the research unit's runs are held to on the research screen (「Research
+screen」). The dialog is no screen of its own: `/account` takes the reader home with the dialog open at 계정.
 
 - **The dialog is a list of sections and the open section beside it.** The list stands in a column at
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방, 알림 and 브리핑 플레이어. A member is shown 계정, 테마 and 대화방;
-    알림 and 브리핑 플레이어 are the administrator's, since the console rings and plays briefings for the
+  - The sections are 계정, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 테마 and 대화방;
+    알림 and 보이스브리핑 are the administrator's, since the console rings and plays briefings for the
     administrator alone.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
@@ -6305,8 +6317,9 @@ the dialog open at 계정.
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A key that names none of the dialog's sections but a tab of 조직 설정 — `organization`,
-  `invites`, `permissions`, `providers`, `research`, `secrets` — takes the reader to that tab instead, so a link
-  made before the tab moved there still lands on it. The key is taken off the address as the dialog opens: what
+  `invites`, `permissions`, `providers`, `secrets` — takes the reader to that tab instead, and `research` to the
+  research screen's 설정 tab, so a link made before a section moved still lands where it stands now. The key is
+  taken off the address as the dialog opens: what
   is open over a screen is not a place (「Floating things」), so the back gesture closes the dialog, or leaves
   the section on a narrow screen, and the page stays where it was. Opened from the user menu it starts at 계정,
   and on a narrow screen at the list.
@@ -6360,8 +6373,14 @@ the dialog open at 계정.
   effect as it is switched, and 테스트 발송 and 알림 끄기 stand under them. The account's other devices
   follow, each a row with when it subscribed and what it hears, and 알림 끄기 for that device.
 
-#### 브리핑 플레이어
+#### 보이스브리핑
 
+- **전체 보이스브리핑**, the voice briefing's one switch, the receiver's (its `docs/api.md`, `GET`/`PUT
+  /voice-briefing`): whether anything is spoken at all. It stands first, in a group of its own, and is set as it
+  is pressed. A briefing it speaks comes to the console's player as it ends and plays by itself, so there is no
+  second switch for the player. One the receiver refused springs back, and the refusal stands under the switch in
+  one line; where the receiver does not answer, the switch's place says so with a button that reads it again, and
+  the player's group under it stands either way.
 - **The player, placed and tried** (「Messages」, the briefing's player). **위치** chooses 왼쪽 or 오른쪽 and **높이**
   the height in pixels from the top of the page area, a number box with px after it that stands empty, holding
   기본값, where the player keeps its first place — as low as the page area lets it, above whatever bar stands at
@@ -6374,20 +6393,23 @@ the dialog open at 계정.
     it stands and takes it down.
   - The trial is this tab's alone: no other tab hears of it and nothing keeps it. Pressed while a briefing plays,
     it waits behind it as another briefing would, and the player's press during it leads back to the screen it
-    was tried on, with the settings open at 브리핑 플레이어.
+    was tried on, with the settings open at 보이스브리핑.
 
 ### Organisation settings
 
 조직 설정 is the screen of what is set for the whole deployment or for other people: the organisation's units and
 who stands in them, the invitations into them, each person's sections, the providers and the Claude accounts every
-run goes out on, the research supervisor, the voice briefing's switch and the secret store. What a person sets for
-themselves alone is the settings dialog's (「Settings」).
+run goes out on, and the secret store. What a person sets for themselves alone, the voice briefing among it, is
+the settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
+research screen (「Research screen」).
 
-- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대, 권한, 공급자, 리서치, 보이스브리핑
-  and 비밀 보관함, keyed in the address as `?tab=` with `invites`, `permissions`, `providers`, `research`, `briefing`
-  and `secrets`, 조직도 being the screen's own address; a shared link opens the same tab, moving between tabs is a
-  step of the history, and a key naming no tab the reader may open opens the first they may. The console search
-  finds each tab as it finds every screen's.
+- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대, 권한, 공급자 and 비밀 보관함, keyed
+  in the address as `?tab=` with `invites`, `permissions`, `providers` and `secrets`, 조직도 being the screen's own
+  address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
+  the reader may open opens the first they may. The console search finds each tab as it finds every screen's.
+- **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
+  on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑, over this
+  screen. The address is replaced rather than stepped, so the back gesture does not return to the old key.
 - **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 설정 for them after the console's
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
   machine」), so their shell lists 조직 설정 too and the screen holds 초대 alone; a member who heads none is listed
@@ -6507,22 +6529,6 @@ themselves alone is the settings dialog's (「Settings」).
   refused by the agency. **No row, box or answer carries a token, a cookie or anything out of a credential file** —
   the path is the whole of what is shown.
 - Every change here takes effect as it is made, as everything on this screen does.
-
-#### 리서치
-
-- **리서치 감독관** — the supervisor whose brain a search or browse run writes into where no supervisor delegated
-  the run, as the agency's own settings hold it (its `docs/api.md`, 「settings」, `researchSupervisor`). A list of
-  every supervisor the agency lists, each under its own label with its name under it, and 없음, for no supervisor,
-  after them; the one the agency holds now is the one chosen. A choice is saved as it is made; one the agency
-  refuses goes back to what it holds, its reason said under the row. Where the agency does not answer, the row
-  says so with a button that reads it again.
-
-#### 보이스브리핑
-
-- The voice briefing's one switch, the receiver's (its `docs/api.md`, `GET`/`PUT /voice-briefing`): **전체
-  보이스브리핑**, whether anything is spoken at all. It is set as it is pressed. A briefing it speaks comes to the
-  console's player as it ends and plays by itself, so nothing stands beside the switch: there is no second switch
-  for the player. One the receiver refused springs back, and the refusal stands under the tab in one line.
 
 #### 비밀 보관함
 

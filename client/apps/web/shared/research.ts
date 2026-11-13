@@ -1,5 +1,5 @@
 // The settings every research run is held to and the search engines' state, as the research unit answers them
-// (bmo-research's `docs/api.md`, 「research-settings」; docs/web.md, the searcher tab), with the co-worker roles a
+// (bmo-research's `docs/api.md`, 「research-settings」; docs/web.md, 「Research screen」, its settings tab), with the co-worker roles a
 // search's branches may go out on beside them. They are written here because the console reads the unit over
 // HTTP and imports none of its code.
 

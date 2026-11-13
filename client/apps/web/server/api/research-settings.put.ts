@@ -4,7 +4,7 @@ import { changeResearchSettings, researchChangeOf } from "../utils/research-sett
 
 import type { ResearchSettingsView } from "#shared/research";
 
-// One research setting changed, the rest kept (docs/web.md, the searcher tab). Whether the value stands is the
+// One research setting changed, the rest kept (docs/web.md, 「Research screen」, its settings tab). Whether the value stands is the
 // research unit's to say; a body that names no one setting of its own shape goes no further.
 export default defineEventHandler(async (event): Promise<ResearchSettingsView> => {
   await requireUserSession(event);

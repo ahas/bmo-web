@@ -1,6 +1,7 @@
 <template>
-  <!-- What every research run is held to, each value in a cell of its own that saves it at once, and the search
-       engines' state (docs/web.md, 「Research screen」, its settings tab). -->
+  <!-- What every research run is held to, each value in a cell of its own that saves it at once, the research
+       supervisor for the administrator, and the search engines' state (docs/web.md, 「Research screen」, its
+       settings tab). -->
   <div class="flex min-w-0 flex-col">
     <ReadFailure
       v-if="error && !settings"
@@ -109,6 +110,8 @@
       </DataTable>
     </section>
 
+    <ResearchSupervisor v-if="administrator" :query="props.query" />
+
     <section class="flex min-w-0 flex-col" aria-labelledby="research-engines-title">
       <div class="flex min-h-12 items-center gap-2 border-y border-default px-4 py-2">
         <h2 id="research-engines-title" class="text-base font-semibold text-highlighted">{{ $t("research.title.engines") }}</h2>
@@ -169,6 +172,7 @@ import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { countText } from "bmo-ui/app/domain/numbers";
 import { formatStamp, remainingText, toUnixSeconds, useNowSeconds } from "bmo-ui/app/domain/time";
+import { useAdministrator } from "~/domain/access";
 import { useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
 import { engineLook, gapOf, gapText, profileLabel, STRATEGY_LABELS, strategyLabel } from "~/domain/research";
@@ -180,6 +184,8 @@ import type { TableColumn } from "@nuxt/ui";
 
 const props = withDefaults(defineProps<{ query?: string }>(), { query: "" });
 const { t } = useI18n();
+// The research supervisor is the agency's, set by the administrator alone.
+const administrator = useAdministrator();
 
 // How often the engines' state is read again while the tab stands and is seen: a suspension lasts seconds.
 const POLL_MS = 15_000;

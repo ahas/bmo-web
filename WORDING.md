@@ -141,6 +141,9 @@
 - permission → 권한: 권한, 권한이 있습니다, 권한이 없습니다. Never 허가, 접근 권한.
 - read a section → 읽기: 읽기, 읽을 수 있습니다. Never 조회 for a section's read.
 - write a section → 쓰기: 쓰기, 쓸 수 있습니다. Never 편집 for a section's write.
+- share a thing → 공유: 공유, 공유 링크, 공유 해제, 공유한 사람, 공유하지 못했습니다; the people of the reader's company it
+  is shared with → 같은 조직의 사람; a member's permission on a shared thing → 읽기, 편집, and changing it → 권한을 바꾸다.
+  Never 쓰기 for a shared thing's edit, which stays for a section's write.
 - health check → 헬스 체크; the one run before anything changes → 사전 헬스 체크. Never 생존 확인.
 - rollback → 롤백. Never 되돌림.
 - template → 템플릿; coverage → 커버리지; cap → 상한; cooldown → 쿨다운. Never 틀, 덮음, 천장, 휴식.

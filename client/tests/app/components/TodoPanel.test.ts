@@ -452,7 +452,7 @@ describe("the detail of a row", () => {
 
   test("names itself TODO in its head and leaves the counts to the tabs", () => {
     expect(template).toContain('<h2 class="shrink-0 text-base font-semibold text-highlighted">TODO</h2>');
-    expect(source).toContain("filterCount(board.value, choice, now.value)");
+    expect(source).toContain("filterCount(shownBoard.value, choice, now.value)");
   });
 
   test("offers no other order than the queue's, and says nothing about a filter taking the handles away", () => {

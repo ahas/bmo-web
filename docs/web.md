@@ -5318,7 +5318,9 @@ Four bounds keep it from growing forever.
   the room's name; the conversation stays where it stood, and Back closes it.
 - **The members are the receiver's,** read from its `GET /rooms/{roomId}/members` each time the sheet opens: the
   people the chat service carrying the room read as its members, in the receiver's order (`docs/boundary.md`,
-  「Gaps the console meets」). Nothing of them is kept in the console.
+  「Gaps the console meets」). Nothing of them is kept in the console. While the first read runs, the place of one
+  row stands as its skeleton: every room a chat service reads holds at least the account that reads it, so the list
+  that lands is never shorter.
 - **Each member is a row:** their face, their name, and under it the status line their chat service read where it
   read one. The face is the picture the archive keeps for the member's person number, by the rule every face
   follows (「Profile photos」); a member with no person number, or no picture kept, stands as their letter. A

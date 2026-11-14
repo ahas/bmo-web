@@ -42,7 +42,8 @@ afterAll(async () => {
 }, BROWSER_HOOK_MS);
 
 // The room open at a width, its members answered as `served` says, and the sheet opened from the room's menu.
-async function sheetOpen(width: number, height: number, phone: boolean, served: { status: number; body: unknown }): Promise<{ page: Page; close: () => Promise<void> }> {
+// Where `served` names a hold, the answer waits for it, so what stands while the read runs can be measured.
+async function sheetOpen(width: number, height: number, phone: boolean, served: { status: number; body: unknown; held?: Promise<void> }): Promise<{ page: Page; close: () => Promise<void> }> {
   const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
 
@@ -50,7 +51,10 @@ async function sheetOpen(width: number, height: number, phone: boolean, served: 
 
   const page = await context.newPage();
 
-  await page.route(`**/api/rooms/${RECORD_CHAT}/members`, (route) => route.fulfill({ status: served.status, contentType: "application/json", body: JSON.stringify(served.body) }));
+  await page.route(`**/api/rooms/${RECORD_CHAT}/members`, async (route) => {
+    await served.held;
+    await route.fulfill({ status: served.status, contentType: "application/json", body: JSON.stringify(served.body) });
+  });
   await page.goto(`${origin}/rooms/${RECORD_CHAT}`, { waitUntil: "load" });
   await page.locator("[data-message]").first().waitFor({ timeout: 30_000 });
   await page.getByRole("button", { name: wording("common.action.more") }).first().click();
@@ -118,6 +122,27 @@ describe.skipIf(!origin || !touchReady())("a room's members", () => {
       }
     }, 90_000);
   }
+
+  test("while the first read runs, stand one row's place, the members landing in its stead", async () => {
+    let release = () => {};
+    const held = new Promise<void>((done) => { release = done; });
+    const { page, close } = await sheetOpen(1280, 900, false, { status: 200, body: MEMBERS, held });
+
+    try {
+      const sheet = page.getByRole("dialog", { name: wording("members.title.sheet") });
+      const waiting = sheet.getByRole("status", { name: wording("members.status.loading") });
+
+      await waiting.waitFor({ timeout: 10_000 });
+      expect(await waiting.evaluate((status) => status.querySelector(":scope > div:last-child")!.children.length)).toBe(1);
+
+      release();
+      await page.locator("[data-room-members] > li").first().waitFor({ timeout: 10_000 });
+      expect(await waiting.count()).toBe(0);
+    } finally {
+      release();
+      await close();
+    }
+  }, 90_000);
 
   test("refused, say the refusal in the sheet's error band and stand no list", async () => {
     const said = wording("members.error.not_served");

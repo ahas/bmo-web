@@ -10,7 +10,9 @@
     </template>
 
     <template #body>
-      <ContentSkeleton v-if="!loaded && pending" :rows="3" :list-class="LIST" :label="$t('members.status.loading')">
+      <!-- One row while the first read runs: every room a chat service reads holds at least the account reading it,
+           so the list that lands is never shorter than this. -->
+      <ContentSkeleton v-if="!loaded && pending" :rows="1" :list-class="LIST" :label="$t('members.status.loading')">
         <div :class="ROW">
           <USkeleton class="size-8 shrink-0 rounded-full" />
           <div class="flex min-w-0 flex-1 flex-col gap-1">

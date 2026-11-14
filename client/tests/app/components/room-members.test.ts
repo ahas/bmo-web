@@ -66,6 +66,9 @@ describe("the members sheet", () => {
     expect(screen).toContain('<RoomMembersSheet v-model:open="membersOpen"');
     expect(sheet).toContain("await $fetch<RoomMember[]>(`/api/rooms/${props.chatId}/members`)");
     expect(sheet).toContain("if (standing) void read();");
+    // While the first read runs, one row's place stands, never more than the shortest list a read can land.
+    expect(sheet).toContain(':rows="1"');
+    expect(sheet).not.toMatch(/:rows="(?!1")/);
   });
 
   test("leads a marked row to that person's page only for a reader who may read the account section", () => {

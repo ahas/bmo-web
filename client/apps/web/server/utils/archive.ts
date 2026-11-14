@@ -7,7 +7,7 @@ import { draftSummaries } from "./drafting";
 import { roomBriefings } from "./voice";
 import { figuresOf } from "./runfigures";
 import { judgementsOf, judgementsWithin } from "./gate";
-import { ownerChat } from "./owner";
+import { ownerChat, ownerSender } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
 import { receiver, receiverCall } from "./receiver";
 
@@ -137,10 +137,29 @@ async function peopleNamed(ids: readonly number[]): Promise<Map<number, string>>
 
 const untitled = (title: string | null): boolean => title === null || title.trim() === "";
 
-/** Every room, the pinned ones first in the owner's order, each under the name it is called by (docs/web.md, the naming
- * rule). */
+// A room with the receiver's listen mark, which the vendored receiver client does not declare yet; a room answered
+// without it is read as one not on the listen list.
+type MarkedRoom = ReceiverRoom & { listened?: boolean };
+
+/** Whether the owner uses a room, as the receiver's record of it says and never by the chat service it is on: his
+ * private chat, a room naming supervisors, one added, one pinned, one on the listen list, or one his own words stand
+ * in (docs/web.md, 「Sidebar」). */
+export function inUse(room: MarkedRoom, ownerSender: number | null): boolean {
+  return (
+    room.ownerRoom ||
+    room.supervisors.length > 0 ||
+    room.mode !== null ||
+    room.pinned ||
+    room.listened === true ||
+    (ownerSender !== null && room.senders.includes(ownerSender))
+  );
+}
+
+/** Every room the owner uses, the pinned ones first in the owner's order, each under the name it is called by
+ * (docs/web.md, 「Sidebar」). */
 export async function listRooms(): Promise<RoomSummary[]> {
-  const [rooms, owner] = await Promise.all([everyRoom(), ownerChat()]);
+  const [every, owner, sender] = await Promise.all([everyRoom(), ownerChat(), ownerSender()]);
+  const rooms = every.filter((room) => inUse(room, sender));
   const named = await peopleNamed(rooms.filter((room) => untitled(room.title) && room.id !== owner).map((room) => room.id));
 
   return await Promise.all(

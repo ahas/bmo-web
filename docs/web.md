@@ -1285,6 +1285,16 @@ Four groups.
   as a chat number. A room the console made itself — one made for the supervisors it names — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
   conversation.
+  - **A room stands when the owner uses it,** as the receiver's own record of the room says and never by which chat
+    service it is on: it is his private chat (`ownerRoom`), it names supervisors to answer it (`supervisors`), it
+    was added and so carries a mode (`mode`), it is pinned (`pinned`), it stands on the receiver's listen list,
+    the rooms he allowed (`listened`), or his own words stand in it, the sender `GET /owner` names being among its
+    `senders`. A room with none of these, one a chat service merely numbered and listed, is left out of the one
+    room list the console reads, and so out of the sidebar, the search, the home screen's rooms and the room-list
+    screen; it stays in the receiver's archive as it is and opens by its address as any room does. The moment one
+    of the marks comes to it, added from 추가, allowed, given an agent or spoken in, it stands at the next read of
+    the list. Whether its registration stands decides nothing, since the receiver answers `registered` for every
+    room its list holds.
   - **The 추가 button beside the group's name adds a room,** the heading's grey icon in the phone's drawer as on a wide screen (「The title bar」), for the administrator, in a dialog of choices made in
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
     「Rooms」):

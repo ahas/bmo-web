@@ -1,21 +1,13 @@
-import { unitAt, unitHeaders } from "./units";
+import { receiver } from "./receiver";
+import { unitAt } from "./units";
 
 import type { AvatarKind, AvatarRef } from "#shared/types";
 
-import type { UnitAddress } from "./units";
-
-// A room's and a person's profile picture, which the archive and each chat service keep and serve by its kind and
-// id (docs/web.md, 「Profile photos」; the receiver's, the Telegram service's and the KakaoTalk service's
-// `docs/api.md`, `GET /avatars`, `GET /rooms/{roomId}/avatar` and `GET /people/{personId}/avatar`). The console
-// serves it under its own path behind the sign-in, so the browser never names the unit.
-
-// The units that keep pictures, in the order a number two keep is read from: the receiver first, since it is the
-// archive, then the Telegram service and the KakaoTalk service.
-const KEEPERS: readonly string[] = ["RECEIVER", "TELEGRAM", "KAKAOTALK"];
-
-function keepers(): UnitAddress[] {
-  return KEEPERS.flatMap((name) => unitAt(name) ?? []);
-}
+// A room's and a person's profile picture, which the receiver keeps for every chat service and for the console and
+// serves by its kind and number (docs/web.md, 「Profile photos」; the receiver's `docs/api.md`, `GET /avatars`,
+// `GET /rooms/{roomId}/avatar` and `GET /people/{personId}/avatar`). The receiver is the one road a picture reaches
+// the console by: no chat service is asked for one, so a chat service added to the system adds nothing here. The
+// console serves it under its own path behind the sign-in, so the browser never names the unit.
 
 const KINDS: readonly string[] = ["room", "person"];
 
@@ -23,72 +15,48 @@ export function isAvatarKind(value: unknown): value is AvatarKind {
   return typeof value === "string" && KINDS.includes(value);
 }
 
-// How many pictures one page of the provider's list carries. The list is one row per room and per
-// person, so a page of this size walks it in a few calls.
+// How many pictures one page of the receiver's list carries. The list is one row per room and per person, so a
+// page of this size walks it in a few calls.
 const AVATAR_PAGE = 200;
 
-interface AvatarPage {
-  items?: unknown;
-  more?: unknown;
+// Whether the settings name the receiver: where they do not, no call is made and every screen stands its letters.
+function receiverNamed(): boolean {
+  return unitAt("RECEIVER") !== null;
 }
 
-interface AvatarRow {
-  kind?: unknown;
-  id?: unknown;
-  takenAt?: unknown;
-}
-
-// Every picture the console can show: each keeper's list, joined, the earlier keeper's picture standing for a
-// number both keep.
+// Every picture the console can show, read from the receiver's `GET /avatars` a page at a time. A page is walked by
+// the moment the last picture on it was taken, oldest first, so no picture is read twice or left behind. A page the
+// receiver does not answer ends the walk with what has been read so far: the screens fall back to their letters
+// rather than standing empty.
 export async function avatarRefs(): Promise<AvatarRef[]> {
-  const lists = await Promise.all(keepers().map(listedBy));
-  const seen = new Set<string>();
+  if (!receiverNamed()) return [];
 
-  return lists.flat().filter((ref) => {
-    const subject = `${ref.kind}:${ref.id}`;
-
-    if (seen.has(subject)) return false;
-
-    seen.add(subject);
-
-    return true;
-  });
-}
-
-// One keeper's pictures, read from its `GET /avatars` a page at a time. A page is walked by the moment the last
-// picture on it was taken, oldest first, so no picture is read twice or left behind. A page the keeper does not
-// answer ends the walk with what has been read so far: the screens fall back to their letters rather than
-// standing empty.
-async function listedBy(unit: UnitAddress): Promise<AvatarRef[]> {
   const refs: AvatarRef[] = [];
   let after: number | null = null;
 
   for (;;) {
-    const query = new URLSearchParams({ limit: String(AVATAR_PAGE) });
-
-    if (after !== null) query.set("after", String(after));
-
-    let page: AvatarPage;
+    const query: { limit: number; after?: number } = after === null ? { limit: AVATAR_PAGE } : { limit: AVATAR_PAGE, after };
+    let page: { items?: unknown; more?: unknown };
 
     try {
-      const response = await fetch(`${unit.address}/avatars?${query}`, { headers: unitHeaders(unit) });
+      const { data } = await receiver().GET("/avatars", { params: { query } });
 
-      if (!response.ok) return refs;
+      if (data === undefined) return refs;
 
-      page = (await response.json()) as AvatarPage;
+      page = data;
     } catch {
       return refs;
     }
 
-    const items: AvatarRow[] = Array.isArray(page.items) ? (page.items as AvatarRow[]) : [];
+    const items = Array.isArray(page.items) ? (page.items as { kind?: unknown; id?: unknown; takenAt?: unknown }[]) : [];
 
     for (const item of items) {
       if (!isAvatarKind(item.kind)) continue;
       if (typeof item.id !== "number" || !Number.isSafeInteger(item.id)) continue;
       if (typeof item.takenAt !== "number" || !Number.isFinite(item.takenAt)) continue;
 
-      // The address carries the moment the picture was received, so a browser keeps what it holds
-      // until the provider receives a new one and the address changes with it.
+      // The address carries the moment the picture was received, so a browser keeps what it holds until the
+      // receiver keeps a new one and the address changes with it.
       refs.push({ kind: item.kind, id: item.id, url: `/api/avatars/${item.kind}/${item.id}?v=${item.takenAt}` });
     }
 
@@ -102,27 +70,26 @@ async function listedBy(unit: UnitAddress): Promise<AvatarRef[]> {
   }
 }
 
-// One subject's picture, its bytes and the type its keeper names, as the first keeper that keeps one serves it, or
-// null where none keeps one or none is reached.
+// One subject's picture, its bytes and the type the receiver names, or null where the receiver keeps none or is not
+// reached.
 export interface AvatarPicture {
   bytes: Uint8Array;
   type: string;
 }
 
 export async function avatarPicture(kind: AvatarKind, subjectId: number): Promise<AvatarPicture | null> {
-  const path = kind === "room" ? `/rooms/${subjectId}/avatar` : `/people/${subjectId}/avatar`;
+  if (!receiverNamed()) return null;
 
-  for (const unit of keepers()) {
-    try {
-      const response = await fetch(`${unit.address}${path}`, { headers: unitHeaders(unit) });
+  try {
+    const { data, response } =
+      kind === "room"
+        ? await receiver().GET("/rooms/{roomId}/avatar", { params: { path: { roomId: subjectId } }, parseAs: "arrayBuffer" })
+        : await receiver().GET("/people/{personId}/avatar", { params: { path: { personId: subjectId } }, parseAs: "arrayBuffer" });
 
-      if (response.ok) {
-        return { bytes: new Uint8Array(await response.arrayBuffer()), type: response.headers.get("content-type") ?? "image/jpeg" };
-      }
-    } catch {
-      // This keeper is not reached; the next one may keep the picture.
-    }
+    if (!response.ok || data === undefined) return null;
+
+    return { bytes: new Uint8Array(data), type: response.headers.get("content-type") ?? "image/jpeg" };
+  } catch {
+    return null;
   }
-
-  return null;
 }

@@ -1165,9 +1165,9 @@ edit to that file alone, once the guide below carries the word.
 
 ### Profile photos
 
-- Rooms and people stand with the photo kept for them: the one the archive keeps, or else the one their chat
-  service shows — a room the receiver numbers itself, and the numbers it gives the agents speaking there, wear the
-  archive's. The room in the sidebar and that room's
+- Rooms and people stand with the photo the receiver keeps for them, whichever chat service handed it in or the
+  console set it: the console reads every picture from the receiver alone and asks no chat service for one (the
+  section 「Profile photos」 near this document's end). The room in the sidebar and that room's
   the chat agent, the room header and beside a bubble are all the same photo. The chat agent stands with its own photo too. The
   photo beside a bubble attaches to the side that bubble stands on — words on the left on the left, words on
   the right on the right.
@@ -1204,15 +1204,11 @@ edit to that file alone, once the guide below carries the word.
 - **A photo opens whole when pressed.** A face beside a bubble and the room's photo in the room header are each
   a button that opens that very picture large, in the same viewer; the header's is the room's own picture. A room or a face standing as its letter has no
   picture to open and is no button.
-- **The photo is fetched by the owner's account.** A bot account cannot see others' profile photos, and only the
-  reader sees what the Telegram client sees. A fetched photo is kept by the bot as a file in its own
-  directory, and the archive's table records which photo it is and when it was received. The screen only
-  reads that file, and opening a screen never calls Telegram.
-- **A changed photo the bot follows on its own.** Telegram numbers each profile photo and that number changes
-  when the photo changes, so the bot occasionally checks only rooms' and people's numbers and fetches only
-  what changed. The address the screen calls a photo by carries the time it was last received. So opening the
-  same room twice uses what the browser had, and after the photo changed the address differs and it is
-  refetched.
+- **How a photo is fetched is each chat service's own matter.** A chat service reaches its platform's pictures by
+  whatever account sees them, follows their changes and hands them to the receiver, and opening a screen never
+  calls a chat service or its platform. The address the screen calls a photo by carries the time it was last
+  received, so opening the same room twice uses what the browser had, and after the photo changed the address
+  differs and it is fetched again.
 - **A person or room with no photo has the first letter of its name stand instead,** in a colour
   drawn from its own identity, so two of them are never the same mark. One identity is always the
   same letter in the same colour wherever it stands — sidebar, room, mail — because a list whose
@@ -1225,7 +1221,7 @@ edit to that file alone, once the guide below carries the word.
     room is its person's number, so it wears the same hue in the room list. Everything else that stands as
     a letter — a mail address, a machine — keeps the console's tones drawn from its own key.
 - The photo is in the same place as the rest of this app. It does not open without login, its address is made
-  only of a room or person number, and no file outside the bot's photo directory goes out on any request.
+  only of a room or person number, and nothing goes out on it but what the receiver's picture routes answer.
 
 ### Sidebar
 
@@ -7751,20 +7747,23 @@ journalctl --user -u <unit> -f
 
 ## Profile photos
 
-- A profile photo comes from the archive and from each chat service: the receiver keeps a picture for every room
-  and person the archive knows that has one, the Telegram service keeps Telegram's and the KakaoTalk service keeps
-  KakaoTalk's. The console reads them through those units, a room's and a person's by their kind and id, and
-  serves them under its own path behind the sign-in.
-- The keepers are asked in one order: the receiver first, since it is the archive, then the Telegram service, then
-  the KakaoTalk service; a keeper whose address the console's settings do not name is not asked. Each lists the
-  pictures it keeps at `GET /avatars`, a page at a time, each with the moment it was taken and oldest first. The
-  console reads every list page by page and joins them, the earlier keeper's standing for a number two keep; each
-  picture's address carries the moment it was taken, so a browser keeps what it holds until a new picture changes
-  the address. One picture is asked of each keeper in that order until one keeps it. A list a unit does not
-  answer leaves only its pictures out, and a room or a person with no picture in any list stands as its letter.
+- **Every profile photo reaches the console by one road: the receiver's.** The console is the union of what the
+  chat services have in common, and a profile photo is one of those common elements: each chat service hands the
+  pictures it has to the receiver, and stands blank where it has none, while the receiver also keeps the pictures
+  set in the console. A room's picture, a person's and the owner's own account's are all a room or a person there,
+  keyed by kind and number. The console reads only the receiver for them and never asks a chat service for a
+  picture, a list of pictures or anything else about one, so a chat service added to the system adds no road to the
+  console, and no chat service's own page decides whether a picture is shown.
+- The receiver lists the pictures it keeps at `GET /avatars`, a page at a time, each with its kind, its number and
+  the moment it was taken, oldest first, and serves one at `GET /rooms/{roomId}/avatar` or
+  `GET /people/{personId}/avatar` (the receiver's `docs/api.md`). The console reads the whole list page by page
+  and serves the list and each picture under its own path behind the sign-in; each picture's address carries the
+  moment it was taken, so a browser keeps what it holds until a new picture changes the address. A list the
+  receiver stops answering partway leaves the pictures already read standing, a receiver not reached or not named
+  in the settings leaves none, and a room or a person with no picture in the list stands as its letter.
 - When a photo is added, changed or deleted the receiver's stream carries a refresh event and the left room list and
   conversation profiles re-read the common list. While disconnected it checks at one-minute intervals, and re-reads at
-  once on reconnect. Opening a screen does not call the chat service's platform.
+  once on reconnect. Opening a screen calls no chat service.
 
 ## Remaining usage
 

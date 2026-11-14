@@ -2,7 +2,17 @@
 // console): which kind of subject it is for, the route it is set and dropped at through the console's relay, and the
 // pack's words for each refusal the receiver names.
 
+import type { OwnerChat } from "#shared/types";
+
 export type PictureKind = "room" | "person" | "agent";
+
+/**
+ * Whose picture is one's own: the sender the receiver files the owner under for the administrator, and the first
+ * sender linked to the account otherwise; none where no sender is known.
+ */
+export function ownSenderOf(owner: OwnerChat): number | null {
+  return owner.senderId !== null && owner.senders.includes(owner.senderId) ? owner.senderId : (owner.senders[0] ?? null);
+}
 
 /** The relay address a subject's picture is set at (`PUT`) and dropped at (`DELETE`). */
 export function pictureRoute(kind: PictureKind, subject: number | string): string {

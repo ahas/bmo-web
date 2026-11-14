@@ -980,7 +980,7 @@ function roundSituationOf(item: FeedItem): Situation | null {
 const judged = computed<Set<ExactMessageId>>(() => judgedNow(chatId, live.value, queued.value, runs.value, judgementIndex.value));
 
 // The room's own name, from the one list every screen takes a room's name from, and the
-// picture Telegram shows for it.
+// picture the receiver keeps for it.
 const roomsInitial = useInitialRead(roomsStatus);
 const title = computed<string>(() => roomsInitial.value ? t("room.status.room_loading") : roomTitle(t, rooms.value, chatId));
 // The index names every room and person, so a member's feed draws its faces by their initials.

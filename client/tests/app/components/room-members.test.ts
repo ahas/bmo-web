@@ -6,6 +6,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { appFile } from "../../support/render-page";
 
 import type { Component } from "vue";
+import type { AvatarIndex } from "../../../apps/web/app/domain/avatars";
 import type { RoomMember } from "../../../apps/web/shared/types";
 
 // A room's members as a person reads them (docs/web.md, the room screen's members entry): each row their face, name
@@ -32,8 +33,8 @@ const UBadge = defineComponent({
   }
 });
 
-async function rendered(member: RoomMember): Promise<string> {
-  const app = createSSRApp({ render: () => h(Line, { member, avatars: new Map() }) });
+async function rendered(member: RoomMember, avatars: AvatarIndex = new Map()): Promise<string> {
+  const app = createSSRApp({ render: () => h(Line, { member, avatars }) });
 
   app.component("UAvatar", UAvatar);
   app.component("UBadge", UBadge);
@@ -57,6 +58,13 @@ describe("a member of a room", () => {
     expect(html).toContain("member-b");
     expect(html).not.toContain("data-badge");
     expect(html).not.toContain("data-member-status");
+  });
+
+  test("wears the picture the receiver keeps for their number, and their letter where it keeps none", async () => {
+    const avatars: AvatarIndex = new Map([["person:9000000000103", "/api/avatars/person/9000000000103?v=1"]]);
+
+    expect(await rendered({ person: 9_000_000_000_103, name: "member-c", status: null, account: null }, avatars)).toContain('data-avatar="/api/avatars/person/9000000000103?v=1"');
+    expect(await rendered({ person: 9_000_000_000_104, name: "member-d", status: null, account: null }, avatars)).toContain('data-avatar="M"');
   });
 });
 

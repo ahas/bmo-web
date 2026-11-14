@@ -85,6 +85,7 @@
 
 <script setup lang="ts">
 import { avatarFor, useAvatars } from "~/domain/avatars";
+import { ownSenderOf } from "~/domain/picture-setting";
 
 import type { AccountUser, OwnerChat, UserProfile } from "#shared/types";
 import { failureText } from "bmo-ui/app/domain/errors";
@@ -92,10 +93,8 @@ import { failureText } from "bmo-ui/app/domain/errors";
 const { t } = useI18n();
 const { user, fetch: refreshSession } = useUserSession();
 
-// Whose picture is one's own: the sender the receiver files the owner under for the administrator, and the first
-// sender linked to the account otherwise; none where no sender is known.
 const { data: owner } = useFetch<OwnerChat>("/api/owner", { key: "owner", default: () => ({ chatId: null, senderId: null, senders: [], administrator: false }) });
-const ownSender = computed<number | null>(() => owner.value.senderId !== null && owner.value.senders.includes(owner.value.senderId) ? owner.value.senderId : (owner.value.senders[0] ?? null));
+const ownSender = computed<number | null>(() => ownSenderOf(owner.value));
 const avatars = useAvatars();
 const ownPicture = computed(() => avatarFor(avatars.value, "person", ownSender.value, user.value?.name ?? ""));
 

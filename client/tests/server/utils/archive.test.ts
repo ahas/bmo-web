@@ -77,16 +77,18 @@ function room(id: number, over: Record<string, unknown> = {}): Record<string, un
   return { id, title: null, messageCount: 1, lastMessageAt: 1, pinned: false, senders: [], supervisors: [], ownerRoom: false, registered: true, workRoom: 0, mode: null, listened: false, ...over };
 }
 
-// The receiver's room list, one room for each mark of a room the owner uses and one a chat service merely numbered,
-// which a test adds and removes as the receiver's own routes would.
+// The receiver's room list, one room for each mark of a room added, one a chat service merely numbered and one the
+// owner's words stand in with no mode, which a test adds and removes as the receiver's own routes would.
 const numbered = room(-20, { title: "Numbered", lastMessageAt: 150_000 });
+// The owner's sender is 5, as the stand-in's `/owner` names it.
+const spoken = room(-21, { title: "Spoken", lastMessageAt: 50_000, senders: [9, 5] });
 const rooms: Record<string, unknown>[] = [
   room(5, { messageCount: 3, lastMessageAt: 100_000, pinned: true }),
   numbered,
   room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200_000, supervisors: ["agent-b"] }),
   // The owner's private chat, a room the console made on the record road.
   room(-11, { messageCount: 1, lastMessageAt: 300_000, ownerRoom: true }),
-  room(-21, { title: "Spoken", lastMessageAt: 50_000, senders: [9, 5] }),
+  spoken,
   room(-22, { title: "Listened", lastMessageAt: 40_000, listened: true }),
   room(-23, { title: "Added", lastMessageAt: 30_000, mode: "record-only" })
 ];
@@ -177,23 +179,34 @@ describe("the rooms", () => {
       { chatId: 5, title: "Person A", messageCount: 3, lastMessageAt: 100, pinned: true },
       { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, pinned: false },
       { chatId: -11, title: "Agent A", messageCount: 1, lastMessageAt: 300, pinned: false },
-      { chatId: -21, title: "Spoken", messageCount: 1, lastMessageAt: 50, pinned: false },
       { chatId: -22, title: "Listened", messageCount: 1, lastMessageAt: 40, pinned: false },
       { chatId: -23, title: "Added", messageCount: 1, lastMessageAt: 30, pinned: false }
     ]);
     expect(await roomTitleOf(-7)).toBe("Room A");
   });
 
-  test("stand only where the owner uses them: a room a chat service merely numbered comes in once added and leaves once removed", async () => {
+  test("stand only once added: the owner's private chat always, a room his words stand in not until it carries a mode", async () => {
+    const listed = async () => (await listRooms()).map((one) => one.chatId);
+
+    expect(await listed()).toContain(-11);
+    expect(await listed()).not.toContain(-21);
+
+    spoken.mode = "avatar";
+    expect(await listed()).toEqual([5, -7, -11, -21, -22, -23]);
+
+    spoken.mode = null;
+  });
+
+  test("a room a chat service merely numbered comes in once the add flow gives it a mode, and leaves once removed", async () => {
     const listed = async () => (await listRooms()).map((one) => one.chatId);
 
     expect(await listed()).not.toContain(-20);
 
     numbered.mode = "record-only";
-    expect(await listed()).toEqual([5, -20, -7, -11, -21, -22, -23]);
+    expect(await listed()).toEqual([5, -20, -7, -11, -22, -23]);
 
     rooms.splice(rooms.indexOf(numbered), 1);
-    expect(await listed()).toEqual([5, -7, -11, -21, -22, -23]);
+    expect(await listed()).toEqual([5, -7, -11, -22, -23]);
 
     rooms.splice(1, 0, numbered);
     numbered.mode = null;

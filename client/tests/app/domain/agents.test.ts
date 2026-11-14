@@ -143,9 +143,12 @@ describe("the agent list's branches", () => {
 });
 
 describe("a supervisor's room sessions", () => {
-  test("stand under the rooms' names in the order the rooms stand, each opening the supervisor's log in that room", () => {
+  test("stand under the rooms' names in the order the rooms stand, each opening the supervisor's log in that room, and a room the list leaves out stands under no supervisor", () => {
     const rooms = [room(-1, "Room One"), room(-2, "Room Two")];
-    const other = { ...catalogueRow("agent-b", "room", "Agent B"), sessions: [{ chatId: -2, lastAt: null }, { chatId: -1, lastAt: 100 }] };
+    const other = {
+      ...catalogueRow("agent-b", "room", "Agent B"),
+      sessions: [{ chatId: -2, lastAt: null }, { chatId: -3, lastAt: 50 }, { chatId: -1, lastAt: 100 }]
+    };
     const shown = metaOf(wording, other, rooms);
 
     expect(shown.sessions.map((session) => session.label)).toEqual(["Room One", "Room Two"]);

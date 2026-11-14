@@ -408,14 +408,12 @@ function runOf(t: Translate, run: RoleSlotRun, index: number, catalogue: readonl
   return { key: `${run.path ?? ""}#${run.since ?? index}`, label: runPlaceLabel(t, run.path, catalogue), since };
 }
 
-// One catalogue entry as a screen shows it.
+// One catalogue entry as a screen shows it. Its room sessions are the rooms of the list in hand, in its order: a room
+// the list leaves out, one never added, stands under no agent either (docs/web.md, 「Sidebar」).
 export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[], catalogue: readonly AgentSummary[] = held.value): AgentMeta {
-  const standing = (chatId: number): number => {
-    const index = rooms.findIndex((room) => room.chatId === chatId);
-
-    return index === -1 ? rooms.length : index;
-  };
+  const standing = (chatId: number): number => rooms.findIndex((room) => room.chatId === chatId);
   const sessions = (agent.sessions ?? [])
+    .filter((session) => standing(session.chatId) !== -1)
     .map((session) => ({ ...session, label: roomTitle(t, rooms, session.chatId) }))
     .sort((left, right) => standing(left.chatId) - standing(right.chatId));
 

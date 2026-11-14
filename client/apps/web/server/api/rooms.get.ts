@@ -1,6 +1,6 @@
 import type { ListedRoom } from "#shared/types";
 
-// The rooms the owner uses (docs/web.md, 「Sidebar」) that the signed-in user reads: every one for the
+// The rooms that have been added (docs/web.md, 「Sidebar」) that the signed-in user reads: every one for the
 // administrator, and for anyone else the rooms they are a member of and hold the console grant in. Each
 // carries how many of its messages that user has not read, the first of them, and the place read to they
 // are counted from.

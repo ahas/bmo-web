@@ -1285,16 +1285,18 @@ Four groups.
   as a chat number. A room the console made itself — one made for the supervisors it names — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
   conversation.
-  - **A room stands when the owner uses it,** as the receiver's own record of the room says and never by which chat
-    service it is on: it is his private chat (`ownerRoom`), it names supervisors to answer it (`supervisors`), it
-    was added and so carries a mode (`mode`), it is pinned (`pinned`), it stands on the receiver's listen list,
-    the rooms he allowed (`listened`), or his own words stand in it, the sender `GET /owner` names being among its
-    `senders`. A room with none of these, one a chat service merely numbered and listed, is left out of the one
-    room list the console reads, and so out of the sidebar, the search, the home screen's rooms and the room-list
-    screen; it stays in the receiver's archive as it is and opens by its address as any room does. The moment one
-    of the marks comes to it, added from 추가, allowed, given an agent or spoken in, it stands at the next read of
-    the list. Whether its registration stands decides nothing, since the receiver answers `registered` for every
-    room its list holds.
+  - **A room stands only once it has been added,** as the receiver's own record of the room says and never by
+    which chat service it is on: it is his private chat (`ownerRoom`), which always stands; it was added from 추가
+    and so carries the mode it was added in (`mode`); the console made it for the supervisors it names, or a group
+    was added naming one (`supervisors`); it is pinned (`pinned`); or he allowed it with his allow command and it
+    stands on the receiver's listen list (`listened`). A room with none of these is left out of the one room list
+    the console reads, and so out of the sidebar's rooms and its 감독관 branch, the search, the home screen's
+    rooms and the room-list screen: one a chat service merely numbered and listed, and one his own words stand in
+    without its being added, whichever service carried them. It stays in the receiver's record as it is, its
+    registration and its messages with it, and opens by its address, `/rooms/` and its chat number, as any room
+    does. Adding it from 추가 records its mode on the receiver's record, and it stands at the next read of the
+    list. Whether its registration stands decides nothing, since the receiver answers `registered` for every room
+    its list holds.
   - **The 추가 button beside the group's name adds a room,** the heading's grey icon in the phone's drawer as on a wide screen (「The title bar」), for the administrator, in a dialog of choices made in
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
     「Rooms」):
@@ -1353,7 +1355,8 @@ Four groups.
   - **감독관** — every supervisor the agency's `GET /supervisors` lists, side by side, each under its own label. Under
     each stand the rooms it answers, one entry per room, as the receiver names them (its `docs/api.md`,
     「Supervisors」, `GET /supervisors/{name}/rooms`): every room whose `supervisors` names it, and for the default
-    answerer every room that names none as well. Which rooms a supervisor answers is the receiver's word, read there
+    answerer every room that names none as well, each only while it stands in the room list above, so a room never
+    added stands under no supervisor either. Which rooms a supervisor answers is the receiver's word, read there
     and never worked out here; the agency's `GET /supervisors/{name}/rooms` names only the rooms its turns went into,
     and is read for when its last run in each began. Each is named by its room's name, in the order the rooms stand,
     and opens the supervisor's log at its last line in that room — at the second its last run there began, as the
@@ -2051,7 +2054,8 @@ This is the administrator's home; a member's is their rooms alone (「Access」)
 Its bar carries no name and no mark of its own, only what stands on every screen — the deployment mark, the
 queue's button and the usage meters — so the front door opens on the groups themselves.
 
-- **Rooms** — the rooms as the receiver lists them. The room name, message count and last message time stand.
+- **Rooms** — the rooms the sidebar lists, those added (「Sidebar」), in its order. The room name, message count
+  and last message time stand.
 - **Gate agents** — every gate the agency's catalogue holds, in the gate order the gate unit serves where it stands
   in it and in the catalogue's order otherwise, each opening its agent page.
 - **Runners** — the roles the research unit and the translator run as, `voyager`, `seeker` and `translator`,

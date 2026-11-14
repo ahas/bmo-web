@@ -165,7 +165,7 @@ const RECORD_CHAT = -9_000_000_000_099;
 // as file lines: a document under a caption, a sound in a form no browser plays, and a document that could not be
 // received.
 const MEDIA_CHAT = 44;
-// A room a chat service numbered and listed, which the owner never added, allowed, gave an agent or spoke in: the
+// A room a chat service numbered and listed, which the owner speaks in but never added, allowed or gave an agent: the
 // console leaves it out of the room list until it is added from the room add dialog, and once its registration is removed
 // it is a room never added again, so a file adding and removing it runs again on the same console. Its mode is what
 // the receiver's stand-in last added it in.
@@ -698,7 +698,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
   RECEIVER: async (path, request) => {
     const now = Date.now();
     // One room: the owner's, with nothing said in it. Its moments are the receiver's milliseconds. Every room built
-    // from it stands on the listen list, so each stands in the room list as a room the owner uses.
+    // from it stands on the listen list, so each stands in the room list as an added room.
     const room = {
       id: OWNER_CHAT, title: null, messageCount: 0, lastMessageAt: null, pinned: false, senders: [],
       supervisors: [], ownerRoom: true, registered: true, workRoom: OWNER_CHAT, mode: null, listened: true
@@ -804,7 +804,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json(mediaLine.find((one) => one.id === id) ?? mediaLine[0]);
     }
 
-    const listed = { ...room, id: NUMBERED_CHAT, title: "numbered-room", ownerRoom: false, listened: false, workRoom: NUMBERED_CHAT, lastMessageAt: LINE_AT - 100, messageCount: 1, mode: numbered.mode };
+    const listed = { ...room, id: NUMBERED_CHAT, title: "numbered-room", ownerRoom: false, listened: false, workRoom: NUMBERED_CHAT, lastMessageAt: LINE_AT - 100, messageCount: 1, senders: [1], mode: numbered.mode };
 
     // The one chat service rooms are added from, listing its account's rooms, taking the record-only mode and reading
     // a room's past back; and a second that does none of it, which the rooms read back to their oldest line are on.

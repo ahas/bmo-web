@@ -6,10 +6,11 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
-// The sidebar holds the rooms the owner uses and none a chat service merely numbered and listed (docs/web.md,
-// 「Sidebar」), on a desk's width and in a phone's drawer alike; the room add dialog brings such a room in at once,
-// and once its registration is removed it leaves. It drives the console tests/support/browser-console.ts stands up, whose
-// receiver lists one such room beside the rooms the owner uses; the suite stands up no console, so there it skips.
+// The sidebar holds the rooms that have been added and none that was not, though the owner's words stand in it
+// (docs/web.md, 「Sidebar」), on a desk's width and in a phone's drawer alike; the room add dialog brings such a room in
+// at once, and once its registration is removed it leaves. It drives the console tests/support/browser-console.ts
+// stands up, whose receiver lists one such room beside the added ones; the suite stands up no console, so there it
+// skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "sidebar-rooms", password: "fixture-password-2941" };
@@ -45,7 +46,7 @@ async function contextFor(size: { width: number; height: number }): Promise<Brow
   return context;
 }
 
-// The rooms the sidebar shows, by name, once the rooms the owner uses stand in it; a phone's drawer is opened first.
+// The rooms the sidebar shows, by name, once the added rooms stand in it; a phone's drawer is opened first.
 async function shownRooms(page: Page, phone: boolean): Promise<string[]> {
   await page.goto(`${origin}/siren`, { waitUntil: "load" });
 
@@ -64,7 +65,7 @@ async function shownRooms(page: Page, phone: boolean): Promise<string[]> {
 
 describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
   for (const [width, size] of [["a desk's width", WIDE], ["a phone", PHONE]] as const) {
-    test(`hold the rooms the owner uses and leave out the one a chat service merely numbered, on ${width}`, async () => {
+    test(`hold the added rooms and leave out the one the owner speaks in but never added, on ${width}`, async () => {
       const context = await contextFor(size);
 
       try {

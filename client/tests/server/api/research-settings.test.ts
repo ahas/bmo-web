@@ -28,7 +28,7 @@ const research = standIn("RESEARCH", (call) => {
 // A role as the agency's `GET /roles` answers it, its agent switched on or not.
 function role(name: string, enabled: boolean): Record<string, unknown> {
   return {
-    name, code: name, label: name, prompt: null, description: null, bundles: [], line: "worker", order: [], quotaShare: 0.01,
+    name, code: name, label: name, prompt: null, description: null, bundles: [], line: "worker",
     maxConcurrent: 2, running: 0, waiting: 0, provider: null, waitingFor: null,
     // A branch is a run of its role, so a role carries one only through an agent switched on.
     agents: [{

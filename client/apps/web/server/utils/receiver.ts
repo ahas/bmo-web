@@ -91,8 +91,6 @@ export const SUPERVISOR_CODES: Readonly<Record<string, string>> = {
   model: "agents.error.supervisor_model",
   repository: "agents.error.supervisor_repository",
   room: "agents.error.supervisor_room",
-  order: "agents.error.supervisor_order",
-  "quota-share": "agents.error.supervisor_quota_share",
   seeded: "agents.error.supervisor_seeded_refused",
   "default-answerer": "agents.error.supervisor_default_answerer",
   running: "agents.error.supervisor_running",

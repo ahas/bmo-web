@@ -42,7 +42,7 @@
 
       <template #road-cell="{ row }">
         <span :class="CELL_TEXT" class="w-full">
-          <SearchText class="truncate text-sm" :class="row.original.provider === null ? 'text-muted' : 'text-highlighted'" :text="agentRoadText(providers, row.original) ?? $t('agents.label.agent_follows')" :query="props.query" />
+          <SearchText class="truncate text-sm" :class="row.original.provider === null ? 'text-muted' : 'text-highlighted'" :text="roadText(providers, row.original) ?? $t('agents.label.agent_follows')" :query="props.query" />
         </span>
       </template>
 
@@ -106,10 +106,9 @@
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import { defaultThreshold, fractionOf, percentOf, sessionsText, thresholdText, useProviders } from "~/domain/axes";
+import { defaultThreshold, fractionOf, percentOf, roadText, sessionsText, thresholdText, useProviders } from "~/domain/axes";
 import { useConfirm } from "~/domain/confirm";
 import { usePolling } from "~/domain/polling";
-import { agentRoadText } from "~/domain/role-agents";
 import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
 
 import type { RoleAgentView, RoleSessions, RolesView } from "#shared/axes";
@@ -156,7 +155,7 @@ const sessionItems = computed<CellChoice[]>(() => (["keep", "fresh"] as const).m
 
 // The threshold an agent's provider declares, which stands where the agent sets none; none where it names no road.
 function declared(agent: RoleAgentView): number | null {
-  return agent.provider === null || agent.model === null ? null : defaultThreshold(providers.value, [{ provider: agent.provider, model: agent.model, effort: agent.effort, thinking: null, answerTokens: null }]);
+  return agent.model === null ? null : defaultThreshold(providers.value, agent.provider);
 }
 
 function thresholdOf(agent: RoleAgentView): number | null {

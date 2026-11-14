@@ -88,20 +88,19 @@
 - a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯: 역할 슬롯, 작업 중, 예약됨, 비어 있음. Never
   자리, 칸, 풀.
 - a repository the agency runs jobs in → 저장소: 저장소, 저장소 추가. Never 리포지토리, 레포, 워커 for the place.
-- a supervisor's provider order → 공급자 순서: 공급자 순서, 공급자 추가; the share of a provider's quota at
-  which it is passed over → 할당량 기준; a session's compaction threshold → 압축 기준; keeping a prefix warm → 캐시 유지;
+- a supervisor's road, the one provider and model its turns go out on → 공급자 · 모델, its fields 공급자, 모델, 강도,
+  생각 and 답변 상한; a session's compaction threshold → 압축 기준; keeping a prefix warm → 캐시 유지;
   a role's sessions kept or opened anew → 유지, 새로. Never 라우트, 라우팅, 우선순위 목록.
 - a repository, where executing work runs → 저장소: 저장소, 저장소 추가, 작업 저장소; the model a repository pins →
   고정 모델; no pin → 역할 에이전트. A deployment's own model → 등록 모델; a file its engine serves → 모델 파일.
-- a supervisor's active provider, what it runs on now, and the road a role's next run goes out on → 지금; the owner forcing one → 강제 지정; no force,
-  leaving it to the order → 순서에 맡김; the entry it runs on now → 사용 중. What chose a job's road → 항목 지정 (the
+- the road a role's next run goes out on → 지금. What chose a job's road → 항목 지정 (the
   item's own model), 강제 지정, 고정 모델 or 공급자 순서. Never 고정 for a force, which is a repository's pin.
 - a value equal to the default a service states → `<value> (기본값)`, after the value and never in its place; a
   setting a service leaves to its own default without naming the value stands empty with `(기본값)` as its
   placeholder; a setting whose default no service states stands empty, with no word.
 - a role → its name alone, the kebab-case key the agency holds it under (`worker`, `doppelganger`, `voyager`,
   `seeker`, `producer` …): never translated and never the row's label, on every screen that names one.
-- a supervisor whose turn goes out on the stand-in → 대신 답하는 중.
+- a supervisor whose road cannot take a turn now → 답할 수 없음.
 - a round's record on its answer → 판정 기록: 판정 기록, 기록, 펼치기, 접기. The one press carrying the turn's
   brain, calls, drafts and judgement; its parts say 브레인, 툴 사용, 드래프트, 판정.
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,

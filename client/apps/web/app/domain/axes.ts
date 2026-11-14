@@ -2,28 +2,34 @@ import { ref } from "vue";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { shortModel } from "#shared/model-short";
 
-import type { ActiveProviderView, OrderEntryView, ProviderModelsView, ProviderView, QuotaView, RoleSessions } from "#shared/axes";
+import type { ProviderModelsView, ProviderView, QuotaView, RoadView, RoleSessions } from "#shared/axes";
 import type { Translate } from "#shared/wording";
 import type { Ref } from "vue";
 
-// The agent management screen's two axes and its places (docs/web.md, 「Agent management screen」): what a supervisor's
-// or a role's provider order reads as, how a share or a threshold is written, and the agency's defaults — those its
+// The agent management screen's two axes and its places (docs/web.md, 「Agent management screen」): what a road reads
+// as, how a share or a threshold is written, and the agency's defaults — those its
 // documents state, and those its providers and models declare, read as its routes answer them (docs/web.md, 「The
 // default among choices」).
 
-// The agency's quota share where a row sets none (the agency's `docs/provider-order.md`, 「What an order is」).
-export const DEFAULT_QUOTA_SHARE = 0.01;
 // A role's sessions where it names none (the agency's `docs/api.md`, 「roles」).
 export const DEFAULT_ROLE_SESSIONS: RoleSessions = "keep";
 // A repository's downgrade heal unless the owner turns it off (the agency's `docs/repositories.md`).
 export const DEFAULT_DOWNGRADE_HEAL = true;
 
-// The one effort scale an entry names a level on, lowest first (the agency's `docs/provider-order.md`, 「Effort and
+// The one effort scale a road names a level on, lowest first (the agency's `docs/provider-order.md`, 「Effort and
 // thinking」).
 export const EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"] as const;
 
 // The line a supervisor's program carries; a role names its own (the agency's `docs/provider-order.md`).
 export const SUPERVISOR_LINE = "chat";
+
+// The fields of a road a form holds, by the names a refusal carries them under.
+export const ROAD_FIELDS: ReadonlySet<string> = new Set(["provider", "model", "effort", "thinking", "answerTokens"]);
+
+/** A road that names no provider yet, as a form opens on one. */
+export function emptyRoad(): RoadView {
+  return { provider: "", model: "", effort: null, thinking: null, answerTokens: null };
+}
 
 /** A fraction from 0 to 1 as a whole percent. */
 export function percentOf(fraction: number): number {
@@ -40,17 +46,10 @@ export function markedDefault(t: Translate, text: string, isDefault: boolean): s
   return isDefault ? t("agents.label.default_marked", { value: text }) : text;
 }
 
-/** A quota share as a cell and a box read it: a whole percent, marked as the default at the agency's own. */
-export function shareText(t: Translate, share: number): string {
-  return markedDefault(t, `${percentOf(share)}%`, percentOf(share) === percentOf(DEFAULT_QUOTA_SHARE));
-}
-
-/** The compaction threshold a row is given where its add names none: the declared one of the first provider of its
- * order, or none where that provider has not been read or declares none. */
-export function defaultThreshold(providers: readonly ProviderView[] | null | undefined, order: readonly OrderEntryView[]): number | null {
-  const first = order[0]?.provider;
-
-  return first === undefined ? null : (providers?.find((one) => one.name === first)?.foldRatioDefault ?? null);
+/** The compaction threshold a row stands on where it sets none: the declared one of its road's provider, or none where
+ * it names no road, or that provider has not been read or declares none. */
+export function defaultThreshold(providers: readonly ProviderView[] | null | undefined, provider: string | null): number | null {
+  return provider === null ? null : (providers?.find((one) => one.name === provider)?.foldRatioDefault ?? null);
 }
 
 /** Whether a whole percent is the row's default threshold. */
@@ -58,18 +57,18 @@ export function isDefaultThreshold(percent: number | null, fallback: number | nu
   return percent !== null && fallback !== null && percent === percentOf(fallback);
 }
 
-/** A compaction threshold as a whole percent, marked as the default where it is the first provider's declared one. */
+/** A compaction threshold as a whole percent, marked as the default where it is its road's provider's declared one. */
 export function thresholdText(t: Translate, threshold: number, fallback: number | null): string {
   return markedDefault(t, `${percentOf(threshold)}%`, isDefaultThreshold(percentOf(threshold), fallback));
 }
 
-/** The thinking default the model an entry names declares, from its provider's catalogue; none where it declares none
+/** The thinking default the model a road names declares, from its provider's catalogue; none where it declares none
  * or the catalogue has not been read. */
 export function thinkingDefault(models: ProviderModelsView | null, model: string): boolean | null {
   return models?.models.find((one) => one.id === model)?.thinking ?? null;
 }
 
-/** The answer ceiling the model an entry names declares; none where it declares none. */
+/** The answer ceiling the model a road names declares; none where it declares none. */
 export function ceilingDefault(models: ProviderModelsView | null, model: string): number | null {
   return models?.models.find((one) => one.id === model)?.answerTokens ?? null;
 }
@@ -94,48 +93,14 @@ export function providerWord(providers: readonly ProviderView[] | null | undefin
   return providers?.find((one) => one.name === name)?.label ?? name;
 }
 
-/** One entry of an order on a line: the provider's word, its model named short and its effort. */
-export function entryText(providers: readonly ProviderView[] | null | undefined, entry: OrderEntryView): string {
-  return [providerWord(providers, entry.provider), shortOnProvider(entry.provider, entry.model), entry.effort].filter((part) => part !== null && part !== "").join(" ");
-}
+/** A road on one line: its provider's word, its model whole and its effort; none where it names no provider. */
+export function roadText(providers: readonly ProviderView[] | null | undefined, road: { provider: string | null; model: string | null; effort: string | null }): string | null {
+  if (road.provider === null) return null;
 
-// What a supervisor or a role runs on now and how it became active (docs/web.md, 「What a row runs on now」): the
-// provider the owner forced, on its forced model and the effort the order's entry for that provider names; else the
-// order's choice as the agency answers it, a supervisor's with the model and effort its last turn went out on, and a
-// role's on its order's entry for that provider.
-export interface ActiveRoad {
-  provider: string;
-  model: string | null;
-  effort: string | null;
-  forced: boolean;
-}
-
-/** A row's active road from what the agency answers of it; none where it names no active provider. `last` is the
- * model and effort a supervisor's last turn went out on, and null for a role, whose order's entry names them. */
-export function activeRoad(
-  row: { active: ActiveProviderView | null; order: readonly OrderEntryView[]; provider: string | null },
-  last: { model: string | null; effort: string | null } | null
-): ActiveRoad | null {
-  if (row.active !== null) {
-    const entry = row.order.find((one) => one.provider === row.active!.provider);
-
-    return { provider: row.active.provider, model: row.active.model, effort: entry?.effort ?? null, forced: true };
-  }
-
-  if (row.provider === null) return null;
-  if (last !== null) return { provider: row.provider, model: last.model, effort: last.effort, forced: false };
-
-  const entry = row.order.find((one) => one.provider === row.provider);
-
-  return { provider: row.provider, model: entry?.model ?? null, effort: entry?.effort ?? null, forced: false };
-}
-
-/** An active road on one line: the provider's word, the model whole and its effort. */
-export function activeRoadText(providers: readonly ProviderView[] | null | undefined, road: ActiveRoad): string {
   return [providerWord(providers, road.provider), road.model, road.effort].filter((part) => part !== null && part !== "").join(" · ");
 }
 
-/** The levels an entry may name for a model: those its catalogue entry names, every level where it names none, and none
+/** The levels a road may name for a model: those its catalogue entry names, every level where it names none, and none
  * on the registry's provider, whose registrations take no level. */
 export function effortChoices(provider: ProviderView | undefined, models: ProviderModelsView | null, model: string): string[] {
   if (provider?.registered === true) return [];
@@ -158,13 +123,6 @@ export function quotaText(t: Translate, quota: QuotaView | null): string {
   if (quota.balance !== null) return t("agents.label.quota_balance", { amount: quota.balance.toLocaleString("ko-KR") });
 
   return "";
-}
-
-/** Where in an order's form a refusal stands: the entry whose place the agency's field names, or the form. */
-export function orderRefusalEntry(field: string | null): number | null {
-  const found = field === null ? null : /\d+/.exec(field);
-
-  return found === null ? null : Number(found[0]);
 }
 
 // The models each provider holds, read once a screen asks for them and held while the page stands; a read that failed

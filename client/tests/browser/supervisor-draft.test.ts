@@ -15,7 +15,7 @@ import type { Browser, Locator } from "playwright-core";
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "draft-close", password: "fixture-password-2259" };
-const POLICY = { rounds: ["intent", "facts", "final"], sendFrom: "", light: ["final"], off: ["facts"], lightChars: 12, ceilingSeconds: 0, pastCeiling: "send" };
+const POLICY = { rounds: ["intent", "facts", "final"], sendFrom: "", off: ["facts"], ceilingSeconds: 0, pastCeiling: "send" };
 const QUESTIONS = [
   { name: "supervisor", text: "whether to answer", source: "default", policyText: "whether to answer" },
   { name: "intent", text: "why the words were said", source: "default", policyText: "why the words were said" },

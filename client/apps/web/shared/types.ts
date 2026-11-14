@@ -1498,8 +1498,8 @@ export interface AgentSummary {
   defaultAnswerer: boolean;
   // The rooms a supervisor's sessions hold, each with the moment its log last took a line there where that is known.
   sessions?: { chatId: number; lastAt: number | null }[];
-  // What a supervisor's last turn went out on, or a role's active provider, with the model and effort its order
-  // names there, and why its turns or runs wait; each null where the agency names none.
+  // A supervisor's road, or the provider a role's next run goes out on with the model and effort its roads name there,
+  // and why a role's runs wait; each null where the agency names none.
   provider: string | null;
   model: string | null;
   effort: string | null;
@@ -1893,8 +1893,6 @@ export interface FallbackView {
   codexPresent: boolean;
   keyPresent: boolean;
   services: OwnLlmServiceView[];
-  // When a stand-in began answering, and null while the primary provider is answering.
-  since: number | null;
   // The owner's provider order as every walk follows it, each provider with the reason it cannot
   // answer on this machine right now, or null where it can.
   order: OrderedProvider[];

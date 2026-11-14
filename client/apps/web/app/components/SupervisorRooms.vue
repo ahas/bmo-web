@@ -1,9 +1,9 @@
 <template>
   <!-- A supervisor's rooms, at the left of its screen's own row (docs/web.md, 「Agent screen」): one menu choosing among
        every room its turns went into, the latest first, each opening this screen's log at its latest run there, then
-       the stand-in mark with the provider and model while its turns go out on the stand-in. -->
+       a mark while its road cannot take a turn now, the agency's sentence for why in its tooltip. -->
   <div
-    v-if="standIn !== null || rooms.length > 0"
+    v-if="closed || rooms.length > 0"
     class="flex min-w-0 items-center gap-2"
     role="group"
     :aria-label="$t('agents.aria.supervisor_rooms', { name: props.label })"
@@ -26,7 +26,9 @@
       </UTooltip>
     </UDropdownMenu>
 
-    <UBadge v-if="standIn !== null" class="min-w-0" color="warning" variant="subtle" :label="$t('agents.status.standing_in', { road: standInRoad })" data-stand-in />
+    <HintTip v-if="closed" :text="roadState?.reason ?? undefined" :disabled="roadState?.reason == null" class="flex min-w-0">
+      <UBadge class="min-w-0" color="warning" variant="subtle" :label="$t('agents.status.road_closed')" :ui="{ label: 'truncate' }" data-road-closed />
+    </HintTip>
   </div>
 </template>
 
@@ -36,9 +38,8 @@ import { formatStamp } from "bmo-ui/app/domain/time";
 import { roomTitle } from "~/domain/agents";
 import { countText } from "~/domain/numbers";
 import { usePolling } from "~/domain/polling";
-import { modelLabel } from "~/domain/status";
 
-import type { StandInView, SupervisorRoomView } from "#shared/axes";
+import type { SupervisorRoadStateView, SupervisorRoomView } from "#shared/axes";
 import type { RoomSummary } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
@@ -54,13 +55,13 @@ const props = withDefaults(defineProps<Props>(), { run: null, rooms: () => [] })
 
 const { t } = useI18n();
 
-// How often the rooms and the stand-in are read again while the screen stands and is seen.
+// How often the rooms and the road are read again while the screen stands and is seen.
 const READ_MS = 30_000;
 
 const rooms = ref<SupervisorRoomView[]>([]);
-const standIn = ref<StandInView | null>(null);
+const roadState = ref<SupervisorRoadStateView | null>(null);
 
-const standInRoad = computed(() => (standIn.value === null ? "" : `${standIn.value.provider} ${modelLabel(standIn.value.model)}`));
+const closed = computed(() => roadState.value?.answers === false);
 
 // The room whose latest run the screen stands at, which the menu's button names.
 const current = computed<SupervisorRoomView | null>(() => rooms.value.find((room) => room.lastRun === props.run) ?? null);
@@ -86,13 +87,14 @@ function titleOf(chatId: number): string {
   return roomTitle(t, props.rooms, chatId);
 }
 
-// Either read failing leaves the line as it last stood: it is a way into the log, never the log itself.
+// A rooms read failing leaves the menu as it last stood: it is a way into the log, never the log itself. A road read
+// failing says nothing of the road, so its mark goes.
 async function read(): Promise<void> {
   const base = `/api/supervisors/${encodeURIComponent(props.name)}`;
-  const [listed, standing] = await Promise.allSettled([$fetch<SupervisorRoomView[]>(`${base}/rooms`), $fetch<{ standIn: StandInView | null }>(`${base}/stand-in`)]);
+  const [listed, road] = await Promise.allSettled([$fetch<SupervisorRoomView[]>(`${base}/rooms`), $fetch<SupervisorRoadStateView>(`${base}/road`)]);
 
   if (listed.status === "fulfilled") rooms.value = listed.value;
-  if (standing.status === "fulfilled") standIn.value = standing.value.standIn;
+  roadState.value = road.status === "fulfilled" ? road.value : null;
 }
 
 onMounted(() => void read());

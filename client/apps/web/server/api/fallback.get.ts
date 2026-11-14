@@ -30,7 +30,6 @@ export default defineEventHandler(async (event): Promise<FallbackView> => {
     codexPresent: fallback.codexPresent ?? empty.codexPresent,
     keyPresent: fallback.keyPresent ?? empty.keyPresent,
     services: Array.isArray(fallback.services) ? fallback.services : empty.services,
-    since: fallback.since ?? null,
     order: (Array.isArray(fallback.order) ? fallback.order : empty.order).map(worded),
     orderIsDefault: fallback.orderIsDefault ?? empty.orderIsDefault,
     accounts: Array.isArray(fallback.accounts) ? fallback.accounts : empty.accounts,

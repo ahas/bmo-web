@@ -18,7 +18,7 @@
         <div class="flex min-w-0 flex-1 items-center gap-2" data-screen-row-status>
           <span class="hidden shrink-0 text-sm text-muted sm:inline">{{ groupLabel($t, meta.group) }}</span>
 
-          <!-- A supervisor's rooms and whether a stand-in answers for it now. -->
+          <!-- A supervisor's rooms and whether its road can take a turn now. -->
           <SupervisorRooms v-if="settingsKind === 'supervisor'" :name="name" :label="meta.label" :run="placeRun" :rooms="rooms" />
 
           <!-- The uptime ticks every second, so its digits are the fixed-width ones: a badge

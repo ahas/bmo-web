@@ -14,7 +14,7 @@ const seat = (name: string, model: string | null, enabled = true): RoleAgentView
 });
 
 const role = (name: string, agents: RoleAgentView[]): RoleView => ({
-  name, label: name, description: null, prompt: null, providerPrompts: {}, bundles: [], skills: null, line: "default", agents, order: [],
+  name, label: name, description: null, prompt: null, providerPrompts: {}, bundles: [], skills: null, line: "default", agents, roads: [],
   maxConcurrent: agents.length, running: 0, waiting: 0, provider: null, waitingFor: null
 } as RoleView);
 

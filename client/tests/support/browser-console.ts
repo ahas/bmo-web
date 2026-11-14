@@ -70,7 +70,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["secret-request", "fixture-password-2649"],
   ["agent-log-open", "fixture-password-2809"],
   ["row-add", "fixture-password-2885"],
-  ["todo-raise", "fixture-password-2871"]
+  ["todo-raise", "fixture-password-2871"],
+  ["supervisor-road", "fixture-password-2921"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -272,20 +273,47 @@ function silentStream(): Response {
   });
 }
 
-// One provider order's entry, as a supervisor's answer carries it.
-function entry(provider: string, model: string, effort: string | null = null): Record<string, unknown> {
-  return { provider, model, effort, thinking: null, answerTokens: null };
-}
-
 // One supervisor as the agency's supervisor resource serves it: the default answerer, whose turns its window makes, and
 // a supervisor of the room scope, whose turns its settings' pieces make.
 function supervisor(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     name, label, ownerAccount: null, aliases: null, icon: null, sessionScope: "room", turnShape: "pieces",
-    brainFolder: `agents/${name}`, repository: "repo-a", order: [entry("claude-code", "claude-opus-5-5", "high"), entry("deepseek", "deepseek-v4-pro")],
-    quotaShare: 0.01, warming: { "claude-code": true, deepseek: false }, foldRatio: 0.8, gates: null, voice: null, sampling: null,
-    provider: "claude-code", model: "claude-opus-5-5", effort: "high", waitingFor: null, ...extra
+    brainFolder: `agents/${name}`, repository: "repo-a", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null,
+    answerTokens: null, warming: { "claude-code": true, deepseek: false }, foldRatio: 0.8, gates: null, voice: null, sampling: null, seeded: false,
+    resetPoint: null, ...extra
   };
+}
+
+// What the tests changed of a supervisor through the agency's `PATCH /supervisors/{name}`, laid over the row the
+// stand-in serves, so a road changed on the screen is read back as changed.
+const supervisorChanges = new Map<string, Record<string, unknown>>();
+
+// The supervisors the stand-in holds: the default answerer, whose turns its window makes, and a supervisor of the room
+// scope, whose turns its settings' pieces make, each with what the tests changed of it.
+function heldSupervisor(name: string): Record<string, unknown> {
+  const base = name === "agent-c"
+    ? supervisor("agent-c", "Agent C", { foldRatio: 0.85, provider: "deepseek", model: "deepseek-v4-pro", effort: null })
+    : supervisor(name, name === "agent-a" ? "Agent A" : name, { sessionScope: "agent", turnShape: "window" });
+
+  return { ...base, ...supervisorChanges.get(name) };
+}
+
+// A supervisor's change as the agency takes it (its docs/api.md, 「supervisors」): a body naming an order, a quota share
+// or a forced provider is refused, and a changed provider or model drops the effort, thinking and answer ceiling the
+// body does not name.
+async function changeSupervisor(name: string, request: Request): Promise<Response> {
+  const body = (await request.json()) as Record<string, unknown>;
+  const gone = ["order", "quotaShare", "active"].find((field) => field in body);
+
+  if (gone !== undefined) return Response.json({ code: "unknown-field", field: gone, error: `The field ${gone} is not taken.` }, { status: 400 });
+
+  const held = heldSupervisor(name);
+  const roadMoved = ("provider" in body && body.provider !== held.provider) || ("model" in body && body.model !== held.model);
+  const dropped = roadMoved ? { effort: null, thinking: null, answerTokens: null } : {};
+
+  supervisorChanges.set(name, { ...supervisorChanges.get(name), ...dropped, ...body });
+
+  return Response.json(heldSupervisor(name));
 }
 
 // A role's agents as the agency's role resource serves them: `count` seats of the role on one road, or on none where
@@ -435,18 +463,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     if (jobLog !== null) return jobLog;
 
-    // The two axes and the places: two supervisors — the default answerer, whose turns its window makes, and a
-    // supervisor of the room scope, whose turns its settings' pieces make — a handful of roles with runs going and waiting, and three
+    // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and three
     // repositories, one with a job holding a checkout.
-    if (path === "/supervisors") {
-      return Response.json({
-        items: [
-          supervisor("agent-a", "Agent A", { sessionScope: "agent", turnShape: "window" }),
-          supervisor("agent-c", "Agent C", { waitingFor: "every provider of its order is at its quota share", foldRatio: 0.85, provider: "deepseek", model: "deepseek-v4-pro", effort: null })
-        ],
-        more: false
-      });
-    }
+    if (path === "/supervisors") return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c")], more: false });
     if (path === "/roles") return Response.json({ roles: ROLES, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }, { name: "web.sites", code: "web-sites", label: "Site tools" }], lines: ["worker", "search", "browse", "translate"] });
     if (/^\/roles\/[^/]+\/sessions$/.test(path)) {
       return Response.json({
@@ -505,7 +524,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
         ]
       });
     }
-    // The rooms a supervisor spoke in, and the stand-in answering for it on its second provider.
+    // The rooms a supervisor spoke in.
     if (/^\/supervisors\/[^/]+\/rooms$/.test(path)) {
       return Response.json({
         items: [
@@ -518,11 +537,17 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (/^\/supervisors\/[^/]+$/.test(path)) {
       const name = decodeURIComponent(path.slice("/supervisors/".length));
 
-      return name === "agent-c"
-        ? Response.json(supervisor("agent-c", "Agent C", { foldRatio: 0.85, provider: "deepseek", model: "deepseek-v4-pro", effort: null }))
-        : Response.json(supervisor(name, name, { sessionScope: "agent", turnShape: "window" }));
+      return request.method === "PATCH" ? await changeSupervisor(name, request) : Response.json(heldSupervisor(name));
     }
-    if (path === "/stand-in") return Response.json({ answers: true, provider: "deepseek", model: "deepseek-v4-pro" });
+    if (/^\/supervisors\/[^/]+\/road$/.test(path)) {
+      const name = decodeURIComponent(path.slice("/supervisors/".length, -"/road".length));
+
+      const { provider, model, effort, thinking } = heldSupervisor(name);
+      // The room-scope supervisor's road cannot take a turn now; the default answerer's can.
+      const closed = name === "agent-c";
+
+      return Response.json({ supervisor: name, provider, model, effort, thinking, answers: !closed, reason: closed ? "The provider's quota is spent." : null });
+    }
     if (path === "/nodes") {
       return Response.json({
         items: [
@@ -845,7 +870,16 @@ try {
       port: 0,
       hostname: "127.0.0.1",
       idleTimeout: 0,
-      fetch: async (request) => (await answer(new URL(request.url).pathname, request)) ?? notFound()
+      fetch: async (request) => {
+        const path = new URL(request.url).pathname;
+        const answered = await answer(path, request);
+
+        // A route the agency does not serve is named on the harness's own output, so a run shows every call the
+        // console made past the agency's documented routes.
+        if (answered === null && unit === "AGENCY") console.error(`agency stand-in: not served: ${request.method} ${path}`);
+
+        return answered ?? notFound();
+      }
     });
 
     servers.push(server);

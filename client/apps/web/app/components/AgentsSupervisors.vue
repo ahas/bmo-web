@@ -51,32 +51,12 @@
         </NuxtLink>
       </template>
 
-      <template #order-cell="{ row }">
-        <ProviderOrderCell
-          :order="row.original.order"
-          :share="row.original.quotaShare"
-          :line="SUPERVISOR_LINE"
-          :name="row.original.label"
-          :disabled="props.readonly"
-          :save="(order, quotaShare) => change(row.original.name, { order, quotaShare })"
-        />
+      <template #road-cell="{ row }">
+        <SupervisorRoadCell :road="row.original.road" :name="row.original.label" :disabled="props.readonly" :save="(road) => change(row.original.name, { road })" />
       </template>
 
-      <!-- What it runs on now and how that provider became active; pressed, the force's list. -->
-      <template #now-cell="{ row }">
-        <ActiveProviderCell
-          :road="activeRoad(row.original, { model: row.original.model, effort: row.original.effort })"
-          :active="row.original.active"
-          :waiting-for="row.original.waitingFor"
-          :line="SUPERVISOR_LINE"
-          :name="row.original.label"
-          :disabled="props.readonly"
-          :save="(active) => saved(change(row.original.name, { active }))"
-        />
-      </template>
-
-      <!-- The providers its prefix is kept warm on, on one line; pressed, one switch per provider of its order, each
-           taking effect as it is thrown. -->
+      <!-- Its road's provider where its prefix is kept warm there; pressed, that provider's switch, taking effect as it
+           is thrown. -->
       <template #warming-cell="{ row }">
         <SettingsPopoverCell :label="$t('agents.aria.warming_cell_of', { name: row.original.label })" :disabled="props.readonly" :busy="warmingBusy.startsWith(`${row.original.name}:`)">
           <span v-if="warmedOf(row.original).length === 0" class="whitespace-nowrap text-sm text-muted">{{ $t("agents.label.switch_off") }}</span>
@@ -84,7 +64,7 @@
 
           <template #content>
             <ul class="flex min-w-0 flex-col" :aria-label="$t('agents.label.column_warming')">
-              <li v-for="entry in row.original.order" :key="entry.provider" class="flex min-h-10 items-center justify-between gap-4 text-sm">
+              <li v-for="entry in roadOf(row.original)" :key="entry.provider" class="flex min-h-10 items-center justify-between gap-4 text-sm">
                 <span class="whitespace-nowrap text-toned">{{ providerWord(providers, entry.provider) }}</span>
                 <HintTip :text="warmingBlock(entry.provider) ?? undefined" :disabled="warmingBlock(entry.provider) === null">
                   <USwitch
@@ -111,7 +91,7 @@
           :step="1"
           :save="(value: string) => saved(change(row.original.name, { foldRatio: fractionOf(Number(value)) }))"
         >
-          <span class="text-sm tabular-nums text-highlighted">{{ thresholdText($t, row.original.foldRatio, defaultThreshold(providers, row.original.order)) }}</span>
+          <span class="text-sm tabular-nums text-highlighted">{{ thresholdText($t, row.original.foldRatio, defaultThreshold(providers, row.original.road?.provider ?? null)) }}</span>
         </SettingsInputCell>
       </template>
 
@@ -140,8 +120,8 @@
 
     <SupervisorSettingsDialog v-if="editing !== ''" v-model:open="editingOpen" :name="editing" :reread="rereadAll" />
 
-    <!-- A supervisor added by its name, label, the title of the console room it answers alone, its order and repository;
-         a refusal stands under the field it names. -->
+    <!-- A supervisor added by its name, label, the title of the console room it answers alone, its road's provider and
+         model and its repository; a refusal stands under the field it names. -->
     <SettingsDialog v-model:open="adding" wide :title="$t('agents.title.supervisor_add')" :dirty="addDirty">
       <form id="supervisor-add-form" class="flex flex-col gap-4" @submit.prevent="void add()">
         <div class="grid gap-4 sm:grid-cols-2">
@@ -157,15 +137,13 @@
           <UInput v-model="draft.room" class="w-full" :aria-label="$t('agents.label.room_title')" />
         </UFormField>
 
-        <UFormField :label="$t('agents.label.order')" name="order">
-          <ProviderOrderField v-model="draft.order" v-model:share="draft.quotaShare" :line="SUPERVISOR_LINE" :refusal="orderRefusal" :disabled="addBusy" />
-        </UFormField>
+        <RoadField v-model="draft.road" :line="SUPERVISOR_LINE" :whole="false" :refusal="addRefusal" :disabled="addBusy" />
 
         <UFormField :label="$t('agents.label.work_repository')" name="repository" :error="addErrorAt('repository')">
           <USelect v-model="draft.repository" :items="repositoryItems" value-key="value" class="w-full sm:w-1/2" :aria-label="$t('agents.label.work_repository')" />
         </UFormField>
 
-        <p v-if="addRefusal !== null && !ADD_FIELDS.has(addRefusal.field ?? '') && orderRefusal === null" role="alert" class="break-words text-sm text-error">{{ addRefusal.text }}</p>
+        <p v-if="addRefusal !== null && !ADD_FIELDS.has(addRefusal.field ?? '')" role="alert" class="break-words text-sm text-error">{{ addRefusal.text }}</p>
       </form>
 
       <template #footer="{ close }">
@@ -185,7 +163,7 @@ import { useIsland } from "bmo-ui/app/domain/island";
 import { settingsAnchor } from "~/domain/agent-settings";
 import { useSectionAccess } from "~/domain/section-access";
 import { mayRead } from "#shared/sections";
-import { activeRoad, DEFAULT_QUOTA_SHARE, defaultThreshold, fractionOf, orderRefusalEntry, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
+import { defaultThreshold, emptyRoad, fractionOf, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
 import { agentMetaOf } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useConfirm } from "~/domain/confirm";
@@ -193,7 +171,7 @@ import { useReadFailure } from "~/domain/events";
 import { useRoomList } from "~/domain/room-list";
 import { CELL_TEXT } from "~/domain/settings-cells";
 
-import type { ActiveProviderView, DefaultAnswererView, OrderEntryView, RepositoryView, SupervisorAddedView, SupervisorView } from "#shared/axes";
+import type { DefaultAnswererView, RepositoryView, RoadView, SupervisorAddedView, SupervisorView } from "#shared/axes";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
@@ -217,8 +195,7 @@ const readFailure = useReadFailure({ failed: () => !!error.value && supervisors.
 
 const columns = computed<SettingsColumn<SupervisorView>[]>(() => [
   { id: "supervisor", header: t("agents.label.column_supervisor") },
-  { id: "order", header: t("agents.label.order") },
-  { id: "now", header: t("agents.label.column_now"), ceiling: 256 },
+  { id: "road", header: t("agents.label.column_road"), ceiling: 256 },
   { id: "warming", header: t("agents.label.column_warming") },
   { id: "threshold", header: t("agents.label.column_threshold") },
   { id: "rooms", header: t("agents.label.column_rooms"), ceiling: 288 },
@@ -239,9 +216,14 @@ function warmingBlock(provider: string): string | null {
   return held.reason;
 }
 
-// The providers of its order its prefix is kept warm on, by their words, in the order's order.
+// Its road as the one provider its warming is switched for, none where it names no road.
+function roadOf(supervisor: SupervisorView): RoadView[] {
+  return supervisor.road === null ? [] : [supervisor.road];
+}
+
+// Its road's provider by its word where its prefix is kept warm there.
 function warmedOf(supervisor: SupervisorView): string[] {
-  return supervisor.order.filter((entry) => supervisor.warming[entry.provider] === true).map((entry) => providerWord(providers.value, entry.provider));
+  return roadOf(supervisor).filter((road) => supervisor.warming[road.provider] === true).map((road) => providerWord(providers.value, road.provider));
 }
 
 // The rooms a supervisor answers, as the sidebar lists them under it (docs/web.md, 「Sidebar」), by their names.
@@ -250,7 +232,7 @@ function roomsOf(supervisor: SupervisorView): string[] {
 }
 
 /** One change of a supervisor sent; the table stands as the agency answered it, or the refusal with its field. */
-async function change(name: string, body: { order?: OrderEntryView[]; quotaShare?: number; active?: ActiveProviderView | null; foldRatio?: number; warming?: Record<string, boolean> }): Promise<{ field: string | null; text: string } | null> {
+async function change(name: string, body: { road?: RoadView; foldRatio?: number; warming?: Record<string, boolean> }): Promise<{ field: string | null; text: string } | null> {
   try {
     const answered = await $fetch<SupervisorView>(`/api/supervisors/${encodeURIComponent(name)}`, { method: "PATCH", body });
 
@@ -359,20 +341,20 @@ async function remove(supervisor: SupervisorView): Promise<void> {
 }
 
 // The add's fields, and the ones a refusal stands under.
-const ADD_FIELDS = new Set(["name", "label", "room", "repository", "order", "quotaShare"]);
+const ADD_FIELDS = new Set(["name", "label", "room", "repository", "provider", "model"]);
 
 interface SupervisorDraft {
   name: string;
   label: string;
   // The title of the console room it answers alone.
   room: string;
-  order: OrderEntryView[];
-  quotaShare: number;
+  // Its road's provider and model, the rest of the road standing as the provider's own until its row sets it.
+  road: RoadView;
   repository: string;
 }
 
 function emptyDraft(): SupervisorDraft {
-  return { name: "", label: "", room: "", order: [], quotaShare: DEFAULT_QUOTA_SHARE, repository: "" };
+  return { name: "", label: "", room: "", road: emptyRoad(), repository: "" };
 }
 
 const adding = ref(false);
@@ -381,30 +363,23 @@ const draft = ref<SupervisorDraft>(emptyDraft());
 const opened = ref(JSON.stringify(emptyDraft()));
 const addDirty = computed(() => JSON.stringify(draft.value) !== opened.value);
 const addComplete = computed(() =>
-  draft.value.name.trim() !== "" && draft.value.label.trim() !== "" && draft.value.room.trim() !== "" && draft.value.repository !== "" && draft.value.order.length > 0 && draft.value.order.every((one) => one.model !== "")
+  draft.value.name.trim() !== "" && draft.value.label.trim() !== "" && draft.value.room.trim() !== "" && draft.value.repository !== "" && draft.value.road.provider !== "" && draft.value.road.model !== ""
 );
 const addRefusal = ref<{ field: string | null; text: string } | null>(null);
-// A refusal of the order stands under the entry the agency names.
-const orderRefusal = computed(() => {
-  const field = addRefusal.value?.field ?? "";
-
-  if (addRefusal.value === null || !(field.startsWith("order") || field === "quotaShare")) return null;
-
-  return { entry: field.startsWith("order") ? orderRefusalEntry(field) : 0, text: addRefusal.value.text };
-});
 const repositoryItems = computed(() => (repositories.value ?? []).map((one) => ({ label: one.label, value: one.name, description: one.name })));
 
 function addErrorAt(field: string): string | undefined {
   return addRefusal.value?.field === field ? addRefusal.value.text : undefined;
 }
 
-// A new supervisor's order starts on the order of the default answerer, which it may change before it is added.
+// A new supervisor's road starts on the provider and model of the default answerer's, which it may change before it is
+// added.
 function openAdd(): void {
   if (props.readonly) return;
 
-  const seed = supervisors.value?.find((one) => one.defaultAnswerer)?.order ?? [];
+  const seed = supervisors.value?.find((one) => one.defaultAnswerer)?.road ?? null;
 
-  draft.value = { ...emptyDraft(), order: seed.map((one) => ({ ...one })) };
+  draft.value = { ...emptyDraft(), road: seed === null ? emptyRoad() : { ...emptyRoad(), provider: seed.provider, model: seed.model } };
   opened.value = JSON.stringify(draft.value);
   addRefusal.value = null;
   adding.value = true;

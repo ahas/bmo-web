@@ -21,9 +21,9 @@ const repositories = await read("../../components/AgentsRepositories.vue");
 const repositoryDialog = await read("../../components/RepositorySettingsDialog.vue");
 const registry = await read("../../components/AgentsRegistry.vue");
 const catalogue = await read("../../components/AgentsCatalogue.vue");
-const orderField = await read("../../components/ProviderOrderField.vue");
-const orderCell = await read("../../components/ProviderOrderCell.vue");
-const activeCell = await read("../../components/ActiveProviderCell.vue");
+const roadField = await read("../../components/RoadField.vue");
+const roadCell = await read("../../components/SupervisorRoadCell.vue");
+const supervisorFields = await read("../../components/SupervisorFields.vue");
 const providersSection = await read("../../components/OrganizationProviders.vue");
 const accounts = await read("../../components/AgentsAccounts.vue");
 const axes = await Bun.file(new URL("../../../../apps/web/app/domain/axes.ts", import.meta.url)).text();
@@ -149,23 +149,22 @@ describe("every table of the screen", () => {
   });
 });
 
-describe("a provider order", () => {
-  test("is one field, an entry to a line with its model, effort, thinking and answer ceiling, the last one kept", () => {
-    expect(templateOf(orderField)).toContain('v-for="(entry, index) in order"');
-    expect(templateOf(orderField)).toContain('name="i-material-symbols-drag-indicator"');
-    expect(templateOf(orderField)).toContain('v-if="order.length > 1"');
-    expect(templateOf(orderField)).toContain('v-if="registeredProvider(entry.provider)"');
+// A supervisor's one road (docs/web.md, 「Agent management screen」): its provider, model, effort, thinking and answer
+// ceiling in one form, sent whole through the supervisor's own route, and nothing of an order, a share or a force.
+describe("a supervisor's road", () => {
+  test("is one field: its provider over its model, effort, thinking and, on the registry's provider, answer ceiling", () => {
+    expect(templateOf(roadField)).toContain('v-if="registered"');
+    for (const label of ["agents.label.agent_provider", "common.label.model", "agents.label.effort", "agents.label.thinking", "agents.label.answer_ceiling"]) expect(templateOf(roadField)).toContain(label);
     expect(axes).toContain("`/api/provider-models/${encodeURIComponent(provider)}`");
-    expect(orderField).toContain("modelsOf(entry.provider)");
   });
 
-  test("offers only the providers it does not hold whose program carries the row's line", () => {
-    expect(scriptOf(orderField)).toContain("!order.value.some((entry) => entry.provider === one.name) && (one.lines.length === 0 || one.lines.includes(props.line))");
+  test("offers the providers whose program carries the supervisor's line, a provider picked keeping nothing of the one before", () => {
+    expect(scriptOf(roadField)).toContain(".filter((one) => one.lines.length === 0 || one.lines.includes(props.line))");
+    expect(scriptOf(roadField)).toContain('road.value = { provider: name, model: "", effort: null, thinking: null, answerTokens: null };');
   });
 
-  test("marks the agency's quota share as the default, and offers no default entry anywhere", () => {
-    expect(templateOf(orderField)).toContain("percentOf(share) === percentOf(DEFAULT_QUOTA_SHARE)");
-    for (const source of [orderField, orderCell, ...sections, roleDialog, repositoryDialog, generation]) {
+  test("offers no default entry anywhere", () => {
+    for (const source of [roadField, roadCell, ...sections, roleDialog, repositoryDialog, generation]) {
       expect(source).not.toContain("default_choice");
       expect(source).not.toContain('value: "default"');
       // A field whose value the service names none of stands empty, with no word in place of a value.
@@ -173,55 +172,25 @@ describe("a provider order", () => {
     }
   });
 
-  test("stands in its cell as one line, the first provider and how many stand behind it", () => {
-    expect(templateOf(orderCell)).toContain("entryText(providers, first)");
-    expect(templateOf(orderCell)).toContain('$t("agents.label.order_more", { n: countText(rest) })');
-    expect(templateOf(orderCell)).not.toContain('v-for="(entry, index) in props.order"');
+  test("stands in its cell as one line and opens from it in a form of its own with one save, sent whole", () => {
+    expect(scriptOf(roadCell)).toContain("roadText(providers.value, props.road)");
+    expect(templateOf(roadCell)).toContain('<SettingsDialog v-model:open="open" wide');
+    expect(templateOf(roadCell)).toContain("<RoadField");
+    expect(templateOf(supervisors)).toMatch(/#road-cell[\s\S]*<SupervisorRoadCell/);
+    expect(templateOf(supervisors)).toContain(':save="(road) => change(row.original.name, { road })"');
+    expect(templateOf(supervisorFields)).toContain("<RoadField");
+    // A role holds no road of its own: its agents stand on theirs.
+    expect(templateOf(roles)).not.toContain("<SupervisorRoadCell");
   });
 
-  test("labels each of an entry's fields", () => {
-    for (const label of ["common.label.model", "agents.label.effort", "agents.label.thinking", "agents.label.answer_ceiling"]) expect(templateOf(orderField)).toContain(label);
+  test("is added on its provider and model alone, the rest left to the row", () => {
+    expect(templateOf(supervisors)).toContain('<RoadField v-model="draft.road" :line="SUPERVISOR_LINE" :whole="false"');
   });
 
-  test("opens from its cell in a form of its own with one save", () => {
-    expect(templateOf(orderCell)).toContain('<SettingsDialog v-model:open="open" wide');
-    expect(templateOf(orderCell)).toContain("<ProviderOrderField");
-    expect(templateOf(supervisors)).toContain("<ProviderOrderCell");
-    // A role holds no order: its agents stand in its cell in the order's place.
-    expect(templateOf(roles)).not.toContain("<ProviderOrderCell");
-  });
-});
-
-// What a supervisor runs on now and the owner's force (docs/web.md, 「What a supervisor runs on now」): its cell marks
-// how the provider became active, its list opening on the order's own entry as the default and every model the row's
-// line may run on, a pick saved at once through the row's own route. A role's now cell is a reading alone.
-describe("what a row runs on now", () => {
-  test("stands in the supervisors' now cell, the waiting said there rather than under the order", () => {
-    expect(templateOf(supervisors)).toMatch(/#now-cell[\s\S]*<ActiveProviderCell/);
-    expect(templateOf(supervisors)).not.toMatch(/<ProviderOrderCell[^/]*>[\s\S]*waiting_for_quota[\s\S]*<\/ProviderOrderCell>/);
-    expect(templateOf(supervisors)).toContain(':save="(active) => saved(change(row.original.name, { active }))"');
-    // A supervisor's order's choice is its last turn's road.
-    expect(templateOf(supervisors)).toContain(":road=\"activeRoad(row.original, { model: row.original.model, effort: row.original.effort })\"");
-  });
-
-  test("is no column of a role: a role is a preset, and what runs is its agents'", () => {
-    expect(scriptOf(roles)).not.toContain('id: "now"');
-    expect(templateOf(roles)).not.toContain("<ActiveProviderCell");
-  });
-
-  test("marks a forced provider apart from the order's choice, each mark named by its tooltip", () => {
-    expect(templateOf(activeCell)).toContain("props.road.forced ? 'i-material-symbols-lock-outline' : 'i-material-symbols-format-list-numbered'");
-    expect(templateOf(activeCell)).toContain(':aria-label="markText"');
-    expect(scriptOf(activeCell)).toContain('t("agents.label.active_forced")');
-    expect(templateOf(activeCell)).toContain("agents.status.waiting_for_quota");
-  });
-
-  test("opens a list led by the order's own entry marked as the default, read as it opens, a pick sent as the force or its clearing", () => {
-    expect(templateOf(activeCell)).toContain("<SettingsChoiceCell");
-    expect(templateOf(activeCell)).toContain('@open="() => void choices.read()"');
-    expect(scriptOf(activeCell)).toContain('markedDefault(t, t("agents.label.active_to_order"), true)');
-    expect(scriptOf(activeCell)).toContain("String(value) === ROAD_ORDER ? null : roadParts(String(value))");
-    expect(scriptOf(activeCell)).toContain("props.active === null ? ROAD_ORDER");
+  test("names no order, share, force or stand-in on the screen", () => {
+    for (const source of [supervisors, roadField, roadCell, supervisorFields]) {
+      for (const word of ["quotaShare", "ProviderOrder", "ActiveProviderCell", "agents.label.order", "waitingFor", "stand-in"]) expect(source).not.toContain(word);
+    }
   });
 });
 
@@ -304,7 +273,7 @@ describe("the agents tab", () => {
     expect(templateOf(roleAgents)).toContain(":save=\"(value: string) => change(row.original, { foldRatio: fractionOf(Number(value)) })\"");
     // An agent that sets no threshold shows the one its provider declares, and one that names no road follows.
     expect(scriptOf(roleAgents)).toContain("return agent.foldRatio ?? declared(agent);");
-    expect(templateOf(roleAgents)).toContain("agentRoadText(providers, row.original) ?? $t('agents.label.agent_follows')");
+    expect(templateOf(roleAgents)).toContain("roadText(providers, row.original) ?? $t('agents.label.agent_follows')");
     expect(scriptOf(roleAgents)).toContain("usePolling(");
   });
 

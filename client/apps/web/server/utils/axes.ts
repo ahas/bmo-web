@@ -7,7 +7,7 @@ import { bundleWordOf, providerLabelOf, roadReasonOf } from "./agency-words";
 import type { Provider, Repository, Role, Supervisor } from "@agency/client";
 import type { components } from "@agency/client/schema";
 import type { GenerationSetting } from "#shared/agency";
-import type { ActiveProviderView, CheckoutView, NodeCheckoutAsk, OrderEntryView, ProviderModelsView, ProviderModelView, ProviderView, QuotaView, RepositoryView, RoleAgentView, RoleBundleView, RoleSessionPage, RoleSessionView, RolesView, RoleView, StandInView, SupervisorRoomView, SupervisorView, WorkNodeView } from "#shared/axes";
+import type { CheckoutView, NodeCheckoutAsk, ProviderModelsView, ProviderModelView, ProviderView, QuotaView, RepositoryView, RoadView, RoleAgentView, RoleBundleView, RoleSessionPage, RoleSessionView, RolesView, RoleView, SupervisorRoadStateView, SupervisorRoomView, SupervisorView, WorkNodeView } from "#shared/axes";
 
 type Schemas = components["schemas"];
 
@@ -21,31 +21,16 @@ const number = (value: unknown): number | null => (typeof value === "number" && 
 const record = (value: unknown): Record<string, unknown> => (value !== null && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {});
 const list = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
 
-/** One order's entries as the screen reads them; a member that does not read as an entry is left out. */
-export function orderOf(entries: unknown): OrderEntryView[] {
-  return list(entries).flatMap((one): OrderEntryView[] => {
-    const held = record(one);
-    const provider = text(held.provider);
-    const model = text(held.model);
+/** A road read off what holds its fields — an agency's row or a screen's body; none where it names no provider and
+ * model. */
+export function roadOf(value: unknown): RoadView | null {
+  const held = record(value);
+  const provider = text(held.provider);
+  const model = text(held.model);
 
-    if (provider === null || model === null) return [];
+  if (provider === null || model === null) return null;
 
-    return [{ provider, model, effort: text(held.effort), thinking: text(held.thinking), answerTokens: number(held.answerTokens) }];
-  });
-}
-
-/** One order's entries as the agency takes them, each field as the screen holds it. */
-export function orderBody(entries: readonly OrderEntryView[]): Schemas["OrderEntry"][] {
-  return entries.map((one) => ({ provider: one.provider, model: one.model, effort: one.effort, thinking: one.thinking, answerTokens: one.answerTokens }));
-}
-
-/** An order a screen sent, read off its body: each entry of its own shape, or null where any is not. */
-export function orderAsked(value: unknown): OrderEntryView[] | null {
-  if (!Array.isArray(value)) return null;
-
-  const entries = orderOf(value);
-
-  return entries.length === value.length ? entries : null;
+  return { provider, model, effort: text(held.effort), thinking: text(held.thinking), answerTokens: number(held.answerTokens) };
 }
 
 function quotaOf(value: unknown): QuotaView | null {
@@ -60,25 +45,6 @@ function quotaOf(value: unknown): QuotaView | null {
     balance: number(balance) ?? number(record(balance).amount),
     resetsAt: number(held.resetsAt)
   };
-}
-
-/** A forced active provider as the agency answers it, or none where it names none or not in its shape. */
-export function activeOf(value: unknown): ActiveProviderView | null {
-  const held = record(value);
-  const provider = text(held.provider);
-  const model = text(held.model);
-
-  return provider === null || model === null ? null : { provider, model };
-}
-
-/** A forced active provider a screen sent: a provider and a model, or null to clear it; undefined where it is
- * neither. */
-export function activeAsked(value: unknown): ActiveProviderView | null | undefined {
-  if (value === null) return null;
-
-  const asked = activeOf(value);
-
-  return asked === null ? undefined : asked;
 }
 
 /** One provider as the screen reads it: the pack's word for its code, its switch, its lines, its quota and its reason. */
@@ -152,15 +118,9 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
     defaultAnswerer: supervisor.name === answerer,
     seeded: supervisor.seeded,
     repository: supervisor.repository,
-    order: orderOf(supervisor.order),
-    quotaShare: supervisor.quotaShare,
-    active: activeOf(supervisor.active),
+    road: roadOf(supervisor),
     warming,
-    foldRatio: supervisor.foldRatio,
-    provider: supervisor.provider,
-    model: supervisor.model,
-    effort: supervisor.effort,
-    waitingFor: supervisor.waitingFor
+    foldRatio: supervisor.foldRatio
   };
 }
 
@@ -194,20 +154,13 @@ export function supervisorChangeOf(body: unknown): Schemas["SupervisorChange"] |
   const change: Schemas["SupervisorChange"] = {};
 
   if (typeof held.label === "string" && held.label.trim() !== "") change.label = held.label.trim();
-  if ("order" in held) {
-    const order = orderAsked(held.order);
+  // A road is sent whole, so a changed provider or model never keeps a field of the one before it.
+  if ("road" in held) {
+    const road = roadOf(held.road);
 
-    if (order === null) return null;
+    if (road === null) return null;
 
-    change.order = orderBody(order);
-  }
-  if (typeof held.quotaShare === "number") change.quotaShare = held.quotaShare;
-  if ("active" in held) {
-    const active = activeAsked(held.active);
-
-    if (active === undefined) return null;
-
-    change.active = active;
+    Object.assign(change, road);
   }
   if (typeof held.foldRatio === "number") change.foldRatio = held.foldRatio;
   if ("repository" in held) change.repository = text(held.repository);
@@ -260,8 +213,8 @@ export function roleAgentViewOf(agent: Schemas["RoleAgent"]): RoleAgentView {
 }
 
 /** The roads a role's runs go out on: its agents that are switched on and name one, each road once, in their order. */
-export function roadsOf(agents: readonly Schemas["RoleAgent"][]): OrderEntryView[] {
-  const roads: OrderEntryView[] = [];
+export function roadsOf(agents: readonly Schemas["RoleAgent"][]): RoadView[] {
+  const roads: RoadView[] = [];
 
   for (const agent of agents) {
     if (!agent.enabled || agent.provider == null || agent.model == null) continue;
@@ -285,7 +238,7 @@ export function roleViewOf(role: Role): RoleView {
     skills: role.skills ?? null,
     line: role.line,
     agents: (role.agents ?? []).map(roleAgentViewOf),
-    order: roadsOf(role.agents ?? []),
+    roads: roadsOf(role.agents ?? []),
     maxConcurrent: role.maxConcurrent,
     running: role.running,
     waiting: role.waiting,
@@ -717,19 +670,12 @@ export async function readSupervisorRooms(name: string): Promise<SupervisorRoomV
   return page.items.map((room) => ({ chatId: room.roomId, runs: room.runs, lastRun: room.lastRunUnit, lastStartedAt: room.lastStartedAt, lastFinishedAt: room.lastFinishedAt }));
 }
 
-/** The stand-in that answers a supervisor now: where the agency names one and the supervisor's last turn went out on it
- * rather than on the first provider of its order; none otherwise (docs/boundary.md, 「Gaps the console meets」). */
-export async function readStandIn(name: string): Promise<StandInView | null> {
-  const [supervisor, standIn] = await Promise.all([
-    agencyCall(agency().GET("/supervisors/{supervisorName}", { params: { path: { supervisorName: name } } })),
-    agencyCall(agency().GET("/stand-in", { params: { query: { agent: name } } }))
-  ]);
-  const first = orderOf(supervisor.order)[0]?.provider ?? null;
+/** Whether a supervisor's road can take a turn now, as a turn's start judges it, with the agency's sentence for why where
+ * it cannot (the agency's `docs/api.md`, 「supervisors」). */
+export async function readSupervisorRoadState(name: string): Promise<SupervisorRoadStateView> {
+  const road = await agencyCall(agency().GET("/supervisors/{supervisorName}/road", { params: { path: { supervisorName: name } } }));
 
-  if (!standIn.answers || standIn.provider === null || standIn.model === null) return null;
-  if (supervisor.provider !== standIn.provider || first === standIn.provider) return null;
-
-  return { provider: providerLabelOf(standIn.provider, standIn.provider), model: standIn.model };
+  return { answers: road.answers, reason: text(road.reason) };
 }
 
 /** The nodes the agency places jobs on, in the node list's order, each by its label and how it is reached in the pack's

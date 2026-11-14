@@ -14,10 +14,11 @@ const ADD = {
   name: "agent-b",
   label: "Agent B",
   room: "Room B",
-  order: [{ provider: "codex", model: "model-a", effort: null, thinking: null, answerTokens: null }],
-  quotaShare: 0.5,
+  road: { provider: "codex", model: "model-a", effort: null, thinking: null, answerTokens: null },
   repository: null
 };
+// What the receiver is sent of it: the road's provider and model, which is all of a road its add takes.
+const SENT = { name: "agent-b", label: "Agent B", room: "Room B", provider: "codex", model: "model-a", repository: null };
 
 const receiver = standIn("RECEIVER", (call) => {
   if (call.method === "POST" && call.path === "/supervisors") {
@@ -41,7 +42,7 @@ describe("adding a supervisor", () => {
 
       expect(added.answer).toEqual({ name: "agent-b", roomId: 42, takenBack: false });
       expect(receiver.asked).toHaveLength(1);
-      expect(receiver.asked[0]?.body).toMatchObject({ ...ADD, ownerAccount: 7 });
+      expect(receiver.asked[0]?.body).toMatchObject({ ...SENT, ownerAccount: 7 });
     } finally {
       globals.signedInUser = held;
     }
@@ -56,7 +57,7 @@ describe("adding a supervisor", () => {
       await asked(handler, { body: ADD });
 
       expect(receiver.asked).toHaveLength(1);
-      expect(receiver.asked[0]?.body).toMatchObject({ ...ADD, ownerAccount: 7, sessionScope: "agent" });
+      expect(receiver.asked[0]?.body).toEqual({ ...SENT, ownerAccount: 7, sessionScope: "agent" });
     } finally {
       globals.signedInUser = held;
     }
@@ -71,8 +72,23 @@ describe("adding a supervisor", () => {
       await asked(handler, { body: ADD });
 
       expect(receiver.asked).toHaveLength(1);
-      expect(receiver.asked[0]?.body).toMatchObject({ ...ADD, ownerAccount: null });
+      expect(receiver.asked[0]?.body).toEqual({ ...SENT, ownerAccount: null });
       expect(receiver.asked[0]?.body ?? {}).not.toHaveProperty("sessionScope");
+    } finally {
+      globals.signedInUser = held;
+    }
+  });
+
+  test("an add naming no road is refused before the receiver is asked", async () => {
+    const held = globals.signedInUser;
+    globals.signedInUser = async () => ({ id: null, name: "tester", administrator: true });
+    receiver.asked.length = 0;
+
+    try {
+      const { road: _road, ...roadless } = ADD;
+
+      expect(await asked(handler, { body: { ...roadless, order: [ADD.road], quotaShare: 0.5 } })).toMatchObject({ status: 400 });
+      expect(receiver.asked).toEqual([]);
     } finally {
       globals.signedInUser = held;
     }

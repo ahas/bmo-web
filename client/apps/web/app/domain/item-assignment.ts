@@ -1,4 +1,4 @@
-import { agentRoadText } from "./role-agents";
+import { roadText } from "./axes";
 
 import type { RoleView } from "#shared/axes";
 import type { Translate } from "#shared/wording";
@@ -67,7 +67,7 @@ export function assignmentChoices(t: Translate, roles: readonly RoleView[], name
         value: agent.name,
         label: agent.name,
         icon: "i-material-symbols-smart-toy-outline",
-        description: agentRoadText(null, agent) ?? t("live.label.space_follows")
+        description: roadText(null, agent) ?? t("live.label.space_follows")
       }))
     ];
   });

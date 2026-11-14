@@ -1,6 +1,6 @@
 import { userNode, userOf } from "./account-service";
 import { agency, agencyCall } from "./agency";
-import { orderBody, readSupervisors } from "./axes";
+import { readSupervisors } from "./axes";
 import { defaultAnswerer } from "./owner";
 import { setPersonNode } from "./person-node";
 import { receiver, receiverCall } from "./receiver";
@@ -19,8 +19,8 @@ type TakenOver = Schemas["RoleAgentChange"] & { role: string; name: string; owne
 
 /**
  * An account made ready, given its own BMO and its agents (docs/web.md, 「The join page」): a supervisor of the account
- * on the default answerer's provider order, one agent of the account for every role with an agent of no account, and
- * its machine as the node its runs stand on. The BMO and the agents are made once, and the node is set every time; a
+ * on the provider and model of the default answerer's road, one agent of the account for every role with an agent of no
+ * account, and its machine as the node its runs stand on. The BMO and the agents are made once, and the node is set every time; a
  * part that cannot be made is written to the log and the rest goes on.
  */
 export async function standAccount(user: number): Promise<void> {
@@ -53,8 +53,9 @@ async function standSupervisor(user: number): Promise<void> {
 
   const answering = await defaultAnswerer();
   const template = supervisors.find((supervisor) => supervisor.name === answering) ?? supervisors[0];
+  const road = template?.road ?? null;
 
-  if (template === undefined) throw new Error("the agency holds no supervisor whose order a new one could take");
+  if (road === null) throw new Error("the agency holds no supervisor whose road a new one could take");
 
   const person = await userOf(user);
   const label = person?.name ?? `u${user}`;
@@ -65,8 +66,8 @@ async function standSupervisor(user: number): Promise<void> {
         name: `u${user}`,
         label,
         room: label,
-        order: orderBody(template.order),
-        quotaShare: template.quotaShare,
+        provider: road.provider,
+        model: road.model,
         repository: null,
         ownerAccount: user,
         sessionScope: "agent"

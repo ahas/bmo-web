@@ -7,13 +7,12 @@ import { answer, standIn } from "../../support/units";
 import { standAccount } from "../../../apps/web/server/utils/account-standing";
 
 // An account made ready (docs/web.md, 「The join page」): it is given a supervisor of its own, named after the account
-// and shown by the person's name, on the default answerer's order, and one agent of its own for every role with an
+// and shown by the person's name, on the default answerer's road's provider and model, and one agent of its own for every role with an
 // agent of no account, taking that agent's road; an account that holds one already is given none again. Its machine,
 // where the hub holds it, is set in agency as the node its runs stand on (docs/accounts.md, 「Invitations and a
 // person's machine」), and a node agency refuses leaves the account ready.
 
-const ORDER = [{ provider: "codex", model: "model-a", effort: null, thinking: null, answerTokens: null }];
-const ANSWERER = { name: "agent-a", label: "Agent A", ownerAccount: null, provider: "codex", model: "model-a", effort: null, order: ORDER, quotaShare: 0.25, warming: {}, waitingFor: null };
+const ANSWERER = { name: "agent-a", label: "Agent A", ownerAccount: null, provider: "codex", model: "model-a", effort: "high", thinking: "off", answerTokens: null, warming: {} };
 const AGENT = { name: "worker-01", role: "worker", ownerAccount: null, provider: "deepseek", model: "model-w", effort: "high", thinking: null, answerTokens: null, enabled: true, keepsCache: true, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: false };
 const role = (name: string, agents: unknown[]) => ({ name, code: name, label: name, prompt: null, description: null, bundles: [], skills: null, line: "worker", agents, maxConcurrent: agents.length, followsSupervisor: false, running: 0, waiting: 0, provider: null, waitingFor: null });
 
@@ -74,7 +73,7 @@ afterAll(() => {
 });
 
 describe("an account made ready", () => {
-  test("is given its own BMO on the default answerer's order and an agent of every role it holds none of", async () => {
+  test("is given its own BMO on the default answerer's road and an agent of every role it holds none of", async () => {
     agency.asked.length = 0;
     receiver.asked.length = 0;
 
@@ -83,7 +82,8 @@ describe("an account made ready", () => {
     const added = receiver.asked.filter((call) => call.method === "POST");
 
     expect(added).toHaveLength(1);
-    expect(added[0]?.body).toMatchObject({ name: "u9", label: "member-a", room: "member-a", quotaShare: 0.25, ownerAccount: 9, sessionScope: "agent" });
+    // The receiver's add takes a road's provider and model alone.
+    expect(added[0]?.body).toEqual({ name: "u9", label: "member-a", room: "member-a", provider: "codex", model: "model-a", repository: null, ownerAccount: 9, sessionScope: "agent" });
 
     const agents = agency.asked.filter((call) => call.method === "POST" && call.path === "/role-agents");
 

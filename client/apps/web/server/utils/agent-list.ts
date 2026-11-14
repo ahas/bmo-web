@@ -68,8 +68,7 @@ export function supervisorSummary(supervisor: Supervisor, sessions: readonly { c
     ...(sessions.length === 0 ? {} : { sessions: [...sessions] }),
     provider: text(supervisor.provider),
     model: text(supervisor.model),
-    effort: text(supervisor.effort),
-    waitingFor: text(supervisor.waitingFor)
+    effort: text(supervisor.effort)
   };
 }
 

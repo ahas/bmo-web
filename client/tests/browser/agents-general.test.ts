@@ -16,8 +16,9 @@ import type { Browser } from "playwright-core";
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "agents-general", password: "fixture-password-2301" };
 
-// A supervisor's order of five, whose cell makes its table wider than a phone and the panel beside the TODO list.
-const FIVE = ["claude-code", "codex", "deepseek", "gemini", "openrouter"].map((provider) => ({ provider, model: `${provider}-model-with-a-long-name`, effort: "high", thinking: null, answerTokens: null }));
+// A supervisor's road on a model of a long name, whose cell makes its table wider than a phone and the panel beside the
+// TODO list.
+const LONG_ROAD = { provider: "openrouter", model: "openrouter-model-with-a-long-name-standing-wider-than-its-ceiling", effort: "high", thinking: null, answerTokens: null };
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -173,7 +174,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       await context.route(/\/api\/supervisors$/, async (route) => {
         const answer = await (await route.fetch()).json();
 
-        answer[0].order = FIVE;
+        answer[0].road = LONG_ROAD;
         await route.fulfill({ json: answer });
       });
 
@@ -284,7 +285,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
     const view = () => ({
       roles: [{
         name: "worker", label: "Worker", description: null, prompt: null, providerPrompts: {}, bundles: [{ name: "web.read", label: "Web reading" }], skills: null, line: "worker", agents,
-        order: [{ provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null }],
+        roads: [{ provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null }],
         maxConcurrent: agents.filter((one) => one.enabled).length, running: 1, waiting: 0, provider: "claude-code", waitingFor: null
       }],
       bundles: [{ name: "web.read", label: "Web reading" }],
@@ -384,7 +385,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       const at = cookie.indexOf("=");
       // A role on the search line holding a text for a provider whose program no longer carries that line.
       const held = {
-        name: "voyager", label: "Voyager", description: null, prompt: null, bundles: [], skills: null, line: "search", agents: [], order: [],
+        name: "voyager", label: "Voyager", description: null, prompt: null, bundles: [], skills: null, line: "search", agents: [], roads: [],
         maxConcurrent: 0, running: 0, waiting: 0, provider: null, waitingFor: null, providerPrompts: { registered: "text-held" }
       };
       const sent: unknown[] = [];

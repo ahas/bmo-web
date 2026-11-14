@@ -13,10 +13,10 @@ import type { AgentList } from "../../../apps/web/shared/types";
 
 let agencyAnswers = true;
 
-const ORDER = [{ provider: "codex", model: "model-a", effort: "high", thinking: null, answerTokens: null }];
+const ROAD = { provider: "codex", model: "model-a", effort: "high", thinking: null, answerTokens: null };
 // One agent of a role on that road.
 const AGENTS = (role: string) => [{
-  ...ORDER[0], name: `${role}-01`, role, enabled: true, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
+  ...ROAD, name: `${role}-01`, role, enabled: true, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
   followsSupervisor: false, carries: false
 }];
 
@@ -32,8 +32,8 @@ standIn("AGENCY", (call) => {
       items: [
         {
           name: "agent-a", label: "Agent A", ownerAccount: null, aliases: null, icon: "i-material-symbols-mark-a", sessionScope: "agent",
-          turnShape: "window", brainFolder: null, repository: null, order: ORDER, quotaShare: 0.01, warming: {},
-          foldRatio: 0.8, gates: null, voice: null, sampling: null, provider: "codex", model: "model-a", effort: "high", waitingFor: null
+          turnShape: "window", brainFolder: null, repository: null, warming: {}, foldRatio: 0.8, gates: null, voice: null,
+          sampling: null, provider: "codex", model: "model-a", effort: "high", thinking: null, answerTokens: null
         }
       ],
       more: false

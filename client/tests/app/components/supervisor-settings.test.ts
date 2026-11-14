@@ -32,7 +32,7 @@ describe("a supervisor's settings", () => {
     expect(pieces).toContain("`/api/supervisors/${encodeURIComponent(view.value.name)}/settings`");
     expect(fields).toContain("useFormPart(");
     expect(documents).toContain("useFormPart(");
-    expect(fields).toContain("<ProviderOrderField");
+    expect(fields).toContain("<RoadField");
   });
 
   test("read the three documents, each saved as the owner's text or put back to its file with the form's save", () => {

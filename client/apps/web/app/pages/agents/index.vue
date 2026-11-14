@@ -104,7 +104,7 @@ import { ensureSectionAccess, useSectionAccess, useSectionAccessReady } from "~/
 import { useHeldHeads } from "~/domain/held-heads";
 import { mayRead, mayWrite } from "#shared/sections";
 import { usedByText, registrationName } from "~/domain/registry";
-import { defaultThreshold, sessionsText, thresholdText, entryText, useProviders } from "~/domain/axes";
+import { defaultThreshold, roadText, sessionsText, thresholdText, useProviders } from "~/domain/axes";
 import { TAB_ADD_ICON } from "~/domain/tab-create";
 
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
@@ -229,8 +229,8 @@ const entries = computed<SettingsEntry[]>(() => {
       fields: [
         { label: t("common.label.name"), text: one.label, shown: true },
         { label: t("agents.label.key"), text: one.name, shown: true },
-        { label: t("agents.label.order"), text: one.order.map((entry) => entryText(providers.value, entry)).join(" "), shown: true },
-        { label: t("agents.label.column_threshold"), text: thresholdText(t, one.foldRatio, defaultThreshold(providers.value, one.order)), shown: true },
+        { label: t("agents.label.column_road"), text: one.road === null ? "" : (roadText(providers.value, one.road) ?? ""), shown: true },
+        { label: t("agents.label.column_threshold"), text: thresholdText(t, one.foldRatio, defaultThreshold(providers.value, one.road?.provider ?? null)), shown: true },
         { label: t("agents.label.alias"), text: one.aliases, shown: false }
       ]
     });

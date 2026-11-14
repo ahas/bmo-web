@@ -2,14 +2,14 @@ import type { GenerationSetting } from "./agency";
 
 // The agency's two axes and its places as the agent management screen reads them (the agency's `docs/agents.md`,
 // 「Two axes」; its `docs/api.md`, 「supervisors」, 「roles」, 「repositories, prefix-checks and room-holdings」 and
-// 「providers, models and model files」): the supervisors, the roles, the repositories, the providers an order names
+// 「providers, models and model files」): the supervisors, the roles, the repositories, the providers a road names
 // and the models a provider holds. The console reads the agency over HTTP and imports none of its code, so the shapes
 // a screen reads are written here; a field the agency's published types leave untyped is read as its `docs/api.md`
 // states it, and one the answer does not carry stands as none (docs/boundary.md, 「Gaps the console meets」).
 
-// One provider of an order and what the row runs on there: the model, the effort level or none for the provider's
-// own, `on`, `off` or none for the thinking, and on the registry's provider the answer ceiling or none.
-export interface OrderEntryView {
+// One road: a provider and what runs on it there — the model, the effort level or none for the provider's own, `on`,
+// `off` or none for the thinking, and on the registry's provider the answer ceiling or none.
+export interface RoadView {
   provider: string;
   model: string;
   effort: string | null;
@@ -17,7 +17,7 @@ export interface OrderEntryView {
   answerTokens: number | null;
 }
 
-// What a provider has left as the order reads it (the agency's `docs/provider-order.md`, 「Quota: what a provider has
+// What a provider has left as a road's check reads it (the agency's `docs/provider-order.md`, 「Quota: what a provider has
 // left」): the share left, the window that counted, a balance for one that keeps one, and when the window resets.
 export interface QuotaView {
   left: number | null;
@@ -28,7 +28,7 @@ export interface QuotaView {
 
 // One provider the agency carries: its name, the pack's word for its code, the owner's switch, the lines its program
 // carries, what it has left, why it cannot answer now in the pack's words with the agency's own sentence beside, and
-// the compaction threshold a row whose order begins on it is given where its add names none.
+// the compaction threshold a row whose road stands on it is given where it sets none.
 export interface ProviderView {
   name: string;
   label: string;
@@ -41,7 +41,7 @@ export interface ProviderView {
   foldRatioDefault: number | null;
 }
 
-// One model an order's entry may name on a provider: its id, the effort levels its entry takes (none listed is every
+// One model a road may name on a provider: its id, the effort levels a road on it takes (none listed is every
 // level the harness declares), whether the catalogue serves its generation or has superseded it, and what its
 // registration or road member declares — its thinking default and its answer ceiling, none where it declares none.
 export interface ProviderModelView {
@@ -59,14 +59,7 @@ export interface ProviderModelsView {
   staleReadAt: number | null;
 }
 
-// The provider and model the owner forced as a supervisor's or a role's active provider (the agency's
-// `docs/provider-order.md`, 「A provider the owner forces」).
-export interface ActiveProviderView {
-  provider: string;
-  model: string;
-}
-
-// One supervisor as its row holds it and what it stands on now (the agency's `docs/supervisors.md`).
+// One supervisor as its row holds it (the agency's `docs/supervisors.md`).
 export interface SupervisorView {
   name: string;
   // The label it is shown by, its name where it keeps none.
@@ -81,17 +74,10 @@ export interface SupervisorView {
   // Whether the deployment seeds it or it is the default answerer, either of which the agency never removes.
   seeded: boolean;
   repository: string | null;
-  order: OrderEntryView[];
-  quotaShare: number;
-  // The provider the owner forced, or none where its order chooses.
-  active: ActiveProviderView | null;
+  // The one road every turn of it goes out on; none where its row names no road.
+  road: RoadView | null;
   warming: Record<string, boolean>;
   foldRatio: number;
-  // What its last turn went out on, and why its turn waits where no provider of its order has quota.
-  provider: string | null;
-  model: string | null;
-  effort: string | null;
-  waitingFor: string | null;
 }
 
 // One bundle a role may give, by its name and the words the screen says it in.
@@ -121,7 +107,7 @@ export interface RoleView {
   // role on one road.
   agents: RoleAgentView[];
   // The roads its runs go out on, read off its agents that are switched on, each once.
-  order: OrderEntryView[];
+  roads: RoadView[];
   // How many of its agents are switched on: the most of its runs that go at once.
   maxConcurrent: number;
   running: number;
@@ -278,8 +264,9 @@ export interface SupervisorRoomView {
   lastFinishedAt: number | null;
 }
 
-// The stand-in answering for a supervisor now, by the pack's word for its provider and the model, or none.
-export interface StandInView {
-  provider: string;
-  model: string;
+// Whether a supervisor's road can take a turn now (the agency's `docs/api.md`, 「supervisors」), and the agency's
+// sentence for why where it cannot.
+export interface SupervisorRoadStateView {
+  answers: boolean;
+  reason: string | null;
 }

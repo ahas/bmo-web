@@ -4,7 +4,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
-import type { ProviderModelsView, ProviderView, RepositoryView, RoleAgentView, RolesView, StandInView, SupervisorRoomView, SupervisorView, WorkNodeView } from "../../../apps/web/shared/axes";
+import type { ProviderModelsView, ProviderView, RepositoryView, RoleAgentView, RolesView, SupervisorRoadStateView, SupervisorRoomView, SupervisorView, WorkNodeView } from "../../../apps/web/shared/axes";
 
 // The agency's two axes and its places as the agent management screen asks them (the agency's docs/api.md,
 // 「supervisors」, 「roles」, 「repositories, prefix-checks and room-holdings」 and 「providers, models and model files」):
@@ -14,8 +14,8 @@ import type { ProviderModelsView, ProviderView, RepositoryView, RoleAgentView, R
 const ENTRY = { provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null };
 const SUPERVISOR = {
   name: "agent-a", label: null, ownerAccount: null, aliases: null, icon: null, sessionScope: "agent", turnShape: "window",
-  brainFolder: null, repository: "repo-a", order: [ENTRY, { provider: "deepseek" }], quotaShare: 0.01, active: { provider: "deepseek", model: "deepseek-v4-pro" }, warming: { "claude-code": true, deepseek: "yes" },
-  foldRatio: 0.8, gates: null, voice: null, sampling: null, provider: "claude-code", model: "claude-opus-5-5", effort: "high", waitingFor: null
+  brainFolder: null, repository: "repo-a", ...ENTRY, warming: { "claude-code": true, deepseek: "yes" }, foldRatio: 0.8, gates: null, voice: null,
+  sampling: null, seeded: false, resetPoint: null
 };
 const ROLE = {
   name: "worker", code: "worker", label: "Worker", prompt: null, description: null, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }],
@@ -47,7 +47,7 @@ const DOPPELGANGER = { ...ROLE, name: "doppelganger", code: "doppelganger", labe
 const OWN_ROLE = { ...ROLE, name: "role-own", code: "role-own", label: "Own role" };
 
 const agency = standIn("AGENCY", (call) => {
-  if (call.path === "/supervisors") return answer({ items: [SUPERVISOR], more: false });
+  if (call.path === "/supervisors") return answer({ items: [SUPERVISOR, { ...SUPERVISOR, name: "agent-b", provider: null, model: null, effort: null }], more: false });
   if (call.path === "/supervisors/agent-a" && call.method === "PATCH") return answer({ ...SUPERVISOR, ...call.body });
   if (call.path === "/roles/worker" && call.method === "PATCH") return answer({ ...ROLE, ...call.body });
   if (call.path === "/roles" && call.method === "POST") return answer({ ...ROLE, ...call.body }, 201);
@@ -58,7 +58,7 @@ const agency = standIn("AGENCY", (call) => {
   if (call.path === "/role-agents/worker-02" && call.method === "DELETE") return answer({ name: "worker-02" });
   if (call.path === "/supervisors/agent-a" && call.method === "GET") return answer({ ...SUPERVISOR, provider: "deepseek", model: "deepseek-v4-pro" });
   if (call.path === "/supervisors/agent-a/rooms") return answer({ items: [{ roomId: 5, runs: 3, lastRunId: 41, lastRunUnit: "chat-agent-a-41", lastStartedAt: 1_700_000_000_000, lastFinishedAt: null }], more: false });
-  if (call.path.startsWith("/stand-in")) return answer({ answers: true, provider: "deepseek", model: "deepseek-v4-pro" });
+  if (call.path === "/supervisors/agent-a/road") return answer({ supervisor: "agent-a", ...ENTRY, answers: false, reason: "The provider's quota is spent." });
   if (call.path === "/nodes") {
     return answer({
       items: [
@@ -95,45 +95,46 @@ const repositories = await routeOf<RepositoryView[]>("../../apps/web/server/api/
 const providerModels = await routeOf<ProviderModelsView>("../../apps/web/server/api/provider-models/[provider].get");
 const providers = await routeOf<ProviderView[]>("../../apps/web/server/api/providers.get");
 const supervisorRooms = await routeOf<SupervisorRoomView[]>("../../apps/web/server/api/supervisors/[name]/rooms.get");
-const supervisorStandIn = await routeOf<{ standIn: StandInView | null }>("../../apps/web/server/api/supervisors/[name]/stand-in.get");
+const supervisorRoad = await routeOf<SupervisorRoadStateView>("../../apps/web/server/api/supervisors/[name]/road.get");
 const workNodes = await routeOf<WorkNodeView[]>("../../apps/web/server/api/work-nodes.get");
 const repositoryChange = await routeOf<RepositoryView>("../../apps/web/server/api/repositories/[name].patch");
 
 describe("the supervisors", () => {
-  test("stand by their name where they keep no label, an order's member that is no entry left out and a warming that is no switch dropped", async () => {
+  test("stand by their name where they keep no label, on their one road, a warming that is no switch dropped", async () => {
     const got = await asked(supervisors, {});
 
     expect(got.status).toBe(200);
-    expect(got.answer?.[0]).toMatchObject({ name: "agent-a", label: "agent-a", order: [ENTRY], warming: { "claude-code": true }, foldRatio: 0.8 });
+    expect(got.answer?.[0]).toEqual({
+      name: "agent-a", label: "agent-a", ownerAccount: null, icon: null, aliases: null, sessionScope: "agent", turnShape: "window", defaultAnswerer: false,
+      seeded: false, repository: "repo-a", road: ENTRY, warming: { "claude-code": true }, foldRatio: 0.8
+    });
   });
 
-  test("carry a change the body names, and refuse a body naming none or an order of another shape", async () => {
+  test("stand on no road where their row names none", async () => {
+    expect((await asked(supervisors, {})).answer?.[1]).toMatchObject({ name: "agent-b", road: null });
+  });
+
+  test("carry a road whole, so a changed provider keeps nothing of the one before it, and name no order, share or force", async () => {
+    calls.length = 0;
+
+    const road = { provider: "deepseek", model: "deepseek-v4-pro", effort: null, thinking: "off", answerTokens: 4096 };
+    const got = await asked(supervisorChange, { params: { name: "agent-a" }, body: { road } });
+
+    expect(got).toMatchObject({ status: 200, answer: { road } });
+    expect(calls).toEqual([{ method: "PATCH", path: "/supervisors/agent-a", body: road }]);
+  });
+
+  test("carry a change the body names, and refuse a body naming none or a road of another shape", async () => {
     calls.length = 0;
 
     expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { foldRatio: 0.7, warming: { deepseek: true } } })).toMatchObject({ status: 200 });
     expect(calls).toMatchObject([{ method: "PATCH", path: "/supervisors/agent-a", body: { foldRatio: 0.7, warming: { deepseek: true } } }]);
+
+    calls.length = 0;
+
     expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: {} })).toMatchObject({ status: 400, message: wording("common.error.bad_action") });
-    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { order: [{ provider: "x" }] } })).toMatchObject({ status: 400 });
-  });
-
-  test("stand with the provider the owner forced, and carry a force set and cleared, refusing one of another shape", async () => {
-    expect((await asked(supervisors, {})).answer?.[0]?.active).toEqual({ provider: "deepseek", model: "deepseek-v4-pro" });
-
-    calls.length = 0;
-
-    const forced = await asked(supervisorChange, { params: { name: "agent-a" }, body: { active: { provider: "claude-code", model: "claude-opus-5-5" } } });
-
-    expect(forced).toMatchObject({ status: 200, answer: { active: { provider: "claude-code", model: "claude-opus-5-5" } } });
-    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { active: null } })).toMatchObject({ status: 200, answer: { active: null } });
-    expect(calls).toMatchObject([
-      { method: "PATCH", path: "/supervisors/agent-a", body: { active: { provider: "claude-code", model: "claude-opus-5-5" } } },
-      { method: "PATCH", path: "/supervisors/agent-a", body: { active: null } }
-    ]);
-
-    calls.length = 0;
-
-    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { active: { provider: "deepseek" } } })).toMatchObject({ status: 400 });
-    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { active: "deepseek" } })).toMatchObject({ status: 400 });
+    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { road: { provider: "deepseek" } } })).toMatchObject({ status: 400 });
+    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { order: [ENTRY], quotaShare: 0.5, active: null } })).toMatchObject({ status: 400 });
     expect(calls).toEqual([]);
   });
 });
@@ -155,7 +156,7 @@ describe("the roles", () => {
       ["worker-03", true, true, false]
     ]);
     // Its roads are those of its agents that are switched on and name one, each once.
-    expect(got.answer?.roles[0]?.order).toEqual([ENTRY]);
+    expect(got.answer?.roles[0]?.roads).toEqual([ENTRY]);
     expect(got.answer?.roles[0]?.maxConcurrent).toBe(2);
     expect(got.answer?.bundles[0]).toEqual({ name: "web.read", label: wording("agents.label.bundle_web_read") });
     expect(got.answer?.lines).toEqual(["worker"]);
@@ -313,17 +314,20 @@ describe("the repositories", () => {
   });
 });
 
-describe("a supervisor's rooms and its stand-in", () => {
+describe("a supervisor's rooms and its road", () => {
   test("name each room with its latest run, the run a screen opens its log at", async () => {
     const got = await asked(supervisorRooms, { params: { name: "agent-a" } });
 
     expect(got.answer).toEqual([{ chatId: 5, runs: 3, lastRun: "chat-agent-a-41", lastStartedAt: 1_700_000_000_000, lastFinishedAt: null }]);
   });
 
-  test("name the stand-in its last turn went out on, below the first provider of its order", async () => {
-    const got = await asked(supervisorStandIn, { params: { name: "agent-a" } });
+  test("say whether its road can take a turn now, with the agency's sentence for why it cannot", async () => {
+    calls.length = 0;
 
-    expect(got.answer).toEqual({ standIn: { provider: wording("agents.label.provider_deepseek"), model: "deepseek-v4-pro" } });
+    const got = await asked(supervisorRoad, { params: { name: "agent-a" } });
+
+    expect(got.answer).toEqual({ answers: false, reason: "The provider's quota is spent." });
+    expect(calls).toMatchObject([{ method: "GET", path: "/supervisors/agent-a/road" }]);
   });
 });
 

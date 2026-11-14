@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { activeRoad, activeRoadText, ceilingDefault, defaultThreshold, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
+import { ceilingDefault, defaultThreshold, roadText, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
 import { headOffset } from "../../../apps/web/app/domain/held-heads";
 import { slotLogPlace, tileLines, tileWho } from "../../../apps/web/app/domain/role-slots";
 import { wording } from "../../../apps/web/shared/wording";
 
-import type { OrderEntryView, ProviderModelsView, ProviderView } from "../../../apps/web/shared/axes";
+import type { RoadView, ProviderModelsView, ProviderView } from "../../../apps/web/shared/axes";
 
 // The defaults the agency's providers and models declare, marked where a value equals them (docs/web.md, 「The default
 // among choices」), and what a slot tile says of the run it holds (docs/web.md, 「Live status screen」).
@@ -15,7 +15,7 @@ const t = wording;
 const provider = (name: string, foldRatioDefault: number | null): ProviderView => ({
   name, label: name, enabled: true, registered: false, lines: [], quota: null, reason: null, reasonEnglish: null, foldRatioDefault
 });
-const entry = (name: string): OrderEntryView => ({ provider: name, model: "model-a", effort: null, thinking: null, answerTokens: null });
+const entry = (name: string): RoadView => ({ provider: name, model: "model-a", effort: null, thinking: null, answerTokens: null });
 const models: ProviderModelsView = {
   provider: "provider-a",
   models: [{ id: "model-a", efforts: [], inService: true, thinking: false, answerTokens: 8192 }, { id: "model-b", efforts: [], inService: null, thinking: null, answerTokens: null }],
@@ -23,19 +23,19 @@ const models: ProviderModelsView = {
 };
 
 describe("a compaction threshold", () => {
-  test("is the row's default where it equals the declared one of the first provider of its order", () => {
+  test("is the row's default where it equals the declared one of its road's provider", () => {
     const providers = [provider("provider-a", 0.85), provider("provider-b", 0.6)];
-    const fallback = defaultThreshold(providers, [entry("provider-b"), entry("provider-a")]);
+    const fallback = defaultThreshold(providers, "provider-b");
 
     expect(fallback).toBe(0.6);
     expect(thresholdText(t, 0.6, fallback)).toBe(wording("agents.label.default_marked", { value: "60%" }));
     expect(thresholdText(t, 0.85, fallback)).toBe("85%");
   });
 
-  test("is marked nowhere while the first provider has not been read or declares none", () => {
-    expect(defaultThreshold(undefined, [entry("provider-a")])).toBeNull();
-    expect(defaultThreshold([provider("provider-a", null)], [entry("provider-a")])).toBeNull();
-    expect(defaultThreshold([provider("provider-a", 0.85)], [])).toBeNull();
+  test("is marked nowhere while its road's provider has not been read or declares none, or it names no road", () => {
+    expect(defaultThreshold(undefined, "provider-a")).toBeNull();
+    expect(defaultThreshold([provider("provider-a", null)], "provider-a")).toBeNull();
+    expect(defaultThreshold([provider("provider-a", 0.85)], null)).toBeNull();
     expect(thresholdText(t, 0.85, null)).toBe("85%");
   });
 });
@@ -85,25 +85,13 @@ describe("a held head of names", () => {
   });
 });
 
-// What a row runs on now and how that provider became active (docs/web.md, 「What a row runs on now」).
-describe("a row's active road", () => {
-  const order = [{ ...entry("provider-a"), effort: "high" }, { ...entry("provider-b"), model: "model-b", effort: "low" }];
+// A road on one line (docs/web.md, 「Agent management screen」): a supervisor's road cell and a role agent's alike.
+describe("a road on one line", () => {
+  test("is its provider's word, its model and its effort, and none where it names no provider", () => {
+    const providers = [{ ...provider("provider-a", null), label: "Provider A" }];
 
-  test("is the forced provider on its forced model, at the effort the order's entry for it names", () => {
-    const road = activeRoad({ active: { provider: "provider-b", model: "model-c" }, order, provider: "provider-b" }, { model: "model-a", effort: "high" });
-
-    expect(road).toEqual({ provider: "provider-b", model: "model-c", effort: "low", forced: true });
-    expect(activeRoadText([provider("provider-b", null)], road!)).toBe("provider-b · model-c · low");
-    // A forced provider the order does not hold runs at the provider's own effort.
-    expect(activeRoad({ active: { provider: "provider-c", model: "model-d" }, order, provider: "provider-c" }, null)).toEqual({ provider: "provider-c", model: "model-d", effort: null, forced: true });
-  });
-
-  test("is a supervisor's last turn where the order chose, and a role's order's entry for its active provider", () => {
-    expect(activeRoad({ active: null, order, provider: "provider-a" }, { model: "model-x", effort: "max" })).toEqual({ provider: "provider-a", model: "model-x", effort: "max", forced: false });
-    expect(activeRoad({ active: null, order, provider: "provider-b" }, null)).toEqual({ provider: "provider-b", model: "model-b", effort: "low", forced: false });
-  });
-
-  test("is none where the agency names no active provider", () => {
-    expect(activeRoad({ active: null, order, provider: null }, null)).toBeNull();
+    expect(roadText(providers, { ...entry("provider-a"), effort: "high" })).toBe("Provider A · model-a · high");
+    expect(roadText(providers, entry("provider-a"))).toBe("Provider A · model-a");
+    expect(roadText(providers, { provider: null, model: null, effort: null })).toBeNull();
   });
 });

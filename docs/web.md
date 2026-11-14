@@ -1553,7 +1553,7 @@ Four groups.
 - **A model stands alone.** No line puts beside a model's name why its road was taken — that the provider order fell
   to it, that its runs went out on more than one — nor the model the work asked for. Where a reason is read, it is
   read in the tooltip that names the model whole — a TODO row's chip names there what chose a running job's road
-  (「TODO 패널」) — or on the agent management screen's 지금 cells.
+  (「TODO 패널」).
 - **The short name is one reading for every such place.** A registered engine is its alias resolved through the
   deployment's registrations to the engine it names, and carries no provider before it: `QFNC38` for a registration
   whose engine is `qwen3.8-flash-next-coder`, or the alias itself where no registration names it. Every other road
@@ -2780,7 +2780,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   call it so.
 - **What it is for.** The two axes the agency runs work on and the places it runs it (the agency's
   `docs/agents.md`, 「Two axes」): the roles, the agents — the supervisors and the agents of the roles — and the
-  repositories, and the two things a provider order
+  repositories, and the two things a road
   may name of the deployment's own, the registered models and the model files. Everything this screen edits is
   written through the agency's routes; the console keeps none of it.
 - **A section to a tab.** A tab stands only where the reader may read its part, and its 추가 and its row
@@ -2825,7 +2825,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   - **The columns behave as a spreadsheet's do** — the owner's words: 「그냥 엑셀 생각해봐」. Every column, the
     title's among them, stands at its own width, and no column takes the width left over. A column first stands as
     wide as its content asks — its name and its widest cell, measured as the rows land and again as what they say
-    changes. A column whose cells vary in length (a path, a list of rooms, what a row runs on now, a list of
+    changes. A column whose cells vary in length (a path, a list of rooms, a supervisor's road, a list of
     questions, a question's text, a model file's defaults or note) stands at most at a ceiling of its own and cuts its
     cells on one line there, the whole text in the tooltip every cut line gets. The room the columns do not use
     stands as one empty column at the right edge, so the table fills its box and every row, the head's among them,
@@ -2848,55 +2848,34 @@ archive and this week's tokens remain. That is all that can actually be known th
   with the pack's sentence for the agency's code under the field, or, for a choice, says it in a notice. A cell
   showing only what the agency worked out — how many of a role's runs go — is not pressed. A
   cell holding a group of switches — a supervisor's 캐시 유지 — opens them in its dropdown, each taking effect as it is
-  thrown. Dialogs are left only for what is not one cell: a provider order, a whole role with its agents, a whole
+  thrown. Dialogs are left only for what is not one cell: a supervisor's road, a whole role with its agents, a whole
   repository, a supervisor's own settings, and asking once before a removal; a row's whole settings open from its more-menu or its
   name, never from a cell.
-- **What a supervisor runs on now** is its active provider (the agency's `docs/provider-order.md`, 「Choosing the
-  provider」), the agency's word, never worked out here, and it stands in the row's 지금 cell. A role holds no
-  order and no force, so its 지금 cell is a reading alone (「역할」). The owner's words: 「현재 활성화된 것을 쓰고, 현재 활성화라는건 내가 수동으로 강제지정하거나 사용량에 의해 자동
-  전환되거나」.
-  - **The cell is one line:** the provider by the pack's word for its code, the model whole and its effort, joined
-    by middle dots, and before them a compact mark of how the provider became active — 강제 지정 where the owner
-    forced it (the agency's `active`, 「A provider the owner forces」), 공급자 순서 where the order chose it — the
-    mark's word its tooltip and its accessible name. A forced provider stands with its forced model and the effort
-    the order's entry for that provider names, or none. An order's choice stands as the agency answers it: the
-    supervisor's `provider`, `model` and `effort`, what its last turn went out on. A row the agency names no active
-    provider for stands as a dash. While its runs wait for quota (`waitingFor`) the cell says so under that line in the warning colour, the
-    agency's sentence in its tooltip.
-  - **Pressed, it opens the force's list,** a choice saved as it is picked through `PATCH /supervisors/{name}`
-    with `active`. It holds 순서에 맡김 — no force, the agency's default, so it reads
-    `순서에 맡김 (기본값)` — and then every model the row's line may run on, a group to each provider whose program
-    carries the line, in the agency's order of providers: the group headed by the provider's word, a provider that
-    cannot answer now with the pack's sentence for its reason, and under it each model `GET /provider-models/{provider}`
-    answers, the Claude catalogue's superseded generations marked, as the order's editor offers them. The forced
-    entry stands chosen, or 순서에 맡김 where none is forced, and the entry the row runs on now says 사용 중 under
-    it. Picking a model sends `active` as that provider and model; picking 순서에 맡김 sends `active` as null. A
-    provider's models are read as the list opens, each provider's once while the page stands. Neither the force nor
-    its clearing changes the order.
-- **A provider order is one field, edited in its own dialog** (the agency's `docs/provider-order.md`, 「What an order
-  is」), a supervisor's alone. Its cell is one line: the first provider, where the row's runs go
-  while it has quota, by the pack's word for its code with its model named short (「Model names where room is short」)
-  and its effort, marked as the first, and `외 N` after it, muted, for the N providers behind it; an order of one
-  provider has no `외`. Pressed, it
-  opens one form (「Forms」) with one 저장, holding the whole order:
-  - one block per entry: its head a drag handle, its place, the provider, and the buttons moving it up and down and
-    taking it out; under it the entry's fields, each under its own label — 모델, a list of what the agency's
-    `GET /provider-models/{provider}` answers for it, the Claude catalogue's superseded generations marked and a
-    stale read said with the time it was taken; 강도, a list of the levels that model takes, standing only where it
-    takes any; 생각, 켬 or 끔; and, on the registry's provider, 답변 상한. The fields stand in one column on a phone
-    and side by side from the small breakpoint up, the model taking what is left and every other field its own
-    width;
+- **A supervisor stands on one road** (the agency's `docs/supervisors.md` and `docs/provider-order.md`): a
+  provider, a model on it, an effort, thinking and, on the registry's provider, an answer ceiling. Every turn of
+  it goes out on that road; no other provider stands in for it and nothing is forced over it. What the road is
+  is the agency's word, never worked out here.
+- **A road is one field, edited in its own dialog,** a supervisor's alone. Its cell, 공급자 · 모델, is one line:
+  the provider by the pack's word for its code, the model whole and its effort, joined by middle dots; a row
+  whose road names no provider stands as a dash. Pressed, it opens one form (「Forms」) with one 저장, holding
+  the road:
+  - 공급자, a choice of every provider whose program carries the supervisor's line, a provider that cannot answer
+    now standing with the pack's sentence for its reason; a provider picked stands on the first model its
+    catalogue serves;
+  - under it, each under its own label — 모델, a list of what the agency's `GET /provider-models/{provider}`
+    answers for that provider, the Claude catalogue's superseded generations marked and a stale read said with
+    the time it was taken; 강도, a list of the levels that model takes, standing only where it takes any; 생각,
+    켬 or 끔; and, on the registry's provider, 답변 상한. The fields stand in one column on a phone and side by
+    side from the small breakpoint up, the model taking what is left and every other field its own width;
   - **the thinking and the answer ceiling mark the model's own:** the choice equal to the `thinking` the model's
-    registration or road member declares reads `켬 (기본값)` or `끔 (기본값)` and stands chosen while the entry leaves
-    thinking to the provider, and picking it leaves it so; an emptied ceiling box is the registration's own, its
-    placeholder the declared `answerTokens` with `(기본값)`. A model of a catalogue that declares neither marks none;
-  - under them, 공급자 추가, offering only the providers the order does not hold yet and whose program carries the
-    row's line, a provider that cannot answer now standing with the pack's sentence for its reason;
-  - 할당량 기준, the share of a provider's quota at or below which it is passed over, a whole percent from 0 to 100,
-    the agency's 1% reading `1% (기본값)`;
-  - an empty order is not offered: the last entry has no remove button. The save sends the order and the share
-    whole; a refusal keeps every line as written with the pack's sentence for the agency's code under the entry its
-    `field` names.
+    registration or road member declares reads `켬 (기본값)` or `끔 (기본값)` and stands chosen while the road
+    leaves thinking to the provider, and picking it leaves it so; an emptied ceiling box is the registration's
+    own, its placeholder the declared `answerTokens` with `(기본값)`. A model of a catalogue that declares neither
+    marks none;
+  - the save sends the road whole through `PATCH /supervisors/{name}` — its provider, model, effort, thinking
+    and answer ceiling, each null the road leaves to the provider or the registration — so a changed provider or
+    model never carries a level, a switch or a ceiling over from the one before. A refusal keeps every field as
+    written with the pack's sentence for the agency's code under the field its `field` names.
 - **No introduction stands above a section.** What a setting does is its label and its place; the reasons behind
   the settings are in the agency's documents named here, not on the screen.
 - **A supervisor's, a role's and a repository's settings are also opened on their own screens** (「Agent screen」),
@@ -2904,9 +2883,9 @@ archive and this week's tokens remain. That is all that can actually be known th
 - **Every settings dialog of the screen is laid out the same way.** Its title is the record's label, with its name
   under it only where the two differ. Each field stands under its own label; a text or a path takes the dialog's
   width, while a number box stands as wide as the values it takes and a list of a few short choices as wide as its
-  longest one, short fields of one kind standing side by side on one line. Fields that belong together — a provider
-  order and its share, a pinned model and its sampling — stand together, one gap apart, and groups stand one larger
-  gap apart.
+  longest one, short fields of one kind standing side by side on one line. Fields that belong together — a road's
+  provider, model, effort, thinking and ceiling, a pinned model and its sampling — stand together, one gap apart, and
+  groups stand one larger gap apart.
 
 #### 에이전트
 
@@ -2914,21 +2893,19 @@ The tab holds every agent of the screen: the supervisors, which answer rooms, an
 a seat of its role.
 
 - **One table of every supervisor** (the agency's `docs/supervisors.md`), one row each in the order the agency lists
-  them: 감독관, its mark, its label and its name, the title column; 공급자 순서, its order (above); 지금, its active
-  provider and how it became active, and the force set from it (above, 「What a row runs on now」), on one line under
-  a ceiling of its own, and why it waits where it waits; 캐시 유지,
-  the providers of its order its prefix is kept warm on, by the provider's word on one line, or 끔 where it is kept
-  warm on none; 압축 기준, its compaction threshold as a whole percent, the value equal to the first provider of its
-  order's declared threshold reading `85% (기본값)`; and 방, the rooms it answers as the sidebar lists them under it
+  them: 감독관, its mark, its label and its name, the title column; 공급자 · 모델, its road (above), on one line
+  under a ceiling of its own; 캐시 유지, its road's provider by the pack's word where its prefix is kept warm there,
+  or 끔 where it is not; 압축 기준, its compaction threshold as a whole percent, the value equal to its road's
+  provider's declared threshold reading `85% (기본값)`; and 방, the rooms it answers as the sidebar lists them under it
   (「Sidebar」), by their names on one line under a ceiling of its own. The row's more-menu stands centred on the row
   at its trailing edge, as every table's does, holding 설정, which opens its settings dialog here, and 삭제; pressing
   the row's name opens its own screen.
-- **캐시 유지** opens from its cell a dropdown of one switch per provider of the order, each by the provider's word,
-  each switched as it is pressed through `PATCH /supervisors/{name}` with `warming` whole; a provider turned off on
+- **캐시 유지** opens from its cell a dropdown holding the switch of its road's provider, by the provider's word,
+  switched as it is pressed through `PATCH /supervisors/{name}` with `warming` whole; a provider turned off on
   this machine stands disabled with its reason. **압축 기준** takes a whole percent from 1 to 100, saved with Enter or
   the check button.
-- **The settings dialog** is one form with one 저장 at its foot: 표시 이름; 공급자 순서 and 할당량 기준, the order's
-  editor in place; 캐시 유지 and 압축 기준 as the cells set them; 작업 저장소, the repository its TODO items go to,
+- **The settings dialog** is one form with one 저장 at its foot: 표시 이름; 공급자, 모델, 강도, 생각 and 답변 상한, the
+  road's editor in place; 캐시 유지 and 압축 기준 as the cells set them; 작업 저장소, the repository its TODO items go to,
   a list of the repositories; and, for a supervisor whose turns its settings' pieces make (its `turnShape`), its own
   settings as the agency holds them (its `docs/api.md`, 「supervisors」, a supervisor's settings): 생성 파라미터, each
   setting with what it is for and its bounds and an empty box the engine's own default, saying how many room sessions
@@ -2968,18 +2945,20 @@ a seat of its role.
   one the setting names now is the one chosen. A choice is saved as it is made, for the administrator, and every
   screen that tells the default answerer's turns from another's reads it anew; one the receiver refuses goes back to
   what it holds, its reason said under the row.
-- **감독관 추가** is the tab's 추가: a dialog of 이름, 표시 이름, 방 이름, 공급자 순서 and 작업 저장소, with 취소 and 추가,
-  sent as the receiver's `POST /supervisors` adds one (its `docs/api.md`, 「Supervisors」): the receiver makes a room
-  of the console's own under 방 이름 that names the new supervisor alone, and the agency registers the supervisor
-  with its whole order and share. The add carries the signed-in person's user id as `ownerAccount`, required of an
+- **감독관 추가** is the tab's 추가: a dialog of 이름, 표시 이름, 방 이름, 공급자, 모델 and 작업 저장소, with 취소 and
+  추가, sent as the receiver's `POST /supervisors` adds one (its `docs/api.md`, 「Supervisors」): the receiver makes a
+  room of the console's own under 방 이름 that names the new supervisor alone, and the agency registers the supervisor
+  on a road of that provider and model. 공급자 and 모델 open on the default answerer's road. The receiver's add takes
+  no more of a road, so the new supervisor's effort, thinking and answer ceiling stand as its provider's own until
+  its row's road sets them. The add carries the signed-in person's user id as `ownerAccount`, required of an
   organisation member, so the supervisor's brain and ownership are filed under them; for such a person it names
   `sessionScope` `agent` beside it, so one session answers every room their supervisor speaks in (the agency's
   `docs/supervisors.md`, 「Adding and removing a supervisor」), while the console's own account and an add naming
   no account leave the field out and keep the agency's `room` scope. A supervisor already standing keeps the
   account its row holds, and no row is written again. It is one action: where any part is refused, nothing
-  of it stands and the refusal stands under the field or the order's entry it names, in the pack's sentence for the
-  receiver's code. An added supervisor stands as a row at once, and its room in the sidebar's rooms. Where the
-  receiver took back a console room already standing under that title, a notice says so.
+  of it stands and the refusal stands under the field it names, in the pack's sentence for the receiver's code. An
+  added supervisor stands as a row at once, and its room in the sidebar's rooms. Where the receiver took back a
+  console room already standing under that title, a notice says so.
 - **삭제** stands in every supervisor's more-menu under 설정, sent as the receiver's `DELETE /supervisors/{name}`. For
   one the deployment seeds — the agency's `seeded` — and for the default answerer it stands disabled, saying under it
   why. It asks first, naming what goes — its settings, sessions and person records — and saying that the rooms it
@@ -3203,9 +3182,10 @@ a seat of its role.
   latest first, by its title, with how many of its runs went there and when the latest began, the room the screen
   stands at marked. Choosing one opens this screen's log at that latest run. A room it answers and never spoke in is
   not among them; which rooms it answers is the 감독관 tab's 방.
-- **대신 답하는 중** stands after that menu, in the same row, while the supervisor's last turn went out on the stand-in
-  the agency names for it (`GET /stand-in`, the agency's `docs/cache-fallback.md`) rather than on the first provider
-  of its order, with that provider's word and the model it answers on; on a narrow row its words are cut.
+- **답할 수 없음** stands after that menu, in the same row, while the supervisor's road cannot take a turn now, as
+  the agency's `GET /supervisors/{name}/road` answers it (its `docs/api.md`, 「supervisors」), the agency's sentence
+  for why in its tooltip; on a narrow row its words are cut. Where the road can take a turn, or the read fails,
+  nothing stands there.
 - A line has a time, a kind and content. There are eight kinds.
   - **시작** — a run opened. Which room's work, and which model and depth it runs at, attach.
   - **생각** — the thinking the run wrote itself.
@@ -6647,7 +6627,7 @@ research screen (「Research screen」).
   설치했어요, 확인하기 asks at once. Attached, the account is ready and the page leads to the login.
 - **An account made ready is given its own BMO and its agents,** by the console's server as the account turns
   active, each once: a supervisor of the account, named `u<user>` and shown by the person's name, on the provider
-  order and quota share of the supervisor that answers rooms naming none, with a console room of its own and one
+  and model of the road of the supervisor that answers rooms naming none, with a console room of its own and one
   session across its rooms; and, for every role that has an agent of no account, one agent of the account on that
   agent's road and settings, switched on. An account that already holds a supervisor, or an agent of a role, is
   given none again there. The machine the account is bound to is set as the node its runs stand on in agency,
@@ -6674,7 +6654,7 @@ research screen (「Research screen」).
   reports none — the pack's sentence for the reason it cannot answer now where it cannot, with the agency's own
   English as its tooltip, and the owner's switch. Lowering a switch turns that provider off at once and every
   order passes it over; its row stands dimmed. Turning off the last one on is refused by the agency, its sentence said
-  in a notice. While a stand-in is answering, its row carries 대신 답하는 중. No key the agency holds is read here.
+  in a notice. No key the agency holds is read here.
 - **Claude 계정** — the Claude accounts in the order the Claude Code provider walks them, a group under its heading as
   공급자 is, its rows parted by hairlines with no box round them, one row each: a drag
   handle, the place in the order, a mark saying whether that login is standing, near its end or gone — a login near

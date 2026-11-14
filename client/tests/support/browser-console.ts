@@ -72,7 +72,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["row-add", "fixture-password-2885"],
   ["todo-raise", "fixture-password-2871"],
   ["supervisor-road", "fixture-password-2921"],
-  ["builder-model", "fixture-password-2926"]
+  ["builder-model", "fixture-password-2926"],
+  ["sidebar-rooms", "fixture-password-2941"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -155,6 +156,12 @@ const RECORD_CHAT = -9_000_000_000_099;
 // A room whose messages carry what a messenger sends besides words: an album of three tall pictures, an animated
 // sticker, an animation, reactions of several people with their pictures, and two videos.
 const MEDIA_CHAT = 44;
+// A room a chat service numbered and listed, which the owner never added, allowed, gave an agent or spoke in: the
+// console leaves it out of the room list until it is added from the room add dialog, and once its registration is removed
+// it is a room never added again, so a file adding and removing it runs again on the same console. Its mode is what
+// the receiver's stand-in last added it in.
+const NUMBERED_CHAT = -9_002_000_000_001;
+const numbered: { mode: string | null } = { mode: null };
 // A tall picture, as a phone's screenshot stands: drawn as an SVG of that size.
 const TALL = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="591" height="1280"><rect width="591" height="1280" fill="#3a6"/></svg>');
 // An animated sticker: a one-second Lottie scene of one square, gzipped as Telegram keeps it.
@@ -661,12 +668,13 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     return null;
   },
-  RECEIVER: (path, request) => {
+  RECEIVER: async (path, request) => {
     const now = Date.now();
-    // One room: the owner's, with nothing said in it. Its moments are the receiver's milliseconds.
+    // One room: the owner's, with nothing said in it. Its moments are the receiver's milliseconds. Every room built
+    // from it stands on the listen list, so each stands in the room list as a room the owner uses.
     const room = {
       id: OWNER_CHAT, title: null, messageCount: 0, lastMessageAt: null, pinned: false, senders: [],
-      supervisors: [], ownerRoom: true, registered: true, workRoom: OWNER_CHAT
+      supervisors: [], ownerRoom: true, registered: true, workRoom: OWNER_CHAT, mode: null, listened: true
     };
 
     // A second room, whose line grows while it is first read: asked for its newest message it answers the first,
@@ -759,7 +767,33 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json(mediaLine.find((one) => one.id === id) ?? mediaLine[0]);
     }
 
-    if (path === "/rooms") return Response.json({ items: [room, behind, recorded, media], more: false });
+    const listed = { ...room, id: NUMBERED_CHAT, title: "numbered-room", ownerRoom: false, listened: false, workRoom: NUMBERED_CHAT, lastMessageAt: LINE_AT - 100, messageCount: 1, mode: numbered.mode };
+
+    // The one chat service rooms are added from, listing its account's rooms and taking the record-only mode.
+    if (path === "/providers") {
+      return Response.json({
+        items: [{ key: "chat-a", label: "Chat A", listsRooms: true, listsContacts: false, startsChats: false, startsGroups: false, roomModes: ["record-only"] }],
+        more: false
+      });
+    }
+    if (path === "/providers/chat-a/rooms") {
+      return Response.json({ items: [{ id: NUMBERED_CHAT, title: "numbered-room", kind: "group", privateTo: null, held: true, mode: numbered.mode }], more: false });
+    }
+    if (path === "/rooms" && request.method === "POST") {
+      const body = (await request.json()) as { roomId?: number; mode?: string };
+
+      if (body.roomId !== NUMBERED_CHAT) return Response.json({ code: "room-unknown", error: "the service does not hold the room" }, { status: 409 });
+      if (numbered.mode !== null) return Response.json({ code: "room-added", error: "the room is added" }, { status: 409 });
+      numbered.mode = body.mode ?? "record-only";
+
+      return Response.json({ ...listed, mode: numbered.mode }, { status: 201 });
+    }
+    if (path === `/rooms/${NUMBERED_CHAT}` && request.method === "DELETE") {
+      numbered.mode = null;
+
+      return Response.json({ goes: [], stays: [], pictures: [], settings: [], folders: [], warned: [], units: [], taken: [], cleared: [], holders: [], couldNot: [] });
+    }
+    if (path === "/rooms") return Response.json({ items: [room, listed, behind, recorded, media], more: false });
     if (path === `/rooms/${RECORD_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
 

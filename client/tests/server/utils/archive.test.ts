@@ -70,8 +70,22 @@ const voiced = [
 const keptFile = (place: number, kind: string, name: string, type: string | null, size: number | null, kept = true) => ({ place, kind, name, type, size, kept });
 
 function room(id: number, over: Record<string, unknown> = {}): Record<string, unknown> {
-  return { id, title: null, messageCount: 1, lastMessageAt: 1, pinned: false, senders: [], supervisors: [], ownerRoom: false, registered: true, workRoom: 0, ...over };
+  return { id, title: null, messageCount: 1, lastMessageAt: 1, pinned: false, senders: [], supervisors: [], ownerRoom: false, registered: true, workRoom: 0, mode: null, listened: false, ...over };
 }
+
+// The receiver's room list, one room for each mark of a room the owner uses and one a chat service merely numbered,
+// which a test adds and removes as the receiver's own routes would.
+const numbered = room(-20, { title: "Numbered", lastMessageAt: 150_000 });
+const rooms: Record<string, unknown>[] = [
+  room(5, { messageCount: 3, lastMessageAt: 100_000, pinned: true }),
+  numbered,
+  room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200_000, supervisors: ["agent-b"] }),
+  // The owner's private chat, a room the console made on the record road.
+  room(-11, { messageCount: 1, lastMessageAt: 300_000, ownerRoom: true }),
+  room(-21, { title: "Spoken", lastMessageAt: 50_000, senders: [9, 5] }),
+  room(-22, { title: "Listened", lastMessageAt: 40_000, listened: true }),
+  room(-23, { title: "Added", lastMessageAt: 30_000, mode: "record-only" })
+];
 
 const receiver = standIn("RECEIVER", (one) => {
   const path = one.path.split("?")[0]!;
@@ -104,17 +118,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-9/messages") return answer({ items: voiced, more: false });
   if (path === "/rooms/-9/messages/22/sender-is-owner") return answer({ owner: true });
 
-  if (path === "/rooms") {
-    return answer({
-      items: [
-        room(5, { messageCount: 3, lastMessageAt: 100_000, pinned: true }),
-        room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200_000, supervisors: ["agent-b"] }),
-        // The owner's private chat, a room the console made on the record road.
-        room(-11, { messageCount: 1, lastMessageAt: 300_000 })
-      ],
-      more: false
-    });
-  }
+  if (path === "/rooms") return answer({ items: rooms, more: false });
 
   // The owner's room is the console-made one; their chat service's one-to-one is a room like any other.
   if (path === "/owner") return answer({ room: -11, senderId: 5 });
@@ -167,9 +171,27 @@ describe("the rooms", () => {
     expect(await listRooms()).toEqual([
       { chatId: 5, title: "Person A", messageCount: 3, lastMessageAt: 100, pinned: true },
       { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, pinned: false },
-      { chatId: -11, title: "Agent A", messageCount: 1, lastMessageAt: 300, pinned: false }
+      { chatId: -11, title: "Agent A", messageCount: 1, lastMessageAt: 300, pinned: false },
+      { chatId: -21, title: "Spoken", messageCount: 1, lastMessageAt: 50, pinned: false },
+      { chatId: -22, title: "Listened", messageCount: 1, lastMessageAt: 40, pinned: false },
+      { chatId: -23, title: "Added", messageCount: 1, lastMessageAt: 30, pinned: false }
     ]);
     expect(await roomTitleOf(-7)).toBe("Room A");
+  });
+
+  test("stand only where the owner uses them: a room a chat service merely numbered comes in once added and leaves once removed", async () => {
+    const listed = async () => (await listRooms()).map((one) => one.chatId);
+
+    expect(await listed()).not.toContain(-20);
+
+    numbered.mode = "record-only";
+    expect(await listed()).toEqual([5, -20, -7, -11, -21, -22, -23]);
+
+    rooms.splice(rooms.indexOf(numbered), 1);
+    expect(await listed()).toEqual([5, -7, -11, -21, -22, -23]);
+
+    rooms.splice(1, 0, numbered);
+    numbered.mode = null;
   });
 
   test("the owner's private chat is the room the receiver names, and their one-to-one is called by the person it is with", async () => {

@@ -137,20 +137,16 @@ async function peopleNamed(ids: readonly number[]): Promise<Map<number, string>>
 
 const untitled = (title: string | null): boolean => title === null || title.trim() === "";
 
-// A room with the receiver's listen mark, which the vendored receiver client does not declare yet; a room answered
-// without it is read as one not on the listen list.
-type MarkedRoom = ReceiverRoom & { listened?: boolean };
-
 /** Whether the owner uses a room, as the receiver's record of it says and never by the chat service it is on: his
  * private chat, a room naming supervisors, one added, one pinned, one on the listen list, or one his own words stand
  * in (docs/web.md, 「Sidebar」). */
-export function inUse(room: MarkedRoom, ownerSender: number | null): boolean {
+export function inUse(room: ReceiverRoom, ownerSender: number | null): boolean {
   return (
     room.ownerRoom ||
     room.supervisors.length > 0 ||
     room.mode !== null ||
     room.pinned ||
-    room.listened === true ||
+    room.listened ||
     (ownerSender !== null && room.senders.includes(ownerSender))
   );
 }

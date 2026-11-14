@@ -49,6 +49,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["room-feed", "fixture-password-1457"],
   ["room-record", "fixture-password-2260"],
   ["room-find", "fixture-password-2261"],
+  ["room-past", "fixture-password-2943"],
   ["pictures", "fixture-password-2262"],
   ["skeleton259", "fixture-password-259"],
   ["stepper", "fixture-password-2206"],
@@ -168,6 +169,14 @@ const MEDIA_CHAT = 44;
 // the receiver's stand-in last added it in.
 const NUMBERED_CHAT = -9_002_000_000_001;
 const numbered: { mode: string | null } = { mode: null };
+// Two rooms of more than two pages, read back to their oldest line: one a chat service numbers past 2^53, a thousand
+// apart as such a service spaces its numbers, whose road there reads the room's past back; and one numbered from 1
+// whose road reads nothing back. Each answers a page by the place its cursor stands in the line, as the receiver does,
+// so a cursor naming no line it holds reads nothing.
+const PAST_CHAT = -9_002_000_000_002;
+const PAST_LINE = Array.from({ length: 75 }, (_, at) => String(3_973_000_000_000_000_177n + BigInt(at) * 1_000n));
+const PAGED_CHAT = -9_002_000_000_003;
+const PAGED_LINE = Array.from({ length: 70 }, (_, at) => String(at + 1));
 // A tall picture, as a phone's screenshot stands: drawn as an SVG of that size.
 const TALL = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="591" height="1280"><rect width="591" height="1280" fill="#3a6"/></svg>');
 // An animated sticker: a one-second Lottie scene of one square, gzipped as Telegram keeps it.
@@ -863,6 +872,10 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
     if (path === "/people") return Response.json({ items: [], more: false });
 
+    const paged = pagedRoom(path, new URL(request.url).searchParams);
+
+    if (paged !== null) return paged;
+
     const at = /^\/rooms\/(-?\d+)(\/[^/]+(?:\/[^/]+)?)?$/.exec(path);
 
     if (at === null) return null;
@@ -900,6 +913,55 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
   CACHE_SIREN: () => null,
   CACHE_WARMER: (path) => path === "/round" ? Response.json({ stopped: false }) : null
 };
+
+// The two rooms read back to their oldest line, as the receiver answers them: a page of `limit` lines ending just
+// before `before`, or past `after`, by the place the cursor stands in the line; the room's chat service; and the verbs
+// its road there performs. Null for any other road.
+function pagedRoom(path: string, query: URLSearchParams): Response | null {
+  const room = new RegExp(`^/rooms/(${PAST_CHAT}|${PAGED_CHAT})(/.*)?$`).exec(path);
+
+  if (room === null) return null;
+
+  const chat = Number(room[1]);
+  const line = chat === PAST_CHAT ? PAST_LINE : PAGED_LINE;
+  const message = (id: string) => ({
+    id: rawNumber(id), room: chat, senderId: 7, senderName: "person-b", sentAt: LINE_AT - 600_000 + line.indexOf(id) * 1_000,
+    text: `line ${line.indexOf(id) + 1}`, imagePath: null, replyToMessageId: null, answerSeconds: null, round: null, album: null, via: null, files: []
+  });
+
+  switch (room[2] ?? "") {
+    case "/messages": {
+      const limit = Number(query.get("limit") ?? "30");
+      const after = query.get("after");
+
+      if (after !== null) {
+        const from = line.indexOf(after);
+        const items = from === -1 ? [] : line.slice(from + 1, from + 1 + limit);
+
+        return Response.json({ items: items.map(message), more: from !== -1 && from + 1 + limit < line.length });
+      }
+
+      const before = query.get("before");
+      const end = before === null ? line.length : line.indexOf(before);
+      const start = Math.max(0, end - limit);
+
+      return Response.json(end === -1 ? { items: [], more: false } : { items: line.slice(start, end).map(message), more: start > 0 });
+    }
+    case "/providers":
+      return Response.json({ providers: ["chat-a"], chosen: false });
+    case "/send-verbs":
+      return Response.json({ items: chat === PAST_CHAT ? ["text", "history"] : ["text"], more: false });
+    case "/title":
+      return Response.json({ title: chat === PAST_CHAT ? "past-room" : "paged-room" });
+    default: {
+      const one = /^\/messages\/(-?\d+)$/.exec(room[2] ?? "");
+
+      if (one !== null && line.includes(one[1]!)) return Response.json(message(one[1]!));
+
+      return null;
+    }
+  }
+}
 
 let stopping = false;
 

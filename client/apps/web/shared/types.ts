@@ -2590,10 +2590,11 @@ export interface MessagePage {
   hasMore: boolean;
 }
 
-// Where a room's line begins: the names of its chat services that read the room's past back, none where no service
-// does, so its oldest message is the conversation's start (docs/web.md, the room screen's 「Where a room's line begins」).
+// Where a room's line begins: the names of the chat services its past comes over from, where the road it is answered on
+// reads a room's past back; none elsewhere, so its oldest message is the conversation's start; null where the receiver
+// could not say (docs/web.md, the room screen's 「Where a room's line begins」).
 export interface RoomPast {
-  readers: string[];
+  readers: string[] | null;
 }
 
 // What one round of a room spent and did, read once the page carrying its last answer has landed (docs/web.md, the

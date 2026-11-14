@@ -11,8 +11,9 @@ import type { MessagePage, RoomPast } from "../../../apps/web/shared/types";
 // A room's page read by a cursor, and where its line begins (docs/web.md, the room screen's 「A cursor is a place, not
 // a number」 and 「Where a room's line begins」). A chat service may number its messages past 2^53, so every cursor names
 // its row by the digits the receiver wrote, and a value that is no signed 64-bit integer is refused before the receiver
-// is asked. Which chat services read a room's past back is told by the verbs each one's road in the room performs;
-// nothing here reads which service a key names, so the keys are neutral.
+// is asked. Where the road a room is answered on reads a room's past back, the room's providers whose account lists
+// rooms are the services its past comes over from; nothing here reads which service a key names, so the keys are
+// neutral.
 
 // Two rows a JavaScript number reads as one.
 const HIGH = ["3973025898369060353", "3973025898369060354"];
@@ -33,7 +34,11 @@ const row = (id: string) => ({
   files: []
 });
 
-const listed = [{ key: "provider-a", label: "Provider A" }, { key: "provider-b", label: "Provider B" }];
+// A messenger whose account lists rooms, and the room's own record, which lists none.
+const listed = [
+  { key: "provider-a", label: "Provider A", listsRooms: true, listsContacts: false, startsChats: false, startsGroups: false, roomModes: [] },
+  { key: "provider-b", label: "Provider B", listsRooms: false, listsContacts: false, startsChats: false, startsGroups: false, roomModes: [] }
+];
 
 const receiver = standIn("RECEIVER", (one) => {
   const url = new URL(one.path, "http://receiver");
@@ -43,10 +48,11 @@ const receiver = standIn("RECEIVER", (one) => {
   if (url.pathname === "/rooms/-12/answerers") return answer({ default: "", voice: "", items: [], more: false });
   if (url.pathname === "/providers") return answer({ items: listed, more: false });
   if (url.pathname === "/rooms/-12/providers") return answer({ providers: ["provider-b", "provider-a"], chosen: false });
-  if (url.pathname === "/rooms/-13/providers") return answer({ providers: ["provider-b"], chosen: false });
-  if (url.pathname === "/rooms/-12/send-verbs" || url.pathname === "/rooms/-13/send-verbs") {
-    return answer({ items: url.searchParams.get("via") === "provider-a" ? ["text", "history"] : ["text", "photo"], more: false });
-  }
+  if (url.pathname === "/rooms/-13/providers") return answer({ providers: ["provider-b", "provider-a"], chosen: false });
+  // The road room -12 is answered on reads a room's past back; the road of room -13 does not.
+  if (url.pathname === "/rooms/-12/send-verbs") return answer({ items: ["text", "history"], more: false });
+  if (url.pathname === "/rooms/-13/send-verbs") return answer({ items: ["text", "photo"], more: false });
+
   if (url.pathname === "/rooms/-14/providers") return answer({ code: "failed", error: "the store did not answer" }, 503);
 
   return answer({ code: "not-found", error: "Not served here." }, 404);
@@ -105,12 +111,17 @@ describe("a room's page read by a cursor", () => {
 });
 
 describe("where a room's line begins", () => {
-  test("names the room's chat services whose road there reads its past back, in the room's order", async () => {
+  test("names the room's services whose account lists rooms where its road reads its past back, in the room's order", async () => {
     expect((await asked(past, { params: { chatId: "-12" } })).answer).toEqual({ readers: ["Provider A"] });
   });
 
-  test("names none where no service of the room reads its past back, or the receiver cannot say", async () => {
+  test("names none where the room's road reads nothing back", async () => {
     expect((await asked(past, { params: { chatId: "-13" } })).answer).toEqual({ readers: [] });
-    expect((await asked(past, { params: { chatId: "-14" } })).answer).toEqual({ readers: [] });
+  });
+
+  // A receiver that cannot say is told apart from a room no service reads back, so the screen never calls a line the
+  // conversation's start on a guess.
+  test("says it cannot tell where the receiver cannot say", async () => {
+    expect((await asked(past, { params: { chatId: "-14" } })).answer).toEqual({ readers: null });
   });
 });

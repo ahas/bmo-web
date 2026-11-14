@@ -3998,14 +3998,16 @@ Four bounds keep it from growing forever.
     names its message by a number as the browser reads it; the screen finds the line it holds under that number
     and asks by the line's own digits.
 - **Where a room's line begins.** Once the reader stands at the oldest message the receiver holds, a line above
-  it says what that is. In a room none of whose chat services reads a room's past back, it is the
-  conversation's start: 「대화의 처음입니다.」. In a room where one does — one whose road there performs `history`
-  in bmo-chat's terms — the room holds only what that service has handed over so far, so the line names it:
-  「〈서비스〉에서 받은 대화는 여기부터입니다.」, each such service by the label the receiver gives it, and the older
-  lines are that service's to read back. The console asks which services those are once, when the oldest message
-  is reached, from the room's providers and the verbs each one's road in the room performs; a receiver that
-  cannot say leaves it the conversation's start. The line keeps its height while that is asked, so nothing under
-  it moves.
+  it says what that is. Where the road the room is answered on reads a room's past back — it performs `history` in
+  bmo-chat's terms — the room holds only what its chat service has handed over so far, so the line names the
+  service: 「〈서비스〉에서 받은 대화는 여기부터입니다.」, and the older lines are that service's to read back. The
+  services named are the room's providers whose account lists rooms, the messengers its lines come over from, as
+  opposed to the room's own record, each by the label the receiver gives it. Everywhere else it is the
+  conversation's start: 「대화의 처음입니다.」. Where the receiver cannot say, the line stands with no words rather
+  than calling the oldest message the start on a guess. The console asks this once, when the oldest
+  message is reached, from the room's providers, what each provider says of itself and the verbs of the room's road;
+  the receiver answers a road's verbs for the room's own road alone, so the services are told apart by what each
+  says of itself. The line keeps its height while that is asked, so nothing under it moves.
 - **A page joins the room's line where its rows stand, never where it arrived.**
   - A row the screen already holds is replaced where it stands. Every other row of the page goes beside the
     held row it stands next to in the page: one before the page's first held row stands before that row, one

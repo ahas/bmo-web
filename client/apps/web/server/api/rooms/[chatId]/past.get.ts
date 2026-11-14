@@ -1,8 +1,9 @@
 import type { RoomPast } from "#shared/types";
 
 // Where a room's line begins, for the line the room screen stands above its oldest message (docs/web.md, the room
-// screen's 「Where a room's line begins」): the chat services that read the room's past back, named. A receiver
-// that cannot say names none, and the screen then reads the oldest message as the conversation's start.
+// screen's 「Where a room's line begins」): the chat services the room's past comes over from, where its road reads a
+// room's past back. Where the receiver cannot say, the answer says so rather than naming none, so the screen never
+// calls a line the conversation's start on a guess.
 export default defineEventHandler(async (event): Promise<RoomPast> => {
   await requireUserSession(event);
 
@@ -10,5 +11,5 @@ export default defineEventHandler(async (event): Promise<RoomPast> => {
 
   await requireReadableRoom(event, chatId);
 
-  return { readers: await roomPastReaders(chatId).catch(() => []) };
+  return { readers: await roomPastReaders(chatId).catch(() => null) };
 });

@@ -176,23 +176,27 @@ export async function exactMessage(roomId: number, messageId: ExactMessageId | n
 }
 
 /**
- * The names of a room's chat services that read a room's past back: those whose road in the room performs
- * `history` (bmo-chat's `docs/contract.md`, 「Capabilities」), each by the label the receiver gives it, in the room's
- * order. The room's line reaches only as far back as what such a service has handed over so far.
+ * The names of the chat services a room's past comes over from, where the road the room is answered on reads a room's
+ * past back (it performs `history`, bmo-chat's `docs/contract.md`, 「Capabilities」): the room's providers whose account
+ * lists rooms, a messenger the room's lines are handed over from, as opposed to the room's own record, each by the
+ * label the receiver gives it, in the room's order. None where the road reads nothing back. The receiver answers a
+ * road's verbs for the room's own road alone, so the services are told apart by what each provider says of itself.
  */
 export async function roomPastReaders(roomId: number): Promise<string[]> {
   const asking = receiver();
-  const [listed, room] = await Promise.all([
+  const [listed, room, verbs] = await Promise.all([
     receiverCall(asking.GET("/providers")),
-    receiverCall(asking.GET("/rooms/{roomId}/providers", { params: { path: { roomId } } }))
+    receiverCall(asking.GET("/rooms/{roomId}/providers", { params: { path: { roomId } } })),
+    receiverCall(asking.GET("/rooms/{roomId}/send-verbs", { params: { path: { roomId } } }))
   ]);
-  const verbs = await Promise.all(
-    room.providers.map((via) => receiverCall(asking.GET("/rooms/{roomId}/send-verbs", { params: { path: { roomId }, query: { via } } })))
-  );
 
-  return room.providers
-    .filter((_, at) => verbs[at]!.items.includes("history"))
-    .map((key) => listed.items.find((provider) => provider.key === key)?.label ?? key);
+  if (!verbs.items.includes("history")) return [];
+
+  return room.providers.flatMap((key) => {
+    const provider = listed.items.find((one) => one.key === key);
+
+    return provider?.listsRooms === true ? [provider.label] : [];
+  });
 }
 
 /** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */

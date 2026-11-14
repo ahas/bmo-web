@@ -198,11 +198,11 @@
         <ContentSkeleton v-if="roomFeed.loadingOlder.value" listClass="flex flex-col gap-(--chat-message-gap)" :label="$t('room.status.earlier_loading')">
           <RoomMessageSkeleton />
         </ContentSkeleton>
-        <!-- Where the room's line begins: the conversation's start, or how far back the chat services that read
-             the room's past have handed it over (docs/web.md, 「Where a room's line begins」). The line keeps its
+        <!-- Where the room's line begins: the conversation's start, or how far back the chat services its past
+             comes over from have handed it over (docs/web.md, 「Where a room's line begins」). The line keeps its
              height while that is asked, so nothing under it moves when it is said. -->
         <p v-else-if="lineBegins" data-line-begins class="min-h-5 text-center text-sm text-dimmed">
-          {{ pastReaders === null ? "" : pastReaders.length > 0 ? $t("room.status.held_from", { services: pastReaders.join(", ") }) : $t("room.status.start_of_talk") }}
+          {{ lineBeginsText }}
         </p>
 
         <ContentSkeleton
@@ -1275,17 +1275,25 @@ const pendingRows = computed<FeedItem[]>(() => {
 // day」).
 const days = computed<DayGroup[]>(() => atFoot(t, groupDays(t, archived.value), pendingRows.value));
 
-// Where the room's line begins, asked once the reader has reached its oldest message: the chat services that read
-// the room's past back, named; none where no service does, and none where the receiver cannot say.
+// Where the room's line begins, asked once the reader has reached its oldest message: the chat services the room's
+// past comes over from, where its road reads a room's past back; none elsewhere. Where that could not be learned the
+// line says nothing, rather than calling the oldest message the conversation's start on a guess.
 const lineBegins = computed<boolean>(() => !roomFeed.older.value && days.value.length > 0);
-const pastReaders = ref<string[] | null>(null);
+const past = ref<RoomPast | null>(null);
+const lineBeginsText = computed<string>(() => {
+  const readers = past.value?.readers ?? null;
+
+  if (readers === null) return "";
+
+  return readers.length > 0 ? t("room.status.held_from", { services: readers.join(", ") }) : t("room.status.start_of_talk");
+});
 
 watch(
   lineBegins,
   async (reached) => {
-    if (!reached || pastReaders.value !== null) return;
+    if (!reached || past.value !== null) return;
 
-    pastReaders.value = (await $fetch<RoomPast>(`/api/rooms/${chatId}/past`).catch(() => ({ readers: [] }))).readers;
+    past.value = await $fetch<RoomPast>(`/api/rooms/${chatId}/past`).catch(() => ({ readers: null }));
   },
   { immediate: true }
 );

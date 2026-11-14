@@ -18,16 +18,16 @@ const ROOM = 43;
 const NOW = Math.floor(Date.now() / 1000);
 
 const asked: ArchivedMessage = {
-  chatId: ROOM, messageId: 14319, exactId: "14319", senderId: 7, senderName: "person-b", sentAt: NOW - 120, text: "the question asked", imagePath: null,
+  chatId: ROOM, messageId: "14319", senderId: 7, senderName: "person-b", sentAt: NOW - 120, text: "the question asked", imagePath: null,
   replyToMessageId: null
 };
 const answer: ArchivedMessage = {
-  chatId: ROOM, messageId: 14320, exactId: "14320", senderId: 0, senderName: "agent-a", sentAt: NOW - 60, text: "the answer's own words", imagePath: null,
-  replyToMessageId: 14319, agent: true
+  chatId: ROOM, messageId: "14320", senderId: 0, senderName: "agent-a", sentAt: NOW - 60, text: "the answer's own words", imagePath: null,
+  replyToMessageId: "14319", agent: true
 };
 const verdicts: Judgement[] = [
-  { id: 1, chatId: ROOM, messageId: 14319, stage: "people-search", verdict: "SKIP: no candidates", detail: null, createdAt: NOW - 110 },
-  { id: 2, chatId: ROOM, messageId: 14319, stage: "chat", verdict: "REPLY: the answer's own words", detail: "the answer's own words", createdAt: NOW - 61 }
+  { id: 1, chatId: ROOM, messageId: "14319", stage: "people-search", verdict: "SKIP: no candidates", detail: null, createdAt: NOW - 110 },
+  { id: 2, chatId: ROOM, messageId: "14319", stage: "chat", verdict: "REPLY: the answer's own words", detail: "the answer's own words", createdAt: NOW - 61 }
 ];
 
 let browser: Browser | null = null;
@@ -82,7 +82,7 @@ describe.skipIf(!origin || !touchReady())("copying a message", () => {
     const at = cookie.indexOf("=");
     const drafted: ArchivedMessage = {
       ...answer,
-      messageId: 14321,
+      messageId: "14321",
       text: "an answer drafted and checked",
       drafts: { round: "round:7", asked: 1, end: "message", reads: [] },
       actions: { agent: "agent-a", runs: ["run-7"], documents: 0, held: 0, tools: 1, brain: 0, records: [] }

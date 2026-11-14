@@ -13,11 +13,7 @@ export default defineEventHandler(async (event) => {
 
   await requireReadableRoom(event, chatId);
 
-  const messageId = Number(getRouterParam(event, "messageId") ?? "");
-
-  if (!Number.isSafeInteger(messageId)) {
-    throw fail(400, wording("room.error.bad_message_id"));
-  }
+  const messageId = requireMessageId(event);
 
   const query = getQuery(event);
   const file = fileAsked(kind, await messageFiles(chatId, messageId), whole(query.item));

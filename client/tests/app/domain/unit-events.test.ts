@@ -165,9 +165,9 @@ describe("the voice engine's briefings", () => {
       at: 1_800_000_000_000,
       type: "voice-briefing",
       chatId: 42,
-      messageId: 548,
+      messageId: "548",
       phase: "ended",
-      voice: { id: 7, chatId: 42, messageId: 548, kind: "summary", title: "t", state: "done", durationMs: 9000, plays: true, voiceMessageId: null, spoken: true, finishedAt: 1_799_999_999_000 }
+      voice: { id: 7, chatId: 42, messageId: "548", kind: "summary", title: "t", state: "done", durationMs: 9000, plays: true, voiceMessageId: null, spoken: true, finishedAt: 1_799_999_999_000 }
     });
   });
 

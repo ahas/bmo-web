@@ -12,7 +12,7 @@ describe("the addresses a notification opens", () => {
       expect(ownerRoomPath(base, null)).toBe(base);
       expect(todoPath(base, 42, 90)).toBe(`${base}rooms/42?todo=90`);
       expect(todoPath(base, null, 90)).toBe(`${base}?todo=90`);
-      expect(messagePath(base, -7, 3)).toBe(`${base}rooms/-7?at=3`);
+      expect(messagePath(base, -7, "3")).toBe(`${base}rooms/-7?at=3`);
     });
 
     test(`under ${base} become the router's route again, and an address outside it stays as it is`, () => {

@@ -17,9 +17,9 @@
 <script setup lang="ts">
 import { mediaUrl } from "~/domain/player";
 
-import type { MessageAttachment } from "#shared/types";
+import type { ExactMessageId, MessageAttachment } from "#shared/types";
 
-const props = defineProps<{ attachment: MessageAttachment; chatId: number; messageId: number }>();
+const props = defineProps<{ attachment: MessageAttachment; chatId: number; messageId: ExactMessageId }>();
 
 const url = computed(() => `${mediaUrl("animation", props.chatId, props.messageId)}?item=${props.attachment.id}`);
 </script>

@@ -1,5 +1,6 @@
 import { MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS } from "#shared/config";
 
+import type { ExactMessageId } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
 // A file the owner has attached but not sent yet: the file itself, a key of its own so the
@@ -109,7 +110,7 @@ export function attachmentLabel(file: File): string {
 // The body one send carries: the words as the caption, the files in the order they were
 // attached. The first file is the one the caption goes with, which the bot decides; the console
 // only has to keep the order. A reply is that first file's too.
-export function attachmentBody(caption: string, files: readonly PickedFile[], replyTo: number | null = null): FormData {
+export function attachmentBody(caption: string, files: readonly PickedFile[], replyTo: ExactMessageId | null = null): FormData {
   const body = new FormData();
 
   body.set("caption", caption);

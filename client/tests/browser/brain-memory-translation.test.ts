@@ -23,7 +23,7 @@ const READING = "The logs are to be checked at dawn, as the room promised.";
 
 const MESSAGE = {
   chatId: CHAT,
-  messageId: 9_101,
+  messageId: "9101",
   senderId: 0,
   senderName: "agent-a",
   sentAt: NOW - 1_000,

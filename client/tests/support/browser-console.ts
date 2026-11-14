@@ -18,6 +18,7 @@ import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
 import { rawNumber } from "./raw-number";
+import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
 import { addressOf } from "./web-database";
 
@@ -59,6 +60,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["mention-agents", "fixture-password-2346"],
   ["brain-translation", "fixture-password-2355"],
   ["voice-transcript", "fixture-password-2361"],
+  ["high-room", "fixture-password-2963"],
   ["room-attach", "fixture-password-2364"],
   ["agent-names", "fixture-password-2371"],
   ["monitor-polling", "fixture-password-2372"],
@@ -177,6 +179,10 @@ const PAST_CHAT = -9_002_000_000_002;
 const PAST_LINE = Array.from({ length: 75 }, (_, at) => String(3_973_000_000_000_000_177n + BigInt(at) * 1_000n));
 const PAGED_CHAT = -9_002_000_000_003;
 const PAGED_LINE = Array.from({ length: 70 }, (_, at) => String(at + 1));
+// What the owner said into the KakaoTalk-sized room (tests/support/high-room.ts), each with the message it answers, and
+// the reaction each of the room's messages carries, kept for as long as the console stands. A reaction stands as the
+// room's other person's, so a press always sets it and a run of a file again finds the same.
+const high: { said: { id: string; text: string; replyTo: string | null }[]; reactions: Map<string, string> } = { said: [], reactions: new Map() };
 // A tall picture, as a phone's screenshot stands: drawn as an SVG of that size.
 const TALL = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="591" height="1280"><rect width="591" height="1280" fill="#3a6"/></svg>');
 // An animated sticker: a one-second Lottie scene of one square, gzipped as Telegram keeps it.
@@ -824,7 +830,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ goes: [], stays: [], pictures: [], settings: [], folders: [], warned: [], units: [], taken: [], cleared: [], holders: [], couldNot: [] });
     }
-    if (path === "/rooms") return Response.json({ items: [room, listed, behind, recorded, media], more: false });
+    if (path === "/rooms") return Response.json({ items: [room, listed, behind, recorded, media, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }], more: false });
     if (path === `/rooms/${RECORD_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
 
@@ -869,6 +875,117 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       const found = line.find((one) => one.id === message[1]);
 
       return found === undefined ? Response.json({ code: "not-found", error: "no such message" }, { status: 404 }) : Response.json(found.message);
+    }
+
+    // The KakaoTalk-sized room: a line longer than a page, numbered past 2^53, every id written as its exact digits,
+    // read page by page past and before a message, a message at a time, its pictures walked by the picture viewer, a
+    // reaction kept on the message it names and the owner's words kept with the message they answer. A cursor or an
+    // id that names no message of the line is refused, as the receiver refuses one.
+    const highLine = () => {
+      const kept = (id: string, at: number, over: Record<string, unknown>) => ({
+        id: rawNumber(id), room: HIGH_ROOM, senderId: 7, senderName: "person-b", sentAt: LINE_AT - 60_000 + at * 1_000, text: highWords(at),
+        imagePath: null, replyToMessageId: null, answerSeconds: null, round: null, album: null, via: null, files: [],
+        reactions: high.reactions.has(id) ? [{ emoji: high.reactions.get(id), by: "7" }] : [], ...over
+      });
+      const pictured = (at: number) => ({ imagePath: `images/${HIGH_ROOM}/${at}.jpg`, text: "" });
+
+      return [
+        ...HIGH_LINE.map((id, at) => ({
+          id,
+          message: kept(id, at, {
+            ...(HIGH_ALBUM.includes(at) ? { ...pictured(at), album: rawNumber(HIGH_LINE[HIGH_ALBUM[0]!]!) } : {}),
+            ...(at === HIGH_PICTURE ? pictured(at) : {}),
+            ...(at === HIGH_FILE ? { files: [{ kind: "document", source: HIGH_FILE_NAME, storedPath: "kept", collectedAt: LINE_AT }] } : {}),
+            ...(at === HIGH_LINE.length - 1 ? { replyToMessageId: rawNumber(HIGH_LINE[HIGH_ANSWERED]!) } : {})
+          })
+        })),
+        ...high.said.map((one, nth) => ({
+          id: one.id,
+          message: kept(one.id, HIGH_LINE.length + nth, { senderId: 1, senderName: "owner", text: one.text, replyToMessageId: one.replyTo === null ? null : rawNumber(one.replyTo) })
+        }))
+      ];
+    };
+    const unknownMessage = () => Response.json({ code: "not-found", error: "no such message" }, { status: 404 });
+
+    if (path === `/rooms/${HIGH_ROOM}/messages` || path === `/rooms/${HIGH_ROOM}/pictures`) {
+      const query = new URL(request.url).searchParams;
+      const limit = Number(query.get("limit") ?? 30);
+      const pictures = path.endsWith("/pictures");
+      const rows = pictures ? highLine().filter((one) => one.message.imagePath !== null) : highLine();
+      const place = (id: string) => rows.findIndex((one) => one.id === id);
+      const [at, after, before] = [query.get("at"), query.get("after"), query.get("before")];
+      const named = at ?? after ?? before;
+
+      if (named !== null && place(named) === -1) return unknownMessage();
+
+      const [from, to] = at !== null
+        ? [place(at), place(at) + 1]
+        : after !== null
+          ? [place(after) + 1, Math.min(rows.length, place(after) + 1 + limit)]
+          : before !== null
+            ? [Math.max(0, place(before) - limit), place(before)]
+            : [Math.max(0, rows.length - limit), rows.length];
+      const more = after !== null ? to < rows.length : at === null && from > 0;
+      const items = rows.slice(from, to).map((one) => one.message);
+
+      if (!pictures) return Response.json({ items, more });
+
+      return Response.json({
+        items: items.map((one) => ({
+          id: one.id, album: one.album, senderName: one.senderName, sentAt: one.sentAt, text: one.text,
+          file: { bytes: TALL.byteLength, name: `${one.imagePath}`, type: "image/svg+xml" }
+        })),
+        more,
+        before: from,
+        total: rows.length
+      });
+    }
+
+    const highAsked = new RegExp(`^/rooms/${HIGH_ROOM}/messages/(-?\\d+)(/[a-z0-9/]+)?$`).exec(path);
+
+    if (highAsked !== null) {
+      const id = highAsked[1]!;
+      const found = highLine().find((one) => one.id === id);
+
+      if (found === undefined) return unknownMessage();
+
+      switch (highAsked[2] ?? "") {
+        case "/picture":
+          return new Response(TALL, { headers: { "content-type": "image/svg+xml" } });
+        case "/files":
+          return Response.json({ items: id === HIGH_LINE[HIGH_FILE] ? [{ place: 0, kind: "document", name: HIGH_FILE_NAME, size: HIGH_FILE_WORDS.length, type: "text/plain", kept: true }] : [], more: false });
+        case "/files/0":
+          return id === HIGH_LINE[HIGH_FILE] ? new Response(HIGH_FILE_WORDS, { headers: { "content-type": "text/plain" } }) : unknownMessage();
+        case "/metadata":
+          return Response.json({ metadata: null });
+        case "/sender-is-owner":
+          return Response.json({ owner: false });
+        case "/reactions/mine":
+          if (request.method === "PUT") high.reactions.set(id, ((await request.json()) as { emoji: string }).emoji);
+          else high.reactions.delete(id);
+
+          return Response.json(highLine().find((one) => one.id === id)!.message);
+        default:
+          return Response.json(found.message);
+      }
+    }
+    if (path === "/owner/messages" && request.method === "POST") {
+      // The message a reply answers is read from the digits the console wrote, as the receiver reads a 64-bit id.
+      const body = JSON.parse(await request.clone().text(), (key: string, value: unknown, context?: { source?: string }) =>
+        key === "replyTo" && typeof value === "number" ? context?.source : value
+      ) as { chatId?: number; text?: string; replyTo?: string | null };
+
+      if (body.chatId === HIGH_ROOM) {
+        if (body.replyTo != null && !highLine().some((one) => one.id === body.replyTo)) {
+          return Response.json({ code: "reply-missing", error: "the archive holds no such message" }, { status: 409 });
+        }
+
+        const id = highSent(high.said.length);
+
+        high.said.push({ id, text: body.text ?? "", replyTo: body.replyTo ?? null });
+
+        return Response.json({ id: rawNumber(id) });
+      }
     }
     if (path === "/people") return Response.json({ items: [], more: false });
 

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
+import { rawNumber } from "../../support/raw-number";
 import { answer, standIn } from "../../support/units";
 
 import type { ForwardedMessage, MessageAct, RoomPins, SentMessage, StickerSet } from "../../../apps/web/shared/types";
@@ -35,8 +36,16 @@ const MESSAGE = {
   forwardedFrom: null
 };
 
+// A message of a chat service that numbers its messages past 2^53, and the copy a forward of it stands as: neighbours
+// a JavaScript number reads as one (docs/web.md, 「A message's id」).
+const HIGH = "3973025898369060353";
+const HIGH_COPY = "3973025898369060354";
+
 const receiver = standIn("RECEIVER", (one) => {
   const path = one.path.split("?")[0] ?? "";
+
+  if (path === `/rooms/-7/messages/${HIGH}/forwards`) return answer({ room: one.body?.to, id: rawNumber(HIGH_COPY) }, 201);
+  if (path.startsWith(`/rooms/-7/messages/${HIGH}`)) return answer({ ...MESSAGE, id: rawNumber(HIGH) });
 
   if (/^\/rooms\/-7\/messages\/-404\//.test(path) || path === "/rooms/-7/messages/-404") {
     return answer({ code: "message-unknown", error: "The record holds no such message." }, 404);
@@ -77,8 +86,8 @@ describe("the reader's own acts on a message", () => {
   test("puts their reaction on and takes it off, answering the message's number", async () => {
     receiver.asked.length = 0;
 
-    expect((await asked(react, { params: params("21"), body: { emoji: "👍" } })).answer).toEqual({ messageId: 21 });
-    expect((await asked(unreact, { params: params("21") })).answer).toEqual({ messageId: 21 });
+    expect((await asked(react, { params: params("21"), body: { emoji: "👍" } })).answer).toEqual({ messageId: "21" });
+    expect((await asked(unreact, { params: params("21") })).answer).toEqual({ messageId: "21" });
     expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([
       ["PUT", "/rooms/-7/messages/21/reactions/mine", { emoji: "👍" }],
       ["DELETE", "/rooms/-7/messages/21/reactions/mine", null]
@@ -106,8 +115,8 @@ describe("the reader's own acts on a message", () => {
   test("sets a pin and takes it off by the direction the screen names", async () => {
     receiver.asked.length = 0;
 
-    expect((await asked(pin, { params: params("21"), body: { on: true } })).answer).toEqual({ messageId: 21 });
-    expect((await asked(pin, { params: params("21"), body: { on: false } })).answer).toEqual({ messageId: 21 });
+    expect((await asked(pin, { params: params("21"), body: { on: true } })).answer).toEqual({ messageId: "21" });
+    expect((await asked(pin, { params: params("21"), body: { on: false } })).answer).toEqual({ messageId: "21" });
     expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([
       ["PUT", "/rooms/-7/messages/21/pin", { on: true }],
       ["PUT", "/rooms/-7/messages/21/pin", { on: false }]
@@ -117,7 +126,7 @@ describe("the reader's own acts on a message", () => {
   test("edits the reader's own message with the words the box took", async () => {
     receiver.asked.length = 0;
 
-    expect((await asked(edit, { params: params("21"), body: { text: " new words " } })).answer).toEqual({ messageId: 21 });
+    expect((await asked(edit, { params: params("21"), body: { text: " new words " } })).answer).toEqual({ messageId: "21" });
     expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([["PATCH", "/rooms/-7/messages/21", { text: "new words" }]]);
   });
 
@@ -140,7 +149,7 @@ describe("a message the owner forwards", () => {
   test("copies it into the room the picker chose, as the owner, and answers where the copy stands", async () => {
     receiver.asked.length = 0;
 
-    expect((await asked(forward, { params: params("21"), body: { to: "-8" } })).answer).toEqual({ room: -8, messageId: 77 });
+    expect((await asked(forward, { params: params("21"), body: { to: "-8" } })).answer).toEqual({ room: -8, messageId: "77" });
     expect(receiver.asked.map((one) => [one.method, one.path, one.body, one.headers?.["owner-key"], one.headers?.["owner-role"]])).toEqual([
       ["POST", "/rooms/-7/messages/21/forwards", { to: -8 }, "1", "administrator"]
     ]);
@@ -159,7 +168,7 @@ describe("the room's pins and stickers", () => {
   test("lists the pinned messages newest pin first, in the seconds the screen reads", async () => {
     const page = (await asked(pins, { params: { chatId: "-7" } })).answer!;
 
-    expect(page.items).toEqual([{ messageId: 21, senderName: "person-a", text: "words", pinnedAt: 1_790_000_030 }]);
+    expect(page.items).toEqual([{ messageId: "21", senderName: "person-a", text: "words", pinnedAt: 1_790_000_030 }]);
   });
 
   test("lists the record's stickers by their emoji", async () => {
@@ -169,7 +178,7 @@ describe("the room's pins and stickers", () => {
   test("sends a sticker as the reader's own message", async () => {
     receiver.asked.length = 0;
 
-    expect((await asked(sticker, { params: { chatId: "-7" }, body: { emoji: "🎉" } })).answer).toEqual({ messageId: 21 });
+    expect((await asked(sticker, { params: { chatId: "-7" }, body: { emoji: "🎉" } })).answer).toEqual({ messageId: "21" });
     expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([["POST", "/rooms/-7/stickers", { emoji: "🎉" }]]);
   });
 
@@ -177,6 +186,34 @@ describe("the room's pins and stickers", () => {
     receiver.asked.length = 0;
 
     expect(await asked(sticker, { params: { chatId: "-7" }, body: {} })).toMatchObject({ status: 400, message: wording("room.error.sticker_empty") });
+    expect(receiver.asked).toEqual([]);
+  });
+});
+
+describe("an act on a message numbered past 2^53", () => {
+  test("names the message to the receiver by its digits and answers it by them", async () => {
+    receiver.asked.length = 0;
+
+    expect((await asked(react, { params: params(HIGH), body: { emoji: "👍" } })).answer).toEqual({ messageId: HIGH });
+    expect((await asked(pin, { params: params(HIGH), body: { on: true } })).answer).toEqual({ messageId: HIGH });
+    expect((await asked(edit, { params: params(HIGH), body: { text: "words" } })).answer).toEqual({ messageId: HIGH });
+    expect((await asked(remove, { params: params(HIGH) })).answer).toEqual({ messageId: HIGH });
+    expect((await asked(forward, { params: params(HIGH), body: { to: "-8" } })).answer).toEqual({ room: -8, messageId: HIGH_COPY });
+    expect(receiver.asked.map((one) => [one.method, one.path])).toEqual([
+      ["PUT", `/rooms/-7/messages/${HIGH}/reactions/mine`],
+      ["PUT", `/rooms/-7/messages/${HIGH}/pin`],
+      ["PATCH", `/rooms/-7/messages/${HIGH}`],
+      ["DELETE", `/rooms/-7/messages/${HIGH}`],
+      ["POST", `/rooms/-7/messages/${HIGH}/forwards`]
+    ]);
+  });
+
+  test("refuses an id that is no signed 64-bit integer's digits before the receiver is asked", async () => {
+    receiver.asked.length = 0;
+
+    for (const id of ["9223372036854775808", "3.97e18", "0042"]) {
+      expect(await asked(react, { params: params(id), body: { emoji: "👍" } })).toMatchObject({ status: 400, message: wording("room.error.bad_message_id") });
+    }
     expect(receiver.asked).toEqual([]);
   });
 });

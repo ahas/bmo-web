@@ -1,6 +1,9 @@
 import { createParser } from "eventsource-parser";
 
-import type { BotEvent } from "#shared/types";
+import { exactJson } from "../utils/exact-json";
+import { EVENT_IDS, exactMessage } from "../utils/receiver";
+
+import type { BotEvent, ExactMessageId } from "#shared/types";
 
 // The console's own ear on the receiver, held open for as long as this server runs. Every screen
 // reads the receiver's stream to keep itself current; this reads the same stream to ring the
@@ -20,10 +23,10 @@ const FIRST_OPEN_DELAY_MS = 2_000;
 
 // One message of a room where an agent filed it, and null for a person's or one the receiver does not
 // hold: the sender's number is one of the room's answerers' own numbers.
-async function agentMessage(chatId: number, messageId: number): Promise<{ senderName: string; text: string } | null> {
+async function agentMessage(chatId: number, messageId: ExactMessageId): Promise<{ senderName: string; text: string } | null> {
   try {
     const [message, numbers] = await Promise.all([
-      receiverCall(receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId: chatId, messageId } } })),
+      exactMessage(chatId, messageId),
       agentNumbers(chatId)
     ]);
 
@@ -160,7 +163,8 @@ export default defineNitroPlugin((nitro) => {
     let event: BotEvent;
 
     try {
-      event = JSON.parse(data) as BotEvent;
+      // The message an event names is read by its exact id (docs/web.md, 「A message's id」).
+      event = exactJson(data, EVENT_IDS) as BotEvent;
     } catch {
       return;
     }

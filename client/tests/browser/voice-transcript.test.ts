@@ -19,7 +19,7 @@ const NOW = 1_800_000_000_000;
 function voice(messageId: number, over: Record<string, unknown>): Record<string, unknown> {
   return {
     chatId: CHAT,
-    messageId,
+    messageId: String(messageId),
     senderId: 1,
     senderName: "owner",
     sentAt: NOW - messageId,

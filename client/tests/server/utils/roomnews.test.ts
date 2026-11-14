@@ -71,7 +71,7 @@ function bench(): Bench {
 
 async function said(at: Bench, messageId: number, line: string, sender = "agent-a"): Promise<void> {
   at.rows.set(`${ROOM}:${messageId}`, { sender, line });
-  await at.ringer.heard(ROOM, messageId, at.now());
+  await at.ringer.heard(ROOM, String(messageId), at.now());
 }
 
 describe("a room's notification", () => {
@@ -104,7 +104,7 @@ describe("ringing a room", () => {
     await said(at, 1, "first part");
     await said(at, 2, "second part");
     // The same message named again by the stream's other word is not a second one.
-    await at.ringer.heard(ROOM, 2, at.now());
+    await at.ringer.heard(ROOM, "2", at.now());
     await at.pass(ROOM_GATHER_MS);
 
     expect(at.sent.map((one) => [one.payload.title, one.payload.body])).toEqual([[wording("push.title.room_bundled", { room: "Alpha Room", n: 2 }), wording("push.message.room_line", { sender: "agent-a", line: "second part" })]]);
@@ -113,9 +113,9 @@ describe("ringing a room", () => {
   test("what is not an agent's line, and what was said before listening began, rings nothing", async () => {
     const at = bench();
 
-    await at.ringer.heard(ROOM, 9, at.now());
+    await at.ringer.heard(ROOM, "9", at.now());
     at.rows.set(`${ROOM}:8`, { sender: "agent-a", line: "an old line" });
-    await at.ringer.heard(ROOM, 8, at.now() - 1);
+    await at.ringer.heard(ROOM, "8", at.now() - 1);
     await at.pass(ROOM_GATHER_MS);
 
     expect(at.sent).toHaveLength(0);

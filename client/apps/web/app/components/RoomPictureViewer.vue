@@ -24,6 +24,7 @@
 import { useRoomPictures } from "~/domain/gallery";
 import { useIsland } from "bmo-ui/app/domain/island";
 
+import type { ExactMessageId } from "#shared/types";
 import type { BarAction } from "bmo-ui/app/domain/tabs";
 import type { Size } from "bmo-ui/app/domain/zoom";
 
@@ -35,7 +36,7 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   // The message a picture went out in, to be brought into view in the room.
-  show: [messageId: number];
+  show: [messageId: ExactMessageId];
 }>();
 
 const { t } = useI18n();
@@ -76,7 +77,7 @@ function showInMessage(): void {
   emit("show", current.value);
 }
 
-function openOn(messageId: number, named: string): Promise<void> {
+function openOn(messageId: ExactMessageId, named: string): Promise<void> {
   leaving.value = false;
 
   return show(messageId, named);

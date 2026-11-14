@@ -94,12 +94,11 @@ let next = 7_000;
 function row(text: string, mine: boolean, extra: Partial<ArchivedMessage> = {}): ArchivedMessage {
   clock += 60;
 
-  const messageId = next++;
+  const messageId = String(next++);
 
   return {
     chatId: CHAT,
     messageId,
-    exactId: String(messageId),
     // The owner's number is known only once the console is asked; the room is served with it.
     senderId: mine ? -1 : 0,
     senderName: mine ? ACCOUNT.name : "agent-a",
@@ -269,7 +268,7 @@ async function visit(page: Page): Promise<void> {
 }
 
 interface Placed {
-  message: number;
+  message: string;
   width: number;
   // How far the block, and the last button in it, reach past the room the bubble keeps inside its
   // padding, on either side; nought or less is inside.
@@ -286,7 +285,7 @@ interface Placed {
 async function placed(page: Page): Promise<Placed[]> {
   return await page.evaluate(() =>
     [...document.querySelectorAll<HTMLElement>("[data-message] [data-attachment]")].map((block) => {
-      const message = Number(/^m(-?\d+)$/.exec(block.closest<HTMLElement>("[data-message]")!.dataset.message ?? "")?.[1]);
+      const message = /^m(-?\d+)$/.exec(block.closest<HTMLElement>("[data-message]")!.dataset.message ?? "")?.[1] ?? "";
       const cut = block.closest<HTMLElement>("[data-bubble]")!.firstElementChild as HTMLElement;
       // The body the block's line stands in keeps the bubble's padding.
       const body = block.parentElement!.parentElement!;
@@ -312,7 +311,7 @@ async function placed(page: Page): Promise<Placed[]> {
 }
 
 interface Worded {
-  message: number;
+  message: string;
   // The lines the letters stand on, as each one's foot and reach, with the blank at their end and
   // again with it taken away at the same bubble width.
   lines: string[];
@@ -417,7 +416,7 @@ async function worded(page: Page): Promise<Worded[]> {
       const cut = bubble.querySelector<HTMLElement>("[data-bubble]")!.firstElementChild as HTMLElement;
 
       return {
-        message: Number(/^m(-?\d+)$/.exec(bubble.dataset.message ?? "")?.[1]),
+        message: /^m(-?\d+)$/.exec(bubble.dataset.message ?? "")?.[1] ?? "",
         lines: withBlank[at]!,
         bare: bare[at]!,
         midWord: midWord(words),

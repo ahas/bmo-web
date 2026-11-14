@@ -253,7 +253,7 @@
                   :day="entry.day.key"
                   :place="runPlace(at === 0, at === run.rows.length - 1)"
                   :arriving="arrivals.has(item.key)"
-                  :judging="judged.has(item.messageId)"
+                  :judging="item.messageId !== null && judged.has(item.messageId)"
                   :round-judgements="roundJudgementsOf(item)"
                   :round-situation="roundSituationOf(item)"
                   :chat-id="chatId"
@@ -541,6 +541,7 @@ import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 import type {
   ArchivedMessage,
   DelegationPage,
+  ExactMessageId,
   Judgement,
   RoomStats,
   LiveRun,
@@ -560,7 +561,7 @@ import type { ComposedMessage, PickedFile } from "~/domain/attachments";
 import type { AvatarIndex } from "~/domain/avatars";
 import type { RunState } from "~/domain/events";
 import type { LandedPicture, OutboxItem, SendOutcome } from "~/domain/outbox";
-import type { DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
+import type { ArchivedItem, DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
 import type { MentionAgent } from "~/domain/mentions";
 import type { PinnedMessage, RoomAnswerers, RoomPast } from "#shared/types";
 import type { Point, Rect } from "~/domain/flight";
@@ -777,8 +778,8 @@ async function stepPinned(): Promise<void> {
 // message menu): the record keeps it and the room reads that one row again, which is the same path the record's
 // `message-changed` news takes, so the row is never drawn from what the screen sent. A refusal is said in the pack's
 // sentence for the receiver's code.
-function itemOf(key: string): FeedItem | undefined {
-  return items.value.find((held) => held.key === key);
+function itemOf(key: string): ArchivedItem | undefined {
+  return items.value.find((held): held is ArchivedItem => held.key === key && held.messageId !== null);
 }
 
 async function reactToMessage(key: string, emoji: string): Promise<void> {
@@ -810,7 +811,7 @@ async function pinMessageAsReader(key: string, on: boolean): Promise<void> {
 
 // The message being edited, and the box it is edited in. The box is asked for the words it stands on and answers
 // whether the record took them, so a refusal is said inside it rather than over the room.
-const editing = ref<FeedItem | null>(null);
+const editing = ref<ArchivedItem | null>(null);
 const editingOpen = computed<boolean>({
   get: () => editing.value !== null,
   set: (open: boolean) => {
@@ -867,7 +868,7 @@ async function removeMessage(key: string): Promise<void> {
 
 // The message being forwarded, and the rooms it can go into: every room the console lists but the one it stands in,
 // each under the name the console shows it by. The copy is the record's, so the screen opens it where it went.
-const forwarding = ref<FeedItem | null>(null);
+const forwarding = ref<ArchivedItem | null>(null);
 const forwardingOpen = computed<boolean>({
   get: () => forwarding.value !== null,
   set: (open: boolean) => {
@@ -975,7 +976,7 @@ function roundSituationOf(item: FeedItem): Situation | null {
 
 // Which messages of the room are being judged right now, which their verdict mark beats for: none that
 // already holds a final verdict written since its judging began.
-const judged = computed<Set<number>>(() => judgedNow(chatId, live.value, queued.value, runs.value, judgementIndex.value));
+const judged = computed<Set<ExactMessageId>>(() => judgedNow(chatId, live.value, queued.value, runs.value, judgementIndex.value));
 
 // The room's own name, from the one list every screen takes a room's name from, and the
 // picture Telegram shows for it.
@@ -987,15 +988,15 @@ const roomAvatar = computed(() => avatarFor(avatars.value, "room", chatId, title
 const roomFaceOpen = ref(false);
 
 // Every picture of the feed opens in the room's own viewer, which walks the whole room's pictures.
-const pictureViewer = useTemplateRef<{ show: (messageId: number, title: string) => Promise<void> }>("pictureViewer");
+const pictureViewer = useTemplateRef<{ show: (messageId: ExactMessageId, title: string) => Promise<void> }>("pictureViewer");
 
 provide(ROOM_PICTURES, {
-  open: (messageId: number, named: string) => void pictureViewer.value?.show(messageId, named)
+  open: (messageId: ExactMessageId, named: string) => void pictureViewer.value?.show(messageId, named)
 });
 
 // The viewer's show-in-message: the message the picture went out in, once the viewer's own step in
 // the history has been taken back, brought into view and marked as a quote's is.
-async function showPictureMessage(messageId: number): Promise<void> {
+async function showPictureMessage(messageId: ExactMessageId): Promise<void> {
   await nextTick();
   await stepsLanded();
   await jumpTo(messageId);
@@ -1223,7 +1224,7 @@ const runRows = useHandOver(turnRows, roomFeed.messages);
 // it went, taken the moment the message takes that line's place and kept after the line is let go, so the message is
 // the one row it already was and is never drawn again (docs/web.md, the room screen's section on a message being
 // sent). It is read before the feed is drawn, so no frame stands the message under a key of its own.
-const lives = shallowRef<ReadonlyMap<number, string>>(new Map());
+const lives = shallowRef<ReadonlyMap<ExactMessageId, string>>(new Map());
 
 watch(
   () => [outbox.value, roomFeed.messages.value, speaker.value.id] as const,
@@ -1434,18 +1435,15 @@ useReadMarks({
   chatId,
   viewport: scroller,
   messages: roomFeed.messages,
-  rows: () => new Set(items.value.flatMap((item) => (item.exactId === null ? [] : [item.exactId]))),
+  rows: () => new Set(items.value.flatMap((item) => (item.messageId === null ? [] : [item.messageId]))),
   newer: roomFeed.newer,
   away: awayFromEnd,
   settled: opened
 });
 
-// The first message the reader has not read, as the room list last said, by the number the screen goes to a message
-// by; null where it says none.
-function firstUnread(): number | null {
-  const first = rooms.value.find((room) => room.chatId === chatId)?.firstUnread ?? null;
-
-  return first === null ? null : Number(first);
+// The first message the reader has not read, as the room list last said; null where it says none.
+function firstUnread(): ExactMessageId | null {
+  return rooms.value.find((room) => room.chatId === chatId)?.firstUnread ?? null;
 }
 
 // The room list carries the reader's own read mark, and the room opens at the first message it
@@ -1468,7 +1466,7 @@ async function roomsSettled(): Promise<void> {
 
 // The first unread message where it stands out of view with the feed at the room's end; null where
 // the room opens at its end.
-function firstUnreadOutOfView(): number | null {
+function firstUnreadOutOfView(): ExactMessageId | null {
   const first = firstUnread();
   const element = scroller();
   const row = first === null ? null : rowOf(rowLine(first));
@@ -1558,7 +1556,7 @@ function scroller(): HTMLElement | null {
 // read with the stretch of the room around it, which takes the feed away from the room's end until
 // it is read back down to it — so a message from months ago costs three reads, not every page
 // between it and today.
-async function scrollToMessage(messageId: number): Promise<boolean> {
+async function scrollToMessage(messageId: ExactMessageId): Promise<boolean> {
   await nextTick();
 
   if (rowOf(rowLine(messageId)) === null) {
@@ -1586,7 +1584,7 @@ async function scrollToMessage(messageId: number): Promise<boolean> {
 // scrolled in the same moment they are laid out, so the first frame drawn already stands there. The
 // first unread message opens the room there only where it would stand out of view at the room's end
 // (docs/web.md, 「Room screen」); a message the address names is always gone to.
-async function openAt(messageId: number, asked: boolean): Promise<boolean> {
+async function openAt(messageId: ExactMessageId, asked: boolean): Promise<boolean> {
   if (!(await roomFeed.loadAround(messageId))) {
     return false;
   }
@@ -1616,7 +1614,7 @@ async function openAt(messageId: number, asked: boolean): Promise<boolean> {
 // The row a message stands in, which is where a jump to it lands. A voice briefing of a line stands
 // on that line rather than as a row — the island's own press is a jump to one — and a picture of an
 // album stands in the album's row.
-function rowLine(messageId: number): number {
+function rowLine(messageId: ExactMessageId): ExactMessageId {
   const briefs = roomFeed.messages.value.find((message) => message.messageId === messageId)?.briefs;
 
   if (briefs != null) {
@@ -1626,7 +1624,7 @@ function rowLine(messageId: number): number {
   return items.value.find((item) => item.album?.some((picture) => picture.messageId === messageId))?.messageId ?? messageId;
 }
 
-function rowOf(messageId: number): HTMLElement | null {
+function rowOf(messageId: ExactMessageId): HTMLElement | null {
   return scroller()?.querySelector<HTMLElement>(`[data-message="m${messageId}"]`) ?? null;
 }
 
@@ -1649,7 +1647,7 @@ async function jumpToDay(day: string): Promise<void> {
 }
 
 // A pressed quote: the message it answers, brought into view and marked for a moment.
-async function jumpTo(messageId: number): Promise<void> {
+async function jumpTo(messageId: ExactMessageId): Promise<void> {
   if (!(await scrollToMessage(messageId))) {
     island.say({ title: t("room.error.message_not_found"), tone: "warning" });
 
@@ -1668,7 +1666,7 @@ async function jumpTo(messageId: number): Promise<void> {
 
 // The menu's reply: the next send answers this message, and the keyboard goes to the box.
 function startReply(key: string): void {
-  const item = items.value.find((held) => held.key === key);
+  const item = itemOf(key);
 
   if (item === undefined) {
     return;
@@ -1914,7 +1912,7 @@ useDragSelect({
 // choosing, and the two never stand at once.
 const finding = ref(false);
 const findQuery = ref("");
-const findShown = ref<number | null>(null);
+const findShown = ref<ExactMessageId | null>(null);
 const findBox = useTemplateRef<{ inputRef?: HTMLInputElement }>("findBox");
 const barGrown = computed(() => selecting.value || finding.value);
 const found = computed(() => (finding.value ? foundMessages(roomFeed.messages.value, findQuery.value) : []));
@@ -2119,7 +2117,7 @@ async function copyOne(key: string): Promise<void> {
 
 // The menu's copy-conversation-number: which room and which message, for the chat agent to find it by.
 async function copyRef(key: string): Promise<void> {
-  const item = items.value.find((held) => held.key === key);
+  const item = itemOf(key);
 
   if (item === undefined) {
     return;
@@ -2300,7 +2298,7 @@ async function riseInto(fresh: readonly OutboxItem[], starts: readonly (Point | 
 // the number the bot sent it as is noted while the row is still the outbox's, since the row goes
 // with it, until `stop`.
 function landedAs(key: string): { bubble: () => HTMLElement | null; stop: () => void } {
-  let sentAs: number | null = null;
+  let sentAs: ExactMessageId | null = null;
 
   const stop = watch(outbox, (items) => {
     sentAs = items.find((held) => held.key === key)?.messageId ?? sentAs;
@@ -2976,7 +2974,7 @@ async function refreshFeed(): Promise<void> {
 // The same, for the news that named one message. A reader standing back in the room is left
 // where they stand either way: what arrives is added at the end, and only a reader already at
 // the end is carried along.
-async function catchUpFeed(messageId: number | null): Promise<void> {
+async function catchUpFeed(messageId: ExactMessageId | null): Promise<void> {
   await roomFeed.catchUp(messageId);
 
   await followAfterRender();

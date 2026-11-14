@@ -18,7 +18,7 @@ import type { AgentAxis, AgentSummary, GateRunRecord, JobRecord, LiveRun, RoomSu
 import KO from "../../fixtures/app/domain/status.test.ko.json";
 
 function gateRun(verdict: string): GateRunRecord {
-  return { id: 1, agent: "content-judge", chatId: -1001, messageId: 7, verdict, ms: 1200, at: 100 };
+  return { id: 1, agent: "content-judge", chatId: -1001, messageId: "7", verdict, ms: 1200, at: 100 };
 }
 
 const rooms: RoomSummary[] = [{ chatId: -1001, title: "Alpha Room", messageCount: 0, lastMessageAt: null, pinned: false }];

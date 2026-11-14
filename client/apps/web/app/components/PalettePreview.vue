@@ -36,7 +36,7 @@ import { paletteTokens } from "bmo-ui/shared/palettes";
 import { archivedRows, runPlace, senderRuns } from "~/domain/room";
 import { provideBoxScheme } from "bmo-ui/app/domain/scheme";
 
-import type { ArchivedMessage, Judgement } from "#shared/types";
+import type { ArchivedMessage, ExactMessageId, Judgement } from "#shared/types";
 import type { Palette } from "bmo-ui/shared/palettes";
 import type { Scheme } from "bmo-ui/shared/themes";
 
@@ -61,13 +61,12 @@ const AGENT = 2;
 const START = Math.floor(Date.UTC(2026, 0, 1, 10, 2) / 1000);
 
 const messages = computed<ArchivedMessage[]>(() => {
-  const said = (messageId: number, senderId: number, text: string): ArchivedMessage => ({
+  const said = (place: number, senderId: number, text: string): ArchivedMessage => ({
     chatId: 0,
-    messageId,
-    exactId: String(messageId),
+    messageId: String(place),
     senderId,
     senderName: senderId === READER ? props.readerName : t("common.label.speaker_bmo"),
-    sentAt: START + messageId * 60,
+    sentAt: START + place * 60,
     text,
     imagePath: null,
     replyToMessageId: null,
@@ -86,7 +85,7 @@ const messages = computed<ArchivedMessage[]>(() => {
 });
 
 // The answer's verdict: one that passed, so the mark stands in its passing colour.
-const judgements = computed(() => new Map<number, Judgement[]>([[4, [{ id: 1, chatId: 0, messageId: 4, stage: "chat", verdict: "PASS", detail: null, createdAt: START + 240 }]]]));
+const judgements = computed(() => new Map<ExactMessageId, Judgement[]>([["4", [{ id: 1, chatId: 0, messageId: "4", stage: "chat", verdict: "PASS", detail: null, createdAt: START + 240 }]]]));
 
 const runs = computed(() => senderRuns(archivedRows(messages.value, judgements.value, () => "", new Map(), [READER]), "preview"));
 </script>

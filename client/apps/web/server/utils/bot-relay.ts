@@ -1,9 +1,12 @@
 import { STREAM_KEEPALIVE_MS } from "#shared/config";
 
 import { onConsoleEvent } from "./console-events";
+import { exactJson } from "./exact-json";
+import { EVENT_IDS } from "./receiver";
+import { BRIEFING_MESSAGE_IDS } from "./voice";
 import { unitAt, unitHeaders } from "./units";
 import { holdRelay } from "./relays";
-import { consoleFrame, frameEvent, KEEPALIVE_FRAME, RelayOutput } from "./sse-frames";
+import { consoleFrame, frameEvent, KEEPALIVE_FRAME, RelayOutput, rewrittenFrame } from "./sse-frames";
 
 import type { ConsoleEvent } from "./console-events";
 
@@ -112,14 +115,25 @@ function voiceFrames(frame: string): string[] {
 
   if (event === null || !(VOICE_KINDS as readonly string[]).includes(event.name)) return [];
 
-  const data = parsed(event.data);
+  const data = parsed(event.data, BRIEFING_MESSAGE_IDS);
 
   return data === null ? [] : [`event: voice\ndata: ${JSON.stringify({ ...data, kind: event.name })}\n\n`];
 }
 
-function parsed(data: string): Record<string, unknown> | null {
+// One of the receiver's whole events with every message id it names written as the digits the receiver wrote, as a
+// string (docs/web.md, 「A message's id」), so a tab reads it exactly; an event whose data does not read stands as it
+// came.
+export function exactFrame(frame: string): string {
+  return rewrittenFrame(frame, (data) => {
+    const read = parsed(data, EVENT_IDS);
+
+    return read === null ? data : JSON.stringify(read);
+  });
+}
+
+function parsed(data: string, exactIds?: ReadonlySet<string>): Record<string, unknown> | null {
   try {
-    const value: unknown = JSON.parse(data);
+    const value: unknown = exactIds === undefined ? JSON.parse(data) : exactJson(data, exactIds);
 
     return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
   } catch {
@@ -228,7 +242,7 @@ export function relayBotStream(cursors: RelayCursors, aborted: AbortController, 
 
       // Everything written here is whole: a unit's events only once all of each has come, and this app's own
       // frames at any moment between them.
-      const output = new RelayOutput(write, filter.frame, filter.derived?.());
+      const output = new RelayOutput(write, filter.frame, filter.derived?.(), exactFrame);
 
       keepalive = setInterval(() => output.own(KEEPALIVE_FRAME), STREAM_KEEPALIVE_MS);
       // Held while it is open, so a stop of this app is said on it before it ends.

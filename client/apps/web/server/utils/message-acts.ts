@@ -1,7 +1,7 @@
 import { ownerHeaders } from "./owner-key";
 import { requireReadableRoom } from "./room-reach";
 
-import type { MessageAct } from "#shared/types";
+import type { ExactMessageId, MessageAct } from "#shared/types";
 import type { H3Event } from "h3";
 
 // What every act a signed-in person does to a message begins with: the person, the room they must be able to read,
@@ -10,7 +10,7 @@ import type { H3Event } from "h3";
 // in a body says who acts.
 export interface ActedMessage {
   chatId: number;
-  messageId: number;
+  messageId: ExactMessageId;
   headers: Record<string, string>;
 }
 
@@ -26,6 +26,6 @@ export async function messageToActOn(event: H3Event): Promise<ActedMessage> {
 // The number of the message an act answered with. The receiver answers the message as it now stands, and the screen
 // reads that row again through the same path the record's `message-changed` news takes, so an act is never drawn from
 // what the browser sent.
-export function acted(message: { id: number }): MessageAct {
+export function acted(message: { id: ExactMessageId }): MessageAct {
   return { messageId: message.id };
 }

@@ -59,7 +59,7 @@ describe("judgementText", () => {
 // Opening a message's judgements is one press, and the summary is the only thing that folds.
 describe("what stands open when a row of judgements is opened", () => {
   function judgement(id: number, stage: string): Judgement {
-    return { id, chatId: -1, messageId: 7, stage, verdict: "PASS", detail: null, createdAt: 100 };
+    return { id, chatId: -1, messageId: "7", stage, verdict: "PASS", detail: null, createdAt: 100 };
   }
 
   const judgements = [judgement(1, "classifier"), judgement(2, "chat"), judgement(3, "content-judge")];
@@ -84,7 +84,7 @@ describe("what stands open when a row of judgements is opened", () => {
 // The verdict mark says one thing of the message's verdicts as a whole.
 describe("what the verdict mark says", () => {
   function judgement(id: number, verdict: string): Judgement {
-    return { id, chatId: -1, messageId: 7, stage: "chat", verdict, detail: null, createdAt: 100 };
+    return { id, chatId: -1, messageId: "7", stage: "chat", verdict, detail: null, createdAt: 100 };
   }
 
   test("a message being judged is judging, whatever has arrived so far", () => {
@@ -104,41 +104,41 @@ describe("what the verdict mark says", () => {
 // and while the chat agent's turn that read it last runs; another supervisor's turn judges nothing it read, and another
 // room's gate or queue nothing here.
 describe("which messages are being judged", () => {
-  const gate = (chatId: number, messageId: number | null, kind: LiveRun["kind"] = "gate") => ({ kind, chatId, messageId }) as LiveRun;
+  const gate = (chatId: number, messageId: string | null, kind: LiveRun["kind"] = "gate") => ({ kind, chatId, messageId }) as LiveRun;
 
   test("a gate of the room names its message, and the chat agent's turn the message it read last", () => {
-    const judged = judgedNow(5, [gate(5, 11), gate(6, 12), gate(5, 13, "runner"), gate(5, null)], [], [{ messageId: 14 }]);
+    const judged = judgedNow(5, [gate(5, "11"), gate(6, "12"), gate(5, "13", "runner"), gate(5, null)], [], [{ messageId: "14" }]);
 
-    expect([...judged].sort()).toEqual([11, 14]);
+    expect([...judged].sort()).toEqual(["11", "14"]);
   });
 
   test("the message the room holds queued for a turn is judged before any turn has begun", () => {
-    const queued = [{ chatId: 5, messageId: 15, since: 1 }, { chatId: 6, messageId: 16, since: 1 }];
+    const queued = [{ chatId: 5, messageId: "15", since: 1 }, { chatId: 6, messageId: "16", since: 1 }];
 
-    expect([...judgedNow(5, [], queued, [])]).toEqual([15]);
+    expect([...judgedNow(5, [], queued, [])]).toEqual(["15"]);
   });
 
   test("another supervisor's turn and a turn whose start the screen did not see name none", () => {
-    expect([...judgedNow(5, [], [], [{ messageId: 21, speaker: { id: 3, name: KO.line_115 } }, { messageId: null }])]).toEqual([]);
+    expect([...judgedNow(5, [], [], [{ messageId: "21", speaker: { id: 3, name: KO.line_115 } }, { messageId: null }])]).toEqual([]);
   });
 
   // A verdict that ends a stage's work is final: a message holding one written since its judging began is judged no
   // longer, whatever the queue or the turns still say; one written before it, or a verdict that ends nothing, leaves
   // it judged.
   test("a final verdict written since the judging began ends it", () => {
-    const verdict = (messageId: number, verdict: string, createdAt: number): Judgement =>
+    const verdict = (messageId: string, verdict: string, createdAt: number): Judgement =>
       ({ id: createdAt, chatId: 5, messageId, stage: "people-search", verdict, detail: null, createdAt }) as Judgement;
-    const queued = [{ chatId: 5, messageId: 31, since: 100 }, { chatId: 5, messageId: 32, since: 100 }, { chatId: 5, messageId: 33, since: 100 }];
-    const turns = [{ messageId: 34, startedAt: 100 }, { messageId: 35 }];
-    const held = new Map<number, Judgement[]>([
-      [31, [verdict(31, "SKIP: no candidates", 120)]],
-      [32, [verdict(32, "CLEAN", 90)]],
-      [33, [verdict(33, "room-founding, owner-habits", 130)]],
-      [34, [verdict(34, "SENT", 150)]],
-      [35, [verdict(35, "REPLY", 150)]]
+    const queued = [{ chatId: 5, messageId: "31", since: 100 }, { chatId: 5, messageId: "32", since: 100 }, { chatId: 5, messageId: "33", since: 100 }];
+    const turns = [{ messageId: "34", startedAt: 100 }, { messageId: "35" }];
+    const held = new Map<string, Judgement[]>([
+      ["31", [verdict("31", "SKIP: no candidates", 120)]],
+      ["32", [verdict("32", "CLEAN", 90)]],
+      ["33", [verdict("33", "room-founding, owner-habits", 130)]],
+      ["34", [verdict("34", "SENT", 150)]],
+      ["35", [verdict("35", "REPLY", 150)]]
     ]);
 
-    expect([...judgedNow(5, [], queued, turns, held)]).toEqual([32, 33, 35]);
+    expect([...judgedNow(5, [], queued, turns, held)]).toEqual(["32", "33", "35"]);
   });
 
   test("the words that end a stage's work stand whole", () => {
@@ -161,7 +161,7 @@ describe("what opened a turn", () => {
     offers: [offer("people-search", 0, ["item"]), offer("room-rules", 3, null), offer("library-knowledge", 0, null)],
   };
   const judgement = (id: number, stage: string, round: string | null, opened: RoundOpening | null = opening): Judgement =>
-    ({ id, chatId: -1, messageId: 7, stage, verdict: KO.line_128, detail: null, createdAt: 100, round, ...(opened === null ? {} : { opening: opened }) });
+    ({ id, chatId: -1, messageId: "7", stage, verdict: KO.line_128, detail: null, createdAt: 100, round, ...(opened === null ? {} : { opening: opened }) });
 
   test("stands each turn's cards together under the one opening, in the order they stand", () => {
     const turns = openedTurns([judgement(1, "people-search", "r1"), judgement(2, "room-rules", "r1"), judgement(3, "chat", "r2", null), judgement(4, "chat", null)]);
@@ -267,34 +267,34 @@ describe("a judgement line's answer", () => {
 });
 
 describe("where each verdict stands", () => {
-  const at = (id: number, messageId: number, stage: string, verdict: string, round = "r1"): Judgement => ({ id, chatId: 5, messageId, stage, verdict, detail: null, createdAt: 1_000 + id, round });
+  const at = (id: number, messageId: string, stage: string, verdict: string, round = "r1"): Judgement => ({ id, chatId: 5, messageId, stage, verdict, detail: null, createdAt: 1_000 + id, round });
   const messages = [
-    { messageId: 10, agent: false, round: null },
-    { messageId: 11, agent: true, round: "r1" },
-    { messageId: 20, agent: true, round: "r2" }
+    { messageId: "10", agent: false, round: null },
+    { messageId: "11", agent: true, round: "r1" },
+    { messageId: "20", agent: true, round: "r2" }
   ];
 
   test("a person's message keeps what read it, and the answer takes its draft, its send and its checks", () => {
     const homed = homedJudgements(messages, [
-      at(1, 10, "sanitizer", "CLEAN"),
-      at(2, 10, "draft", "ROUND 1 final: answered"),
-      at(3, 10, "chat", "REPLY: hi"),
-      at(4, 11, "send", "SENT"),
-      at(5, 11, "room-rules", "SKIP: no candidates"),
-      at(6, 11, "output-format", "FOLD")
+      at(1, "10", "sanitizer", "CLEAN"),
+      at(2, "10", "draft", "ROUND 1 final: answered"),
+      at(3, "10", "chat", "REPLY: hi"),
+      at(4, "11", "send", "SENT"),
+      at(5, "11", "room-rules", "SKIP: no candidates"),
+      at(6, "11", "output-format", "FOLD")
     ]);
 
-    expect(homed.map((one) => [one.id, one.messageId])).toEqual([[1, 10], [2, 11], [3, 10], [4, 11], [5, 10], [6, 11]]);
+    expect(homed.map((one) => [one.id, one.messageId])).toEqual([[1, "10"], [2, "11"], [3, "10"], [4, "11"], [5, "10"], [6, "11"]]);
   });
 
   test("a round the agent opened itself leaves its own word under nothing and its draft on its answer", () => {
-    const homed = homedJudgements(messages, [at(7, 20, "chat", "REPLY: later", "r2"), at(8, 20, "draft", "END: message", "r2"), at(9, 10, "draft", "END: message", "r9")]);
+    const homed = homedJudgements(messages, [at(7, "20", "chat", "REPLY: later", "r2"), at(8, "20", "draft", "END: message", "r2"), at(9, "10", "draft", "END: message", "r9")]);
 
-    expect(homed.map((one) => [one.id, one.messageId])).toEqual([[8, 20]]);
+    expect(homed.map((one) => [one.id, one.messageId])).toEqual([[8, "20"]]);
   });
 
   test("words a verdict for a person, never in the gate's own tokens", () => {
-    const words = (verdict: string, stage = "room-rules") => verdictWords(wording, at(1, 10, stage, verdict));
+    const words = (verdict: string, stage = "room-rules") => verdictWords(wording, at(1, "10", stage, verdict));
 
     expect(words("SKIP: no candidates").words).toBe(wording("room.label.verdict_no_candidates"));
     expect(words("NONE").words).toBe(wording("room.label.verdict_none"));

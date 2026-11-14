@@ -25,13 +25,13 @@ const OWNER = 42;
 // The sender the harness's receiver names as the owner's, which every message the owner sends is archived under.
 const OWNER_SENDER = 1;
 const WORDS = "words on their way";
-const WORDS_ID = 9001;
-const PICTURE_ID = 9002;
+const WORDS_ID = "9001";
+const PICTURE_ID = "9002";
 // A four-pixel checker, a PNG.
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAGElEQVR4nGNwaHjwwMEBQjLAWUCSAacMAHBSGAE11lAnAAAAAElFTkSuQmCC", "base64");
 
 const earlier: ArchivedMessage = {
-  chatId: ROOM, messageId: 9000, exactId: "9000", senderId: 7, senderName: "person-b", sentAt: Math.floor(Date.now() / 1000) - 600, text: "said before",
+  chatId: ROOM, messageId: "9000", senderId: 7, senderName: "person-b", sentAt: Math.floor(Date.now() / 1000) - 600, text: "said before",
   imagePath: null, replyToMessageId: null
 };
 
@@ -109,7 +109,7 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
       reads += 1;
 
       return route.fulfill({
-        json: { messages: archive.filter((one) => after === null || one.messageId > Number(after)), judgements: [], hasMore: false }
+        json: { messages: archive.filter((one) => after === null || Number(one.messageId) > Number(after)), judgements: [], hasMore: false }
       });
     });
     await context.route(new RegExp(`/api/rooms/${ROOM}/say$`), async (route) => {
@@ -147,7 +147,7 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
       await page.getByText(WORDS).first().waitFor();
       await shoot(page, "1-words-sending");
 
-      archive.push({ chatId: ROOM, messageId: WORDS_ID, exactId: String(WORDS_ID), senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: WORDS, imagePath: null, replyToMessageId: null });
+      archive.push({ chatId: ROOM, messageId: WORDS_ID, senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: WORDS, imagePath: null, replyToMessageId: null });
       await readAgain(page);
       await page.locator(`[data-message="m${WORDS_ID}"]`).waitFor();
       await shoot(page, "2-words-filed-send-out");
@@ -165,7 +165,7 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
       await page.locator("[data-picked]").first().waitFor({ state: "detached" });
       await shoot(page, "4-picture-sending");
 
-      const filed: ArchivedMessage = { chatId: ROOM, messageId: PICTURE_ID, exactId: String(PICTURE_ID), senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: "", imagePath: null, replyToMessageId: null };
+      const filed: ArchivedMessage = { chatId: ROOM, messageId: PICTURE_ID, senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: "", imagePath: null, replyToMessageId: null };
 
       archive.push(filed);
       await readAgain(page);
@@ -209,11 +209,11 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
 
     // The receiver files each send's message before it answers the send, and the archive is read while the send is
     // still out; the send then answers with the number it filed.
-    async function files(message: Omit<ArchivedMessage, "messageId" | "exactId">): Promise<number> {
-      const messageId = next++;
+    async function files(message: Omit<ArchivedMessage, "messageId">): Promise<string> {
+      const messageId = String(next++);
       const from = reads;
 
-      archive.push({ ...message, messageId, exactId: String(messageId) });
+      archive.push({ ...message, messageId });
       for (let waited = 0; reads === from && waited < 30_000; waited += 100) await Bun.sleep(100);
       await Bun.sleep(300);
 
@@ -227,7 +227,7 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
 
       reads += 1;
 
-      return route.fulfill({ json: { messages: archive.filter((one) => after === null || one.messageId > Number(after)), judgements: [], hasMore: false } });
+      return route.fulfill({ json: { messages: archive.filter((one) => after === null || Number(one.messageId) > Number(after)), judgements: [], hasMore: false } });
     });
     await context.route(new RegExp(`/api/rooms/${ROOM}/say$`), async (route) => {
       const text = String((route.request().postDataJSON() as { text?: unknown }).text ?? "");

@@ -8,7 +8,7 @@ export default defineEventHandler(async (event): Promise<RoomRead> => {
 
   await requireReadableRoom(event, chatId);
 
-  // The message is named by its exact id, as the room's rows carry it (docs/web.md, 「Unread messages」).
+  // The message is named by its exact id, as the room's rows carry it (docs/web.md, 「A message's id」).
   const body = (await readBody(event)) as { messageId?: unknown } | null;
   const messageId = requireExactMessageId(body?.messageId);
   const unread = await markRead(signed, await ownSenders(signed, await ownerChat()), chatId, messageId, nowSeconds());

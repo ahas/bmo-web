@@ -59,13 +59,12 @@ afterAll(() => registerChatAgent({ name: "", label: "" }));
 
 const avatars: AvatarIndex = new Map();
 const speaker = { id: owner, name: "owner" };
-const imageUrl = (chatId: number, messageId: number): string => `/api/images/${chatId}/${messageId}`;
+const imageUrl = (chatId: number, messageId: string): string => `/api/images/${chatId}/${messageId}`;
 
 function archived(messageId: number, text: string, senderName = "owner"): ArchivedMessage {
   return {
     chatId: ROOM_ID,
-    messageId,
-    exactId: String(messageId),
+    messageId: String(messageId),
     senderId: senderName === "agent-a" ? 87 : owner,
     senderName,
     agent: senderName === "agent-a",
@@ -89,29 +88,29 @@ function picked(name: string, previewUrl: string | null): PickedFile {
 // named them into and never by how close together they arrived.
 describe("an album of pictures", () => {
   function picture(messageId: number, album: number | null, text = ""): ArchivedMessage {
-    return { ...archived(messageId, text, "agent-a"), imagePath: `/kept/${messageId}.jpg`, album };
+    return { ...archived(messageId, text, "agent-a"), imagePath: `/kept/${messageId}.jpg`, album: album === null ? null : String(album) };
   }
 
   test("stands as one row, its caption on it and every picture in the order they went", () => {
     const rows = buildDays(wording, [archived(1, KO.line_82), picture(-2, -2, KO.line_82_2), picture(-3, -2), picture(-4, -2), archived(5, KO.line_82_3)], new Map(), imageUrl, avatars)
       .flatMap((day) => day.items);
 
-    expect(rows.map((row) => row.messageId)).toEqual([1, -2, 5]);
+    expect(rows.map((row) => row.messageId)).toEqual(["1", "-2", "5"]);
     expect(rows[1]!.shownText).toBe(KO.line_86);
-    expect(rows[1]!.album).toEqual([-2, -3, -4].map((messageId) => ({ messageId, src: imageUrl(ROOM_ID, messageId) })));
+    expect(rows[1]!.album).toEqual(["-2", "-3", "-4"].map((messageId) => ({ messageId, src: imageUrl(ROOM_ID, messageId) })));
   });
 
   test("pictures sent one at a time stay rows of their own, however close together", () => {
     const rows = buildDays(wording, [picture(7, null, KO.line_91), picture(8, null, KO.line_91_2)], new Map(), imageUrl, avatars).flatMap((day) => day.items);
 
-    expect(rows.map((row) => row.messageId)).toEqual([7, 8]);
+    expect(rows.map((row) => row.messageId)).toEqual(["7", "8"]);
     expect(rows.every((row) => row.album === undefined)).toBe(true);
   });
 
   test("two albums side by side are two rows", () => {
     const rows = buildDays(wording, [picture(10, 10), picture(11, 10), picture(12, 12), picture(13, 12)], new Map(), imageUrl, avatars).flatMap((day) => day.items);
 
-    expect(rows.map((row) => [row.messageId, row.album?.length])).toEqual([[10, 2], [12, 2]]);
+    expect(rows.map((row) => [row.messageId, row.album?.length])).toEqual([["10", 2], ["12", 2]]);
   });
 });
 
@@ -119,7 +118,7 @@ describe("an album of pictures", () => {
 // the bot wrote down on it.
 describe("the line under a message the chat agent did not answer", () => {
   function skip(id: number, messageId: number): Judgement {
-    return { id, chatId: ROOM_ID, messageId, stage: "skipped", verdict: "SKIP", detail: null, createdAt: 1_788_000_010 };
+    return { id, chatId: ROOM_ID, messageId: String(messageId), stage: "skipped", verdict: "SKIP", detail: null, createdAt: 1_788_000_010 };
   }
 
   function chat(id: number, messageId: number): Judgement {
@@ -127,7 +126,7 @@ describe("the line under a message the chat agent did not answer", () => {
   }
 
   test("stands under the message the silent turn read and no other", () => {
-    const judgements = new Map([[2, [chat(1, 2), skip(2, 2)]], [3, [chat(3, 3)]]]);
+    const judgements = new Map([["2", [chat(1, 2), skip(2, 2)]], ["3", [chat(3, 3)]]]);
     const rows = buildDays(wording, [archived(1, KO.line_117), archived(2, KO.line_117_2), archived(3, KO.line_117_3)], judgements, imageUrl, avatars)
       .flatMap((day) => day.items);
 
@@ -137,11 +136,11 @@ describe("the line under a message the chat agent did not answer", () => {
   });
 
   test("a silent turn over an album stands under the album's row", () => {
-    const picture = (messageId: number): ArchivedMessage => ({ ...archived(messageId, ""), imagePath: `/kept/${messageId}.jpg`, album: 20 });
-    const rows = buildDays(wording, [picture(20), picture(21), picture(22)], new Map([[22, [skip(1, 22)]]]), imageUrl, avatars)
+    const picture = (messageId: number): ArchivedMessage => ({ ...archived(messageId, ""), imagePath: `/kept/${messageId}.jpg`, album: "20" });
+    const rows = buildDays(wording, [picture(20), picture(21), picture(22)], new Map([["22", [skip(1, 22)]]]), imageUrl, avatars)
       .flatMap((day) => day.items);
 
-    expect(rows.map((row) => [row.messageId, row.skipped])).toEqual([[20, 1]]);
+    expect(rows.map((row) => [row.messageId, row.skipped])).toEqual([["20", 1]]);
   });
 
   test("says the words once, and counts silent turns over the same message", () => {
@@ -158,20 +157,20 @@ describe("a briefing of a line", () => {
   const rowsOf = (messages: ArchivedMessage[]) => buildDays(wording, messages, new Map(), imageUrl, avatars).flatMap((day) => day.items).map((row) => row.messageId);
 
   test("stands on the line it speaks, and the voice message is not a row", () => {
-    const line = { ...archived(-41, KO.line_147, "agent-a"), briefing: { state: "ready" as const, source: "voice" as const, voiceMessageId: 9147, sound } };
-    const voice = { ...archived(9147, KO.line_148, "agent-a"), briefs: -41 };
+    const line = { ...archived(-41, KO.line_147, "agent-a"), briefing: { state: "ready" as const, source: "voice" as const, voiceMessageId: "9147", sound } };
+    const voice = { ...archived(9147, KO.line_148, "agent-a"), briefs: "-41" };
     const rows = buildDays(wording, [archived(1, KO.line_149), line, voice], new Map(), imageUrl, avatars).flatMap((day) => day.items);
 
-    expect(rows.map((row) => row.messageId)).toEqual([1, -41]);
-    expect(rows[1]!.briefing).toEqual({ state: "ready", source: "voice", voiceMessageId: 9147, sound });
+    expect(rows.map((row) => row.messageId)).toEqual(["1", "-41"]);
+    expect(rows[1]!.briefing).toEqual({ state: "ready", source: "voice", voiceMessageId: "9147", sound });
     expect(rows[0]!.briefing).toBeNull();
   });
 
   test("a voice message whose line is not among the rows read stands nothing until it is", () => {
-    const voice = { ...archived(9147, KO.line_157, "agent-a"), briefs: -41 };
+    const voice = { ...archived(9147, KO.line_157, "agent-a"), briefs: "-41" };
     const rows = buildDays(wording, [voice, archived(2, KO.line_158)], new Map(), imageUrl, avatars).flatMap((day) => day.items);
 
-    expect(rows.map((row) => row.messageId)).toEqual([2]);
+    expect(rows.map((row) => row.messageId)).toEqual(["2"]);
   });
 
   test("a voice message that speaks no line stands as its own row", () => {
@@ -179,7 +178,7 @@ describe("a briefing of a line", () => {
       (day) => day.items
     );
 
-    expect(rows.map((row) => row.messageId)).toEqual([9148]);
+    expect(rows.map((row) => row.messageId)).toEqual(["9148"]);
   });
 
   // A summary of a notice turn and the report it speaks arrive in either order; whichever comes first,
@@ -188,16 +187,16 @@ describe("a briefing of a line", () => {
     const awaiting = { ...archived(9149, "Job 548 finished.", "agent-a"), briefs: null, awaitsLine: true };
     const line = archived(-42, "Job 548 finished, all tests passed.", "agent-a");
 
-    expect(rowsOf([archived(1, "question"), awaiting])).toEqual([1]);
-    expect(rowsOf([archived(1, "question"), awaiting, line])).toEqual([1, -42]);
-    expect(rowsOf([archived(1, "question"), { ...awaiting, awaitsLine: false, briefs: -42 }, line])).toEqual([1, -42]);
+    expect(rowsOf([archived(1, "question"), awaiting])).toEqual(["1"]);
+    expect(rowsOf([archived(1, "question"), awaiting, line])).toEqual(["1", "-42"]);
+    expect(rowsOf([archived(1, "question"), { ...awaiting, awaitsLine: false, briefs: "-42" }, line])).toEqual(["1", "-42"]);
   });
 
   test("a summary whose report arrives first stands on it as its voice lands", () => {
     const line = archived(-42, "Job 548 finished, all tests passed.", "agent-a");
 
-    expect(rowsOf([archived(1, "question"), line])).toEqual([1, -42]);
-    expect(rowsOf([archived(1, "question"), line, { ...archived(9150, "Job 548 finished.", "agent-a"), briefs: -42 }])).toEqual([1, -42]);
+    expect(rowsOf([archived(1, "question"), line])).toEqual(["1", "-42"]);
+    expect(rowsOf([archived(1, "question"), line, { ...archived(9150, "Job 548 finished.", "agent-a"), briefs: "-42" }])).toEqual(["1", "-42"]);
   });
 });
 
@@ -430,7 +429,7 @@ describe("a message that is still on its way", () => {
 
   test("the pictures of one press stand as one row, the album with the words once under it", () => {
     const items = outboxOf(KO.line_351, [picked("a.jpg", "blob:a"), picked("b.jpg", "blob:b")], 1);
-    const rows = pendingItems(withSent(items, items[0]?.key ?? "", 9), speaker, avatars);
+    const rows = pendingItems(withSent(items, items[0]?.key ?? "", "9"), speaker, avatars);
 
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ key: items[0]?.key, text: KO.line_355, pending: { state: "sending", sent: false } });
@@ -462,7 +461,7 @@ describe("a message that is still on its way", () => {
   test("carries one mark beside its time from going to sent, which an archived message of theirs keeps", () => {
     const items = outboxOf(KO.line_382, [], 1);
     const key = items[0]?.key ?? "";
-    const marks = [items, withChecking(items, key), withSent(items, key, 9), withFailed(items, key, KO.line_384)].map(
+    const marks = [items, withChecking(items, key), withSent(items, key, "9"), withFailed(items, key, KO.line_384)].map(
       (held) => sendMark(pendingItems(held, speaker, avatars)[0]!)
     );
     const days = buildDays(wording, [archived(1, KO.line_387), archived(2, KO.line_387_2, "agent-a")], new Map(), imageUrl, avatars, [], [owner]);
@@ -511,28 +510,28 @@ describe("a round's figures", () => {
   const actions = { agent: "agent-a", runs: ["run-a"], documents: 0, held: 0, tools: 1, brain: 0, records: [] };
 
   test("are asked by each round's last answer", () => {
-    expect([...roundEnds(rows)]).toEqual([["round-a", 3], ["round-b", 4]]);
+    expect([...roundEnds(rows)]).toEqual([["round-a", "3"], ["round-b", "4"]]);
   });
 
   test("stand on the round's last answer, which is marked while they are on their way", () => {
-    const figures = new Map([["round-a", { messageId: 3, round: "round-a", spend, actions }]]);
+    const figures = new Map([["round-a", { messageId: "3", round: "round-a", spend, actions }]]);
     const placed = withRoundFigures(rows, figures, new Set(["round-b"]));
 
     expect(placed.map((one) => [one.messageId, one.spend ?? null, one.actions ?? null, one.figuring ?? false])).toEqual([
-      [1, null, null, false],
-      [2, null, null, false],
-      [3, spend, actions, false],
-      [4, null, null, true]
+      ["1", null, null, false],
+      ["2", null, null, false],
+      ["3", spend, actions, false],
+      ["4", null, null, true]
     ]);
     // A row already standing as it should is kept as it is.
     expect(withRoundFigures(placed, figures, new Set(["round-b"]))[3]).toBe(placed[3]);
   });
 
   test("move to a newer answer of the round when it arrives", () => {
-    const figures = new Map([["round-b", { messageId: 4, round: "round-b", spend, actions }]]);
+    const figures = new Map([["round-b", { messageId: "4", round: "round-b", spend, actions }]]);
     const placed = withRoundFigures([...withRoundFigures(rows, figures, new Set()), inRound(5, "agent-a", "round-b")], figures, new Set());
 
-    expect(placed.filter((one) => one.spend != null).map((one) => one.messageId)).toEqual([5]);
+    expect(placed.filter((one) => one.spend != null).map((one) => one.messageId)).toEqual(["5"]);
   });
 });
 
@@ -550,9 +549,9 @@ describe("the order a page keeps", () => {
     ];
 
     expect(mergedMessages([], page, "newer").map((message) => message.messageId)).toEqual([
-      900_058,
-      -998_950_458,
-      900_059
+      "900058",
+      "-998950458",
+      "900059"
     ]);
   });
 
@@ -565,9 +564,9 @@ describe("the order a page keeps", () => {
     const merged = mergedMessages([first], [second, other], "newer");
 
     expect(merged.map((message) => [message.messageId, message.spend !== null])).toEqual([
-      [900_060, false],
-      [900_061, true],
-      [900_062, true]
+      ["900060", false],
+      ["900061", true],
+      ["900062", true]
     ]);
   });
 
@@ -577,12 +576,12 @@ describe("the order a page keeps", () => {
     const newer = [said(-998_950_460, 1_788_000_898, KO.line_462)];
 
     expect(mergedMessages(held, older, "older").map((message) => message.messageId)).toEqual([
-      -998_950_458,
-      900_059
+      "-998950458",
+      "900059"
     ]);
     expect(mergedMessages(held, newer, "newer").map((message) => message.messageId)).toEqual([
-      900_059,
-      -998_950_460
+      "900059",
+      "-998950460"
     ]);
   });
 
@@ -595,7 +594,7 @@ describe("the order a page keeps", () => {
     const again = [said(900_058, 1_788_000_896, KO.line_480)];
     const merged = mergedMessages(held, again, "newer");
 
-    expect(merged.map((message) => message.messageId)).toEqual([900_058, -998_950_458, 900_059]);
+    expect(merged.map((message) => message.messageId)).toEqual(["900058", "-998950458", "900059"]);
     expect(merged[0]?.text).toBe(KO.line_484);
   });
 
@@ -613,39 +612,39 @@ describe("the order a page keeps", () => {
     ];
 
     expect(mergedMessages(stretch, end, "newer").map((message) => message.messageId)).toEqual([
-      107_736,
-      -998_950_470,
-      107_738,
-      107_750,
-      107_793,
-      107_794
+      "107736",
+      "-998950470",
+      "107738",
+      "107750",
+      "107793",
+      "107794"
     ]);
   });
 });
 
 describe("a reply and the message it answers", () => {
   test("an archived reply carries its quote, and a reply on its way carries the one it was sent with", () => {
-    const quote = { messageId: 1, senderName: KO.line_513, text: KO.line_513_2 };
-    const reply = { ...archived(2, KO.line_514), replyToMessageId: 1, replyQuote: quote };
+    const quote = { messageId: "1", senderName: KO.line_513, text: KO.line_513_2 };
+    const reply = { ...archived(2, KO.line_514), replyToMessageId: "1", replyQuote: quote };
     const pending = pendingItems(outboxOf(KO.line_515, [], 1_788_000_100, quote), speaker, avatars);
     const rows = buildDays(wording, [archived(1, KO.line_516), reply], new Map(), imageUrl, avatars, pending).flatMap((day) => day.items);
 
-    expect(rows.map((row) => row.quote?.messageId ?? null)).toEqual([null, 1, 1]);
+    expect(rows.map((row) => row.quote?.messageId ?? null)).toEqual([null, "1", "1"]);
     expect(quoteText(wording, quote)).toEqual({ name: KO.line_519, words: KO.line_519_2, media: null });
   });
 
   test("a quote of a message the archive does not hold says so and nothing else", () => {
-    expect(quoteText(wording, { messageId: MESSAGE_ID, senderName: null, text: "" })).toEqual({ name: wording("room.label.unknown_message"), words: "", media: null });
+    expect(quoteText(wording, { messageId: String(MESSAGE_ID), senderName: null, text: "" })).toEqual({ name: wording("room.label.unknown_message"), words: "", media: null });
   });
 
   test("a quote of what a message carried stands a preview of it, with its caption or what it is", () => {
     const voice = { id: 3, kind: "audio" as const, name: "voice.ogg", bytes: 10, type: "audio/ogg", available: true };
     const sheet = { id: 4, kind: "document" as const, name: KO.line_528, bytes: 10, type: null, available: true };
 
-    expect(quoteText(wording, { messageId: 1, senderName: KO.line_530, text: KO.line_530_2, pictured: true })).toEqual({ name: KO.line_530, words: KO.line_530_3, media: { kind: "picture" } });
-    expect(quoteText(wording, { messageId: 1, senderName: KO.line_531, text: KO.line_531_2, pictured: true }).words).toBe(KO.line_531_3);
-    expect(quoteText(wording, { messageId: 2, senderName: KO.line_532, text: KO.line_532_2, attachment: voice })).toEqual({ name: KO.line_532, words: KO.line_532_3, media: { kind: "voice", attachment: voice } });
-    expect(quoteText(wording, { messageId: 3, senderName: KO.line_533, text: KO.line_533_2, attachment: sheet }).words).toBe(KO.line_533_3);
+    expect(quoteText(wording, { messageId: "1", senderName: KO.line_530, text: KO.line_530_2, pictured: true })).toEqual({ name: KO.line_530, words: KO.line_530_3, media: { kind: "picture" } });
+    expect(quoteText(wording, { messageId: "1", senderName: KO.line_531, text: KO.line_531_2, pictured: true }).words).toBe(KO.line_531_3);
+    expect(quoteText(wording, { messageId: "2", senderName: KO.line_532, text: KO.line_532_2, attachment: voice })).toEqual({ name: KO.line_532, words: KO.line_532_3, media: { kind: "voice", attachment: voice } });
+    expect(quoteText(wording, { messageId: "3", senderName: KO.line_533, text: KO.line_533_2, attachment: sheet }).words).toBe(KO.line_533_3);
   });
 });
 
@@ -781,7 +780,7 @@ describe("what a row hands over when it is copied", () => {
   const judgement: Judgement = {
     id: 3,
     chatId: ROOM_ID,
-    messageId: 1,
+    messageId: "1",
     stage: "content-judge",
     verdict: KO.line_653,
     detail: null,
@@ -789,13 +788,13 @@ describe("what a row hands over when it is copied", () => {
   };
 
   test("who said it, when, which message, its words and every judgement on it", () => {
-    const byMessage = new Map([[1, [judgement]]]);
+    const byMessage = new Map([["1", [judgement]]]);
     const [item] = buildDays(wording, [archived(1, KO.line_660)], byMessage, imageUrl, avatars).flatMap((day) => day.items);
 
     expect(item === undefined ? null : copyItemOf(item)).toEqual({
       senderName: "owner",
       senderId: owner,
-      messageId: 1,
+      messageId: "1",
       sentAt: 1_788_000_000,
       text: KO.line_667,
       judgements: [judgement]
@@ -810,24 +809,24 @@ describe("what a row hands over when it is copied", () => {
 describe("what one piece of news is worth reading", () => {
   const page = 100;
   // What the room is holding, oldest last — which is the order a page arrives in.
-  const holding = (...ids: number[]) => ids.map((messageId) => ({ messageId, exactId: String(messageId) }));
+  const holding = (...ids: number[]) => ids.map((messageId) => ({ messageId: String(messageId) }));
 
   test("everything past the newest row the room holds, which is that one message", () => {
-    expect(feedRead(holding(8999, 9000), 9001, page)).toEqual({ kind: "after", after: "9000", limit: page });
+    expect(feedRead(holding(8999, 9000), "9001", page)).toEqual({ kind: "after", after: "9000", limit: page });
   });
 
   // A piece of news that never arrived is not a row that is lost: the next one reads past the
   // newest row held and brings everything in between with it.
   test("and everything else that landed while the news was on its way", () => {
-    expect(feedRead(holding(8999, 9000), 9004, page)).toEqual({ kind: "after", after: "9000", limit: page });
+    expect(feedRead(holding(8999, 9000), "9004", page)).toEqual({ kind: "after", after: "9000", limit: page });
   });
 
   // An edit leaves the number where it was, so the number arriving is one the room already holds.
   // That row is asked for by its own number rather than past the number before it — the number
   // before it names no row as often as not.
   test("one row by its own number where the news names a message the room already holds", () => {
-    expect(feedRead(holding(8700, 9000), 9000, page)).toEqual({ kind: "one", messageId: "9000" });
-    expect(feedRead(holding(8700, 9000), 8700, page)).toEqual({ kind: "one", messageId: "8700" });
+    expect(feedRead(holding(8700, 9000), "9000", page)).toEqual({ kind: "one", messageId: "9000" });
+    expect(feedRead(holding(8700, 9000), "8700", page)).toEqual({ kind: "one", messageId: "8700" });
   });
 
   // The two numberings of one room. A word said from the console is numbered below zero and still
@@ -835,7 +834,7 @@ describe("what one piece of news is worth reading", () => {
   // number of the other by nothing at all: what tells a new message from an edited one is whether
   // the room is holding that number, and nothing else.
   test("a console number announced into a room of Telegram numbers is new, not an edit", () => {
-    expect(feedRead(holding(900012, 900013), -9001, page)).toEqual({
+    expect(feedRead(holding(900012, 900013), "-9001", page)).toEqual({
       kind: "after",
       after: "900013",
       limit: page,
@@ -843,34 +842,31 @@ describe("what one piece of news is worth reading", () => {
   });
 
   test("and the console row the room does hold is read as the edit it is", () => {
-    expect(feedRead(holding(900013, -9000), -9000, page)).toEqual({
+    expect(feedRead(holding(900013, -9000), "-9000", page)).toEqual({
       kind: "one",
       messageId: "-9000",
     });
   });
 
   test("a Telegram number announced past a console row at the end is new too", () => {
-    expect(feedRead(holding(900013, -9000), 900014, page)).toEqual({
+    expect(feedRead(holding(900013, -9000), "900014", page)).toEqual({
       kind: "after",
       after: "-9000",
       limit: page,
     });
   });
 
-  // A chat service may number its messages past 2^53. The news carries the number as a JavaScript number has it,
-  // rounded, and the read names the row by the digits the room holds it under, which the rounded number never is.
+  // A chat service may number its messages past 2^53, where neighbours read as one JavaScript number. The news names
+  // the row by its digits, so an edit of a held row and a neighbour landing past it are told apart.
   test("a row numbered past what a number holds is read by its exact id", () => {
-    const held = [
-      { messageId: Number("3973718726668978177"), exactId: "3973718726668978177" },
-      { messageId: Number("3973737757693106177"), exactId: "3973737757693106177" }
-    ];
+    const held = [{ messageId: "3973718726668978177" }, { messageId: "3973737757693106177" }];
 
-    expect(feedRead(held, Number("3973718726668978177"), page)).toEqual({ kind: "one", messageId: "3973718726668978177" });
-    expect(feedRead(held, Number("3973799999999999999"), page)).toEqual({ kind: "after", after: "3973737757693106177", limit: page });
+    expect(feedRead(held, "3973718726668978177", page)).toEqual({ kind: "one", messageId: "3973718726668978177" });
+    expect(feedRead(held, "3973718726668978178", page)).toEqual({ kind: "after", after: "3973737757693106177", limit: page });
   });
 
   test("the page where the room holds nothing to read past", () => {
-    expect(feedRead(holding(), 9001, page)).toEqual({ kind: "page" });
+    expect(feedRead(holding(), "9001", page)).toEqual({ kind: "page" });
     expect(feedRead(holding(), null, page)).toEqual({ kind: "page" });
   });
 
@@ -881,13 +877,13 @@ describe("what one piece of news is worth reading", () => {
   // The one shape that cannot be appended: what came back is the oldest of the gap and the room
   // wants its end.
   test("a gap wider than a page is read as a page instead", () => {
-    expect(needsPage(feedRead(holding(9000), 9400, page), true)).toBe(true);
-    expect(needsPage(feedRead(holding(9000), 9001, page), false)).toBe(false);
+    expect(needsPage(feedRead(holding(9000), "9400", page), true)).toBe(true);
+    expect(needsPage(feedRead(holding(9000), "9001", page), false)).toBe(false);
   });
 
   // The one-row read is never turned into a page read: there is nothing past one row to want.
   test("a row read by its own number is never turned into a page read", () => {
-    expect(needsPage(feedRead(holding(9000), 9000, page), true)).toBe(false);
+    expect(needsPage(feedRead(holding(9000), "9000", page), true)).toBe(false);
     expect(needsPage({ kind: "page" }, true)).toBe(false);
   });
 });
@@ -896,7 +892,7 @@ describe("what one piece of news is worth reading", () => {
 // makes it look like the answer it is waiting for is that it is built as a row, so there is no
 // second set of coordinates to keep matched against the first.
 describe("the row a running turn stands in", () => {
-  const run = { messageId: 41, startedAt: 1_788_490_000, received: { messages: 2, instructions: 1 }, progress: null };
+  const run = { messageId: "41", startedAt: 1_788_490_000, received: { messages: 2, instructions: 1 }, progress: null };
   const face = { alt: "agent-a" };
 
   test("wears what the chat agent's own answer in this room wears, on the side it will stand on", () => {
@@ -1023,7 +1019,7 @@ describe("a sender's run", () => {
     const said = rows([archived(1, KO.line_836), archived(2, KO.line_836_2), { ...archived(3, KO.line_836_3, "agent-a"), agent: true }, archived(4, KO.line_836_4)]);
     const runs = senderRuns(said, "day:1");
 
-    expect(runs.map((run) => run.rows.map((row) => row.messageId))).toEqual([[1, 2], [3], [4]]);
+    expect(runs.map((run) => run.rows.map((row) => row.messageId))).toEqual([["1", "2"], ["3"], ["4"]]);
     expect(runs.map((run) => run.side)).toEqual(["right", "left", "right"]);
 
     const passed = senderRuns([{ ...said[0]!, skipped: 1 }, said[1]!], "day:1");
@@ -1036,7 +1032,7 @@ describe("a sender's run", () => {
   // A running turn's row handing its place to the answer leaves the run where it stood.
   test("is named after the row it follows, so it keeps its name when its own first row changes hands", () => {
     const [asked] = rows([archived(1, KO.line_851)]);
-    const turn = runItem({ messageId: 1, startedAt: 1_788_000_010, received: null, progress: null }, { id: 87, name: "agent-a" }, { alt: "agent-a" });
+    const turn = runItem({ messageId: "1", startedAt: 1_788_000_010, received: null, progress: null }, { id: 87, name: "agent-a" }, { alt: "agent-a" });
     const [answer] = rows([{ ...archived(2, KO.line_853, "agent-a"), agent: true }]);
 
     expect(senderRuns([asked!, turn], "day:1").map((run) => run.key)).toEqual(["day:1", `after:${asked!.key}`]);
@@ -1115,7 +1111,7 @@ describe("a running row handing its place over", () => {
     droppedActions: 0,
     droppedContext: 0
   };
-  const run: RunState = { messageId: 1, startedAt: 1_788_000_010, received: null, progress: writing };
+  const run: RunState = { messageId: "1", startedAt: 1_788_000_010, received: null, progress: writing };
   const turn = runItem(run, { id: 87, name: "agent-a" }, { alt: "agent-a" });
   const answer = { ...archived(2, KO.line_921, "agent-a"), sentAt: 1_788_000_020, agent: true };
 
@@ -1128,7 +1124,7 @@ describe("a running row handing its place over", () => {
   });
 
   test("ignores an earlier answer, and stands again once the turn says something new of itself", () => {
-    const earlier = { ...answer, messageId: 0, sentAt: 1_788_000_000 };
+    const earlier = { ...answer, messageId: "0", sentAt: 1_788_000_000 };
     const held = handOvers([turn], [earlier, answer], new Map());
     const thinking = runItem({ ...run, progress: { ...writing, phase: "thinking" } }, { id: 87, name: "agent-a" }, { alt: "agent-a" });
 
@@ -1141,7 +1137,7 @@ describe("a running row handing its place over", () => {
     const named = { ...run, speaker: { id: -1, name: "agent-a" } };
     const unnumbered = runItem(named, { id: null, name: "agent-a" }, { alt: "agent-a" });
     const line = { ...answer, senderId: null, speaker: "agent-a" };
-    const another = { ...line, messageId: 3, speaker: "agent-b" };
+    const another = { ...line, messageId: "3", speaker: "agent-b" };
 
     expect(standingRuns([unnumbered], handOvers([unnumbered], [archived(1, KO.line_924), line], new Map()))).toEqual([]);
     expect(standingRuns([unnumbered], handOvers([unnumbered], [archived(1, KO.line_924), another], new Map()))).toEqual([unnumbered]);
@@ -1149,20 +1145,20 @@ describe("a running row handing its place over", () => {
   });
 
   test("a system notice and a voice briefing are never the answer", () => {
-    const notice = { ...answer, messageId: 3, notice: true };
-    const briefing = { ...answer, messageId: 4, briefs: 2 };
-    const awaiting = { ...answer, messageId: 5, awaitsLine: true };
+    const notice = { ...answer, messageId: "3", notice: true };
+    const briefing = { ...answer, messageId: "4", briefs: "2" };
+    const awaiting = { ...answer, messageId: "5", awaitsLine: true };
 
     expect(turnAnswer(run, 87, [notice, briefing, awaiting])).toBeUndefined();
     expect(turnAnswer(run, 87, [answer, notice, briefing, awaiting])).toBe(answer);
   });
 
   test("the message the turn's ending named is its answer, whoever it stands under", () => {
-    const sent = { ...answer, messageId: 6, senderId: 4_218_991, speaker: "agent-b" };
+    const sent = { ...answer, messageId: "6", senderId: 4_218_991, speaker: "agent-b" };
 
-    expect(turnAnswer({ ...run, answer: 6 }, 87, [sent, answer])).toBe(sent);
+    expect(turnAnswer({ ...run, answer: "6" }, 87, [sent, answer])).toBe(sent);
     // Until it is in the feed, the turn's own line stands for it.
-    expect(turnAnswer({ ...run, answer: 6 }, 87, [answer])).toBe(answer);
+    expect(turnAnswer({ ...run, answer: "6" }, 87, [answer])).toBe(answer);
   });
 
   test("a row standing while the chat agent only listens is no turn, so no answer takes its place", () => {
@@ -1188,8 +1184,8 @@ describe("a running row handing its place over", () => {
 // a new object, and by the owner's own sending, which changes no archived row at all (docs/web.md,
 // 「What arrives comes in at the end」).
 describe("the rows kept between changes", () => {
-  const read = (messages: ArchivedMessage[], judgements = new Map<number, Judgement[]>()) => archivedRows(messages, judgements, imageUrl, avatars, [owner]);
-  const skipped: Judgement = { id: 9, chatId: ROOM_ID, messageId: 2, stage: "skipped", verdict: "SKIP", detail: null, createdAt: 1_788_000_010 };
+  const read = (messages: ArchivedMessage[], judgements = new Map<string, Judgement[]>()) => archivedRows(messages, judgements, imageUrl, avatars, [owner]);
+  const skipped: Judgement = { id: 9, chatId: ROOM_ID, messageId: "2", stage: "skipped", verdict: "SKIP", detail: null, createdAt: 1_788_000_010 };
 
   test("a read of the archive hands back each row that says the same, and a new row for one that changed", () => {
     const standing = keptRows(undefined, read([archived(1, KO.line_967), archived(2, KO.line_967_2)]));
@@ -1202,14 +1198,14 @@ describe("the rows kept between changes", () => {
 
   test("a judgement arriving makes its own row new and leaves the others", () => {
     const standing = keptRows(undefined, read([archived(1, KO.line_976), archived(2, KO.line_976_2)]));
-    const judged = keptRows(standing, read([archived(1, KO.line_977), archived(2, KO.line_977_2)], new Map([[2, [skipped]]])));
+    const judged = keptRows(standing, read([archived(1, KO.line_977), archived(2, KO.line_977_2)], new Map([["2", [skipped]]])));
 
     expect(judged[0]).toBe(standing[0]!);
     expect(judged[1]).not.toBe(standing[1]!);
   });
 
   test("a group room's rows count no turn passed over, so no line stands under them", () => {
-    const judgements = new Map([[2, [skipped]]]);
+    const judgements = new Map([["2", [skipped]]]);
     const counted = (skipLines: boolean) => archivedRows([archived(1, "one"), archived(2, "two")], judgements, imageUrl, avatars, [owner], skipLines).map((row) => row.skipped);
 
     expect(counted(true)).toEqual([0, 1]);

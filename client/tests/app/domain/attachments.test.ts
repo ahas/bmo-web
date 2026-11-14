@@ -97,7 +97,7 @@ describe("what an attachment reads as, and what is sent", () => {
     expect(body.get("caption")).toBe(KO.line_96);
     expect(body.getAll("file").map((part) => (part as File).name)).toEqual(["a.jpg", "b.pdf"]);
     expect(body.get("replyTo")).toBeNull();
-    expect(attachmentBody(KO.line_99, picked, 7).get("replyTo")).toBe("7");
+    expect(attachmentBody(KO.line_99, picked, "7").get("replyTo")).toBe("7");
   });
 
   test("only what a browser can draw gets a preview", () => {

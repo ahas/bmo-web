@@ -48,7 +48,7 @@
         props.flashed && !props.selected ? 'bg-primary/10 ring-1 ring-primary/40' : ''
       ]"
       :data-message="message ? props.item.key : undefined"
-      :data-exact-id="props.item.exactId ?? undefined"
+      :data-message-id="props.item.messageId ?? undefined"
       :data-row="props.item.key"
       :data-mine="props.item.look.side === 'right' ? '' : undefined"
       :data-choosable="message && props.item.pending === null ? '' : undefined"
@@ -179,7 +179,7 @@
                     <MessageImage
                       v-else-if="props.item.imageUrl !== null"
                       :src="props.item.imageUrl"
-                      :message-id="props.item.pending === null ? props.item.messageId : undefined"
+                      :message-id="props.item.messageId ?? undefined"
                       flush
                       :title="`${props.item.senderName} · ${stamp}`"
                     />
@@ -191,7 +191,7 @@
                       :key="video.id"
                       :attachment="video"
                       :chat-id="props.chatId"
-                      :message-id="props.item.messageId"
+                      :message-id="archivedId"
                     />
 
                     <!-- The time stands at the bubble's trailing foot: at the end of the words' last line
@@ -220,7 +220,7 @@
                         data-words
                         @click.capture="pressLink"
                       >
-                        <TelegramText v-if="props.item.shownText" :text="props.item.shownText" :expressions="props.item.expressions" :formats="props.item.formats" :markdown="props.item.look.markdown" :chat-id="props.chatId" :message-id="props.item.messageId" />
+                        <TelegramText v-if="props.item.shownText" :text="props.item.shownText" :expressions="props.item.expressions" :formats="props.item.formats" :markdown="props.item.look.markdown" :chat-id="props.chatId" :message-id="archivedId" />
 
                         <!-- A file the browser cannot draw stands as its name while it goes. -->
                         <p v-if="props.item.fileName !== null" class="flex items-center gap-1 text-sm break-all">
@@ -266,7 +266,7 @@
                         v-if="props.item.run === null && props.item.pending === null && links.length > 0"
                         class="basis-full"
                         :chat-id="props.chatId"
-                        :message-id="props.item.messageId"
+                        :message-id="archivedId"
                         :text="props.item.text"
                       />
 
@@ -281,7 +281,7 @@
                         class="flex min-w-0 flex-col gap-1 text-sm"
                         :class="[sticker ? 'shrink-0' : voiced ? '' : 'basis-full', heard(attachment) && (worded || links.length > 0 || index > 0) ? 'mt-(--chat-media-step)' : '']"
                       >
-                        <TelegramAsset v-if="attachment.kind === 'sticker'" :class="sticker ? 'size-(--chat-sticker)' : ''" :attachment="attachment" :chat-id="props.chatId" :message-id="props.item.messageId" :fallback="$t('room.label.sticker_preview')" />
+                        <TelegramAsset v-if="attachment.kind === 'sticker'" :class="sticker ? 'size-(--chat-sticker)' : ''" :attachment="attachment" :chat-id="props.chatId" :message-id="archivedId" :fallback="$t('room.label.sticker_preview')" />
                         <!-- A sound the browser can play stands as the player, which carries its size and download
                              itself; a video's still stands over the inner room, and its file line here. -->
                         <!-- A sound stands as its player, the recording's length beside it and, on a voice note, the words
@@ -291,8 +291,8 @@
                           <div class="flex min-w-0 items-center gap-2">
                             <AudioPlayer
                               class="min-w-0 flex-1"
-                              :src="`${mediaUrl(attachment.kind, props.chatId, props.item.messageId)}?item=${attachment.id}`"
-                              :download="`${mediaUrl(attachment.kind, props.chatId, props.item.messageId)}?item=${attachment.id}&as=download`"
+                              :src="`${mediaUrl(attachment.kind, props.chatId, archivedId)}?item=${attachment.id}`"
+                              :download="`${mediaUrl(attachment.kind, props.chatId, archivedId)}?item=${attachment.id}&as=download`"
                               :name="attachment.name"
                               :size="attachment.bytes === null ? null : fileSizeText(attachment.bytes)"
                               :trail-room="playerLast && index === attachments.length - 1 ? metaRoom : null"
@@ -308,7 +308,7 @@
                           v-else-if="attachment.kind === 'animation' && attachment.available"
                           :attachment="attachment"
                           :chat-id="props.chatId"
-                          :message-id="props.item.messageId"
+                          :message-id="archivedId"
                         />
                         <!-- A kept file stands as a line of its own on the bubble's ground, as the messenger
                              stands one, with no frame of its own: its mark, its name over its size, and the way
@@ -331,7 +331,7 @@
                               color="neutral"
                               variant="ghost"
                               icon="i-material-symbols-download"
-                              :to="`${mediaUrl(attachment.kind, props.chatId, props.item.messageId)}?item=${attachment.id}&as=download`"
+                              :to="`${mediaUrl(attachment.kind, props.chatId, archivedId)}?item=${attachment.id}&as=download`"
                               external
                               download
                               :aria-label="$t('common.aria.download_named', { name: attachment.name })"
@@ -357,7 +357,7 @@
                         :round-situation="props.roundSituation"
                         :live="live"
                         :chat-id="props.chatId"
-                        :message-id="props.item.messageId"
+                        :message-id="props.item.messageId ?? undefined"
                         :briefing="props.item.briefing"
                         :figuring="props.item.figuring"
                         :sent-at="props.item.sentAt"
@@ -460,7 +460,7 @@ import { countText } from "~/domain/numbers";
 import { liveChip } from "~/domain/turns";
 
 import type { ContextMenuItem, DropdownMenuItem } from "@nuxt/ui";
-import type { Judgement, MessageAttachment, Situation } from "#shared/types";
+import type { ExactMessageId, Judgement, MessageAttachment, Situation } from "#shared/types";
 import type { FeedItem, RunPlace, SendMark } from "~/domain/room";
 import type { LiveTurn } from "~/domain/working";
 
@@ -502,6 +502,10 @@ const props = withDefaults(defineProps<Props>(), { arriving: false, judging: fal
 // the header, the column the words read in, the chip line under them — but nothing is said to it,
 // because there is no message there yet to choose, copy, answer or walk to with the arrows.
 const message = computed<boolean>(() => props.item.run === null);
+
+// The archived message the row stands for, which a picture, a file, a sound, a link and the words' expressions are
+// read by; each of them stands only on an archived message's row, and that row always names its message.
+const archivedId = computed<ExactMessageId>(() => props.item.messageId ?? "");
 // Whether the row is the chat agent only listening, which holds no turn (docs/web.md, 「The listening row」).
 const listening = computed<boolean>(() => props.item.run?.listening !== undefined);
 
@@ -761,7 +765,7 @@ const emit = defineEmits<{
   copyBody: [key: string];
   copyRef: [key: string];
   // A quote pressed: the message it names is wanted in view.
-  jump: [messageId: number];
+  jump: [messageId: ExactMessageId];
   // Where the keyboard is in the feed, and where it is asked to go next.
   focused: [key: string];
   move: [key: string, delta: number];

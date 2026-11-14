@@ -3,7 +3,7 @@ import { gateConditions } from "#shared/types";
 
 import { unitAt, unitFetch } from "./units";
 
-import type { GateCondition, GateOfferRecord, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, TokenSplit } from "#shared/types";
+import type { ExactMessageId, GateCondition, GateOfferRecord, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, TokenSplit } from "#shared/types";
 
 // A room's judgements as the gate's console API holds them (the gate's `docs/api.md`, 「Judgements」): newest
 // first, a page at a time, each road a gate run walked beside it. The gate's address and token stand in the
@@ -30,11 +30,14 @@ interface GateOffer {
   rules: string[] | null;
 }
 
+// The key whose integer names the receiver message a judgement stands under, read as an exact id.
+const JUDGEMENT_MESSAGE_IDS: ReadonlySet<string> = new Set(["messageId"]);
+
 // One judgement, as the gate writes it.
 interface GateJudgement {
   id: number;
   roomId: number;
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   gateName: string;
   verdict: string;
   detail: string | null;
@@ -122,7 +125,7 @@ export async function judgementsOf(chatId: number, before: number | null, limit:
   if (span.from !== null) query.set("from", String(span.from * 1000));
   if (span.to !== null) query.set("to", String(span.to * 1000));
 
-  const page = await unitFetch<GatePage>("GATE", `/judgements?${query.toString()}`);
+  const page = await unitFetch<GatePage>("GATE", `/judgements?${query.toString()}`, undefined, { exactIds: JUDGEMENT_MESSAGE_IDS });
 
   return { judgements: page.items.map(asJudgement), hasMore: page.more === true };
 }

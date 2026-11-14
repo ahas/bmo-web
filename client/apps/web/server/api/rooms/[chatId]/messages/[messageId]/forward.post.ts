@@ -2,7 +2,7 @@ import { wording } from "#shared/wording";
 
 import { ownerHeaders } from "../../../../../utils/owner-key";
 import { requireReadableRoom } from "../../../../../utils/room-reach";
-import { receiver, receiverCall } from "../../../../../utils/receiver";
+import { exactAnswer, receiver, wireId } from "../../../../../utils/receiver";
 
 import type { ForwardedMessage } from "#shared/types";
 
@@ -29,19 +29,20 @@ export default defineEventHandler(async (event): Promise<ForwardedMessage> => {
     throw fail(400, wording("room.error.forward_same_room"));
   }
 
-  const answered = await receiverCall(
+  const answered = await exactAnswer<unknown>(
     receiver().POST("/rooms/{roomId}/messages/{messageId}/forwards", {
-      params: { path: { roomId: chatId, messageId } },
+      params: { path: { roomId: chatId, messageId: wireId(messageId) } },
+      parseAs: "text",
       body: { to },
       headers: ownerHeaders(signed)
     })
   );
 
   // The record answers the room the copy went into and the message it stands as; the published client states that
-  // answer as unknown, so its two fields are read by their names and held to their types.
+  // answer as unknown, so its two fields are read by their names and held to their types, the copy's id exact.
   const copy = answered as { room?: unknown; id?: unknown };
 
-  if (typeof copy.room !== "number" || typeof copy.id !== "number") {
+  if (typeof copy.room !== "number" || typeof copy.id !== "string") {
     throw fail(502, wording("room.error.receiver_failed"));
   }
 

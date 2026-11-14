@@ -32,11 +32,12 @@
 import { albumLayout } from "~/domain/album";
 import { messagePicture, shapeOf } from "~/domain/picture-shapes";
 
+import type { ExactMessageId } from "#shared/types";
 import type { AlbumLayout } from "~/domain/album";
 
 interface Props {
   // A picture still on its way has no message yet: it opens alone rather than in the room's viewer.
-  pictures: { messageId: number | null; src: string }[];
+  pictures: { messageId: ExactMessageId | null; src: string }[];
   senderName: string;
   // When the send went, as the viewer's title says it.
   stamp: string;
@@ -68,7 +69,7 @@ function rowSum(pictures: readonly number[]): number {
 }
 
 // What one cell's picture is handed: where it loads from, its message and its title.
-function cell(at: number): { src: string; messageId: number | undefined; title: string } {
+function cell(at: number): { src: string; messageId: ExactMessageId | undefined; title: string } {
   const picture = props.pictures[at]!;
 
   return { src: picture.src, messageId: picture.messageId ?? undefined, title: `${props.senderName} · ${props.stamp} · ${at + 1}/${props.pictures.length}` };

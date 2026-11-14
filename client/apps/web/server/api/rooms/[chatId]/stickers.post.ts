@@ -2,8 +2,9 @@ import { wording } from "#shared/wording";
 
 import { ownerHeaders } from "../../../utils/owner-key";
 import { requireReadableRoom } from "../../../utils/room-reach";
-import { receiver, receiverCall } from "../../../utils/receiver";
+import { exactAnswer, receiver } from "../../../utils/receiver";
 
+import type { ReceiverMessage } from "../../../utils/receiver";
 import type { SentMessage } from "#shared/types";
 
 // A sticker of the record's set sent into the room as the signed-in person's own message (the receiver's
@@ -22,9 +23,10 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
     throw fail(400, wording("room.error.sticker_empty"));
   }
 
-  const message = await receiverCall(
+  const message = await exactAnswer<ReceiverMessage>(
     receiver().POST("/rooms/{roomId}/stickers", {
       params: { path: { roomId: chatId } },
+      parseAs: "text",
       body: { emoji },
       headers: ownerHeaders(signed)
     })

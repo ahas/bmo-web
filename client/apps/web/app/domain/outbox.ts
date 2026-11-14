@@ -1,6 +1,6 @@
 import { TELEGRAM_CAPTION_LENGTH, TELEGRAM_MESSAGE_LENGTH } from "#shared/config";
 
-import type { ArchivedMessage, ReplyQuote, SendOutcomeRecord, SentMessage } from "#shared/types";
+import type { ArchivedMessage, ExactMessageId, ReplyQuote, SendOutcomeRecord, SentMessage } from "#shared/types";
 import type { PickedFile } from "./attachments";
 
 // One message handed to the bot and not yet standing in the archive. It goes into the feed the
@@ -24,7 +24,7 @@ export interface OutboxItem {
   // Why it did not go, in the words the console says it in.
   reason: string | null;
   // What the bot numbered it, once the send has answered.
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   // The message it answers, when it is a reply. It stays on the row, so sending it again is the
   // same reply.
   reply: ReplyQuote | null;
@@ -63,7 +63,7 @@ function item(text: string, file: PickedFile | null, now: number, reply: ReplyQu
   };
 }
 
-export function withSent(items: readonly OutboxItem[], key: string, messageId: number): OutboxItem[] {
+export function withSent(items: readonly OutboxItem[], key: string, messageId: ExactMessageId): OutboxItem[] {
   return items.map((held) => (held.key === key ? { ...held, messageId, reason: null, state: "sending" } : held));
 }
 
@@ -258,10 +258,10 @@ export function echoedKeys(
 // The rows whose archived message has taken their place, by the message's number: the line's key, which the message
 // keeps standing under from then on, so the one row stands for the whole of the message's life (docs/web.md, the
 // room screen's section on a message being sent).
-export function standingKeys(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null): Map<number, string> {
+export function standingKeys(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null): Map<ExactMessageId, string> {
   const landed = completeLandings(items, messages, speakerId, true);
   const down = caughtUp(items, messages, speakerId, true);
-  const keys = new Map<number, string>();
+  const keys = new Map<ExactMessageId, string>();
 
   for (const held of items) {
     const messageId = down.has(held.key) ? landed.get(held.key) : undefined;
@@ -279,7 +279,7 @@ export function heldMessages(
   items: readonly OutboxItem[],
   messages: readonly ArchivedMessage[],
   speakerId: number | null
-): Set<number> {
+): Set<ExactMessageId> {
   const landed = landings(items, messages, speakerId, true);
   const down = caughtUp(items, messages, speakerId, true);
 
@@ -308,7 +308,7 @@ function caughtUp(items: readonly OutboxItem[], messages: readonly ArchivedMessa
 }
 
 // The landings whose message can take its row's place: a picture's only once the archive has kept the picture.
-function completeLandings(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null, echoes: boolean): Map<string, number> {
+function completeLandings(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null, echoes: boolean): Map<string, ExactMessageId> {
   const pictured = new Set(messages.filter((message) => message.imagePath !== null).map((message) => message.messageId));
   const pictures = new Set(items.filter(isPicture).map((held) => held.key));
 
@@ -323,10 +323,10 @@ const ECHO_SLACK_SECONDS = 3;
 // The archived message each row the archive has caught up with landed as, by its key: the rows the send numbered
 // first, then the rows found by what the archive carried, then — where echoes are asked for — the words of a send
 // still out, each taking only a message no row before it took.
-function landings(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null, echoes = false): Map<string, number> {
+function landings(items: readonly OutboxItem[], messages: readonly ArchivedMessage[], speakerId: number | null, echoes = false): Map<string, ExactMessageId> {
   const numbered = new Set(messages.map((message) => message.messageId));
-  const taken = new Set<number>();
-  const landed = new Map<string, number>();
+  const taken = new Set<ExactMessageId>();
+  const landed = new Map<string, ExactMessageId>();
   const answered = items.filter((held) => held.state !== "failed" && !unanswered(held));
 
   for (const held of answered) {
@@ -375,7 +375,7 @@ function landings(items: readonly OutboxItem[], messages: readonly ArchivedMessa
 // archived message that takes its place, which draws that preview until its own copy has loaded
 // (docs/web.md, 「What arrives comes in at the end」).
 export interface LandedPicture {
-  messageId: number;
+  messageId: ExactMessageId;
   previewUrl: string;
 }
 

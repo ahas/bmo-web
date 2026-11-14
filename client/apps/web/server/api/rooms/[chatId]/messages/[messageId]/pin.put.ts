@@ -1,8 +1,9 @@
 import { wording } from "#shared/wording";
 
 import { acted, messageToActOn } from "../../../../../utils/message-acts";
-import { receiver, receiverCall } from "../../../../../utils/receiver";
+import { exactAnswer, receiver, wireId } from "../../../../../utils/receiver";
 
+import type { ReceiverMessage } from "../../../../../utils/receiver";
 import type { MessageAct } from "#shared/types";
 
 // A message pinned to the room, or its pin taken off (the receiver's `docs/api.md`, 「Messages」): anyone signed in
@@ -15,9 +16,10 @@ export default defineEventHandler(async (event): Promise<MessageAct> => {
     throw fail(400, wording("room.error.pin_message_direction"));
   }
 
-  const message = await receiverCall(
+  const message = await exactAnswer<ReceiverMessage>(
     receiver().PUT("/rooms/{roomId}/messages/{messageId}/pin", {
-      params: { path: { roomId: acted_.chatId, messageId: acted_.messageId } },
+      params: { path: { roomId: acted_.chatId, messageId: wireId(acted_.messageId) } },
+      parseAs: "text",
       body: { on: body.on },
       headers: acted_.headers
     })

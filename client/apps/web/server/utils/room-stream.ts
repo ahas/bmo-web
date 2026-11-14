@@ -2,7 +2,7 @@ import { TURN_ENDED } from "#shared/types";
 
 import { frameEvent } from "./sse-frames";
 
-import type { BotEventType, ChatTurn, LiveSnapshot, TurnReceived, TurnSpeaker } from "#shared/types";
+import type { BotEventType, ChatTurn, ExactMessageId, LiveSnapshot, TurnReceived, TurnSpeaker } from "#shared/types";
 import type { RelayFilter } from "./bot-relay";
 
 // What the bot's stream carries to a user who reads only some rooms (docs/web.md, 「Access」): a
@@ -17,7 +17,7 @@ interface RoomEvent {
   at: number;
   type: BotEventType;
   chatId: number;
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   speaker?: TurnSpeaker;
   received?: TurnReceived;
   live?: LiveSnapshot;

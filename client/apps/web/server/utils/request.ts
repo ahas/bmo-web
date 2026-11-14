@@ -1,4 +1,5 @@
 import { PAGING } from "#shared/config";
+import { exactMessageIdOf } from "#shared/message-ids";
 import { wording } from "#shared/wording";
 
 import type { ExactMessageId } from "#shared/types";
@@ -15,51 +16,28 @@ export function requireChatId(event: H3Event): number {
   return chatId;
 }
 
-export function requireMessageId(event: H3Event): number {
-  const messageId = Number(getRouterParam(event, "messageId") ?? "");
-
-  if (!Number.isSafeInteger(messageId)) {
-    throw fail(400, wording("room.error.bad_message_id"));
-  }
-
-  return messageId;
+/** The message a route's path names, by its exact id (ExactMessageId). */
+export function requireMessageId(event: H3Event): ExactMessageId {
+  return requireExactMessageId(getRouterParam(event, "messageId"));
 }
 
-// The bounds of the signed 64-bit integer the receiver numbers a message with.
-const INT64_MIN = -(2n ** 63n);
-const INT64_MAX = 2n ** 63n - 1n;
-
-// The value as a message's exact id (ExactMessageId): the decimal digits of a signed 64-bit integer, written the one
-// way BigInt writes them; null for anything else.
-function exactIdOf(value: unknown): ExactMessageId | null {
-  const id = typeof value === "string" && /^-?\d{1,19}$/.test(value) ? BigInt(value) : null;
-
-  return id === null || id < INT64_MIN || id > INT64_MAX || String(id) !== value ? null : value;
-}
-
-/** A message's exact id a body hands back; anything else is refused. */
+/** A message's exact id a request hands over (ExactMessageId), as the digits BigInt writes; anything else is
+ * refused. */
 export function requireExactMessageId(value: unknown): ExactMessageId {
-  const id = exactIdOf(value);
+  const id = typeof value === "string" ? exactMessageIdOf(value) : null;
 
-  if (id === null) {
-    throw fail(400, wording("room.error.bad_message_id"));
-  }
+  if (id === null) throw fail(400, wording("room.error.bad_message_id"));
 
   return id;
 }
 
-/** A message cursor a query names: the exact id of a row the reader holds, or null where the query names none. A
- * room's messages may be numbered past what a JavaScript number holds, so the digits are kept as written. */
+/** A message a query names as a cursor by its exact id, or null where it names none. */
 export function readMessageCursor(value: unknown): ExactMessageId | null {
-  if (value === undefined || value === null || value === "") {
-    return null;
-  }
+  if (value === undefined || value === null || value === "") return null;
 
-  const id = exactIdOf(value);
+  const id = typeof value === "string" ? exactMessageIdOf(value) : null;
 
-  if (id === null) {
-    throw fail(400, wording("common.error.bad_cursor"));
-  }
+  if (id === null) throw fail(400, wording("common.error.bad_cursor"));
 
   return id;
 }
@@ -125,14 +103,14 @@ export function readLimit(value: unknown): number {
 
 // The message a send answers, as a body names it: a message number, or nothing. Anything else is a
 // request that was never going to be a reply.
-export function replyToOf(value: unknown): number | null {
+export function replyToOf(value: unknown): ExactMessageId | null {
   if (value === undefined || value === null || value === "") {
     return null;
   }
 
-  const id = typeof value === "number" ? value : Number(value);
+  const id = exactMessageIdOf(value);
 
-  if (!Number.isSafeInteger(id) || id === 0) {
+  if (id === null || id === "0") {
     throw fail(400, wording("room.error.bad_reply_id"));
   }
 

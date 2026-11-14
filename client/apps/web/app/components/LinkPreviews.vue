@@ -37,11 +37,11 @@
 import { messageLinks } from "#shared/links";
 import { appUrl } from "~/domain/urls";
 
-import type { LinkPreview } from "#shared/types";
+import type { ExactMessageId, LinkPreview } from "#shared/types";
 
 interface Props {
   chatId: number;
-  messageId: number;
+  messageId: ExactMessageId;
   text: string;
 }
 

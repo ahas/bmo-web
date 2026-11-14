@@ -17,7 +17,7 @@ interface MenuEntry {
 import type { MessageMenuActions, MessageMenuState } from "../../../apps/web/app/domain/messagemenu";
 
 function item(text: string, over: Partial<MessageMenuState> = {}): MessageMenuState & CopyItem {
-  return { senderName: "Owner", senderId: 10000001, messageId: 7, sentAt: 1_757_000_000, text, judgements: [], writable: true, ...over };
+  return { senderName: "Owner", senderId: 10000001, messageId: "7", sentAt: 1_757_000_000, text, judgements: [], writable: true, ...over };
 }
 
 function spies(): MessageMenuActions & { called: string[] } {

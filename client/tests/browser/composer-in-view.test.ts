@@ -65,8 +65,7 @@ function roomRows(): ArchivedMessage[] {
     clock += 60;
     rows.push({
       chatId: CHAT,
-      messageId: 9_000 + at,
-      exactId: String(9_000 + at),
+      messageId: String(9_000 + at),
       senderId: at % 3 === 0 ? owner : OTHER,
       senderName: at % 3 === 0 ? "composer-view" : "tester",
       sentAt: clock,

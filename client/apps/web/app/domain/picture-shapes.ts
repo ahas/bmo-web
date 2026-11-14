@@ -1,3 +1,5 @@
+import type { ExactMessageId } from "#shared/types";
+
 // The shape of each picture the console has seen, so a picture in a bubble keeps its room before it
 // has loaded (docs/web.md, the room screen's section on a bubble with pictures). A picture the owner sends is measured from its own
 // preview before its bubble is first drawn, and the shape follows it to the archived message that takes
@@ -15,7 +17,7 @@ const shapes = reactive(new Map<string, PictureShape>());
 const standIns = reactive(new Map<string, string>());
 
 // A picture's place in the record: the address it loads from, or the message it belongs to.
-export function messagePicture(messageId: number): string {
+export function messagePicture(messageId: ExactMessageId): string {
   return `m${messageId}`;
 }
 

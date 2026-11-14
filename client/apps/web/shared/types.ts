@@ -163,7 +163,7 @@ export interface ReadPlace {
 }
 
 // A message's id exactly as the receiver numbers it: the decimal digits of a signed 64-bit integer, which a
-// JavaScript number holds without rounding only up to 2^53 (docs/web.md, 「Unread messages」).
+// JavaScript number holds without rounding only up to 2^53 (docs/web.md, 「A message's id」).
 export type ExactMessageId = string;
 
 // How far the signed-in reader has read a room: how many of its messages they have not read, the
@@ -249,7 +249,7 @@ export interface TelegramWords {
 // kept picture, and the first file it kept — so the quote can stand a small preview of it. A message
 // the archive does not hold has no speaker, no words and nothing carried.
 export interface ReplyQuote {
-  messageId: number;
+  messageId: ExactMessageId;
   senderName: string | null;
   text: string;
   pictured?: boolean;
@@ -282,21 +282,19 @@ export interface RoomSituation {
 // message and who said it there.
 export interface ForwardedFrom {
   room: number;
-  messageId: number;
+  messageId: ExactMessageId;
   senderName: string;
 }
 
 export interface ArchivedMessage {
   chatId: number;
-  messageId: number;
-  // The same id as the receiver wrote it, which a read mark names and a row is keyed by; `messageId` rounds past 2^53.
-  exactId: ExactMessageId;
+  messageId: ExactMessageId;
   senderId: number | null;
   senderName: string;
   sentAt: number;
   text: string;
   imagePath: string | null;
-  replyToMessageId: number | null;
+  replyToMessageId: ExactMessageId | null;
   // The answered message as a reply shows it, when this message is a reply.
   replyQuote?: ReplyQuote | null;
   // Where this message was forwarded from, on a message the record kept as a forward; absent on every other.
@@ -337,7 +335,7 @@ export interface ArchivedMessage {
   round?: string | null;
   // The album a picture went out in, named by the number of the album's first picture, on every
   // picture of a send of several; null on everything else.
-  album?: number | null;
+  album?: ExactMessageId | null;
   // What that round cost, on the last message the round sent and on no other.
   spend?: RoundSpend | null;
   // How the round's draft process made its answer, on that same last message: a summary of the round's log,
@@ -353,7 +351,7 @@ export interface ArchivedMessage {
   figuring?: boolean;
   // On a voice briefing that speaks a line standing in the room, that line: the room stands the
   // voice on it rather than as a row of its own.
-  briefs?: number | null;
+  briefs?: ExactMessageId | null;
   // On a summary whose round has not sent its line yet: the room stands it as no row until the
   // round ends, on the line it is tied to or as its own row where the round sent none.
   awaitsLine?: boolean;
@@ -377,7 +375,7 @@ export interface MessageReaction {
 export interface MessageBriefing {
   state: "idle" | "making" | "ready" | "failed" | "stopped";
   source: "voice" | "kept" | null;
-  voiceMessageId: number | null;
+  voiceMessageId: ExactMessageId | null;
   sound: MessageAttachment | null;
   // The voice engine's briefing the line's full reading is, where one was asked for.
   briefingId?: number | null;
@@ -390,13 +388,13 @@ export interface MessageBriefing {
 export interface VoiceBriefing {
   id: number;
   chatId: number;
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   kind: "summary" | "full";
   title: string | null;
   state: "waiting" | "done" | "failed" | "stopped";
   durationMs: number | null;
   plays: boolean;
-  voiceMessageId: number | null;
+  voiceMessageId: ExactMessageId | null;
   spoken: boolean;
   finishedAt: number | null;
 }
@@ -495,7 +493,7 @@ export interface TurnRoad extends JudgementRoad {
 export interface Judgement {
   id: number;
   chatId: number;
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   stage: string;
   verdict: string;
   detail: string | null;
@@ -874,7 +872,7 @@ export interface LiveRun {
   kind: LiveRunKind;
   agent: string;
   chatId: number | null;
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   startedAt: number;
   // The unit this run stands in, and what a stop from the board names. Null for a gate.
   unit: string | null;
@@ -944,7 +942,7 @@ export interface ChatTurn extends TurnReceived {
   since: number;
   // The newest message the round carries, which it reads last and which its gates and answer judge;
   // null for a round carrying none, absent from a bot that does not say.
-  messageId?: number | null;
+  messageId?: ExactMessageId | null;
   // Whose turn it is, so a room two agents answer holds a turn of each at once; null where the room gives none.
   speaker?: TurnSpeaker | null;
   // The Job the turn waits on for its engine, while it waits; null or absent once it runs.
@@ -963,7 +961,7 @@ export interface EngineHold {
 // newest of each room alone; it is waiting to be judged.
 export interface QueuedMessage {
   chatId: number;
-  messageId: number;
+  messageId: ExactMessageId;
   since: number;
 }
 
@@ -1111,7 +1109,7 @@ interface BotEventFields {
   at: number;
   type: BotEventType;
   chatId: number;
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   stage?: string;
   verdict?: string;
   detail?: string | null;
@@ -1281,7 +1279,7 @@ export interface GateRunRecord {
   id: number;
   agent: string;
   chatId: number;
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   verdict: string;
   ms: number | null;
   at: number;
@@ -2600,7 +2598,7 @@ export interface RoomPast {
 // What one round of a room spent and did, read once the page carrying its last answer has landed (docs/web.md, the
 // room screen's chip line): the answer the room asked about it by, and the round's figures.
 export interface RoundFiguresOf {
-  messageId: number;
+  messageId: ExactMessageId;
   round: string;
   spend: RoundSpend | null;
   actions: TurnActionsRef | null;
@@ -2612,9 +2610,9 @@ export interface RoomRoundFigures {
 
 // One picture a room holds, as the picture viewer walks the room's pictures.
 export interface RoomPicture {
-  messageId: number;
+  messageId: ExactMessageId;
   // The album it went out in, by the number of the album's first picture; null for a picture sent alone.
-  album: number | null;
+  album: ExactMessageId | null;
   senderName: string;
   sentAt: number;
   // The message's words as the archive holds them, its picture mark included.
@@ -2649,7 +2647,7 @@ export interface LinkPreview {
 // Where a day of a room begins: the first message said that day or after it. Null where nothing
 // was said from that day on.
 export interface RoomDayStart {
-  start: { messageId: number } | null;
+  start: { messageId: ExactMessageId } | null;
 }
 
 export interface JudgementPage {
@@ -2660,25 +2658,25 @@ export interface JudgementPage {
 // What the receiver did with what the owner typed: it said it in the room under their name, and
 // the room's record now holds it under this number.
 export interface SentMessage {
-  messageId: number;
+  messageId: ExactMessageId;
 }
 
 // What the signed-in person's act on a message answers: the message as the record now holds it, by its number, which
 // the screen reads again rather than trusting the row it acted from.
 export interface MessageAct {
-  messageId: number;
+  messageId: ExactMessageId;
 }
 
 // Where a forwarded copy was kept: the room it went into and the message the room now holds there.
 export interface ForwardedMessage {
   room: number;
-  messageId: number;
+  messageId: ExactMessageId;
 }
 
 // A room's pinned message as the top bar's button reads it (the receiver's `docs/api.md`, 「Messages」): what it says,
 // who said it, and when it was pinned, in unix seconds.
 export interface PinnedMessage {
-  messageId: number;
+  messageId: ExactMessageId;
   senderName: string;
   text: string;
   pinnedAt: number | null;
@@ -2757,7 +2755,7 @@ export interface RoomAgentStats {
 // stopped the ones that did not go. A send that stopped halfway is never retried whole, so what
 // landed has to come back named.
 export interface SentAttachments {
-  sent: { name: string; messageId: number }[];
+  sent: { name: string; messageId: ExactMessageId }[];
   failed: { name: string; reason: string }[];
   // The files the receiver took but did not answer for in time: they may well have gone, so they are
   // watched for in the room rather than called failed.

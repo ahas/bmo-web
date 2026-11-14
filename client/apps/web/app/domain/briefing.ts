@@ -9,7 +9,7 @@ import { appUrl } from "./urls";
 
 import type { Playing } from "./player";
 import type { Tap } from "bmo-ui/app/domain/sound-tap";
-import type { BotEvent } from "#shared/types";
+import type { BotEvent, ExactMessageId } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { Ref } from "vue";
 
@@ -22,7 +22,7 @@ export interface HeardBriefing {
   id: number;
   chatId: number;
   // The line it speaks, none while it awaits one.
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   // When it ended, in epoch milliseconds.
   endedAt: number;
   // The title the engine gave it, none where it gave none.

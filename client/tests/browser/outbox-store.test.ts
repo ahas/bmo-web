@@ -45,7 +45,7 @@ interface Line {
   sendKey: string;
   text: string;
   state: string;
-  messageId: number | null;
+  messageId: string | null;
   file: { key: string; name: string; type: string; body: string } | null;
 }
 
@@ -54,7 +54,7 @@ async function loaded(chatId: number): Promise<Line[]> {
   return page.evaluate(async (chatId) => {
     const scope: Window & { kept?: { outboxStore: (preview: (file: File) => null) => { load: (id: number) => Promise<unknown[]> } } } = window;
     const store = scope.kept!.outboxStore(() => null);
-    const items = (await store.load(chatId)) as { key: string; sendKey: string; text: string; state: string; messageId: number | null; file: { key: string; file: File } | null }[];
+    const items = (await store.load(chatId)) as { key: string; sendKey: string; text: string; state: string; messageId: string | null; file: { key: string; file: File } | null }[];
 
     return Promise.all(
       items.map(async (held) => ({
@@ -70,7 +70,7 @@ async function loaded(chatId: number): Promise<Line[]> {
 }
 
 // Saves the room's lines as a page would, each change once more after the one before.
-async function saved(chatId: number, steps: { key: string; state: string; messageId: number | null; withFile?: boolean }[][]): Promise<void> {
+async function saved(chatId: number, steps: { key: string; state: string; messageId: string | null; withFile?: boolean }[][]): Promise<void> {
   await page.evaluate(
     async ({ chatId, steps, words }) => {
       const scope: Window & { kept?: { outboxStore: () => { save: (id: number, items: unknown[]) => Promise<void> } } } = window;
@@ -108,7 +108,7 @@ describe.skipIf(!ready)("the lines a room keeps in the browser", () => {
         { key: "c", state: "failed", messageId: null }
       ],
       [
-        { key: "a", state: "sending", messageId: 41 },
+        { key: "a", state: "sending", messageId: "41" },
         { key: "b", state: "waiting", messageId: null, withFile: true }
       ]
     ]);
@@ -118,7 +118,7 @@ describe.skipIf(!ready)("the lines a room keeps in the browser", () => {
     await page.waitForFunction(() => "kept" in window);
 
     expect(await loaded(-5)).toEqual([
-      { key: "a", sendKey: "send-a", text: KO.line_118, state: "sending", messageId: 41, file: null },
+      { key: "a", sendKey: "send-a", text: KO.line_118, state: "sending", messageId: "41", file: null },
       { key: "b", sendKey: "send-b", text: KO.line_119, state: "waiting", messageId: null, file: { key: "picked-b", name: "b.png", type: "image/png", body: KO.line_119_2 } }
     ]);
     expect((await loaded(-6)).map((line) => line.key)).toEqual(["other"]);

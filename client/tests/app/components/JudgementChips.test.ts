@@ -158,7 +158,7 @@ describe("the judgement", () => {
     expect(lead.indexOf("data-thinking-label")).toBeGreaterThan(-1);
     expect(lead.indexOf("data-thinking-label")).toBeLessThan(lead.indexOf("data-record-chip"));
     expect(lead).toContain('$t("room.label.thinking_line")');
-    expect(script).toContain("props.figuring ||\n    props.thinking ||\n    slots.lead !== undefined\n);");
+    expect(script).toContain("props.figuring ||\n    props.thinking ||\n    filled.value.lead\n);");
   });
 
   test("an answer keeps no room for a mark, so its wait stands by its time", () => {

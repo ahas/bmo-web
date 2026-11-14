@@ -1,9 +1,10 @@
+import { exactMessageIdOf } from "#shared/message-ids";
 import { briefingStateOf } from "#shared/voice-briefings";
 import { wording } from "#shared/wording";
 
 import { unitAt, unitBytes, unitFetch } from "./units";
 
-import type { VoiceBriefing } from "#shared/types";
+import type { ExactMessageId, VoiceBriefing } from "#shared/types";
 
 // The voice engine's briefings as the console reads them (the voice engine's `docs/boundary-api.md`, 「Briefings」;
 // docs/web.md, the voice briefing chip and the player): a line's summary and its full reading, one briefing waited on,
@@ -15,16 +16,20 @@ const UNIT = "VOICE";
 // How many of a room's briefings one read takes, the newest first, which reaches every line a page shows.
 const ROOM_BRIEFINGS = 200;
 
+// The keys whose integers name a receiver message in the engine's briefings, read as exact ids: the line a briefing
+// speaks and the voice message an old one went out as.
+export const BRIEFING_MESSAGE_IDS: ReadonlySet<string> = new Set(["messageId", "voiceMessageId"]);
+
 interface EngineBriefing {
   id: number | string;
   chatId: number;
-  messageId: number | null;
+  messageId: ExactMessageId | number | null;
   kind: string;
   title: string | null;
   state: string;
   durationMs: number | null;
   plays: boolean;
-  voiceMessageId: number | null;
+  voiceMessageId: ExactMessageId | number | null;
   synthesisId: number | string | null;
   startedAt: number;
   finishedAt: number | null;
@@ -40,13 +45,13 @@ export function voiceBriefingOf(row: EngineBriefing): VoiceBriefing {
   return {
     id: Number(row.id),
     chatId: Number(row.chatId),
-    messageId: row.messageId === null ? null : Number(row.messageId),
+    messageId: exactMessageIdOf(row.messageId),
     kind: row.kind === "full" ? "full" : "summary",
     title: row.title ?? null,
     state: briefingStateOf(row.state),
     durationMs: row.durationMs ?? null,
     plays: row.plays !== false,
-    voiceMessageId: row.voiceMessageId === null || row.voiceMessageId === undefined ? null : Number(row.voiceMessageId),
+    voiceMessageId: exactMessageIdOf(row.voiceMessageId),
     spoken: row.synthesisId !== null && row.synthesisId !== undefined,
     finishedAt: row.finishedAt ?? null
   };
@@ -57,7 +62,7 @@ export async function roomBriefings(chatId: number): Promise<VoiceBriefing[]> {
   if (!voiceNamed()) return [];
 
   try {
-    const page = await unitFetch<{ items?: EngineBriefing[] }>(UNIT, `/briefings?chatId=${chatId}&limit=${ROOM_BRIEFINGS}`);
+    const page = await unitFetch<{ items?: EngineBriefing[] }>(UNIT, `/briefings?chatId=${chatId}&limit=${ROOM_BRIEFINGS}`, undefined, { exactIds: BRIEFING_MESSAGE_IDS });
 
     return (page?.items ?? []).map(voiceBriefingOf);
   } catch {
@@ -69,7 +74,7 @@ export async function roomBriefings(chatId: number): Promise<VoiceBriefing[]> {
 export async function readBriefing(id: number): Promise<VoiceBriefing> {
   if (!voiceNamed()) throw fail(503, wording("briefing.error.no_engine"));
 
-  return voiceBriefingOf(await unitFetch<EngineBriefing>(UNIT, `/briefings/${id}`, undefined, { codes: { "not-found": "briefing.error.not_found" } }));
+  return voiceBriefingOf(await unitFetch<EngineBriefing>(UNIT, `/briefings/${id}`, undefined, { codes: { "not-found": "briefing.error.not_found" }, exactIds: BRIEFING_MESSAGE_IDS }));
 }
 
 /** A briefing's sound handed on whole, the stretch a player asked for among it. */

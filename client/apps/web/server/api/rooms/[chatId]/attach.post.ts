@@ -1,7 +1,9 @@
 import { MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, MAX_SAY_TEXT_LENGTH } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import type { SentAttachments } from "#shared/types";
+import { exactAnswer, receiver } from "../../../utils/receiver";
+
+import type { ExactMessageId, SentAttachments } from "#shared/types";
 
 // The caption a form carried, as it was typed: a form sends every line break as a carriage return and a line feed,
 // so the line breaks are read back as line feeds alone and the ends trimmed.
@@ -93,8 +95,8 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
     async () => {
       try {
         // The call waits for the receiver's answer however long its uploads take.
-        const answer = (await receiverCall(
-          receiver().POST("/owner/message-files", { body })
+        const answer = (await exactAnswer<unknown>(
+          receiver().POST("/owner/message-files", { body, parseAs: "text" })
         )) as ReceivedAttachments;
 
         return {
@@ -121,7 +123,7 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
 // What the receiver answers a send of files with: each file that went, each it is still drawing on, and each
 // that did not go with why, as a `FileUnsent` kind (the receiver's `docs/codes.md`) or a reason the road gave.
 interface ReceivedAttachments {
-  sent: { name: string; id: number }[];
+  sent: { name: string; id: ExactMessageId }[];
   checking: { name: string }[];
   failed: { name: string; reason: unknown }[];
 }

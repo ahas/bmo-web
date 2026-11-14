@@ -1,8 +1,14 @@
+import { exactMessageIdOf } from "#shared/message-ids";
+
+import { exactAnswer, receiver, wireId } from "../../../utils/receiver";
+
+import type { ReceiverPictures } from "../../../utils/receiver";
 import type { RoomPicturePage } from "#shared/types";
 
 // The pictures a room holds, which the picture viewer walks across the whole room: the receiver's stretch of them
-// (its `docs/boundary-api.md`, 「A room's pictures」), asked for by the picture the viewer holds and the side it walks.
-const CURSORS = ["at", "before", "after", "limit"] as const;
+// (its `docs/boundary-api.md`, 「A room's pictures」), asked for by the picture the viewer holds, by its exact id, and
+// the side it walks.
+const CURSORS = ["at", "before", "after"] as const;
 
 export default defineEventHandler(async (event): Promise<RoomPicturePage> => {
   await requireUserSession(event);
@@ -12,21 +18,20 @@ export default defineEventHandler(async (event): Promise<RoomPicturePage> => {
   await requireReadableRoom(event, chatId);
 
   const query = getQuery(event);
-  const asked = new URLSearchParams();
+  const limit = Number(query.limit);
+  const cursors = {
+    ...Object.fromEntries(
+      CURSORS.flatMap((name) => {
+        const id = exactMessageIdOf(query[name]);
 
-  for (const name of CURSORS) {
-    const value = Number(query[name]);
-
-    if (query[name] !== undefined && Number.isSafeInteger(value)) asked.set(name, String(value));
-  }
-
-  const cursors = Object.fromEntries([...asked].map(([name, value]) => [name, Number(value)])) as {
-    at?: number;
-    before?: number;
-    after?: number;
-    limit?: number;
-  };
-  const page = await receiverCall(receiver().GET("/rooms/{roomId}/pictures", { params: { path: { roomId: chatId }, query: cursors } }));
+        return id === null ? [] : [[name, wireId(id)]];
+      })
+    ),
+    ...(query.limit !== undefined && Number.isSafeInteger(limit) ? { limit } : {})
+  } as { at?: number; before?: number; after?: number; limit?: number };
+  const page = await exactAnswer<ReceiverPictures>(
+    receiver().GET("/rooms/{roomId}/pictures", { params: { path: { roomId: chatId }, query: cursors }, parseAs: "text" })
+  );
 
   return {
     pictures: page.items.map((picture) => ({

@@ -15,10 +15,10 @@ import type { BotEvent, VoiceBriefing } from "../../../apps/web/shared/types";
 const NOW = 1_800_000_000_000;
 
 const voice = (over: Partial<VoiceBriefing> = {}): VoiceBriefing => ({
-  id: 7, chatId: 42, messageId: 548, kind: "summary", title: "a title", state: "done", durationMs: 9_000, plays: true,
+  id: 7, chatId: 42, messageId: "548", kind: "summary", title: "a title", state: "done", durationMs: 9_000, plays: true,
   voiceMessageId: null, spoken: true, finishedAt: NOW - 1_000, ...over
 });
-const ended = (over: Partial<VoiceBriefing> = {}): BotEvent => ({ id: 1, at: NOW, type: "voice-briefing", chatId: 42, messageId: 548, phase: "ended", voice: voice(over) });
+const ended = (over: Partial<VoiceBriefing> = {}): BotEvent => ({ id: 1, at: NOW, type: "voice-briefing", chatId: 42, messageId: "548", phase: "ended", voice: voice(over) });
 
 class StandInSound implements BriefingSound {
   paused = true;
@@ -108,11 +108,11 @@ function refusingDesk(): { desk: Desk; shown: () => BriefingShown | null } {
 
 describe("what plays by itself", () => {
   test("is a summary that ended done and is to play by itself", () => {
-    expect(briefingOfEvent(ended())).toEqual({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: "a title" });
+    expect(briefingOfEvent(ended())).toEqual({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: "a title" });
     expect(briefingOfEvent(ended({ kind: "full" }))).toBeNull();
     expect(briefingOfEvent(ended({ plays: false }))).toBeNull();
     expect(briefingOfEvent(ended({ state: "failed" }))).toBeNull();
-    expect(briefingOfEvent({ id: 1, at: NOW, type: "voice-briefing", chatId: 42, messageId: 548, phase: "created", voice: voice() })).toBeNull();
+    expect(briefingOfEvent({ id: 1, at: NOW, type: "voice-briefing", chatId: 42, messageId: "548", phase: "created", voice: voice() })).toBeNull();
   });
 });
 
@@ -156,7 +156,7 @@ describe("the page's own sound", () => {
     const held = pageDesk();
 
     held.page(true);
-    await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+    await held.desk.hear({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: null });
 
     // It is in the player, waiting for the page's sound rather than dropped, and nothing was started.
     expect(held.sounds.length).toBe(1);
@@ -176,8 +176,8 @@ describe("the page's own sound", () => {
     const held = pageDesk();
 
     held.page(true);
-    await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
-    await held.desk.hear({ id: 8, chatId: 42, messageId: 549, endedAt: NOW - 1_000, title: null });
+    await held.desk.hear({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: null });
+    await held.desk.hear({ id: 8, chatId: 42, messageId: "549", endedAt: NOW - 1_000, title: null });
     expect(held.desk.queued()).toEqual(["briefing:8"]);
 
     held.page(false);
@@ -192,7 +192,7 @@ describe("the page's own sound", () => {
     const held = pageDesk();
 
     held.page(true);
-    await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+    await held.desk.hear({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: null });
 
     held.shown()?.play();
     await Promise.resolve();
@@ -216,7 +216,7 @@ describe("the player", () => {
   test("plays by itself as it comes, from its sound, leading to its line", async () => {
     const held = desk();
 
-    await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+    await held.desk.hear({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: null });
 
     expect(held.sounds[0]?.src).toBe("/api/briefings/7/sound");
     expect(held.sounds[0]?.played).toBe(1);
@@ -227,7 +227,7 @@ describe("the player", () => {
   test("waits for one press where the browser refuses a sound nobody pressed for, and that press starts it", async () => {
     const held = refusingDesk();
 
-    await held.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+    await held.desk.hear({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: null });
     await Promise.resolve();
 
     expect(held.shown()?.phase).toBe("blocked");
@@ -242,7 +242,7 @@ describe("the player", () => {
   test("goes a moment after it played to its end, and stays where the reader paused or moved it", async () => {
     const played = desk();
 
-    await played.desk.hear({ id: 7, chatId: 42, messageId: 548, endedAt: NOW - 1_000, title: null });
+    await played.desk.hear({ id: 7, chatId: 42, messageId: "548", endedAt: NOW - 1_000, title: null });
     played.sounds[0]!.paused = true;
     played.sounds[0]!.on.ended();
     await Promise.resolve();
@@ -251,7 +251,7 @@ describe("the player", () => {
 
     const touched = desk();
 
-    await touched.desk.hear({ id: 8, chatId: 42, messageId: 549, endedAt: NOW - 1_000, title: null });
+    await touched.desk.hear({ id: 8, chatId: 42, messageId: "549", endedAt: NOW - 1_000, title: null });
     touched.sounds[0]!.on.moved();
     touched.sounds[0]!.paused = true;
     touched.sounds[0]!.on.ended();
@@ -264,7 +264,7 @@ describe("the player", () => {
   test("leaves one heard long after it ended to its line", async () => {
     const held = desk();
 
-    await held.desk.hear({ id: 11, chatId: 42, messageId: 552, endedAt: NOW - 3_600_000, title: null });
+    await held.desk.hear({ id: 11, chatId: 42, messageId: "552", endedAt: NOW - 3_600_000, title: null });
     expect(held.sounds.length).toBe(0);
     expect(held.shown()).toBeNull();
   });
@@ -272,19 +272,19 @@ describe("the player", () => {
   test("plays one heard late by itself, and plays a briefing once", async () => {
     const held = desk();
 
-    await held.desk.hear({ id: 8, chatId: 42, messageId: 549, endedAt: NOW - 300_000, title: null });
+    await held.desk.hear({ id: 8, chatId: 42, messageId: "549", endedAt: NOW - 300_000, title: null });
     expect(held.sounds[0]?.played).toBe(1);
     expect(held.shown()?.phase).toBe("playing");
 
-    await held.desk.hear({ id: 8, chatId: 42, messageId: 549, endedAt: NOW - 300_000, title: null });
+    await held.desk.hear({ id: 8, chatId: 42, messageId: "549", endedAt: NOW - 300_000, title: null });
     expect(held.sounds.length).toBe(1);
   });
 
   test("ends the one playing and every one waiting on stop-listening", async () => {
     const held = desk();
 
-    await held.desk.hear({ id: 9, chatId: 42, messageId: 550, endedAt: NOW - 1_000, title: null });
-    await held.desk.hear({ id: 10, chatId: 42, messageId: 551, endedAt: NOW - 1_000, title: null });
+    await held.desk.hear({ id: 9, chatId: 42, messageId: "550", endedAt: NOW - 1_000, title: null });
+    await held.desk.hear({ id: 10, chatId: 42, messageId: "551", endedAt: NOW - 1_000, title: null });
     expect(held.desk.queued()).toEqual(["briefing:10"]);
 
     held.shown()?.stop();
@@ -320,7 +320,7 @@ function tabDesk(): { desk: Desk; sounds: StandInSound[]; claimed: string[]; agr
 }
 
 // A briefing of a room, ended a moment before the engine's stop or after it.
-const of = (id: number, chatId: number, endedAt = NOW - 1_000) => ({ id, chatId, messageId: 500 + id, endedAt, title: null });
+const of = (id: number, chatId: number, endedAt = NOW - 1_000) => ({ id, chatId, messageId: "500" + id, endedAt, title: null });
 
 describe("the engine's stop", () => {
   test("is read off the engine's event, for one room or for every room", () => {

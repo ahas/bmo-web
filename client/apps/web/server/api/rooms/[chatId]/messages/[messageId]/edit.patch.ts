@@ -2,8 +2,9 @@ import { MAX_SAY_TEXT_LENGTH } from "#shared/config";
 import { wording } from "#shared/wording";
 
 import { acted, messageToActOn } from "../../../../../utils/message-acts";
-import { receiver, receiverCall } from "../../../../../utils/receiver";
+import { exactAnswer, receiver, wireId } from "../../../../../utils/receiver";
 
+import type { ReceiverMessage } from "../../../../../utils/receiver";
 import type { MessageAct } from "#shared/types";
 
 // The signed-in person's own message edited (the receiver's `docs/api.md`, 「Messages」): the words are kept in place
@@ -22,9 +23,10 @@ export default defineEventHandler(async (event): Promise<MessageAct> => {
     throw fail(400, wording("common.error.too_long", { n: MAX_SAY_TEXT_LENGTH.toLocaleString("ko-KR") }));
   }
 
-  const message = await receiverCall(
+  const message = await exactAnswer<ReceiverMessage>(
     receiver().PATCH("/rooms/{roomId}/messages/{messageId}", {
-      params: { path: { roomId: acted_.chatId, messageId: acted_.messageId } },
+      params: { path: { roomId: acted_.chatId, messageId: wireId(acted_.messageId) } },
+      parseAs: "text",
       body: { text },
       headers: acted_.headers
     })

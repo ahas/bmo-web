@@ -8,7 +8,7 @@ import type { RoomPicture, RoomPicturePage } from "../../../apps/web/shared/type
 import KO from "../../fixtures/app/domain/gallery.test.ko.json";
 
 function picture(messageId: number, text = KO.line_9): RoomPicture {
-  return { messageId, album: null, senderName: "agent-a", sentAt: 1_790_000_000, text, file: { name: `${messageId}.jpg`, bytes: 2048, type: "image/jpeg" } };
+  return { messageId: String(messageId), album: null, senderName: "agent-a", sentAt: 1_790_000_000, text, file: { name: `${messageId}.jpg`, bytes: 2048, type: "image/jpeg" } };
 }
 
 function page(ids: number[], before: number, hasMore: boolean, total = 20): RoomPicturePage {
@@ -21,14 +21,14 @@ describe("the stretch of a room's pictures the viewer walks", () => {
   const around = stretchAround(page([7], 6, false), page([5, 6], 4, true), page([8, 9], 7, false));
 
   test("stands the pictures before, the one opened and those after in the room's order", () => {
-    expect(around.pictures.map((held) => held.messageId)).toEqual([5, 6, 7, 8, 9]);
+    expect(around.pictures.map((held) => held.messageId)).toEqual(["5", "6", "7", "8", "9"]);
     expect(around).toMatchObject({ before: 4, total: 20, older: true, newer: false });
   });
 
   test("an older page goes in front, its start becomes the stretch's, and a picture already held is not taken twice", () => {
     const wider = widened(around, page([3, 4, 5], 1, false), "older");
 
-    expect(wider.pictures.map((held) => held.messageId)).toEqual([3, 4, 5, 6, 7, 8, 9]);
+    expect(wider.pictures.map((held) => held.messageId)).toEqual(["3", "4", "5", "6", "7", "8", "9"]);
     expect(wider).toMatchObject({ before: 1, older: false });
   });
 

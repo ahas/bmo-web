@@ -1,11 +1,13 @@
 import { MAX_ATTACHMENT_BYTES, MAX_SAY_TEXT_LENGTH } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import type { SentMessage } from "#shared/types";
+import { exactAnswer, receiver } from "../../../utils/receiver";
+
+import type { ExactMessageId, SentMessage } from "#shared/types";
 
 // The recording a browser made, as it reaches the app: the file itself and the words typed beside it.
 interface ReceivedVoice {
-  sent: { name: string; id: number }[];
+  sent: { name: string; id: ExactMessageId }[];
   checking: { name: string }[];
   failed: { name: string; reason: unknown }[];
 }
@@ -79,7 +81,7 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
     chatId,
     key,
     async () => {
-      const answer = (await receiverCall(receiver().POST("/owner/message-files", { body }))) as ReceivedVoice;
+      const answer = (await exactAnswer<unknown>(receiver().POST("/owner/message-files", { body, parseAs: "text" }))) as ReceivedVoice;
       const sent = answer.sent[0];
 
       if (sent !== undefined) {

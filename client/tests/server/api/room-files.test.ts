@@ -3,6 +3,7 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { globalsRestoredAfter } from "../../support/globals";
 
 import { asked, routeOf } from "../../support/nitro";
+import { rawNumber } from "../../support/raw-number";
 
 import type { RoomPicturePage, RoomStats, RoomWindow } from "../../../apps/web/shared/types";
 
@@ -20,6 +21,9 @@ interface Heard {
 const heard: Heard[] = [];
 const SOUND = new Uint8Array([79, 103, 103, 83, 0, 1, 2, 3, 4, 5]);
 const PHOTO = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 9]);
+// A message of a chat service that numbers its messages past 2^53 (docs/web.md, 「A message's id」): the stand-in keeps
+// the same files and picture under it as under 9, and answers its pictures by its digits.
+const HIGH = "3973025898369060353";
 const files = [
   { place: 0, kind: "photo", name: "p.jpg", type: "image/jpeg", size: 5, kept: true },
   { place: 1, kind: "audio", name: "voice.ogg", type: "audio/ogg", size: 10, kept: true },
@@ -35,6 +39,9 @@ const receiver = Bun.serve({
 
     heard.push({ path: `${url.pathname}${url.search}`, range: request.headers.get("range") });
 
+    // The high message's files and picture are the ones kept under 9; any other neighbour is no message.
+    url.pathname = url.pathname.replace(`/messages/${HIGH}/`, "/messages/9/");
+
     if (url.pathname === "/rooms/-7/messages/9/files") return Response.json({ items: files, more: false });
     if (url.pathname === "/rooms/-7/messages/9/files/1") {
       const ranged = request.headers.get("range") === "bytes=0-3";
@@ -48,6 +55,11 @@ const receiver = Bun.serve({
       return new Response("pdf", { headers: { "content-type": "application/pdf", "content-disposition": "attachment; filename*=UTF-8''notes.pdf" } });
     }
     if (url.pathname === "/rooms/-7/messages/9/picture") return new Response(PHOTO, { headers: { "content-type": "image/jpeg" } });
+    if (url.pathname === "/rooms/-7/pictures" && url.searchParams.get("at") === HIGH) {
+      const item = { id: rawNumber(HIGH), album: rawNumber(HIGH), senderName: "person-a", sentAt: 10_000, text: "", file: { name: "p.jpg", bytes: 5, type: "image/jpeg" } };
+
+      return Response.json({ items: [item], more: false, before: 0, total: 1 });
+    }
     if (url.pathname === "/rooms/-7/pictures") {
       return Response.json({ items: [{ id: 9, album: null, senderName: "person-a", sentAt: 10_000, text: "a picture", file: { name: "p.jpg", bytes: 5, type: "image/jpeg" } }], more: false, before: 2, total: 3 });
     }
@@ -162,7 +174,7 @@ describe("a room's pictures, figures and window", () => {
     const page = await pictures({ params: { chatId: "-7" }, query: { before: "9", limit: "30", other: "x" } });
 
     expect(last().path).toBe("/rooms/-7/pictures?before=9&limit=30");
-    expect(page).toMatchObject({ hasMore: false, before: 2, total: 3, pictures: [{ messageId: 9, file: { name: "p.jpg", bytes: 5, type: "image/jpeg" } }] });
+    expect(page).toMatchObject({ hasMore: false, before: 2, total: 3, pictures: [{ messageId: "9", file: { name: "p.jpg", bytes: 5, type: "image/jpeg" } }] });
   });
 
   test("the figures are counted in the console's zone, an agent's runs and tokens left as none where no unit counts them", async () => {
@@ -177,5 +189,33 @@ describe("a room's pictures, figures and window", () => {
   test("the window is how long the chat agent's window has left", async () => {
     expect(await window({ params: { chatId: "-7" } })).toEqual({ openFor: 161 });
     expect(last().path).toBe("/rooms/-7/window");
+  });
+});
+
+describe("a message numbered past 2^53", () => {
+  const high = (kind: string, query: Record<string, string> = {}) => ({ params: { kind, chatId: "-7", messageId: HIGH }, query, headers: {} });
+
+  test("its photo and its file are asked of the receiver by its digits", async () => {
+    const answer = await photo({ params: { chatId: "-7", messageId: HIGH } });
+
+    expect(last().path).toBe(`/rooms/-7/messages/${HIGH}/picture`);
+    expect(new Uint8Array(await answer.arrayBuffer())).toEqual(PHOTO);
+
+    await media(high("document", { item: "2" }));
+    expect(heard.slice(-2).map((one) => one.path)).toEqual([`/rooms/-7/messages/${HIGH}/files`, `/rooms/-7/messages/${HIGH}/files/2?download=true`]);
+  });
+
+  test("its pictures are walked from its digits and name it by them", async () => {
+    const page = await pictures({ params: { chatId: "-7" }, query: { at: HIGH } });
+
+    expect(last().path).toBe(`/rooms/-7/pictures?at=${HIGH}`);
+    expect(page.pictures.map((one) => [one.messageId, one.album])).toEqual([[HIGH, HIGH]]);
+  });
+
+  test("an id past a signed 64-bit integer is refused without asking the receiver", async () => {
+    heard.length = 0;
+
+    expect(await asked(photo, { params: { chatId: "-7", messageId: "9223372036854775808" } })).toMatchObject({ status: 400, message: wording("room.error.bad_message_id") });
+    expect(heard).toEqual([]);
   });
 });

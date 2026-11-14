@@ -104,10 +104,10 @@ describe("a page's verdicts", () => {
     // round no message of the page answered, no round at all, or a verdict from before the message could have
     // been about it: nowhere.
     expect(placed).toEqual([
-      [907, 33, "send", Math.floor((AT + 60_500) / 1000)],
-      [906, 33, "chat", Math.floor((AT + 58_000) / 1000)],
-      [904, -998, "system-documents", Math.floor((AT + 5_000) / 1000)],
-      [902, 31, "room-rules", Math.floor((AT + 2_000) / 1000)]
+      [907, "33", "send", Math.floor((AT + 60_500) / 1000)],
+      [906, "33", "chat", Math.floor((AT + 58_000) / 1000)],
+      [904, "-998", "system-documents", Math.floor((AT + 5_000) / 1000)],
+      [902, "31", "room-rules", Math.floor((AT + 2_000) / 1000)]
     ]);
     expect(receiver.asked.length).toBeGreaterThan(0);
   });

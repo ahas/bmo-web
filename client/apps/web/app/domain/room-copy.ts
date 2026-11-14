@@ -10,7 +10,7 @@ import { roundChip } from "./turns";
 import { brainActions, turnActions } from "./working";
 
 import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
-import type { AgentLogLine, Judgement, RoundSpend, TurnActionsRef } from "#shared/types";
+import type { AgentLogLine, ExactMessageId, Judgement, RoundSpend, TurnActionsRef } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
 // What the room screen copies of its messages: the record of several with every judgement left on them, the bare
@@ -21,7 +21,7 @@ import type { Translate } from "#shared/wording";
 export interface CopyItem {
   senderName: string;
   senderId: number | null;
-  messageId: number;
+  messageId: ExactMessageId | null;
   sentAt: number;
   text: string;
   judgements: Judgement[];
@@ -71,7 +71,7 @@ export function reportOf(t: Translate, title: string, chatId: number, items: Cop
 // The message, then every chip's content in the order docs/web.md's 「What a copy holds」 gives: its verdicts, its
 // draft process, its calls, what it read from the brain, what it spent, and its send last.
 function blockOf(t: Translate, item: CopyItem): string {
-  const head = `[${formatStamp(item.sentAt)}] ${item.senderName}(${item.senderId ?? MISSING}) #${item.messageId}: ${item.text}`;
+  const head = `[${formatStamp(item.sentAt)}] ${item.senderName}(${item.senderId ?? MISSING}) #${item.messageId ?? MISSING}: ${item.text}`;
   const sorted = [...item.judgements].sort((left, right) => left.createdAt - right.createdAt || left.id - right.id);
   const { drafts, verdicts } = splitDraftJudgements(sorted);
   const sent = verdicts.filter((one) => one.stage === SEND_STAGE);
@@ -208,7 +208,7 @@ export function bodyOf(item: Said): string {
 
 // Which room and which message a row is, and nothing of what it says: the line the owner hands an agent to point
 // at one message. The two numbers are what find it; the name is for whoever reads the line.
-export function messageRef(t: Translate, room: string, chatId: number, messageId: number): string {
+export function messageRef(t: Translate, room: string, chatId: number, messageId: ExactMessageId): string {
   return t("room.message.message_ref", { room, chatId, messageId });
 }
 

@@ -42,11 +42,11 @@ function document(name: string): PickedFile {
 // The rows as the send answered them in the owner's private chat, with numbers the archive does not
 // carry, so only what they say can find them there.
 function answered(items: OutboxItem[]): OutboxItem[] {
-  return items.reduce((rows, held, at) => withSent(rows, held.key, 5000 + at), items);
+  return items.reduce((rows, held, at) => withSent(rows, held.key, String(5000 + at)), items);
 }
 
 function archived(messageId: number, text: string, sentAt: number, senderId: number | null = owner): ArchivedMessage {
-  return { chatId: ROOM_ID, messageId, exactId: String(messageId), senderId, senderName: "owner", sentAt, text, imagePath: null, replyToMessageId: null };
+  return { chatId: ROOM_ID, messageId: String(messageId), senderId, senderName: "owner", sentAt, text, imagePath: null, replyToMessageId: null };
 }
 
 describe("what one press of send puts up", () => {
@@ -69,7 +69,7 @@ describe("what one press of send puts up", () => {
   });
 
   test("a reply goes on the first message, the one the words go with", () => {
-    const quote = { messageId: 7, senderName: KO.line_73, text: KO.line_73_2 };
+    const quote = { messageId: "7", senderName: KO.line_73, text: KO.line_73_2 };
 
     expect(outboxOf(KO.line_75, [], 100, quote).map((held) => held.reply)).toEqual([quote]);
     expect(outboxOf(KO.line_76, [picked("a.jpg"), picked("b.jpg")], 100, quote).map((held) => held.reply)).toEqual([quote, null]);
@@ -88,7 +88,7 @@ describe("what is written on a row", () => {
   const key = items[0]?.key ?? "";
 
   test("the number the bot gave it, while it is still on its way", () => {
-    expect(withSent(items, key, 42)[0]).toMatchObject({ messageId: 42, state: "sending", reason: null });
+    expect(withSent(items, key, "42")[0]).toMatchObject({ messageId: "42", state: "sending", reason: null });
   });
 
   test("the reason it did not go", () => {
@@ -99,7 +99,7 @@ describe("what is written on a row", () => {
   });
 
   test("sending it again forgets the failure and the number it never got", () => {
-    const failed = withSent(withFailed(items, key, KO.line_103), key, 7);
+    const failed = withSent(withFailed(items, key, KO.line_103), key, "7");
 
     expect(withResending(failed, key)[0]).toMatchObject({ state: "sending", reason: null, messageId: null });
   });
@@ -110,13 +110,13 @@ describe("which rows the archive has caught up with", () => {
     const items = outboxOf(KO.line_111, [picked("a.jpg")], 100);
     const withImage = { ...archived(42, KO.line_112, 101), imagePath: "data/images/-100/42.jpg" };
 
-    expect(landedKeys(withSent(items, items[0]?.key ?? "", 9), [withImage], owner)).toHaveLength(1);
+    expect(landedKeys(withSent(items, items[0]?.key ?? "", "9"), [withImage], owner)).toHaveLength(1);
     expect(landedKeys(items, [archived(42, KO.line_115, 101)], owner)).toEqual([]);
   });
 
   test("the one whose number the room numbers the same for both accounts", () => {
     const items = outboxOf(KO.line_119, [], 100);
-    const sent = withSent(items, items[0]?.key ?? "", 42);
+    const sent = withSent(items, items[0]?.key ?? "", "42");
 
     expect(landedKeys(sent, [{ ...archived(42, KO.line_122, 101), senderId: 999 }], owner)).toEqual([
       sent[0]?.key ?? ""
@@ -133,7 +133,7 @@ describe("which rows the archive has caught up with", () => {
 
   test("the one whose words are there even after the send has answered with a number of its own", () => {
     const items = outboxOf(KO.line_136, [], 100);
-    const sent = withSent(items, items[0]?.key ?? "", 5000);
+    const sent = withSent(items, items[0]?.key ?? "", "5000");
 
     expect(landedKeys(sent, [archived(42, KO.line_139, 101)], owner)).toHaveLength(1);
   });
@@ -169,8 +169,8 @@ describe("which rows the archive has caught up with", () => {
 
   test("a press of several pictures lands as a whole once the archive carries any of it", () => {
     const items = answered(outboxOf(KO.line_172, [picked("a.jpg"), picked("b.jpg")], 100));
-    const caption = { ...archived(42, KO.line_173, 101), imagePath: "data/images/-100/42.jpg", album: 42 };
-    const bare = { ...archived(43, KO.line_174, 101), imagePath: "data/images/-100/43.jpg", album: 42 };
+    const caption = { ...archived(42, KO.line_173, 101), imagePath: "data/images/-100/42.jpg", album: "42" };
+    const bare = { ...archived(43, KO.line_174, 101), imagePath: "data/images/-100/43.jpg", album: "42" };
 
     // The words came back otherwise than they went, so only the captionless row is matched.
     expect(landedKeys(items, [{ ...caption, text: KO.line_177 }, bare], owner)).toEqual(items.map((held) => held.key));
@@ -216,7 +216,7 @@ describe("which rows the feed stands no longer for the archive carrying their me
 
   test("one archived message stands for one row, the row its send numbered taking it first", () => {
     const first = outboxOf("hello", [], 100);
-    const numbered = withSent(first, first[0]?.key ?? "", -7);
+    const numbered = withSent(first, first[0]?.key ?? "", "-7");
     const again = outboxOf("hello", [], 101);
     const items = [...numbered, ...again];
 
@@ -237,7 +237,7 @@ describe("which rows the feed stands no longer for the archive carrying their me
     const pictured = { ...filed, imagePath: "data/images/-100/7.jpg" };
 
     expect([...echoedKeys(file, [filed], owner)]).toEqual([]);
-    expect([...heldMessages(file, [filed], owner)]).toEqual([-7]);
+    expect([...heldMessages(file, [filed], owner)]).toEqual(["-7"]);
     expect([...echoedKeys(file, [pictured], owner)]).toEqual([file[0]?.key ?? ""]);
     expect([...heldMessages(file, [pictured], owner)]).toEqual([]);
     expect(settledKeys(file, [pictured], owner, 101)).toEqual([]);
@@ -249,9 +249,9 @@ describe("which rows the feed stands no longer for the archive carrying their me
     const second = archived(-8, "hello", 101);
 
     expect([...echoedKeys(files, [first], owner)]).toEqual([]);
-    expect([...heldMessages(files, [first], owner)]).toEqual([-7]);
+    expect([...heldMessages(files, [first], owner)]).toEqual(["-7"]);
     expect([...echoedKeys(files, [first, second], owner)]).toEqual([]);
-    expect([...heldMessages(files, [first, second], owner)]).toEqual([-7, -8]);
+    expect([...heldMessages(files, [first, second], owner)]).toEqual(["-7", "-8"]);
     expect([...echoedKeys(files, [first, { ...second, imagePath: "data/images/-100/8.jpg" }], owner)]).toEqual(files.map((held) => held.key));
   });
 
@@ -265,10 +265,10 @@ describe("which rows the feed stands no longer for the archive carrying their me
 
   test("a message taking a line's place stands under the line's key from then on", () => {
     const words = outboxOf("hello", [], 100);
-    const sent = withSent(words, words[0]?.key ?? "", 42);
+    const sent = withSent(words, words[0]?.key ?? "", "42");
 
-    expect([...standingKeys(words, [archived(-7, "hello", 101)], owner)]).toEqual([[-7, words[0]?.key ?? ""]]);
-    expect([...standingKeys(sent, [archived(42, "hello", 101)], owner)]).toEqual([[42, words[0]?.key ?? ""]]);
+    expect([...standingKeys(words, [archived(-7, "hello", 101)], owner)]).toEqual([["-7", words[0]?.key ?? ""]]);
+    expect([...standingKeys(sent, [archived(42, "hello", 101)], owner)]).toEqual([["42", words[0]?.key ?? ""]]);
     expect([...standingKeys(words, [], owner)]).toEqual([]);
   });
 
@@ -281,7 +281,7 @@ describe("which rows the feed stands no longer for the archive carrying their me
 
   test("a row the archive has caught up with gives way as it always did", () => {
     const items = outboxOf("hello", [], 100);
-    const sent = withSent(items, items[0]?.key ?? "", 42);
+    const sent = withSent(items, items[0]?.key ?? "", "42");
 
     expect([...echoedKeys(sent, [{ ...archived(42, "other words", 101), senderId: 999 }], owner)]).toEqual([sent[0]?.key ?? ""]);
   });
@@ -290,21 +290,21 @@ describe("which rows the feed stands no longer for the archive carrying their me
 describe("which pictures the archived messages taking their rows' place are handed", () => {
   test("each landed picture's preview, with the archived message it landed as", () => {
     const items = answered(outboxOf(KO.line_191, [picked("a.jpg", "blob:a"), picked("b.jpg", "blob:b")], 100));
-    const caption = { ...archived(42, KO.line_192, 101), imagePath: "data/images/-100/42.jpg", album: 42 };
-    const bare = { ...archived(43, "", 101), imagePath: "data/images/-100/43.jpg", album: 42 };
+    const caption = { ...archived(42, KO.line_192, 101), imagePath: "data/images/-100/42.jpg", album: "42" };
+    const bare = { ...archived(43, "", 101), imagePath: "data/images/-100/43.jpg", album: "42" };
 
     expect(landedPictures(items, [caption, bare], owner)).toEqual([
-      { messageId: 42, previewUrl: "blob:a" },
-      { messageId: 43, previewUrl: "blob:b" }
+      { messageId: "42", previewUrl: "blob:a" },
+      { messageId: "43", previewUrl: "blob:b" }
     ]);
   });
 
   test("by the number the send answered with where the room numbers it the same", () => {
     const items = outboxOf("", [picked("a.jpg", "blob:a")], 100);
-    const sent = withSent(items, items[0]?.key ?? "", 42);
+    const sent = withSent(items, items[0]?.key ?? "", "42");
 
     expect(landedPictures(sent, [{ ...archived(42, "", 101), imagePath: "data/images/-100/42.jpg" }], owner)).toEqual([
-      { messageId: 42, previewUrl: "blob:a" }
+      { messageId: "42", previewUrl: "blob:a" }
     ]);
   });
 
@@ -322,7 +322,7 @@ describe("which rows the feed is done with", () => {
     const items = outboxOf(KO.line_221, [], 100);
     const key = items[0]?.key ?? "";
 
-    return { items: withSent(items, key, 42), key };
+    return { items: withSent(items, key, "42"), key };
   }
 
   test("words stand until the archived message is there, however long the bot takes", () => {
@@ -335,11 +335,11 @@ describe("which rows the feed is done with", () => {
   test("a picture stands until its own message is there with its picture", () => {
     const items = outboxOf(KO.line_235, [picked("a.jpg")], 100);
     const key = items[0]?.key ?? "";
-    const sent = withSent(items, key, 42);
+    const sent = withSent(items, key, "42");
 
     expect(settledKeys(sent, [], owner, 101)).toEqual([]);
     expect(settledKeys(sent, [archived(42, KO.line_240, 101)], owner, 101)).toEqual([]);
-    expect([...heldMessages(sent, [archived(42, KO.line_240, 101)], owner)]).toEqual([42]);
+    expect([...heldMessages(sent, [archived(42, KO.line_240, 101)], owner)]).toEqual(["42"]);
     expect(settledKeys(sent, [{ ...archived(42, KO.line_240, 101), imagePath: "data/images/-100/42.jpg" }], owner, 101)).toEqual([key]);
   });
 
@@ -348,7 +348,7 @@ describe("which rows the feed is done with", () => {
     const key = items[0]?.key ?? "";
 
     expect(settledKeys(items, [], owner, 101)).toEqual([]);
-    expect(settledKeys(withSent(items, key, 42), [], owner, 101)).toEqual([key]);
+    expect(settledKeys(withSent(items, key, "42"), [], owner, 101)).toEqual([key]);
   });
 
   test("nothing stands for ever: a message that went and never came back goes in the end", () => {
@@ -421,7 +421,7 @@ describe("which send goes next", () => {
 
   test("the first unanswered one, with every message of its press", () => {
     expect(keys(nextSend(rows))).toEqual(keys(first));
-    expect(keys(nextSend(withSent(rows, first[0]?.key ?? "", 1)))).toEqual(keys(second));
+    expect(keys(nextSend(withSent(rows, first[0]?.key ?? "", "1")))).toEqual(keys(second));
   });
 
   test("a waiting send keeps its place ahead of the ones behind it", () => {
@@ -436,11 +436,11 @@ describe("which send goes next", () => {
   });
 
   test("of a press whose files answered one by one, only those still unanswered", () => {
-    expect(keys(nextSend(withSent(rows.slice(1), second[0]?.key ?? "", 2)))).toEqual([second[1]?.key ?? ""]);
+    expect(keys(nextSend(withSent(rows.slice(1), second[0]?.key ?? "", "2")))).toEqual([second[1]?.key ?? ""]);
   });
 
   test("nothing once every send has answered", () => {
-    expect(nextSend(rows.reduce((all, held, at) => withSent(all, held.key, at + 1), rows))).toEqual([]);
+    expect(nextSend(rows.reduce((all, held, at) => withSent(all, held.key, String(at + 1)), rows))).toEqual([]);
   });
 });
 
@@ -517,10 +517,10 @@ describe("a checked row's key", () => {
   });
 
   test("that answered makes the row the message it went out as, found by number though the archive keeps it as another speaker's words", () => {
-    const sent = withKeyOutcome(checked, held, { state: "answered", answer: { messageId: 1272 } });
+    const sent = withKeyOutcome(checked, held, { state: "answered", answer: { messageId: "1272" } });
     const asAnother = archived(1272, "words", 160, 90000001);
 
-    expect(sent[0]).toMatchObject({ state: "sending", messageId: 1272 });
+    expect(sent[0]).toMatchObject({ state: "sending", messageId: "1272" });
     expect(landedKeys(checked, [asAnother], owner)).toEqual([]);
     expect(landedKeys(sent, [asAnother], owner)).toEqual([held]);
   });
@@ -539,6 +539,6 @@ describe("a checked row's key", () => {
   test("answers nothing for a row no longer checked", () => {
     const failed = withFailed(checked, held, "refused");
 
-    expect(withKeyOutcome(failed, held, { state: "answered", answer: { messageId: 1 } })).toEqual(failed);
+    expect(withKeyOutcome(failed, held, { state: "answered", answer: { messageId: "1" } })).toEqual(failed);
   });
 });

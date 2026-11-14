@@ -27,13 +27,14 @@
 import { ROOM_PICTURES } from "~/domain/gallery";
 import { messagePicture, releaseStandIn, rememberShape, shapeOf, standInOf } from "~/domain/picture-shapes";
 
+import type { ExactMessageId } from "#shared/types";
 import type { PictureShape } from "~/domain/picture-shapes";
 
 interface Props {
   src: string;
   title: string;
   // The archived message the picture went out as.
-  messageId?: number;
+  messageId?: ExactMessageId;
   tile?: boolean;
   // Whether the picture runs to the edges of the bubble it stands in.
   flush?: boolean;

@@ -54,12 +54,12 @@ import { mediaUrl } from "~/domain/player";
 import { quoteText } from "~/domain/room";
 import { imageUrl } from "~/domain/urls";
 
-import type { ReplyQuote } from "#shared/types";
+import type { ExactMessageId, ReplyQuote } from "#shared/types";
 import type { QuoteMedia } from "~/domain/room";
 
 const props = defineProps<{ quote: ReplyQuote; chatId: number }>();
 
-const emit = defineEmits<{ jump: [messageId: number] }>();
+const emit = defineEmits<{ jump: [messageId: ExactMessageId] }>();
 
 const { t } = useI18n();
 const look = computed(() => quoteText(t, props.quote));

@@ -68,11 +68,10 @@ class Room {
     this.clock += seconds;
 
     const fromConsole = mine && this.rows.length % 3 === 0;
-    const messageId = fromConsole ? this.console-- : this.telegram++;
+    const messageId = String(fromConsole ? this.console-- : this.telegram++);
     const row: ArchivedMessage = {
       chatId: CHAT,
       messageId,
-      exactId: String(messageId),
       senderId: mine ? owner : OTHER,
       senderName: mine ? "room-feed" : "tester",
       sentAt: this.clock,
@@ -93,7 +92,7 @@ class Room {
     }
   }
 
-  ids(): number[] {
+  ids(): string[] {
     return this.rows.map((row) => row.messageId);
   }
 
@@ -102,10 +101,10 @@ class Room {
     this.asked.push(query.toString());
 
     const limit = Number(query.get("limit") ?? 100);
-    const place = (name: string) => this.rows.findIndex((row) => row.messageId === Number(query.get(name)));
+    const place = (name: string) => this.rows.findIndex((row) => row.messageId === query.get(name));
 
     if (query.has("at")) {
-      return { messages: this.rows.filter((row) => row.messageId === Number(query.get("at"))), judgements: [], hasMore: false };
+      return { messages: this.rows.filter((row) => row.messageId === query.get("at")), judgements: [], hasMore: false };
     }
 
     if (query.has("after")) {
@@ -128,7 +127,7 @@ interface Stream {
   up: boolean;
 }
 
-async function open(viewport: (typeof WIDTHS)[number], room: Room, firstUnread: number | null, stream: Stream): Promise<BrowserContext> {
+async function open(viewport: (typeof WIDTHS)[number], room: Room, firstUnread: string | null, stream: Stream): Promise<BrowserContext> {
   const context = await browser!.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     isMobile: viewport.phone,
@@ -202,21 +201,20 @@ async function visit(page: Page): Promise<void> {
 }
 
 // The archived rows the screen stands, top to bottom, by the number each carries.
-async function shown(page: Page): Promise<number[]> {
+async function shown(page: Page): Promise<string[]> {
   return await page.evaluate(() =>
     [...document.querySelectorAll<HTMLElement>("[data-message]")]
       .map((row) => /^m(-?\d+)$/.exec(row.dataset.message ?? "")?.[1])
       .filter((id): id is string => id !== undefined)
-      .map(Number)
   );
 }
 
-async function standing(page: Page, messageId: number): Promise<void> {
+async function standing(page: Page, messageId: string): Promise<void> {
   await page.locator(`[data-message="m${messageId}"]`).waitFor({ state: "attached", timeout: 20_000 });
 }
 
 // Every row between the first shown and the last, in the room's order, each once.
-function expectWhole(room: Room, rows: number[]): void {
+function expectWhole(room: Room, rows: string[]): void {
   const line = room.ids();
   const from = line.indexOf(rows[0]!);
 

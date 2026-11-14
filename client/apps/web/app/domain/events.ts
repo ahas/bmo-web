@@ -6,11 +6,11 @@ import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { appUrl } from "./urls";
 import { agencyEvent, jobEvent, voiceEvent } from "./unit-events";
 
-import type { BotEvent, BotEventType, ChatTurn, Judgement, LiveSnapshot, RunProgress, TurnReceived, TurnSpeaker } from "#shared/types";
+import type { BotEvent, BotEventType, ChatTurn, ExactMessageId, Judgement, LiveSnapshot, RunProgress, TurnReceived, TurnSpeaker } from "#shared/types";
 import type { InjectionKey, Ref } from "vue";
 
 export interface RunState {
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   startedAt: number;
   // What this turn was handed. Null while the bot has said nothing of it, which is the only
   // honest answer: a count is never worked out from what else the screen happens to hold.
@@ -32,7 +32,7 @@ export interface RunState {
   // The message the turn's ending said it sent, on a turn standing through its ending: the answer its block gives
   // its place to (docs/web.md, 「The answer is the turn's own line」). Absent on a turn still going and on one that
   // ended any other way.
-  answer?: number;
+  answer?: ExactMessageId;
 }
 
 // A question of the draft process as the running line reads it, from the event that tells it starting (the

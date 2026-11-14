@@ -21,7 +21,7 @@ const receiver = standIn("RECEIVER", (one) =>
 const { readInstructionText, withOpenings } = await import("../../../apps/web/server/utils/openings");
 
 const judgement = (id: number, round: string | null): Judgement =>
-  ({ id, chatId: -7, messageId: 3, stage: "people-search", verdict: "SKIP: no candidates", detail: null, createdAt: 1, round }) as Judgement;
+  ({ id, chatId: -7, messageId: "3", stage: "people-search", verdict: "SKIP: no candidates", detail: null, createdAt: 1, round }) as Judgement;
 
 describe("the openings a page's judgements wear", () => {
   test("are asked once for every round named, and worn by each judgement of a round that had one", async () => {

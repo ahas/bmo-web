@@ -7,7 +7,7 @@ import type { RunState } from "../../../apps/web/app/domain/events";
 import { OWNER_ID as owner, ROOM_ID } from "../../support/ids";
 
 const other = { id: 4_218_992, name: "Carol" };
-const bmoTurn: RunState = { messageId: 1, startedAt: 1_788_000_010, received: { messages: 1, instructions: 0 }, progress: null };
+const bmoTurn: RunState = { messageId: "1", startedAt: 1_788_000_010, received: { messages: 1, instructions: 0 }, progress: null };
 const otherTurn: RunState = { ...bmoTurn, speaker: other };
 const open = { since: 1_788_000_000, closesAt: 1_788_000_180 };
 

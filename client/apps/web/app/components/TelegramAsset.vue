@@ -9,9 +9,9 @@
 </template>
 <script setup lang="ts">
 import { mediaUrl } from "../domain/player";
-import type { MessageAttachment } from "#shared/types";
+import type { ExactMessageId, MessageAttachment } from "#shared/types";
 import type { AnimationItem } from "lottie-web";
-const props = defineProps<{ attachment: MessageAttachment; chatId: number; messageId: number; fallback: string; inline?: boolean }>();
+const props = defineProps<{ attachment: MessageAttachment; chatId: number; messageId: ExactMessageId; fallback: string; inline?: boolean }>();
 const failed = ref(false);
 const url = computed(() => `${mediaUrl('sticker', props.chatId, props.messageId)}?item=${props.attachment.id}`);
 const size = computed(() => props.inline ? 'inline-block size-[1.3em] align-text-bottom object-contain' : 'block max-h-40 max-w-40 object-contain');

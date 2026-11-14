@@ -13,7 +13,7 @@ const { copyBrain, copyCalls, reportOf } = await import("../../../apps/web/app/d
 // any other message — the answer it drew stands as its word alone.
 
 const judgement = (id: number, stage: string, verdict: string, detail: string | null): Judgement => ({
-  id, chatId: -7, messageId: 31, stage, verdict, detail, createdAt: 1_790_000_000 + id
+  id, chatId: -7, messageId: "31", stage, verdict, detail, createdAt: 1_790_000_000 + id
 });
 
 // What a round's end names as read: one piece the index lists, one it does not, one the session already held.
@@ -29,7 +29,7 @@ describe("a copied message", () => {
       {
         senderName: "person-a",
         senderId: 11,
-        messageId: 31,
+        messageId: "31",
         sentAt: 1_790_000_000,
         text: "the question",
         judgements: [
@@ -78,7 +78,7 @@ describe("a copied answer", () => {
       {
         senderName: "agent-a",
         senderId: 21,
-        messageId: -52,
+        messageId: "-52",
         sentAt: 1_790_000_000,
         text: "the answer",
         judgements: [

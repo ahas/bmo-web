@@ -18,7 +18,7 @@ const WRITER = { name: "room-writer", password: "fixture-password-2401" };
 const READER = { name: "room-reader", password: "fixture-password-2402" };
 const ROOM = 43;
 const EARLIER: ArchivedMessage = {
-  chatId: ROOM, messageId: 9_500, exactId: "9500", senderId: 7, senderName: "person-b", sentAt: Math.floor(Date.now() / 1000) - 600,
+  chatId: ROOM, messageId: "9500", senderId: 7, senderName: "person-b", sentAt: Math.floor(Date.now() / 1000) - 600,
   text: "said before", imagePath: null, replyToMessageId: null
 };
 const LINE = "written from the box";
@@ -62,7 +62,7 @@ async function roomOf(
   await context.route(new RegExp(`/api/rooms/${ROOM}/say$`), (route) => {
     said.push(String((route.request().postDataJSON() as { text?: unknown }).text ?? ""));
 
-    return route.fulfill({ json: { messageId: 9_501 } });
+    return route.fulfill({ json: { messageId: "9501" } });
   });
   await context.route(new RegExp(`/api/rooms/${ROOM}/answerers$`), (route) =>
     route.fulfill({ json: { default: "", voice: null, agents: [] } })

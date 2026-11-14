@@ -7,7 +7,7 @@ import { readThrough } from "../../../apps/web/app/domain/read-marks";
 
 const BASE = 3_973_025_898_369_060_100n;
 const id = (nth: number): string => String(BASE + BigInt(nth));
-const line = [10, 11, 12, 13, 14].map((nth) => ({ exactId: id(nth) }));
+const line = [10, 11, 12, 13, 14].map((nth) => ({ messageId: id(nth) }));
 
 test("a seen row reads on over what stands as no row of its own, up to the next row", () => {
   // 11 is a picture of 10's album and 14 the voice of 13's line.

@@ -1470,13 +1470,9 @@ Four groups.
   - **A room an account meets for the first time is read as it stands,** so nothing old is called new; what
     lands in it after counts. The messages past a mark are walked on the receiver's line from the marked
     message, five hundred at most, and a room further behind counts that many.
-  - **A mark and a count name a message by its id exactly.** The receiver numbers a message with a signed
-    64-bit integer, and a chat service may number its messages past 2^53, beyond what a JavaScript number holds
-    without rounding. So the console reads each message's id from the digits the receiver wrote and carries it as
-    those digits: in the mark it keeps, in the first unread message the room list names, in the row a room stands
-    each message in, in the mark a room sends, in the cursor a room's page is read by (「A cursor is a place,
-    not a number」), and in what a page asks of each of its messages as it is built: its files, the metadata it
-    arrived with, and whether its sender is the owner's own account. A room numbered that high clears once read, as any other does.
+  - **A mark and a count name a message by its id exactly** (「A message's id」): the mark the console keeps, the
+    first unread message the room list names, the row a room stands each message in and the mark a room sends all
+    carry its digits, so a room numbered past 2^53 clears once read, as any other does.
   - **A message is read once the foot of its row has stood in the room's view, in a tab on the screen.**
     Opening a room marks what is in view; a reader scrolled up into older messages marks nothing
     newer until it comes into view; a tab in the background marks nothing. The room's last row in
@@ -3995,8 +3991,7 @@ Four bounds keep it from growing forever.
     receiver answers it with an empty page. So the line before which an older page is read, the line after which
     a newer one is, and the one line read by pointing are each named by the id the screen holds the line under,
     as those digits, and the console's page route takes any signed 64-bit integer written so. The bot's notice
-    names its message by a number as the browser reads it; the screen finds the line it holds under that number
-    and asks by the line's own digits.
+    names its message by those digits too (「A message's id」).
 - **Where a room's line begins.** Once the reader stands at the oldest message the receiver holds, a line above
   it says what that is. Where the road the room is answered on reads a room's past back — it performs `history` in
   bmo-chat's terms — the room holds only what its chat service has handed over so far, so the line names the
@@ -7450,6 +7445,27 @@ its people directory and the members of the reader's company.
     an agency turn as an agent's turn going out or ending, which the worker's job line reads back
     on, and an agency job as work running for its room, which the room's working line reads back
     on.
+- **A message's id.** The receiver numbers a message with a signed 64-bit integer, and a chat service may number its
+  messages past 2^53, beyond what a JavaScript number holds without rounding: a KakaoTalk room's messages are
+  numbered there. So the console carries every message id as the decimal digits the unit wrote, as a string, and
+  never as a number, on the server and in the browser alike, and so does every id that names a message: the one a
+  reply answers, the one a forward copies, the album a picture went out in, the line a voice briefing speaks and
+  the voice message it went out as, the message a judgement, a turn or a queued message stands under.
+  - **Every answer naming a message is read from its digits.** The console's server reads each answer of the
+    receiver's, the gate's and the voice engine's that names a message from its text, taking each such id as the
+    digits the unit wrote, and passes it on as those digits: a page of a room, one message, a room's pins and
+    pictures, a message acted on, a send's answer, where a day begins, a judgement and a briefing.
+  - **Every event naming a message is relayed with its digits.** The relay rewrites each event of the receiver's
+    and the voice engine's that names a message so the message's id stands in it as a string, so the tab reads
+    it exactly; nothing else of the event changes, and the event number stays a number.
+  - **A message is named by its id wherever the console asks for one.** A room's paging past or before a
+    message and its read of one message, a reply, a reaction, a pin, an edit, a delete, a forward, a message's
+    picture, files and links, a round's figures and a line's reading all name the message by its digits, and
+    a body sent to the receiver writes the id as the integer it is, digit for digit. A route of this app's that
+    names a message takes the digits of a signed 64-bit integer as BigInt writes them and refuses anything else.
+  - **Two ids are told apart by their digits.** Rows, read marks, judgements and briefings are keyed and matched
+    by the id's digits; the room's order is the order the receiver hands its rows in, never one worked out from
+    the ids.
 - **What the screen knows is this stream.** The room screen knowing what it is doing now, the sidebar
   knowing starts and ends, the home's context and usage bars moving, the TODO panel re-reading the queue and
   questions — all one thing. Instead of each screen running its own clock re-asking every few seconds, each says

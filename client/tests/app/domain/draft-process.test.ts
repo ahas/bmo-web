@@ -55,7 +55,7 @@ function view(over: Partial<SupervisorDraftView> = {}): SupervisorDraftView {
 }
 
 function judgement(id: number, verdict: string, stage = "draft"): Judgement {
-  return { id, chatId: 5, messageId: 9, stage, verdict, detail: null, createdAt: 1_788_000_000 + id, round: "round-1" };
+  return { id, chatId: 5, messageId: "9", stage, verdict, detail: null, createdAt: 1_788_000_000 + id, round: "round-1" };
 }
 
 describe("an ordered pick of questions", () => {

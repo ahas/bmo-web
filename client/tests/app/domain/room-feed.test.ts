@@ -35,7 +35,7 @@ const { useRoomFeed } = await import("../../../apps/web/app/domain/room");
 const CHAT = 7;
 
 function said(messageId: number): ArchivedMessage {
-  return { chatId: CHAT, messageId, exactId: String(messageId), senderId: 1, senderName: "tester", sentAt: 1_788_000_000 + messageId, text: `${KO.line_34}${messageId}`, imagePath: null, replyToMessageId: null };
+  return { chatId: CHAT, messageId: String(messageId), senderId: 1, senderName: "tester", sentAt: 1_788_000_000 + messageId, text: `${KO.line_34}${messageId}`, imagePath: null, replyToMessageId: null };
 }
 
 function page(ids: number[], hasMore = false): MessagePage {
@@ -75,11 +75,11 @@ async function feedAtEnd(): Promise<ReturnType<typeof useRoomFeed>> {
 
 // Going to message 20: the stretch around it, which stops short of the room's end.
 async function goTo20(feed: ReturnType<typeof useRoomFeed>): Promise<void> {
-  const going = feed.loadAround(20);
+  const going = feed.loadAround("20");
 
-  takeAsked((query) => query.at === 20).answer(page([20]));
-  takeAsked((query) => query.before === 20).answer(page([18, 19], true));
-  takeAsked((query) => query.after === 20).answer(page([21, 22], true));
+  takeAsked((query) => query.at === "20").answer(page([20]));
+  takeAsked((query) => query.before === "20").answer(page([18, 19], true));
+  takeAsked((query) => query.after === "20").answer(page([21, 22], true));
   await going;
 }
 
@@ -91,7 +91,7 @@ describe("a read of the room's end and a go to a message crossing", () => {
     takeAsked(endPage).answer(page([99, 100, 101]));
     await reading;
 
-    expect(feed.messages.value.at(-1)?.messageId).toBe(101);
+    expect(feed.messages.value.at(-1)?.messageId).toBe("101");
   });
 
   test("an end read asked before the go lands on nothing", async () => {
@@ -104,13 +104,13 @@ describe("a read of the room's end and a go to a message crossing", () => {
     await reading;
     await settled();
 
-    expect(feed.messages.value.map((message) => message.messageId)).toEqual([18, 19, 20, 21, 22]);
+    expect(feed.messages.value.map((message) => message.messageId)).toEqual(["18", "19", "20", "21", "22"]);
     expect(feed.newer.value).toBe(true);
   });
 
   test("news read past the old end before the go lands on nothing", async () => {
     const feed = await feedAtEnd();
-    const catching = feed.catchUp(150);
+    const catching = feed.catchUp("150");
     const past = takeAsked((query) => query.after === "100");
 
     await goTo20(feed);
@@ -118,7 +118,7 @@ describe("a read of the room's end and a go to a message crossing", () => {
     await catching;
     await settled();
 
-    expect(feed.messages.value.map((message) => message.messageId)).toEqual([18, 19, 20, 21, 22]);
+    expect(feed.messages.value.map((message) => message.messageId)).toEqual(["18", "19", "20", "21", "22"]);
   });
 });
 
@@ -137,7 +137,7 @@ describe("a read of the room's end past a gap", () => {
     takeAsked((query) => query.after === "100").answer(page(ids(101, 150)));
     await reading;
 
-    expect(feed.messages.value.map((message) => message.messageId)).toEqual(ids(1, 150));
+    expect(feed.messages.value.map((message) => message.messageId)).toEqual(ids(1, 150).map(String));
   });
 
   test("a gap wider than one read leaves the feed the room's end alone", async () => {
@@ -149,42 +149,45 @@ describe("a read of the room's end past a gap", () => {
     takeAsked((query) => query.after === "100").answer(page(ids(101, 600), true));
     await reading;
 
-    expect(feed.messages.value.map((message) => message.messageId)).toEqual(ids(941, 950));
+    expect(feed.messages.value.map((message) => message.messageId)).toEqual(ids(941, 950).map(String));
     expect(feed.older.value).toBe(true);
   });
 });
 
-// A room whose chat service numbers its messages past 2^53, where a JavaScript number rounds the id (docs/web.md, the room
-// screen's 「A cursor is a place, not a number」): each read past, before or at a row names it by the digits it is held
-// under, since the rounded number names no row on the receiver.
-describe("a room numbered past what a number holds", () => {
-  const HIGH = ["3973025898369060353", "3973737757693106177"];
-  const high = (exactId: string): ArchivedMessage => ({ ...said(0), messageId: Number(exactId), exactId });
+// A room whose chat service numbers its messages past 2^53, neighbours a JavaScript number reads as one (docs/web.md,
+// 「A message's id」): every row stands under its own id, and every read past, before or at a row names it by its digits.
+describe("a room numbered past 2^53", () => {
+  const high = (at: number) => String(3_973_025_898_369_060_353n + BigInt(at));
+  const highPage = (ats: number[], hasMore = false): MessagePage => ({
+    messages: ats.map((at) => ({ ...said(at), messageId: high(at) })),
+    judgements: [],
+    hasMore
+  });
 
-  test("reads back, past and at its rows by their exact ids", async () => {
+  test("pages back, reads past its end and reads one row by each row's digits", async () => {
     asked.length = 0;
 
     const feed = useRoomFeed(wording, CHAT);
     const loading = feed.load();
 
-    takeAsked(endPage).answer({ messages: HIGH.map(high), judgements: [], hasMore: true });
+    takeAsked(endPage).answer(highPage([3, 4, 5], true));
     await loading;
 
     const older = feed.loadOlder();
 
-    takeAsked((query) => query.before === HIGH[0]).answer({ messages: [], judgements: [], hasMore: false });
+    takeAsked((query) => query.before === high(3)).answer(highPage([0, 1, 2]));
     await older;
 
-    const edited = feed.catchUp(Number(HIGH[0]));
+    const edited = feed.catchUp(high(4));
 
-    takeAsked((query) => query.at === HIGH[0]).answer({ messages: [high(HIGH[0]!)], judgements: [], hasMore: false });
+    takeAsked((query) => query.at === high(4)).answer(highPage([4]));
     await edited;
 
-    const news = feed.catchUp(Number("3973799999999999999"));
+    const landed = feed.catchUp(high(6));
 
-    takeAsked((query) => query.after === HIGH[1]).answer({ messages: [], judgements: [], hasMore: false });
-    await news;
+    takeAsked((query) => query.after === high(5)).answer(highPage([6]));
+    await landed;
 
-    expect(asked).toEqual([]);
+    expect(feed.messages.value.map((message) => message.messageId)).toEqual([0, 1, 2, 3, 4, 5, 6].map(high));
   });
 });

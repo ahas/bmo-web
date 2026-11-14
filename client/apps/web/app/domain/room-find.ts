@@ -1,7 +1,7 @@
 import { countLocale } from "bmo-ui/app/domain/numbers";
 import { searchHits, searchPhrase } from "bmo-ui/shared/search";
 
-import type { ArchivedMessage } from "#shared/types";
+import type { ArchivedMessage, ExactMessageId } from "#shared/types";
 
 // Finding a phrase in a room (docs/web.md, the room screen's find): the console's list search over what each loaded message
 // shows — its words, its sender's name, its files' names — and the hits marked where they stand on the screen, inside
@@ -19,7 +19,7 @@ function shownTexts(message: ArchivedMessage): string[] {
 }
 
 /** The messages holding the phrase, oldest first, by their numbers; none for an empty phrase. */
-export function foundMessages(messages: readonly ArchivedMessage[], query: string): number[] {
+export function foundMessages(messages: readonly ArchivedMessage[], query: string): ExactMessageId[] {
   if (searchPhrase(query) === "") return [];
 
   const locale = countLocale();

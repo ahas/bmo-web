@@ -5,7 +5,7 @@ import { formatStamp } from "bmo-ui/app/domain/time";
 import { imageUrl } from "./urls";
 
 import type { InjectionKey } from "vue";
-import type { RoomPicture, RoomPicturePage } from "#shared/types";
+import type { ExactMessageId, RoomPicture, RoomPicturePage } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { Size } from "bmo-ui/app/domain/zoom";
 import type { BarProperty } from "bmo-ui/app/domain/tabs";
@@ -13,7 +13,7 @@ import type { BarProperty } from "bmo-ui/app/domain/tabs";
 // What a room screen hands every picture in its feed: the way to open the picture viewer that walks
 // the whole room. A picture shown outside a room screen finds none and opens alone.
 export interface RoomPictures {
-  open: (messageId: number, title: string) => void;
+  open: (messageId: ExactMessageId, title: string) => void;
 }
 
 export const ROOM_PICTURES: InjectionKey<RoomPictures> = Symbol("room-pictures");
@@ -120,7 +120,7 @@ function formatOf(type: string): string {
 export function useRoomPictures(t: Translate, chatId: number, onFailure: (error: unknown) => void) {
   const open = ref(false);
   const stretch = ref<PictureStretch>(EMPTY_STRETCH);
-  const current = ref<number | null>(null);
+  const current = ref<ExactMessageId | null>(null);
   // The name the picture was opened under, which stands until the room's reading of it arrives.
   const openedTitle = ref("");
   const reading = { older: false, newer: false };
@@ -144,9 +144,9 @@ export function useRoomPictures(t: Translate, chatId: number, onFailure: (error:
         )
   );
 
-  const page = (query: Record<string, number>) => $fetch<RoomPicturePage>(`/api/rooms/${chatId}/pictures`, { query });
+  const page = (query: Record<string, ExactMessageId | number>) => $fetch<RoomPicturePage>(`/api/rooms/${chatId}/pictures`, { query });
 
-  async function show(messageId: number, named: string): Promise<void> {
+  async function show(messageId: ExactMessageId, named: string): Promise<void> {
     const mine = ++generation;
 
     current.value = messageId;

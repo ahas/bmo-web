@@ -13,7 +13,7 @@ import { ROOM_ID } from "../../support/ids";
 // process's end brings the line back to the state alone.
 
 const thinking: RunProgress = { phase: "thinking", tool: null, thinkingTokens: null, contextTokens: null, cacheReadTokens: null, requestId: null, spent: null, writtenTokens: null, actions: [], droppedActions: 0, droppedContext: 0 };
-const turn: RunState = { messageId: 1, startedAt: 1_788_000_010, received: { messages: 1, instructions: 0 }, progress: thinking };
+const turn: RunState = { messageId: "1", startedAt: 1_788_000_010, received: { messages: 1, instructions: 0 }, progress: thinking };
 const other: RunState = { ...turn, speaker: { id: 4_218_992, name: "Carol" } };
 
 let lastId = 10;
@@ -54,7 +54,7 @@ describe("the draft events on the room's turns", () => {
     const rooms = stepRoomTurns(new Map([[ROOM_ID, [turn]]]), started(1, 4, "intent"));
 
     expect(rooms.get(ROOM_ID)?.[0]?.draft).toEqual({ number: 1, count: 4, question: "intent" });
-    expect(stepRoomTurns(rooms, { id: 99, at: 1_788_000_030, type: "waited", chatId: ROOM_ID, messageId: 1 }).get(ROOM_ID)).toBeUndefined();
+    expect(stepRoomTurns(rooms, { id: 99, at: 1_788_000_030, type: "waited", chatId: ROOM_ID, messageId: "1" }).get(ROOM_ID)).toBeUndefined();
   });
 
   test("a start that names no count is no step the line can stand", () => {

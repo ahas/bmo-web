@@ -1,5 +1,7 @@
 import { appUrl } from "./urls";
 
+import type { ExactMessageId } from "#shared/types";
+
 // Playing what a room's message carried: a sound in the console's own player and a video in the
 // browser's, each where it stands, asked for by the message it belongs to.
 
@@ -10,7 +12,7 @@ export function briefingSoundUrl(id: number): string {
   return appUrl(`/api/briefings/${id}/sound`);
 }
 
-export function mediaUrl(kind: string, chatId: number, messageId: number): string {
+export function mediaUrl(kind: string, chatId: number, messageId: ExactMessageId): string {
   return appUrl(`/api/media/${kind}/${chatId}/${messageId}`);
 }
 

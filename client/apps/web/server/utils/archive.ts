@@ -9,7 +9,7 @@ import { figuresOf } from "./runfigures";
 import { judgementsOf, judgementsWithin } from "./gate";
 import { ownerChat, ownerSender } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
-import { exactMessage, exactMessages, onTheWire, receiver, receiverCall } from "./receiver";
+import { exactAnswer, exactMessage, exactMessages, receiver, receiverCall, wireId } from "./receiver";
 
 import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
 import type { ExactMessage, ReceiverRoom } from "./receiver";
@@ -40,17 +40,16 @@ const THINKING = "thinking";
 
 interface ReceivedMessage {
   chatId: number;
-  messageId: number;
-  exactId: ExactMessageId;
+  messageId: ExactMessageId;
   senderId: number | null;
   senderName: string;
   sentAt: number;
   text: string;
   imagePath: string | null;
-  replyToMessageId: number | null;
+  replyToMessageId: ExactMessageId | null;
   answerSeconds: number | null;
   round: string | null;
-  album: number | null;
+  album: ExactMessageId | null;
   via: string | null;
   // The agent whose words the message is, on a send the receiver archived itself, and the voice it went out in. Both
   // are null on a message a provider carried in.
@@ -76,15 +75,14 @@ interface ReceivedMessage {
 }
 
 // A message as the receiver's own document answers it, read into the names the room screen stands on: its
-// number is the message's, kept exact beside the number the screen goes by, and the room it stands in is its own.
+// every message id in it is exact, and the room it stands in is its own.
 function receivedOf(message: ExactMessage): ReceivedMessage {
   const sent = message as ExactMessage & { voice?: SentVoice | null };
   const moment = (ms: number | null | undefined): number | null => (ms == null ? null : seconds(ms));
 
   return {
     chatId: message.room,
-    messageId: Number(message.id),
-    exactId: message.id,
+    messageId: message.id,
     senderId: message.senderId,
     senderName: message.senderName,
     sentAt: seconds(message.sentAt),
@@ -206,7 +204,7 @@ async function mediaOf(chatId: number, message: ReceivedMessage, wordsFromMetada
   if (!listed && !wordsFromMetadata) return { attachments: [], expressions: [], formats: [] };
 
   try {
-    return await messageMedia(chatId, message.exactId, message.text, listed);
+    return await messageMedia(chatId, message.messageId, message.text, listed);
   } catch {
     return { attachments: attachmentsOf(message), expressions: [], formats: [] };
   }
@@ -265,7 +263,7 @@ async function ownerVoices(chatId: number, messages: readonly ReceivedMessage[],
 
   for (const message of messages) {
     if (message.agentName === null && message.senderId !== null && message.round !== null && answerers.has(message.senderId) && !asked.has(message.senderId)) {
-      asked.set(message.senderId, message.exactId);
+      asked.set(message.senderId, message.messageId);
     }
   }
 
@@ -289,7 +287,7 @@ async function isOwnerNumber(chatId: number, number: number, messageId: ExactMes
   try {
     const answer = await receiverCall(
       receiver().GET("/rooms/{roomId}/messages/{messageId}/sender-is-owner", {
-        params: { path: { roomId: chatId, messageId: onTheWire(messageId) } }
+        params: { path: { roomId: chatId, messageId: wireId(messageId) } }
       })
     );
 
@@ -335,7 +333,7 @@ function senderKey(message: ReceivedMessage): string {
 }
 
 // The message a reply answers, as the reply shows it; one the receiver does not hand over stands with nothing.
-async function replyQuoteOf(chatId: number, messageId: number, held?: { message: ReceivedMessage; media: ReturnType<typeof mediaOf> }): Promise<ReplyQuote> {
+async function replyQuoteOf(chatId: number, messageId: ExactMessageId, held?: { message: ReceivedMessage; media: ReturnType<typeof mediaOf> }): Promise<ReplyQuote> {
   try {
     // A message the page itself holds is quoted from the page, its files from the read the page already made.
     const answered = held?.message ?? receivedOf(await exactMessage(chatId, messageId));
@@ -367,8 +365,8 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   const media = new Map(received.map((message) => [message.messageId, mediaOf(chatId, message, message.text !== "" && agents.get(senderKey(message)) !== true)]));
   const onPage = new Map(received.map((message) => [message.messageId, message]));
   // Several replies of a page often answer one message; what it said and carried is read once.
-  const quoted = new Map<number, Promise<ReplyQuote>>();
-  const quote = (messageId: number): Promise<ReplyQuote> => {
+  const quoted = new Map<ExactMessageId, Promise<ReplyQuote>>();
+  const quote = (messageId: ExactMessageId): Promise<ReplyQuote> => {
     let held = quoted.get(messageId);
 
     if (held === undefined) {
@@ -391,7 +389,6 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
       return {
         chatId: message.chatId,
         messageId: message.messageId,
-        exactId: message.exactId,
         senderId: message.senderId,
         senderName: message.senderName,
         sentAt: message.sentAt,
@@ -462,7 +459,7 @@ const JUDGED_AFTER_SECONDS = 3_600;
 export function placedJudgements(messages: readonly ArchivedMessage[], judgements: readonly Judgement[]): Judgement[] {
   const sent = new Map(messages.map((message) => [message.messageId, message.sentAt]));
   // A round's answer can stand as a run of messages; its verdicts stand under the last of them.
-  const answered = new Map<string, number>();
+  const answered = new Map<string, ExactMessageId>();
 
   for (const message of messages) {
     if (message.round != null) answered.set(message.round, message.messageId);
@@ -486,15 +483,13 @@ export function placedJudgements(messages: readonly ArchivedMessage[], judgement
  * never asked by this one, and each round read once, side by side (docs/web.md, the room screen's chip line). An
  * answer the room does not hold, one in no round, and a round the agency holds no run of are left out.
  */
-export async function roundFigures(chatId: number, messageIds: readonly number[]): Promise<RoundFiguresOf[]> {
-  const rounds = new Map<string, number>();
+export async function roundFigures(chatId: number, messageIds: readonly ExactMessageId[]): Promise<RoundFiguresOf[]> {
+  const rounds = new Map<string, ExactMessageId>();
 
   await Promise.all(
     messageIds.map(async (messageId) => {
       try {
-        const message = await receiverCall(
-          receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId: chatId, messageId } } })
-        );
+        const message = await exactMessage(chatId, messageId);
 
         if (message.round != null && !rounds.has(message.round)) rounds.set(message.round, messageId);
       } catch {
@@ -549,17 +544,17 @@ export async function readMessagesAfter(chatId: number, after: ExactMessageId, l
 }
 
 /** One message of a room by its own number, as a page of one, or an empty page where the screen stands none. */
-export async function readOneMessage(chatId: number, messageId: ExactMessageId | number): Promise<MessagePage> {
+export async function readOneMessage(chatId: number, messageId: ExactMessageId): Promise<MessagePage> {
   const message = await exactMessage(chatId, messageId);
 
   return await pageOf(chatId, { items: [message], more: false }, false);
 }
 
 /** Where a day begins in a room: the first message a person said at or after a moment, or null. */
-export async function readDayStart(chatId: number, from: number): Promise<{ messageId: number } | null> {
-  const { messageId } = (await receiverCall(
-    receiver().GET("/rooms/{roomId}/day-start", { params: { path: { roomId: chatId }, query: { from } } })
-  )) as { messageId: number | null };
+export async function readDayStart(chatId: number, from: number): Promise<{ messageId: ExactMessageId } | null> {
+  const { messageId } = (await exactAnswer<{ messageId: number | null }>(
+    receiver().GET("/rooms/{roomId}/day-start", { params: { path: { roomId: chatId }, query: { from } }, parseAs: "text" })
+  ));
 
   return messageId === null ? null : { messageId };
 }
@@ -572,7 +567,7 @@ export async function readJudgementPage(chatId: number, before: number | null, l
 /** Where a line's full reading stands, as the voice engine's briefings of its room say: never asked for, being made,
  * there — the engine's own sound, or the voice message a reading from before it spoke readings went out as —,
  * failed, or stopped before it stood. The newest reading of the line is the one that counts. */
-export function lineBriefing(briefings: readonly VoiceBriefing[], messageId: number): MessageBriefing {
+export function lineBriefing(briefings: readonly VoiceBriefing[], messageId: ExactMessageId): MessageBriefing {
   const reading = briefings.find((one) => one.kind === "full" && one.messageId === messageId);
 
   if (reading === undefined) return { state: "idle", source: null, voiceMessageId: null, sound: null, briefingId: null };

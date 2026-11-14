@@ -67,8 +67,8 @@ async function open(screen: (typeof SCREENS)[number], seconds = 30): Promise<Bro
   const context = await browser!.newContext({ viewport: { width: screen.width, height: screen.height }, isMobile: screen.phone, hasTouch: screen.phone, serviceWorkers: "block", reducedMotion: "reduce" });
   const at = cookie.indexOf("=");
   const briefing = {
-    id: 1, at: Date.now(), type: "voice-briefing", chatId: ROOM, messageId: 701, phase: "ended",
-    voice: { id: BRIEFING, chatId: ROOM, messageId: 701, kind: "summary", title: TITLE, state: "done", durationMs: 30_000, plays: true, voiceMessageId: null, spoken: true, finishedAt: Date.now() - 1_000 }
+    id: 1, at: Date.now(), type: "voice-briefing", chatId: ROOM, messageId: "701", phase: "ended",
+    voice: { id: BRIEFING, chatId: ROOM, messageId: "701", kind: "summary", title: TITLE, state: "done", durationMs: 30_000, plays: true, voiceMessageId: null, spoken: true, finishedAt: Date.now() - 1_000 }
   };
 
   await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);

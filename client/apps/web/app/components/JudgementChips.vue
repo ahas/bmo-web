@@ -286,7 +286,7 @@ import { formatClock, formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
 import { draftAsked, draftDiff, draftRound, endLine, gateRoundLines, roundLines, splitDraftJudgements } from "~/domain/draft-process";
 
-import type { AgentLogLine, BriefingReading, Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
+import type { AgentLogLine, BriefingReading, ExactMessageId, Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
 import type { LogRow } from "~/domain/log";
 import type { DraftDiffLine, RoundLine } from "~/domain/draft-process";
 import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
@@ -313,7 +313,7 @@ interface Props {
   live?: LiveTurn | null;
   // The room the row stands in and the line itself, which its reading is asked for and served by.
   chatId?: number;
-  messageId?: number;
+  messageId?: ExactMessageId;
   // Where the line's full reading stands.
   briefing?: MessageBriefing | null;
   // When the message was sent, in seconds: a message sent a moment ago may still be judged.
@@ -347,7 +347,6 @@ const props = withDefaults(defineProps<Props>(), {
   roundSituation: null,
   live: null,
   chatId: 0,
-  messageId: 0,
   briefing: null,
   sentAt: 0,
   judging: false,
@@ -365,6 +364,16 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{ room: [width: number | null] }>();
 const { t } = useI18n();
 const slots = useSlots();
+// Which of the line's parts the row fills: who reacted at its lead, how long the room waited. A part coming or going
+// is no change a computed sees, so it is read again before every update, and a reaction landing on a line that had
+// none, or a wait read late, is drawn at once.
+const filled = ref({ lead: slots.lead !== undefined, took: slots.took !== undefined });
+
+onBeforeUpdate(() => {
+  const now = { lead: slots.lead !== undefined, took: slots.took !== undefined };
+
+  if (now.lead !== filled.value.lead || now.took !== filled.value.took) filled.value = now;
+});
 
 const spendOpen = ref(false);
 const recordsOpen = ref(false);
@@ -374,7 +383,7 @@ const briefingRefused = ref("");
 
 // Where the line's full reading stands: as the page read it, then as this chip asked for it and the voice engine's
 // stream moved it (docs/web.md, the room screen's voice briefing chip).
-const briefingHeld = ref<{ id: number | null; state: MessageBriefing["state"]; source: MessageBriefing["source"]; voiceMessageId: number | null } | null>(null);
+const briefingHeld = ref<{ id: number | null; state: MessageBriefing["state"]; source: MessageBriefing["source"]; voiceMessageId: ExactMessageId | null } | null>(null);
 const briefingState = computed<MessageBriefing["state"]>(() => briefingHeld.value?.state ?? props.briefing?.state ?? "idle");
 const briefingLook = computed<BriefingChip>(() => briefingChip(briefingState.value));
 // Where the reading is served from: the voice engine's sound of it, or the voice message a line was read out as
@@ -716,13 +725,13 @@ const chipped = computed<boolean>(
     props.briefing !== null ||
     props.figuring ||
     props.thinking ||
-    slots.lead !== undefined
+    filled.value.lead
 );
 
 // Whether the line is more than the time and its marks: a chip, or how long the room waited. Such a
 // line stands on a line of its own under what the bubble holds, never at the end of the words or over
 // a picture.
-const full = computed<boolean>(() => chipped.value || slots.took !== undefined);
+const full = computed<boolean>(() => chipped.value || filled.value.took);
 
 // Whether the verdict mark stands: once the message is being judged, and from then on wherever it
 // has a verdict.

@@ -11,9 +11,9 @@
 <script setup lang="ts">
 import { telegramFragments } from "../domain/telegram-fragments";
 
-import type { TelegramExpression, TelegramFormat } from "#shared/types";
+import type { ExactMessageId, TelegramExpression, TelegramFormat } from "#shared/types";
 
-const props = defineProps<{ text: string; expressions?: TelegramExpression[]; formats?: TelegramFormat[]; markdown?: boolean; chatId: number; messageId: number }>();
+const props = defineProps<{ text: string; expressions?: TelegramExpression[]; formats?: TelegramFormat[]; markdown?: boolean; chatId: number; messageId: ExactMessageId }>();
 
 // The words as the formatting sends them: one plain run where no entity stands, fragments nested as they nest.
 const fragments = computed(() => telegramFragments(props.text, props.formats ?? [], props.expressions ?? []));

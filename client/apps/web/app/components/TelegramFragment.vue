@@ -16,9 +16,10 @@
 <script setup lang="ts">
 import { linkParts } from "#shared/links";
 
+import type { ExactMessageId } from "#shared/types";
 import type { TelegramFragment } from "../domain/telegram-fragments";
 
-const props = defineProps<{ fragment: TelegramFragment; chatId: number; messageId: number; state: Set<number>; literal?: boolean }>();
+const props = defineProps<{ fragment: TelegramFragment; chatId: number; messageId: ExactMessageId; state: Set<number>; literal?: boolean }>();
 const { t } = useI18n();
 
 // Whether this spoiler stands uncovered, or this expandable quote open, in the slots the message opened.

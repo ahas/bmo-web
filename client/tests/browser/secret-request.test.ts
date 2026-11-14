@@ -69,8 +69,7 @@ class Room {
     const row: ArchivedMessage = {
       ...(formats === undefined ? {} : { formats }),
       chatId: CHAT,
-      messageId: this.next,
-      exactId: String(this.next++),
+      messageId: String(this.next++),
       senderId: mine ? owner : AGENT,
       senderName: mine ? ACCOUNT.name : "agent-a",
       sentAt: this.clock,
@@ -86,7 +85,7 @@ class Room {
 
   page(query: URLSearchParams): MessagePage {
     if (query.has("after")) {
-      const from = this.rows.findIndex((row) => row.messageId === Number(query.get("after"))) + 1;
+      const from = this.rows.findIndex((row) => row.messageId === query.get("after")) + 1;
 
       return { messages: this.rows.slice(from), judgements: [], hasMore: false };
     }

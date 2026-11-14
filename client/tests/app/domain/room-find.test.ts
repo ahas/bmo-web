@@ -12,8 +12,7 @@ Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", 
 function said(messageId: number, text: string, senderName = "person-a", files: string[] = []): ArchivedMessage {
   return {
     chatId: -1,
-    messageId,
-    exactId: String(messageId),
+    messageId: String(messageId),
     senderId: 7,
     senderName,
     sentAt: 1_788_000_000 + messageId,
@@ -28,14 +27,14 @@ describe("the messages a phrase finds", () => {
   const messages = [said(1, "The Deploy went out"), said(2, "nothing here"), said(3, "words", "Deploy Bot"), said(4, "a file", "person-a", ["deploy-notes.pdf"])];
 
   test("are those whose words, sender or files hold it, in any case, oldest first", () => {
-    expect(foundMessages(messages, "deploy")).toEqual([1, 3, 4]);
-    expect(foundMessages(messages, "  went out ")).toEqual([1]);
+    expect(foundMessages(messages, "deploy")).toEqual(["1", "3", "4"]);
+    expect(foundMessages(messages, "  went out ")).toEqual(["1"]);
   });
 
   test("holds what was heard in a voice note, which the bubble stands under its player", () => {
     const heard = { ...said(5, ""), attachments: [{ id: 0, kind: "audio" as const, name: "voice.ogg", bytes: null, type: "audio/ogg", available: true }], transcript: "the deploy is held until dawn", voiceSeconds: 7, voiceState: "heard" };
 
-    expect(foundMessages([...messages, heard], "dawn")).toEqual([5]);
+    expect(foundMessages([...messages, heard], "dawn")).toEqual(["5"]);
     // A recording that could not be heard has no words to find.
     expect(foundMessages([{ ...heard, transcript: null, voiceState: "failed" }], "dawn")).toEqual([]);
   });

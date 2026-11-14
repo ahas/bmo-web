@@ -1,4 +1,4 @@
-import type { Judgement, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
+import type { ExactMessageId, Judgement, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
 import { chatAgent } from "#shared/agent-names";
 import { otherAnswererOf } from "./agents";
 import { countText } from "./numbers";
@@ -331,12 +331,12 @@ export function judgedNow(
   chatId: number,
   runs: readonly LiveRun[],
   queued: readonly QueuedMessage[],
-  turns: readonly { messageId: number | null; speaker?: TurnSpeaker; startedAt?: number }[],
-  judgements: ReadonlyMap<number, readonly Judgement[]> = new Map()
-): Set<number> {
+  turns: readonly { messageId: ExactMessageId | null; speaker?: TurnSpeaker; startedAt?: number }[],
+  judgements: ReadonlyMap<ExactMessageId, readonly Judgement[]> = new Map()
+): Set<ExactMessageId> {
   // Each message being judged, with the moment the earliest of what judges it began.
-  const since = new Map<number, number>();
-  const judging = (messageId: number, from: number | undefined): void => {
+  const since = new Map<ExactMessageId, number>();
+  const judging = (messageId: ExactMessageId, from: number | undefined): void => {
     since.set(messageId, Math.min(since.get(messageId) ?? Infinity, from ?? Infinity));
   };
 
@@ -358,7 +358,7 @@ export function judgedNow(
     }
   }
 
-  const judged = new Set<number>();
+  const judged = new Set<ExactMessageId>();
 
   for (const [messageId, from] of since) {
     const ended = (judgements.get(messageId) ?? []).some((judgement) => judgement.createdAt >= from && endsJudging(judgement.verdict));
@@ -423,8 +423,8 @@ export function keptOffer(judgement: Judgement): KeptCounts | null {
   return judgement.opening?.offers.findLast((one) => one.stage === judgement.stage)?.kept ?? null;
 }
 
-export function judgementsByMessage(judgements: Judgement[]): Map<number, Judgement[]> {
-  const index = new Map<number, Judgement[]>();
+export function judgementsByMessage(judgements: Judgement[]): Map<ExactMessageId, Judgement[]> {
+  const index = new Map<ExactMessageId, Judgement[]>();
 
   for (const judgement of judgements) {
     if (judgement.messageId === null) {
@@ -481,7 +481,7 @@ export function lineKept(answer: string | null): boolean {
 
 /** What of a message the screen needs to tell where its verdicts stand. */
 export interface HomedMessage {
-  messageId: number;
+  messageId: ExactMessageId;
   agent?: boolean;
   round?: string | null;
 }
@@ -499,20 +499,20 @@ export function decidesMessage(judgement: Judgement): boolean {
 // The last message of each round's answer on the page, and, for each round, the person's message carrying the
 // round's own turn verdict, else any of the round's verdicts on a person's message.
 export interface RoundPlaces {
-  answers: Map<string, number>;
-  read: Map<string, number>;
+  answers: Map<string, ExactMessageId>;
+  read: Map<string, ExactMessageId>;
 }
 
 export function roundPlaces(messages: readonly HomedMessage[], judgements: readonly Judgement[]): RoundPlaces {
   const agents = new Set(messages.filter((message) => message.agent === true).map((message) => message.messageId));
-  const answers = new Map<string, number>();
+  const answers = new Map<string, ExactMessageId>();
 
   for (const message of messages) {
     if (message.agent === true && message.round != null) answers.set(message.round, message.messageId);
   }
 
-  const decided = new Map<string, number>();
-  const any = new Map<string, number>();
+  const decided = new Map<string, ExactMessageId>();
+  const any = new Map<string, ExactMessageId>();
 
   for (const judgement of [...judgements].sort((left, right) => left.createdAt - right.createdAt || left.id - right.id)) {
     if (judgement.round == null || judgement.messageId === null || judgesAnswer(judgement) || agents.has(judgement.messageId)) continue;

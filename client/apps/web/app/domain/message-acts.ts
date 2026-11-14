@@ -1,4 +1,4 @@
-import type { ForwardedMessage, MessageAct, PinnedMessage, RoomPins, SentMessage, StickerSet } from "#shared/types";
+import type { ExactMessageId, ForwardedMessage, MessageAct, PinnedMessage, RoomPins, SentMessage, StickerSet } from "#shared/types";
 import type { FeedItem } from "./room";
 
 // What the signed-in reader does to a message of a room's, through this app's server (the receiver's `docs/api.md`,
@@ -17,7 +17,7 @@ export function mineReaction(item: Pick<FeedItem, "reactions">): string | null {
 }
 
 /** The reader's reaction put on a message, or the one they had taken off. */
-export async function reactTo(chatId: number, messageId: number, emoji: string, on: boolean): Promise<MessageAct> {
+export async function reactTo(chatId: number, messageId: ExactMessageId, emoji: string, on: boolean): Promise<MessageAct> {
   const path = `/api/rooms/${chatId}/messages/${messageId}/reaction`;
 
   return on
@@ -26,22 +26,22 @@ export async function reactTo(chatId: number, messageId: number, emoji: string, 
 }
 
 /** A message pinned to the room, or its pin taken off. */
-export async function pinMessage(chatId: number, messageId: number, on: boolean): Promise<MessageAct> {
+export async function pinMessage(chatId: number, messageId: ExactMessageId, on: boolean): Promise<MessageAct> {
   return await $fetch<MessageAct>(`/api/rooms/${chatId}/messages/${messageId}/pin`, { method: "PUT", body: { on } });
 }
 
 /** The reader's own message edited to the words given. */
-export async function editMessage(chatId: number, messageId: number, text: string): Promise<MessageAct> {
+export async function editMessage(chatId: number, messageId: ExactMessageId, text: string): Promise<MessageAct> {
   return await $fetch<MessageAct>(`/api/rooms/${chatId}/messages/${messageId}/edit`, { method: "PATCH", body: { text } });
 }
 
 /** A message deleted, the reader's own or any the administrator names. */
-export async function deleteMessage(chatId: number, messageId: number): Promise<MessageAct> {
+export async function deleteMessage(chatId: number, messageId: ExactMessageId): Promise<MessageAct> {
   return await $fetch<MessageAct>(`/api/rooms/${chatId}/messages/${messageId}/remove`, { method: "DELETE" });
 }
 
 /** The owner's copy of a message in another room, marked with where it came from. */
-export async function forwardMessage(chatId: number, messageId: number, to: number): Promise<ForwardedMessage> {
+export async function forwardMessage(chatId: number, messageId: ExactMessageId, to: number): Promise<ForwardedMessage> {
   return await $fetch<ForwardedMessage>(`/api/rooms/${chatId}/messages/${messageId}/forward`, { method: "POST", body: { to } });
 }
 

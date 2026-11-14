@@ -1,3 +1,4 @@
+import { exactMessageIdOf } from "#shared/message-ids";
 import { briefingStateOf } from "#shared/voice-briefings";
 
 import type { BotEvent, VoiceBriefing, WorkOrderProgress } from "#shared/types";
@@ -195,7 +196,7 @@ export function voiceEvent(data: Fields): BotEvent | null {
 
   if (id === null || chatId === null) return null;
 
-  const messageId = number(row.messageId);
+  const messageId = exactMessageIdOf(row.messageId);
   const voice: VoiceBriefing = {
     id,
     chatId,
@@ -205,7 +206,7 @@ export function voiceEvent(data: Fields): BotEvent | null {
     state: briefingStateOf(row.state),
     durationMs: number(row.durationMs),
     plays: row.plays !== false,
-    voiceMessageId: number(row.voiceMessageId),
+    voiceMessageId: exactMessageIdOf(row.voiceMessageId),
     spoken: row.synthesisId !== null && row.synthesisId !== undefined,
     finishedAt: number(row.finishedAt)
   };

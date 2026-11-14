@@ -219,10 +219,10 @@ describe("a page of a room", () => {
     expect(read.hasMore).toBe(true);
     expect(read.judgements).toEqual([]);
     expect(read.messages.map((one) => [one.messageId, one.agent, one.notice])).toEqual([
-      [1, false, false],
-      [2, true, false],
-      [3, true, true],
-      [4, false, false]
+      ["1", false, false],
+      ["2", true, false],
+      ["3", true, true],
+      ["4", false, false]
     ]);
     expect(read.messages[1]).toMatchObject({ answerSeconds: 4, round: "round:-7:1:1", spend: null, actions: null });
     // What the round spent and did is read apart from the page, so the page asks the agency nothing.
@@ -230,7 +230,7 @@ describe("a page of a room", () => {
     // The agent's number is not the owner's here, so no answer is said to have gone out in the owner's account.
     expect(read.messages.some((one) => one.voicedBy !== undefined)).toBe(false);
     // Where a forwarded message came from, on the row the record marks and no other.
-    expect(read.messages.map((one) => one.forwardedFrom ?? null)).toEqual([{ room: -5, messageId: 3, senderName: "person-b" }, null, null, null]);
+    expect(read.messages.map((one) => one.forwardedFrom ?? null)).toEqual([{ room: -5, messageId: "3", senderName: "person-b" }, null, null, null]);
   });
 
   test("names the agent of an answer sent in the owner's own account from the send itself, and asks the number's owner only where the send names no agent", async () => {
@@ -241,9 +241,9 @@ describe("a page of a room", () => {
     // Every send the receiver names its agent on is that agent's words, whichever voice it went out in: another supervisor's
     // own bot account names it as a person's account does (docs/web.md, the naming rule).
     expect(read.messages.map((one) => [one.messageId, one.agent, one.voicedBy, one.senderName])).toEqual([
-      [20, true, "agent-a", "person-owner"],
-      [21, true, "agent-a", "person-owner"],
-      [22, true, "agent-a", "person-owner"]
+      ["20", true, "agent-a", "person-owner"],
+      ["21", true, "agent-a", "person-owner"],
+      ["22", true, "agent-a", "person-owner"]
     ]);
     // The two sends that name their agent need no question; the one written before the receiver named it is asked once.
     expect(receiver.asked.filter((one) => one.path.includes("sender-is-owner")).map((one) => one.path)).toEqual(["/rooms/-9/messages/22/sender-is-owner"]);
@@ -260,7 +260,7 @@ describe("a page of a room", () => {
     ]);
     expect(reply.expressions).toEqual([]);
     expect(reply.formats).toEqual([]);
-    expect(reply.replyQuote).toEqual({ messageId: 1, senderName: "person-a", text: "words 1", pictured: false, attachment: null });
+    expect(reply.replyQuote).toEqual({ messageId: "1", senderName: "person-a", text: "words 1", pictured: false, attachment: null });
     // The metadata of the person's words is asked even of a message that carries no file; an agent's answer that
     // carries none stands as its markdown and is asked nothing; the files are listed only where the page names one.
     expect(receiver.asked.filter((one) => /\/(files|metadata)$/.test(one.path)).map((one) => one.path).sort()).toEqual([
@@ -287,22 +287,21 @@ describe("a page of a room", () => {
     const read = (await readMessagesAfter(-7, "4", 20)).messages;
 
     expect(read.map((one) => [one.messageId, one.agent, one.thinking === true])).toEqual([
-      [5, false, false],
-      [6, true, true]
+      ["5", false, false],
+      ["6", true, true]
     ]);
     expect(read[1]!.briefing ?? null).toBeNull();
   });
 
-  test("a message numbered past 2^53 carries its exact id beside the number the screen goes by", async () => {
+  test("a message numbered past 2^53 carries its exact id", async () => {
     const read = (await readMessagePage(-12, null, 50)).messages;
 
-    expect(read.map((one) => one.exactId)).toEqual(numberedHigh);
-    expect(read.map((one) => one.messageId)).toEqual(numberedHigh.map(Number));
+    expect(read.map((one) => one.messageId)).toEqual(numberedHigh);
   });
 
   test("past a message, and where a day begins", async () => {
-    expect((await readMessagesAfter(-7, "4", 20)).messages.map((one) => one.messageId)).toEqual([5, 6]);
-    expect(await readDayStart(-7, 1_790_000_000)).toEqual({ messageId: 2 });
+    expect((await readMessagesAfter(-7, "4", 20)).messages.map((one) => one.messageId)).toEqual(["5", "6"]);
+    expect(await readDayStart(-7, 1_790_000_000)).toEqual({ messageId: "2" });
     expect(await readJudgementPage(-7, null, 20)).toEqual({ judgements: [], hasMore: false });
   });
 });
@@ -311,10 +310,10 @@ describe("a round's figures", () => {
   test("are read for the rounds of the room's own answers, each round once with its runs side by side", async () => {
     agency.asked.length = 0;
 
-    const read = await roundFigures(-7, [2, 1, 99]);
+    const read = await roundFigures(-7, ["2", "1", "99"]);
 
     expect(read).toHaveLength(1);
-    expect(read[0]).toMatchObject({ messageId: 2, round: "round:-7:1:1", spend: { inputTokens: 15, outputTokens: 4, measured: 2 } });
+    expect(read[0]).toMatchObject({ messageId: "2", round: "round:-7:1:1", spend: { inputTokens: 15, outputTokens: 4, measured: 2 } });
     expect(read[0]!.actions).toMatchObject({ agent: "agent-a", runs: ["chat:-7:1", "chat:-7:2"], tools: 1 });
     expect(agency.asked.filter((one) => one.path.startsWith("/runs?")).map((one) => one.path)).toEqual(["/runs?names=round%3A-7%3A1%3A1&limit=50"]);
     expect(agency.asked.filter((one) => one.path.startsWith("/log-lines?")).map((one) => new URL(one.path, "http://agency").searchParams.get("runId")).sort()).toEqual(["41", "42"]);

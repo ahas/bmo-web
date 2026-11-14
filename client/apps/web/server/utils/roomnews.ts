@@ -3,7 +3,7 @@ import { spokenWords } from "#shared/text-marks";
 import { wording } from "#shared/wording";
 import { clipBody } from "./push";
 
-import type { PushPayload } from "#shared/types";
+import type { ExactMessageId, PushPayload } from "#shared/types";
 
 // What an agent said in a room, turned into the notification that tells the owner of it
 // (docs/web.md, 「Notifications」). Every room's words reach the bot's stream by the same two words —
@@ -54,7 +54,7 @@ export interface RoomRingerDeps {
   // The console's base path, the configuration's `app.baseURL`, which the room a notification opens stands under.
   base: string;
   // The agent's line a message of a room is, or null where it is not one to ring for.
-  read: (chatId: number, messageId: number) => Promise<RoomLine | null>;
+  read: (chatId: number, messageId: ExactMessageId) => Promise<RoomLine | null>;
   title: (chatId: number) => Promise<string>;
   // The accounts looking at the room right now, whose devices it does not go to.
   lookingAt: (chatId: number) => ReadonlySet<string>;
@@ -90,7 +90,7 @@ export class RoomRinger {
   ) {}
 
   // A message the stream named, at the time the stream says it was filed.
-  async heard(chatId: number, messageId: number | null, at: number): Promise<void> {
+  async heard(chatId: number, messageId: ExactMessageId | null, at: number): Promise<void> {
     if (messageId === null || at < this.since) {
       return;
     }

@@ -252,7 +252,7 @@ export function sendMark(item: Pick<FeedItem, "look" | "pending" | "run">): Send
 // One picture of an album row: the message it went out as — none yet for a picture still on its
 // way — and where it is fetched from.
 export interface AlbumPicture {
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   src: string;
 }
 
@@ -263,10 +263,9 @@ export interface FeedItem {
   // the key of the line that stood for it while it went, so it is one row for its whole life and is never drawn
   // again (docs/web.md, the room screen's section on a message being sent).
   life?: string;
-  messageId: number;
-  // The archived message's id exactly as the receiver wrote it, which the read mark names (docs/web.md, 「Unread
-  // messages」); null on a row that stands for no archived message, a line still on its way or an agent's turn.
-  exactId: ExactMessageId | null;
+  // The archived message's id (docs/web.md, 「A message's id」); null on a row that stands for no archived message, a
+  // line still on its way or an agent's turn.
+  messageId: ExactMessageId | null;
   senderId: number | null;
   senderName: string;
   sentAt: number;
@@ -347,6 +346,9 @@ export interface FeedItem {
   // beside the agent's own; absent on every other row.
   voice?: string;
 }
+
+// A row standing for an archived message, which always names it.
+export type ArchivedItem = FeedItem & { messageId: ExactMessageId };
 
 // One emoji of a message's reactions as its row stands it: how many put it there, whether one of the reader's own
 // senders did, and who they are, by name.
@@ -582,13 +584,10 @@ export type FeedRead =
  * numbering and names no row, and a cursor that names no row has no position to read past.
  *
  * A room holding nothing has no position to read past either, so it reads the page.
- *
- * Either read names its row by the exact id the room holds it under, never by the number the news carried: a chat
- * service may number its messages past what a JavaScript number holds, and the rounded number names no row.
  */
 export function feedRead(
-  held: readonly { messageId: number; exactId: ExactMessageId }[],
-  announced: number | null,
+  held: readonly { messageId: ExactMessageId }[],
+  announced: ExactMessageId | null,
   pageSize: number,
 ): FeedRead {
   const newest = held[held.length - 1];
@@ -597,11 +596,9 @@ export function feedRead(
     return { kind: "page" };
   }
 
-  const edited = announced === null ? undefined : held.find((message) => message.messageId === announced);
-
-  return edited !== undefined
-    ? { kind: "one", messageId: edited.exactId }
-    : { kind: "after", after: newest.exactId, limit: pageSize };
+  return announced !== null && held.some((message) => message.messageId === announced)
+    ? { kind: "one", messageId: announced }
+    : { kind: "after", after: newest.messageId, limit: pageSize };
 }
 
 // Whether what came back settles it. A gap wider than a page is the one shape that cannot be
@@ -634,11 +631,11 @@ export interface RoomFeed {
   loadNewer: () => Promise<number>;
   // The feed replaced by the stretch of the room around one message: a page before it, the
   // message, and a page after it. False where the room holds no such message.
-  loadAround: (messageId: number) => Promise<boolean>;
+  loadAround: (messageId: ExactMessageId) => Promise<boolean>;
   refresh: () => Promise<void>;
   // What the room reads when the bot says one message landed. The number is the one the news
   // carried, or null where it carried none.
-  catchUp: (messageId: number | null) => Promise<void>;
+  catchUp: (messageId: ExactMessageId | null) => Promise<void>;
   addLiveJudgement: (judgement: Judgement) => void;
 }
 
@@ -664,9 +661,9 @@ export function mergedMessages(
   const replacing = new Map(arriving.map((message) => [message.messageId, message]));
   const holding = new Set(held.map((message) => message.messageId));
   // The page's new rows, by the held row they follow in it; null for those before its first.
-  const following = new Map<number | null, ArchivedMessage[]>();
-  let anchor: number | null = null;
-  let first: number | null = null;
+  const following = new Map<ExactMessageId | null, ArchivedMessage[]>();
+  let anchor: ExactMessageId | null = null;
+  let first: ExactMessageId | null = null;
 
   for (const message of arriving) {
     if (holding.has(message.messageId)) {
@@ -700,7 +697,7 @@ export function mergedMessages(
 }
 
 // Whether a page and the rows held share a row, which is what places the page among them.
-function sharesRow(held: readonly { messageId: number }[], page: readonly { messageId: number }[]): boolean {
+function sharesRow(held: readonly { messageId: ExactMessageId }[], page: readonly { messageId: ExactMessageId }[]): boolean {
   const holding = new Set(held.map((message) => message.messageId));
 
   return page.some((message) => holding.has(message.messageId));
@@ -727,8 +724,8 @@ function lastSpends(messages: ArchivedMessage[]): ArchivedMessage[] {
 }
 
 // The last answer each round sent among the rows held, by round: the row a round's figures stand on.
-export function roundEnds(messages: readonly ArchivedMessage[]): Map<string, number> {
-  const ends = new Map<string, number>();
+export function roundEnds(messages: readonly ArchivedMessage[]): Map<string, ExactMessageId> {
+  const ends = new Map<string, ExactMessageId>();
 
   for (const message of messages) {
     if (message.round != null && message.agent === true) ends.set(message.round, message.messageId);
@@ -783,7 +780,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
   // screen's chip line); the answer each round was last asked about by, and the rounds whose read is on its way. They
   // outlive the rows, so a feed replaced by another stretch of the room asks again only about a round it has not.
   const figures = new Map<string, RoundFiguresOf>();
-  const asked = new Map<string, number>();
+  const asked = new Map<string, ExactMessageId>();
   const reading = new Set<string>();
   let figuresDue = false;
 
@@ -817,7 +814,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     });
   }
 
-  async function readFigures(wanted: readonly [string, number][]): Promise<void> {
+  async function readFigures(wanted: readonly [string, ExactMessageId][]): Promise<void> {
     try {
       const answer = await $fetch<RoomRoundFigures>(`/api/rooms/${chatId}/round-figures`, {
         query: { messages: wanted.map(([, messageId]) => messageId).join(",") }
@@ -870,12 +867,12 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
 
   // Everything past a message the room already holds, which stands at that row's place in the
   // room's line rather than at its number.
-  async function fetchAfter(after: ExactMessageId | number, limit: number): Promise<MessagePage> {
+  async function fetchAfter(after: ExactMessageId, limit: number): Promise<MessagePage> {
     return await $fetch<MessagePage>(`/api/rooms/${chatId}/messages`, { query: { after, limit } });
   }
 
   // One row by its own number, which is what an edited message is read as.
-  async function fetchOne(messageId: ExactMessageId | number): Promise<MessagePage> {
+  async function fetchOne(messageId: ExactMessageId): Promise<MessagePage> {
     return await $fetch<MessagePage>(`/api/rooms/${chatId}/messages`, { query: { at: messageId } });
   }
 
@@ -932,7 +929,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     loadingOlder.value = true;
 
     try {
-      const page = await fetchPage(oldest.exactId);
+      const page = await fetchPage(oldest.messageId);
 
       if (mine !== generation) {
         return 0;
@@ -966,7 +963,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     loadingNewer.value = true;
 
     try {
-      const page = await fetchAfter(newest.exactId, PAGING.defaultSize);
+      const page = await fetchAfter(newest.messageId, PAGING.defaultSize);
 
       if (mine !== generation) {
         return 0;
@@ -986,7 +983,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     }
   }
 
-  async function loadAround(messageId: number): Promise<boolean> {
+  async function loadAround(messageId: ExactMessageId): Promise<boolean> {
     const mine = ++generation;
     const half = Math.floor(PAGING.defaultSize / 2);
 
@@ -1056,7 +1053,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
   // alone, as opening the room at its end does, so no stretch is ever missing between two rows.
   async function bridge(end: MessagePage, mine: number): Promise<void> {
     const newest = messages.value[messages.value.length - 1]!;
-    const missed = await fetchAfter(newest.exactId, PAGING.maxSize);
+    const missed = await fetchAfter(newest.messageId, PAGING.maxSize);
 
     if (mine !== generation) {
       return;
@@ -1079,7 +1076,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
   // The bot said a message landed in this room. What that costs is one row rather than the end of
   // the room again: what to ask for is worked out above, and on the ordinary turn it is that one
   // message.
-  async function catchUp(messageId: number | null): Promise<void> {
+  async function catchUp(messageId: ExactMessageId | null): Promise<void> {
     const read = feedRead(messages.value, messageId, PAGING.defaultSize);
 
     // A feed standing back in the room takes an edit of a row it holds and nothing past its end,
@@ -1265,8 +1262,7 @@ function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): 
 
   return {
     key: held.key,
-    messageId: 0,
-    exactId: null,
+    messageId: null,
     senderId: speaker.id,
     senderName: speaker.name,
     sentAt: held.startedAt,
@@ -1337,8 +1333,7 @@ export function runItem(run: RunState, speaker: Speaker, avatar: AvatarProps): F
     // One running row to a speaker: two supervisors' can stand in the same room at once. The default answerer's row
     // is one key whether it holds a turn or only listens, so a turn beginning changes the row in place.
     key: `turn:${otherAnswererOf(run.speaker) === undefined ? "bmo" : runKey(run.speaker)}`,
-    messageId: 0,
-    exactId: null,
+    messageId: null,
     senderId: speaker.id,
     senderName: speaker.name,
     sentAt: run.startedAt,
@@ -1367,7 +1362,7 @@ export function runItem(run: RunState, speaker: Speaker, avatar: AvatarProps): F
 // A running row that has handed its place to its turn's answer: which answer took it, and what the
 // turn last said of itself at that moment.
 export interface HandOver {
-  answer: number;
+  answer: ExactMessageId;
   said: string;
 }
 
@@ -1484,8 +1479,8 @@ export function useHandOver(rows: Readonly<Ref<FeedItem[]>>, messages: Readonly<
 export function buildDays(
   t: Translate,
   messages: ArchivedMessage[],
-  judgements: Map<number, Judgement[]>,
-  imageUrlFor: (chatId: number, messageId: number) => string,
+  judgements: Map<ExactMessageId, Judgement[]>,
+  imageUrlFor: (chatId: number, messageId: ExactMessageId) => string,
   avatars: AvatarIndex,
   pending: readonly FeedItem[] = [],
   mine: readonly number[] = []
@@ -1500,8 +1495,8 @@ export function buildDays(
 // over, so its rows count none (docs/web.md, 「A turn the chat agent chose not to answer」).
 export function archivedRows(
   messages: ArchivedMessage[],
-  judgements: Map<number, Judgement[]>,
-  imageUrlFor: (chatId: number, messageId: number) => string,
+  judgements: Map<ExactMessageId, Judgement[]>,
+  imageUrlFor: (chatId: number, messageId: ExactMessageId) => string,
   avatars: AvatarIndex,
   mine: readonly number[] = [],
   skipLines = true
@@ -1510,7 +1505,7 @@ export function archivedRows(
   // The row each album of the page stands as, by the album's number. The pictures of one send are
   // named as one album by whoever sent them, so they are gathered by that name and never by how
   // close together they came.
-  const albums = new Map<number, FeedItem>();
+  const albums = new Map<ExactMessageId, FeedItem>();
 
   for (const message of messages) {
     // A voice briefing of a line in the room stands on that line's chip line, never as a row: the
@@ -1550,16 +1545,16 @@ export function archivedRows(
   const reacted = new Map(messages.map((message) => [message.messageId, message.reactions ?? []]));
 
   for (const item of items) {
-    item.reactions = reactionViews(reacted.get(item.messageId) ?? [], names, mine, avatars);
+    item.reactions = reactionViews((item.messageId === null ? undefined : reacted.get(item.messageId)) ?? [], names, mine, avatars);
   }
 
   return items;
 }
 
 // The archive's rows, each a message the owner sent wearing the key its line stood under while it went.
-export function withLives(rows: readonly FeedItem[], lives: ReadonlyMap<number, string>): FeedItem[] {
+export function withLives(rows: readonly FeedItem[], lives: ReadonlyMap<ExactMessageId, string>): FeedItem[] {
   return rows.map((row) => {
-    const life = lives.get(row.messageId);
+    const life = row.messageId === null ? undefined : lives.get(row.messageId);
 
     return life === undefined || row.pending != null ? row : { ...row, life };
   });
@@ -1660,8 +1655,8 @@ export function atFoot(t: Translate, days: readonly DayGroup[], footed: readonly
 // One archived message as the row the feed draws.
 function feedItemOf(
   message: ArchivedMessage,
-  judgements: Map<number, Judgement[]>,
-  imageUrlFor: (chatId: number, messageId: number) => string,
+  judgements: Map<ExactMessageId, Judgement[]>,
+  imageUrlFor: (chatId: number, messageId: ExactMessageId) => string,
   avatars: AvatarIndex,
   mine: readonly number[]
 ): FeedItem {
@@ -1675,7 +1670,6 @@ function feedItemOf(
   return {
     key: `m${message.messageId}`,
     messageId: message.messageId,
-    exactId: message.exactId,
     senderId: message.senderId,
     senderName: shownSender(message),
     sentAt: message.sentAt,

@@ -3,11 +3,13 @@ import createClient, { type Client } from "openapi-fetch";
 import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { exactJson } from "./exact-json";
 import { unitAt } from "./units";
 import { answered } from "./unit-answer";
 
 import type { ExactMessageId, RoomProvidersView } from "#shared/types";
 import type { components, paths } from "@bmo/receiver-client/schema";
+import type { WithExactIds } from "./exact-json";
 import type { UnitAnswerCall } from "./unit-answer";
 
 // The receiver's fixed API as its published package states it (the receiver's `docs/api.md`, 「The wire」): one
@@ -36,13 +38,24 @@ export type ReceiverOpeningText = Schemas["OpeningText"];
 export type ReceiverPerson = Schemas["Person"];
 export type ReceiverTalkAnswer = Schemas["TalkAnswer"];
 
-/** A message as the receiver answers it, its own id kept as the digits the receiver wrote. */
-export type ExactMessage = Omit<ReceiverMessage, "id"> & { id: ExactMessageId };
+// The keys whose integers name a message wherever they stand in the receiver's answers (its `docs/api.md`): a
+// message's own `id`, the message it replies to, the message a forward copies, a picture or a turn stands for, and the
+// album a picture went out in, named by its first picture. An event and the live board number other things `id`
+// (the event, a speaker), so they are read with `EVENT_IDS` alone.
+type MessageIdKey = "id" | "replyToMessageId" | "messageId" | "album";
+const MESSAGE_IDS: ReadonlySet<MessageIdKey> = new Set(["id", "replyToMessageId", "messageId", "album"]);
+export const EVENT_IDS: ReadonlySet<string> = new Set(["messageId"]);
 
-/** What a room's message list is asked with, its cursors either a message's exact id or the screen's number for one. */
+/** One of the receiver's answers with every message id in it exact (ExactMessageId). */
+export type Exact<T> = WithExactIds<T, MessageIdKey>;
+
+/** A message as the receiver answers it, every message id in it exact. */
+export type ExactMessage = Exact<ReceiverMessage>;
+
+/** What a room's message list is asked with, its cursors a message's exact id. */
 export type ExactMessagesQuery = Omit<NonNullable<paths["/rooms/{roomId}/messages"]["get"]["parameters"]["query"]>, "after" | "before"> & {
-  after?: ExactMessageId | number;
-  before?: ExactMessageId | number;
+  after?: ExactMessageId;
+  before?: ExactMessageId;
 };
 
 /** The receiver's client, over the document its package publishes. */
@@ -130,49 +143,33 @@ export async function receiverCall<T, E extends { code?: string; error?: string;
   return await answered(asked, { ...call, codes: { ...RECEIVER_CODES, ...call.codes } });
 }
 
-// The receiver numbers a message with a signed 64-bit integer, which a JavaScript number holds without rounding only
-// up to 2^53, and a chat service may number its messages past that (docs/web.md, 「Unread messages」). JSON.parse
-// hands a reviver each value's own source text, so a message's id is read from the digits the receiver wrote, kept by
-// the object it stands in, and handed back in its place.
-function withExactIds(text: string): { parsed: unknown; idOf: (message: ReceiverMessage) => ExactMessageId } {
-  const ids = new WeakMap<object, ExactMessageId>();
-  const parsed: unknown = JSON.parse(text, function (this: object, key: string, value: unknown, context?: { source?: string }) {
-    if (key === "id" && typeof value === "number" && context?.source !== undefined) ids.set(this, context.source);
-
-    return value;
-  });
-
-  return { parsed, idOf: (message) => ids.get(message) ?? String(message.id) };
+/** A message's exact id as the receiver's client takes it in a path or a query: the client types a 64-bit id as a
+ * number, and writes whatever it is given as text, which the exact id already is. */
+export function wireId(id: ExactMessageId): number {
+  return id as unknown as number;
 }
 
-// A message's exact id as the receiver's client takes it in a path or a query: the client types a 64-bit id as a
-// number, and writes whatever it is given as text, which the exact id already is.
-export function onTheWire(id: ExactMessageId | number): number {
-  return id as number;
+/** One call on the receiver asked for its answer as text, read with every message id in it exact (`exactJson`), its
+ * refusals said as `receiverCall` says them. `T` is the answer as the receiver's schema types it. */
+export async function exactAnswer<T>(asked: Promise<{ data?: string; error?: { code?: string; error?: string; field?: string }; response: Response }>, call: UnitAnswerCall = {}): Promise<Exact<T>> {
+  return exactJson(await receiverCall(asked, call), MESSAGE_IDS) as Exact<T>;
 }
 
-/** A page of a room's messages, each with its exact id (ExactMessage). */
+/** A page of a room's messages, each with its message ids exact. */
 export async function exactMessages(roomId: number, query: ExactMessagesQuery): Promise<ReceiverPage<ExactMessage>> {
   const { after, before, ...rest } = query;
-  const cursors = { ...(after === undefined ? {} : { after: onTheWire(after) }), ...(before === undefined ? {} : { before: onTheWire(before) }) };
-  const text = await receiverCall(
+  const cursors = { ...(after === undefined ? {} : { after: wireId(after) }), ...(before === undefined ? {} : { before: wireId(before) }) };
+
+  return await exactAnswer<ReceiverPage<ReceiverMessage>>(
     receiver().GET("/rooms/{roomId}/messages", { params: { path: { roomId }, query: { ...rest, ...cursors } }, parseAs: "text" })
   );
-  const { parsed, idOf } = withExactIds(text);
-  const page = parsed as ReceiverPage<ReceiverMessage>;
-
-  return { items: page.items.map((message) => ({ ...message, id: idOf(message) })), more: page.more };
 }
 
-/** One message of a room, with its exact id (ExactMessage). */
-export async function exactMessage(roomId: number, messageId: ExactMessageId | number): Promise<ExactMessage> {
-  const text = await receiverCall(
-    receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId, messageId: onTheWire(messageId) } }, parseAs: "text" })
+/** One message of a room, with its message ids exact. */
+export async function exactMessage(roomId: number, messageId: ExactMessageId): Promise<ExactMessage> {
+  return await exactAnswer<ReceiverMessage>(
+    receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId, messageId: wireId(messageId) } }, parseAs: "text" })
   );
-  const { parsed, idOf } = withExactIds(text);
-  const message = parsed as ReceiverMessage;
-
-  return { ...message, id: idOf(message) };
 }
 
 /**

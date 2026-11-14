@@ -1,5 +1,9 @@
 import { joinURL, withLeadingSlash, withoutBase, withTrailingSlash } from "ufo";
 
+import { exactMessageIdOf } from "./message-ids";
+
+import type { ExactMessageId } from "./types";
+
 // Where a notification goes when it is pressed. The server writes these into a push and the
 // browser opens them, so both sides read the one set of rules rather than each spelling out
 // paths of its own.
@@ -56,7 +60,7 @@ function positiveQueryId(value: unknown): number | null {
 // One message in a room. The room reads the number off the address and carries the screen to
 // that row, which is how a notification or the playing bar sends them back to where a thing was
 // said rather than to the foot of the conversation.
-export function messagePath(baseURL: string, chatId: number, messageId: number): string {
+export function messagePath(baseURL: string, chatId: number, messageId: ExactMessageId): string {
   return `${roomPath(baseURL, chatId)}?at=${messageId}`;
 }
 
@@ -70,14 +74,14 @@ export function roomRoute(chatId: number): string {
 
 // One message as a route inside the app: the room's own route with the message named on it, for
 // a screen sending a reader to where something was posted.
-export function messageRoute(chatId: number, messageId: number): string {
+export function messageRoute(chatId: number, messageId: ExactMessageId): string {
   return `${roomRoute(chatId)}?at=${messageId}`;
 }
 
-// The message an address names, for a room reading its own address back. A room numbers its
+// The message an address names by its exact id, for a room reading its own address back. A room numbers its
 // messages from both ends — Telegram's above zero, the archive's own below it — so either is one.
-export function messageOfQuery(value: unknown): number | null {
-  const id = Number.parseInt(typeof value === "string" ? value : "", 10);
+export function messageOfQuery(value: unknown): ExactMessageId | null {
+  const id = typeof value === "string" ? exactMessageIdOf(value) : null;
 
-  return Number.isSafeInteger(id) && id !== 0 ? id : null;
+  return id === "0" ? null : id;
 }

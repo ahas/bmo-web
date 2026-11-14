@@ -1,6 +1,8 @@
 import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { exactJson } from "./exact-json";
+
 // Where another unit is reached (docs/boundary.md, 「Settings」): each by the base address and the token its
 // settings name, `<NAME>_ADDRESS` and `<NAME>_TOKEN` in the console's environment. A caller names the unit it
 // calls; a unit whose address is not set is none, and the screen that needs it stands as for a unit not yet
@@ -45,6 +47,8 @@ export interface UnitCall {
   // Where a unit's refusal holds its code and that code's parameters: the refusal body itself where none is
   // given, or the part of it the unit's document names.
   refusal?: (body: Record<string, unknown>) => Record<string, unknown>;
+  // The keys whose integers name a message in the unit's answer, read as exact ids (`exactJson`).
+  exactIds?: ReadonlySet<string>;
 }
 
 // A call waits for the unit's answer however long it takes; it ends on that answer or on its connection refused
@@ -82,7 +86,9 @@ export async function unitFetch<T>(name: string, path: string, init?: RequestIni
   // An answer with no body — a 204, or a turn taken to be answered later — answers nothing.
   const text = response.status === 204 ? "" : await response.text();
 
-  return (text === "" ? null : JSON.parse(text)) as T;
+  if (text === "") return null as T;
+
+  return (asked.exactIds === undefined ? JSON.parse(text) : exactJson(text, asked.exactIds)) as T;
 }
 
 // The headers of a unit's answer a browser reads of bytes handed on whole: what they are, how many, how they are

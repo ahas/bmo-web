@@ -5,13 +5,13 @@ import type { AvatarKind, AvatarRef } from "#shared/types";
 import type { UnitAddress } from "./units";
 
 // A room's and a person's profile picture, which the archive and each chat service keep and serve by its kind and
-// id (docs/web.md, 「Profile photos」; the receiver's and the Telegram service's `docs/api.md`, `GET /avatars`,
-// `GET /rooms/{roomId}/avatar` and `GET /people/{personId}/avatar`). The console serves it under its own path
-// behind the sign-in, so the browser never names the unit.
+// id (docs/web.md, 「Profile photos」; the receiver's, the Telegram service's and the KakaoTalk service's
+// `docs/api.md`, `GET /avatars`, `GET /rooms/{roomId}/avatar` and `GET /people/{personId}/avatar`). The console
+// serves it under its own path behind the sign-in, so the browser never names the unit.
 
-// The units that keep pictures, in the order a number both keep is read from: the receiver first, since it is the
-// archive, then the Telegram service.
-const KEEPERS: readonly string[] = ["RECEIVER", "TELEGRAM"];
+// The units that keep pictures, in the order a number two keep is read from: the receiver first, since it is the
+// archive, then the Telegram service and the KakaoTalk service.
+const KEEPERS: readonly string[] = ["RECEIVER", "TELEGRAM", "KAKAOTALK"];
 
 function keepers(): UnitAddress[] {
   return KEEPERS.flatMap((name) => unitAt(name) ?? []);

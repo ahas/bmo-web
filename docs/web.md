@@ -7676,16 +7676,16 @@ journalctl --user -u <unit> -f
 ## Profile photos
 
 - A profile photo comes from the archive and from each chat service: the receiver keeps a picture for every room
-  and person the archive knows that has one, and the Telegram service keeps Telegram's. The console reads them
-  through those units, a room's and a person's by their kind and id, and serves them under its own path behind
-  the sign-in.
-- The receiver and the Telegram service each list the pictures they keep at `GET /avatars`, a page at a time,
-  each with the moment it was taken and oldest first. The console reads both lists page by page and joins them,
-  the receiver's first for a number both keep, since the receiver is the archive; each picture's address carries
-  the moment it was taken, so a browser keeps what it holds until a new picture changes the address. One picture
-  is asked of the receiver first and of the Telegram service where the receiver keeps none. A list a unit does not
-  answer leaves only its pictures out, and a room or a person with no picture in either list stands as its
-  letter.
+  and person the archive knows that has one, the Telegram service keeps Telegram's and the KakaoTalk service keeps
+  KakaoTalk's. The console reads them through those units, a room's and a person's by their kind and id, and
+  serves them under its own path behind the sign-in.
+- The keepers are asked in one order: the receiver first, since it is the archive, then the Telegram service, then
+  the KakaoTalk service; a keeper whose address the console's settings do not name is not asked. Each lists the
+  pictures it keeps at `GET /avatars`, a page at a time, each with the moment it was taken and oldest first. The
+  console reads every list page by page and joins them, the earlier keeper's standing for a number two keep; each
+  picture's address carries the moment it was taken, so a browser keeps what it holds until a new picture changes
+  the address. One picture is asked of each keeper in that order until one keeps it. A list a unit does not
+  answer leaves only its pictures out, and a room or a person with no picture in any list stands as its letter.
 - When a photo is added, changed or deleted the receiver's stream carries a refresh event and the left room list and
   conversation profiles re-read the common list. While disconnected it checks at one-minute intervals, and re-reads at
   once on reconnect. Opening a screen does not call the chat service's platform.

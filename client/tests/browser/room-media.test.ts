@@ -15,6 +15,9 @@ const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "pictures", password: "fixture-password-2262" };
 const MEDIA_CHAT = 44;
 
+// What tests/browser/measure.ts puts on the page once its script is added.
+type Measured = { measure: typeof import("./measure") };
+
 let browser: Browser | null = null;
 let cookie = "";
 
@@ -226,8 +229,8 @@ describe.skipIf(!origin || !touchReady())("a room's media", () => {
         await page.addScriptTag({ type: "module", content: `${measureSource()}\ninstall();` });
 
         const read = await page.evaluate(() => {
-          type Measure = { contrast: (selector: string) => { passesText: boolean }[] };
-          const measure = (globalThis as unknown as { measure: Measure }).measure;
+          const scope: Window & Partial<Measured> = window;
+          const measure = scope.measure!;
           const lineOf = (id: number) => {
             const row = document.querySelector(`[data-message="m${id}"]`)!;
             const bubble = row.querySelector("[data-bubble]")!.getBoundingClientRect();

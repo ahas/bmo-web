@@ -64,6 +64,7 @@ const messages = computed<ArchivedMessage[]>(() => {
   const said = (messageId: number, senderId: number, text: string): ArchivedMessage => ({
     chatId: 0,
     messageId,
+    exactId: String(messageId),
     senderId,
     senderName: senderId === READER ? props.readerName : t("common.label.speaker_bmo"),
     sentAt: START + messageId * 60,

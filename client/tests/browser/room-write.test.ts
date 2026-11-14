@@ -18,7 +18,7 @@ const WRITER = { name: "room-writer", password: "fixture-password-2401" };
 const READER = { name: "room-reader", password: "fixture-password-2402" };
 const ROOM = 43;
 const EARLIER: ArchivedMessage = {
-  chatId: ROOM, messageId: 9_500, senderId: 7, senderName: "person-b", sentAt: Math.floor(Date.now() / 1000) - 600,
+  chatId: ROOM, messageId: 9_500, exactId: "9500", senderId: 7, senderName: "person-b", sentAt: Math.floor(Date.now() / 1000) - 600,
   text: "said before", imagePath: null, replyToMessageId: null
 };
 const LINE = "written from the box";

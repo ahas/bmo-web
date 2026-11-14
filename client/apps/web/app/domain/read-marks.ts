@@ -1,10 +1,12 @@
 import { useMarkRoomRead, useRoomReading } from "./room-list";
 
+import type { ExactMessageId } from "#shared/types";
 import type { Ref } from "vue";
 
 // How a room screen tells the server how far its reader has read (docs/web.md, 「Sidebar」): a
 // message is read once its row has stood in the room's view with its foot in sight, in a tab on the
-// screen. Reading back into older messages marks nothing newer than what is in view.
+// screen. Reading back into older messages marks nothing newer than what is in view. A message is named by its
+// exact id throughout, so a room numbered past 2^53 is marked as any other (docs/web.md, 「Unread messages」).
 
 // How often the marks of a scroll go, the furthest of them each time.
 const MARK_SETTLE_MS = 300;
@@ -12,37 +14,38 @@ const MARK_SETTLE_MS = 300;
 // How close to the end a reader stands and still reads as standing there.
 const AT_END_PX = 2;
 
-// The rows a feed draws for its messages carry this mark and the message's number after an `m`.
-const MESSAGE_ROW = '[data-message^="m"]';
+// The rows a feed draws for its archived messages carry the message's exact id in this attribute.
+const EXACT_ID = "data-exact-id";
+const MESSAGE_ROW = `[${EXACT_ID}]`;
 
 /**
  * The message the reader has read up to, given the last message row seen and which messages stand
  * as rows of their own: that row's message, carried over every message after it that stands as no
  * row — the voice that belongs to a line, the other pictures of an album — up to the next row.
  */
-export function readThrough(messages: readonly { messageId: number }[], rows: ReadonlySet<number>, seen: number): number | null {
-  let at = messages.findIndex((message) => message.messageId === seen);
+export function readThrough(
+  messages: readonly { exactId: ExactMessageId }[],
+  rows: ReadonlySet<ExactMessageId>,
+  seen: ExactMessageId
+): ExactMessageId | null {
+  let at = messages.findIndex((message) => message.exactId === seen);
 
   if (at === -1) return null;
 
-  while (at + 1 < messages.length && !rows.has(messages[at + 1]!.messageId)) at += 1;
+  while (at + 1 < messages.length && !rows.has(messages[at + 1]!.exactId)) at += 1;
 
-  return messages[at]!.messageId;
+  return messages[at]!.exactId;
 }
 
 /** The last message row whose foot stands in the view, or null where none does. */
-export function lastRowInView(viewport: HTMLElement): number | null {
+export function lastRowInView(viewport: HTMLElement): ExactMessageId | null {
   const view = viewport.getBoundingClientRect();
   const rows = viewport.querySelectorAll<HTMLElement>(MESSAGE_ROW);
 
   for (let index = rows.length - 1; index >= 0; index -= 1) {
     const box = rows[index]!.getBoundingClientRect();
 
-    if (box.bottom <= view.bottom + 1 && box.bottom > view.top) {
-      const id = Number((rows[index]!.getAttribute("data-message") ?? "").slice(1));
-
-      return Number.isSafeInteger(id) ? id : null;
-    }
+    if (box.bottom <= view.bottom + 1 && box.bottom > view.top) return rows[index]!.getAttribute(EXACT_ID);
   }
 
   return null;
@@ -52,9 +55,9 @@ export interface ReadMarkSource {
   chatId: number;
   viewport: () => HTMLElement | null;
   // The messages the feed holds, in the room's order.
-  messages: Ref<readonly { messageId: number }[]>;
+  messages: Ref<readonly { exactId: ExactMessageId }[]>;
   // The messages that stand as rows of their own.
-  rows: () => ReadonlySet<number>;
+  rows: () => ReadonlySet<ExactMessageId>;
   // Whether the room goes on past the newest message held.
   newer: Ref<boolean>;
   // Whether the room's follower says the reader stands away from its end; a glide of its own carrying
@@ -74,7 +77,7 @@ export function useReadMarks(source: ReadMarkSource): void {
   const mark = useMarkRoomRead();
   const reading = useRoomReading();
   // The furthest message sent, by its place in the feed, so a scroll back up sends nothing.
-  let sent: number | null = null;
+  let sent: ExactMessageId | null = null;
   // Whether the reader stands at the room's end, whether or not the tab is on the screen.
   let atEnd = false;
   let waiting: ReturnType<typeof setTimeout> | null = null;
@@ -131,14 +134,14 @@ export function useReadMarks(source: ReadMarkSource): void {
     });
   }
 
-  function isAhead(messageId: number): boolean {
+  function isAhead(exactId: ExactMessageId): boolean {
     if (sent === null) return true;
 
     const messages = source.messages.value;
-    const was = messages.findIndex((message) => message.messageId === sent);
+    const was = messages.findIndex((message) => message.exactId === sent);
 
     // A feed taken elsewhere no longer holds the last one sent; the server keeps the mark from moving back.
-    return was === -1 || messages.findIndex((message) => message.messageId === messageId) > was;
+    return was === -1 || messages.findIndex((message) => message.exactId === exactId) > was;
   }
 
   function look(): void {

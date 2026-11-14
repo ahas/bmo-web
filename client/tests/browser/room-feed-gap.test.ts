@@ -68,9 +68,11 @@ class Room {
     this.clock += seconds;
 
     const fromConsole = mine && this.rows.length % 3 === 0;
+    const messageId = fromConsole ? this.console-- : this.telegram++;
     const row: ArchivedMessage = {
       chatId: CHAT,
-      messageId: fromConsole ? this.console-- : this.telegram++,
+      messageId,
+      exactId: String(messageId),
       senderId: mine ? owner : OTHER,
       senderName: mine ? "room-feed" : "tester",
       sentAt: this.clock,

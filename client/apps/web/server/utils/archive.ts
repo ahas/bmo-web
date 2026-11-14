@@ -9,10 +9,10 @@ import { figuresOf } from "./runfigures";
 import { judgementsOf, judgementsWithin } from "./gate";
 import { ownerChat, ownerSender } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
-import { receiver, receiverCall } from "./receiver";
+import { exactMessage, exactMessages, receiver, receiverCall } from "./receiver";
 
-import type { ArchivedMessage, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
-import type { ReceiverMessage, ReceiverRoom } from "./receiver";
+import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
+import type { ExactMessage, ReceiverRoom } from "./receiver";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
 // room」): the rooms, a room's name, and its line walked by a cursor the reader holds, read into the shapes the room
@@ -41,6 +41,7 @@ const THINKING = "thinking";
 interface ReceivedMessage {
   chatId: number;
   messageId: number;
+  exactId: ExactMessageId;
   senderId: number | null;
   senderName: string;
   sentAt: number;
@@ -75,14 +76,15 @@ interface ReceivedMessage {
 }
 
 // A message as the receiver's own document answers it, read into the names the room screen stands on: its
-// number is the message's, and the room it stands in is its own.
-function receivedOf(message: ReceiverMessage): ReceivedMessage {
-  const sent = message as ReceiverMessage & { voice?: SentVoice | null };
+// number is the message's, kept exact beside the number the screen goes by, and the room it stands in is its own.
+function receivedOf(message: ExactMessage): ReceivedMessage {
+  const sent = message as ExactMessage & { voice?: SentVoice | null };
   const moment = (ms: number | null | undefined): number | null => (ms == null ? null : seconds(ms));
 
   return {
     chatId: message.room,
-    messageId: message.id,
+    messageId: Number(message.id),
+    exactId: message.id,
     senderId: message.senderId,
     senderName: message.senderName,
     sentAt: seconds(message.sentAt),
@@ -336,11 +338,7 @@ function senderKey(message: ReceivedMessage): string {
 async function replyQuoteOf(chatId: number, messageId: number, held?: { message: ReceivedMessage; media: ReturnType<typeof mediaOf> }): Promise<ReplyQuote> {
   try {
     // A message the page itself holds is quoted from the page, its files from the read the page already made.
-    const answered = held?.message ?? receivedOf(await receiverCall(
-      receiver().GET("/rooms/{roomId}/messages/{messageId}", {
-        params: { path: { roomId: chatId, messageId } }
-      })
-    ));
+    const answered = held?.message ?? receivedOf(await exactMessage(chatId, messageId));
 
     if (answered !== undefined) {
       return {
@@ -393,6 +391,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
       return {
         chatId: message.chatId,
         messageId: message.messageId,
+        exactId: message.exactId,
         senderId: message.senderId,
         senderName: message.senderName,
         sentAt: message.sentAt,
@@ -518,7 +517,7 @@ export async function roundFigures(chatId: number, messageIds: readonly number[]
 // A page with the judgements standing under its messages, read for the stretch of time the page covers: from a
 // little before its first message to now for the room's end, and to a while past its last message otherwise. The
 // room is the receiver's, so a gate that does not answer leaves the page without verdicts rather than unread.
-async function pageOf(chatId: number, page: { items: ReceiverMessage[]; more: boolean }, end: boolean): Promise<MessagePage> {
+async function pageOf(chatId: number, page: { items: ExactMessage[]; more: boolean }, end: boolean): Promise<MessagePage> {
   const received = page.items.map(receivedOf);
   const times = received.map((message) => message.sentAt);
   // The verdicts are asked for beside the messages, the stretch they cover being known from the receiver's page.
@@ -537,36 +536,21 @@ async function pageOf(chatId: number, page: { items: ReceiverMessage[]; more: bo
 
 /** One page of a room, oldest first, ending just before `before` when it is given. */
 export async function readMessagePage(chatId: number, before: number | null, limit: number): Promise<MessagePage> {
-  const page = await receiverCall(
-    receiver().GET("/rooms/{roomId}/messages", {
-      params: {
-        path: { roomId: chatId },
-        query: { limit: Math.min(limit, PAGING.maxSize), ...(before === null ? {} : { before }) }
-      }
-    })
-  );
+  const page = await exactMessages(chatId, { limit: Math.min(limit, PAGING.maxSize), ...(before === null ? {} : { before }) });
 
   return await pageOf(chatId, page, before === null);
 }
 
 /** The messages of a room past a message the reader already holds, oldest first. */
 export async function readMessagesAfter(chatId: number, after: number, limit: number): Promise<MessagePage> {
-  const page = await receiverCall(
-    receiver().GET("/rooms/{roomId}/messages", {
-      params: { path: { roomId: chatId }, query: { after, limit: Math.min(limit, PAGING.maxSize) } }
-    })
-  );
+  const page = await exactMessages(chatId, { after, limit: Math.min(limit, PAGING.maxSize) });
 
   return await pageOf(chatId, page, !page.more);
 }
 
 /** One message of a room by its own number, as a page of one, or an empty page where the screen stands none. */
 export async function readOneMessage(chatId: number, messageId: number): Promise<MessagePage> {
-  const message = await receiverCall(
-    receiver().GET("/rooms/{roomId}/messages/{messageId}", {
-      params: { path: { roomId: chatId, messageId } }
-    })
-  );
+  const message = await exactMessage(chatId, messageId);
 
   return await pageOf(chatId, { items: [message], more: false }, false);
 }

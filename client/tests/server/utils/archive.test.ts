@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import "../../support/nitro";
 import marks from "../../../apps/web/i18n/data/ko.yaml";
 import { wording } from "../../../apps/web/shared/wording";
+import { rawNumber } from "../../support/raw-number";
 import { answer, standIn } from "../../support/units";
 
 // A room as the receiver keeps it, read from a stand-in receiver into the shapes the room screen draws: the rooms
@@ -45,6 +46,9 @@ const page = [
     ]
   })
 ];
+
+// A room whose chat service numbers its messages past 2^53: two neighbours a JavaScript number reads as one.
+const numberedHigh = ["3973025898369060353", "3973025898369060354"];
 
 // A room whose messages carry a custom emoji, a sticker and a video, and one whose files cannot be listed.
 const EMOJI = "\u{1F600}";
@@ -116,6 +120,7 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/rooms/-9/answerers") return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", defaultAnswerer: true }], more: false });
   if (path === "/rooms/-9/own-number") return answer({ number: 33 });
   if (path === "/rooms/-9/messages") return answer({ items: voiced, more: false });
+  if (path === "/rooms/-12/messages") return answer({ items: numberedHigh.map((id) => message(0, { id: rawNumber(id), room: -12, text: "" })), more: false });
   if (path === "/rooms/-9/messages/22/sender-is-owner") return answer({ owner: true });
 
   if (path === "/rooms") return answer({ items: rooms, more: false });
@@ -286,6 +291,13 @@ describe("a page of a room", () => {
       [6, true, true]
     ]);
     expect(read[1]!.briefing ?? null).toBeNull();
+  });
+
+  test("a message numbered past 2^53 carries its exact id beside the number the screen goes by", async () => {
+    const read = (await readMessagePage(-12, null, 50)).messages;
+
+    expect(read.map((one) => one.exactId)).toEqual(numberedHigh);
+    expect(read.map((one) => one.messageId)).toEqual(numberedHigh.map(Number));
   });
 
   test("past a message, and where a day begins", async () => {

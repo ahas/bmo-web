@@ -1,10 +1,10 @@
 import { userOf } from "./account-service";
 
 import { useWebSql } from "./db";
-import { receiver, receiverCall } from "./receiver";
+import { exactMessage, exactMessages } from "./receiver";
 
 import type { SignedIn } from "./accounts";
-import type { ReadPlace } from "#shared/types";
+import type { ExactMessageId, ReadPlace } from "#shared/types";
 
 // How far each account has read each room on the console, and how many messages stand past it (docs/web.md,
 // 「Sidebar」). The marks are the console's own table, `web_room_reads`; the messages are the receiver's, walked
@@ -18,6 +18,9 @@ import type { ReadPlace } from "#shared/types";
 //
 // A place is when its message was sent; the receiver hands no order of its own between messages sent in one
 // second, so a place's order is nought and the marked message itself says where in that second it stands.
+//
+// A message is named by its exact id throughout (ExactMessageId): the mark keeps it, the walk starts past it and a
+// screen hands it back, so a room whose chat service numbers its messages past 2^53 clears like any other.
 
 // How many messages past a mark are walked to count them; a room further behind than this counts this many.
 const COUNTED = 500;
@@ -36,12 +39,12 @@ export function roomLast(room: { chatId: number; lastMessageAt: number | null })
 }
 
 interface Mark {
-  messageId: number | null;
+  messageId: ExactMessageId | null;
   sentAt: number;
 }
 
 interface Received {
-  messageId: number;
+  messageId: ExactMessageId;
   senderId: number | null;
   sentAt: number;
 }
@@ -65,7 +68,7 @@ export async function ownSenders(signed: SignedIn, owner: number | null): Promis
  */
 export interface Unread {
   count: number;
-  first: number | null;
+  first: ExactMessageId | null;
   from: ReadPlace | null;
 }
 
@@ -75,9 +78,7 @@ function placeOf(sentAt: number): ReadPlace {
 
 // The room's newest message, the place a room is read up to when the account first meets it.
 async function newest(chatId: number): Promise<Received | null> {
-  const { items } = await receiverCall(
-    receiver().GET("/rooms/{roomId}/messages", { params: { path: { roomId: chatId }, query: { limit: 1 } } })
-  );
+  const { items } = await exactMessages(chatId, { limit: 1 });
   const last = items.at(-1);
 
   return last === undefined ? null : { messageId: last.id, senderId: last.senderId, sentAt: last.sentAt };
@@ -85,16 +86,16 @@ async function newest(chatId: number): Promise<Received | null> {
 
 async function marksOf(signed: SignedIn): Promise<Map<number, Mark>> {
   const rows = (await useWebSql().all(
-    'SELECT chat_id AS "chatId", message_id AS "messageId", sent_at AS "sentAt" FROM web_room_reads WHERE user_name = $1',
+    'SELECT chat_id AS "chatId", message_id::text AS "messageId", sent_at AS "sentAt" FROM web_room_reads WHERE user_name = $1',
     signed.name
-  )) as { chatId: number; messageId: number | null; sentAt: number }[];
+  )) as { chatId: number; messageId: ExactMessageId | null; sentAt: number }[];
 
-  return new Map(rows.map((row) => [Number(row.chatId), { messageId: row.messageId === null ? null : Number(row.messageId), sentAt: Number(row.sentAt) }]));
+  return new Map(rows.map((row) => [Number(row.chatId), { messageId: row.messageId, sentAt: Number(row.sentAt) }]));
 }
 
 async function writeMark(signed: SignedIn, chatId: number, mark: Mark, now: number): Promise<void> {
   await useWebSql().run(
-    `INSERT INTO web_room_reads (user_name, chat_id, message_id, sent_at, row_order, created_at, read_at, user_id) VALUES ($1, $2, $3, $4, 0, $5, $5, $6)
+    `INSERT INTO web_room_reads (user_name, chat_id, message_id, sent_at, row_order, created_at, read_at, user_id) VALUES ($1, $2, CAST($3 AS bigint), $4, 0, $5, $5, $6)
      ON CONFLICT (user_name, chat_id) DO UPDATE SET message_id = excluded.message_id, sent_at = excluded.sent_at, read_at = excluded.read_at,
        user_id = excluded.user_id
      WHERE excluded.sent_at >= web_room_reads.sent_at`,
@@ -112,7 +113,7 @@ async function unreadAfter(chatId: number, mark: Mark, own: ReadonlySet<number>)
   // A room met while it held nothing is read up to a moment rather than a message, so what came after that moment
   // is what stands past it.
   const query = mark.messageId === null ? { limit: COUNTED } : { after: mark.messageId, limit: COUNTED };
-  const { items } = await receiverCall(receiver().GET("/rooms/{roomId}/messages", { params: { path: { roomId: chatId }, query } }));
+  const { items } = await exactMessages(chatId, query);
   const messages: Received[] = items
     .map((message) => ({ messageId: message.id, senderId: message.senderId, sentAt: message.sentAt }))
     .filter((message) => mark.messageId !== null || message.sentAt > mark.sentAt);
@@ -163,12 +164,10 @@ export async function unreadCounts(signed: SignedIn, own: readonly number[], roo
  * The room read up to one of its messages, and what stands unread past the account's place now. A message the
  * room does not hold moves nothing; a place behind the mark leaves the mark where it is.
  */
-export async function markRead(signed: SignedIn, own: readonly number[], chatId: number, messageId: number, now: number): Promise<Unread> {
-  const message = await receiverCall(
-    receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId: chatId, messageId } } })
-  );
+export async function markRead(signed: SignedIn, own: readonly number[], chatId: number, messageId: ExactMessageId, now: number): Promise<Unread> {
+  const message = await exactMessage(chatId, messageId);
 
-  await writeMark(signed, chatId, { messageId, sentAt: message.sentAt }, now);
+  await writeMark(signed, chatId, { messageId: message.id, sentAt: message.sentAt }, now);
 
   const last = await newest(chatId);
 

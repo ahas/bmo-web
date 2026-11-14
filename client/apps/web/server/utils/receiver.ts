@@ -6,7 +6,7 @@ import { wording } from "#shared/wording";
 import { unitAt } from "./units";
 import { answered } from "./unit-answer";
 
-import type { RoomProvidersView } from "#shared/types";
+import type { ExactMessageId, RoomProvidersView } from "#shared/types";
 import type { components, paths } from "@bmo/receiver-client/schema";
 import type { UnitAnswerCall } from "./unit-answer";
 
@@ -35,6 +35,15 @@ export type ReceiverOpening = Schemas["Opening"];
 export type ReceiverOpeningText = Schemas["OpeningText"];
 export type ReceiverPerson = Schemas["Person"];
 export type ReceiverTalkAnswer = Schemas["TalkAnswer"];
+
+/** A message as the receiver answers it, its own id kept as the digits the receiver wrote. */
+export type ExactMessage = Omit<ReceiverMessage, "id"> & { id: ExactMessageId };
+
+/** What a room's message list is asked with, its cursors either a message's exact id or the screen's number for one. */
+export type ExactMessagesQuery = Omit<NonNullable<paths["/rooms/{roomId}/messages"]["get"]["parameters"]["query"]>, "after" | "before"> & {
+  after?: ExactMessageId | number;
+  before?: ExactMessageId | number;
+};
 
 /** The receiver's client, over the document its package publishes. */
 export type ReceiverClient = Client<paths>;
@@ -119,6 +128,51 @@ export async function receiverCall<T, E extends { code?: string; error?: string;
   call: UnitAnswerCall = {}
 ): Promise<T> {
   return await answered(asked, { ...call, codes: { ...RECEIVER_CODES, ...call.codes } });
+}
+
+// The receiver numbers a message with a signed 64-bit integer, which a JavaScript number holds without rounding only
+// up to 2^53, and a chat service may number its messages past that (docs/web.md, 「Unread messages」). JSON.parse
+// hands a reviver each value's own source text, so a message's id is read from the digits the receiver wrote, kept by
+// the object it stands in, and handed back in its place.
+function withExactIds(text: string): { parsed: unknown; idOf: (message: ReceiverMessage) => ExactMessageId } {
+  const ids = new WeakMap<object, ExactMessageId>();
+  const parsed: unknown = JSON.parse(text, function (this: object, key: string, value: unknown, context?: { source?: string }) {
+    if (key === "id" && typeof value === "number" && context?.source !== undefined) ids.set(this, context.source);
+
+    return value;
+  });
+
+  return { parsed, idOf: (message) => ids.get(message) ?? String(message.id) };
+}
+
+// A message's exact id as the receiver's client takes it in a path or a query: the client types a 64-bit id as a
+// number, and writes whatever it is given as text, which the exact id already is.
+function onTheWire(id: ExactMessageId | number): number {
+  return id as number;
+}
+
+/** A page of a room's messages, each with its exact id (ExactMessage). */
+export async function exactMessages(roomId: number, query: ExactMessagesQuery): Promise<ReceiverPage<ExactMessage>> {
+  const { after, before, ...rest } = query;
+  const cursors = { ...(after === undefined ? {} : { after: onTheWire(after) }), ...(before === undefined ? {} : { before: onTheWire(before) }) };
+  const text = await receiverCall(
+    receiver().GET("/rooms/{roomId}/messages", { params: { path: { roomId }, query: { ...rest, ...cursors } }, parseAs: "text" })
+  );
+  const { parsed, idOf } = withExactIds(text);
+  const page = parsed as ReceiverPage<ReceiverMessage>;
+
+  return { items: page.items.map((message) => ({ ...message, id: idOf(message) })), more: page.more };
+}
+
+/** One message of a room, with its exact id (ExactMessage). */
+export async function exactMessage(roomId: number, messageId: ExactMessageId | number): Promise<ExactMessage> {
+  const text = await receiverCall(
+    receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId, messageId: onTheWire(messageId) } }, parseAs: "text" })
+  );
+  const { parsed, idOf } = withExactIds(text);
+  const message = parsed as ReceiverMessage;
+
+  return { ...message, id: idOf(message) };
 }
 
 /** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */

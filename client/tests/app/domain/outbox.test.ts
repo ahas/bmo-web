@@ -46,7 +46,7 @@ function answered(items: OutboxItem[]): OutboxItem[] {
 }
 
 function archived(messageId: number, text: string, sentAt: number, senderId: number | null = owner): ArchivedMessage {
-  return { chatId: ROOM_ID, messageId, senderId, senderName: "owner", sentAt, text, imagePath: null, replyToMessageId: null };
+  return { chatId: ROOM_ID, messageId, exactId: String(messageId), senderId, senderName: "owner", sentAt, text, imagePath: null, replyToMessageId: null };
 }
 
 describe("what one press of send puts up", () => {

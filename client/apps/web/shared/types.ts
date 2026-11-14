@@ -162,12 +162,16 @@ export interface ReadPlace {
   order: number;
 }
 
+// A message's id exactly as the receiver numbers it: the decimal digits of a signed 64-bit integer, which a
+// JavaScript number holds without rounding only up to 2^53 (docs/web.md, 「Unread messages」).
+export type ExactMessageId = string;
+
 // How far the signed-in reader has read a room: how many of its messages they have not read, the
 // first of them, which the room opens at, and the place read to that the count runs from — null
 // where the archive keeps no marks (docs/web.md, 「Sidebar」). It is the answer to a room marked read too.
 export interface RoomRead {
   unread: number;
-  firstUnread: number | null;
+  firstUnread: ExactMessageId | null;
   readTo: ReadPlace | null;
 }
 
@@ -285,6 +289,8 @@ export interface ForwardedFrom {
 export interface ArchivedMessage {
   chatId: number;
   messageId: number;
+  // The same id as the receiver wrote it, which a read mark names and a row is keyed by; `messageId` rounds past 2^53.
+  exactId: ExactMessageId;
   senderId: number | null;
   senderName: string;
   sentAt: number;

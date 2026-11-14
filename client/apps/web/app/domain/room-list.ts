@@ -3,7 +3,7 @@ import { isPast } from "#shared/read-place";
 import { useBotEvents, useLiveRefresh } from "./events";
 import { removedRoom } from "./room-removal";
 
-import type { ListedRoom, RoomRead } from "#shared/types";
+import type { ExactMessageId, ListedRoom, RoomRead } from "#shared/types";
 import type { ComputedRef, Ref } from "vue";
 
 // The sidebar's rooms as the signed-in reader has them: each with how many of its messages that
@@ -108,10 +108,10 @@ export function useHeldRoomList() {
 }
 
 /**
- * What marks a room read up to one of its messages: on the server, and at once in the counts on the
- * screen, which take the one the server answers with. Taken in a screen's setup.
+ * What marks a room read up to one of its messages, named by its exact id: on the server, and at once in the counts
+ * on the screen, which take the one the server answers with. Taken in a screen's setup.
  */
-export function useMarkRoomRead(): (chatId: number, messageId: number) => Promise<void> {
+export function useMarkRoomRead(): (chatId: number, messageId: ExactMessageId) => Promise<void> {
   const answers = useMarkAnswers();
 
   return async (chatId, messageId) => {

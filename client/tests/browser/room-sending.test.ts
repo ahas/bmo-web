@@ -31,7 +31,7 @@ const PICTURE_ID = 9002;
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAGElEQVR4nGNwaHjwwMEBQjLAWUCSAacMAHBSGAE11lAnAAAAAElFTkSuQmCC", "base64");
 
 const earlier: ArchivedMessage = {
-  chatId: ROOM, messageId: 9000, senderId: 7, senderName: "person-b", sentAt: Math.floor(Date.now() / 1000) - 600, text: "said before",
+  chatId: ROOM, messageId: 9000, exactId: "9000", senderId: 7, senderName: "person-b", sentAt: Math.floor(Date.now() / 1000) - 600, text: "said before",
   imagePath: null, replyToMessageId: null
 };
 
@@ -147,7 +147,7 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
       await page.getByText(WORDS).first().waitFor();
       await shoot(page, "1-words-sending");
 
-      archive.push({ chatId: ROOM, messageId: WORDS_ID, senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: WORDS, imagePath: null, replyToMessageId: null });
+      archive.push({ chatId: ROOM, messageId: WORDS_ID, exactId: String(WORDS_ID), senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: WORDS, imagePath: null, replyToMessageId: null });
       await readAgain(page);
       await page.locator(`[data-message="m${WORDS_ID}"]`).waitFor();
       await shoot(page, "2-words-filed-send-out");
@@ -165,7 +165,7 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
       await page.locator("[data-picked]").first().waitFor({ state: "detached" });
       await shoot(page, "4-picture-sending");
 
-      const filed: ArchivedMessage = { chatId: ROOM, messageId: PICTURE_ID, senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: "", imagePath: null, replyToMessageId: null };
+      const filed: ArchivedMessage = { chatId: ROOM, messageId: PICTURE_ID, exactId: String(PICTURE_ID), senderId: OWNER_SENDER, senderName: "owner", sentAt: Math.floor(Date.now() / 1000), text: "", imagePath: null, replyToMessageId: null };
 
       archive.push(filed);
       await readAgain(page);
@@ -209,11 +209,11 @@ describe.skipIf(!origin || !touchReady())("a line being sent", () => {
 
     // The receiver files each send's message before it answers the send, and the archive is read while the send is
     // still out; the send then answers with the number it filed.
-    async function files(message: Omit<ArchivedMessage, "messageId">): Promise<number> {
+    async function files(message: Omit<ArchivedMessage, "messageId" | "exactId">): Promise<number> {
       const messageId = next++;
       const from = reads;
 
-      archive.push({ ...message, messageId });
+      archive.push({ ...message, messageId, exactId: String(messageId) });
       for (let waited = 0; reads === from && waited < 30_000; waited += 100) await Bun.sleep(100);
       await Bun.sleep(300);
 

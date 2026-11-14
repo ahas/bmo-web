@@ -18,11 +18,11 @@ const ROOM = 43;
 const NOW = Math.floor(Date.now() / 1000);
 
 const asked: ArchivedMessage = {
-  chatId: ROOM, messageId: 14319, senderId: 7, senderName: "person-b", sentAt: NOW - 120, text: "the question asked", imagePath: null,
+  chatId: ROOM, messageId: 14319, exactId: "14319", senderId: 7, senderName: "person-b", sentAt: NOW - 120, text: "the question asked", imagePath: null,
   replyToMessageId: null
 };
 const answer: ArchivedMessage = {
-  chatId: ROOM, messageId: 14320, senderId: 0, senderName: "agent-a", sentAt: NOW - 60, text: "the answer's own words", imagePath: null,
+  chatId: ROOM, messageId: 14320, exactId: "14320", senderId: 0, senderName: "agent-a", sentAt: NOW - 60, text: "the answer's own words", imagePath: null,
   replyToMessageId: 14319, agent: true
 };
 const verdicts: Judgement[] = [

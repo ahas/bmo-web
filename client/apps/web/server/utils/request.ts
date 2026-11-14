@@ -1,6 +1,7 @@
 import { PAGING } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import type { ExactMessageId } from "#shared/types";
 import type { H3Event } from "h3";
 
 export function requireChatId(event: H3Event): number {
@@ -22,6 +23,22 @@ export function requireMessageId(event: H3Event): number {
   }
 
   return messageId;
+}
+
+// The bounds of the signed 64-bit integer the receiver numbers a message with.
+const INT64_MIN = -(2n ** 63n);
+const INT64_MAX = 2n ** 63n - 1n;
+
+/** A message's exact id a body hands back (ExactMessageId): the decimal digits of a signed 64-bit integer, written
+ * the one way BigInt writes them; anything else is refused. */
+export function requireExactMessageId(value: unknown): ExactMessageId {
+  const id = typeof value === "string" && /^-?\d{1,19}$/.test(value) ? BigInt(value) : null;
+
+  if (id === null || id < INT64_MIN || id > INT64_MAX || String(id) !== value) {
+    throw fail(400, wording("room.error.bad_message_id"));
+  }
+
+  return value;
 }
 
 export function requireTodoId(event: H3Event): number {

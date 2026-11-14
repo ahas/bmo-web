@@ -65,6 +65,7 @@ function archived(messageId: number, text: string, senderName = "owner"): Archiv
   return {
     chatId: ROOM_ID,
     messageId,
+    exactId: String(messageId),
     senderId: senderName === "agent-a" ? 87 : owner,
     senderName,
     agent: senderName === "agent-a",

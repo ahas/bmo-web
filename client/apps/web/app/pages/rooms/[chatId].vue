@@ -1421,15 +1421,18 @@ useReadMarks({
   chatId,
   viewport: scroller,
   messages: roomFeed.messages,
-  rows: () => new Set(items.value.map((item) => item.messageId)),
+  rows: () => new Set(items.value.flatMap((item) => (item.exactId === null ? [] : [item.exactId]))),
   newer: roomFeed.newer,
   away: awayFromEnd,
   settled: opened
 });
 
-// The first message the reader has not read, as the room list last said; null where it says none.
+// The first message the reader has not read, as the room list last said, by the number the screen goes to a message
+// by; null where it says none.
 function firstUnread(): number | null {
-  return rooms.value.find((room) => room.chatId === chatId)?.firstUnread ?? null;
+  const first = rooms.value.find((room) => room.chatId === chatId)?.firstUnread ?? null;
+
+  return first === null ? null : Number(first);
 }
 
 // The room list carries the reader's own read mark, and the room opens at the first message it

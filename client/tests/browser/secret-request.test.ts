@@ -69,7 +69,8 @@ class Room {
     const row: ArchivedMessage = {
       ...(formats === undefined ? {} : { formats }),
       chatId: CHAT,
-      messageId: this.next++,
+      messageId: this.next,
+      exactId: String(this.next++),
       senderId: mine ? owner : AGENT,
       senderName: mine ? ACCOUNT.name : "agent-a",
       sentAt: this.clock,

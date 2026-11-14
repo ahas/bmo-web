@@ -19,7 +19,7 @@ const ROOM = 43;
 const NOW = Math.floor(Date.now() / 1000);
 
 const line = (messageId: number, briefing: ArchivedMessage["briefing"]): ArchivedMessage => ({
-  chatId: ROOM, messageId, senderId: 0, senderName: "agent-a", sentAt: NOW - 60, text: `an answer ${messageId}`, imagePath: null,
+  chatId: ROOM, messageId, exactId: String(messageId), senderId: 0, senderName: "agent-a", sentAt: NOW - 60, text: `an answer ${messageId}`, imagePath: null,
   replyToMessageId: null, agent: true, briefing
 });
 

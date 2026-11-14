@@ -17,6 +17,8 @@ import { connectionOf } from "../../apps/web/server/utils/db";
 import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
+import { rawNumber } from "./raw-number";
+import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
 import { addressOf } from "./web-database";
 
 const CLIENT = new URL("../..", import.meta.url).pathname;
@@ -35,6 +37,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["item-reports", "fixture-password-2251"],
   ["room-unread", "fixture-password-2252"],
   ["room-unread-tabs", "fixture-password-2253"],
+  ["room-read-desk", "fixture-password-2953"],
+  ["room-read-phone", "fixture-password-2954"],
   ["room-copy", "fixture-password-2254"],
   ["agents-listed", "fixture-password-2255"],
   ["briefing-chip", "fixture-password-2256"],
@@ -149,7 +153,7 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
 
 // The owner's room, which the receiver's stand-in names as theirs and lists, and a room an account meets two behind.
 const OWNER_CHAT = 42;
-const UNREAD_CHAT = 43;
+const UNREAD_CHAT = UNREAD_ROOM;
 // A room the console made on the record road, its words standing under no chat service: the owner's under their own
 // sender, the chat agent's under no number at all.
 const RECORD_CHAT = -9_000_000_000_099;
@@ -686,13 +690,14 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     };
 
     // A second room, whose line grows while it is first read: asked for its newest message it answers the first,
-    // and past that one it answers two more, so a reader meeting it for the first time is two behind.
+    // and past that one it answers two more, so a reader meeting it for the first time is two behind. Its ids run
+    // past 2^53 (UNREAD_LINE) and are written as the exact digits a receiver writes.
     const behind = { ...room, id: UNREAD_CHAT, title: "unread-room", ownerRoom: false, workRoom: UNREAD_CHAT, lastMessageAt: LINE_AT - 1_000 };
-    const said = (id: number, sentAt: number) => ({
-      id, room: UNREAD_CHAT, senderId: 7, senderName: "person-b", sentAt, text: `words ${id}`, imagePath: null, replyToMessageId: null,
-      answerSeconds: null, round: null, album: null, via: null, files: []
+    const said = (id: string, at: number) => ({
+      id: rawNumber(id), room: UNREAD_CHAT, senderId: 7, senderName: "person-b", sentAt: LINE_AT - 3_000 + at * 1_000, text: `words ${at + 1}`,
+      imagePath: null, replyToMessageId: null, answerSeconds: null, round: null, album: null, via: null, files: []
     });
-    const line = [said(1, LINE_AT - 3_000), said(2, LINE_AT - 2_000), said(3, LINE_AT - 1_000)];
+    const line = UNREAD_LINE.map((id, at) => ({ id, message: said(id, at) }));
     const recorded = { ...room, id: RECORD_CHAT, title: "record-room", ownerRoom: false, workRoom: RECORD_CHAT, lastMessageAt: LINE_AT - 4_000 };
     const kept = (id: number, sentAt: number, over: Record<string, unknown>) => ({
       id, room: RECORD_CHAT, senderId: 1, senderName: "owner", sentAt, text: `record ${id}`, imagePath: null, replyToMessageId: null,
@@ -835,14 +840,27 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/avatars") return Response.json({ items: [{ kind: "person", id: AGENT_FACE, takenAt: LINE_AT }], more: false });
     if (path === `/people/${AGENT_FACE}/avatar`) return new Response(PIXEL, { headers: { "content-type": "image/png" } });
     if (path === `/rooms/${UNREAD_CHAT}/messages`) {
-      const after = new URL(request.url).searchParams.get("after");
+      const query = new URL(request.url).searchParams;
+      const after = query.get("after");
+      const before = query.get("before");
+      // The newest message, asked for alone, is the first while the line is still growing; the room's own reads
+      // walk the whole line by the exact ids.
+      const items = after !== null
+        ? line.filter((one) => BigInt(one.id) > BigInt(after))
+        : before !== null
+          ? line.filter((one) => BigInt(one.id) < BigInt(before))
+          : query.get("limit") === "1" ? line.slice(0, 1) : line;
 
-      return Response.json({ items: after === null ? line.slice(0, 1) : line.filter((one) => one.id > Number(after)), more: false });
+      return Response.json({ items: items.map((one) => one.message), more: false });
     }
 
-    const message = new RegExp(`^/rooms/${UNREAD_CHAT}/messages/(\\d+)$`).exec(path);
+    const message = new RegExp(`^/rooms/${UNREAD_CHAT}/messages/(-?\\d+)$`).exec(path);
 
-    if (message !== null) return Response.json(line.find((one) => one.id === Number(message[1])) ?? line[0]);
+    if (message !== null) {
+      const found = line.find((one) => one.id === message[1]);
+
+      return found === undefined ? Response.json({ code: "not-found", error: "no such message" }, { status: 404 }) : Response.json(found.message);
+    }
     if (path === "/people") return Response.json({ items: [], more: false });
 
     const at = /^\/rooms\/(-?\d+)(\/[^/]+(?:\/[^/]+)?)?$/.exec(path);

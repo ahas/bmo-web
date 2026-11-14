@@ -94,9 +94,12 @@ let next = 7_000;
 function row(text: string, mine: boolean, extra: Partial<ArchivedMessage> = {}): ArchivedMessage {
   clock += 60;
 
+  const messageId = next++;
+
   return {
     chatId: CHAT,
-    messageId: next++,
+    messageId,
+    exactId: String(messageId),
     // The owner's number is known only once the console is asked; the room is served with it.
     senderId: mine ? -1 : 0,
     senderName: mine ? ACCOUNT.name : "agent-a",

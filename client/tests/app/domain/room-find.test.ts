@@ -13,6 +13,7 @@ function said(messageId: number, text: string, senderName = "person-a", files: s
   return {
     chatId: -1,
     messageId,
+    exactId: String(messageId),
     senderId: 7,
     senderName,
     sentAt: 1_788_000_000 + messageId,

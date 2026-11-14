@@ -35,7 +35,7 @@ const { useRoomFeed } = await import("../../../apps/web/app/domain/room");
 const CHAT = 7;
 
 function said(messageId: number): ArchivedMessage {
-  return { chatId: CHAT, messageId, senderId: 1, senderName: "tester", sentAt: 1_788_000_000 + messageId, text: `${KO.line_34}${messageId}`, imagePath: null, replyToMessageId: null };
+  return { chatId: CHAT, messageId, exactId: String(messageId), senderId: 1, senderName: "tester", sentAt: 1_788_000_000 + messageId, text: `${KO.line_34}${messageId}`, imagePath: null, replyToMessageId: null };
 }
 
 function page(ids: number[], hasMore = false): MessagePage {

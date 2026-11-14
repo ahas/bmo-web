@@ -88,7 +88,7 @@ function item(): TodoItem {
 // and whose draft process wrote one question's answer.
 const ANSWER_ID = 9_001;
 const ANSWER: ArchivedMessage = {
-  chatId: CHAT, messageId: ANSWER_ID, senderId: 0, senderName: "agent-a", sentAt: NOW - 100, text: "the answer", imagePath: null,
+  chatId: CHAT, messageId: ANSWER_ID, exactId: String(ANSWER_ID), senderId: 0, senderName: "agent-a", sentAt: NOW - 100, text: "the answer", imagePath: null,
   replyToMessageId: null, agent: true, round: "round-a",
   drafts: { round: "round-a", asked: 1, end: "message", reads: [] },
   actions: { agent: "agent-a", runs: ["turn-a", "question-a"], documents: 0, held: 0, tools: 2, brain: 1, records: [] }

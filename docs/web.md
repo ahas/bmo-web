@@ -1470,6 +1470,11 @@ Four groups.
   - **A room an account meets for the first time is read as it stands,** so nothing old is called new; what
     lands in it after counts. The messages past a mark are walked on the receiver's line from the marked
     message, five hundred at most, and a room further behind counts that many.
+  - **A mark and a count name a message by its id exactly.** The receiver numbers a message with a signed
+    64-bit integer, and a chat service may number its messages past 2^53, beyond what a JavaScript number holds
+    without rounding. So the console reads each message's id from the digits the receiver wrote and carries it as
+    those digits: in the mark it keeps, in the first unread message the room list names, in the row a room stands
+    each message in, and in the mark a room sends. A room numbered that high clears once read, as any other does.
   - **A message is read once the foot of its row has stood in the room's view, in a tab on the screen.**
     Opening a room marks what is in view; a reader scrolled up into older messages marks nothing
     newer until it comes into view; a tab in the background marks nothing. The room's last row in

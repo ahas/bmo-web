@@ -48,6 +48,7 @@
         props.flashed && !props.selected ? 'bg-primary/10 ring-1 ring-primary/40' : ''
       ]"
       :data-message="message ? props.item.key : undefined"
+      :data-exact-id="props.item.exactId ?? undefined"
       :data-row="props.item.key"
       :data-mine="props.item.look.side === 'right' ? '' : undefined"
       :data-choosable="message && props.item.pending === null ? '' : undefined"

@@ -11,6 +11,7 @@ import { subjectOf } from "./working";
 
 import type {
   ArchivedMessage,
+  ExactMessageId,
   ForwardedFrom,
   Situation,
   Judgement,
@@ -263,6 +264,9 @@ export interface FeedItem {
   // again (docs/web.md, the room screen's section on a message being sent).
   life?: string;
   messageId: number;
+  // The archived message's id exactly as the receiver wrote it, which the read mark names (docs/web.md, 「Unread
+  // messages」); null on a row that stands for no archived message, a line still on its way or an agent's turn.
+  exactId: ExactMessageId | null;
   senderId: number | null;
   senderName: string;
   sentAt: number;
@@ -1256,6 +1260,7 @@ function pendingItem(held: OutboxItem, speaker: Speaker, avatars: AvatarIndex): 
   return {
     key: held.key,
     messageId: 0,
+    exactId: null,
     senderId: speaker.id,
     senderName: speaker.name,
     sentAt: held.startedAt,
@@ -1327,6 +1332,7 @@ export function runItem(run: RunState, speaker: Speaker, avatar: AvatarProps): F
     // is one key whether it holds a turn or only listens, so a turn beginning changes the row in place.
     key: `turn:${otherAnswererOf(run.speaker) === undefined ? "bmo" : runKey(run.speaker)}`,
     messageId: 0,
+    exactId: null,
     senderId: speaker.id,
     senderName: speaker.name,
     sentAt: run.startedAt,
@@ -1663,6 +1669,7 @@ function feedItemOf(
   return {
     key: `m${message.messageId}`,
     messageId: message.messageId,
+    exactId: message.exactId,
     senderId: message.senderId,
     senderName: shownSender(message),
     sentAt: message.sentAt,

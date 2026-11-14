@@ -135,8 +135,8 @@
                 <div
                   ref="bubble"
                   data-bubble
-                  class="relative max-w-full"
-                  :class="[bubbleClass, albumed ? 'w-80' : pictured ? 'w-fit max-w-80' : 'w-fit', props.arriving ? 'bubble-rise' : '']"
+                  class="relative"
+                  :class="[bubbleClass, albumed ? 'w-80 max-w-full' : pictured ? 'w-fit max-w-[min(100%,20rem)]' : 'w-fit max-w-full', props.arriving ? 'bubble-rise' : '']"
                 >
                   <div class="relative flex flex-col overflow-hidden rounded-inherit">
                     <!-- The sender's name, once at the head of the run's first bubble, and the
@@ -181,6 +181,16 @@
                       :message-id="props.item.pending === null ? props.item.messageId : undefined"
                       flush
                       :title="`${props.item.senderName} · ${stamp}`"
+                    />
+
+                    <!-- A video stands as a picture does, its still running to the bubble's edges, and its file line
+                         and the caption stand under it in the inner room. -->
+                    <MessageVideo
+                      v-for="video in stills"
+                      :key="video.id"
+                      :attachment="video"
+                      :chat-id="props.chatId"
+                      :message-id="props.item.messageId"
                     />
 
                     <!-- The time stands at the bubble's trailing foot: at the end of the words' last line
@@ -272,7 +282,7 @@
                       >
                         <TelegramAsset v-if="attachment.kind === 'sticker'" :class="sticker ? 'size-(--chat-sticker)' : ''" :attachment="attachment" :chat-id="props.chatId" :message-id="props.item.messageId" :fallback="$t('room.label.sticker_preview')" />
                         <!-- A sound the browser can play stands as the player, which carries its size and download
-                             itself; a video stands as its player with its file line under it. -->
+                             itself; a video's still stands over the inner room, and its file line here. -->
                         <!-- A sound stands as its player, the recording's length beside it and, on a voice note, the words
                              heard in it under them — or the one line that it could not be heard (docs/web.md, the room
                              screen's sound messages). -->
@@ -295,13 +305,6 @@
                              shows one: no player and no file line (docs/web.md, the room screen's animations). -->
                         <MessageAnimation
                           v-else-if="attachment.kind === 'animation' && attachment.available"
-                          :attachment="attachment"
-                          :chat-id="props.chatId"
-                          :message-id="props.item.messageId"
-                        />
-                        <MessageVideo
-                          v-else-if="playable(attachment)"
-                          class="self-start"
                           :attachment="attachment"
                           :chat-id="props.chatId"
                           :message-id="props.item.messageId"
@@ -644,10 +647,14 @@ const markLine = computed<string>(() => {
 // Whether the row is a sticker alone, standing as Telegram stands it: no bubble, name line or tail.
 const sticker = computed<boolean>(() => props.item.look.variant === "naked");
 
-// Whether the bubble holds a picture or an album, which runs to its edges. An album's mosaic fills a
-// picture's width; one picture stands at its own width, the bubble as wide as the picture and no wider.
+// The videos the message carried that the browser plays, each standing as the shared player's still.
+const stills = computed<MessageAttachment[]>(() => attachments.value.filter((attachment) => attachment.kind === "video" && playable(attachment)));
+
+// Whether the bubble holds a picture, an album or a video's still, which runs to its edges. An album's mosaic fills a
+// picture's width; one picture or still stands at its own width, the bubble as wide as it unless what stands under it is
+// wider, and never wider than a lone picture's widest.
 const albumed = computed<boolean>(() => (props.item.album ?? []).length > 1);
-const pictured = computed<boolean>(() => albumed.value || props.item.imageUrl !== null);
+const pictured = computed<boolean>(() => albumed.value || props.item.imageUrl !== null || stills.value.length > 0);
 
 // A picture with nothing under it carries the meta line over its own foot.
 const overPicture = computed<boolean>(

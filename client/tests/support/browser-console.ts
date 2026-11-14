@@ -153,7 +153,7 @@ const UNREAD_CHAT = 43;
 // sender, the chat agent's under no number at all.
 const RECORD_CHAT = -9_000_000_000_099;
 // A room whose messages carry what a messenger sends besides words: an album of three tall pictures, an animated
-// sticker, an animation, and reactions of several people with their pictures.
+// sticker, an animation, reactions of several people with their pictures, and two videos.
 const MEDIA_CHAT = 44;
 // A tall picture, as a phone's screenshot stands: drawn as an SVG of that size.
 const TALL = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="591" height="1280"><rect width="591" height="1280" fill="#3a6"/></svg>');
@@ -164,6 +164,12 @@ const STICKER = Bun.gzipSync(new TextEncoder().encode(JSON.stringify({
     shapes: [{ ty: "rc", p: { a: 0, k: [0, 0] }, s: { a: 0, k: [200, 200] }, r: { a: 0, k: 0 } }, { ty: "fl", c: { a: 0, k: [0.2, 0.6, 0.9, 1] }, o: { a: 0, k: 100 } }]
   }]
 })));
+// Two videos a person sent: a wide one and a tall one, each three seconds of a moving test picture as WebM, which the
+// test browser plays, and the shape the chat service described each in, as a phone's recording states it.
+const VIDEOS: Record<number, { name: string; bytes: Uint8Array<ArrayBuffer>; shape: { width: number; height: number } }> = {
+  11: { name: "clip-wide.webm", bytes: new Uint8Array(await Bun.file(new URL("./room-video-wide.webm", import.meta.url)).arrayBuffer()), shape: { width: 1280, height: 720 } },
+  12: { name: "clip-tall.webm", bytes: new Uint8Array(await Bun.file(new URL("./room-video-tall.webm", import.meta.url)).arrayBuffer()), shape: { width: 720, height: 1280 } }
+};
 // The person number the chat agent's own words stand under in the owner's room, whose picture is its face.
 const AGENT_FACE = 501;
 // A picture's bytes: one grey pixel.
@@ -717,7 +723,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       shown(6, { text: "reacted to", reactions: [{ emoji: "\u{1F44D}", by: "1" }, { emoji: "\u{1F44D}", by: "7" }, { emoji: "\u{2764}\u{FE0F}", by: "8" }] }),
       shown(8, { text: inlineWords }),
       shown(9, { text: preWords }),
-      shown(10, { text: quoteWords })
+      shown(10, { text: quoteWords }),
+      ...[11, 12].map((id) => shown(id, { text: id === 11 ? "a caption under the video" : "", files: [{ kind: "video", source: VIDEOS[id]!.name, storedPath: "kept", collectedAt: LINE_AT }] }))
     ];
     const formats: Record<number, { text: string; entities: Record<string, unknown>[] }> = {
       8: { text: inlineWords, entities: inlineEntities },
@@ -737,14 +744,16 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       const id = Number(mediaAsked[1]);
 
       if (mediaAsked[2] === "/picture") return new Response(TALL, { headers: { "content-type": "image/svg+xml" } });
-      if (mediaAsked[2] === "/metadata") return Response.json({ metadata: id === 4 ? { sticker: { emoji: "\u{1F600}" } } : (formats[id] ?? null) });
+      if (mediaAsked[2] === "/metadata") return Response.json({ metadata: id === 4 ? { sticker: { emoji: "\u{1F600}" } } : VIDEOS[id] ? { attachment: VIDEOS[id].shape } : (formats[id] ?? null) });
       if (mediaAsked[2] === "/files" && mediaAsked[3] === undefined) {
         const files = id === 4
           ? [{ place: 0, kind: "sticker", name: "sticker-1.tgs", size: STICKER.byteLength, type: "application/x-tgsticker", kept: true }]
-          : id === 5 ? [{ place: 0, kind: "animation", name: "video.mp4", size: 4, type: "video/mp4", kept: true }] : [];
+          : id === 5 ? [{ place: 0, kind: "animation", name: "video.mp4", size: 4, type: "video/mp4", kept: true }]
+          : VIDEOS[id] ? [{ place: 0, kind: "video", name: VIDEOS[id].name, size: VIDEOS[id].bytes.byteLength, type: "video/webm", kept: true }] : [];
 
         return Response.json({ items: files, more: false });
       }
+      if (mediaAsked[2] === "/files" && VIDEOS[id]) return new Response(VIDEOS[id].bytes, { headers: { "content-type": "video/webm" } });
       if (mediaAsked[2] === "/files") return new Response(id === 4 ? STICKER : new Uint8Array(4), { headers: { "content-type": id === 4 ? "application/x-tgsticker" : "video/mp4" } });
 
       return Response.json(mediaLine.find((one) => one.id === id) ?? mediaLine[0]);

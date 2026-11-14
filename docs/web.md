@@ -3609,7 +3609,7 @@ Four bounds keep it from growing forever.
   - A bubble's words break where they have a space, so a Korean word never folds a syllable onto a line of its
     own; only a run with no break in it wider than the bubble, a long web address among them, folds anywhere.
   - A file it holds, the sound player among them, stays inside its inner room at every width, never cut at its
-    trailing edge (「소리 듣기」).
+    trailing edge (「소리 듣기」). A picture and a video's still run to its edges instead (「사진이 있는 말풍선」).
   - A picture it holds stands whole, at its own ratio: as wide as a bubble may be at the most and no taller
     than the picture's cap, scaled to whichever bounds it first, so no edge of it is cut away; the bubble is at
     least as wide as the picture, and wider only where what stands with it — a caption, a name, a quote — is
@@ -4001,7 +4001,8 @@ Four bounds keep it from growing forever.
   nothing outside the room's folder of its picture store.
 - **사진이 있는 말풍선** — a picture runs to the bubble's edges, with no inner room or corners of its own: the
   bubble's own corners cut it. The run's name and a quote stand over it inside the bubble's inner room, and the
-  caption under it, with the bubble's inner room on its top, sides and foot. A picture with nothing under it
+  caption under it, with the bubble's inner room on its top, sides and foot. A video's still stands the same way
+  (「첨부와 Telegram 표현」). A picture with nothing under it
   carries its meta line over its own foot at the trailing end, on a dark translucent ground in light letters, so
   it reads on any picture.
 - **말 없는 메시지** — a sticker sent alone stands as Telegram stands it: the sticker beside the run's photo, with no
@@ -5442,17 +5443,30 @@ Four bounds keep it from growing forever.
   files often yield the same name, so whether it is the same file is told not by name but by the unique identifier
   Telegram gives each file. If one side does not know the identifier there is no evidence it changed, so the bytes are
   left and that row records the identifier.
-- **A kept video stands as its player.** A video, a round video note, a GIF and a video attached as a file are all
-  a video here, and so is a file line whose name is a video — MP4, M4V, MOV or WebM — whatever kind of row holds
-  it. It stands above its file line as the browser's own video player, playing where it stands, no wider than the
-  bubble and no taller than 320 px. Where Telegram said what shape the video is — its size, a round note's side, or
-  its thumbnail's — the player stands in that shape from the first frame, so nothing under it moves when the file
-  answers. Before it is pressed only its length, its size and the moment just past its start
-  are fetched, so its first frame stands as the preview on a phone too. The file line under it keeps the name, the
-  size and the download. The mark the archive wrote for it — `[동영상 0:56]`, `[동영상 메모 0:02]`, `[GIF 0:05]`, or
-  `[파일 <name>]` — is not shown again above it; a caption after the mark stays. A MOV is served as MP4, since it is
-  the same family inside and a browser that plays MP4 takes it under that type. A video in any other format stands as
-  its file line alone, to download.
+- **A kept video stands as the shared player's still.** A video, a round video note, a GIF and a video attached as a
+  file are all a video here, and so is a file line whose name is a video — MP4, M4V, MOV or WebM — whatever kind of
+  row holds it. It stands as bmo-ui's `VideoPlayer` in its still size (bmo-ui's `docs/components.md`, 「The video
+  player」): the video's first frame, a play mark over its middle and the length at its top leading corner.
+  - It stands in the bubble as a picture does (「사진이 있는 말풍선」): it runs to the bubble's edges with no corners
+    or edge of its own, cut by the bubble's corners, the bubble as wide as the video, or as what stands under it
+    where that is wider, and never wider than a lone picture's widest. The run's name and a quote stand over it,
+    and the caption and then its file line under it, in the bubble's inner room. A message carrying more than one
+    video stands each so, one under another.
+  - Its picture stands at the video's own ratio, no taller than 20rem and no wider than the bubble. Where Telegram
+    said what shape the video is — its size, a round note's side, or its thumbnail's — it stands in that shape from
+    the first frame, so nothing under it moves when the file answers. Where the bubble is wider than the picture, the
+    picture stands in the middle on a black ground running to the bubble's edges.
+  - Before it is pressed only its length, its size and the moment just past its start are fetched, so its first
+    frame stands on a phone too; until the file first answers the picture's place stands as a skeleton under the
+    play mark, and a file that refuses says so in place of the mark.
+  - A press opens the shared full player over the whole screen, headed by the file's name and playing from the
+    start, with its controls, keys and gestures. Its close, Escape and the back gesture close it, and the
+    conversation under it stays where it stood.
+  - The file line under it keeps the name, the size and the download. The mark the archive wrote for it —
+    `[동영상 0:56]`, `[동영상 메모 0:02]`, `[GIF 0:05]`, or `[파일 <name>]` — is not shown again above it; a caption after
+    the mark stays.
+  - A MOV is served as MP4, since it is the same family inside and a browser that plays MP4 takes it under that type.
+    A video in any other format stands as its file line alone, to download.
 - Records that did not previously store a file keep the description only and do not auto-recover past Telegram records.
 - **A file the chat agent sends stays too.** the chat agent sends a file only through its own send-file script, which takes a message whose
   file is kept, never a path. The file goes up as a Telegram document, as a reply to the message it came from when

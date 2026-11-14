@@ -3,7 +3,7 @@ import createClient, { type Client } from "openapi-fetch";
 import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import { exactJson } from "./exact-json";
+import { exactJson, exactJsonText } from "./exact-json";
 import { unitAt } from "./units";
 import { answered } from "./unit-answer";
 
@@ -55,14 +55,48 @@ export type Exact<T> = WithExactIds<T, MessageIdKey>;
 /** A message as the receiver answers it, every message id in it exact. */
 export type ExactMessage = Exact<ReceiverMessage>;
 
-/** What a room's message list is asked with, its cursors a message's exact id. */
-export type ExactMessagesQuery = Omit<NonNullable<paths["/rooms/{roomId}/messages"]["get"]["parameters"]["query"]>, "after" | "before"> & {
-  after?: ExactMessageId;
-  before?: ExactMessageId;
+// The receiver's routes as the console asks them. Its published client types every message id a request carries as a
+// number, which rounds past 2^53, so the console reads the same routes with each such id typed as its digits
+// (ExactMessageId): a message named in a path, the message a body's line replies to, and the cursors of the two routes
+// that page by a message. The client writes a path's and a query's values as the text they hold, and a body through
+// `exactJsonText`, so each id reaches the wire as the digits it is.
+type PathIdKey = "messageId";
+type BodyIdKey = "replyTo";
+const BODY_IDS: ReadonlySet<BodyIdKey> = new Set(["replyTo"]);
+type CursorsOf<Route> = Route extends "/rooms/{roomId}/messages"
+  ? "after" | "before"
+  : Route extends "/rooms/{roomId}/pictures"
+    ? "at" | "before" | "after"
+    : never;
+
+type ExactParameters<Parameters, Cursors extends PropertyKey> = {
+  [Place in keyof Parameters]: Place extends "path"
+    ? WithExactIds<Parameters[Place], PathIdKey>
+    : Place extends "query"
+      ? WithExactIds<Parameters[Place], Cursors>
+      : Parameters[Place];
 };
 
-/** The receiver's client, over the document its package publishes. */
-export type ReceiverClient = Client<paths>;
+type ExactRequest<Operation, Cursors extends PropertyKey> = {
+  [Part in keyof Operation]: Part extends "parameters"
+    ? ExactParameters<Operation[Part], Cursors>
+    : Part extends "requestBody"
+      ? WithExactIds<Operation[Part], BodyIdKey>
+      : Operation[Part];
+};
+
+/** The receiver's routes with every message id a request carries typed as its digits. */
+export type ExactPaths = {
+  [Route in keyof paths]: {
+    [Method in keyof paths[Route]]: Method extends "parameters" ? paths[Route][Method] : ExactRequest<paths[Route][Method], CursorsOf<Route>>;
+  };
+};
+
+/** What a room's message list is asked with, its cursors a message's exact id. */
+export type ExactMessagesQuery = NonNullable<ExactPaths["/rooms/{roomId}/messages"]["get"]["parameters"]["query"]>;
+
+/** The receiver's client, over the document its package publishes, each message id it is asked with exact. */
+export type ReceiverClient = Client<ExactPaths>;
 
 export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   // Every route's.
@@ -131,8 +165,9 @@ export function receiver(): ReceiverClient {
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
 
-  return createClient<paths>({
+  return createClient<ExactPaths>({
     baseUrl: unit.address,
+    bodySerializer: (body: unknown) => (body instanceof FormData ? body : exactJsonText(body, BODY_IDS)),
     ...(unit.token === null ? {} : { headers: { Authorization: `Bearer ${unit.token}` } })
   });
 }
@@ -146,12 +181,6 @@ export async function receiverCall<T, E extends { code?: string; error?: string;
   return await answered(asked, { ...call, codes: { ...RECEIVER_CODES, ...call.codes } });
 }
 
-/** A message's exact id as the receiver's client takes it in a path or a query: the client types a 64-bit id as a
- * number, and writes whatever it is given as text, which the exact id already is. */
-export function wireId(id: ExactMessageId): number {
-  return id as unknown as number;
-}
-
 /** One call on the receiver asked for its answer as text, read with every message id in it exact (`exactJson`), its
  * refusals said as `receiverCall` says them. `T` is the answer as the receiver's schema types it. */
 export async function exactAnswer<T>(asked: Promise<{ data?: string; error?: { code?: string; error?: string; field?: string }; response: Response }>, call: UnitAnswerCall = {}): Promise<Exact<T>> {
@@ -160,8 +189,9 @@ export async function exactAnswer<T>(asked: Promise<{ data?: string; error?: { c
 
 /** A page of a room's messages, each with its message ids exact. */
 export async function exactMessages(roomId: number, query: ExactMessagesQuery): Promise<ReceiverPage<ExactMessage>> {
+  // The cursors stand last in the address the receiver is asked at.
   const { after, before, ...rest } = query;
-  const cursors = { ...(after === undefined ? {} : { after: wireId(after) }), ...(before === undefined ? {} : { before: wireId(before) }) };
+  const cursors = { ...(after === undefined ? {} : { after }), ...(before === undefined ? {} : { before }) };
 
   return await exactAnswer<ReceiverPage<ReceiverMessage>>(
     receiver().GET("/rooms/{roomId}/messages", { params: { path: { roomId }, query: { ...rest, ...cursors } }, parseAs: "text" })
@@ -171,7 +201,7 @@ export async function exactMessages(roomId: number, query: ExactMessagesQuery): 
 /** One message of a room, with its message ids exact. */
 export async function exactMessage(roomId: number, messageId: ExactMessageId): Promise<ExactMessage> {
   return await exactAnswer<ReceiverMessage>(
-    receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId, messageId: wireId(messageId) } }, parseAs: "text" })
+    receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId, messageId } }, parseAs: "text" })
   );
 }
 

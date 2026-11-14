@@ -1,7 +1,6 @@
 import { MAX_SAY_TEXT_LENGTH } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import { jsonMessageId } from "../../../utils/exact-json";
 import { exactAnswer, receiver } from "../../../utils/receiver";
 
 import type { SentMessage } from "#shared/types";
@@ -46,7 +45,7 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
     async () => {
       const said = await exactAnswer<{ id: number }>(
         receiver().POST("/owner/messages", {
-          body: { chatId, text, replyTo: replyTo === null ? null : jsonMessageId(replyTo) },
+          body: { chatId, text, replyTo },
           parseAs: "text"
         })
       );

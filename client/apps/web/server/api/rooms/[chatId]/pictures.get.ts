@@ -1,14 +1,16 @@
 import { exactMessageIdOf } from "#shared/message-ids";
 
-import { exactAnswer, receiver, wireId } from "../../../utils/receiver";
+import { exactAnswer, receiver } from "../../../utils/receiver";
 
-import type { ReceiverPictures } from "../../../utils/receiver";
+import type { ExactPaths, ReceiverPictures } from "../../../utils/receiver";
 import type { RoomPicturePage } from "#shared/types";
 
 // The pictures a room holds, which the picture viewer walks across the whole room: the receiver's stretch of them
 // (its `docs/boundary-api.md`, 「A room's pictures」), asked for by the picture the viewer holds, by its exact id, and
 // the side it walks.
 const CURSORS = ["at", "before", "after"] as const;
+
+type PicturesQuery = NonNullable<ExactPaths["/rooms/{roomId}/pictures"]["get"]["parameters"]["query"]>;
 
 export default defineEventHandler(async (event): Promise<RoomPicturePage> => {
   await requireUserSession(event);
@@ -19,16 +21,16 @@ export default defineEventHandler(async (event): Promise<RoomPicturePage> => {
 
   const query = getQuery(event);
   const limit = Number(query.limit);
-  const cursors = {
-    ...Object.fromEntries(
-      CURSORS.flatMap((name) => {
-        const id = exactMessageIdOf(query[name]);
+  const cursors: PicturesQuery = {};
 
-        return id === null ? [] : [[name, wireId(id)]];
-      })
-    ),
-    ...(query.limit !== undefined && Number.isSafeInteger(limit) ? { limit } : {})
-  } as { at?: number; before?: number; after?: number; limit?: number };
+  for (const name of CURSORS) {
+    const id = exactMessageIdOf(query[name]);
+
+    if (id !== null) cursors[name] = id;
+  }
+
+  if (query.limit !== undefined && Number.isSafeInteger(limit)) cursors.limit = limit;
+
   const page = await exactAnswer<ReceiverPictures>(
     receiver().GET("/rooms/{roomId}/pictures", { params: { path: { roomId: chatId }, query: cursors }, parseAs: "text" })
   );

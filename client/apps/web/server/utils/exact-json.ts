@@ -14,10 +14,12 @@ export function exactJson(text: string, keys: ReadonlySet<string>): unknown {
   );
 }
 
-/** A message's exact id as a JSON body the unit reads writes it: the integer itself, its digits written as they are.
- * A unit's published client types the field as a number, which the written id stands in for. */
-export function jsonMessageId(id: ExactMessageId): number {
-  return (JSON as unknown as { rawJSON: (text: string) => unknown }).rawJSON(id) as number;
+/** The JSON text of a body a unit reads, each message id under one of `keys`, at any depth, written as the integer
+ * its digits spell (ExactMessageId) rather than as a string. */
+export function exactJsonText(value: unknown, keys: ReadonlySet<string>): string {
+  return JSON.stringify(value, (key: string, field: unknown) =>
+    keys.has(key) && typeof field === "string" && exactMessageIdOf(field) === field ? JSON.rawJSON(field) : field
+  );
 }
 
 /**

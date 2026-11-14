@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { exactFrame } from "../../../apps/web/server/utils/bot-relay";
-import { exactJson, jsonMessageId } from "../../../apps/web/server/utils/exact-json";
+import { exactJson, exactJsonText } from "../../../apps/web/server/utils/exact-json";
 import { rewrittenFrame } from "../../../apps/web/server/utils/sse-frames";
 
 // A message id past 2^53 is read and written by its digits (docs/web.md, 「A message's id」): two neighbours a
@@ -24,9 +24,14 @@ describe("an answer read with its message ids exact", () => {
   });
 });
 
-describe("a message id written into a body", () => {
-  test("stands as the integer it is, digit for digit", () => {
-    expect(JSON.stringify({ replyTo: jsonMessageId(HIGH) })).toBe(`{"replyTo":${HIGH}}`);
+describe("a body written with its message ids exact", () => {
+  test("an id under a named key stands as the integer it is, digit for digit, and the rest as JSON writes it", () => {
+    expect(exactJsonText({ chatId: 7, text: "words", replyTo: HIGH }, new Set(["replyTo"]))).toBe(`{"chatId":7,"text":"words","replyTo":${HIGH}}`);
+  });
+
+  test("a null, a string under any other key and text that is no id stay as JSON writes them", () => {
+    expect(exactJsonText({ replyTo: null, note: HIGH }, new Set(["replyTo"]))).toBe(`{"replyTo":null,"note":"${HIGH}"}`);
+    expect(exactJsonText({ replyTo: "first" }, new Set(["replyTo"]))).toBe(`{"replyTo":"first"}`);
   });
 });
 

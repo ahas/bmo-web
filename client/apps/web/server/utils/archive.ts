@@ -9,7 +9,7 @@ import { figuresOf } from "./runfigures";
 import { judgementsOf, judgementsWithin } from "./gate";
 import { ownerChat, ownerSender } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
-import { exactAnswer, exactMessage, exactMessages, receiver, receiverCall, wireId } from "./receiver";
+import { exactAnswer, exactMessage, exactMessages, receiver, receiverCall } from "./receiver";
 
 import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
 import type { ExactMessage, ReceiverRoom } from "./receiver";
@@ -287,7 +287,7 @@ async function isOwnerNumber(chatId: number, number: number, messageId: ExactMes
   try {
     const answer = await receiverCall(
       receiver().GET("/rooms/{roomId}/messages/{messageId}/sender-is-owner", {
-        params: { path: { roomId: chatId, messageId: wireId(messageId) } }
+        params: { path: { roomId: chatId, messageId } }
       })
     );
 

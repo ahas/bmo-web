@@ -1,6 +1,6 @@
 import { extname } from "node:path";
 
-import { receiver, receiverCall, wireId } from "./receiver";
+import { receiver, receiverCall } from "./receiver";
 
 import type { ExactMessageId } from "#shared/types";
 
@@ -101,7 +101,7 @@ const KEPT_AS_FILE = "application/octet-stream";
 export async function messageFiles(chatId: number, messageId: ExactMessageId): Promise<ReceivedFile[]> {
   const page = await receiverCall(
     receiver().GET("/rooms/{roomId}/messages/{messageId}/files", {
-      params: { path: { roomId: chatId, messageId: wireId(messageId) } }
+      params: { path: { roomId: chatId, messageId } }
     })
   );
 

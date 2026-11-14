@@ -7462,6 +7462,11 @@ its people directory and the members of the reader's company.
     picture, files and links, a round's figures and a line's reading all name the message by its digits, and
     a body sent to the receiver writes the id as the integer it is, digit for digit. A route of this app's that
     names a message takes the digits of a signed 64-bit integer as BigInt writes them and refuses anything else.
+  - **The receiver is asked with the ids typed as their digits.** The receiver's published client types a
+    message id as a number, so the console asks it through its own reading of the same routes: every message id
+    a request carries, a message in a path, the cursors of a room's messages and pictures and the message a line
+    replies to, is typed as its digits, written into a path or a query as those digits and into a body as the
+    integer they spell. Nothing on the way holds an id as a JavaScript number.
   - **Two ids are told apart by their digits.** Rows, read marks, judgements and briefings are keyed and matched
     by the id's digits; the room's order is the order the receiver hands its rows in, never one worked out from
     the ids.

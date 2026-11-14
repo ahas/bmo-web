@@ -1,7 +1,7 @@
 import { wording } from "#shared/wording";
 
 import { acted, messageToActOn } from "../../../../../utils/message-acts";
-import { exactAnswer, receiver, wireId } from "../../../../../utils/receiver";
+import { exactAnswer, receiver } from "../../../../../utils/receiver";
 
 import type { ReceiverMessage } from "../../../../../utils/receiver";
 import type { MessageAct } from "#shared/types";
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event): Promise<MessageAct> => {
 
   const message = await exactAnswer<ReceiverMessage>(
     receiver().PUT("/rooms/{roomId}/messages/{messageId}/reactions/mine", {
-      params: { path: { roomId: acted_.chatId, messageId: wireId(acted_.messageId) } },
+      params: { path: { roomId: acted_.chatId, messageId: acted_.messageId } },
       parseAs: "text",
       body: { emoji },
       headers: acted_.headers

@@ -2,7 +2,7 @@ import { wording } from "#shared/wording";
 
 import { ownerHeaders } from "../../../../../utils/owner-key";
 import { requireReadableRoom } from "../../../../../utils/room-reach";
-import { exactAnswer, receiver, wireId } from "../../../../../utils/receiver";
+import { exactAnswer, receiver } from "../../../../../utils/receiver";
 
 import type { ForwardedMessage } from "#shared/types";
 
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event): Promise<ForwardedMessage> => {
 
   const answered = await exactAnswer<unknown>(
     receiver().POST("/rooms/{roomId}/messages/{messageId}/forwards", {
-      params: { path: { roomId: chatId, messageId: wireId(messageId) } },
+      params: { path: { roomId: chatId, messageId } },
       parseAs: "text",
       body: { to },
       headers: ownerHeaders(signed)

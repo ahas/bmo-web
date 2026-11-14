@@ -1,7 +1,7 @@
 import { wording } from "#shared/wording";
 
 import { fileOut, messageFiles, playedKind } from "./media";
-import { receiver, receiverCall, wireId } from "./receiver";
+import { receiver, receiverCall } from "./receiver";
 
 import type { ReceivedFile } from "./media";
 import type { ExactMessageId, MessageAttachment, TelegramExpression, TelegramFormat, TelegramFormatKind, VideoShape } from "#shared/types";
@@ -56,7 +56,7 @@ export async function messageMedia(chatId: number, messageId: ExactMessageId, te
     listedFiles ? messageFiles(chatId, messageId) : Promise.resolve([] as ReceivedFile[]),
     receiverCall(
       receiver().GET("/rooms/{roomId}/messages/{messageId}/metadata", {
-        params: { path: { roomId: chatId, messageId: wireId(messageId) } }
+        params: { path: { roomId: chatId, messageId } }
       })
     )
       .then((answer) => answer.metadata)

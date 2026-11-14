@@ -106,7 +106,7 @@
           :run="repositoryJob.run"
           job
           stepper
-          :end="opensAtEnd || repositoryJob.finishedAt === null"
+          end
         />
       </template>
       <WorkView v-else ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="false" :end="opensAtEnd" />

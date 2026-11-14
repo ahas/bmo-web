@@ -3171,7 +3171,8 @@ a seat of its role.
 - **A screen for each axis and place.** A supervisor's screen and a role's read the agency's log of that supervisor or
   role across its runs (the agency's `docs/run-records.md`, 「Agent log」); a role's run opened from the sidebar or a
   slot tile opens the role's log at that run. A repository's screen reads the jobs the agency ran in it, newest
-  first, and the log of the one going (`starting`, `running` or `reviewing`) or, with none going, the latest, under
+  first, and the log of the one going (`starting`, `running` or `reviewing`) or, with none going, the latest, or the
+  job the address names, always opened at its end on its newest lines, the older ones read as the reader scrolls up, under
   the name its lines stand under: the agent the job's item named, the one that did the work (the agency's `docs/run-records.md`, 「Agent log」), and
   the checkout it ran in for a job that named none. A role's screen reads its agents' lines with its own, so the
   job a role's agent is running stands on the role's screen where its run is marked. It is the log the same job's

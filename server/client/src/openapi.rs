@@ -315,6 +315,19 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "POST",
+    "/senders/users",
+    "senderLinks",
+    "Users and senders",
+    "The senders asked after that are linked to a user, each with the user and whether they may sign in.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<SendersAsk>())),
+    answers: vec![(200, json_answer::<SenderLinks>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "GET",
     "/users",
     "users",

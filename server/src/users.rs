@@ -9,7 +9,7 @@ use sumida::api::authz::Authz;
 use sumida::api::authz::subject::SubjectSet;
 use sumida::api::authz::write::{SubjectKey, TupleWrite};
 
-use crate::{Refusal, now_ms, one, run};
+use crate::{Refusal, all, now_ms, one, run};
 
 /// The name the data move gives the deployment's first company, which may be renamed after it.
 pub const ORGANIZATION: &str = "bmo";
@@ -62,6 +62,60 @@ pub async fn user_of_sender<C: ConnectionTrait>(db: &C, sender: i64) -> Result<O
     ),
     None => None,
   })
+}
+
+/// One sender linked to a user, and whether that user may sign in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Linked {
+  pub sender: i64,
+  pub user: i32,
+  pub signs_in: bool,
+}
+
+/// The senders among `senders` that are linked to a user, in the order asked, each with whether that user may
+/// sign in: a user made for a sender by a grant, an invitation not yet taken and an account that has left
+/// cannot. A sender asked twice answers once.
+pub async fn linked_senders<C: ConnectionTrait>(db: &C, senders: &[i64]) -> Result<Vec<Linked>, Refusal> {
+  if senders.is_empty() {
+    return Ok(Vec::new());
+  }
+
+  let asked = senders.iter().map(i64::to_string).collect::<Vec<_>>().join(",");
+  let rows = all(
+    db,
+    r#"SELECT s."sender_id", s."user_id", u."is_enabled" FROM "user_senders" s
+       JOIN "users" u ON u."id" = s."user_id"
+       WHERE s."sender_id" = ANY(string_to_array($1, ',')::bigint[])"#,
+    vec![asked.into()],
+  )
+  .await?;
+  let mut found = Vec::with_capacity(rows.len());
+
+  for row in rows {
+    let sender = row.try_get::<i64>("", "sender_id")?;
+    let user = i32::try_from(row.try_get::<i64>("", "user_id")?)
+      .map_err(|_| Refusal::bad(format!("sender {sender} is linked to a user id no user can carry")))?;
+
+    found.push(Linked {
+      sender,
+      user,
+      signs_in: row.try_get::<bool>("", "is_enabled")?,
+    });
+  }
+
+  let mut answered: Vec<Linked> = Vec::with_capacity(found.len());
+
+  for sender in senders {
+    if answered.iter().any(|known| known.sender == *sender) {
+      continue;
+    }
+
+    if let Some(link) = found.iter().find(|link| link.sender == *sender) {
+      answered.push(*link);
+    }
+  }
+
+  Ok(answered)
 }
 
 /// Whether a room is a user's own private room with the chat agent: its road says it is a one-to-one, with

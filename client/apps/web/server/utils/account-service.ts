@@ -21,6 +21,7 @@ import {
   type InviteView,
   type Proof,
   type RoomCallers,
+  type SenderLink,
   type Unit,
   type Rebound,
   type UserNode,
@@ -244,6 +245,17 @@ export async function userOf(id: UserId | number, options: ServiceOptions = {}):
   const said = answered(reply);
 
   return { id: said.user, name: said.name, administrator: said.administrator, senders: said.senders };
+}
+
+/** The senders among `senders` linked to a user, each with that user and whether they may sign in; a sender linked
+ * to none is absent. */
+export async function senderLinks(senders: readonly number[], options: ServiceOptions = {}): Promise<SenderLink[]> {
+  if (senders.length === 0) return [];
+
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/senders/users", { body: { senders: [...senders] } }));
+
+  return answered(reply).links;
 }
 
 /** A user's password changed on the strength of their current one; false where that does not match. */

@@ -385,6 +385,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/senders/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The senders asked after that are linked to a user, each with the user and whether they may sign in. */
+        post: operations["senderLinks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/senders/{sender}/user": {
         parameters: {
             query?: never;
@@ -1343,12 +1360,30 @@ export interface components {
         Sections: {
             sections: components["schemas"]["SectionRow"][];
         };
+        /** @description One sender linked to a user, and whether that user may sign in to the console. */
+        SenderLink: {
+            /** Format: int64 */
+            sender: number;
+            signsIn: boolean;
+            user: string;
+        };
+        /**
+         * @description The senders asked after that are linked to a user, in the order they were asked; a sender linked to none is
+         *     absent.
+         */
+        SenderLinks: {
+            links: components["schemas"]["SenderLink"][];
+        };
         /** @description The user a sender is linked to. */
         SenderUser: {
             user: string;
         };
         /** @description The senders linked to a user. */
         Senders: {
+            senders: number[];
+        };
+        /** @description The senders a caller asks after, each by its number. */
+        SendersAsk: {
             senders: number[];
         };
         /** @description The account behind a session, as sumida answers it. */
@@ -2442,6 +2477,39 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    senderLinks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendersAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SenderLinks"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

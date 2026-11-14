@@ -41,6 +41,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["room-read-desk", "fixture-password-2953"],
   ["room-read-phone", "fixture-password-2954"],
   ["room-copy", "fixture-password-2254"],
+  ["room-members", "fixture-password-2995"],
   ["agents-listed", "fixture-password-2255"],
   ["briefing-chip", "fixture-password-2256"],
   ["room-sending", "fixture-password-2257"],

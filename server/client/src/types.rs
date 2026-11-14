@@ -55,6 +55,28 @@ pub struct SenderUser {
   pub user: String,
 }
 
+/// The senders a caller asks after, each by its number.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SendersAsk {
+  pub senders: Vec<i64>,
+}
+
+/// One sender linked to a user, and whether that user may sign in to the console.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SenderLink {
+  pub sender: i64,
+  pub user: String,
+  pub signs_in: bool,
+}
+
+/// The senders asked after that are linked to a user, in the order they were asked; a sender linked to none is
+/// absent.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SenderLinks {
+  pub links: Vec<SenderLink>,
+}
+
 /// A user as the console reads them.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UserView {

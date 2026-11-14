@@ -14,7 +14,7 @@ use bmo_web_server::data_move::{MoveAsk, RoomRule, run_move};
 use bmo_web_server::holdings::HOLDINGS;
 use bmo_web_server::receiver::{Receiver, ReceiverClient};
 use bmo_web_server::routes::in_force;
-use bmo_web_server::users::set_sign_in;
+use bmo_web_server::users::{set_sign_in, user_for_sender};
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
 use support::{OWNER, ROOM, Scratch, SharedDatabase, console_hash, ready};
@@ -201,6 +201,37 @@ async fn a_sender_names_its_user_and_a_user_names_its_senders() {
   assert_eq!(said["senders"], json!([OWNER]));
   assert_eq!(ask(&app, Method::GET, "/users/987654/senders", None).await.0, StatusCode::NOT_FOUND);
   assert_eq!(ask(&app, Method::GET, "/users/someone", None).await.0, StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn the_senders_asked_answer_their_users_and_whether_each_may_sign_in() {
+  ready();
+  let scratch = moved().await;
+  // A sender a grant gave a user, which has no way to sign in.
+  const GRANTED: i64 = 4321;
+  let granted = user_for_sender(scratch.db(), GRANTED).await.unwrap();
+  let app = app(&scratch).await;
+  let user = owner_user(&app).await;
+  let body = json!({ "senders": [9999, GRANTED, OWNER, GRANTED] });
+  let (status, said) = ask(&app, Method::POST, "/senders/users", Some(body)).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(
+    said["links"],
+    json!([
+      { "sender": GRANTED, "user": granted.to_string(), "signsIn": false },
+      { "sender": OWNER, "user": user, "signsIn": true },
+    ])
+  );
+
+  let (status, said) = ask(&app, Method::POST, "/senders/users", Some(json!({ "senders": [] }))).await;
+
+  assert_eq!(status, StatusCode::OK);
+  assert_eq!(said["links"], json!([]));
+  assert_eq!(
+    ask(&app, Method::POST, "/senders/users", Some(json!({ "senders": "all" }))).await.0,
+    StatusCode::BAD_REQUEST
+  );
 }
 
 #[tokio::test]

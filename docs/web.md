@@ -5311,6 +5311,32 @@ Four bounds keep it from growing forever.
   three, a line says that only a head of the person's unit may change it; a refused change is said by the pack's sentence
   for the account service's code, and the list stands as it was.
 
+#### 대화상대
+
+- **Every room's menu carries 대화상대, for everyone signed in,** after 내 BMO와 따로 말하기 and before 호출 권한. It
+  opens a sheet at the side, as 세션 정보 does, and on a narrow screen a drawer from the bottom, headed 대화상대 over
+  the room's name; the conversation stays where it stood, and Back closes it.
+- **The members are the receiver's,** read from its `GET /rooms/{roomId}/members` each time the sheet opens: the
+  people the chat service carrying the room read as its members, in the receiver's order (`docs/boundary.md`,
+  「Gaps the console meets」). Nothing of them is kept in the console.
+- **Each member is a row:** their face, their name, and under it the status line their chat service read where it
+  read one. The face is the picture the archive keeps for the member's person number, by the rule every face
+  follows (「Profile photos」); a member with no person number, or no picture kept, stands as their letter. A
+  name or a status line too long for the row is cut and shown whole in the tooltip every cut line gets.
+- **A member the platform knows as an account carries 콘솔 사용자.** The console's server asks the account
+  service which of the members' person numbers is linked to a user (`docs/accounts.md`, 「Users and senders」),
+  and marks a member only where that user may sign in, so a user made for a sender by a grant, an invitation not
+  yet accepted and an account that has left carry no mark. A marked row opens that person's page
+  (「Person's page」) for a reader who may read the account section; for anyone else it carries the mark alone.
+- **A member the platform does not know stands as a member alone:** their face, name and status line, with no
+  mark and nothing guessed from their name or anything else.
+- **A refusal stands in the sheet's error band,** with the refresh that reads again, and the room stands as it
+  was. The receiver's `not-found`, a room whose chat service has not read its members yet, and its `no-route`,
+  a receiver that hands no members over, are said by the pack's own sentences; every other code by the sentence
+  every receiver route says it in. Where the account service cannot answer, the band says that whether each member
+  is a console user could not be told, and no list stands in its place, so no console user is shown as unknown.
+  A room whose chat service read no members says 대화상대 없음.
+
 #### 방 등록 삭제
 
 - **Every room's menu carries 방 등록 삭제 for the owner alone,** last, in a group of its own.

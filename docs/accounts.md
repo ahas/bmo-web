@@ -143,6 +143,10 @@ section states what each does.
 ### Users and senders
 
 - **`GET /senders/{sender}/user`** — the user a sender is linked to, or nothing found.
+- **`POST /senders/users`** — of the senders asked, those linked to a user, each with that user and whether they
+  may sign in. A user made for a sender by a grant, an invitation not yet accepted and an account that has left
+  cannot; the console marks a room's member as a console user only where they can (`docs/web.md`, the room
+  screen's 대화상대).
 - **`GET /users`** — every user, with their name and whether they are the platform administrator, for the
   administrator alone.
 - **`GET /users/{user}`** — a user's name, whether they are the platform administrator, and the sender ids

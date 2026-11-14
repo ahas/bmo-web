@@ -128,6 +128,15 @@ impl AccountClient {
     Self::answered(self.request(Method::GET, &["senders", &sender.to_string(), "user"])).await
   }
 
+  /// `POST /senders/users`: the senders among `senders` linked to a user, and whether each may sign in.
+  pub async fn sender_links(&self, senders: &[i64]) -> Answer<SenderLinks> {
+    let ask = SendersAsk {
+      senders: senders.to_vec(),
+    };
+
+    Self::answered(self.send(Method::POST, &["senders", "users"], &ask)).await
+  }
+
   /// `GET /users/{user}`.
   pub async fn user(&self, user: &str) -> Answer<UserView> {
     Self::answered(self.request(Method::GET, &["users", user])).await

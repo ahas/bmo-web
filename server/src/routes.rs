@@ -16,7 +16,8 @@ use bmo_web_client::{
   CheckAnswer as WireCheck, Granted as WireGranted, Grants as WireGrants, Health as WireHealth,
   Holdings as WireHoldings, ModelState as WireModel, Moved as WireMoved, PhoneAdopted as WireAdopted,
   PhoneHolder as WireHolder, PhoneMade as WireMade, Rendered as WireRendered, Revoked as WireRevoked,
-  SenderUser as WireSenderUser, Senders as WireSenders, UserView as WireUser,
+  SenderLink as WireSenderLink, SenderLinks as WireSenderLinks, SenderUser as WireSenderUser,
+  Senders as WireSenders, SendersAsk, UserView as WireUser,
 };
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
@@ -32,7 +33,7 @@ use crate::ids::{parsed, shown};
 use crate::receiver::Receiver;
 use crate::rules::RULES;
 use crate::settings::Names;
-use crate::users::{user_of_sender, user_subject};
+use crate::users::{linked_senders, user_of_sender, user_subject};
 use crate::{Refusal, Service, VERSION, all, holdings, one, phones, words};
 
 /// Where sumida's own router is mounted: apart from the deployment's routes, whose paths other units name
@@ -181,6 +182,7 @@ fn model() -> Router<Service> {
 fn own() -> Router<Service> {
   Router::new()
     .route("/senders/{sender}/user", get(sender_user))
+    .route("/senders/users", post(sender_links))
     .route("/users/{user}", get(user_route))
     .route("/users/{user}/senders", get(user_senders))
     .route("/users/{user}/password", post(password_route))
@@ -246,6 +248,24 @@ async fn sender_user(State(service): State<Service>, Path(sender): Path<i64>) ->
     .ok_or_else(|| Refusal::absent(format!("sender {sender} is linked to no user")))?;
 
   Ok(Json(WireSenderUser { user: shown(user) }))
+}
+
+/// `POST /senders/users`: the senders asked after that are linked to a user, and whether each may sign in.
+async fn sender_links(
+  State(service): State<Service>,
+  Body(ask): Body<SendersAsk>,
+) -> Answer<WireSenderLinks> {
+  let links = linked_senders(&service.db, &ask.senders)
+    .await?
+    .into_iter()
+    .map(|link| WireSenderLink {
+      sender: link.sender,
+      user: shown(link.user),
+      signs_in: link.signs_in,
+    })
+    .collect();
+
+  Ok(Json(WireSenderLinks { links }))
 }
 
 async fn senders_of(service: &Service, user: i32) -> Result<Vec<i64>, Refusal> {

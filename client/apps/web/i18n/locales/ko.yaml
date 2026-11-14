@@ -583,6 +583,7 @@ room:
     brain_read_page: 브레인에서 보기
     situation: 방의 상황 보기
     callers: 호출 권한
+    members: 대화상대
     overlay: 내 BMO와 따로 말하기
     cancel_recording: 녹음 취소
     cancel_reply: 답장 취소
@@ -1872,6 +1873,19 @@ overlay:
   error:
     load_failed: 내 BMO를 불러오지 못했습니다.
     send_failed: 보내지 못했습니다.
+members:
+  title:
+    sheet: 대화상대
+  label:
+    console_user: 콘솔 사용자
+    none: 대화상대 없음
+  status:
+    loading: 대화상대 불러오는 중…
+  error:
+    load_failed: 대화상대를 불러오지 못했습니다.
+    not_filled: 채팅 서비스가 이 방의 대화상대를 아직 읽지 않았습니다.
+    not_served: 수신 유닛이 대화상대를 넘기지 않습니다.
+    accounts_failed: 콘솔 사용자인지 확인하지 못했습니다.
 callers:
   title:
     dialog: 호출 권한

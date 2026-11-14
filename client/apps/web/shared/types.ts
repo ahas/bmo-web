@@ -2704,6 +2704,16 @@ export interface RoomWindow {
   openFor: number;
 }
 
+// One of a room's members as its chat service read them (docs/web.md, the room screen's members entry): the person number
+// the room's lines carry, where one was given, their name and status line, and the console account they are, where
+// that number is linked to a user who may sign in. Nothing is told of a member the platform does not know.
+export interface RoomMember {
+  person: number | null;
+  name: string;
+  status: string | null;
+  account: string | null;
+}
+
 // One room, counted: the messages kept for it, the session kept for the room, and the runs made for it.
 export interface RoomSpeaker {
   name: string;

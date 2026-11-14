@@ -1691,6 +1691,42 @@
         ],
         "type": "object"
       },
+      "SenderLink": {
+        "description": "One sender linked to a user, and whether that user may sign in to the console.",
+        "properties": {
+          "sender": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "signsIn": {
+            "type": "boolean"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sender",
+          "user",
+          "signsIn"
+        ],
+        "type": "object"
+      },
+      "SenderLinks": {
+        "description": "The senders asked after that are linked to a user, in the order they were asked; a sender linked to none is\nabsent.",
+        "properties": {
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/SenderLink"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "links"
+        ],
+        "type": "object"
+      },
       "SenderUser": {
         "description": "The user a sender is linked to.",
         "properties": {
@@ -1705,6 +1741,22 @@
       },
       "Senders": {
         "description": "The senders linked to a user.",
+        "properties": {
+          "senders": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "senders"
+        ],
+        "type": "object"
+      },
+      "SendersAsk": {
+        "description": "The senders a caller asks after, each by its number.",
         "properties": {
           "senders": {
             "items": {
@@ -3868,6 +3920,59 @@
           "unauthorized",
           "forbidden",
           "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/senders/users": {
+      "post": {
+        "operationId": "senderLinks",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendersAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SenderLinks"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The senders asked after that are linked to a user, each with the user and whether they may sign in.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
           "not-in-force",
           "database",
           "failed"

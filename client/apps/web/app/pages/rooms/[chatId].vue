@@ -17,25 +17,27 @@
   >
     <template #header>
       <!-- The bars run to the panel's edges, so their lines meet the line beside the panel, and the
-           scrollbar runs between them rather than under them. The top bar is every page's title bar —
-           its height, padding, title and mark size — with the room's own row under it, on the
-           translucent ground only this room's bars wear. The ground and the edge are the whole bar's,
-           so the choosing row taking the room's row's place grows the bar itself; and the ground fades
-           out a short way under the edge, so words passing under the bar read as going under it rather
-           than cut. The bar grows by moving, never by changing size: the choosing row stands laid out
-           over the room's row all along, and the ground, its edge and its fade slide from where they
-           rest at the room's row's foot to the choosing row's, inside the bar's clip, which hides what
-           stands above the panel and keeps the fade's room under the bar. Only a transform moves, so
-           the growing is the compositor's, and of the conversation under it only the day marks stepping
-           with it are laid out again. Where the bar does not stand, nothing of it takes a press. -->
+           scrollbar runs between them rather than under them. The top bar is every page's top bar —
+           its height, padding, title and mark size — on the translucent ground only this room's
+           bars wear. The ground and the edge are the whole bar's, so the choosing row unfolding
+           under the navbar grows the bar itself; and the ground fades out a short way under the
+           edge, so words passing under the bar read as going under it rather than cut.
+           The bar grows by moving, never by changing size: the row stands laid out under the navbar
+           all along, and the ground, its edge and its fade slide down over it from where they rest at
+           the navbar's foot, by the row's own height, inside the bar's clip, which hides what stands
+           above the panel and keeps the fade's room under the bar. Only a transform moves, so the
+           growing is the compositor's, and of the conversation under it only the day marks stepping
+           down with it are laid out again. Where the bar does not stand, nothing of it takes a
+           press. -->
       <div
         ref="roomHead"
         class="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col overflow-clip pb-3"
       >
-        <!-- The title bar and the room's row take presses themselves, so where the choosing row stands over the
-             room's row a press reaches it. -->
-        <div ref="roomNavbar" class="relative z-10">
-          <ConsoleTitleBar :title="title" class="pointer-events-auto">
+        <div ref="roomNavbar" class="pointer-events-auto relative z-10">
+          <ConsoleTitleBar
+            :title="title"
+            :ui="{ root: 'border-b-0' }"
+          >
             <!-- The room's picture opens whole when pressed, as a face beside a bubble does; a room
                  standing as its letter has nothing to open. It stands where every other page's mark
                  stands, at that mark's size. -->
@@ -53,31 +55,25 @@
               <ImageViewer v-if="roomAvatar.src" v-model:open="roomFaceOpen" :src="roomAvatar.src" :title="$t('room.label.avatar_of', { name: title })" />
               <RoomPictureViewer ref="pictureViewer" :chat-id="chatId" @show="showPictureMessage" />
             </template>
-          </ConsoleTitleBar>
 
-          <!-- The room's own row under the title bar, on the same ground (docs/web.md, 「The top bar and the input bar
-               lie over the conversation」): the pinned messages and the window's time left at its left, the room's
-               menu at its right end. It is one line at every width, and while choosing or finding, that row takes its
-               place, so it goes as the bar grows and comes back as it folds, on the same motion. -->
-          <div
-            ref="roomRow"
-            :class="[
-              'pointer-events-auto flex h-12 min-w-0 items-center gap-2 px-4 transition-[opacity,visibility]',
-              choosingMotion,
-              barGrown ? 'invisible opacity-0' : ''
-            ]"
-            data-room-row
-          >
-            <div class="flex min-w-0 flex-1 items-center gap-2">
+            <!-- What acts on this room alone stands beside its name; the right end keeps what every
+                 screen carries. The menu's dots stand as far from the name as the name stands from
+                 the picture, 12px: the dots are a narrow mark in the middle of the button, so the
+                 button is drawn back under the name's end by the room its icon keeps either side. -->
+            <template #trailing>
+              <UDropdownMenu :items="menuItems" :content="{ align: 'start' }">
+                <UTooltip :text="$t('common.action.more')">
+                  <UButton icon="i-material-symbols-more-vert" color="neutral" variant="ghost" class="-ms-2" :aria-label="$t('common.action.more')" data-room-menu />
+                </UTooltip>
+              </UDropdownMenu>
               <!-- The room's pinned messages, one press a message, newest first (docs/web.md, 「What was done to a
                    message」). -->
               <UTooltip v-if="pinnedShown !== null" :text="pinnedTip">
                 <UButton
                   icon="i-material-symbols-keep"
-                  size="sm"
                   color="neutral"
                   variant="ghost"
-                  class="min-w-0 max-sm:p-1.5"
+                  class="min-w-0"
                   :aria-label="$t('room.aria.pinned_open', { n: countText(pins.length) })"
                   data-pinned-button
                   @click="stepPinned"
@@ -86,47 +82,40 @@
                 </UButton>
               </UTooltip>
               <!-- How long the chat agent's window here has left, for as long as it is open, whether a
-                   turn runs or the listening row stands (docs/web.md, 「The window's time left stands under the top
-                   bar」). -->
+                   turn runs or the listening row stands (docs/web.md, 「The window's time left stands in
+                   the top bar」). -->
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
-            </div>
-
-            <UDropdownMenu :items="menuItems" :content="{ align: 'end' }">
-              <UTooltip :text="$t('common.action.more')">
-                <UButton icon="i-material-symbols-more-vert" size="sm" square color="neutral" variant="ghost" :aria-label="$t('common.action.more')" data-room-menu />
-              </UTooltip>
-            </UDropdownMenu>
-            <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
-            <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
-            <RoomCallersDialog v-model:open="callersOpen" :chat-id="chatId" :title="title" />
-            <RoomOverlay v-if="group" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
-            <PictureDialog v-if="administrator" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
-            <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
-          </div>
+              <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
+              <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
+              <RoomCallersDialog v-model:open="callersOpen" :chat-id="chatId" :title="title" />
+              <RoomOverlay v-if="group" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
+              <PictureDialog v-if="administrator" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
+              <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
+            </template>
+          </ConsoleTitleBar>
         </div>
 
-        <!-- While messages are being picked the choosing row unfolds in the bar in the room's row's
-             place, the bar growing by what it is taller (docs/web.md, 「The top bar and the input bar lie
-             over the conversation」): the bar lies over the conversation, which keeps only the resting
+        <!-- While messages are being picked the bar grows downward and the choosing row unfolds in
+             it (docs/web.md, 「The top bar and the input bar lie over the conversation」): the bar lies
+             over the conversation, which keeps only the resting
              bar's room, so no message moves as it grows or folds. The row stands in the same column
              the feed reads in, its checkbox hanging outside it by what a row's own mark hangs out by,
              so the select-all checkbox and the marks down the rows stand on one vertical line, and
              everything in it stands on one centre line. The bar grows as the rows' choosing column
              opens and folds as it closes, one movement on the one choosing motion, so neither is
              seen waiting for the other (docs/web.md, 「Motion」). -->
-        <div ref="chooseRow" class="relative -mt-12" data-choose-row>
-          <!-- The bar's ground, edge and fade, reaching up behind the navbar and the room's row to the
-               bar's top. The box moving it is the choosing row's own height and the room's row is one
-               line, so it rests folded at the room's row's foot from the first frame drawn, measured by
-               nothing. -->
+        <div ref="chooseRow" class="relative" data-choose-row>
+          <!-- The bar's ground, edge and fade, reaching up behind the navbar to the bar's top. The
+               box moving it is the row's own height, so it rests folded at the navbar's foot by that
+               height from the first frame drawn, measured by nothing. -->
           <div
             :class="[
               'absolute inset-0 transition-[translate]',
               choosingMotion,
-              barGrown ? '' : '-translate-y-[calc(100%-3rem)]'
+              barGrown ? '' : '-translate-y-full'
             ]"
           >
-            <div class="absolute inset-x-0 bottom-0 -top-[calc(var(--ui-header-height)+3rem)] border-b border-default bg-default/75 backdrop-blur-md after:absolute after:inset-x-0 after:top-full after:h-3 after:bg-[linear-gradient(to_bottom,color-mix(in_oklab,var(--ui-bg)_75%,transparent),transparent)]" />
+            <div class="absolute inset-x-0 bottom-0 top-[calc(var(--ui-header-height)*-1)] border-b border-default bg-default/75 backdrop-blur-md after:absolute after:inset-x-0 after:top-full after:h-3 after:bg-[linear-gradient(to_bottom,color-mix(in_oklab,var(--ui-bg)_75%,transparent),transparent)]" />
           </div>
 
           <div class="relative overflow-clip">
@@ -666,8 +655,6 @@ const overlaid = useOverlaid();
 const headHeight = ref(0);
 const footHeight = ref(0);
 const chooseRow = useTemplateRef<HTMLElement>("chooseRow");
-const roomRow = useTemplateRef<HTMLElement>("roomRow");
-// What the choosing row is taller than the room's row whose place it takes: what the bar grows by.
 const chooseHeight = ref(0);
 
 // Whether the reader stands away from the room's end — scrolled back, held at a long answer's first
@@ -2861,16 +2848,15 @@ async function readLive(): Promise<void> {
 
 // The bars' heights, read whenever either changes size or comes and goes; a reader at the end stays
 // at the end as they do, at once, since nothing new has arrived. The top bar's room is its resting
-// height alone, the title bar and the room's row: the choosing row taking that row's place lies over
-// the conversation, so the conversation keeps its place through choosing, and only what holds to the
-// top steps by what the choosing row is taller than the room's. The row stands laid out whether
-// choosing or not, and the bar grows by a transform, which changes no size: so these are read when
-// the bars truly change size, never frame by frame as choosing opens or closes.
+// height alone: the choosing row it grows by lies over the conversation, so the conversation keeps
+// its place through choosing, and only what holds to the top steps down by the row. The row stands
+// laid out whether choosing or not, and the bar grows by a transform, which changes no size: so
+// these are read when the bars truly change size, never frame by frame as choosing opens or closes.
 let barSizes: ResizeObserver | null = null;
 
 function readBars(): void {
   headHeight.value = Math.ceil(roomNavbar.value?.getBoundingClientRect().height ?? 0);
-  chooseHeight.value = (chooseRow.value?.getBoundingClientRect().height ?? 0) - (roomRow.value?.getBoundingClientRect().height ?? 0);
+  chooseHeight.value = chooseRow.value?.getBoundingClientRect().height ?? 0;
   footHeight.value = Math.ceil(composerFoot.value?.offsetHeight ?? 0);
 
   const foot = composerFoot.value;

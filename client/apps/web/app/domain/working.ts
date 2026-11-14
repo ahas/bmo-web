@@ -168,9 +168,9 @@ export function listeningLines(t: Translate, name: string, secondsLeft: number):
   };
 }
 
-// What the room's row under its title bar says of the window while it is open: that the chat agent listens, as its
+// What the room's top bar says of the window while it is open: that the chat agent listens, as its
 // tooltip and its name to a screen reader, and the time left as a timer reads it, which turns as it ticks down
-// (docs/web.md, 「The window's time left stands under the top bar」).
+// (docs/web.md, 「The window's time left stands in the top bar」).
 export interface WindowClockLines {
   state: string;
   left: { keypath: string; figures: Record<string, { value: number; text: string }> };

@@ -1,6 +1,6 @@
 <template>
-  <!-- How long the chat agent's window in the room has left, in the room's row under the title bar for as long as it
-       is open (docs/web.md, 「The window's time left stands under the top bar」): a listening mark and the time left
+  <!-- How long the chat agent's window in the room has left, in the room's top bar for as long as it is open
+       (docs/web.md, 「The window's time left stands in the top bar」): a listening mark and the time left
        turning down by the second, named by its tooltip. It goes once the time it counts reaches nought. -->
   <UTooltip v-if="left > 0" :text="lines.state">
     <span class="flex shrink-0 items-center gap-1 text-sm text-muted tabular-nums" role="timer" :aria-label="lines.state" data-window-clock>

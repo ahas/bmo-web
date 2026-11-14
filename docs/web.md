@@ -1856,13 +1856,15 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   name and mark stands beside the name: no action, no way back and no switch, not even one that concerns that
   screen alone, which stands in the screen's own row under the bar (below). No screen composes a bar of its own
   or leaves a button of the set out. The one difference a screen may make is the room's: its bar is the same bar
-  on the translucent ground the room's bars lie over the conversation on.
+  on the translucent ground the room's bars lie over the conversation on, and it carries the room's menu, its
+  pinned button and its window's time left beside the room's name, with no row of the room's own under it
+  (「The top bar and the input bar lie over the conversation」).
 - **The set of buttons is one instance, held by the layout,** and laid into the bar of whichever screen
   stands. A page change moves it into the next screen's bar: nothing in it is stood up again, read again or
   drawn as loading, a button that has its figures keeps showing them, and none of it blinks.
   `client/tests/browser/title-bar.test.ts` holds that the set is the same element across a page change, and that
-  on an agent's screen and a room's the bar holds nothing past the name but the set, the agent's actions and the
-  room's menu standing in the row under it.
+  on an agent's screen the bar holds nothing past the name but the set, the agent's actions standing in the row
+  under it, and that on a room's the room's menu stands beside its name with no row under the bar.
 - **A screen a unit brings stands under the same bar.** The console offers its bar to every screen under its
   layout as bmo-ui's `docs/console-bundles.md` states the offer and the asking (「How a bundle mounts」, the title
   bar). Over a bundle's route that asks, the bar holds the sidebar button and the set of buttons as on every
@@ -3710,21 +3712,19 @@ Four bounds keep it from growing forever.
   | Inks inside a bubble | every secondary colour drawn inside a bubble is derived from that bubble's own ground, the owner's teal and the raised ground of everyone else's alike: its lightness is the ground's, moved a set share of the way to black in the light theme and to white in the dark, and its hue and chroma are its own — the text's for the muted and dimmed letters, the theme colour's for the accent and the success, error, warning, info and secondary colours. So the muted and dimmed letters, a link, a quote's strip, a chip's letters and icon, a verdict's mark and the send mark read at 4.5:1 or better, on the bubble and on the wash an open chip or a soft badge lays over it, in both themes, and keep it when a ground changes colour. The verdict mark's passing and failing colours are a mark's, read at 3:1, so they take a mark ink of their own, moved a smaller share than the letters' inks so their colour stays vivid: the passing green keeps its own chroma, as much of it as the screen shows, in both themes, and only the failing red is held to a chroma the screen still shows at the dark theme's light mark, where a strong red does not fit. They read at 3:1 or better on the same grounds and washes, and keep it when a ground changes colour | |
   | Meta line over a picture | 4px in from the picture's corner, 4px corners, 8px sides | 6px sides |
   | Top bar | 48px, the height every page's top bar has, a 20px picture | |
-  | Picture and name | 12px from the picture to the name, both on one centre line, and nothing after the name | |
-  | The room's row | 48px under the title bar's line, one line at every width: the pinned button and the window's time left at its left, the menu's small square button at its right end | |
+  | Picture, name and menu | 12px from the picture to the name and from the name to the menu's dots, the gap read between what the eye sees, so the menu button's own room reaches under the name's end; the menu stays beside the name, all three on one centre line, the pinned button and the window's time left after it | |
   | Input bar | 8px above and below the input box; the box 4px round its controls, 32px buttons with 4px corners | |
   | Photo and way down above the input bar | 8px | |
 - **The top bar and the input bar lie over the conversation.** Each runs the panel's full width with no
   rounding — the top bar being the title bar at every other page's top bar's height, padding, title and mark
-  size, with the room's own row under it, its edge under them both; the input bar along the panel's foot with its
+  size, its edge under it; the input bar along the panel's foot with its
   edge over it — on a translucent ground that blurs what passes behind it, and the conversation runs to the
   panel's top and foot underneath them. Only the room's bars are translucent: every other page's top bar stays
   opaque.
-  - The title bar holds the room's picture and name alone (「The title bar」). What acts on the room stands in the
-    room's own row under it, on the same ground: the pinned button (「What was done to a message」) and the
-    window's time left (「The window's time left stands under the top bar」) at its left, and the room's menu, its
-    vertical-dots button, at its right end. The row is one line at every width, and while choosing or finding
-    the row of that mode takes its place, so no second row ever stands under the title bar.
+  - What acts on the room stands in the title bar beside the room's name (「The title bar」), and no row of the
+    room's own stands under it: the room's menu, its vertical-dots button, right after the name, then the pinned
+    button (「What was done to a message」) and the window's time left (「The window's time left stands in the top
+    bar」). The right end keeps only what every screen carries.
   - What the conversation holds to its top — a date mark, a new part's first line — is held under the top bar,
     and its end stands above the input bar: the conversation keeps the measured height of each bar as room at
     its top and foot, so nothing — the last message — is left behind either bar when
@@ -3737,20 +3737,18 @@ Four bounds keep it from growing forever.
     line written in an input box keeps its breaks while the writing goes on」). Once sent they stand at a
     bubble's breaks, between words and at the bubble's narrower width, and the flight shows them at those
     breaks from its first frame (「What arrives comes in at the end, and nothing standing moves」).
-  - Choosing opens no bar of its own: the choosing row unfolds inside the top bar in the room's row's place, on the
-    same ground, under the same edge, the room's row fading as it comes, and folds back the same way when choosing
-    ends, the room's row coming back (「선택」). Where the choosing row is taller than the room's row the bar grows
-    downward by the difference. The grown bar lies over the conversation, which keeps only the resting bar's height —
-    the title bar and the room's row — as its room at the top, so no message moves by a pixel as the bar grows or
-    shrinks; only a day mark held at the top steps with the bar's foot, and a message scrolled to while choosing
-    stops under the grown bar rather than behind it.
+  - Choosing opens no bar of its own: the top bar grows downward and the choosing row unfolds inside it, on the
+    same ground, under the same edge, and folds back the same way when choosing ends (「선택」). The grown bar lies over
+    the conversation, which keeps only the resting bar's height as its room at the top, so no message moves by a pixel
+    as the bar grows or shrinks; only a day mark held at the top steps down with the bar's foot, and a message
+    scrolled to while choosing stops under the grown bar rather than behind it.
   - The growing touches nothing the conversation is laid out by, so it runs on the compositor and every frame of it
-    is drawn on time. The choosing row is laid out at its full height over the room's row from the start and kept
-    clipped; the bar's ground, its edge and its fade slide as one piece from the room's row's foot to the choosing
-    row's, and the choosing row's contents slide down out from under the title bar with them; folding is the same
-    slide back. So the folded bar stands right from the first frame drawn, before anything is measured. The
-    conversation's room at the top never changes, and the scroll padding changes once as choosing starts or ends;
-    the day marks alone move with the bar, stepping at its pace.
+    is drawn on time. The row is laid out at its full height under the bar from the start and kept clipped; the
+    bar's ground, its edge and its fade slide down over it as one piece, by the row's own height, and the row's
+    contents slide down out of the bar's foot with them; folding is the same slide back. So the folded bar stands
+    right from the first frame drawn, before anything is measured. The conversation's room at the top never
+    changes, and the scroll padding changes once as choosing starts or ends; the day marks alone move with the bar,
+    stepping down at its pace.
   - Opening and closing choosing makes and removes nothing in any message: each message's mark stands drawn all
     along, hidden past its cell's edge while nothing is chosen, and only slides.
   - Words passing under the top bar do not end at a hard line at its foot: the bar's ground fades out a short way
@@ -4624,7 +4622,7 @@ Four bounds keep it from growing forever.
   first message in view stays where it stood, and a reader at the room's end stays at the end.
   Neither entering nor leaving touches the input box or where the keyboard is. Exit by Esc or
   cancel. While selecting, Ctrl+C (⌘C on Mac) copies and Ctrl+A (⌘A) selects all. Copying ends selecting on the
-  spot. The room's three-dot menu, at the right end of the room's row, also has start selecting and copy all.
+  spot. The three-dot menu beside the room's name also has start selecting and copy all.
 - **What a copy holds** — a copy is not a visible shape but a record to be read elsewhere. The first line has the room name
   and chat number, each message stands in one line with its time, sender, sender number, message number and body,
   and below it the content of every chip the message carries, whether the chip is open on screen or not, in this
@@ -4733,8 +4731,8 @@ Four bounds keep it from growing forever.
     closes the menu. Each emoji is the library's own square ghost button, the reader's own standing pressed in the
     accent's soft wash; the strip is as wide as its buttons with one even gap between them, never spread across the
     menu, and a hover colours the one button under the pointer and not the menu's row.
-  - **A pinned message** wears a pin mark on its meta line, and the room's row under the title bar carries a pinned
-    button at its left while the room holds one: the pin mark and, from the sm width, the first line of the pinned message it
+  - **A pinned message** wears a pin mark on its meta line, and the room's top bar carries a pinned button beside the
+    room's menu while the room holds one: the pin mark and, from the sm width, the first line of the pinned message it
     stands at, cut, with that message's words whole in its tooltip and how many are pinned where there are several.
     The room's pinned messages are the receiver's answer to `GET /rooms/{roomId}/pins` (the receiver's
     `docs/api.md`, 「Messages」), newest pin first and never a deleted one, read when the room opens, when the record
@@ -5083,8 +5081,8 @@ Four bounds keep it from growing forever.
     time runs out, so the row goes when the window closes and never on a guess of the screen's. The countdown only reads that answer down between reads and
     never closes anything itself.
   - The owner's own chat stands no listening row: every message there reaches the chat agent with no window at all.
-- **The window's time left stands under the top bar.** While the chat agent's window in a group room is open, the
-  room's row under the title bar carries how long it has left at its left, after the pinned button, whether a turn
+- **The window's time left stands in the top bar.** While the chat agent's window in a group room is open, the
+  room's top bar carries how long it has left, beside the room's name, its menu and the pinned button, whether a turn
   is running or the listening row stands, so how long the conversation still has is read without going to the room's end. It is
   a listening mark and the time left as a timer reads it, counting down by the second in tabular figures that turn
   as every changing number does, and its tooltip and the name a screen reader hears say that the chat agent
@@ -5218,8 +5216,8 @@ Four bounds keep it from growing forever.
 
 - **Every room's menu carries 대화에서 찾기, for every reader,** first in its first group. It opens a find row
   in the top bar, where the choosing row stands: a search box, how many messages hold the phrase and which of them
-  is shown, a button to the one before and the one after, and 닫기. It takes the room's row's place as the choosing
-  row does, so no message moves.
+  is shown, a button to the one before and the one after, and 닫기. It unfolds in the top bar as the choosing row
+  does, so no message moves.
 - **What it finds is the console's list search** (「List search」): the phrase typed, matched whole and without regard
   to case, in what a message shows — its words, its sender's name, the words heard in a voice note and its files'
   names. Every hit standing on the

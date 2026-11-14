@@ -987,17 +987,19 @@ describe("how the room screen opens", () => {
   });
 });
 
-// The input bar keeps clear of a phone's gesture bar while nothing overlays the window, and the room's row under the
-// title bar carries the window's time left while it is open.
+// The input bar keeps clear of a phone's gesture bar while nothing overlays the window, and the room's top bar carries
+// the window's time left beside the room's name while it is open.
 describe("the room's bars", () => {
   test("the input bar adds the bottom inset only while no keyboard overlays the window", () => {
     expect(screen).toContain("overlaid ? 'pb-(--chat-bar-pad)' : 'pb-[calc(var(--chat-bar-pad)+var(--bmo-safe-bottom))]'");
   });
 
-  test("the room's row stands the window's clock while the window is open", () => {
-    const row = screen.slice(screen.indexOf("data-room-row"), screen.indexOf("data-choose-row"));
+  test("the title bar stands the window's clock beside the room's name while the window is open", () => {
+    const beside = screen.slice(screen.indexOf("<template #trailing>"), screen.indexOf("</ConsoleTitleBar>"));
 
-    expect(row).toContain('<RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />');
+    expect(screen).not.toContain("data-room-row");
+    expect(beside).toContain("data-room-menu");
+    expect(beside).toContain('<RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />');
   });
 });
 

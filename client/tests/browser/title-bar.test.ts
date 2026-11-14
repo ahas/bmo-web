@@ -9,7 +9,8 @@ import type { Browser, Page } from "playwright-core";
 // The one title bar (docs/web.md, 「The title bar」): every screen stands the same set of buttons in the same place,
 // and the set is one instance the layout holds, so a page change moves it into the next screen's bar rather than
 // standing it up again. Read between every pair of the console's own screens, at both widths. Nothing stands beside the
-// screen's name: what concerns one screen stands in its own row under the bar. It drives the console
+// screen's name but on a room's: what concerns one screen stands in its own row under the bar, and a room stands its
+// menu beside its name. It drives the console
 // tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
@@ -143,7 +144,7 @@ async function besideName(page: Page): Promise<string[]> {
 
 describe.skipIf(!origin || !touchReady())("the screen's name alone in the bar", () => {
   for (const viewport of WIDTHS) {
-    test(`an agent's and a room's actions stand in the row under the bar, ${viewport.width}px wide`, async () => {
+    test(`an agent's actions stand in the row under the bar and a room's menu beside its name, ${viewport.width}px wide`, async () => {
       const context = await browser!.newContext({ viewport: { width: viewport.width, height: viewport.height }, isMobile: viewport.phone, hasTouch: viewport.phone, serviceWorkers: "block", reducedMotion: "reduce" });
       const at = cookie.indexOf("=");
 
@@ -161,10 +162,10 @@ describe.skipIf(!origin || !touchReady())("the screen's name alone in the bar", 
         await settings.waitFor({ timeout: 30_000 });
         expect(await besideName(page)).toEqual([]);
 
-        // The room's menu stands at its row's right end.
+        // The room's menu stands beside the room's name, with no row of the room's own under the bar.
         await page.goto(`${origin}/rooms/42`, { waitUntil: "load" });
-        await page.locator("[data-room-row] [data-room-menu]").waitFor({ timeout: 30_000 });
-        expect(await besideName(page)).toEqual([]);
+        await page.locator("[data-title-bar] [data-room-menu]").waitFor({ timeout: 30_000 });
+        expect(await page.locator("[data-room-row]").count()).toBe(0);
       } finally {
         await context.close();
       }

@@ -46,12 +46,14 @@ export async function scratchWebDatabase(): Promise<string> {
 
   process.env.WEB_DATABASE_URL = address;
 
+  // A connection still closing would hold a plain drop waiting out PostgreSQL's five seconds, the whole of the
+  // hook's own ceiling, so the drop ends whatever still stands in the scratch database.
   afterAll(async () => {
     await closeWebSql();
 
     const dropping = new SQL(connectionOf(addressOf("postgres")) as SQL.Options);
 
-    await dropping.unsafe(`DROP DATABASE IF EXISTS "${name}"`);
+    await dropping.unsafe(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
     await dropping.close();
   });
 

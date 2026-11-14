@@ -40,6 +40,7 @@
           >{{ round.answer }}</pre>
           <pre v-else-if="round.diff.length > 0" data-draft-diff class="mt-1 mb-2 ms-7 font-sans text-sm whitespace-pre-wrap wrap-anywhere"><span v-for="(line, at) in round.diff" :key="at" :data-diff="line.kind" :class="line.kind === 'removed' ? 'text-error/80 line-through' : line.kind === 'added' ? 'text-success' : 'text-muted'">{{ line.text }}
 </span></pre>
+          <DraftVersions :versions="round.versions" class="mb-2 ms-7" />
         </li>
       </ol>
 
@@ -79,7 +80,7 @@ import { draftDiff, endLine, gateRoundLines, roundLines } from "~/domain/draft-p
 import { stageLabel, verdictWords } from "~/domain/judgements";
 import { countText, secondsText } from "~/domain/numbers";
 
-import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
+import type { DraftRead, DraftRow, DraftSummary, DraftVersion } from "#shared/drafting";
 import type { Judgement } from "#shared/types";
 
 interface Props {
@@ -101,10 +102,16 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 
 const rounds = computed(() => {
-  const logged = props.rows === null ? [] : roundLines(t, props.rows).map((round) => ({ ...round, diff: diffFor(props.rows ?? [], round) }));
+  const logged =
+    props.rows === null ? [] : roundLines(t, props.rows).map((round) => ({ ...round, diff: diffFor(props.rows ?? [], round), versions: versionsFor(props.rows ?? [], round) }));
 
-  return logged.length > 0 ? logged : gateRoundLines(t, props.drafts).map((round) => ({ ...round, diff: [] }));
+  return logged.length > 0 ? logged : gateRoundLines(t, props.drafts).map((round) => ({ ...round, diff: [], versions: [] }));
 });
+
+// The answers a round's turn wrote, where its row carries them.
+function versionsFor(rows: readonly DraftRow[], round: { key: string }): DraftVersion[] {
+  return rows.find((one) => String(one.id) === round.key)?.versions ?? [];
+}
 
 // A row's own change, as its diff: the answer it rewrote against what stood before it, where the round rewrote the
 // message. A round that changed nothing has no diff, and stands its answer once.

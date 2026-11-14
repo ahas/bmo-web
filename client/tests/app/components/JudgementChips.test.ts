@@ -88,6 +88,11 @@ describe("the record, in the order the turn made it", () => {
     expect(record).toContain("data-draft-answer");
   });
 
+  test("a round whose turn wrote more than one answer stands each under its own", () => {
+    expect(script).toContain("versions: row.versions ?? [],");
+    expect(record).toContain('<DraftVersions :versions="entry.versions"');
+  });
+
   test("the end of the process and each gate's card follow, cards by their own moment", () => {
     expect(script).toContain("const end = endLine(t, rows, recordSplit.value.drafts, props.drafts);");
     expect(script).toContain("push(endRow?.at ?? null, { kind: \"end\", ...end,");

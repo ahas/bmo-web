@@ -114,6 +114,16 @@ export interface DraftRow {
   // session read in full before this round; null on every other row and on a row kept before they were counted.
   session?: string | null;
   loaded?: number | null;
+  // On a turn's row whose turn spanned more than one turn of the agent's program, each answer it wrote in order;
+  // empty or absent on every other row.
+  versions?: DraftVersion[];
+}
+
+/** One answer a turn of a round wrote: its words, and whether words handed over opened it or the program's own
+ * notice did. */
+export interface DraftVersion {
+  text: string;
+  opened: "handed" | "program";
 }
 
 /** What a round's draft process did, on the round's last message: the round, how many rounds it asked, how it

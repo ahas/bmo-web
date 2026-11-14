@@ -4495,6 +4495,11 @@ Four bounds keep it from growing forever.
     lines the rewrite kept stand plain, the ones it dropped stand struck through in the error colour, and the ones it
     brought stand in the success colour, so what a repair round or an arrived rewrite actually changed is read at once. A
     round whose answer is what stood before it stands that answer once, with no marks.
+  - **A round whose turn wrote more than one answer stands each of them**, where the record carries them (the
+    receiver's `versions`, its `docs/drafting.md`, 「The round log」): under the round's answer, 「쓴 답 2개」 and each
+    answer the turn wrote in order, what opened it — 받은 말 for words handed over, 작업 알림 for the program's own
+    notice — and its words dimmed, so an answer a later skip left standing, or one a later answer replaced, is read
+    beside the answer the round went on with.
   - **Then the end, one line**: what went out — 메시지 보냄, 보내지 않음, 보류, 시간 초과 후 메시지 보냄 or 시간 초과
     후 보내지 않음 — and how long the whole took.
   - **Then what was read before it**: the 브레인 chip's own list (「브레인 · 툴 사용」), in the same look, where the

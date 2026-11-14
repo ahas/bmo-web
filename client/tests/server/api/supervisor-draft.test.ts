@@ -24,7 +24,15 @@ const POLICY_QUESTIONS = [{ name: "supervisor", text: "Answer?", source: "defaul
 const OWN_QUESTIONS = [{ name: "supervisor", text: "Answer?", source: "default" }, { name: "intent", text: "Why was it said?", source: "set" }, { name: "final", text: "Write it.", source: "default" }, { name: "tone", text: "Does it fit?", source: "set" }];
 const DRAFT_ROWS = [
   { id: 1, agentName: "agent-a", number: 0, question: "turn", kind: "turn", answerChars: 40, changed: false, outcome: "answered", detail: null, ms: 900, at: 1_788_000_000_000, answer: "draft" },
-  { id: 2, agentName: "agent-a", number: 1, question: "final", kind: "question", answerChars: 42, changed: true, outcome: "answered", detail: null, ms: 700, at: 1_788_000_001_000, answer: "message" },
+  {
+    id: 2, agentName: "agent-a", number: 1, question: "final", kind: "question", answerChars: 42, changed: true, outcome: "answered", detail: null, ms: 700, at: 1_788_000_001_000, answer: "message",
+    versions: [
+      { text: "message", opened: "handed" },
+      { text: "<<SKIP: nothing new>>", opened: "handed" },
+      { text: "a notice", opened: "program" },
+      { text: "odd", opened: "elsewhere" }
+    ]
+  },
   {
     id: 3, agentName: "agent-a", number: 2, question: "", kind: "end", answerChars: 42, changed: false, outcome: "message", detail: "row=claude-code/*/*", ms: 0, at: 1_788_000_001_000, answer: null,
     reads: [
@@ -194,6 +202,9 @@ describe("one round's rows", () => {
     // The end names what the round read from the brain, a way the console does not know left out; other rows none.
     expect(read.answer?.rows[2]?.reads.map((one) => one.how)).toEqual(["attached", "read", "held"]);
     expect(read.answer?.rows[1]?.reads).toEqual([]);
+    // A turn's row names each answer its turn wrote, one opened in a way the console does not know left out.
+    expect(read.answer?.rows[1]?.versions?.map((one) => one.opened)).toEqual(["handed", "handed", "program"]);
+    expect(read.answer?.rows[0]?.versions).toEqual([]);
     expect(receiver.asked[0]?.path).toBe("/rounds/drafts?room=-7&rounds=round-1");
   });
 

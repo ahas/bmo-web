@@ -101,6 +101,8 @@
 - a role → its name alone, the kebab-case key the agency holds it under (`worker`, `doppelganger`, `voyager`,
   `seeker`, `producer` …): never translated and never the row's label, on every screen that names one.
 - a supervisor whose road cannot take a turn now → 답할 수 없음.
+- the answers one turn of a round wrote, before the one it went on with → 쓴 답, each opened by 받은 말 (words handed
+  over) or 작업 알림 (the program's own notice); never 판, which reads as 판정.
 - a round's record on its answer → 판정 기록: 판정 기록, 기록, 펼치기, 접기. The one press carrying the turn's
   brain, calls, drafts and judgement; its parts say 브레인, 툴 사용, 드래프트, 판정.
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,

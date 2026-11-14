@@ -675,6 +675,9 @@ room:
     draft_question_arrived: 도착 확인
     draft_reads: "읽음: {names}"
     draft_slow: 오래 걸린 라운드
+    draft_version_handed: 받은 말
+    draft_version_program: 작업 알림
+    draft_versions: "쓴 답 {n}개"
     earlier_count: "이전 {n}개"
     edited: 수정됨
     edited_at: "{time}에 수정됨"

@@ -6,7 +6,7 @@ import { receiver, receiverCall } from "./receiver";
 
 import { ANY_KEY } from "#shared/drafting";
 
-import type { DraftProcessValues, DraftQuestionView, DraftRead, DraftReadHow, DraftRow, DraftSummary, DraftSource, PastCeiling, SupervisorDraftSave, SupervisorDraftView } from "#shared/drafting";
+import type { DraftProcessValues, DraftQuestionView, DraftRead, DraftReadHow, DraftRow, DraftSummary, DraftSource, DraftVersion, PastCeiling, SupervisorDraftSave, SupervisorDraftView } from "#shared/drafting";
 import type { components } from "@bmo/receiver-client/schema";
 
 type Schemas = components["schemas"];
@@ -50,8 +50,22 @@ function rowOf(row: Schemas["DraftRound"]): DraftRow {
     answer: row.answer,
     reads: (row.reads ?? []).flatMap(readOf),
     session: row.session ?? null,
-    loaded: row.loaded ?? null
+    loaded: row.loaded ?? null,
+    versions: versionsOf(Reflect.get(row, "versions"))
   };
+}
+
+// The answers a turn's row names it wrote, once the receiver's log carries them; one of a shape the console does not
+// know is left out.
+function versionsOf(versions: unknown): DraftVersion[] {
+  if (!Array.isArray(versions)) return [];
+
+  return versions.flatMap((version: unknown) => {
+    const text: unknown = typeof version === "object" && version !== null ? Reflect.get(version, "text") : undefined;
+    const opened: unknown = typeof version === "object" && version !== null ? Reflect.get(version, "opened") : undefined;
+
+    return typeof text === "string" && (opened === "handed" || opened === "program") ? [{ text, opened }] : [];
+  });
 }
 
 const READ_HOWS: readonly DraftReadHow[] = ["attached", "read", "held"];

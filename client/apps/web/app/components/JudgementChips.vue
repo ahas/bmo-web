@@ -194,6 +194,7 @@
               <pre v-if="entry.diff.length === 0 && entry.line.answer !== null" data-draft-answer class="mb-1 ms-7 font-sans text-sm whitespace-pre-wrap wrap-anywhere text-muted">{{ entry.line.answer }}</pre>
               <pre v-else-if="entry.diff.length > 0" data-draft-diff class="mb-1 ms-7 font-sans text-sm whitespace-pre-wrap wrap-anywhere"><span v-for="(line, at) in entry.diff" :key="at" :data-diff="line.kind" :class="line.kind === 'removed' ? 'text-error/80 line-through' : line.kind === 'added' ? 'text-success' : 'text-muted'">{{ line.text }}
 </span></pre>
+              <DraftVersions :versions="entry.versions" class="mb-1 ms-7" />
             </div>
 
             <p v-else-if="entry.kind === 'end'" data-draft-end class="flex flex-wrap items-center gap-x-2 px-1 text-sm text-muted tabular-nums">
@@ -289,7 +290,7 @@ import { draftAsked, draftDiff, draftRound, endLine, gateRoundLines, roundLines,
 import type { AgentLogLine, BriefingReading, ExactMessageId, Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
 import type { LogRow } from "~/domain/log";
 import type { DraftDiffLine, RoundLine } from "~/domain/draft-process";
-import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
+import type { DraftRead, DraftRow, DraftSummary, DraftVersion } from "#shared/drafting";
 import type { BriefingChip, VerdictChip } from "~/domain/chips";
 import type { SpendChip } from "~/domain/turns";
 import type { Situation } from "#shared/types";
@@ -528,7 +529,7 @@ type RecordEntry =
   | { kind: "actions"; actions: TurnAction[] }
   | { kind: "call"; row: LogRow }
   | { kind: "said"; text: string }
-  | { kind: "draft"; line: RoundLine; diff: DraftDiffLine[]; at: number }
+  | { kind: "draft"; line: RoundLine; diff: DraftDiffLine[]; versions: DraftVersion[]; at: number }
   | { kind: "end"; outcome: string; withheld: boolean; ms: number | null; at: number | null }
   | { kind: "opening"; opening: NonNullable<Judgement["opening"]> }
   | {
@@ -593,6 +594,7 @@ const timeline = computed<RecordEntry[]>(() => {
           kind: "draft",
           line,
           diff: before !== null && line.answer !== null && before !== line.answer ? draftDiff(before, line.answer) : [],
+          versions: row.versions ?? [],
           at: row.at
         });
       }
@@ -601,7 +603,7 @@ const timeline = computed<RecordEntry[]>(() => {
       for (const line of gateRoundLines(t, recordSplit.value.drafts)) {
         const judgement = props.roundJudgements.find((one) => `judgement:${one.id}` === line.key);
 
-        if (judgement !== undefined) push(judgement.createdAt, { kind: "draft", line, diff: [], at: judgement.createdAt });
+        if (judgement !== undefined) push(judgement.createdAt, { kind: "draft", line, diff: [], versions: [], at: judgement.createdAt });
       }
     }
 

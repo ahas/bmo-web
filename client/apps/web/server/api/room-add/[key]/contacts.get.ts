@@ -4,9 +4,11 @@ import type { RoomAddContactPage } from "#shared/types";
 
 // A page of the contacts of a chat service's account, as the service answers them through the receiver, each with
 // the one-to-one the account already has with it and whether the receiver holds that room, for the administrator
-// starting a conversation to add; `after` and `limit` go as they came (the receiver's `docs/api.md`, 「Rooms」).
+// starting a conversation to add; `after` and `limit` go as they came (the receiver's `docs/api.md`, 「Rooms」). They
+// are the signed-in person's own account's, named by their user id where the model gives them one and never by
+// anything the request says; with none, the service answers its own account's.
 export default defineEventHandler(async (event): Promise<RoomAddContactPage> => {
-  await requireAdministrator(event);
+  const signed = await requireAdministrator(event);
 
   const key = getRouterParam(event, "key") ?? "";
   const query = getQuery(event);
@@ -19,7 +21,11 @@ export default defineEventHandler(async (event): Promise<RoomAddContactPage> => 
     receiver().GET("/providers/{key}/contacts", {
       params: {
         path: { key },
-        query: { ...(Number.isSafeInteger(after) && query.after !== undefined ? { after } : {}), ...(Number.isSafeInteger(limit) && limit > 0 ? { limit } : {}) }
+        query: {
+          ...(Number.isSafeInteger(after) && query.after !== undefined ? { after } : {}),
+          ...(Number.isSafeInteger(limit) && limit > 0 ? { limit } : {}),
+          ...(signed.id === null ? {} : { accountId: signed.id })
+        }
       }
     })
   );

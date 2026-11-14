@@ -86,8 +86,8 @@ describe("adding a room", () => {
     expect(receiver.asked.at(-1)?.path).toBe("/providers/service-a/rooms?after=5&limit=50");
   });
 
-  test("reads a page of a service's contacts, each with its one-to-one held or not", async () => {
-    const read = await asked(contacts, { params: { key: "service-a" }, query: { limit: "200" } });
+  test("reads a page of the signed-in person's own account's contacts, each with its one-to-one held or not", async () => {
+    const read = await asked(contacts, { params: { key: "service-a" }, query: { limit: "200", accountId: "5" } });
 
     expect(read.answer).toEqual({
       items: [
@@ -96,7 +96,7 @@ describe("adding a room", () => {
       ],
       more: false
     });
-    expect(receiver.asked.at(-1)?.path).toBe("/providers/service-a/contacts?limit=200");
+    expect(receiver.asked.at(-1)?.path).toBe("/providers/service-a/contacts?limit=200&accountId=1");
   });
 
   test("says a service that lists no contacts in the pack's sentence", async () => {
@@ -113,11 +113,11 @@ describe("adding a room", () => {
     expect(receiver.asked.at(-1)?.body).toEqual({ provider: "service-a", roomId: 7, mode: "record-only", title: null });
   });
 
-  test("starts a one-to-one with a contact and answers the room it came to", async () => {
+  test("starts a one-to-one with a contact in the signed-in person's own account and answers the room it came to", async () => {
     const read = await asked(add, { body: { provider: "service-a", contactId: 52, mode: "record-only", title: "" } });
 
     expect(read.answer).toEqual({ chatId: 52, title: "Contact" });
-    expect(receiver.asked.at(-1)?.body).toEqual({ provider: "service-a", contactId: 52, mode: "record-only" });
+    expect(receiver.asked.at(-1)?.body).toEqual({ provider: "service-a", contactId: 52, mode: "record-only", accountId: 1 });
   });
 
   test("hands a group's contacts and name on, and says a kind of start the service does not make", async () => {
@@ -125,7 +125,24 @@ describe("adding a room", () => {
 
     expect(read.status).toBe(409);
     expect(read.message).toBe(wording("room.error.room_add_unstarted"));
-    expect(receiver.asked.at(-1)?.body).toEqual({ provider: "service-a", contactIds: [51, 52], mode: "record-only", title: "Plans" });
+    expect(receiver.asked.at(-1)?.body).toEqual({ provider: "service-a", contactIds: [51, 52], mode: "record-only", title: "Plans", accountId: 1 });
+  });
+
+  test("names no account for a person the model gives no user, so the service answers its own", async () => {
+    const globals: Record<string, unknown> = globalThis;
+    const administrator = globals.requireAdministrator;
+
+    globals.requireAdministrator = async () => ({ id: null, name: "tester", administrator: true });
+
+    try {
+      await asked(contacts, { params: { key: "service-a" }, query: { limit: "200" } });
+      expect(receiver.asked.at(-1)?.path).toBe("/providers/service-a/contacts?limit=200");
+
+      await asked(add, { body: { provider: "service-a", contactId: 52, mode: "record-only" } });
+      expect(receiver.asked.at(-1)?.body).toEqual({ provider: "service-a", contactId: 52, mode: "record-only" });
+    } finally {
+      globals.requireAdministrator = administrator;
+    }
   });
 
   test("says a room already added and a contact the service does not know in the pack's sentences", async () => {

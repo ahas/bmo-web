@@ -1309,8 +1309,14 @@ Four groups.
       with its title or number and kind; a room the receiver already holds is marked, by its mode where it was
       added (and not chosen again) and as 이미 있는 방 where it was never added. 새 대화, where the service lists
       its contacts, holds every contact with a search over their names, each marked 사람 or 봇 and, where the
-      account already has a one-to-one with it, marked as that room is. Choosing one contact starts a one-to-one
-      where the service starts one (`startsChats`); where it starts groups (`startsGroups`), several may be
+      account already has a one-to-one with it, marked as that room is. The contacts are the signed-in person's
+      own account's: the listing and a start from it name that person's user id as the account they are for
+      (bmo-chat's `docs/contract.md`, 「The account a call is for」), taken from the session and never from the
+      dialog, and a person the account model names no user for names none, so the service's own account
+      answers. A service that holds its own account alone answers that account's whichever is named. Under its
+      label the list says in a few words whose contacts these are, the reader's own (내 계정 연락처) or, where
+      the reader has no user, the chat service's own (채팅 서비스 계정 연락처). Choosing one contact starts a
+      one-to-one where the service starts one (`startsChats`); where it starts groups (`startsGroups`), several may be
       chosen, and a group's name is then asked. A service that lists contacts but starts neither shows them and
       says that it starts no conversation. A tab the service does not offer does not stand.
     - **A mode** among the service's `roomModes` — 아바타, the room's agents answering under the owner's account,
@@ -1321,8 +1327,8 @@ Four groups.
       of the signed-in person's own supervisors or 감독관 없음, said under the choice. The group carries only that
       supervisor, never another person's; added with none it carries none, and the default answerer answers it.
     추가 posts the choices, the receiver asking the service to start a conversation first where one was chosen
-    from the contacts, and the room stands in the list at once; a group's chosen supervisor is named on it as it
-    stands, and a naming the receiver refuses leaves the group standing without one. A refusal the receiver
+    from the contacts, in the same account the contacts were listed in, and the room stands in the list at once;
+    a group's chosen supervisor is named on it as it stands, and a naming the receiver refuses leaves the group standing without one. A refusal the receiver
     answers with a code is said in the pack's sentence under the dialog: a service
     that lists no rooms or no contacts, a conversation of a kind the service does not start, a contact it does
     not know, a start it refused, a room the service does not know, an avatar mode the service does not hold

@@ -12,7 +12,8 @@ const isId = (value: unknown): value is number => typeof value === "number" && N
 // `docs/api.md`, 「Rooms」). A group may name its supervisor, one the signed-in person owns or none: the group
 // carries only its creator's supervisor, never another person's, and a group added with none carries none. The
 // receiver checks each against what the service declares, asks the service to start a conversation where one is
-// chosen, and its refusals are said in the pack's words.
+// chosen, in the signed-in person's own account as the contacts were listed in, and its refusals are said in the
+// pack's words.
 export default defineEventHandler(async (event): Promise<RoomAdded> => {
   const signed = await requireAdministrator(event);
 
@@ -39,14 +40,17 @@ export default defineEventHandler(async (event): Promise<RoomAdded> => {
     throw fail(400, wording("room.error.room_add_supervisor"));
   }
 
+  // A start goes out in the account its contacts were listed in: the signed-in person's own where the model gives
+  // them a user, else the service's own.
+  const account = signed.id === null ? {} : { accountId: signed.id };
   let room;
 
   if (isId(body.roomId)) {
     room = await receiverCall(receiver().POST("/rooms", { body: { provider, roomId: body.roomId, mode, title } }));
   } else if (isId(body.contactId)) {
-    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactId: body.contactId, mode, ...(title === null ? {} : { title }) } }));
+    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactId: body.contactId, mode, ...account, ...(title === null ? {} : { title }) } }));
   } else if (groupContacts !== null) {
-    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactIds: groupContacts, mode, title } }));
+    room = await receiverCall(receiver().POST("/rooms", { body: { provider, contactIds: groupContacts, mode, title, ...account } }));
   } else {
     return refused();
   }

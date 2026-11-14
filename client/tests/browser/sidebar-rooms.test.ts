@@ -8,7 +8,7 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 
 // The sidebar holds the rooms that have been added and none that was not, though the owner's words stand in it
 // (docs/web.md, 「Sidebar」), on a desk's width and in a phone's drawer alike; the room add dialog brings such a room in
-// at once, and once its registration is removed it leaves. It drives the console tests/support/browser-console.ts
+// at once, and once its registration is removed it leaves, and lists the contacts of the reader's own account. It drives the console tests/support/browser-console.ts
 // stands up, whose receiver lists one such room beside the added ones; the suite stands up no console, so there it
 // skips.
 
@@ -104,6 +104,32 @@ describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
 
       expect((await page.request.post(`${origin}/api/rooms/${NUMBERED_CHAT}/remove`)).ok()).toBe(true);
       expect((await shownRooms(page, false)).some((name) => name.includes("numbered-room"))).toBe(false);
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+
+  test("the room add dialog lists the contacts of the signed-in person's own account, and says so", async () => {
+    const context = await contextFor(WIDE);
+
+    try {
+      const page = await context.newPage();
+
+      await shownRooms(page, false);
+      await page.locator("[data-room-add]:visible").click();
+
+      const dialog = page.getByRole("dialog", { name: wording("room.title.room_add") });
+
+      await dialog.getByRole("combobox", { name: wording("room.label.room_add_service") }).click();
+      await page.getByRole("option", { name: "Chat A" }).click();
+      await dialog.getByRole("tab", { name: wording("room.label.room_add_tab_contacts") }).click();
+
+      const contacts = dialog.getByRole("listbox", { name: wording("room.label.room_add_tab_contacts") });
+
+      await contacts.getByRole("option").first().waitFor({ timeout: 20_000 });
+
+      expect(await contacts.getByRole("option").allInnerTexts()).toEqual([expect.stringMatching(/^contact-of-account-\d+\b/)]);
+      await dialog.getByText(wording("room.message.room_add_contacts_mine"), { exact: true }).waitFor({ timeout: 5_000 });
     } finally {
       await context.close();
     }

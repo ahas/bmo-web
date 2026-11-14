@@ -806,12 +806,13 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     const listed = { ...room, id: NUMBERED_CHAT, title: "numbered-room", ownerRoom: false, listened: false, workRoom: NUMBERED_CHAT, lastMessageAt: LINE_AT - 100, messageCount: 1, senders: [1], mode: numbered.mode };
 
-    // The one chat service rooms are added from, listing its account's rooms, taking the record-only mode and reading
-    // a room's past back; and a second that does none of it, which the rooms read back to their oldest line are on.
+    // The one chat service rooms are added from, listing its account's rooms and the contacts of the account a listing
+    // names, taking the record-only mode and reading a room's past back; and a second that does none of it, which the
+    // rooms read back to their oldest line are on.
     if (path === "/providers") {
       return Response.json({
         items: [
-          { key: "chat-a", label: "Chat A", can: ["text", "history"], listsRooms: true, listsContacts: false, startsChats: false, startsGroups: false, roomModes: ["record-only"] },
+          { key: "chat-a", label: "Chat A", can: ["text", "history"], listsRooms: true, listsContacts: true, startsChats: false, startsGroups: false, roomModes: ["record-only"] },
           { key: "chat-b", label: "Chat B", can: ["text"], listsRooms: false, listsContacts: false, startsChats: false, startsGroups: false, roomModes: [] }
         ],
         more: false
@@ -819,6 +820,12 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
     if (path === "/providers/chat-a/rooms") {
       return Response.json({ items: [{ id: NUMBERED_CHAT, title: "numbered-room", kind: "group", privateTo: null, held: true, mode: numbered.mode }], more: false });
+    }
+    // Its one contact is named by the account the listing was asked for, so a screen shows whose contacts it read.
+    if (path === "/providers/chat-a/contacts") {
+      const account = new URL(request.url).searchParams.get("accountId");
+
+      return Response.json({ items: [{ id: 61, name: account === null ? "contact-of-service" : `contact-of-account-${account}`, kind: "person", roomId: null, held: false, mode: null }], more: false });
     }
     if (path === "/rooms" && request.method === "POST") {
       const body = (await request.json()) as { roomId?: number; mode?: string };

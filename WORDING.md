@@ -155,6 +155,8 @@
   Never 사전 확인, 변화 없음.
 - the screen of what is set for the whole deployment or for other people → 조직 설정; the dialog of what a person
   sets for themselves → 설정.
+- the account on a chat service a contact listing and a started conversation are for → 계정: 내 계정, 채팅 서비스
+  계정, 내 계정 연락처, 채팅 서비스 계정 연락처. Never 어카운트, 아이디.
 - a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.
 - what another person shared with the reader → 공유받은 항목: 공유받은 항목, 공유받은 항목 없음; the person who
   shared it → 공유한 사람: 공유한 사람, 공유한 사람: {name}. Never 공유된 항목, 받은 공유.

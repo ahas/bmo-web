@@ -861,6 +861,8 @@ room:
     room_add_mode_avatar: 방의 에이전트가 내 계정으로 답합니다.
     room_add_mode_record_only: 읽고 기록만 하며 답하지 않습니다.
     room_add_nothing: 이 채팅 서비스는 방 목록도 연락처도 알려 주지 않아 여기서 추가할 수 없습니다.
+    room_add_contacts_mine: 내 계정 연락처
+    room_add_contacts_service: 채팅 서비스 계정 연락처
     room_add_no_start: 이 채팅 서비스는 새 대화를 시작하지 않습니다.
     room_add_one_to_one: 이 연락처와 일대일 대화를 시작합니다.
     room_add_group: "{n}명과 새 그룹을 만듭니다."

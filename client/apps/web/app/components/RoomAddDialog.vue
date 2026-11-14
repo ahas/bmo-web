@@ -1,9 +1,9 @@
 <template>
   <!-- A room added from a chat service (docs/web.md, 「Sidebar」): choices made in turn, each offered by what the
        service declares and never by its name — the service, a room of its account or a conversation started with
-       its contacts, and the mode with a title that may be left empty. A group names its supervisor, one of the
-       signed-in person's own or none. A refusal the receiver answers with a code is said in the pack's sentence
-       under the form. The dialog keeps no unsaved-changes guard. -->
+       its contacts, which are the signed-in person's own account's and say so, and the mode with a title that may
+       be left empty. A group names its supervisor, one of the signed-in person's own or none. A refusal the receiver
+       answers with a code is said in the pack's sentence under the form. The dialog keeps no unsaved-changes guard. -->
   <SettingsDialog v-model:open="open" :title="$t('room.title.room_add')">
     <form id="room-add-form" class="flex flex-col gap-4" @submit.prevent="void add()">
       <p v-if="services !== null && services.length === 0" class="text-sm text-muted">{{ $t("room.status.room_add_no_services") }}</p>
@@ -68,7 +68,13 @@
         <p v-if="roomsFailed !== ''" role="alert" class="mt-2 text-sm text-error">{{ roomsFailed }}</p>
       </UFormField>
 
-      <UFormField v-if="tab === 'contacts' && service?.listsContacts" :label="$t('room.label.room_add_tab_contacts')" name="contacts" :help="startHelp">
+      <UFormField
+        v-if="tab === 'contacts' && service?.listsContacts"
+        :label="$t('room.label.room_add_tab_contacts')"
+        name="contacts"
+        :description="contactsAccount"
+        :help="startHelp"
+      >
         <UInput v-model="search" class="mb-2 w-full" icon="i-material-symbols-search-rounded" :placeholder="$t('room.label.room_add_search')" :aria-label="$t('room.label.room_add_search')" />
         <ContentSkeleton v-if="contactsReading && contacts.length === 0" :rows="3" listClass="flex flex-col gap-1" :label="$t('room.status.room_add_contacts_loading')">
           <SkeletonBar class="h-9 w-full rounded-md" />
@@ -208,6 +214,9 @@ const chosenTitle = computed(() => {
 
   return contacts.value.find((contact) => contact.id === contactIds.value[0])?.name ?? "";
 });
+// Whose contacts are listed, and so whose account a start goes out in: the reader's own where the session names
+// their user, which the console's routes name as the account, else the service's own.
+const contactsAccount = computed(() => (user.value?.id === undefined ? t("room.message.room_add_contacts_service") : t("room.message.room_add_contacts_mine")));
 const startHelp = computed(() => {
   if (!starts.value) return t("room.message.room_add_no_start");
   if (contactIds.value.length === 0) return undefined;

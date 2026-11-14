@@ -9,7 +9,7 @@ import { figuresOf } from "./runfigures";
 import { judgementsOf, judgementsWithin } from "./gate";
 import { ownerChat, ownerSender } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
-import { exactMessage, exactMessages, receiver, receiverCall } from "./receiver";
+import { exactMessage, exactMessages, onTheWire, receiver, receiverCall } from "./receiver";
 
 import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
 import type { ExactMessage, ReceiverRoom } from "./receiver";
@@ -206,7 +206,7 @@ async function mediaOf(chatId: number, message: ReceivedMessage, wordsFromMetada
   if (!listed && !wordsFromMetadata) return { attachments: [], expressions: [], formats: [] };
 
   try {
-    return await messageMedia(chatId, message.messageId, message.text, listed);
+    return await messageMedia(chatId, message.exactId, message.text, listed);
   } catch {
     return { attachments: attachmentsOf(message), expressions: [], formats: [] };
   }
@@ -261,11 +261,11 @@ const ownerNumbers = new Map<string, { owner: boolean; until: number }>();
 // out in a round (docs/web.md, 「An answer sent in the owner's own account wears the agent's face」). A page the
 // receiver named the agent on every send of needs no question.
 async function ownerVoices(chatId: number, messages: readonly ReceivedMessage[], answerers: ReadonlyMap<number, string>): Promise<Map<number, string>> {
-  const asked = new Map<number, number>();
+  const asked = new Map<number, ExactMessageId>();
 
   for (const message of messages) {
     if (message.agentName === null && message.senderId !== null && message.round !== null && answerers.has(message.senderId) && !asked.has(message.senderId)) {
-      asked.set(message.senderId, message.messageId);
+      asked.set(message.senderId, message.exactId);
     }
   }
 
@@ -280,7 +280,7 @@ async function ownerVoices(chatId: number, messages: readonly ReceivedMessage[],
   return voiced;
 }
 
-async function isOwnerNumber(chatId: number, number: number, messageId: number): Promise<boolean> {
+async function isOwnerNumber(chatId: number, number: number, messageId: ExactMessageId): Promise<boolean> {
   const key = `${chatId}:${number}`;
   const held = ownerNumbers.get(key);
 
@@ -289,7 +289,7 @@ async function isOwnerNumber(chatId: number, number: number, messageId: number):
   try {
     const answer = await receiverCall(
       receiver().GET("/rooms/{roomId}/messages/{messageId}/sender-is-owner", {
-        params: { path: { roomId: chatId, messageId } }
+        params: { path: { roomId: chatId, messageId: onTheWire(messageId) } }
       })
     );
 
@@ -535,21 +535,21 @@ async function pageOf(chatId: number, page: { items: ExactMessage[]; more: boole
 }
 
 /** One page of a room, oldest first, ending just before `before` when it is given. */
-export async function readMessagePage(chatId: number, before: number | null, limit: number): Promise<MessagePage> {
+export async function readMessagePage(chatId: number, before: ExactMessageId | null, limit: number): Promise<MessagePage> {
   const page = await exactMessages(chatId, { limit: Math.min(limit, PAGING.maxSize), ...(before === null ? {} : { before }) });
 
   return await pageOf(chatId, page, before === null);
 }
 
 /** The messages of a room past a message the reader already holds, oldest first. */
-export async function readMessagesAfter(chatId: number, after: number, limit: number): Promise<MessagePage> {
+export async function readMessagesAfter(chatId: number, after: ExactMessageId, limit: number): Promise<MessagePage> {
   const page = await exactMessages(chatId, { after, limit: Math.min(limit, PAGING.maxSize) });
 
   return await pageOf(chatId, page, !page.more);
 }
 
 /** One message of a room by its own number, as a page of one, or an empty page where the screen stands none. */
-export async function readOneMessage(chatId: number, messageId: number): Promise<MessagePage> {
+export async function readOneMessage(chatId: number, messageId: ExactMessageId | number): Promise<MessagePage> {
   const message = await exactMessage(chatId, messageId);
 
   return await pageOf(chatId, { items: [message], more: false }, false);

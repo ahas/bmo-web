@@ -443,6 +443,7 @@ room:
     find_none: 찾은 메시지 없음
     forward_none: 찾는 방 없음
     forward_rooms_none: 전달할 방이 없습니다.
+    held_from: "{services}에서 받은 대화는 여기부터입니다."
     later_loading: 다음 대화를 불러오는 중…
     listening_left: "앞으로 {time} 동안"
     more_records: "{n}개 더 있음"

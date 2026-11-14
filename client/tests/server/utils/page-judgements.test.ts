@@ -115,7 +115,7 @@ describe("a page's verdicts", () => {
   test("of a page short of the room's end are read to an hour past its last message", async () => {
     gate.asked.length = 0;
 
-    await readMessagePage(ROOM, 40, 30);
+    await readMessagePage(ROOM, "40", 30);
 
     const first = new URL(gate.asked[0]!.path, "http://gate").searchParams;
 

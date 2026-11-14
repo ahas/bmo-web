@@ -1474,7 +1474,9 @@ Four groups.
     64-bit integer, and a chat service may number its messages past 2^53, beyond what a JavaScript number holds
     without rounding. So the console reads each message's id from the digits the receiver wrote and carries it as
     those digits: in the mark it keeps, in the first unread message the room list names, in the row a room stands
-    each message in, and in the mark a room sends. A room numbered that high clears once read, as any other does.
+    each message in, in the mark a room sends, in the cursor a room's page is read by (「A cursor is a place,
+    not a number」), and in what a page asks of each of its messages as it is built: its files, the metadata it
+    arrived with, and whether its sender is the owner's own account. A room numbered that high clears once read, as any other does.
   - **A message is read once the foot of its row has stood in the room's view, in a tab on the screen.**
     Opening a room marks what is in view; a reader scrolled up into older messages marks nothing
     newer until it comes into view; a tab in the background marks nothing. The room's last row in
@@ -3988,6 +3990,22 @@ Four bounds keep it from growing forever.
   comparing a placeless number as a figure would return that room's oldest line, standing a months-old line
   and its date mark in the middle of today's conversation. Calling one line by name is done by pointing, not
   by cursor.
+  - **A cursor names its line by the exact digits the receiver wrote.** A chat service may number its messages
+    past 2^53, beyond what a JavaScript number holds without rounding, and a rounded number names no line, so the
+    receiver answers it with an empty page. So the line before which an older page is read, the line after which
+    a newer one is, and the one line read by pointing are each named by the id the screen holds the line under,
+    as those digits, and the console's page route takes any signed 64-bit integer written so. The bot's notice
+    names its message by a number as the browser reads it; the screen finds the line it holds under that number
+    and asks by the line's own digits.
+- **Where a room's line begins.** Once the reader stands at the oldest message the receiver holds, a line above
+  it says what that is. In a room none of whose chat services reads a room's past back, it is the
+  conversation's start: 「대화의 처음입니다.」. In a room where one does — one whose road there performs `history`
+  in bmo-chat's terms — the room holds only what that service has handed over so far, so the line names it:
+  「〈서비스〉에서 받은 대화는 여기부터입니다.」, each such service by the label the receiver gives it, and the older
+  lines are that service's to read back. The console asks which services those are once, when the oldest message
+  is reached, from the room's providers and the verbs each one's road in the room performs; a receiver that
+  cannot say leaves it the conversation's start. The line keeps its height while that is asked, so nothing under
+  it moves.
 - **A page joins the room's line where its rows stand, never where it arrived.**
   - A row the screen already holds is replaced where it stands. Every other row of the page goes beside the
     held row it stands next to in the page: one before the page's first held row stands before that row, one

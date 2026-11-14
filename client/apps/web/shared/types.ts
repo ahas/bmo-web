@@ -2590,6 +2590,12 @@ export interface MessagePage {
   hasMore: boolean;
 }
 
+// Where a room's line begins: the names of its chat services that read the room's past back, none where no service
+// does, so its oldest message is the conversation's start (docs/web.md, the room screen's 「Where a room's line begins」).
+export interface RoomPast {
+  readers: string[];
+}
+
 // What one round of a room spent and did, read once the page carrying its last answer has landed (docs/web.md, the
 // room screen's chip line): the answer the room asked about it by, and the round's figures.
 export interface RoundFiguresOf {

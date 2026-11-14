@@ -29,16 +29,39 @@ export function requireMessageId(event: H3Event): number {
 const INT64_MIN = -(2n ** 63n);
 const INT64_MAX = 2n ** 63n - 1n;
 
-/** A message's exact id a body hands back (ExactMessageId): the decimal digits of a signed 64-bit integer, written
- * the one way BigInt writes them; anything else is refused. */
-export function requireExactMessageId(value: unknown): ExactMessageId {
+// The value as a message's exact id (ExactMessageId): the decimal digits of a signed 64-bit integer, written the one
+// way BigInt writes them; null for anything else.
+function exactIdOf(value: unknown): ExactMessageId | null {
   const id = typeof value === "string" && /^-?\d{1,19}$/.test(value) ? BigInt(value) : null;
 
-  if (id === null || id < INT64_MIN || id > INT64_MAX || String(id) !== value) {
+  return id === null || id < INT64_MIN || id > INT64_MAX || String(id) !== value ? null : value;
+}
+
+/** A message's exact id a body hands back; anything else is refused. */
+export function requireExactMessageId(value: unknown): ExactMessageId {
+  const id = exactIdOf(value);
+
+  if (id === null) {
     throw fail(400, wording("room.error.bad_message_id"));
   }
 
-  return value;
+  return id;
+}
+
+/** A message cursor a query names: the exact id of a row the reader holds, or null where the query names none. A
+ * room's messages may be numbered past what a JavaScript number holds, so the digits are kept as written. */
+export function readMessageCursor(value: unknown): ExactMessageId | null {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const id = exactIdOf(value);
+
+  if (id === null) {
+    throw fail(400, wording("common.error.bad_cursor"));
+  }
+
+  return id;
 }
 
 export function requireTodoId(event: H3Event): number {

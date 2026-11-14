@@ -1,10 +1,10 @@
 import { wording } from "#shared/wording";
 
 import { fileOut, messageFiles, playedKind } from "./media";
-import { receiver, receiverCall } from "./receiver";
+import { onTheWire, receiver, receiverCall } from "./receiver";
 
 import type { ReceivedFile } from "./media";
-import type { MessageAttachment, TelegramExpression, TelegramFormat, TelegramFormatKind, VideoShape } from "#shared/types";
+import type { ExactMessageId, MessageAttachment, TelegramExpression, TelegramFormat, TelegramFormatKind, VideoShape } from "#shared/types";
 
 // What a message carried, as the room screen draws it: its files, each with its size and type and whether it can be
 // received, and its words read over the metadata the chat service handed over beside it (the receiver's
@@ -51,12 +51,12 @@ function assetOf(file: ReceivedFile): Asset {
 }
 
 /** A message's files, the expressions its words drew and the formatting its words were sent with, as the room screen draws them. `listedFiles` says whether the message's page named a file worth listing; without one its files are none. */
-export async function messageMedia(chatId: number, messageId: number, text: string, listedFiles: boolean): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[]; formats: TelegramFormat[] }> {
+export async function messageMedia(chatId: number, messageId: ExactMessageId | number, text: string, listedFiles: boolean): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[]; formats: TelegramFormat[] }> {
   const [files, metadata] = await Promise.all([
     listedFiles ? messageFiles(chatId, messageId) : Promise.resolve([] as ReceivedFile[]),
     receiverCall(
       receiver().GET("/rooms/{roomId}/messages/{messageId}/metadata", {
-        params: { path: { roomId: chatId, messageId } }
+        params: { path: { roomId: chatId, messageId: onTheWire(messageId) } }
       })
     )
       .then((answer) => answer.metadata)

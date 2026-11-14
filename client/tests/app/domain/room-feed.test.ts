@@ -111,7 +111,7 @@ describe("a read of the room's end and a go to a message crossing", () => {
   test("news read past the old end before the go lands on nothing", async () => {
     const feed = await feedAtEnd();
     const catching = feed.catchUp(150);
-    const past = takeAsked((query) => query.after === 100);
+    const past = takeAsked((query) => query.after === "100");
 
     await goTo20(feed);
     past.answer(page([150]));
@@ -134,7 +134,7 @@ describe("a read of the room's end past a gap", () => {
 
     takeAsked(endPage).answer(page(ids(141, 150), true));
     await settled();
-    takeAsked((query) => query.after === 100).answer(page(ids(101, 150)));
+    takeAsked((query) => query.after === "100").answer(page(ids(101, 150)));
     await reading;
 
     expect(feed.messages.value.map((message) => message.messageId)).toEqual(ids(1, 150));
@@ -146,10 +146,45 @@ describe("a read of the room's end past a gap", () => {
 
     takeAsked(endPage).answer(page(ids(941, 950), true));
     await settled();
-    takeAsked((query) => query.after === 100).answer(page(ids(101, 600), true));
+    takeAsked((query) => query.after === "100").answer(page(ids(101, 600), true));
     await reading;
 
     expect(feed.messages.value.map((message) => message.messageId)).toEqual(ids(941, 950));
     expect(feed.older.value).toBe(true);
+  });
+});
+
+// A room whose chat service numbers its messages past 2^53, where a JavaScript number rounds the id (docs/web.md, the room
+// screen's 「A cursor is a place, not a number」): each read past, before or at a row names it by the digits it is held
+// under, since the rounded number names no row on the receiver.
+describe("a room numbered past what a number holds", () => {
+  const HIGH = ["3973025898369060353", "3973737757693106177"];
+  const high = (exactId: string): ArchivedMessage => ({ ...said(0), messageId: Number(exactId), exactId });
+
+  test("reads back, past and at its rows by their exact ids", async () => {
+    asked.length = 0;
+
+    const feed = useRoomFeed(wording, CHAT);
+    const loading = feed.load();
+
+    takeAsked(endPage).answer({ messages: HIGH.map(high), judgements: [], hasMore: true });
+    await loading;
+
+    const older = feed.loadOlder();
+
+    takeAsked((query) => query.before === HIGH[0]).answer({ messages: [], judgements: [], hasMore: false });
+    await older;
+
+    const edited = feed.catchUp(Number(HIGH[0]));
+
+    takeAsked((query) => query.at === HIGH[0]).answer({ messages: [high(HIGH[0]!)], judgements: [], hasMore: false });
+    await edited;
+
+    const news = feed.catchUp(Number("3973799999999999999"));
+
+    takeAsked((query) => query.after === HIGH[1]).answer({ messages: [], judgements: [], hasMore: false });
+    await news;
+
+    expect(asked).toEqual([]);
   });
 });

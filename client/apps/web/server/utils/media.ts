@@ -1,6 +1,8 @@
 import { extname } from "node:path";
 
-import { receiver, receiverCall } from "./receiver";
+import { onTheWire, receiver, receiverCall } from "./receiver";
+
+import type { ExactMessageId } from "#shared/types";
 
 // A file that came with a room's message, served by the message it belongs to. A browser never names
 // a path: it names a room, a message, a kind and the file's place among the message's files, and the file
@@ -96,10 +98,10 @@ const MESSAGE_KINDS = ["audio", "video", "animation", "document", "sticker"];
 const KEPT_AS_FILE = "application/octet-stream";
 
 /** A message's files, in the order a page's files stand. */
-export async function messageFiles(chatId: number, messageId: number): Promise<ReceivedFile[]> {
+export async function messageFiles(chatId: number, messageId: ExactMessageId | number): Promise<ReceivedFile[]> {
   const page = await receiverCall(
     receiver().GET("/rooms/{roomId}/messages/{messageId}/files", {
-      params: { path: { roomId: chatId, messageId } }
+      params: { path: { roomId: chatId, messageId: onTheWire(messageId) } }
     })
   );
 

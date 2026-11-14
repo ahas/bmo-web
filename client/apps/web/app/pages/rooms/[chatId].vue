@@ -198,8 +198,11 @@
         <ContentSkeleton v-if="roomFeed.loadingOlder.value" listClass="flex flex-col gap-(--chat-message-gap)" :label="$t('room.status.earlier_loading')">
           <RoomMessageSkeleton />
         </ContentSkeleton>
-        <p v-else-if="!roomFeed.older.value && days.length > 0" class="text-center text-sm text-dimmed">
-          {{ $t("room.status.start_of_talk") }}
+        <!-- Where the room's line begins: the conversation's start, or how far back the chat services that read
+             the room's past have handed it over (docs/web.md, 「Where a room's line begins」). The line keeps its
+             height while that is asked, so nothing under it moves when it is said. -->
+        <p v-else-if="lineBegins" data-line-begins class="min-h-5 text-center text-sm text-dimmed">
+          {{ pastReaders === null ? "" : pastReaders.length > 0 ? $t("room.status.held_from", { services: pastReaders.join(", ") }) : $t("room.status.start_of_talk") }}
         </p>
 
         <ContentSkeleton
@@ -559,7 +562,7 @@ import type { RunState } from "~/domain/events";
 import type { LandedPicture, OutboxItem, SendOutcome } from "~/domain/outbox";
 import type { DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
 import type { MentionAgent } from "~/domain/mentions";
-import type { PinnedMessage, RoomAnswerers } from "#shared/types";
+import type { PinnedMessage, RoomAnswerers, RoomPast } from "#shared/types";
 import type { Point, Rect } from "~/domain/flight";
 
 // Another room is another screen; the rest of the address is not the room's, and a message it names is
@@ -1271,6 +1274,21 @@ const pendingRows = computed<FeedItem[]>(() => {
 // A line on its way stands at the foot, in the last day where its own is earlier (docs/web.md, 「The line's
 // day」).
 const days = computed<DayGroup[]>(() => atFoot(t, groupDays(t, archived.value), pendingRows.value));
+
+// Where the room's line begins, asked once the reader has reached its oldest message: the chat services that read
+// the room's past back, named; none where no service does, and none where the receiver cannot say.
+const lineBegins = computed<boolean>(() => !roomFeed.older.value && days.value.length > 0);
+const pastReaders = ref<string[] | null>(null);
+
+watch(
+  lineBegins,
+  async (reached) => {
+    if (!reached || pastReaders.value !== null) return;
+
+    pastReaders.value = (await $fetch<RoomPast>(`/api/rooms/${chatId}/past`).catch(() => ({ readers: [] }))).readers;
+  },
+  { immediate: true }
+);
 
 // The days as the feed stands them, each as its senders' runs (docs/web.md, 「One sender's run is one
 // block」). Each turn still running stands at the foot as a row of its speaker's run, in the day its

@@ -14,13 +14,14 @@ export default defineEventHandler(async (event): Promise<MessagePage> => {
   // holds, and read its position in the room's line. `at` names a message by its own number and
   // brings back that row alone — what the reader wants when a message it holds was edited, and the
   // one question a cursor cannot ask, since the number before a given one names no row at all as
-  // often as not.
-  const at = readCursor(query.at);
-  const after = readCursor(query.after);
+  // often as not. Each names its message by the exact digits the receiver wrote, since a chat service may number
+  // its messages past what a JavaScript number holds.
+  const at = readMessageCursor(query.at);
+  const after = readMessageCursor(query.after);
   const page = at !== null
     ? await readOneMessage(chatId, at)
     : after === null
-      ? await readMessagePage(chatId, readCursor(query.before), readLimit(query.limit))
+      ? await readMessagePage(chatId, readMessageCursor(query.before), readLimit(query.limit))
       : await readMessagesAfter(chatId, after, readLimit(query.limit));
 
   // A member reads the conversation; the verdicts recorded on it and how its answers were drafted are the

@@ -810,24 +810,24 @@ describe("what a row hands over when it is copied", () => {
 describe("what one piece of news is worth reading", () => {
   const page = 100;
   // What the room is holding, oldest last — which is the order a page arrives in.
-  const holding = (...ids: number[]) => ids.map((messageId) => ({ messageId }));
+  const holding = (...ids: number[]) => ids.map((messageId) => ({ messageId, exactId: String(messageId) }));
 
   test("everything past the newest row the room holds, which is that one message", () => {
-    expect(feedRead(holding(8999, 9000), 9001, page)).toEqual({ kind: "after", after: 9000, limit: page });
+    expect(feedRead(holding(8999, 9000), 9001, page)).toEqual({ kind: "after", after: "9000", limit: page });
   });
 
   // A piece of news that never arrived is not a row that is lost: the next one reads past the
   // newest row held and brings everything in between with it.
   test("and everything else that landed while the news was on its way", () => {
-    expect(feedRead(holding(8999, 9000), 9004, page)).toEqual({ kind: "after", after: 9000, limit: page });
+    expect(feedRead(holding(8999, 9000), 9004, page)).toEqual({ kind: "after", after: "9000", limit: page });
   });
 
   // An edit leaves the number where it was, so the number arriving is one the room already holds.
   // That row is asked for by its own number rather than past the number before it — the number
   // before it names no row as often as not.
   test("one row by its own number where the news names a message the room already holds", () => {
-    expect(feedRead(holding(8700, 9000), 9000, page)).toEqual({ kind: "one", messageId: 9000 });
-    expect(feedRead(holding(8700, 9000), 8700, page)).toEqual({ kind: "one", messageId: 8700 });
+    expect(feedRead(holding(8700, 9000), 9000, page)).toEqual({ kind: "one", messageId: "9000" });
+    expect(feedRead(holding(8700, 9000), 8700, page)).toEqual({ kind: "one", messageId: "8700" });
   });
 
   // The two numberings of one room. A word said from the console is numbered below zero and still
@@ -837,7 +837,7 @@ describe("what one piece of news is worth reading", () => {
   test("a console number announced into a room of Telegram numbers is new, not an edit", () => {
     expect(feedRead(holding(900012, 900013), -9001, page)).toEqual({
       kind: "after",
-      after: 900013,
+      after: "900013",
       limit: page,
     });
   });
@@ -845,16 +845,28 @@ describe("what one piece of news is worth reading", () => {
   test("and the console row the room does hold is read as the edit it is", () => {
     expect(feedRead(holding(900013, -9000), -9000, page)).toEqual({
       kind: "one",
-      messageId: -9000,
+      messageId: "-9000",
     });
   });
 
   test("a Telegram number announced past a console row at the end is new too", () => {
     expect(feedRead(holding(900013, -9000), 900014, page)).toEqual({
       kind: "after",
-      after: -9000,
+      after: "-9000",
       limit: page,
     });
+  });
+
+  // A chat service may number its messages past 2^53. The news carries the number as a JavaScript number has it,
+  // rounded, and the read names the row by the digits the room holds it under, which the rounded number never is.
+  test("a row numbered past what a number holds is read by its exact id", () => {
+    const held = [
+      { messageId: Number("3973718726668978177"), exactId: "3973718726668978177" },
+      { messageId: Number("3973737757693106177"), exactId: "3973737757693106177" }
+    ];
+
+    expect(feedRead(held, Number("3973718726668978177"), page)).toEqual({ kind: "one", messageId: "3973718726668978177" });
+    expect(feedRead(held, Number("3973799999999999999"), page)).toEqual({ kind: "after", after: "3973737757693106177", limit: page });
   });
 
   test("the page where the room holds nothing to read past", () => {
@@ -863,7 +875,7 @@ describe("what one piece of news is worth reading", () => {
   });
 
   test("and the page where the news carried no number at all", () => {
-    expect(feedRead(holding(9000), null, page)).toEqual({ kind: "after", after: 9000, limit: page });
+    expect(feedRead(holding(9000), null, page)).toEqual({ kind: "after", after: "9000", limit: page });
   });
 
   // The one shape that cannot be appended: what came back is the oldest of the gap and the room

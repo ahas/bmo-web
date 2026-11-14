@@ -559,8 +559,8 @@ export function copyItemOf(item: FeedItem): CopyItem {
 // Which read one piece of news calls for.
 export type FeedRead =
   | { kind: "page" }
-  | { kind: "one"; messageId: number }
-  | { kind: "after"; after: number; limit: number };
+  | { kind: "one"; messageId: ExactMessageId }
+  | { kind: "after"; after: ExactMessageId; limit: number };
 
 /**
  * The bot's news names one message, so it is answered by reading that message rather than the end
@@ -582,21 +582,26 @@ export type FeedRead =
  * numbering and names no row, and a cursor that names no row has no position to read past.
  *
  * A room holding nothing has no position to read past either, so it reads the page.
+ *
+ * Either read names its row by the exact id the room holds it under, never by the number the news carried: a chat
+ * service may number its messages past what a JavaScript number holds, and the rounded number names no row.
  */
 export function feedRead(
-  held: readonly { messageId: number }[],
+  held: readonly { messageId: number; exactId: ExactMessageId }[],
   announced: number | null,
   pageSize: number,
 ): FeedRead {
-  const newest = held[held.length - 1]?.messageId ?? null;
+  const newest = held[held.length - 1];
 
-  if (newest === null) {
+  if (newest === undefined) {
     return { kind: "page" };
   }
 
-  return announced !== null && held.some((message) => message.messageId === announced)
-    ? { kind: "one", messageId: announced }
-    : { kind: "after", after: newest, limit: pageSize };
+  const edited = announced === null ? undefined : held.find((message) => message.messageId === announced);
+
+  return edited !== undefined
+    ? { kind: "one", messageId: edited.exactId }
+    : { kind: "after", after: newest.exactId, limit: pageSize };
 }
 
 // Whether what came back settles it. A gap wider than a page is the one shape that cannot be
@@ -856,7 +861,8 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     return added;
   }
 
-  async function fetchPage(before: number | null): Promise<MessagePage> {
+  // Each read names a row the room holds by its exact id, as the receiver wrote it: a rounded number names no row.
+  async function fetchPage(before: ExactMessageId | null): Promise<MessagePage> {
     return await $fetch<MessagePage>(`/api/rooms/${chatId}/messages`, {
       query: { before: before ?? undefined, limit: PAGING.defaultSize }
     });
@@ -864,12 +870,12 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
 
   // Everything past a message the room already holds, which stands at that row's place in the
   // room's line rather than at its number.
-  async function fetchAfter(after: number, limit: number): Promise<MessagePage> {
+  async function fetchAfter(after: ExactMessageId | number, limit: number): Promise<MessagePage> {
     return await $fetch<MessagePage>(`/api/rooms/${chatId}/messages`, { query: { after, limit } });
   }
 
   // One row by its own number, which is what an edited message is read as.
-  async function fetchOne(messageId: number): Promise<MessagePage> {
+  async function fetchOne(messageId: ExactMessageId | number): Promise<MessagePage> {
     return await $fetch<MessagePage>(`/api/rooms/${chatId}/messages`, { query: { at: messageId } });
   }
 
@@ -926,7 +932,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     loadingOlder.value = true;
 
     try {
-      const page = await fetchPage(oldest.messageId);
+      const page = await fetchPage(oldest.exactId);
 
       if (mine !== generation) {
         return 0;
@@ -960,7 +966,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     loadingNewer.value = true;
 
     try {
-      const page = await fetchAfter(newest.messageId, PAGING.defaultSize);
+      const page = await fetchAfter(newest.exactId, PAGING.defaultSize);
 
       if (mine !== generation) {
         return 0;
@@ -1050,7 +1056,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
   // alone, as opening the room at its end does, so no stretch is ever missing between two rows.
   async function bridge(end: MessagePage, mine: number): Promise<void> {
     const newest = messages.value[messages.value.length - 1]!;
-    const missed = await fetchAfter(newest.messageId, PAGING.maxSize);
+    const missed = await fetchAfter(newest.exactId, PAGING.maxSize);
 
     if (mine !== generation) {
       return;

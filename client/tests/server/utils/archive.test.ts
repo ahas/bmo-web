@@ -209,7 +209,7 @@ describe("a page of a room", () => {
   test("is asked by its cursor, and its senders are matched against the room's answering agents", async () => {
     receiver.asked.length = 0;
 
-    const read = await readMessagePage(-7, 9, 50);
+    const read = await readMessagePage(-7, "9", 50);
 
     expect(receiver.asked.filter((one) => one.path.startsWith("/rooms/-7/messages?")).map((one) => one.path)).toEqual(["/rooms/-7/messages?limit=50&before=9"]);
     expect(receiver.asked.filter((one) => one.path.startsWith("/rooms/-7/answerers") || one.path.startsWith("/rooms/-7/own-number")).map((one) => one.path).sort()).toEqual([
@@ -284,7 +284,7 @@ describe("a page of a room", () => {
   });
 
   test("a thinking message is told by the kind the record names, and carries no voice briefing chip", async () => {
-    const read = (await readMessagesAfter(-7, 4, 20)).messages;
+    const read = (await readMessagesAfter(-7, "4", 20)).messages;
 
     expect(read.map((one) => [one.messageId, one.agent, one.thinking === true])).toEqual([
       [5, false, false],
@@ -301,7 +301,7 @@ describe("a page of a room", () => {
   });
 
   test("past a message, and where a day begins", async () => {
-    expect((await readMessagesAfter(-7, 4, 20)).messages.map((one) => one.messageId)).toEqual([5, 6]);
+    expect((await readMessagesAfter(-7, "4", 20)).messages.map((one) => one.messageId)).toEqual([5, 6]);
     expect(await readDayStart(-7, 1_790_000_000)).toEqual({ messageId: 2 });
     expect(await readJudgementPage(-7, null, 20)).toEqual({ judgements: [], hasMore: false });
   });

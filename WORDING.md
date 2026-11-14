@@ -134,6 +134,9 @@
 - render → 렌더링: 렌더링하지 않는 기간. Never 그리다.
 - message, words → 메시지: 메시지를 보내다, 보낼 메시지. A conversation is 대화, an instruction added
   to an item is 지시. Never 말, 할 말, 이야기, 말을 걸다.
+- the top of a room's line → 대화의 처음입니다 where the oldest message is the conversation's start; where a chat
+  service reads the room's past back, `{service}에서 받은 대화는 여기부터입니다`. Never 불러올 대화 없음, 끝, or a
+  sentence about why the older lines are missing.
 - filter, sift → 필터. Never 거르기.
 - page → 페이지. Never 쪽.
 - table → 테이블; row → 행; query → 쿼리, wherever the text is about a database. Never 표, 줄, 질의.

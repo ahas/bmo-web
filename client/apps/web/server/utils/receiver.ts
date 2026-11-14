@@ -147,7 +147,7 @@ function withExactIds(text: string): { parsed: unknown; idOf: (message: Receiver
 
 // A message's exact id as the receiver's client takes it in a path or a query: the client types a 64-bit id as a
 // number, and writes whatever it is given as text, which the exact id already is.
-function onTheWire(id: ExactMessageId | number): number {
+export function onTheWire(id: ExactMessageId | number): number {
   return id as number;
 }
 
@@ -173,6 +173,26 @@ export async function exactMessage(roomId: number, messageId: ExactMessageId | n
   const message = parsed as ReceiverMessage;
 
   return { ...message, id: idOf(message) };
+}
+
+/**
+ * The names of a room's chat services that read a room's past back: those whose road in the room performs
+ * `history` (bmo-chat's `docs/contract.md`, 「Capabilities」), each by the label the receiver gives it, in the room's
+ * order. The room's line reaches only as far back as what such a service has handed over so far.
+ */
+export async function roomPastReaders(roomId: number): Promise<string[]> {
+  const asking = receiver();
+  const [listed, room] = await Promise.all([
+    receiverCall(asking.GET("/providers")),
+    receiverCall(asking.GET("/rooms/{roomId}/providers", { params: { path: { roomId } } }))
+  ]);
+  const verbs = await Promise.all(
+    room.providers.map((via) => receiverCall(asking.GET("/rooms/{roomId}/send-verbs", { params: { path: { roomId }, query: { via } } })))
+  );
+
+  return room.providers
+    .filter((_, at) => verbs[at]!.items.includes("history"))
+    .map((key) => listed.items.find((provider) => provider.key === key)?.label ?? key);
 }
 
 /** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */

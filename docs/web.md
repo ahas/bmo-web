@@ -7677,10 +7677,6 @@ journalctl --user -u <unit> -f
 - The screen reads the figures again once a minute. Which of a slot's windows is its session and which its week is the
   agency's pick from the provider's own names, so a weekly window is never shown as a session window, nor another model's
   window taken for the account's.
-- The model providers are the four Claude Code, Codex, OpenRouter and 등록 모델, and setting a key's run mode to one of them runs
-  that key on that provider alone, whatever the accounts' auto-fallback would have done. A key set to
-  Claude Code, or left automatic, also names the account it runs on: one account alone, or the account
-  order walked from the top.
 - The remaining-usage popover opens within the window's width and height and a long list scrolls within. It holds the
   remaining usage of each account alone — a group per Claude account that is switched on holding that account's windows, and the
   slot the chat runs on marked (「Usage in the title bar」) — and no tally of tokens and no list of sessions.
@@ -7691,7 +7687,8 @@ journalctl --user -u <unit> -f
   text already stands in the 지시 group right above, so standing them as cells makes two copies on one screen. Pressing 따로 적기 opens
   the cell holding that text, and a draft once written separately always stands as a cell thereafter. The builder model is what the
   item does not say so always stands. A cell nobody typed follows a draft edited elsewhere — the chat agent's edit in item talk — as read, and a
-  cell someone typed keeps its text until saved or left. Automatic or one of the three worker providers' models can be chosen, and
+  cell someone typed keeps its text until saved or left. Automatic, or a model of a provider whose program carries the worker line, can be chosen — the providers as the
+  agency's `GET /providers` lists them, in its order and by the pack's word, a provider turned off standing disabled — and
   after progress the steps of the order are read as below. A task done in one go stands no round — every task runs once so that
   count says nothing. A step of one task stands no some/some — calling a lone one 1/1 is the same. A task's state is one of pending, running, complete, failed, skipped, and skipped
   carries its own name and mark so as not to mix with complete. The progress line counts complete and skipped apart too, and a

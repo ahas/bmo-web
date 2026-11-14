@@ -2,7 +2,7 @@
 // as that unit's document states it, since the console reads every unit over HTTP and imports none of their
 // code (docs/boundary.md, 「Calls the console makes」). Each screen's group adds the shapes it reads.
 
-import type { FallbackRouteMode, PushKind } from "./config";
+import type { PushKind } from "./config";
 import type { DeployEnding, DeployStage, DeployStep, DeployStepAhead, DeployStepUnderWay } from "./deploy-progress";
 import type { DraftSummary } from "./drafting";
 
@@ -1774,97 +1774,6 @@ export interface WorkerChanged {
   ok: true;
 }
 
-// One model OpenRouter offers, as a chooser needs it: which model, what it is called, how much
-// it can be told, and whether it costs anything.
-export interface OpenRouterModel {
-  id: string;
-  name: string;
-  contextLength: number | null;
-  free: boolean;
-}
-
-// One model the installed Codex CLI offers. The executable is the catalogue; the console keeps
-// no model list of its own, and the reasoning levels here are the ones that exact build accepts.
-export interface CodexModel {
-  id: string;
-  name: string;
-  description: string;
-  contextLength: number | null;
-  defaultReasoningEffort: string;
-  supportedReasoningEfforts: string[];
-}
-
-// One provider whose models answer a request with no tools, and whether it can answer on this
-// machine.
-export interface OwnLlmServiceView {
-  name: AgentMode;
-  label: string;
-  shortLabel: string;
-  present: boolean;
-}
-
-// What one work key asks one own LLM service for.
-export interface OwnLlmSettingsView {
-  provider: AgentMode;
-  model: string;
-  thinking: boolean;
-  answerTokens: number;
-}
-
-// One provider as a work key's chooser offers it: the name the route stores, the label the owner
-// reads, and why it cannot be chosen for this key — this machine lacks what the provider needs,
-// or the program behind it does not carry the key's line. Null where it can.
-// Why a road cannot be taken is said in the pack's words, `reason`, read off the agency's code, with the agency's
-// own English sentence beside it for a tooltip; both null on a road that can be taken.
-export interface OfferedProvider {
-  name: Exclude<FallbackRouteMode, "auto">;
-  label: string;
-  reason: string | null;
-  reasonEnglish: string | null;
-}
-
-// One agent provider in the owner's order, with its switch. Laya is a gate's road and never in it.
-export interface OrderedProvider {
-  name: AgentMode;
-  label: string;
-  reason: string | null;
-  reasonEnglish: string | null;
-  enabled: boolean;
-}
-
-// The sort of work a key is, in the agency's own words: `bmo` is the chat's work, its word on the wire.
-export type FallbackKind = "bmo" | "worker" | "gate" | "editor";
-
-// One piece of work and every choice of its road: the provider it begins on and each provider's
-// model. The key is the agency's stable name for the work, not the primary provider's current model:
-// changing a Claude launch line cannot silently move the Codex or OpenRouter choices attached to
-// it. The line is the run line the key is carried on, which is what decides the providers offered.
-export interface FallbackProfile {
-  key: string;
-  label: string;
-  kind: FallbackKind;
-  line: string;
-  codexModel: string;
-  codexEffort: string;
-  defaultCodexModel: string;
-  defaultCodexEffort: string;
-  codexOverridden: boolean;
-  claudeModel: string;
-  // What the key asks each own LLM service for, one entry per service; a gate's is held to its floor.
-  services: OwnLlmSettingsView[];
-  noRoute: string | null;
-  openrouterModel: string | null;
-  routeMode: FallbackRouteMode;
-  // The Claude account the key is pinned to, or null where it walks the account order.
-  account: string | null;
-  setAt: number | null;
-  offered: OfferedProvider[];
-}
-
-
-// What the console may know about the ordered fallback. The OpenRouter secret is not here and
-// never will be: the screen gets only whether it exists. `key` inside a profile is a route name,
-// not that secret.
 // One of a slot's two headline windows, as the bot picked it: its share and when it starts over.
 export interface HeadlineWindow {
   name: string;
@@ -1888,19 +1797,12 @@ export interface ActiveAgentView {
   week: HeadlineWindow | null;
 }
 
+// The fallback as the agency answers it (its `docs/api.md`, 「providers, models and model files」): the account runs
+// on Claude Code go out on now, and the Claude Code entry's own list, the accounts in the order it walks them. What the
+// screen learns of a credential is the path it is reached by — no token and no file body is here.
 export interface FallbackView {
   active: ActiveAgentView;
-  codexPresent: boolean;
-  keyPresent: boolean;
-  services: OwnLlmServiceView[];
-  // The owner's provider order as every walk follows it, each provider with the reason it cannot
-  // answer on this machine right now, or null where it can.
-  order: OrderedProvider[];
-  orderIsDefault: boolean;
-  // The Claude Code entry's own list: the accounts in the order it walks them. What the screen
-  // learns of a credential is the path it is reached by — no token and no file body is here.
   accounts: ClaudeAccountView[];
-  profiles: FallbackProfile[];
 }
 
 export interface FallbackChanged {

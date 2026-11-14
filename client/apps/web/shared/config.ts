@@ -1,7 +1,5 @@
 import { chatAgent } from "./agent-names";
 
-import { agentProviderNames } from "./types";
-
 import type { AgentProviderName, JobQuestion, QuestionSettler } from "./types";
 import type { Translate } from "./wording";
 
@@ -284,19 +282,6 @@ export const JOB_MODELS = [
 ] as const;
 
 export type JobModel = "auto" | (typeof JOB_MODELS)[number] | `${AgentProviderName}::${string}`;
-
-// The road a work key begins on (the agency's docs/cache-fallback.md, 「The per-key choice is automatic or one
-// provider」): the automatic walk, one provider it runs on alone, or Laya, which only a gate whose profile offers it
-// may stand on.
-export const LAYA_ROUTE_MODE = "laya";
-
-export const FALLBACK_ROUTE_MODES = ["auto", ...agentProviderNames, LAYA_ROUTE_MODE] as const;
-
-export type FallbackRouteMode = (typeof FALLBACK_ROUTE_MODES)[number];
-
-export function isFallbackRouteMode(value: unknown): value is FallbackRouteMode {
-  return typeof value === "string" && (FALLBACK_ROUTE_MODES as readonly string[]).includes(value);
-}
 
 // What the console says when the queue moved while somebody was dragging a row. The bot refuses
 // an order that is no longer its queue rather than writing a stale one over it.

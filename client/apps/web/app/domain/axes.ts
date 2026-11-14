@@ -22,6 +22,9 @@ export const EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"] as const;
 
 // The line a supervisor's program carries; a role names its own (the agency's `docs/provider-order.md`).
 export const SUPERVISOR_LINE = "chat";
+// The line a job's run goes out on: a repository's pin and a work order's builder model are chosen among the providers
+// carrying it.
+export const JOB_LINE = "worker";
 
 // The fields of a road a form holds, by the names a refusal carries them under.
 export const ROAD_FIELDS: ReadonlySet<string> = new Set(["provider", "model", "effort", "thinking", "answerTokens"]);

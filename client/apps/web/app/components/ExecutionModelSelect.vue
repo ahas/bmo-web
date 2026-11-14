@@ -8,20 +8,23 @@
 </template>
 <script setup lang="ts">
 import { JOB_MODELS } from "#shared/config";
+import { useProviders } from "~/domain/axes";
 import { modeLabel } from "~/domain/status";
 
 import type { AgentMode } from "#shared/types";
 const { t } = useI18n();
-const props = defineProps<{ modelValue?: string | null; label?: string }>();
+// `line` is the line the run goes out on, which a provider's program must carry to be offered.
+const props = defineProps<{ modelValue?: string | null; label?: string; line: string }>();
 const emit = defineEmits<{ "update:modelValue": [value: string] }>();
-const { data: routes } = useFetch<import("#shared/types").FallbackView>("/api/fallback", { key: "execution-fallback", server: false, lazy: true });
-// Auto, then every provider the bot reports under its own label, a turned-off one standing disabled.
-// Until the report lands, the provider already chosen stands under the label the console knows it
-// by, so the choice never reads as empty before it has been read.
+const { data: carried } = useProviders();
+// Auto, then every provider the agency carries whose program carries the line, in the agency's order and under the
+// pack's word for it, a turned-off one standing disabled (the agency's `GET /providers`). Until the read lands, the
+// provider already chosen stands under the label the console knows it by, so the choice never reads as empty before
+// it has been read.
 const providers = computed(() => [
   { value: "auto", label: t("common.label.auto"), disabled: false },
-  ...(routes.value
-    ? routes.value.order.map(entry => ({ value: entry.name, label: entry.label, disabled: !entry.enabled }))
+  ...(carried.value
+    ? carried.value.filter(one => one.lines.length === 0 || one.lines.includes(props.line)).map(one => ({ value: one.name, label: one.label, disabled: !one.enabled }))
     : provider.value === "auto" ? [] : [{ value: provider.value, label: modeLabel(t, provider.value as AgentMode), disabled: false }])
 ]);
 const providerOff = computed(() => providers.value.some(one => one.value === provider.value && one.disabled));
@@ -44,7 +47,7 @@ watch(provider, async value => {
   if (value === "claude-code") { items.value = JOB_MODELS.map(value => ({ value, label: value })); return; }
   loading.value = true;
   try {
-    // Every provider but the Claude line answers the models it holds, the ones an order's entry may name.
+    // Every provider but the Claude line answers the models it holds, the ones a road may name.
     const held = await $fetch<import("#shared/axes").ProviderModelsView>(`/api/provider-models/${encodeURIComponent(value)}`);
     if (current === generation) items.value = held.models.map(row => ({ value: row.id, label: row.id }));
   } catch { if (current === generation) error.value = t("agents.error.models_load_failed"); }

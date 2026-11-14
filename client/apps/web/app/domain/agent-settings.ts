@@ -30,7 +30,7 @@ export function agentTabLabel(t: Translate, tab: AgentTab): string {
 // What the shared fallback read holds before the agency has answered. Every screen that reads it under the same key
 // gives the same empty shape, so none of them sees nothing at all.
 export function emptyFallbackView(): FallbackView {
-  return { active: { provider: "claude-code", account: null, accountName: "", accounts: 0, session: null, week: null }, codexPresent: false, keyPresent: false, services: [], order: [], orderIsDefault: true, accounts: [], profiles: [] };
+  return { active: { provider: "claude-code", account: null, accountName: "", accounts: 0, session: null, week: null }, accounts: [] };
 }
 
 // A chooser's word for letting the agency pick, as the Claude accounts' choice offers it.

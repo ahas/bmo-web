@@ -602,8 +602,6 @@ for it, and no file or table of that unit is read meanwhile.
 - **A runner's launch and a run's stop by its kind.** The fixed APIs launch an item on its worker, not a free runner;
   and they stop a job by its own state or a run by its own close, so the board names an item's job and a run's
   number. A launch stands unavailable.
-- **A provider's own catalogue.** No fixed route reads the models a provider publishes, so the Codex and OpenRouter
-  choosers and a tier's model chooser stand with none.
 - **A work key's tier.** The agency answers each tier's mapping on every provider and each work key's road, and
   takes a tier's change; which tier a work key stands at is no part of an answer, so the tier screen's
   assignments stand empty.

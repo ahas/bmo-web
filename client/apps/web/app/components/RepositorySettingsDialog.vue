@@ -160,7 +160,7 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import { DEFAULT_DOWNGRADE_HEAL, markedDefault, refusalOf, useProviderModels, useProviders } from "~/domain/axes";
+import { DEFAULT_DOWNGRADE_HEAL, JOB_LINE, markedDefault, refusalOf, useProviderModels, useProviders } from "~/domain/axes";
 import { generationChange, settingsDraft } from "~/domain/generation";
 
 import type { GenerationSetting } from "#shared/agency";
@@ -181,8 +181,6 @@ const formId = useId();
 // The longest preamble and dev command the agency keeps (the agency's docs/worker-bench.md).
 const PREAMBLE_MOST = 8_000;
 const DEV_COMMAND_MOST = 1_000;
-// The line a repository's jobs go out on, which a pinned provider's program must carry.
-const JOB_LINE = "worker";
 // The pin chooser's value for no pin, and the node chooser's for this machine; no provider's or node's name takes an @.
 const ROLE_ORDER = "@roles";
 const HERE = "@here";

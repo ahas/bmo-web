@@ -71,7 +71,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["agent-log-open", "fixture-password-2809"],
   ["row-add", "fixture-password-2885"],
   ["todo-raise", "fixture-password-2871"],
-  ["supervisor-road", "fixture-password-2921"]
+  ["supervisor-road", "fixture-password-2921"],
+  ["builder-model", "fixture-password-2926"]
 ];
 
 // The member accounts a test signs in with to read a section by its permission rather than as the administrator,
@@ -587,7 +588,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/prompt-documents") return Response.json({ items: [], more: false });
 
     if (path === "/events") return silentStream();
-    if (path === "/fallback") return Response.json({ routes: [], answering: false });
+    if (path === "/fallback") return Response.json({ accounts: [] });
 
     if (path === "/models" && request.method === "GET") return Response.json({ items: [...models.values()], more: false });
 

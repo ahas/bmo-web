@@ -7,6 +7,19 @@ import KO from "../../fixtures/app/components/WorkOrderPanel.test.ko.json";
 const keysSaying = (phrase: string) => packEntries().filter(([, value]) => value.includes(phrase)).map(([key]) => key);
 
 const source = await Bun.file(new URL("../../../apps/web/app/components/WorkOrderPanel.vue", import.meta.url)).text();
+const modelSelect = await Bun.file(new URL("../../../apps/web/app/components/ExecutionModelSelect.vue", import.meta.url)).text();
+
+// The builder model's providers are the agency's providers whose program carries the line a job runs on (docs/web.md,
+// the TODO detail's work order), never the fallback's, which answers the Claude accounts alone.
+describe("a work order's builder model", () => {
+  test("offers the providers carrying the job line, as the agency lists them", () => {
+    expect(source).toContain(`<ExecutionModelSelect v-model="model" :label="$t('todo.label.builder_model')" :line="JOB_LINE"`);
+    expect(modelSelect).toContain("useProviders()");
+    expect(modelSelect).toContain("one.lines.length === 0 || one.lines.includes(props.line)");
+    expect(modelSelect).toContain("disabled: !one.enabled");
+    expect(modelSelect).not.toContain("/api/fallback");
+  });
+});
 
 describe("a work order's live refresh", () => {
   test("keeps the initial GET", () => {

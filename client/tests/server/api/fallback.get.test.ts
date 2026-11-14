@@ -5,20 +5,31 @@ import { answer, standIn } from "../../support/units";
 
 import type { FallbackView } from "../../../apps/web/shared/types";
 
-// The road table's rows come from the agency's profiles, and the console reads no gate options beside them:
-// the gates page and its per-gate settings are gone.
+// The fallback as the agency answers it (its docs/api.md, 「providers, models and model files」): the account runs on
+// Claude Code go out on now and the Claude accounts, and nothing the agency no longer answers — a field it still sends
+// beside them is not carried, and a field it leaves out stands as the empty view has it.
 
-const profile = (key: string, kind: string): Record<string, unknown> => ({ key, label: key, kind, line: kind, services: [], offered: [] });
+const ACTIVE = { provider: "claude-code", account: "account-a", accountName: "Account A", accounts: 2, session: null, week: null };
+const ACCOUNT = { id: "account-a", name: "Account A", kind: "directory", path: "/srv/accounts/a", enabled: true };
 
-standIn("AGENCY", () => answer({ profiles: [profile("sanitizer", "gate"), profile("job-worker", "worker")] }));
-const gate = standIn("GATE", () => answer({ code: "no-gate", error: "Not a gate" }, 404));
+let held: Record<string, unknown> = {};
+
+standIn("AGENCY", () => answer(held));
 const handler = await routeOf<FallbackView>("../../apps/web/server/api/fallback.get");
 
-test("carries the agency's profiles and asks the gate unit nothing", async () => {
+test("carries the account in use and the accounts, and none of the fields the agency no longer answers", async () => {
+  held = { active: ACTIVE, accounts: [ACCOUNT], codexPresent: true, keyPresent: true, services: [], order: [], profiles: [] };
+
   const { status, answer: view } = await asked(handler, {});
 
   expect(status).toBe(200);
-  expect(view?.profiles.map((one) => one.key)).toEqual(["sanitizer", "job-worker"]);
-  expect(view?.profiles.every((one) => !("gateOptions" in one))).toBe(true);
-  expect(gate.asked).toEqual([]);
+  expect(view as unknown).toEqual({ active: ACTIVE, accounts: [ACCOUNT] });
+});
+
+test("stands a field the answer leaves out as the empty view has it", async () => {
+  held = {};
+
+  const { answer: view } = await asked(handler, {});
+
+  expect(view).toEqual({ active: { provider: "claude-code", account: null, accountName: "", accounts: 0, session: null, week: null }, accounts: [] });
 });

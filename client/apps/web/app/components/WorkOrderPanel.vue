@@ -56,7 +56,7 @@
         <label class="mt-2 block text-sm text-muted">{{ $t("todo.label.work_todo") }}</label>
         <GrowingTextarea v-model="instruction" :aria-label="$t('todo.aria.work_instruction')" :rows="4" class="mt-1" />
       </template>
-      <ExecutionModelSelect v-model="model" :label="$t('todo.label.builder_model')" class="mt-2" />
+      <ExecutionModelSelect v-model="model" :label="$t('todo.label.builder_model')" :line="JOB_LINE" class="mt-2" />
       <template v-if="reopening">
         <div class="mt-2 flex flex-wrap justify-end gap-2">
           <UButton size="sm" :loading="busy" @click="submit('reopen')">{{ $t("todo.action.reopen_keep") }}</UButton>
@@ -133,6 +133,7 @@ import { WORKER_AGENT } from "#shared/config";
 import type { WorkStep } from "~/domain/workorder";
 import { queuePlaceText, workOrderClosing, workOrderStop } from "~/domain/queue-place";
 import { draftRepeatsItem } from "#shared/todo-blocks";
+import { JOB_LINE } from "~/domain/axes";
 import { useLiveRefresh, useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
 import { useLastRead } from "bmo-ui/app/domain/loading";

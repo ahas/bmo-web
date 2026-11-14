@@ -1,6 +1,6 @@
 import { afterAll, expect, test } from "bun:test";
 
-import { LAYER_VERSION, consoleManifest } from "bmo-ui/shared/console-manifest";
+import { LAYER_BOUND, LAYER_RANGE, LAYER_VERSION, consoleManifest } from "bmo-ui/shared/console-manifest";
 
 import { askedBundle, attachBundles, movedPage, namedUnits, readerMay, relayedCall, relayedPath, screenOf, sharePage, withoutConflicts } from "../../../apps/web/server/utils/console-manifests";
 import { manifestFields } from "../../support/console-manifest";
@@ -54,7 +54,8 @@ test("a unit that answers no manifest, one that does not read, or words that do 
   expect(await askedBundle("UNIT_A", unit)).toBeNull();
 });
 
-test("a manifest built on another layer than the console runs brings none, and the log says so once, naming both layers", async () => {
+// What the console's log says while a call runs.
+async function logged(run: () => Promise<void>): Promise<string[]> {
   const said: string[] = [];
   const error = console.error;
 
@@ -62,17 +63,54 @@ test("a manifest built on another layer than the console runs brings none, and t
   answers["/console/words"] = () => Response.json({ ko: { "unit-a": { title: "a" } } });
 
   try {
-    answers["/console-manifest"] = () => Response.json(manifestOf({ layer: "0.1.0-rev.17" }));
-    expect(await askedBundle("UNIT_B", unit)).toBeNull();
-    expect(await askedBundle("UNIT_B", unit)).toBeNull();
-
-    answers["/console-manifest"] = () => Response.json(manifestOf());
-    expect((await askedBundle("UNIT_B", unit))?.manifest.layer).toBe(LAYER_VERSION);
+    await run();
   } finally {
     console.error = error;
   }
 
-  expect(said).toEqual([`console bundles: UNIT_B's bundle is left out: it is built on bmo-ui 0.1.0-rev.17, and the console runs bmo-ui ${LAYER_VERSION}`]);
+  return said;
+}
+
+// The line the log holds for a bundle built on a layer outside the console's range.
+function outsideRange(name: string, layer: string): string {
+  return `console bundles: ${name}'s bundle is left out: it is built on bmo-ui ${layer}, and the console runs bmo-ui ${LAYER_VERSION}, which attaches bundles built on bmo-ui ${LAYER_BOUND} up to its own`;
+}
+
+test("a manifest built on any release from the console's bound up to its own brings its bundle, the bound's included, and the log says nothing", async () => {
+  const said = await logged(async () => {
+    for (const layer of LAYER_RANGE) {
+      answers["/console-manifest"] = () => Response.json(manifestOf({ layer }));
+      expect((await askedBundle("UNIT_B", unit))?.manifest.layer).toBe(layer);
+    }
+  });
+
+  expect(LAYER_RANGE).toContain("0.1.0-rev.23");
+  expect(said).toEqual([]);
+});
+
+test("a manifest built on a release older than the bound brings none, and the log says so once, naming its layer, the console's and the bound", async () => {
+  const said = await logged(async () => {
+    answers["/console-manifest"] = () => Response.json(manifestOf({ layer: "0.1.0-rev.22" }));
+    expect(await askedBundle("UNIT_C", unit)).toBeNull();
+    expect(await askedBundle("UNIT_C", unit)).toBeNull();
+
+    answers["/console-manifest"] = () => Response.json(manifestOf());
+    expect((await askedBundle("UNIT_C", unit))?.manifest.layer).toBe(LAYER_VERSION);
+  });
+
+  expect(said).toEqual([outsideRange("UNIT_C", "0.1.0-rev.22")]);
+});
+
+test("a manifest built on a release newer than the console's, on a layer taken from its source or on a release outside the range's list brings none, each line naming the bound", async () => {
+  const outside = ["0.1.0-rev.9999", `${LAYER_VERSION}+source`, "0.3.0"];
+  const said = await logged(async () => {
+    for (const layer of outside) {
+      answers["/console-manifest"] = () => Response.json(manifestOf({ layer }));
+      expect(await askedBundle("UNIT_D", unit)).toBeNull();
+    }
+  });
+
+  expect(said).toEqual(outside.map((layer) => outsideRange("UNIT_D", layer)));
 });
 
 test("two manifests sharing a name, a screen path or a service name both bring none", () => {

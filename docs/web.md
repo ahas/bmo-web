@@ -7245,8 +7245,11 @@ their head, the sidebar count, the moved screens, the notices, the translator, i
 its people directory and the members of the reader's company.
 
 - **The console runs one release of bmo-ui,** the file bmo-ui's release verb wrote for the version bmo-chat's
-  shared versions pin, vendored under `client/vendor/` as it stands, so the version it attaches bundles by is the
-  one bmo-ui's `LAYER_VERSION` answers (the contract's 「The layer a bundle is built on」). The libraries a bundle
+  shared versions pin, vendored under `client/vendor/` as it stands. It attaches a bundle built on any release
+  inside that release's range, from the bound bmo-ui's `LAYER_BOUND` answers up to its own, `LAYER_VERSION`, both
+  included, as bmo-ui's `onThisLayer` reads the list `LAYER_RANGE` names (the contract's 「The layer a bundle is
+  built on」); a bundle built on a release older than the bound, newer than the console's or one the layer's ledger
+  does not hold, a layer taken from its source among them, is left out. The libraries a bundle
   shares with it are the ones bmo-ui's `CONSOLE_SHARED_LIBRARIES` lists, and the console's build stops where that
   list names one it does not know how to hand a bundle.
 - **The units asked are every unit the settings name.** The server asks each unit whose `<NAME>_ADDRESS` is set
@@ -7255,12 +7258,13 @@ its people directory and the members of the reader's company.
   it has answered. Which answers leave a unit out is the contract's (「How a console finds the services」), and a
   unit nothing answers, or that answers anything but a 200, is left out with nothing said on a screen.
 - **What the console left out, and why, is in its log.** A manifest that does not read through bmo-ui's
-  `consoleManifest`, one built on another layer than the console runs, one whose words do not answer, one whose
+  `consoleManifest`, one built on a layer outside the console's range, one whose words do not answer, one whose
   service bears the name the console answers its company's members under (below), and two that clash are each
-  left out with a line in the server's log naming the unit and the reason: for another layer, the
-  manifest's layer and the console's own, so a screen missing from the sidebar after a release of bmo-ui is
-  explained there. A line is written as a reason first stands and again where it changes, never once a minute
-  for a reason that stands, and a unit whose manifest reads again is attached again with no further line.
+  left out with a line in the server's log naming the unit and the reason: for a layer outside the range, the
+  manifest's layer, the console's own and the bound it attaches from, so a screen missing from the sidebar after a
+  release of bmo-ui is explained there by the bound. A line is written as a reason first stands and again where it
+  changes, never once a minute for a reason that stands, and a unit whose manifest reads again is attached again
+  with no further line.
 - **The service is relayed under the name its manifest gives,** at the address and with the token of the unit
   that answered it, and nothing of it the contract does not let through. A relayed call waits for the service's
   answer however long it takes to begin, and ends only when the service answers or its connection is refused or

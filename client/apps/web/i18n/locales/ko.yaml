@@ -103,6 +103,8 @@ common:
     span_7d: 7일
     speaker_bmo: 채팅 에이전트
     speaker_owner: 소유자
+    speed_normal: "{speed} 보통"
+    subtitles_off: 꺼짐
     theme_forest: 숲
     theme_sea: 바다
     theme_sunset: 노을
@@ -132,9 +134,11 @@ common:
     delete: 삭제
     discard: 버리기
     edit: 편집
+    exit_fullscreen: 전체 화면 종료
     expand: 확장
     find: 찾기
     fit_screen: 화면에 맞추기
+    fullscreen: 전체 화면
     more: 더보기
     move_down: 아래로
     move_up: 위로
@@ -148,6 +152,10 @@ common:
     refresh: 새로고침
     retry_translation: 다시 요청
     save: 저장
+    skip_back: "{n}초 뒤로"
+    skip_forward: "{n}초 앞으로"
+    subtitles: 자막
+    turn_picture: 화면 회전
     unmute: 음소거 해제
     unpin: 고정 해제
     unshare: 공유 해제
@@ -169,23 +177,36 @@ common:
     move_up_named: "{name} 위로"
     opens_new_tab: (새 탭에서 열림)
     pinned_named: "{name} 고정됨"
+    play_named: "{name} 재생"
+    player_named: "{name} 플레이어"
     search_scope: 찾을 범위
     share_address: 공유 링크 주소
+    speed_named: "재생 속도 {speed}"
   status:
     bmo_answering: 채팅 에이전트가 답을 쓰는 중…
+    brightness: "밝기 {n}%"
     copied: 복사됨
     loading: 불러오는 중…
     loading_named: "{name} 불러오는 중…"
     members_loading: 공유 대상 불러오는 중…
+    muted: 음소거됨
     no_members: 공유 대상 없음
     no_rooms: 기록된 방 없음
     picture_loading: 사진 불러오는 중…
     reconnecting: 다시 연결하는 중
     rooms_loading: 방 불러오는 중…
     share_loading: 공유 링크 불러오는 중…
+    speed: "속도 {speed}"
+    subtitles_off: 자막 꺼짐
+    subtitles_on: "자막 {name}"
     translating: 번역하는 중…
     translation_busy: 번역기가 바빠 지금은 번역하지 못했습니다.
+    turned: "{degrees}도 회전됨"
+    unmuted: 음소거 해제됨
     video_loading: 영상 정보 불러오는 중…
+    volume: "볼륨 {n}%"
+    went_back: "{n}초 뒤로"
+    went_forward: "{n}초 앞으로"
   message:
     translator_absent: 번역기가 없어 번역할 수 없습니다.
     link_copied: 링크를 복사했습니다.

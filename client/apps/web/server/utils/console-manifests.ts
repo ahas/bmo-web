@@ -1,4 +1,4 @@
-import { CONSOLE_MANIFEST_ROUTE, LAYER_VERSION, consoleManifest, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
+import { CONSOLE_MANIFEST_ROUTE, LAYER_BOUND, LAYER_VERSION, consoleManifest, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 import { unitHeaders } from "./units";
@@ -9,9 +9,9 @@ import type { ConsoleScreen } from "#shared/console-bundles";
 import type { ConsoleManifest, ConsoleRole, ConsoleWords } from "bmo-ui/shared/console-manifest";
 
 // The console bundles the units bring (docs/web.md, 「Screens a unit brings」; bmo-ui's `docs/console-bundles.md`):
-// every unit the settings name is asked for its manifest, and a unit whose manifest reads, on the layer the console
-// runs, brings its bundle, its words and its relay. The list is the console's own and names no unit; a unit is
-// whatever its manifest says.
+// every unit the settings name is asked for its manifest, and a unit whose manifest reads, on a release inside the
+// range of the layer the console runs, brings its bundle, its words and its relay. The list is the console's own and
+// names no unit; a unit is whatever its manifest says.
 
 /** One bundle attached: the manifest as it reads, the unit that answered it, and the bundle's words. */
 export interface AttachedBundle {
@@ -104,8 +104,10 @@ function recordLeftOut(subject: string, reason: string | null): void {
 }
 
 /**
- * One unit's bundle, or null where it answers none, its manifest does not read, its bundle is built on another layer
- * than the console runs or its words do not answer; each but the first says why in the console's log.
+ * One unit's bundle, or null where it answers none, its manifest does not read, its bundle is built on a release
+ * outside the range of the layer the console runs (older than its bound, newer than its own release, or one the
+ * layer's ledger does not hold) or its words do not answer; each but the first says why in the console's log, a
+ * layer outside the range named beside the console's own and its bound.
  */
 export async function askedBundle(name: string, unit: UnitAddress): Promise<AttachedBundle | null> {
   const subject = `${name}'s bundle`;
@@ -128,7 +130,10 @@ export async function askedBundle(name: string, unit: UnitAddress): Promise<Atta
   }
 
   if (!onThisLayer(manifest)) {
-    recordLeftOut(subject, `it is built on bmo-ui ${manifest.layer}, and the console runs bmo-ui ${LAYER_VERSION}`);
+    recordLeftOut(
+      subject,
+      `it is built on bmo-ui ${manifest.layer}, and the console runs bmo-ui ${LAYER_VERSION}, which attaches bundles built on bmo-ui ${LAYER_BOUND} up to its own`
+    );
 
     return null;
   }

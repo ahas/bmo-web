@@ -309,17 +309,21 @@
                           :chat-id="props.chatId"
                           :message-id="props.item.messageId"
                         />
-                        <!-- A kept file stands as a line of its own: what it is, how large, and the way to
-                             take it. The name wraps rather than being cut, since it is the file's own. -->
+                        <!-- A kept file stands as a line of its own on the bubble's ground, as the messenger
+                             stands one, with no frame of its own: its mark, its name over its size, and the way
+                             to take it at the trailing end. The name wraps rather than being cut, since it is
+                             the file's own. -->
                         <div
                           v-if="attachment.kind !== 'sticker' && !(attachment.kind === 'animation' && attachment.available) && !heard(attachment)"
                           data-attachment
-                          class="flex max-w-full items-center gap-2 rounded-md border border-default py-1 ps-2 pe-1"
+                          class="flex max-w-full items-center gap-3"
                           :class="attachment.available ? '' : 'text-muted'"
                         >
-                          <UIcon :name="attachment.kind === 'audio' ? 'i-material-symbols-audio-file-outline' : attachment.kind === 'video' ? 'i-material-symbols-video-file-outline' : 'i-material-symbols-draft-outline'" class="size-5 shrink-0 text-dimmed" />
-                          <span class="min-w-0 flex-1 break-all">{{ attachment.name }}</span>
-                          <span v-if="attachment.bytes !== null" class="shrink-0 text-muted tabular-nums">{{ fileSizeText(attachment.bytes) }}</span>
+                          <UIcon data-attachment-mark :name="attachment.kind === 'audio' ? 'i-material-symbols-audio-file-outline' : attachment.kind === 'video' ? 'i-material-symbols-video-file-outline' : 'i-material-symbols-draft-outline'" class="size-8 shrink-0 text-dimmed" />
+                          <div class="flex min-w-0 flex-1 flex-col">
+                            <span data-attachment-name class="break-all">{{ attachment.name }}</span>
+                            <span v-if="attachment.bytes !== null" data-attachment-size class="text-muted tabular-nums">{{ fileSizeText(attachment.bytes) }}</span>
+                          </div>
                           <UTooltip v-if="attachment.available" :text="$t('common.aria.download_named', { name: attachment.name })">
                             <UButton
                               size="sm"
@@ -333,7 +337,7 @@
                               @click.stop
                             />
                           </UTooltip>
-                          <span v-else class="shrink-0 pe-1 text-muted">{{ $t("room.label.unreceivable") }}</span>
+                          <span v-else data-attachment-unreceivable class="shrink-0 text-muted">{{ $t("room.label.unreceivable") }}</span>
                         </div>
                       </div>
 

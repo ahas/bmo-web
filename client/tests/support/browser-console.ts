@@ -154,7 +154,9 @@ const UNREAD_CHAT = 43;
 // sender, the chat agent's under no number at all.
 const RECORD_CHAT = -9_000_000_000_099;
 // A room whose messages carry what a messenger sends besides words: an album of three tall pictures, an animated
-// sticker, an animation, reactions of several people with their pictures, and two videos.
+// sticker, an animation, reactions of several people with their pictures, two videos, and three kept files that stand
+// as file lines: a document under a caption, a sound in a form no browser plays, and a document that could not be
+// received.
 const MEDIA_CHAT = 44;
 // A room a chat service numbered and listed, which the owner never added, allowed, gave an agent or spoke in: the
 // console leaves it out of the room list until it is added from the room add dialog, and once its registration is removed
@@ -176,6 +178,12 @@ const STICKER = Bun.gzipSync(new TextEncoder().encode(JSON.stringify({
 const VIDEOS: Record<number, { name: string; bytes: Uint8Array<ArrayBuffer>; shape: { width: number; height: number } }> = {
   11: { name: "clip-wide.webm", bytes: new Uint8Array(await Bun.file(new URL("./room-video-wide.webm", import.meta.url)).arrayBuffer()), shape: { width: 1280, height: 720 } },
   12: { name: "clip-tall.webm", bytes: new Uint8Array(await Bun.file(new URL("./room-video-tall.webm", import.meta.url)).arrayBuffer()), shape: { width: 720, height: 1280 } }
+};
+// The kept files that stand as file lines, by message, as the receiver lists each.
+const FILE_LINES: Record<number, { kind: string; name: string; size: number; type: string; kept: boolean }> = {
+  13: { kind: "document", name: "meeting-notes-and-follow-up-actions.pdf", size: 1_258_291, type: "application/pdf", kept: true },
+  14: { kind: "audio", name: "memo.amr", size: 20_480, type: "audio/amr", kept: true },
+  15: { kind: "document", name: "report.zip", size: 0, type: "application/zip", kept: false }
 };
 // The person number the chat agent's own words stand under in the owner's room, whose picture is its face.
 const AGENT_FACE = 501;
@@ -732,7 +740,15 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       shown(8, { text: inlineWords }),
       shown(9, { text: preWords }),
       shown(10, { text: quoteWords }),
-      ...[11, 12].map((id) => shown(id, { text: id === 11 ? "a caption under the video" : "", files: [{ kind: "video", source: VIDEOS[id]!.name, storedPath: "kept", collectedAt: LINE_AT }] }))
+      ...[11, 12].map((id) => shown(id, { text: id === 11 ? "a caption under the video" : "", files: [{ kind: "video", source: VIDEOS[id]!.name, storedPath: "kept", collectedAt: LINE_AT }] })),
+      ...[13, 14, 15].map((id) => {
+        const file = FILE_LINES[id]!;
+
+        return shown(id, {
+          text: id === 13 ? "the notes from the review" : "",
+          files: [{ kind: file.kind, source: file.name, storedPath: file.kept ? "kept" : null, collectedAt: LINE_AT }]
+        });
+      })
     ];
     const formats: Record<number, { text: string; entities: Record<string, unknown>[] }> = {
       8: { text: inlineWords, entities: inlineEntities },
@@ -757,7 +773,8 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
         const files = id === 4
           ? [{ place: 0, kind: "sticker", name: "sticker-1.tgs", size: STICKER.byteLength, type: "application/x-tgsticker", kept: true }]
           : id === 5 ? [{ place: 0, kind: "animation", name: "video.mp4", size: 4, type: "video/mp4", kept: true }]
-          : VIDEOS[id] ? [{ place: 0, kind: "video", name: VIDEOS[id].name, size: VIDEOS[id].bytes.byteLength, type: "video/webm", kept: true }] : [];
+          : VIDEOS[id] ? [{ place: 0, kind: "video", name: VIDEOS[id].name, size: VIDEOS[id].bytes.byteLength, type: "video/webm", kept: true }]
+          : FILE_LINES[id] ? [{ place: 0, ...FILE_LINES[id] }] : [];
 
         return Response.json({ items: files, more: false });
       }

@@ -5441,10 +5441,14 @@ Four bounds keep it from growing forever.
 
 #### 첨부와 Telegram 표현
 
-- A stored attachment stands as a line of its own under the words: a file icon, the original file name, the actual
-  stored size in B, KB or MB, and a download button at its end. The archive's mark for it — `[파일 <name>]` at the head
+- A stored attachment stands as a line of its own under the words, as Telegram stands a file: the file kind's mark,
+  the original file name with the actual stored size in B, KB or MB under it, and a download button at its end whose
+  tooltip names the file. The line stands on the bubble's own ground in the bubble's inner room, with no border,
+  ground or corners of its own, since the bubble is already the box that holds it; the mark stands centred beside the
+  name and its size. The archive's mark for it — `[파일 <name>]` at the head
   of the message — is not shown again above that line, since the line says the same; a caption after the mark stays,
-  and a message that is the file alone stands the line with no bubble round it (**말 없는 메시지**).
+  and a message that is the file alone stands the line in its bubble all the same, since only a sticker sent alone
+  stands with no bubble (**말 없는 메시지**).
   Copying still takes the archived text as it is. An attachment that cannot be received stands the same line, dim,
   with 「받을 수 없음」 in place of the button. An ordinary file is offered to a logged-in user as a forced download, and HTML and SVG are not run as console documents. Stored audio in
   an unsupported playback format can be downloaded as a file too. A download failure, size overrun and lost file stay

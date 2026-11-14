@@ -8,7 +8,7 @@ import type { Browser } from "playwright-core";
 import type { ProviderView } from "../../apps/web/shared/axes";
 import type { TodoBoard, TodoItem } from "../../apps/web/shared/types";
 
-// A work order's builder model (docs/web.md, the TODO detail's work order): its provider list is 자동 and then every
+// A work order's builder model (docs/web.md, the TODO detail's work order): its provider list is the automatic choice and then every
 // provider the agency's providers read lists whose program carries the line a job runs on, in that order and under its
 // word, a provider turned off standing disabled; nothing of it is read off the fallback, which answers the Claude
 // accounts alone. It drives the console tests/support/browser-console.ts stands up, serving the providers and the item
@@ -54,7 +54,7 @@ afterAll(async () => {
 }, BROWSER_HOOK_MS);
 
 describe.skipIf(!origin || !touchReady())("a work order's builder model", () => {
-  test("offers 자동 and the providers carrying the job line, a turned-off one disabled, and reads nothing of the fallback", async () => {
+  test("offers the automatic choice and the providers carrying the job line, a turned-off one disabled, and reads nothing of the fallback", async () => {
     const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
     const at = cookie.indexOf("=");
     const asked: string[] = [];

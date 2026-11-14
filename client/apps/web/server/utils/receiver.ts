@@ -20,6 +20,9 @@ import type { UnitAnswerCall } from "./unit-answer";
 
 type Schemas = components["schemas"];
 
+// The chat verb a provider declares where it reads a room's past back (bmo-chat's `docs/contract.md`, 「Capabilities」).
+const HISTORY = "history";
+
 /** What the receiver answers: its health, and every row it keeps. */
 export type ReceiverHealth = Schemas["Health"];
 export type ReceiverOwner = Schemas["Owner"];
@@ -173,26 +176,21 @@ export async function exactMessage(roomId: number, messageId: ExactMessageId): P
 }
 
 /**
- * The names of the chat services a room's past comes over from, where the road the room is answered on reads a room's
- * past back (it performs `history`, bmo-chat's `docs/contract.md`, 「Capabilities」): the room's providers whose account
- * lists rooms, a messenger the room's lines are handed over from, as opposed to the room's own record, each by the
- * label the receiver gives it, in the room's order. None where the road reads nothing back. The receiver answers a
- * road's verbs for the room's own road alone, so the services are told apart by what each provider says of itself.
+ * The names of the chat services a room's past comes over from: the room's providers whose own verbs, their `can` on
+ * the receiver's provider list, hold `history` (bmo-chat's `docs/contract.md`, 「Capabilities」), each by the label the
+ * receiver gives it, in the room's order. None where no provider of the room reads its past back.
  */
 export async function roomPastReaders(roomId: number): Promise<string[]> {
   const asking = receiver();
-  const [listed, room, verbs] = await Promise.all([
+  const [listed, room] = await Promise.all([
     receiverCall(asking.GET("/providers")),
-    receiverCall(asking.GET("/rooms/{roomId}/providers", { params: { path: { roomId } } })),
-    receiverCall(asking.GET("/rooms/{roomId}/send-verbs", { params: { path: { roomId } } }))
+    receiverCall(asking.GET("/rooms/{roomId}/providers", { params: { path: { roomId } } }))
   ]);
-
-  if (!verbs.items.includes("history")) return [];
 
   return room.providers.flatMap((key) => {
     const provider = listed.items.find((one) => one.key === key);
 
-    return provider?.listsRooms === true ? [provider.label] : [];
+    return provider?.can.includes(HISTORY) === true ? [provider.label] : [];
   });
 }
 

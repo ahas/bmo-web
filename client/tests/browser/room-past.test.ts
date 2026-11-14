@@ -10,8 +10,8 @@ import type { Browser, Page } from "playwright-core";
 // is a place, not a number」 and 「Where a room's line begins」): every older page is asked before the oldest row held,
 // by the digits that row is held under, and once the oldest line stands the line above it says where the room's line
 // begins. Two rooms tests/support/browser-console.ts stands up: 75 lines a chat service numbers past 2^53, where a
-// rounded cursor would read nothing, on a road that reads the room's past back, so the line names the service; and 70
-// lines numbered from 1 on a road that does not, so the line is the conversation's start. A desktop's width and a
+// rounded cursor would read nothing, on a service that reads the room's past back and one that does not, so the line
+// names the first alone; and 70 lines numbered from 1 on the second alone, so the line is the conversation's start. A desktop's width and a
 // Galaxy S25 held upright. It drives the console that harness stands up; the suite stands up no console, so there it
 // skips.
 

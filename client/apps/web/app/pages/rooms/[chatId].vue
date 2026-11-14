@@ -1277,7 +1277,7 @@ const pendingRows = computed<FeedItem[]>(() => {
 const days = computed<DayGroup[]>(() => atFoot(t, groupDays(t, archived.value), pendingRows.value));
 
 // Where the room's line begins, asked once the reader has reached its oldest message: the chat services the room's
-// past comes over from, where its road reads a room's past back; none elsewhere. Where that could not be learned the
+// past comes over from, each a service of the room that reads a room's past back; none elsewhere. Where that could not be learned the
 // line says nothing, rather than calling the oldest message the conversation's start on a guess.
 const lineBegins = computed<boolean>(() => !roomFeed.older.value && days.value.length > 0);
 const past = ref<RoomPast | null>(null);

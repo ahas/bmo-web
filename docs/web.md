@@ -3993,16 +3993,15 @@ Four bounds keep it from growing forever.
     as those digits, and the console's page route takes any signed 64-bit integer written so. The bot's notice
     names its message by those digits too (「A message's id」).
 - **Where a room's line begins.** Once the reader stands at the oldest message the receiver holds, a line above
-  it says what that is. Where the road the room is answered on reads a room's past back — it performs `history` in
-  bmo-chat's terms — the room holds only what its chat service has handed over so far, so the line names the
+  it says what that is. Where a chat service the room is on reads a room's past back — it declares `history` in
+  bmo-chat's terms — the room holds only what that service has handed over so far, so the line names the
   service: 「〈서비스〉에서 받은 대화는 여기부터입니다.」, and the older lines are that service's to read back. The
-  services named are the room's providers whose account lists rooms, the messengers its lines come over from, as
-  opposed to the room's own record, each by the label the receiver gives it. Everywhere else it is the
-  conversation's start: 「대화의 처음입니다.」. Where the receiver cannot say, the line stands with no words rather
-  than calling the oldest message the start on a guess. The console asks this once, when the oldest
-  message is reached, from the room's providers, what each provider says of itself and the verbs of the room's road;
-  the receiver answers a road's verbs for the room's own road alone, so the services are told apart by what each
-  says of itself. The line keeps its height while that is asked, so nothing under it moves.
+  services named are the room's providers whose own verbs hold `history`, each by the label the receiver gives
+  it, in the room's order. Everywhere else it is the conversation's start: 「대화의 처음입니다.」. Where the
+  receiver cannot say, the line stands with no words rather than calling the oldest message the start on a guess.
+  The console asks this once, when the oldest message is reached, from the room's providers and each provider's
+  own verbs, its `can` on the receiver's provider list, so two services of one room are told apart. The line
+  keeps its height while that is asked, so nothing under it moves.
 - **A page joins the room's line where its rows stand, never where it arrived.**
   - A row the screen already holds is replaced where it stands. Every other row of the page goes beside the
     held row it stands next to in the page: one before the page's first held row stands before that row, one

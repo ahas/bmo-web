@@ -172,8 +172,8 @@ const MEDIA_CHAT = 44;
 const NUMBERED_CHAT = -9_002_000_000_001;
 const numbered: { mode: string | null } = { mode: null };
 // Two rooms of more than two pages, read back to their oldest line: one a chat service numbers past 2^53, a thousand
-// apart as such a service spaces its numbers, whose road there reads the room's past back; and one numbered from 1
-// whose road reads nothing back. Each answers a page by the place its cursor stands in the line, as the receiver does,
+// apart as such a service spaces its numbers, on that service, which reads a room's past back, and on a second, which
+// reads nothing back; and one numbered from 1 on the second alone. Each answers a page by the place its cursor stands in the line, as the receiver does,
 // so a cursor naming no line it holds reads nothing.
 const PAST_CHAT = -9_002_000_000_002;
 const PAST_LINE = Array.from({ length: 75 }, (_, at) => String(3_973_000_000_000_000_177n + BigInt(at) * 1_000n));
@@ -806,10 +806,14 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     const listed = { ...room, id: NUMBERED_CHAT, title: "numbered-room", ownerRoom: false, listened: false, workRoom: NUMBERED_CHAT, lastMessageAt: LINE_AT - 100, messageCount: 1, mode: numbered.mode };
 
-    // The one chat service rooms are added from, listing its account's rooms and taking the record-only mode.
+    // The one chat service rooms are added from, listing its account's rooms, taking the record-only mode and reading
+    // a room's past back; and a second that does none of it, which the rooms read back to their oldest line are on.
     if (path === "/providers") {
       return Response.json({
-        items: [{ key: "chat-a", label: "Chat A", listsRooms: true, listsContacts: false, startsChats: false, startsGroups: false, roomModes: ["record-only"] }],
+        items: [
+          { key: "chat-a", label: "Chat A", can: ["text", "history"], listsRooms: true, listsContacts: false, startsChats: false, startsGroups: false, roomModes: ["record-only"] },
+          { key: "chat-b", label: "Chat B", can: ["text"], listsRooms: false, listsContacts: false, startsChats: false, startsGroups: false, roomModes: [] }
+        ],
         more: false
       });
     }
@@ -1065,9 +1069,7 @@ function pagedRoom(path: string, query: URLSearchParams): Response | null {
       return Response.json(end === -1 ? { items: [], more: false } : { items: line.slice(start, end).map(message), more: start > 0 });
     }
     case "/providers":
-      return Response.json({ providers: ["chat-a"], chosen: false });
-    case "/send-verbs":
-      return Response.json({ items: chat === PAST_CHAT ? ["text", "history"] : ["text"], more: false });
+      return Response.json({ providers: chat === PAST_CHAT ? ["chat-b", "chat-a"] : ["chat-b"], chosen: false });
     case "/title":
       return Response.json({ title: chat === PAST_CHAT ? "past-room" : "paged-room" });
     default: {

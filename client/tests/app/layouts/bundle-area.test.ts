@@ -27,7 +27,9 @@ describe("the page area of a bundle's screen", () => {
 
     expect(source).toContain("provide<ConsoleTitleBarOffer>(CONSOLE_TITLE_BAR, {});");
     expect(frame).not.toContain("data-title-bar-screen");
-    expect(bar).not.toContain('<slot name="trailing"');
+    // The bar's trailing place is the room's alone; the frame lays nothing in it for a bundle's screen.
+    expect(frame).not.toContain("#trailing");
+    expect(bar).toContain('<template v-if="$slots.trailing" #trailing>');
   });
 
   test("the console draws the bar only for a bundle route that asks for it", async () => {

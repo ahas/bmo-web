@@ -2070,7 +2070,11 @@ queue's button and the usage meters — so the front door opens on the groups th
   A repository's line is all of its checkouts together: its week's tokens are the sum of what the agency counts
   for each checkout a job ran in, and 작업 중 with its uptime stands while any job runs in it, counted from the
   one that started first. A job's run is filed under the agent its item named, so the line finds its jobs by the
-  repository each one runs in rather than by name.
+  repository each one runs in rather than by name. The week's four kinds and what stands unsplit are the fields the
+  agency's `GET /usage` gives each checkout's group (agency item #3053): `inputTokens`, `outputTokens`,
+  `cacheReadTokens` and `cacheWriteTokens`, each the sum over the group's jobs that reported their spend apart and
+  null where none did, and `unsplitJobs` and `unsplitTokens`, the jobs that spent tokens without reporting them apart
+  and what they spent. A group that names no `unsplitJobs` reads as wholly unsplit.
 
 The gate, runner and job worker groups are stood by reading the agency's lists as they are, so a repository or a
 role the owner adds stands here at once under its own name. If a branch has nobody, no empty group is stood and the

@@ -46,6 +46,9 @@ export interface VitalsInput {
   // is called, what it wears — belongs to whoever is drawing the row.
   name: string;
   chatId: number | null;
+  // The repository a job worker's line stands for, whose runs are filed under the agent each job's item named and
+  // are found by the repository they run in instead; null for every other agent.
+  repository?: string | null;
   // What the bot says of this agent — its model and its context. Absent while the bot is down,
   // and then neither figure is known.
   model: string | null;
@@ -100,6 +103,17 @@ export function agentWork(t: Translate, input: VitalsInput): AgentWork | null {
     }
 
     return input.turn === null ? null : { label: turnWord(t, input.turn.progress), since: input.turn.startedAt };
+  }
+
+  // A repository's line is at work while any job runs in it, since the one that started first.
+  const repository = input.repository ?? null;
+
+  if (repository !== null) {
+    const first = input.live
+      .filter((one) => one.kind === "worker" && one.repository === repository)
+      .reduce<LiveRun | null>((earliest, one) => (earliest === null || one.startedAt < earliest.startedAt ? one : earliest), null);
+
+    return first === null ? null : { label: t(RUN_WORDS.worker), since: first.startedAt };
   }
 
   // Every other agent stands under its own name, and one of them runs at a time.

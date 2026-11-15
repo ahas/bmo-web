@@ -309,6 +309,37 @@ export function agentUsage(agents: AgentTokenUsage[], name: string): AgentTokenU
   return agents.find((agent) => agent.agent === name) ?? null;
 }
 
+// A kind added across rows: none where no row states it, and a row that states none adds nothing, since what it
+// spent stands in its own unsplit figures.
+function kindSum(rows: readonly AgentTokenUsage[], key: keyof TokenSplit): number | null {
+  return rows.reduce<number | null>((sum, row) => {
+    const tokens = row[key];
+
+    return tokens === null ? sum : (sum ?? 0) + tokens;
+  }, null);
+}
+
+// What several names' weeks come to together, under the first name: a repository's week is the weeks of the
+// checkouts its jobs ran in. Nothing where none of them has a row, as for one name.
+export function usageOver(agents: AgentTokenUsage[], names: readonly string[]): AgentTokenUsage | null {
+  const rows = agents.filter((agent) => names.includes(agent.agent));
+  const total = (key: "tokens" | "runs" | "unsplitRuns" | "unsplitTokens"): number => rows.reduce((sum, row) => sum + row[key], 0);
+
+  return rows.length === 0 || names[0] === undefined
+    ? null
+    : {
+        agent: names[0],
+        tokens: total("tokens"),
+        runs: total("runs"),
+        inputTokens: kindSum(rows, "inputTokens"),
+        outputTokens: kindSum(rows, "outputTokens"),
+        cacheReadTokens: kindSum(rows, "cacheReadTokens"),
+        cacheWriteTokens: kindSum(rows, "cacheWriteTokens"),
+        unsplitRuns: total("unsplitRuns"),
+        unsplitTokens: total("unsplitTokens")
+      };
+}
+
 // The four kinds a run reports, in the words a person reads them in. A model reads what it is
 // sent and writes what it answers, and the cache is those same two verbs against the store the
 // session keeps; so the kinds are read, write, cache read and cache write, and each one stands as its own
@@ -355,6 +386,11 @@ const KINDS: TokenKind[] = [
   { label: "usage.label.kind_cache_read", color: "success", key: "cacheReadTokens" },
   { label: "usage.label.kind_cache_write", color: "warning", key: "cacheWriteTokens" }
 ];
+
+// Whether a row states any of the four. One that states none has nothing to divide and nothing to name.
+export function kindsKnown(split: TokenSplit): boolean {
+  return KINDS.some((kind) => split[kind.key] !== null);
+}
 
 // The four as figures, which is the full form, for a place with room to lay four of them out.
 export function kindFigures(t: Translate, split: TokenSplit): TokenFigure[] {

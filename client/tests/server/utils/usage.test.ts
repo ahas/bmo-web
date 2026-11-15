@@ -159,7 +159,7 @@ describe("each worker's week", () => {
     before: 1
   };
 
-  test("is the tokens its jobs carry, whole and not split, where they carry any", () => {
+  test("is the tokens its jobs carry where they carry any, wholly not split where the agency names no kinds", () => {
     expect(workerUsages(usage)).toEqual([
       {
         agent: "agent-a",

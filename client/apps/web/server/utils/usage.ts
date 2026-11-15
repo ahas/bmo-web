@@ -220,41 +220,46 @@ interface UsageGroup {
   tokens: number;
   jobs: number;
   contextTokens: number | null;
+  // What the group's jobs spent apart, summed over the jobs that reported it, and what the rest spent whole.
+  split: Pick<AgentTokenUsage, "inputTokens" | "outputTokens" | "cacheReadTokens" | "cacheWriteTokens" | "unsplitRuns" | "unsplitTokens">;
+}
+
+// A group that names no jobs left unsplit is read as wholly unsplit: the agency then counts no kinds at all.
+function splitOf(group: Held, tokens: number, jobs: number): UsageGroup["split"] {
+  const unsplitRuns = count(group.unsplitJobs);
+
+  return {
+    inputTokens: count(group.inputTokens),
+    outputTokens: count(group.outputTokens),
+    cacheReadTokens: count(group.cacheReadTokens),
+    cacheWriteTokens: count(group.cacheWriteTokens),
+    unsplitRuns: unsplitRuns ?? jobs,
+    unsplitTokens: unsplitRuns === null ? tokens : (count(group.unsplitTokens) ?? 0)
+  };
 }
 
 function groupOf(value: unknown): UsageGroup | null {
   const group = held(value);
   const key = text(group?.key);
 
-  return group === null || key === null
-    ? null
-    : { key, tokens: count(group.tokens) ?? 0, jobs: count(group.jobs) ?? 0, contextTokens: count(group.contextTokens) };
+  if (group === null || key === null) return null;
+
+  const tokens = count(group.tokens) ?? 0;
+  const jobs = count(group.jobs) ?? 0;
+
+  return { key, tokens, jobs, contextTokens: count(group.contextTokens), split: splitOf(group, tokens, jobs) };
 }
 
 /**
  * Each worker's week, where its jobs carry a figure. A worker whose jobs carry no tokens is one the agency recorded
- * none for, and it stands absent rather than as having spent nothing. The agency names no kind, so the whole of each
- * row stands as not split.
+ * none for, and it stands absent rather than as having spent nothing. The four kinds are the agency's sums over the
+ * jobs that reported their spend apart, and what the other jobs spent stands as not split.
  */
 export function workerUsages(usage: Schemas["Usage"]): AgentTokenUsage[] {
   return usage.groups.flatMap((value) => {
     const group = groupOf(value);
 
-    return group === null || group.tokens <= 0
-      ? []
-      : [
-          {
-            agent: group.key,
-            tokens: group.tokens,
-            runs: group.jobs,
-            inputTokens: null,
-            outputTokens: null,
-            cacheReadTokens: null,
-            cacheWriteTokens: null,
-            unsplitRuns: group.jobs,
-            unsplitTokens: group.tokens
-          }
-        ];
+    return group === null || group.tokens <= 0 ? [] : [{ agent: group.key, tokens: group.tokens, runs: group.jobs, ...group.split }];
   });
 }
 

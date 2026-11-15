@@ -133,6 +133,14 @@ describe("what one agent has to show of itself", () => {
 });
 
 describe("what an agent is doing at this second", () => {
+  test("a repository is at work while any job runs in it, since the one that started first", () => {
+    const job = (agent: string, repository: string, startedAt: number): LiveRun => ({ ...run("worker", agent, null, startedAt), repository });
+    const live = [job("agent-a", "repo-a", 900), job("agent-b", "repo-a", 700), job("agent-c", "repo-b", 500)];
+
+    expect(agentWork(wording, input({ name: "repo-a", repository: "repo-a", live }))).toEqual({ label: KO.line_138, since: 700 });
+    expect(agentWork(wording, input({ name: "repo-c", repository: "repo-c", live }))).toBeNull();
+  });
+
   test("the worker is at the job while its run stands in the picture", () => {
     expect(agentWork(wording, input({ name: "worker", live: [run("worker", "worker", 10000001, 900)] }))).toEqual({
       label: KO.line_138,

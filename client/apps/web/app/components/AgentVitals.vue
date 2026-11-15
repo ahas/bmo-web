@@ -52,14 +52,15 @@
          track cut into the four kinds, with the parts named under it. It is the same bar the
          usage popover puts under a model's row and it is drawn by the same component, because
          what an agent's week divided into is one thing however the screen came to be showing it.
-         A row the kinds cannot account for has no bar and stands as the figures alone. -->
-    <UsageSplit v-if="props.vitals.usage !== null" :tally="props.vitals.usage" :legend="props.legend" />
+         A week none of whose runs took its share leaves the place blank, with no bar and no dashes:
+         the unsplit count beside the total already says the whole week is undivided. -->
+    <UsageSplit v-if="props.vitals.usage !== null && kindsKnown(props.vitals.usage)" :tally="props.vitals.usage" :legend="props.legend" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { modeLabel, modelLabel, uptimeClock } from "~/domain/status";
-import { tokenText, totalText, unsplitText } from "~/domain/usage";
+import { kindsKnown, tokenText, totalText, unsplitText } from "~/domain/usage";
 
 import type { AgentVitals } from "~/domain/vitals";
 

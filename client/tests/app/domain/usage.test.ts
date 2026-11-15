@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { agentUsage, figureText, kindFigures, knownMode, limitless, liveWindow, loudestTone, resetClock, resetDay, resetText, shareText, shareTone, titleAccountLabel, titleWindows, tokenText, totalText, unsplitText, untilText, usageBar, usageGroups, windowLabel, moneyText, requestsLabel, requestsText } from "../../../apps/web/app/domain/usage";
+import { agentUsage, figureText, kindFigures, kindsKnown, usageOver, knownMode, limitless, liveWindow, loudestTone, resetClock, resetDay, resetText, shareText, shareTone, titleAccountLabel, titleWindows, tokenText, totalText, unsplitText, untilText, usageBar, usageGroups, windowLabel, moneyText, requestsLabel, requestsText } from "../../../apps/web/app/domain/usage";
 
 import type { AccountUsage, ActiveUsage, AgentTokenUsage, HeadlineWindow, UsageView } from "../../../apps/web/shared/types";
 import type { UsageBar, UsageSegment } from "../../../apps/web/app/domain/usage";
@@ -475,5 +475,44 @@ describe("a balance", () => {
     expect(requestsLabel(wording, { ...allowance, scope: "a-scope-the-pack-has-no-word-for" })).toBe(wording("usage.label.requests_day"));
     expect(requestsLabel(wording, { ...allowance, scope: null })).toBe(wording("usage.label.requests_day"));
     expect(requestsText(wording, allowance)).toBe(wording("usage.label.requests_left", { left: "988", limit: "1,000" }));
+  });
+});
+
+describe("a repository's week over its checkouts", () => {
+  const row = (agent: string, over: Partial<AgentTokenUsage> = {}): AgentTokenUsage => ({
+    agent,
+    tokens: 100,
+    runs: 2,
+    inputTokens: 1,
+    outputTokens: 9,
+    cacheReadTokens: 80,
+    cacheWriteTokens: 10,
+    unsplitRuns: 0,
+    unsplitTokens: 0,
+    ...over
+  });
+  const unsplit = { inputTokens: null, outputTokens: null, cacheReadTokens: null, cacheWriteTokens: null, unsplitRuns: 1, unsplitTokens: 50 };
+
+  test("adds every checkout's row under the repository's name, a row with no kinds adding only to what stands unsplit", () => {
+    expect(usageOver([row("repo-a"), row("repo-a-2"), row("repo-a-3", { tokens: 50, runs: 1, ...unsplit }), row("repo-b")], ["repo-a", "repo-a-2", "repo-a-3"])).toEqual({
+      agent: "repo-a",
+      tokens: 250,
+      runs: 5,
+      inputTokens: 2,
+      outputTokens: 18,
+      cacheReadTokens: 160,
+      cacheWriteTokens: 20,
+      unsplitRuns: 1,
+      unsplitTokens: 50
+    });
+  });
+
+  test("names no kind where no checkout states one, and is nothing where no checkout has a row", () => {
+    const whole = usageOver([row("repo-a-2", { tokens: 50, runs: 1, ...unsplit })], ["repo-a", "repo-a-2"]);
+
+    expect(whole).toMatchObject({ agent: "repo-a", tokens: 50, ...unsplit });
+    expect(kindsKnown(whole as AgentTokenUsage)).toBe(false);
+    expect(kindsKnown(row("repo-a"))).toBe(true);
+    expect(usageOver([row("repo-b")], ["repo-a"])).toBeNull();
   });
 });

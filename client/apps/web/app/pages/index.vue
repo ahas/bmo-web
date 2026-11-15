@@ -64,7 +64,9 @@
         <section v-for="group in standingGroups" :key="group.key" class="flex flex-col gap-3">
           <h2 class="text-sm font-semibold text-highlighted">{{ group.label }}</h2>
 
-          <ul class="grid gap-2 sm:grid-cols-2">
+          <!-- One column on a phone held to the list's width, so a line whose jobs make a long subtitle truncates it
+               rather than widening the column past the screen. -->
+          <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <li v-for="agent in group.agents" :key="agent.name">
               <NuxtLink
                 class="flex items-start gap-3 rounded-lg border border-default px-4 py-3 transition-colors hover:bg-elevated active:bg-accented"
@@ -94,7 +96,7 @@ import { useAgentCatalogue } from "~/domain/catalogue";
 import { avatarFor, useAvatars } from "~/domain/avatars";
 import { TURN_ENDED, useBmoTurns, useLivePicture, useLiveRefresh } from "~/domain/events";
 import { formatStamp } from "bmo-ui/app/domain/time";
-import { agentUsage, emptyUsage } from "~/domain/usage";
+import { emptyUsage, usageOver } from "~/domain/usage";
 import { agentVitals } from "~/domain/vitals";
 
 import { agentProviderNames } from "#shared/types";
@@ -148,8 +150,11 @@ const avatars = useAvatars();
 
 // What is running anywhere, and which chats are having their context folded. Both are asked for
 // once and then replaced by the picture the bot's own stream carries, so a row changes state
-// without the page asking again.
-const live = ref<LiveRun[]>([]);
+// without the page asking again. The jobs are the agency's and that picture says nothing of them, so the jobs read
+// off the status are kept apart from it and stand beside whatever the picture last said.
+const pictured = ref<LiveRun[]>([]);
+const jobs = ref<LiveRun[]>([]);
+const live = computed<LiveRun[]>(() => [...pictured.value, ...jobs.value]);
 const compacting = ref<ChatCompaction[]>([]);
 
 // The chat agent's own turn, room by room, out of the tab's record of every room's turns: a room's line here is
@@ -221,18 +226,22 @@ function modeOf(provider: string | null): AgentMode | null {
 }
 
 // One agent's figures, whatever kind it is: the bot's word for its model and its context, the
-// archive's sum of what it has burnt, and what it is doing at this second.
+// archive's sum of what it has burnt, and what it is doing at this second. A repository's figures are those of every
+// checkout of it, since the agency counts a job's spend under the checkout it ran in.
 function vitalsOf(name: string, chatId: number | null): AgentVitals {
   const reported: AgentSummary | undefined = agents.value.agents.find((held) => held.name === name);
   const answerer = defaultAnswererName();
+  const repository = reported?.kind === "repository" ? name : null;
+  const checkouts = (reported?.checkouts ?? []).flatMap((checkout) => (checkout.name === null || checkout.name === name ? [] : [checkout.name]));
 
   return agentVitals(t, {
     name,
     chatId: name === answerer ? (turns.value.keys().next().value ?? compacting.value[0]?.chatId ?? null) : chatId,
+    repository,
     mode: modeOf(reported?.provider ?? null),
     model: reported?.model ?? null,
     contextTokens: null,
-    usage: agentUsage(usage.value.agents, name),
+    usage: usageOver(usage.value.agents, [name, ...checkouts]),
     live: live.value,
     compacting: compacting.value,
     turn: name === answerer ? (turns.value.values().next().value ?? null) : chatId === null ? null : (turns.value.get(chatId) ?? null)
@@ -245,7 +254,7 @@ function chatAgentName(chatId: number): string {
 }
 
 useLivePicture((picture) => {
-  live.value = picture.runs ?? [];
+  pictured.value = (picture.runs ?? []).filter((run) => run.kind !== "worker");
   // A bot that does not yet say what it is folding says nothing about it, and nothing is what the
   // rows then show.
   compacting.value = picture.compacting ?? [];
@@ -257,7 +266,7 @@ async function readLiveStatus(): Promise<void> {
   try {
     const snapshot = await $fetch<StatusView>("/api/status");
 
-    live.value = snapshot.live;
+    jobs.value = snapshot.live.filter((run) => run.kind === "worker");
     compacting.value = snapshot.compacting;
   } catch {
     // The page stands whether the units answer or not; without the picture the rows say nothing about what is

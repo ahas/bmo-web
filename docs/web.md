@@ -2067,6 +2067,10 @@ queue's button and the usage meters — so the front door opens on the groups th
 - **Job workers** — each repository a job works in now stands a line, under the label 저장소. If a job runs in a
   repository, which item that job is a run of and the role it runs as attach under the repository's name, and a
   job launched with no item attaches the line its launcher wrote for why it was launched in the same place.
+  A repository's line is all of its checkouts together: its week's tokens are the sum of what the agency counts
+  for each checkout a job ran in, and 작업 중 with its uptime stands while any job runs in it, counted from the
+  one that started first. A job's run is filed under the agent its item named, so the line finds its jobs by the
+  repository each one runs in rather than by name.
 
 The gate, runner and job worker groups are stood by reading the agency's lists as they are, so a repository or a
 role the owner adds stands here at once under its own name. If a branch has nobody, no empty group is stood and the
@@ -2077,7 +2081,8 @@ four figures**. The four are uptime, model, context and this week's tokens. A va
 leaves that place blank — not stood as 0. 0 says measured-and-found-none, and a blank says there is nothing to
 measure, and the two differ.
 
-- **Model** — the bot records the model each agent last ran, so it is on every branch.
+- **Model** — the bot records the model each agent last ran, so it is on every branch but the job workers'. The
+  agency names no model for a job while it runs, so a repository's line leaves this place blank.
 - **Context** — a room's chat agent holds a session, so the size it held on last answering is written. Runners hold
   no session — they open and drop context per run — so this place is **the size held when the last
   run ended**. Not the value held now but a reading of how much one run of that branch loads. A gate reports no
@@ -2085,7 +2090,9 @@ measure, and the two differ.
   run once since this value began being written is likewise.
 - **This week's tokens** — the bot records with each run whose it is, so a per-agent sum is actually read.
   By the same rule as the title bar, after 「주간」 the four stand with their names and 「총 …」 beside them, and if a
-  run this week could not take its share, 「분리 전 N건 …」 attaches after. **The four stand as one bar together** —
+  run this week could not take its share, 「분리 전 N건 …」 attaches after. Where no run of the week took its share,
+  the four stand nowhere — no bar and no row of dashes — and the line reads 「주간 총 …」 with 「분리 전 N건 …」,
+  which already says the whole week is undivided. **The four stand as one bar together** —
   the bar a popover's row stands as, drawn the same, so where one agent's week went is the same picture on any
   screen. At phone-ish width only the track stands and the four names fold. Lining the four up in a row would
   fold each line into four and turn the list into paragraphs, and what is needed in a skimming place is the

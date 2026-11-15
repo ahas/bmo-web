@@ -10,6 +10,7 @@
        dashes, which is what a row that was never measured has to say for itself. -->
   <UProgressGroup
     v-if="bar !== null"
+    data-usage-split
     :items="items"
     :max="bar.max"
     :size="BAR_SIZE"

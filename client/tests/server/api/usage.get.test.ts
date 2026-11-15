@@ -39,7 +39,17 @@ const agency = standIn("AGENCY", (call) => {
     });
   }
 
-  return answer({ groups: empty ? [] : [{ key: "agent-a", tokens: 0, jobs: 4, firstAt: 1, lastAt: 2, contextTokens: null }], after: 0, before: 1 });
+  // One checkout spent nothing; the other spent 1,000 tokens over three jobs, two of which reported their spend apart.
+  return answer({
+    groups: empty
+      ? []
+      : [
+          { key: "agent-b", tokens: 1000, jobs: 3, firstAt: 1, lastAt: 2, contextTokens: null, inputTokens: 10, outputTokens: 90, cacheReadTokens: 800, cacheWriteTokens: 50, unsplitJobs: 1, unsplitTokens: 50 },
+          { key: "agent-a", tokens: 0, jobs: 4, firstAt: 1, lastAt: 2, contextTokens: null, inputTokens: null, outputTokens: null, cacheReadTokens: null, cacheWriteTokens: null, unsplitJobs: 0, unsplitTokens: 0 }
+        ],
+    after: 0,
+    before: 1
+  });
 });
 
 // The supervisor the receiver's default answerer setting names.
@@ -47,17 +57,35 @@ standIn("RECEIVER", (call) => (call.path === "/default-answerer" ? answer({ supe
 
 const handler = await routeOf<UsageView>("../../apps/web/server/api/usage.get");
 
+// The week the stand-in's spending checkout comes to.
+const WEEK_B = {
+  agent: "agent-b",
+  tokens: 1000,
+  runs: 3,
+  inputTokens: 10,
+  outputTokens: 90,
+  cacheReadTokens: 800,
+  cacheWriteTokens: 50,
+  unsplitRuns: 1,
+  unsplitTokens: 50
+};
+
 describe("the usage view", () => {
   test("names the slot the chat runs on and every account, and borrows no figure for an account with none", async () => {
     empty = false;
 
-    expect((await asked(handler, {})).answer).toEqual({
+    expect((await asked(handler, {})).answer).toMatchObject({
       active: { provider: "provider-x", label: "Provider X", account: null, accountName: null, logins: 0, session: null, week: null, balance: null },
       roads: [],
       accounts: [{ id: "a", name: "Account A", provider: "claude-code", label: "claude-code", inUse: false, session: null, week: null, balance: null }],
-      agents: [],
       contexts: []
     });
+  });
+
+  test("reads each checkout's week apart into the four kinds, with what the rest spent whole", async () => {
+    empty = false;
+
+    expect((await asked(handler, {})).answer?.agents).toEqual([WEEK_B]);
   });
 
   test("follows the provider the default answerer runs on, borrowing no window of the fallback's other slot", async () => {

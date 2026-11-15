@@ -576,9 +576,10 @@ for it, and no file or table of that unit is read meanwhile.
   share and reset its `PATCH /accounts/{accountId}` records, and answers none today; the provider the chat agent runs
   on is the `provider` of the supervisor the receiver's default answerer setting names, and each account's name stands in its `GET /fallback` answer (below). So the
   account the chat runs on reads its figures and every other account reads as having no reading, never a figure
-  borrowed from another. `GET /usage` counts each agent's jobs and the tokens they spent, which the agency records as
-  none yet: a worker whose jobs carry no tokens holds no figure rather than a nought, and no row divides into the four
-  kinds, so every row it does carry reads as not split. No unit serves a tally by user or the context of a session a
+  borrowed from another. `GET /usage` grouped by `agent` counts the jobs of each checkout and the tokens they spent, with
+  the four kinds summed over the jobs that reported them apart and how many jobs, and how many tokens, reported none;
+  a checkout whose jobs carry no tokens holds no figure rather than a nought, and a group that names no kinds reads
+  as wholly not split. No unit serves a tally by user or the context of a session a
   room holds.
 - **A turn's figures and what a running job has spent.** The roads a turn walked with what each spent are recorded
   by the agency and served by no route, so a turn stands without its figures; and what a running job's models have

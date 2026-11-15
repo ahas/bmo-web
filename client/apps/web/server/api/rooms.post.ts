@@ -42,7 +42,7 @@ export default defineEventHandler(async (event): Promise<RoomAdded> => {
 
   // A start goes out in the account its contacts were listed in: the signed-in person's own where the model gives
   // them a user, else the service's own.
-  const account = signed.id === null ? {} : { accountId: signed.id };
+  const account = chatAccountOf(signed);
   let room;
 
   if (isId(body.roomId)) {

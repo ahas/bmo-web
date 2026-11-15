@@ -95,6 +95,15 @@ export async function signedInOf(
   return { name: session.user.name, id: null, administrator: true };
 }
 
+/**
+ * The account a chat service's call is for, as bmo-chat's contract names it: the signed-in person's user id, or none
+ * for the administrator, whose account is the deployment's own, and for a login the account model names no user for,
+ * so the service's own account answers (docs/web.md, the room add's contacts).
+ */
+export function chatAccountOf(signed: SignedIn): { accountId?: number } {
+  return signed.id === null || signed.administrator ? {} : { accountId: signed.id };
+}
+
 /** The signed-in user where they are the platform administrator; anyone else is refused. */
 export async function requireAdministrator(event: H3Event): Promise<SignedIn> {
   const signed = await signedInUser(event);

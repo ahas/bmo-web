@@ -1,5 +1,6 @@
 import { createError } from "h3";
 
+import { chatAccountOf } from "../../apps/web/server/utils/accounts";
 import { fail } from "../../apps/web/server/utils/fail";
 
 // What Nitro imports into a server route by itself, put in place before the route is loaded, so the route runs
@@ -25,6 +26,7 @@ const globals: Record<string, unknown> = globalThis;
 globals.defineEventHandler = (handler: unknown) => handler;
 globals.createError = createError;
 globals.fail = fail;
+globals.chatAccountOf = chatAccountOf;
 globals.requireUserSession = async () => ({ user: { id: 1, name: "tester" } });
 globals.requireAdministrator = async () => ({ id: 1, name: "tester", administrator: true });
 globals.signedInUser = async () => ({ id: 1, name: "tester", administrator: true });

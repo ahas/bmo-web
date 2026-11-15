@@ -24,7 +24,7 @@ export default defineEventHandler(async (event): Promise<RoomAddContactPage> => 
         query: {
           ...(Number.isSafeInteger(after) && query.after !== undefined ? { after } : {}),
           ...(Number.isSafeInteger(limit) && limit > 0 ? { limit } : {}),
-          ...(signed.id === null ? {} : { accountId: signed.id })
+          ...chatAccountOf(signed)
         }
       }
     })

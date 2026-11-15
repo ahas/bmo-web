@@ -1309,8 +1309,9 @@ Four groups.
       account already has a one-to-one with it, marked as that room is. The contacts are the signed-in person's
       own account's: the listing and a start from it name that person's user id as the account they are for
       (bmo-chat's `docs/contract.md`, 「The account a call is for」), taken from the session and never from the
-      dialog, and a person the account model names no user for names none, so the service's own account
-      answers. A service that holds its own account alone answers that account's whichever is named. Under its
+      dialog. The administrator's account is the deployment's own, as agency holds it (its
+      `docs/person-nodes.md`), so the administrator's listing and start name none, as a person the account model
+      names no user for names none, and the service's own account answers. A service that holds its own account alone answers that account's whichever is named. Under its
       label the list says in a few words whose contacts these are, the reader's own (내 계정 연락처) or, where
       the reader has no user, the chat service's own (채팅 서비스 계정 연락처). Choosing one contact starts a
       one-to-one where the service starts one (`startsChats`); where it starts groups (`startsGroups`), several may be

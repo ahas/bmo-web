@@ -49,7 +49,7 @@ describe("a group room's supervisor", () => {
 
     expect(read.answer).toEqual({ chatId: 7, title: "Plans" });
     expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([
-      ["POST", "/rooms", { ...GROUP, accountId: 1 }],
+      ["POST", "/rooms", GROUP],
       ["PUT", "/rooms/7/supervisors", { supervisors: ["agent-a"] }]
     ]);
     expect(agency.asked.map((one) => one.path)).toEqual(["/supervisors"]);

@@ -9,6 +9,10 @@ import type { Translate } from "#shared/wording";
 // reached and how its login stands; nothing here has a credential to show, because nothing the bot
 // answers with carries one.
 
+// The way a new account's box offers beside the two kinds: its login made here, through the agency's own run of the
+// CLI's sign-in, into a configuration directory the agency makes for it (docs/web.md, 「Administration」).
+export const SIGN_IN_KIND = { value: "sign-in", label: "agents.label.account_kind_sign_in" } as const;
+
 export const ACCOUNT_KINDS = [
   { value: "directory", label: "agents.label.account_kind_directory" },
   { value: "token", label: "agents.label.account_kind_token" }

@@ -6950,8 +6950,18 @@ every run goes out on, and the kinds every person's secret form asks in. No memb
   disabled on an account that is off; the chosen row's menu holds 순서대로 in its place, which lets the choice go.
   Where the chosen account is not the one in use, a line under the list says so, naming the account runs go out on
   and when a rest ends (the agency's `docs/cache-fallback.md`, 「Running on one account now」). Claude 계정
-  추가, the tab row's add, opens a box for a new account's name, which of the two ways its credential is reached and the path it is
-  reached by; a row's more-menu edits the same three or removes the account. Accounts are numbered by name,
+  추가, the tab row's add, opens a box for a new account's name and how it is reached: 여기서 로그인, offered first, or
+  one of the two ways its credential is reached with the path it is reached by; a row's more-menu edits the name, the
+  way and the path, or removes the account.
+- **여기서 로그인 signs an account in with no terminal.** The agency runs the Claude CLI's own sign-in for it (the
+  agency's `docs/cache-fallback.md`, 「Signing an account in from the console」), and a box titled with the account's
+  name says what to do: 로그인 페이지 열기 opens the sign-in's address in the administrator's own browser, where they
+  approve it signed in to that account, and the code the page then shows is pasted into 인증 코드 and handed back
+  with 로그인 완료. A new account so signed in is added once its login is written, its configuration directory one
+  the agency makes for it; an account whose directory is its credential carries 다시 로그인 in its more-menu, for a
+  login that has ended or is about to. Closing the box gives the sign-in up, and a code the sign-in does not take ends
+  it, said in the box. The address and the code pass through the console's server to the agency and are kept by
+  neither, and only the administrator reaches the routes. Accounts are numbered by name,
   `claude-01`, `claude-02` and on, as many as the owner adds: the box for a new one opens with the next number
   already written, one past the highest the list holds, and the owner may write another name over it. Dragging a handle saves the whole order
   at once, by mouse and finger alike, and the arrows move one row the same way; turning off the last one on is

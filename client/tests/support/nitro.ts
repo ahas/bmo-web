@@ -48,6 +48,7 @@ for (const module of [
   await import("../../apps/web/server/utils/pocket"),
   await import("../../apps/web/server/utils/unit-answer"),
   await import("../../apps/web/server/utils/agency"),
+  await import("../../apps/web/server/utils/claude-logins"),
   await import("../../apps/web/server/utils/account-service"),
   await import("../../apps/web/server/utils/profile"),
   await import("../../apps/web/server/utils/axes"),

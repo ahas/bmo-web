@@ -2064,6 +2064,9 @@ secrets:
     unreachable: 계정 서비스에 연결되지 않았습니다.
 agents:
   action:
+    sign_in_again: 다시 로그인
+    open_sign_in: 로그인 페이지 열기
+    sign_in_finish: 로그인 완료
     expand: 크게 보기
     node_checkout_add: 노드 체크아웃 추가
     reset_document: 파일 내용으로 되돌리기
@@ -2121,6 +2124,12 @@ agents:
     vitals: 에이전트 지표
     draft_add_to: "{list}에 질문 추가"
   error:
+    login_which: 다시 로그인할 계정이나 새 계정의 이름 중 하나만 정해 주세요.
+    login_not_directory: 설정 디렉터리 계정만 여기서 로그인할 수 있습니다.
+    login_directory_taken: 이 이름의 설정 디렉터리가 이미 있습니다. 다른 이름을 정해 주세요.
+    login_gone: 로그인이 끝났거나 시간이 지났습니다. 처음부터 다시 시작해 주세요.
+    login_refused: 로그인이 코드를 받지 않았습니다. 처음부터 다시 시작해 주세요.
+    login_code_needed: 로그인 페이지에 나온 코드를 붙여 넣어 주세요.
     account_fields_needed: 계정 이름과 자격 증명 파일 경로를 입력해 주세요.
     account_order_list: 계정 순서를 목록으로 보내 주세요.
     account_switch_needed: 계정과 켬·끔 값이 필요합니다.
@@ -2191,6 +2200,8 @@ agents:
     draft_unsound: 드래프트 설정에 고칠 곳이 있습니다.
     secret_settings_read_failed: 공급자 비밀을 불러오지 못했습니다.
   label:
+    account_kind_sign_in: 여기서 로그인
+    sign_in_code: 인증 코드
     account_chosen: 선택한 계정
     default_answerer: 기본 응답 감독관
     room_title: 방 이름
@@ -2447,6 +2458,7 @@ agents:
     key_held: "키 있음 · {time}"
     key_missing: 키 없음
   message:
+    sign_in_steps: 로그인 페이지를 열어 이 계정으로 승인한 뒤, 페이지에 나온 코드를 붙여 넣어 주세요.
     account_delete_confirm: 계정을 삭제할까요?
     catalogue_delete_confirm: 모델 파일을 목록에서 삭제할까요?
     supervisor_delete_confirm: "{name}을(를) 삭제할까요?"
@@ -2471,6 +2483,7 @@ agents:
     pin_waits: 고정 모델이 응답할 수 없으면 이 저장소의 작업이 기다립니다.
     repository_delete_confirm: 이 저장소를 삭제할까요?
   placeholder:
+    sign_in_code: 코드 붙여 넣기
     account_name: claude-01
     directory_path: 설정 디렉터리의 절대 경로
     draft_add_question: 질문 추가
@@ -2546,6 +2559,7 @@ agents:
     supervisors_loading: 감독관 불러오는 중…
     secret_settings_loading: 공급자 비밀 불러오는 중…
   title:
+    sign_in: "{name} 로그인"
     account_add: Claude 계정 추가
     key_of: "{name} 키"
     providers: 공급자

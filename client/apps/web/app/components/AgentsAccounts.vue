@@ -87,10 +87,10 @@
         </UFormField>
 
         <UFormField :label="$t('agents.label.credential')" name="kind">
-          <USelect v-model="editKind" :items="KIND_ITEMS" value-key="value" class="w-full" :aria-label="$t('agents.label.credential')" />
+          <USelect v-model="editKind" :items="adding ? ADD_KIND_ITEMS : KIND_ITEMS" value-key="value" class="w-full" :aria-label="$t('agents.label.credential')" />
         </UFormField>
 
-        <UFormField :label="$t('common.label.path')" name="path" :help="editKind === 'token' ? $t('agents.placeholder.token_path') : $t('agents.placeholder.directory_path')">
+        <UFormField v-if="editKind !== 'sign-in'" :label="$t('common.label.path')" name="path" :help="editKind === 'token' ? $t('agents.placeholder.token_path') : $t('agents.placeholder.directory_path')">
           <UInput v-model="editPath" class="w-full font-mono" :placeholder="editKind === 'token' ? '~/.config/claude-sub.token' : '/home/user/.claude-sub'" :aria-label="$t('common.label.path')" />
         </UFormField>
 
@@ -99,7 +99,26 @@
 
       <template #footer="{ close }">
         <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy !== ''" @click="close()" />
-        <UButton type="submit" form="account-form" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy === 'save'" :disabled="busy !== '' || !formDirty" />
+        <UButton type="submit" form="account-form" :label="adding ? $t('common.action.add') : $t('common.action.save')" :loading="busy === 'save'" :disabled="busy !== '' || (!formDirty && editKind !== 'sign-in')" />
+      </template>
+    </SettingsDialog>
+
+    <!-- The sign-in the agency runs for an account (the agency's docs/cache-fallback.md, 「Signing an account in from
+         the console」): the address opens in the administrator's own browser, and the code that page shows is pasted
+         back. Closing the box gives the sign-in up. Neither the address nor the code is kept by this screen. -->
+    <SettingsDialog v-model:open="signingIn" :title="$t('agents.title.sign_in', { name: signInName })" :dirty="signInCode.trim() !== ''" @update:open="(open: boolean) => { if (!open) void giveUpSignIn(); }">
+      <form id="sign-in-form" class="flex flex-col gap-4" data-sign-in @submit.prevent="finishSignIn">
+        <p class="text-sm text-toned">{{ $t("agents.message.sign_in_steps") }}</p>
+        <UButton :to="signInUrl" target="_blank" rel="noopener noreferrer" external color="neutral" variant="outline" icon="i-material-symbols-open-in-new" class="self-start" :label="$t('agents.action.open_sign_in')" data-sign-in-open />
+        <UFormField :label="$t('agents.label.sign_in_code')" name="code">
+          <UInput v-model="signInCode" class="w-full font-mono" autocomplete="off" spellcheck="false" :placeholder="$t('agents.placeholder.sign_in_code')" :aria-label="$t('agents.label.sign_in_code')" data-sign-in-code />
+        </UFormField>
+        <p v-if="signInFailed !== ''" role="alert" class="break-words text-sm text-error">{{ signInFailed }}</p>
+      </form>
+
+      <template #footer="{ close }">
+        <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" :disabled="busy === 'sign-in'" @click="close()" />
+        <UButton type="submit" form="sign-in-form" :label="$t('agents.action.sign_in_finish')" :loading="busy === 'sign-in'" :disabled="busy !== '' || signInCode.trim() === ''" />
       </template>
     </SettingsDialog>
 
@@ -115,13 +134,13 @@
 </template>
 
 <script setup lang="ts">
-import { ACCOUNT_KINDS, accountChoiceNote, accountLoginText, accountMark, nextAccountName } from "~/domain/accounts";
+import { ACCOUNT_KINDS, SIGN_IN_KIND, accountChoiceNote, accountLoginText, accountMark, nextAccountName } from "~/domain/accounts";
 import { movedOrder } from "~/domain/agents";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { usePolling } from "~/domain/polling";
 import { useRowDrag } from "~/domain/row-drag";
 
-import type { ClaudeAccountView } from "#shared/types";
+import type { ClaudeAccountView, ClaudeLoginStarted } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
 interface Props {
@@ -135,6 +154,8 @@ const props = withDefaults(defineProps<Props>(), { query: "" });
 
 const { t } = useI18n();
 const KIND_ITEMS = ACCOUNT_KINDS.map((one) => ({ ...one, label: t(one.label) }));
+// A new account may also be signed in here, which is what its box offers first.
+const ADD_KIND_ITEMS = [SIGN_IN_KIND, ...ACCOUNT_KINDS].map((one) => ({ ...one, label: t(one.label) }));
 
 const busy = ref("");
 const failed = ref("");
@@ -144,10 +165,17 @@ const adding = ref(false);
 const removing = ref(false);
 const editId = ref("");
 const editName = ref("");
-const editKind = ref<ClaudeAccountView["credentialKind"]>("directory");
+const editKind = ref<ClaudeAccountView["credentialKind"] | "sign-in">("directory");
 const editPath = ref("");
 const removeId = ref("");
 const removeName = ref("");
+// The sign-in under way: the agency's identifier for it, the address it is approved at, and the code pasted back.
+const signingIn = ref(false);
+const signInId = ref("");
+const signInName = ref("");
+const signInUrl = ref("");
+const signInCode = ref("");
+const signInFailed = ref("");
 
 // The order while a drop is on its way: the rows stand in the new order at once, and a refusal
 // takes this away so the bot's own order stands again.
@@ -190,6 +218,9 @@ function choiceItem(account: ClaudeAccountView): DropdownMenuItem {
 function menuOf(account: ClaudeAccountView): DropdownMenuItem[] {
   return [
     choiceItem(account),
+    ...(account.credentialKind === "directory"
+      ? [{ label: t("agents.action.sign_in_again"), icon: "i-material-symbols-login", disabled: busy.value !== "", onSelect: () => void startSignIn({ account: account.id }, account.name, failed) }]
+      : []),
     { label: t("common.action.edit"), icon: "i-material-symbols-edit-outline", onSelect: () => openEdit(account) },
     {
       label: t("common.action.delete"),
@@ -215,7 +246,7 @@ function openAdd(): void {
   editId.value = "";
   // The next number of the list's own numbering, which the owner may write over.
   editName.value = nextAccountName(props.accounts.map((one) => one.name));
-  editKind.value = "directory";
+  editKind.value = "sign-in";
   editPath.value = "";
   formOpened.value = formFields();
   formFailed.value = "";
@@ -278,7 +309,71 @@ async function setEnabled(account: ClaudeAccountView, enabled: boolean): Promise
   }
 }
 
+// A sign-in started at the agency for an account there or a new one, its box opened on the address it answered.
+async function startSignIn(body: { account: string } | { name: string }, name: string, into: Ref<string>): Promise<boolean> {
+  busy.value = "sign-in";
+  into.value = "";
+
+  try {
+    const started = await $fetch<ClaudeLoginStarted>("/api/claude-logins", { method: "POST", body });
+
+    signInId.value = started.login;
+    signInUrl.value = started.url;
+    signInName.value = name;
+    signInCode.value = "";
+    signInFailed.value = "";
+    signingIn.value = true;
+
+    return true;
+  } catch (error) {
+    into.value = failureText(error, t("common.error.save_failed"));
+
+    return false;
+  } finally {
+    busy.value = "";
+  }
+}
+
+// The pasted code handed to the sign-in; once the login is written the list is read again and the box closes. A
+// refused code ends the sign-in at the agency, so the box says so and is left to be closed.
+async function finishSignIn(): Promise<void> {
+  if (signInCode.value.trim() === "" || busy.value !== "") return;
+
+  busy.value = "sign-in";
+  signInFailed.value = "";
+
+  try {
+    await $fetch(`/api/claude-logins/${encodeURIComponent(signInId.value)}/code`, { method: "POST", body: { code: signInCode.value.trim() } });
+    signInId.value = "";
+    signInCode.value = "";
+    signingIn.value = false;
+    await props.reread();
+  } catch (error) {
+    signInId.value = "";
+    signInFailed.value = failureText(error, t("common.error.save_failed"));
+  } finally {
+    busy.value = "";
+  }
+}
+
+// The box closed with the sign-in still under way: the agency is told to give it up. One already ended is let be.
+async function giveUpSignIn(): Promise<void> {
+  const login = signInId.value;
+
+  signInId.value = "";
+  signInCode.value = "";
+  if (login === "") return;
+
+  await $fetch(`/api/claude-logins/${encodeURIComponent(login)}`, { method: "DELETE" }).catch(() => undefined);
+}
+
 async function save(): Promise<void> {
+  if (adding.value && editKind.value === "sign-in") {
+    if (await startSignIn({ name: editName.value.trim() }, editName.value.trim(), formFailed)) editing.value = false;
+
+    return;
+  }
+
   const body = adding.value
     ? { action: "add-account", name: editName.value.trim(), kind: editKind.value, path: editPath.value.trim() }
     : { action: "update-account", account: editId.value, name: editName.value.trim(), kind: editKind.value, path: editPath.value.trim() };

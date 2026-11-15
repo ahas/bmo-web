@@ -1840,6 +1840,13 @@ export interface FallbackChanged {
   ok: true;
 }
 
+/** A Claude account's sign-in under way: its identifier and the address it is approved at (the agency's
+ * `docs/cache-fallback.md`, 「Signing an account in from the console」). */
+export interface ClaudeLoginStarted {
+  login: string;
+  url: string;
+}
+
 // What the console may know about the warming round as a whole. Which agents are stopped one by
 // one is on the agents list, since that is where the rows are.
 export interface KeepaliveView {

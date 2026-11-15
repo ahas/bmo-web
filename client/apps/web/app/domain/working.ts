@@ -369,8 +369,10 @@ export function saidLines(progress: RunProgress | null): { earlier: string[]; ne
 }
 
 // The progress lines a finished turn's runs left: each text line a call of the same run follows, the run's own and
-// no co-worker branch's. A run's last text, with no call after it, is its answer or its notes, and a failed
-// request's text is no line of the turn's, so neither is one.
+// no co-worker branch's. A run's last text, with no call after it, is its answer or its notes, and so is what it
+// wrote before words handed over — a prompt line, words pushed in — opened its next turn: a draft, a rewrite or a
+// skip a later turn replaced (the receiver's `docs/receiver.md`, 「The event stream」). A failed request's text is
+// no line of the turn's either.
 export function progressLines(lines: readonly AgentLogLine[]): AgentLogLine[] {
   const said: AgentLogLine[] = [];
   const held = new Map<string, AgentLogLine[]>();
@@ -378,7 +380,9 @@ export function progressLines(lines: readonly AgentLogLine[]): AgentLogLine[] {
   for (const line of lines) {
     if (line.parent !== null) continue;
 
-    if (line.kind === "text" && line.state !== "failed" && line.text.trim() !== "") {
+    if (line.kind === "prompt") {
+      held.delete(line.run);
+    } else if (line.kind === "text" && line.state !== "failed" && line.text.trim() !== "") {
       held.set(line.run, [...(held.get(line.run) ?? []), line]);
     } else if (line.kind === "tool") {
       said.push(...(held.get(line.run) ?? []));

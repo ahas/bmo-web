@@ -317,6 +317,20 @@ describe("what a finished turn did, read back out of its run", () => {
 
     expect(said.map((one) => one.id)).toEqual([2, 7, 10]);
   });
+
+  test("what a run wrote before words handed over opened its next turn is that turn's answer, never a line", () => {
+    const said = progressLines([
+      line({ id: 1, kind: "text", text: "<<SEND>> the reply written first" }),
+      line({ id: 2, kind: "prompt", name: "word", text: "MORE FOR THIS TURN." }),
+      line({ id: 3, kind: "text", text: "Looking at the job." }),
+      line({ id: 4, kind: "tool", name: "Bash", ref: "t1", text: "{}" }),
+      line({ id: 5, kind: "text", text: "<<SKIP: the job passed>>" }),
+      line({ id: 6, kind: "prompt", text: "REVIEW ROUND." }),
+      line({ id: 7, kind: "tool", name: "Read", ref: "t2", text: "{}" })
+    ]);
+
+    expect(said.map((one) => one.id)).toEqual([3]);
+  });
 });
 
 describe("what a running turn has written as it works", () => {

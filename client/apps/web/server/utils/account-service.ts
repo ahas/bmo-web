@@ -843,14 +843,17 @@ export async function userNode(id: UserId | number, options: ServiceOptions = {}
   return answered(reply);
 }
 
-/** An account bound to another machine, the one `agent` names or a fresh name, by the administrator. */
-export async function rebindNode(user: UserId, agent: string | null, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Rebound> {
+/**
+ * An account bound to another machine, the one `agent` names or a fresh name, by the administrator; `shared` binds a
+ * machine several accounts share.
+ */
+export async function rebindNode(user: UserId, agent: string | null, shared: boolean, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Rebound> {
   const client = clientOf(options);
   const reply = await sent(
     options,
     client.PUT("/users/{user}/node", {
       params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
-      body: agent === null ? {} : { agent }
+      body: { ...(agent === null ? {} : { agent }), ...(shared ? { shared } : {}) }
     })
   );
 

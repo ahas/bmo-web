@@ -38,7 +38,7 @@ async function standNode(user: number): Promise<void> {
   if (typeof machine.agent !== "string" || !machine.attached) return;
 
   try {
-    await setPersonNode(user, machine.agent);
+    await setPersonNode(user, machine.agent, machine.shared);
   } catch (error) {
     const code = (error as { data?: { code?: string | null } }).data?.code ?? "no code";
 

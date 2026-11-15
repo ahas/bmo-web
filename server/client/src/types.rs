@@ -514,6 +514,9 @@ pub struct Proof {
 pub struct UserNode {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub agent: Option<String>,
+  /// Whether the administrator bound it as a machine several accounts share.
+  #[serde(default)]
+  pub shared: bool,
   pub attached: bool,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub proven_at: Option<i64>,
@@ -528,6 +531,9 @@ pub struct NodeBinding {
   /// A machine of this name; where none is named, a fresh name made for the account.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub agent: Option<String>,
+  /// Whether the machine is one several accounts share; a binding that does not say so is the account's alone.
+  #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+  pub shared: bool,
 }
 
 /// An account bound to another machine: the machine, how to install it, and whether the hub holds it already.
@@ -535,6 +541,8 @@ pub struct NodeBinding {
 #[serde(rename_all = "camelCase")]
 pub struct Rebound {
   pub agent: String,
+  /// Whether the binding is to a machine several accounts share.
+  pub shared: bool,
   pub credential: String,
   pub hub_url: String,
   pub install: Installs,

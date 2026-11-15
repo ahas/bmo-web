@@ -584,3 +584,51 @@ async fn the_administrator_binds_an_account_to_another_machine_and_takes_it_away
   assert_eq!(status, StatusCode::CONFLICT, "{said}");
   assert_eq!(said["code"], "left");
 }
+
+#[tokio::test]
+async fn the_administrator_binds_several_accounts_to_a_machine_declared_shared() {
+  ready();
+  let stood = stood().await;
+  let member_path = format!("/users/{}/node", stood.member);
+  let head_path = format!("/users/{}/node", stood.head);
+  let bind = |path: String, binding: Value| asked_as_administrator(&stood.app, Method::PUT, path, binding);
+  stood.hub.0.lock().unwrap().push("desk-shared".into());
+
+  // A machine bound shared reads back as shared.
+  let (status, rebound) =
+    bind(member_path.clone(), json!({ "agent": "desk-shared", "shared": true })).await;
+  assert_eq!(status, StatusCode::OK, "{rebound}");
+  assert_eq!(rebound["shared"], true);
+  let (_, node) = asked(&stood.app, Method::GET, &member_path, None, None).await;
+  assert_eq!(node["shared"], true, "{node}");
+
+  // A second binding that does not declare it shared is refused as a taken machine.
+  let (status, said) = bind(head_path.clone(), json!({ "agent": "desk-shared" })).await;
+  assert_eq!(status, StatusCode::CONFLICT, "{said}");
+  assert_eq!(said["code"], "node-taken");
+
+  // Declared shared on both sides, the two bindings stand side by side.
+  let (status, rebound) = bind(head_path.clone(), json!({ "agent": "desk-shared", "shared": true })).await;
+  assert_eq!(status, StatusCode::OK, "{rebound}");
+  assert_eq!(rebound["attached"], true);
+  let (_, node) = asked(&stood.app, Method::GET, &head_path, None, None).await;
+  assert_eq!((node["agent"].as_str(), node["shared"].as_bool()), (Some("desk-shared"), Some(true)));
+
+  // A machine one account holds unshared is not taken by a binding declaring it shared.
+  stood.hub.0.lock().unwrap().push("desk-own".into());
+  let (status, _) = bind(member_path, json!({ "agent": "desk-own" })).await;
+  assert_eq!(status, StatusCode::OK);
+  let (status, said) = bind(head_path, json!({ "agent": "desk-own", "shared": true })).await;
+  assert_eq!(status, StatusCode::CONFLICT, "{said}");
+  assert_eq!(said["code"], "node-taken");
+}
+
+/// One request as the platform administrator.
+async fn asked_as_administrator(
+  app: &Router,
+  method: Method,
+  path: String,
+  body: Value,
+) -> (StatusCode, Value) {
+  asked(app, method, &path, Some(body), Some((1, "administrator"))).await
+}

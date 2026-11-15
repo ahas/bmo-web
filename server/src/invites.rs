@@ -259,7 +259,7 @@ pub async fn node_of<C: ConnectionTrait>(
 ) -> Result<UserNode, Refusal> {
   let row = one(
     db,
-    r#"SELECT "agent", "proven_at" FROM "user_nodes" WHERE "user_id" = $1::bigint"#,
+    r#"SELECT "agent", "shared", "proven_at" FROM "user_nodes" WHERE "user_id" = $1::bigint"#,
     vec![user.into()],
   )
   .await?;
@@ -273,6 +273,7 @@ pub async fn node_of<C: ConnectionTrait>(
   let Some(row) = row else {
     return Ok(UserNode {
       agent: None,
+      shared: false,
       attached: false,
       proven_at: None,
       left,
@@ -286,6 +287,7 @@ pub async fn node_of<C: ConnectionTrait>(
 
   Ok(UserNode {
     agent: Some(agent),
+    shared: row.try_get("", "shared")?,
     attached,
     proven_at: row.try_get("", "proven_at")?,
     left,

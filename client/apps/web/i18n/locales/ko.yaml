@@ -1819,6 +1819,8 @@ organization:
     machine_none: 연결된 기기 없음
     machine_name: 기기 이름
     machine_name_placeholder: 자동 이름
+    machine_shared: 여러 계정이 함께 쓰는 기기
+    machine_shared_help: 다른 계정도 이 기기에 연결할 수 있습니다. 계정마다 작업 공간이 따로 섭니다.
     linux: Linux·WSL
     windows: Windows
     chosen: "{count}명 선택"

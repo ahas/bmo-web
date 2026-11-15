@@ -6843,10 +6843,11 @@ research screen (「Research screen」).
     opens the same dialog at its second step, that unit as where they go and each a 구성원, 뒤로 changing either.
   - The machine mark opens the person's machine in a dialog: the machine their account is bound to and whether it
     is connected, or none. 기기 연결, or 다른 기기로 연결 where one is bound, binds the account to the machine named in
-    기기 이름, or to a fresh name where it is left empty; a machine not yet connected shows its one-line installs,
-    Linux or WSL and Windows, each with its copy mark, and is asked after every few seconds, 확인하기 asking at once,
-    until it connects and is set as the person's node. 기기 연결 해제 takes the machine away, asked first with what it
-    does (`docs/accounts.md`, 「Invitations and a person's machine」).
+    기기 이름, or to a fresh name where it is left empty, and as a machine several accounts share where 여러 계정이
+    함께 쓰는 기기 is turned on; a machine not yet connected shows its one-line installs, Linux or WSL and Windows,
+    each with its copy mark, and is asked after every few seconds, 확인하기 asking at once, until it connects and is
+    set as the person's node. 기기 연결 해제 takes the machine away, asked first with what it does (`docs/accounts.md`,
+    「Invitations and a person's machine」).
   - The leave mark marks the person left, asked first with what it does and that it is not undone
     (`docs/accounts.md`, 「A person who leaves」); a person who left stands on in the list.
 - Each mark is an icon button with its name as its tooltip. A head or a person taken away or added, and a person

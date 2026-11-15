@@ -292,9 +292,16 @@ section states what each does.
   `node-taken`, and an account that has left is bound to no machine again, 409 `left`. The binding is proven as it
   is made where the hub holds the machine already, and otherwise once it attaches, by the console asking again from
   the organisation screen or by the person's first sign-in after it attaches.
+- **The administrator may declare a machine shared,** binding several accounts to one machine. A binding that says
+  so is made where every other account bound to that name was bound shared as well; a binding that does not say so,
+  or one naming a machine another account holds unshared, is refused 409 `node-taken` as above, so no account comes
+  to share a machine its binding never declared shared. The binding keeps whether it is shared and answers it on
+  every read of the account's machine. Each account on a shared machine works in a root of its own there, out of
+  reach of the others' (agency's `docs/person-nodes.md`, 「Several accounts on one node」). An invitation never binds
+  a shared machine: acceptance always binds the person's own `u<user>`.
 - **Agency's record follows the binding.** The console's server sets the new machine as the account's node in
-  agency once it is proven, and not before, since agency takes only a hub node the node service keeps; until then
-  the record names the machine it was bound to before. Taken away, the binding is removed and the console's server
+  agency once it is proven, with whether the binding is shared, and not before, since agency takes only a hub node
+  the node service keeps; until then the record names the machine it was bound to before. Taken away, the binding is removed and the console's server
   takes agency's record away with it (`DELETE /person-nodes/{ownerAccount}`), so the account is held to no machine
   and its runs are placed as any run of no node is. A refusal by agency is said on the organisation screen; at a
   sign-in it is written to the console's log.
@@ -515,7 +522,7 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
 | `user_profiles` | a user's job title and contact details, keyed by sumida's user; an account keeping none has no row and reads empty |
 | `grant_words` | the words a grant was made with, beside the grant |
 | `user_invites` | each invitation: its token, its unit, whether it makes a head, who made it, when it closes, and who used it and when |
-| `user_nodes` | the machine each invited account is bound to, and when it was last proven |
+| `user_nodes` | the machine each invited account is bound to, whether the administrator bound it shared, and when it was last proven |
 | `user_departures` | each account marked left: when, and by whom |
 | `secret_kinds` | each secret kind: its key, name, description and fields, and the order kinds were added in |
 | `settings` | the service's own keys: the mark that the move is written, and the platform administrator's user |
@@ -544,7 +551,9 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   down makes its head there and one into the company itself a member of it, an invitation already standing in the
   table is listed, viewed and accepted into its unit and role as it was made, an expired or used invitation opens
   nothing, acceptance makes a disabled account bound to its machine with a credential the hub's key verifies,
-  proof enables it once the hub holds the agent, and the machine check says gone where the hub holds none.
+  proof enables it once the hub holds the agent, and the machine check says gone where the hub holds none. A
+  binding to a machine another account holds is refused unless both bindings are declared shared, and two shared
+  bindings to one machine stand side by side, each read back as shared.
 - **The pairing tests** stand the same stand-in hub and a clock of their own: a pairing asked, read as waiting,
   approved by a person bound to a machine and read once with a credential the hub's key verifies for that machine,
   then gone; a person bound to none given a fresh binding; a refused pairing and an expired one answering 410 and

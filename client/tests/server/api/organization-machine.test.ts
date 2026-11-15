@@ -68,6 +68,14 @@ describe("a person's machine", () => {
     expect(setCalls()).toEqual([["/person-nodes/3", { node: "desk-a" }]]);
   });
 
+  test("bound as a shared machine is set in agency as shared", async () => {
+    agency.asked.length = 0;
+    service.hub.add("desk-shared");
+
+    expect((await asked(rebind, { params: { user: "2" }, body: { agent: "desk-shared", shared: true } })).answer).toMatchObject({ agent: "desk-shared", shared: true, attached: true });
+    expect(setCalls()).toEqual([["/person-nodes/2", { node: "desk-shared", shared: true }]]);
+  });
+
   test("a node agency refuses, and a machine another account holds, are said in the pack's words", async () => {
     const refused = await asked(rebind, { params: { user: "4" }, body: { agent: "desk-b" } });
 

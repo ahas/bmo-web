@@ -1062,6 +1062,10 @@
               "string",
               "null"
             ]
+          },
+          "shared": {
+            "description": "Whether the machine is one several accounts share; a binding that does not say so is the account's alone.",
+            "type": "boolean"
           }
         },
         "type": "object"
@@ -1429,10 +1433,15 @@
           },
           "install": {
             "$ref": "#/components/schemas/Installs"
+          },
+          "shared": {
+            "description": "Whether the binding is to a machine several accounts share.",
+            "type": "boolean"
           }
         },
         "required": [
           "agent",
+          "shared",
           "credential",
           "hubUrl",
           "install",
@@ -2184,9 +2193,15 @@
               "integer",
               "null"
             ]
+          },
+          "shared": {
+            "default": false,
+            "description": "Whether the administrator bound it as a machine several accounts share.",
+            "type": "boolean"
           }
         },
         "required": [
+          "shared",
           "attached",
           "left"
         ],

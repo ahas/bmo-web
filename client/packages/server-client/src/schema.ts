@@ -1237,6 +1237,8 @@ export interface components {
         NodeBinding: {
             /** @description A machine of this name; where none is named, a fresh name made for the account. */
             agent?: string | null;
+            /** @description Whether the machine is one several accounts share; a binding that does not say so is the account's alone. */
+            shared?: boolean;
         };
         /** @description A relation asked of a user on an object of the rules. */
         ObjectCheckAsk: {
@@ -1361,6 +1363,8 @@ export interface components {
             credential: string;
             hubUrl: string;
             install: components["schemas"]["Installs"];
+            /** @description Whether the binding is to a machine several accounts share. */
+            shared: boolean;
         };
         /** @description The sentence a fixed line renders as. */
         Rendered: {
@@ -1603,6 +1607,11 @@ export interface components {
             left: boolean;
             /** Format: int64 */
             provenAt?: number | null;
+            /**
+             * @description Whether the administrator bound it as a machine several accounts share.
+             * @default false
+             */
+            shared: boolean;
         };
         /**
          * @description A user's job title and contact details, which the account's holder or an administrator keeps

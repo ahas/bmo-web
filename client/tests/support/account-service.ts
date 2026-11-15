@@ -14,7 +14,7 @@ export interface StandInUser {
   administrator?: boolean;
   senders?: number[];
   // The machine the account is bound to, whether the hub holds it now, and when it was last proven.
-  node?: { agent: string; attached: boolean; provenAt?: number };
+  node?: { agent: string; shared?: boolean; attached: boolean; provenAt?: number };
 }
 
 export interface StandInGrant {
@@ -62,8 +62,9 @@ interface StandInOn {
 
 // A body any route of the stand-in reads. A route reads the fields it names; the rest stand unused.
 interface StandInBody {
-  // The machine an account is bound to.
+  // The machine an account is bound to, and whether it is one several accounts share.
   agent?: string;
+  shared?: boolean;
   username?: string;
   password?: string;
   current?: string;
@@ -357,7 +358,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
         if (user === undefined) return refused(404, "not-found", "no such user");
 
-        return json({ agent: user.node?.agent ?? null, attached: user.node?.attached ?? false, provenAt: user.node?.provenAt ?? null, left: false });
+        return json({ agent: user.node?.agent ?? null, shared: user.node?.shared ?? false, attached: user.node?.attached ?? false, provenAt: user.node?.provenAt ?? null, left: false });
       }
 
       // The machine an account is bound to again or taken away, by the administrator alone, and proven once the hub
@@ -373,18 +374,19 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         if (bindRoute[2] !== undefined && request.method === "POST") {
           if (user.node !== undefined && (user.node.attached || hub.has(user.node.agent))) user.node = { ...user.node, attached: true, provenAt: Date.now() };
 
-          return json({ agent: user.node?.agent ?? null, attached: user.node?.attached ?? false, provenAt: user.node?.provenAt ?? null, left: false });
+          return json({ agent: user.node?.agent ?? null, shared: user.node?.shared ?? false, attached: user.node?.attached ?? false, provenAt: user.node?.provenAt ?? null, left: false });
         }
         if (request.method === "PUT") {
           const agent = body?.agent ?? `u${user.id}-fresh`;
+          const shared = body?.shared === true;
 
-          if (users.some((other) => other !== user && other.node?.agent === agent)) return refused(409, "node-taken", "another account is bound to it");
+          if (users.some((other) => other !== user && other.node?.agent === agent && !(shared && other.node.shared))) return refused(409, "node-taken", "another account is bound to it");
 
           const attached = hub.has(agent);
 
-          user.node = { agent, attached, provenAt: attached ? Date.now() : undefined };
+          user.node = { agent, shared, attached, provenAt: attached ? Date.now() : undefined };
 
-          return json({ agent, credential: `${agent}.credential`, hubUrl: "wss://hub.invalid", install: { linux: `install ${agent}`, windows: `install.ps1 ${agent}` }, attached });
+          return json({ agent, shared, credential: `${agent}.credential`, hubUrl: "wss://hub.invalid", install: { linux: `install ${agent}`, windows: `install.ps1 ${agent}` }, attached });
         }
         if (request.method === "DELETE") {
           if (user.node === undefined) return refused(404, "not-found", "bound to no machine");

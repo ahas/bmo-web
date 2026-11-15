@@ -82,17 +82,22 @@ pub async fn rebind<C: ConnectionTrait>(
     None => fresh_name(user),
   };
 
+  // Another account's binding to the machine stands beside this one only where both declared it shared.
   if one(
     db,
-    r#"SELECT 1 AS "one" FROM "user_nodes" WHERE "agent" = $1 AND "user_id" <> $2::bigint"#,
-    vec![agent.clone().into(), user.into()],
+    r#"SELECT 1 AS "one" FROM "user_nodes" WHERE "agent" = $1 AND "user_id" <> $2::bigint
+       AND NOT ("shared" AND $3)"#,
+    vec![agent.clone().into(), user.into(), binding.shared.into()],
   )
   .await?
   .is_some()
   {
     return Err(
-      Refusal::new(StatusCode::CONFLICT, format!("another account is bound to the machine {agent}"))
-        .coded("node-taken"),
+      Refusal::new(
+        StatusCode::CONFLICT,
+        format!("another account is bound to the machine {agent}, and not both bindings are shared"),
+      )
+      .coded("node-taken"),
     );
   }
 
@@ -101,9 +106,10 @@ pub async fn rebind<C: ConnectionTrait>(
 
   run(
     db,
-    r#"INSERT INTO "user_nodes" ("user_id", "agent", "proven_at") VALUES ($1::bigint, $2, $3)
-       ON CONFLICT ("user_id") DO UPDATE SET "agent" = EXCLUDED."agent", "proven_at" = EXCLUDED."proven_at""#,
-    vec![user.into(), agent.clone().into(), proven_at.into()],
+    r#"INSERT INTO "user_nodes" ("user_id", "agent", "shared", "proven_at") VALUES ($1::bigint, $2, $3, $4)
+       ON CONFLICT ("user_id") DO UPDATE SET "agent" = EXCLUDED."agent", "shared" = EXCLUDED."shared",
+       "proven_at" = EXCLUDED."proven_at""#,
+    vec![user.into(), agent.clone().into(), binding.shared.into(), proven_at.into()],
   )
   .await?;
 
@@ -112,6 +118,7 @@ pub async fn rebind<C: ConnectionTrait>(
   Ok(Rebound {
     credential: nodes.credential(&agent),
     agent,
+    shared: binding.shared,
     hub_url: nodes.hub_url.clone(),
     install: Installs { linux, windows },
     attached,

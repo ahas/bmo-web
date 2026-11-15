@@ -236,6 +236,8 @@
             <UInput v-model="machineName" :placeholder="$t('organization.label.machine_name_placeholder')" class="w-full" />
           </UFormField>
 
+          <USwitch v-model="machineShared" :label="$t('organization.label.machine_shared')" :description="$t('organization.label.machine_shared_help')" data-machine-shared />
+
           <div v-if="installs.length > 0" class="flex flex-col gap-2">
             <p class="whitespace-pre-line text-sm">{{ $t("organization.message.install") }}</p>
             <div v-for="install in installs" :key="install.label" class="flex flex-col gap-1">
@@ -748,6 +750,7 @@ const machineOpen = ref(false);
 const machineUser = ref<string | null>(null);
 const machine = ref<UserNode | null>(null);
 const machineName = ref("");
+const machineShared = ref(false);
 const rebound = ref<Rebound | null>(null);
 const machineFailure = ref("");
 const machineBusy = ref<"bind" | "unbind" | "check" | null>(null);
@@ -786,6 +789,7 @@ function openMachine(user: string): void {
   machineUser.value = user;
   machine.value = null;
   machineName.value = "";
+  machineShared.value = false;
   rebound.value = null;
   machineFailure.value = "";
   machineOpen.value = true;
@@ -814,8 +818,11 @@ async function bind(): Promise<void> {
   try {
     const name = machineName.value.trim();
 
-    rebound.value = await $fetch<Rebound>(machinePath(), { method: "PUT", body: name === "" ? {} : { agent: name } });
+    const binding = { ...(name === "" ? {} : { agent: name }), ...(machineShared.value ? { shared: true } : {}) };
+
+    rebound.value = await $fetch<Rebound>(machinePath(), { method: "PUT", body: binding });
     machineName.value = "";
+    machineShared.value = false;
     if (!rebound.value.attached) machineTimer = setInterval(() => void check(), MACHINE_CHECK_MS);
   } catch (error) {
     machineFailure.value = failureText(error, t("organization.error.failed"));

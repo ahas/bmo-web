@@ -10,9 +10,16 @@ import type { UserNode } from "@web/server-client";
 // Agency's codes on its person-node routes, each with the pack's key for its sentence.
 const PERSON_NODE_CODES = { "not-a-hub-node": "organization.error.not_a_hub_node" };
 
-/** The machine set as the node the account's runs stand on; a refusal carries agency's code in its `data`. */
-export async function setPersonNode(user: number | string, machine: string): Promise<void> {
-  await agencyCall(agency().PUT("/person-nodes/{ownerAccount}", { params: { path: { ownerAccount: String(user) } }, body: { node: machine } }), {
+/**
+ * The machine set as the node the account's runs stand on, said to be shared where the administrator bound it so; a
+ * refusal carries agency's code in its `data`.
+ */
+export async function setPersonNode(user: number | string, machine: string, shared = false): Promise<void> {
+  // `shared` goes only where it is true, so a record of the account's own machine reads as it always has. The vendored
+  // agency client's body type does not name the field yet, so the body is built apart from the call.
+  const body: { node: string; shared?: boolean } = shared ? { node: machine, shared } : { node: machine };
+
+  await agencyCall(agency().PUT("/person-nodes/{ownerAccount}", { params: { path: { ownerAccount: String(user) } }, body }), {
     codes: PERSON_NODE_CODES
   });
 }
@@ -33,7 +40,7 @@ export async function dropPersonNode(user: number | string): Promise<void> {
 export async function settleMachine(user: number | string): Promise<UserNode> {
   const machine = await proveNode(String(user));
 
-  if (typeof machine.agent === "string" && machine.attached) await setPersonNode(user, machine.agent);
+  if (typeof machine.agent === "string" && machine.attached) await setPersonNode(user, machine.agent, machine.shared);
 
   return machine;
 }

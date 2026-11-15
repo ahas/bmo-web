@@ -59,6 +59,21 @@ machine that stands it. The testbed's declaration names `BMO_CONSOLE_TEST_URL` a
 the variables only this machine reaches, so a run that sets either is never placed on another machine, where it
 would find no console at the address and skip every test.
 
+### The vendored packages as installed
+
+Every package the console takes from a tarball under `client/vendor/` runs as that tarball holds it. Bun installs
+a package's files as hard links to its shared install cache, so one file written in place inside any
+`node_modules` changes the cache entry and every checkout and build tree linked to it, and a later install,
+`--force` among them, links the changed entry again. The client's check therefore reads, for each such
+dependency of the client and its workspace members, the tarball the manifest names and the copy installed for
+it: every file the tarball holds stands installed with the same bytes, and the installed copy holds no file
+the tarball lacks. A finding names the package and the files.
+
+A copy found changed is repaired in the shared cache first: the cache entry is replaced by the tarball's contents,
+or removed so the next install extracts it again, and every tree linked to it then has its copy of the
+package removed and installs again. A change to a vendored package is made in its own repository and reaches
+the console as a new tarball, never as an edit under `node_modules`.
+
 ## The repository-wide checks
 
 The checks that span the repository stand in the root's `tests/`, in `repository.rs`. The root is a Cargo

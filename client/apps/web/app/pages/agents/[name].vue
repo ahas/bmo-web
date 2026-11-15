@@ -400,7 +400,7 @@ useBotEvents((event) => {
   }
 });
 
-// Where the screen opens: at the end of the log, or — when a role slot's tile sent the
+// Where the screen opens: at the end of the log, or — when an agent's state cell sent the
 // reader here for one run — at the place that run begins. A runner and a job name their run
 // outright; a gate names the second it began and the room it ran for.
 const place = computed<LogPlace | null>(() => {

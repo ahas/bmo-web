@@ -33,6 +33,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["agent-topbar", "fixture-password-1558"],
   ["home-repository", "fixture-password-3052"],
   ["agents-general", "fixture-password-2301"],
+  ["agents-state", "fixture-password-3049"],
   ["bubble-wrap", "fixture-password-1477"],
   ["composer-view", "fixture-password-2170"],
   ["console-ids", "fixture-password-789"],
@@ -541,21 +542,22 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       });
     }
     if (path === "/slots") {
-      // The worker's runs: a job's, which opens by the job's run, and one its binding names. The
-      // doppelganger's run works in no repository, so its row is named by the folder's last part.
+      // The worker's runs, each on the agent of the role it was let in on: a job's, which opens by the job's run, and
+      // one its binding names. The doppelganger's run works in no repository, so it is named by the folder's last
+      // part. The worker keeps one slot more by a reservation.
       const runs = (name: string): Record<string, unknown>[] =>
         name === "worker"
           ? [
-              { token: "slot-a", role: "worker", path: "/srv/checkouts/repo-a", provider: "claude-code", model: "claude-opus-5-5", source: "job", since: Date.now() - 90_000, runName: "job-7", session: null, jobId: 7, title: "Item 12" },
-              { token: "slot-b", role: "worker", path: "/srv/checkouts/repo-a-w2", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 30_000, runName: "delegate-b", session: null, jobId: null, title: "Look into a thing" }
+              { token: "slot-a", role: "worker", path: "/srv/checkouts/repo-a", provider: "claude-code", model: "claude-opus-5-5", source: "job", since: Date.now() - 90_000, runName: "job-7", session: null, jobId: 7, title: "Item 12", agent: "worker-01" },
+              { token: "slot-b", role: "worker", path: "/srv/checkouts/repo-a-w2", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 30_000, runName: "delegate-b", session: null, jobId: null, title: "Look into a thing", agent: "worker-02" }
             ]
           : name === "doppelganger"
             ? [
-                { token: "slot-c", role: "doppelganger", path: "/srv/scratch", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 20_000, runName: "delegate-c", session: null, jobId: null, title: "Scratch the surface" }
+                { token: "slot-c", role: "doppelganger", path: "/srv/scratch", provider: "claude-code", model: "claude-opus-5-5", source: "delegate", since: Date.now() - 20_000, runName: "delegate-c", session: null, jobId: null, title: "Scratch the surface", agent: "doppelganger-01" }
               ]
             : [];
 
-      return Response.json({ items: ROLES.map((one) => ({ role: one.name, maxConcurrent: one.maxConcurrent, active: one.running, reserved: 0, waiting: one.waiting, runs: runs(String(one.name)) })) });
+      return Response.json({ items: ROLES.map((one) => ({ role: one.name, maxConcurrent: one.maxConcurrent, active: one.running, reserved: one.name === "worker" ? 1 : 0, waiting: one.waiting, runs: runs(String(one.name)) })) });
     }
     // The tasks a supervisor delegated to its double, as the agency lists them for the room's marker: one still
     // running under the owner's own chat agent, and one that has ended with what it came to.

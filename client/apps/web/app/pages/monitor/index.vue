@@ -1,5 +1,5 @@
 <!-- The Monitor screen (docs/web.md, 「Monitor screen」): Devices, every machine's hardware, Services, the card arbiter's
-     board, Role slots, the agency's slots, and for the administrator Logs, what the machine's background units wrote, a tab each under the title bar.
+     board, and for the administrator Logs, what the machine's background units wrote, a tab each under the title bar.
      The tab stands in the address, so a link opens it and moving between them is a step of the history; only the open
      tab reads anything. The logs tab's filters stand at the right end of the same row. -->
 <template>
@@ -29,7 +29,6 @@
     <template #body>
       <MonitorDevices v-if="tab === 'devices'" />
       <CardsArbiter v-else-if="tab === 'services'" />
-      <RoleSlotsBoard v-else-if="tab === 'slots'" />
       <MonitorLogs v-else />
     </template>
   </UDashboardPanel>

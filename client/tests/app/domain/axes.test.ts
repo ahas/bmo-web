@@ -2,13 +2,12 @@ import { describe, expect, test } from "bun:test";
 
 import { ceilingDefault, defaultThreshold, roadText, thinkingDefault, thresholdText } from "../../../apps/web/app/domain/axes";
 import { headOffset } from "../../../apps/web/app/domain/held-heads";
-import { slotLogPlace, tileLines, tileWho } from "../../../apps/web/app/domain/role-slots";
 import { wording } from "../../../apps/web/shared/wording";
 
 import type { RoadView, ProviderModelsView, ProviderView } from "../../../apps/web/shared/axes";
 
 // The defaults the agency's providers and models declare, marked where a value equals them (docs/web.md, 「The default
-// among choices」), and what a slot tile says of the run it holds (docs/web.md, 「Live status screen」).
+// among choices」).
 
 const t = wording;
 
@@ -47,32 +46,6 @@ describe("a model's declared run settings", () => {
     expect(thinkingDefault(models, "model-b")).toBeNull();
     expect(ceilingDefault(models, "model-c")).toBeNull();
     expect(thinkingDefault(null, "model-a")).toBeNull();
-  });
-});
-
-describe("a slot tile's lines", () => {
-  test("name the work its run was asked for after its state", () => {
-    const lines = tileLines(t, { state: "working", run: { place: "repo-a", path: "/srv/repo-a", source: "job", provider: null, model: null, agent: null, since: null, title: "Title A", log: "run-a", session: null, stop: null } }, 0);
-
-    expect(lines).toEqual([`${wording("live.label.slot_working")} · job`, "Title A", "/srv/repo-a"]);
-  });
-
-  test("name the agent its run is on, and the tile carries the agent and its model", () => {
-    const run = { place: "repo-a", path: "/srv/repo-a", source: "job", provider: null, model: "model-a", agent: "agent-a", since: null, title: null, log: "run-a", session: null, stop: null };
-
-    expect(tileLines(t, { state: "working", run }, 0)).toContain("agent-a");
-    expect(tileWho(run)).toContain("agent-a");
-    expect(tileWho({ ...run, agent: null, model: null })).toBeNull();
-  });
-});
-
-describe("where a slot tile opens its log", () => {
-  test("is the run it names, else the newest lines of a role session's, else the moment it took the slot", () => {
-    expect(slotLogPlace({ log: "run-a", session: "session-a", since: 5_000 })).toEqual({ run: "run-a" });
-    expect(slotLogPlace({ log: null, session: "session-a", since: 5_000 })).toBeNull();
-    expect(slotLogPlace({ log: null, session: null, since: 5_000 })).toEqual({ at: 5 });
-    expect(slotLogPlace({ log: null, session: null, since: null })).toBeNull();
-    expect(slotLogPlace(null)).toBeNull();
   });
 });
 

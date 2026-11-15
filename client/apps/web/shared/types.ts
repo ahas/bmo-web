@@ -1080,7 +1080,7 @@ export type BotEventType =
   // list, so the event says only that it moved.
   | "worker-run"
   // A supervisor, a role or a repository changed or went, or a role's slot was asked, let in or given back, as the
-  // agency publishes it: what the agent lists and the role slots read again on.
+  // agency publishes it: what the agent lists and the agents' state read again on.
   | "agency-catalogue";
 
 // The ways a turn ends: the bot answered, it held its peace, its run failed, somebody stopped it,

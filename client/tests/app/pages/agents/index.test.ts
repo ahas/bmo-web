@@ -99,7 +99,9 @@ describe("every table of the screen", () => {
   });
 
   test("draws every cell as one box filling its cell top to bottom, so a hover never stands shorter than the row", () => {
-    expect(cells).toContain('CELL_BUTTON =\n  "relative flex h-full min-h-12 w-full');
+    expect(cells).toContain('CELL_PRESSED =\n  "relative flex h-full min-h-12 w-full');
+    expect(cells).toContain("CELL_BUTTON = `${CELL_PRESSED}");
+    expect(cells).toContain("CELL_BUTTON_LINE = `${CELL_PRESSED}");
     expect(cells).toContain('CELL_TEXT = "flex h-full min-h-12');
     for (const source of sections) expect(templateOf(source)).toContain('class="flex h-full min-h-12 items-center justify-end pe-2"');
   });

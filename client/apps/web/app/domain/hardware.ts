@@ -24,12 +24,10 @@ export const CPU_LIMIT_URL = "/api/hardware/cpu-limit";
 export const MONITOR_READINGS_URL = "/api/hardware/machines";
 
 // The monitor screen's tabs, kept in the address as `?tab=` (docs/web.md, 「Monitor screen」): every machine's
-// hardware, the screen's own address, the card arbiter's board, the agency's role slots, and what the machine's
-// background units wrote, which only the administrator reads.
+// hardware, the screen's own address, the card arbiter's board, and what the machine's background units wrote, which only the administrator reads.
 export const MONITOR_TABS = [
   { value: "devices", label: "hardware.label.tab_devices", icon: "i-material-symbols-computer-outline" },
   { value: "services", label: "hardware.label.tab_services", icon: "i-material-symbols-memory-outline" },
-  { value: "slots", label: "hardware.label.tab_slots", icon: "i-material-symbols-grid-view-outline" },
   { value: "logs", label: "hardware.label.tab_logs", icon: "i-material-symbols-receipt-long-outline" }
 ] as const;
 

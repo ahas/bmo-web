@@ -190,6 +190,23 @@ let endedNow: ReadonlyMap<string, number> = new Map();
 let roomTurnsHeld: Ref<ReadonlyMap<number, RunState[]>> | null = null;
 // The bot's last picture of what is running, for the same reason.
 let pictured: LiveSnapshot | null = null;
+// Whether the record has heard the bot's picture since the stream opened: until then it holds no turn because it has
+// not been told, not because none runs. A screen reads it through a ref made the first time one asks.
+let picturedHeld: Ref<boolean> | null = null;
+
+function turnsPictured(): Ref<boolean> {
+  picturedHeld ??= ref(pictured !== null);
+
+  return picturedHeld;
+}
+
+function setPictured(next: LiveSnapshot | null): void {
+  pictured = next;
+
+  if (picturedHeld !== null) {
+    picturedHeld.value = next !== null;
+  }
+}
 
 function roomTurns(): Ref<ReadonlyMap<number, RunState[]>> {
   roomTurnsHeld ??= shallowRef<ReadonlyMap<number, RunState[]>>(turnsNow);
@@ -221,7 +238,7 @@ function hand(event: BotEvent): void {
   }
 
   if (event.type === "live" && event.live !== undefined) {
-    pictured = event.live;
+    setPictured(event.live);
   }
 }
 
@@ -566,7 +583,7 @@ function close(): void {
   // stream opens with the bot's picture, which stands it again.
   setTurns(new Map());
   endedNow = new Map();
-  pictured = null;
+  setPictured(null);
 }
 
 // The bot's live stream. It carries the session cookie on its own, and it reopens itself
@@ -1308,6 +1325,33 @@ export function useSupervisorsAnswering(): Readonly<Ref<ReadonlySet<string>>> {
   useBotEvents(() => undefined);
 
   return computed(() => new Set([...record.value.values()].flatMap((runs) => runs.map((run) => otherAnswererOf(run.speaker)?.name ?? defaultAnswererName()))));
+}
+
+// Every supervisor's turns that run now, by the supervisor's name: the room each runs in and when it began, in epoch
+// seconds, a turn naming no speaker standing under the default answerer's. A row only listening, or one standing
+// through its ending, is no turn running. Null until the stream has handed the bot's picture, since an empty record
+// then says nothing of what runs.
+export function useSupervisorTurns(): Readonly<Ref<ReadonlyMap<string, { chatId: number; startedAt: number }[]> | null>> {
+  const record = roomTurns();
+  const heard = turnsPictured();
+
+  useBotEvents(() => undefined);
+
+  return computed(() => {
+    if (!heard.value) return null;
+
+    const turns = new Map<string, { chatId: number; startedAt: number }[]>();
+
+    for (const [chatId, runs] of record.value) {
+      for (const run of runs.filter((held) => held.listening === undefined && held.answer === undefined)) {
+        const name = otherAnswererOf(run.speaker)?.name ?? defaultAnswererName();
+
+        turns.set(name, [...(turns.get(name) ?? []), { chatId, startedAt: run.startedAt }]);
+      }
+    }
+
+    return turns;
+  });
 }
 
 

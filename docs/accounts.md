@@ -187,13 +187,13 @@ section states what each does.
   | `artifact` | bmo-artifact's screen |
   | `documents` | the document viewer |
   | `code` | bmo-review's screen |
-  | `supervisors` | agent management's supervisors tab |
+  | `supervisors` | agent management's 에이전트 tab, the supervisors and the roles' agents with what each is doing now |
   | `roles` | agent management's roles tab |
   | `repositories` | agent management's repositories tab |
   | `models` | agent management's registered models tab |
   | `model-files` | agent management's model files tab |
   | `research` | the research screen |
-  | `monitor` | the machines, the card board and the role slots |
+  | `monitor` | the machines and the card board |
   | `remote` | bmo-remote's screen |
   | `brain` | the brain's screen |
   | `rooms` | the reader's rooms and their messages |

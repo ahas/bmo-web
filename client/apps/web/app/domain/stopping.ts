@@ -4,10 +4,10 @@ import type { StopTarget } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { Ref } from "vue";
 
-// The one place the console holds what a stop is doing. Every screen that stands one — the live
-// board's rows, a co-worker tile, an agent's own screen — drives this rather than keeping a flag
+// The one place the console holds what a stop is doing. Every screen that stands one — an agent's
+// row on agent management's agents tab, an agent's own screen — drives this rather than keeping a flag
 // of its own, so the question, the wait, the word stopping and a refusal read the same wherever a
-// stop is pressed (`docs/web.md`, 「Monitor's role slots tab」).
+// stop is pressed (`docs/web.md`, 「What each agent is doing now」).
 //
 // Three things it holds: a refusal belongs to the row it was pressed on and stays with that row, so
 // switching sections does not take it away; a stop waits for the bot's answer however long the run

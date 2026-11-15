@@ -1,6 +1,7 @@
 <template>
   <!-- The agents of the roles (docs/web.md, 「Agent management screen」, the agents tab; the agency's
-       docs/role-agents.md): one row an agent, a seat of its role on one road, in its role's order — its road, and
+       docs/role-agents.md): one row an agent, a seat of its role on one road, in its role's order — what it is doing
+       now (「What each agent is doing now」), whose run tied to an item its more-menu stops, its road, and
        the settings that are its own, each a cell that saves it: whether its runs keep their sessions, the share its
        session is folded at, whether it may be called as a co-worker, whether its last session is kept warm and
        whether it is switched on. Pressing an agent's name opens its role's agents, where its road, its place and
@@ -15,11 +16,13 @@
       </UDropdownMenu>
     </div>
 
-    <DataTableSkeleton v-if="!view && !error" :headers="tableHeaders(columns)" :rows="4" :label="$t('agents.status.roles_loading')" />
+    <!-- The rows wait for what their agents are doing as well, so no cell stands up a skeleton of its own after the
+         table's has gone. -->
+    <DataTableSkeleton v-if="(!view && !error) || (view && !runsSettled)" :headers="tableHeaders(columns)" :rows="4" :label="$t('agents.status.roles_loading')" />
     <p v-else-if="error && !view" role="alert" class="px-4 py-3 text-sm text-error">{{ failureText(error, $t("agents.error.roles_read_failed")) }}</p>
-    <p v-else-if="rows.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.agents_none") }}</p>
+    <p v-else-if="runsSettled && rows.length === 0" class="px-4 py-3 text-sm text-muted">{{ $t("agents.status.agents_none") }}</p>
 
-    <SettingsTable v-if="rows.length > 0" :data="rows" :columns="columns" :row-key="(row: RoleAgentView) => row.name">
+    <SettingsTable v-if="runsSettled && rows.length > 0" :data="rows" :columns="columns" :row-key="(row: RoleAgentView) => row.name">
       <template #agent-cell="{ row }">
         <button
           type="button"
@@ -29,9 +32,19 @@
           :aria-label="$t('agents.aria.settings_of', { name: row.original.name })"
           @click="openRole(row.original.role)"
         >
-          <span class="size-1.5 shrink-0 rounded-full" :class="row.original.carries ? 'bg-primary' : 'bg-transparent'" />
           <SearchText class="truncate font-mono text-sm font-medium" :class="row.original.enabled ? 'text-highlighted' : 'text-dimmed'" :text="row.original.name" :query="props.query" />
         </button>
+      </template>
+
+      <!-- What the agent is doing now, read from the role slots on their own clock. -->
+      <template #state-cell="{ row }">
+        <AgentStateCell
+          :doings="doingsOf(row.original.name)"
+          :known="agentRuns != null"
+          :now="now * 1000"
+          :stopping="runsOf(row.original.name).some((run) => run.stop !== null && stops.isStopping(run.stop))"
+          @open="(at: number) => openLog(row.original, at)"
+        />
       </template>
 
       <template #role-cell="{ row }">
@@ -96,23 +109,33 @@
       </template>
     </SettingsTable>
 
+    <p v-if="runsError" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ failureText(runsError, $t("live.error.agent_runs_read_failed")) }}</p>
     <p v-if="refusal !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ refusal }}</p>
 
     <RoleAgentsDialog v-model:open="editing" :role="editingRole" />
+    <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.role" :place="log.place" :rooms="rooms ?? []" />
   </section>
 </template>
 
 <script setup lang="ts">
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
+import { useNowSeconds } from "bmo-ui/app/domain/time";
 
+import { useAgentRuns } from "~/domain/agent-runs";
+import { runDoing, runsOfAgent, STATE_CEILING } from "~/domain/agent-state";
 import { defaultThreshold, fractionOf, percentOf, roadText, sessionsText, thresholdText, useProviders } from "~/domain/axes";
 import { useConfirm } from "~/domain/confirm";
 import { usePolling } from "~/domain/polling";
+import { useRoomList } from "~/domain/room-list";
 import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
+import { stopKey, useStops } from "~/domain/stopping";
 
+import type { AgentRun } from "#shared/agent-runs";
 import type { RoleAgentView, RoleSessions, RolesView } from "#shared/axes";
 import type { DropdownMenuItem } from "@nuxt/ui";
+import type { AgentDoing } from "~/domain/agent-state";
+import type { LogPlace } from "~/domain/log";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
@@ -134,6 +157,63 @@ usePolling(() => {
 // Every agent, by its role in the agency's order of roles and by its place among its role's.
 const rows = computed<RoleAgentView[]>(() => (view.value?.roles ?? []).flatMap((role) => role.agents));
 
+// What each agent is doing now, read from the role slots on their own clock, and how long ticking each second.
+const { data: agentRuns, error: runsError, refresh: rereadRuns } = useAgentRuns();
+// Whether the first read of what the agents are doing has answered, with what they do or with why it could not.
+const runsSettled = computed(() => agentRuns.value != null || runsError.value != null);
+const { now } = useNowSeconds(1_000);
+const { data: rooms } = useRoomList();
+
+// Every run let in on an agent, the earliest first.
+function runsOf(name: string): AgentRun[] {
+  return runsOfAgent(agentRuns.value?.runs ?? [], name);
+}
+
+function doingsOf(name: string): AgentDoing[] {
+  return runsOf(name).map((run) => runDoing(t, run));
+}
+
+// A job's run is stopped through its item, and the answer is the bot's own; the runs are read again after it, since
+// the cell reads stopping until the slots no longer hold that run.
+const stops = useStops(t, async (target) => {
+  const answer = await $fetch<{ state?: string }>("/api/run-stop", { method: "POST", body: { target } });
+
+  void rereadRuns();
+
+  return answer;
+});
+
+// A run the slots no longer hold is work that ended, and what stood on it goes with it.
+watch(agentRuns, (read) => stops.seen((read?.runs ?? []).flatMap((run) => (run.stop === null ? [] : [stopKey(run.stop)]))));
+
+// A run's stop names the item its job is a run of, asked first naming the run.
+async function stop(run: AgentRun): Promise<void> {
+  const target = run.stop;
+
+  if (target === null) return;
+
+  const taken = await askFirst({ title: t("live.message.stop_confirm"), item: runDoing(t, run).line, confirm: t("live.action.stop") });
+
+  if (!taken) return;
+
+  refusal.value = "";
+  await stops.stop(target);
+  refusal.value = stops.errorOf(target);
+}
+
+// A working agent opens its role's log where the run asked for stands; an idle one opens nothing.
+const log = ref<{ role: string; place: LogPlace | null } | null>(null);
+const logOpen = ref(false);
+
+function openLog(agent: RoleAgentView, at: number): void {
+  const doing = doingsOf(agent.name)[at];
+
+  if (doing === undefined) return;
+
+  log.value = { role: agent.role, place: doing.place };
+  logOpen.value = true;
+}
+
 // The switches an agent's row holds, each its own field of the agent.
 const SWITCHES = [
   { id: "warm", key: "keepsCache", aria: "agents.aria.agent_keeps_cache_of" },
@@ -142,6 +222,7 @@ const SWITCHES = [
 
 const columns = computed<SettingsColumn<RoleAgentView>[]>(() => [
   { id: "agent", header: t("agents.label.column_agent") },
+  { id: "state", header: t("agents.label.column_state"), ceiling: STATE_CEILING },
   { id: "role", header: t("agents.label.column_role") },
   { id: "road", header: t("agents.label.column_road"), ceiling: 320 },
   { id: "sessions", header: t("agents.label.column_sessions") },
@@ -228,9 +309,34 @@ async function add(role: string): Promise<void> {
 
 const removing = ref("");
 
-// An agent that carries a run is not removed, which its menu item says.
+// Each run tied to an item is stopped first in the menu, named by its run where the agent carries more than one; an
+// agent that carries a run is not removed, which its menu item says.
 function menuOf(agent: RoleAgentView): DropdownMenuItem[] {
+  const runs = runsOf(agent.name);
+  const stopItems: DropdownMenuItem[] = runs.flatMap((run) => {
+    const target = run.stop;
+
+    if (target === null) return [];
+
+    const named = runs.length > 1 ? runDoing(t, run).line : null;
+
+    return [
+      {
+        label: stops.isStopping(target)
+          ? t("live.status.stopping")
+          : named === null
+            ? t("live.action.stop")
+            : t("live.action.stop_run", { run: named }),
+        ...(stops.isStopping(target) && named !== null ? { description: named } : {}),
+        icon: "i-material-symbols-stop-circle-outline",
+        disabled: stops.isSending(target) || stops.isStopping(target),
+        onSelect: () => void stop(run)
+      }
+    ];
+  });
+
   return [
+    ...stopItems,
     { label: t("agents.action.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => openRole(agent.role) },
     {
       label: t("common.action.delete"),

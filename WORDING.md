@@ -85,8 +85,11 @@
 - the supervisor that answers every room naming none → 기본 응답 감독관; the supervisor a search or browse run no
   supervisor delegated writes its brain for → 리서치 감독관; the supervisor a group room is added with, one of the
   person adding it owns or 감독관 없음 → 그룹 감독관.
-- a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯: 역할 슬롯, 작업 중, 예약됨, 비어 있음. Never
-  자리, 칸, 풀.
+- a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯; a slot kept by a reservation → 예약, counted
+  as `1 예약`. Never 자리, 칸, 풀.
+- what an agent is doing now → 상태, its column's name: an agent with nothing going → 유휴; a supervisor answering in
+  rooms → 답변 중; a run of a role's agent → the pack's word for the source that asked it (Job, 위임, 협업, 요청 …)
+  and what it works on. Never 쉬는 중, 대기 or 비어 있음 for an idle agent: 대기 is a run waiting in its role's line.
 - a repository the agency runs jobs in → 저장소: 저장소, 저장소 추가. Never 리포지토리, 레포, 워커 for the place.
 - a supervisor's road, the one provider and model its turns go out on → 공급자 · 모델, its fields 공급자, 모델, 강도,
   생각 and 답변 상한; a session's compaction threshold → 압축 기준; keeping a prefix warm → 캐시 유지;

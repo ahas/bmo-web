@@ -286,7 +286,7 @@ describe.skipIf(!origin || !touchReady())('a screen keeps its frame while it fet
     // first: that is where its place is kept, and it is where a reader goes to look.
     for (const [path, title, narrowOpen] of [
       ['agents', wording('screens.label.agents'), null],
-      ['monitor?tab=slots', wording('screens.label.monitor'), null],
+      ['monitor', wording('screens.label.monitor'), null],
       ['siren', wording('screens.label.siren'), null], ['db', 'DB', null],
       ['documents', wording('screens.label.documents'), KO.line_282_3],
       ['account', KO.line_283, null], ['', KO.line_283_2, null]
@@ -423,7 +423,7 @@ async function openRecorded(width: number): Promise<Page> {
 }
 
 // Every screen that fetches, read from its first frame to the moment its skeletons are gone.
-const SCREENS = ['', 'monitor?tab=slots', 'mail/', 'archive', 'siren', 'documents', 'db', 'agents', 'graph', 'account'];
+const SCREENS = ['', 'monitor', 'mail/', 'archive', 'siren', 'documents', 'db', 'agents', 'graph', 'account'];
 
 describe.skipIf(!origin || !touchReady())('a skeleton stands once, from the read to its answer', () => {
   for (const width of [1440, 390]) {

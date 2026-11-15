@@ -51,6 +51,12 @@
         </NuxtLink>
       </template>
 
+      <!-- What the supervisor is doing now: the rooms its turns run in, read from the console's stream, and a dash until
+           the stream has handed the bot's picture. -->
+      <template #state-cell="{ row }">
+        <AgentStateCell :doings="doingsOf(row.original.name)" :known="turns !== null" :now="now * 1000" @open="openLog(row.original.name)" />
+      </template>
+
       <template #road-cell="{ row }">
         <SupervisorRoadCell :road="row.original.road" :name="row.original.label" :disabled="props.readonly" :save="(road) => change(row.original.name, { road })" />
       </template>
@@ -118,6 +124,8 @@
     <!-- The agents of the roles stand under the supervisors: every agent of the screen in the one tab. -->
     <AgentsRoleAgents class="mt-6" :query="props.query" :readonly="props.readonly" />
 
+    <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.name" :place="log.place" :rooms="rooms ?? []" />
+
     <SupervisorSettingsDialog v-if="editing !== ''" v-model:open="editingOpen" :name="editing" :reread="rereadAll" />
 
     <!-- A supervisor added by its name, label, the title of the console room it answers alone, its road's provider and
@@ -159,20 +167,24 @@ import { matchFields } from "bmo-ui/shared/search";
 import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
+import { useNowSeconds } from "bmo-ui/app/domain/time";
 
 import { settingsAnchor } from "~/domain/agent-settings";
+import { STATE_CEILING, turnsDoing } from "~/domain/agent-state";
 import { useSectionAccess } from "~/domain/section-access";
 import { mayRead } from "#shared/sections";
 import { defaultThreshold, emptyRoad, fractionOf, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
-import { agentMetaOf } from "~/domain/agents";
+import { agentMetaOf, roomTitle } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useConfirm } from "~/domain/confirm";
-import { useReadFailure } from "~/domain/events";
+import { useReadFailure, useSupervisorTurns } from "~/domain/events";
 import { useRoomList } from "~/domain/room-list";
 import { CELL_TEXT } from "~/domain/settings-cells";
 
 import type { DefaultAnswererView, RepositoryView, RoadView, SupervisorAddedView, SupervisorView } from "#shared/axes";
 import type { DropdownMenuItem } from "@nuxt/ui";
+import type { AgentDoing } from "~/domain/agent-state";
+import type { LogPlace } from "~/domain/log";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
 const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
@@ -195,12 +207,42 @@ const readFailure = useReadFailure({ failed: () => !!error.value && supervisors.
 
 const columns = computed<SettingsColumn<SupervisorView>[]>(() => [
   { id: "supervisor", header: t("agents.label.column_supervisor") },
+  { id: "state", header: t("agents.label.column_state"), ceiling: STATE_CEILING },
   { id: "road", header: t("agents.label.column_road"), ceiling: 256 },
   { id: "warming", header: t("agents.label.column_warming") },
   { id: "threshold", header: t("agents.label.column_threshold") },
   { id: "rooms", header: t("agents.label.column_rooms"), ceiling: 288 },
   ...(props.readonly ? [] : [{ id: "actions", header: "" }])
 ]);
+
+// What each supervisor is doing now: the rooms its turns run in, from the console's stream, and how long ticking each
+// second.
+const turns = useSupervisorTurns();
+const { now } = useNowSeconds(1_000);
+
+// Its turns as the one thing it is doing, its rooms on one line; nothing where it runs none.
+function doingsOf(name: string): AgentDoing[] {
+  const doing = doingOf(name);
+
+  return doing === null ? [] : [doing];
+}
+
+function doingOf(name: string): AgentDoing | null {
+  return turnsDoing(t, turns.value?.get(name) ?? [], (chatId) => roomTitle(t, rooms.value ?? [], chatId));
+}
+
+// A working supervisor opens its own log at its earliest running turn, in that turn's room; an idle one opens nothing.
+const log = ref<{ name: string; place: LogPlace | null } | null>(null);
+const logOpen = ref(false);
+
+function openLog(name: string): void {
+  const doing = doingOf(name);
+
+  if (doing === null) return;
+
+  log.value = { name, place: doing.place };
+  logOpen.value = true;
+}
 
 function aliasMatch(supervisor: SupervisorView) {
   return matchFields([{ label: t("agents.label.alias"), text: supervisor.aliases ?? "", shown: false }], props.query);

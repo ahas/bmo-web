@@ -89,10 +89,10 @@
         <div class="flex w-full flex-col gap-1">
           <!-- Whether the receiver's stream is carrying anything. Nothing is said while it is, or
                before it has first spoken; a break the receiver announced reads as a restart. It leads
-               to the monitor's role slots, where what is running is read. -->
+               to agent management's agents tab, where what each agent is doing now is read. -->
           <UTooltip v-if="streamNotice !== null" :text="streamNotice.label" :disabled="!collapsed" :content="{ side: 'right' }">
             <NuxtLink
-              to="/monitor?tab=slots"
+              to="/agents?tab=supervisors"
               role="status"
               class="flex min-h-8 items-center gap-2 rounded-md px-2.5 text-sm transition-colors hover:bg-elevated active:bg-accented"
               :class="[streamNotice.tone, collapsed ? 'justify-center' : '']"

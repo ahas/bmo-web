@@ -45,7 +45,7 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
     code review and mail screen read splitter-divided parts side by side, one search reads its findings and their source
     list side by side, agent management stands its settings tables edge to edge, and the remote screen
     gives a terminal or a desktop the whole panel, and the three monitor screens — the monitor overview, this
-    machine's monitor and each node's screen — the card arbiter screen and the role slots read tiles and charts of live figures across the panel. One search's findings and agent management's general
+    machine's monitor and each node's screen — and the card arbiter screen read tiles and charts of live figures across the panel. One search's findings and agent management's general
     tab still stand at the reading width inside their part. The login screen does not stand on a panel at
     all and stands centred in its own card. A screen that releases the width keeps the panel's own room
     around its content unless it has a reason of its own to stand flush.
@@ -1279,7 +1279,7 @@ Four groups.
   - Cache siren, DB, document viewer, agent management, 리서치, monitor, 조직 and 관리자 are the console's own and
     always stand; the screens units bring stand only while their unit answers its manifest, under the manifest's
     own name and icon (「Screens a unit brings」). The monitor's second tab is the card board, `/cards` leading
-    there, and its third the role slots, `/live` leading there.
+    there; `/live` leads to agent management's 에이전트 tab (「에이전트」).
   - This group does not fold — its sections are flat lists of screens with no branch to fold, and the fold the
     sidebar remembers is only the agent group's below.
   - **A screen a unit brings may carry a count its manifest declares** (bmo-ui's `docs/console-bundles.md`, the
@@ -1383,7 +1383,7 @@ Four groups.
     and is read for when its last run in each began. Each is named by its room's name, in the order the rooms stand,
     and opens the supervisor's log at its last line in that room — at the second its last run there began, as the
     agency's route names it — or at the log's end where that route names no run there. The owner's private chat stands not as a chat number but as the name the language pack gives it. A room
-    name is the same everywhere on screen, so nowhere — sidebar, role slots, log header — does a number come up as
+    name is the same everywhere on screen, so nowhere — sidebar, an agent's state, log header — does a number come up as
     is.
   - **역할** — every role the agency's `GET /roles` lists, in its order: the runners, the doppelganger, the worker,
     the co-workers and every other role alike, each by its name alone (「역할」 under the agent screen). A role with runs going carries the spinning mark and, at the
@@ -1402,11 +1402,11 @@ Four groups.
   catalogue it stands in — its own row or a room's session — by the chat agent's own label (비모 where the deployment
   names it so), and every other agent by its own row's label, its own name where that row has none. A room's title
   stands only where a room is what is shown: the session row under an agent, a room's header, a message's room. The
-  rule holds on the sidebar's 감독관 branch, on the sidebar's agent list, on the role slots'
-  tiles, on the room's session panel, and on the agents an @ offers in a room's box.
+  rule holds on the sidebar's 감독관 branch, on the sidebar's agent list, on the 에이전트 tab's
+  state cells, on the room's session panel, and on the agents an @ offers in a room's box.
   - **The name is the agent's own, the same on every screen, and a room's wording never renames it.** A chat agent
     stands by its own catalogue label — BMO where the deployment calls it so — on the agents screen, the sidebar, the
-    role slots, a room's session panel and the agents an @ offers alike; a room's own phrasing is not its name.
+    state an agent's row reads, a room's session panel and the agents an @ offers alike; a room's own phrasing is not its name.
     A session registered for a room is that agent serving that room: it stands as the agent's own name and picture, with
     the room it serves its own line under it.
   - **A message stands under the agent that said it.** The room view names a sender by the agent the record carries on
@@ -1529,7 +1529,7 @@ Four groups.
   kept in a cookie for a year (「Themes」), so the server paints the first frame in it and knows it for a page it sends (bmo-artifact's `docs/artifact.md`, 「How a
   document is drawn」). The menu opens above its button, aligned to
   the button's left edge and as wide as it. Above the menu, while the bot's stream is not carrying anything, a line
-  says so; it leads to the role slots, where what is running is read (「Monitor's role slots tab」).
+  says so; it leads to agent management's 에이전트 tab, where what each agent is doing now is read (「에이전트」).
 - A screen with no place of its own in the sidebar puts its way back at the left end of its own row under the
   title bar (「The title bar」). The gate screen returns to that gate's agent screen. On a narrow screen the sidebar is a drawer, so that
   hook is the way out of that screen.
@@ -2229,7 +2229,7 @@ archive and this week's tokens remain. That is all that can actually be known th
   screen at all.
 - **Pressing goes to where that request was.** One request is one call an agent made, and where a call is written a line
   at a time is only that agent's log, so pressing a line opens that log — at the first line of the run that request
-  belonged to. The same rule the role slots' tiles follow. A request a room's chat agent made goes to that session's
+  belonged to. The same rule a working agent's state cell follows (「에이전트」). A request a room's chat agent made goes to that session's
   log, not the room screen — what stands in a room is what was said, and what this screen says is what was burned to say
   it. With no log line around that time, it goes to the end of that agent's log — the screen right, the place merely the
   end.
@@ -2418,16 +2418,16 @@ archive and this week's tokens remain. That is all that can actually be known th
 ### Monitor screen
 
 - **`/monitor`, 모니터, is tabs under the title bar, one level deep:** 기기, every machine's hardware, which
-  bmo-node reads; 서비스, the card master's board (「Monitor's services tab」); 역할 슬롯, the agency's role slots
-  (「Monitor's role slots tab」); and for the administrator alone 로그, what the machine's background units wrote
-  (「Monitor's logs tab」). The tab stands in the address (`?tab=`), 기기 being the screen's own address, 서비스
-  `?tab=services`, 역할 슬롯 `?tab=slots` and 로그 `?tab=logs`, so a link opens the same tab and moving between
-  them is a step of the history; a member who opens `?tab=logs` stands on 기기, and so does a tab the address does
-  not know. Only the open tab reads anything. The console search finds each tab as it finds a screen. On a phone
+  bmo-node reads; 서비스, the card master's board (「Monitor's services tab」); and for the administrator alone 로그,
+  what the machine's background units wrote (「Monitor's logs tab」). The tab stands in the address (`?tab=`), 기기
+  being the screen's own address, 서비스 `?tab=services` and 로그 `?tab=logs`, so a link opens the same tab and
+  moving between them is a step of the history; a member who opens `?tab=logs` stands on 기기, and so does a tab the
+  address does not know. What each agent is doing now is read on agent management's 에이전트 tab (「에이전트」), not
+  here. Only the open tab reads anything. The console search finds each tab as it finds a screen. On a phone
   the tabs stand by their names alone, their marks giving way, so they fit the row.
 - `/cards` sends a reader on to `/monitor?tab=services`, so a link made to that address lands on the master's
-  board, and `/live` sends a reader on to `/monitor?tab=slots`, so a link made to that address lands on the role
-  slots.
+  board, and `/live` sends a reader on to `/agents?tab=supervisors`, so a link made to that address lands on the
+  agents and what each is doing.
 - **기기 shows every machine at a glance** (bmo-node's `docs/hardware.md`, 「Which machines」): this machine first,
   then the nodes in the node list's order, one tile each; a node that is this machine is shown as this machine's
   tile alone. It fills the panel rather than standing in the reading column, and so does each machine's own
@@ -2557,48 +2557,6 @@ archive and this week's tokens remain. That is all that can actually be known th
 - **The events** stand last, newest first: what the master saw change and what it ordered, in its own words.
 - Every figure carries thousands separators and stands in tabular figures, and a value the master could not read
   reads 읽지 못함.
-
-### Monitor's role slots tab
-
-- **The 역할 슬롯 tab of 모니터 shows who works where now, at a glance.** It reads no log and shows no
-  conversation: which role's slots are taken, by what and since when, and a log is opened from it. It fills the
-  panel as a monitoring board, as the machines' tab and the card board do.
-- **The role slots are a grid of tiles,** read from the agency's `GET /slots` and read again every three
-  seconds while the tab stands (the agency's `docs/role-slots.md`). The tab carries no refresh of its own: it
-  reads on its own clock, and a tab opened again reads at once.
-  1. **One row per role**, in the order the agency lists the roles, with a tile for every one of its agents that
-     is switched on; a role with none switched on has a row only while something of it still runs, is reserved or
-     waits. The row's head names the role by its name, how many of its slots are in use out of that count, and how
-     many runs wait for one.
-  2. **A tile says at a glance which state its slot is in**: working (a run holds it), reserved (a reservation
-     keeps it for an owner who has not used it yet) or idle, by its colour and its mark. A working tile carries the
-     agent its run is on and its model, as the agency's `GET /slots` names them, and under them the repository or
-     folder its run works in.
-  3. **Hovering a tile** shows its state and what holds it: the line naming the work it was asked for where its
-     asker named one, the agent, the path, the source that asked it — 잡, 위임, 협업, 네이티브 and the rest by the pack's word for
-     the source — the provider and model, and how long it has been there.
-  4. **Pressing a working tile opens the live log** of what the slot holds, in the order the agency's `docs/api.md`
-     (「slots」) gives: a job's run where the agency names the job (`jobId`), from that run's start and following its
-     newest lines; else the run its `runName` names, the same way; else, for a slot bound to a role session between
-     two of its turns (`session`), the role's log at its newest lines, following them, so the session's next turn
-     comes in as it starts; and, for a run bound to nothing yet, the role's log at the moment it took the slot. It
-     opens as a dialog in the middle of a wide screen, a sheet from the bottom edge of a phone. An idle tile opens
-     nothing.
-     A job's tile is stopped through the job's item, as every job is.
-- **A working tile whose run is tied to an item carries 중지.** Pressing it asks 「실행을 중지할까요?」 in place — a
-  tile has not the width to hold the question, so it grows under the row of tiles, naming the tile it is about
-  while that tile stands marked — and on confirming the item is stopped, which ends every run that item holds
-  (bmo-job's `docs/work-orders.md`, 「the owner stops an item now」). The tile reads 중지 중 until the slots no longer
-  hold its run, and a stop the agency refused stands as an error under the row.
-- **A co-work run is read not by its unit name but by the place it stands in the work order.** The name the bot
-  gives such a run is an identifier joining item, task and round, and the log, unit and control API find that run
-  by that name, so the name itself is left as is. But since it is not a name made for a person to read, on screen
-  it stands as 계획, 단계 몇-몇, 설계 종합, 구현 몇, 최종 검증. From the second round on, which round attaches, and not on the
-  first. The name-reading place is shared by every screen, so this rule reaches the room and siren screens as it
-  reaches this tab, and an agent with a label in the catalogue always stands by that label, so the rule reaches
-  only labelless runs.
-- No conversation stands on this tab: neither what was asked, nor what was answered, nor what a job was told.
-  The place to see that is the agent screen.
 
 ### Monitor's logs tab
 
@@ -2945,7 +2903,8 @@ The tab holds every agent of the screen: the supervisors, which answer rooms, an
 a seat of its role.
 
 - **One table of every supervisor** (the agency's `docs/supervisors.md`), one row each in the order the agency lists
-  them: 감독관, its mark, its label and its name, the title column; 공급자 · 모델, its road (above), on one line
+  them: 감독관, its mark, its label and its name, the title column; 상태, what it is doing now (「What each agent is
+  doing now」 below); 공급자 · 모델, its road (above), on one line
   under a ceiling of its own; 캐시 유지, its road's provider by the pack's word where its prefix is kept warm there,
   or 끔 where it is not; 압축 기준, its compaction threshold as a whole percent, the value equal to its road's
   provider's declared threshold reading `85% (기본값)`; and 방, the rooms it answers as the sidebar lists them under it
@@ -3023,8 +2982,8 @@ a seat of its role.
 - **Under the supervisors stands one table of the roles' agents** (the agency's `docs/role-agents.md`), headed
   에이전트, one row an agent — the roles in the agency's order, each role's agents by name, since they stand in no
   order of priority — read from `GET /roles` and read again every few seconds while the tab stands:
-  - 에이전트, its name, with a dot lit while it carries a run and its name muted while it is switched off;
-    역할, its role; 공급자 · 모델, its road — its provider's word, its model and its effort — or 요청한 감독관을 따름
+  - 에이전트, its name, muted while it is switched off; 상태, what it is doing now (「What each agent is doing now」
+    below); 역할, its role; 공급자 · 모델, its road — its provider's word, its model and its effort — or 요청한 감독관을 따름
     for an agent that names no road;
   - **its own settings, each a cell that saves it** through `PATCH /role-agents/{name}`: 세션, 유지 or 새로,
     whether its runs keep their sessions; 압축 기준, a whole percent from 1 to 100, the one its provider declares
@@ -3051,8 +3010,64 @@ a seat of its role.
     place, on the road of its last agent, through `POST /role-agents`, and that role's agents open.
   - **삭제** stands in each row's more-menu, asked first in a dialog naming the agent, and stands disabled while
     the agent carries a run, its tooltip saying so.
+  - **중지** stands first in the more-menu of an agent whose run is tied to an item (「What each agent is doing
+    now」 below).
   - A change the agency refuses says the pack's sentence for its code, or the agency's own, in the cell or
     under the table, and the table stands as it was.
+
+- **What each agent is doing now** stands in each table's 상태 column: who works where now, at a glance, with no
+  conversation — neither what was asked, nor what was answered, nor what a job was told; the place to read that is
+  the agent screen.
+  - **A role's agent** is read from what the agency's role slots say (the agency's `docs/role-slots.md` and its
+    `docs/api.md`, 「slots」): `GET /slots` for the runs let in now, each on the agent it names, with
+    `GET /jobs` for the jobs going now and `GET /repositories` for the place each run works in, all read again every
+    three seconds while the tab stands and the browser tab is seen. The tab carries no refresh of its own for it.
+    The roles' agents' table keeps its skeleton until this read has first answered as well as its own, so no cell
+    stands a skeleton of its own. A read that fails says so under the table: the cells keep what the last read
+    answered, and hold a dash where no read has answered yet.
+  - **A supervisor** takes no slot (the agency's `docs/role-slots.md`, 「Who takes a slot」), so what it is doing is
+    read from the receiver's live picture the console's stream already holds: the rooms a turn of it runs in now,
+    a turn naming no speaker being the default answerer's. Until the stream has handed that picture the cell holds a
+    dash, since a record not yet told of any turn says nothing of whether one runs.
+  - **An agent with nothing going reads 유휴**, muted, under a resting mark. An agent at work carries the spinning
+    mark and one line: for a role's agent, the source that asked its run by the pack's word — Job, 위임, 협업, 요청,
+    검색 and the rest — then what it works on, the item's number as `#n` for a job of an item, else the line naming
+    the work where its asker named one, else the repository or folder it works in; for a supervisor, 답변 중 and the
+    rooms its turns run in by their names. The line ends with how long it has been at it, in tabular figures, ticking
+    each second. The cell stands at a ceiling of its own and cuts the line there.
+  - **A role's agent may carry more than one run at once:** a job of its waiting in the machine's turn leaves the
+    agent free to take another (the agency's `docs/role-agents.md`, 「When an agent is busy」). Its cell then stands
+    the earliest run's line and, beside it, how many runs it carries as a neutral count badge (「Count badges」); its
+    tooltip lists every run, each by its line and how long, with the line naming its work, the path and the road
+    under it, and a press drops a menu with one entry a run, its line over the line naming its work and how long,
+    which opens that run's log.
+  - **A working role agent's cell has a tooltip** saying what the cell cannot hold, a line each: the cell's whole
+    line, or for a job of an item the item's own tooltip (「An item by its number」), then the path the run works in
+    and the provider and model. A finger reads it by resting on the cell, since a tap opens the log or the menu of
+    runs. A supervisor's
+    cell has nothing more to say than its line, so it carries no tooltip of its own, a cut line taking the shared
+    one (「A line longer than its box」).
+  - **Pressing a working cell opens the live log** as a dialog in the middle of a wide screen and a sheet from the
+    bottom edge of a phone. A role's agent opens its role's log in the order the agency's `docs/api.md` (「slots」)
+    gives: a job's run where the agency names the job (`jobId`), from that run's start and following its newest
+    lines; else the run its `runName` names, the same way; else, for a run bound to a role session between two of
+    its turns (`session`), the role's log at its newest lines, following them; and, for a run bound to nothing yet,
+    the role's log at the moment it took the slot. A supervisor opens its own log at the moment its earliest running
+    turn began, in that turn's room. An idle cell opens nothing.
+  - **A run tied to an item is stopped from its row's more-menu, 중지,** for a reader who may write the tab, one entry
+    a run tied to an item, named `<the run's line> 중지` where the agent carries more than one. It asks
+    「이 작업의 실행을 중지할까요?」 in a dialog naming what the cell says the run works on, and on confirming the item
+    is stopped, which ends every run that item holds (bmo-job's `docs/work-orders.md`, 「the owner stops an item
+    now」). The cell reads 중지 중 until the slots no longer hold the run, and a stop the agency refused stands as an
+    error under the table. A run the console can tie to no item, and a supervisor's turn, carry no 중지.
+  - **A run the agency names no agent for, and a slot kept by a reservation,** belong to their role and to no agent,
+    so they stand on no row; the 역할 tab counts them in the role's 에이전트 cell.
+  - **A co-work run is read not by its unit name but by the place it stands in the work order.** The name the bot
+    gives such a run is an identifier joining item, task and round, and the log, unit and control API find that run
+    by that name, so the name itself is left as is. On screen it stands as 계획, 단계 몇-몇, 설계 종합, 구현 몇, 최종 검증,
+    with the round attached from the second round on. The name-reading place is shared by every screen, so this rule
+    reaches the room and siren screens as it reaches this tab, and an agent with a label in the catalogue always
+    stands by that label, so the rule reaches only labelless runs.
 
 #### 역할
 
@@ -3066,7 +3081,9 @@ a seat of its role.
   묶음 없음; 스킬, the skills it names on one line under a ceiling of its own, `(기본값)` where it names none and
   its runs carry the whole plugin the agency's release places for it, and 스킬 없음 for a list that names none;
   역할 프롬프트, 있음 or 없음; and 에이전트, how many of its agents are switched on with how many of its
-  runs go and wait beside it — `2/3 실행 · 1 대기` — and 막힘 where none is. Nothing in the table is pressed but the
+  runs go, are kept by a reservation and wait beside it — `2/3 실행 · 1 예약 · 1 대기`, each part after the first
+  standing only where it is not nought, the reservations read from the agency's `GET /slots` — and 막힘 where none
+  is. Nothing in the table is pressed but the
   role's name and its more-menu, and the counts are read again every few seconds while the tab stands.
 - **Pressing a row's name opens the role's dialog,** one form with one 저장 at its foot: 이름 (fixed once made,
   and the label the agency keeps for its log as the role is added), 설명, 실행 라인 — a choice of the lines the agency
@@ -3199,7 +3216,7 @@ a seat of its role.
   rewind. While standing at the very bottom it follows new lines down, and while scrolled up to read it
   does not follow. Only the reader takes it off the bottom: the window growing shorter under the input box
   that arrives at the foot of a worker's screen, or the lines reflowing, leaves a reader at the bottom there.
-- Entering by pressing a role slot's tile opens not at the log's end but where that run started. Then
+- Entering by pressing a working agent's state cell opens not at the log's end but where that run started. Then
   the log reads on both ways as the reader reaches either end — the lines above as the head comes into view, the
   lines past what is held as the tail does, skeleton lines standing where they will land — and no button asks
   for more. New lines are not followed automatically; reading on to the log's end resumes following from there.
@@ -3404,7 +3421,7 @@ a seat of its role.
     it that is itself JSON among them, and whole as it was stored otherwise (「A value shown as what it is」).
   - **The agent screen keeps the panel's room at its foot** under the last line, as every content screen does
     (bmo-ui's `docs/design.md`, 「Room at the foot」), and gives it up only where the launch box stands there.
-- **The work view.** A worker's screen, the agent log dialog a room, the role slots or the TODO panel opens, and the
+- **The work view.** A worker's screen, the agent log dialog a room, an agent's state cell or the TODO panel opens, and the
   co-work stage dialog are one view, opened from different places; nothing in it depends on where it was opened.
   It is a fixed head over one scrolling body:
   1. **The head stays in view** however far the log is scrolled, and is compact: one line of the job — its item's
@@ -5238,7 +5255,7 @@ Four bounds keep it from growing forever.
   the owner's private chat in that room.
   What ran with no name written stands with no launcher — the room work is attached to is not guessed as the
   launcher. A co-work run stands by its place in the work order, not its unit name, and that being the same rule
-  wherever a run line stands, it is written once for every screen (「Monitor's role slots tab」). What runs is not something this screen can
+  wherever a run line stands, it is written once for every screen (「에이전트」, a co-work run's name). What runs is not something this screen can
   shorten, so the line is never cut: a menu wider than the screen scrolls sideways as every menu of the console
   does. Choosing the line opens that agent's log over the conversation: on a wide screen as a centred modal, on a
   narrow screen as a sheet rising from the bottom to fill the screen. What
@@ -5249,7 +5266,7 @@ Four bounds keep it from growing forever.
 - **A watch's line is named after the watch, not after the agent looking.** Where the run standing there is a
   standing watch's check, the line carries 「워치 #N · <name>」 — the watch's number and the few words it was set
   with, or the head of its note where it was set without a name — and nothing about the watch under it, the
-  same one line a role slot's tile stands under a watch's runner. How often it looks, how long is left, its
+  same one line an agent's state cell reads for a watch's runner. How often it looks, how long is left, its
   condition and what it promised are never on that line, however long the note behind it is. Pressing it opens
   the watch itself above the log, with its detail already open: how often it looks and how long is left, how
   the last look went, the whole of the note, the condition, and the deadline or the timer's moment. A check that wrote no log is the ordinary case, so what the
@@ -7109,8 +7126,8 @@ by the administrator. Every login reads them, since every person's form asks in 
   number and title, then the worker it names and where it stands, in the TODO panel's own words for
   that (진행 중, 대기, 보류 and the rest). That covers a run's item in a room's
   running lines and on an agent's job line, the turn waiting on an item's Job for its engine, the machine's memory holders, the
-  item a question belongs to, a memory's item, the items a code review filed and a just-raised item's
-  link in the TODO panel. A place that already shows the whole title beside the number, wrapping it
+  item a question belongs to, a memory's item, the items a code review filed, a just-raised item's
+  link in the TODO panel and a job's run in an agent's state cell (「What each agent is doing now」). A place that already shows the whole title beside the number, wrapping it
   rather than cutting it, carries none.
 - **One component shows the number.** It takes the number, reads the item and puts up the tooltip;
   what it stands on is the number itself unless the screen gives it something else, such as a line

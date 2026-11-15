@@ -94,6 +94,8 @@ import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 
 import { settingsAnchor } from "~/domain/agent-settings";
+import { useAgentRuns } from "~/domain/agent-runs";
+import { reservedOf } from "~/domain/agent-state";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
@@ -133,14 +135,21 @@ function hiddenMatch(role: RoleView) {
   return matchFields([{ label: t("agents.label.description"), text: role.description ?? "", shown: false }], props.query);
 }
 
-// How many of its agents are switched on with how many of its runs go and wait beside it, and the closed word where
-// none is.
+// The slots each role keeps by a reservation, read from the agency's role slots on their own clock.
+const { data: agentRuns } = useAgentRuns();
+
+// How many of its agents are switched on with how many of its runs go, are kept by a reservation and wait beside it,
+// each part after the first only where it is not nought, and the closed word where none is.
 function concurrencyText(role: RoleView): string {
   if (role.maxConcurrent === 0) return t("agents.status.role_blocked");
 
-  const going = t("agents.label.role_running", { running: countText(role.running), cap: countText(role.maxConcurrent) });
+  const reserved = reservedOf(agentRuns.value?.reservations ?? [], role.name);
 
-  return role.waiting === 0 ? going : `${going} · ${t("agents.label.role_waiting", { n: countText(role.waiting) })}`;
+  return [
+    t("agents.label.role_running", { running: countText(role.running), cap: countText(role.maxConcurrent) }),
+    ...(reserved === 0 ? [] : [t("agents.label.role_reserved", { n: countText(reserved) })]),
+    ...(role.waiting === 0 ? [] : [t("agents.label.role_waiting", { n: countText(role.waiting) })])
+  ].join(" · ");
 }
 
 const editing = ref(false);

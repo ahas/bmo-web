@@ -24,7 +24,11 @@ const receiver = standIn("RECEIVER", (one) => {
   const path = one.path.split("?")[0] ?? "";
   const account = path.match(/^\/rooms\/(-?\d+)\/accounts\/(\d+)$/);
 
-  if (path === "/rooms" && one.method === "POST") return answer({ id: GROUP, title: one.body?.title ?? null }, 201);
+  // The receiver reads the opener and the one letting in as numbers, and refuses anything else.
+  if (path === "/rooms" && one.method === "POST") {
+    return typeof one.body?.openedBy === "number" ? answer({ id: GROUP, title: one.body.title ?? null }, 201) : answer({ code: "bad-request", error: "openedBy is a number." }, 400);
+  }
+  if (account !== null && one.method === "PUT" && typeof one.body?.by !== "number") return answer({ code: "bad-request", error: "by is a number." }, 400);
   if (path === "/rooms") return answer({ items: [], more: false });
   if (account !== null && one.method === "PUT") {
     members.get(Number(account[1]))?.add(account[2]!);
@@ -34,7 +38,8 @@ const receiver = standIn("RECEIVER", (one) => {
     members.get(Number(account[1]))?.delete(account[2]!);
     return new Response(null, { status: 204 });
   }
-  if (path === `/accounts/${INVITED}/rooms`) return answer({ rooms: [GROUP] });
+  // The account's memberships, its own BMO's private room among them.
+  if (path === `/accounts/${INVITED}/rooms`) return answer({ rooms: [GROUP, PRIVATE] });
   if (path === `/supervisors/u${INVITED}/rooms`) return answer({ items: [{ id: PRIVATE, title: null, named: true, alone: true }], more: false });
   if (/^\/rooms\/-?\d+\/providers$/.test(path)) return answer({ providers: [], chosen: false });
   if (/^\/rooms\/-?\d+\/accounts$/.test(path)) {
@@ -89,7 +94,7 @@ describe("an account with no chat service's identity", () => {
     receiver.asked.length = 0;
 
     expect((await asked(say, { params: { chatId: String(PRIVATE) }, body: { text: "hello" } })).answer).toEqual({ messageId: "31" });
-    expect(writes()).toEqual([["POST", `/rooms/${PRIVATE}/words`, { account: String(INVITED), text: "hello" }]]);
+    expect(writes()).toEqual([["POST", `/rooms/${PRIVATE}/words`, { account: INVITED, name: `account-${INVITED}`, text: "hello" }]]);
   });
 
   test("opens a group room naming its own BMO, itself its first member", async () => {
@@ -97,7 +102,7 @@ describe("an account with no chat service's identity", () => {
     receiver.asked.length = 0;
 
     expect((await asked(open, { body: { title: "Team" } })).answer).toEqual({ chatId: GROUP, title: "Team" });
-    expect(writes()).toEqual([["POST", "/rooms", { title: "Team", supervisors: [`u${INVITED}`], openedBy: String(INVITED) }]]);
+    expect(writes()).toEqual([["POST", "/rooms", { title: "Team", supervisors: [`u${INVITED}`], openedBy: INVITED }]]);
   });
 
   test("opens none where it has no BMO of its own", async () => {
@@ -114,7 +119,7 @@ describe("an account with no chat service's identity", () => {
     accounts.asked.length = 0;
 
     expect((await asked(letIn, { params: { chatId: String(GROUP), user: String(COLLEAGUE) }, body: { caller: true } })).status).toBe(200);
-    expect(writes()).toEqual([["PUT", `/rooms/${GROUP}/accounts/${COLLEAGUE}`, { by: String(INVITED) }]]);
+    expect(writes()).toEqual([["PUT", `/rooms/${GROUP}/accounts/${COLLEAGUE}`, { by: INVITED }]]);
     expect(accounts.asked.filter((one) => one.method === "PUT").map((one) => one.path)).toEqual([`/rooms/${GROUP}/callers/${COLLEAGUE}`]);
     expect(members.get(GROUP)?.has(String(COLLEAGUE))).toBe(true);
 

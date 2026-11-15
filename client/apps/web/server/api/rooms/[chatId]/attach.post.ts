@@ -79,8 +79,6 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
   body.set("chatId", String(chatId));
   body.set("text", caption);
 
-  if (speaker !== "owner") body.set("account", speaker.account);
-
   if (replyTo !== null) {
     body.set("replyTo", String(replyTo));
   }
@@ -103,7 +101,7 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
         const answer =
           speaker === "owner"
             ? ((await exactAnswer<unknown>(receiver().POST("/owner/message-files", { body, parseAs: "text" }))) as ReceivedAttachments)
-            : await sayFilesAsAccount<ReceivedAttachments>(chatId, body);
+            : await sayFilesAsAccount<ReceivedAttachments>(chatId, speaker, body);
 
         return {
           sent: answer.sent.map((one) => ({ name: one.name, messageId: one.id })),

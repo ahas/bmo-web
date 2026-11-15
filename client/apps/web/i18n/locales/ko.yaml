@@ -590,6 +590,7 @@ room:
     voice_with_files: 음성 메모는 파일과 함께 보낼 수 없습니다.
     say_empty: 보낼 메시지를 입력해 주세요.
     no_account: 계정으로 로그인해야 합니다.
+    private_room: 다른 사람의 개인 대화방은 바꿀 수 없습니다.
     open_title: 방 이름을 입력해 주세요.
     open_no_bmo: 나만의 BMO가 없어 방을 만들 수 없습니다.
     open_failed: 방을 만들지 못했습니다.

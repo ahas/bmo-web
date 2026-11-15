@@ -113,8 +113,9 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   "upstream-failed": "room.error.receiver_unit_failed",
   unreachable: "room.error.receiver_unreachable",
   failed: "room.error.receiver_failed",
-  // The owner's words from the console.
+  // The owner's words from the console, and any account's.
   "reply-missing": "room.error.reply_missing",
+  "private-room": "room.error.private_room",
   "words-only": "room.error.words_only",
   "none-sent": "room.error.none_sent",
   // Adding a room from a chat service's account.

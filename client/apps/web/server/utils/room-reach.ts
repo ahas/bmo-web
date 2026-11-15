@@ -84,8 +84,8 @@ export async function privateRoomOwner(room: number): Promise<number | null> {
   return owner !== null && (await heldAlone(room, owner)) ? owner : null;
 }
 
-/** The rooms an account reads as any person does: its console memberships, its linked identities' rooms and its own
- * BMO's private rooms; the administrator's private chat is his own beside them. */
+/** The rooms an account reads as any person does: its console memberships, its own BMO's private rooms among them,
+ * and its linked identities' rooms; the administrator's private chat is his own beside them. */
 export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
   if (signed.id === null) {
     const chat = signed.administrator ? await ownerChat() : null;
@@ -93,14 +93,14 @@ export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
     return new Set(chat === null ? [] : [chat]);
   }
 
-  const [memberships, linked, alone, chat] = await Promise.all([
+  // The receiver's memberships hold the account's private rooms beside the rooms it was let into or opened.
+  const [memberships, linked, chat] = await Promise.all([
     accountRooms(signed.id),
     linkedRooms(signed.id, signed.administrator),
-    privateRoomsOf(signed.id),
     signed.administrator ? ownerChat() : Promise.resolve(null)
   ]);
 
-  return new Set([...memberships, ...linked, ...alone, ...(chat === null ? [] : [chat])]);
+  return new Set([...memberships, ...linked, ...(chat === null ? [] : [chat])]);
 }
 
 export async function readableRooms(event: H3Event): Promise<ReadableRooms> {

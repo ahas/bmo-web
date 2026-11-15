@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { wording } from "../../../apps/web/shared/wording";
 import { globalsRestoredAfter } from "../../support/globals";
 import { asked, routeOf } from "../../support/nitro";
 import { rawNumber } from "../../support/raw-number";
@@ -27,7 +28,13 @@ const receiver = standIn("RECEIVER", (one) => {
 
   if (path === "/owner") return answer({ room: OWNER_ROOM, senderId: OWNER_SENDER });
   if (path === "/rooms" && one.method === "GET") return answer({ items: [], more: false });
-  if (/^\/rooms\/-?\d+\/words$/.test(path)) return answer({ id: rawNumber(HIGH) }, 201);
+  if (path === "/rooms/-23/words") return answer({ code: "private-room", error: "Another account's private room.", room: -23, account: 7 }, 403);
+  // The receiver takes an account as a number and the name it is shown by, and refuses words missing either.
+  if (/^\/rooms\/-?\d+\/words$/.test(path)) {
+    return typeof one.body?.account === "number" && typeof one.body.name === "string"
+      ? answer({ id: rawNumber(HIGH) }, 201)
+      : answer({ code: "bad-request", error: "An account and its name are named." }, 400);
+  }
   if (/^\/rooms\/-?\d+\/word-files$/.test(path)) return answer({ sent: [{ name: "note.txt", id: rawNumber(HIGH) }], checking: [], failed: [] });
   if (path === "/owner/messages") return answer({ id: 5 }, 201);
   if (path === "/owner/message-files") return answer({ sent: [{ name: "note.txt", id: 5 }], checking: [], failed: [] });
@@ -87,7 +94,7 @@ describe("a member's words", () => {
 
     expect(said.answer).toEqual({ messageId: HIGH });
     expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([
-      ["POST", `/rooms/${GROUP}/words`, { account: "7", text: "hello", replyTo: 21 }]
+      ["POST", `/rooms/${GROUP}/words`, { account: 7, name: "member-a", text: "hello", replyTo: 21 }]
     ]);
   });
 
@@ -102,12 +109,23 @@ describe("a member's words", () => {
     expect(recorded.answer).toEqual({ messageId: HIGH });
     expect(receiver.asked.map((one) => one.path)).toEqual([`/rooms/${GROUP}/word-files`, `/rooms/${GROUP}/word-files`]);
 
+    // The room is the path's alone, and the account and its shown name stand beside the files.
     for (const one of receiver.asked) {
       expect(one.raw).toMatch(/name="account"\r\n\r\n7\r\n/);
+      expect(one.raw).toMatch(/name="name"\r\n\r\nmember-a\r\n/);
+      expect(one.raw).not.toContain('name="chatId"');
     }
 
     expect(receiver.asked[1]?.raw).toMatch(/name="voice"\r\n\r\ntrue\r\n/);
     expect(owners()).toEqual([]);
+  });
+
+  test("refused by the receiver in another account's private room are said by the pack's sentence for it", async () => {
+    session = MEMBER;
+
+    const refused = await asked(say, { params: { chatId: "-23" }, body: { text: "hello" }, context: { readableRooms: new Set([-23]) } });
+
+    expect(refused).toMatchObject({ status: 403, message: wording("room.error.private_room") });
   });
 
   test("about a document are refused 403, since the talk is the owner's private chat", async () => {
@@ -126,7 +144,7 @@ describe("the owner's words", () => {
 
     expect((await asked(say, { params: { chatId: String(OWNER_ROOM) }, body: { text: "hello" } })).answer).toEqual({ messageId: HIGH });
     expect(receiver.asked.filter((one) => one.method === "POST").map((one) => [one.path, one.body])).toEqual([
-      [`/rooms/${OWNER_ROOM}/words`, { account: "1", text: "hello" }]
+      [`/rooms/${OWNER_ROOM}/words`, { account: 1, name: "boss", text: "hello" }]
     ]);
     expect(owners()).toEqual([]);
   });

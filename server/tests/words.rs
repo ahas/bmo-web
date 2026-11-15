@@ -366,3 +366,75 @@ fn the_document_wording_file_holds_every_artifact_key_and_no_other() {
     assert_eq!(marks_of(line), wanted[key], "{key}: {line}");
   }
 }
+
+#[tokio::test]
+async fn an_account_line_names_each_account_by_its_shown_name_and_one_not_held_by_its_key() {
+  ready();
+  let scratch = Scratch::new().await;
+
+  scratch.console_account("boss", &support::console_hash("the password")).await;
+  bmo_web_server::data_move::run_move(
+    scratch.db(),
+    bmo_web_server::data_move::MoveAsk {
+      owner_senders: vec![support::OWNER],
+      rooms: vec![support::ROOM],
+      room_rules: vec![],
+    },
+  )
+  .await
+  .unwrap();
+
+  let opener = bmo_web_server::users::set_sign_in(scratch.db(), "opener-a", "the password", false)
+    .await
+    .unwrap()
+    .user;
+  let colleague = bmo_web_server::users::set_sign_in(scratch.db(), "colleague-a", "the password", false)
+    .await
+    .unwrap()
+    .user;
+
+  scratch
+    .run(
+      r#"UPDATE "users" SET "full_name" = 'Colleague A' WHERE "id" = $1"#,
+      vec![colleague.into()],
+    )
+    .await;
+
+  let app = in_force(scratch.service.clone(), TOKEN.into()).await.unwrap();
+  let said = |code: &str, fields: Value| {
+    let mut body = fields.as_object().cloned().unwrap_or_default();
+
+    body.insert("code".into(), code.into());
+    body.insert("language".into(), LANGUAGE.into());
+
+    let request = Request::builder()
+      .method(Method::POST)
+      .uri("/words/render")
+      .header(header::CONTENT_TYPE, "application/json")
+      .header(header::AUTHORIZATION, format!("Bearer {TOKEN}"))
+      .body(Body::from(Value::Object(body).to_string()))
+      .unwrap();
+    let app = app.clone();
+
+    async move {
+      let answer = app.oneshot(request).await.unwrap();
+      let bytes = answer.into_body().collect().await.unwrap().to_bytes();
+      let body: Value = serde_json::from_slice(&bytes).unwrap();
+
+      body["text"].as_str().unwrap().to_owned()
+    }
+  };
+
+  assert_eq!(
+    said("account-let-in", json!({ "account": colleague, "by": opener })).await,
+    fill_marks(&FIXED_LINES.account_let_in, &[("account", "Colleague A"), ("by", "opener-a")])
+  );
+  assert_eq!(
+    said("account-taken-out", json!({ "account": colleague.to_string(), "by": opener })).await,
+    fill_marks(&FIXED_LINES.account_taken_out, &[("account", "Colleague A"), ("by", "opener-a")])
+  );
+  assert_eq!(
+    said("account-left", json!({ "account": 9999 })).await,
+    fill_marks(&FIXED_LINES.account_left, &[("account", "9999")])
+  );
+}

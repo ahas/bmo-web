@@ -70,8 +70,6 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
   body.set("text", caption);
   body.set("voice", "true");
 
-  if (speaker !== "owner") body.set("account", speaker.account);
-
   if (replyTo !== null) {
     body.set("replyTo", String(replyTo));
   }
@@ -90,7 +88,7 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
       const answer =
         speaker === "owner"
           ? ((await exactAnswer<unknown>(receiver().POST("/owner/message-files", { body, parseAs: "text" }))) as ReceivedVoice)
-          : await sayFilesAsAccount<ReceivedVoice>(chatId, body);
+          : await sayFilesAsAccount<ReceivedVoice>(chatId, speaker, body);
       const sent = answer.sent[0];
 
       if (sent !== undefined) {

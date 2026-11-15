@@ -1,11 +1,14 @@
 //! A fixed line rendered from the server's pack (docs/boundary.md, 「Fixed lines」): a code another unit
-//! answers with and the fields it carries beside it, made into the sentence a room reads.
+//! answers with and the fields it carries beside it, made into the sentence a room reads. A line naming accounts
+//! names each by its shown name, read from the service's own users.
+
+use std::collections::HashMap;
 
 use axum::http::StatusCode;
+use sea_orm::ConnectionTrait;
 use serde::Deserialize;
 use serde_json::{Map, Value};
 
-use crate::Refusal;
 use crate::lang::LANGUAGE;
 use crate::lang::chat_health::CHAT_HEALTH_WORDS;
 use crate::lang::draws::DRAWS;
@@ -15,6 +18,7 @@ use crate::lang::roads::ROAD_WORDS;
 use crate::lang::supervisors::SUPERVISOR_WORDS;
 use crate::marks::fill_marks;
 use crate::settings::Names;
+use crate::{Refusal, one};
 
 /// A fixed line as the receiver names it (its `docs/codes.md`, 「Fixed lines」): the code, with the fields it
 /// carries beside it.
@@ -48,9 +52,48 @@ pub enum FixedLine {
   StillWorking,
   /// The chat agent's session is replaced and its memory tidied: the room's words wait for the fresh session.
   MemoryTidying,
+  /// An account let into a room in the console by another.
+  AccountLetIn {
+    account: AccountKey,
+    by: AccountKey,
+  },
+  /// An account went out of a room in the console by itself.
+  AccountLeft {
+    account: AccountKey,
+  },
+  /// An account taken out of a room in the console by another.
+  AccountTakenOut {
+    account: AccountKey,
+    by: AccountKey,
+  },
   /// A code the pack holds no sentence for.
   #[serde(other)]
   Unknown,
+}
+
+/// An account as a line names it: its key, a number or the decimal text of one.
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum AccountKey {
+  Number(i64),
+  Text(String),
+}
+
+impl AccountKey {
+  fn key(&self) -> Option<i64> {
+    match self {
+      Self::Number(key) => Some(*key),
+      Self::Text(key) => key.trim().parse().ok(),
+    }
+  }
+
+  // The account's shown name where the service holds one, else its key as it was given.
+  fn shown(&self, accounts: &HashMap<i64, String>) -> String {
+    self.key().and_then(|key| accounts.get(&key).cloned()).unwrap_or_else(|| match self {
+      Self::Number(key) => key.to_string(),
+      Self::Text(key) => key.clone(),
+    })
+  }
 }
 
 /// How a supervisor's engine ended its turn.
@@ -111,7 +154,11 @@ pub enum DrawResult {
 /// The sentence a render request asks for: its `language`, then its code with the fields beside it. A
 /// language the pack does not have and a code it holds no sentence for are refused 404; a request that does
 /// not read as its code's shape, 400.
-pub fn rendered(mut asked: Map<String, Value>, names: &Names) -> Result<String, Refusal> {
+pub async fn rendered<C: ConnectionTrait>(
+  db: &C,
+  mut asked: Map<String, Value>,
+  names: &Names,
+) -> Result<String, Refusal> {
   let language = match asked.remove("language") {
     Some(Value::String(language)) => language,
     _ => return Err(Refusal::bad("a render request names its `language`")),
@@ -128,15 +175,51 @@ pub fn rendered(mut asked: Map<String, Value>, names: &Names) -> Result<String, 
   let line = serde_json::from_value::<FixedLine>(Value::Object(asked))
     .map_err(|why| Refusal::bad(format!("the `{code}` line does not read: {why}")))?;
 
-  line.text(names).ok_or_else(|| {
+  let accounts = shown_names(db, &line.accounts()).await?;
+
+  line.text(names, &accounts).ok_or_else(|| {
     Refusal::new(StatusCode::NOT_FOUND, format!("the pack holds no line for `{code}`"))
       .coded("unknown-code")
   })
 }
 
+/// The shown name of each account a line names, by its key: its full name where it keeps one, else its username;
+/// an account the service does not hold is left out.
+async fn shown_names<C: ConnectionTrait>(db: &C, keys: &[i64]) -> Result<HashMap<i64, String>, Refusal> {
+  let mut named = HashMap::new();
+
+  for key in keys {
+    let Ok(user) = i32::try_from(*key) else { continue };
+    let row = one(
+      db,
+      r#"SELECT COALESCE(NULLIF("full_name", ''), "username") AS "name" FROM "users" WHERE "id" = $1"#,
+      vec![user.into()],
+    )
+    .await?;
+
+    if let Some(row) = row {
+      named.insert(*key, row.try_get::<String>("", "name")?);
+    }
+  }
+
+  Ok(named)
+}
+
 impl FixedLine {
-  /// The line's sentence, or none for a code the pack holds no sentence for.
-  pub fn text(&self, names: &Names) -> Option<String> {
+  /// The accounts the line names, by key.
+  fn accounts(&self) -> Vec<i64> {
+    match self {
+      Self::AccountLetIn { account, by } | Self::AccountTakenOut { account, by } => {
+        [account.key(), by.key()].into_iter().flatten().collect()
+      }
+      Self::AccountLeft { account } => account.key().into_iter().collect(),
+      _ => Vec::new(),
+    }
+  }
+
+  /// The line's sentence, or none for a code the pack holds no sentence for; an account it names stands as its
+  /// shown name in `accounts`.
+  pub fn text(&self, names: &Names, accounts: &HashMap<i64, String>) -> Option<String> {
     let health = &CHAT_HEALTH_WORDS;
     let agent_name = [("chat_agent", names.chat_agent.as_str())];
 
@@ -169,6 +252,17 @@ impl FixedLine {
       Self::Draw(draw) => draw.text(),
       Self::StillWorking => FIXED_LINES.still_working.clone(),
       Self::MemoryTidying => FIXED_LINES.memory_tidying.clone(),
+      Self::AccountLetIn { account, by } => fill_marks(
+        &FIXED_LINES.account_let_in,
+        &[("account", &account.shown(accounts)), ("by", &by.shown(accounts))],
+      ),
+      Self::AccountLeft { account } => {
+        fill_marks(&FIXED_LINES.account_left, &[("account", &account.shown(accounts))])
+      }
+      Self::AccountTakenOut { account, by } => fill_marks(
+        &FIXED_LINES.account_taken_out,
+        &[("account", &account.shown(accounts)), ("by", &by.shown(accounts))],
+      ),
       Self::Unknown => return None,
     })
   }

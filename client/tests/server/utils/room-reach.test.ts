@@ -31,9 +31,10 @@ const service = standInAccountService({
   ]
 });
 
-// The console memberships the receiver holds now, by account; a test lets a person in or takes them out here.
-const memberships = new Map<number, number[]>([[invited, [GROUP]]]);
-const roomAccounts = new Map<number, number[]>([[PRIVATE, []]]);
+// The console memberships the receiver holds now, by account, each account's private rooms among them; a test lets a
+// person in or takes them out here.
+const memberships = new Map<number, number[]>([[invited, [GROUP, PRIVATE]]]);
+const roomAccounts = new Map<number, number[]>([[PRIVATE, [invited]]]);
 
 // The receiver's room list: the member has spoken in the room and in -300, someone else in -200, and the
 // member's own private room is theirs. The invited account's BMO answers its private room and the group room it
@@ -70,7 +71,7 @@ const receiver = Bun.serve({
     if (room?.[2] === "providers") return Response.json({ providers: [], chosen: false });
     if (room?.[2] === "accounts") {
       const id = Number(room[1]);
-      const held = roomAccounts.get(id) ?? [invited, ...[...memberships].filter(([, rooms]) => rooms.includes(id)).map(([one]) => one)];
+      const held = roomAccounts.get(id) ?? [...memberships].filter(([, rooms]) => rooms.includes(id)).map(([one]) => one);
 
       return Response.json({ accounts: [...new Set(held)].map((one) => ({ account: String(one) })) });
     }

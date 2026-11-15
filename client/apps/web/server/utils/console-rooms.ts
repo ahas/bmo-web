@@ -12,7 +12,8 @@ import type { ExactMessageId } from "#shared/types";
 // in): a room's members are accounts, kept by the receiver, and each account speaks there under an identity of its own
 // on the record road, which the account service links to it as any identity is (docs/accounts.md, 「Users and
 // senders」). The receiver's published client carries none of these routes, so each is asked on its address and read
-// field by field (docs/boundary.md, 「Gaps the console meets」). An account goes on the wire as its key's decimal text.
+// field by field (docs/boundary.md, 「Gaps the console meets」). An account goes on the wire as its key: decimal text
+// in a path and a number in a body.
 
 /** A room's member by account: the account, who let them in and when, where the receiver says. */
 export interface RoomAccount {
@@ -41,6 +42,9 @@ function unserved(error: unknown): boolean {
 
   return failure?.statusCode === 404 && failure.data?.code === "no-route";
 }
+
+// A change the receiver refuses in a private room, 403 `private-room`, is said as the refusal it is.
+const CHANGES = { passStatus: [403] };
 
 function idsOf(value: unknown): number[] {
   return Array.isArray(value) ? value.filter((one): one is number => typeof one === "number" && Number.isSafeInteger(one)) : [];
@@ -102,42 +106,44 @@ export async function roomAccounts(room: number): Promise<RoomAccount[]> {
 
 /** An account let into a room by another; the receiver writes who let whom in, and letting in again changes nothing. */
 export async function letIntoRoom(room: number, account: string, by: string): Promise<void> {
-  await receiverRoute(`/rooms/${room}/accounts/${account}`, { method: "PUT", body: { by } });
+  await receiverRoute(`/rooms/${room}/accounts/${account}`, { method: "PUT", body: { by: Number(by) } }, CHANGES);
 }
 
 /** A member taken out of a room by an account, themselves where they leave; the receiver writes who did it. */
 export async function takeOutOfRoom(room: number, account: string, by: string): Promise<void> {
-  await receiverRoute(`/rooms/${room}/accounts/${account}?by=${encodeURIComponent(by)}`, { method: "DELETE" });
+  await receiverRoute(`/rooms/${room}/accounts/${account}?by=${encodeURIComponent(by)}`, { method: "DELETE" }, CHANGES);
 }
 
 /** A room on the record alone, opened by an account: titled as asked, answered by the supervisor named, the account its
  * first member. */
 export async function openRecordRoom(title: string, supervisor: string, openedBy: string): Promise<OpenedRoom> {
-  const said = await receiverRoute<{ id?: unknown; title?: unknown } | null>("/rooms", { method: "POST", body: { title, supervisors: [supervisor], openedBy } });
+  const said = await receiverRoute<{ id?: unknown; title?: unknown } | null>("/rooms", { method: "POST", body: { title, supervisors: [supervisor], openedBy: Number(openedBy) } });
 
   if (typeof said?.id !== "number" || !Number.isSafeInteger(said.id)) throw new Error("the receiver answered no room");
 
   return { id: said.id, title: typeof said.title === "string" ? said.title : null };
 }
 
-/** Whose words a console send stands under: the signed-in account, or the owner's own route for a console login
- * standing before the account model, which is the owner's alone and has no account (docs/web.md, the room screen's
- * input box). Any other login is refused 403, so no account reaches the owner's routes. */
-export type Speaker = { account: string } | "owner";
+/** Whose words a console send stands under: the signed-in account with the name it is shown by, or the owner's own
+ * route for a console login standing before the account model, which is the owner's alone and has no account
+ * (docs/web.md, the room screen's input box). Any other login is refused 403, so no account reaches the owner's
+ * routes. */
+export type Speaker = { account: string; name: string } | "owner";
 
 export function speakerOf(signed: SignedIn): Speaker {
-  if (signed.id !== null) return { account: String(signed.id) };
+  if (signed.id !== null) return { account: String(signed.id), name: signed.name };
   if (signed.administrator) return "owner";
 
   throw fail(403, wording("room.error.no_account"));
 }
 
-/** Words said in a room by an account, filed under the account's own sender; the message's exact id answers. */
-export async function sayAsAccount(room: number, account: string, text: string, replyTo: ExactMessageId | null): Promise<ExactMessageId> {
+/** Words said in a room by an account, filed under the account's own sender with the name it is shown by; the
+ * message's exact id answers. */
+export async function sayAsAccount(room: number, speaker: { account: string; name: string }, text: string, replyTo: ExactMessageId | null): Promise<ExactMessageId> {
   const said = await receiverRoute<{ id?: ExactMessageId } | null>(
     `/rooms/${room}/words`,
-    { method: "POST", body: { account, text, ...(replyTo === null ? {} : { replyTo }) } },
-    { exactIds: MESSAGE_IDS }
+    { method: "POST", body: { account: Number(speaker.account), name: speaker.name, text, ...(replyTo === null ? {} : { replyTo }) } },
+    { ...CHANGES, exactIds: MESSAGE_IDS }
   );
 
   if (said?.id === undefined) throw fail(502, wording("common.error.not_sent"));
@@ -145,10 +151,20 @@ export async function sayAsAccount(room: number, account: string, text: string, 
   return said.id;
 }
 
-/** Files said in a room by an account, the form as the owner's files route takes it with `account` beside it; the
- * receiver's answer of each file comes back with its message ids exact. */
-export async function sayFilesAsAccount<T>(room: number, form: FormData): Promise<T> {
-  return await receiverRoute<T>(`/rooms/${room}/word-files`, { method: "POST", body: form }, { exactIds: MESSAGE_IDS });
+/** Files said in a room by an account, the form as the owner's files route takes it — but for the room, which the
+ * path names — with the account and the name it is shown by beside it; the receiver's answer of each file comes back
+ * with its message ids exact. */
+export async function sayFilesAsAccount<T>(room: number, speaker: { account: string; name: string }, form: FormData): Promise<T> {
+  const sent = new FormData();
+
+  for (const [field, value] of form.entries()) {
+    if (field !== "chatId") sent.append(field, value);
+  }
+
+  sent.set("account", speaker.account);
+  sent.set("name", speaker.name);
+
+  return await receiverRoute<T>(`/rooms/${room}/word-files`, { method: "POST", body: sent }, { ...CHANGES, exactIds: MESSAGE_IDS });
 }
 
 /** What a pass over every account came to: the accounts whose identity stands linked, and those that failed. */

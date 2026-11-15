@@ -510,6 +510,6 @@ async fn render_route(
   Body(asked): Body<Map<String, Value>>,
 ) -> Answer<WireRendered> {
   Ok(Json(WireRendered {
-    text: words::rendered(asked, &service.names)?,
+    text: words::rendered(&service.db, asked, &service.names).await?,
   }))
 }

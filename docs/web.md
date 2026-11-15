@@ -418,8 +418,8 @@ console page. No answer says which framework drew it. Strict transport is the re
 - **A person reads rooms by their account, never by a messenger identity** (`STRUCTURE.md`, 「Accounts,
   companies and units」: in the console a person is their account). The rooms an account reads are the union of
   three, and nobody needs a chat service's identity for any of them:
-  1. **its console memberships:** the rooms it was let into or opened, as the receiver answers them now
-     (`GET /accounts/{account}/rooms`);
+  1. **its console memberships:** the rooms it was let into or opened, and its own BMO's private room (3.), as the
+     receiver answers them now (`GET /accounts/{account}/rooms`);
   2. **the rooms its linked identities reach:** a room one of the senders linked to the account has stood as a
      sender in, and the one-to-one each such identity is, in which the account holds the console grant
      (`docs/accounts.md`, 「Checks」);
@@ -4796,8 +4796,8 @@ Four bounds keep it from growing forever.
     word alone: what the answer says is the answering message's own, which a copy takes only where that message
     is chosen too.
 - **입력창** — words written here go up to that room as is, as the words of the account that wrote them. The console
-  hands the receiver the words with the signed-in account (`POST /rooms/{roomId}/words`, and `word-files` for files and
-  a voice note), and the receiver files them under that account's own sender: the owner's own sender for the owner's
+  hands the receiver the words with the signed-in account and the name it is shown by (`POST /rooms/{roomId}/words`, and
+  `word-files` for files and a voice note), and the receiver files them under that account's own sender: the owner's own sender for the owner's
   account, and for every other account its identity on the record road, made the first time it is needed
   (`docs/accounts.md`, 「Users and senders」). A person's words therefore enter as their own, never under another's
   name or the owner's, and what is granted to the owner follows his account, never the console it was typed in

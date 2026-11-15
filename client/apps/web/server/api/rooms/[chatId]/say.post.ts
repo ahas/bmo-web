@@ -48,7 +48,7 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
     chatId,
     sendKeyOf(body?.key),
     async () => {
-      if (speaker !== "owner") return { messageId: await sayAsAccount(chatId, speaker.account, text, replyTo) };
+      if (speaker !== "owner") return { messageId: await sayAsAccount(chatId, speaker, text, replyTo) };
 
       const said = await exactAnswer<{ id: number }>(
         receiver().POST("/owner/messages", {

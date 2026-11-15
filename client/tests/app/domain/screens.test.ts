@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { ADMINISTRATION_BUNDLES, broughtScreens, isScreenActive, namedWhenFolded, SCREENS, screenItems, screenSections, screensWithBundles, sectionItems, sidebarOrder, tabAddress } from "../../../apps/web/app/domain/screens";
+import { broughtScreens, isScreenActive, namedWhenFolded, SCREENS, screenItems, screenSections, screensWithBundles, sectionItems, sidebarOrder, tabAddress } from "../../../apps/web/app/domain/screens";
 
 import type { Screen } from "../../../apps/web/app/domain/screens";
 import KO from "../../fixtures/app/domain/screens.test.ko.json";
@@ -86,13 +86,6 @@ test("a screen a unit brings stands under the administrator services where its m
   expect([sectionOf("/elsewhere"), sectionOf("/mail")]).toEqual(["administration", "application"]);
 });
 
-test("while the list is transitional, a screen at an address it keeps stands under the administrator services though its manifest names the applications", () => {
-  const screens = screensWithBundles([...ADMINISTRATION_BUNDLES].map((path) => brought(path, path.slice(1))), []);
-
-  expect([...ADMINISTRATION_BUNDLES].sort()).toEqual(["/brain", "/code", "/face", "/graph", "/pocket", "/remote"]);
-  expect(screens.map((screen) => screen.section)).toEqual([...ADMINISTRATION_BUNDLES].map(() => "administration"));
-});
-
 test("a manifest at the address of a screen of the list keeps that screen's section", () => {
   const screen = screensWithBundles([brought("/siren", "siren")]).find((entry) => entry.to === "/siren")!;
 
@@ -107,7 +100,10 @@ function named(names: Record<string, string>) {
 
 test("within a section the screens stand by their names, Latin a to z with case set aside first, then Hangul in its own order", () => {
   const screens = screensWithBundles(
-    ["/brain", "/code", "/remote", "/mail", "/note", "/theater"].map((path) => brought(path, path.slice(1))),
+    [
+      ...["/brain", "/code", "/remote"].map((path) => brought(path, path.slice(1), { sidebarSection: "administration" })),
+      ...["/mail", "/note", "/theater"].map((path) => brought(path, path.slice(1)))
+    ],
     [SCREENS.find((screen) => screen.to === "/db")!, SCREENS.find((screen) => screen.to === "/siren")!]
   );
   const t = named({

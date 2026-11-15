@@ -1257,21 +1257,16 @@ Four groups.
 - **The screens** — in two sections, each under its heading: **관리자 서비스**, what the administrator needs to
   keep the deployment running, and **애플리케이션**, every other screen.
   - **관리자 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
-    리서치, monitor, 조직 and 관리자, and the screens units bring at `/brain` (브레인), `/code` (code review), `/face`
-    (비모 얼굴), `/graph` (코드 그래프), `/pocket` (도구, the tool host's) and `/remote` (원격).
-  - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트,
-    캘린더, 노트, 일정 관리, 프로젝트 and 극장 among them, and any screen a unit brings at an address the
-    console does not hold for 관리자 서비스.
+    리서치, monitor, 조직 and 관리자, and every screen a unit brings whose manifest names it: the brain's (브레인),
+    code review's, BMO's face (비모 얼굴), the code graph's (코드 그래프), the tool host's (도구) and the remote
+    machines' (원격) among them.
+  - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트, 캘린더, 노트, 일정 관리,
+    프로젝트 and 극장 among them.
   - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
     where it is listed. A screen a unit brings stands in the section its manifest names under `sidebarSection`
     (bmo-ui's `docs/console-bundles.md`, the sidebar section): 관리자 서비스 for `administration`, 애플리케이션 for
-    `application` and for a manifest that names none.
-  - **The console's list of administration addresses is transitional.** Until the units at `/brain`, `/code`,
-    `/face`, `/graph`, `/pocket` and `/remote` name `administration` in their manifests, the console keeps those
-    six addresses as well, and a screen a unit brings stands under 관리자 서비스 where its manifest names
-    `administration` or its address is one of them, so none of the six moves to 애플리케이션 while its unit has not
-    yet declared. The list goes with the series' last console change, once all six units declare the section, and
-    from then the manifest alone decides.
+    `application` and for a manifest that names none. The console keeps no list of addresses of its own for a
+    screen a unit brings, so a unit moves its screen by its manifest alone.
   - **Within a section the screens stand by the name the reader sees,** compared as English collation compares
     them: names in Latin letters first, a to z with case set aside, then names in Hangul, ㄱ to ㅎ. A screen a
     unit brings is ordered by the name its manifest gives it, so where a unit renames its screen it moves to its

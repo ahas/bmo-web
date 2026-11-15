@@ -104,22 +104,12 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true, section: "administration" }
 ];
 
-// Transitional: the addresses of the screens units bring that stand under the administrator services while their
-// units' manifests do not yet name the section: the brain, code review, BMO's face, the code graph, the tool host
-// and the remote machines. The list goes once all six manifests name `administration`, and the manifest alone
-// decides from then (docs/web.md, 「Sidebar」).
-export const ADMINISTRATION_BUNDLES: ReadonlySet<string> = new Set(["/brain", "/code", "/face", "/graph", "/pocket", "/remote"]);
-
-/** The section a screen a unit brings stands in: the one its manifest names, or the administrator services where its address is one the console still keeps. */
-export function bundleSection(bundle: ConsoleScreen): ScreenSection {
-  return bundle.sidebarSection === "administration" || ADMINISTRATION_BUNDLES.has(bundle.screenPath) ? "administration" : "application";
-}
-
 /**
  * The screens with every screen a unit brings among them: its manifest gives the screen the name it is called by,
- * the icon beside it and its pages below it, so the console carries no bundle's words or marks of its own (bmo-ui's
- * `docs/console-bundles.md`). A manifest at the address of a screen of the list stands in that screen's place and
- * section; a screen of the list a unit brings that no manifest names now does not stand.
+ * the icon beside it, its pages below it and the section it stands in, so the console carries no bundle's words,
+ * marks or place of its own (bmo-ui's `docs/console-bundles.md`). A manifest at the address of a screen of the list
+ * stands in that screen's place and section; a screen of the list a unit brings that no manifest names now does not
+ * stand.
  */
 export function screensWithBundles(bundles: readonly ConsoleScreen[], screens: readonly Screen[] = SCREENS): Screen[] {
   const declared = new Map(bundles.map((bundle) => [bundle.screenPath, bundle]));
@@ -134,7 +124,7 @@ export function screensWithBundles(bundles: readonly ConsoleScreen[], screens: r
   for (const bundle of bundles) {
     if (screens.some((screen) => screen.to === bundle.screenPath)) continue;
 
-    standing.push(broughtScreen(bundle, bundleSection(bundle)));
+    standing.push(broughtScreen(bundle, bundle.sidebarSection));
   }
 
   return standing;

@@ -445,8 +445,8 @@ describe("a log feed scoped to one run", () => {
     const { asked } = feedOf([{ lines: [line({ id: 10, kind: "start", run: "job-1" })], hasMore: true }]);
     const log = useAgentLog((key) => key, "coder-01", "job-1");
 
-    await log.loadAt({ run: "job-1" });
-
+    // The view stands the reader at the page's first line.
+    expect(await log.loadAt({ run: "job-1" })).toBe(10);
     expect(asked).toEqual([{ run: "job-1", after: 0, limit: AGENT_LOG_PAGE_SIZE }]);
     expect(log.older.value).toBe(false);
     expect(log.newer.value).toBe(true);

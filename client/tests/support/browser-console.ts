@@ -18,6 +18,7 @@ import { manifestFields } from "./console-manifest";
 import { HARNESS_SCREEN_UNITS } from "./harness-screens";
 import { jobLogAnswer } from "./job-log";
 import { rawNumber } from "./raw-number";
+import { roleLogAnswer } from "./role-log";
 import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
 import { addressOf } from "./web-database";
@@ -80,6 +81,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["hidden-inputs", "fixture-password-2412"],
   ["secret-request", "fixture-password-2649"],
   ["agent-log-open", "fixture-password-2809"],
+  ["agent-log-run-start", "fixture-password-3055"],
   ["row-add", "fixture-password-2885"],
   ["provider-secrets", "fixture-password-3037"],
   ["todo-raise", "fixture-password-2871"],
@@ -512,6 +514,11 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     const jobLog = jobLogAnswer(new URL(request.url));
 
     if (jobLog !== null) return jobLog;
+
+    // A role's log of several agents, one of them running a job, read from its agent's state cell (tests/support/role-log.ts).
+    const roleLog = roleLogAnswer(new URL(request.url));
+
+    if (roleLog !== null) return roleLog;
 
     // The two axes and the places: two supervisors, a handful of roles with runs going and waiting, and three
     // repositories, one with a job holding a checkout.

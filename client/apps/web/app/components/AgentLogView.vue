@@ -163,7 +163,53 @@ async function scrollToBottom(): Promise<void> {
   if (element !== null) {
     element.scrollTop = element.scrollHeight;
     stick.value = true;
+    anchor.value = null;
   }
+}
+
+// The line held at the top of the view, where the log opened at one run's place, until the reader scrolls: the id of the
+// first line of the page the place named. Null once the reader has scrolled, and for a log opened at its end.
+const anchor = ref<number | null>(null);
+
+// The top of what the reader sees of the log: the scroller's own top, or the foot of whatever stays stuck above the log
+// in it, a work view's head among them.
+function viewTop(element: HTMLElement): number {
+  let top = element.getBoundingClientRect().top;
+  let inner: Element | null = feedRef.value?.$el ?? null;
+
+  while (inner !== null && inner !== element) {
+    for (let before = inner.previousElementSibling; before !== null; before = before.previousElementSibling) {
+      const style = getComputedStyle(before);
+
+      if (style.position === "sticky" && style.top !== "auto") top = Math.max(top, before.getBoundingClientRect().bottom);
+    }
+
+    inner = inner.parentElement;
+  }
+
+  return top;
+}
+
+// The row the anchor's line stands in: its own, or the first after it where it stands folded under another.
+function anchorRow(id: number): HTMLElement | null {
+  const row = shownRows.value.find((one) => one.line.id >= id);
+
+  return row === undefined ? null : (feedRef.value?.$el?.querySelector<HTMLElement>(`[data-log-row="${row.key}"]`) ?? null);
+}
+
+// How far the anchor's row stands below the top of the view, or null where it stands nowhere.
+function anchorOffset(element: HTMLElement): number | null {
+  const row = anchor.value === null ? null : anchorRow(anchor.value);
+
+  return row === null ? null : row.getBoundingClientRect().top - viewTop(element);
+}
+
+// The anchor's row stood at the top of the view.
+function holdAnchor(): void {
+  const element = scroller();
+  const offset = element === null ? null : anchorOffset(element);
+
+  if (element !== null && offset !== null) element.scrollTop += offset;
 }
 
 // The scroller's size as the last scroll met it. A scroll arriving with it changed was made by the
@@ -188,6 +234,14 @@ function onScroll(): void {
     return;
   }
 
+  // A view held at its opening line is carried along by the layout, and let go once the reader scrolls it away.
+  if (anchor.value !== null) {
+    if (resized) holdAnchor();
+    else if (Math.abs(anchorOffset(element) ?? Infinity) > 1) anchor.value = null;
+
+    return;
+  }
+
   stick.value = atBottom();
 }
 
@@ -199,6 +253,8 @@ function onScroll(): void {
 function onContentGrew(): void {
   if (stick.value) {
     void scrollToBottom();
+  } else if (anchor.value !== null) {
+    holdAnchor();
   }
 }
 
@@ -217,6 +273,8 @@ async function loadOlder(): Promise<number> {
 
   await nextTick();
   element.scrollTop += element.scrollHeight - height;
+
+  if (anchor.value !== null) holdAnchor();
 
   return added;
 }
@@ -306,17 +364,18 @@ async function open(): Promise<void> {
       return;
     }
 
-    await log.loadAt(asked);
-    await nextTick();
-
-    // The run stands at the head of what was loaded, so the top of it is where the reader lands.
-    const element = scroller();
-
-    if (element !== null) {
-      element.scrollTop = 0;
-    }
-
+    // Nothing carries the view to the end while the place is read: the reader lands at the place.
     stick.value = false;
+
+    const first = await log.loadAt(asked);
+
+    // The lines above the place are read in while the log is unseen, so the place's first line is the top of the view
+    // when it is shown, with lines above it to read on into rather than another agent's line over it.
+    if (first !== null && log.older.value) await log.loadOlder();
+
+    await nextTick();
+    anchor.value = first;
+    holdAnchor();
   } finally {
     opened.value = true;
   }

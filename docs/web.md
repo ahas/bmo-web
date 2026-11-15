@@ -3223,8 +3223,11 @@ a seat of its role.
   rewind. While standing at the very bottom it follows new lines down, and while scrolled up to read it
   does not follow. Only the reader takes it off the bottom: the window growing shorter under the input box
   that arrives at the foot of a worker's screen, or the lines reflowing, leaves a reader at the bottom there.
-- Entering by pressing a working agent's state cell opens not at the log's end but where that run started. Then
-  the log reads on both ways as the reader reaches either end — the lines above as the head comes into view, the
+- Entering by pressing a working agent's state cell opens not at the log's end but where that run started. The run's
+  first line stands at the top of the log's view, under whatever stays stuck above the log: the page of lines above
+  it is read in while the log is laid out unseen, so a role's log that holds several agents' lines shows none of
+  another agent's above the run's first line when it is shown. It stays at the top while anything in the box it
+  scrolls in grows, until the reader scrolls. Then the log reads on both ways as the reader reaches either end — the lines above as the head comes into view, the
   lines past what is held as the tail does, skeleton lines standing where they will land — and no button asks
   for more. New lines are not followed automatically; reading on to the log's end resumes following from there.
 - **The title bar holds the agent's name and its mark alone** — a chat agent's face, every other agent's group's

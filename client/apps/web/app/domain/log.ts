@@ -48,8 +48,9 @@ export interface AgentLogFeed {
   loadingOlder: Ref<boolean>;
   failure: Ref<string | null>;
   load: () => Promise<void>;
-  // The page one finished run begins at.
-  loadAt: (place: LogPlace) => Promise<void>;
+  // The page one run begins at, or a moment stands in. Answers the id of the page's first line, where the view stands
+  // the reader, or null where the page held none or could not be read.
+  loadAt: (place: LogPlace) => Promise<number | null>;
   loadOlder: () => Promise<number>;
   // The lines that arrived after the last one held. Returns how many, so the view can decide
   // whether to follow them down.
@@ -552,7 +553,7 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
   // Opens where one run begins, named either by the log's own name for it or by the second and
   // the room it ran for. The log runs on in both directions from there, so both are said to be
   // there, and nothing is followed until the reader has caught up.
-  async function loadAt(place: LogPlace): Promise<void> {
+  async function loadAt(place: LogPlace): Promise<number | null> {
     loading.value = true;
     failure.value = null;
 
@@ -564,8 +565,12 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
       merge(page);
       older.value = run === null && page.hasOlder === true;
       newer.value = page.hasMore;
+
+      return page.lines[0]?.id ?? null;
     } catch (error) {
       failure.value = describe(error);
+
+      return null;
     } finally {
       loading.value = false;
     }

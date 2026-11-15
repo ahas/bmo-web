@@ -2,8 +2,7 @@ node_modules
 .output
 .releases
 .nuxt
+.nuxt-*
 .env
-.nuxt-bench
-.nuxt-browser-tests
 .check-build
 *.tsbuildinfo

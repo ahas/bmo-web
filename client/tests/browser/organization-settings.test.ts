@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { centre } from "./row-carry";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import { wording } from "../../apps/web/shared/wording";
 
@@ -705,6 +706,86 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
       }, 120_000);
     }
   }
+
+  test("people dragged onto a unit of the tree light it and open the move's preview there, and the move stands after a reload", async () => {
+    // Two units of this run under the company, the three people standing in the first.
+    const from = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `drag-from-${RUN}`, parent: company })).id;
+    const to = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `drag-to-${RUN}`, parent: company })).id;
+    const everyone = await administer<{ user: string; name: string }[]>("/api/users", "GET");
+    const [first, second, third] = MOVERS.map((name) => everyone.find((one) => one.name === name)!.user);
+
+    for (const user of [first!, second!, third!]) await administer(`/api/organization/users/${encodeURIComponent(user)}/unit`, "PUT", { unit: from });
+
+    const unitRow = async (id: number) => (await administer<{ id: number; heads: string[]; members: string[] }[]>("/api/organization/units", "GET")).find((one) => one.id === id)!;
+    const context = await contextFor(ADMINISTRATOR.name, 1280, 800, "light");
+
+    try {
+      const page = await context.newPage();
+
+      await page.goto(`${origin}/organization?unit=${from}`, { waitUntil: "load" });
+      await standing(page);
+
+      const rowOf = (name: string) => page.locator("[data-unit-member]").filter({ hasText: name });
+      const target = page.locator(`[data-unit-tree] [data-unit-drop="${to}"]`);
+      const lit = async (unit: number) => (await page.locator(`[data-unit-tree] [data-unit-drop="${unit}"]`).getAttribute("class"))?.includes("ring-primary") ?? false;
+
+      await rowOf(MOVERS[2]!).waitFor({ timeout: 20_000 });
+      // The tree keeps every unit the console holds, so the one dropped on is brought into the tree's view first.
+      await target.scrollIntoViewIfNeeded({ timeout: 10_000 });
+
+      // The first two chosen, the second's row carried: over the unit it would land in, that unit stands lit, and
+      // over the unit they stand in now, nothing is.
+      await rowOf(MOVERS[0]!).locator("[data-member-check]").click();
+      await rowOf(MOVERS[1]!).locator("[data-member-check]").click();
+
+      const grip = await centre(rowOf(MOVERS[1]!).locator("[data-member-check] + *"));
+
+      await page.mouse.move(grip.x, grip.y);
+      await page.mouse.down();
+
+      const home = await centre(page.locator(`[data-unit-tree] [data-unit-drop="${from}"]`));
+
+      await page.mouse.move(home.x, home.y, { steps: 12 });
+      expect(await lit(from)).toBe(false);
+
+      const over = await centre(target);
+
+      await page.mouse.move(over.x, over.y, { steps: 12 });
+      await page.locator(`[data-unit-tree] [data-unit-drop="${to}"].ring-primary`).waitFor({ timeout: 5_000 });
+      await page.mouse.up();
+      expect(await lit(to)).toBe(false);
+
+      // The drop opens the move at its preview, the unit dropped on as where they go and each staying a member.
+      const dialog = page.getByRole("dialog").last();
+      const rows = dialog.locator("[data-move-row]");
+
+      await rows.nth(1).waitFor({ timeout: 10_000 });
+
+      const said = await rows.allInnerTexts();
+
+      expect(said).toHaveLength(2);
+      for (const row of said) expect(row).toContain(`company-${RUN} › drag-from-${RUN} → company-${RUN} › drag-to-${RUN}`);
+      expect(await unitRow(to)).toMatchObject({ members: [] });
+
+      // Confirmed, the two move and the third stays; the screen loaded afresh shows each where they now stand.
+      await dialog.locator("[data-move-apply]").click();
+      await page.locator("[data-move-preview]").waitFor({ state: "detached", timeout: 10_000 });
+      expect(await unitRow(to)).toMatchObject({ heads: [], members: [first, second] });
+      expect(await unitRow(from)).toMatchObject({ heads: [], members: [third] });
+
+      await page.reload({ waitUntil: "load" });
+      await standing(page);
+      await rowOf(MOVERS[2]!).waitFor({ timeout: 20_000 });
+      expect(await page.locator("[data-unit-member]").count()).toBe(1);
+
+      await page.goto(`${origin}/organization?unit=${to}`, { waitUntil: "load" });
+      await standing(page);
+      await rowOf(MOVERS[1]!).waitFor({ timeout: 20_000 });
+      expect(await page.locator("[data-unit-member]").allInnerTexts()).toEqual([expect.stringContaining(MOVERS[0]!), expect.stringContaining(MOVERS[1]!)]);
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
 
   for (const [width, height] of [[1280, 800], [360, 780]] as const) {
     test(`several people move into another unit with their roles in one confirmed act, at ${width}px`, async () => {

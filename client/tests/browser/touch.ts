@@ -51,10 +51,8 @@ export interface TouchPoint {
   y: number;
 }
 
-export interface TouchSession {
-  browser: Browser;
-  context: BrowserContext;
-  page: Page;
+// A finger on a page of a phone context: what it can do, sent through the browser's own input pipeline.
+export interface Finger {
   // One tap, where a finger lands and lifts without travelling.
   tap: (at: TouchPoint) => Promise<void>;
   // A finger that lands and stays. What a hold is for is the menu a long press opens, and the
@@ -69,6 +67,12 @@ export interface TouchSession {
   // way and comes back is one gesture; each leg takes the same number of steps. `restMs` keeps it
   // down where it arrived before it lifts, which is a scroll that stops with the finger still on it.
   swipe: (from: TouchPoint, to: TouchPoint, options?: { steps?: number; pauseMs?: number; holdMs?: number; wobblePx?: number; via?: TouchPoint; restMs?: number }) => Promise<void>;
+}
+
+export interface TouchSession extends Finger {
+  browser: Browser;
+  context: BrowserContext;
+  page: Page;
   // A picture of what the finger left on the screen, bounded the way every shot of ours is: the
   // session that takes one reads it back, and a full-resolution one costs a quarter of a million
   // characters to do that (`client/browser/shot.ts`).
@@ -112,29 +116,12 @@ async function send(cdp: CDPSession, type: TouchPhase, points: TouchPoint[]): Pr
   });
 }
 
-// A phone with a finger on it. The size and the user agent are one of the browser's own device
-// descriptions, so what is under test is the console rather than a viewport nobody has.
-export async function openTouch(options: {
-  device?: string;
-  reducedMotion?: "reduce" | "no-preference";
-  storageStatePath?: string;
-} = {}): Promise<TouchSession> {
-  // One finger at a time: the console's tests run their files one after another in one process, so no two
-  // touch browsers ever come up side by side, which would wedge the second before it draws a page.
-  const browser: Browser = await chromium.launch();
-
-  const context = await browser.newContext({
-    ...devices[options.device ?? "Pixel 5"],
-    ...(options.reducedMotion === undefined ? {} : { reducedMotion: options.reducedMotion }),
-    ...(options.storageStatePath === undefined ? {} : { storageState: options.storageStatePath }),
-  });
-  const page = await context.newPage();
-  const cdp = await context.newCDPSession(page);
+// A finger on a page already open, which is how a file that drives the console with its own browser puts a
+// finger on a phone context of that browser instead of bringing up a second one.
+export async function fingerOn(page: Page): Promise<Finger> {
+  const cdp = await page.context().newCDPSession(page);
 
   return {
-    browser,
-    context,
-    page,
     tap: async (at) => {
       await send(cdp, "touchStart", [at]);
       await send(cdp, "touchEnd", []);
@@ -182,6 +169,32 @@ export async function openTouch(options: {
       await page.waitForTimeout(swipeOptions.restMs ?? 0);
       await send(cdp, "touchEnd", []);
     },
+  };
+}
+
+// A phone with a finger on it. The size and the user agent are one of the browser's own device
+// descriptions, so what is under test is the console rather than a viewport nobody has.
+export async function openTouch(options: {
+  device?: string;
+  reducedMotion?: "reduce" | "no-preference";
+  storageStatePath?: string;
+} = {}): Promise<TouchSession> {
+  // One finger at a time: the console's tests run their files one after another in one process, so no two
+  // touch browsers ever come up side by side, which would wedge the second before it draws a page.
+  const browser: Browser = await chromium.launch();
+
+  const context = await browser.newContext({
+    ...devices[options.device ?? "Pixel 5"],
+    ...(options.reducedMotion === undefined ? {} : { reducedMotion: options.reducedMotion }),
+    ...(options.storageStatePath === undefined ? {} : { storageState: options.storageStatePath }),
+  });
+  const page = await context.newPage();
+
+  return {
+    browser,
+    context,
+    page,
+    ...(await fingerOn(page)),
     shot: (path, options) => shot(page, path, options),
     close: async () => {
       await browser.close();

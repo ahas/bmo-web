@@ -7,9 +7,9 @@
        checkbox. The form that holds the field saves it. -->
   <div class="flex min-w-0 flex-col gap-2">
     <!-- A question before `final` is carried by its handle to another place among those, by the mouse, the pen and the
-         finger; `final` has no handle and stays last. -->
+         finger; `final` has no handle, stays last and is no row to land on, so the row lit is always where one lands. -->
     <ol ref="rows" class="flex flex-col gap-1" :aria-label="props.label">
-      <li v-for="(name, index) in list" :key="name" class="flex min-w-0 items-center gap-1 rounded-md" :class="drag.mark(index)" :data-draft-question="name" :data-order-index="index">
+      <li v-for="(name, index) in list" :key="name" class="flex min-w-0 items-center gap-1 rounded-md" :class="drag.mark(index)" :data-draft-question="name" :data-order-index="name === FINAL_QUESTION ? undefined : index">
         <span
           v-if="name !== FINAL_QUESTION && !props.disabled"
           class="flex size-6 shrink-0 cursor-grab touch-none select-none items-center justify-center text-muted transition-colors hover:text-highlighted active:text-primary"

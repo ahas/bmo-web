@@ -2946,8 +2946,10 @@ a seat of its role.
     lighter than another: an ordered pick from the supervisor's catalogue, every question under the pack's word for it and one
     the console added under its own name. The questions chosen stand in order, each with a checkbox, carried by its
     handle to another place, moved up or down or taken out, and one not yet chosen is added before `final`, which stands last in every list that holds a
-    question. The checkbox switches a question off or on where it stands: one unchecked keeps its place, dimmed and
-    struck through, and is left out of what the round follows. `final` writes the message and carries no checkbox.
+    question. A question carried lands on the place of the question whose row stands lit under the pointer; one let go
+    where it went down, or over no question, stays where it was. The checkbox switches a question off or on where it
+    stands: one unchecked keeps its place, dimmed and struck through, and is left out of what the round follows.
+    `final` writes the message and carries no checkbox and no handle, and no question is carried onto it.
     A list with no question says 질문 없음.
   - **질문 글** lists the supervisor's catalogue, a line a question: its name, `(기본값)` after one whose text the
     console has not changed for this supervisor, and its text on one line. Pressing a line opens the text in a box

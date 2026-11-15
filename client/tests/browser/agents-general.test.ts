@@ -1,10 +1,11 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { chromium } from "playwright-core";
+import { chromium, devices } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
-import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { carryByMouse, centre, rowMarks } from "./row-carry";
+import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
 
-import type { Browser } from "playwright-core";
+import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // The agent management screen's tabs (docs/web.md, 「Agent management screen」): the supervisors, the roles and the
 // repositories each stand as one shared settings table with every row the agency answers, filling its box with the
@@ -545,3 +546,115 @@ function scrollersAbove(root: Element): { scrollers: number; body: string } {
 
   return { scrollers, body: getComputedStyle(root.closest("section")!.parentElement!).overflowY };
 }
+
+// The repositories as the agency would keep them, `repo-a` holding the prefix documents a save last sent, so the
+// order a drag saved is the order a reload reads again.
+async function keptPrefixDocuments(context: BrowserContext, documents: string[]): Promise<{ saves: Record<string, unknown>[] }> {
+  let kept = documents;
+  const saves: Record<string, unknown>[] = [];
+  const withKept = (repository: Record<string, unknown>) => (repository.name === "repo-a" ? { ...repository, prefixDocuments: kept } : repository);
+
+  await context.route(/\/api\/repositories(\/repo-a)?$/, async (route) => {
+    const answer = await route.fetch({ method: "GET", url: route.request().url().replace(/\/repo-a$/, "") });
+    const listed = ((await answer.json()) as Record<string, unknown>[]).map(withKept);
+
+    if (route.request().method() !== "PATCH") return await route.fulfill({ json: listed });
+
+    const body = route.request().postDataJSON() as Record<string, unknown>;
+
+    saves.push(body);
+    kept = (body.prefixDocuments as string[] | undefined) ?? kept;
+    await route.fulfill({ json: listed.map(withKept).find((one) => one.name === "repo-a") });
+  });
+
+  return { saves };
+}
+
+// `repo-a`'s dialog opened from its row, and its list of prefix documents.
+async function openPrefixDocuments(page: Page): Promise<Locator> {
+  await page.goto(`${origin}/agents?tab=repositories`, { waitUntil: "load" });
+  await page.locator("#setting-repository-repo-a").click({ timeout: 15_000 });
+
+  const first = page.getByRole("dialog").locator("[data-prefix-document]").first();
+
+  await first.waitFor({ timeout: 15_000 });
+
+  return first.locator("..");
+}
+
+async function prefixOrder(list: Locator): Promise<string[]> {
+  return await list.locator("[data-prefix-document]").evaluateAll((rows) => rows.map((row) => row.querySelector(".font-mono")!.textContent!.trim()));
+}
+
+function prefixHandle(list: Locator, at: number): Locator {
+  return list.locator("[data-prefix-document]").nth(at).getByRole("img", { name: wording("agents.aria.drag_reorder") });
+}
+
+// Saved with the dialog's one save, the dialog closes and the screen loaded afresh reads the list again.
+async function savedAndReread(page: Page, saves: Record<string, unknown>[]): Promise<Locator> {
+  await page.getByRole("dialog").getByRole("button", { name: wording("common.action.save"), exact: true }).click();
+  await until(async () => saves.length, (count) => count > 0);
+  await page.getByRole("dialog").waitFor({ state: "detached", timeout: 15_000 });
+  await page.reload({ waitUntil: "load" });
+
+  return await openPrefixDocuments(page);
+}
+
+describe.skipIf(!origin || !touchReady())("a repository's prefix document carried by its handle", () => {
+  const DOCUMENTS = ["docs/a.md", "docs/b.md", "docs/c.md"];
+
+  test("with the mouse lands where its row is lit, and the order saved stands after a reload", async () => {
+    const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = cookie.indexOf("=");
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+    const { saves } = await keptPrefixDocuments(context, DOCUMENTS);
+
+    try {
+      const page = await context.newPage();
+      let list = await openPrefixDocuments(page);
+
+      expect(await prefixOrder(list)).toEqual(DOCUMENTS);
+
+      // The last carried up onto the first: while held it stands marked and the first's row is lit where it lands.
+      const marks = await carryByMouse(page, await centre(prefixHandle(list, 2)), await centre(list.locator("[data-prefix-document]").first()), async () => await rowMarks(list));
+
+      expect(marks).toEqual({ held: [2], over: [0] });
+      expect(await prefixOrder(list)).toEqual(["docs/c.md", "docs/a.md", "docs/b.md"]);
+      expect(await rowMarks(list)).toEqual({ held: [], over: [] });
+
+      list = await savedAndReread(page, saves);
+      expect(saves).toEqual([{ prefixDocuments: ["docs/c.md", "docs/a.md", "docs/b.md"] }]);
+      expect(await prefixOrder(list)).toEqual(["docs/c.md", "docs/a.md", "docs/b.md"]);
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+
+  test("with a finger on a phone lands where it is let go, and the order saved stands after a reload", async () => {
+    const context = await browser!.newContext({ ...devices["Pixel 5"], serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = cookie.indexOf("=");
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+    const { saves } = await keptPrefixDocuments(context, DOCUMENTS);
+
+    try {
+      const page = await context.newPage();
+      const finger = await fingerOn(page);
+      let list = await openPrefixDocuments(page);
+
+      // A finger on the handle carries the row rather than scrolling the dialog.
+      await prefixHandle(list, 0).scrollIntoViewIfNeeded();
+      await finger.swipe(await centre(prefixHandle(list, 0)), await centre(list.locator("[data-prefix-document]").nth(2)), { steps: 12 });
+      expect(await prefixOrder(list)).toEqual(["docs/b.md", "docs/c.md", "docs/a.md"]);
+
+      list = await savedAndReread(page, saves);
+      expect(saves).toEqual([{ prefixDocuments: ["docs/b.md", "docs/c.md", "docs/a.md"] }]);
+      expect(await prefixOrder(list)).toEqual(["docs/b.md", "docs/c.md", "docs/a.md"]);
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+});

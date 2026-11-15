@@ -1,10 +1,11 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { chromium } from "playwright-core";
+import { chromium, devices } from "playwright-core";
 
-import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { carryByMouse, centre, rowMarks } from "./row-carry";
+import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
 import { wording } from "../../apps/web/shared/wording";
 
-import type { Browser, Locator } from "playwright-core";
+import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // A supervisor's draft process stands in its own settings dialog (docs/web.md, 「Agent management screen」, the
 // settings dialog's draft block): the two lists with a question switched off struck through, a checkbox on every
@@ -126,6 +127,138 @@ describe.skipIf(!origin || !touchReady())("a supervisor's draft block", () => {
 
       expect(await until(async () => saves.length, (count) => count > 0)).toBe(1);
       expect(saves[0]).toEqual({ texts: { intent: "why they said it" }, process: { ...POLICY, off: ["intent"] } });
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+});
+
+// The supervisor's draft settings as the agency would keep them: what a save sends is what the next read answers,
+// so the order a drag saved is the order a reload reads again.
+async function keptDraft(context: BrowserContext, rounds: string[]): Promise<{ saves: Record<string, unknown>[] }> {
+  const policy = { ...POLICY, rounds, off: [] as string[] };
+  let view: Record<string, unknown> = { ...VIEW, process: policy, policy };
+  const saves: Record<string, unknown>[] = [];
+
+  await context.route(/\/api\/supervisors\/[^/]+\/draft$/, async (route) => {
+    if (route.request().method() === "PATCH") {
+      const body = route.request().postDataJSON() as Record<string, unknown>;
+
+      saves.push(body);
+      view = { ...view, source: "set", process: body.process ?? view.process };
+    }
+
+    await route.fulfill({ json: view });
+  });
+
+  return { saves };
+}
+
+// The first supervisor's settings dialog opened from its row's menu, and its list of the round's questions.
+async function openRounds(page: Page): Promise<Locator> {
+  await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+  await page.locator("[data-supervisors-table] tbody tr").first().waitFor({ timeout: 30_000 });
+  await page.locator("[data-supervisors-table] tbody tr").first().getByRole("button").last().click();
+  await page.getByRole("menuitem", { name: wording("agents.action.settings") }).click();
+  await page.locator("[data-supervisor-draft]").waitFor({ timeout: 15_000 });
+
+  return page.locator("[data-supervisor-draft] [data-draft-list=rounds]");
+}
+
+async function order(rounds: Locator): Promise<string[]> {
+  return await rounds.locator("[data-draft-question]").evaluateAll((items) => items.map((item) => item.getAttribute("data-draft-question")!));
+}
+
+function handleOf(rounds: Locator, name: string): Locator {
+  return rounds.locator(`[data-draft-question="${name}"]`).getByRole("img", { name: wording("agents.aria.drag_reorder") });
+}
+
+describe.skipIf(!origin || !touchReady())("a draft question carried by its handle", () => {
+  test("with the mouse lands where its row is lit, keeps final last, and the order saved stands after a reload", async () => {
+    const context = await browser!.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = cookie.indexOf("=");
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+    const { saves } = await keptDraft(context, ["intent", "facts", "tone", "final"]);
+
+    try {
+      const page = await context.newPage();
+      let rounds = await openRounds(page);
+
+      expect(await order(rounds)).toEqual(["intent", "facts", "tone", "final"]);
+      // `final` has no handle; every question before it has one.
+      expect(await rounds.getByRole("img", { name: wording("agents.aria.drag_reorder") }).count()).toBe(3);
+
+      // `tone` carried up onto `intent`: while held, it stands marked as held and `intent`'s row is lit where it lands.
+      const marks = await carryByMouse(page, await centre(handleOf(rounds, "tone")), await centre(rounds.locator('[data-draft-question="intent"]')), async () => await rowMarks(rounds));
+
+      expect(marks).toEqual({ held: [2], over: [0] });
+      expect(await order(rounds)).toEqual(["tone", "intent", "facts", "final"]);
+      expect(await rowMarks(rounds)).toEqual({ held: [], over: [] });
+
+      // `final` is no row to land on: over it nothing is lit, and let go there nothing moves.
+      const onFinal = await carryByMouse(page, await centre(handleOf(rounds, "tone")), await centre(rounds.locator('[data-draft-question="final"]')), async () => await rowMarks(rounds));
+
+      expect(onFinal).toEqual({ held: [0], over: [] });
+      expect(await order(rounds)).toEqual(["tone", "intent", "facts", "final"]);
+
+      // Carried down onto the last question, it takes that place, `final` staying last.
+      const toEnd = await carryByMouse(page, await centre(handleOf(rounds, "tone")), await centre(rounds.locator('[data-draft-question="facts"]')), async () => await rowMarks(rounds));
+
+      expect(toEnd).toEqual({ held: [0], over: [2] });
+      expect(await order(rounds)).toEqual(["intent", "facts", "tone", "final"]);
+
+      // A press on a handle that lets go where it went down moves nothing.
+      const still = await centre(handleOf(rounds, "facts"));
+
+      await carryByMouse(page, still, still, async () => null);
+      expect(await order(rounds)).toEqual(["intent", "facts", "tone", "final"]);
+
+      await carryByMouse(page, await centre(handleOf(rounds, "facts")), await centre(rounds.locator('[data-draft-question="intent"]')), async () => null);
+      expect(await order(rounds)).toEqual(["facts", "intent", "tone", "final"]);
+
+      await page.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
+      expect(await until(async () => saves.length, (count) => count > 0)).toBe(1);
+      expect(saves[0]).toMatchObject({ process: { rounds: ["facts", "intent", "tone", "final"] } });
+
+      // The save closes the dialog; the screen loaded afresh reads the order it left.
+      await page.locator("[data-supervisor-draft]").waitFor({ state: "detached", timeout: 15_000 });
+      await page.reload({ waitUntil: "load" });
+      rounds = await openRounds(page);
+      expect(await order(rounds)).toEqual(["facts", "intent", "tone", "final"]);
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+
+  test("with a finger on a phone lands where it is let go, and the order saved stands after a reload", async () => {
+    const context = await browser!.newContext({ ...devices["Pixel 5"], serviceWorkers: "block", reducedMotion: "reduce" });
+    const at = cookie.indexOf("=");
+
+    await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+    const { saves } = await keptDraft(context, ["intent", "facts", "tone", "final"]);
+
+    try {
+      const page = await context.newPage();
+      const finger = await fingerOn(page);
+      let rounds = await openRounds(page);
+
+      // A finger on the handle carries the row rather than scrolling the dialog.
+      await handleOf(rounds, "intent").scrollIntoViewIfNeeded();
+      await finger.swipe(await centre(handleOf(rounds, "intent")), await centre(rounds.locator('[data-draft-question="tone"]')), { steps: 12 });
+      expect(await order(rounds)).toEqual(["facts", "tone", "intent", "final"]);
+
+      await page.getByRole("button", { name: wording("common.action.save"), exact: true }).click();
+      expect(await until(async () => saves.length, (count) => count > 0)).toBe(1);
+      expect(saves[0]).toMatchObject({ process: { rounds: ["facts", "tone", "intent", "final"] } });
+
+      // The save closes the dialog; the screen loaded afresh reads the order it left.
+      await page.locator("[data-supervisor-draft]").waitFor({ state: "detached", timeout: 15_000 });
+      await page.reload({ waitUntil: "load" });
+      rounds = await openRounds(page);
+      expect(await order(rounds)).toEqual(["facts", "tone", "intent", "final"]);
     } finally {
       await context.close();
     }

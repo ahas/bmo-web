@@ -6,9 +6,10 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// The settings dialog holds what a person sets for themselves alone, and the organisation settings screen what is set
-// for the whole deployment or for other people, a tab to a section; its units tab stands the units as a tree beside
-// the unit chosen, the tree a bottom drawer on a narrow screen (docs/web.md, 「Settings」 and 「Organisation settings」).
+// The settings dialog holds what a person sets for themselves alone, the organisation screen the organisation and the
+// people in it, and the administrator's screen what is set for the platform itself, each screen a tab to a section;
+// the organisation's units tab stands the units as a tree beside the unit chosen, the tree a bottom drawer on a narrow
+// screen (docs/web.md, 「Settings」, 「Organisation」 and 「Administration」).
 // The tree opens and closes each branch in place, three levels deep, without choosing. Several people chosen at once,
 // a run of them by Shift, move into another unit with their roles in one act after its preview, and a preview
 // closed moves nobody. The tree and the unit chosen are regions of their own behind a splitter, every name and path
@@ -28,7 +29,8 @@ const RUN = Date.now().toString(36);
 const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
 const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
-const TABS = ["organization.label.chart", "settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds"];
+const TABS = ["organization.label.chart", "settings.label.invites", "settings.label.permissions"];
+const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds"];
 
 let browser: Browser | null = null;
 const cookies = new Map<string, string>();
@@ -122,9 +124,9 @@ async function dialogSections(page: Page, home: string): Promise<string[]> {
   return shown;
 }
 
-// The tabs of the organisation settings screen as its tab row names them.
-async function tabNames(page: Page): Promise<string[]> {
-  const row = page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`);
+// The tabs of a screen as its tab row names them, the organisation screen's where no row is named.
+async function tabNames(page: Page, rowLabel = "organization.aria.tabs"): Promise<string[]> {
+  const row = page.locator(`[aria-label="${wording(rowLabel)}"]`);
 
   await row.waitFor({ timeout: 20_000 });
 
@@ -426,20 +428,27 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         await page.unroute(/\/api\/invites$/);
 
         // Every other tab stands in a reading column centred in the body: 768px of content at most, the body's 16px
-        // padding on every side outside it.
-        for (const tab of ["invites", "permissions", "providers", "secret-kinds"]) {
-          await page.goto(`${origin}/organization?tab=${tab}`, { waitUntil: "load" });
+        // padding on every side outside it; the administrator's screen lays its tabs out the same way.
+        const columned = [
+          { tab: "invites", path: "/organization?tab=invites", screen: "organization" },
+          { tab: "permissions", path: "/organization?tab=permissions", screen: "organization" },
+          { tab: "providers", path: "/admin", screen: "admin" },
+          { tab: "secret-kinds", path: "/admin?tab=secret-kinds", screen: "admin" }
+        ];
+
+        for (const { tab, path, screen } of columned) {
+          await page.goto(`${origin}${path}`, { waitUntil: "load" });
           await standing(page);
 
-          const column = page.locator("[data-organization-column]");
+          const column = page.locator(`[data-${screen}-column]`);
 
           await column.waitFor({ timeout: 20_000 });
 
-          const laid = await page.evaluate(() => {
-            const body = document.querySelector<HTMLElement>("[data-organization-body]")!;
+          const laid = await page.evaluate((screen) => {
+            const body = document.querySelector<HTMLElement>(`[data-${screen}-body]`)!;
             const style = getComputedStyle(body);
             const outer = body.getBoundingClientRect();
-            const inner = document.querySelector("[data-organization-column]")!.getBoundingClientRect();
+            const inner = document.querySelector(`[data-${screen}-column]`)!.getBoundingClientRect();
             const row = document.querySelector('[role="tablist"]')!.getBoundingClientRect();
             const open = document.querySelector('[role="tablist"] [role="tab"][data-state="active"]')!.getBoundingClientRect();
 
@@ -450,7 +459,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
               sides: [inner.left - outer.left, outer.right - inner.right],
               openInRow: open.left >= row.left - 0.5 && open.right <= row.right + 0.5
             };
-          });
+          }, screen);
 
           expect({ tab, padding: laid.padding }).toEqual({ tab, padding: ["16px", "16px", "16px", "16px"] });
           expect(laid.width).toBe(Math.min(768, laid.room));
@@ -474,7 +483,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           expect(await dialogSections(page, "/")).toEqual(ADMINISTRATOR_PERSONAL.map((key) => wording(key)));
 
-          // The console search finds each tab of the screen, and choosing one lands on it.
+          // The console search finds each tab of a screen, and choosing one lands on it.
           if (width >= 1024) {
             await page.keyboard.press("Escape");
             await page.getByRole("dialog").first().waitFor({ state: "hidden", timeout: 10_000 });
@@ -485,12 +494,30 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
             await hit.waitFor({ timeout: 10_000 });
             await hit.click();
-            await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("tab") === "secret-kinds", { timeout: 10_000 });
+            await page.waitForURL((url) => url.pathname.endsWith("/admin") && url.searchParams.get("tab") === "secret-kinds", { timeout: 10_000 });
           }
 
-          // A link made before a section moved lands on its tab.
-          await page.goto(`${origin}/?settings=providers`, { waitUntil: "load" });
-          await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("tab") === "providers", { timeout: 20_000 });
+          // A link made before the providers and the secret kinds moved to the administrator's screen lands on the same
+          // tab there, whether it names the organisation screen's old tab or a settings key; the providers are its
+          // first tab, the screen's own address.
+          const onAdmin = (tab: string | null) => (url: URL) => url.pathname.endsWith("/admin") && url.searchParams.get("tab") === tab && !url.searchParams.has("settings");
+          const movedToAdmin = [
+            { old: "/organization?tab=providers", tab: null, label: "settings.label.providers" },
+            { old: "/organization?tab=secret-kinds", tab: "secret-kinds", label: "secrets.label.kinds" },
+            { old: "/?settings=providers", tab: null, label: "settings.label.providers" },
+            { old: "/?settings=secret-kinds", tab: "secret-kinds", label: "secrets.label.kinds" }
+          ];
+
+          for (const { old, tab, label } of movedToAdmin) {
+            await page.goto(`${origin}${old}`, { waitUntil: "load" });
+            await page.waitForURL(onAdmin(tab), { timeout: 20_000 });
+            expect(await tabNames(page, "admin.aria.tabs")).toEqual(ADMIN_TABS.map((key) => wording(key)));
+            expect({ old, open: (await page.locator(`[aria-label="${wording("admin.aria.tabs")}"] [role="tab"][data-state="active"]`).innerText()).trim() }).toEqual({ old, open: wording(label) });
+          }
+
+          // The organisation screen keeps the chart, the invitations and the permissions.
+          await page.goto(`${origin}/organization`, { waitUntil: "load" });
+          await standing(page);
           expect(await tabNames(page)).toEqual(TABS.map((key) => wording(key)));
 
           // The keys of the sections that moved away lead to where they stand now: the research supervisor on the

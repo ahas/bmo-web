@@ -22,8 +22,8 @@ const SCREENS = [
   { path: "/research", label: "research.title.ask" },
   { path: "/organization", label: "organization.action.add" },
   { path: "/organization?tab=invites", label: "invites.label.make" },
-  { path: "/organization?tab=providers", label: "agents.title.account_add" },
-  { path: "/organization?tab=secret-kinds", label: "secrets.action.kind_add" }
+  { path: "/admin", label: "agents.title.account_add" },
+  { path: "/admin?tab=secret-kinds", label: "secrets.action.kind_add" }
 ];
 
 const WIDE = { width: 1280, height: 800 };

@@ -6786,9 +6786,11 @@ every run goes out on, and the kinds every person's secret form asks in. No memb
     「Settings」, 비밀 보관함), so the provider reads it at its next look. The key is never read back or shown, a
     refusal is said in the dialog by the pack's sentence, and the row and its reason are read again once it is kept.
 - **공급자 비밀** — the secrets the agency's provider tools read, one row to each of the agency's settings naming a
-  secret of the platform administrator's space (its `docs/api.md`, 「settings」): 결제 카드 for the DeepSeek top-up,
-  its setting `deepseekCardSecret`, labelled DeepSeek 결제 카드. A row's choices are the reader's own secrets whose
-  file reads as the setting's kind (`docs/accounts.md`, 「The secret store」), by name, then 없음; a name the setting
+  secret of the platform administrator's space (its `docs/api.md`, 「settings」): the card the DeepSeek top-up pays
+  with, its setting `deepseekCardSecret` of the kind `card`, labelled DeepSeek 결제 카드, then the login it signs in
+  to DeepSeek's platform with, its setting `deepseekLoginSecret` of the kind `account-login`, labelled DeepSeek
+  로그인. A row's choices are the reader's own secrets whose file reads as the setting's kind (`docs/accounts.md`,
+  「The secret store」), by name, then 없음; a name the setting
   holds that is none of them stands first, so the row always shows what the agency holds. Under the label stands
   `{kind} 종류 비밀`, the kind's name, or the refusal of a choice in its place: the agency's 400 naming the field is
   said by the pack's sentence for a refused value, and the row stays as the agency holds it. The console's

@@ -6,7 +6,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Page } from "playwright-core";
 import type { SecretKindList } from "../../apps/web/shared/secret-kinds";
-import type { SecretSettingsView } from "../../apps/web/shared/secret-settings";
+import type { SecretSettingField, SecretSettingsView } from "../../apps/web/shared/secret-settings";
 
 // The secrets the agency's provider tools read, on the administration screen's providers tab (docs/web.md,
 // 「Administration」): a row to each setting, its choices the reader's own secrets whose file reads as the setting's
@@ -17,14 +17,29 @@ import type { SecretSettingsView } from "../../apps/web/shared/secret-settings";
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "provider-secrets", password: "fixture-password-3037" };
-// The harness's store stands across runs, so each run's names are its own but the one the stand-in refuses.
+// The harness's store stands across runs, so each run's names are its own but the ones the stand-in refuses.
 const RUN = Date.now().toString(36);
-const CARD = `card-${RUN}`;
 const TOKEN = `token-${RUN}`;
-const REFUSED = "refused-card";
 const CARD_FILE = "CARD_NUMBER=4111111111111111\nCARD_EXPIRY=12/30\nCARD_CVC=123\nCARD_HOLDER_NAME=tester\n";
+const LOGIN_FILE = "USERNAME=tester\nPASSWORD=fixture-password\n";
 const PHONE = { width: 360, height: 780 };
 const TEST_MS = 120_000;
+
+// Each row the tab shows: its setting, its kind and label, a secret of its kind, one of its kind the stand-in refuses,
+// and the file each of them holds.
+interface Row {
+  field: SecretSettingField;
+  kind: string;
+  label: string;
+  kept: string;
+  refused: string;
+  file: string;
+}
+
+const ROWS: Row[] = [
+  { field: "deepseekCardSecret", kind: "card", label: "agents.label.deepseek_card_secret", kept: `card-${RUN}`, refused: "refused-card", file: CARD_FILE },
+  { field: "deepseekLoginSecret", kind: "account-login", label: "agents.label.deepseek_login_secret", kept: `login-${RUN}`, refused: "refused-login", file: LOGIN_FILE }
+];
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -39,6 +54,10 @@ async function held(): Promise<SecretSettingsView> {
   return (await (await fetch(`${origin}/api/secret-settings`, { headers: { cookie } })).json()) as SecretSettingsView;
 }
 
+function rowOf(page: Page, field: SecretSettingField) {
+  return page.locator(`[data-secret-setting="${field}"]`);
+}
+
 beforeAll(async () => {
   if (!origin || !touchReady()) return;
 
@@ -46,8 +65,10 @@ beforeAll(async () => {
 
   expect(login.ok).toBe(true);
   cookie = login.headers.get("set-cookie")!.split(";")[0]!;
-  await keep(CARD, CARD_FILE);
-  await keep(REFUSED, CARD_FILE);
+  for (const row of ROWS) {
+    await keep(row.kept, row.file);
+    await keep(row.refused, row.file);
+  }
   await keep(TOKEN, "a single value");
   browser = await chromium.launch();
 }, BROWSER_HOOK_MS);
@@ -65,68 +86,75 @@ async function opened(viewport: { width: number; height: number }): Promise<Page
   const page = await context.newPage();
 
   await page.goto(`${origin}/admin`, { waitUntil: "load" });
-  await page.locator('[data-secret-setting="deepseekCardSecret"] button').waitFor({ timeout: 30_000 });
+  for (const row of ROWS) await rowOf(page, row.field).locator("button").waitFor({ timeout: 30_000 });
 
   return page;
 }
 
 // The row's choice made, and the save it sends answered.
-async function choose(page: Page, label: string): Promise<void> {
+async function choose(page: Page, field: SecretSettingField, label: string): Promise<void> {
   const saved = page.waitForResponse((response) => response.url().endsWith("/api/secret-settings") && response.request().method() === "PUT");
 
-  await page.locator('[data-secret-setting="deepseekCardSecret"] button').click();
+  await rowOf(page, field).locator("button").click();
   await page.getByRole("option", { name: label, exact: true }).click();
   await saved;
 }
 
 describe.skipIf(!origin || !touchReady())("the provider secrets on the providers tab", () => {
-  test("offer the card secrets and none, save a choice as it is made, and say a refusal under the label", async () => {
+  test("offer each row the secrets of its kind and none, save a choice as it is made, and say a refusal under its label", async () => {
     const page = await opened({ width: 1280, height: 900 });
-    const row = page.locator('[data-secret-setting="deepseekCardSecret"]');
+    const kinds = ((await (await fetch(`${origin}/api/secret-kinds`, { headers: { cookie } })).json()) as SecretKindList).kinds;
 
     try {
-      await expect(row.getByText(wording("agents.label.deepseek_card_secret"), { exact: true }).isVisible()).resolves.toBe(true);
-      const kinds = ((await (await fetch(`${origin}/api/secret-kinds`, { headers: { cookie } })).json()) as SecretKindList).kinds;
-      const card = kinds.find((kind) => kind.key === "card")!.name;
+      for (const setting of ROWS) {
+        const row = rowOf(page, setting.field);
+        const others = ROWS.filter((other) => other !== setting);
+        const kind = kinds.find((one) => one.key === setting.kind)!.name;
 
-      await expect(row.getByText(wording("agents.label.secret_of_kind", { kind: card }), { exact: true }).isVisible()).resolves.toBe(true);
+        await expect(row.getByText(wording(setting.label), { exact: true }).isVisible()).resolves.toBe(true);
+        await expect(row.getByText(wording("agents.label.secret_of_kind", { kind }), { exact: true }).isVisible()).resolves.toBe(true);
 
-      await row.locator("button").click();
+        await row.locator("button").click();
 
-      const offered = await page.getByRole("option").allTextContents();
+        const offered = await page.getByRole("option").allTextContents();
 
-      expect(offered).toContain(CARD);
-      expect(offered).toContain(REFUSED);
-      expect(offered).not.toContain(TOKEN);
-      expect(offered.at(-1)).toBe(wording("agents.label.secret_none"));
-      await page.keyboard.press("Escape");
+        expect(offered).toContain(setting.kept);
+        expect(offered).toContain(setting.refused);
+        expect(offered).not.toContain(TOKEN);
+        for (const other of others) expect(offered).not.toContain(other.kept);
+        expect(offered.at(-1)).toBe(wording("agents.label.secret_none"));
+        await page.keyboard.press("Escape");
 
-      await choose(page, CARD);
-      expect((await held()).deepseekCardSecret).toBe(CARD);
-      await expect(row.locator("button").textContent()).resolves.toContain(CARD);
+        await choose(page, setting.field, setting.kept);
+        expect((await held())[setting.field]).toBe(setting.kept);
+        await expect(row.locator("button").textContent()).resolves.toContain(setting.kept);
 
-      await choose(page, REFUSED);
-      await row.getByText(wording("agents.error.field_refused"), { exact: true }).waitFor({ timeout: 10_000 });
-      expect((await held()).deepseekCardSecret).toBe(CARD);
-      await expect(row.locator("button").textContent()).resolves.toContain(CARD);
+        await choose(page, setting.field, setting.refused);
+        await row.getByText(wording("agents.error.field_refused"), { exact: true }).waitFor({ timeout: 10_000 });
+        expect((await held())[setting.field]).toBe(setting.kept);
+        await expect(row.locator("button").textContent()).resolves.toContain(setting.kept);
+        for (const other of others) await expect(rowOf(page, other.field).getByText(wording("agents.error.field_refused"), { exact: true }).count()).resolves.toBe(0);
 
-      await choose(page, wording("agents.label.secret_none"));
-      expect((await held()).deepseekCardSecret).toBeNull();
-      await expect(row.getByText(wording("agents.error.field_refused"), { exact: true }).count()).resolves.toBe(0);
+        await choose(page, setting.field, wording("agents.label.secret_none"));
+        expect((await held())[setting.field]).toBeNull();
+        await expect(row.getByText(wording("agents.error.field_refused"), { exact: true }).count()).resolves.toBe(0);
+      }
     } finally {
       await page.context().close();
     }
   }, TEST_MS);
 
-  test("keep the row within the screen's width on a phone", async () => {
+  test("keep every row within the screen's width on a phone", async () => {
     const page = await opened(PHONE);
 
     try {
-      const box = await page.locator('[data-secret-setting="deepseekCardSecret"]').boundingBox();
+      for (const row of ROWS) {
+        const box = await rowOf(page, row.field).boundingBox();
 
-      expect(box).not.toBeNull();
-      expect(box!.x).toBeGreaterThanOrEqual(0);
-      expect(box!.x + box!.width).toBeLessThanOrEqual(PHONE.width);
+        expect(box).not.toBeNull();
+        expect(box!.x).toBeGreaterThanOrEqual(0);
+        expect(box!.x + box!.width).toBeLessThanOrEqual(PHONE.width);
+      }
     } finally {
       await page.context().close();
     }

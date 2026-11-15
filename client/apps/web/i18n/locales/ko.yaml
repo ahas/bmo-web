@@ -2399,6 +2399,7 @@ agents:
     role_skills_hint: "끄면 역할의 기본 스킬 묶음 전체를 씁니다. 에이전트가 따로 고른 스킬이 있으면 그쪽이 우선합니다."
     role_skills_none: 스킬 없음
     deepseek_card_secret: DeepSeek 결제 카드
+    deepseek_login_secret: DeepSeek 로그인
     secret_none: 없음
     secret_of_kind: "{kind} 종류 비밀"
     key_held: "키 있음 · {time}"

@@ -3,7 +3,10 @@
 // its secret is saved in, and the pack's key for its label. A setting of the same shape is one more entry here and
 // its label in the pack.
 
-export const SECRET_SETTINGS = [{ field: "deepseekCardSecret", kind: "card", label: "agents.label.deepseek_card_secret" }] as const;
+export const SECRET_SETTINGS = [
+  { field: "deepseekCardSecret", kind: "card", label: "agents.label.deepseek_card_secret" },
+  { field: "deepseekLoginSecret", kind: "account-login", label: "agents.label.deepseek_login_secret" }
+] as const;
 
 export type SecretSetting = (typeof SECRET_SETTINGS)[number];
 export type SecretSettingField = SecretSetting["field"];

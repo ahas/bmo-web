@@ -125,7 +125,7 @@
 - where a parcel is sent → 배송지: 받는 사람, 전화번호, 우편번호, 주소, 상세 주소. Never 수령인, 수취인, 연락처 for the
   number, 상세주소.
 - the secrets the agency's provider tools read, each chosen by name → 공급자 비밀: 공급자 비밀, `<provider>` 결제 카드,
-  `{kind}` 종류 비밀, 없음 for none. Never 시크릿 설정, 연결된 비밀.
+  `<provider>` 로그인 for the account it signs in with, `{kind}` 종류 비밀, 없음 for none. Never 시크릿 설정, 연결된 비밀.
 - retire, take down → 보관; bringing one back → 복원. Switching a piece in or out of use → 켜기, 끄기.
   Never 내리기, 올리기.
 - fold (a work order) → 종료. 접기 is only ever a panel folding away, and is written as below.

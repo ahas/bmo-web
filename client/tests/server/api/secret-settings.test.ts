@@ -11,13 +11,14 @@ import type { SecretSettingsView } from "../../../apps/web/shared/secret-setting
 // through `PATCH /settings` with its field alone, and the agency's refusal of a name said by the sentence for a refused
 // value, naming the field.
 
-const held = { researchSupervisor: "agent-a", downgradeReturn: null, deepseekCardSecret: "card-a" as string | null };
+const held = { researchSupervisor: "agent-a", downgradeReturn: null, deepseekCardSecret: "card-a" as string | null, deepseekLoginSecret: "login-a" as string | null };
 
+// A name ending in `-refused` is refused as the agency refuses a name, naming the field it was asked for.
 const agency = standIn("AGENCY", (call) => {
   if (call.path !== "/settings") return answer({ code: "not-found", error: "no route" }, 404);
-  if (call.method === "PATCH" && call.body?.deepseekCardSecret === "card-refused") {
-    return answer({ code: "bad-request", error: "deepseekCardSecret names no plain file name", field: "deepseekCardSecret" }, 400);
-  }
+  const refused = call.method === "PATCH" ? Object.entries(call.body ?? {}).find(([, value]) => typeof value === "string" && value.endsWith("-refused")) : undefined;
+
+  if (refused) return answer({ code: "bad-request", error: `${refused[0]} names no plain file name`, field: refused[0] }, 400);
   if (call.method === "PATCH") Object.assign(held, call.body);
 
   return answer(held);
@@ -29,22 +30,30 @@ const change = await routeOf<SecretSettingsView>("../../apps/web/server/api/secr
 describe("the secret settings", () => {
   test("are read off the agency's settings by their fields, a value that is no name read as none", async () => {
     held.deepseekCardSecret = "card-a";
-    expect((await asked(read, {})).answer).toEqual({ deepseekCardSecret: "card-a" });
+    held.deepseekLoginSecret = "login-a";
+    expect((await asked(read, {})).answer).toEqual({ deepseekCardSecret: "card-a", deepseekLoginSecret: "login-a" });
 
     held.deepseekCardSecret = null;
-    expect((await asked(read, {})).answer).toEqual({ deepseekCardSecret: null });
+    held.deepseekLoginSecret = "";
+    expect((await asked(read, {})).answer).toEqual({ deepseekCardSecret: null, deepseekLoginSecret: null });
   });
 
   test("change one setting by its field alone, null for none, answering as the agency then holds them", async () => {
-    const chosen = await asked(change, { body: { field: "deepseekCardSecret", secret: "card-b" } });
+    held.deepseekCardSecret = "card-a";
+    held.deepseekLoginSecret = "login-a";
 
-    expect(chosen.answer).toEqual({ deepseekCardSecret: "card-b" });
-    expect(agency.asked.at(-1)).toMatchObject({ method: "PATCH", body: { deepseekCardSecret: "card-b" } });
-    expect(Object.keys(agency.asked.at(-1)?.body ?? {})).toEqual(["deepseekCardSecret"]);
+    for (const [field, name, other] of [["deepseekCardSecret", "card-b", "deepseekLoginSecret"], ["deepseekLoginSecret", "login-b", "deepseekCardSecret"]] as const) {
+      const before = held[other];
+      const chosen = await asked(change, { body: { field, secret: name } });
 
-    const cleared = await asked(change, { body: { field: "deepseekCardSecret", secret: null } });
+      expect(chosen.answer).toEqual({ [field]: name, [other]: before });
+      expect(agency.asked.at(-1)).toMatchObject({ method: "PATCH", body: { [field]: name } });
+      expect(Object.keys(agency.asked.at(-1)?.body ?? {})).toEqual([field]);
 
-    expect(cleared.answer).toEqual({ deepseekCardSecret: null });
+      const cleared = await asked(change, { body: { field, secret: null } });
+
+      expect(cleared.answer).toEqual({ [field]: null, [other]: before });
+    }
   });
 
   test("refuse a field no setting names and a name that is no plain file name before asking the agency", async () => {
@@ -61,10 +70,12 @@ describe("the secret settings", () => {
   });
 
   test("say the agency's refusal of a name by the sentence for a refused value, naming the field", async () => {
-    const got = await asked(change, { body: { field: "deepseekCardSecret", secret: "card-refused" } });
+    for (const [field, name] of [["deepseekCardSecret", "card-refused"], ["deepseekLoginSecret", "login-refused"]] as const) {
+      const got = await asked(change, { body: { field, secret: name } });
 
-    expect(got.status).toBe(400);
-    expect(got.message).toBe(wording("agents.error.field_refused"));
-    expect(got.data).toEqual({ field: "deepseekCardSecret" });
+      expect(got.status).toBe(400);
+      expect(got.message).toBe(wording("agents.error.field_refused"));
+      expect(got.data).toEqual({ field });
+    }
   });
 });

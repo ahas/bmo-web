@@ -426,9 +426,9 @@ const models = new Map<string, Record<string, unknown>>([
   ["model-a", { key: "registered::model-a", name: "model-a", provider: "registered", model: "model-a-7b", cardService: null, roleFiles: false, tier: null, healthy: true, lastAnsweredAt: null, usedBy: ["repository repo-b"] }],
   ["model-b", { key: "registered::model-b", name: "model-b", provider: "registered", model: "model-b-7b", cardService: "service-b", roleFiles: true, tier: null, healthy: false, lastAnsweredAt: null, usedBy: [] }]
 ]);
-// The agency's own settings, so the providers tab reads and changes the secrets its tools read; a secret named
-// `refused-card` is refused as the agency refuses a name, naming the field.
-const agencySettings: Record<string, unknown> = { researchSupervisor: null, downgradeReturn: null, deepseekCardSecret: null };
+// The agency's own settings, so the providers tab reads and changes the secrets its tools read; a secret whose name
+// starts with `refused-` is refused as the agency refuses a name, naming the field it was asked for.
+const agencySettings: Record<string, unknown> = { researchSupervisor: null, downgradeReturn: null, deepseekCardSecret: null, deepseekLoginSecret: null };
 const entries = new Map<string, Record<string, unknown>>([
   ["entry-a", catalogueEntry("entry-a", "engine-a", "model-a")],
   ["entry-b", catalogueEntry("entry-b", "engine-b", "model-b")]
@@ -637,9 +637,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/settings" && request.method === "PATCH") {
       const body = (await request.json()) as Record<string, unknown>;
 
-      if (body.deepseekCardSecret === "refused-card") {
-        return Response.json({ code: "bad-request", error: "deepseekCardSecret is refused", field: "deepseekCardSecret" }, { status: 400 });
-      }
+      const refused = Object.entries(body).find(([, value]) => typeof value === "string" && value.startsWith("refused-"));
+
+      if (refused) return Response.json({ code: "bad-request", error: `${refused[0]} is refused`, field: refused[0] }, { status: 400 });
 
       Object.assign(agencySettings, body);
     }

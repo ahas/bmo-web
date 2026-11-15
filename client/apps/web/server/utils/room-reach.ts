@@ -16,8 +16,8 @@ import type { H3Event } from "h3";
 // The rooms a signed-in user reads on the console (docs/web.md, 「Access」): every room for the administrator; for
 // anyone else the rooms they read by their account, the union of three — their console memberships, the rooms their
 // linked identities reach and hold the console grant in, and their own BMO's private room. A room outside them
-// answers as if it did not stand. The same three are the administrator's own rooms, beside his private chat; every
-// other room he reads leaves nothing its people can see.
+// answers as if it did not stand. The same three are the administrator's own rooms; every other room he reads, the
+// owner's private chat among them where his account is not the owner's, leaves nothing its people can see.
 
 /** Every room, or the ones a user may read. */
 export type ReadableRooms = "all" | ReadonlySet<number>;
@@ -51,8 +51,9 @@ async function linkedRooms(account: number, administrator: boolean): Promise<num
   return readable;
 }
 
-/** The rooms an account reads as any person does: its console memberships, its own BMO's private rooms among them,
- * and its linked identities' rooms; the administrator's private chat is his own beside them. */
+/** The rooms an account reads as any person does: its console memberships, its own private rooms among them — the
+ * owner's private chat for the owner's account alone, as the receiver answers them — and its linked identities' rooms.
+ * A console login standing before the account model is the owner's, and the owner's private chat is its own. */
 export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
   if (signed.id === null) {
     const chat = signed.administrator ? await ownerChat() : null;
@@ -61,13 +62,9 @@ export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
   }
 
   // The receiver's memberships hold the account's private rooms beside the rooms it was let into or opened.
-  const [memberships, linked, chat] = await Promise.all([
-    accountRooms(signed.id),
-    linkedRooms(signed.id, signed.administrator),
-    signed.administrator ? ownerChat() : Promise.resolve(null)
-  ]);
+  const [memberships, linked] = await Promise.all([accountRooms(signed.id), linkedRooms(signed.id, signed.administrator)]);
 
-  return new Set([...memberships, ...linked, ...(chat === null ? [] : [chat])]);
+  return new Set([...memberships, ...linked]);
 }
 
 /** A change of the rooms an account reads, made through the console: a room it was let into or opened, or one it
@@ -94,23 +91,29 @@ export function roomReachChanged(change: ReachChange): void {
 /**
  * The rooms an open stream's reader reads, kept as they stand while the stream is open (docs/web.md, 「Access」): read
  * again whenever a change of the reader's account's rooms is said, a room it left or was taken out of dropped at once
- * so nothing more of it is heard, and read again every `ROOM_REACH_REFRESH_MS` for what changes elsewhere. A read that
- * fails keeps the rooms as they stood, its drops among them.
+ * so nothing more of it is heard, and read again every `ROOM_REACH_REFRESH_MS` for what changes elsewhere. Each read
+ * asks again who the reader is: a login that no longer stands, or one that is no longer what it was when the stream
+ * opened — the administrator no more, or the administrator now — loses the stream, and so does a read that cannot be
+ * made, since rooms that cannot be confirmed are no rooms to hear. A stream lost hears no room from then on.
  */
 export class LiveRooms {
-  private rooms: ReadonlySet<number>;
+  private rooms: ReadableRooms;
   // Rooms dropped by a change, each with the change that dropped it, kept out until a read begun after it lands.
   private readonly dropped = new Map<number, number>();
   private changes = 0;
   private reading: Promise<void> | null = null;
   private again = false;
+  private lost: (() => void) | null = null;
+  // Once lost, the stream hears no room again, whatever a later read would say.
+  private gone = false;
 
-  constructor(private readonly signed: SignedIn, rooms: ReadonlySet<number>) {
+  /** `standing` answers who the stream's login is now, and fails where its login no longer stands. */
+  constructor(private readonly signed: SignedIn, rooms: ReadableRooms, private readonly standing: () => Promise<SignedIn>) {
     this.rooms = rooms;
   }
 
   has(room: number): boolean {
-    return this.rooms.has(room);
+    return this.rooms === "all" || this.rooms.has(room);
   }
 
   /** Waits for the read under way, where one is. */
@@ -118,8 +121,9 @@ export class LiveRooms {
     await this.reading;
   }
 
-  /** Follows the changes said and the clock until the returned stop is called. */
-  follow(refreshMs: number = ROOM_REACH_REFRESH_MS): () => void {
+  /** Follows the changes said and the clock until the returned stop is called; `lost` is called once where the
+   * stream's rooms can no longer be confirmed. */
+  follow(lost: () => void, refreshMs: number = ROOM_REACH_REFRESH_MS): () => void {
     const listener = (change: ReachChange): void => {
       if (change.account !== this.signed.id) return;
 
@@ -128,9 +132,11 @@ export class LiveRooms {
     };
     const timer = setInterval(() => this.refresh(), refreshMs);
 
+    this.lost = lost;
     reachListeners.add(listener);
 
     return () => {
+      this.lost = null;
       reachListeners.delete(listener);
       clearInterval(timer);
     };
@@ -139,11 +145,15 @@ export class LiveRooms {
   private drop(room: number): void {
     this.changes += 1;
     this.dropped.set(room, this.changes);
-    this.rooms = new Set([...this.rooms].filter((one) => one !== room));
+
+    if (this.rooms !== "all" && !this.gone) this.rooms = new Set([...this.rooms].filter((one) => one !== room));
+
     this.refresh();
   }
 
   private refresh(): void {
+    if (this.gone) return;
+
     if (this.reading !== null) {
       this.again = true;
 
@@ -155,6 +165,14 @@ export class LiveRooms {
     });
   }
 
+  private lose(why: string): void {
+    console.warn(`the stream of ${this.signed.name} was let go: ${why}`);
+    this.gone = true;
+    this.rooms = new Set();
+    this.lost?.();
+    this.lost = null;
+  }
+
   private async readWhileAsked(): Promise<void> {
     do {
       this.again = false;
@@ -162,7 +180,12 @@ export class LiveRooms {
       const begun = this.changes;
 
       try {
-        const rooms = await ownRooms(this.signed);
+        const now = await this.standing();
+
+        if (now.id !== this.signed.id || now.administrator !== this.signed.administrator) return this.lose("its login is no longer what it was");
+        if (now.administrator) continue;
+
+        const rooms = await ownRooms(now);
 
         for (const [room, at] of this.dropped) {
           if (at <= begun) this.dropped.delete(room);
@@ -170,7 +193,7 @@ export class LiveRooms {
 
         this.rooms = new Set([...rooms].filter((room) => !this.dropped.has(room)));
       } catch (error) {
-        console.warn(`the rooms of ${this.signed.name} were not read again: ${String(error)}`);
+        return this.lose(`its rooms could not be read again: ${String(error)}`);
       }
     } while (this.again);
   }
@@ -231,9 +254,13 @@ export async function actingAccount(signed: SignedIn, administrator: () => Promi
 export async function requireWritableRoom(event: H3Event, chatId: number): Promise<void> {
   await requireReadableRoom(event, chatId);
 
+  if (!(await mayChangeRoom(event, chatId))) throw fail(403, wording("room.error.private_room"));
+}
+
+/** Whether the signed-in user may change a room they read: any room but another account's private room, as the
+ * receiver says it. */
+export async function mayChangeRoom(event: H3Event, chatId: number): Promise<boolean> {
   const owner = await privateOf(chatId);
 
-  if (owner !== null && owner !== (await actingAccount(await signedInUser(event)))) {
-    throw fail(403, wording("room.error.private_room"));
-  }
+  return owner === null || owner === (await actingAccount(await signedInUser(event)));
 }

@@ -92,12 +92,42 @@ export async function privateOf(room: number): Promise<number | null> {
   return accountOf((await receiverRoute<{ privateOf?: unknown } | null>(`/rooms/${room}`))?.privateOf);
 }
 
-/** The rooms that are the account's private rooms, as the receiver's room list says each room's `privateOf`. */
-export async function privateRoomsOf(account: number): Promise<number[]> {
+/** Every private room with the account it is the private room of, as the receiver's room list says each room's
+ * `privateOf`. */
+export async function privateOwners(): Promise<Map<number, number>> {
   const page = await receiverRoute<{ items?: unknown } | null>("/rooms");
   const rooms = Array.isArray(page?.items) ? (page.items as { id?: unknown; privateOf?: unknown }[]) : [];
+  const owners = new Map<number, number>();
 
-  return rooms.flatMap((room) => (accountOf(room.privateOf) === account && accountOf(room.id) !== null ? [room.id as number] : []));
+  for (const room of rooms) {
+    const id = accountOf(room.id);
+    const owner = accountOf(room.privateOf);
+
+    if (id !== null && owner !== null) owners.set(id, owner);
+  }
+
+  return owners;
+}
+
+/** The rooms that are the account's private rooms. */
+export async function privateRoomsOf(account: number): Promise<number[]> {
+  return [...(await privateOwners())].flatMap(([room, owner]) => (owner === account ? [room] : []));
+}
+
+/** The account a change in a room is made as, the field the receiver reads it by on every room write (its
+ * `docs/api.md`, 「Rooms」); none for a console login standing before the account model. */
+export function acting(signed: SignedIn): { account?: number } {
+  return signed.id === null ? {} : { account: signed.id };
+}
+
+/** The query of a room's removal: who removes it, as his name and his account, and whether it is a preview. */
+export function removalQuery(signed: SignedIn, dryRun: boolean): string {
+  const query = new URLSearchParams({ by: signed.name });
+
+  if (dryRun) query.set("dryRun", "true");
+  if (signed.id !== null) query.set("account", String(signed.id));
+
+  return query.toString();
 }
 
 /** A room's members by account, in the receiver's order. */

@@ -103,7 +103,7 @@ globals.createError = (error: { statusCode: number; statusMessage?: string; mess
   Object.assign(new Error(error.statusMessage ?? error.message), error);
 globals.fail = (statusCode: number, message: string) => Object.assign(new Error(message), { statusCode });
 
-const { LiveRooms, readableRooms, requireReadableRoom, roomReachChanged } = await import("../../../apps/web/server/utils/room-reach");
+const { LiveRooms, ownRooms, readableRooms, requireReadableRoom, roomReachChanged } = await import("../../../apps/web/server/utils/room-reach");
 
 // The addresses are the whole suite's environment, so they go with the stand-ins that answered them.
 afterAll(async () => {
@@ -155,15 +155,32 @@ describe("the rooms a user reads on the console", () => {
 
     expect(await readableRooms(event())).toBe("all");
   });
+
+  test("hold the owner's private chat as the administrator's own only where the receiver says it is his account's", async () => {
+    const boss = { name: "boss", id: 1, administrator: true };
+
+    memberships.set(1, []);
+    expect([...(await ownRooms(boss))]).toEqual([]);
+
+    memberships.set(1, [member]);
+    expect([...(await ownRooms(boss))]).toEqual([member]);
+    memberships.delete(1);
+  });
 });
 
 describe("the rooms an open stream hears", () => {
+  // Who the stream's login is each time it is asked, as the seal and the account model answer it now.
+  let standing: () => Promise<{ name: string; id: number | null; administrator: boolean }>;
+  let lost = 0;
+
   const live = async (id: number, name: string) => {
     signedAs(id, name);
+    standing = async () => ({ name, id, administrator: false });
+    lost = 0;
 
-    const rooms = new LiveRooms({ name, id, administrator: false }, (await readableRooms(event())) as ReadonlySet<number>);
+    const rooms = new LiveRooms({ name, id, administrator: false }, await readableRooms(event()), async () => await standing());
 
-    return { rooms, stop: rooms.follow(60_000) };
+    return { rooms, stop: rooms.follow(() => (lost += 1), 60_000) };
   };
 
   test("fall silent on a room the moment its account is taken out of it, before the rooms are read again", async () => {
@@ -236,6 +253,48 @@ describe("the rooms an open stream hears", () => {
     release();
     await rooms.settled();
     expect(rooms.has(GROUP)).toBe(false);
+    stop();
+  });
+
+  test("end where a read of the rooms cannot be made, and hear no room from then on", async () => {
+    memberships.set(colleague, [GROUP]);
+
+    const { rooms, stop } = await live(colleague, "colleague");
+
+    standing = async () => {
+      throw new Error("the login no longer stands");
+    };
+    roomReachChanged({ account: colleague, room: -300, left: false });
+    await rooms.settled();
+
+    expect(lost).toBe(1);
+    expect(rooms.has(GROUP)).toBe(false);
+
+    // A later read that would say the room stands changes nothing.
+    standing = async () => ({ name: "colleague", id: colleague, administrator: false });
+    roomReachChanged({ account: colleague, room: -300, left: false });
+    await rooms.settled();
+    expect(rooms.has(GROUP)).toBe(false);
+    stop();
+  });
+
+  test("of the administrator end once his login is no longer the administrator's, and not before", async () => {
+    signedAs(1, "boss");
+    lost = 0;
+
+    let administrator = true;
+    const rooms = new LiveRooms({ name: "boss", id: 1, administrator: true }, "all", async () => ({ name: "boss", id: 1, administrator }));
+    const stop = rooms.follow(() => (lost += 1), 20);
+
+    await Bun.sleep(60);
+    await rooms.settled();
+    expect([lost, rooms.has(PRIVATE)]).toEqual([0, true]);
+
+    administrator = false;
+
+    for (let tries = 0; tries < 100 && lost === 0; tries += 1) await Bun.sleep(5);
+
+    expect([lost, rooms.has(PRIVATE)]).toEqual([1, false]);
     stop();
   });
 });

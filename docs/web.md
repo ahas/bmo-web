@@ -434,18 +434,24 @@ console page. No answer says which framework drew it. Strict transport is the re
   the one place the rule stands. The administrator's reach is the superadmin's of `STRUCTURE.md` (「Accounts,
   companies and units」: the superadmin reaches everything and changes nothing of another's), so in another
   person's private room he reads alone: saying, attaching, a voice note, a sticker, a reaction, an edit, a pin of a
-  message or of the room, a delete, a forward into it, reading a line aloud, and changing its callers or its members
-  answer him 403. In a group room his acts as the administrator of the organisation — its callers, letting people in,
-  its archive — stand.
+  message or of the room, a delete, a forward out of it or into it, reading a line aloud, its picture, its chat
+  providers and its mode, removing it, and changing its callers or its members answer him 403. In a group room his
+  acts as the administrator of the organisation — its callers, letting people in, its archive — stand.
+- **The room screen stands read-only for him there,** as it does for a reader whose rooms section only reads: no box
+  to write in and no act on a message, no pin, providers, picture or removal in the room's menu, a callers list with
+  nothing to change, nobody to let in, and no such room to forward a message into. Nothing on the screen says why,
+  and nobody else is told he is reading.
 - **Every change the console makes in a room for a person names the account it is made as,** so the receiver refuses
   a change in another account's private room by its own rule and the console's refusal is a second line before it:
   the words, files and voice notes, the reactions, edits, pins, deletes, stickers, forwards, a line read aloud, the
-  room's pin and its members. The account whose private room it is changes it as any member does a room, its
+  room's pin, its picture, its chat providers, its mode, a group's own supervisor, its removal and its members. A read
+  mark is the console's own row and reaches the receiver as nothing. The account whose private room it is changes it as any member does a room, its
   members alone being the receiver's to keep as they stand. A console login standing before the account model makes
   its changes as the administrator's account, and as no account at all where the model names no administrator yet,
   so another account's private room refuses it as it refuses the administrator.
 - **The administrator's read of a room that is not his own leaves nothing its people or its BMO can see.** His
-  own rooms are those he reads by his account as any person does (above) and his own private chat. In any other
+  own rooms are those he reads by his account as any person does (above); the owner's private chat is his own only
+  where his account is the owner's, as the receiver's memberships of his account say. In any other
   room his tab counts as looking only for his own devices, which it keeps quiet as any tab does: no other
   person's notification count starts afresh because he looked, and the rooms the console reports open to the
   account service (`PUT /watching`) leave it out, so nothing the receiver serves moves either. A tab saying it
@@ -526,6 +532,12 @@ nothing.
     they do not read never reach them. The one console
     word that does is `deploy`, which carries nothing but that the deployment moved (「Deployment in
     the title bar」).
+- **Every open stream asks again who it is for.** Each time a stream's rooms are read again — on a change of the
+  reader's rooms and each minute — the login it was opened for is asked about as a request's is, the administrator's
+  stream among them: a login that no longer stands, or one no longer what it was when the stream opened, the
+  administrator's standing lost or gained, ends the stream, and so does a read of the rooms that cannot be made,
+  since rooms that cannot be confirmed are no rooms to hear. From then on the stream carries nothing of any room, and
+  the browser opens it again under what stands now.
 - **Nothing on a member's room asks after the bot itself, its owner or the pictures index.** Whether
   the bot answers moves only the box to write in, whose room it is only the administrator's tools,
   and the index names every room and person; a member's feed draws every face by its initials.
@@ -1234,7 +1246,9 @@ edit to that file alone, once the guide below carries the word.
 - **A picture is set in the console as readily as a provider hands one in.** A picture is the receiver's to keep,
   filled by a chat service handing a person's or a room's photo in and by the console setting one (the receiver's
   `PUT /avatars/{kind}/{subject}`, its `docs/api.md`); the newer of the two stands, and an agent's picture is the
-  console's alone, never a provider's. The console sets three:
+  console's alone, never a provider's. The console sets three, each through a route of its own (`PUT` and `DELETE
+  /api/avatars/{kind}/{subject}`), which says the receiver's refusals in the pack's words and names the account a
+  room's picture is set as, so another account's private room is refused here and by the receiver:
   - **an agent's,** by its registration name, on its own page — the 사진 button in the page's own row under
     its name, for the administrator — the picture standing under every number the agent's words stand under;
   - **a room's,** from the room's menu, 방 사진, for the administrator;
@@ -7688,7 +7702,12 @@ its people directory and the members of the reader's company.
   path can reach.
 - **A bundle's calls to another service** are relayed and refused as the contract's 「How a bundle mounts」 states;
   the console tells the page a call comes from by the page address the browser sends as the call's referrer. A
-  unit the console calls directly answers no manifest, and the rule does not reach it.
+  unit the console calls directly answers no manifest, so no manifest names it and a bundle's page reaching one is
+  refused 403.
+- **A unit the console calls directly is relayed for a read alone.** The console's own screens read such a unit's
+  fixed paths under `/api/<unit>/` behind the administrator's sign-in, and every change of one is made through a
+  route of the console's own, held to the rules of what it changes (「Access」), so a change asked of the relay is
+  absent and no change goes around those rules.
 - **The members of the reader's company are a service the console answers itself,** as the contract's 「How a
   bundle mounts」 (the company's members) and 「What a console owes」 state it: its name, its one read, what it
   answers, to whom, and to which bundle's page. What the console adds of its own:

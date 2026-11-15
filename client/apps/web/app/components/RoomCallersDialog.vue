@@ -2,7 +2,8 @@
   <!-- A room's callers (docs/web.md, the room screen's callers entry): the people who may call their own BMO into the room
        by name, each with a switch that takes the permission away, and a person added from the directory with the
        permission set as they are added. The account service says who may change it; a refusal is said here and the
-       list stands as it was. -->
+       list stands as it was. A room the reader may not change at all lists its callers alone, with nothing to change
+       and no word of why. -->
   <SettingsDialog v-model:open="open" :title="$t('callers.title.dialog')" :description="props.title">
     <div class="flex min-w-0 flex-col gap-3">
       <p class="text-sm text-muted">{{ $t("callers.label.about") }}</p>
@@ -13,16 +14,16 @@
       <p v-else-if="loadFailed" role="alert" class="text-sm text-error">{{ $t("callers.error.load_failed") }}</p>
 
       <template v-else-if="held !== null">
-        <p v-if="!held.mayChange" class="text-sm text-dimmed">{{ $t("callers.label.heads_only") }}</p>
+        <p v-if="!held.mayChange && !props.readOnly" class="text-sm text-dimmed">{{ $t("callers.label.heads_only") }}</p>
         <p v-if="held.callers.length === 0" class="text-sm text-dimmed">{{ $t("callers.label.none") }}</p>
         <ul v-else class="flex flex-col gap-1" data-room-callers>
           <li v-for="caller in held.callers" :key="caller.user" class="flex min-h-8 items-center gap-2">
             <span class="min-w-0 flex-1 truncate text-sm text-highlighted">{{ caller.name }}</span>
-            <USwitch :model-value="true" :disabled="busy" :aria-label="$t('callers.label.allow')" @update:model-value="void change(caller.user, false)" />
+            <USwitch v-if="!props.readOnly" :model-value="true" :disabled="busy" :aria-label="$t('callers.label.allow')" @update:model-value="void change(caller.user, false)" />
           </li>
         </ul>
 
-        <div class="flex min-w-0 flex-wrap items-center gap-2 border-t border-default pt-3">
+        <div v-if="!props.readOnly" class="flex min-w-0 flex-wrap items-center gap-2 border-t border-default pt-3">
           <USelectMenu
             v-model="picked"
             v-model:search-term="term"
@@ -55,6 +56,8 @@ import type { PersonView } from "#shared/people";
 interface Props {
   chatId: number;
   title: string;
+  // Whether the room is one the reader may not change at all (docs/web.md, 「Access」).
+  readOnly?: boolean;
 }
 
 interface Found {
@@ -62,7 +65,7 @@ interface Found {
   value: string;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { readOnly: false });
 
 const open = defineModel<boolean>("open", { required: true });
 

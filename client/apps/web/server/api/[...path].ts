@@ -24,7 +24,7 @@ import { unitAt } from "../utils/units";
 // A service a manifest names is relayed at the address of the unit that answered it, and only for the paths under
 // its API prefix, the routes it names under `relays`, its module and its stylesheet, to a reader its manifest's role
 // and owner key allow (docs/web.md, 「Screens a unit brings」). A unit the console calls directly, which answers no
-// manifest, is relayed at the address its setting names.
+// manifest, is relayed at the address its setting names, for a read alone and from no bundle's page.
 //
 // A bundle's page reaches another service a manifest names only where its own manifest names that service under
 // `calls`, on that service's own terms; the page is the address the browser sends as the call's referrer. Any other
@@ -92,13 +92,17 @@ async function relayed(event: H3Event): Promise<Response> {
   const unit = attached?.unit ?? unitAt(service.replaceAll("-", "_").toUpperCase());
   const method = getMethod(event).toUpperCase();
 
+  const reading = method === "GET" || method === "HEAD";
+
   // A name neither a manifest nor a setting names is this console's own absence, not a unit's. A unit the console
   // calls directly — the agency, bmo-job, the receiver, the brain — stands beside the bundles, and its own paths are
-  // handed on as they are. A path of a bundle's service outside what its manifest lets through is absent as well.
+  // handed on to be read as they are; every change of one is made through the console's own routes, each held to the
+  // rules of what it changes (docs/web.md, 「Access」), so a change asked here is absent. A path of a bundle's service
+  // outside what its manifest lets through is absent as well.
   if (unit === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  if (attached === null && !reading) throw createError({ statusCode: 404, statusMessage: "Not Found" });
   if (attached !== null && !relayedCall(attached.manifest, method, `/${rest}`)) throw createError({ statusCode: 404, statusMessage: "Not Found" });
 
-  const reading = method === "GET" || method === "HEAD";
   const session = await getUserSession(event);
   // A share read is a pattern the manifest names under `shareReads` (docs/web.md, 「Access」); a manifest naming none
   // has none.
@@ -114,7 +118,12 @@ async function relayed(event: H3Event): Promise<Response> {
     throw createError({ statusCode: 404, statusMessage: "Not Found" });
   }
 
-  // A bundle's page calling a service its manifest does not name is refused, whatever the reader may open.
+  // A bundle's page calling a service its manifest does not name is refused, whatever the reader may open; a unit the
+  // console calls directly is no service a manifest names, so a bundle's page reaches none of them.
+  if (attached === null && bundleOfPage(useRuntimeConfig().app.baseURL, getRequestHeader(event, "referer")) !== null) {
+    throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+  }
+
   if (attached !== null && !pageReaches(bundleOfPage(useRuntimeConfig().app.baseURL, getRequestHeader(event, "referer")), attached, method, `/${rest}`)) {
     throw createError({ statusCode: 403, statusMessage: "Forbidden" });
   }

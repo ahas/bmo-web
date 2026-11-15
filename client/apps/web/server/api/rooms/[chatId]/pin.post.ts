@@ -1,5 +1,6 @@
 import { wording } from "#shared/wording";
 
+import { acting } from "../../../utils/console-rooms";
 import { receiverRoute } from "../../../utils/receiver";
 import { requireWritableRoom } from "../../../utils/room-reach";
 
@@ -24,9 +25,8 @@ export default defineEventHandler(async (event): Promise<PinnedRooms> => {
 
   await requireWritableRoom(event, chatId);
 
-  const account = signed.id === null ? {} : { account: signed.id };
   const order = body.pinned
-    ? await receiverRoute<{ roomIds?: unknown }>("/pinned-rooms", { method: "POST", body: { room: chatId, ...account } }, CHANGES)
+    ? await receiverRoute<{ roomIds?: unknown }>("/pinned-rooms", { method: "POST", body: { room: chatId, ...acting(signed) } }, CHANGES)
     : await receiverRoute<{ roomIds?: unknown }>(`/pinned-rooms/${chatId}${signed.id === null ? "" : `?account=${signed.id}`}`, { method: "DELETE" }, CHANGES);
   const rooms = Array.isArray(order.roomIds) ? order.roomIds.filter((one): one is number => typeof one === "number") : [];
 

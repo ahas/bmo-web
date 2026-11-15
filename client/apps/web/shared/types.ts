@@ -176,7 +176,10 @@ export interface RoomRead {
 }
 
 // A room as the room list hands it to the signed-in reader, with how far they have read it.
-export interface ListedRoom extends RoomSummary, RoomRead {}
+export interface ListedRoom extends RoomSummary, RoomRead {
+  // Whether the reader may change the room: every room but another account's private room (docs/web.md, 「Access」).
+  writable: boolean;
+}
 
 // Whose picture a stored file is. A room and a person can carry the same number, so the kind
 // stands beside it wherever one is asked for.

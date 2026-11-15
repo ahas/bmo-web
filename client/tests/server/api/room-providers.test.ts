@@ -22,6 +22,8 @@ const receiver = standIn("RECEIVER", (one) => {
   const path = one.path.split("?")[0] ?? "";
 
   if (path === "/providers") return answer({ items: listed, more: false });
+  // No room here is anyone's private room; a private room's refusal stands in room-private.test.ts.
+  if (/^\/rooms\/-?\d+$/.test(path)) return answer({ id: Number(path.split("/")[2]), title: null, privateOf: null });
   if (path === "/rooms/-404/providers") return answer({ code: "not-found", error: "The record holds no such room." }, 404);
 
   if (path === "/rooms/-7/providers" && one.method === "PUT") {
@@ -53,7 +55,7 @@ describe("a room's chat providers", () => {
 
     expect(answered.answer).toEqual({ providers: listed, on: ["provider-a", "provider-b"], chosen: true });
     expect(receiver.asked.filter((one) => one.method === "PUT").map((one) => [one.path, one.body])).toEqual([
-      ["/rooms/-7/providers", { providers: ["provider-a", "provider-b"] }]
+      ["/rooms/-7/providers", { providers: ["provider-a", "provider-b"], account: 1 }]
     ]);
   });
 

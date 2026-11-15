@@ -1,5 +1,6 @@
 import { wording } from "#shared/wording";
 
+import { acting } from "../../../utils/console-rooms";
 import { ownerHeaders } from "../../../utils/owner-key";
 import { requireWritableRoom } from "../../../utils/room-reach";
 import { MESSAGE_IDS, receiverRoute } from "../../../utils/receiver";
@@ -28,7 +29,7 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
 
   const message = await receiverRoute<ExactMessage>(
     `/rooms/${chatId}/stickers`,
-    { method: "POST", body: { emoji, ...(signed.id === null ? {} : { account: signed.id }) }, headers: ownerHeaders(signed) },
+    { method: "POST", body: { emoji, ...acting(signed) }, headers: ownerHeaders(signed) },
     { passStatus: [403], exactIds: MESSAGE_IDS }
   );
 

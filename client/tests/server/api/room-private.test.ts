@@ -48,21 +48,29 @@ const receiver = standIn(
   "RECEIVER",
   (one) => {
     const path = one.path.split("?")[0] ?? "";
-    const room = Number(/^\/(?:rooms|pinned-rooms)\/(-?\d+)/.exec(path)?.[1] ?? one.body?.room);
+    const room = Number(/^\/(?:rooms|pinned-rooms|avatars\/room)\/(-?\d+)/.exec(path)?.[1] ?? one.body?.room);
 
     if (one.method === "GET" && /^\/rooms\/-?\d+$/.test(path)) return answer({ id: room, title: null, privateOf: PRIVATE_OF[room] ?? null });
     if (one.method === "GET" && /^\/accounts\/\d+\/rooms$/.test(path)) return answer({ rooms: [] });
+    if (one.method === "GET" && path === "/rooms") {
+      return answer({ items: [PRIVATE, OWN_CHAT, LEFT, GROUP].map((id) => ({ id, title: null, privateOf: PRIVATE_OF[id] ?? null })), more: false });
+    }
+    if (one.method === "GET" && path === "/providers") return answer({ items: [{ key: "record", label: "Record" }], more: false });
+    if (one.method === "GET" && path.endsWith("/providers")) return answer({ providers: ["record"], chosen: true });
     if (one.method === "GET") return answer({ code: "failed", error: "Not served here." }, 500);
 
-    // The receiver's own refusal: a write naming any account but the room's own in a private room, and any change
-    // of a private room's members; and the room it holds as private where the console does not.
-    const into = path.endsWith("/forwards") ? Number(one.body?.to) : room;
-    const own = PRIVATE_OF[into];
+    // The receiver's own refusal: a write naming any account but the room's own in a private room — a forward's
+    // source and the room it goes into both — and any change of a private room's members; and the room it holds as
+    // private where the console does not.
+    const touched = path.endsWith("/forwards") ? [room, Number(one.body?.to)] : [room];
     const members = /\/accounts\/\d+$/.test(path);
+    const refusedIn = touched.find((into) => into === REFUSED || (PRIVATE_OF[into] !== undefined && (members || named(one) !== PRIVATE_OF[into])));
 
-    if (into === REFUSED || (own !== undefined && (members || named(one) !== own))) {
-      return answer({ code: "private-room", error: "Another account's private room.", room: into, account: named(one) ?? 0 }, 403);
+    if (refusedIn !== undefined) {
+      return answer({ code: "private-room", error: "Another account's private room.", room: refusedIn, account: named(one) ?? 0 }, 403);
     }
+
+    const into = touched.at(-1)!;
 
     if (members) return one.method === "PUT" ? answer({ account: "10", addedBy: one.body?.by, addedAt: 1 }) : new Response(null, { status: 204 });
     if (path.endsWith("/words")) return answer({ id: rawNumber(HIGH) }, 201);
@@ -70,6 +78,10 @@ const receiver = standIn(
     if (path.endsWith("/forwards")) return answer({ room: into, id: rawNumber(HIGH) }, 201);
     if (path.endsWith("/reading")) return answer({ state: "making", briefingId: null }, 202);
     if (path.startsWith("/pinned-rooms")) return answer({ roomIds: [room] });
+    if (path.startsWith("/avatars/")) return answer({ items: [{ kind: "room", id: room, takenAt: 1 }] });
+    if (path.endsWith("/providers")) return answer({ providers: one.body?.providers, chosen: true });
+    if (path.endsWith("/registration")) return answer({ mode: one.body?.mode, providers: ["record"], chosen: true, answerers: [], readOnly: false, readOnlyBy: [] });
+    if (one.method === "DELETE" && /^\/rooms\/-?\d+$/.test(path)) return answer({ goes: [], stays: [], taken: [], cleared: [], pictures: [], folders: [], warned: [] });
 
     return answer({ id: rawNumber(HIGH), kind: "text" });
   }
@@ -95,6 +107,7 @@ globals.requireUserSession = async () => session;
 globals.signedInUser = (await import("../../../apps/web/server/utils/accounts")).signedInUser;
 
 const { actingAccount } = await import("../../../apps/web/server/utils/room-reach");
+const { privateOwners } = await import("../../../apps/web/server/utils/console-rooms");
 
 const AS_ADMINISTRATOR = { user: { name: "boss", id: ADMINISTRATOR }, sid: "bmo.sid=boss", administrator: true };
 const AS_OWNER = { user: { name: `account-${OWNER}`, id: OWNER }, sid: "bmo.sid=owner", administrator: false };
@@ -131,10 +144,21 @@ const PERSON_ACTS: WriteAct[] = [
   { name: "take out", handler: await route("rooms/[chatId]/accounts/[user].delete"), event: (room) => person(room), unit: "receiver" }
 ];
 
+const forward = await route("rooms/[chatId]/messages/[messageId]/forward.post");
+const picture = { name: "picture", filename: "face.png", type: "image/png", data: new Uint8Array([137, 80, 78, 71]) };
+const roomOnly = (room: number, extra: Omit<RouteEvent, "params"> = {}): RouteEvent => ({ params: { chatId: String(room) }, ...extra });
+const roomPicture = (room: number, extra: Omit<RouteEvent, "params"> = {}): RouteEvent => ({ params: { kind: "room", id: String(room) }, ...extra });
+
 // The administrator's own acts on a room, which stand beside a person's.
 const ADMINISTRATOR_ACTS: WriteAct[] = [
-  { name: "forward into", handler: await route("rooms/[chatId]/messages/[messageId]/forward.post"), event: (room) => message(GROUP, { body: { to: room } }), unit: "receiver" },
-  { name: "pin the room", handler: await route("rooms/[chatId]/pin.post"), event: (room) => ({ params: { chatId: String(room) }, body: { pinned: true } }), unit: "receiver" }
+  { name: "forward into", handler: forward, event: (room) => message(GROUP, { body: { to: room } }), unit: "receiver" },
+  { name: "forward out of", handler: forward, event: (room) => message(room, { body: { to: GROUP } }), unit: "receiver" },
+  { name: "pin the room", handler: await route("rooms/[chatId]/pin.post"), event: (room) => roomOnly(room, { body: { pinned: true } }), unit: "receiver" },
+  { name: "set its providers", handler: await route("rooms/[chatId]/providers.put"), event: (room) => roomOnly(room, { body: { providers: ["record"] } }), unit: "receiver" },
+  { name: "set its mode", handler: await route("rooms/[chatId]/mode.put"), event: (room) => roomOnly(room, { body: { mode: "record-only" } }), unit: "receiver" },
+  { name: "set its picture", handler: await route("avatars/[kind]/[id].put"), event: (room) => roomPicture(room, { parts: [picture] }), unit: "receiver" },
+  { name: "drop its picture", handler: await route("avatars/[kind]/[id].delete"), event: (room) => roomPicture(room), unit: "receiver" },
+  { name: "remove it", handler: await route("rooms/[chatId]/remove.post"), event: (room) => roomOnly(room), unit: "receiver" }
 ];
 
 const writes = (stood: { asked: Asked[] }) => stood.asked.filter((one) => one.method !== "GET");
@@ -183,6 +207,24 @@ describe("in their own private room, the account whose room it is", () => {
       expect(writes(receiver).map(named)).toEqual([ADMINISTRATOR]);
     });
   }
+});
+
+describe("the preview of removing another account's private room", () => {
+  test("is refused the administrator before the receiver is asked", async () => {
+    session = AS_ADMINISTRATOR;
+    receiver.asked.length = 0;
+
+    const preview = await route("rooms/[chatId]/remove.get");
+
+    expect(await asked(preview, roomOnly(PRIVATE))).toMatchObject({ status: 403, message: wording("room.error.private_room") });
+    expect(receiver.asked.filter((one) => one.path.startsWith(`/rooms/${PRIVATE}?`))).toEqual([]);
+  });
+});
+
+describe("the private rooms the room list names", () => {
+  test("are each room's privateOf as the receiver says it, a group room every other member has left among none", async () => {
+    expect(await privateOwners()).toEqual(new Map([[PRIVATE, OWNER], [OWN_CHAT, ADMINISTRATOR]]));
+  });
 });
 
 describe("a group room every other member has left", () => {

@@ -49,7 +49,7 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import { pictureRoute, refusalKey } from "~/domain/picture-setting";
+import { pictureRoute } from "~/domain/picture-setting";
 
 import type { PictureKind } from "~/domain/picture-setting";
 import type { AvatarProps } from "@nuxt/ui";
@@ -100,12 +100,10 @@ function letGo(): void {
   release();
 }
 
-// The receiver's refusal in the pack's words for its code, and the section's own sentence otherwise.
+// The refusal as the console's route says it, in the pack's words for the receiver's code, and the section's own
+// sentence otherwise.
 function refused(error: unknown): string {
-  const code = (error as { data?: { code?: unknown } } | null)?.data?.code;
-  const key = refusalKey(typeof code === "string" ? code : null);
-
-  return key === null ? failureText(error, t("picture.error.failed")) : t(key);
+  return failureText(error, t("picture.error.failed"));
 }
 
 // Every screen reads its pictures again, this one at once; the others as the receiver tells of the change.

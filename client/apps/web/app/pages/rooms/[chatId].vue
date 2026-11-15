@@ -86,13 +86,13 @@
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
               <!-- What an agent left waiting for this room, for the administrator alone (docs/web.md, the room screen's list of what waits). -->
               <RoomBackground v-if="administrator" :chat-id="chatId" />
-              <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
+              <RoomProvidersDialog v-if="manages" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
               <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
-              <RoomCallersDialog v-model:open="callersOpen" :chat-id="chatId" :title="title" />
+              <RoomCallersDialog v-model:open="callersOpen" :chat-id="chatId" :title="title" :read-only="!roomWritable" />
               <RoomMembersSheet v-model:open="membersOpen" :chat-id="chatId" :title="title" :avatars="avatars" :administrator="administrator" @left="void roomLeft()" />
               <RoomOverlay v-if="group" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
-              <PictureDialog v-if="administrator" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
-              <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
+              <PictureDialog v-if="manages" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
+              <RoomRemovalDialog v-if="manages" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
             </template>
           </ConsoleTitleBar>
         </div>
@@ -263,7 +263,7 @@
                   :selected="selected.has(item.key)"
                   :flashed="flashKey === item.key"
                   :roving="item.key === rovingKey"
-                  :administrator="administrator"
+                  :administrator="manages"
                   :writable="writable"
                   @select="startAt"
                   @pick="pick"
@@ -593,7 +593,6 @@ const administrator = useAdministrator();
 const signedUser = useSignedUser();
 const access = useSectionAccess();
 const accessReady = useSectionAccessReady();
-const writable = computed<boolean>(() => roomMayWrite(access.value, administrator.value, accessReady.value));
 
 const chatId = Number(route.params.chatId);
 const roomFeed = useRoomFeed(t, chatId);
@@ -601,6 +600,14 @@ const roomFeed = useRoomFeed(t, chatId);
 const { data: listedRooms, status: roomsStatus } = useHeldRoomList();
 // The counts as the sidebar shows them, so the room opens at the first message unread by the newest count.
 const rooms = useNewestReads(listedRooms);
+// Whether the reader may change this room at all, as the room list says it: every room but another account's private
+// room, which the administrator reads alone and which stands read-only for him as for a reader whose rooms section
+// only reads (docs/web.md, 「Access」). The routes refuse every change there either way.
+const roomWritable = computed<boolean>(() => listedRooms.value?.find((room) => room.chatId === chatId)?.writable !== false);
+const writable = computed<boolean>(() => roomWritable.value && roomMayWrite(access.value, administrator.value, accessReady.value));
+// What the administrator changes of a room as its administrator — its pin, its providers and mode, its picture, its
+// removal, and a delete or a forward of any message — stands where he may change the room.
+const manages = computed<boolean>(() => administrator.value && roomWritable.value);
 
 const { control, link: controlState, reachable, read: readControl } = useControlStatus();
 
@@ -878,7 +885,8 @@ const forwardingOpen = computed<boolean>({
     if (!open) forwarding.value = null;
   }
 });
-const forwardingRooms = computed(() => rooms.value.filter((room) => room.chatId !== chatId).map((room) => ({ chatId: room.chatId, title: roomTitle(t, rooms.value, room.chatId) })));
+// A message goes into no room the reader may not change.
+const forwardingRooms = computed(() => rooms.value.filter((room) => room.chatId !== chatId && room.writable !== false).map((room) => ({ chatId: room.chatId, title: roomTitle(t, rooms.value, room.chatId) })));
 const forwardingDescription = computed<string>(() => {
   const item = forwarding.value;
 
@@ -1043,18 +1051,18 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     { label: t("room.action.copy_all"), icon: "i-material-symbols-content-copy-outline", onSelect: () => void copyAll() },
     // The pinned order is one list for every reader, so only the administrator sets it (docs/web.md, the room
     // screen's pin).
-    ...(administrator.value ? [pinned.value
+    ...(manages.value ? [pinned.value
       ? { label: t("room.action.unpin"), icon: "i-material-symbols-keep-off-outline", onSelect: () => void pin(false) }
       : { label: t("room.action.pin"), icon: "i-material-symbols-keep-outline", onSelect: () => void pin(true) }] : []),
     // Which providers the room is on is a setting of its registration, the administrator's (docs/web.md, the room
     // screen's chat providers).
-    ...(administrator.value ? [{ label: t("room.action.providers"), icon: "i-material-symbols-hub-outline", onSelect: () => { providersOpen.value = true; } }] : []),
+    ...(manages.value ? [{ label: t("room.action.providers"), icon: "i-material-symbols-hub-outline", onSelect: () => { providersOpen.value = true; } }] : []),
     // The room's picture, set in the console beside the one a provider hands in (docs/web.md, 「Profile photos」).
-    ...(administrator.value ? [{ label: t("picture.action.set_room"), icon: "i-material-symbols-add-photo-alternate-outline", onSelect: () => { pictureOpen.value = true; } }] : [])
+    ...(manages.value ? [{ label: t("picture.action.set_room"), icon: "i-material-symbols-add-photo-alternate-outline", onSelect: () => { pictureOpen.value = true; } }] : [])
   ],
   // Removing the room's registration stands last, in a group of its own (docs/web.md, the room
   // screen's registration removal).
-  ...(administrator.value ? [[{ label: t("room.action.remove_registration"), icon: "i-material-symbols-delete-outline", color: "error" as const, onSelect: () => { removalOpen.value = true; } }]] : [])
+  ...(manages.value ? [[{ label: t("room.action.remove_registration"), icon: "i-material-symbols-delete-outline", color: "error" as const, onSelect: () => { removalOpen.value = true; } }]] : [])
 ]);
 // Whether the room stands in the pinned order, as the room list read it.
 const pinned = computed(() => listedRooms.value.some((room) => room.chatId === chatId && room.pinned));
@@ -1395,7 +1403,7 @@ const consoleBases = useConsoleBases();
 const requestSecret = useSecretRequest();
 
 function openArrivedRequest(arrived: readonly FeedItem[]): void {
-  if (!administrator.value || document.visibilityState !== "visible" || secretForm.value.open || document.querySelector("[role=dialog]") !== null) {
+  if (!manages.value || document.visibilityState !== "visible" || secretForm.value.open || document.querySelector("[role=dialog]") !== null) {
     return;
   }
 

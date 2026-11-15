@@ -21,7 +21,9 @@ const receiver = standIn("RECEIVER", (one) => {
   if (one.path === `/rooms/${ROOM}/accounts`) return answer({ accounts: [{ account: "7", addedBy: null, addedAt: 1 }, { account: "12", addedBy: "7", addedAt: 2 }] });
   if (one.path === "/rooms/-12/accounts") return answer({ accounts: [{ account: "12", addedBy: null, addedAt: 1 }] });
   if (one.path.endsWith("/accounts")) return answer({ accounts: [] });
-  if (one.path === "/rooms/-12/members") return answer({ code: "record-only-room", error: "The room is on the record alone." }, 409);
+  // Whose private room each room is: -14 is an account's own private room, every other room no one's.
+  if (/^\/rooms\/-?\d+$/.test(one.path)) return answer({ id: Number(one.path.split("/")[2]), title: null, privateOf: one.path === "/rooms/-14" ? 12 : null });
+  if (one.path === "/rooms/-12/members" || one.path === "/rooms/-14/members") return answer({ code: "record-only-room", error: "The room is on the record alone." }, 409);
   if (one.path === `/rooms/${ROOM}/members`) {
     return answer({
       members: [
@@ -80,6 +82,10 @@ describe("a room's members", () => {
       ["POST", "/senders/users", { senders: [KNOWN, UNKNOWN, GRANTED] }],
       ["GET", "/users/12", null]
     ]);
+  });
+
+  test("of a private room offer nobody to let in, the administrator included, since the receiver keeps them as they stand", async () => {
+    expect((await asked(read, { params: { chatId: "-14" } })).answer?.mayLetIn).toBe(false);
   });
 
   test("of a room no chat service carries are its accounts alone", async () => {

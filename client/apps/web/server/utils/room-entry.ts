@@ -1,4 +1,5 @@
 import { AccountRefusal, AccountServiceDown, checkEntry } from "./account-service";
+import { privateOf } from "./console-rooms";
 import { fail } from "./fail";
 
 import { wording } from "#shared/wording";
@@ -9,9 +10,11 @@ import type { SignedIn } from "./accounts";
 // say — the room's opener, a head of the opener's unit or the administrator, never across the room's company — asked
 // before the receiver is told anything (docs/web.md, the room screen's section on opening a room and letting people in).
 
-/** Whether the signed-in login may let people into the room at all, for the members sheet; a check that cannot be
- * made offers nothing. */
+/** Whether the signed-in login may let people into the room at all, for the members sheet: nobody in a private room,
+ * whose members the receiver keeps as they stand; a check that cannot be made offers nothing. */
 export async function mayLetIn(signed: SignedIn, room: number): Promise<boolean> {
+  // A private room, or one whose standing cannot be read, offers nobody.
+  if ((await privateOf(room).catch(() => undefined)) !== null) return false;
   if (signed.administrator) return true;
   if (signed.id === null) return false;
 

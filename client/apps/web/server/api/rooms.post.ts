@@ -3,7 +3,7 @@ import { wording } from "#shared/wording";
 
 import { signedInUser } from "../utils/accounts";
 import { supervisorsOwnedBy } from "../utils/axes";
-import { openRecordRoom } from "../utils/console-rooms";
+import { acting, openRecordRoom } from "../utils/console-rooms";
 import { roomReachChanged } from "../utils/room-reach";
 
 import type { RoomAdded } from "#shared/types";
@@ -92,7 +92,7 @@ export default defineEventHandler(async (event): Promise<RoomAdded> => {
   // left naming none, which the default answerer answers.
   if (supervisor !== null) {
     await receiverCall(
-      receiver().PUT("/rooms/{roomId}/supervisors", { params: { path: { roomId: room.id } }, body: { supervisors: [supervisor] } }),
+      receiver().PUT("/rooms/{roomId}/supervisors", { params: { path: { roomId: room.id } }, body: { supervisors: [supervisor], ...acting(signed) } }),
       { codes: SUPERVISOR_CODES }
     );
   }

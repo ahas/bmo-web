@@ -54,12 +54,43 @@ describe("the relay's path", () => {
       }
     });
 
-    process.env.BINARY_ADDRESS = `http://127.0.0.1:${binary.port}`;
+    // A change goes to a service a manifest names; one the console calls directly is relayed for a read alone.
+    attachBundles([{ manifest: manifestOf("binary", { apiPrefix: "/files" }), unit: { address: `http://127.0.0.1:${binary.port}`, token: null }, words: {} }]);
     await handler({ params: { path: "binary/files" }, method: "POST", rawBody: bytes, node: {} } as RouteEvent);
+    attachBundles([]);
     await binary.stop(true);
-    delete process.env.BINARY_ADDRESS;
 
     expect(heard).toEqual(bytes);
+  });
+
+  test("of a unit the console calls directly is a read alone: a change asked of it is absent, and reaches no unit", async () => {
+    unit.asked.length = 0;
+
+    for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+      const status = await handler({ ...asking("rooms/-21/messages"), method } as RouteEvent).then(
+        (response) => response.status,
+        (error: { statusCode?: number }) => error.statusCode
+      );
+
+      expect({ method, status }).toEqual({ method, status: 404 });
+    }
+
+    expect(unit.asked).toEqual([]);
+    expect((await handler(asking("rooms/-21/messages"))).status).toBe(200);
+  });
+
+  test("of a unit the console calls directly is refused to a bundle's page, which no manifest lets reach it", async () => {
+    attachBundles([{ manifest: manifestOf("caller", { bundle: "/console/bundle/module-a.js", apiPrefix: "/console" }), unit: { address: unit.address, token: null }, words: {} }]);
+    unit.asked.length = 0;
+
+    const status = await handler({ ...asking("rooms"), headers: { referer: "https://console.example.test/caller" } } as RouteEvent).then(
+      (response) => response.status,
+      (error: { statusCode?: number }) => error.statusCode
+    );
+
+    attachBundles([]);
+    expect(status).toBe(403);
+    expect(unit.asked).toEqual([]);
   });
 
   test("escapes once what the request left bare", async () => {

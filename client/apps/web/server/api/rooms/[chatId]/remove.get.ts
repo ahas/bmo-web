@@ -1,8 +1,13 @@
+import { removalQuery } from "../../../utils/console-rooms";
+import { receiverRoute } from "../../../utils/receiver";
+import { requireWritableRoom } from "../../../utils/room-reach";
+
 import type { RoomRemovalPreview } from "#shared/types";
 
 // What removing this room's registration would take and leave, read by the receiver with nothing written, for the
 // administrator alone. It asks every holder and counts the room's files, and waits for that answer however long it
-// takes under load.
+// takes under load. Another account's private room is no room of his to remove, so it is refused before anything is
+// asked (docs/web.md, 「Access」).
 
 // The answer the receiver gives a removal, preview or carried out; the fields the console's screen does not show
 // stand aside.
@@ -18,11 +23,10 @@ interface RemovalRead {
 export default defineEventHandler(async (event): Promise<RoomRemovalPreview> => {
   const signed = await requireAdministrator(event);
   const chatId = requireChatId(event);
-  const answer = (await receiverCall(
-    receiver().DELETE("/rooms/{roomId}", {
-      params: { path: { roomId: chatId }, query: { by: signed.name, dryRun: true } }
-    })
-  )) as RemovalRead;
+
+  await requireWritableRoom(event, chatId);
+
+  const answer = await receiverRoute<RemovalRead>(`/rooms/${chatId}?${removalQuery(signed, true)}`, { method: "DELETE" }, { passStatus: [403] });
 
   return {
     chat: chatId,

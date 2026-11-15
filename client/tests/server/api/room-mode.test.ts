@@ -18,6 +18,8 @@ let mode = "record-only";
 const receiver = standIn("RECEIVER", (one) => {
   const path = one.path.split("?")[0] ?? "";
 
+  // No room here is anyone's private room; a private room's refusal stands in room-private.test.ts.
+  if (/^\/rooms\/-?\d+$/.test(path)) return answer({ id: Number(path.split("/")[2]), title: null, privateOf: null });
   if (path === "/rooms/-9/registration") return answer({ code: "room-not-added", error: "never added" }, 409);
 
   if (path === "/rooms/-8/registration" && one.method === "PUT") {
@@ -52,7 +54,7 @@ describe("a room's mode", () => {
     receiver.asked.length = 0;
 
     expect((await asked(write, { params: { chatId: "-7" }, body: { mode: "avatar" } })).answer).toEqual({ mode: "avatar" });
-    expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([["PUT", "/rooms/-7/registration?by=tester", { mode: "avatar" }]]);
+    expect(receiver.asked.filter((one) => one.method === "PUT").map((one) => [one.method, one.path, one.body])).toEqual([["PUT", "/rooms/-7/registration?by=tester", { mode: "avatar", account: 1 }]]);
   });
 
   test("refuses a mode it does not know and never reaches the receiver", async () => {

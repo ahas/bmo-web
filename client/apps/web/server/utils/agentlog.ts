@@ -6,7 +6,7 @@ import { agency, agencyCall } from "./agency";
 import { unitFetch } from "./units";
 
 import type { LogLine } from "@agency/client";
-import type { AgentLogLine, AgentLogPage, AgentLogPatch, AgentLogState, AgentLogTool } from "#shared/types";
+import type { AgentLogClock, AgentLogClockEvent, AgentLogLine, AgentLogPage, AgentLogPatch, AgentLogState, AgentLogTool } from "#shared/types";
 
 // An agent's log as the agency's fixed API holds it (the agency's `docs/api.md`, 「log-lines」): every line the agent
 // left, across its runs, oldest line first. A screen opens on the agent's newest page, goes back by the id of the
@@ -252,7 +252,51 @@ function asLine(line: LogLine): AgentLogLine {
     state: fieldOf(line, "state", (value) => (typeof value === "string" ? (value as AgentLogState) : null)),
     truncated: fieldOf(line, "truncated", (value) => value === true) === true,
     text: line.text,
-    ...patchesOf(line)
+    ...patchesOf(line),
+    clock: line.kind === "note" ? clockOf(line) : null
+  };
+}
+
+const CLOCK_EVENTS: readonly AgentLogClockEvent[] = ["started", "running", "asked", "kept", "ask-failed", "cut", "ended"];
+const CLOCK_CUTS: readonly NonNullable<AgentLogClock["cut"]>[] = ["no-progress", "no-process", "supervisor", "stop"];
+const CLOCK_OUTCOMES: readonly NonNullable<AgentLogClock["outcome"]>[] = ["completed", "failed", "ended-with-turn"];
+
+function oneOf<T extends string>(value: unknown, allowed: readonly T[]): T | null {
+  return typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : null;
+}
+
+function numberOr(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/**
+ * What the agency's call clock said of a tool call, as the fields it keeps on the note it wrote (the agency's
+ * `docs/agent-control.md`, 「A job turn's tool calls are held to a clock」); null for a note that carries none. The
+ * agency answers a note filed before it kept them with the same fields, so the sentence is never read here.
+ */
+export function clockOf(line: Pick<LogLine, "fields"> & { metadata?: unknown }): AgentLogClock | null {
+  const metadata = line.metadata ?? fieldOf(line as LogLine, "metadata", (value) => value);
+  const held = typeof metadata === "object" && metadata !== null ? (metadata as Record<string, unknown>).toolClock : null;
+
+  if (typeof held !== "object" || held === null) return null;
+
+  const clock = held as Record<string, unknown>;
+  const event = oneOf(clock.event, CLOCK_EVENTS);
+
+  if (event === null || typeof clock.tool !== "string") return null;
+
+  return {
+    event,
+    call: typeof clock.call === "string" ? clock.call : null,
+    tool: clock.tool,
+    command: typeof clock.command === "string" ? clock.command : "",
+    pid: numberOr(clock.pid),
+    elapsedMs: numberOr(clock.elapsedMs),
+    silentMs: numberOr(clock.silentMs),
+    keptMs: numberOr(clock.keptMs),
+    why: typeof clock.why === "string" ? clock.why : null,
+    cut: oneOf(clock.cut, CLOCK_CUTS),
+    outcome: oneOf(clock.outcome, CLOCK_OUTCOMES)
   };
 }
 

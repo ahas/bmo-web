@@ -2187,6 +2187,21 @@ agents:
     call_done: 완료
     call_failed: 실패
     characters_unit: 자
+    clock_asked: 감독관 확인 요청
+    clock_asked_silent: "감독관 확인 요청 · 출력 없이 {time}"
+    clock_ask_failed: 감독관 확인 실패
+    clock_cut: 중지
+    clock_cut_no_process: 응답 없음
+    clock_cut_no_progress: 진행 없음
+    clock_cut_stop: 작업 중지
+    clock_cut_supervisor: 감독관
+    clock_kept: 감독관 유지
+    clock_kept_until: "감독관 유지 · {time}까지"
+    clock_long: "{minutes}분 넘게 실행 중"
+    clock_loop: 반복
+    clock_pid: "프로세스 {pid}"
+    clock_running: "실행 중 {time}"
+    clock_turn_ended: 턴과 함께 끝
     column_role: 역할
     column_rooms: 방
     context_archive: 지난 대화

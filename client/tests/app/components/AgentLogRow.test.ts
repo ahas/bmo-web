@@ -13,8 +13,9 @@ const diff = await read("AgentLogDiff.vue");
 
 describe("a call", () => {
   test("is the one terminal block, with no head row of its own and no fold of its arguments", () => {
-    expect(template).toContain('<AgentToolCall v-if="line.kind === \'tool\'" :row="props.row" />');
-    expect(template).toContain(`<div v-if="line.kind !== 'tool'" class="flex flex-wrap items-center gap-2">`);
+    // A call is a call's own line, or the call clock's notes standing in for one.
+    expect(template).toContain('<AgentToolCall v-if="call" :row="props.row" />');
+    expect(template).toContain(`<div v-if="!call" class="flex flex-wrap items-center gap-2">`);
     // The one fold a row has is a line of a kind the console does not know.
     expect(template.match(/<UChatTool/g)?.length).toBe(1);
     expect(template).toContain('<UChatTool v-else-if="!known"');

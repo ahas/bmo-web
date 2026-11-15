@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
-import { toolOf } from "../../../apps/web/server/utils/agentlog";
+import { clockOf, toolOf } from "../../../apps/web/server/utils/agentlog";
 import { AGENT_LOG_RUN_SCAN } from "../../../apps/web/shared/config";
 
 import type { AgentLogPage } from "../../../apps/web/shared/types";
@@ -443,5 +443,33 @@ describe("the changes a shell command made", () => {
     const read = patchesOf({ fields: {}, metadata: { toolUseResult: { bashEditDiff: { files: [{ filePath: "/repo/a.ts", hunks: [long] }], moreFiles: 0, changedFiles: ["/repo/a.ts"] } } } });
 
     expect(read.patches[0]).toMatchObject({ filePath: "/repo/a.ts", tooLarge: true, hunks: [] });
+  });
+});
+
+describe("a call clock's note", () => {
+  test("is read off the fields the agency keeps on it, never off its words", () => {
+    const clock = clockOf({
+      fields: {},
+      metadata: { toolClock: { event: "kept", call: null, tool: "Bash", command: "sleep 600", pid: null, elapsedMs: null, keptMs: 3_592_000, extra: 1 } }
+    });
+
+    expect(clock).toEqual({
+      event: "kept",
+      call: null,
+      tool: "Bash",
+      command: "sleep 600",
+      pid: null,
+      elapsedMs: null,
+      silentMs: null,
+      keptMs: 3_592_000,
+      why: null,
+      cut: null,
+      outcome: null
+    });
+  });
+
+  test("a note with no clock fields, or an event the console does not know, has no clock", () => {
+    expect(clockOf({ fields: {}, metadata: null })).toBeNull();
+    expect(clockOf({ fields: {}, metadata: { toolClock: { event: "paused", tool: "Bash" } } })).toBeNull();
   });
 });

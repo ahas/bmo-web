@@ -8,18 +8,23 @@
     <p class="flex min-w-0 items-start gap-2 text-sm">
       <!-- A call still running spins its mark until its result comes back. -->
       <UIcon
-        :name="props.row.running ? 'i-material-symbols-progress-activity' : icon"
+        :name="running ? 'i-material-symbols-progress-activity' : icon"
         class="mt-0.5 size-4 shrink-0"
-        :class="props.row.running ? 'animate-spin text-primary motion-reduce:animate-none' : 'text-muted'"
-        :aria-label="props.row.running ? $t('agents.status.call_running') : undefined"
-        :role="props.row.running ? 'img' : undefined"
+        :class="running ? 'animate-spin text-primary motion-reduce:animate-none' : 'text-muted'"
+        :aria-label="running ? $t('agents.status.call_running') : undefined"
+        :role="running ? 'img' : undefined"
       />
-      <span class="min-w-0 break-words text-highlighted">
-        {{ top }}
+      <span class="min-w-0 break-words text-highlighted" data-tool-top>
+        {{ top.text }}
+        <!-- A command that is a loop's says so after what the loop runs. -->
+        <UBadge v-if="top.loop" color="neutral" variant="subtle" size="sm" :label="$t('agents.label.clock_loop')" class="ms-1 align-middle" data-tool-loop />
         <!-- The files a shell command visibly writes, named after its description. -->
         <span v-if="written.length > 0" class="font-mono break-all text-muted" data-tool-writes>→ {{ written.join(", ") }}</span>
       </span>
     </p>
+
+    <!-- What the agency's call clock said of the call, folded into one clock under its top line. -->
+    <AgentToolClock v-if="props.row.clock !== undefined" :clock="props.row.clock" class="ps-6" />
 
     <div class="flex min-w-0 flex-col overflow-hidden rounded-md border border-default font-mono text-sm">
       <div class="flex min-w-0 flex-col px-2 py-1">
@@ -103,13 +108,15 @@ import { GENERIC_TOOL_ICON } from "~/domain/log";
 import { countText, secondsText } from "~/domain/numbers";
 import { changesView, shownPath } from "~/domain/patch";
 import { SHELL_COLOURS, shellTokens, writtenFiles } from "~/domain/shell-colour";
-import { callArguments, callCommand, callTopLine, isShell, paneSettled, resultLook, toolName } from "~/domain/tool-view";
+import { clockTopLine, commandGist } from "~/domain/tool-clock";
+import { callArguments, callCommand, callDescription, callTopLine, isShell, paneSettled, resultLook, toolName } from "~/domain/tool-view";
 import { fileSizeText } from "~/domain/attachments";
 import { formatTime } from "bmo-ui/app/domain/time";
 
 import type { AgentLogLine } from "#shared/types";
 import type { LogRow } from "~/domain/log";
 import type { ChangesView, DiffView } from "~/domain/patch";
+import type { CommandGist } from "~/domain/tool-clock";
 
 interface Props {
   row: LogRow;
@@ -128,11 +135,35 @@ const cwd = computed<string | null>(() =>
   props.cwd !== undefined ? props.cwd : (catalogueAgents().find((agent) => agent.name === line.value.agent)?.path ?? null)
 );
 
-const top = computed(() => callTopLine(line.value.name, line.value.text) || (line.value.tool?.name ?? line.value.name ?? ""));
+// A row standing in for a call not on the page, drawn from what the call clock's notes hold of it alone.
+const clockOnly = computed(() => line.value.kind !== "tool" && props.row.clock !== undefined);
+const callName = computed(() => (clockOnly.value ? props.row.clock!.tool : line.value.name));
+
+const running = computed(() => props.row.running === true || props.row.clock?.state === "running");
+
+// The top line: the call's description, or a shell command's gist where it came with none, or its tool and key
+// argument (docs/web.md, 「A tool call」).
+const top = computed<CommandGist>(() => {
+  if (clockOnly.value) return clockTopLine(props.row.clock!);
+
+  if (isShell(line.value.name) && callDescription(line.value.text) === null && callArguments(line.value.text).has("command")) {
+    const gist = commandGist(callCommand(line.value.name, line.value.text));
+
+    return { text: `${toolName(line.value.name)} ${gist.text}`.trim(), loop: gist.loop };
+  }
+
+  return { text: callTopLine(line.value.name, line.value.text) || (line.value.tool?.name ?? line.value.name ?? ""), loop: false };
+});
 // An edit or a write is drawn as the change it made, so its command names the tool and the file alone.
-const change = computed(() => callChange(t, line.value.name, line.value.text, cwd.value));
+const change = computed(() => (clockOnly.value ? null : callChange(t, line.value.name, line.value.text, cwd.value)));
 const changeOpen = ref(false);
 const command = computed(() => {
+  if (clockOnly.value) {
+    const clock = props.row.clock!;
+
+    return isShell(clock.tool) ? clock.command : [toolName(clock.tool), clock.command].filter((part) => part !== "").join(" ");
+  }
+
   if (change.value === null) return callCommand(line.value.name, line.value.text);
 
   const fields = callArguments(line.value.text);
@@ -140,7 +171,7 @@ const command = computed(() => {
 
   return `${toolName(line.value.name)} ${shownPath(path, cwd.value)}`;
 });
-const shell = computed(() => isShell(line.value.name));
+const shell = computed(() => isShell(callName.value));
 const tokens = computed(() => (shell.value ? shellTokens(command.value) : []));
 const written = computed(() => (shell.value ? writtenFiles(command.value).map((path) => shownPath(path, cwd.value)) : []));
 const icon = computed(() => line.value.tool?.icon ?? GENERIC_TOOL_ICON);

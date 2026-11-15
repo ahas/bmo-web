@@ -1,8 +1,11 @@
 import { AGENT_LOG_OPENING_SIZE, AGENT_LOG_PAGE_SIZE, PAGING } from "#shared/config";
+import { clockFitsCall, clockKey, foldClock, newClock, settleClock } from "./tool-clock";
 import { valueText } from "./value-text";
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import type { AgentLogContext, AgentLogContextState, AgentLogKind, AgentLogLine, AgentLogPage } from "#shared/types";
+import type { ToolClockView } from "./tool-clock";
+
+import type { AgentLogClock, AgentLogContext, AgentLogContextState, AgentLogKind, AgentLogLine, AgentLogPage } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { ComputedRef, Ref } from "vue";
 
@@ -28,6 +31,10 @@ export interface LogRow {
   depth: number;
   // Whether a call is still running: a pane program said it began and has not said it settled.
   running?: boolean;
+  // What the agency's call clock said of the call, its notes folded into one (docs/web.md, 「A call's clock lines are
+  // no line of the log either」). A row whose line is a clock note rather than a call stands for a call not on the
+  // page.
+  clock?: ToolClockView;
 }
 
 // Where in a log a screen is to open: the log's own name for one run, or the second one began
@@ -419,12 +426,66 @@ export function resultPreview(text: string): { head: string; lines: number } {
 
 // The log as the screen walks it, oldest first. A result is folded under the call it answers
 // so the two read as one thing, and a line fanned out by a Task call is indented under that call
-// so the branch reads on its own.
+// so the branch reads on its own. The call clock's notes are folded into the call they are of.
 export function buildLog(lines: AgentLogLine[]): LogRow[] {
   const rows: LogRow[] = [];
   const calls = new Map<string, LogRow>();
   // The calls a pane program said began and has not said settled, by the call's id.
   const going = new Set<string>();
+  // The row each call's clock stands on, by the clock's key: the call's own, or one standing in for it.
+  const clocks = new Map<string, LogRow>();
+
+  // A call's clock carried by a row standing in for it moves onto the call once the call's own line is read, and the
+  // stand-in goes.
+  function adopt(call: LogRow): void {
+    for (const [key, held] of clocks) {
+      const clock = held.clock;
+
+      if (held.line.kind === "tool" || clock === undefined || call.clock !== undefined) continue;
+
+      // A clock with no call id is only ever a call's that is still running: an ended one was another run's.
+      const ours = clock.call !== null ? clock.call === call.line.ref : clock.state === "running" && clockFitsCall(call.line, held.line.run, clock);
+
+      if (!ours) continue;
+
+      call.clock = clock;
+      clocks.set(key, call);
+      rows.splice(rows.indexOf(held), 1);
+    }
+  }
+
+  // The newest call on the page a note with no call id is of, one carrying no clock yet.
+  function callFor(line: AgentLogLine, clock: AgentLogClock): LogRow | undefined {
+    if (clock.call !== null) {
+      const call = calls.get(clock.call);
+
+      return call?.clock === undefined ? call : undefined;
+    }
+
+    return rows.findLast((row) => row.line.kind === "tool" && row.clock === undefined && clockFitsCall(row.line, line.run, clock));
+  }
+
+  function foldNote(line: AgentLogLine, clock: AgentLogClock): void {
+    const key = clockKey(line, clock);
+    let row = clocks.get(key);
+
+    // A start after the call's end is a new run of the same command.
+    if (row?.clock !== undefined && clock.event === "started" && row.clock.state !== "running") row = undefined;
+
+    if (row === undefined) {
+      row = callFor(line, clock);
+
+      if (row === undefined) {
+        row = { key: String(line.id), line, results: [], depth: line.parent === null ? 0 : BRANCH_DEPTH };
+        rows.push(row);
+      }
+
+      row.clock = newClock(key, clock);
+      clocks.set(key, row);
+    }
+
+    foldClock(row.clock!, line, clock);
+  }
 
   for (const line of lines) {
     // A pane program's progress record is no line of the log: a call's start and settling mark its call, and the rest
@@ -444,6 +505,12 @@ export function buildLog(lines: AgentLogLine[]): LogRow[] {
       continue;
     }
 
+    // A clock note is no line of the log either: it is the clock of the call it is of.
+    if (line.clock != null) {
+      foldNote(line, line.clock);
+      continue;
+    }
+
     // A result whose call has already scrolled out of the window has nothing to sit under,
     // so it stands as a row of its own.
     if (line.kind === "tool-result" && line.ref !== null) {
@@ -452,7 +519,17 @@ export function buildLog(lines: AgentLogLine[]): LogRow[] {
       if (call !== undefined) {
         call.results.push(line);
         call.running = false;
+
+        if (call.clock !== undefined) settleClock(call.clock, line.state === "failed" ? "failed" : "completed", line.at);
+
         continue;
+      }
+    }
+
+    // A run's end ends every call of it still running.
+    if (line.kind === "end") {
+      for (const held of clocks.values()) {
+        if (held.clock !== undefined && held.line.run === line.run) settleClock(held.clock, "ended-with-turn", line.at);
       }
     }
 
@@ -469,6 +546,8 @@ export function buildLog(lines: AgentLogLine[]): LogRow[] {
     }
 
     rows.push(row);
+
+    if (line.kind === "tool") adopt(row);
   }
 
   return rows;

@@ -3303,6 +3303,38 @@ a seat of its role.
   record is the run's running total in the work view's head (「The work view」); how full the session stands is
   the head's context figure; the thinking and writing phases are what 지금 says. None stands as a row, and no
   field of one — its id, its moment, its call's id, whether its input was cut — is shown.
+- **A call's clock lines are no line of the log either.** The agency's call clock writes a note about a job's tool
+  call as it starts, again every interval while it runs past its threshold, when the supervisor is asked about it
+  gone silent and idle, when the supervisor keeps it or the ask fails, when it is cut and when it ends, each
+  carrying its facts as fields — the call's id, the tool, the command's one-line summary, the process id, how long
+  it had run and what befell it — and a note filed before those fields were kept is answered with them read back
+  out of its words (the agency's `docs/agent-control.md`, 「A job turn's tool calls are held to a clock」). The
+  console reads the fields and never the words: every clock note of one call becomes the clock of that call's one
+  block (「A tool call」 below), and none stands as a 메모 row however many the clock wrote.
+  1. **Which call a note is of** is its call's id, the id the call's own line carries; a note that carries no id is
+     the call of the same run and tool whose command opens with the note's summary, the newest such call standing
+     before it. A note whose call is not on the page — its call line scrolled out, or not yet written — stands as a
+     row of its own, drawn as the call's block with what the notes hold, and moves into the call's block once that
+     line arrives. A start after a call's end is a new run of the same command, with a clock of its own.
+  2. **While the call runs**, under the block's top line, its mark spinning, stands 「실행 중 26분」: the time since
+     the call began, read off the reader's own clock from the moment the newest note puts its start at, so it moves
+     between notes and each note sets it right; in the console's words for how long something has stood (seconds
+     under a minute, then minutes, then hours and minutes), its characters turning as they change. A call running
+     past ten minutes wears an hourglass after it in the quiet tone, which names itself 「10분 넘게 실행 중」 in a
+     tooltip; nothing of a long call wears the warning or error colours.
+  3. **Its moments stand under that line, one short line each with its time:** the supervisor asked about it,
+     with how long it had written nothing and stood idle (「감독관 확인 요청 · 출력 없이 5분」); the supervisor kept
+     it, until when (「감독관 유지 · 05:09까지」); the ask that could not be put (「감독관 확인 실패」), its reason
+     in a tooltip.
+  4. **When it ends** the line settles to how it ended and how long it took: 「완료 · 29분 7초」, 「실패 · 4초」, or
+     「턴과 함께 끝 · 3분 2초」 for one the turn's end left unanswered, in the stretch words a finished length takes;
+     a cut call reads 「중지 · 진행 없음」, 「중지 · 응답 없음」 for one that held no process of its own, 「중지 ·
+     감독관」 with the supervisor's reason under it, or 「중지 · 작업 중지」. Done is in the success tone, failed in
+     the error tone, and the rest in the quiet one.
+  5. **The process id** is named in a tooltip on the clock's line, 「프로세스 1681736」, where a note gave one.
+  6. **A clock row of its own** is the call's block drawn from the notes alone: its top line the tool and the
+     command's gist (「A tool call」, its top line), its command under the prompt the summary as the clock kept it,
+     and no result.
 - **A line of a kind the console does not know** wears its kind's own word and a 자세히 press that spreads what
   it holds as a name and value list; it never stands as a bare field list.
 - The text of thinking, words, notes and end stands as markdown text (「Text written in markdown」),
@@ -3316,7 +3348,13 @@ a seat of its role.
   call's id however many lines were written between them.
   1. **The top line is the call's description**, the one it came with; a call that came with none names its tool
      and its key argument instead — the file for `Read`, `Write` and `Edit`, the pattern for a search, the
-     address for the web, the instruction for a subagent — and an MCP tool by its name without its server.
+     address for the web, the instruction for a subagent — and an MCP tool by its name without its server. A
+     shell command stands there as its gist, the one command that says what it does: the variables it opens by
+     assigning and a change of directory set aside, the keywords of a loop or a condition taken off, a loop's
+     pause skipped and its redirections dropped, and a variable that holds a path written as that file's name;
+     where it is a loop's, a 「반복」 badge follows. So an assignment of a long path followed by a polling loop
+     reads as the wait it is, `Bash grep -q '^exit' ask.out` 「반복」, and the command under the prompt stands
+     whole.
   2. **Under it, the command, as a prompt of oh-my-zsh's pure theme in the console's ANSI palette** (one palette,
      declared once as tokens, in both themes). Its first line names who ran it, `worker@checkout` — the agent and
      the checkout's folder name — then the call's time, the checkout's path in blue and its branch, with a red `*`

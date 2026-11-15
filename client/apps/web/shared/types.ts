@@ -1738,6 +1738,29 @@ export interface AgentLogLine {
   patches: AgentLogPatch[];
   // Files a shell command changed that the provider counted but did not record.
   patchesMore: number;
+  // What the agency's call clock said of a tool call, on a note it wrote; absent or null on every other line (the
+  // agency's `docs/agent-control.md`, 「A job turn's tool calls are held to a clock」).
+  clock?: AgentLogClock | null;
+}
+
+// What befell a call when the clock wrote: it began, it was still running, the supervisor was asked about it, kept
+// it, could not be asked, it was cut, or it ended.
+export type AgentLogClockEvent = "started" | "running" | "asked" | "kept" | "ask-failed" | "cut" | "ended";
+
+// One note of the agency's call clock, as fields: the call's id where the note carries one, the tool, the one-line
+// summary of its command, its process, how long it had run, and what each event adds.
+export interface AgentLogClock {
+  event: AgentLogClockEvent;
+  call: string | null;
+  tool: string;
+  command: string;
+  pid: number | null;
+  elapsedMs: number | null;
+  silentMs: number | null;
+  keptMs: number | null;
+  why: string | null;
+  cut: "no-progress" | "no-process" | "supervisor" | "stop" | null;
+  outcome: "completed" | "failed" | "ended-with-turn" | null;
 }
 
 // One run of changed lines as the provider recorded it: where it starts and how long it is on

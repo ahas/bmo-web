@@ -1,7 +1,7 @@
 <template>
   <li class="flex flex-col gap-1" :class="{ 'ms-4 border-s border-default ps-4': props.row.depth > 0 }" :data-log-row="props.row.key">
     <!-- A call's own block carries its time on its prompt line and its description on top, so it has no head row. -->
-    <div v-if="line.kind !== 'tool'" class="flex flex-wrap items-center gap-2">
+    <div v-if="!call" class="flex flex-wrap items-center gap-2">
       <!-- The clock is a figure and not code: it reads in the interface's own face, and the
            columns of it line up because the digits are tabular. What is monospaced on this row
            is the tool's name, its arguments and the bodies below — the places where a command,
@@ -18,7 +18,9 @@
 
     <!-- A call is one block in the terminal look, its result and the change it made inside it (docs/web.md, 「A tool
          call」). -->
-    <AgentToolCall v-if="line.kind === 'tool'" :row="props.row" />
+    <!-- So is a call not on the page that the call clock's notes stand in for (docs/web.md, 「A call's clock lines are no
+         line of the log either」). -->
+    <AgentToolCall v-if="call" :row="props.row" />
 
     <!-- A result whose call scrolled out of the page stands in the same block, its command unknown. -->
     <div v-else-if="line.kind === 'tool-result'" class="flex min-w-0 flex-col overflow-hidden rounded-md border border-default font-mono text-sm">
@@ -76,6 +78,8 @@ const { t } = useI18n();
 const SHORT = t("agents.label.record_ends");
 
 const line = computed(() => props.row.line);
+// Whether the row is a call's block: a call's own line, or the call clock's notes standing in for one.
+const call = computed(() => line.value.kind === "tool" || props.row.clock !== undefined);
 
 const look = computed(() => lineLook(t, line.value));
 const known = computed(() => knownKind(line.value.kind));

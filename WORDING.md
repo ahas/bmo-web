@@ -204,6 +204,11 @@
 - choose, pick → 선택: 선택해 주세요, 선택 취소, {n}명 선택. Never 고르기, 골라 주세요, 물리기.
 - enter text → 입력: 입력해 주세요, {n}자 이내로 입력. Never 적어 주세요.
 - launch, start a run → 실행. Never 띄우다, 뜨다, 발사.
+- a tool call's clock in an agent's log → `실행 중 {time}` while it runs, `{n}분 넘게 실행 중` past the long mark; its
+  supervisor's moments → 감독관 확인 요청 (with ` · 출력 없이 {time}`), 감독관 유지 (with ` · {time}까지`), 감독관 확인
+  실패; how it settled → 완료, 실패, 턴과 함께 끝, or 중지 followed by what stopped it: 진행 없음, 응답 없음, 감독관, 작업
+  중지; its process → 프로세스 {pid}; a command that is a loop's → 반복. Never 타임아웃, 컷, 킬, 확인 요청됨, 대기 중
+  for a call, or 종료 for its end.
 - the moments a job or a run started and ended → 시작, 끝, each before its time: `시작 {time}`, `끝 {time}`, as
   a run's log names them. Never 완료 for the end, which a stopped or failed job never reached, and never 종료.
 - stop a run → 중지; pause and resume a timer → 정지, 재개; run out of time → 시간 초과. Never 멈추기,

@@ -1,6 +1,8 @@
 import { isAgentName } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { requireReadableAgent } from "../../../utils/agent-reach";
+
 import type { TurnFigures } from "#shared/types";
 
 // What the chat turns a log page shows ran and spent, asked by the runs the page holds: the roads each walked
@@ -14,6 +16,8 @@ export default defineEventHandler(async (event): Promise<{ turns: TurnFigures[] 
   if (!isAgentName(name)) {
     throw fail(400, wording("agents.error.bad_agent_name"));
   }
+
+  await requireReadableAgent(event, name);
 
   return { turns: [] };
 });

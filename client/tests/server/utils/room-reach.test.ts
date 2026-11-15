@@ -142,6 +142,14 @@ describe("the rooms a user reads on the console", () => {
     expect(await read()).toEqual([GROUP, PRIVATE]);
   });
 
+  test("hold no membership of a room since become another account's private room or sealed", async () => {
+    signedAs(colleague, "colleague");
+    memberships.set(colleague, [GROUP, -310, -320]);
+
+    expect(await read()).toEqual([GROUP]);
+    memberships.set(colleague, []);
+  });
+
   test("for a person let in, hold the room, never its opener's private room, and stop holding it once they are taken out", async () => {
     signedAs(colleague, "colleague");
     memberships.set(colleague, [GROUP]);

@@ -195,6 +195,25 @@ section states what each does.
 - **`GET /users/members`** — every person of the reader's own company who has not left, by user id and name
   alone, with no limit (「The people directory」).
 
+### The owner's account
+
+- **The owner's account is the user the owner's sender is linked to:** the sender the receiver names as the owner's
+  (its `GET /owner`, from its own configuration), linked to a user in `user_senders` as any identity is. The
+  receiver files the owner's account's words under that sender and takes his private chat as that account's.
+- **The console stands the link where it stands linked to none,** to the user the data move made the platform
+  administrator (「The data move」: the console's one account before the model, which was the owner's, written once
+  in `settings` and changed by no route). It asks at its start, in the pass that stands every account's record
+  identity, and again at the first request that needs the owner's account, so the owner is his account from the
+  start with nothing for him to do. A link that stands is never moved: the service refuses one sender linked to two
+  users. Where the receiver names no owner's sender, no move names an administrator or the service does not answer,
+  the console writes so to its log and the request goes on.
+- **Until the link stands the move's administrator keeps the owner's own road:** the console sends his words on the
+  receiver's owner routes, holds the owner's private chat as his own room, and takes him for the owner's login, as it
+  did before accounts had rooms of their own. On that road he writes in his own private chat always and in no
+  account's private room, his own BMO's among them, until the link names his account, as the receiver takes the
+  owner's road. A console login standing before the account model writes on the same road, for the owner's account
+  once the link stands and for no account while it does not.
+
 ### Console sections
 
 - **A console section is one entry of the console's navigation,** a screen of the sidebar's two sections, the

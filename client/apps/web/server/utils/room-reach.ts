@@ -6,12 +6,12 @@ import { checkRoom, userOf } from "./account-service";
 import { signedInUser } from "./accounts";
 import { SHARED, accountRooms, privacyOf, readableBy, roomPrivacies, writableBy } from "./console-rooms";
 import { fail } from "./fail";
-import { ownerChat } from "./owner";
-import { administratorKey } from "./owner-key";
+import { onOwnersRoad, ownerChat, ownerStanding } from "./owner";
 import { receiver, receiverCall } from "./receiver";
 
 import type { SignedIn } from "./accounts";
 import type { RoomPrivacy } from "./console-rooms";
+import type { OwnerStanding } from "./owner";
 import type { H3Event } from "h3";
 
 // The rooms a signed-in user reads on the console (docs/web.md, 「Access」): every room for the administrator; for
@@ -53,8 +53,10 @@ async function linkedRooms(account: number, administrator: boolean): Promise<num
 }
 
 /** The rooms an account reads as any person does: its console memberships, its own private rooms among them — the
- * owner's private chat for the owner's account alone, as the receiver answers them — and its linked identities' rooms.
- * A console login standing before the account model is the owner's, and the owner's private chat is its own. */
+ * owner's private chat for the owner's account alone, as the receiver answers them — and its linked identities' rooms,
+ * each held to whose private room it is now, so a membership never outlives its room becoming another's or sealed. The
+ * owner's private chat is the owner's account's own, the moment the console stands it (docs/accounts.md, 「The owner's
+ * account」), and a console login standing before the account model, which is the owner's, holds it alone. */
 export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
   if (signed.id === null) {
     const chat = signed.administrator ? await ownerChat() : null;
@@ -65,9 +67,16 @@ export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
   // The receiver's memberships hold the account's private rooms beside the rooms it was let into or opened; of the
   // rooms its identities reach, another account's private room and a sealed one are no rooms of its own.
   const account = signed.id;
-  const [memberships, linked, privacies] = await Promise.all([accountRooms(account), linkedRooms(account, signed.administrator), roomPrivacies()]);
+  const [memberships, linked, privacies, owner] = await Promise.all([
+    accountRooms(account),
+    linkedRooms(account, signed.administrator),
+    roomPrivacies(),
+    signed.administrator ? ownerStanding() : Promise.resolve(null)
+  ]);
+  const own = [...memberships, ...linked].filter((room) => readableBy(privacies.get(room) ?? SHARED, account));
+  const chat = owner?.account === account ? await ownerChat() : null;
 
-  return new Set([...memberships, ...linked.filter((room) => readableBy(privacies.get(room) ?? SHARED, account))]);
+  return new Set([...own, ...(chat === null ? [] : [chat])]);
 }
 
 /** A change of the rooms an account reads, made through the console: a room it was let into or opened, or one it
@@ -238,14 +247,16 @@ export async function isOwnRoom(event: H3Event, chatId: number): Promise<boolean
   return own.has(chatId);
 }
 
-/** The account a signed-in login changes a room as: its own, or the administrator's account for a console login
- * standing before the account model, which is the owner's; null where the model names no administrator yet. */
-export async function actingAccount(signed: SignedIn, administrator: () => Promise<string | null> = administratorKey): Promise<number | null> {
+/** The account a signed-in login changes a room as: its own, or for a console login standing before the account model,
+ * which writes on the owner's own road, the owner's account where the owner's sender stands linked to one, and none
+ * where it stands linked to none — the same account the receiver takes the owner's road to act for. */
+export async function actingAccount(signed: SignedIn, standing: () => Promise<OwnerStanding> = ownerStanding): Promise<number | null> {
   if (signed.id !== null) return signed.id;
+  if (!signed.administrator) return null;
 
-  const key = signed.administrator ? await administrator() : null;
+  const owner = await standing();
 
-  return key === null ? null : Number(key);
+  return owner.linked ? owner.account : null;
 }
 
 /**
@@ -267,17 +278,23 @@ export async function mayChangeRoom(event: H3Event, chatId: number): Promise<boo
 }
 
 /** How a login's changes are judged room by room, by the room's privacy: every room no one's goes, and any other as
- * its acting account's, or for a console login standing before the account model on the owner's own road, which writes
- * in his own private chat always, sealed or not (the receiver's `docs/receiver.md`, 「Console rooms and accounts」).
- * Who the login acts as is asked only where a room is someone's. */
-export function changeJudge(signed: SignedIn, administrator: () => Promise<string | null> = administratorKey): (room: number, privacy: RoomPrivacy) => Promise<boolean> {
+ * its acting account's; a login on the owner's own road — a console login standing before the account model, and the
+ * owner's account while his sender stands linked to none — writes in his own private chat always, sealed or not, and
+ * in another private room only as the owner's linked account, never while it is unlinked (the receiver's
+ * `docs/receiver.md`, 「Console rooms and accounts」). Who the login acts as is asked only where a room is
+ * someone's. */
+export function changeJudge(signed: SignedIn, standing: () => Promise<OwnerStanding> = ownerStanding): (room: number, privacy: RoomPrivacy) => Promise<boolean> {
   let account: Promise<number | null> | null = null;
+  let road: Promise<boolean> | null = null;
   let ownChat: Promise<number | null> | null = null;
+
+  // The owner's account while his sender stands linked to none speaks on his road, which acts for no account.
+  const actsAs = async (): Promise<number | null> => (signed.id !== null && (await (road ??= onOwnersRoad(signed, standing))) ? null : await actingAccount(signed, standing));
 
   return async (room, privacy) => {
     if (privacy.privateOf === null && !privacy.sealed) return true;
-    if (signed.id === null && signed.administrator && room === (await (ownChat ??= ownerChat()))) return true;
+    if ((await (road ??= onOwnersRoad(signed, standing))) && room === (await (ownChat ??= ownerChat()))) return true;
 
-    return writableBy(privacy, await (account ??= actingAccount(signed, administrator)));
+    return writableBy(privacy, await (account ??= actsAs()));
   };
 }

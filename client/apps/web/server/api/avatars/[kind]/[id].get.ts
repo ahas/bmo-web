@@ -1,7 +1,10 @@
 import { wording } from "#shared/wording";
 
+import { avatarPicture, isAvatarKind } from "../../../utils/avatars";
+import { requireReadableRoom } from "../../../utils/room-reach";
+
 // A profile picture is served by whose it is, never by a path the browser names. These are personal
-// pictures, so they sit behind the same login as everything else here.
+// pictures, so they sit behind the same login as everything else here, and a room's behind the room's own reach.
 export default defineEventHandler(async (event) => {
   await requireUserSession(event);
 
@@ -15,6 +18,9 @@ export default defineEventHandler(async (event) => {
   if (!Number.isSafeInteger(id)) {
     throw fail(400, wording("room.error.bad_avatar_id"));
   }
+
+  // A room's picture is the room's, read by whoever reads the room and answering anyone else as if it did not stand.
+  if (kind === "room") await requireReadableRoom(event, id);
 
   const picture = await avatarPicture(kind, id);
 

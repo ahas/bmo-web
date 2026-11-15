@@ -36,8 +36,9 @@ async function runOf(run: string): Promise<number | null> {
   return page.items[0]?.id ?? null;
 }
 
-/** One run's lines of an agent's, oldest first, after `after` where it is given; `hasMore` says another page waits. */
-export async function readRunPage(run: string, after: number, limit: number): Promise<AgentLogPage> {
+/** One run's lines of an agent's, oldest first, after `after` where it is given; `hasMore` says another page waits.
+ * Where `agent` is named, a run another agent ran reads as unavailable. */
+export async function readRunPage(run: string, after: number, limit: number, agent?: string): Promise<AgentLogPage> {
   const runId = await runOf(run);
 
   if (runId === null) return UNAVAILABLE;
@@ -45,6 +46,7 @@ export async function readRunPage(run: string, after: number, limit: number): Pr
   const first = await firstLineOf(runId);
 
   if (first === null) return { lines: [], hasMore: false, hasOlder: false };
+  if (agent !== undefined && first.agentName !== agent) return UNAVAILABLE;
 
   const window = pageWindow(limit);
   const found: AgentLogLine[] = [];
@@ -145,7 +147,7 @@ async function scanBack(runId: number, first: LogLine, before: number | null, wa
 /** One run's newest lines of an agent's, or the run's lines before `before`, oldest first; `hasMore` says lines of the
  * run wait above them. The agency reads a run's own lines forward from its start alone, so they are read out of the
  * agent's log (docs/web.md, 「Where the log comes from」). */
-export async function readRunBack(run: string, before: number | null, limit: number): Promise<AgentLogPage> {
+export async function readRunBack(run: string, before: number | null, limit: number, agent?: string): Promise<AgentLogPage> {
   const runId = await runOf(run);
 
   if (runId === null) return UNAVAILABLE;
@@ -153,6 +155,7 @@ export async function readRunBack(run: string, before: number | null, limit: num
   const want = Math.min(limit, PAGING.maxSize);
   const first = await firstLineOf(runId);
 
+  if (first !== null && agent !== undefined && first.agentName !== agent) return UNAVAILABLE;
   if (first === null || (before !== null && first.id >= before)) return { lines: [], hasMore: false };
 
   // The run's lines are read out of the log of the agent its first line names: a job's run stands in the ledger under

@@ -2,6 +2,7 @@ import { wording } from "#shared/wording";
 
 import { linkSender, listUsers } from "./account-service";
 import { fail } from "./fail";
+import { onOwnersRoad } from "./owner";
 import { administratorKey } from "./owner-key";
 import { MESSAGE_IDS, receiverRoute } from "./receiver";
 
@@ -207,14 +208,14 @@ export async function openRecordRoom(title: string, supervisor: string, openedBy
 }
 
 /** Whose words a console send stands under: the signed-in account with the name it is shown by, or the owner's own
- * route for a console login standing before the account model, which is the owner's alone and has no account
- * (docs/web.md, the room screen's input box). Any other login is refused 403, so no account reaches the owner's
- * routes. */
+ * route for a console login standing before the account model, which is the owner's alone and has no account, and for
+ * the owner's account while the owner's sender stands linked to none (docs/web.md, the room screen's input box). Any
+ * other login is refused 403, so no other account reaches the owner's routes. */
 export type Speaker = { account: string; name: string } | "owner";
 
-export function speakerOf(signed: SignedIn): Speaker {
+export async function speakerOf(signed: SignedIn): Promise<Speaker> {
+  if (await onOwnersRoad(signed)) return "owner";
   if (signed.id !== null) return { account: String(signed.id), name: signed.name };
-  if (signed.administrator) return "owner";
 
   throw fail(403, wording("room.error.no_account"));
 }

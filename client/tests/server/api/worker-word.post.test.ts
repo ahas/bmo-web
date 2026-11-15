@@ -9,15 +9,12 @@ import { answer, standIn } from "../../support/units";
 // `POST /repositories/{repositoryName}/words`), taking them as the owner's alone, so any other account is refused here.
 
 const OWNER_SENDER = 900;
-// The signed-in login, account 1, is the owner's while the account service links it to the owner's sender.
+// The signed-in login, account 1, is the owner's while the account service links the owner's sender to it.
 let ownersLogin = true;
 
 standIn("RECEIVER", () => answer({ room: -1, senderId: OWNER_SENDER }));
-standIn("WEB_SERVER", (one) => {
-  const user = one.path.match(/^\/users\/(\d+)$/)?.[1] ?? "";
-
-  return answer({ user, name: "tester", administrator: true, senders: ownersLogin ? [OWNER_SENDER] : [] });
-});
+// The owner's sender stands linked to the login's account, or to another account's.
+standIn("WEB_SERVER", () => answer({ links: [{ sender: OWNER_SENDER, user: ownersLogin ? "1" : "5", signsIn: true }] }));
 
 let said: "delivered" | "waiting" | "refused" = "delivered";
 let reason: string | null = null;

@@ -1,5 +1,7 @@
 import { wording } from "#shared/wording";
 
+import { ownerHeaders } from "../utils/owner-key";
+
 import type { components } from "@bmo/receiver-client/schema";
 import type { SupervisorAddedView } from "#shared/axes";
 
@@ -31,6 +33,12 @@ const ADD_FIELDS: Readonly<Record<string, string>> = {
 // rather than under the deployment. A person's supervisor keeps one session
 // across every room it answers (the agency's `docs/supervisors.md`, 「Adding and removing a supervisor」); the console's
 // own account, and an add naming no account, keep the agency's `room` scope.
+//
+// A member adds their own BMO alone: under their own name, `u<user>` (docs/accounts.md, 「Invitations and a person's
+// machine」), filed under their own account. A supervisor under any other name — another account's BMO, a retired
+// one's among them, whose name is guessable — is the administrator's act, and a member asking for one is refused
+// before anything is asked. The add carries the signed-in login's `Owner-Key` and `Owner-Role`, so the receiver judges
+// the same.
 export default defineEventHandler(async (event): Promise<SupervisorAddedView> => {
   const signed = await signedInUser(event);
 
@@ -40,6 +48,7 @@ export default defineEventHandler(async (event): Promise<SupervisorAddedView> =>
   const named = (field: string): string => (typeof fields[field] === "string" ? (fields[field] as string).trim() : "");
 
   if (road === null) throw fail(400, wording("agents.error.supervisor_add"));
+  if (!signed.administrator && (signed.id === null || named("name") !== `u${signed.id}`)) throw fail(403, wording("agents.error.supervisor_own_only"));
 
   // A person's supervisor holds one session across its rooms; the console's own account keeps the agency's default.
   const sessionScope: AddSupervisor["sessionScope"] = signed.id === null ? undefined : "agent";
@@ -56,7 +65,7 @@ export default defineEventHandler(async (event): Promise<SupervisorAddedView> =>
   };
 
   const added = await receiverCall(
-    receiver().POST("/supervisors", { body: add }),
+    receiver().POST("/supervisors", { body: add, headers: ownerHeaders(signed) }),
     {
       codes: SUPERVISOR_CODES,
       refusal: (refused) => {

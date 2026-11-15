@@ -29,6 +29,9 @@ const SEALED = -2;
 const HIGH = "3973025898369060353";
 
 const PRIVATE_OF: Record<number, number> = { [PRIVATE]: OWNER, [OWN_CHAT]: ADMINISTRATOR };
+// Whose the owner's account is: the administrator's, its link standing or not yet.
+const LINKED = async () => ({ account: ADMINISTRATOR, linked: true });
+const UNLINKED = async () => ({ account: ADMINISTRATOR, linked: false });
 const privacy = (room: number) => ({ privateOf: PRIVATE_OF[room] ?? null, sealed: room === SEALED });
 
 // The account a write names, in its body, its form or its query, as the receiver reads it.
@@ -165,7 +168,8 @@ const ADMINISTRATOR_ACTS: WriteAct[] = [
   { name: "remove it", handler: await route("rooms/[chatId]/remove.post"), event: (room) => roomOnly(room), unit: "receiver" }
 ];
 
-const writes = (stood: { asked: Asked[] }) => stood.asked.filter((one) => one.method !== "GET");
+// The changes asked of a unit; the account service's read of whose senders are linked goes by POST and changes nothing.
+const writes = (stood: { asked: Asked[] }) => stood.asked.filter((one) => one.method !== "GET" && one.path !== "/senders/users");
 
 async function act(one: WriteAct, room: number, as: Record<string, unknown>, rooms?: number[]) {
   session = as;
@@ -248,13 +252,23 @@ describe("a sealed private room", () => {
 
   test("is changed by no account, and on the owner's own road only where it is his own private chat", async () => {
     const sealed = { privateOf: null, sealed: true };
-    const judgeOf = (signed: { name: string; id: number | null; administrator: boolean }) => changeJudge(signed, async () => String(ADMINISTRATOR));
+    const boss = { name: "boss", id: ADMINISTRATOR, administrator: true };
+    const consoleLogin = { name: "boss", id: null, administrator: true };
+    const member = { name: "member", id: OWNER, administrator: false };
 
-    expect(await judgeOf({ name: "boss", id: ADMINISTRATOR, administrator: true })(SEALED, sealed)).toBe(false);
-    expect(await judgeOf({ name: "member", id: OWNER, administrator: false })(SEALED, sealed)).toBe(false);
-    // A console login standing before the account model writes on the owner's road, in his own private chat alone.
-    expect(await judgeOf({ name: "boss", id: null, administrator: true })(SEALED, sealed)).toBe(true);
-    expect(await judgeOf({ name: "boss", id: null, administrator: true })(-99, sealed)).toBe(false);
+    // While the owner's sender stands linked to none, the owner's account and the console login before the model write
+    // on the owner's own road, in his own private chat alone; nobody else writes in a sealed room.
+    expect(await changeJudge(boss, UNLINKED)(SEALED, sealed)).toBe(true);
+    expect(await changeJudge(boss, UNLINKED)(-99, sealed)).toBe(false);
+    expect(await changeJudge(consoleLogin, UNLINKED)(SEALED, sealed)).toBe(true);
+    expect(await changeJudge(consoleLogin, UNLINKED)(-99, sealed)).toBe(false);
+    expect(await changeJudge(member, UNLINKED)(SEALED, sealed)).toBe(false);
+    // Once it is linked the owner is his account like any other, and a room still sealed is changed by nobody.
+    expect(await changeJudge(boss, LINKED)(SEALED, sealed)).toBe(false);
+    // On the road while unlinked he writes in no account's private room, his own BMO's among them, as the receiver
+    // takes the owner's road; once linked he writes in his own as any account does.
+    expect(await changeJudge(boss, UNLINKED)(-50, { privateOf: ADMINISTRATOR, sealed: false })).toBe(false);
+    expect(await changeJudge(boss, LINKED)(-50, { privateOf: ADMINISTRATOR, sealed: false })).toBe(true);
   });
 });
 
@@ -281,10 +295,35 @@ describe("a change the receiver refuses in a room it holds as private", () => {
 });
 
 describe("the account a change is made as", () => {
-  test("is the signed-in account, or the administrator's for a console login standing before the account model", async () => {
+  const consoleLogin = { name: "boss", id: null, administrator: true };
+
+  test("is the signed-in account, or for a console login on the owner's road the owner's account once it is linked", async () => {
     expect(await actingAccount({ name: "member", id: 7, administrator: false })).toBe(7);
-    expect(await actingAccount({ name: "boss", id: null, administrator: true }, async () => "1")).toBe(1);
-    // Before the model names an administrator, the console login is no account, so another's private room refuses it.
-    expect(await actingAccount({ name: "boss", id: null, administrator: true }, async () => null)).toBeNull();
+    expect(await actingAccount(consoleLogin, LINKED)).toBe(ADMINISTRATOR);
+    // While the owner's sender stands linked to none the owner's road acts for no account, as the receiver takes it.
+    expect(await actingAccount(consoleLogin, UNLINKED)).toBeNull();
+  });
+
+  test("judges the owner's road in the administrator's own private room by the same fact the receiver does", async () => {
+    const own = { privateOf: ADMINISTRATOR, sealed: false };
+
+    expect(await changeJudge(consoleLogin, UNLINKED)(-50, own)).toBe(false);
+    expect(await changeJudge(consoleLogin, LINKED)(-50, own)).toBe(true);
+  });
+});
+
+describe("a room's picture", () => {
+  test("is served to whoever reads the room, and to nobody else, nothing asked of the room they do not read", async () => {
+    session = AS_OWNER;
+    receiver.asked.length = 0;
+
+    const picture = await route("avatars/[kind]/[id].get");
+    const room = (chat: number) => ({ params: { kind: "room", id: String(chat) }, context: { readableRooms: new Set([PRIVATE]) } });
+
+    expect((await asked(picture, room(GROUP))).status).toBe(404);
+    expect(receiver.asked.some((one) => one.path.includes(String(GROUP)))).toBe(false);
+
+    await asked(picture, room(PRIVATE));
+    expect(receiver.asked.some((one) => one.path === `/rooms/${PRIVATE}/avatar`)).toBe(true);
   });
 });

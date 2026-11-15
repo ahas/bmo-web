@@ -34,7 +34,7 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
   const chatId = requireChatId(event);
 
   await requireWritableRoom(event, chatId);
-  const speaker = speakerOf(await signedInUser(event));
+  const speaker = await speakerOf(await signedInUser(event));
   const declared = Number.parseInt(getRequestHeader(event, "content-length") ?? "", 10);
 
   if (Number.isSafeInteger(declared) && declared > MAX_BODY_BYTES) {

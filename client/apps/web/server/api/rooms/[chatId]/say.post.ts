@@ -26,7 +26,7 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
   const chatId = requireChatId(event);
 
   await requireWritableRoom(event, chatId);
-  const speaker = speakerOf(await signedInUser(event));
+  const speaker = await speakerOf(await signedInUser(event));
   const body = await readBody<SayBody>(event);
   const text = typeof body?.text === "string" ? body.text.trim() : "";
 

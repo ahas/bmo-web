@@ -1,6 +1,8 @@
 import { isAgentName } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { requireReadableAgent } from "../../../utils/agent-reach";
+
 import type { JobPrompt } from "#shared/types";
 
 // The prompt of the job a worker's screen keeps its line for, asked when the line is spread: the same job the
@@ -14,6 +16,8 @@ export default defineEventHandler(async (event): Promise<{ prompt: JobPrompt | n
   if (!isAgentName(name)) {
     throw fail(400, wording("agents.error.bad_agent_name"));
   }
+
+  await requireReadableAgent(event, name);
 
   const run = getQuery(event).run;
 

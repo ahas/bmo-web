@@ -443,7 +443,8 @@ console page. No answer says which framework drew it. Strict transport is the re
   person's private room he reads alone: saying, attaching, a voice note, a sticker, a reaction, an edit, a pin of a
   message or of the room, a delete, a forward out of it or into it, reading a line aloud, its picture, its chat
   providers and its mode, removing it, and changing its callers or its members answer him 403. In a group room his
-  acts as the administrator of the organisation — its callers, letting people in, its archive — stand.
+  acts as the administrator of the organisation — its callers, letting people in, its archive — stand. A room's
+  picture is read by whoever reads the room alone.
 - **The room screen stands read-only for him there and in a sealed room,** as it does for a reader whose rooms section
   only reads, by the room list's word of which rooms the reader may change: no box
   to write in and no act on a message, no pin, providers, picture or removal in the room's menu, a callers list with
@@ -455,9 +456,16 @@ console page. No answer says which framework drew it. Strict transport is the re
   the words, files and voice notes, the reactions, edits, pins, deletes, stickers, forwards, a line read aloud, the
   room's pin, its picture, its chat providers, its mode, a group's own supervisor, its removal and its members. A read
   mark is the console's own row and reaches the receiver as nothing. The account whose private room it is changes it as any member does a room, its
-  members alone being the receiver's to keep as they stand. A console login standing before the account model makes
-  its changes as the administrator's account, and as no account at all where the model names no administrator yet,
-  so another account's private room refuses it as it refuses the administrator.
+  members alone being the receiver's to keep as they stand. A console login standing before the account model writes
+  on the owner's own road, which acts for the owner's account where his sender stands linked to one and for no account
+  where it stands linked to none, as the receiver takes it, so another account's private room refuses it as it
+  refuses the administrator.
+- **The owner is his account** (`docs/accounts.md`, 「The owner's account」): the user the owner's sender is linked
+  to, linked at this server's start, or at the first request that needs it, to the user the data move made the
+  platform administrator where it stands linked to none. What is granted to the owner — words to a worker, the talk
+  about a document — hangs on that account, and so does the owner's private chat as his own room. While the link
+  cannot be made, the move's administrator keeps the owner's own road: his words go on the owner's routes, his private
+  chat is his own and writable to him, and he is the owner's login.
 - **The administrator's read of a room that is not his own leaves nothing its people or its BMO can see.** His
   own rooms are those he reads by his account as any person does (above); the owner's private chat is his own only
   where his account is the owner's, as the receiver's memberships of his account say. In any other
@@ -476,9 +484,18 @@ console page. No answer says which framework drew it. Strict transport is the re
   dialog's, which only the administrator opens. An agent's own page opens on a read of the supervisors, the
   roles or the repositories, and its stop, its settings and the box that launches work stand only where that
   part writes.
-- **A person reads their own BMO's log and turns whatever sections they hold:** the log and the turns of a
-  supervisor whose owner account is the reader open to them, as the agency's list names its owner, and no other
-  agent's do. What runs for them on the shared engines is read there; what runs for another account is not.
+- **An agent's log, its turns, its job lines and its own settings are its owner's to read, and the
+  administrator's.** They quote what was said in the agent's rooms, a person's private room with their own BMO
+  among them, so a reader other than the administrator reads them of the agents their own account owns alone —
+  their own BMO and a role agent standing as theirs, as the agency names each agent's owner account — whatever
+  sections they hold, and a run named by its id is read only where it is that agent's. Every other agent's — another
+  person's BMO, a shared role agent, a repository's worker — answers them as if it did not stand, its supervisor's
+  page, road, rooms, settings and draft among them. What runs for them on the shared engines is read there; what
+  runs for another account is not.
+- **A member adds their own BMO alone.** A supervisor added by anyone but the administrator stands under the
+  adder's own name, `u<user>`, filed under their own account; a supervisor under any other name — another
+  account's BMO, a retired one's, whose name is guessable — is the administrator's act, and the add carries the
+  signed-in login's `Owner-Key` and `Owner-Role` so the receiver judges the same.
 - **The administrator sets one person's sections on 조직.** Its 권한 tab lists the users, and
   the section chosen stands a table of the console's sections with a switch for its read and one for its
   write; a change is saved as it is made, and a write turns its read on. The platform administrator's own

@@ -27,7 +27,16 @@
       </template>
 
       <template #default="{ collapsed }">
-        <UNavigationMenu v-if="screenEntries.length > 0" :items="namedWhenFolded(screenEntries, collapsed)" :collapsed="collapsed" tooltip orientation="vertical" />
+        <!-- The screens' sections they may open, each a menu of its own under its heading (docs/web.md, 「Sidebar」). -->
+        <UNavigationMenu
+          v-for="section in screenSections"
+          :key="section.heading"
+          :aria-label="section.heading"
+          :items="namedWhenFolded(section.items, collapsed)"
+          :collapsed="collapsed"
+          tooltip
+          orientation="vertical"
+        />
 
         <ContentSkeleton v-if="roomsInitial && roomsRead" :rows="3" listClass="flex flex-col" :label="$t('screens.status.rooms_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
@@ -67,13 +76,14 @@ import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
-import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
+import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
 import { useMayInvite } from "~/domain/organization";
 import { accessOf, homeFor, screenMayRead, sectionsOfPath } from "#shared/sections";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AvatarIndex } from "~/domain/avatars";
+import type { SectionMenu } from "~/domain/screens";
 
 // A member's shell (docs/web.md, 「Access」): the screens units bring that they may open, the rooms they
 // may read and their own menu, and nothing that reads a route opened to the administrator alone. It
@@ -128,5 +138,5 @@ const screens = computed(() =>
 );
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
-const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens.value, unread.value));
+const screenSections = computed<SectionMenu[]>(() => sectionItems(t, route.path, undefined, sidebarFolded.value, screens.value, unread.value));
 </script>

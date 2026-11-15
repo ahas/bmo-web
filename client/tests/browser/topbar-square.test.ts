@@ -110,13 +110,15 @@ async function marks(page: Page): Promise<Mark[]> {
   });
 }
 
-// Where the sidebar leads, as the addresses under the console's base path.
+// Where the sidebar leads, as the addresses under the console's base path: every screen of its two sections, and the
+// first entry of each other list.
 async function listed(page: Page): Promise<string[]> {
   const base = new URL(origin!).pathname.replace(/\/$/, "");
-  const hrefs = await page.evaluate(() => [...document.querySelectorAll("nav")]
-    .map((nav) => [...nav.querySelectorAll("a[href]")].map((link) => link.getAttribute("href")!))
-    .filter((links) => links.length > 0)
-    .flatMap((links, at) => (at === 0 ? links : links.slice(0, 1))));
+  const sections = [wording("screens.label.section_administration"), wording("screens.label.section_application")];
+  const hrefs = await page.evaluate((headings) => [...document.querySelectorAll("nav")]
+    .map((nav) => ({ screens: headings.includes(nav.getAttribute("aria-label") ?? ""), links: [...nav.querySelectorAll("a[href]")].map((link) => link.getAttribute("href")!) }))
+    .filter((nav) => nav.links.length > 0)
+    .flatMap((nav) => (nav.screens ? nav.links : nav.links.slice(0, 1))), sections);
 
   return [...new Set(hrefs.filter((href) => href.startsWith(`${base}/`)).map((href) => href.slice(base.length)))];
 }

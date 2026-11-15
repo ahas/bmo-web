@@ -14,12 +14,23 @@ import type { ListedRoom } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { NavigationMenuItem } from "@nuxt/ui";
 
-// The console's own screens: the flat group at the top of the sidebar, in the order they stand.
-// The sidebar and the console search both read this list, so a screen added here is in both.
+// The sections the sidebar stands its screens in, in the order they stand, each under its heading
+// (docs/web.md, 「Sidebar」): what the administrator keeps the deployment running with, and every other screen.
+export const SCREEN_SECTIONS = [
+  { id: "administration", heading: "screens.label.section_administration" },
+  { id: "application", heading: "screens.label.section_application" }
+] as const;
+
+export type ScreenSection = (typeof SCREEN_SECTIONS)[number]["id"];
+
+// The console's screens at the top of the sidebar, each in its section. The sidebar and the console search both
+// read this list, so a screen added here is in both.
 export interface Screen {
   label: string;
   to: string;
   icon: string;
+  // The section of the sidebar the screen stands in.
+  section: ScreenSection;
   // Whether the screen's own pages under its address light it as well.
   nested: boolean;
   // Whether the screen is one a unit brings, which stands only while the unit's manifest names a screen at its
@@ -68,51 +79,42 @@ export interface ScreenTab {
   icon: string;
 }
 
-// The screens that stand in this console now, in the order the sidebar shows them. A screen's group
-// puts its entry here as it brings the screen. A screen a unit brings stands only while its manifest
-// names it, under the manifest's own name and icon (`screensWithBundles`).
+// The console's own screens, which stand in this console always. Where each stands in the sidebar is its section and
+// its name (`sidebarOrder`), not its place here.
 export const SCREENS: readonly Screen[] = [
-  // The mailboxes, bmo-mail's bundle. Its screen had places below its address, so they light it too.
-  { label: "screens.label.mail", to: "/mail", icon: "i-material-symbols-mail-outline", nested: true, brought: true },
   // The cache siren: what the agents' requests did to the provider's prompt cache, as the siren on this machine sees
   // it.
-  { label: "screens.label.siren", to: "/siren", icon: "i-material-symbols-e911-emergency-outline", nested: false },
+  { label: "screens.label.siren", to: "/siren", icon: "i-material-symbols-e911-emergency-outline", nested: false, section: "administration" },
   // The console's own database, read as tables and rows.
-  { label: "screens.label.db", to: "/db", icon: "i-material-symbols-database-outline", nested: false },
-  // A machine's drives walked as files, bmo-drive's bundle.
-  { label: "screens.label.files", to: "/files", icon: "i-material-symbols-folder-open-outline", nested: false, brought: true },
-  // The artifacts: the documents kept for reading, each with its attachments. Its pages are the bmo-artifact
-  // bundle's, and its pages below the address light it.
-  { label: "screens.label.artifact", to: "/artifact", icon: "i-material-symbols-archive-outline", nested: true, brought: true },
-  // The documents the agents read and the deployment's operating documents, read as documents. It stands beside
-  // the artifacts because both are kept for reading.
-  { label: "screens.label.documents", to: "/documents", icon: "i-material-symbols-library-books-outline", nested: false },
-  // A checkout read at a commit with reviews pinned to its lines, bmo-review's bundle.
-  { label: "screens.label.code", to: "/code", icon: "i-material-symbols-rate-review-outline", nested: false, brought: true },
+  { label: "screens.label.db", to: "/db", icon: "i-material-symbols-database-outline", nested: false, section: "administration" },
+  // The documents the agents read and the deployment's operating documents, read as documents.
+  { label: "screens.label.documents", to: "/documents", icon: "i-material-symbols-library-books-outline", nested: false, section: "administration" },
   // The catalogue as a screen: who the agents are, and the job workers the owner adds and removes. Its pages below
   // its address are the agents' own, so they do not light it.
-  { label: "screens.label.agents", to: "/agents", icon: "i-material-symbols-list-alt-outline", nested: false, tabs: AGENT_TABS },
+  { label: "screens.label.agents", to: "/agents", icon: "i-material-symbols-list-alt-outline", nested: false, tabs: AGENT_TABS, section: "administration" },
   // The research unit watched at work: whether its loop runs, its categories and its queue, each item's run opening
   // over the list; its settings tab holds what every research run is held to and the research supervisor.
-  { label: "screens.label.research", to: "/research", icon: "i-material-symbols-travel-explore", nested: false },
+  { label: "screens.label.research", to: "/research", icon: "i-material-symbols-travel-explore", nested: false, section: "administration" },
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.
-  { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS },
-  // A machine's terminals and desktop, bmo-remote's bundle. It stands last because it reaches the machine
-  // rather than reading anything kept; its full-screen pages stand below its address.
-  { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true, brought: true },
-  // The organisation and the people in it, a tab to a section. It stands after every screen that reads or reaches
-  // something, being where they are set up.
-  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, inviters: true },
+  { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, section: "administration" },
+  // The organisation and the people in it, a tab to a section.
+  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, inviters: true, section: "administration" },
   // What is set for the platform itself, the administrator's alone: the providers and the secret kinds.
-  { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true }
+  { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true, section: "administration" }
 ];
 
+// The addresses of the screens units bring that stand under the administrator services: the brain, code review,
+// BMO's face, the code graph, the tool host and the remote machines. A manifest names no section, so the console
+// keeps this one fact of a unit's screen; a screen a unit brings at any other address is an application
+// (docs/web.md, 「Sidebar」).
+export const ADMINISTRATION_BUNDLES: ReadonlySet<string> = new Set(["/brain", "/code", "/face", "/graph", "/pocket", "/remote"]);
+
 /**
- * The screens with every screen a unit brings in its place: its manifest gives the screen the name it
- * is called by, the icon beside it and its pages below it, so the console carries no bundle's words or
- * marks of its own (bmo-ui's `docs/console-bundles.md`). A screen a unit brings that no manifest names
- * now does not stand, and a bundle whose screen stands nowhere in the list is added after it.
+ * The screens with every screen a unit brings among them: its manifest gives the screen the name it is called by,
+ * the icon beside it and its pages below it, so the console carries no bundle's words or marks of its own (bmo-ui's
+ * `docs/console-bundles.md`). A manifest at the address of a screen of the list stands in that screen's place and
+ * section; a screen of the list a unit brings that no manifest names now does not stand.
  */
 export function screensWithBundles(bundles: readonly ConsoleScreen[], screens: readonly Screen[] = SCREENS): Screen[] {
   const declared = new Map(bundles.map((bundle) => [bundle.screenPath, bundle]));
@@ -121,16 +123,37 @@ export function screensWithBundles(bundles: readonly ConsoleScreen[], screens: r
 
     if (bundle === undefined) return screen.brought ? [] : [screen];
 
-    return [{ ...screen, label: bundle.title, icon: bundle.icon, nested: true, brought: true, ...(bundle.counted ? { counted: true as const } : {}) }];
+    return [broughtScreen(bundle, screen.section)];
   });
 
   for (const bundle of bundles) {
     if (screens.some((screen) => screen.to === bundle.screenPath)) continue;
 
-    standing.push({ label: bundle.title, to: bundle.screenPath, icon: bundle.icon, nested: true, brought: true, ...(bundle.counted ? { counted: true as const } : {}) });
+    standing.push(broughtScreen(bundle, ADMINISTRATION_BUNDLES.has(bundle.screenPath) ? "administration" : "application"));
   }
 
   return standing;
+}
+
+function broughtScreen(bundle: ConsoleScreen, section: ScreenSection): Screen {
+  return { label: bundle.title, to: bundle.screenPath, icon: bundle.icon, nested: true, brought: true, section, ...(bundle.counted ? { counted: true as const } : {}) };
+}
+
+// Names compared as English collation compares them: Latin letters first, a to z with case set aside, then Hangul,
+// in its own order. The Korean collation puts Hangul first, which is not the sidebar's order.
+const BY_NAME = new Intl.Collator("en");
+
+/** The screens of each section the reader is shown, by the name they read, and only the sections holding any. */
+export function screenSections(t: Translate, screens: readonly Screen[]): { heading: string; screens: Screen[] }[] {
+  return SCREEN_SECTIONS.map((section) => ({
+    heading: section.heading,
+    screens: screens.filter((screen) => screen.section === section.id).sort((one, other) => BY_NAME.compare(t(one.label), t(other.label)))
+  })).filter((section) => section.screens.length > 0);
+}
+
+/** The screens in the order the sidebar stands them, section after section. */
+export function sidebarOrder(t: Translate, screens: readonly Screen[]): Screen[] {
+  return screenSections(t, screens).flatMap((section) => section.screens);
 }
 
 /** The screens units bring alone, as a member's shell lists them. */
@@ -185,6 +208,23 @@ export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET
     return folded
       ? { ...countedEntry, ui: { link: `${FOLDED_MARK} ${status.folded}` }, "aria-description": said ?? t(status.label) }
       : { ...countedEntry, trailingIcon: status.icon, ui: { linkTrailingIcon: status.tone }, "aria-description": said ?? t(status.label) };
+  });
+}
+
+// One section of the sidebar's screens as its menu draws it: the heading it is named by, and its rows.
+export interface SectionMenu {
+  heading: string;
+  items: NavigationMenuItem[];
+}
+
+// The sidebar's screens: each section that holds any, a menu of its own under its heading, its screens by name
+// (docs/web.md, 「Sidebar」). Each is a menu of its own so the sidebar parts the sections as it parts its other
+// groups. A heading is a row of words alone, which the menu leaves out where the sidebar is folded.
+export function sectionItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS, counts: ScreenCounts = {}): SectionMenu[] {
+  return screenSections(t, screens).map((section) => {
+    const heading = t(section.heading);
+
+    return { heading, items: [{ label: heading, type: "label" as const }, ...screenItems(t, path, live, folded, section.screens, counts)] };
   });
 }
 

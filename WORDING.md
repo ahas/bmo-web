@@ -168,6 +168,9 @@
 - the screen of the organisation and the people in it → 조직; the administrator's screen of what is set for the
   platform itself (providers, secret kinds) → 관리자; the dialog of what a person sets for themselves → 설정. Never
   조직 설정 or 관리자 설정.
+- the sidebar's sections of screens: what the administrator keeps the deployment running with → 관리자 서비스;
+  every other screen → 애플리케이션. Never 앱, 어플리케이션, 관리 서비스 or 관리자 메뉴. 관리자 alone stays the name
+  of the administrator's screen above.
 - the account on a chat service a contact listing and a started conversation are for → 계정: 내 계정, 채팅 서비스
   계정, 내 계정 연락처, 채팅 서비스 계정 연락처. Never 어카운트, 아이디.
 - a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.

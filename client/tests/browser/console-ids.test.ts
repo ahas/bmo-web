@@ -81,14 +81,15 @@ async function shared(page: Page): Promise<SharedId[]> {
 }
 
 // Where the sidebar leads, as the addresses under the console's base path: every screen of its
-// first list, and the first entry of each list after it — a room, an agent — since the
+// two sections, and the first entry of each other list — a room, an agent — since the
 // entries of one list are one screen drawn for different rows. Home is where it is read from.
 async function listed(page: Page): Promise<string[]> {
   const base = new URL(origin!).pathname.replace(/\/$/, "");
-  const hrefs = await page.evaluate(() => [...document.querySelectorAll("nav")]
-    .map((nav) => [...nav.querySelectorAll("a[href]")].map((link) => link.getAttribute("href")!))
-    .filter((links) => links.length > 0)
-    .flatMap((links, at) => (at === 0 ? links : links.slice(0, 1))));
+  const sections = [wording("screens.label.section_administration"), wording("screens.label.section_application")];
+  const hrefs = await page.evaluate((headings) => [...document.querySelectorAll("nav")]
+    .map((nav) => ({ screens: headings.includes(nav.getAttribute("aria-label") ?? ""), links: [...nav.querySelectorAll("a[href]")].map((link) => link.getAttribute("href")!) }))
+    .filter((nav) => nav.links.length > 0)
+    .flatMap((nav) => (nav.screens ? nav.links : nav.links.slice(0, 1))), sections);
 
   return ["/", ...new Set(hrefs.filter((href) => href.startsWith(`${base}/`)).map((href) => href.slice(base.length)))];
 }

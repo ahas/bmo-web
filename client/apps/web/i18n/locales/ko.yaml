@@ -1130,6 +1130,8 @@ screens:
     files: 파일
     find_description: 화면, 방, 에이전트로 이동
     group_agents: 에이전트
+    section_administration: 관리자 서비스
+    section_application: 애플리케이션
     internal_name: 내부 이름
     live: 실시간 상태
     mail: 메일

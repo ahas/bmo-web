@@ -70,12 +70,11 @@ describe("the page", () => {
     expect(pane).toContain('!props.narrow || one.value !== "split"');
   });
 
-  test("is reached from the sidebar beside the artifacts", () => {
-    const searchesAt = SCREENS.findIndex((screen) => screen.to === "/artifact");
-    const viewerAt = SCREENS.findIndex((screen) => screen.label === "screens.label.documents" && screen.to === "/documents");
+  test("is reached from the sidebar under the administrator services", () => {
+    const viewer = SCREENS.find((screen) => screen.to === "/documents")!;
 
-    expect(viewerAt).toBeGreaterThan(searchesAt);
-    expect(searchesAt).toBeGreaterThan(-1);
+    expect(viewer.label).toBe("screens.label.documents");
+    expect(viewer.section).toBe("administration");
   });
 });
 

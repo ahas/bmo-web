@@ -449,8 +449,8 @@ nothing.
   never leads back to the address refused: where the first one they may open is that address, as for a member who
   reads no section at all, it stands, and its routes answer as if nothing stood there.
 - **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the console's own
-  sections they may read, 조직 where they head a unit, the screens units bring that they may open, their rooms
-  and the user menu: no agents
+  sections they may read, 조직 where they head a unit and the screens units bring that they may open, in the
+  sidebar's two sections (「Sidebar」), their rooms and the user menu: no agents
   block, nodes or search, no queue panel, question bar or briefing player, and nothing in it reports which room
   the tab shows. Its sidebar hears the bot's stream for
   one thing, a message landing in one of their rooms, which moves the room's unread count and place
@@ -1249,21 +1249,39 @@ edit to that file alone, once the guide below carries the word.
     screen mode is the user menu's.
   - The screens and their tabs are one list in the code, read by both the sidebar and the search, so a screen
     added to one is in the other. A screen a unit brings takes its manifest's own title and icon, merged into
-    the list from the manifests the reader may open (「Screens a unit brings」); one whose address no screen of
-    the list holds stands after them.
+    the list from the manifests the reader may open (「Screens a unit brings」). The search lists the screens in
+    the sidebar's order, the 관리자 서비스 first and the 애플리케이션 after them.
 
 Four groups.
 
-- **The screens** — in this order **mail**, **cache siren**, **DB**,
-  **파일**, **아티팩트**, **document viewer**, **code review**, **agent management**, **리서치**, **monitor**, **게이트**
-  and **remote**, then **조직** and **관리자**, and after them any other screen a unit brings, the brain's among them.
-  Cache siren, DB, document viewer, agent management, 리서치, monitor, 조직 and 관리자 are the console's own and always
-  stand;
-  mail, 파일, 아티팩트, code review, 게이트 and remote, and the screens after them, are the units' own and stand only while their unit answers
-  its manifest, under the manifest's own name and icon (「Screens a unit brings」). The monitor's second tab is the
-  card board, `/cards` leading there, and its third the role slots, `/live` leading there.
-  This group does not fold — it is a flat list of screens with no branch to fold, and the fold the sidebar
-  remembers is only the agent group's below.
+- **The screens** — in two sections, each under its heading: **관리자 서비스**, what the administrator needs to
+  keep the deployment running, and **애플리케이션**, every other screen.
+  - **관리자 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
+    리서치, monitor, 조직 and 관리자, and the screens units bring at `/brain` (브레인), `/code` (code review), `/face`
+    (비모 얼굴), `/graph` (코드 그래프), `/pocket` (도구, the tool host's) and `/remote` (원격).
+  - **애플리케이션** holds every other screen a unit brings: mail, 파일, 아티팩트,
+    캘린더, 노트, 일정 관리, 프로젝트 and 극장 among them, and any screen a unit brings at an address the
+    console does not hold for 관리자 서비스.
+  - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
+    where it is listed. A manifest names no section, so the console keeps the addresses of the screens units bring
+    that stand under 관리자 서비스, and a screen a unit brings at any other address is an application.
+  - **Within a section the screens stand by the name the reader sees,** compared as English collation compares
+    them: names in Latin letters first, a to z with case set aside, then names in Hangul, ㄱ to ㅎ. A screen a
+    unit brings is ordered by the name its manifest gives it, so where a unit renames its screen it moves to its
+    new place.
+  - **A section shows only what the reader may open.** The sidebar filters before it groups, so a screen a reader
+    may not open stays hidden as 「Access」 says, and a section left with no screen does not stand, heading and
+    all; a member who opens no screen at all has neither heading. A heading is a row of words alone, as the
+    agents' and the rooms' headings are: it leads nowhere and is skipped by the keyboard.
+  - **Each section is a group of the sidebar's own,** parted from the next by the same space the sidebar leaves
+    between the rooms and the agents, and named by its heading as a navigation landmark. Folded to icons, the
+    headings go as every heading does, and that space alone parts the 관리자 서비스 from the 애플리케이션.
+  - Cache siren, DB, document viewer, agent management, 리서치, monitor, 조직 and 관리자 are the console's own and
+    always stand; the screens units bring stand only while their unit answers its manifest, under the manifest's
+    own name and icon (「Screens a unit brings」). The monitor's second tab is the card board, `/cards` leading
+    there, and its third the role slots, `/live` leading there.
+  - This group does not fold — its sections are flat lists of screens with no branch to fold, and the fold the
+    sidebar remembers is only the agent group's below.
   - **A screen a unit brings may carry a count its manifest declares** (bmo-ui's `docs/console-bundles.md`, the
     sidebar count): the console reads it from its own server, as the contract has it read, never as a call from
     whatever bundle's page is open. The sidebar asks the
@@ -2319,7 +2337,7 @@ archive and this week's tokens remain. That is all that can actually be known th
 - The place **The owner reads** the markdown documents the chat agent reads. What is read from where, how paths are fenced,
   and who runs the search, translation and passage talk are in `docs/documents-viewer.md`, and here the
   screen's shape is told. A document is the chat agent's insides, so the list, body, translation and talk all open only
-  behind login. In the sidebar it stands beside the 아티팩트. This screen reads and writes nothing; the brain's
+  behind login. In the sidebar it stands under 관리자 서비스 (「Sidebar」). This screen reads and writes nothing; the brain's
   library, its memories and its fragments are the brain's own screen's, which the brain brings by its manifest
   (「Screens a unit brings」).
 - **The list.** Documents stand by their titles, not their file names — inside a person's or a room's group the

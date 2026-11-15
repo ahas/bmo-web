@@ -38,7 +38,17 @@
              cell of its own, so the folded column keeps one centre. The menu is told which rows
              wear the mark that way, which is why the fold is read out here. Folded, every row names
              itself in a tooltip; spread, its name stands and no tooltip repeats it. -->
-        <UNavigationMenu :items="namedWhenFolded(screenEntries, collapsed)" :collapsed="collapsed" tooltip orientation="vertical" />
+        <!-- The screens' sections, each a menu of its own under its heading, parted as the sidebar parts its groups
+             (docs/web.md, 「Sidebar」). -->
+        <UNavigationMenu
+          v-for="section in screenSections"
+          :key="section.heading"
+          :aria-label="section.heading"
+          :items="namedWhenFolded(section.items, collapsed)"
+          :collapsed="collapsed"
+          tooltip
+          orientation="vertical"
+        />
         <ContentSkeleton v-if="roomsInitial" :rows="3" listClass="flex flex-col" :label="$t('screens.status.rooms_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
             <SkeletonBar class="size-5 shrink-0 rounded-sm" />
@@ -170,7 +180,7 @@ import { SCREEN_FRAME, useNarrow } from "bmo-ui/app/domain/screen";
 import { useVisibleShell } from "~/domain/overlay";
 import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
-import { namedWhenFolded, roomItems, screenItems, screensWithBundles } from "~/domain/screens";
+import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
 import { useAskedTodo } from "~/domain/todo-address";
 
@@ -179,6 +189,7 @@ import type { PersonView } from "#shared/people";
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AgentGroup, AgentMeta, AgentRun, AgentSession } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
+import type { SectionMenu } from "~/domain/screens";
 
 // Where the title bar's one set of buttons stands: the standing screen's bar.
 const titleBarTarget = useTitleBarTarget();
@@ -223,13 +234,13 @@ onMounted(() => nextTick(openAskedTodo));
 // Whether the sidebar stands folded. The menu's rows are built from it: a folded row is its icon
 // alone, and a mark it carries is drawn over that icon rather than given a cell of its own.
 const sidebarFolded = ref(false);
-// The screens units bring take their manifest's own name and icon; the console's own screens and the
-// placeholders of units not yet split stand as they are (docs/web.md, 「Screens a unit brings」).
+// The screens units bring take their manifest's own name and icon; the console's own screens stand as they are
+// (docs/web.md, 「Screens a unit brings」). The sidebar stands them in its two sections (「Sidebar」).
 const bundles = useConsoleScreens();
 const screens = screensWithBundles(bundles.value);
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
-const screenEntries = computed<NavigationMenuItem[]>(() => screenItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value));
+const screenSections = computed<SectionMenu[]>(() => sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value));
 
 // The picture every session in this sidebar wears.
 const avatars = useAvatars();

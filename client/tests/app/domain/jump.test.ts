@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 
 import { jumpGroups, markedHtml, screenGroup } from "../../../apps/web/app/domain/jump";
-import { SCREENS, screenItems } from "../../../apps/web/app/domain/screens";
+import { SCREENS, sectionItems, sidebarOrder } from "../../../apps/web/app/domain/screens";
 
 import type { JumpGroup } from "../../../apps/web/app/domain/jump";
 import KO from "../../fixtures/app/domain/jump.test.ko.json";
@@ -64,10 +64,10 @@ describe("the console search", () => {
 });
 
 describe("the console's screens", () => {
-  test("the sidebar and the search read the same list", () => {
+  test("the sidebar and the search read the same list, in the sidebar's order", () => {
     const listed = screenGroup(wording).entries.filter((entry) => entry.prefix === undefined).map((entry) => entry.to);
 
-    expect(listed).toEqual(SCREENS.map((screen) => screen.to));
-    expect(screenItems(wording, "/").map((item) => item.to)).toEqual(listed);
+    expect(listed).toEqual(sidebarOrder(wording, SCREENS).map((screen) => screen.to));
+    expect(sectionItems(wording, "/").flatMap((menu) => menu.items.slice(1)).map((item) => item.to)).toEqual(listed);
   });
 });

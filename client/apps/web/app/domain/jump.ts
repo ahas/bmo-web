@@ -1,6 +1,6 @@
 import { highlightParts, matchFields, searchPhrase } from "bmo-ui/shared/search";
 
-import { SCREENS, tabAddress } from "./screens";
+import { SCREENS, sidebarOrder, tabAddress } from "./screens";
 
 import type { Screen } from "./screens";
 import type { SearchField } from "bmo-ui/shared/search";
@@ -33,7 +33,7 @@ export interface JumpGroup {
 export function screenGroup(t: Translate, screens: readonly Screen[] = SCREENS): JumpGroup {
   const entries: JumpEntry[] = [];
 
-  for (const screen of screens) {
+  for (const screen of sidebarOrder(t, screens)) {
     entries.push({ id: screen.to, label: t(screen.label), to: screen.to, icon: screen.icon, hidden: [] });
 
     for (const tab of screen.tabs ?? []) {

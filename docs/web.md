@@ -5296,7 +5296,8 @@ Four bounds keep it from growing forever.
 
 - **The top bar carries 진행 중 for the administrator alone, where something set for this room waits:** the
   tool host's asynchronous calls that stand running with their wake for this room (the tool host's
-  `GET /uses`, read on its console face) — a watch an agent set, a reminder, a call still running. It stands as a
+  `GET /uses`, read on its console face) — a watch an agent set, a reminder, a call still running. A call that names
+  no room wakes in the owner's private chat, as the receiver queues a wake naming none, so it stands there. It stands as a
   button with how many beside the window's clock, and nowhere while none waits.
 - **Pressing it opens a list, one line a call, oldest first:** what it is — 감시 for a watch, with how often its
   check runs, 알림 for a reminder, with the moment it waits for, and the tool's own name for any other call — the

@@ -46,9 +46,15 @@ function number(value: unknown): number | null {
 }
 
 /** One kept call as the list shows it, where its wake is for this room: what it is, its note, how often a watch
- * checks, the moment a reminder waits for, the agent it wakes and when it started. Any other call is left out. */
-export function backgroundCall(call: unknown, room: number): BackgroundCall | null {
-  if (typeof call !== "object" || call === null || field(call, "room") !== room) return null;
+ * checks, the moment a reminder waits for, the agent it wakes and when it started. A call naming no room wakes in
+ * the owner's private chat, so it stands there; any other call is left out. */
+export function backgroundCall(call: unknown, room: number, ownersChat: number | null): BackgroundCall | null {
+  if (typeof call !== "object" || call === null) return null;
+
+  const named: unknown = field(call, "room");
+  const wakesHere = typeof named === "number" ? named === room : ownersChat !== null && room === ownersChat;
+
+  if (!wakesHere) return null;
 
   const id = text(field(call, "id"));
   const tool = text(field(call, "tool"));

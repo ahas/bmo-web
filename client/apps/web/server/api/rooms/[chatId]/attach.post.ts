@@ -1,7 +1,9 @@
 import { MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, MAX_SAY_TEXT_LENGTH } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { sayFilesAsAccount, speakerOf } from "../../../utils/console-rooms";
 import { exactAnswer, receiver } from "../../../utils/receiver";
+import { requireWritableRoom } from "../../../utils/room-reach";
 
 import type { ExactMessageId, SentAttachments } from "#shared/types";
 
@@ -17,7 +19,7 @@ function captionOf(field: unknown): string {
 // words and the multipart's own frame. A body past this is turned away without being held.
 const MAX_BODY_BYTES = MAX_ATTACHMENT_BYTES * MAX_ATTACHMENTS + 1024 * 1024;
 
-// Files go into a room the same way a typed word does: through the receiver, on the owner's own account. They go as
+// Files go into a room the same way a typed word does: through the receiver, as the signed-in account's own. They go as
 // one send, which the receiver puts into the room as the albums a phone would send, with the words typed beside them
 // as the caption (the receiver's `docs/boundary-api.md`, `POST /say-file`). Every
 // file gets its own answer — the ones that landed, the ones that may have, and the ones that did
@@ -27,7 +29,8 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
 
   const chatId = requireChatId(event);
 
-  await requireReadableRoom(event, chatId);
+  await requireWritableRoom(event, chatId);
+  const speaker = speakerOf(await signedInUser(event));
   const declared = Number.parseInt(getRequestHeader(event, "content-length") ?? "", 10);
 
   if (Number.isSafeInteger(declared) && declared > MAX_BODY_BYTES) {
@@ -76,6 +79,8 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
   body.set("chatId", String(chatId));
   body.set("text", caption);
 
+  if (speaker !== "owner") body.set("account", speaker.account);
+
   if (replyTo !== null) {
     body.set("replyTo", String(replyTo));
   }
@@ -95,9 +100,10 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
     async () => {
       try {
         // The call waits for the receiver's answer however long its uploads take.
-        const answer = (await exactAnswer<unknown>(
-          receiver().POST("/owner/message-files", { body, parseAs: "text" })
-        )) as ReceivedAttachments;
+        const answer =
+          speaker === "owner"
+            ? ((await exactAnswer<unknown>(receiver().POST("/owner/message-files", { body, parseAs: "text" }))) as ReceivedAttachments)
+            : await sayFilesAsAccount<ReceivedAttachments>(chatId, body);
 
         return {
           sent: answer.sent.map((one) => ({ name: one.name, messageId: one.id })),

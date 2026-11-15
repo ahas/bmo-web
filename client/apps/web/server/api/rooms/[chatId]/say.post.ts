@@ -1,7 +1,9 @@
 import { MAX_SAY_TEXT_LENGTH } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { sayAsAccount, speakerOf } from "../../../utils/console-rooms";
 import { exactAnswer, receiver } from "../../../utils/receiver";
+import { requireWritableRoom } from "../../../utils/room-reach";
 
 import type { SentMessage } from "#shared/types";
 
@@ -13,15 +15,18 @@ interface SayBody {
   key?: unknown;
 }
 
-// What the owner types here is said in the room under their own name, through the receiver (the receiver's
-// `docs/boundary-api.md`, `POST /say`). From there it is an ordinary message: the receiver keeps it and the room's
-// agent answers it.
+// What a person types here is said in the room as their own words, through the receiver, under the signed-in account
+// (docs/web.md, the room screen's input box): the receiver files it under the account's own sender, the owner's for
+// the owner's account. Only a console login standing before the account model, which is the owner's and has no
+// account, says it on the owner's own route. From there it is an ordinary message: the receiver keeps it and the
+// room's agent answers it.
 export default defineEventHandler(async (event): Promise<SentMessage> => {
   await requireUserSession(event);
 
   const chatId = requireChatId(event);
 
-  await requireReadableRoom(event, chatId);
+  await requireWritableRoom(event, chatId);
+  const speaker = speakerOf(await signedInUser(event));
   const body = await readBody<SayBody>(event);
   const text = typeof body?.text === "string" ? body.text.trim() : "";
 
@@ -43,6 +48,8 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
     chatId,
     sendKeyOf(body?.key),
     async () => {
+      if (speaker !== "owner") return { messageId: await sayAsAccount(chatId, speaker.account, text, replyTo) };
+
       const said = await exactAnswer<{ id: number }>(
         receiver().POST("/owner/messages", {
           body: { chatId, text, replyTo },

@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/checks/entry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Whether a user may let another into a room or take them out: the administrator, a leader of the room or a head of a leader's unit, within the room's company. */
+        post: operations["checkEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/checks/message": {
         parameters: {
             query?: never;
@@ -870,6 +887,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/senders/{sender}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** A sender linked to a user where it is linked to none, by the administrator. */
+        put: operations["linkSender"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}/unit": {
         parameters: {
             query?: never;
@@ -1018,6 +1052,15 @@ export interface components {
          * @enum {string}
          */
         EngineError: "busy" | "refused" | "too-long" | "failed";
+        /** @description Whether one user may let another into a room, or take them out of it, asked. */
+        EntryCheckAsk: {
+            /** @description The user acting. */
+            actor: string;
+            /** Format: int64 */
+            room: number;
+            /** @description The user let in or taken out. */
+            user: string;
+        };
         /** @description A fixed line asked for, with the fields its code carries. */
         FixedLineAsk: {
             /** @constant */
@@ -1725,6 +1768,39 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, conflict, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    checkEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryCheckAsk"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckAnswer"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, not-found, upstream-failed, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3889,6 +3965,39 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    linkSender: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+                sender: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, sender-linked, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

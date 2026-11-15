@@ -56,7 +56,7 @@
           </div>
         </ContentSkeleton>
         <p v-if="roomsError" class="text-sm text-error">{{ $t("screens.error.rooms_failed") }}</p>
-        <SidebarRooms :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" addable @add="roomAdding = true" />
+        <SidebarRooms :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" addable openable @add="roomAdding = true" @open="roomOpening = true" />
         <ContentSkeleton v-if="agentsInitial" :rows="3" listClass="flex flex-col" :label="$t('screens.status.agents_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
             <SkeletonBar class="size-5 shrink-0 rounded-sm" />
@@ -150,6 +150,7 @@
     </UDrawer>
 
     <RoomAddDialog v-model:open="roomAdding" @added="roomAdded" />
+    <RoomOpenDialog v-model:open="roomOpening" @added="roomAdded" />
 
     <!-- The title bar's one set of buttons, held here and laid into the standing screen's bar, so a page change moves
          them rather than standing them up again (docs/web.md, 「The title bar」). -->
@@ -260,6 +261,8 @@ const { data: rooms, status: roomsStatus, error: roomsError } = useRoomList();
 
 // A room added from a chat service's account stands in the list at once, and the console goes to it.
 const roomAdding = ref(false);
+// A group room opened in the console stands in the list the same way.
+const roomOpening = ref(false);
 
 async function roomAdded(added: RoomAdded): Promise<void> {
   await refreshNuxtData("rooms");

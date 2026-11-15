@@ -291,7 +291,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       if (path === "/users" && request.method === "GET") {
         if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the users are the administrator's");
 
-        return json(users.map((user) => ({ user: String(user.id), name: user.name, administrator: user.administrator === true })));
+        return json({ users: users.map((user) => ({ user: String(user.id), name: user.name, administrator: user.administrator === true })) });
       }
 
       // The desktop pairings: asked by an address, past the tenth from one address refused; read once approved; read,
@@ -433,6 +433,22 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         const names = [...new Set([...SECTIONS, ...held.keys()])];
 
         return json({ sections: names.map((section) => ({ section, ...(held.get(section) ?? { read: false, write: false }) })) });
+      }
+
+      // A sender linked to a user where none holds it, by the administrator; one linked elsewhere is never moved.
+      const linkRoute = path.match(/^\/users\/([^/]+)\/senders\/(-?\d+)$/);
+
+      if (linkRoute !== null && request.method === "PUT") {
+        if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the administrator's alone");
+
+        const user = userNamed(decodeURIComponent(linkRoute[1]!));
+        const sender = Number(linkRoute[2]);
+
+        if (user === undefined) return refused(404, "not-found", "no such user");
+        if (users.some((one) => one !== user && (one.senders ?? []).includes(sender))) return refused(409, "sender-linked", "linked to another user");
+        if (!(user.senders ?? []).includes(sender)) user.senders = [...(user.senders ?? []), sender];
+
+        return done();
       }
 
       const userRoute = path.match(/^\/users\/([^/]+)$/);

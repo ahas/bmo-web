@@ -412,9 +412,32 @@ console page. No answer says which framework drew it. Strict transport is the re
   stays.
 - **The administrator reaches every screen and route.** Anyone else reaches the console sections their
   permission reads, and each route of those sections under its scope: their own account, their phones and
-  their tabs, and the rooms they are a member of and hold the console grant in. A route of a section they
-  may not read or write answers them as if nothing stood there; the routes and the section each serves are
-  kept in one place, and a test holds every route file to it.
+  their tabs, and the rooms they read (below). A route of a section they may not read or write answers them as
+  if nothing stood there; the routes and the section each serves are kept in one place, and a test holds every
+  route file to it.
+- **A person reads rooms by their account, never by a messenger identity** (`STRUCTURE.md`, 「Accounts,
+  companies and units」: in the console a person is their account). The rooms an account reads are the union of
+  three, and nobody needs a chat service's identity for any of them:
+  1. **its console memberships:** the rooms it was let into or opened, as the receiver answers them now
+     (`GET /accounts/{account}/rooms`);
+  2. **the rooms its linked identities reach:** a room one of the senders linked to the account has stood as a
+     sender in, and the one-to-one each such identity is, in which the account holds the console grant
+     (`docs/accounts.md`, 「Checks」);
+  3. **its own BMO's private room:** the record room a supervisor whose owner account it is answers alone, carried
+     by no chat service and holding no other account as a member.
+- **Who reads a private room.** A person's private room with their own BMO is read by that person and by the
+  administrator, who reads every room; no other account reads it, a head of the person's unit among them. This is
+  the one place the rule stands. The administrator's reach is the superadmin's of `STRUCTURE.md` (「Accounts,
+  companies and units」: the superadmin reaches everything and changes nothing of another's), so in another
+  person's private room he reads alone: saying, attaching, a voice note, a sticker, a reaction, an edit, a pin, a
+  delete, a forward into it, and changing its callers or its members answer him 403. In a group room his acts as
+  the administrator of the organisation — its callers, letting people in, its archive — stand.
+- **The administrator's read of a room that is not his own leaves nothing its people or its BMO can see.** His
+  own rooms are those he reads by his account as any person does (above) and his own private chat. In any other
+  room his tab counts as looking only for his own devices, which it keeps quiet as any tab does: no other
+  person's notification count starts afresh because he looked, and the rooms the console reports open to the
+  account service (`PUT /watching`) leave it out, so nothing the receiver serves moves either. His read mark there is his own row of the console's table, read by his own tabs
+  alone, and nothing he reads reaches the receiver as a read.
 - **A section's read opens its screen and its reads; its write opens its changes.** The sections and the
   defaults a user is made with stand in `docs/accounts.md`, 「Console sections」; a user's routes are read
   against the permission the account service holds, never the tab's own memory of it.
@@ -1312,8 +1335,9 @@ Four groups.
   conversation.
   - **A room stands only once it has been added,** as the receiver's own record of the room says and never by
     which chat service it is on: it is his private chat (`ownerRoom`), which always stands; it was added from 추가
-    and so carries the mode it was added in (`mode`); the console made it for the supervisors it names, or a group
-    was added naming one (`supervisors`); it is pinned (`pinned`); or he allowed it with his allow command and it
+    and so carries the mode it was added in (`mode`); the console made it for the supervisors it names — a supervisor's
+    private room, and a group room an account opened naming its own BMO — or a group was added naming one
+    (`supervisors`); it is pinned (`pinned`); or he allowed it with his allow command and it
     stands on the receiver's listen list (`listened`). A room with none of these is left out of the one room list
     the console reads, and so out of the sidebar's rooms and its 감독관 branch, the search, the home screen's
     rooms and the room-list screen: one a chat service merely numbered and listed, and one his own words stand in
@@ -1322,6 +1346,10 @@ Four groups.
     does. Adding it from 추가 records its mode on the receiver's record, and it stands at the next read of the
     list. Whether its registration stands decides nothing, since the receiver answers `registered` for every room
     its list holds.
+  - **The 방 만들기 button beside the group's name opens a group room in the console,** for every reader whose rooms
+    section writes, the administrator among them (the room screen's 「방 만들기와 대화상대 추가」). A member's list is
+    the rooms they read (「Access」), so the room they opened, a room they were let into and their own BMO's private
+    room stand in it as any room does.
   - **The 추가 button beside the group's name adds a room,** the heading's grey icon in the phone's drawer as on a wide screen (「The title bar」), for the administrator, in a dialog of choices made in
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
     「Rooms」):
@@ -4767,9 +4795,19 @@ Four bounds keep it from growing forever.
     is the answer the message drew — any supervisor's `REPLY`, a send's `SENT` — stands as that
     word alone: what the answer says is the answering message's own, which a copy takes only where that message
     is chosen too.
-- **입력창** — words written here go up to that room as is under the owner's name. They go out on the Telegram
-  provider's owner-account road, no different from words typed directly in Telegram. They stay in the archive as
-  the owner's message, and that room's chat agent takes them like any words and answers. If the reader is not connected it is
+- **입력창** — words written here go up to that room as is, as the words of the account that wrote them. The console
+  hands the receiver the words with the signed-in account (`POST /rooms/{roomId}/words`, and `word-files` for files and
+  a voice note), and the receiver files them under that account's own sender: the owner's own sender for the owner's
+  account, and for every other account its identity on the record road, made the first time it is needed
+  (`docs/accounts.md`, 「Users and senders」). A person's words therefore enter as their own, never under another's
+  name or the owner's, and what is granted to the owner follows his account, never the console it was typed in
+  (`STRUCTURE.md`, 「Accounts, companies and units」). No console route says words through the receiver's owner
+  routes for an account that is not the owner's: such a call is refused 403. Only a console login standing before
+  the account model, which is the owner's alone and has no account, says them on the owner's route. The owner's
+  words go out on the Telegram provider's owner-account road, no different from words typed directly in Telegram;
+  another account's go out on a chat service as that service declares it can, as the person's linked identity where
+  it can speak as them, else in its own voice with the person named. They stay in the archive as the speaker's
+  message, and that room's chat agent takes them like any words and answers. If the reader is not connected it is
   not sent and says so. Up to 100,000 characters are sent at once. A Telegram message holds up to 4,096, so words
   longer than that are split at paragraph and line boundaries and put up in order — dropping no character
   and splitting no character in two. That room's chat agent takes the consecutive pieces merged into one turn and reads
@@ -4782,14 +4820,14 @@ Four bounds keep it from growing forever.
     it: the voice note's own button and the sticker button are not shown, while the roads that carry a voice note, a
     sticker and a room's own tools stay in the console and on their routes, so what those roads carry still goes in by
     the ways that already had it.
-  - **In a room the console made,** the words never leave this machine: they are kept as the owner's message under
-    the console's own number and the supervisors the room names take them, the default answerer where it names none
+  - **In a room the console made,** the words never leave this machine: they are kept as the speaker's message under
+    the speaker's own number and the supervisors the room names take them, the default answerer where it names none
     (the receiver's `docs/api.md`, 「Rooms」). Each supervisor's answer stands on the left with its own name and
     picture, and each turn shows on a running line wearing the name and picture of whoever is answering. Each speaker
     has a running line of its own, so in a room two supervisors answer the two turns stand as two lines at once and
     each goes when its own turn ends; a screen opened or reloaded in the middle of either reads it off the bot's picture. A file attaches in such
     a room as in any other: the composer's clip takes it, a dropped file is taken, and it goes in through the same road as
-    words — the record road, which keeps it in the room's own archive on the owner's account.
+    words — the record road, which keeps it in the room's own archive as the speaker's.
 - **멘션** — an @ typed in the box offers the room's people and its agents. The list stands over the box, the names
   it offers filtered by what follows the @, and it goes on filtering as those words do; the up and down arrows move
   the choice, Enter or Tab takes it, Esc puts the list away, and a press takes the choice it stands on. What a choice
@@ -5417,8 +5455,9 @@ Four bounds keep it from growing forever.
 - **A group room's menu carries 내 BMO와 따로 말하기 for everyone signed in;** a one-to-one or the owner's
   own chat carries none. It opens a panel at the side over the group room, which stays where it stood.
 - **The panel is the reader's private conversation with their own BMO:** the first supervisor whose owner account
-  is the reader, and the room it answers the reader alone in, read from the agency and the receiver each time the
-  panel opens. Its newest lines stand in order, the BMO's on the left and the reader's on the right, and words
+  is the reader, and its private room (「Access」), read from the agency and the receiver each time the panel opens.
+  The room is read and spoken in by the reader's account alone, so a person with no chat service's identity opens it
+  as readily as anyone. Its newest lines stand in order, the BMO's on the left and the reader's on the right, and words
   typed into its box are said in that private room as the room screen says them. What arrives there while the
   panel stands open is read again as it comes.
 - **Nothing said in the panel reaches the group room or its minutes:** it stands in the private room alone, where
@@ -5433,7 +5472,7 @@ Four bounds keep it from growing forever.
 - **Each caller stands as a row** with their name and a switch that stands on; turning it off takes the grant away
   and the row goes. Below the list, a person picked from the directory of the reader's company is added with a
   switch 호출 허용 that stands on, so the permission is set as the person is added; added with it off, nothing is
-  written.
+  written. Letting a person into the room sets the same grant at the same moment (「방 만들기와 대화상대 추가」).
 - **Who changes it is the account service's to say:** the administrator, the room's leader (the owner of a BMO the
   room names), a head of the leader's unit, or a head of the person's unit. Where the reader is none of the first
   three, a line says that only a head of the person's unit may change it; a refused change is said by the pack's sentence
@@ -5444,11 +5483,15 @@ Four bounds keep it from growing forever.
 - **Every room's menu carries 대화상대, for everyone signed in,** after 내 BMO와 따로 말하기 and before 호출 권한. It
   opens a sheet at the side, as 세션 정보 does, and on a narrow screen a drawer from the bottom, headed 대화상대 over
   the room's name; the conversation stays where it stood, and Back closes it.
-- **The members are the receiver's,** read from its `GET /rooms/{roomId}/members` each time the sheet opens: the
-  people the chat service carrying the room read as its members, in the receiver's order (`docs/boundary.md`,
-  「Gaps the console meets」). Nothing of them is kept in the console. While the first read runs, the place of one
-  row stands as its skeleton: every room a chat service reads holds at least the account that reads it, so the list
-  that lands is never shorter.
+- **A room's members are accounts, by either road** (`STRUCTURE.md`, 「Accounts, companies and units」): the
+  accounts let into the room in the console, as the receiver answers them (`GET /rooms/{roomId}/accounts`), and the
+  people the chat service carrying the room read as its members (`GET /rooms/{roomId}/members`), each read every time
+  the sheet opens (`docs/boundary.md`, 「Gaps the console meets」). The chat service's people stand first in the
+  receiver's order, each marked with the account they are where the account service knows one; then every console
+  member not among them, by their account's name. A room no chat service carries has the console's members alone,
+  and the receiver's refusal to read its chat service's members says nothing there. Nothing of them is kept in the
+  console. While the first read runs, the place of one row stands as its skeleton: every room holds at least the
+  account that reads it, so the list that lands is never shorter.
 - **Each member is a row:** their face, their name, and under it the status line their chat service read where it
   read one. The face is the picture the archive keeps for the member's person number, by the rule every face
   follows (「Profile photos」); a member with no person number, or no picture kept, stands as their letter. A
@@ -5465,7 +5508,33 @@ Four bounds keep it from growing forever.
   a receiver that hands no members over, are said by the pack's own sentences; every other code by the sentence
   every receiver route says it in. Where the account service cannot answer, the band says that whether each member
   is a console user could not be told, and no list stands in its place, so no console user is shown as unknown.
-  A room whose chat service read no members says 대화상대 없음.
+  A room whose chat service read no members says 대화상대 없음. The receiver's `record-only-room`, a room no chat
+  service carries, is no refusal: its console members stand alone.
+
+#### 방 만들기와 대화상대 추가
+
+- **Anyone with an account opens a group room in the console,** with no chat service and no head's say
+  (`STRUCTURE.md`, 「Accounts, companies and units」). The sidebar's 방 만들기, beside the rooms' heading for every
+  reader whose rooms section writes, opens a dialog with one field, 방 이름, and 만들기. The console's server asks
+  the receiver for a room on the record alone (`POST /rooms` with no provider): titled as typed, naming the opener's
+  own BMO, their first supervisor, as the one that answers it, and `openedBy` the opener's account, its first
+  member. The room stands in the opener's company and belongs to the opener's unit, since a room belongs to its
+  leader's unit and its leader is the opener (`docs/accounts.md`, 「A room's callers」). A reader with no BMO of their
+  own is told so and nothing is made; the console goes to the room once it stands.
+- **대화상대 추가 lets a person in.** The 대화상대 sheet carries it for a reader who may let people in: the room's
+  opener, a head of the opener's unit, or the administrator, as the account service answers it (`POST /checks/entry`).
+  It opens a dialog: a person picked from the directory of the reader's company, a switch 호출 허용 standing on,
+  and 추가. The console's server asks the account service whether the reader may let that person in — a person of
+  another company than the room's is refused, the administrator's choice among them — then tells the receiver the
+  account is let in by the reader (`PUT /rooms/{roomId}/accounts/{account}`), which writes a line into the room
+  saying who let whom in, and, with the switch on, grants the person the call into the room at the same moment
+  (「호출 권한」). The person reads the room from its first line on, as a chat service's group would show it.
+- **A member leaves by themselves, and one who may let people in takes a member out.** A console member's row
+  carries 나가기 for the reader's own row and 내보내기 for the others where the reader may let people in. Taken out
+  (`DELETE /rooms/{roomId}/accounts/{account}`), the receiver writes who took whom out, or that a person left,
+  into the room; the person's call grant there goes with them where the one taking them out may change it, and the
+  room leaves their list at once, so they read it no more.
+- **A refusal is said in the dialog or the sheet** by the pack's sentence for its code, and the list stands as it was.
 
 #### 방 등록 삭제
 
@@ -7988,10 +8057,11 @@ journalctl --user -u <unit> -f
 
 ## Profile photos
 
-- **Every profile photo reaches the console by one road: the receiver's.** The console is the union of what the
-  chat services have in common, and a profile photo is one of those common elements: each chat service hands the
-  pictures it has to the receiver, and stands blank where it has none, while the receiver also keeps the pictures
-  set in the console. A room's picture, a person's and the owner's own account's are all a room or a person there,
+- **Every profile photo reaches the console by one road: the receiver's.** The console comes first and is the union
+  of every chat service at once (`STRUCTURE.md`, the term 「Console」): whatever any chat service carries stands in
+  it, a profile photo among it, and a chat service only supplies what it has. Each chat service hands the pictures
+  it has to the receiver, and stands blank where it has none, while the receiver also keeps the pictures set in the
+  console. A room's picture, a person's and the owner's own account's are all a room or a person there,
   keyed by kind and number. The console reads only the receiver for them and never asks a chat service for a
   picture, a list of pictures or anything else about one, so a chat service added to the system adds no road to the
   console, and no chat service's own page decides whether a picture is shown.

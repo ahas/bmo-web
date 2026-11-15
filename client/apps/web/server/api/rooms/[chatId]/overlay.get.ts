@@ -1,8 +1,9 @@
 import type { RoomOverlay } from "#shared/types";
 
 // The reader's own BMO beside a group room (docs/web.md, the room screen's overlay): the first of the signed-in
-// person's own supervisors, and the room it answers alone, the person's private conversation with it. A person with
-// no supervisor of their own, or one that answers no room alone, has none.
+// person's own supervisors, and its private room, the person's private conversation with it (docs/web.md,
+// 「Access」), read by their account alone. A person with no supervisor of their own, or one whose private room does not
+// stand, has none.
 export default defineEventHandler(async (event): Promise<RoomOverlay> => {
   const signed = await signedInUser(event);
   const chatId = requireChatId(event);
@@ -11,12 +12,11 @@ export default defineEventHandler(async (event): Promise<RoomOverlay> => {
 
   if (signed.id === null) return { supervisor: null, label: null, room: null };
 
-  const own = (await readSupervisors()).find((supervisor) => supervisor.ownerAccount === signed.id);
+  const own = (await supervisorsOwnedBy(signed.id))[0];
 
   if (own === undefined) return { supervisor: null, label: null, room: null };
 
-  const rooms = await receiverCall(receiver().GET("/supervisors/{supervisorName}/rooms", { params: { path: { supervisorName: own.name } } }));
-  const alone = rooms.items.find((room) => room.alone && room.id !== chatId);
+  const alone = (await privateRoomsOf(signed.id)).find((room) => room !== chatId);
 
-  return { supervisor: own.name, label: own.label, room: alone?.id ?? null };
+  return { supervisor: own.name, label: own.label, room: alone ?? null };
 });

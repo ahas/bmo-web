@@ -160,9 +160,14 @@
 - an organisation unit, one of the tree a deployment's people stand in → 조직: 조직 추가, 상위 조직, 하위 조직; the
   tree of them → 조직도; a unit at the tree's top → 회사, a new one 새 회사. Never 단위, the English unit's twin.
 - a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.
-- the people of a room, as its chat service reads them → 대화상대: 대화상대, 대화상대 없음, 대화상대를 불러오지
-  못했습니다. Never 멤버, 참여자, 인원, and never 구성원, which is a unit's people; a member the account service knows
-  as an account → 콘솔 사용자.
+- the people of a room, the accounts let into it and the people its chat service reads → 대화상대: 대화상대,
+  대화상대 없음, 대화상대를 불러오지 못했습니다. Never 멤버, 참여자, 인원, and never 구성원, which is a unit's people; a
+  member the account service knows as an account → 콘솔 사용자.
+- letting an account into a room → 대화상대 추가: 대화상대 추가, 추가했습니다, 추가하지 못했습니다. Never 초대, which is
+  the link that makes an account, nor 들이기, 입장.
+- taking a member out of a room → 내보내기: 내보내기, 내보냈습니다, 내보내지 못했습니다; a member taking themselves
+  out → 나가기: 나가기, 나갔습니다, 나가지 못했습니다. Never 강퇴, 추방, 퇴장.
+- opening a group room in the console → 방 만들기: 방 만들기, 방 이름, 만들기. Never 방 개설, 방 생성, 방 열기.
 - the people standing in a unit → 구성원: 구성원 추가, 구성원 n명. Never 배치 for placing a person in a unit.
 - people moved into another unit in one act → 조직 이동: 조직 이동, 이동할 조직, 이동. Never 옮기기, 발령 or 배치 for
   people; a unit moved under another parent is still 옮기다.

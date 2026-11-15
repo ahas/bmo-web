@@ -1,7 +1,9 @@
 <template>
-  <!-- A room's members (docs/web.md, the room screen's members entry): each with their face, their name and the status
-       line their chat service read, and the mark of a console user, pressed through to that person's page, on a
-       member the account service knows as an account. A member it does not know stands as a member alone. -->
+  <!-- A room's members (docs/web.md, the room screen's members entry), by either road: each with their face, their name
+       and the status line their chat service read, and the mark of a console user, pressed through to that person's
+       page, on a member the account service knows as an account. A member it does not know stands as a member alone.
+       A reader who may let people in adds one, and a member let in in the console leaves or is taken out from their
+       row (the room screen's section on opening a room and letting people in). -->
   <!-- A side sheet on a wide screen, as the room's session sheet is; a bottom drawer on a narrow one, where a panel pulled up to
        consult stands. -->
   <component :is="narrow ? UDrawer : USlideover" v-model:open="open" :title="$t('members.title.sheet')" :description="props.title">
@@ -10,6 +12,10 @@
     </template>
 
     <template #body>
+      <div v-if="loaded && mayLetIn" class="mb-2 flex justify-end">
+        <UButton size="sm" icon="i-material-symbols-person-add-outline" :label="$t('members.action.let_in')" data-room-let-in @click="letInOpen = true" />
+      </div>
+
       <!-- One row while the first read runs: every room a chat service reads holds at least the account reading it,
            so the list that lands is never shorter than this. -->
       <ContentSkeleton v-if="!loaded && pending" :rows="1" :list-class="LIST" :label="$t('members.status.loading')">
@@ -27,22 +33,45 @@
       <p v-if="loaded && members.length === 0" class="text-sm text-dimmed">{{ $t("members.label.none") }}</p>
 
       <ul v-else-if="loaded" :class="LIST" data-room-members>
-        <li v-for="member in members" :key="member.person ?? `name:${member.name}`" :data-room-member="member.person ?? ''">
+        <li
+          v-for="member in members"
+          :key="member.person ?? `account:${member.account ?? member.name}`"
+          class="flex min-w-0 items-center gap-1"
+          :data-room-member="member.person ?? ''"
+        >
           <NuxtLink
             v-if="member.account !== null && mayOpenPeople"
             :to="`/people/${member.account}`"
-            :class="[ROW, 'transition-colors hover:bg-elevated active:bg-accented focus-inset']"
+            :class="[ROW, 'min-w-0 flex-1 transition-colors hover:bg-elevated active:bg-accented focus-inset']"
             :data-console-user="member.account"
           >
             <RoomMemberLine :member="member" :avatars="props.avatars" />
           </NuxtLink>
-          <div v-else :class="ROW" :data-console-user="member.account ?? undefined">
+          <div v-else :class="[ROW, 'min-w-0 flex-1']" :data-console-user="member.account ?? undefined">
             <RoomMemberLine :member="member" :avatars="props.avatars" />
           </div>
+          <IconButton
+            v-if="member.inConsole && member.account !== null && member.account === mine"
+            icon="i-material-symbols-logout"
+            :label="$t('members.action.leave')"
+            :loading="busy === member.account"
+            data-room-leave
+            @click="void takeOut(member.account)"
+          />
+          <IconButton
+            v-else-if="member.inConsole && member.account !== null && mayLetIn"
+            icon="i-material-symbols-person-remove-outline"
+            :label="$t('members.action.take_out')"
+            :loading="busy === member.account"
+            data-room-take-out
+            @click="void takeOut(member.account)"
+          />
         </li>
       </ul>
+      <p v-if="actFailure !== ''" role="alert" class="mt-2 text-sm text-error">{{ actFailure }}</p>
     </template>
   </component>
+  <RoomLetInDialog v-model:open="letInOpen" :chat-id="props.chatId" :title="props.title" :members="memberAccounts" @added="void read()" />
 </template>
 
 <script setup lang="ts">
@@ -52,11 +81,12 @@ import { useNarrow } from "bmo-ui/app/domain/screen";
 import { UDrawer, USlideover } from "#components";
 
 import { useReadFailure } from "~/domain/events";
+import { useSignedUser } from "~/domain/access";
 import { useSectionAccess } from "~/domain/section-access";
 import { mayRead } from "#shared/sections";
 
 import type { AvatarIndex } from "~/domain/avatars";
-import type { RoomMember } from "#shared/types";
+import type { RoomMember, RoomMembersView } from "#shared/types";
 
 interface Props {
   chatId: number;
@@ -71,6 +101,8 @@ const ROW = "flex min-h-12 min-w-0 items-center gap-3 rounded-md px-2 py-2";
 
 const props = defineProps<Props>();
 const open = defineModel<boolean>("open", { required: true });
+// The reader's own row is left from rather than taken out of, and the room screen goes home once they have left.
+const emit = defineEmits<{ left: [] }>();
 
 const { t } = useI18n();
 const narrow = useNarrow();
@@ -81,6 +113,13 @@ const access = useSectionAccess();
 const mayOpenPeople = computed<boolean>(() => props.administrator || mayRead(access.value, "account"));
 
 const members = ref<RoomMember[]>([]);
+const mayLetIn = ref(false);
+const letInOpen = ref(false);
+const busy = ref<string | null>(null);
+const actFailure = ref("");
+const signedUser = useSignedUser();
+const mine = computed<string | null>(() => (signedUser.value === null ? null : String(signedUser.value)));
+const memberAccounts = computed<string[]>(() => members.value.flatMap((member) => member.account ?? []));
 const loaded = ref(false);
 const pending = ref(false);
 const failed = ref("");
@@ -95,16 +134,39 @@ async function read(): Promise<void> {
   failed.value = "";
 
   try {
-    const answer = await $fetch<RoomMember[]>(`/api/rooms/${props.chatId}/members`);
+    const answer = await $fetch<RoomMembersView>(`/api/rooms/${props.chatId}/members`);
 
     if (mine !== generation) return;
-    members.value = answer;
+    members.value = answer.members;
+    mayLetIn.value = answer.mayLetIn;
     loaded.value = true;
   } catch (error) {
     if (mine !== generation) return;
     failed.value = failureText(error, t("members.error.load_failed"));
   } finally {
     if (mine === generation) pending.value = false;
+  }
+}
+
+// A member taken out, or the reader leaving; a refusal is said under the list, which stands as it was.
+async function takeOut(account: string): Promise<void> {
+  busy.value = account;
+  actFailure.value = "";
+
+  try {
+    await $fetch(`/api/rooms/${props.chatId}/accounts/${account}`, { method: "DELETE" });
+
+    if (account === mine.value) {
+      open.value = false;
+      emit("left");
+      return;
+    }
+
+    await read();
+  } catch (error) {
+    actFailure.value = failureText(error, t("members.error.entry_failed"));
+  } finally {
+    busy.value = null;
   }
 }
 
@@ -115,6 +177,9 @@ const failure = useReadFailure({
 });
 
 watch(open, (standing) => {
-  if (standing) void read();
+  if (!standing) return;
+
+  actFailure.value = "";
+  void read();
 });
 </script>

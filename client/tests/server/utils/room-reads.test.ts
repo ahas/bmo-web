@@ -39,7 +39,7 @@ const received = (one: Said) => ({
   files: []
 });
 
-standIn("RECEIVER", (one) => {
+const receiver = standIn("RECEIVER", (one) => {
   const url = new URL(one.path, "http://receiver");
   const path = url.pathname;
 
@@ -101,5 +101,24 @@ describe("what a room holds unread", () => {
 
   test("a mark behind the account's place moves nothing", async () => {
     expect(await markRead(signed, [OWN], -7, id(2), 1_001)).toEqual({ count: 1, first: id(6), from: { sentAt: 140_000, order: 0 } });
+  });
+});
+
+describe("the administrator's read of a room that is not his own", () => {
+  test("is his own mark alone: another account's count stands as it ran, and nothing but reads reaches the receiver", async () => {
+    const other = { name: "member-b", id: 8, administrator: false };
+    const otherCount = async () => (await unreadCounts(other, [], room(), 2_000)).get(-7);
+
+    // The other account meets the room as it stands, then a message lands past its place.
+    await otherCount();
+    line = [...line, { messageId: id(7), senderId: 7, sentAt: 150_000 }];
+
+    expect((await otherCount())?.count).toBe(1);
+
+    receiver.asked.length = 0;
+    await markRead({ name: "boss", id: 1, administrator: true }, [], -7, id(7), 2_001);
+
+    expect((await otherCount())?.count).toBe(1);
+    expect(receiver.asked.filter((one) => one.method !== "GET")).toEqual([]);
   });
 });

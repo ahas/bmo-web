@@ -77,6 +77,7 @@ export default defineNitroPlugin((nitro) => {
     },
     title: roomTitle,
     lookingAt: (chatId) => roomWatchers.lookingAt(chatId, Date.now()),
+    seeing: (chatId) => roomWatchers.seeing(chatId, Date.now()),
     lastLooked: (chatId) => roomWatchers.lastLooked(chatId, Date.now()),
     ring,
     now: Date.now,

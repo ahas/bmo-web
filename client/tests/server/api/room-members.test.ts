@@ -4,11 +4,13 @@ import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
-import type { RoomMember } from "../../../apps/web/shared/types";
+import type { RoomMembersView } from "../../../apps/web/shared/types";
 
-// A room's members (docs/web.md, the room screen's members entry): the receiver's list as the room's chat service read
-// it, each member marked with the console account they are only where the account service links their person number
-// to a user who may sign in, and the receiver's refusal said by the pack's sentence for its code.
+// A room's members (docs/web.md, the room screen's members entry), by either road: the receiver's list as the room's
+// chat service read it, each member marked with the console account they are only where the account service links
+// their person number to a user who may sign in, then the accounts let in in the console that list leaves out; the
+// receiver's refusal said by the pack's sentence for its code, and a room no chat service carries standing with its
+// accounts alone.
 
 const ROOM = -7;
 const KNOWN = 9_000_000_000_101;
@@ -16,6 +18,10 @@ const UNKNOWN = 9_000_000_000_102;
 const GRANTED = 9_000_000_000_103;
 
 const receiver = standIn("RECEIVER", (one) => {
+  if (one.path === `/rooms/${ROOM}/accounts`) return answer({ accounts: [{ account: "7", addedBy: null, addedAt: 1 }, { account: "12", addedBy: "7", addedAt: 2 }] });
+  if (one.path === "/rooms/-12/accounts") return answer({ accounts: [{ account: "12", addedBy: null, addedAt: 1 }] });
+  if (one.path.endsWith("/accounts")) return answer({ accounts: [] });
+  if (one.path === "/rooms/-12/members") return answer({ code: "record-only-room", error: "The room is on the record alone." }, 409);
   if (one.path === `/rooms/${ROOM}/members`) {
     return answer({
       members: [
@@ -40,6 +46,10 @@ let accountsAnswer = true;
 const server = standIn("WEB_SERVER", (one) => {
   if (!accountsAnswer) return answer({ code: "database", error: "The database did not answer." }, 500);
 
+  const user = one.path.match(/^\/users\/(\d+)$/)?.[1];
+
+  if (user !== undefined) return answer({ user, name: `account-${user}`, administrator: false, senders: [] });
+
   return answer({
     links: [
       { sender: KNOWN, user: "7", signsIn: true },
@@ -48,22 +58,35 @@ const server = standIn("WEB_SERVER", (one) => {
   });
 });
 
-const read = await routeOf<RoomMember[]>("../../apps/web/server/api/rooms/[chatId]/members.get");
+const read = await routeOf<RoomMembersView>("../../apps/web/server/api/rooms/[chatId]/members.get");
 
 describe("a room's members", () => {
   test("stand in the receiver's order with their status lines, a known account marked and everyone else not", async () => {
     server.asked.length = 0;
 
-    expect((await asked(read, { params: { chatId: String(ROOM) } })).answer).toEqual([
-      { person: KNOWN, name: "member-a", status: "status-a", account: "7" },
-      { person: UNKNOWN, name: "member-b", status: null, account: null },
-      { person: GRANTED, name: "member-c", status: null, account: null },
-      { person: null, name: "member-d", status: "status-d", account: null }
-    ]);
-    // One lookup for every member with a number, and none for the member without one or the row with no name.
+    expect((await asked(read, { params: { chatId: String(ROOM) } })).answer).toEqual({
+      members: [
+        { person: KNOWN, name: "member-a", status: "status-a", account: "7", inConsole: true },
+        { person: UNKNOWN, name: "member-b", status: null, account: null, inConsole: false },
+        { person: GRANTED, name: "member-c", status: null, account: null, inConsole: false },
+        { person: null, name: "member-d", status: "status-d", account: null, inConsole: false },
+        { person: null, name: "account-12", status: null, account: "12", inConsole: true }
+      ],
+      mayLetIn: true
+    });
+    // One lookup for every member with a number, and none for the member without one or the row with no name; then
+    // the name of the one account let in that the chat service does not list.
     expect(server.asked.map((one) => [one.method, one.path, one.body])).toEqual([
-      ["POST", "/senders/users", { senders: [KNOWN, UNKNOWN, GRANTED] }]
+      ["POST", "/senders/users", { senders: [KNOWN, UNKNOWN, GRANTED] }],
+      ["GET", "/users/12", null]
     ]);
+  });
+
+  test("of a room no chat service carries are its accounts alone", async () => {
+    expect((await asked(read, { params: { chatId: "-12" } })).answer).toEqual({
+      members: [{ person: null, name: "account-12", status: null, account: "12", inConsole: true }],
+      mayLetIn: true
+    });
   });
 
   test("say the receiver's refusal by the pack's sentence for its code, and ask the account service nothing", async () => {

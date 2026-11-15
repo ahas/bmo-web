@@ -1,7 +1,9 @@
 import { MAX_ATTACHMENT_BYTES, MAX_SAY_TEXT_LENGTH } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { sayFilesAsAccount, speakerOf } from "../../../utils/console-rooms";
 import { exactAnswer, receiver } from "../../../utils/receiver";
+import { requireWritableRoom } from "../../../utils/room-reach";
 
 import type { ExactMessageId, SentMessage } from "#shared/types";
 
@@ -23,14 +25,16 @@ function captionOf(field: unknown): string {
 const MAX_BODY_BYTES = MAX_ATTACHMENT_BYTES + 1024 * 1024;
 
 // A voice note recorded in the box goes into the room as a voice message, not as a file. It travels the receiver's
-// owner-files route with the flag that names it a recording, so a chat service that carries voice messages receives
-// it as one (the receiver's `docs/api.md`, 「Sends」). The recording is one file, and its words are its caption.
+// files route of the signed-in account with the flag that names it a recording, so a chat service that carries voice
+// messages receives it as one (the receiver's `docs/api.md`, 「Sends」); it is the account's own, as a typed word is.
+// The recording is one file, and its words are its caption.
 export default defineEventHandler(async (event): Promise<SentMessage> => {
   await requireUserSession(event);
 
   const chatId = requireChatId(event);
 
-  await requireReadableRoom(event, chatId);
+  await requireWritableRoom(event, chatId);
+  const speaker = speakerOf(await signedInUser(event));
   const declared = Number.parseInt(getRequestHeader(event, "content-length") ?? "", 10);
 
   if (Number.isSafeInteger(declared) && declared > MAX_BODY_BYTES) {
@@ -66,6 +70,8 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
   body.set("text", caption);
   body.set("voice", "true");
 
+  if (speaker !== "owner") body.set("account", speaker.account);
+
   if (replyTo !== null) {
     body.set("replyTo", String(replyTo));
   }
@@ -81,7 +87,10 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
     chatId,
     key,
     async () => {
-      const answer = (await exactAnswer<unknown>(receiver().POST("/owner/message-files", { body, parseAs: "text" }))) as ReceivedVoice;
+      const answer =
+        speaker === "owner"
+          ? ((await exactAnswer<unknown>(receiver().POST("/owner/message-files", { body, parseAs: "text" }))) as ReceivedVoice)
+          : await sayFilesAsAccount<ReceivedVoice>(chatId, body);
       const sent = answer.sent[0];
 
       if (sent !== undefined) {

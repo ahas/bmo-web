@@ -4,13 +4,14 @@ import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
 import { exactJson, exactJsonText } from "./exact-json";
-import { unitAt } from "./units";
+import { unitAt, unitFetch } from "./units";
 import { answered } from "./unit-answer";
 
 import type { ExactMessageId, RoomMode, RoomModeView, RoomProvidersView } from "#shared/types";
 import type { components, paths } from "@bmo/receiver-client/schema";
 import type { WithExactIds } from "./exact-json";
 import type { UnitAnswerCall } from "./unit-answer";
+import type { UnitCall } from "./units";
 
 // The receiver's fixed API as its published package states it (the receiver's `docs/api.md`, 「The wire」): one
 // document, its types in `@bmo/receiver-client/schema` and one route for each thing it keeps. The package's own
@@ -46,7 +47,7 @@ export type ReceiverTalkAnswer = Schemas["TalkAnswer"];
 // album a picture went out in, named by its first picture. An event and the live board number other things `id`
 // (the event, a speaker), so they are read with `EVENT_IDS` alone.
 type MessageIdKey = "id" | "replyToMessageId" | "messageId" | "album";
-const MESSAGE_IDS: ReadonlySet<MessageIdKey> = new Set(["id", "replyToMessageId", "messageId", "album"]);
+export const MESSAGE_IDS: ReadonlySet<MessageIdKey> = new Set(["id", "replyToMessageId", "messageId", "album"]);
 export const EVENT_IDS: ReadonlySet<string> = new Set(["messageId"]);
 
 /** One of the receiver's answers with every message id in it exact (ExactMessageId). */
@@ -184,6 +185,24 @@ export async function receiverCall<T, E extends { code?: string; error?: string;
   call: UnitAnswerCall = {}
 ): Promise<T> {
   return await answered(asked, { ...call, codes: { ...RECEIVER_CODES, ...call.codes } });
+}
+
+/**
+ * One call on a receiver route its published client does not carry (docs/boundary.md, 「Gaps the console meets」),
+ * asked on its address as every unit call is made: a body handed as a value goes as JSON with every message id in it
+ * as its digits, and a refusal is said as `receiverCall` says it. An answer naming messages is read exact where the
+ * call names `MESSAGE_IDS` as its `exactIds`.
+ */
+export async function receiverRoute<T>(path: string, init: Omit<RequestInit, "body"> & { body?: unknown } = {}, call: UnitCall = {}): Promise<T> {
+  const { body, ...rest } = init;
+  const sending: RequestInit =
+    body === undefined
+      ? rest
+      : body instanceof FormData
+        ? { ...rest, body }
+        : { ...rest, body: exactJsonText(body, BODY_IDS), headers: { "content-type": "application/json", ...((rest.headers as Record<string, string> | undefined) ?? {}) } };
+
+  return await unitFetch<T>("RECEIVER", path, sending, { ...call, codes: { ...RECEIVER_CODES, ...call.codes } });
 }
 
 /** One call on the receiver asked for its answer as text, read with every message id in it exact (`exactJson`), its

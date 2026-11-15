@@ -1,6 +1,9 @@
 import { DOCUMENT_PASSAGE_LIMIT, TALK_LIMIT } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { signedInUser } from "../../utils/accounts";
+import { isOwnerLogin } from "../../utils/owner";
+
 interface TalkBody {
   root?: unknown;
   path?: unknown;
@@ -16,9 +19,13 @@ function optional(value: unknown, limit: number): string | null {
 
 // One turn of the talk about a document. The document is read here, so the turn carries the version the owner was
 // looking at and the file the agent can open; the passage and its heading come as they selected them. The words
-// are written down at once and the chat agent's answer later, and every tab hears the talk move.
+// are written down at once and the chat agent's answer later, and every tab hears the talk move. The talk is the
+// owner's private chat, so any other account's words are refused before anything is written (docs/documents-viewer.md,
+// 「Asking about a passage」).
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   await requireUserSession(event);
+
+  if (!(await isOwnerLogin(await signedInUser(event)))) throw fail(403, wording("documents.error.talk_owner_only"));
 
   const body = await readBody<TalkBody>(event);
   const text = typeof body?.text === "string" ? body.text.trim() : "";

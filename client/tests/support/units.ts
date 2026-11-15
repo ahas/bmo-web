@@ -7,6 +7,8 @@ export interface Asked {
   method: string;
   path: string;
   body: Record<string, unknown> | null;
+  // The body as it was sent, where it is no JSON: a multipart form's frame and its fields among it.
+  raw?: string;
   // The request's headers, by lower-case name, which a call a person makes carries the owner it acts for in.
   headers?: Record<string, string>;
 }
@@ -37,10 +39,12 @@ export function standIn(name: string, reply: (asked: Asked) => Response | Promis
     async fetch(request) {
       const url = new URL(request.url);
       const text = await request.text();
+      const json = (request.headers.get("content-type") ?? "").includes("multipart/") ? null : text;
       const one: Asked = {
         method: request.method,
         path: `${url.pathname}${url.search}`,
-        body: text === "" ? null : (JSON.parse(text) as Record<string, unknown>),
+        body: json === null || json === "" ? null : (JSON.parse(json) as Record<string, unknown>),
+        ...(json === null ? { raw: text } : {}),
         ...(options.headers === true ? { headers: Object.fromEntries(request.headers.entries()) } : {})
       };
 

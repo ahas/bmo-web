@@ -45,7 +45,7 @@ async function rendered(member: RoomMember, avatars: AvatarIndex = new Map()): P
 
 describe("a member of a room", () => {
   test("known as an account carries the console user's mark beside their name and status line", async () => {
-    const html = await rendered({ person: 9_000_000_000_101, name: "member-a", status: "status-a", account: "7" });
+    const html = await rendered({ person: 9_000_000_000_101, name: "member-a", status: "status-a", account: "7", inConsole: false });
 
     expect(html).toContain("member-a");
     expect(html).toContain("status-a");
@@ -53,7 +53,7 @@ describe("a member of a room", () => {
   });
 
   test("the platform does not know stands as a member alone, with no mark and no status line it was not given", async () => {
-    const html = await rendered({ person: 9_000_000_000_102, name: "member-b", status: null, account: null });
+    const html = await rendered({ person: 9_000_000_000_102, name: "member-b", status: null, account: null, inConsole: false });
 
     expect(html).toContain("member-b");
     expect(html).not.toContain("data-badge");
@@ -63,8 +63,8 @@ describe("a member of a room", () => {
   test("wears the picture the receiver keeps for their number, and their letter where it keeps none", async () => {
     const avatars: AvatarIndex = new Map([["person:9000000000103", "/api/avatars/person/9000000000103?v=1"]]);
 
-    expect(await rendered({ person: 9_000_000_000_103, name: "member-c", status: null, account: null }, avatars)).toContain('data-avatar="/api/avatars/person/9000000000103?v=1"');
-    expect(await rendered({ person: 9_000_000_000_104, name: "member-d", status: null, account: null }, avatars)).toContain('data-avatar="M"');
+    expect(await rendered({ person: 9_000_000_000_103, name: "member-c", status: null, account: null, inConsole: false }, avatars)).toContain('data-avatar="/api/avatars/person/9000000000103?v=1"');
+    expect(await rendered({ person: 9_000_000_000_104, name: "member-d", status: null, account: null, inConsole: false }, avatars)).toContain('data-avatar="M"');
   });
 });
 
@@ -72,8 +72,9 @@ describe("the members sheet", () => {
   test("opens from every room's menu and reads the room's members each time it opens", () => {
     expect(screen).toContain('{ label: t("room.action.members"), icon: "i-material-symbols-group-outline", onSelect: () => { membersOpen.value = true; } }');
     expect(screen).toContain('<RoomMembersSheet v-model:open="membersOpen"');
-    expect(sheet).toContain("await $fetch<RoomMember[]>(`/api/rooms/${props.chatId}/members`)");
-    expect(sheet).toContain("if (standing) void read();");
+    expect(sheet).toContain("await $fetch<RoomMembersView>(`/api/rooms/${props.chatId}/members`)");
+    expect(sheet).toContain("if (!standing) return;");
+    expect(sheet).toContain("void read();");
     // While the first read runs, one row's place stands, never more than the shortest list a read can land.
     expect(sheet).toContain(':rows="1"');
     expect(sheet).not.toMatch(/:rows="(?!1")/);
@@ -83,6 +84,14 @@ describe("the members sheet", () => {
     expect(sheet).toContain('v-if="member.account !== null && mayOpenPeople"');
     expect(sheet).toContain(':to="`/people/${member.account}`"');
     expect(sheet).toContain('props.administrator || mayRead(access.value, "account")');
+  });
+
+  test("offers letting a person in to a reader who may, and leaving or taking out on a console member's row", () => {
+    expect(sheet).toContain('v-if="loaded && mayLetIn"');
+    expect(sheet).toContain('<RoomLetInDialog v-model:open="letInOpen"');
+    expect(sheet).toContain('v-if="member.inConsole && member.account !== null && member.account === mine"');
+    expect(sheet).toContain('v-else-if="member.inConsole && member.account !== null && mayLetIn"');
+    expect(sheet).toContain("await $fetch(`/api/rooms/${props.chatId}/accounts/${account}`, { method: \"DELETE\" });");
   });
 
   test("says a refused read in its error band, with the refresh that reads again", () => {

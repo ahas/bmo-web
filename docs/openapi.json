@@ -311,6 +311,29 @@
         ],
         "type": "string"
       },
+      "EntryCheckAsk": {
+        "description": "Whether one user may let another into a room, or take them out of it, asked.",
+        "properties": {
+          "actor": {
+            "description": "The user acting.",
+            "type": "string"
+          },
+          "room": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "user": {
+            "description": "The user let in or taken out.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "room",
+          "actor",
+          "user"
+        ],
+        "type": "object"
+      },
       "FixedLineAsk": {
         "description": "A fixed line asked for, with the fields its code carries.",
         "oneOf": [
@@ -2468,6 +2491,61 @@
         "x-codes": [
           "bad-request",
           "conflict",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/checks/entry": {
+      "post": {
+        "operationId": "checkEntry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntryCheckAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAnswer"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, upstream-failed, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Whether a user may let another into a room or take them out: the administrator, a leader of the room or a head of a leader's unit, within the room's company.",
+        "tags": [
+          "Checks"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "upstream-failed",
+          "not-in-force",
           "database",
           "failed"
         ]
@@ -6498,6 +6576,77 @@
           "bad-request",
           "unauthorized",
           "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/senders/{sender}": {
+      "put": {
+        "operationId": "linkSender",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sender",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, sender-linked, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A sender linked to a user where it is linked to none, by the administrator.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "sender-linked",
           "not-in-force",
           "database",
           "failed"

@@ -2790,14 +2790,24 @@ export interface RoomWindow {
   openFor: number;
 }
 
-// One of a room's members as its chat service read them (docs/web.md, the room screen's members entry): the person number
-// the room's lines carry, where one was given, their name and status line, and the console account they are, where
-// that number is linked to a user who may sign in. Nothing is told of a member the platform does not know.
+// One of a room's members (docs/web.md, the room screen's members entry), by either road: one its chat service read,
+// with the person number the room's lines carry where one was given, their name and status line, and the console
+// account they are where that number is linked to a user who may sign in; or an account let into the room in the
+// console, by its account's name. `inConsole` says the account is a member in the console, so it may leave or be
+// taken out there. Nothing is told of a member the platform does not know.
 export interface RoomMember {
   person: number | null;
   name: string;
   status: string | null;
   account: string | null;
+  inConsole: boolean;
+}
+
+// A room's members, and whether the reader may let people in and take them out (docs/web.md, the room screen's
+// section on opening a room and letting people in).
+export interface RoomMembersView {
+  members: RoomMember[];
+  mayLetIn: boolean;
 }
 
 // One room, counted: the messages kept for it, the session kept for the room, and the runs made for it.

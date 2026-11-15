@@ -295,6 +295,9 @@ export const RESOLUTION_LIMIT = 500;
 // piece of work is; the open matter it came out of rides on the row whole, so the line is a sentence or
 // two rather than the story.
 export const RAISE_TITLE_LIMIT = 200;
+
+// How long a group room's name may be, as a person names it when they open it in the console.
+export const ROOM_TITLE_LIMIT = 100;
 export const RAISE_LIMIT = 2_000;
 
 // What the console says when setting one aside, or taking it back, is refused. A finished item

@@ -589,6 +589,10 @@ room:
     voice_unsupported: 이 브라우저에서는 음성 메모를 녹음할 수 없습니다.
     voice_with_files: 음성 메모는 파일과 함께 보낼 수 없습니다.
     say_empty: 보낼 메시지를 입력해 주세요.
+    no_account: 계정으로 로그인해야 합니다.
+    open_title: 방 이름을 입력해 주세요.
+    open_no_bmo: 나만의 BMO가 없어 방을 만들 수 없습니다.
+    open_failed: 방을 만들지 못했습니다.
     session_failed: 세션 정보를 불러오지 못했습니다.
     unpin_failed: 방의 고정을 해제하지 못했습니다.
     words_only: 이 방은 글만 받습니다.
@@ -606,6 +610,7 @@ room:
     room_add_contacts_failed: 연락처를 불러오지 못했습니다.
     room_add_supervisor: 그룹의 감독관은 내 감독관 가운데에서만 고를 수 있습니다.
   action:
+    room_open: 만들기
     attach_document: 파일
     attach_secret: 비밀
     attach_file: 파일 첨부
@@ -644,6 +649,7 @@ room:
     to_latest: 최신 메시지로
     unpin: 고정 해제
   label:
+    room_open_title: 방 이름
     answer_took: "{time} 소요"
     avatar_of: "{name} 프로필 사진"
     situation: 상황
@@ -918,6 +924,7 @@ room:
     edit_message: 메시지 수정
     forward: 메시지 전달
     room_add: 방 추가
+    room_open: 방 만들기
     session_info: 세션 정보
   aria:
     avatar_enlarge: "{name} 프로필 사진 크게 보기"
@@ -1924,16 +1931,26 @@ overlay:
 members:
   title:
     sheet: 대화상대
+    let_in: 대화상대 추가
   label:
     console_user: 콘솔 사용자
     none: 대화상대 없음
+    person: 사람
+    find: 이름으로 찾기
   status:
     loading: 대화상대 불러오는 중…
+  action:
+    let_in: 대화상대 추가
+    leave: 나가기
+    take_out: 내보내기
   error:
     load_failed: 대화상대를 불러오지 못했습니다.
     not_filled: 채팅 서비스가 이 방의 대화상대를 아직 읽지 않았습니다.
     not_served: 수신 유닛이 대화상대를 넘기지 않습니다.
     accounts_failed: 콘솔 사용자인지 확인하지 못했습니다.
+    entry_failed: 대화상대를 바꾸지 못했습니다.
+    entry_forbidden: 이 방에 대화상대를 추가하거나 내보낼 권한이 없습니다.
+    entry_unknown: 그 사람을 찾을 수 없습니다.
 callers:
   title:
     dialog: 호출 권한
@@ -3380,6 +3397,7 @@ documents:
     toolbar: 문서 툴바
   error:
     editor_failed: 원본 편집기를 불러오지 못했습니다.
+    talk_owner_only: 문서에 관한 대화는 소유자만 할 수 있습니다.
     list_failed: 문서 목록을 읽지 못했습니다.
     no_such_document: 문서를 찾을 수 없습니다.
     question_too_long: "질문이 너무 깁니다. {n}자까지 입력할 수 있습니다."

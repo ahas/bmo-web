@@ -33,7 +33,7 @@ use crate::ids::{parsed, shown};
 use crate::receiver::Receiver;
 use crate::rules::RULES;
 use crate::settings::Names;
-use crate::users::{linked_senders, user_of_sender, user_subject};
+use crate::users::{link, linked_senders, user_of_sender, user_subject};
 use crate::{Refusal, Service, VERSION, all, holdings, one, phones, words};
 
 /// Where sumida's own router is mounted: apart from the deployment's routes, whose paths other units name
@@ -186,6 +186,7 @@ fn own() -> Router<Service> {
     .route("/senders/users", post(sender_links))
     .route("/users/{user}", get(user_route))
     .route("/users/{user}/senders", get(user_senders))
+    .route("/users/{user}/senders/{sender}", axum::routing::put(link_route))
     .route("/users/{user}/password", post(password_route))
     .route("/users/{user}/name", post(name_route))
     .route("/checks/room", post(room_check))
@@ -312,6 +313,27 @@ async fn user_senders(State(service): State<Service>, Path(user): Path<String>) 
   Ok(Json(WireSenders {
     senders: senders_of(&service, user).await?,
   }))
+}
+
+/// A sender linked to a user where it is linked to none, by the administrator (docs/accounts.md, 「Users and
+/// senders」): the console's server links each account's identity on the record road so.
+async fn link_route(
+  State(service): State<Service>,
+  headers: axum::http::HeaderMap,
+  Path((user, sender)): Path<(String, String)>,
+) -> Done {
+  crate::units::administrator(&headers)?;
+
+  let user = user_in(&user)?;
+  let sender: i64 =
+    sender.parse().map_err(|_| Refusal::bad(format!("`{sender}` is no sender's number")))?;
+
+  one(&service.db, r#"SELECT "id" FROM "users" WHERE "id" = $1"#, vec![user.into()])
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
+  link(&service.db, sender, user).await?;
+
+  Ok(StatusCode::NO_CONTENT)
 }
 
 #[derive(Deserialize)]

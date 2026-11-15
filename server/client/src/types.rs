@@ -316,6 +316,16 @@ pub struct UnitCheckAsk {
   pub user: String,
 }
 
+/// Whether one user may let another into a room, or take them out of it, asked.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct EntryCheckAsk {
+  pub room: i64,
+  /// The user acting.
+  pub actor: String,
+  /// The user let in or taken out.
+  pub user: String,
+}
+
 /// One organisation unit as another names it: its number and its name.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct UnitRef {

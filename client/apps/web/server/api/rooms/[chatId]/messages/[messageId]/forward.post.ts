@@ -1,7 +1,7 @@
 import { wording } from "#shared/wording";
 
 import { ownerHeaders } from "../../../../../utils/owner-key";
-import { requireReadableRoom } from "../../../../../utils/room-reach";
+import { requireReadableRoom, requireWritableRoom } from "../../../../../utils/room-reach";
 import { exactAnswer, receiver } from "../../../../../utils/receiver";
 
 import type { ForwardedMessage } from "#shared/types";
@@ -28,6 +28,8 @@ export default defineEventHandler(async (event): Promise<ForwardedMessage> => {
   if (to === chatId) {
     throw fail(400, wording("room.error.forward_same_room"));
   }
+
+  await requireWritableRoom(event, to);
 
   const answered = await exactAnswer<unknown>(
     receiver().POST("/rooms/{roomId}/messages/{messageId}/forwards", {

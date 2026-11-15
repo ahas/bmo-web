@@ -96,8 +96,11 @@ section states what each does.
   message and checks its sender in that room. It refuses, saying so, where no such message stands in that room.
 - **`POST /checks/object`** — a kind (`bmo_worker`, `bmo_repository`, `bmo_tools`), an object, a relation and a
   user. Answers whether the user holds it, and the grant asked for.
+- **`POST /checks/entry`** — a room, the user acting and the user to let in or take out. Answers whether the one
+  acting may let that person into the room (「A room's callers」), the decision asked for named as
+  `bmo_room:<chat id>#entry`, and the person it was asked for.
 - **What a check builds:** the sender's user where their identity is linked, and the room's members, always.
-  The platform administrator passes every check.
+  The platform administrator passes every check but the entry check's company bound.
 
 ### Grants
 
@@ -123,6 +126,15 @@ section states what each does.
   member to a room sets it then, and anyone of them changes it later from the room's list of callers.
 - **Callers stay within one company:** a user of another company than the one who sets it is never made a caller,
   but by the administrator.
+- **Letting a person into a room and the call grant are set together.** A console room's members are accounts, kept
+  by the receiver; the console asks `POST /checks/entry` before it lets a person in or takes one out, and with the
+  person let in sets their call grant in the same act where the one letting them in asks for it.
+- **Who may let a person in:** the room's opener, a head of the opener's unit, or the administrator. A room opened in
+  the console names its opener's own BMO as its leader, so its opener is its leader and the room belongs to the
+  opener's unit; the check reads them as the callers' check does, through the room's leaders.
+- **Only within the room's company.** The room stands in its leader's company, and a person of another company is
+  never let in, by the administrator neither; a room with no leader is bounded by the company of the one letting in,
+  but for the administrator. Leaving is every member's own and asks no check.
 
 ### The data move
 
@@ -142,6 +154,19 @@ section states what each does.
 
 ### Users and senders
 
+- **Every account has an identity on the record road,** the console's own, beside whatever chat services' identities
+  it has. The receiver keeps it, one for each account, made the first time it is asked for and the same ever after
+  (the receiver's `PUT /accounts/{account}/identity`), since a message the account says in the console is filed
+  under a sender as every message is. It is linked to the account in `user_senders` exactly as any identity is, so
+  everything keyed by an account's senders — its own words, what it has read, its acts on a message — reads it as
+  one of them.
+- **`PUT /users/{user}/senders/{sender}`** — a sender linked to the user where it is linked to none, by the
+  administrator, `Owner-Role: administrator`; answers 204, and the same again where the link already stands. A
+  sender linked to another user is refused 409 `sender-linked`, since a link is the person and moving it would move
+  their grants. The console's server calls it with the account's record identity as it makes an account ready
+  (「Invitations and a person's machine」), and once each time it starts for every user the service holds, so an
+  account that stood before the record road gained its identity then; both calls are idempotent, so the start
+  repeats nothing that stands.
 - **`GET /senders/{sender}/user`** — the user a sender is linked to, or nothing found.
 - **`POST /senders/users`** — of the senders asked, those linked to a user, each with that user and whether they
   may sign in. A user made for a sender by a grant, an invitation not yet accepted and an account that has left
@@ -278,6 +303,10 @@ section states what each does.
   acceptance answers, which names the machine and carries a credential made for that name alone (jake's
   `docs/architecture.md`), and the service asks the jake hub whether an agent of that name is attached. Attached,
   the account is enabled and the machine recorded as proven.
+- **An account made ready is given its own BMO and its identity on the record road.** As the proof answers the
+  account active, the console's server has the receiver stand the account's BMO with its private room and the
+  account's record identity, and links that identity to the account (「Users and senders」), so the person reads and
+  speaks in the console from their first sign-in with no chat service's identity at all.
 - **A proven machine becomes the node the account's runs stand on.** As the proof answers the account active, the
   console's server reads the machine the account is bound to and sets it in agency's record of the account's node,
   `PUT /person-nodes/{ownerAccount}` with the user's id and `node` the machine's name (agency's

@@ -427,10 +427,13 @@ pub async fn link<C: ConnectionTrait>(db: &C, sender: i64, user: i32) -> Result<
       return Ok(());
     }
 
-    return Err(Refusal::new(
-      axum::http::StatusCode::CONFLICT,
-      format!("sender {sender} is already linked to user {held}"),
-    ));
+    return Err(
+      Refusal::new(
+        axum::http::StatusCode::CONFLICT,
+        format!("sender {sender} is already linked to user {held}"),
+      )
+      .coded("sender-linked"),
+    );
   }
 
   run(

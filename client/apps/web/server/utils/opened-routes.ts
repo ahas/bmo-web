@@ -108,6 +108,8 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "POST", path: /^\/api\/rooms\/-?\d+\/pin$/, scope: "user", administrator: true },
   { method: "POST", path: /^\/api\/rooms\/-?\d+\/messages\/-?\d+\/forward$/, scope: "user", administrator: true },
   { method: "GET", path: /^\/api\/rooms\/-?\d+\/brain-piece$/, scope: "user", administrator: true },
+  // A group room opened in the console; adding one from a chat service stays the administrator's, refused in the route.
+  section(ROOM, "POST", /^\/api\/rooms$/),
   { ...section(ROOM, "GET", /^\/api\/rooms\/-?\d+\/messages$/), scope: "room" },
   { ...section(ROOM, "POST", /^\/api\/rooms\/-?\d+\/read$/), scope: "room" },
   { ...section(ROOM, "POST", /^\/api\/rooms\/-?\d+\/messages\/-?\d+\/reading$/), scope: "room" },

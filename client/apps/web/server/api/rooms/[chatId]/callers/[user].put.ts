@@ -3,6 +3,7 @@ import { signedInUser } from "../../../../utils/accounts";
 import { callerFailure } from "../../../../utils/callers";
 import { fail } from "../../../../utils/fail";
 import { ownerKeyOf } from "../../../../utils/owner-key";
+import { requireWritableRoom } from "../../../../utils/room-reach";
 
 import { wording } from "#shared/wording";
 
@@ -12,7 +13,7 @@ export default defineEventHandler(async (event): Promise<void> => {
   const key = ownerKeyOf(signed);
   const room = requireChatId(event);
 
-  await requireReadableRoom(event, room);
+  await requireWritableRoom(event, room);
   const user = getRouterParam(event, "user") ?? "";
 
   if (!/^\d+$/.test(user)) throw fail(400, wording("callers.error.failed"));

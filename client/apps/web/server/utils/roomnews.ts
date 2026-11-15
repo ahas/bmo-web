@@ -58,6 +58,8 @@ export interface RoomRingerDeps {
   title: (chatId: number) => Promise<string>;
   // The accounts looking at the room right now, whose devices it does not go to.
   lookingAt: (chatId: number) => ReadonlySet<string>;
+  // The accounts looking at the room whose looking counts for everyone: the count starts afresh only for them.
+  seeing: (chatId: number) => ReadonlySet<string>;
   // When the room was last looked at, in epoch milliseconds.
   lastLooked: (chatId: number) => number | null;
   ring: (payload: PushPayload, looking: ReadonlySet<string>) => Promise<unknown>;
@@ -152,8 +154,9 @@ export class RoomRinger {
     const count = (runsOn ? before.count : 0) + gathered.count;
     const looking = this.deps.lookingAt(chatId);
 
-    // An account looking at the room has these lines in front of it, so the next count starts afresh.
-    this.rung.set(chatId, { count: looking.size > 0 ? 0 : count, at: now });
+    // An account looking at the room has these lines in front of it, so the next count starts afresh; an unseen
+    // look leaves the count as it ran.
+    this.rung.set(chatId, { count: this.deps.seeing(chatId).size > 0 ? 0 : count, at: now });
 
     try {
       await this.deps.ring(roomPush({ base: this.deps.base, chatId, room: await this.deps.title(chatId), latest: gathered.latest, count }), looking);

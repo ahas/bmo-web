@@ -33,6 +33,7 @@ function bench(): Bench {
     read: async (chatId, messageId) => rows.get(`${chatId}:${messageId}`) ?? null,
     title: async () => "Alpha Room",
     lookingAt: (chatId) => watchers.lookingAt(chatId, clock),
+    seeing: (chatId) => watchers.seeing(chatId, clock),
     lastLooked: (chatId) => watchers.lastLooked(chatId, clock),
     ring: async (payload, looking) => {
       sent.push({ payload, looking: [...looking] });
@@ -180,5 +181,27 @@ describe("the tabs' reports", () => {
     expect([...watchers.lookingAt(ROOM, 90_001)]).toEqual([]);
     // It was looked at, and when is kept after the tab is gone.
     expect(watchers.lastLooked(ROOM, 90_001)).toBe(0);
+  });
+});
+
+describe("an unseen look, the administrator's at a room not his own", () => {
+  test("keeps his own devices quiet and nothing more: nobody else's count starts afresh, and no report of rooms open names it", async () => {
+    const at = bench();
+
+    at.watchers.report({ tab: "admin", user: "boss", chatId: ROOM, visible: true, unseen: true }, at.now());
+
+    expect([...at.watchers.lookingAt(ROOM, at.now())]).toEqual(["boss"]);
+    expect([...at.watchers.seeing(ROOM, at.now())]).toEqual([]);
+    expect(at.watchers.lastLooked(ROOM, at.now())).toBeNull();
+    expect(at.watchers.visibleRooms(at.now())).toEqual([]);
+
+    await said(at, 1, "one");
+    await at.pass(ROOM_GATHER_MS);
+    await said(at, 2, "two");
+    await at.pass(ROOM_GATHER_MS);
+
+    // His devices are spared, and the count runs on for everyone else as though nobody had looked.
+    expect(at.sent.map((one) => one.looking)).toEqual([["boss"], ["boss"]]);
+    expect(at.sent.map((one) => one.payload.title)).toEqual(["Alpha Room", wording("push.title.room_bundled", { room: "Alpha Room", n: 2 })]);
   });
 });

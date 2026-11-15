@@ -89,7 +89,7 @@
               <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
               <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
               <RoomCallersDialog v-model:open="callersOpen" :chat-id="chatId" :title="title" />
-              <RoomMembersSheet v-model:open="membersOpen" :chat-id="chatId" :title="title" :avatars="avatars" :administrator="administrator" />
+              <RoomMembersSheet v-model:open="membersOpen" :chat-id="chatId" :title="title" :avatars="avatars" :administrator="administrator" @left="void roomLeft()" />
               <RoomOverlay v-if="group" v-model:open="overlayOpen" :chat-id="chatId" :title="title" />
               <PictureDialog v-if="administrator" v-model:open="pictureOpen" :title="$t('picture.label.room')" :description="title" kind="room" :subject="chatId" :avatar="roomAvatar" />
               <RoomRemovalDialog v-if="administrator" v-model:open="removalOpen" :chat-id="chatId" :title="title" />
@@ -1073,6 +1073,12 @@ const providersOpen = ref(false);
 const situationOpen = ref(false);
 const callersOpen = ref(false);
 const membersOpen = ref(false);
+
+// A room the reader has left is no longer theirs to read: the list drops it and the screen goes home.
+async function roomLeft(): Promise<void> {
+  await refreshNuxtData("rooms");
+  await navigateTo("/");
+}
 const overlayOpen = ref(false);
 const pictureOpen = ref(false);
 const removalOpen = ref(false);

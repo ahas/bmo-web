@@ -140,6 +140,11 @@ brain's library is no root of the viewer's: it is read on the brain's own screen
 - **The same road as item threads:** the talk is a round of the owner's private chat on the chat agent's
   session, which the receiver's `POST /talks` carries with a topic (the receiver's `docs/boundary-api.md`). Only
   the topic differs from an item's talk, which bmo-job carries.
+- **The owner's alone:** the talk is his private chat, so it hangs on his account (`STRUCTURE.md`, 「Accounts,
+  companies and units」). An account other than the owner's that reads the documents section reads the documents
+  and their translations, and its words to the talk are refused 403: nothing is written and nothing reaches the
+  receiver. The owner's account is the one the account service links to the owner's sender, and a console login
+  standing before the account model, which is the owner's.
 
 ### A document turn
 

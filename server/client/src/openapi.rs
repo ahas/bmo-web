@@ -418,6 +418,19 @@ pub fn openapi() -> Value {
     security: bearer()
   );
   add!(
+    "PUT",
+    "/users/{user}/senders/{sender}",
+    "linkSender",
+    "Users and senders",
+    "A sender linked to a user where it is linked to none, by the administrator.",
+    params: vec![string_path("user"), integer_path("sender"), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "sender-linked", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
     "POST",
     "/users/{user}/password",
     "changePassword",
@@ -752,6 +765,19 @@ pub fn openapi() -> Value {
     body: Some(json!(generator.subschema_for::<UnitCheckAsk>())),
     answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
     codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/checks/entry",
+    "checkEntry",
+    "Checks",
+    "Whether a user may let another into a room or take them out: the administrator, a leader of the room or a head of a leader's unit, within the room's company.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<EntryCheckAsk>())),
+    answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "upstream-failed", "not-in-force", "database", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

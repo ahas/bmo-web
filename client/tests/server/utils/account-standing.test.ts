@@ -4,10 +4,13 @@ import { standInAccountService } from "../../support/account-service";
 import { globalsRestoredAfter } from "../../support/globals";
 import { answer, standIn } from "../../support/units";
 
+import { userOf } from "../../../apps/web/server/utils/account-service";
 import { standAccount } from "../../../apps/web/server/utils/account-standing";
+import { standRecordIdentities } from "../../../apps/web/server/utils/console-rooms";
 
 // An account made ready (docs/web.md, 「The join page」): it is given a supervisor of its own, named after the account
-// and shown by the person's name, on the default answerer's road's provider and model, and one agent of its own for every role with an
+// and shown by the person's name, on the default answerer's road's provider and model, its identity on the record road
+// linked to it (docs/accounts.md, 「Users and senders」), and one agent of its own for every role with an
 // agent of no account, taking that agent's road; an account that holds one already is given none again. Its machine,
 // where the hub holds it, is set in agency as the node its runs stand on (docs/accounts.md, 「Invitations and a
 // person's machine」), and a node agency refuses leaves the account ready.
@@ -49,6 +52,9 @@ const agency = standIn("AGENCY", (call) => {
 
 const receiver = standIn("RECEIVER", (call) => {
   if (call.method === "GET" && call.path === "/default-answerer") return answer({ supervisor: "agent-a" });
+  const identity = call.path.match(/^\/accounts\/(\d+)\/identity$/)?.[1];
+
+  if (call.method === "PUT" && identity !== undefined) return answer({ account: identity, sender: 9_000_000_000_000 + Number(identity) });
   if (call.method === "POST" && call.path === "/supervisors") {
     return answer({ brain: "made", room: { id: 42, takenBack: false, said: null }, supervisor: { name: call.body?.name } }, 201);
   }
@@ -92,6 +98,16 @@ describe("an account made ready", () => {
     expect(agents[0]?.body).toMatchObject({ role: "worker", name: "worker-u9", ownerAccount: "9", provider: "deepseek", model: "model-w", effort: "high", enabled: true, keepsCache: true });
   });
 
+  test("is linked to its identity on the record road, the same one every time it is made ready", async () => {
+    receiver.asked.length = 0;
+
+    await standAccount(9);
+    await standAccount(9);
+
+    expect(receiver.asked.filter((call) => call.method === "PUT").map((call) => call.path)).toEqual(["/accounts/9/identity", "/accounts/9/identity"]);
+    expect((await userOf(9))?.senders).toEqual([9_000_000_000_009]);
+  });
+
   test("an account that holds a BMO already is given none again", async () => {
     supervisors = [ANSWERER, { ...ANSWERER, name: "u9", ownerAccount: 9 }];
     receiver.asked.length = 0;
@@ -125,6 +141,17 @@ describe("an account made ready", () => {
       expect(logged.mock.calls.map((call) => String(call[0]))).toEqual([expect.stringContaining("not-a-hub-node")]);
     } finally {
       logged.mockRestore();
+    }
+  });
+});
+
+describe("every account standing before the record road", () => {
+  test("is linked to its identity there by one pass over the accounts, which a second pass repeats harmlessly", async () => {
+    expect(await standRecordIdentities(async () => "9")).toEqual({ linked: 3, failed: 0 });
+    expect(await standRecordIdentities(async () => "9")).toEqual({ linked: 3, failed: 0 });
+
+    for (const user of [9, 10, 11]) {
+      expect((await userOf(user))?.senders).toEqual([9_000_000_000_000 + user]);
     }
   });
 });

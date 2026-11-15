@@ -137,6 +137,13 @@ export async function readSupervisor(name: string): Promise<SupervisorView> {
   return supervisorViewOf(supervisor, answerer);
 }
 
+/** The supervisors the account owns, by name and label, in the agency's order: the first is the account's own BMO. */
+export async function supervisorsOwnedBy(account: number): Promise<{ name: string; label: string }[]> {
+  const page = await agencyCall(agency().GET("/supervisors"));
+
+  return page.items.filter((supervisor) => supervisor.ownerAccount === account).map((supervisor) => ({ name: supervisor.name, label: supervisor.label ?? supervisor.name }));
+}
+
 /**
  * Whether the agency registers `name` and the login account `account` owns it (the agency's
  * `docs/agent-ownership.md`): a group room names only its creator's supervisor, and none another person's.

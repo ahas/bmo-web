@@ -1,5 +1,6 @@
 import { userNode, userOf } from "./account-service";
 import { agency, agencyCall } from "./agency";
+import { standRecordIdentity } from "./console-rooms";
 import { readSupervisors } from "./axes";
 import { defaultAnswerer } from "./owner";
 import { setPersonNode } from "./person-node";
@@ -19,12 +20,14 @@ type TakenOver = Schemas["RoleAgentChange"] & { role: string; name: string; owne
 
 /**
  * An account made ready, given its own BMO and its agents (docs/web.md, 「The join page」): a supervisor of the account
- * on the provider and model of the default answerer's road, one agent of the account for every role with an agent of no
- * account, and its machine as the node its runs stand on. The BMO and the agents are made once, and the node is set every time; a
- * part that cannot be made is written to the log and the rest goes on.
+ * on the provider and model of the default answerer's road, its identity on the record road linked to it
+ * (docs/accounts.md, 「Users and senders」), one agent of the account for every role with an agent of no account, and its
+ * machine as the node its runs stand on. The BMO and the agents are made once, the identity is the same one every
+ * time, and the node is set every time; a part that cannot be made is written to the log and the rest goes on.
  */
 export async function standAccount(user: number): Promise<void> {
   await standSupervisor(user).catch((error: unknown) => console.error(`account ${user}: its BMO could not be made: ${String(error)}`));
+  await standRecordIdentity(user).catch((error: unknown) => console.error(`account ${user}: its record identity could not be linked: ${String(error)}`));
   await standAgents(user).catch((error: unknown) => console.error(`account ${user}: its agents could not be made: ${String(error)}`));
   await standNode(user).catch((error: unknown) => console.error(`account ${user}: its node could not be set: ${String(error)}`));
 }

@@ -273,6 +273,21 @@ impl AccountClient {
     Self::answered(self.send(Method::POST, &["checks", "unit"], ask)).await
   }
 
+  /// `POST /checks/entry`.
+  pub async fn check_entry(&self, ask: &EntryCheckAsk) -> Answer<CheckAnswer> {
+    Self::answered(self.send(Method::POST, &["checks", "entry"], ask)).await
+  }
+
+  /// `PUT /users/{user}/senders/{sender}`, asked in `role`.
+  pub async fn link_sender(&self, user: &str, sender: i64, role: &str) -> Answer<()> {
+    Self::nothing(
+      self
+        .request(Method::PUT, &["users", user, "senders", &sender.to_string()])
+        .header(OWNER_ROLE, role),
+    )
+    .await
+  }
+
   /// `GET /users/{user}/unit`.
   pub async fn user_unit(&self, user: &str) -> Answer<UserUnit> {
     Self::answered(self.request(Method::GET, &["users", user, "unit"])).await

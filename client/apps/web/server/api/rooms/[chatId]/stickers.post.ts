@@ -1,7 +1,7 @@
 import { wording } from "#shared/wording";
 
 import { ownerHeaders } from "../../../utils/owner-key";
-import { requireReadableRoom } from "../../../utils/room-reach";
+import { requireWritableRoom } from "../../../utils/room-reach";
 import { exactAnswer, receiver } from "../../../utils/receiver";
 
 import type { ReceiverMessage } from "../../../utils/receiver";
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
   const signed = await signedInUser(event);
   const chatId = requireChatId(event);
 
-  await requireReadableRoom(event, chatId);
+  await requireWritableRoom(event, chatId);
 
   const body = await readBody<{ emoji?: unknown }>(event);
   const emoji = typeof body?.emoji === "string" ? body.emoji.trim() : "";

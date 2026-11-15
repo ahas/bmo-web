@@ -45,7 +45,7 @@
           </div>
         </ContentSkeleton>
         <p v-if="roomsError && roomsRead" class="text-sm text-error">{{ $t("screens.error.rooms_failed") }}</p>
-        <SidebarRooms v-if="roomsRead" :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" />
+        <SidebarRooms v-if="roomsRead" :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" :openable="roomsWritten" @open="roomOpening = true" />
       </template>
 
       <template #footer="{ collapsed }">
@@ -56,6 +56,8 @@
     <BundleScreenFrame>
       <slot />
     </BundleScreenFrame>
+
+    <RoomOpenDialog v-model:open="roomOpening" @added="roomOpened" />
 
     <!-- The title bar's one set of buttons, held here and laid into the standing screen's bar, so a page change moves
          them rather than standing them up again (docs/web.md, 「The title bar」). -->
@@ -84,6 +86,7 @@ import { accessOf, homeFor, screenMayRead, sectionsOfPath } from "#shared/sectio
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AvatarIndex } from "~/domain/avatars";
 import type { SectionMenu } from "~/domain/screens";
+import type { RoomAdded } from "#shared/types";
 
 // A member's shell (docs/web.md, 「Access」): the screens units bring that they may open, the rooms they
 // may read and their own menu, and nothing that reads a route opened to the administrator alone. It
@@ -123,6 +126,14 @@ const accessReady = useSectionAccessReady();
 const home = computed(() => (accessReady.value ? homeFor(access.value, screensWithBundles(bundles.value).map((one) => one.to)) : MEMBER_HOME));
 // The rooms list is the section's own; a reader whose rooms section is closed sees none of it.
 const roomsRead = computed(() => !accessReady.value || accessOf(access.value, "rooms").read);
+// A reader whose rooms section writes opens a group room, which stands in the list at once, and the console goes to it.
+const roomsWritten = computed(() => accessReady.value && accessOf(access.value, "rooms").write);
+const roomOpening = ref(false);
+
+async function roomOpened(room: RoomAdded): Promise<void> {
+  await refreshNuxtData("rooms");
+  await navigateTo(`/rooms/${room.chatId}`);
+}
 // The organisation screen stands for a member who heads a unit, whose screen holds its invitations tab alone
 // (docs/web.md, 「Organisation」).
 const mayInvite = useMayInvite();

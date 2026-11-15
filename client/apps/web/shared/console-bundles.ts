@@ -1,4 +1,4 @@
-import type { ConsoleRole, ConsoleWords } from "bmo-ui/shared/console-manifest";
+import type { ConsoleRole, ConsoleSidebarSection, ConsoleWords } from "bmo-ui/shared/console-manifest";
 
 // A console bundle as a browser is handed it (docs/web.md, 「Screens a unit brings」): what the sidebar names it by,
 // where its screen stands, the role it opens to, the relay addresses its module and its stylesheet are read at, its
@@ -18,4 +18,7 @@ export interface ConsoleScreen {
   // Whether the bundle's manifest names a sidebar count, which the console reads itself (bmo-ui's
   // `docs/console-bundles.md`, the sidebar count; docs/web.md, 「Sidebar」).
   counted: boolean;
+  // The section of the sidebar the bundle's manifest names for its entry (bmo-ui's `docs/console-bundles.md`, the
+  // sidebar section; docs/web.md, 「Sidebar」).
+  sidebarSection: ConsoleSidebarSection;
 }

@@ -250,7 +250,8 @@ export function screenOf(bundle: AttachedBundle, baseURL: string): ConsoleScreen
     module: relayPath(baseURL, manifest, manifest.bundle),
     stylesheet: manifest.stylesheet === undefined ? null : relayPath(baseURL, manifest, manifest.stylesheet),
     words: bundle.words,
-    counted: manifest.sidebarUnread !== undefined
+    counted: manifest.sidebarUnread !== undefined,
+    sidebarSection: manifest.sidebarSection
   };
 }
 

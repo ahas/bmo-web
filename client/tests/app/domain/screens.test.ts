@@ -30,6 +30,7 @@ function brought(screenPath: string, name: string, over: Partial<ConsoleScreen> 
     stylesheet: null,
     words: {},
     counted: false,
+    sidebarSection: "application",
     ...over
   };
 }
@@ -78,13 +79,18 @@ test("the console's own screens all stand under the administrator services", () 
   expect(SCREENS.filter((screen) => screen.section !== "administration").map((screen) => screen.to)).toEqual([]);
 });
 
-test("a screen a unit brings stands under the administrator services at an address the console keeps for it, and is an application anywhere else", () => {
-  const screens = screensWithBundles([brought("/graph", "graph"), brought("/remote", "remote"), brought("/mail", "mail"), brought("/elsewhere", "elsewhere")]);
+test("a screen a unit brings stands under the administrator services where its manifest names them, and is an application where it names the applications", () => {
+  const screens = screensWithBundles([brought("/elsewhere", "elsewhere", { sidebarSection: "administration" }), brought("/mail", "mail")]);
   const sectionOf = (path: string) => screens.find((entry) => entry.to === path)!.section;
 
+  expect([sectionOf("/elsewhere"), sectionOf("/mail")]).toEqual(["administration", "application"]);
+});
+
+test("while the list is transitional, a screen at an address it keeps stands under the administrator services though its manifest names the applications", () => {
+  const screens = screensWithBundles([...ADMINISTRATION_BUNDLES].map((path) => brought(path, path.slice(1))), []);
+
   expect([...ADMINISTRATION_BUNDLES].sort()).toEqual(["/brain", "/code", "/face", "/graph", "/pocket", "/remote"]);
-  expect([sectionOf("/graph"), sectionOf("/remote")]).toEqual(["administration", "administration"]);
-  expect([sectionOf("/mail"), sectionOf("/elsewhere")]).toEqual(["application", "application"]);
+  expect(screens.map((screen) => screen.section)).toEqual([...ADMINISTRATION_BUNDLES].map(() => "administration"));
 });
 
 test("a manifest at the address of a screen of the list keeps that screen's section", () => {

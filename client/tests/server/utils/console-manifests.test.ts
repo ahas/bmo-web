@@ -211,6 +211,14 @@ test("a bundle that names a sidebar count is handed over as counted, never with 
   expect(JSON.stringify(screenOf({ manifest: counted, unit, words: {} }, "/base/"))).not.toContain("/summary");
 });
 
+test("a bundle is handed over with the sidebar section its manifest names, an application where it names none", () => {
+  const administration = consoleManifest(manifestOf({ sidebarSection: "administration" }));
+  const plain = consoleManifest(manifestOf());
+
+  expect(screenOf({ manifest: administration, unit, words: {} }, "/base/").sidebarSection).toBe("administration");
+  expect(screenOf({ manifest: plain, unit, words: {} }, "/base/").sidebarSection).toBe("application");
+});
+
 test("the relay lets through a route the manifest relays by its method and path, beside what its prefix lets through", () => {
   const manifest = consoleManifest(manifestOf({ apiPrefix: "/screen", relays: [{ method: "POST", path: "/readings" }] }));
 

@@ -1263,8 +1263,15 @@ Four groups.
     캘린더, 노트, 일정 관리, 프로젝트 and 극장 among them, and any screen a unit brings at an address the
     console does not hold for 관리자 서비스.
   - **Which section a screen stands in is the screen's own.** Each of the console's own screens names its section
-    where it is listed. A manifest names no section, so the console keeps the addresses of the screens units bring
-    that stand under 관리자 서비스, and a screen a unit brings at any other address is an application.
+    where it is listed. A screen a unit brings stands in the section its manifest names under `sidebarSection`
+    (bmo-ui's `docs/console-bundles.md`, the sidebar section): 관리자 서비스 for `administration`, 애플리케이션 for
+    `application` and for a manifest that names none.
+  - **The console's list of administration addresses is transitional.** Until the units at `/brain`, `/code`,
+    `/face`, `/graph`, `/pocket` and `/remote` name `administration` in their manifests, the console keeps those
+    six addresses as well, and a screen a unit brings stands under 관리자 서비스 where its manifest names
+    `administration` or its address is one of them, so none of the six moves to 애플리케이션 while its unit has not
+    yet declared. The list goes with the series' last console change, once all six units declare the section, and
+    from then the manifest alone decides.
   - **Within a section the screens stand by the name the reader sees,** compared as English collation compares
     them: names in Latin letters first, a to z with case set aside, then names in Hangul, ㄱ to ㅎ. A screen a
     unit brings is ordered by the name its manifest gives it, so where a unit renames its screen it moves to its
@@ -7437,7 +7444,7 @@ bmo-ui's console plugin contract, bmo-ui's `docs/console-bundles.md`, which is t
 manifest holds, what a bundle and a service owe, and what a console owes them; this section states what the
 console adds of its own. The console attaches each bundle by its manifest while it runs: no unit's screen is built
 into it, and nothing here names one. Of the contract's optional parts it serves every one: the share pages and
-their head, the sidebar count, the moved screens, the notices, the translator, its title bar (「The title bar」),
+their head, the sidebar count, the sidebar section, the moved screens, the notices, the translator, its title bar (「The title bar」),
 its people directory and the members of the reader's company.
 
 - **The console runs one release of bmo-ui,** the file bmo-ui's release verb wrote for the version bmo-chat's

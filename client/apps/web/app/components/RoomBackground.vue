@@ -22,8 +22,14 @@
             <span class="text-highlighted">{{ kindWord(call) }}</span>
             <span v-if="call.agent !== null" class="text-muted">{{ call.agent }}</span>
           </span>
-          <span v-if="call.note !== null" class="text-sm whitespace-pre-wrap wrap-anywhere text-toned">{{ call.note }}</span>
-          <span class="text-xs text-dimmed tabular-nums">{{ detail(call) }}</span>
+          <!-- The note is the agent's own words, so it stands in its original with its translation in its place
+               (docs/web.md, 「The original, and its translation in its place」). -->
+          <TranslatedText v-if="call.note !== null" :text="call.note">
+            <template #default="{ text }">
+              <span class="text-sm whitespace-pre-wrap wrap-anywhere text-toned" data-background-note>{{ text }}</span>
+            </template>
+          </TranslatedText>
+          <span class="text-sm text-dimmed tabular-nums">{{ detail(call) }}</span>
         </li>
       </ol>
     </template>

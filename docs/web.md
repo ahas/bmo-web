@@ -3720,7 +3720,7 @@ Four bounds keep it from growing forever.
   | Inks inside a bubble | every secondary colour drawn inside a bubble is derived from that bubble's own ground, the owner's teal and the raised ground of everyone else's alike: its lightness is the ground's, moved a set share of the way to black in the light theme and to white in the dark, and its hue and chroma are its own — the text's for the muted and dimmed letters, the theme colour's for the accent and the success, error, warning, info and secondary colours. So the muted and dimmed letters, a link, a quote's strip, a chip's letters and icon, a verdict's mark and the send mark read at 4.5:1 or better, on the bubble and on the wash an open chip or a soft badge lays over it, in both themes, and keep it when a ground changes colour. The verdict mark's passing and failing colours are a mark's, read at 3:1, so they take a mark ink of their own, moved a smaller share than the letters' inks so their colour stays vivid: the passing green keeps its own chroma, as much of it as the screen shows, in both themes, and only the failing red is held to a chroma the screen still shows at the dark theme's light mark, where a strong red does not fit. They read at 3:1 or better on the same grounds and washes, and keep it when a ground changes colour | |
   | Meta line over a picture | 4px in from the picture's corner, 4px corners, 8px sides | 6px sides |
   | Top bar | 48px, the height every page's top bar has, a 20px picture | |
-  | Picture, name and menu | 12px from the picture to the name and from the name to the menu's dots, the gap read between what the eye sees, so the menu button's own room reaches under the name's end; the menu stays beside the name, all three on one centre line, the pinned button and the window's time left after it | |
+  | Picture, name and menu | 12px from the picture to the name; 8px from the name's end to the menu button's own box, the gap every heading row stands between its title and its button, so the button's hover and press never reach under the name; the menu stays beside the name, all three on one centre line, the pinned button and the window's time left after it | |
   | Input bar | 8px above and below the input box; the box 4px round its controls, 32px buttons with 4px corners | |
   | Photo and way down above the input bar | 8px | |
 - **The top bar and the input bar lie over the conversation.** Each runs the panel's full width with no
@@ -5306,7 +5306,9 @@ Four bounds keep it from growing forever.
 - **Pressing it opens a list, one line a call, oldest first:** what it is — 감시 for a watch, with how often its
   check runs, 알림 for a reminder, with the moment it waits for, and the tool's own name for any other call — the
   note it was set with, the agent it wakes, and since when it has stood. A call with no note stands its tool's name
-  alone.
+  alone. The note is the agent's own words, a wake's instruction among them, so it stands in its original with its
+  translation in its place, each note under a line of its own (「The original, and its translation in its place」
+  under 「TODO 패널」); what the call is, the agent and the times are the console's own words and stay as they are.
 - **It is read as the screen opens, again every minute while the screen stands, and each time the list opens,**
   so a watch that held, or a reminder whose moment came, leaves the list without a reload.
 - **Nothing here acts:** a call is stopped by the agent that set it, and the list only shows what waits. A tool
@@ -5799,7 +5801,8 @@ Four bounds keep it from growing forever.
     was written in or in the reader's own, one at a time in the same place: the brief and each change to it, the
     running work order's purpose and instruction, each report, each entry of the item's 보고 턴 — a report, a
     question, an answer, a rejection, a pass —, a co-work task's work order and result, a brain memory opened
-    from a room's record, the room's situation note, and a job's question card waiting for an answer — its
+    from a room's record, the room's situation note, the note each call waiting in a room's 진행 중 was set with,
+    and a job's question card waiting for an answer — its
     question, its reason and each option, read together under the question's one line, so 원문 보기 puts all of
     them back at once, while the answer sent is always the option as it was written. A text in another language
     than the reader's carries one line above it. Where 자동 번역 is on (「테마」 under the settings), the default, the reading is asked as the text

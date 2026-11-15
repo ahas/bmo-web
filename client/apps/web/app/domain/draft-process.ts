@@ -100,6 +100,20 @@ export function movedQuestion(list: readonly string[], name: string, by: -1 | 1)
   return list.includes(FINAL_QUESTION) ? [...asked, FINAL_QUESTION] : asked;
 }
 
+/** The list with the question at `from` carried to the place of the one at `to`, among those before `final`, which
+ * stays last: a question carried onto `final` stands just before it, and `final` itself is never carried. */
+export function placedQuestion(list: readonly string[], from: number, to: number): string[] {
+  const asked = list.filter((one) => one !== FINAL_QUESTION);
+
+  if (list[from] === FINAL_QUESTION || from >= asked.length) return [...list];
+
+  const [carried] = asked.splice(from, 1);
+
+  asked.splice(Math.min(to, asked.length), 0, carried!);
+
+  return list.includes(FINAL_QUESTION) ? [...asked, FINAL_QUESTION] : asked;
+}
+
 /** Why a list cannot be sent, or null where it can: every name in the catalogue, and a list that holds questions
  * ends in `final` and holds it nowhere else. */
 export function draftListFault(t: Translate, list: readonly string[], catalogue: readonly string[]): string | null {

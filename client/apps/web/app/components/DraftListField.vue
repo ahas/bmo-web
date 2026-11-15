@@ -6,8 +6,20 @@
        stands last in every list that holds a question, is taken out only where it stands alone and carries no
        checkbox. The form that holds the field saves it. -->
   <div class="flex min-w-0 flex-col gap-2">
-    <ol class="flex flex-col gap-1" :aria-label="props.label">
-      <li v-for="(name, index) in list" :key="name" class="flex min-w-0 items-center gap-1" :data-draft-question="name">
+    <!-- A question before `final` is carried by its handle to another place among those, by the mouse, the pen and the
+         finger; `final` has no handle and stays last. -->
+    <ol ref="rows" class="flex flex-col gap-1" :aria-label="props.label">
+      <li v-for="(name, index) in list" :key="name" class="flex min-w-0 items-center gap-1 rounded-md" :class="drag.mark(index)" :data-draft-question="name" :data-order-index="index">
+        <span
+          v-if="name !== FINAL_QUESTION && !props.disabled"
+          class="flex size-6 shrink-0 cursor-grab touch-none select-none items-center justify-center text-muted transition-colors hover:text-highlighted active:text-primary"
+          role="img"
+          :aria-label="$t('agents.aria.drag_reorder')"
+          @pointerdown="drag.onHandleDown(index, $event)"
+        >
+          <UIcon name="i-material-symbols-drag-indicator" class="size-4" />
+        </span>
+        <span v-else class="size-6 shrink-0" aria-hidden="true" />
         <span class="w-5 shrink-0 text-end text-sm text-dimmed tabular-nums">{{ index + 1 }}</span>
         <UCheckbox
           v-if="name !== FINAL_QUESTION"
@@ -53,7 +65,8 @@
 
 <script setup lang="ts">
 import { FINAL_QUESTION } from "#shared/drafting";
-import { movedQuestion, switchedQuestion, withoutQuestion, withQuestion } from "~/domain/draft-process";
+import { movedQuestion, placedQuestion, switchedQuestion, withoutQuestion, withQuestion } from "~/domain/draft-process";
+import { useRowDrag } from "~/domain/row-drag";
 import { draftQuestionLabel } from "~/domain/working";
 
 interface Props {
@@ -69,6 +82,9 @@ const { t } = useI18n();
 // The list, and the questions switched off, whichever of the process's lists holds them.
 const list = defineModel<string[]>({ required: true });
 const off = defineModel<string[]>("off", { required: true });
+
+const rows = ref<HTMLElement | null>(null);
+const drag = useRowDrag({ list: rows, ready: () => !props.disabled, drop: (from, to) => (list.value = placedQuestion(list.value, from, to)) });
 
 // How many questions stand before `final`, which the down arrow stops at.
 const asked = computed(() => list.value.filter((name) => name !== FINAL_QUESTION).length);

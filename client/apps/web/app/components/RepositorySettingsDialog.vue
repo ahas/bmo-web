@@ -82,8 +82,25 @@
 
       <!-- The documents a run's prefix carries in this repository, in order, sent whole. -->
       <UFormField :label="$t('agents.label.prefix_documents')" name="prefixDocuments" :error="errorAt('prefixDocuments')">
-        <div class="flex flex-col gap-2">
-          <div v-for="(path, at) in form.prefixDocuments" :key="`${at}:${path}`" data-prefix-document class="flex min-w-0 items-center gap-1">
+        <!-- A document is carried by its handle to another place in the order, by the mouse, the pen and the finger;
+             its buttons move it one place for a reader without a pointer. -->
+        <div ref="prefixList" class="flex flex-col gap-2">
+          <div
+            v-for="(path, at) in form.prefixDocuments"
+            :key="`${at}:${path}`"
+            data-prefix-document
+            :data-order-index="at"
+            class="flex min-w-0 items-center gap-1 rounded-md"
+            :class="prefixDrag.mark(at)"
+          >
+            <span
+              class="flex size-8 shrink-0 cursor-grab touch-none select-none items-center justify-center text-muted transition-colors hover:text-highlighted active:text-primary"
+              role="img"
+              :aria-label="$t('agents.aria.drag_reorder')"
+              @pointerdown="prefixDrag.onHandleDown(at, $event)"
+            >
+              <UIcon name="i-material-symbols-drag-indicator" class="size-5" />
+            </span>
             <span class="min-w-0 flex-1 truncate font-mono text-sm">{{ path }}</span>
             <UTooltip :text="$t('agents.aria.prefix_document_up', { path })">
               <UButton icon="i-material-symbols-arrow-upward" color="neutral" variant="ghost" :disabled="at === 0 || busy" :aria-label="$t('agents.aria.prefix_document_up', { path })" @click="movePrefix(at, -1)" />
@@ -162,6 +179,8 @@ import { failureText } from "bmo-ui/app/domain/errors";
 
 import { DEFAULT_DOWNGRADE_HEAL, JOB_LINE, markedDefault, refusalOf, useProviderModels, useProviders } from "~/domain/axes";
 import { generationChange, settingsDraft } from "~/domain/generation";
+import { movedOrder } from "~/domain/agents";
+import { useRowDrag } from "~/domain/row-drag";
 
 import type { GenerationSetting } from "#shared/agency";
 import type { NodeCheckoutAsk, RepositoryView, WorkNodeView } from "#shared/axes";
@@ -349,6 +368,15 @@ function movePrefix(at: number, by: -1 | 1): void {
   [list[at], list[to]] = [list[to]!, list[at]!];
   form.value.prefixDocuments = list;
 }
+
+const prefixList = ref<HTMLElement | null>(null);
+const prefixDrag = useRowDrag({
+  list: prefixList,
+  ready: () => !busy.value,
+  drop: (from, to) => {
+    form.value.prefixDocuments = movedOrder(form.value.prefixDocuments, from, to);
+  }
+});
 
 function dropPrefix(at: number): void {
   form.value.prefixDocuments = form.value.prefixDocuments.filter((_, index) => index !== at);

@@ -17,7 +17,15 @@
          phone the unit alone, the tree in its drawer. -->
     <USplitter v-else id="organization-splitter" auto-save-id="bmo-organization-splitter" :items="regions" :ui="{ handle: SPLIT_HANDLE }" class="min-h-0 flex-1">
       <template #tree>
-        <nav class="min-h-0 min-w-0 flex-1 overflow-auto [scrollbar-width:thin]" :aria-label="$t('organization.label.chart')" data-unit-tree>
+        <!-- People carried from the unit chosen and dropped on a unit open the move's preview with that unit. -->
+        <nav
+          class="min-h-0 min-w-0 flex-1 overflow-auto [scrollbar-width:thin]"
+          :aria-label="$t('organization.label.chart')"
+          data-unit-tree
+          @dragover="peopleOver"
+          @dragleave="peopleLeave"
+          @drop="peopleDropped"
+        >
           <ContentSkeleton v-if="units === null" class="p-2" :rows="TREE_SKELETON_ROWS" listClass="flex flex-col" :label="$t('organization.status.loading')">
             <template #default="{ index }">
               <div class="flex h-8 items-center gap-1.5 px-2.5" :class="index === 0 ? '' : 'ps-6'">
@@ -26,7 +34,7 @@
               </div>
             </template>
           </ContentSkeleton>
-          <OrganizationUnitTree v-else v-model:expanded="expanded" class="w-max min-w-full p-2" :units="units" :chosen="chosen?.id ?? null" @choose="choose" />
+          <OrganizationUnitTree v-else v-model:expanded="expanded" class="w-max min-w-full p-2" :units="units" :chosen="chosen?.id ?? null" :dropping="dropUnit" @choose="choose" />
         </nav>
       </template>
 
@@ -141,6 +149,9 @@
                   data-unit-member
                   :data-member-row="member"
                   :data-member-choosable="gone(member) ? undefined : ''"
+                  :draggable="!narrow && !gone(member) && !busy"
+                  @dragstart="carryPeople($event, member)"
+                  @dragend="dropUnit = null"
                 >
                   <div v-if="!gone(member)" :class="[CHOOSE_CELL, 'cursor-pointer hover:bg-elevated active:bg-elevated']" data-member-check @click="pick(member, $event.shiftKey)">
                     <UCheckbox :model-value="selected.has(member)" :aria-label="$t('organization.action.choose_person', { name: nameOf(member) })" />
@@ -587,6 +598,66 @@ function openMove(): void {
   moveStep.value = "form";
   moveFailure.value = "";
   moving.value = true;
+}
+
+// --- People carried by the pointer onto a unit of the tree ---
+
+// The drag type the people chosen travel under from the unit's list to the tree.
+const PEOPLE_DRAG = "application/x-organization-people";
+// The unit of the tree carried people stand over.
+const dropUnit = ref<number | null>(null);
+
+// A person's row carried takes the people chosen with it, or the person alone where they are not chosen.
+function carryPeople(event: DragEvent, member: string): void {
+  if (!selected.value.has(member)) {
+    selected.value = new Set([member]);
+    anchor.value = member;
+  }
+
+  event.dataTransfer?.setData(PEOPLE_DRAG, member);
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+}
+
+// The unit whose row of the tree the pointer is level with, read off where the rows stand.
+function unitAt(event: DragEvent): number | null {
+  const tree = event.currentTarget as HTMLElement;
+
+  for (const mark of tree.querySelectorAll<HTMLElement>("[data-unit-drop]")) {
+    const box = (mark.closest<HTMLElement>('[data-slot="link"]') ?? mark).getBoundingClientRect();
+
+    if (event.clientY >= box.top && event.clientY < box.bottom) return Number(mark.dataset.unitDrop);
+  }
+
+  return null;
+}
+
+function peopleOver(event: DragEvent): void {
+  if (!(event.dataTransfer?.types.includes(PEOPLE_DRAG) ?? false)) return;
+
+  const unit = unitAt(event);
+
+  dropUnit.value = unit === chosen.value?.id ? null : unit;
+  if (dropUnit.value === null) return;
+
+  event.preventDefault();
+  event.dataTransfer!.dropEffect = "move";
+}
+
+function peopleLeave(event: DragEvent): void {
+  if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) dropUnit.value = null;
+}
+
+// People dropped on a unit: the move's preview, the unit chosen as where they go and each staying a member.
+function peopleDropped(event: DragEvent): void {
+  const unit = dropUnit.value;
+
+  dropUnit.value = null;
+  if (unit === null || !(event.dataTransfer?.types.includes(PEOPLE_DRAG) ?? false)) return;
+
+  event.preventDefault();
+  openMove();
+  moveDraft.to = String(unit);
+  previewMove();
 }
 
 function previewMove(): void {

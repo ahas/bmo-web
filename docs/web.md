@@ -2944,8 +2944,8 @@ a seat of its role.
   and the block's title then carries `(기본값)`.
   - **질문 순서** is the questions every turn's round follows, in order, whatever the turn carried — no turn is
     lighter than another: an ordered pick from the supervisor's catalogue, every question under the pack's word for it and one
-    the console added under its own name. The questions chosen stand in order, each with a checkbox, moved up or
-    down or taken out, and one not yet chosen is added before `final`, which stands last in every list that holds a
+    the console added under its own name. The questions chosen stand in order, each with a checkbox, carried by its
+    handle to another place, moved up or down or taken out, and one not yet chosen is added before `final`, which stands last in every list that holds a
     question. The checkbox switches a question off or on where it stands: one unchecked keeps its place, dimmed and
     struck through, and is left out of what the round follows. `final` writes the message and carries no checkbox.
     A list with no question says 질문 없음.
@@ -3085,7 +3085,8 @@ a seat of its role.
     for a repository already made, and only while its base stands on this machine; a removal the agency refuses
     while a job holds the checkout says the pack's sentence under the field.
   - **프리픽스 문서** lists the documents a run's prefix carries in this repository, in order, each a path relative to
-    the checkout or absolute under the umbrella, each moved up or down or taken out; a path field and an add button
+    the checkout or absolute under the umbrella, each carried by its handle to another place, moved up or down or
+    taken out; a path field and an add button
     under them put one at the end. The list is sent whole; an empty list is none.
   - **머리말** is multi-line text standing before every job's prompt in this repository, up to 8,000 characters; **개발
     서버 명령** one shell line, up to 1,000 characters. Both empty are none.
@@ -6694,6 +6695,9 @@ research screen (「Research screen」).
     dialog at either step writes nothing. Once written, the dialog closes, the choice is given up and the units
     are read again. A refusal is said in the dialog and nobody is moved; where someone moved a person meanwhile,
     the units are read again and the dialog says to look again.
+  - On a wide screen a person's row is carried by the pointer onto a unit of the tree, taking the people chosen
+    with it, or the person alone where they are not chosen; the unit under the pointer stands lit, and the drop
+    opens the same dialog at its second step, that unit as where they go and each a 구성원, 뒤로 changing either.
   - The machine mark opens the person's machine in a dialog: the machine their account is bound to and whether it
     is connected, or none. 기기 연결, or 다른 기기로 연결 where one is bound, binds the account to the machine named in
     기기 이름, or to a fresh name where it is left empty; a machine not yet connected shows its one-line installs,

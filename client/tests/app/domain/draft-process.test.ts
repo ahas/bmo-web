@@ -19,6 +19,7 @@ import {
   readList,
   roundLines,
   movedQuestion,
+  placedQuestion,
   questionNameFault,
   questionTextFault,
   splitDraftJudgements,
@@ -76,6 +77,14 @@ describe("an ordered pick of questions", () => {
     expect(movedQuestion(["intent", "facts", "final"], "facts", -1)).toEqual(["facts", "intent", "final"]);
     expect(movedQuestion(["intent", "facts", "final"], "facts", 1)).toEqual(["intent", "facts", "final"]);
     expect(movedQuestion(["intent", "facts", "final"], "intent", -1)).toEqual(["intent", "facts", "final"]);
+  });
+
+  test("carries a question to another place among those before final, which stays last", () => {
+    expect(placedQuestion(["intent", "facts", "tone", "final"], 2, 0)).toEqual(["tone", "intent", "facts", "final"]);
+    expect(placedQuestion(["intent", "facts", "tone", "final"], 0, 2)).toEqual(["facts", "tone", "intent", "final"]);
+    // Carried onto final, it stands just before it; final itself is never carried.
+    expect(placedQuestion(["intent", "facts", "tone", "final"], 0, 3)).toEqual(["facts", "tone", "intent", "final"]);
+    expect(placedQuestion(["intent", "facts", "final"], 2, 0)).toEqual(["intent", "facts", "final"]);
   });
 
   test("is refused before it goes where a name is not in the catalogue or final is not last", () => {

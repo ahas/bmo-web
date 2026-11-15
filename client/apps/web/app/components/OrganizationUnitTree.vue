@@ -15,6 +15,10 @@
     :on-toggle="keepOnPress"
     @update:model-value="(item: unknown) => choose(item as UnitItem | undefined)"
   >
+    <!-- A unit's name marks its row for people carried over the tree, and stands lit while they would land there. -->
+    <template #item-label="{ item }">
+      <span :data-unit-drop="item.id" class="rounded-sm" :class="props.dropping === item.id ? 'bg-primary/15 ring-1 ring-primary' : ''">{{ item.label }}</span>
+    </template>
     <!-- The chevron's own box overhangs the row's line rather than making a branch's row taller than a leaf's. -->
     <template #item-trailing="{ item, expanded: open, handleToggle }">
       <UTooltip v-if="item.children?.length" :text="$t(open ? 'organization.action.collapse' : 'organization.action.expand')">
@@ -45,11 +49,13 @@ import type { UnitBranch, UnitPlace } from "~/domain/organization";
 interface Props {
   units: readonly UnitPlace[];
   chosen: number | null;
+  // The unit people carried from the unit chosen would be moved into, lit while they stand over it.
+  dropping?: number | null;
 }
 
 type UnitItem = TreeItem & { id: number; label: string; children?: UnitItem[] };
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { dropping: null });
 const emit = defineEmits<{ choose: [unit: number] }>();
 // The keys of the branches standing open, kept by the screen.
 const expanded = defineModel<string[]>("expanded", { required: true });

@@ -58,9 +58,11 @@ async function readWord(event: H3Event): Promise<{ body: WordBody; files: WordFi
 // Saying something to one worker rather than telling the agent to launch a job. Nothing is launched
 // and nothing is queued: the words go to that worker's own session — into the turn it is in the
 // middle of, or into a turn of its own where nothing is running — and the words and what it
-// answers stand in that worker's own log, on the screen they were typed on.
+// answers stand in that worker's own log, on the screen they were typed on. The agency takes them as the owner's
+// alone, its `by` `owner` (its `docs/api.md`, words said to a repository's worker), and a worker's turn reads them so;
+// any other account is refused here before anything reaches it (docs/web.md, 「Access」).
 export default defineEventHandler(async (event): Promise<WorkerWordSent> => {
-  const session = await requireUserSession(event);
+  if (!(await isOwnerLogin(await signedInUser(event)))) throw fail(403, wording("agents.error.word_owner_only"));
 
   const { body, files } = await readWord(event);
   const text = typeof body.text === "string" ? body.text.trim() : "";
@@ -92,7 +94,7 @@ export default defineEventHandler(async (event): Promise<WorkerWordSent> => {
   const answer = await agencyRoute<WordAnswer>("POST", `/repositories/${encodeURIComponent(worker)}/words`, {
     words: text,
     text,
-    by: session.user.name,
+    by: "owner",
     files: files.map((file) => ({ name: file.name, type: file.type, data: Buffer.from(file.data).toString("base64") }))
   });
 

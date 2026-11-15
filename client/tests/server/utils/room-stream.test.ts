@@ -71,4 +71,16 @@ describe("the bot's stream cut to the rooms a user reads", () => {
     expect(filter.consoleEvent!({ name: "mail", data: { account: "a" } })).toBe(false);
     expect(filter.consoleEvent!({ name: "deploy", data: {} })).toBe(true);
   });
+
+  test("each frame is cut to the rooms as they stand when it passes, so a room taken away falls silent at once", () => {
+    const held = new Set([ROOM_ID]);
+    const derived = roomStreamFilter(held).derived!();
+    const message = bot({ id: 3, at: 1, type: "message", chatId: ROOM_ID, messageId: 12 });
+
+    expect(derived(message)).toHaveLength(1);
+
+    held.delete(ROOM_ID);
+
+    expect(derived(message)).toEqual([]);
+  });
 });

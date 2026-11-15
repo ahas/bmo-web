@@ -1,7 +1,7 @@
 import { wording } from "#shared/wording";
 import { reportWatching } from "../../utils/account-service";
 import { signedInUser } from "../../utils/accounts";
-import { isOwnRoom } from "../../utils/room-reach";
+import { isOwnRoom, requireReadableRoom } from "../../utils/room-reach";
 
 import type { H3Event } from "h3";
 
@@ -21,7 +21,8 @@ async function unseen(event: H3Event, chatId: number | null): Promise<boolean> {
 
 // An open tab saying which room it shows and whether it can be seen (docs/web.md, 「Notifications」).
 // It is written against the account logged in, so a room's notification passes over exactly the
-// devices of whoever is looking at it.
+// devices of whoever is looking at it. A room the account does not read is refused as if it did not stand, so
+// nobody's looking moves another's count for a room they cannot read.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   const session = await requireUserSession(event);
   const body = (await readBody(event)) as { tab?: unknown; chatId?: unknown; visible?: unknown } | null;
@@ -32,6 +33,8 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   }
 
   const chatId = Number.isSafeInteger(body.chatId) ? (body.chatId as number) : null;
+
+  if (chatId !== null) await requireReadableRoom(event, chatId);
 
   roomWatchers.report({ tab, user: session.user.name, chatId, visible: body.visible, unseen: await unseen(event, chatId) }, Date.now());
 

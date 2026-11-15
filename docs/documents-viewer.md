@@ -142,8 +142,9 @@ brain's library is no root of the viewer's: it is read on the brain's own screen
   the topic differs from an item's talk, which bmo-job carries.
 - **The owner's alone:** the talk is his private chat, so it hangs on his account (`STRUCTURE.md`, 「Accounts,
   companies and units」). An account other than the owner's that reads the documents section reads the documents
-  and their translations, and its words to the talk are refused 403: nothing is written and nothing reaches the
-  receiver. The owner's account is the one the account service links to the owner's sender, and a console login
+  and their translations, and the talk is closed to it both ways: reading it is refused 403 before anything of it
+  is read, and its words to it are refused 403, nothing written and nothing reaching the receiver. The owner's
+  account is the one the account service links to the owner's sender, and a console login
   standing before the account model, which is the owner's.
 
 ### A document turn

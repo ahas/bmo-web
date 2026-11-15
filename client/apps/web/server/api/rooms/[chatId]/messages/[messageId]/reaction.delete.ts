@@ -1,7 +1,5 @@
-import { acted, messageToActOn } from "../../../../../utils/message-acts";
-import { exactAnswer, receiver } from "../../../../../utils/receiver";
+import { acted, actOnMessage, messageToActOn } from "../../../../../utils/message-acts";
 
-import type { ReceiverMessage } from "../../../../../utils/receiver";
 import type { MessageAct } from "#shared/types";
 
 // The signed-in person's own reaction taken off a message (the receiver's `docs/api.md`, 「Messages」): the emoji they
@@ -9,13 +7,7 @@ import type { MessageAct } from "#shared/types";
 export default defineEventHandler(async (event): Promise<MessageAct> => {
   const acted_ = await messageToActOn(event);
 
-  const message = await exactAnswer<ReceiverMessage>(
-    receiver().DELETE("/rooms/{roomId}/messages/{messageId}/reactions/mine", {
-      params: { path: { roomId: acted_.chatId, messageId: acted_.messageId } },
-      parseAs: "text",
-      headers: acted_.headers
-    })
-  );
+  const message = await actOnMessage(acted_, "DELETE", "/reactions/mine");
 
   return acted(message);
 });

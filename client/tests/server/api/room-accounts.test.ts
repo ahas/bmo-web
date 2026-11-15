@@ -4,7 +4,7 @@ import { globalsRestoredAfter } from "../../support/globals";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
-import type { RoomAdded, SentMessage } from "../../../apps/web/shared/types";
+import type { RoomAdded, RoomOverlay, SentMessage } from "../../../apps/web/shared/types";
 
 // An account with no chat service's identity in the console (docs/web.md, the room screen's section on opening a room
 // and letting people in): it speaks in its own BMO's private room, opens a group room naming its own BMO, lets a
@@ -29,7 +29,9 @@ const receiver = standIn("RECEIVER", (one) => {
     return typeof one.body?.openedBy === "number" ? answer({ id: GROUP, title: one.body.title ?? null }, 201) : answer({ code: "bad-request", error: "openedBy is a number." }, 400);
   }
   if (account !== null && one.method === "PUT" && typeof one.body?.by !== "number") return answer({ code: "bad-request", error: "by is a number." }, 400);
-  if (path === "/rooms") return answer({ items: [], more: false });
+  // The room list says whose private room each room is; the invited account's BMO answers both rooms.
+  if (path === "/rooms") return answer({ items: [GROUP, PRIVATE].map((id) => ({ id, title: null, privateOf: id === PRIVATE ? INVITED : null })), more: false });
+  if (path === `/supervisors/u${INVITED}/rooms`) return answer({ items: [GROUP, PRIVATE].map((id) => ({ id, title: null, named: true, alone: true })), more: false });
   if (account !== null && one.method === "PUT") {
     members.get(Number(account[1]))?.add(account[2]!);
     return answer({ account: account[2], addedBy: one.body?.by, addedAt: 1 });
@@ -40,8 +42,12 @@ const receiver = standIn("RECEIVER", (one) => {
   }
   // The account's memberships, its own BMO's private room among them.
   if (path === `/accounts/${INVITED}/rooms`) return answer({ rooms: [GROUP, PRIVATE] });
-  if (path === `/supervisors/u${INVITED}/rooms`) return answer({ items: [{ id: PRIVATE, title: null, named: true, alone: true }], more: false });
-  if (/^\/rooms\/-?\d+\/providers$/.test(path)) return answer({ providers: [], chosen: false });
+  // Whose private room each room is, as the receiver says it: the private room is the invited account's.
+  if (/^\/rooms\/-?\d+$/.test(path)) {
+    const room = Number(path.split("/")[2]);
+
+    return answer({ id: room, title: null, privateOf: room === PRIVATE ? INVITED : null });
+  }
   if (/^\/rooms\/-?\d+\/accounts$/.test(path)) {
     const room = Number(path.split("/")[2]);
 
@@ -85,6 +91,7 @@ const open = await routeOf<RoomAdded>("../../apps/web/server/api/rooms.post");
 const say = await routeOf<SentMessage>("../../apps/web/server/api/rooms/[chatId]/say.post");
 const letIn = await routeOf<void>("../../apps/web/server/api/rooms/[chatId]/accounts/[user].put");
 const takeOut = await routeOf<void>("../../apps/web/server/api/rooms/[chatId]/accounts/[user].delete");
+const overlay = await routeOf<RoomOverlay>("../../apps/web/server/api/rooms/[chatId]/overlay.get");
 
 const writes = () => receiver.asked.filter((one) => one.method !== "GET").map((one) => [one.method, one.path, one.body]);
 
@@ -146,5 +153,13 @@ describe("an account with no chat service's identity", () => {
     expect((await asked(takeOut, { params: { chatId: String(GROUP), user: String(INVITED) } })).status).toBe(200);
     expect(receiver.asked.some((one) => one.path === `/rooms/${GROUP}/accounts/${INVITED}?by=${INVITED}`)).toBe(true);
     expect(accounts.asked.some((one) => one.path === "/checks/entry")).toBe(false);
+  });
+
+  test("has its own BMO beside the group room, over the room the receiver names its private room", async () => {
+    signedAs(INVITED);
+
+    expect((await asked(overlay, { params: { chatId: String(GROUP) } })).answer).toEqual({ supervisor: `u${INVITED}`, label: "invited's BMO", room: PRIVATE });
+    // Its own private room has no overlay of itself.
+    expect((await asked(overlay, { params: { chatId: String(PRIVATE) } })).answer).toEqual({ supervisor: `u${INVITED}`, label: "invited's BMO", room: null });
   });
 });

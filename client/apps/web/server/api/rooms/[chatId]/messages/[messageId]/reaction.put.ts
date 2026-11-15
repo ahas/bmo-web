@@ -1,9 +1,7 @@
 import { wording } from "#shared/wording";
 
-import { acted, messageToActOn } from "../../../../../utils/message-acts";
-import { exactAnswer, receiver } from "../../../../../utils/receiver";
+import { acted, actOnMessage, messageToActOn } from "../../../../../utils/message-acts";
 
-import type { ReceiverMessage } from "../../../../../utils/receiver";
 import type { MessageAct } from "#shared/types";
 
 // A reaction of the signed-in person's own put on a message (the receiver's `docs/api.md`, 「Messages」): the emoji is
@@ -18,14 +16,7 @@ export default defineEventHandler(async (event): Promise<MessageAct> => {
     throw fail(400, wording("room.error.reaction_empty"));
   }
 
-  const message = await exactAnswer<ReceiverMessage>(
-    receiver().PUT("/rooms/{roomId}/messages/{messageId}/reactions/mine", {
-      params: { path: { roomId: acted_.chatId, messageId: acted_.messageId } },
-      parseAs: "text",
-      body: { emoji },
-      headers: acted_.headers
-    })
-  );
+  const message = await actOnMessage(acted_, "PUT", "/reactions/mine", { emoji });
 
   return acted(message);
 });

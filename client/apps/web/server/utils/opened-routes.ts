@@ -95,7 +95,6 @@ export const openedRoutes: readonly OpenedRoute[] = [
 
   // The rooms a reader may read, their messages, files, pictures and the stream that carries their news.
   { ...section(ROOM, "GET", /^\/api\/rooms$/), scope: "room" },
-  { method: "POST", path: /^\/api\/rooms$/, scope: "user", administrator: true },
   // Adding a room and the tools that act on a room's registration are the administrator's alone.
   { method: "GET", path: /^\/api\/room-add(?:\/.*)?$/, scope: "user", administrator: true },
   { method: "GET", path: /^\/api\/rooms\/-?\d+\/remove$/, scope: "user", administrator: true },

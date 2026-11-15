@@ -1,9 +1,13 @@
+import { ROOM_REACH_REFRESH_MS } from "#shared/config";
+import { wording } from "#shared/wording";
+
 import { checkRoom, userOf } from "./account-service";
 
 import { signedInUser } from "./accounts";
-import { supervisorsOwnedBy } from "./axes";
-import { accountRooms, roomAccounts } from "./console-rooms";
+import { accountRooms, privateOf } from "./console-rooms";
+import { fail } from "./fail";
 import { ownerChat } from "./owner";
+import { administratorKey } from "./owner-key";
 import { receiver, receiverCall } from "./receiver";
 
 import type { SignedIn } from "./accounts";
@@ -47,43 +51,6 @@ async function linkedRooms(account: number, administrator: boolean): Promise<num
   return readable;
 }
 
-// Whether a room is one account's private room: carried by no chat service, and holding no account but that one.
-async function heldAlone(room: number, account: number): Promise<boolean> {
-  const [providers, members] = await Promise.all([
-    receiverCall(receiver().GET("/rooms/{roomId}/providers", { params: { path: { roomId: room } } })),
-    roomAccounts(room)
-  ]);
-
-  return providers.providers.length === 0 && members.every((member) => member.account === String(account));
-}
-
-/** The account's own BMO's private rooms: the record rooms a supervisor it owns answers alone, holding no other
- * account (docs/web.md, 「Access」). */
-export async function privateRoomsOf(account: number): Promise<number[]> {
-  const rooms: number[] = [];
-  // An agency that does not answer hides the private room until it does, and leaves every other room readable.
-  const owned = await supervisorsOwnedBy(account).catch(() => []);
-
-  for (const supervisor of owned) {
-    const answered = await receiverCall(receiver().GET("/supervisors/{supervisorName}/rooms", { params: { path: { supervisorName: supervisor.name } } }));
-
-    for (const room of answered.items) {
-      if (room.alone && !rooms.includes(room.id) && (await heldAlone(room.id, account))) rooms.push(room.id);
-    }
-  }
-
-  return rooms;
-}
-
-/** The account whose private room with their own BMO a room is, or null where it is no one's: a record room whose
- * leaders are one account, holding no other account. */
-export async function privateRoomOwner(room: number): Promise<number | null> {
-  const leaders = (await receiverCall(receiver().GET("/rooms/{roomId}/leaders", { params: { path: { roomId: room } } }))).leaders;
-  const owner = leaders.length === 1 ? leaders[0]! : null;
-
-  return owner !== null && (await heldAlone(room, owner)) ? owner : null;
-}
-
 /** The rooms an account reads as any person does: its console memberships, its own BMO's private rooms among them,
  * and its linked identities' rooms; the administrator's private chat is his own beside them. */
 export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
@@ -101,6 +68,112 @@ export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
   ]);
 
   return new Set([...memberships, ...linked, ...(chat === null ? [] : [chat])]);
+}
+
+/** A change of the rooms an account reads, made through the console: a room it was let into or opened, or one it
+ * left, was taken out of or lost the call grant of. */
+export interface ReachChange {
+  account: number;
+  room: number;
+  left: boolean;
+}
+
+const reachListeners = new Set<(change: ReachChange) => void>();
+
+/** Says to every open stream that an account's rooms changed. */
+export function roomReachChanged(change: ReachChange): void {
+  for (const listener of reachListeners) {
+    try {
+      listener(change);
+    } catch {
+      // One stream's fault is no reason to keep the change from the others.
+    }
+  }
+}
+
+/**
+ * The rooms an open stream's reader reads, kept as they stand while the stream is open (docs/web.md, 「Access」): read
+ * again whenever a change of the reader's account's rooms is said, a room it left or was taken out of dropped at once
+ * so nothing more of it is heard, and read again every `ROOM_REACH_REFRESH_MS` for what changes elsewhere. A read that
+ * fails keeps the rooms as they stood, its drops among them.
+ */
+export class LiveRooms {
+  private rooms: ReadonlySet<number>;
+  // Rooms dropped by a change, each with the change that dropped it, kept out until a read begun after it lands.
+  private readonly dropped = new Map<number, number>();
+  private changes = 0;
+  private reading: Promise<void> | null = null;
+  private again = false;
+
+  constructor(private readonly signed: SignedIn, rooms: ReadonlySet<number>) {
+    this.rooms = rooms;
+  }
+
+  has(room: number): boolean {
+    return this.rooms.has(room);
+  }
+
+  /** Waits for the read under way, where one is. */
+  async settled(): Promise<void> {
+    await this.reading;
+  }
+
+  /** Follows the changes said and the clock until the returned stop is called. */
+  follow(refreshMs: number = ROOM_REACH_REFRESH_MS): () => void {
+    const listener = (change: ReachChange): void => {
+      if (change.account !== this.signed.id) return;
+
+      if (change.left) this.drop(change.room);
+      else this.refresh();
+    };
+    const timer = setInterval(() => this.refresh(), refreshMs);
+
+    reachListeners.add(listener);
+
+    return () => {
+      reachListeners.delete(listener);
+      clearInterval(timer);
+    };
+  }
+
+  private drop(room: number): void {
+    this.changes += 1;
+    this.dropped.set(room, this.changes);
+    this.rooms = new Set([...this.rooms].filter((one) => one !== room));
+    this.refresh();
+  }
+
+  private refresh(): void {
+    if (this.reading !== null) {
+      this.again = true;
+
+      return;
+    }
+
+    this.reading = this.readWhileAsked().finally(() => {
+      this.reading = null;
+    });
+  }
+
+  private async readWhileAsked(): Promise<void> {
+    do {
+      this.again = false;
+
+      const begun = this.changes;
+
+      try {
+        const rooms = await ownRooms(this.signed);
+
+        for (const [room, at] of this.dropped) {
+          if (at <= begun) this.dropped.delete(room);
+        }
+
+        this.rooms = new Set([...rooms].filter((room) => !this.dropped.has(room)));
+      } catch (error) {
+        console.warn(`the rooms of ${this.signed.name} were not read again: ${String(error)}`);
+      }
+    } while (this.again);
+  }
 }
 
 export async function readableRooms(event: H3Event): Promise<ReadableRooms> {
@@ -139,22 +212,28 @@ export async function isOwnRoom(event: H3Event, chatId: number): Promise<boolean
   return own.has(chatId);
 }
 
+/** The account a signed-in login changes a room as: its own, or the administrator's account for a console login
+ * standing before the account model, which is the owner's; null where the model names no administrator yet. */
+export async function actingAccount(signed: SignedIn, administrator: () => Promise<string | null> = administratorKey): Promise<number | null> {
+  if (signed.id !== null) return signed.id;
+
+  const key = signed.administrator ? await administrator() : null;
+
+  return key === null ? null : Number(key);
+}
+
 /**
- * A room the signed-in user may change something of, refused 403 where it is another person's private room with
- * their own BMO: the administrator reads every room and changes nothing of another's (docs/web.md, 「Access」). A
- * member reads no such room, so the read refusal answers them first; a console login standing before the account
- * model is the owner's, and no person's private room stands beside it.
+ * A room the signed-in user may change something of, refused 403 where it is another account's private room as the
+ * receiver says (its `privateOf`): the administrator reads every room and changes nothing of another's (docs/web.md,
+ * 「Access」). The receiver refuses the same change by the account each write names; this refusal stands before it,
+ * and is the only one for a console login standing before the account model, whose writes name no account.
  */
 export async function requireWritableRoom(event: H3Event, chatId: number): Promise<void> {
   await requireReadableRoom(event, chatId);
 
-  const signed = await signedInUser(event);
+  const owner = await privateOf(chatId);
 
-  if (!signed.administrator || signed.id === null || (await isOwnRoom(event, chatId))) return;
-
-  const owner = await privateRoomOwner(chatId);
-
-  if (owner !== null && owner !== signed.id) {
-    throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+  if (owner !== null && owner !== (await actingAccount(await signedInUser(event)))) {
+    throw fail(403, wording("room.error.private_room"));
   }
 }

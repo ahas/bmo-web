@@ -81,6 +81,25 @@ export async function accountRooms(account: number): Promise<number[]> {
   }
 }
 
+function accountOf(value: unknown): number | null {
+  return typeof value === "number" && Number.isSafeInteger(value) ? value : null;
+}
+
+/** The account whose private room the room is, as the receiver says it (`privateOf` of its room), or null for every
+ * other room: a BMO's own record room is its owner account's, the owner's private chat the owner's account's, and a
+ * group room is no one's however many of its members have left. */
+export async function privateOf(room: number): Promise<number | null> {
+  return accountOf((await receiverRoute<{ privateOf?: unknown } | null>(`/rooms/${room}`))?.privateOf);
+}
+
+/** The rooms that are the account's private rooms, as the receiver's room list says each room's `privateOf`. */
+export async function privateRoomsOf(account: number): Promise<number[]> {
+  const page = await receiverRoute<{ items?: unknown } | null>("/rooms");
+  const rooms = Array.isArray(page?.items) ? (page.items as { id?: unknown; privateOf?: unknown }[]) : [];
+
+  return rooms.flatMap((room) => (accountOf(room.privateOf) === account && accountOf(room.id) !== null ? [room.id as number] : []));
+}
+
 /** A room's members by account, in the receiver's order. */
 export async function roomAccounts(room: number): Promise<RoomAccount[]> {
   let said: { accounts?: unknown } | null;

@@ -6,18 +6,14 @@ import { asked, routeOf } from "../../support/nitro";
 import { rawNumber } from "../../support/raw-number";
 import { answer, standIn } from "../../support/units";
 
-import type { MessageAct, SentAttachments, SentMessage } from "../../../apps/web/shared/types";
+import type { SentAttachments, SentMessage } from "../../../apps/web/shared/types";
 
 // Words said in the console (docs/web.md, the room screen's input box, and 「Access」): every account says them under its
 // own account through the receiver's account-named routes, the owner's among them, and no console route reaches the
 // receiver's owner routes for an account that is not the owner's. Only a console login standing before the account
-// model, which is the owner's, says them on the owner's route. In another person's private room with their own BMO
-// the administrator reads alone: every change he would make there is refused 403, while a group room stands open to
-// his acts.
+// model, which is the owner's, says them on the owner's route.
 
 const GROUP = -7;
-const PRIVATE = -21;
-const SHARED = -22;
 const OWNER_ROOM = -1;
 const OWNER_SENDER = 900;
 // A message id past 2^53, which the answer must carry as the digits it is.
@@ -39,19 +35,15 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === "/owner/messages") return answer({ id: 5 }, 201);
   if (path === "/owner/message-files") return answer({ sent: [{ name: "note.txt", id: 5 }], checking: [], failed: [] });
   if (/^\/accounts\/\d+\/rooms$/.test(path)) return answer({ rooms: [] });
-  // Both rooms are led by account 9; the private one holds no other account, the shared one holds account 10 too.
-  if (path === `/rooms/${PRIVATE}/leaders` || path === `/rooms/${SHARED}/leaders`) return answer({ room: 0, leaders: [9] });
-  if (/^\/rooms\/-?\d+\/leaders$/.test(path)) return answer({ room: 0, leaders: [] });
-  if (/^\/rooms\/-?\d+\/providers$/.test(path)) return answer({ providers: [], chosen: false });
-  if (path === `/rooms/${SHARED}/accounts`) return answer({ accounts: [{ account: "9" }, { account: "10" }] });
-  if (/^\/rooms\/-?\d+\/accounts$/.test(path)) return answer({ accounts: [] });
+  // No room here is anyone's private room; the private room's refusals stand in room-private.test.ts.
+  if (/^\/rooms\/-?\d+$/.test(path)) return answer({ id: Number(path.split("/")[2]), title: null, privateOf: null });
 
   return answer({ code: "failed", error: "Not served here." }, 500);
 });
 
 standIn("AGENCY", () => answer({ items: [] }));
 
-const accounts = standIn("WEB_SERVER", (one) => {
+standIn("WEB_SERVER", (one) => {
   const user = one.path.match(/^\/users\/(\d+)$/)?.[1];
 
   if (user !== undefined) return answer({ user, name: `account-${user}`, administrator: user === "1", senders: user === "1" ? [OWNER_SENDER] : [] });
@@ -74,16 +66,16 @@ const CONSOLE_LOGIN = { user: { name: "boss" } };
 const say = await routeOf<SentMessage>("../../apps/web/server/api/rooms/[chatId]/say.post");
 const attach = await routeOf<SentAttachments>("../../apps/web/server/api/rooms/[chatId]/attach.post");
 const voice = await routeOf<SentMessage>("../../apps/web/server/api/rooms/[chatId]/voice.post");
-const react = await routeOf<MessageAct>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/reaction.put");
-const grantCaller = await routeOf<void>("../../apps/web/server/api/rooms/[chatId]/callers/[user].put");
-const letIn = await routeOf<void>("../../apps/web/server/api/rooms/[chatId]/accounts/[user].put");
 const talk = await routeOf<{ ok: true }>("../../apps/web/server/api/documents/talk.post");
+const talkRead = await routeOf<unknown>("../../apps/web/server/api/documents/talk.get");
 
 const file = (name: string) => ({ name: "file", filename: name, type: "text/plain", data: new TextEncoder().encode("words") });
 const field = (name: string, value: string) => ({ name, data: new TextEncoder().encode(value) });
 // A member's room list, read before any of these routes runs, holds the group room.
 const memberRooms = () => ({ readableRooms: new Set([GROUP]) });
 const owners = () => receiver.asked.filter((one) => one.path.startsWith("/owner/"));
+// What the routes sent, beside the reads that told whose room each room is.
+const sends = () => receiver.asked.filter((one) => one.method !== "GET");
 
 describe("a member's words", () => {
   test("are said under the member's own account and never through the owner's routes", async () => {
@@ -93,7 +85,7 @@ describe("a member's words", () => {
     const said = await asked(say, { params: { chatId: String(GROUP) }, body: { text: "hello", replyTo: "21" }, context: memberRooms() });
 
     expect(said.answer).toEqual({ messageId: HIGH });
-    expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([
+    expect(sends().map((one) => [one.method, one.path, one.body])).toEqual([
       ["POST", `/rooms/${GROUP}/words`, { account: 7, name: "member-a", text: "hello", replyTo: 21 }]
     ]);
   });
@@ -107,16 +99,16 @@ describe("a member's words", () => {
 
     expect(sent.answer).toEqual({ sent: [{ name: "note.txt", messageId: HIGH }], failed: [], checking: [] });
     expect(recorded.answer).toEqual({ messageId: HIGH });
-    expect(receiver.asked.map((one) => one.path)).toEqual([`/rooms/${GROUP}/word-files`, `/rooms/${GROUP}/word-files`]);
+    expect(sends().map((one) => one.path)).toEqual([`/rooms/${GROUP}/word-files`, `/rooms/${GROUP}/word-files`]);
 
     // The room is the path's alone, and the account and its shown name stand beside the files.
-    for (const one of receiver.asked) {
+    for (const one of sends()) {
       expect(one.raw).toMatch(/name="account"\r\n\r\n7\r\n/);
       expect(one.raw).toMatch(/name="name"\r\n\r\nmember-a\r\n/);
       expect(one.raw).not.toContain('name="chatId"');
     }
 
-    expect(receiver.asked[1]?.raw).toMatch(/name="voice"\r\n\r\ntrue\r\n/);
+    expect(sends()[1]?.raw).toMatch(/name="voice"\r\n\r\ntrue\r\n/);
     expect(owners()).toEqual([]);
   });
 
@@ -134,6 +126,12 @@ describe("a member's words", () => {
 
     expect((await asked(talk, { body: { root: "docs", path: "a.md", text: "a question" } })).status).toBe(403);
     expect(receiver.asked.some((one) => one.path === "/talks")).toBe(false);
+  });
+
+  test("open no way into the talk about a document: its read is refused 403 as well", async () => {
+    session = MEMBER;
+
+    expect(await asked(talkRead, { query: { root: "docs", path: "a.md" } })).toMatchObject({ status: 403, message: wording("documents.error.talk_owner_only") });
   });
 });
 
@@ -154,34 +152,6 @@ describe("the owner's words", () => {
     receiver.asked.length = 0;
 
     expect((await asked(say, { params: { chatId: String(GROUP) }, body: { text: "hello" } })).answer).toEqual({ messageId: "5" });
-    expect(receiver.asked.map((one) => [one.method, one.path])).toEqual([["POST", "/owner/messages"]]);
-  });
-});
-
-describe("in another person's private room with their own BMO, the administrator", () => {
-  test("says, attaches, records, reacts, sets callers and lets people in nowhere: each is refused 403", async () => {
-    session = ADMINISTRATOR;
-    receiver.asked.length = 0;
-    accounts.asked.length = 0;
-
-    const room = { chatId: String(PRIVATE) };
-
-    expect((await asked(say, { params: room, body: { text: "hello" } })).status).toBe(403);
-    expect((await asked(attach, { params: room, parts: [file("note.txt")] })).status).toBe(403);
-    expect((await asked(voice, { params: room, parts: [file("note.txt")] })).status).toBe(403);
-    expect((await asked(react, { params: { ...room, messageId: "21" }, body: { emoji: "👍" } })).status).toBe(403);
-    expect((await asked(grantCaller, { params: { ...room, user: "10" } })).status).toBe(403);
-    expect((await asked(letIn, { params: { ...room, user: "10" }, body: { caller: true } })).status).toBe(403);
-    // Nothing was said, reacted to or let in; only the reads that told whose room it is were made.
-    expect(receiver.asked.filter((one) => one.method !== "GET")).toEqual([]);
-    expect(accounts.asked.filter((one) => one.method !== "GET")).toEqual([]);
-  });
-
-  test("still says his words in a group room he administers", async () => {
-    session = ADMINISTRATOR;
-    receiver.asked.length = 0;
-
-    expect((await asked(say, { params: { chatId: String(SHARED) }, body: { text: "hello" } })).answer).toEqual({ messageId: HIGH });
-    expect(receiver.asked.filter((one) => one.method === "POST").map((one) => one.path)).toEqual([`/rooms/${SHARED}/words`]);
+    expect(sends().map((one) => [one.method, one.path])).toEqual([["POST", "/owner/messages"]]);
   });
 });

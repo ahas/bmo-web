@@ -23,10 +23,14 @@ interface RoomEvent {
   live?: LiveSnapshot;
 }
 
+/** The rooms a reader reads, asked one at a time as each frame passes, so a set kept up to date while the stream is
+ * open (`LiveRooms`) is read as it stands now. */
+export type ReadRooms = Pick<ReadonlySet<number>, "has">;
+
 const CARRIED: readonly BotEventType[] = ["message", "run-started", ...TURN_ENDED, "room-removed"];
 
 /** The relay's filter for a user who reads these rooms. */
-export function roomStreamFilter(rooms: ReadonlySet<number>): RelayFilter {
+export function roomStreamFilter(rooms: ReadRooms): RelayFilter {
   return {
     frame: (frame) => {
       const name = frameEvent(frame)?.name;
@@ -47,7 +51,7 @@ export function roomStreamFilter(rooms: ReadonlySet<number>): RelayFilter {
 }
 
 /** One whole frame of the bot's as these rooms' reader gets it, or null where they get nothing of it. */
-export function roomFrame(frame: string, rooms: ReadonlySet<number>): string | null {
+export function roomFrame(frame: string, rooms: ReadRooms): string | null {
   const event = frameEvent(frame);
 
   if (event === null || (event.name !== "bot" && event.name !== "live")) return null;
@@ -67,7 +71,7 @@ export function roomFrame(frame: string, rooms: ReadonlySet<number>): string | n
   return cut === null ? null : `id: ${cut.id}\nevent: bot\ndata: ${JSON.stringify(cut)}\n\n`;
 }
 
-function roomEvent(event: RoomEvent, rooms: ReadonlySet<number>): RoomEvent | null {
+function roomEvent(event: RoomEvent, rooms: ReadRooms): RoomEvent | null {
   const head = { id: event.id, at: event.at, type: event.type, chatId: event.chatId, messageId: event.messageId };
 
   if (event.type === "live") return event.live === undefined ? null : { ...head, live: roomPicture(event.live, rooms) };
@@ -81,7 +85,7 @@ function roomEvent(event: RoomEvent, rooms: ReadonlySet<number>): RoomEvent | nu
   };
 }
 
-function roomPicture(picture: LiveSnapshot, rooms: ReadonlySet<number>): LiveSnapshot {
+function roomPicture(picture: LiveSnapshot, rooms: ReadRooms): LiveSnapshot {
   const turns = (picture.turns ?? []).filter((turn) => rooms.has(turn.chatId)).map((turn): ChatTurn => ({
     chatId: turn.chatId,
     since: turn.since,

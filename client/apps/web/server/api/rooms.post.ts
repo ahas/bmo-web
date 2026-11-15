@@ -4,6 +4,7 @@ import { wording } from "#shared/wording";
 import { signedInUser } from "../utils/accounts";
 import { supervisorsOwnedBy } from "../utils/axes";
 import { openRecordRoom } from "../utils/console-rooms";
+import { roomReachChanged } from "../utils/room-reach";
 
 import type { RoomAdded } from "#shared/types";
 import type { H3Event } from "h3";
@@ -30,6 +31,8 @@ async function openedRoom(event: H3Event, asked: unknown): Promise<RoomAdded> {
   if (own === undefined) throw fail(409, wording("room.error.open_no_bmo"));
 
   const room = await openRecordRoom(title, own.name, String(signed.id));
+
+  roomReachChanged({ account: signed.id, room: room.id, left: false });
 
   return { chatId: room.id, title: room.title ?? title };
 }

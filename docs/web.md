@@ -423,20 +423,34 @@ console page. No answer says which framework drew it. Strict transport is the re
   2. **the rooms its linked identities reach:** a room one of the senders linked to the account has stood as a
      sender in, and the one-to-one each such identity is, in which the account holds the console grant
      (`docs/accounts.md`, 「Checks」);
-  3. **its own BMO's private room:** the record room a supervisor whose owner account it is answers alone, carried
-     by no chat service and holding no other account as a member.
+  3. **its own BMO's private room:** the room the receiver says is the account's private room (the `privateOf` of the
+     room, its `docs/api.md`, 「Rooms」), its BMO's own record room.
+- **Whose private room a room is, is the receiver's to say,** by the `privateOf` it answers with every room it reads:
+  the account whose private room it is, or none. The console guesses it from nothing else — not from who leads the
+  room, which chat services carry it or how many members it holds — so a group room every other member has left is
+  no one's private room.
 - **Who reads a private room.** A person's private room with their own BMO is read by that person and by the
   administrator, who reads every room; no other account reads it, a head of the person's unit among them. This is
   the one place the rule stands. The administrator's reach is the superadmin's of `STRUCTURE.md` (「Accounts,
   companies and units」: the superadmin reaches everything and changes nothing of another's), so in another
-  person's private room he reads alone: saying, attaching, a voice note, a sticker, a reaction, an edit, a pin, a
-  delete, a forward into it, and changing its callers or its members answer him 403. In a group room his acts as
-  the administrator of the organisation — its callers, letting people in, its archive — stand.
+  person's private room he reads alone: saying, attaching, a voice note, a sticker, a reaction, an edit, a pin of a
+  message or of the room, a delete, a forward into it, reading a line aloud, and changing its callers or its members
+  answer him 403. In a group room his acts as the administrator of the organisation — its callers, letting people in,
+  its archive — stand.
+- **Every change the console makes in a room for a person names the account it is made as,** so the receiver refuses
+  a change in another account's private room by its own rule and the console's refusal is a second line before it:
+  the words, files and voice notes, the reactions, edits, pins, deletes, stickers, forwards, a line read aloud, the
+  room's pin and its members. The account whose private room it is changes it as any member does a room, its
+  members alone being the receiver's to keep as they stand. A console login standing before the account model makes
+  its changes as the administrator's account, and as no account at all where the model names no administrator yet,
+  so another account's private room refuses it as it refuses the administrator.
 - **The administrator's read of a room that is not his own leaves nothing its people or its BMO can see.** His
   own rooms are those he reads by his account as any person does (above) and his own private chat. In any other
   room his tab counts as looking only for his own devices, which it keeps quiet as any tab does: no other
   person's notification count starts afresh because he looked, and the rooms the console reports open to the
-  account service (`PUT /watching`) leave it out, so nothing the receiver serves moves either. His read mark there is his own row of the console's table, read by his own tabs
+  account service (`PUT /watching`) leave it out, so nothing the receiver serves moves either. A tab saying it
+  shows a room its account does not read is refused as if the room did not stand, so nobody's looking moves the
+  count of a room they cannot read. His read mark there is his own row of the console's table, read by his own tabs
   alone, and nothing he reads reaches the receiver as a read.
 - **A section's read opens its screen and its reads; its write opens its changes.** The sections and the
   defaults a user is made with stand in `docs/accounts.md`, 「Console sections」; a user's routes are read
@@ -498,8 +512,11 @@ nothing.
   - Its photos, files, link previews, picture viewer and date jump are read under the rooms the
     conversation is.
   - The messages route hands a member the messages alone, with none of the verdicts recorded on them.
-- **The bot's stream reaches a member scoped to the rooms they may read,** as those stand when the
-  stream opens.
+- **The bot's stream reaches a member scoped to the rooms they may read,** as those stand while the stream is
+  open: a room the member is let into or opens is heard from then on, and one they leave, are taken out of or lose
+  the call grant of falls silent at once on every stream of theirs, until their rooms, read again, say they still
+  read it. Their rooms are read again each minute besides, for what changes outside the console, such as their own
+  BMO's private room standing.
   - It carries a message arriving, a turn beginning and the way it ended, each with the room, the
     message and who answered, and the word that a room's registration was removed; of the bot's
     picture, the turns going in those rooms and how much each was handed, and the message each holds
@@ -3574,6 +3591,9 @@ a seat of its role.
   the same log, in the run that word opened; what it answers inside a running job is part of that job's own
   run and report. Neither is sent to any room: the owner's private chat is the chat agent's, and a word said to a worker
   never becomes something the chat agent said there.
+- **A word to a worker is the owner's alone.** The agency takes it as the owner's (its `by` is `owner`) and the
+  worker's turn reads it so, so the console hands it on for the owner's login alone and refuses any other account
+  403 before anything reaches the agency, whatever sections it holds.
 - **This box is the room's own box** (「Room screen」): the same Enter rule, growth, draft, long-paste marks and
   attachment tray, from one component. On a worker's screen it takes files too — by the clip, a paste or a drop,
   up to ten at 50MB each — and words may be left out when files are there. Its clip hands the reader's own

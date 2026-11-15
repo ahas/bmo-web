@@ -34,7 +34,7 @@ const DEFAULT_ACCESS: SectionAccessMap = {
 };
 
 // The member the stand-in knows, and the service it answers from.
-const service = standInAccountService({ users: [{ id: 2, name: "member" }, { id: 3, name: "agent-reader" }, { id: 4, name: "no-account" }] });
+const service = standInAccountService({ users: [{ id: 2, name: "member" }, { id: 3, name: "agent-reader" }, { id: 4, name: "no-account" }, { id: 5, name: "room-writer" }] });
 
 process.env.WEB_SERVER_ADDRESS = service.address;
 process.env.WEB_SERVER_TOKEN = service.token;
@@ -171,6 +171,47 @@ describe("a console route as another user meets it", () => {
       const source = await Bun.file(join(apiRoot, route.file)).text();
 
       expect({ route: route.file, scoped: /\b(requireReadableRoom|requireWritableRoom|readableRooms|messageToActOn)\(/.test(source) }).toEqual({ route: route.file, scoped: true });
+    }
+  });
+
+  test("a member whose rooms section writes opens a room, lets people in and out, leaves, speaks and reads their rooms", async () => {
+    service.sections.set(5, new Map([["rooms", { read: true, write: true }]]));
+    session = { user: { name: "room-writer", id: 5 }, sid: "bmo.sid=room-writer", administrator: false };
+
+    const opened: Route[] = [
+      { file: "rooms.post", method: "POST", path: "/api/rooms" },
+      { file: "rooms.get", method: "GET", path: "/api/rooms" },
+      { file: "rooms/[chatId]/accounts/[user].put", method: "PUT", path: "/api/rooms/-7/accounts/6" },
+      { file: "rooms/[chatId]/accounts/[user].delete", method: "DELETE", path: "/api/rooms/-7/accounts/6" },
+      { file: "rooms/[chatId]/accounts/[user].delete", method: "DELETE", path: "/api/rooms/-7/accounts/5" },
+      { file: "rooms/[chatId]/members.get", method: "GET", path: "/api/rooms/-7/members" },
+      { file: "rooms/[chatId]/overlay.get", method: "GET", path: "/api/rooms/-7/overlay" },
+      { file: "rooms/[chatId]/say.post", method: "POST", path: "/api/rooms/-7/say" },
+      { file: "rooms/[chatId]/attach.post", method: "POST", path: "/api/rooms/-7/attach" },
+      { file: "rooms/[chatId]/voice.post", method: "POST", path: "/api/rooms/-7/voice" },
+      { file: "push/watching.post", method: "POST", path: "/api/push/watching" }
+    ];
+
+    for (const route of opened) expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 200 });
+
+    // What stays the administrator's beside them.
+    for (const route of [
+      { file: "rooms/[chatId]/pin.post", method: "POST", path: "/api/rooms/-7/pin" },
+      { file: "rooms/[chatId]/messages/[messageId]/forward.post", method: "POST", path: "/api/rooms/-7/messages/21/forward" },
+      { file: "rooms/[chatId]/providers.put", method: "PUT", path: "/api/rooms/-7/providers" }
+    ]) {
+      expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 404 });
+    }
+  });
+
+  test("no opened route is shadowed whole by one before it", () => {
+    // The first route of the list a request matches is the one it is read under, so a route every one of whose
+    // requests an earlier route takes is never read at all.
+    for (const [index, opened] of openedRoutes.entries()) {
+      const answered = routes.filter((route) => route.method === opened.method && opened.path.test(route.path));
+      const reached = answered.some((route) => openedRoutes.findIndex((one) => one.method === route.method && one.path.test(route.path)) === index);
+
+      expect({ opened: `${opened.method} ${opened.path.source}`, reached }).toEqual({ opened: `${opened.method} ${opened.path.source}`, reached: true });
     }
   });
 

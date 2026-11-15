@@ -3,7 +3,7 @@ import { signedInUser } from "../../../../utils/accounts";
 import { callerFailure } from "../../../../utils/callers";
 import { fail } from "../../../../utils/fail";
 import { ownerKeyOf } from "../../../../utils/owner-key";
-import { requireWritableRoom } from "../../../../utils/room-reach";
+import { requireWritableRoom, roomReachChanged } from "../../../../utils/room-reach";
 
 import { wording } from "#shared/wording";
 
@@ -24,6 +24,9 @@ export default defineEventHandler(async (event): Promise<void> => {
   } catch (error) {
     throw callerFailure(error);
   }
+
+  // The call grant is how a linked identity's room is read, so the person's open streams read their rooms again.
+  roomReachChanged({ account: Number(user), room, left: true });
 
   setResponseStatus(event, 204);
 });

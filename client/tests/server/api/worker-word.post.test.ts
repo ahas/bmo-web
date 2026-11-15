@@ -6,7 +6,18 @@ import { answer, standIn } from "../../support/units";
 
 // The console's own road for a word said to a worker. It launches nothing: the screen's worker is the repository
 // whose worker the words are for, and the agency hands them to that worker's own session (the agency's `docs/api.md`,
-// `POST /repositories/{repositoryName}/words`).
+// `POST /repositories/{repositoryName}/words`), taking them as the owner's alone, so any other account is refused here.
+
+const OWNER_SENDER = 900;
+// The signed-in login, account 1, is the owner's while the account service links it to the owner's sender.
+let ownersLogin = true;
+
+standIn("RECEIVER", () => answer({ room: -1, senderId: OWNER_SENDER }));
+standIn("WEB_SERVER", (one) => {
+  const user = one.path.match(/^\/users\/(\d+)$/)?.[1] ?? "";
+
+  return answer({ user, name: "tester", administrator: true, senders: ownersLogin ? [OWNER_SENDER] : [] });
+});
 
 let said: "delivered" | "waiting" | "refused" = "delivered";
 let reason: string | null = null;
@@ -37,7 +48,7 @@ describe("a word from the console to one worker", () => {
       {
         method: "POST",
         path: "/repositories/worker-b/words",
-        body: { words: "stop what you are doing and report", text: "stop what you are doing and report", by: "tester", files: [] }
+        body: { words: "stop what you are doing and report", text: "stop what you are doing and report", by: "owner", files: [] }
       }
     ]);
   });
@@ -59,7 +70,7 @@ describe("a word from the console to one worker", () => {
     expect(agency.asked[0]!.body).toMatchObject({
       words: "look at this",
       text: "look at this",
-      by: "tester",
+      by: "owner",
       files: [{ name: "notes.txt", type: "text/plain", data: Buffer.from("hello").toString("base64") }]
     });
   });
@@ -116,5 +127,17 @@ describe("a word from the console to one worker", () => {
 
     expect(await asked(handler, { body: { worker: "worker-b", text: "a".repeat(1_000_001) } })).toMatchObject({ status: 400 });
     expect(agency.asked).toEqual([]);
+  });
+
+  test("refuses any account but the owner's before asking the agency", async () => {
+    agency.asked.length = 0;
+    ownersLogin = false;
+
+    expect(await asked(handler, { body: { worker: "worker-b", text: "stop" } })).toMatchObject({
+      status: 403,
+      message: wording("agents.error.word_owner_only")
+    });
+    expect(agency.asked).toEqual([]);
+    ownersLogin = true;
   });
 });

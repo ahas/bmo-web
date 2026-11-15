@@ -2,14 +2,16 @@ import { wording } from "#shared/wording";
 
 import { ownerHeaders } from "../../../../../utils/owner-key";
 import { requireReadableRoom, requireWritableRoom } from "../../../../../utils/room-reach";
-import { exactAnswer, receiver } from "../../../../../utils/receiver";
+import { MESSAGE_IDS, receiverRoute } from "../../../../../utils/receiver";
 
 import type { ForwardedMessage } from "#shared/types";
 
-// A message the owner forwards into another room (the receiver's `docs/api.md`, 「Messages」): the record keeps a copy
-// there under the owner's own number and name, its words the message's, marked with where it came from, and carries
-// it to that room's providers. It wakes nobody. The copy is answered by the room it went into and the message kept
-// there, so the screen can open it.
+// A message the administrator forwards into another room (the receiver's `docs/api.md`, 「Messages」): the record keeps
+// a copy there under the forwarding account's sender and the name it is shown by — the owner's sender for the owner's
+// account, the account's record identity for any other — its words the message's, marked with where it came from, and carries it to that room's
+// providers. It wakes nobody, and the receiver refuses it into a room that is another account's private room. The copy
+// is answered by the room it went into and the message kept there, so the screen can open it. The published client
+// names no account on the route, so it is asked on its address (docs/boundary.md, 「Gaps the console meets」).
 export default defineEventHandler(async (event): Promise<ForwardedMessage> => {
   const signed = await requireAdministrator(event);
 
@@ -31,13 +33,10 @@ export default defineEventHandler(async (event): Promise<ForwardedMessage> => {
 
   await requireWritableRoom(event, to);
 
-  const answered = await exactAnswer<unknown>(
-    receiver().POST("/rooms/{roomId}/messages/{messageId}/forwards", {
-      params: { path: { roomId: chatId, messageId } },
-      parseAs: "text",
-      body: { to },
-      headers: ownerHeaders(signed)
-    })
+  const answered = await receiverRoute<unknown>(
+    `/rooms/${chatId}/messages/${messageId}/forwards`,
+    { method: "POST", body: { to, ...(signed.id === null ? {} : { account: signed.id, name: signed.name }) }, headers: ownerHeaders(signed) },
+    { passStatus: [403], exactIds: MESSAGE_IDS }
   );
 
   // The record answers the room the copy went into and the message it stands as; the published client states that

@@ -6,12 +6,15 @@ import { answer, standIn } from "../../support/units";
 
 import type { PinnedRooms } from "../../../apps/web/shared/types";
 
-// A room pinned or let go: the route names the room on the road that says which, answers the order as the receiver
-// now holds it, and says a refusal of the receiver's by the pack's sentence for its code.
+// A room pinned or let go: the route names the room and the account pinning it on the road that says which, answers the
+// order as the receiver now holds it, and says a refusal of the receiver's by the pack's sentence for its code.
 
 let order: number[] = [5];
 
 const receiver = standIn("RECEIVER", (one) => {
+  // No room here is anyone's private room; a pin of one is refused in room-private.test.ts.
+  if (one.method === "GET") return answer({ id: Number(one.path.split("/")[2]), title: null, privateOf: null });
+
   const unpinned = /^\/pinned-rooms\/(-?\d+)$/.exec(one.path.split("?")[0] ?? "");
   const chat = unpinned === null ? (one.body?.room as number) : Number(unpinned[1]);
 
@@ -30,9 +33,9 @@ describe("pinning a room", () => {
 
     expect((await asked(handler, { params: { chatId: "-7" }, body: { pinned: true } })).answer).toEqual({ rooms: [5, -7] });
     expect((await asked(handler, { params: { chatId: "5" }, body: { pinned: false } })).answer).toEqual({ rooms: [-7] });
-    expect(receiver.asked.map((one) => [one.method, one.path, one.body])).toEqual([
-      ["POST", "/pinned-rooms", { room: -7 }],
-      ["DELETE", "/pinned-rooms/5", null]
+    expect(receiver.asked.filter((one) => one.method !== "GET").map((one) => [one.method, one.path, one.body])).toEqual([
+      ["POST", "/pinned-rooms", { room: -7, account: 1 }],
+      ["DELETE", "/pinned-rooms/5?account=1", null]
     ]);
   });
 

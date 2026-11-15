@@ -37,15 +37,20 @@ const memberships = new Map<number, number[]>([[invited, [GROUP, PRIVATE]]]);
 const roomAccounts = new Map<number, number[]>([[PRIVATE, [invited]]]);
 
 // The receiver's room list: the member has spoken in the room and in -300, someone else in -200, and the
-// member's own private room is theirs. The invited account's BMO answers its private room and the group room it
-// opened alone, neither carried by a chat service.
+// member's own private room is theirs. The invited account's memberships hold its BMO's private room and the group
+// room it opened.
+// A read of an account's memberships may be held after it is answered and before the answer goes, as a slow receiver
+// holds it; `membershipReads` counts the reads.
+let held: Promise<void> | null = null;
+let membershipReads = 0;
+
 const receiver = Bun.serve({
   hostname: "127.0.0.1",
   port: 0,
-  fetch: (request) => {
+  fetch: async (request) => {
     const path = new URL(request.url).pathname;
     const account = path.match(/^\/accounts\/(\d+)\/rooms$/)?.[1];
-    const room = path.match(/^\/rooms\/(-?\d+)\/(accounts|providers)$/);
+    const room = path.match(/^\/rooms\/(-?\d+)\/accounts$/);
 
     if (path === "/rooms") {
       return Response.json({
@@ -64,12 +69,15 @@ const receiver = Bun.serve({
         more: false
       });
     }
-    if (account !== undefined) return Response.json({ rooms: memberships.get(Number(account)) ?? [] });
-    if (path === `/supervisors/u${invited}/rooms`) {
-      return Response.json({ items: [PRIVATE, GROUP].map((id) => ({ id, title: null, named: true, alone: true })), more: false });
+    if (account !== undefined) {
+      const rooms = memberships.get(Number(account)) ?? [];
+
+      membershipReads += 1;
+      await held;
+
+      return Response.json({ rooms });
     }
-    if (room?.[2] === "providers") return Response.json({ providers: [], chosen: false });
-    if (room?.[2] === "accounts") {
+    if (room !== null) {
       const id = Number(room[1]);
       const held = roomAccounts.get(id) ?? [...memberships].filter(([, rooms]) => rooms.includes(id)).map(([one]) => one);
 
@@ -95,7 +103,7 @@ globals.createError = (error: { statusCode: number; statusMessage?: string; mess
   Object.assign(new Error(error.statusMessage ?? error.message), error);
 globals.fail = (statusCode: number, message: string) => Object.assign(new Error(message), { statusCode });
 
-const { readableRooms, requireReadableRoom } = await import("../../../apps/web/server/utils/room-reach");
+const { LiveRooms, readableRooms, requireReadableRoom, roomReachChanged } = await import("../../../apps/web/server/utils/room-reach");
 
 // The addresses are the whole suite's environment, so they go with the stand-ins that answered them.
 afterAll(async () => {
@@ -146,5 +154,88 @@ describe("the rooms a user reads on the console", () => {
     session = { user: { name: "boss", id: 1 }, sid: "bmo.sid=boss", administrator: true };
 
     expect(await readableRooms(event())).toBe("all");
+  });
+});
+
+describe("the rooms an open stream hears", () => {
+  const live = async (id: number, name: string) => {
+    signedAs(id, name);
+
+    const rooms = new LiveRooms({ name, id, administrator: false }, (await readableRooms(event())) as ReadonlySet<number>);
+
+    return { rooms, stop: rooms.follow(60_000) };
+  };
+
+  test("fall silent on a room the moment its account is taken out of it, before the rooms are read again", async () => {
+    memberships.set(colleague, [GROUP]);
+
+    const { rooms, stop } = await live(colleague, "colleague");
+
+    expect(rooms.has(GROUP)).toBe(true);
+
+    memberships.set(colleague, []);
+    roomReachChanged({ account: colleague, room: GROUP, left: true });
+
+    expect(rooms.has(GROUP)).toBe(false);
+    await rooms.settled();
+    expect(rooms.has(GROUP)).toBe(false);
+    stop();
+  });
+
+  test("hear a room once its account is let in, and nothing of another account's change", async () => {
+    memberships.set(colleague, []);
+
+    const { rooms, stop } = await live(colleague, "colleague");
+
+    memberships.set(colleague, [GROUP]);
+    roomReachChanged({ account: invited, room: GROUP, left: false });
+    await rooms.settled();
+    expect(rooms.has(GROUP)).toBe(false);
+
+    roomReachChanged({ account: colleague, room: GROUP, left: false });
+    await rooms.settled();
+    expect(rooms.has(GROUP)).toBe(true);
+    stop();
+
+    // A stream that has ended follows nothing more.
+    memberships.set(colleague, []);
+    roomReachChanged({ account: colleague, room: GROUP, left: true });
+    expect(rooms.has(GROUP)).toBe(true);
+  });
+
+  test("keep a dropped room out though a read begun before the drop lands after it", async () => {
+    memberships.set(colleague, [GROUP]);
+
+    const { rooms, stop } = await live(colleague, "colleague");
+    let release: () => void = () => undefined;
+
+    // A read that took the memberships while the account still held the room, held until the take-out is said.
+    held = new Promise((resolve) => (release = resolve));
+
+    const before = membershipReads;
+
+    roomReachChanged({ account: colleague, room: -300, left: false });
+
+    for (let tries = 0; tries < 100 && membershipReads === before; tries += 1) await Bun.sleep(5);
+
+    memberships.set(colleague, []);
+    roomReachChanged({ account: colleague, room: GROUP, left: true });
+
+    // The early read lands while the one begun after the take-out is held in its turn.
+    const first = release;
+
+    held = new Promise((resolve) => (release = resolve));
+    first();
+
+    for (let tries = 0; tries < 100 && membershipReads < before + 2; tries += 1) await Bun.sleep(5);
+
+    expect(membershipReads).toBe(before + 2);
+    expect(rooms.has(GROUP)).toBe(false);
+
+    held = null;
+    release();
+    await rooms.settled();
+    expect(rooms.has(GROUP)).toBe(false);
+    stop();
   });
 });

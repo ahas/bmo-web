@@ -136,6 +136,11 @@ export function newDevicePushKinds(): PushKind[] {
 export const WATCH_REPORT_MS = 30_000;
 export const WATCH_STALE_MS = 3 * WATCH_REPORT_MS;
 
+// How often an open stream of a reader of some rooms reads those rooms again (docs/web.md, 「Access」). A room the
+// reader's account is let into, leaves or is taken out of through the console reaches the stream at once; this is for
+// what changes elsewhere, such as a private room standing as the account's own BMO is made.
+export const ROOM_REACH_REFRESH_MS = 60_000;
+
 // How much of a line one notification carries. A notification is a nudge to open the console,
 // not the thing itself, and a body longer than this is cut short on every platform anyway.
 export const PUSH_BODY_LIMIT = 160;

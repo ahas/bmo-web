@@ -2567,6 +2567,24 @@ export interface RoomProvidersView {
 
 // A room's mode as its registration holds it, for the administrator alone: `avatar`, its agents answering under the
 // owner's account; `record-only`, read and recorded and never answered; null for a room that was never added.
+// One asynchronous call the tool host keeps running with its wake for a room (docs/web.md, the room screen's list of what waits): a watch
+// with how often its check runs, a reminder with the moment it waits for, or any other call by its tool's name;
+// the note it was set with, the agent it wakes, and when it started, in epoch milliseconds.
+export interface BackgroundCall {
+  id: string;
+  kind: "watch" | "reminder" | "call";
+  tool: string;
+  note: string | null;
+  everySeconds: number | null;
+  until: number | null;
+  agent: string | null;
+  startedAt: number;
+}
+
+export interface BackgroundView {
+  calls: BackgroundCall[];
+}
+
 export type RoomMode = "avatar" | "record-only";
 
 export interface RoomModeView {

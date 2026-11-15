@@ -85,6 +85,8 @@
                    turn runs or the listening row stands (docs/web.md, 「The window's time left stands in
                    the top bar」). -->
               <RoomWindowClock v-if="listeningWindow !== null" :closes-at="listeningWindow.closesAt" />
+              <!-- What an agent left waiting for this room, for the administrator alone (docs/web.md, the room screen's list of what waits). -->
+              <RoomBackground v-if="administrator" :chat-id="chatId" />
               <RoomProvidersDialog v-if="administrator" v-model:open="providersOpen" :chat-id="chatId" :title="title" />
               <RoomSituationDialog v-model:open="situationOpen" :chat-id="chatId" :title="title" />
               <RoomCallersDialog v-model:open="callersOpen" :chat-id="chatId" :title="title" />

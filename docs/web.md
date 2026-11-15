@@ -5292,6 +5292,21 @@ Four bounds keep it from growing forever.
   receiver's and turns on the list alone: the console names no provider apart from the others, in its code or in
   what it sends.
 
+#### 진행 중
+
+- **The top bar carries 진행 중 for the administrator alone, where something set for this room waits:** the
+  tool host's asynchronous calls that stand running with their wake for this room (the tool host's
+  `GET /uses`, read on its console face) — a watch an agent set, a reminder, a call still running. It stands as a
+  button with how many beside the window's clock, and nowhere while none waits.
+- **Pressing it opens a list, one line a call, oldest first:** what it is — 감시 for a watch, with how often its
+  check runs, 알림 for a reminder, with the moment it waits for, and the tool's own name for any other call — the
+  note it was set with, the agent it wakes, and since when it has stood. A call with no note stands its tool's name
+  alone.
+- **It is read as the screen opens, again every minute while the screen stands, and each time the list opens,**
+  so a watch that held, or a reminder whose moment came, leaves the list without a reload.
+- **Nothing here acts:** a call is stopped by the agent that set it, and the list only shows what waits. A tool
+  host that cannot be read leaves the button away, as one with nothing waiting does.
+
 #### 내 BMO와 따로 말하기
 
 - **A group room's menu carries 내 BMO와 따로 말하기 for everyone signed in;** a one-to-one or the owner's

@@ -46,10 +46,6 @@ function unserved(error: unknown): boolean {
 // A change the receiver refuses in a private room, 403 `private-room`, is said as the refusal it is.
 const CHANGES = { passStatus: [403] };
 
-function idsOf(value: unknown): number[] {
-  return Array.isArray(value) ? value.filter((one): one is number => typeof one === "number" && Number.isSafeInteger(one)) : [];
-}
-
 /** The account's identity on the record road, made where it does not stand and the same one ever after. */
 export async function recordIdentity(account: number): Promise<number> {
   const said = await receiverRoute<{ sender?: unknown } | null>(`/accounts/${account}/identity`, { method: "PUT" });
@@ -73,7 +69,9 @@ export async function standRecordIdentity(account: number): Promise<number> {
 /** The rooms the account is a member of in the console, now. */
 export async function accountRooms(account: number): Promise<number[]> {
   try {
-    return idsOf((await receiverRoute<{ rooms?: unknown } | null>(`/accounts/${account}/rooms`))?.rooms);
+    const rooms = (await receiverRoute<{ rooms?: unknown } | null>(`/accounts/${account}/rooms`))?.rooms;
+
+    return Array.isArray(rooms) ? rooms.flatMap((one: unknown) => numberOf(one) ?? []) : [];
   } catch (error) {
     if (unserved(error)) return [];
 
@@ -81,37 +79,72 @@ export async function accountRooms(account: number): Promise<number[]> {
   }
 }
 
-function accountOf(value: unknown): number | null {
+function numberOf(value: unknown): number | null {
   return typeof value === "number" && Number.isSafeInteger(value) ? value : null;
 }
 
-/** The account whose private room the room is, as the receiver says it (`privateOf` of its room), or null for every
- * other room: a BMO's own record room is its owner account's, the owner's private chat the owner's account's, and a
- * group room is no one's however many of its members have left. */
-export async function privateOf(room: number): Promise<number | null> {
-  return accountOf((await receiverRoute<{ privateOf?: unknown } | null>(`/rooms/${room}`))?.privateOf);
+/** Whose private room a room is, as the receiver keeps it on every room it reads (its `docs/api.md`, 「Rooms」):
+ * `privateOf`, the account whose private room it is, or null for every other room — a group room is no one's however
+ * many of its members have left, and a room once an account's stays that account's — and `sealed`, a private room whose
+ * account is not known yet, such as the owner's private chat before his sender is linked to an account. */
+export interface RoomPrivacy {
+  privateOf: number | null;
+  sealed: boolean;
 }
 
-/** Every private room with the account it is the private room of, as the receiver's room list says each room's
- * `privateOf`. */
-export async function privateOwners(): Promise<Map<number, number>> {
+/** Every room that is no one's private room, a group room among them. */
+export const SHARED: RoomPrivacy = { privateOf: null, sealed: false };
+
+function privacyIn(view: { privateOf?: unknown; sealed?: unknown } | null | undefined): RoomPrivacy {
+  return { privateOf: numberOf(view?.privateOf), sealed: view?.sealed === true };
+}
+
+/** Whether an account may change a room of this privacy: any room but another account's private room or a sealed
+ * one. A login with no account changes no private room. */
+export function writableBy(privacy: RoomPrivacy, account: number | null): boolean {
+  return !privacy.sealed && (privacy.privateOf === null || privacy.privateOf === account);
+}
+
+/** Whether an account other than the administrator may read a room of this privacy: the same rooms it may change,
+ * since nobody but its own account and the administrator reads a private room, and only the administrator a sealed
+ * one. */
+export function readableBy(privacy: RoomPrivacy, account: number): boolean {
+  return writableBy(privacy, account);
+}
+
+/** Whose private room a room is, as the receiver's read of the room says it. */
+export async function privacyOf(room: number): Promise<RoomPrivacy> {
+  return privacyIn(await receiverRoute<{ privateOf?: unknown; sealed?: unknown } | null>(`/rooms/${room}`));
+}
+
+/** Every private or sealed room with its privacy, as the receiver's room list says it; a room it does not name there
+ * is no one's. */
+export async function roomPrivacies(): Promise<Map<number, RoomPrivacy>> {
   const page = await receiverRoute<{ items?: unknown } | null>("/rooms");
-  const rooms = Array.isArray(page?.items) ? (page.items as { id?: unknown; privateOf?: unknown }[]) : [];
-  const owners = new Map<number, number>();
+  const held = new Map<number, RoomPrivacy>();
 
-  for (const room of rooms) {
-    const id = accountOf(room.id);
-    const owner = accountOf(room.privateOf);
-
-    if (id !== null && owner !== null) owners.set(id, owner);
+  for (const room of roomsIn(page?.items)) {
+    if (room.privacy.privateOf !== null || room.privacy.sealed) held.set(room.id, room.privacy);
   }
 
-  return owners;
+  return held;
 }
 
 /** The rooms that are the account's private rooms. */
 export async function privateRoomsOf(account: number): Promise<number[]> {
-  return [...(await privateOwners())].flatMap(([room, owner]) => (owner === account ? [room] : []));
+  return [...(await roomPrivacies())].flatMap(([room, privacy]) => (privacy.privateOf === account ? [room] : []));
+}
+
+// The rooms of the receiver's room list, each by its id with its privacy beside it.
+function roomsIn(value: unknown): { id: number; privacy: RoomPrivacy }[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((one: unknown) => {
+    const view = typeof one === "object" && one !== null ? (one as { id?: unknown; privateOf?: unknown; sealed?: unknown }) : null;
+    const id = numberOf(view?.id);
+
+    return id === null ? [] : [{ id, privacy: privacyIn(view) }];
+  });
 }
 
 /** The account a change in a room is made as, the field the receiver reads it by on every room write (its

@@ -195,6 +195,51 @@ const PAST_CHAT = -9_002_000_000_002;
 const PAST_LINE = Array.from({ length: 75 }, (_, at) => String(3_973_000_000_000_000_177n + BigInt(at) * 1_000n));
 const PAGED_CHAT = -9_002_000_000_003;
 const PAGED_LINE = Array.from({ length: 70 }, (_, at) => String(at + 1));
+// Whose private room each room is, as the receiver keeps it (its `docs/api.md`, 「Rooms」): another account's private room
+// with its own BMO, which the fixture administrator reads and changes nothing of, and the owner's private chat, sealed
+// where the console is stood up with `BROWSER_CONSOLE_SEALED_OWNER=1`, as it stands while his sender is linked to no
+// account. Every other room is no one's. A write naming an account it is not that account's, or any account in a sealed
+// room, is refused 403 `private-room`, as the receiver refuses it.
+const PRIVATE_CHAT = -9_003_000_000_001;
+const PRIVATE_ACCOUNT = 9_003_001;
+const SEALED_OWNER = process.env.BROWSER_CONSOLE_SEALED_OWNER === "1";
+
+function privacyOf(chat: number): { privateOf: number | null; sealed: boolean } {
+  return { privateOf: chat === PRIVATE_CHAT ? PRIVATE_ACCOUNT : null, sealed: chat === OWNER_CHAT && SEALED_OWNER };
+}
+
+// The rooms a write to the receiver changes, and the account it names in its query, its body or the relay's
+// `Owner-Key`; null where it changes no room.
+async function writeOf(path: string, request: Request): Promise<{ rooms: number[]; account: number | null; ownersRoad: boolean } | null> {
+  if (request.method === "GET" || request.method === "HEAD") return null;
+
+  const url = new URL(request.url);
+  const body = (request.headers.get("content-type") ?? "").includes("application/json") ? ((await request.clone().json().catch(() => null)) as Record<string, unknown> | null) : null;
+  const named = [url.searchParams.get("account"), body?.account, request.headers.get("owner-key")].map((one) => Number(one ?? NaN)).find(Number.isSafeInteger) ?? null;
+  const room = /^\/(?:rooms|pinned-rooms|avatars\/room)\/(-?\d+)/.exec(path)?.[1] ?? (path === "/pinned-rooms" ? body?.room : null);
+  const ownersRoad = path.startsWith("/owner/");
+  const rooms = [room, path.endsWith("/forwards") ? body?.to : null, ownersRoad ? body?.chatId : null].map(Number).filter(Number.isSafeInteger);
+
+  return rooms.length === 0 ? null : { rooms, account: named, ownersRoad };
+}
+
+// The receiver's refusal of a write in another account's private room or a sealed one, or null where it stands.
+async function privateRefusal(path: string, request: Request): Promise<Response | null> {
+  const write = await writeOf(path, request);
+
+  if (write === null || (write.account === null && !write.ownersRoad)) return null;
+
+  for (const room of write.rooms) {
+    const { privateOf, sealed } = privacyOf(room);
+    const own = write.ownersRoad && room === OWNER_CHAT;
+
+    if (!own && (sealed || (privateOf !== null && privateOf !== write.account))) {
+      return Response.json({ code: "private-room", error: "another account's private room", room, account: write.account ?? 0 }, { status: 403 });
+    }
+  }
+
+  return null;
+}
 // What the owner said into the KakaoTalk-sized room (tests/support/high-room.ts), each with the message it answers, and
 // the reaction each of the room's messages carries, kept for as long as the console stands. A reaction stands as the
 // room's other person's, so a press always sets it and a run of a file again finds the same.
@@ -732,12 +777,24 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
   },
   RECEIVER: async (path, request) => {
     const now = Date.now();
+    const refused = await privateRefusal(path, request);
+
+    if (refused !== null) return refused;
     // One room: the owner's, with nothing said in it. Its moments are the receiver's milliseconds. Every room built
     // from it stands on the listen list, so each stands in the room list as an added room.
     const room = {
       id: OWNER_CHAT, title: null, messageCount: 0, lastMessageAt: null, pinned: false, senders: [],
       supervisors: [], ownerRoom: true, registered: true, workRoom: OWNER_CHAT, mode: null, listened: true
     };
+    // Another account's private room with its own BMO, two lines said in it, which the administrator reads alone.
+    const privateRoom = {
+      ...room, id: PRIVATE_CHAT, title: "private-room", ownerRoom: false, workRoom: PRIVATE_CHAT, supervisors: ["agent-c"], messageCount: 2,
+      lastMessageAt: LINE_AT - 300
+    };
+    const privateLine = [
+      { id: 1, room: PRIVATE_CHAT, senderId: 8, senderName: "person-c", sentAt: LINE_AT - 600, text: "a word of my own", imagePath: null, replyToMessageId: null, answerSeconds: null, round: null, album: null, via: "record", files: [] },
+      { id: 2, room: PRIVATE_CHAT, senderId: null, senderName: "Agent C", agentName: "agent-c", sentAt: LINE_AT - 300, text: "an answer to it", imagePath: null, replyToMessageId: null, answerSeconds: 2, round: null, album: null, via: "record", files: [] }
+    ];
 
     // A second room, whose line grows while it is first read: asked for its newest message it answers the first,
     // and past that one it answers two more, so a reader meeting it for the first time is two behind. Its ids run
@@ -876,7 +933,16 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ goes: [], stays: [], pictures: [], settings: [], folders: [], warned: [], units: [], taken: [], cleared: [], holders: [], couldNot: [] });
     }
-    if (path === "/rooms") return Response.json({ items: [room, listed, behind, recorded, media, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }], more: false });
+    // Every room the receiver reads carries whose private room it is.
+    const every = [room, listed, behind, recorded, media, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom]
+      .map((one) => ({ ...one, ...privacyOf(one.id) }));
+
+    if (path === "/rooms") return Response.json({ items: every, more: false });
+    if (path === `/rooms/${PRIVATE_CHAT}/messages`) {
+      const after = new URL(request.url).searchParams.get("after");
+
+      return Response.json({ items: after === null ? privateLine : privateLine.filter((one) => one.id > Number(after)), more: false });
+    }
     if (path === `/rooms/${RECORD_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
 
@@ -1044,6 +1110,11 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (at === null) return null;
 
     switch (at[2] ?? "") {
+      case "": {
+        const chat = Number(at[1]);
+
+        return request.method === "GET" ? Response.json(every.find((one) => one.id === chat) ?? { ...room, id: chat, ownerRoom: false, ...privacyOf(chat) }) : null;
+      }
       case "/title":
         return Response.json({ title: null });
       case "/messages":

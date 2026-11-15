@@ -425,10 +425,17 @@ console page. No answer says which framework drew it. Strict transport is the re
      (`docs/accounts.md`, 「Checks」);
   3. **its own BMO's private room:** the room the receiver says is the account's private room (the `privateOf` of the
      room, its `docs/api.md`, 「Rooms」), its BMO's own record room.
-- **Whose private room a room is, is the receiver's to say,** by the `privateOf` it answers with every room it reads:
-  the account whose private room it is, or none. The console guesses it from nothing else — not from who leads the
-  room, which chat services carry it or how many members it holds — so a group room every other member has left is
-  no one's private room.
+- **Whose private room a room is, is the receiver's to say,** by the `privateOf` and `sealed` it keeps for every room
+  and answers with the room list and a room's own read: `privateOf`, the account whose private room it is, or none;
+  and `sealed`, a private room whose account is not known yet, such as the owner's private chat while his sender is
+  linked to no account. The console guesses it from nothing else — not from who leads the room, which chat services
+  carry it or how many members it holds — so a group room every other member has left is no one's private room, and
+  a room once an account's stays that account's, a retired BMO's own room among them.
+- **A sealed room is read by the administrator alone, and changed by nobody.** Of the rooms a person's identities
+  reach, a sealed room and another account's private room are none of theirs; the administrator reads a sealed room
+  as he reads every room, and every change there is refused him as in another person's private room (below). A
+  console login standing before the account model writes on the owner's own road, which reaches the owner's private
+  chat whether it is sealed or not.
 - **Who reads a private room.** A person's private room with their own BMO is read by that person and by the
   administrator, who reads every room; no other account reads it, a head of the person's unit among them. This is
   the one place the rule stands. The administrator's reach is the superadmin's of `STRUCTURE.md` (「Accounts,
@@ -437,12 +444,14 @@ console page. No answer says which framework drew it. Strict transport is the re
   message or of the room, a delete, a forward out of it or into it, reading a line aloud, its picture, its chat
   providers and its mode, removing it, and changing its callers or its members answer him 403. In a group room his
   acts as the administrator of the organisation — its callers, letting people in, its archive — stand.
-- **The room screen stands read-only for him there,** as it does for a reader whose rooms section only reads: no box
+- **The room screen stands read-only for him there and in a sealed room,** as it does for a reader whose rooms section
+  only reads, by the room list's word of which rooms the reader may change: no box
   to write in and no act on a message, no pin, providers, picture or removal in the room's menu, a callers list with
   nothing to change, nobody to let in, and no such room to forward a message into. Nothing on the screen says why,
   and nobody else is told he is reading.
 - **Every change the console makes in a room for a person names the account it is made as,** so the receiver refuses
-  a change in another account's private room by its own rule and the console's refusal is a second line before it:
+  a change in another account's private room or a sealed one by its own rule and the console's refusal is a second
+  line before it:
   the words, files and voice notes, the reactions, edits, pins, deletes, stickers, forwards, a line read aloud, the
   room's pin, its picture, its chat providers, its mode, a group's own supervisor, its removal and its members. A read
   mark is the console's own row and reaches the receiver as nothing. The account whose private room it is changes it as any member does a room, its

@@ -17,7 +17,7 @@ describe("the room screen's write controls", () => {
   test("stand for a reader whose rooms section writes", () => {
     expect(script).toContain('import { roomMayWrite, useAdministrator, useSignedUser } from "~/domain/access";');
     expect(script).toContain('import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";');
-    expect(script).toContain("const roomWritable = computed<boolean>(() => listedRooms.value?.find((room) => room.chatId === chatId)?.writable !== false);");
+    expect(script).toContain("const roomWritable = computed<boolean>(() => !roomsInitial.value && listedRooms.value?.find((room) => room.chatId === chatId)?.writable !== false);");
     expect(script).toContain("const writable = computed<boolean>(() => roomWritable.value && roomMayWrite(access.value, administrator.value, accessReady.value));");
   });
 

@@ -10,7 +10,7 @@ import type { Asked } from "../../support/units";
 import type { RouteEvent } from "../../support/nitro";
 
 // A private room in the console (docs/web.md, 「Access」): whose private room a room is, is the receiver's to say, its
-// `privateOf` of the room. In another account's private room the administrator reads alone: every change he would make
+// `privateOf` and `sealed` of the room. A sealed private room, whose account is not known yet, is changed by nobody. In another account's private room the administrator reads alone: every change he would make
 // there is refused 403 before anything is asked, and every change the console makes for a person names the account it
 // is made as, so the receiver refuses the same where the console did not. The account whose private room it is
 // changes it as any member changes a room. A group room every other member has left is no one's private room.
@@ -24,9 +24,12 @@ const OWN_CHAT = -1;
 const LEFT = -24;
 const REFUSED = -23;
 const GROUP = -7;
+// The owner's private chat while his sender is linked to no account: sealed.
+const SEALED = -2;
 const HIGH = "3973025898369060353";
 
 const PRIVATE_OF: Record<number, number> = { [PRIVATE]: OWNER, [OWN_CHAT]: ADMINISTRATOR };
+const privacy = (room: number) => ({ privateOf: PRIVATE_OF[room] ?? null, sealed: room === SEALED });
 
 // The account a write names, in its body, its form or its query, as the receiver reads it.
 function named(one: Asked): number | null {
@@ -50,10 +53,11 @@ const receiver = standIn(
     const path = one.path.split("?")[0] ?? "";
     const room = Number(/^\/(?:rooms|pinned-rooms|avatars\/room)\/(-?\d+)/.exec(path)?.[1] ?? one.body?.room);
 
-    if (one.method === "GET" && /^\/rooms\/-?\d+$/.test(path)) return answer({ id: room, title: null, privateOf: PRIVATE_OF[room] ?? null });
+    if (one.method === "GET" && /^\/rooms\/-?\d+$/.test(path)) return answer({ id: room, title: null, ...privacy(room) });
+    if (one.method === "GET" && path === "/owner") return answer({ room: SEALED, senderId: 900 });
     if (one.method === "GET" && /^\/accounts\/\d+\/rooms$/.test(path)) return answer({ rooms: [] });
     if (one.method === "GET" && path === "/rooms") {
-      return answer({ items: [PRIVATE, OWN_CHAT, LEFT, GROUP].map((id) => ({ id, title: null, privateOf: PRIVATE_OF[id] ?? null })), more: false });
+      return answer({ items: [PRIVATE, OWN_CHAT, LEFT, GROUP, SEALED].map((id) => ({ id, title: null, ...privacy(id) })), more: false });
     }
     if (one.method === "GET" && path === "/providers") return answer({ items: [{ key: "record", label: "Record" }], more: false });
     if (one.method === "GET" && path.endsWith("/providers")) return answer({ providers: ["record"], chosen: true });
@@ -64,7 +68,7 @@ const receiver = standIn(
     // private where the console does not.
     const touched = path.endsWith("/forwards") ? [room, Number(one.body?.to)] : [room];
     const members = /\/accounts\/\d+$/.test(path);
-    const refusedIn = touched.find((into) => into === REFUSED || (PRIVATE_OF[into] !== undefined && (members || named(one) !== PRIVATE_OF[into])));
+    const refusedIn = touched.find((into) => into === REFUSED || into === SEALED || (PRIVATE_OF[into] !== undefined && (members || named(one) !== PRIVATE_OF[into])));
 
     if (refusedIn !== undefined) {
       return answer({ code: "private-room", error: "Another account's private room.", room: refusedIn, account: named(one) ?? 0 }, 403);
@@ -106,8 +110,8 @@ globalsRestoredAfter(["requireUserSession", "signedInUser"]);
 globals.requireUserSession = async () => session;
 globals.signedInUser = (await import("../../../apps/web/server/utils/accounts")).signedInUser;
 
-const { actingAccount } = await import("../../../apps/web/server/utils/room-reach");
-const { privateOwners } = await import("../../../apps/web/server/utils/console-rooms");
+const { actingAccount, changeJudge } = await import("../../../apps/web/server/utils/room-reach");
+const { roomPrivacies } = await import("../../../apps/web/server/utils/console-rooms");
 
 const AS_ADMINISTRATOR = { user: { name: "boss", id: ADMINISTRATOR }, sid: "bmo.sid=boss", administrator: true };
 const AS_OWNER = { user: { name: `account-${OWNER}`, id: OWNER }, sid: "bmo.sid=owner", administrator: false };
@@ -222,8 +226,35 @@ describe("the preview of removing another account's private room", () => {
 });
 
 describe("the private rooms the room list names", () => {
-  test("are each room's privateOf as the receiver says it, a group room every other member has left among none", async () => {
-    expect(await privateOwners()).toEqual(new Map([[PRIVATE, OWNER], [OWN_CHAT, ADMINISTRATOR]]));
+  test("are each room's privateOf and sealed as the receiver says it, a group room every other member has left among none", async () => {
+    expect(await roomPrivacies()).toEqual(
+      new Map([
+        [PRIVATE, { privateOf: OWNER, sealed: false }],
+        [OWN_CHAT, { privateOf: ADMINISTRATOR, sealed: false }],
+        [SEALED, { privateOf: null, sealed: true }]
+      ])
+    );
+  });
+});
+
+describe("a sealed private room", () => {
+  for (const one of [...PERSON_ACTS, ...ADMINISTRATOR_ACTS]) {
+    test(`is changed by nobody: the administrator is refused 403 to ${one.name}, and nothing reaches a unit`, async () => {
+      expect(await act(one, SEALED, AS_ADMINISTRATOR)).toMatchObject({ status: 403, message: wording("room.error.private_room") });
+      expect(writes(receiver)).toEqual([]);
+      expect(writes(accounts)).toEqual([]);
+    });
+  }
+
+  test("is changed by no account, and on the owner's own road only where it is his own private chat", async () => {
+    const sealed = { privateOf: null, sealed: true };
+    const judgeOf = (signed: { name: string; id: number | null; administrator: boolean }) => changeJudge(signed, async () => String(ADMINISTRATOR));
+
+    expect(await judgeOf({ name: "boss", id: ADMINISTRATOR, administrator: true })(SEALED, sealed)).toBe(false);
+    expect(await judgeOf({ name: "member", id: OWNER, administrator: false })(SEALED, sealed)).toBe(false);
+    // A console login standing before the account model writes on the owner's road, in his own private chat alone.
+    expect(await judgeOf({ name: "boss", id: null, administrator: true })(SEALED, sealed)).toBe(true);
+    expect(await judgeOf({ name: "boss", id: null, administrator: true })(-99, sealed)).toBe(false);
   });
 });
 

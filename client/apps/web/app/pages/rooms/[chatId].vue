@@ -601,9 +601,11 @@ const { data: listedRooms, status: roomsStatus } = useHeldRoomList();
 // The counts as the sidebar shows them, so the room opens at the first message unread by the newest count.
 const rooms = useNewestReads(listedRooms);
 // Whether the reader may change this room at all, as the room list says it: every room but another account's private
-// room, which the administrator reads alone and which stands read-only for him as for a reader whose rooms section
-// only reads (docs/web.md, 「Access」). The routes refuse every change there either way.
-const roomWritable = computed<boolean>(() => listedRooms.value?.find((room) => room.chatId === chatId)?.writable !== false);
+// room or a sealed one, which the administrator reads alone and which stands read-only for him as for a reader whose
+// rooms section only reads (docs/web.md, 「Access」). Until the list is read the room stands read-only, so nothing is
+// offered that the routes would refuse; a room the list does not name is judged by the routes alone.
+const roomsInitial = useInitialRead(roomsStatus);
+const roomWritable = computed<boolean>(() => !roomsInitial.value && listedRooms.value?.find((room) => room.chatId === chatId)?.writable !== false);
 const writable = computed<boolean>(() => roomWritable.value && roomMayWrite(access.value, administrator.value, accessReady.value));
 // What the administrator changes of a room as its administrator — its pin, its providers and mode, its picture, its
 // removal, and a delete or a forward of any message — stands where he may change the room.
@@ -991,7 +993,6 @@ const judged = computed<Set<ExactMessageId>>(() => judgedNow(chatId, live.value,
 
 // The room's own name, from the one list every screen takes a room's name from, and the
 // picture the receiver keeps for it.
-const roomsInitial = useInitialRead(roomsStatus);
 const title = computed<string>(() => roomsInitial.value ? t("room.status.room_loading") : roomTitle(t, rooms.value, chatId));
 // The index names every room and person, so a member's feed draws its faces by their initials.
 const avatars = administrator.value ? useAgentAvatars() : computed<AvatarIndex>(() => new Map());

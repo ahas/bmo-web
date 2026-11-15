@@ -27,7 +27,9 @@ const service = standInAccountService({
   ],
   grants: [
     { object: String(ROOM_ID), relation: "console", subject: "user:2" },
-    { object: String(member), relation: "console", subject: "user:2" }
+    { object: String(member), relation: "console", subject: "user:2" },
+    { object: "-310", relation: "console", subject: "user:2" },
+    { object: "-320", relation: "console", subject: "user:2" }
   ]
 });
 
@@ -37,7 +39,8 @@ const memberships = new Map<number, number[]>([[invited, [GROUP, PRIVATE]]]);
 const roomAccounts = new Map<number, number[]>([[PRIVATE, [invited]]]);
 
 // The receiver's room list: the member has spoken in the room and in -300, someone else in -200, and the
-// member's own private room is theirs. The invited account's memberships hold its BMO's private room and the group
+// member's own private room is theirs. The member has spoken too, holding the grant, in a sealed room (-310) and in
+// the invited account's private room (-320), neither of which is theirs to read. The invited account's memberships hold its BMO's private room and the group
 // room it opened.
 // A read of an account's memberships may be held after it is answered and before the answer goes, as a slow receiver
 // holds it; `membershipReads` counts the reads.
@@ -54,7 +57,7 @@ const receiver = Bun.serve({
 
     if (path === "/rooms") {
       return Response.json({
-        items: [ROOM_ID, -300, -200, member].map((id) => ({
+        items: [ROOM_ID, -300, -200, member, -310, -320].map((id) => ({
           id,
           title: null,
           messageCount: 1,
@@ -64,7 +67,9 @@ const receiver = Bun.serve({
           supervisors: [],
           ownerRoom: id === member,
           registered: true,
-          workRoom: 0
+          workRoom: 0,
+          privateOf: id === -320 ? invited : null,
+          sealed: id === -310
         })),
         more: false
       });
@@ -126,7 +131,7 @@ describe("the rooms a user reads on the console", () => {
 
     expect(await read()).toEqual([ROOM_ID, member]);
 
-    for (const absent of [-200, -300, PRIVATE, GROUP]) {
+    for (const absent of [-200, -300, -310, -320, PRIVATE, GROUP]) {
       expect(await status(absent)).toBe(404);
     }
   });

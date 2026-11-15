@@ -1,5 +1,5 @@
 import { AccountRefusal, AccountServiceDown, checkEntry } from "./account-service";
-import { privateOf } from "./console-rooms";
+import { privacyOf } from "./console-rooms";
 import { fail } from "./fail";
 
 import { wording } from "#shared/wording";
@@ -13,8 +13,10 @@ import type { SignedIn } from "./accounts";
 /** Whether the signed-in login may let people into the room at all, for the members sheet: nobody in a private room,
  * whose members the receiver keeps as they stand; a check that cannot be made offers nothing. */
 export async function mayLetIn(signed: SignedIn, room: number): Promise<boolean> {
-  // A private room, or one whose standing cannot be read, offers nobody.
-  if ((await privateOf(room).catch(() => undefined)) !== null) return false;
+  // A private room, a sealed one, or one whose privacy cannot be read, offers nobody.
+  const privacy = await privacyOf(room).catch(() => null);
+
+  if (privacy === null || privacy.privateOf !== null || privacy.sealed) return false;
   if (signed.administrator) return true;
   if (signed.id === null) return false;
 

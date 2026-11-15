@@ -4,13 +4,14 @@ import { wording } from "#shared/wording";
 import { checkRoom, userOf } from "./account-service";
 
 import { signedInUser } from "./accounts";
-import { accountRooms, privateOf } from "./console-rooms";
+import { SHARED, accountRooms, privacyOf, readableBy, roomPrivacies, writableBy } from "./console-rooms";
 import { fail } from "./fail";
 import { ownerChat } from "./owner";
 import { administratorKey } from "./owner-key";
 import { receiver, receiverCall } from "./receiver";
 
 import type { SignedIn } from "./accounts";
+import type { RoomPrivacy } from "./console-rooms";
 import type { H3Event } from "h3";
 
 // The rooms a signed-in user reads on the console (docs/web.md, 「Access」): every room for the administrator; for
@@ -61,10 +62,12 @@ export async function ownRooms(signed: SignedIn): Promise<ReadonlySet<number>> {
     return new Set(chat === null ? [] : [chat]);
   }
 
-  // The receiver's memberships hold the account's private rooms beside the rooms it was let into or opened.
-  const [memberships, linked] = await Promise.all([accountRooms(signed.id), linkedRooms(signed.id, signed.administrator)]);
+  // The receiver's memberships hold the account's private rooms beside the rooms it was let into or opened; of the
+  // rooms its identities reach, another account's private room and a sealed one are no rooms of its own.
+  const account = signed.id;
+  const [memberships, linked, privacies] = await Promise.all([accountRooms(account), linkedRooms(account, signed.administrator), roomPrivacies()]);
 
-  return new Set([...memberships, ...linked]);
+  return new Set([...memberships, ...linked.filter((room) => readableBy(privacies.get(room) ?? SHARED, account))]);
 }
 
 /** A change of the rooms an account reads, made through the console: a room it was let into or opened, or one it
@@ -246,8 +249,8 @@ export async function actingAccount(signed: SignedIn, administrator: () => Promi
 }
 
 /**
- * A room the signed-in user may change something of, refused 403 where it is another account's private room as the
- * receiver says (its `privateOf`): the administrator reads every room and changes nothing of another's (docs/web.md,
+ * A room the signed-in user may change something of, refused 403 where it is another account's private room or a sealed
+ * one as the receiver says (its `privateOf` and `sealed`): the administrator reads every room and changes nothing of another's (docs/web.md,
  * 「Access」). The receiver refuses the same change by the account each write names; this refusal stands before it,
  * and is the only one for a console login standing before the account model, whose writes name no account.
  */
@@ -257,10 +260,24 @@ export async function requireWritableRoom(event: H3Event, chatId: number): Promi
   if (!(await mayChangeRoom(event, chatId))) throw fail(403, wording("room.error.private_room"));
 }
 
-/** Whether the signed-in user may change a room they read: any room but another account's private room, as the
- * receiver says it. */
+/** Whether the signed-in user may change a room they read: any room but another account's private room or a sealed
+ * one, as the receiver says it. */
 export async function mayChangeRoom(event: H3Event, chatId: number): Promise<boolean> {
-  const owner = await privateOf(chatId);
+  return await changeJudge(await signedInUser(event))(chatId, await privacyOf(chatId));
+}
 
-  return owner === null || owner === (await actingAccount(await signedInUser(event)));
+/** How a login's changes are judged room by room, by the room's privacy: every room no one's goes, and any other as
+ * its acting account's, or for a console login standing before the account model on the owner's own road, which writes
+ * in his own private chat always, sealed or not (the receiver's `docs/receiver.md`, 「Console rooms and accounts」).
+ * Who the login acts as is asked only where a room is someone's. */
+export function changeJudge(signed: SignedIn, administrator: () => Promise<string | null> = administratorKey): (room: number, privacy: RoomPrivacy) => Promise<boolean> {
+  let account: Promise<number | null> | null = null;
+  let ownChat: Promise<number | null> | null = null;
+
+  return async (room, privacy) => {
+    if (privacy.privateOf === null && !privacy.sealed) return true;
+    if (signed.id === null && signed.administrator && room === (await (ownChat ??= ownerChat()))) return true;
+
+    return writableBy(privacy, await (account ??= actingAccount(signed, administrator)));
+  };
 }

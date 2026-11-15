@@ -405,6 +405,8 @@ export interface KeptSecret {
   name: string;
   bytes: number;
   changedAt: number;
+  // The key of the kind the secret's file reads as, where the store's list reads one.
+  kind?: string;
 }
 
 // Every secret the store holds, in the order of their names.

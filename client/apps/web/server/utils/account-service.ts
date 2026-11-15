@@ -583,7 +583,7 @@ export async function listSecrets(user: string, options: ServiceOptions = {}): P
     client.GET("/users/{user}/secrets", { params: { path: { user }, header: { "Owner-Key": user } } })
   );
 
-  return answered(reply).secrets.map(({ name, bytes, changedAt }) => ({ name, bytes, changedAt }));
+  return answered(reply).secrets.map(({ name, bytes, changedAt, kind }) => ({ name, bytes, changedAt, ...(kind ? { kind } : {}) }));
 }
 
 /**

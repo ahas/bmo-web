@@ -1521,6 +1521,13 @@
             "format": "int64",
             "type": "integer"
           },
+          "kind": {
+            "description": "The kind its file reads as, by the kind's key, where the store's list reads one; absent elsewhere.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "name": {
             "type": "string"
           }

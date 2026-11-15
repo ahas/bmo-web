@@ -1,8 +1,8 @@
 //! The secret store (docs/accounts.md, 「The secret store」; docs/boundary.md, 「The secret store」) on a temporary
 //! folder standing in for the data root's `env/`: the modes a write leaves, the value kept before, the names
-//! refused, a base64 value written as its bytes, and that no answer and no refusal carries a value; each person's
-//! space apart from the administrator's; the store by itself, and its routes as a caller asks them, with the user
-//! the console hands on.
+//! refused, a base64 value written as its bytes, the kind each listed file reads as, and that no answer and no
+//! refusal carries a value; each person's space apart from the administrator's; the store by itself, and its routes
+//! as a caller asks them, with the user the console hands on.
 
 use crate::support;
 
@@ -337,6 +337,69 @@ async fn the_routes_write_list_and_delete_and_no_answer_carries_a_value() {
 
   assert_eq!(status, StatusCode::NOT_FOUND);
   assert_eq!(read(&gone)["code"], "not-found");
+}
+
+#[tokio::test]
+async fn the_list_names_the_kind_each_file_reads_as_and_nothing_of_its_value() {
+  let (_root, env) = folder();
+  let (_scratch, app, boss, _) = app(&env).await;
+  let card = "CARD_NUMBER=4111111111111111\nCARD_EXPIRY=12/30\nCARD_CVC=123\nCARD_HOLDER_NAME=tester\n";
+  let files = [
+    ("card", card.to_owned()),
+    (
+      "card-reordered",
+      "CARD_CVC=123\nCARD_HOLDER_NAME=tester\nCARD_EXPIRY=12/30\nCARD_NUMBER=4111\n".to_owned(),
+    ),
+    (
+      "delivery",
+      "RECIPIENT=tester\nPHONE=010\nPOSTAL_CODE=12345\nADDRESS=one street\n".to_owned(),
+    ),
+    (
+      "card-lacking",
+      "CARD_NUMBER=4111\nCARD_EXPIRY=12/30\nCARD_HOLDER_NAME=tester\n".to_owned(),
+    ),
+    ("card-and-more", format!("{card}EXTRA=1\n")),
+    ("card-twice", format!("{card}CARD_CVC=456\n")),
+    ("one-value", "CARD_NUMBER=4111".to_owned()),
+    ("not-lines", format!("{card}a line with no equals\n")),
+    (
+      "too-large",
+      format!(
+        "CARD_NUMBER=4111\nCARD_EXPIRY=12/30\nCARD_CVC=123\nCARD_HOLDER_NAME={}\n",
+        "n".repeat(16 * 1024)
+      ),
+    ),
+  ];
+
+  for (name, value) in &files {
+    let ask = json!({ "value": value }).to_string();
+    let (status, said) =
+      asked(&app, Method::PUT, &format!("/users/{boss}/secrets/{name}"), Some(ask), Some(boss)).await;
+
+    assert_eq!(status, StatusCode::CREATED, "{name}: {said}");
+  }
+
+  let (status, listed) =
+    asked(&app, Method::GET, &format!("/users/{boss}/secrets"), None, Some(boss)).await;
+
+  assert_eq!(status, StatusCode::OK, "{listed}");
+  assert!(!listed.contains("4111") && !listed.contains("tester"), "{listed}");
+
+  let kinds: Vec<(String, Value)> = read(&listed)["secrets"]
+    .as_array()
+    .unwrap()
+    .iter()
+    .map(|secret| (secret["name"].as_str().unwrap().to_owned(), secret["kind"].clone()))
+    .collect();
+  let kind = |name: &str| kinds.iter().find(|(listed, _)| listed == name).unwrap().1.clone();
+
+  assert_eq!(kind("card"), "card");
+  assert_eq!(kind("card-reordered"), "card");
+  assert_eq!(kind("delivery"), "delivery-address");
+
+  for name in ["card-lacking", "card-and-more", "card-twice", "one-value", "not-lines", "too-large"] {
+    assert_eq!(kind(name), Value::Null, "{name}");
+  }
 }
 
 #[tokio::test]

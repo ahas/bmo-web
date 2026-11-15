@@ -1,9 +1,10 @@
 <template>
-  <!-- The providers tab of the organisation settings screen (docs/web.md, 「Organisation settings」, the providers
-       tab): every provider the agency carries, in its order, with what it has left, why it cannot answer now and the
-       owner's switch, each taking effect as it is thrown; under them the Claude accounts the Claude Code provider
-       walks, a new one added from the tab row's add. No key the agency holds is read here. Both stand as groups under
-       their headings, each keeping its place with a skeleton while it is first read. -->
+  <!-- The providers tab of the administration screen (docs/web.md, 「Administration」, the providers tab): every
+       provider the agency carries, in its order, with what it has left, why it cannot answer now and the owner's
+       switch, each taking effect as it is thrown; under them the secrets the agency's provider tools read, then the
+       Claude accounts the Claude Code provider walks, a new one added from the tab row's add. No key the agency holds
+       is read here. Each stands as a group under its heading, keeping its place with a skeleton while it is first
+       read. -->
   <div class="flex flex-col gap-4">
     <SettingsGroup :title="$t('agents.title.providers')">
       <ContentSkeleton v-if="providers === undefined && status !== 'error' && !providersRetrying" :rows="4" listClass="flex flex-col divide-y divide-default" :label="$t('agents.status.providers_loading')">
@@ -45,6 +46,8 @@
       </div>
       </template>
     </SettingsGroup>
+
+    <ProviderSecretSettings />
 
     <AgentsAccounts v-if="fallback.accounts.length > 0 || fallbackStatus === 'success'" ref="accountsRef" :accounts="fallback.accounts" :reread="rereadFallback" />
     <SettingsGroup v-else :title="$t('agents.title.accounts')">

@@ -2,7 +2,7 @@
 //! console's secret form asks a value in, kept in the service's database and never holding a value. They are the
 //! deployment's, so any call reads them, and the administrator alone adds, changes and removes one; a kind that
 //! breaks a rule of their shape is refused naming the rule. The file a kind's fields give is the console's to
-//! write; the store knows no kind.
+//! write; the store keeps no kind, and its list reads one off a file's shape.
 
 use std::collections::HashSet;
 
@@ -11,7 +11,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::routing::get;
 use axum::{Json, Router};
 use bmo_web_client::{SecretField, SecretInput, SecretKind, SecretKinds};
-use sea_orm::QueryResult;
+use sea_orm::{DatabaseConnection, QueryResult};
 use serde_json::Value;
 
 use crate::routes::{Answer, Body};
@@ -152,19 +152,56 @@ fn no_kind() -> Refusal {
   Refusal::absent("no kind stands under the key")
 }
 
-/// `GET /secret-kinds`: every kind, in the order they were added, for any call, since every person's form asks
-/// in them.
-async fn list(State(service): State<Service>) -> Answer<SecretKinds> {
+/// Every kind the service keeps, in the order they were added.
+pub async fn kept(db: &DatabaseConnection) -> Result<Vec<SecretKind>, Refusal> {
   let rows = all(
-    &service.db,
+    db,
     r#"SELECT "key", "name", "description", "fields"::text AS "fields" FROM "secret_kinds"
        ORDER BY "position", "key""#,
     vec![],
   )
   .await?;
-  let kinds = rows.iter().map(kind_of).collect::<Result<_, _>>()?;
 
-  Ok(Json(SecretKinds { kinds }))
+  rows.iter().map(kind_of).collect()
+}
+
+/// The key of the kind a secret's file reads as: the first of `kinds` holding several fields whose file `text`
+/// is, one `KEY=VALUE` line to a field it names, none twice, every required one among them. A kind of one field
+/// gives its value alone, which no shape tells apart, so no file reads as one; nor does an empty file.
+pub fn read_off<'kinds>(text: &str, kinds: &'kinds [SecretKind]) -> Option<&'kinds str> {
+  let keys = text
+    .lines()
+    .map(|line| line.split_once('=').map(|(key, _)| key))
+    .collect::<Option<Vec<_>>>()?;
+
+  if keys.is_empty() {
+    return None;
+  }
+
+  let made_of = |kind: &SecretKind| {
+    let mut held = HashSet::new();
+    let named = |key: &str| kind.fields.iter().any(|field| field.key == key);
+
+    keys.iter().all(|key| named(key) && held.insert(*key))
+      && kind
+        .fields
+        .iter()
+        .filter(|field| field.required)
+        .all(|field| held.contains(field.key.as_str()))
+  };
+
+  kinds
+    .iter()
+    .find(|kind| kind.fields.len() > 1 && made_of(kind))
+    .map(|kind| kind.key.as_str())
+}
+
+/// `GET /secret-kinds`: every kind, in the order they were added, for any call, since every person's form asks
+/// in them.
+async fn list(State(service): State<Service>) -> Answer<SecretKinds> {
+  Ok(Json(SecretKinds {
+    kinds: kept(&service.db).await?,
+  }))
 }
 
 /// `POST /secret-kinds`: a kind added after every kind that stands.

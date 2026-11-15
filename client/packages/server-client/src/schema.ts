@@ -1300,6 +1300,8 @@ export interface components {
             bytes: number;
             /** Format: int64 */
             changedAt: number;
+            /** @description The kind its file reads as, by the kind's key, where the store's list reads one; absent elsewhere. */
+            kind?: string | null;
             name: string;
         };
         /**

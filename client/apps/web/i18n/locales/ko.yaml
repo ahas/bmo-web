@@ -2162,6 +2162,7 @@ agents:
     session_history_read_failed: 세션 기록을 불러오지 못했습니다.
     supervisors_read_failed: 감독관을 불러오지 못했습니다.
     draft_unsound: 드래프트 설정에 고칠 곳이 있습니다.
+    secret_settings_read_failed: 공급자 비밀을 불러오지 못했습니다.
   label:
     account_chosen: 선택한 계정
     default_answerer: 기본 응답 감독관
@@ -2395,6 +2396,9 @@ agents:
     role_skills_own: 스킬 직접 고르기
     role_skills_hint: "끄면 역할의 기본 스킬 묶음 전체를 씁니다. 에이전트가 따로 고른 스킬이 있으면 그쪽이 우선합니다."
     role_skills_none: 스킬 없음
+    deepseek_card_secret: DeepSeek 결제 카드
+    secret_none: 없음
+    secret_of_kind: "{kind} 종류 비밀"
   message:
     account_delete_confirm: 계정을 삭제할까요?
     catalogue_delete_confirm: 모델 파일을 목록에서 삭제할까요?
@@ -2493,6 +2497,7 @@ agents:
     session_history_loading: 세션 기록 불러오는 중…
     session_valid: 유효
     supervisors_loading: 감독관 불러오는 중…
+    secret_settings_loading: 공급자 비밀 불러오는 중…
   title:
     account_add: Claude 계정 추가
     providers: 공급자
@@ -2514,6 +2519,7 @@ agents:
     role_add: 역할 추가
     role_agents_of: "{name} 에이전트"
     draft: 드래프트
+    secret_settings: 공급자 비밀
 gates:
   label:
     classifier: 참조 분류기

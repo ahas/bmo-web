@@ -6779,6 +6779,15 @@ every run goes out on, and the kinds every person's secret form asks in. No memb
   English as its tooltip, and the owner's switch. Lowering a switch turns that provider off at once and every
   order passes it over; its row stands dimmed. Turning off the last one on is refused by the agency, its sentence said
   in a notice. No key the agency holds is read here.
+- **공급자 비밀** — the secrets the agency's provider tools read, one row to each of the agency's settings naming a
+  secret of the platform administrator's space (its `docs/api.md`, 「settings」): 결제 카드 for the DeepSeek top-up,
+  its setting `deepseekCardSecret`, labelled DeepSeek 결제 카드. A row's choices are the reader's own secrets whose
+  file reads as the setting's kind (`docs/accounts.md`, 「The secret store」), by name, then 없음; a name the setting
+  holds that is none of them stands first, so the row always shows what the agency holds. Under the label stands
+  `{kind} 종류 비밀`, the kind's name, or the refusal of a choice in its place: the agency's 400 naming the field is
+  said by the pack's sentence for a refused value, and the row stays as the agency holds it. The console's
+  `GET`/`PUT /api/secret-settings`, the administrator's alone, read every such setting and change one, its field
+  and a secret's name or null; another setting of the same shape is one more entry in the console's list of them.
 - **Claude 계정** — the Claude accounts in the order the Claude Code provider walks them, a group under its heading as
   공급자 is, its rows parted by hairlines with no box round them, one row each: a drag
   handle, the place in the order, a mark saying whether that login is standing, near its end or gone — a login near

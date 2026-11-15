@@ -392,8 +392,14 @@ section states what each does.
   - **The console and this service never read a value back.**
 - **A person who leaves keeps their space as it stood,** sealed with their other private records (「A person who
   leaves」): their sign-in disabled, nobody lists it, and nothing reads it for them.
-- **`GET /users/{user}/secrets`** lists the names standing in the person's space, each with its size and the time it
-  last changed, and never what a file holds. The administrator's lists `env/`'s own files, never a folder under it.
+- **`GET /users/{user}/secrets`** lists the names standing in the person's space, each with its size, the time it
+  last changed and the kind its file reads as, and never what a file holds. The administrator's lists `env/`'s own
+  files, never a folder under it.
+- **A secret's kind is read off its file's shape,** since the store keeps no kind: a file of at most 16 KiB made of
+  `KEY=VALUE` lines alone, each key one field of a kind of several fields, none twice and every required one
+  among them, reads as the first such kind in the kinds' order (「Secret kinds」). Only the keys before each `=` are
+  read, and only the kind's key is answered. A kind of one field gives its value alone, which no shape tells
+  apart, so no file reads as one, and a secret reading as none is listed with no kind.
 - **`PUT /users/{user}/secrets/{name}`** writes a value under a name in the person's space: whole, to a hidden file
   of mode 600 beside it, then moved onto the name, so a reader never meets half a value. A name that stands already
   is replaced only where the call says so; the value replaced stays as `<name>.previous`, mode 600. It answers the
@@ -417,7 +423,8 @@ section states what each does.
   token or a key file has; a kind of several gives one `KEY=VALUE` line to each field given, the shape of an
   environment file, so its fields are one line each. A several-line or file field stands alone in its kind, and its
   file is its bytes unchanged. The console's form writes the file by these rules and hands the store the whole of
-  it (`docs/web.md`, 「비밀 보관함」); the store itself knows no kind.
+  it (`docs/web.md`, 「비밀 보관함」); the store keeps no kind, and its list reads one off a file's shape
+  (「The secret store」).
 - **The deployment's, kept by the administrator.** Every person's secret form asks in the same kinds, so any login
   reads them; the administrator alone adds, changes and removes one, and the routes refuse a kind that breaks the
   rules above (`docs/boundary.md`, 「Secret kinds」). A kind's key does not change once added.

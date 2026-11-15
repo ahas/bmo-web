@@ -60,6 +60,21 @@ describe("the secret store's routes", () => {
     expect(JSON.stringify(read)).not.toContain(VALUE);
   });
 
+  test("the list carries the kind the server reads off a file, and none where it reads none", async () => {
+    await asked(keep, { body: { name: "kind-a.card", value: VALUE } });
+    await asked(keep, { body: { name: "kind-a.none", value: VALUE } });
+    service.secrets.get("kind-a.card")!.kind = "card";
+
+    const read = (await asked(list, {})).answer?.secrets.filter((secret) => secret.name.startsWith("kind-a."));
+
+    expect(read).toEqual([
+      { name: "kind-a.card", bytes: VALUE.length, changedAt: expect.any(Number), kind: "card" },
+      { name: "kind-a.none", bytes: VALUE.length, changedAt: expect.any(Number) }
+    ]);
+    await asked(drop, { params: { name: "kind-a.card" } });
+    await asked(drop, { params: { name: "kind-a.none" } });
+  });
+
   test("a name that stands is replaced only where asked, said in the pack's words", async () => {
     await asked(keep, { body: { name: "unit-b.token", value: VALUE } });
 

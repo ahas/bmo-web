@@ -120,6 +120,8 @@ export interface StandInSecret {
   // The bytes written, as the server writes them: a text value's own, a base64 value's decoded.
   bytes: Buffer;
   changedAt: number;
+  // The kind the server's list would read off the file, where a test sets one; the stand-in reads none itself.
+  kind?: string;
 }
 
 export interface StandIn {
@@ -532,7 +534,11 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         const owner = users.find((user) => String(user.id) === secret[1]);
         const name = secret[2] === undefined ? null : decodeURIComponent(secret[2]);
         const space = owner?.administrator === true ? "" : `users/${secret[1]}/`;
-        const kept = (one: string) => ({ name: one, bytes: secrets.get(space + one)!.bytes.length, changedAt: secrets.get(space + one)!.changedAt });
+        const kept = (one: string) => {
+          const held = secrets.get(space + one)!;
+
+          return { name: one, bytes: held.bytes.length, changedAt: held.changedAt, ...(held.kind === undefined ? {} : { kind: held.kind }) };
+        };
 
         secretKeys.push(key);
 

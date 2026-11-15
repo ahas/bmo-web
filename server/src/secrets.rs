@@ -2,10 +2,11 @@
 //! the data root's `env/` every unit reads a secret from by its name, one space to each person. The platform
 //! administrator's space is the folder itself and every other person's a folder of their own under `users/`. The
 //! store writes a value under a name in a space and answers the name, its size and its time; no route reads a
-//! value back, and nothing here logs one. A space is its own person's alone, the administrator's included.
+//! value back, and nothing here logs one. The list reads only the keys of a file's lines, to name the kind it
+//! reads as. A space is its own person's alone, the administrator's included.
 
 use std::fs::{self, DirBuilder, File, Metadata, OpenOptions, Permissions};
-use std::io::{self, ErrorKind, Write};
+use std::io::{self, ErrorKind, Read, Write};
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
@@ -18,9 +19,10 @@ use axum::routing::{get, put};
 use axum::{Json, Router};
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
-use bmo_web_client::{OWNER_KEY, Secret, SecretAsk, SecretEncoding, Secrets};
+use bmo_web_client::{OWNER_KEY, Secret, SecretAsk, SecretEncoding, SecretKind, Secrets};
 
 use crate::routes::user_in;
+use crate::secret_kinds;
 use crate::{Refusal, Service, one};
 
 /// What the value a name held before is kept under: the name, then this.
@@ -37,6 +39,8 @@ pub const PEOPLE: &str = "users";
 const FILE_MODE: u32 = 0o600;
 /// The folder's mode, where the store makes it.
 const FOLDER_MODE: u32 = 0o700;
+/// The largest file whose kind the list reads: a kind's file is at most twenty short lines.
+const KIND_TEXT_MAX: u64 = 16 * 1024;
 
 /// The folder the store writes, and the lock that takes its writes one at a time.
 #[derive(Debug)]
@@ -143,6 +147,7 @@ fn kept(name: String, standing: &Metadata) -> Secret {
     name,
     bytes: i64::try_from(standing.len()).unwrap_or(i64::MAX),
     changed_at,
+    kind: None,
   }
 }
 
@@ -208,6 +213,31 @@ impl Store {
     }
 
     listed.sort_by(|one, other| one.name.cmp(&other.name));
+
+    Ok(listed)
+  }
+
+  /// The text of the secret `name` in a space, for its kind to be read off, never answered: none where it is
+  /// larger than any kind's file, does not read as UTF-8 or cannot be read, so such a secret is listed with no
+  /// kind.
+  fn text_of(&self, space: Space, name: &str) -> Option<String> {
+    let mut text = String::new();
+    let file = File::open(space.folder(&self.folder).join(name)).ok()?;
+
+    file.take(KIND_TEXT_MAX + 1).read_to_string(&mut text).ok()?;
+
+    (text.len() as u64 <= KIND_TEXT_MAX).then_some(text)
+  }
+
+  /// Every secret a space holds as `list` answers it, each with the kind its file reads as among `kinds`.
+  pub fn list_with_kinds(&self, space: Space, kinds: &[SecretKind]) -> Result<Vec<Secret>, Refusal> {
+    let mut listed = self.list(space)?;
+
+    for secret in &mut listed {
+      secret.kind = self
+        .text_of(space, &secret.name)
+        .and_then(|text| secret_kinds::read_off(&text, kinds).map(str::to_owned));
+    }
 
     Ok(listed)
   }
@@ -384,7 +414,7 @@ pub fn routes() -> Router<Service> {
     .route("/users/{user}/secrets/{name}", put(write).delete(delete))
 }
 
-/// `GET /users/{user}/secrets`: every secret's name, size and time in the user's space.
+/// `GET /users/{user}/secrets`: every secret's name, size and time in the user's space, and the kind each reads as.
 pub async fn list(
   State(service): State<Service>,
   headers: HeaderMap,
@@ -392,7 +422,8 @@ pub async fn list(
 ) -> Result<Json<Secrets>, Refusal> {
   let space = space_of(&service, &headers, &user).await?;
   let store = store_of(&service)?;
-  let secrets = blocking(move || store.list(space)).await?;
+  let kinds = secret_kinds::kept(&service.db).await?;
+  let secrets = blocking(move || store.list_with_kinds(space, &kinds)).await?;
 
   Ok(Json(Secrets { secrets }))
 }

@@ -185,6 +185,9 @@ pub struct Secret {
   pub name: String,
   pub bytes: i64,
   pub changed_at: i64,
+  /// The kind its file reads as, by the kind's key, where the store's list reads one; absent elsewhere.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub kind: Option<String>,
 }
 
 /// Every secret the store holds, in the order of their names.

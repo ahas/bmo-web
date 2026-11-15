@@ -78,6 +78,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["secret-request", "fixture-password-2649"],
   ["agent-log-open", "fixture-password-2809"],
   ["row-add", "fixture-password-2885"],
+  ["provider-secrets", "fixture-password-3037"],
   ["todo-raise", "fixture-password-2871"],
   ["supervisor-road", "fixture-password-2921"],
   ["builder-model", "fixture-password-2926"],
@@ -425,6 +426,9 @@ const models = new Map<string, Record<string, unknown>>([
   ["model-a", { key: "registered::model-a", name: "model-a", provider: "registered", model: "model-a-7b", cardService: null, roleFiles: false, tier: null, healthy: true, lastAnsweredAt: null, usedBy: ["repository repo-b"] }],
   ["model-b", { key: "registered::model-b", name: "model-b", provider: "registered", model: "model-b-7b", cardService: "service-b", roleFiles: true, tier: null, healthy: false, lastAnsweredAt: null, usedBy: [] }]
 ]);
+// The agency's own settings, so the providers tab reads and changes the secrets its tools read; a secret named
+// `refused-card` is refused as the agency refuses a name, naming the field.
+const agencySettings: Record<string, unknown> = { researchSupervisor: null, downgradeReturn: null, deepseekCardSecret: null };
 const entries = new Map<string, Record<string, unknown>>([
   ["entry-a", catalogueEntry("entry-a", "engine-a", "model-a")],
   ["entry-b", catalogueEntry("entry-b", "engine-b", "model-b")]
@@ -630,6 +634,16 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
     if (path === "/events") return silentStream();
     if (path === "/fallback") return Response.json({ accounts: [] });
+    if (path === "/settings" && request.method === "PATCH") {
+      const body = (await request.json()) as Record<string, unknown>;
+
+      if (body.deepseekCardSecret === "refused-card") {
+        return Response.json({ code: "bad-request", error: "deepseekCardSecret is refused", field: "deepseekCardSecret" }, { status: 400 });
+      }
+
+      Object.assign(agencySettings, body);
+    }
+    if (path === "/settings") return Response.json(agencySettings);
 
     if (path === "/models" && request.method === "GET") return Response.json({ items: [...models.values()], more: false });
 

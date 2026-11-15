@@ -34,6 +34,12 @@
           <HintTip v-if="one.reason !== null" :text="one.reasonEnglish ?? undefined" :disabled="one.reasonEnglish === null" class="min-w-0">
             <span class="break-words text-sm text-warning">{{ one.reason }}</span>
           </HintTip>
+          <!-- Where its own key is read from a file, whether that file stands and the way to set it. -->
+          <span v-if="one.keyFile !== null" class="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-muted" :data-provider-key="one.keyFile">
+            <span v-if="keyOf(one.keyFile) !== null" class="tabular-nums">{{ $t("agents.label.key_held", { time: formatStamp(Math.floor(keyOf(one.keyFile)!.changedAt / 1000)) }) }}</span>
+            <span v-else class="text-warning">{{ $t("agents.label.key_missing") }}</span>
+            <UButton size="xs" color="neutral" variant="link" class="px-0" :label="$t('agents.action.key_set')" @click="keyFor = one" />
+          </span>
         </div>
         <USwitch
           class="ms-auto"
@@ -46,6 +52,8 @@
       </div>
       </template>
     </SettingsGroup>
+
+    <ProviderKeyDialog v-if="keyFor !== null && keyFor.keyFile !== null" v-model:open="keyOpen" :label="keyFor.label" :file="keyFor.keyFile" @kept="keyKept" />
 
     <ProviderSecretSettings />
 
@@ -74,10 +82,12 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useIsland } from "bmo-ui/app/domain/island";
 
 import { emptyFallbackView } from "~/domain/agent-settings";
+import { formatStamp } from "bmo-ui/app/domain/time";
+
 import { quotaText, useProviders } from "~/domain/axes";
 
 import type { ProviderView } from "#shared/axes";
-import type { FallbackView } from "#shared/types";
+import type { FallbackView, SecretList } from "#shared/types";
 
 const { t } = useI18n();
 const island = useIsland(t);
@@ -137,8 +147,24 @@ async function throwSwitch(provider: ProviderView, on: boolean): Promise<void> {
   }
 }
 
-// The tab's create: a Claude login, by the accounts' box, standing off until the accounts are read.
-const accountsRef = useTemplateRef<{ openAdd: () => void }>("accountsRef");
+// The administrator's secrets by name, to say whether a provider's key file stands; none until read.
+const { data: secrets, refresh: refreshSecrets } = useFetch<SecretList>("/api/secrets", { key: "provider-keys", lazy: true, server: false });
 
-defineExpose({ addLabel: computed(() => t("agents.title.account_add")), addDisabled: computed(() => accountsRef.value === null), openAdd: () => accountsRef.value?.openAdd() });
+function keyOf(file: string): { changedAt: number } | null {
+  return secrets.value?.secrets.find((one) => one.name === file) ?? null;
+}
+
+// The provider whose key is being set, its dialog open while it is.
+const keyFor = ref<ProviderView | null>(null);
+const keyOpen = computed({
+  get: () => keyFor.value !== null,
+  set: (open: boolean) => {
+    if (!open) keyFor.value = null;
+  }
+});
+
+// A key kept: the files and the providers read again, so the row says the key stands and its reason clears.
+async function keyKept(): Promise<void> {
+  await Promise.all([refreshSecrets(), refresh()]);
+}
 </script>

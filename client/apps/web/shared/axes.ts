@@ -39,6 +39,8 @@ export interface ProviderView {
   reason: string | null;
   reasonEnglish: string | null;
   foldRatioDefault: number | null;
+  // The file under the data root's env/ the provider reads its own key from, or null for one that reads none.
+  keyFile: string | null;
 }
 
 // One model a road may name on a provider: its id, the effort levels a road on it takes (none listed is every

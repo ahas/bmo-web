@@ -75,7 +75,7 @@ const agency = standIn("AGENCY", (call) => {
     return answer({ provider: "deepseek", models: [{ id: "deepseek-v4-pro", efforts: ["low"], inService: true, thinking: true, answerTokens: 8192, contextTokens: 65536 }, { nothing: true }], staleReadAt: null });
   }
   if (call.path === "/providers") {
-    return answer({ items: [{ name: "deepseek", code: "deepseek", label: "DeepSeek", enabled: true, registered: false, coworker: true, lines: ["chat"], quota: { left: 0.5, window: "week", balance: null, resetsAt: null }, reason: null, reasonCode: null, foldRatioDefault: 0.85 }], more: false });
+    return answer({ items: [{ name: "deepseek", code: "deepseek", label: "DeepSeek", enabled: true, registered: false, coworker: true, lines: ["chat"], quota: { left: 0.5, window: "week", balance: null, resetsAt: null }, reason: null, reasonCode: null, foldRatioDefault: 0.85, keyFile: "deepseek.key" }], more: false });
   }
 
   return answer({ code: "not-found", error: "no such route" }, 404);
@@ -343,7 +343,7 @@ describe("the providers and the models they hold", () => {
   test("name a provider in the pack's words with what it has left", async () => {
     const got = await asked(providers, {});
 
-    expect(got.answer?.[0]).toMatchObject({ name: "deepseek", label: wording("agents.label.provider_deepseek"), lines: ["chat"], quota: { left: 0.5, window: "week" }, reason: null, foldRatioDefault: 0.85 });
+    expect(got.answer?.[0]).toMatchObject({ name: "deepseek", label: wording("agents.label.provider_deepseek"), lines: ["chat"], quota: { left: 0.5, window: "week" }, reason: null, foldRatioDefault: 0.85, keyFile: "deepseek.key" });
   });
 
   test("read a provider's models, a member that is no model left out", async () => {

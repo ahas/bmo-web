@@ -1,12 +1,15 @@
 <template>
   <!-- The Claude logins the agency holds, in the order the Claude Code provider walks them (docs/web.md,
-       「Organisation settings」, the providers tab). A row is carried by its handle alone, by the mouse and the finger
+       「Administration」, the providers tab). A row is carried by its handle alone, by the mouse and the finger
        the same way, and the order is saved the moment it is dropped. What a row says of a credential is the path it
        is reached by — no cell and no box here has a token to show, because none is ever sent to this screen. A new
-       login is added from the tab row's add, which opens the box this list keeps. The list stands as a group under its
+       login is added from the add at the heading's right end, which opens the box this list keeps. The list stands as a group under its
        heading, its rows parted by hairlines with no box round them, as the providers above it do. -->
   <section class="flex flex-col" aria-labelledby="accounts-title">
-    <h3 id="accounts-title" class="flex min-h-8 items-center text-sm font-semibold text-highlighted">{{ $t("agents.title.accounts") }}</h3>
+    <div class="flex min-h-8 items-center justify-between gap-4">
+      <h3 id="accounts-title" class="text-sm font-semibold text-highlighted">{{ $t("agents.title.accounts") }}</h3>
+      <UButton size="xs" color="neutral" variant="ghost" icon="i-material-symbols-add" :label="$t('agents.action.account_add')" data-account-add @click="openAdd()" />
+    </div>
 
     <ol ref="list" class="flex flex-col divide-y divide-default" :aria-label="$t('agents.title.accounts')">
       <li

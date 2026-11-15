@@ -61,7 +61,8 @@ export function providerViewOf(provider: Provider): ProviderView {
     quota: quotaOf(held.quota),
     reason: said.reason,
     reasonEnglish: said.reasonEnglish,
-    foldRatioDefault: number(held.foldRatioDefault)
+    foldRatioDefault: number(held.foldRatioDefault),
+    keyFile: text(held.keyFile)
   };
 }
 

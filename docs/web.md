@@ -6767,7 +6767,7 @@ every run goes out on, and the kinds every person's secret form asks in. No memb
 - **Who opens it.** The administrator alone, and the sidebar lists 관리자 for them after 조직; a member is listed
   no entry, and the address takes them home as any screen they may not open does.
 - **The tab row, a tab's content and its groups** stand as 조직's do (「Organisation」): the open tab's own add at
-  the row's right end, Claude 계정 추가 on 공급자 and 종류 추가 on 비밀 종류; each tab in the centred reading column;
+  the row's right end, 종류 추가 on 비밀 종류 and none on 공급자, whose add stands in its Claude 계정 heading; each tab in the centred reading column;
   a kind's 편집 and 삭제 on 비밀 종류 as icon buttons named by their tooltips.
 
 #### 공급자
@@ -6779,6 +6779,12 @@ every run goes out on, and the kinds every person's secret form asks in. No memb
   English as its tooltip, and the owner's switch. Lowering a switch turns that provider off at once and every
   order passes it over; its row stands dimmed. Turning off the last one on is refused by the agency, its sentence said
   in a notice. No key the agency holds is read here.
+  - **A provider that reads its own key from a file** — the agency's `keyFile`, OpenRouter's and DeepSeek's — carries
+    under its name whether that file stands in the platform administrator's secret space, 키 있음 with when it last
+    changed or 키 없음, and a 키 설정 button. It opens a dialog of one hidden field, the key, and 저장 writes it under
+    the file's name in that space, the data root's `env/`, replacing what stood (the console's `POST /api/secrets`,
+    「Settings」, 비밀 보관함), so the provider reads it at its next look. The key is never read back or shown, a
+    refusal is said in the dialog by the pack's sentence, and the row and its reason are read again once it is kept.
 - **공급자 비밀** — the secrets the agency's provider tools read, one row to each of the agency's settings naming a
   secret of the platform administrator's space (its `docs/api.md`, 「settings」): 결제 카드 for the DeepSeek top-up,
   its setting `deepseekCardSecret`, labelled DeepSeek 결제 카드. A row's choices are the reader's own secrets whose
@@ -6789,7 +6795,7 @@ every run goes out on, and the kinds every person's secret form asks in. No memb
   `GET`/`PUT /api/secret-settings`, the administrator's alone, read every such setting and change one, its field
   and a secret's name or null; another setting of the same shape is one more entry in the console's list of them.
 - **Claude 계정** — the Claude accounts in the order the Claude Code provider walks them, a group under its heading as
-  공급자 is, its rows parted by hairlines with no box round them, one row each: a drag
+  공급자 is, with 계정 추가 at the heading's right end, which opens the add form below; its rows parted by hairlines with no box round them, one row each: a drag
   handle, the place in the order, a mark saying whether that login is standing, near its end or gone — a login near
   its end also carrying how long is left, and one that has ended carrying 로그인 필요 — the name the owner gave it,
   where its credential is reached, a configuration directory or a token file shown as that path, the up and down

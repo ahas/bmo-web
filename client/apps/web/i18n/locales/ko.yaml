@@ -2050,6 +2050,8 @@ agents:
     to_end: 맨 아래로
     to_page: 페이지로
     use_account: 이 계정 사용
+    account_add: 계정 추가
+    key_set: 키 설정
     use_model: 이 모델로 변경
     walk_order: 순서대로
     agent_add: 에이전트 추가
@@ -2399,6 +2401,8 @@ agents:
     deepseek_card_secret: DeepSeek 결제 카드
     secret_none: 없음
     secret_of_kind: "{kind} 종류 비밀"
+    key_held: "키 있음 · {time}"
+    key_missing: 키 없음
   message:
     account_delete_confirm: 계정을 삭제할까요?
     catalogue_delete_confirm: 모델 파일을 목록에서 삭제할까요?
@@ -2500,6 +2504,7 @@ agents:
     secret_settings_loading: 공급자 비밀 불러오는 중…
   title:
     account_add: Claude 계정 추가
+    key_of: "{name} 키"
     providers: 공급자
     repository_add: 저장소 추가
     session_history: 세션 기록

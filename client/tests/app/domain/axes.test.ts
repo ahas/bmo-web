@@ -13,7 +13,7 @@ import type { RoadView, ProviderModelsView, ProviderView } from "../../../apps/w
 const t = wording;
 
 const provider = (name: string, foldRatioDefault: number | null): ProviderView => ({
-  name, label: name, enabled: true, registered: false, lines: [], quota: null, reason: null, reasonEnglish: null, foldRatioDefault
+  name, label: name, enabled: true, registered: false, lines: [], quota: null, reason: null, reasonEnglish: null, foldRatioDefault, keyFile: null
 });
 const entry = (name: string): RoadView => ({ provider: name, model: "model-a", effort: null, thinking: null, answerTokens: null });
 const models: ProviderModelsView = {

@@ -1,5 +1,7 @@
 import { wording } from "#shared/wording";
 
+import { requireOwnSupervisor } from "../../../utils/agent-reach";
+
 import type { SupervisorSettingsView } from "#shared/axes";
 
 // One save of a supervisor's own settings — its reference switch, its persona and its generation settings — carried to
@@ -8,6 +10,9 @@ import type { SupervisorSettingsView } from "#shared/axes";
 export default defineEventHandler(async (event): Promise<SupervisorSettingsView> => {
   const session = await signedInUser(event);
   const name = axisName(getRouterParam(event, "name"));
+
+  await requireOwnSupervisor(event, name);
+
   const body = await readBody<Record<string, unknown>>(event);
 
   if (typeof body !== "object" || body === null) throw fail(400, wording("common.error.bad_action"));

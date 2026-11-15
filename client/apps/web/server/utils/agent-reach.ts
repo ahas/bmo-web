@@ -10,7 +10,8 @@ import type { H3Event } from "h3";
 // administrator reads every agent's, and anyone else the agents their own account owns alone — their own BMO, and an
 // agent of a role standing as theirs. Every other agent answers them as if it did not stand. The agency names the
 // account each supervisor and each role agent is filed under (its `docs/api.md`, 「Role agents」), and a supervisor it
-// names none for is owned as `supervisorOwner` says.
+// names none for is owned as `supervisorOwner` says. A supervisor is changed and removed by its owner and the
+// administrator alone, by the same judge.
 
 type Schemas = components["schemas"];
 
@@ -24,6 +25,21 @@ export async function ownsAgent(account: number, name: string): Promise<boolean>
   if (supervisors.items.some((supervisor) => supervisor.name === name && supervisorOwner(supervisor) === account)) return true;
 
   return roles.roles.some((role) => ((role.agents ?? []) as HeldAgent[]).some((agent) => agent.name === name && agent.ownerAccount === String(account)));
+}
+
+/** A supervisor the signed-in user may change or remove: any for the administrator; for anyone else their own
+ * account's BMO alone, by `supervisorOwner`, and every other answering as if it did not stand. */
+export async function requireOwnSupervisor(event: H3Event, name: string): Promise<void> {
+  const signed = await signedInUser(event);
+
+  if (signed.administrator) return;
+
+  const owned = signed.id === null ? false : await agencyCall(agency().GET("/supervisors")).then(
+    (page) => page.items.some((supervisor) => supervisor.name === name && supervisorOwner(supervisor) === signed.id),
+    () => false
+  );
+
+  if (!owned) throw createError({ statusCode: 404, statusMessage: "Not Found" });
 }
 
 /** An agent the signed-in user may read, or a refusal answering as if it did not stand. */

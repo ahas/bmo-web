@@ -492,6 +492,10 @@ console page. No answer says which framework drew it. Strict transport is the re
   person's BMO, a shared role agent, a repository's worker — answers them as if it did not stand, its supervisor's
   page, road, rooms, settings and draft among them. What runs for them on the shared engines is read there; what
   runs for another account is not.
+- **A supervisor is changed and removed by its owner and the administrator alone.** A member whose supervisors
+  section writes changes the fields, the settings and the draft of their own account's BMO, and removes it, by the
+  same judge of whose BMO a supervisor is (`docs/accounts.md`, 「Whose BMO a supervisor is」); every other supervisor
+  answers them as if it did not stand.
 - **A member adds their own BMO alone.** A supervisor added by anyone but the administrator stands under the
   adder's own name, `u<user>`, filed under their own account; a supervisor under any other name — another
   account's BMO, a retired one's, whose name is guessable — is the administrator's act, and the add carries the

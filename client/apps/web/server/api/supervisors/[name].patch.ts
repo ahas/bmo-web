@@ -1,5 +1,7 @@
 import { wording } from "#shared/wording";
 
+import { requireOwnSupervisor } from "../../utils/agent-reach";
+
 import type { SupervisorView } from "#shared/axes";
 
 // One supervisor's fields changed — its label, its road sent whole, its warming, compaction threshold or repository —
@@ -9,6 +11,9 @@ export default defineEventHandler(async (event): Promise<SupervisorView> => {
   await signedInUser(event);
 
   const name = axisName(getRouterParam(event, "name"));
+
+  await requireOwnSupervisor(event, name);
+
   const change = supervisorChangeOf(await readBody<unknown>(event));
 
   if (change === null) throw fail(400, wording("common.error.bad_action"));

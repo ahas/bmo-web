@@ -1,5 +1,7 @@
 import { wording } from "#shared/wording";
 
+import { requireOwnSupervisor } from "../../../utils/agent-reach";
+
 import type { SupervisorDraftView } from "#shared/drafting";
 
 // One save of a supervisor's draft settings: the texts set, its process set or taken away, and the texts taken away
@@ -9,6 +11,9 @@ export default defineEventHandler(async (event): Promise<SupervisorDraftView> =>
   await requireUserSession(event);
 
   const name = axisName(getRouterParam(event, "name"));
+
+  await requireOwnSupervisor(event, name);
+
   const save = draftSaveOf(await readBody<Record<string, unknown>>(event));
 
   if (save === null) throw fail(400, wording("common.error.bad_action"));

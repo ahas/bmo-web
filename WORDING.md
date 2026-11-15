@@ -120,6 +120,10 @@
 - the shape a secret is asked in → 비밀 종류; one of its fields → 항목, its key 키 and its label 이름; fields put
   together by hand → 직접 구성; a field whose value is drawn as dots → 값 숨김; how a field is typed → 입력 (한 줄,
   여러 줄, 파일); an agent asking for a secret → 비밀 요청, and one answered → 저장됨. Never 필드, 마스킹, 템플릿.
+- a payment card kept as a secret → 카드: 카드 번호, 유효기간, CVC, 소유자 이름. Never 신용카드 for the kind, 만료일,
+  보안 코드, 명의자.
+- where a parcel is sent → 배송지: 받는 사람, 전화번호, 우편번호, 주소, 상세 주소. Never 수령인, 수취인, 연락처 for the
+  number, 상세주소.
 - retire, take down → 보관; bringing one back → 복원. Switching a piece in or out of use → 켜기, 끄기.
   Never 내리기, 올리기.
 - fold (a work order) → 종료. 접기 is only ever a panel folding away, and is written as below.

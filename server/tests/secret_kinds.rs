@@ -1,5 +1,6 @@
 //! The secret kinds (docs/accounts.md, 「Secret kinds」; docs/boundary.md, 「Secret kinds」): the defaults the
-//! migration seeds, read with their words from the pack; a kind added, changed in its place and removed by the
+//! migrations seed, read with their words from the pack, and a store made before the card and delivery-address
+//! kinds gaining them once, leaving every kind it keeps as it stands; a kind added, changed in its place and removed by the
 //! administrator; each rule a kind can break refused, and a key that is not its path's; and every route refused to
 //! any other role. The token and the model's gate in front of the routes are the server's own, held by the
 //! routes' tests.
@@ -10,8 +11,10 @@ use axum::Router;
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode, header};
 use bmo_web_server::lang::secret_kinds::SECRET_KINDS;
+use bmo_web_server::migration::Migrator;
 use bmo_web_server::secret_kinds;
 use http_body_util::BodyExt;
+use sea_orm_migration::MigratorTrait;
 use serde_json::{Value, json};
 use support::Scratch;
 use tower::ServiceExt;
@@ -94,7 +97,9 @@ async fn the_defaults_are_seeded_in_their_order_with_their_words_from_the_pack()
       "oauth-client",
       "database",
       "ssh-private-key",
-      "file"
+      "file",
+      "card",
+      "delivery-address"
     ]
   );
 
@@ -139,6 +144,103 @@ async fn the_defaults_are_seeded_in_their_order_with_their_words_from_the_pack()
   );
   assert_eq!(shape("ssh-private-key"), [field("SSH_PRIVATE_KEY", true, "lines", true)]);
   assert_eq!(shape("file"), [field("FILE", false, "file", true)]);
+  assert_eq!(
+    shape("card"),
+    [
+      field("CARD_NUMBER", true, "line", true),
+      field("CARD_EXPIRY", false, "line", true),
+      field("CARD_CVC", true, "line", true),
+      field("CARD_HOLDER_NAME", false, "line", true),
+    ]
+  );
+  assert_eq!(
+    shape("delivery-address"),
+    [
+      field("RECIPIENT", false, "line", true),
+      field("PHONE", false, "line", true),
+      field("POSTAL_CODE", false, "line", true),
+      field("ADDRESS", false, "line", true),
+      field("ADDRESS_DETAIL", false, "line", false),
+    ]
+  );
+}
+
+/// The store as a deployment made before the card and delivery-address kinds holds it: neither kind, and the
+/// migration that seeds them not yet run.
+async fn before_card_and_delivery(scratch: &Scratch) {
+  scratch
+    .run(r#"DELETE FROM "secret_kinds" WHERE "key" IN ('card', 'delivery-address')"#, vec![])
+    .await;
+  scratch
+    .run(
+      r#"DELETE FROM "seaql_migrations" WHERE "version" = 'm20261115_000001_card_and_delivery_kinds'"#,
+      vec![],
+    )
+    .await;
+}
+
+async fn migrated(scratch: &Scratch) {
+  Migrator::up(scratch.db(), None).await.expect("the store migrates");
+}
+
+#[tokio::test]
+async fn a_store_made_before_the_card_and_delivery_kinds_gains_them_once_after_every_kind_it_keeps() {
+  let (scratch, app) = app().await;
+
+  before_card_and_delivery(&scratch).await;
+
+  // The owner's own changes: a default renamed, one removed, and a kind of their own added.
+  let mut renamed = kinds(&app).await[0].clone();
+
+  renamed["name"] = json!("Token");
+
+  let changes = [
+    (Method::PUT, "/secret-kinds/api-key", Some(renamed.clone()), StatusCode::OK),
+    (Method::DELETE, "/secret-kinds/file", None, StatusCode::NO_CONTENT),
+    (Method::POST, "/secret-kinds", Some(a_kind()), StatusCode::CREATED),
+  ];
+
+  for (method, path, body, expected) in changes {
+    let (status, said) = asked(&app, method, path, body.as_ref(), ADMINISTRATOR).await;
+
+    assert_eq!(status, expected, "{path}: {said}");
+  }
+
+  let kept = kinds(&app).await;
+
+  migrated(&scratch).await;
+
+  let after = kinds(&app).await;
+
+  assert_eq!(after[..kept.len()], kept[..]);
+  assert_eq!(after[0], renamed);
+  assert_eq!(keys(&after[kept.len()..]), ["card", "delivery-address"]);
+
+  migrated(&scratch).await;
+
+  assert_eq!(kinds(&app).await, after);
+}
+
+#[tokio::test]
+async fn a_kind_standing_under_a_seeded_key_is_left_as_it_stands() {
+  let (scratch, app) = app().await;
+
+  before_card_and_delivery(&scratch).await;
+
+  let mut own = a_kind();
+
+  own["key"] = json!("card");
+
+  let (status, said) = asked(&app, Method::POST, "/secret-kinds", Some(&own), ADMINISTRATOR).await;
+
+  assert_eq!(status, StatusCode::CREATED, "{said}");
+
+  migrated(&scratch).await;
+
+  let after = kinds(&app).await;
+
+  assert_eq!(after.iter().filter(|kind| kind["key"] == "card").collect::<Vec<_>>(), [&own]);
+  assert_eq!(keys(&after).last(), Some(&"delivery-address"));
 }
 
 #[tokio::test]

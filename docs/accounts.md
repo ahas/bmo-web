@@ -421,12 +421,18 @@ section states what each does.
 - **The deployment's, kept by the administrator.** Every person's secret form asks in the same kinds, so any login
   reads them; the administrator alone adds, changes and removes one, and the routes refuse a kind that breaks the
   rules above (`docs/boundary.md`, 「Secret kinds」). A kind's key does not change once added.
-- **The defaults are seeded once,** by the migration that makes the table, with their names and labels from the
-  server's pack (`secret-kinds`): API key; account login, a user name and a password; AWS access key, the access key
-  id, the secret access key and the region; OAuth client, the client id and the client secret; database connection,
-  the host, the port, the user, the password and the database; SSH private key, one several-line field; and file, one
-  file field, for a certificate, a service account's JSON and the like. From then on they are the owner's to change
-  or remove like any other.
+- **The defaults are seeded once each,** with their names and labels from the server's pack (`secret-kinds`), in
+  this order: API key; account login, a user name and a password; AWS access key, the access key id, the secret
+  access key and the region; OAuth client, the client id and the client secret; database connection, the host, the
+  port, the user, the password and the database; SSH private key, one several-line field; file, one file field, for
+  a certificate, a service account's JSON and the like; card (`card`), the card number `CARD_NUMBER` masked, the
+  expiry `CARD_EXPIRY`, the security code `CARD_CVC` masked and the holder's name `CARD_HOLDER_NAME`; and delivery
+  address (`delivery-address`), the recipient `RECIPIENT`, the phone `PHONE`, the postal code `POSTAL_CODE`, the
+  address `ADDRESS` and the detail `ADDRESS_DETAIL`, the detail alone optional. Every field of the last two is one
+  line. The migration that makes the table seeds the first seven, and a later migration the card and the delivery
+  address; each puts its kinds after every kind standing and leaves a kind standing under one of its keys as it
+  stands, so a deployment made before gains the two once and keeps every kind it holds. From then on they are the
+  owner's to change or remove like any other.
 
 ## The account command
 
@@ -501,7 +507,9 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   refusal carries a value; the administrator's space at the folder and a member's under `users/<user>/`, neither
   listing the other's, and every route refused to a key that is not its space's user, the administrator's
   included.
-- **The secret kind tests** read the seeded defaults, add, change and remove a kind as the administrator, refuse each
+- **The secret kind tests** read the seeded defaults with their fields, migrate a store made before the card and
+  delivery-address kinds and see it gain both once after every kind it keeps, the owner's changes and a kind of its
+  own under a seeded key left as they stand, add, change and remove a kind as the administrator, refuse each
   rule a kind can break and a key that does not match its path, read the kinds as a member, and refuse a member
   every change.
 - **The console's side tests against a stand-in** answering these routes, so a console test needs neither the

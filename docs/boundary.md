@@ -278,6 +278,9 @@ falls away after two minutes without one.
 - **A kind is a shape the console's secret form asks a value in,** and never a value (`docs/accounts.md`,
   「Secret kinds」): `key`, `name`, `description` and `fields`, each field its `key`, `label`, `masked`, `input` and
   `required`.
+- **A deployment holds the default kinds until the administrator changes them,** in this order: `api-key`,
+  `account-login`, `aws-access-key`, `oauth-client`, `database`, `ssh-private-key`, `file`, `card` and
+  `delivery-address`, their fields as `docs/accounts.md`, 「Secret kinds」 states them.
 - **`GET /secret-kinds` answers any call,** since every person's secret form asks in the deployment's kinds; adding,
   changing and removing one takes `Owner-Role: administrator`, and any other role, or none, is refused 403
   `forbidden`. Every route answers 503 `not-in-force` while the account model is not in force.

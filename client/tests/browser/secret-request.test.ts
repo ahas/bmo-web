@@ -267,7 +267,7 @@ describe.skipIf(!origin || !touchReady())("a secret handed to an agent", () => {
     const room = new Room();
     const sent: Sent[] = [];
 
-    expect(kinds.map((kind) => kind.key)).toEqual(["api-key", "account-login", "aws-access-key", "oauth-client", "database", "ssh-private-key", "file"]);
+    expect(kinds.map((kind) => kind.key)).toEqual(["api-key", "account-login", "aws-access-key", "oauth-client", "database", "ssh-private-key", "file", "card", "delivery-address"]);
     room.say("hello", false);
 
     const context = await open(room, sent, { width: 1280, height: 900, phone: false });

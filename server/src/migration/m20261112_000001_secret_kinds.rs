@@ -1,12 +1,11 @@
 //! The secret kinds (docs/accounts.md, 「Secret kinds」, 「The tables」): the shapes the console's secret form asks
-//! a value in, never a value, each kept with the order kinds were added in. The defaults are seeded once, their
-//! keys and fields' shapes here and their words from the server's pack; a kind that stands under a default's key
-//! is left as it stands, so the owner's change or removal is never undone by a migration run again.
+//! a value in, never a value, each kept with the order kinds were added in. The table is made with the first
+//! defaults, seeded once as every default kind is (`secret_kind_seeds`).
 
-use bmo_web_client::{SecretField, SecretInput};
+use bmo_web_client::SecretInput;
 use sea_orm_migration::prelude::*;
 
-use crate::lang::secret_kinds::SECRET_KINDS;
+use super::secret_kind_seeds::{FieldSeed, KindSeed, MASKED, OPTIONAL, REQUIRED, SHOWN, seed};
 
 pub struct Migration;
 
@@ -27,18 +26,8 @@ CREATE TABLE IF NOT EXISTS "secret_kinds" (
 );
 "#;
 
-/// One field a default kind is seeded with: its key, whether it is masked, how it is typed and whether it is
-/// required. Its label is the pack's.
-struct FieldSeed(&'static str, bool, SecretInput, bool);
-
-const MASKED: bool = true;
-const SHOWN: bool = false;
-const REQUIRED: bool = true;
-const OPTIONAL: bool = false;
-
-/// The default kinds, in the order they are seeded, each with its fields. Their names, descriptions and labels
-/// are the pack's.
-const SEEDS: &[(&str, &[FieldSeed])] = &[
+/// The first default kinds, in the order they are seeded.
+const SEEDS: &[KindSeed] = &[
   ("api-key", &[FieldSeed("API_KEY", MASKED, SecretInput::Line, REQUIRED)]),
   (
     "account-login",
@@ -76,48 +65,12 @@ const SEEDS: &[(&str, &[FieldSeed])] = &[
   ("file", &[FieldSeed("FILE", SHOWN, SecretInput::File, REQUIRED)]),
 ];
 
-const SEED: &str = r#"INSERT INTO "secret_kinds" ("key", "name", "description", "fields", "position", "updated_at")
-  VALUES ($1, $2, $3, $4::jsonb, $5, $6)
-  ON CONFLICT ("key") DO NOTHING"#;
-
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
   async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-    let db = manager.get_connection();
+    manager.get_connection().execute_unprepared(SECRET_KINDS_TABLE).await?;
 
-    db.execute_unprepared(SECRET_KINDS_TABLE).await?;
-
-    let now = crate::now_ms();
-
-    for (position, (key, fields)) in (1_i64..).zip(SEEDS) {
-      let words = SECRET_KINDS.kind(key);
-      let fields: Vec<SecretField> = fields
-        .iter()
-        .map(|FieldSeed(field, masked, input, required)| SecretField {
-          key: (*field).to_owned(),
-          label: words.label(field).to_owned(),
-          masked: *masked,
-          input: *input,
-          required: *required,
-        })
-        .collect();
-      let fields = serde_json::to_string(&fields).map_err(|why| DbErr::Custom(why.to_string()))?;
-
-      db.execute(crate::store::statement(
-        SEED,
-        vec![
-          (*key).into(),
-          words.name.clone().into(),
-          words.description.clone().into(),
-          fields.into(),
-          position.into(),
-          now.into(),
-        ],
-      ))
-      .await?;
-    }
-
-    Ok(())
+    seed(manager, SEEDS).await
   }
 
   async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {

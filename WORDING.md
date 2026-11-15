@@ -196,6 +196,10 @@
   할 약속. Never 때가 된 기억, 만기된 기억, 예정된 메모리.
 - an item's request in its own words → 요청 원문; the talk with the chat agent about an item → 의논. Never 대화 for
   either, which is a room's conversation.
+- a part of a screen floating over it that the reader moves and sizes → 창: 창 이동, 창 크기 조절. Folding it to its pill is
+  닫기 and unfolding it 열기, as a panel's; a sheet's two heights are set by 확장 and 축소. Never 윈도우, 팝업.
+- a row of cards paged sideways → 이전, 다음, and the link that opens the row whole → 모두 보기. The next video offered
+  near a video's end → 지금 재생, and its count to playing on its own → {n}초 후 재생.
 - collapse, expand a panel → 닫기, 열기; collapse, expand in place → 축소, 확장. Never 접기, 펴기, 펼치기.
 - the way back to the screen the reader came from → 뒤로. Never 돌아가기, 이전 화면.
 - reach a limit → 도달; a match → 일치, 해당; tied to → 연결된. Never 걸리다, 걸린 곳.

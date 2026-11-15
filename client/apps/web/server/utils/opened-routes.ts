@@ -125,8 +125,10 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/events$/, scope: "room", sections: ["rooms", "live"], access: "read" },
 
   // What is running now, its queue, its deployment and the items it works on.
-  section(LIVE, "GET", /^\/api\/(status|control|usage|deploy|deploy\/log|questions|question-pause|queue-pause)$/),
-  section(LIVE, "POST", /^\/api\/(deploy-hold-release|question-pause|queue-pause)$/),
+  // A job's questions are put to the owner in his private chat, so they are the administrator's to read and the
+  // owner's to answer, never a member's whatever sections they hold.
+  section(LIVE, "GET", /^\/api\/(status|control|usage|deploy|deploy\/log|queue-pause)$/),
+  section(LIVE, "POST", /^\/api\/(deploy-hold-release|queue-pause)$/),
   section(LIVE, "GET", /^\/api\/todos(?:\/.*)?$/),
   section(LIVE, "POST", /^\/api\/todos(?:\/.*)?$/),
 

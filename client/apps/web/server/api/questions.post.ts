@@ -1,6 +1,9 @@
 import { ANSWER_LIMIT } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { signedInUser } from "../utils/accounts";
+import { isOwnerLogin } from "../utils/owner";
+
 import type { QuestionAnswerResult } from "#shared/types";
 
 interface AnswerBody {
@@ -9,11 +12,15 @@ interface AnswerBody {
   answer?: unknown;
 }
 
-// Answering a question a job put to the owner. The row is bmo-job's to write, and its own conditional write
+// Answering a question a job put to the owner, by the owner's login alone. The row is bmo-job's to write, and its own conditional write
 // decides it: an answer that arrives after the chat's or the deadline's changes nothing and is refused 409. The
 // fixed API takes a reply with the choice it names and the words beside it.
 export default defineEventHandler(async (event): Promise<QuestionAnswerResult> => {
   const signed = await signedInUser(event);
+
+  // A job's question is put to the owner, and the job takes every word on it as his (bmo-job's `docs/cli.md`,
+  // 「`bmo-job job ask`」), so only the owner's login answers it (docs/web.md, 「Access」).
+  if (!(await isOwnerLogin(signed))) throw fail(403, wording("question.error.owner_only"));
 
   const body = await readBody<AnswerBody>(event);
   const id = body?.id;

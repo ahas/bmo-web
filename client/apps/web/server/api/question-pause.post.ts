@@ -1,5 +1,8 @@
 import { wording } from "#shared/wording";
 
+import { signedInUser } from "../utils/accounts";
+import { isOwnerLogin } from "../utils/owner";
+
 import type { QuestionPauseResult } from "#shared/types";
 
 interface PauseBody {
@@ -11,6 +14,9 @@ interface PauseBody {
 // answer is: its fixed API moves a question between open and paused, and the time it settles by comes back with it.
 export default defineEventHandler(async (event): Promise<QuestionPauseResult> => {
   await requireUserSession(event);
+
+  // Stopping the clock of a question put to the owner is his to do alone.
+  if (!(await isOwnerLogin(await signedInUser(event)))) throw fail(403, wording("question.error.owner_only"));
 
   const body = await readBody<PauseBody>(event);
   const id = body?.id;

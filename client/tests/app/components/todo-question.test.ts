@@ -28,9 +28,9 @@ describe("a job standing on a question", () => {
   });
 
   // The questions stand in a window over the owner's room rather than in its foot (docs/web.md, 「The questions
-  // window」), the same cards in it as one list.
-  test("stand in the questions window over the owner's room, out of the room's foot", () => {
-    expect(room).toContain('<QuestionWindow v-if="ownsTodo"');
+  // window」), the same cards in it as one list, for the owner's login alone.
+  test("stand in the questions window over the owner's room, out of the room's foot, for the owner's login", () => {
+    expect(room).toContain('<QuestionWindow v-if="ownsTodo && owner.owner"');
     expect(room).not.toContain("<QuestionAsk");
     expect(window).toContain("<FloatingWindow");
     expect(window).toContain("<QuestionAsk listed");

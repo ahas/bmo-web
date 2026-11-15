@@ -14,13 +14,14 @@ import type { JobQuestion, QuestionTalk } from "../../apps/web/shared/types";
 // over」): the questions out of the room's foot and into one window the owner moves, sizes, folds to its pill and
 // talks a question over in, and on a phone a sheet of two heights that leaves the room behind it in use. The questions, their talk and the items they
 // belong to are fixtures served through the page's own routes; the console around them is the one given in
-// BMO_CONSOLE_TEST_URL, which tests/support/browser-console.ts stands up with this file's fixture account
-// (docs/checks.md, 「How the suite runs the tests」). The suite stands up no console, so there it skips. Every state
+// BMO_CONSOLE_TEST_URL, which tests/support/browser-console.ts stands up (docs/checks.md, 「How the suite runs the
+// tests」). The window stands for the owner's login alone, so the file signs in as the harness's first account, the one
+// the data move made the administrator's and linked to the owner's sender. The suite stands up no console, so there it skips. Every state
 // is also kept as a picture under BMO_SHOTS_DIR where that names a folder, for a person to look at.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const shots = process.env.BMO_SHOTS_DIR ?? null;
-const ACCOUNT = { name: "questions-window", password: "fixture-password-3110" };
+const ACCOUNT = { name: "agent-topbar", password: "fixture-password-1558" };
 const DESK = { width: 1280, height: 800 };
 const PHONE = { width: 360, height: 780 };
 // A phone's keyboard, played as the console's own viewport setting lets a phone play it: the page's layout made that

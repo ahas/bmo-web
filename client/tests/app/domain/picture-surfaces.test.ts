@@ -50,14 +50,14 @@ describe("a picture the receiver's road alone brings", () => {
   });
 
   test("stands as one's own picture in one's account, the owner's sender chosen for the administrator", () => {
-    const own = ownSenderOf({ chatId: OWNER_ID, senderId: OWNER_ID, senders: [SENDER, OWNER_ID], administrator: true });
+    const own = ownSenderOf({ chatId: OWNER_ID, senderId: OWNER_ID, senders: [SENDER, OWNER_ID], administrator: true, owner: true });
 
     expect(own).toBe(OWNER_ID);
     expect(avatarFor(index, "person", own, "owner")).toMatchObject({ src: `/console/api/avatars/person/${OWNER_ID}?v=5000` });
   });
 
   test("stands as one's own picture for a member by the first sender linked to the account", () => {
-    const own = ownSenderOf({ chatId: null, senderId: OWNER_ID, senders: [SENDER], administrator: false });
+    const own = ownSenderOf({ chatId: null, senderId: OWNER_ID, senders: [SENDER], administrator: false, owner: false });
 
     expect(avatarFor(index, "person", own, "member")).toMatchObject({ src: `/console/api/avatars/person/${SENDER}?v=3000` });
   });

@@ -93,7 +93,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 const { t } = useI18n();
 const { user, fetch: refreshSession } = useUserSession();
 
-const { data: owner } = useFetch<OwnerChat>("/api/owner", { key: "owner", default: () => ({ chatId: null, senderId: null, senders: [], administrator: false }) });
+const { data: owner } = useFetch<OwnerChat>("/api/owner", { key: "owner", default: () => ({ chatId: null, senderId: null, senders: [], administrator: false, owner: false }) });
 const ownSender = computed<number | null>(() => ownSenderOf(owner.value));
 const avatars = useAvatars();
 const ownPicture = computed(() => avatarFor(avatars.value, "person", ownSender.value, user.value?.name ?? ""));

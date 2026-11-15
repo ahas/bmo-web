@@ -1,6 +1,9 @@
 import { TALK_LIMIT } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import { signedInUser } from "../utils/accounts";
+import { isOwnerLogin } from "../utils/owner";
+
 import type { QuestionTalkResult } from "#shared/types";
 
 interface TalkBody {
@@ -14,6 +17,9 @@ interface TalkBody {
 // does, so the talk is not overtaken by its due time; the question stays open, and only a settling reply answers it.
 export default defineEventHandler(async (event): Promise<QuestionTalkResult> => {
   const signed = await signedInUser(event);
+
+  // The job that asked takes every word on its question as the owner's, so only the owner's login talks it over.
+  if (!(await isOwnerLogin(signed))) throw fail(403, wording("question.error.owner_only"));
 
   const body = await readBody<TalkBody>(event);
   const id = body?.id;

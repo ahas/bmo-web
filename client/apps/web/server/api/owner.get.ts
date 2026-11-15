@@ -15,5 +15,5 @@ export default defineEventHandler(async (event): Promise<OwnerChat> => {
   ]);
   const senders = [...new Set([...linked, ...(signed.administrator && senderId !== null ? [senderId] : [])])];
 
-  return { chatId, senderId, senders, administrator: signed.administrator };
+  return { chatId, senderId, senders, administrator: signed.administrator, owner: await isOwnerLogin(signed).catch(() => false) };
 });

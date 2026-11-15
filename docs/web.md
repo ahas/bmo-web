@@ -6357,6 +6357,11 @@ Four bounds keep it from growing forever.
   recommended, one line why it cannot decide itself, and how much is left and what number it goes to if left, stand together. There
   are two roads to answer — press a choice, or write into the box an answer the choices do not hold. What the job reads is one line
   either way — a chosen one is that choice's words, a written one those words as is.
+- **A job's question is the owner's.** It is put to him in his private chat, and the job that asked takes every word on it
+  as his (bmo-job's `docs/cli.md`, 「`bmo-job job ask`」), so the window stands for the owner's login alone (`docs/accounts.md`,
+  「The owner's account」): answering a question, talking it over and stopping its clock are refused 403 to anyone else, the
+  administrator reading the owner's chat among them, who sees no window there. The questions and their talk are read by the
+  administrator and never by a member, whatever sections they hold.
 - **The questions window.** The questions stand in one window floating over the owner's private chat rather than in its foot, so
   neither the conversation nor the box he writes in loses height to them however many wait, and nothing in the foot scrolls. It is
   the shared layer's window beside the page (bmo-ui's `docs/components.md`, 「A window beside the page」), and it is no dialog: the

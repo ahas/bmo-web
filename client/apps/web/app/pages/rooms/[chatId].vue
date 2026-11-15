@@ -412,8 +412,9 @@
   <!-- What a job stopped to ask the owner, in a window over his own chat rather than in the foot of it, so neither the
        conversation nor the box he writes in gives up height to it (docs/web.md, 「The questions window」). It is his own
        chat that a question is put to, so it stands here and only here: the queue beside this room is where the work is
-       read. It first stands within the conversation, under the top bar and over the input bar. -->
-  <QuestionWindow v-if="ownsTodo" :area="questionArea" :foot="footHeight" />
+       read. It first stands within the conversation, under the top bar and over the input bar, for the owner's login alone,
+       who alone answers it: another administrator reading his chat sees no window. -->
+  <QuestionWindow v-if="ownsTodo && owner.owner" :area="questionArea" :foot="footHeight" />
 
   <!-- A message the reader's own edited: its words in a box, saved to the record (docs/web.md, the room screen's
        message menu). -->
@@ -618,7 +619,7 @@ const { control, link: controlState, reachable, read: readControl } = useControl
 // message stands on hangs on it.
 const { data: owner } = useFetch<OwnerChat>("/api/owner", {
   key: "owner",
-  default: () => ({ chatId: null, senderId: null, senders: [], administrator: false })
+  default: () => ({ chatId: null, senderId: null, senders: [], administrator: false, owner: false })
 });
 // What has been handed to the bot and is not standing in the archive yet: it is in the feed
 // from the moment send is pressed, marked as on its way.

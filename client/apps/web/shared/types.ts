@@ -2054,6 +2054,9 @@ export interface OwnerChat {
   senders: number[];
   // Whether the one signed in is the platform administrator, who alone is offered what only the owner may do.
   administrator: boolean;
+  // Whether the one signed in is the owner's login: the owner's account, or a console login standing before the account
+  // model (docs/accounts.md, 「The owner's account」), who alone answers a job's question.
+  owner: boolean;
 }
 
 // One lot of words added to an item that already stands, as the archive's todo_notes holds it.

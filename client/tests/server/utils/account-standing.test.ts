@@ -121,6 +121,19 @@ describe("an account made ready", () => {
     }
   });
 
+  test("an account whose BMO `u<user>` stands under no owner, as one given before the receiver passed the account on, is given none again", async () => {
+    supervisors = [ANSWERER, { ...ANSWERER, name: "u9", ownerAccount: null }];
+    receiver.asked.length = 0;
+
+    try {
+      await standAccount(9);
+
+      expect(receiver.asked.filter((call) => call.method === "POST" && call.path === "/supervisors")).toHaveLength(0);
+    } finally {
+      supervisors = [ANSWERER];
+    }
+  });
+
   test("sets the machine the account is bound to as its node, and none while the hub does not hold it", async () => {
     agency.asked.length = 0;
 

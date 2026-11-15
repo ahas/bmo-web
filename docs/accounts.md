@@ -195,6 +195,17 @@ section states what each does.
 - **`GET /users/members`** — every person of the reader's own company who has not left, by user id and name
   alone, with no limit (「The people directory」).
 
+### Whose BMO a supervisor is
+
+- **A supervisor is the BMO of the account the agency files it under** (its `ownerAccount`). Where the agency names
+  none and the supervisor's name is exactly a person's BMO's, `u<user>` — the user's id as a decimal number with no
+  leading zero — it is that user's: the BMOs accounts were given before the receiver passed the account on to the
+  agency stand registered under no owner, and the agency takes no owner onto a standing registration. Any other
+  supervisor naming no owner is nobody's, the administrator's.
+- **Everything that asks whose BMO a supervisor is reads it so:** a person's own agents and the log and turns they
+  read, the BMO beside a group room, the supervisor a group room may name, and whether an account made ready already
+  has its BMO, so a `u<user>` standing under no owner is not added again.
+
 ### The owner's account
 
 - **The owner's account is the user the owner's sender is linked to:** the sender the receiver names as the owner's

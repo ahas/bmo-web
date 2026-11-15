@@ -100,6 +100,24 @@ export async function readProviderModels(name: string): Promise<ProviderModelsVi
   return { provider: answer.provider, models: answer.models.flatMap(providerModelOf), staleReadAt: number(answer.staleReadAt) };
 }
 
+// A person's own BMO's name: `u<user>`, the user's id written as a decimal number with no leading zero (docs/accounts.md,
+// 「Invitations and a person's machine」).
+const PERSONS_BMO = /^u([1-9][0-9]*)$/;
+
+/**
+ * The account a supervisor is the BMO of (docs/accounts.md, 「Whose BMO a supervisor is」): the account the agency
+ * files it under where it names one; else, where its name is exactly a person's BMO's, `u<user>`, that user, since the
+ * BMOs a person's account was given before the receiver passed the account on to the agency stand there under no
+ * owner; else nobody's, which is the administrator's.
+ */
+export function supervisorOwner(supervisor: { name: string; ownerAccount?: number | null }): number | null {
+  if (supervisor.ownerAccount !== undefined && supervisor.ownerAccount !== null) return supervisor.ownerAccount;
+
+  const user = PERSONS_BMO.exec(supervisor.name)?.[1];
+
+  return user === undefined ? null : Number(user);
+}
+
 /** One supervisor as the screen reads it, marked as the default answerer where the receiver's setting names it. */
 export function supervisorViewOf(supervisor: Supervisor, answerer: string | null): SupervisorView {
   const warming: Record<string, boolean> = {};
@@ -111,7 +129,7 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
   return {
     name: supervisor.name,
     label: supervisor.label ?? supervisor.name,
-    ownerAccount: supervisor.ownerAccount ?? null,
+    ownerAccount: supervisorOwner(supervisor),
     icon: supervisor.icon,
     aliases: supervisor.aliases,
     sessionScope: supervisor.sessionScope,
@@ -141,7 +159,7 @@ export async function readSupervisor(name: string): Promise<SupervisorView> {
 export async function supervisorsOwnedBy(account: number): Promise<{ name: string; label: string }[]> {
   const page = await agencyCall(agency().GET("/supervisors"));
 
-  return page.items.filter((supervisor) => supervisor.ownerAccount === account).map((supervisor) => ({ name: supervisor.name, label: supervisor.label ?? supervisor.name }));
+  return page.items.filter((supervisor) => supervisorOwner(supervisor) === account).map((supervisor) => ({ name: supervisor.name, label: supervisor.label ?? supervisor.name }));
 }
 
 /**
@@ -153,7 +171,7 @@ export async function supervisorOwnedBy(name: string, account: number | null): P
 
   const page = await agencyCall(agency().GET("/supervisors"));
 
-  return page.items.some((supervisor) => supervisor.name === name && supervisor.ownerAccount === account);
+  return page.items.some((supervisor) => supervisor.name === name && supervisorOwner(supervisor) === account);
 }
 
 /** A supervisor's change as a screen sent it, each field of its own shape; null where the body names none. */

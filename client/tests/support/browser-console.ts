@@ -21,7 +21,7 @@ import { rawNumber } from "./raw-number";
 import { roleLogAnswer } from "./role-log";
 import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
-import { addressOf } from "./web-database";
+import { addressOf, dropScratchDatabase } from "./web-database";
 
 const CLIENT = new URL("../..", import.meta.url).pathname;
 const CONSOLE_DIR = join(CLIENT, "apps/web");
@@ -1147,10 +1147,7 @@ async function stop(keepScratch = false): Promise<void> {
     }
   }
 
-  const admin = new SQL(connectionOf(addressOf("postgres")) as SQL.Options);
-
-  await admin.unsafe(`DROP DATABASE IF EXISTS "${database}" WITH (FORCE)`);
-  await admin.close();
+  await dropScratchDatabase(database);
   if (!keepScratch) rmSync(scratch, { recursive: true, force: true });
   process.exit(0);
 }

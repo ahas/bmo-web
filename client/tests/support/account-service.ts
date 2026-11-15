@@ -124,9 +124,21 @@ export interface StandInSecret {
   kind?: string;
 }
 
+/** A desktop pairing as the stand-in keeps it, by its id. */
+export interface StandInPairing {
+  code: string;
+  state: "waiting" | "approved" | "refused";
+  // The approver and the machine approved.
+  user?: number;
+  machine?: string;
+}
+
 export interface StandIn {
   address: string;
   token: string;
+  // The desktop pairings, by their id, and the address each ask named.
+  pairings: Map<string, StandInPairing>;
+  pairingAddresses: string[];
   users: StandInUser[];
   grants: StandInGrant[];
   // Each user's sections, by the user's id and the section's name.
@@ -199,6 +211,8 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const kinds = new Map<string, SecretKind>();
   const profiles = new Map<number, StandInProfile>();
   const hub = new Set(seed.hub ?? []);
+  const pairings = new Map<string, StandInPairing>();
+  const pairingAddresses: string[] = [];
   const userOfSender = (sender: number | null): StandInUser | undefined =>
     sender === null ? undefined : users.find((user) => (user.senders ?? []).includes(sender));
   const holds = (kind: string, object: string, relation: string, subjects: string[]): boolean =>
@@ -277,6 +291,62 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the users are the administrator's");
 
         return json(users.map((user) => ({ user: String(user.id), name: user.name, administrator: user.administrator === true })));
+      }
+
+      // The desktop pairings: asked by an address, past the tenth from one address refused; read once approved; read,
+      // approved and refused by their code for the person `Owner-Key` names.
+      if (path === "/desktop/pairings" && request.method === "POST") {
+        const address = request.headers.get("x-real-ip") ?? "";
+
+        if (pairingAddresses.filter((one) => one === address).length >= 10) return refused(429, "too-many-pairings", "too many pairings");
+        pairingAddresses.push(address);
+
+        const pairing = (pairings.size + 1).toString(16).padStart(64, "0");
+        const code = `ABCD-${String(pairings.size + 1).padStart(4, "0")}`;
+
+        pairings.set(pairing, { code, state: "waiting" });
+
+        return json({ pairing, code, expiresAt: 600_000, pollAfterSeconds: 3 }, 201);
+      }
+
+      const pairingRead = path.match(/^\/desktop\/pairings\/([0-9a-f]{64})$/);
+
+      if (pairingRead !== null && request.method === "GET") {
+        const pending = pairings.get(pairingRead[1]!);
+
+        if (pending === undefined) return refused(404, "not-found", "no pairing has this id");
+        if (pending.state === "refused") return refused(410, "pairing-closed", "the pairing is closed");
+        if (pending.state === "waiting") return new Response(null, { status: 202 });
+
+        pairings.delete(pairingRead[1]!);
+
+        return json({ node: pending.machine, credential: `${pending.machine}.credential`, hubUrl: "wss://hub.invalid" });
+      }
+
+      const byCode = path.match(/^\/desktop\/pairings\/code\/([^/]+?)(\/approve|\/refuse)?$/);
+
+      if (byCode !== null) {
+        const reader = userNamed(request.headers.get("owner-key") ?? "");
+        const pending = [...pairings.values()].find((one) => one.code === decodeURIComponent(byCode[1]!));
+
+        if (reader === undefined) return refused(403, "forbidden", "the call names no user");
+        if (pending === undefined) return refused(404, "not-found", "no pairing has this code");
+        if (byCode[2] === undefined) {
+          const machine = pending.state === "waiting" ? reader.node?.agent : pending.user === reader.id ? pending.machine : undefined;
+
+          return json({ code: pending.code, expiresAt: 600_000, state: pending.state, ...(machine === undefined ? {} : { machine }) });
+        }
+        if (pending.state !== "waiting") return refused(410, "pairing-closed", "the pairing is closed");
+        if (byCode[2] === "/refuse") {
+          pending.state = "refused";
+
+          return done();
+        }
+
+        reader.node ??= { agent: `u${reader.id}-fresh`, attached: false };
+        Object.assign(pending, { state: "approved", user: reader.id, machine: reader.node.agent });
+
+        return json({ machine: reader.node.agent });
       }
 
       // The machine a user is bound to; a user bound to none answers no agent.
@@ -635,6 +705,8 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
     kinds,
     profiles,
     hub,
+    pairings,
+    pairingAddresses,
     stop() {
       server.stop(true);
     }

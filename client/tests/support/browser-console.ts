@@ -122,6 +122,12 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   },
+  // The person who approves the desktop app's pairing on its page, which opens whatever sections they hold.
+  {
+    name: "pair-member",
+    password: "fixture-password-3080",
+    sections: [{ section: "account", read: true, write: true }]
+  },
   // The people the organisation chart moves into another unit together, who never sign in.
   ...["org-move-a", "org-move-b", "org-move-c"].map((name, at) => ({
     name,

@@ -304,6 +304,48 @@ section states what each does.
 - **The credential is made with the hub's agent key,** which the service's settings carry beside the hub's address,
   its control address and its control token; a service whose settings name no hub makes no invitation.
 
+### Desktop pairing
+
+- **The console's desktop app is given its person's machine credential by pairing,** never by asking for a secret:
+  the app asks for a pairing with no sign-in, the person approves it on the console's page while signed in
+  (`docs/web.md`, 「The desktop pairing page」), and the app then reads the machine and its credential once. It
+  stands beside the invitation and its one-line installs, which go on as they are.
+- **A pairing is asked with no sign-in** and answers an unguessable id, which the app alone keeps; a code of eight
+  letters and digits, leaving out 0, 1, I and O and written as two groups of four, which the app and the console's
+  page both show so the person can see they are one; when it closes; and how many seconds the app waits between
+  reads. A pairing stands ten minutes.
+- **Asking is limited by the asker's address.** The console hands on the address its proxy names, as it does for a
+  sign-in (「sumida's own routes」). An address that asked ten pairings in the last ten minutes is refused 429
+  `too-many-pairings` until the oldest of them is ten minutes old, and at most a thousand pairings wait at once, past
+  which every address is refused the same way.
+- **The code is read and answered by a signed-in person,** whom the console names in `Owner-Key`. Read, a pairing
+  answers its code, when it closes, its state (waiting, approved, refused or expired) and the machine it will be for:
+  while it waits, the machine the reader's account is bound to, none where it is bound to none; once approved by
+  the reader, the machine it was approved for.
+- **Approving binds the pairing to the approver's machine:** the machine their account is bound to (「Invitations and
+  a person's machine」), or, for an account bound to none, a fresh binding made as the administrator's rebind makes
+  one where no name is named, `u<user>` and a random tail. From then on the account is bound to that machine as any
+  bound account is, so an account other than the administrator's signs in only while the hub holds it. An account
+  that has left is refused 409 `left`.
+- **Refusing closes the pairing.** A pairing approved, refused or expired is approved or refused no more, 410
+  `pairing-closed`, and one being approved at that moment is refused to a second approver the same way.
+- **The app reads its pairing by the id:** 202 while it waits; once approved, 200 with the machine's name, its
+  credential and the hub's address, and only once, since the read takes the pairing away and a second read finds
+  nothing, 404. Refused or expired, it answers 410 `pairing-closed` for ten minutes past its close, and nothing after.
+  An approved pairing unread when its ten minutes end is expired like any other.
+- **The credential is made at that read and kept nowhere.** A pairing holds the approving user and their machine's
+  name, never a credential; the read makes it with the hub's agent key, as an invitation's credential is made, for
+  the machine the approver's account is still bound to at that moment. An account bound to another machine since, to
+  none, or marked left closes the pairing at the read instead, 410. So a pairing never answers a credential for any
+  machine but the approving person's, and never the hub's agent key or a control credential. No answer but that one
+  read's carries the credential, and the service logs no request, body or answer.
+- **Pairings are held in the service's memory, never in its database,** so a restart forgets every one and the app
+  asks again.
+- **The machine is proven as any binding is,** once the app's agent attaches: the console's page asks the approver's
+  machine's proof, `POST /users/{user}/node/proof`, and sets agency's record of the account's node, as the
+  organisation screen's check does (「Invitations and a person's machine」).
+- **A service whose settings name no hub makes no pairing,** 503 `no-hub`.
+
 ### A person who leaves
 
 - **A person who leaves is marked so, never removed:** the administrator, or a head of the unit the person stands
@@ -503,6 +545,11 @@ Beside sumida's own, which sumida's migrations make, the service's migrations ma
   table is listed, viewed and accepted into its unit and role as it was made, an expired or used invitation opens
   nothing, acceptance makes a disabled account bound to its machine with a credential the hub's key verifies,
   proof enables it once the hub holds the agent, and the machine check says gone where the hub holds none.
+- **The pairing tests** stand the same stand-in hub and a clock of their own: a pairing asked, read as waiting,
+  approved by a person bound to a machine and read once with a credential the hub's key verifies for that machine,
+  then gone; a person bound to none given a fresh binding; a refused pairing and an expired one answering 410 and
+  approved no more; a second approver refused; an approver bound elsewhere or marked left before the read answering
+  410 and no credential; and an address refused past its tenth pairing until its window passes.
 - **The organisation tests** make a company and units under it as the administrator, rename and move one, refuse
   a move into another company and under itself, grant and take away a head, place a user, and refuse every one
   of these to a member.

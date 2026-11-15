@@ -541,6 +541,45 @@ pub struct Rebound {
   pub attached: bool,
 }
 
+/// A desktop pairing asked: the id the app keeps, the code a person checks, when it closes, and how long the app
+/// waits between reads.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct PairingMade {
+  pub pairing: String,
+  pub code: String,
+  pub expires_at: i64,
+  pub poll_after_seconds: u32,
+}
+
+/// An approved desktop pairing as the app reads it, once: the machine, its credential and the hub it attaches to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct PairingCredential {
+  pub node: String,
+  pub credential: String,
+  pub hub_url: String,
+}
+
+/// A desktop pairing as a signed-in person reads it by its code.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct PairingView {
+  pub code: String,
+  pub expires_at: i64,
+  /// `waiting`, `approved`, `refused` or `expired`.
+  pub state: String,
+  /// While it waits, the machine the reader's account is bound to; approved by the reader, the machine approved.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub machine: Option<String>,
+}
+
+/// A desktop pairing approved: the machine it was bound to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PairingApproved {
+  pub machine: String,
+}
+
 /// What a check answered.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct CheckAnswer {

@@ -16,6 +16,7 @@ pub mod machines;
 pub mod marks;
 pub mod migration;
 pub mod nodes;
+pub mod pairings;
 pub mod people;
 pub mod phones;
 pub mod profiles;
@@ -64,6 +65,8 @@ pub struct Service {
   pub secrets: Option<Arc<secrets::Store>>,
   /// The jake hub invited machines attach to, none where the settings name none.
   pub nodes: Option<Arc<nodes::Nodes>>,
+  /// The desktop pairings standing now, held in memory alone.
+  pub pairings: Arc<pairings::Pairings>,
 }
 
 impl Service {
@@ -76,6 +79,12 @@ impl Service {
   /// The same service asking `nodes` which machines are attached.
   pub fn with_nodes(mut self, nodes: nodes::Nodes) -> Self {
     self.nodes = Some(Arc::new(nodes));
+    self
+  }
+
+  /// The same service reading its pairings' time from `clock`.
+  pub fn pairing_by(mut self, clock: pairings::Clock) -> Self {
+    self.pairings = Arc::new(pairings::Pairings::new(clock));
     self
   }
 }

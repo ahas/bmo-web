@@ -148,6 +148,19 @@ types; `server/client/` is the Rust crate the server answers with and that docum
   console calls them for a person who has no account yet, by the token in the link (`docs/accounts.md`,
   「Invitations and a person's machine」).
 
+### Desktop pairing
+
+| Route | Request | Answer |
+|---|---|---|
+| `POST /desktop/pairings` | the asker's address in `X-Real-IP` | 201, `pairing` (the id the app keeps), `code` (`XXXX-XXXX`), `expiresAt`, `pollAfterSeconds`; 429 `too-many-pairings` past the address's tenth pairing in ten minutes or a thousand waiting in all; 503 `no-hub` where the settings name no hub |
+| `GET /desktop/pairings/{pairing}` | | 202 with no body while it waits; 200 `node`, `credential`, `hubUrl` once approved, answered once and the pairing then gone, a second read 404; 410 `pairing-closed` where it is refused or expired, or the approver's account is no longer bound to the machine approved; 404 where no pairing has the id |
+| `GET /desktop/pairings/code/{code}` | `Owner-Key` | `code`, `expiresAt`, `state` (`waiting`, `approved`, `refused`, `expired`), `machine?` (while waiting, the machine the reader's account is bound to; approved by the reader, the machine approved); 404 where no pairing has the code |
+| `POST /desktop/pairings/code/{code}/approve` | `Owner-Key` | `machine`: the pairing bound to the reader's machine, or to a fresh binding where the account is bound to none; 410 `pairing-closed` where it no longer waits, 409 `left` for an account that has left, 404 where no pairing has the code, 503 `no-hub` |
+| `POST /desktop/pairings/code/{code}/refuse` | `Owner-Key` | 204; 410 `pairing-closed` where it no longer waits, 404 where no pairing has the code |
+
+- **A code is read with or without its dash and in either case.** `Owner-Key` naming no user is refused 403
+  (`docs/accounts.md`, 「Desktop pairing」).
+
 ### Checks
 ### Checks
 
@@ -667,6 +680,8 @@ not written into this repository.
 | `/api/console-bundles` | the console: the bundles the signed-in reader may open, with their words; with no session, the one bundle whose share page the `path` asked for stands under, the one with the longest screen path where one stands under another |
 | `/api/console-bundles/unread` | the console: the sidebar counts of the bundles the signed-in reader may open whose manifest names a `sidebarUnread`, each read by the console from the unit with its own credential and the reader's owner key and role, answered by screen path for each count that answered |
 | `/api/people/members` | the console: the members of the signed-in reader's company, each `user` and `name`, read from the server's `GET /users/members` with the reader's owner key and role and handed to a bundle's page only where its manifest names `people` under `calls` (`docs/web.md`, 「Screens a unit brings」) |
+| `/api/desktop/pairings` | the console, with no sign-in, for `POST` alone: a pairing asked of the server for the address the proxy names, answered as `pairing`, `code`, `approveUrl` (the console's `/desktop/pair?code=<code>` under its public address) and `pollAfterSeconds`; the server's 429 handed on (`docs/web.md`, 「Access」) |
+| `/api/desktop/pairings/<pairing>` | the console, with no sign-in, for `GET` alone: the server's read of the pairing handed on, its status as it stands, the 200 answering `node`, `credential` and `hubUrl` under `Cache-Control: no-store` |
 | `/api/github/deliveries` | the console, with no sign-in, for `POST` alone and a body of at most 1 MB: handed on unchanged to the agency's `POST /github/deliveries` with GitHub's headers and the agency's token (`docs/web.md`, 「Access」) |
 
 The server answers on its own listen address to the console and the other units on the machine, and no road of

@@ -1971,6 +1971,37 @@ join:
     install: 계정을 만들었습니다. 이 계정을 쓸 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요. 설치되어 연결되면 계정이 활성화됩니다.
     waiting: 기기 연결을 기다리는 중입니다…
     active: 기기가 연결되어 계정이 활성화되었습니다. 이제 로그인할 수 있습니다.
+pairing:
+  title:
+    page: 데스크톱 앱 연결
+    confirm: 이 앱을 내 계정에 연결할까요?
+  label:
+    code: 연결 코드
+    machine: 기기
+    machine_new: 새로 만들어 연결
+  action:
+    approve: 승인
+    refuse: 거부
+  message:
+    check: 앱에 보이는 연결 코드와 같은지 확인하세요.
+    effect: "이 코드를 보여 주는 앱이 {machine} 기기로 동작하니, 내 앱에 보이는 코드일 때만 승인하세요."
+    effect_new: 이 코드를 보여 주는 앱이 새로 만든 내 기기로 동작하니, 내 앱에 보이는 코드일 때만 승인하세요.
+    connecting: 앱이 연결하는 중입니다…
+    connected: 앱이 연결되었습니다.
+    refused: 거부했습니다.
+    expired: 연결 코드가 만료되어 앱에서 다시 시도해야 합니다.
+    closed: 이미 승인했거나 거부한 연결 코드입니다.
+    no_code: 연결 코드가 없어 앱에서 다시 시도해야 합니다.
+  status:
+    loading: 연결 코드 불러오는 중…
+  error:
+    closed: 이미 승인했거나 거부했거나 만료된 연결 코드입니다.
+    failed: 앱 연결을 처리하지 못했습니다.
+    left: 떠난 계정은 기기에 연결할 수 없습니다.
+    no_hub: 기기 연결 허브가 설정되어 있지 않아 앱을 연결할 수 없습니다.
+    not_found: 연결 코드를 찾을 수 없습니다.
+    too_many: 연결 요청이 너무 많아 잠시 후 다시 시도해야 합니다.
+    unreachable: 계정 서비스에 연결되지 않았습니다.
 secrets:
   title:
     add: 비밀 추가

@@ -85,6 +85,17 @@ fn owner_key() -> Value {
   })
 }
 
+/// The address of the browser a call is made for, as the console's proxy names it.
+fn real_ip() -> Value {
+  json!({
+    "name": "X-Real-IP",
+    "in": "header",
+    "required": true,
+    "description": "The address the console's proxy took the connection from, which a pairing's limit is kept by.",
+    "schema": { "type": "string" },
+  })
+}
+
 /// The role of the login a call is made for, which the console hands on.
 fn owner_role() -> Value {
   json!({
@@ -133,6 +144,7 @@ impl Route {
       let description = match status {
         200 => "Answered.",
         201 => "Made.",
+        202 => "Waiting; no content yet.",
         204 => "Done; no content.",
         _ => "Answered.",
       };
@@ -623,6 +635,71 @@ pub fn openapi() -> Value {
     body: None,
     answers: vec![(200, json_answer::<UserNode>(&mut generator))],
     codes: vec!["bad-request", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/desktop/pairings",
+    "askPairing",
+    "Desktop pairing",
+    "A desktop pairing asked with no sign-in: the id the app keeps, the code a person checks, when it closes.",
+    params: vec![real_ip()],
+    body: None,
+    answers: vec![(201, json_answer::<PairingMade>(&mut generator))],
+    codes: vec!["too-many-pairings", "no-hub", "unauthorized", "not-in-force", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/desktop/pairings/{pairing}",
+    "readPairing",
+    "Desktop pairing",
+    "A desktop pairing read by the app: waiting, or once approved its machine and credential, answered once.",
+    params: vec![string_path("pairing")],
+    body: None,
+    answers: vec![(200, json_answer::<PairingCredential>(&mut generator)), (202, no_answer())],
+    codes: vec!["not-found", "pairing-closed", "no-hub", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/desktop/pairings/code/{code}",
+    "pairingByCode",
+    "Desktop pairing",
+    "A desktop pairing as a signed-in person reads it by its code, with the machine it is for.",
+    params: vec![string_path("code"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<PairingView>(&mut generator))],
+    codes: vec!["forbidden", "not-found", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/desktop/pairings/code/{code}/approve",
+    "approvePairing",
+    "Desktop pairing",
+    "A desktop pairing approved by a signed-in person for their own machine, a fresh binding where they have none.",
+    params: vec![string_path("code"), owner_key()],
+    body: None,
+    answers: vec![(200, json_answer::<PairingApproved>(&mut generator))],
+    codes: vec!["forbidden", "not-found", "pairing-closed", "left", "no-hub", "upstream-failed", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/desktop/pairings/code/{code}/refuse",
+    "refusePairing",
+    "Desktop pairing",
+    "A desktop pairing refused by a signed-in person.",
+    params: vec![string_path("code"), owner_key()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["forbidden", "not-found", "pairing-closed", "unauthorized", "not-in-force", "failed"],
     refusal: Refusal::Wire,
     security: bearer()
   );

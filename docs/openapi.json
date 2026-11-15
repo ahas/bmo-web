@@ -1108,6 +1108,94 @@
         ],
         "type": "object"
       },
+      "PairingApproved": {
+        "description": "A desktop pairing approved: the machine it was bound to.",
+        "properties": {
+          "machine": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "machine"
+        ],
+        "type": "object"
+      },
+      "PairingCredential": {
+        "description": "An approved desktop pairing as the app reads it, once: the machine, its credential and the hub it attaches to.",
+        "properties": {
+          "credential": {
+            "type": "string"
+          },
+          "hubUrl": {
+            "type": "string"
+          },
+          "node": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "node",
+          "credential",
+          "hubUrl"
+        ],
+        "type": "object"
+      },
+      "PairingMade": {
+        "description": "A desktop pairing asked: the id the app keeps, the code a person checks, when it closes, and how long the app\nwaits between reads.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "pairing": {
+            "type": "string"
+          },
+          "pollAfterSeconds": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pairing",
+          "code",
+          "expiresAt",
+          "pollAfterSeconds"
+        ],
+        "type": "object"
+      },
+      "PairingView": {
+        "description": "A desktop pairing as a signed-in person reads it by its code.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "machine": {
+            "description": "While it waits, the machine the reader's account is bound to; approved by the reader, the machine approved.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "description": "`waiting`, `approved`, `refused` or `expired`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "expiresAt",
+          "state"
+        ],
+        "type": "object"
+      },
       "PasswordAsk": {
         "description": "A password change.",
         "properties": {
@@ -2581,6 +2669,304 @@
           "bad-request",
           "unauthorized",
           "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/desktop/pairings": {
+      "post": {
+        "operationId": "askPairing",
+        "parameters": [
+          {
+            "description": "The address the console's proxy took the connection from, which a pairing's limit is kept by.",
+            "in": "header",
+            "name": "X-Real-IP",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingMade"
+                }
+              }
+            },
+            "description": "Made."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: too-many-pairings, no-hub, unauthorized, not-in-force, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A desktop pairing asked with no sign-in: the id the app keeps, the code a person checks, when it closes.",
+        "tags": [
+          "Desktop pairing"
+        ],
+        "x-codes": [
+          "too-many-pairings",
+          "no-hub",
+          "unauthorized",
+          "not-in-force",
+          "failed"
+        ]
+      }
+    },
+    "/desktop/pairings/code/{code}": {
+      "get": {
+        "operationId": "pairingByCode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-found, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A desktop pairing as a signed-in person reads it by its code, with the machine it is for.",
+        "tags": [
+          "Desktop pairing"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-found",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/desktop/pairings/code/{code}/approve": {
+      "post": {
+        "operationId": "approvePairing",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingApproved"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-found, pairing-closed, left, no-hub, upstream-failed, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A desktop pairing approved by a signed-in person for their own machine, a fresh binding where they have none.",
+        "tags": [
+          "Desktop pairing"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-found",
+          "pairing-closed",
+          "left",
+          "no-hub",
+          "upstream-failed",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/desktop/pairings/code/{code}/refuse": {
+      "post": {
+        "operationId": "refusePairing",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: forbidden, not-found, pairing-closed, unauthorized, not-in-force, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A desktop pairing refused by a signed-in person.",
+        "tags": [
+          "Desktop pairing"
+        ],
+        "x-codes": [
+          "forbidden",
+          "not-found",
+          "pairing-closed",
+          "unauthorized",
+          "not-in-force",
+          "failed"
+        ]
+      }
+    },
+    "/desktop/pairings/{pairing}": {
+      "get": {
+        "operationId": "readPairing",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pairing",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingCredential"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "202": {
+            "description": "Waiting; no content yet."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: not-found, pairing-closed, no-hub, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "A desktop pairing read by the app: waiting, or once approved its machine and credential, answered once.",
+        "tags": [
+          "Desktop pairing"
+        ],
+        "x-codes": [
+          "not-found",
+          "pairing-closed",
+          "no-hub",
+          "unauthorized",
           "not-in-force",
           "database",
           "failed"

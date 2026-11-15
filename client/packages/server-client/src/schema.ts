@@ -106,6 +106,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/desktop/pairings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A desktop pairing asked with no sign-in: the id the app keeps, the code a person checks, when it closes. */
+        post: operations["askPairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/desktop/pairings/code/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A desktop pairing as a signed-in person reads it by its code, with the machine it is for. */
+        get: operations["pairingByCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/desktop/pairings/code/{code}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A desktop pairing approved by a signed-in person for their own machine, a fresh binding where they have none. */
+        post: operations["approvePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/desktop/pairings/code/{code}/refuse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A desktop pairing refused by a signed-in person. */
+        post: operations["refusePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/desktop/pairings/{pairing}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A desktop pairing read by the app: waiting, or once approved its machine and credential, answered once. */
+        get: operations["readPairing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/grants": {
         parameters: {
             query?: never;
@@ -1167,6 +1252,38 @@ export interface components {
             /** Format: int64 */
             room: number;
         };
+        /** @description A desktop pairing approved: the machine it was bound to. */
+        PairingApproved: {
+            machine: string;
+        };
+        /** @description An approved desktop pairing as the app reads it, once: the machine, its credential and the hub it attaches to. */
+        PairingCredential: {
+            credential: string;
+            hubUrl: string;
+            node: string;
+        };
+        /**
+         * @description A desktop pairing asked: the id the app keeps, the code a person checks, when it closes, and how long the app
+         *     waits between reads.
+         */
+        PairingMade: {
+            code: string;
+            /** Format: int64 */
+            expiresAt: number;
+            pairing: string;
+            /** Format: uint32 */
+            pollAfterSeconds: number;
+        };
+        /** @description A desktop pairing as a signed-in person reads it by its code. */
+        PairingView: {
+            code: string;
+            /** Format: int64 */
+            expiresAt: number;
+            /** @description While it waits, the machine the reader's account is bound to; approved by the reader, the machine approved. */
+            machine?: string | null;
+            /** @description `waiting`, `approved`, `refused` or `expired`. */
+            state: string;
+        };
         /** @description A password change. */
         PasswordAsk: {
             current: string;
@@ -1731,6 +1848,176 @@ export interface operations {
                 };
             };
             /** @description A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    askPairing: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The address the console's proxy took the connection from, which a pairing's limit is kept by. */
+                "X-Real-IP": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Made. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairingMade"];
+                };
+            };
+            /** @description A refusal or failure: too-many-pairings, no-hub, unauthorized, not-in-force, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    pairingByCode: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairingView"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, not-found, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    approvePairing: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairingApproved"];
+                };
+            };
+            /** @description A refusal or failure: forbidden, not-found, pairing-closed, left, no-hub, upstream-failed, unauthorized, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    refusePairing: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+            };
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: forbidden, not-found, pairing-closed, unauthorized, not-in-force, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    readPairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pairing: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairingCredential"];
+                };
+            };
+            /** @description Waiting; no content yet. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: not-found, pairing-closed, no-hub, unauthorized, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

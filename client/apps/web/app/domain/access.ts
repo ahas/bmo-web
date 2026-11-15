@@ -11,6 +11,8 @@ declare module "#app" {
   interface PageMeta {
     // Whether a member may open the screen. A screen that does not say so is the administrator's.
     member?: boolean;
+    // Whether every signed-in login opens the page as it stands, on no shell and whatever sections they hold.
+    everyLogin?: boolean;
   }
 }
 

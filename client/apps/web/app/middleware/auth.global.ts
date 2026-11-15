@@ -46,6 +46,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   if (!loggedIn.value) return navigateTo(loginRoute(to.fullPath, import.meta.server && useRequestEvent()?.context.sessionEnded === true));
 
+  // A page every signed-in login opens as it stands, the desktop pairing page among them (docs/web.md, 「The desktop
+  // pairing page」): no section is asked and no shell is put around it.
+  if (to.meta.everyLogin === true) return;
+
   if (isAdministrator(session.value)) return;
 
   // A member opens only the sections their permission opens, each in the member's own shell; any other

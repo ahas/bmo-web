@@ -24,6 +24,10 @@ import {
   type SenderLink,
   type Unit,
   type Rebound,
+  type PairingApproved,
+  type PairingCredential,
+  type PairingMade,
+  type PairingView,
   type UserNode,
   type UnitRow,
   type UserUnit,
@@ -867,4 +871,46 @@ export async function proveNode(id: UserId | number, options: ServiceOptions = {
   const reply = await sent(options, client.POST("/users/{user}/node/proof", { params: { path: { user: userPath(id) } } }));
 
   return answered(reply);
+}
+
+/** A desktop pairing asked for the browser at `address`, with no sign-in (docs/accounts.md, 「Desktop pairing」). */
+export async function askPairing(address: string, options: ServiceOptions = {}): Promise<PairingMade> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/desktop/pairings", { params: { header: { "X-Real-IP": address } } }));
+
+  return answered(reply);
+}
+
+/** The app's read of its pairing: null while it waits, the machine and its credential once approved, answered once. */
+export async function readPairing(pairing: string, options: ServiceOptions = {}): Promise<PairingCredential | null> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/desktop/pairings/{pairing}", { params: { path: { pairing } } }));
+
+  if (reply.response.status === 202) return null;
+
+  return answered(reply);
+}
+
+/** A desktop pairing as the signed-in person `key` reads it by its code. */
+export async function pairingByCode(code: string, key: string, options: ServiceOptions = {}): Promise<PairingView> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/desktop/pairings/code/{code}", { params: { path: { code }, header: { "Owner-Key": key } } }));
+
+  return answered(reply);
+}
+
+/** A desktop pairing approved by the signed-in person `key` for their own machine. */
+export async function approvePairing(code: string, key: string, options: ServiceOptions = {}): Promise<PairingApproved> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/desktop/pairings/code/{code}/approve", { params: { path: { code }, header: { "Owner-Key": key } } }));
+
+  return answered(reply);
+}
+
+/** A desktop pairing refused by the signed-in person `key`. */
+export async function refusePairing(code: string, key: string, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/desktop/pairings/code/{code}/refuse", { params: { path: { code }, header: { "Owner-Key": key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
 }

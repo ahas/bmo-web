@@ -362,6 +362,14 @@ this rule alone and goes nowhere else.
   GitHub's own wait being GitHub's; an agency that refuses the connection or breaks it is 502. Each delivery leaves one
   line in the console's log: its event, its delivery id and the status it was answered with.
 
+- **The desktop app's two pairing calls are taken with no sign-in too** (`docs/accounts.md`, 「Desktop pairing」).
+  `POST api/desktop/pairings` asks the account service for a pairing for the address the proxy names, as a sign-in
+  hands it on, and answers it with `approveUrl`, the pairing page's address under the console's public address,
+  `NUXT_PUBLIC_CONSOLE_ADDRESS`, or the address the request reached where none is set. `GET
+  api/desktop/pairings/<pairing>` hands the service's read on as it answers it, the one answer carrying the
+  credential marked `Cache-Control: no-store`. The console's server logs neither call's body or answer, and the
+  credential reaches the app alone, never a page.
+
 **Every answer carries the browser's guards.** `X-Content-Type-Options: nosniff`, so a file is read as the
 type it is answered as and never sniffed into a script; `Referrer-Policy: same-origin`, so an address of the
 console reaches no other site; and `Content-Security-Policy: frame-ancestors 'none'`, so no page frames a
@@ -6883,6 +6891,27 @@ research screen (「Research screen」).
   cannot be made is written to the console's log and the account stands ready all the same.
 - **An account bound to a machine signs in only while its machine is attached;** the login refuses it, saying the
   machine is not connected, until it attaches again.
+
+#### The desktop pairing page
+
+- **`/desktop/pair?code=<code>` is where a signed-in person approves the desktop app's pairing**
+  (`docs/accounts.md`, 「Desktop pairing」). The app opens it in its own window. It stands on no shell, as the join
+  page does, and opens to every signed-in person whatever sections they hold; a person not signed in is sent to the
+  login and brought back to it.
+- **It shows the code,** large, in the monospace face, so it is read against the code the app shows, **and the
+  machine the app will run as:** the name of the machine the reader's account is bound to, or, where it is bound to
+  none, that a new machine is made for them.
+- **승인 asks first,** in the console's question dialog (「Messages」): whether to connect the app to their account,
+  the code under it, and what going through does, that the app showing this code runs as their machine, so it must
+  be the code their own app shows. 승인 in the dialog approves. **거부** refuses at once with no question, since it
+  gives nothing.
+- **Approved, the page says the app is connecting,** and asks every few seconds whether the reader's machine has
+  attached, as the organisation screen's check does (`POST /api/me/machine/proof`, the reader's own machine alone),
+  which records it as proven and sets it as their node in agency. Attached, it says the app is connected and stops
+  asking.
+- **A code expired, refused, approved before or unknown says so** and offers nothing to press. A refusal of the
+  approval is said in the card.
+- **The credential is never on the page:** the app's own side reads it from the console's server.
 
 #### 권한
 

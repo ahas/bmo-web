@@ -1,6 +1,6 @@
 <template>
-  <!-- The organisation settings screen (docs/web.md, 「Organisation settings」): what is set for the whole deployment
-       or for other people, a tab to a section. The tab row stands under the title bar with the open tab's own add
+  <!-- The organisation screen (docs/web.md, 「Organisation」): the organisation and the people in it, a tab to a
+       section. The tab row stands under the title bar with the open tab's own add
        at its right end where it has one, the row's grey icon at every width, and the open tab scrolled into the row's
        view. A tab's content stands in a reading column centred in the body, the body's padding outside it, and the
        body scrolls; a tab laid across the whole body takes it unpadded and scrolls its own regions. -->
@@ -59,8 +59,7 @@ import type { TabCreate } from "~/domain/tab-create";
 import type { Component } from "vue";
 
 // A member opens it for invitations where they head a unit; the tab says so where they head none (docs/web.md,
-// 「Organisation
-// settings」).
+// 「Organisation」).
 definePageMeta({ member: true });
 
 const route = useRoute();

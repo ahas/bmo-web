@@ -157,8 +157,8 @@ async function answerAddress(): Promise<void> {
   }
 
   // A key the dialog holds no section for was made before its section moved away: one a tab of the organisation
-  // settings screen holds leads to that tab, and one that moved on from there to where it stands now, the dialog
-  // staying shut (docs/web.md, 「Settings」).
+  // screen holds leads to that tab, and one that moved on from there to where it stands now — the administrator's
+  // screen among them — the dialog staying shut (docs/web.md, 「Settings」).
   const own = SETTINGS_SECTIONS.some((one) => one.key === asked.key);
   const tab = own ? null : organizationTabNamed(asked.key);
   const moved = own ? null : tab !== null ? organizationAddress(tab.value) : organizationMovedAway(asked.key);

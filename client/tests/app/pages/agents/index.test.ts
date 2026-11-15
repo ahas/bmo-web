@@ -27,7 +27,7 @@ const supervisorFields = await read("../../components/SupervisorFields.vue");
 const providersSection = await read("../../components/OrganizationProviders.vue");
 const accounts = await read("../../components/AgentsAccounts.vue");
 const axes = await Bun.file(new URL("../../../../apps/web/app/domain/axes.ts", import.meta.url)).text();
-const organization = await Bun.file(new URL("../../../../apps/web/app/domain/organization.ts", import.meta.url)).text();
+const organization = await Bun.file(new URL("../../../../apps/web/app/domain/administration.ts", import.meta.url)).text();
 const css = await Bun.file(new URL("../../../../apps/web/app/assets/css/main.css", import.meta.url)).text();
 const dialog = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/SettingsDialog.vue"))).text();
 const table = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/DataTable.vue"))).text();
@@ -323,7 +323,7 @@ describe("the model screens", () => {
 });
 
 describe("the providers and the Claude accounts", () => {
-  test("stand on the organisation settings screen's providers tab, each switch taking effect as it is thrown", () => {
+  test("stand on the administrator's screen's providers tab, each switch taking effect as it is thrown", () => {
     expect(organization).toContain('{ value: "providers", label: "settings.label.providers"');
     expect(templateOf(providersSection)).toContain("<AgentsAccounts");
     expect(scriptOf(providersSection)).toContain("`/api/providers/${encodeURIComponent(provider.name)}`, { method: \"PATCH\", body: { enabled: on } }");

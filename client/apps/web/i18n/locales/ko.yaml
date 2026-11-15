@@ -1134,7 +1134,8 @@ screens:
     live: 실시간 상태
     mail: 메일
     monitor: 모니터
-    organization: 조직 설정
+    admin: 관리자
+    organization: 조직
     remote: 원격
     research: 리서치
     search: 검색
@@ -1775,7 +1776,7 @@ permissions:
     write_of: "{name} 쓰기"
 organization:
   aria:
-    tabs: 조직 설정 탭
+    tabs: 조직 탭
   placeholder:
     find_person: 이름으로 찾기
   label:
@@ -3372,3 +3373,6 @@ picture:
   message:
     cleared: 제공자 사진으로 되돌렸습니다.
     saved: 사진을 바꿨습니다.
+admin:
+  aria:
+    tabs: 관리자 탭

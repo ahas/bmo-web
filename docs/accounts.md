@@ -202,7 +202,7 @@ section states what each does.
 - **Agent management's screen opens on any one of its parts the reader may read,** and each tab on its own
   part alone. Its shared reads — the agent list, a provider's models, the provider switches and the fallback,
   an agent's face and tool marks — open on any part read; the provider switches and the fallback are changed on
-  조직 설정's 공급자 tab, which only the administrator opens. An agent's own page stands under the three parts
+  관리자's 공급자 tab, which only the administrator opens. An agent's own page stands under the three parts
   whose rows open it: the supervisors, the roles and the repositories.
 
 - **A section's permission is two relations of the deployment's rules,** `read` and `write`, on a
@@ -255,7 +255,7 @@ section states what each does.
   leave, since heading a unit one has left would keep its permissions; a grant on a unit above it is the higher
   unit's and stays. A person already standing in the unit keeps standing there and takes the place named, so one
   act also changes a role without a move.
-- **The console's organisation screen,** 조직 설정's 조직도 tab, draws the units as a tree and does each of these for
+- **The console's organisation screen,** 조직's 조직도 tab, draws the units as a tree and does each of these for
   the administrator (`docs/web.md`, 「조직도」).
 
 ### Invitations and a person's machine

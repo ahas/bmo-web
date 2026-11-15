@@ -113,11 +113,12 @@ const accessReady = useSectionAccessReady();
 const home = computed(() => (accessReady.value ? homeFor(access.value, screensWithBundles(bundles.value).map((one) => one.to)) : MEMBER_HOME));
 // The rooms list is the section's own; a reader whose rooms section is closed sees none of it.
 const roomsRead = computed(() => !accessReady.value || accessOf(access.value, "rooms").read);
-// The organisation settings screen stands for a member who heads a unit, whose screen holds its invitations tab alone
-// (docs/web.md, 「Organisation settings」).
+// The organisation screen stands for a member who heads a unit, whose screen holds its invitations tab alone
+// (docs/web.md, 「Organisation」).
 const mayInvite = useMayInvite();
 const screens = computed(() =>
   screensWithBundles(bundles.value).filter((screen) => {
+    if (screen.administrator === true) return false;
     if (screen.inviters === true) return mayInvite.value;
     if (sectionsOfPath(screen.to).length === 0) return true;
     if (!accessReady.value) return false;

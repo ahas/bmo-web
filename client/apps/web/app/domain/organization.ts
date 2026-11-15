@@ -1,10 +1,11 @@
 import type { Component, ComputedRef } from "vue";
 import type { LocationQuery } from "vue-router";
 
+import { adminAddress, adminTabNamed } from "./administration";
 import { SETTINGS_QUERY } from "./settings-dialog";
 
-// The organisation settings screen (docs/web.md, 「Organisation settings」): what is set for the whole deployment or
-// for other people, a tab to a section. Each tab is a component of its own; this is only the order they stand in,
+// The organisation screen (docs/web.md, 「Organisation」): the organisation and the people in it, a tab to a
+// section. Each tab is a component of its own; this is only the order they stand in,
 // what each tab is called and who may open it.
 
 export const ORGANIZATION_PATH = "/organization";
@@ -27,14 +28,13 @@ export interface OrganizationTab {
 export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", inviters: false, wide: true, load: () => import("~/components/OrganizationUnits.vue") },
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", inviters: true, wide: false, load: () => import("~/components/OrganizationInvites.vue") },
-  { value: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
-  { value: "providers", label: "settings.label.providers", icon: "i-material-symbols-hub-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationProviders.vue") },
-  { value: "secret-kinds", label: "secrets.label.kinds", icon: "i-material-symbols-key-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationSecretKinds.vue") }
+  { value: "permissions", label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", inviters: false, wide: false, load: () => import("~/components/OrganizationPermissions.vue") }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved
 // still lands on it: the research supervisor with the research unit's settings, the voice briefing and a person's own
-// secrets in the settings dialog over this screen.
+// secrets in the settings dialog over this screen, and the providers and the secret kinds on the administrator's
+// screen.
 const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery }>> = {
   research: { path: "/research", query: { tab: "settings" } },
   briefing: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "briefing" } },
@@ -43,6 +43,10 @@ const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery }
 
 /** The address a key of a tab that moved away from this screen now leads to, where it names one. */
 export function organizationMovedAway(key: unknown): { path: string; query: LocationQuery } | null {
+  const admin = adminTabNamed(key);
+
+  if (admin !== null) return adminAddress(admin.value);
+
   return typeof key === "string" && Object.hasOwn(MOVED_AWAY, key) ? MOVED_AWAY[key]! : null;
 }
 
@@ -63,15 +67,15 @@ export function organizationAddress(value: string, query: LocationQuery = {}): {
   return { path: ORGANIZATION_PATH, query: value === ORGANIZATION_TABS[0]!.value ? rest : { ...rest, tab: value } };
 }
 
-/** The tab of the organisation settings screen a key names, where it names one. */
+/** The tab of the organisation screen a key names, where it names one. */
 export function organizationTabNamed(key: string): OrganizationTab | null {
   return ORGANIZATION_TABS.find((tab) => tab.value === key) ?? null;
 }
 
 /**
  * Whether the reader may invite into some unit, as the console's server answers: the administrator always, a member
- * where they head a unit. A member who may invite is listed the organisation settings screen with its invitations tab
- * alone (docs/web.md, 「Organisation settings」). Read once for the tab and kept while it stands.
+ * where they head a unit. A member who may invite is listed the organisation screen with its invitations tab
+ * alone (docs/web.md, 「Organisation」). Read once for the tab and kept while it stands.
  */
 export function useMayInvite(): ComputedRef<boolean> {
   const { data } = useFetch<{ id: number; name: string }[]>("/api/invites/units", { key: "invite-units", lazy: true, server: false, default: () => [] });
@@ -79,7 +83,7 @@ export function useMayInvite(): ComputedRef<boolean> {
   return computed(() => (data.value ?? []).length > 0);
 }
 
-// The units tab's tree (docs/web.md, 「Organisation settings」, its chart): companies at its top, each unit under its
+// The units tab's tree (docs/web.md, 「Organisation」, its chart): companies at its top, each unit under its
 // parent to any depth. A unit is read by its number, its name and its parent alone, so the tree stands on whatever
 // row the service answers.
 export interface UnitPlace {
@@ -144,7 +148,7 @@ export function branchesOpenAtFirst(units: readonly UnitPlace[], chosen: number 
   return [...new Set(chosen === null ? open : [...open, ...branchesAbove(units, chosen)])];
 }
 
-// A move of several people into one unit (docs/web.md, 「Organisation settings」, its chart): what the act will write,
+// A move of several people into one unit (docs/web.md, 「Organisation」, its chart): what the act will write,
 // read off the units as they were last read, so the dialog shows who goes where before anything is written and the
 // act names, for each person, the unit they stood in when it was shown.
 export interface UnitStanding extends UnitPlace {

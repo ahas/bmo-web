@@ -16,6 +16,7 @@ import {
 } from "../../../apps/web/app/domain/organization";
 
 import type { UnitBranch, UnitPlace, UnitStanding } from "../../../apps/web/app/domain/organization";
+import { ADMIN_PATH } from "../../../apps/web/app/domain/administration";
 import { SETTINGS_SECTIONS, sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
@@ -38,10 +39,13 @@ describe("the settings dialog", () => {
     expect(sectionsFor(true, false).map((section) => section.key)).not.toContain("secrets");
   });
 
-  test("leads every key that moved to its tab of the organisation settings screen, and keeps its own keys", () => {
-    for (const key of ["organization", "invites", "permissions", "providers", "secret-kinds"]) {
+  test("leads every key that moved to its tab of the organisation screen or the administrator's, and keeps its own keys", () => {
+    for (const key of ["organization", "invites", "permissions"]) {
       expect({ key, moved: organizationTabNamed(key)?.value ?? null }).toEqual({ key, moved: key });
     }
+
+    expect(organizationMovedAway("providers")).toEqual({ path: ADMIN_PATH, query: {} });
+    expect(organizationMovedAway("secret-kinds")).toEqual({ path: ADMIN_PATH, query: { tab: "secret-kinds" } });
 
     expect(organizationTabNamed("account")).toBeNull();
     expect(organizationTabNamed("research")).toBeNull();
@@ -50,9 +54,9 @@ describe("the settings dialog", () => {
   });
 });
 
-describe("the organisation settings screen", () => {
+describe("the organisation screen", () => {
   test("stands its tabs in order, the units first", () => {
-    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "invites", "permissions", "providers", "secret-kinds"]);
+    expect(ORGANIZATION_TABS.map((tab) => tab.value)).toEqual(["organization", "invites", "permissions"]);
   });
 
   test("leads the keys of the sections that moved away to where they stand now, and no other key", () => {
@@ -71,28 +75,26 @@ describe("the organisation settings screen", () => {
   });
 
   test("opens the first tab a reader may for a key naming none of theirs", () => {
-    expect(organizationTabOf("secret-kinds", organizationTabsFor(true)).value).toBe("secret-kinds");
-    expect(organizationTabOf("secret-kinds", organizationTabsFor(false)).value).toBe("invites");
+    expect(organizationTabOf("permissions", organizationTabsFor(true)).value).toBe("permissions");
+    expect(organizationTabOf("permissions", organizationTabsFor(false)).value).toBe("invites");
     expect(organizationTabOf(undefined, organizationTabsFor(true)).value).toBe("organization");
   });
 
   test("keeps a tab in the address, the first being the screen's own, and lets the chosen unit go with the tab it stood on", () => {
     expect(organizationAddress("organization", { unit: "3" })).toEqual({ path: ORGANIZATION_PATH, query: {} });
-    expect(organizationAddress("secret-kinds", { unit: "3", tab: "invites" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "secret-kinds" } });
+    expect(organizationAddress("permissions", { unit: "3", tab: "invites" })).toEqual({ path: ORGANIZATION_PATH, query: { tab: "permissions" } });
   });
 
-  test("stands in the sidebar and the search with its tabs, after the console's other screens", () => {
-    const screen = SCREENS.at(-1)!;
+  test("stands in the sidebar and the search with its tabs, after the console's other screens and before the administrator's", () => {
+    const screen = SCREENS.at(-2)!;
+    const admin = SCREENS.at(-1)!;
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
     expect(screen.inviters).toBe(true);
-    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual([
-      "/organization",
-      "/organization?tab=invites",
-      "/organization?tab=permissions",
-      "/organization?tab=providers",
-      "/organization?tab=secret-kinds"
-    ]);
+    expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=invites", "/organization?tab=permissions"]);
+    expect(admin.to).toBe(ADMIN_PATH);
+    expect(admin.administrator).toBe(true);
+    expect(admin.tabs?.map((tab) => tabAddress(admin, tab))).toEqual(["/admin", "/admin?tab=secret-kinds"]);
   });
 });
 

@@ -419,7 +419,7 @@ console page. No answer says which framework drew it. Strict transport is the re
 - **A person reads their own BMO's log and turns whatever sections they hold:** the log and the turns of a
   supervisor whose owner account is the reader open to them, as the agency's list names its owner, and no other
   agent's do. What runs for them on the shared engines is read there; what runs for another account is not.
-- **The administrator sets one person's sections on 조직 설정.** Its 권한 tab lists the users, and
+- **The administrator sets one person's sections on 조직.** Its 권한 tab lists the users, and
   the section chosen stands a table of the console's sections with a switch for its read and one for its
   write; a change is saved as it is made, and a write turns its read on. The platform administrator's own
   row stands with every switch on and no change to make: they pass every section.
@@ -440,7 +440,7 @@ nothing.
   console screen belongs to the section its address names, agent management's and the monitor's as their parts
   stand, and a member opens every one of them whose section they read, each screen holding back by itself what
   is the administrator's alone, as the research screen's 리서치 감독관. A screen whose address names no section
-  opens to a member only where it says a member may: the settings sections their account reads and 조직 설정's
+  opens to a member only where it says a member may: the settings sections their account reads and 조직's
   초대 where they head a unit. Beside them stand the rooms they may read, and the screens units bring whose
   manifest's role is `member` and whose section the administrator has left read — and, where the manifest asks
   for the owner key, only when their login has a user.
@@ -449,7 +449,7 @@ nothing.
   never leads back to the address refused: where the first one they may open is that address, as for a member who
   reads no section at all, it stands, and its routes answer as if nothing stood there.
 - **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the console's own
-  sections they may read, 조직 설정 where they head a unit, the screens units bring that they may open, their rooms
+  sections they may read, 조직 where they head a unit, the screens units bring that they may open, their rooms
   and the user menu: no agents
   block, nodes or search, no queue panel, question bar or briefing player, and nothing in it reports which room
   the tab shows. Its sidebar hears the bot's stream for
@@ -1256,8 +1256,9 @@ Four groups.
 
 - **The screens** — in this order **mail**, **cache siren**, **DB**,
   **파일**, **아티팩트**, **document viewer**, **code review**, **agent management**, **리서치**, **monitor**, **게이트**
-  and **remote**, then **조직 설정**, and after them any other screen a unit brings, the brain's among them. Cache
-  siren, DB, document viewer, agent management, 리서치, monitor and 조직 설정 are the console's own and always stand;
+  and **remote**, then **조직** and **관리자**, and after them any other screen a unit brings, the brain's among them.
+  Cache siren, DB, document viewer, agent management, 리서치, monitor, 조직 and 관리자 are the console's own and always
+  stand;
   mail, 파일, 아티팩트, code review, 게이트 and remote, and the screens after them, are the units' own and stand only while their unit answers
   its manifest, under the manifest's own name and icon (「Screens a unit brings」). The monitor's second tab is the
   card board, `/cards` leading there, and its third the role slots, `/live` leading there.
@@ -3134,7 +3135,7 @@ a seat of its role.
 
 #### Around the tabs
 
-- **The provider switches and the Claude accounts** are 조직 설정's 공급자 tab (「Organisation settings」), since
+- **The provider switches and the Claude accounts** are 관리자's 공급자 tab (「Administration」), since
   they are no supervisor's, role's or repository's.
 - **The research unit's settings and the research supervisor** are the research screen's 설정 tab (「Research
   screen」).
@@ -6410,8 +6411,8 @@ Four bounds keep it from growing forever.
 The settings are one large dialog over whatever screen is open, opened by 설정 in the user menu at the
 sidebar's foot (「Sidebar」). They hold what a person sets for themselves alone: their account, their own
 secrets, what this browser shows them, and the voice briefing, which is spoken to the administrator alone and so is theirs to
-switch. What is set for the whole deployment or for other people stands on its own screen, 조직 설정
-(「Organisation settings」), and what the research unit's runs are held to on the research screen (「Research
+switch. What is set for other people stands on 조직 (「Organisation」), what is set for the platform itself on 관리자
+(「Administration」), and what the research unit's runs are held to on the research screen (「Research
 screen」). The dialog is no screen of its own: `/account` takes the reader home with the dialog open at 계정.
 
 - **The dialog is a list of sections and the open section beside it.** The list stands in a column at
@@ -6436,8 +6437,8 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **An address opens it at one section:** `?settings=` and a section's key — `account`, `secrets`, `theme`,
   `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
-  names none of them. A key that names none of the dialog's sections but a tab of 조직 설정 — `organization`,
-  `invites`, `permissions`, `providers`, `secret-kinds` — takes the reader to that tab instead, and `research` to the
+  names none of them. A key that names none of the dialog's sections but a tab of 조직 — `organization`,
+  `invites`, `permissions` — or of 관리자 — `providers`, `secret-kinds` — takes the reader to that tab instead, and `research` to the
   research screen's 설정 tab, so a link made before a section moved still lands where it stands now. The key is
   taken off the address as the dialog opens: what
   is open over a screen is not a place (「Floating things」), so the back gesture closes the dialog, or leaves
@@ -6476,7 +6477,7 @@ person sees their own space and nobody else's, the administrator included.
     the row away.
 - **비밀 추가**, the button at the head of 보관된 비밀, opens the secret form (below), the same form the composer's clip
   and an agent's request open.
-- The kinds the form asks in are the deployment's, kept on 조직 설정's 비밀 종류 (「Organisation settings」).
+- The kinds the form asks in are the deployment's, kept on 관리자's 비밀 종류 (「Administration」).
 - **The secret form** is one dialog (「Forms」), whichever way it opens: 종류, 이름, the kind's fields and 저장 at its
   foot.
   - 종류 lists every kind by its name, and 직접 구성 last; the chosen kind's description stands under the list.
@@ -6605,28 +6606,28 @@ person sees their own space and nobody else's, the administrator included.
     it waits behind it as another briefing would, and the player's press during it leads back to the screen it
     was tried on, with the settings open at 보이스브리핑.
 
-### Organisation settings
+### Organisation
 
-조직 설정 is the screen of what is set for the whole deployment or for other people: the organisation's units and
-who stands in them, the invitations into them, each person's sections, the providers and the Claude accounts every
-run goes out on, and the kinds every person's secret form asks in. What a person sets for themselves alone, their
-secrets and the voice briefing among it, is the settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
+조직 is the screen of the organisation and the people in it: its units and who stands in them, the invitations
+into them and each person's sections. What is set for the platform itself — the providers and the Claude accounts
+every run goes out on, and the kinds every person's secret form asks in — is the administrator's screen, 관리자
+(「Administration」). What a person sets for themselves alone, their secrets and the voice briefing among it, is the
+settings dialog's (「Settings」), and the research supervisor stands with the research unit's settings on the
 research screen (「Research screen」).
 
-- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대, 권한, 공급자 and 비밀 종류, keyed
-  in the address as `?tab=` with `invites`, `permissions`, `providers` and `secret-kinds`, 조직도 being the screen's own
-  address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
+- **It stands at `/organization`, a tab to a section.** The tabs are 조직도, 초대 and 권한, keyed in the address as
+  `?tab=` with `invites` and `permissions`, 조직도 being the screen's own address; a shared link opens the same tab, moving between tabs is a step of the history, and a key naming no tab
   the reader may open opens the first they may. The console search finds each tab as it finds every screen's.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
   on it: `research` to the research screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 and `secrets`
-  to its 비밀 보관함, each over this screen. The address is replaced rather than stepped, so the back gesture does not return to the old key.
-- **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 설정 for them after the console's
+  to its 비밀 보관함, each over this screen, and `providers` and `secret-kinds` to those tabs of 관리자. The address is replaced rather than stepped, so the back gesture does not return to the old key.
+- **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them after the console's
   own screens. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
-  machine」), so their shell lists 조직 설정 too and the screen holds 초대 alone; a member who heads none is listed
+  machine」), so their shell lists 조직 too and the screen holds 초대 alone; a member who heads none is listed
   no entry, and the address shows them 초대 saying they may invite into no unit.
 - **The tab row** stands under the title bar, the tabs filling it and the open tab's own add at its right end
-  where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도, 초대 링크 만들기 on
-  초대, Claude 계정 추가 on 공급자 and 종류 추가 on 비밀 종류. On a narrow screen the tabs keep one line and scroll
+  where the tab has one, the row's grey icon on a phone too (「The title bar」): 조직 추가 on 조직도 and 초대 링크
+  만들기 on 초대. On a narrow screen the tabs keep one line and scroll
   sideways, and the open tab is scrolled into view whenever it changes, so it never stands behind the row's add or
   past its edge.
 - **A tab's content** stands in groups under small headings as the settings dialog's sections do, in a reading
@@ -6636,7 +6637,7 @@ research screen (「Research screen」).
   while they are first read, and a read that failed says its reason in their place with 새로고침, which spins while
   the read is asked again; the reason stands until a read goes through.
 - **Two or three actions on one row are icon buttons,** each named by its tooltip: a link's copy and its taking back
-  on 초대, and a kind's 편집 and 삭제 on 비밀 종류.
+  on 초대.
 
 #### 조직도
 
@@ -6753,6 +6754,21 @@ research screen (「Research screen」).
 - **The platform administrator's row stands with every switch on and nothing to change,** since they pass
   every section; the note above the table says so. A section's defaults and what they mean stand in
   `docs/accounts.md`, 「Console sections」.
+
+### Administration
+
+관리자 is the administrator's screen of what is set for the platform itself: the providers and the Claude accounts
+every run goes out on, and the kinds every person's secret form asks in. No member opens it.
+
+- **It stands at `/admin`, a tab to a section.** The tabs are 공급자 and 비밀 종류, keyed in the address as `?tab=`
+  with `secret-kinds`, 공급자 being the screen's own address; a shared link opens the same tab, moving between tabs is
+  a step of the history, and a key naming no tab opens the first. The console search finds each tab as it finds
+  every screen's. A link to `/organization` naming `providers` or `secret-kinds` lands on the same tab here.
+- **Who opens it.** The administrator alone, and the sidebar lists 관리자 for them after 조직; a member is listed
+  no entry, and the address takes them home as any screen they may not open does.
+- **The tab row, a tab's content and its groups** stand as 조직's do (「Organisation」): the open tab's own add at
+  the row's right end, Claude 계정 추가 on 공급자 and 종류 추가 on 비밀 종류; each tab in the centred reading column;
+  a kind's 편집 and 삭제 on 비밀 종류 as icon buttons named by their tooltips.
 
 #### 공급자
 

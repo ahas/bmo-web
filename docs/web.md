@@ -5279,6 +5279,13 @@ Four bounds keep it from growing forever.
   is taken out. A room is on one provider at least, so the last switch on cannot be turned off. While the list is
   written every switch waits; a refused write is said in the dialog by the pack's sentence for the receiver's code,
   and the switches stand as the receiver last answered.
+- **The dialog opens on the room's mode, 아바타 모드, as a switch above the providers:** on where the receiver
+  holds the room in `avatar`, its agents answering under the owner's account, and off in `record-only`, read and
+  recorded and never answered, each said in a line under it. Turning it sets the mode at once under the
+  administrator's name (the receiver's `PUT /rooms/{roomId}/registration`), the switch waiting while it is written
+  and standing as the receiver answers; a refusal — a chat service that does not offer the mode, a room on none, a
+  room whose service is never answered in — is said in the dialog by the pack's sentence for the receiver's code. A
+  room that was never added has no mode: its switch stands off and disabled, with a line saying so.
 - **The rule the dialog states:** a room on the room's record alone — the receiver's own road, which this console
   reads — reaches no messenger, and what is said there stands in the archive and the console; turning a messenger
   on starts carrying every message kept from then on to it, and turning it off stops that. The rule is the

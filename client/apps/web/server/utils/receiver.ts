@@ -7,7 +7,7 @@ import { exactJson, exactJsonText } from "./exact-json";
 import { unitAt } from "./units";
 import { answered } from "./unit-answer";
 
-import type { ExactMessageId, RoomProvidersView } from "#shared/types";
+import type { ExactMessageId, RoomMode, RoomModeView, RoomProvidersView } from "#shared/types";
 import type { components, paths } from "@bmo/receiver-client/schema";
 import type { WithExactIds } from "./exact-json";
 import type { UnitAnswerCall } from "./unit-answer";
@@ -125,6 +125,11 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   "chats-unstarted": "room.error.room_add_unstarted",
   "contact-unknown": "room.error.room_add_contact_unknown",
   "start-refused": "room.error.room_add_start_refused",
+  // A room's mode, set by the administrator.
+  "room-not-added": "room.error.mode_not_added",
+  "no-chat-service": "room.error.mode_no_chat_service",
+  "avatar-unoffered": "room.error.room_add_avatar",
+  "room-takes-no-avatar": "room.error.mode_takes_no_avatar",
   // A signed-in person's act on a message.
   "no-caller": "room.error.no_caller",
   "message-unknown": "room.error.message_unknown",
@@ -225,6 +230,34 @@ export async function roomPastReaders(roomId: number): Promise<string[]> {
 }
 
 /** A room's chat providers as its dialog reads them: every provider the receiver names, and the ones the room is on. */
+/** A room's mode off its registration, read under the administrator's name: null where the room was never added,
+ * which the receiver refuses 409 `room-not-added`. */
+export async function roomMode(roomId: number, by: string): Promise<RoomModeView> {
+  try {
+    const registration = await receiverCall(receiver().GET("/rooms/{roomId}/registration", { params: { path: { roomId }, query: { by } } }));
+
+    return { mode: modeOf(registration) };
+  } catch (error) {
+    if (codeOf(error) === "room-not-added") return { mode: null };
+
+    throw error;
+  }
+}
+
+/** The mode a registration answer names, null where it names none the console knows. */
+export function modeOf(registration: unknown): RoomMode | null {
+  const mode: unknown = typeof registration === "object" && registration !== null ? Reflect.get(registration, "mode") : null;
+
+  return mode === "avatar" || mode === "record-only" ? mode : null;
+}
+
+// The receiver's code a refusal carried, where it carried one.
+function codeOf(error: unknown): unknown {
+  const data: unknown = typeof error === "object" && error !== null ? Reflect.get(error, "data") : null;
+
+  return typeof data === "object" && data !== null ? Reflect.get(data, "code") : null;
+}
+
 export async function roomProviders(roomId: number): Promise<RoomProvidersView> {
   const asking = receiver();
   const [listed, room] = await Promise.all([

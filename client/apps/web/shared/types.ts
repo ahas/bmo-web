@@ -2565,6 +2565,14 @@ export interface RoomProvidersView {
   chosen: boolean;
 }
 
+// A room's mode as its registration holds it, for the administrator alone: `avatar`, its agents answering under the
+// owner's account; `record-only`, read and recorded and never answered; null for a room that was never added.
+export type RoomMode = "avatar" | "record-only";
+
+export interface RoomModeView {
+  mode: RoomMode | null;
+}
+
 // The pinned order as it stands once a room was pinned or let go: the room numbers, first to last.
 export interface PinnedRooms {
   rooms: number[];

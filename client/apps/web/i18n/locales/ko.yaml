@@ -464,6 +464,7 @@ room:
     received_messages: "메시지 {messages}개 받음"
     records_loading: 기록 불러오는 중…
     providers_loading: 채팅 서비스를 불러오는 중…
+    mode_saving: 방의 모드를 바꾸는 중
     providers_saving: 채팅 서비스를 바꾸는 중…
     removal_loading: 삭제할 기록을 불러오는 중…
     room_loading: 방 불러오는 중…
@@ -548,6 +549,11 @@ room:
     removal_not_administrator: 관리자만 방 등록을 지울 수 있습니다.
     removal_owners_chat: 관리자 자신의 개인 채팅이라 지울 수 없습니다.
     providers_read_failed: 채팅 서비스를 불러오지 못했습니다.
+    mode_no_chat_service: 어느 채팅 서비스에도 이어지지 않은 방이라 아바타 모드를 켤 수 없습니다.
+    mode_not_added: 추가된 적이 없는 방이라 모드를 바꿀 수 없습니다.
+    mode_read_failed: 방의 모드를 불러오지 못했습니다.
+    mode_save_failed: 방의 모드를 바꾸지 못했습니다.
+    mode_takes_no_avatar: 이 방은 채팅 서비스가 답을 받지 않는 방이라 아바타 모드를 켤 수 없습니다.
     providers_save_failed: 채팅 서비스를 바꾸지 못했습니다.
     providers_shape: 켤 채팅 서비스를 하나 이상 골라 주세요.
     removal_read_failed: 삭제할 기록을 불러오지 못했습니다.
@@ -678,6 +684,7 @@ room:
     draft_version_handed: 받은 말
     draft_version_program: 작업 알림
     draft_versions: "쓴 답 {n}개"
+    mode_avatar: 아바타 모드
     earlier_count: "이전 {n}개"
     edited: 수정됨
     edited_at: "{time}에 수정됨"
@@ -857,6 +864,8 @@ room:
     removal_done: 방 등록과 그 기록을 삭제했습니다.
     removal_goes: 삭제하면 아래 기록과 파일이 함께 삭제되며 복원할 수 없습니다.
     providers_rule: 이 방의 기록만 켠 방은 어느 메신저와도 이어지지 않고, 말한 것은 기록과 이 콘솔에만 남습니다. 메신저를 켜면 그때부터 이 방에 남는 메시지가 그 메신저로도 가고, 끄면 멈춥니다. 방은 한 곳에는 켜져 있어야 합니다.
+    mode_rule: 켜면 이 방의 에이전트가 내 계정으로 답하고, 끄면 읽고 기록만 하며 답하지 않습니다.
+    mode_unadded: 추가된 방이 아니라 모드가 없습니다.
     providers_unset: 정해 둔 적이 없어, 지금 이 방이 이어진 곳을 보여 줍니다.
     removal_refused: 이 방은 등록을 삭제할 수 없습니다.
     removal_stays: 이 방에서 만든 항목, Job, Job의 질문, 검색, 사용량은 남습니다.

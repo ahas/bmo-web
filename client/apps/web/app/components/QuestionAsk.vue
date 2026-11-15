@@ -1,30 +1,52 @@
 <template>
-  <!-- A job is standing still behind each of these until it is answered, and this is the one
-       place the answering is done. It stands in the conversation rather than beside it, over the
-       box he types in: that is where his eyes and his hands already are when the bot asks him
-       something, and it is fixed there, so no amount of scrolling takes it off the screen.
+  <!-- A job is standing still behind each of these until it is answered, and this is where the answering is done:
+       the questions window over the owner's own room, and the item's modal for that item's questions (docs/web.md,
+       「The questions window」). It is nothing at all while nothing is waiting.
 
-       It is nothing at all while nothing is waiting, so it is never in the way, and it never grows
-       past its share of what is on the screen: a phone with the keyboard up has a few hundred
-       pixels in all, and a stack of cards allowed to take them would push the box underneath it
-       out of reach. Past that share the stack scrolls inside itself, so however many jobs are
-       waiting the thing he answers them in stays where it is. -->
-  <div
-    v-if="shown.length > 0 || questionFailure !== null"
-    class="mb-3 max-h-[calc(var(--bmo-screen)*0.4)] min-h-0 overflow-y-auto overscroll-contain"
-  >
+       In the window the questions are one list, each parted from the next by a line, the window's body their one
+       scroll; in the item's modal each stands as a card of its own in the warning colour. -->
+  <div v-if="shown.length > 0 || questionFailure !== null" class="flex flex-col" :class="props.listed ? 'divide-y divide-default' : 'gap-2'">
+    <!-- An answer that arrived after the question was settled. It stands on its own, since
+         the question it was for has left the screen by the time it is read, at the head of what waits so it is
+         read first. In the window it is one more entry of the list rather than a box inside the window's box. -->
     <div
+      v-if="questionFailure !== null"
+      class="flex items-start gap-1"
+      :class="props.listed ? 'p-4' : 'rounded-md border border-error/40 bg-error/5 p-2'"
+    >
+      <p class="flex-1 text-sm break-words text-error">{{ questionFailure }}</p>
+
+      <UTooltip :text="$t('question.action.close')">
+        <UButton
+          icon="i-material-symbols-close"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          :aria-label="$t('question.action.close')"
+          @click="questionFailure = null"
+        />
+      </UTooltip>
+    </div>
+
+    <section
       v-for="card in shown"
       :key="card.id"
-      class="mb-2 rounded-md border border-warning bg-warning/10 p-2 last:mb-0"
+      :aria-label="$t('question.label.asked', { id: card.todoId })"
+      :class="props.listed ? 'p-4' : 'rounded-md border border-warning bg-warning/10 p-2'"
     >
-      <div class="flex flex-wrap items-center justify-between gap-1">
-        <ItemTip :id="card.todoId" as="p" class="text-sm font-medium text-warning">{{ $t("question.label.asked", { id: card.todoId }) }}</ItemTip>
+      <!-- Which job and item asks, by its number and its title; who asked and how long ago under it. -->
+      <ItemTip :id="card.todoId" eager as="p" class="text-sm font-medium break-words text-warning">
+        <template #default="{ item }">{{ $t("question.label.job", { id: card.todoId }) }}<template v-if="item !== null"> · {{ item.title }}</template></template>
+      </ItemTip>
+
+      <div class="mt-1 flex flex-wrap items-center justify-between gap-1">
+        <p class="text-sm text-muted">{{ card.asked }}</p>
 
         <!-- The clock, and the one press that stops it. A minute is short for reading while he is
              here, and stopping it is how he says he is: the recommendation then waits for the end
-             of the stop, and the same press starts the countdown again from what it had left. -->
-        <div class="flex items-center gap-1">
+             of the stop, and the same press starts the countdown again from what it had left. Beside it, the talk
+             over the question opened and closed. -->
+        <div class="flex flex-wrap items-center gap-1">
           <p class="text-sm tabular-nums text-warning">{{ card.status }}</p>
 
           <UButton
@@ -37,6 +59,17 @@
             :loading="pausing === card.id"
             :disabled="answering === card.id"
             @click="togglePause(card)"
+          />
+
+          <UButton
+            size="xs"
+            color="neutral"
+            :variant="talksOpen.includes(card.id) ? 'subtle' : 'ghost'"
+            icon="i-material-symbols-forum-outline"
+            :label="$t('question.action.discuss')"
+            :aria-pressed="talksOpen.includes(card.id)"
+            :aria-expanded="talksOpen.includes(card.id)"
+            @click="toggleTalk(card)"
           />
         </div>
       </div>
@@ -51,6 +84,10 @@
           <MarkdownText :text="text" kind="line" />
         </TranslatedInline>
       </p>
+
+      <!-- The talk over this question with the job that asked it, between what the question says and what answers
+           it, so the choices stand right under the talk once it has made the question clear. -->
+      <QuestionTalk v-if="talksOpen.includes(card.id)" :question="card.id" :todo-id="card.todoId" class="mt-2" />
 
       <!-- Pressing an option chooses it; it does not send it. A job is standing still behind
            this question and what goes out cannot be taken back — the bot writes the row once and
@@ -116,35 +153,14 @@
           />
         </div>
       </div>
-    </div>
-
-    <!-- An answer that arrived after the question was settled. It stands on its own, since
-         the question it was for has left the screen by the time it is read. -->
-    <div
-      v-if="questionFailure !== null"
-      class="flex items-start gap-1 rounded-md border border-error/40 bg-error/5 p-2"
-      :class="open.length > 0 ? 'mt-2' : ''"
-    >
-      <p class="flex-1 text-sm break-words text-error">{{ questionFailure }}</p>
-
-      <UTooltip :text="$t('question.action.close')">
-        <UButton
-          icon="i-material-symbols-close"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          :aria-label="$t('question.action.close')"
-          @click="questionFailure = null"
-        />
-      </UTooltip>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ANSWER_LIMIT } from "#shared/config";
 import { failureText } from "bmo-ui/app/domain/errors";
-import { questionReply, questionSendLabel, useOpenQuestions } from "~/domain/questions";
+import { questionReply, questionSendLabel, useOpenQuestions, useOpenTalks } from "~/domain/questions";
 
 import type { QuestionCard } from "~/domain/questions";
 
@@ -156,9 +172,14 @@ const { t } = useI18n();
 interface Props {
   // Only this item's questions, where a screen stands the asking beside one item; every open question otherwise.
   only?: number | null;
+  // Whether the questions stand as one list in a window of their own rather than as cards on a screen.
+  listed?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { only: null });
+const props = withDefaults(defineProps<Props>(), { only: null, listed: false });
+
+// Whether an answer that came too late stands to be read, so what holds this place keeps it standing for it.
+const emit = defineEmits<{ failure: [held: boolean] }>();
 
 const { open, reload } = useOpenQuestions(t);
 
@@ -172,8 +193,17 @@ const words = ref<Record<number, string>>({});
 const answering = ref<number | null>(null);
 const pausing = ref<number | null>(null);
 const questionFailure = ref<string | null>(null);
+
+watch(questionFailure, (failure) => emit("failure", failure !== null));
 // Whether each card's question stands as its reading, which its reason and its options follow.
 const readingShown = ref<Record<number, boolean>>({});
+
+// Which questions have their talk open, for the whole tab, so a talk stays open wherever its question stands.
+const talksOpen = useOpenTalks();
+
+function toggleTalk(card: QuestionCard): void {
+  talksOpen.value = talksOpen.value.includes(card.id) ? talksOpen.value.filter((id) => id !== card.id) : [...talksOpen.value, card.id];
+}
 
 // Pressing an option sets it and sends nothing. Pressing the one already set takes it back, so
 // a press that landed wrong is undone by the same press that made it. Choosing clears whatever

@@ -831,6 +831,8 @@ export interface JobQuestion {
   id: number;
   // The item the asking job is a run of. A question is read back with its item afterwards.
   todoId: number;
+  // Who asked: the name the asking run gave, which its talk turns carry too.
+  asker: string;
   question: string;
   options: string[];
   // Which option the job would take by itself, counted from zero; null where its recommendation names no choice — a
@@ -2140,6 +2142,32 @@ export interface QuestionPauseResult {
   ok: true;
   pausedLeft: number | null;
   dueAt: number;
+}
+
+// One turn of the talk over a job's question (docs/web.md, 「Talking a question over」): the question's replies
+// that settle nothing, the asker's own and everyone else's, in the order they were said. Its moment is in
+// milliseconds.
+export interface QuestionTalkTurn {
+  id: number;
+  // Whether the job that asked said it; everyone else is a person talking to it.
+  byAsker: boolean;
+  // Who said it, as bmo-job keeps the reply's actor.
+  name: string;
+  text: string;
+  at: number;
+}
+
+// The talk over one question, and how far its asker has heard it: the last reply the waiting run was handed, or
+// null where it was handed none.
+export interface QuestionTalk {
+  turns: QuestionTalkTurn[];
+  heardThrough: number | null;
+  // Whether the question still waits for an answer, so a word on it reaches a run waiting there.
+  open: boolean;
+}
+
+export interface QuestionTalkResult {
+  ok: true;
 }
 
 // Who said one turn of the talk about an item: the owner, or the chat agent answering them.

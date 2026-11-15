@@ -19,6 +19,7 @@ export default defineEventHandler(async (event): Promise<JobQuestion[]> => {
     return {
       id: question.id,
       todoId: question.itemId ?? 0,
+      asker: question.askerName,
       question: question.text,
       options: question.choices,
       // The mark stands on the choice the recommendation names, and nowhere where it names none.

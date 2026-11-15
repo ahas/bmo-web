@@ -366,12 +366,6 @@
         :class="[dragging ? 'bg-elevated/75' : 'bg-default/75', overlaid ? 'pb-(--chat-bar-pad)' : 'pb-[calc(var(--chat-bar-pad)+var(--bmo-safe-bottom))]']"
       >
         <UContainer class="flex min-h-0 flex-col">
-          <!-- What a job stopped to ask the owner, over the box they answer everything else in. It is
-               their own chat that a question is put to, so it stands here and only here: the queue
-               beside this room is where the work is read, and answering is a thing they do in the
-               conversation. -->
-          <QuestionAsk v-if="ownsTodo" />
-
           <!-- The words they type run the box's whole width and keep each line written while they
                writes (docs/web.md, 「The top bar and the input bar lie over the conversation」). -->
           <ChatComposer
@@ -414,6 +408,12 @@
     </template>
   </UDashboardPanel>
   </MotionConfig>
+
+  <!-- What a job stopped to ask the owner, in a window over his own chat rather than in the foot of it, so neither the
+       conversation nor the box he writes in gives up height to it (docs/web.md, 「The questions window」). It is his own
+       chat that a question is put to, so it stands here and only here: the queue beside this room is where the work is
+       read. It first stands within the conversation, under the top bar and over the input bar. -->
+  <QuestionWindow v-if="ownsTodo" :area="questionArea" :foot="footHeight" />
 
   <!-- A message the reader's own edited: its words in a box, saved to the record (docs/web.md, the room screen's
        message menu). -->
@@ -559,6 +559,7 @@ import type {
   StatusView
 } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
+import type { WindowFrame } from "bmo-ui/app/domain/floating-window";
 import type { ComposedMessage, PickedFile } from "~/domain/attachments";
 import type { AvatarIndex } from "~/domain/avatars";
 import type { RunState } from "~/domain/events";
@@ -1014,6 +1015,16 @@ const passing = computed(() => shownOutcome(outcome.value, group.value));
 
 // Asking a worker a question remains available in the owner room.
 const ownsTodo = computed<boolean>(() => owner.value.chatId === chatId);
+
+// The part of the screen the conversation is read in: under the top bar and over the input bar, across the room.
+function questionArea(): WindowFrame | null {
+  const head = roomNavbar.value?.getBoundingClientRect();
+  const foot = composerFoot.value?.getBoundingClientRect();
+
+  if (head === undefined || foot === undefined) return null;
+
+  return { left: foot.left, top: head.bottom, width: foot.width, height: Math.max(0, foot.top - head.bottom) };
+}
 
 
 const menuItems = computed<DropdownMenuItem[][]>(() => [

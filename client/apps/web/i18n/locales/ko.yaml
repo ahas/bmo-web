@@ -379,24 +379,35 @@ question:
     resume_failed: 타이머를 재개하지 못했습니다.
     settled_by_deadline: "그 사이 시간이 초과돼 추천 답으로 정해졌습니다: {answer}"
     settled_elsewhere: "그 사이 다른 곳에서 먼저 정해졌습니다: {answer}"
+    bad_talk: 의논 메시지가 비었거나 너무 깁니다.
+    talk_failed: 의논 메시지를 보내지 못했습니다.
+    talk_read_failed: 의논을 불러오지 못했습니다.
+    talk_settled: 이미 답이 정해진 질문이라 의논할 수 없습니다.
   action:
     answer: 답하기
     answer_as_written: 이대로 답하기
     answer_with: "{number}번으로 답하기"
     close: 알림 닫기
+    discuss: 의논
     pause: 타이머 정지
     resume: 타이머 재개
     unpick: 선택 취소
   aria:
     own_answer: 직접 입력한 답
+    talk: 의논 메시지
+    window_open: "Job의 질문 {n}건 · 열기"
   label:
     asked: "Job의 질문 · 항목 #{id}"
+    asked_by: "{asker} · {since} 전"
     asked_prefix: Job의 질문 · 항목
+    job: "Job #{id}"
+    talk: 의논
     recommended: (추천)
     summary: "질문 {n}건"
     why: "질문 이유:"
   placeholder:
     own_answer: 선택지에 없는 답 (직접 입력하면 Job이 그대로 읽습니다)
+    talk: Job에게 보낼 메시지
   status:
     deadline: 무응답 · 추천 답으로 결정
     missed: 시간 초과
@@ -406,6 +417,12 @@ question:
     paused_alone: "타이머 정지 · 사람의 답을 기다림"
     running: "{time} 남음 · 무응답 시 {number}번으로"
     running_alone: "{time} 남음 · 사람의 답을 기다림"
+    no_talk: 질문의 뜻, 선택지별 결과, 추천 이유를 Job과 의논할 수 있습니다.
+    talk_loading: 의논 불러오는 중…
+    talk_unheard: Job이 아직 읽지 않았습니다.
+    talk_writing: Job이 답을 쓰는 중…
+  title:
+    window: Job의 질문
 
 room:
   status:

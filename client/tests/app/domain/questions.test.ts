@@ -9,7 +9,8 @@ import {
   questionSendLabel,
   questionsOfTodo,
   questionState,
-  questionSummary
+  questionSummary,
+  talkWait
 } from "../../../apps/web/app/domain/questions";
 
 import type { JobQuestion } from "../../../apps/web/shared/types";
@@ -22,6 +23,7 @@ function question(over: Partial<JobQuestion> = {}): JobQuestion {
   return {
     id: 1,
     todoId: 12,
+    asker: "agent-a",
     question: KO.line_24,
     options,
     recommended: 1,
@@ -154,7 +156,7 @@ describe("what stands over every screen while a job waits", () => {
 
   function asked(over: Partial<JobQuestion> = {}): JobQuestion {
     return {
-      id: 1, todoId: 42, question: KO.line_139,
+      id: 1, todoId: 42, asker: "agent-a", question: KO.line_139,
       options: [KO.line_140, KO.line_140_2], recommended: 1, recommendation: null, why: KO.line_140_3,
       askedAt: now - 60, dueAt: now + 540, chosen: null, answer: null, pausedLeft: null,
       settledAt: null, settledBy: null, ...over
@@ -313,5 +315,27 @@ describe("what an option button does", () => {
   test("with a way to take a wrong press back", () => {
     expect(ask).toContain("$t('question.action.unpick')");
     expect(ask).toContain("@click=\"unpick(card)\"");
+  });
+});
+
+// Where the talk over a question stands for the person talking (docs/web.md, 「Talking a question over」): the job
+// writing its answer once it was handed the last word said to it, not yet handed it before that, and nothing to wait
+// for once the job spoke last or the question no longer waits.
+describe("the talk over a question", () => {
+  const said = (id: number, byAsker: boolean) => ({ id, byAsker, name: byAsker ? "agent-a" : "agent-b", text: "words", at: 0 });
+
+  test("waits on nothing while nothing was said or the job spoke last", () => {
+    expect(talkWait({ turns: [], heardThrough: null, open: true })).toBeNull();
+    expect(talkWait({ turns: [said(1, false), said(2, true)], heardThrough: 1, open: true })).toBeNull();
+  });
+
+  test("is the job writing once it was handed the last word, and unheard before", () => {
+    expect(talkWait({ turns: [said(1, false)], heardThrough: null, open: true })).toBe("unheard");
+    expect(talkWait({ turns: [said(1, false), said(2, true), said(3, false)], heardThrough: 1, open: true })).toBe("unheard");
+    expect(talkWait({ turns: [said(1, false), said(2, true), said(3, false)], heardThrough: 3, open: true })).toBe("writing");
+  });
+
+  test("waits on nothing once the question no longer waits", () => {
+    expect(talkWait({ turns: [said(1, false)], heardThrough: 1, open: false })).toBeNull();
   });
 });

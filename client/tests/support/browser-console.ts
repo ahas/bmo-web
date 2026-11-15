@@ -32,6 +32,7 @@ const TOKEN = "browser-console-token-0123456789";
 // platform administrator, so its screen reaches every section.
 const ACCOUNTS: readonly [string, string][] = [
   ["agent-topbar", "fixture-password-1558"],
+  ["questions-window", "fixture-password-3110"],
   ["home-repository", "fixture-password-3052"],
   ["agents-general", "fixture-password-2301"],
   ["agents-state", "fixture-password-3049"],

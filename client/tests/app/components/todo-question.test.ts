@@ -9,6 +9,8 @@ const row = await read("app/components/TodoRow.vue");
 const badge = await read("app/components/TodoQuestionBadge.vue");
 const item = await read("app/components/TodoItemDetail.vue");
 const ask = await read("app/components/QuestionAsk.vue");
+const room = await read("app/pages/rooms/[chatId].vue");
+const window = await read("app/components/QuestionWindow.vue");
 
 describe("a job standing on a question", () => {
   // The badge is a part of its own, which reads the panel's clock itself (docs/web.md, the TODO panel's section).
@@ -25,7 +27,23 @@ describe("a job standing on a question", () => {
     expect(item).toContain('card.state !== "open"');
   });
 
-  test("answers through the card the room's strip answers through, by the one route", () => {
+  // The questions stand in a window over the owner's room rather than in its foot (docs/web.md, 「The questions
+  // window」), the same cards in it as one list.
+  test("stand in the questions window over the owner's room, out of the room's foot", () => {
+    expect(room).toContain('<QuestionWindow v-if="ownsTodo"');
+    expect(room).not.toContain("<QuestionAsk");
+    expect(window).toContain("<FloatingWindow");
+    expect(window).toContain("<QuestionAsk listed");
+  });
+
+  // Each question is talked over with the job that asked it, inside its own card (docs/web.md, 「Talking a question
+  // over」).
+  test("open the talk over a question inside its card", () => {
+    expect(ask).toContain("<QuestionTalk");
+    expect(ask).toContain('$t(\'question.action.discuss\')');
+  });
+
+  test("answers through the card the questions window answers through, by the one route", () => {
     expect(ask).toContain('$fetch("/api/questions"');
     expect(ask).toContain("questionReply(");
     expect(ask).toContain("const shown = computed");

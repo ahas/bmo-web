@@ -20,6 +20,7 @@ function question(over: Partial<JobQuestion> = {}): JobQuestion {
   return {
     id: 7,
     todoId: 90,
+    asker: "agent-a",
     question: "what should be the default",
     options: ["first", "second"],
     recommended: 0,

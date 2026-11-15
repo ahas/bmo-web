@@ -216,9 +216,9 @@ console runs, from the manifest that unit answers (「Screens a unit brings」).
     anything overlays is the shell's own reading (above). The room keeps the bar's height,
     the inset with it, as its room at the foot, so the last message, the photo held at the foot and the
     way down stand clear of the gesture bar too.
-- **What retreats when room is short is fixed.** A room's foot is a compressible column, and when
-  compressed the question-card stack folds first — the stack grows only to 4/10 of the visible height and
-  flows within itself above that. The input box retreats in no case. Even with a job asking several at
+- **What retreats when room is short is fixed.** A room's foot holds its input bar alone: a job's questions
+  float over the screen in a window of their own (「The questions window」) and take no height from the foot or
+  the conversation, however many wait. The input box retreats in no case. Even with a job asking several at
   once, a sound ringing and the keyboard up, the input box stands within the screen and the hand reaches
   it. The input box does not push the column with its own text either — it grows to eight lines with the
   text written but not past 3/10 of the visible height, and beyond that flows within itself. Both the
@@ -3913,7 +3913,7 @@ Four bounds keep it from growing forever.
       that preview measured, whether the change comes during the rise or after it; the preview is let go once
       the copy stands in its place.
   - A rise and a settle fly in the conversation's own layer, over the rows and under whatever is laid over the
-    conversation, as the rows themselves are: the top bar, the input bar and the questions in it, the way down,
+    conversation, as the rows themselves are: the top bar, the input bar, the questions window, the way down,
     a day mark held at the top, a notice, and every tooltip, menu, popover, dialog, sheet, drawer and the
     phone's sidebar open while a message arrives stand over the flight, and it never shows through any of them.
     - The conversation marks the layer the flight is drawn in; a flight with no such layer around its bubble
@@ -3993,8 +3993,8 @@ Four bounds keep it from growing forever.
   touch separately.
 - **Standing at the bottom keeps up with whatever grows, and a new message is read from its first line.** What
   stands on this screen usually comes after the conversation is all placed — photos are all fetched, messages
-  settle, a running turn piles its stages, a line saying a job or search is running for this room appears, and
-  a job's question card stands at the foot. Each time, the conversation's end moves below the reader. It does
+  settle, a running turn piles its stages, and a line saying a job or search is running for this room appears.
+  Each time, the conversation's end moves below the reader. It does
   not count what grew one by one but **watches the conversation's height and the reading window's height
   themselves**. A counted list would have to be grown by hand each time something new stands at the screen's
   foot, and not growing it says nothing — one missed becomes a person entering the room being pushed off the end
@@ -4022,8 +4022,8 @@ Four bounds keep it from growing forever.
     voice player or a file card sizing itself late, a running turn piling its stages — it never begins a new
     part: a reader following the end is kept at the very end at once, before the frame is drawn, so the view
     neither stands off the end nor glides back to it. A row that goes and comes back is a new row.
-  - Only new rows are held. The reading window shrinking — a phone's virtual keyboard, a question card at the
-    foot — brings the end up with it for a reader who stood at the end, at once.
+  - Only new rows are held. The reading window shrinking — a phone's virtual keyboard, the input bar growing
+    with its words — brings the end up with it for a reader who stood at the end, at once.
   - What is new rises from the foot: the conversation glides up to it rather than jumping a screen at a time,
     and a reader who asked for less movement is moved at once. The way down, opening a room, a row already
     read growing and putting the reader back after choosing or a full screen video stay a move at once.
@@ -6214,18 +6214,58 @@ Four bounds keep it from growing forever.
   A job whose runner died ends all the same: the agency's dead-job sweep closes the row of a job whose runner was taken
   down (its `docs/agent-control.md`), so no line stands 완료 보고 중 for ever.
 - **Job의 질문.** A job asks the owner what is hard to decide itself — hard to undo, or set by the owner's taste — and stands waiting the
-  answer. A question awaiting an answer stands **inside the owner's private chat's conversation, right above their words box**. The conversation
-  side, not the queue beside it, because a question is words handed to them — where their eye and hand already are when the bot asks
-  them something, and that place is not pushed out however the conversation scrolls. The queue beside is a place to read work, not
-  to exchange words. Which item asked, what it asks, the choices and which is recommended, one line why it cannot decide itself,
-  and how much is left and what number it goes to if left, stand together. There are two roads to answer — press a choice, or write
-  into the box an answer the choices do not hold. What the job reads is one line either way — a chosen one is that choice's words,
-  a written one those words as is.
+  answer. A question awaiting an answer stands **in the questions window over the owner's private chat** (「The questions window」).
+  The conversation side, not the queue beside it, because a question is words handed to them — where their eye and hand already are
+  when the bot asks them something, and no scroll of the conversation takes it off the screen. The queue beside is a place to read
+  work, not to exchange words. Which job and item asked, who asked and since when, what it asks, the choices and which is
+  recommended, one line why it cannot decide itself, and how much is left and what number it goes to if left, stand together. There
+  are two roads to answer — press a choice, or write into the box an answer the choices do not hold. What the job reads is one line
+  either way — a chosen one is that choice's words, a written one those words as is.
+- **The questions window.** The questions stand in one window floating over the owner's private chat rather than in its foot, so
+  neither the conversation nor the box he writes in loses height to them however many wait, and nothing in the foot scrolls. It is
+  the shared layer's window beside the page (bmo-ui's `docs/components.md`, 「A window beside the page」), and it is no dialog: the
+  room behind it is read, scrolled, pressed and written in while it stands, and a press outside it puts nothing away.
+  - **It exists only while a question waits,** or while an answer that came too late is still to be read, and it is nothing at all
+    otherwise. It stands unfolded when the room opens with questions waiting, and a question that was not there before unfolds it
+    again where it was folded, since a job has just stopped on the other side.
+  - **Its title bar** says 「Job의 질문」 with how many wait, and ends with 닫기, which folds it. The questions stand in it as one
+    list, the one whose wait ends first at its head, each parted from the next by a line; the window's body is their one scroll.
+  - **On a wide screen it is a window the owner moves and sizes.** He drags its title bar with a pointer or a finger, or moves it
+    with the arrow keys once the bar holds the focus, and sizes it from its trailing foot corner; it never leaves what is visible,
+    and a window narrowed puts it back in view. Its place and size are kept in this browser for each width class, and the first
+    time in a class it stands at the top trailing corner of the conversation, under the top bar, no taller than three fifths of the
+    conversation, so the input bar and the newest messages above it stay clear.
+  - **On a phone it is a sheet** risen from the bottom edge, as every part taken out of a page is on a phone (「Floating things」): a
+    window dragged about a 360-pixel screen would cover the conversation it is beside wherever it went. It has no shade, stands at a
+    short height of a little under half the screen or a tall one, moved between by its handle or by the 확장 and 축소 button in its
+    head, kept in this browser, and folds when dragged below the short height. While it stands it covers the input bar; folding it
+    gives the bar back.
+  - **Folded, it is a pill** in the warning colour with the count of the questions waiting, at the top trailing corner of where the
+    window stood on a wide screen and at the leading foot of the conversation above the input bar on a phone. Pressing it unfolds
+    the window where it was. 닫기, Esc inside it and the back gesture fold it.
+  - **Where it stands among what floats.** It stands over the room and the panels beside it and under everything floating that opens
+    — a dialog, a sheet, a drawer, a menu, a popover, a tooltip and the message pill — so a confirmation or a notice is never hidden
+    behind it.
+- **Talking a question over.** Each question carries 의논 beside its timer. Pressing it opens the talk over that question inside its card, between the
+  question's reason and its choices, and pressing it again closes it. The owner asks there in his own words what the question means,
+  what each choice would lead to and what the job recommends and why, and the job that asked answers — the run that stands waiting
+  on the question is handed his words, answers, and waits on the same question again (bmo-job's `docs/cli.md`, 「`bmo-job job ask`」,
+  its `--talk`). Each turn stands with who said it: the job by its number, and the owner by his name.
+  - The talk is the question's own replies that settle nothing, kept by bmo-job with the question, so reopening the question, the
+    window or the screen shows every earlier turn, and a talk the owner had in his chat stands there too.
+  - A word sent here stops the question's timer as a word in the chat does, and leaves the question open: answering stays the choices
+    and the send button under the talk, a separate and deliberate press, possible once the talk has made the question clear. A job
+    that puts the question again in other words or with other choices in its answer changes the card at once.
+  - While the job is writing its answer the talk says so under its last turn; until the job has been handed the owner's words it
+    says the job has not read them yet — a job busy elsewhere, or no run waiting on the question at all, never reads them, and the
+    line says no more than that. A word that could not be sent says so in the error colour and stays in the box.
+  - The talk is read when it opens and again on bmo-job's notice that a reply or a question moved; its first read stands as a
+    skeleton of two turns.
 - **A job standing on a question says so where the owner looks, and is answered there.** The item's row in the TODO
   panel and on the board wears a warning badge, 질문에 답을 기다리는 중, beside its state, so a question is seen without
-  opening anything; the item's modal stands the same card the room's strip stands, at the top of what it reads — the
-  question, the choices and the recommended one, one line why, the time left and the box for an answer the choices do
-  not hold. The answering is one card and one press, through the same route a reply from the room takes; a settled
+  opening anything; the item's modal stands the same card the questions window stands, 의논 with it, at the top of what it
+  reads — the question, the choices and the recommended one, one line why, the time left and the box for an answer the
+  choices do not hold. The answering is one card and one press, through the same route a reply from the room takes; a settled
   question stands under it in the words it was settled on. A question that arrived while he was away stands the same:
   the badge is read off the archive as the panel opens.
 - **The question bar says it over every administrator screen.** While a question waits, a band in the warning colour
@@ -6262,7 +6302,7 @@ Four bounds keep it from growing forever.
   answering read differently at a glance.
 - **There is one place to answer.** The queue beside keeps per item a record of what the question was and how it was decided, but it
   cannot be answered there. Two answering places would make two things to keep for one question, and which is real would split per
-  screen. So the card stands once in the conversation and the queue only reads.
+  screen. So the card stands once, in the questions window over the conversation, and the queue only reads.
 - The question is read with the queue. A job having asked one, and it being decided, are to the bot the same kind of notice that the
   queue moved, so a question stands on screen the moment it stands — a job stands stopped waiting on the other side so it must be at
   once. The time left its own seconds clock counts. The answer is written on that line through the bot after a send press. If a question
@@ -7198,7 +7238,7 @@ by the administrator. Every login reads them, since every person's form asks in 
   lost. Only with nothing to clear does the page move. With several stacked, one at a time from the top.
 - **What is cleared** is everything that floats over the screen: a dialog, a sheet, a drawer, a popover, a
   dropdown menu, a select's list, a context menu, the enlarged photo, the sidebar's search palette, a narrow
-  screen's TODO drawer and sidebar drawer. Three things that are states the screen entered rather than drawn over
+  screen's TODO drawer and sidebar drawer, and the questions window, which back folds to its pill. Three things that are states the screen entered rather than drawn over
   it count too, since to the reader they are the same 「place to get out of」: message-select mode, the mail list's
   selection mode, and a remote session's view taken to the whole window.
 - **Leaving a state the screen entered does not move the keyboard.** A region such a state stood down is built
@@ -7284,7 +7324,8 @@ by the administrator. Every login reads them, since every person's form asks in 
   puts the sheet away and then opens what was chosen — waits for it to land before it goes. Otherwise the step would
   land on top of the move and cancel it, and the choice would close the sheet and open nothing.
 - **A finger's tap away from what floats only closes it.** On a touch screen, a tap outside the topmost floating
-  thing closes that one and presses nothing under it: with a message menu open, a tap on another message closes the
+  thing closes that one and presses nothing under it, unless it floats beside the page — the questions window, whose
+  room behind is meant to be pressed while it stands — where the tap does what it points at: with a message menu open, a tap on another message closes the
   menu and opens no other, and the next tap opens that message's menu. A mouse is left as it is — a click away closes
   the floating thing and does what it points at.
 - **The press that closes one is the press being handled.** A touch that lands outside what floats is a press only once

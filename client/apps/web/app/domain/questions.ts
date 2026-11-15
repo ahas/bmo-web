@@ -1,9 +1,9 @@
 import { POLL_INTERVAL_MS, questionAnswerText } from "#shared/config";
 import { roomRoute } from "#shared/paths";
 import { useLiveRefresh } from "./events";
-import { toUnixSeconds } from "bmo-ui/app/domain/time";
+import { elapsedText, toUnixSeconds } from "bmo-ui/app/domain/time";
 
-import type { OwnerChat, JobQuestion } from "#shared/types";
+import type { OwnerChat, JobQuestion, QuestionTalk } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
 // How one question reads at a glance. The three the owner has to tell apart are the one still
@@ -27,6 +27,8 @@ export interface QuestionOption {
 export interface QuestionCard {
   id: number;
   todoId: number;
+  // Who asked and how long ago, in one line under the job and item that asked.
+  asked: string;
   question: string;
   why: string;
   options: QuestionOption[];
@@ -71,6 +73,7 @@ export function questionCard(t: Translate, question: JobQuestion, now: number = 
   return {
     id: question.id,
     todoId: question.todoId,
+    asked: t("question.label.asked_by", { asker: question.asker, since: elapsedText(t, now - question.askedAt) }),
     question: question.question,
     why: question.why,
     options: question.options.map((text, index) => ({
@@ -282,4 +285,23 @@ export function questionSendLabel(t: Translate, picked: number | null, words: st
   }
 
   return words.trim() === "" ? t("question.action.answer") : t("question.action.answer_as_written");
+}
+
+// Where the talk over a question stands for the person talking (docs/web.md, 「Talking a question over」): the job
+// answering what was last said to it, the job not yet handed it, or nothing to wait for — the job spoke last, or
+// nobody has said anything. Handed is the asker's own mark on the question, the last reply its waiting run was given.
+export type TalkWait = "writing" | "unheard" | null;
+
+export function talkWait(talk: QuestionTalk): TalkWait {
+  const last = talk.turns.at(-1);
+
+  if (last === undefined || last.byAsker || !talk.open) return null;
+
+  return talk.heardThrough !== null && talk.heardThrough >= last.id ? "writing" : "unheard";
+}
+
+// Which questions have their talk open, by number, for the whole tab: a talk stays open while the window folds
+// and unfolds or turns from a window into a sheet, and closes only where the reader closes it.
+export function useOpenTalks(): Ref<number[]> {
+  return useState<number[]>("question-talks", () => []);
 }

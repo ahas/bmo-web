@@ -30,6 +30,9 @@ export function addressOf(database: string): string {
 
 let made = 0;
 
+// How long the scratch database's drop may take, its checkpoint queued behind the test server's others.
+const DROP_CEILING_MS = 60_000;
+
 /** A database of its own for the test file that asks, made now and named by `WEB_DATABASE_URL`. */
 export async function scratchWebDatabase(): Promise<string> {
   const name = `bmo_web_console_${process.pid}_${made++}`;
@@ -46,16 +49,21 @@ export async function scratchWebDatabase(): Promise<string> {
 
   process.env.WEB_DATABASE_URL = address;
 
-  // A connection still closing would hold a plain drop waiting out PostgreSQL's five seconds, the whole of the
-  // hook's own ceiling, so the drop ends whatever still stands in the scratch database.
-  afterAll(async () => {
-    await closeWebSql();
+  // A connection still closing would hold a plain drop waiting out PostgreSQL's five seconds, so the drop ends
+  // whatever still stands in the scratch database. A drop also waits on an immediate checkpoint of the whole test
+  // server, queued behind the creates and drops of every suite running on it, and under that load one checkpoint
+  // alone outlasts a hook's default five seconds, so the hook is given a ceiling of its own.
+  afterAll(
+    async () => {
+      await closeWebSql();
 
-    const dropping = new SQL(connectionOf(addressOf("postgres")) as SQL.Options);
+      const dropping = new SQL(connectionOf(addressOf("postgres")) as SQL.Options);
 
-    await dropping.unsafe(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
-    await dropping.close();
-  });
+      await dropping.unsafe(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
+      await dropping.close();
+    },
+    { timeout: DROP_CEILING_MS }
+  );
 
   return address;
 }

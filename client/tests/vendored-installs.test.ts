@@ -1,11 +1,13 @@
 import { expect, test } from "bun:test";
-import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 
 // Every package the console takes from a tarball under vendor/ runs as that tarball holds it. Bun installs a
 // package's files as hard links to its shared install cache, so a file written in place inside any node_modules
 // changes every checkout and build tree linked to the same entry, and a later install links the changed entry
-// again (docs/checks.md, "The vendored packages as installed"). So the installed copy is read against its tarball.
+// again (docs/checks.md, "The vendored packages as installed"). So every file the tarball holds is read against
+// its installed copy. Only the tarball's files are read: the install writes markers of its own beside them, such
+// as `.bun-tag`, which no tarball holds.
 
 const CLIENT = join(import.meta.dir, "..");
 
@@ -55,27 +57,16 @@ async function packed(tarball: string): Promise<Map<string, Uint8Array>> {
   return new Map(entries);
 }
 
-function installedFiles(root: string): string[] {
-  return readdirSync(root, { recursive: true, withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .map((entry) => relative(root, join(entry.parentPath, entry.name)))
-    .filter((path) => !path.split("/").includes("node_modules"));
-}
-
 async function findings(pkg: Vendored): Promise<string[]> {
   const expected = await packed(pkg.tarball);
-  const changed = [...expected]
+
+  return [...expected]
     .filter(([path, bytes]) => {
       const installed = join(pkg.installed, path);
 
       return !existsSync(installed) || Buffer.compare(readFileSync(installed), bytes) !== 0;
     })
     .map(([path]) => `${pkg.name}: ${path} differs from ${relative(CLIENT, pkg.tarball)}`);
-  const added = installedFiles(pkg.installed)
-    .filter((path) => !expected.has(path))
-    .map((path) => `${pkg.name}: ${path} is not in ${relative(CLIENT, pkg.tarball)}`);
-
-  return [...changed, ...added];
 }
 
 test("every vendored package stands installed as its tarball holds it", async () => {

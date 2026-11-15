@@ -66,8 +66,9 @@ a package's files as hard links to its shared install cache, so one file written
 `node_modules` changes the cache entry and every checkout and build tree linked to it, and a later install,
 `--force` among them, links the changed entry again. The client's check therefore reads, for each such
 dependency of the client and its workspace members, the tarball the manifest names and the copy installed for
-it: every file the tarball holds stands installed with the same bytes, and the installed copy holds no file
-the tarball lacks. A finding names the package and the files.
+it: every file the tarball holds stands installed with the same bytes. Only the tarball's files are read, since
+the install writes markers of its own into the installed copy, `.bun-tag` among them, that no tarball holds. A
+finding names the package and the files.
 
 A copy found changed is repaired in the shared cache first: the cache entry is replaced by the tarball's contents,
 or removed so the next install extracts it again, and every tree linked to it then has its copy of the

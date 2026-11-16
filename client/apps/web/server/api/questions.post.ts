@@ -44,7 +44,7 @@ export default defineEventHandler(async (event): Promise<QuestionAnswerResult> =
     throw fail(400, wording("question.error.bad_own_answer"));
   }
 
-  const question = await jobCall(job().GET("/questions/{questionId}", { params: { path: { questionId: id } } }));
+  const question = await ownersQuestion(id);
   const option = typeof chosen === "number" ? question.choices[chosen] : undefined;
   const text = typeof answer === "string" ? answer.trim() : (option ?? "");
 

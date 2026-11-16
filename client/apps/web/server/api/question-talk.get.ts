@@ -17,7 +17,7 @@ export default defineEventHandler(async (event): Promise<QuestionTalk> => {
     throw fail(400, wording("question.error.bad_question_id"));
   }
 
-  const question = await jobCall(job().GET("/questions/{questionId}", { params: { path: { questionId: id } } }));
+  const question = await ownersQuestion(id);
   const turns: QuestionTalkTurn[] = [];
   let after: number | undefined;
 

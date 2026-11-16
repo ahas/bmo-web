@@ -29,6 +29,8 @@ export default defineEventHandler(async (event): Promise<QuestionPauseResult> =>
     throw fail(400, wording("question.error.pause_direction"));
   }
 
+  await ownersQuestion(id);
+
   const question = await jobCall(job().PATCH("/questions/{questionId}", {
     params: { path: { questionId: id } },
     body: { state: body.paused ? "paused" : "open" }

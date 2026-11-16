@@ -33,7 +33,7 @@ export default defineEventHandler(async (event): Promise<QuestionTalkResult> => 
     throw fail(400, wording("question.error.bad_talk"));
   }
 
-  const question = await jobCall(job().GET("/questions/{questionId}", { params: { path: { questionId: id } } }));
+  const question = await ownersQuestion(id);
 
   // A question already answered or taken back has nobody waiting on it to hear the word.
   if (question.state !== "open" && question.state !== "paused") {

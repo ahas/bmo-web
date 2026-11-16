@@ -6360,8 +6360,10 @@ Four bounds keep it from growing forever.
   done state and the agency's job line together, and leaves the queue for the complete group at the job's `job.ended`.
   A job whose runner died ends all the same: the agency's dead-job sweep closes the row of a job whose runner was taken
   down (its `docs/agent-control.md`), so no line stands 완료 보고 중 for ever.
-- **Job의 질문.** A job asks the owner what is hard to decide itself — hard to undo, or set by the owner's taste — and stands waiting the
-  answer. A question awaiting an answer stands **in the questions window over the owner's private chat** (「The questions window」).
+- **Job의 질문.** A job asks what is hard to decide itself — hard to undo, or set by the owner's taste — and stands waiting the
+  answer. The question is put to the job's supervisor first, which settles it itself, talks it over with the job, or puts it to
+  the owner (bmo-job's `docs/api.md`, 「The addressee」); only a question put to a person reaches the console. A question
+  awaiting his answer stands **in the questions window over the owner's private chat** (「The questions window」).
   The conversation side, not the queue beside it, because a question is words handed to them — where their eye and hand already are
   when the bot asks them something, and no scroll of the conversation takes it off the screen. The queue beside is a place to read
   work, not to exchange words. Which job and item asked, who asked and since when, what it asks, the choices and which is
@@ -6373,6 +6375,12 @@ Four bounds keep it from growing forever.
   「The owner's account」): answering a question, talking it over and stopping its clock are refused 403 to anyone else, the
   administrator reading the owner's chat among them, who sees no window there. The questions and their talk are read by the
   administrator and never by a member, whatever sections they hold.
+- **A question the supervisor holds is not his yet.** The console reads only the questions bmo-job holds as put to a
+  person, and the window, the question bar, the TODO badge and the item's card all stand on that one reading, as a
+  question's notification does, so a question the supervisor holds is never shown to him, counted or rung. Answering
+  it, talking it over, reading its talk and stopping its clock are refused 409, with nothing reaching bmo-job past
+  reading the question. It appears once the supervisor puts it to him, and its countdown starts then: bmo-job counts a
+  question's due time from the moment it is put to a person, and gives none while the supervisor holds it.
 - **The questions window.** The questions stand in one window floating over the owner's private chat rather than in its foot, so
   neither the conversation nor the box he writes in loses height to them however many wait, and nothing in the foot scrolls. It is
   the shared layer's window beside the page (bmo-ui's `docs/components.md`, 「A window beside the page」), and it is no dialog: the

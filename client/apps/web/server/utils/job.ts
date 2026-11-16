@@ -8,7 +8,7 @@ import { unitAt } from "./units";
 import { answered } from "./unit-answer";
 
 import type { Client } from "openapi-fetch";
-import type { paths } from "bmo-job-client/schema";
+import type { components, paths } from "bmo-job-client/schema";
 import type { UnitAnswerCall } from "./unit-answer";
 
 // bmo-job's fixed API as its published package states it (bmo-job's `docs/api.md`): one document, its types in
@@ -33,6 +33,22 @@ export async function jobCall<T, E extends { code?: string; error?: string; fiel
   call: UnitAnswerCall = {}
 ): Promise<T> {
   return await answered(asked, { ...call, codes: JOB_CODES });
+}
+
+/** One of bmo-job's questions, as its fixed API reads it. */
+type JobQuestionRow =components["schemas"]["Question"];
+
+/**
+ * A question the owner answers, talks over or stops the clock of, read from bmo-job. A question a job's supervisor
+ * holds is the supervisor's until it puts it to a person (bmo-job's `docs/api.md`, 「The addressee」), and the
+ * console stands it nowhere, so it is refused here as nothing he may act on.
+ */
+export async function ownersQuestion(id: number): Promise<JobQuestionRow> {
+  const question = await jobCall(job().GET("/questions/{questionId}", { params: { path: { questionId: id } } }));
+
+  if (question.addressee !== "person") throw fail(409, wording("question.error.not_put_to_owner"));
+
+  return question;
 }
 
 /** What came of telling the agent how the queue stands, by its kind (bmo-job's `docs/api.md`, 「A queue told」). */

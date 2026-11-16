@@ -384,6 +384,7 @@ question:
     talk_read_failed: 의논을 불러오지 못했습니다.
     talk_settled: 이미 답이 정해진 질문이라 의논할 수 없습니다.
     owner_only: Job의 질문에는 소유자만 답하거나 의논할 수 있습니다.
+    not_put_to_owner: 감독관이 맡고 있는 질문이라 답하거나 의논할 수 없습니다.
   action:
     answer: 답하기
     answer_as_written: 이대로 답하기

@@ -208,7 +208,9 @@ async function answerRoom(route: Route): Promise<void> {
   }
 }
 
-// The room entered from inside the console, as a person goes to it.
+// The room entered from inside the console, as a person goes to it. The push is left to run rather than awaited
+// inside the page, whose promise the browser may collect before the room settles; each caller waits on what the room
+// then shows.
 async function enter(page: Page): Promise<void> {
   const listed = page.waitForResponse(/\/api\/rooms$/);
 
@@ -219,10 +221,10 @@ async function enter(page: Page): Promise<void> {
     return root?.__vue_app__?.$nuxt?.isHydrating === false;
   });
   await listed;
-  await page.evaluate(async (path) => {
+  await page.evaluate((path) => {
     const root: (Element & { __vue_app__?: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }) | null = document.querySelector("#__nuxt");
 
-    await root!.__vue_app__!.config.globalProperties.$router.push(path);
+    void root!.__vue_app__!.config.globalProperties.$router.push(path);
   }, `/rooms/${CHAT}`);
 }
 
@@ -510,16 +512,17 @@ describe.skipIf(!origin || !touchReady())("a picture narrower than its bubble", 
         const box = image.closest("button")!;
         const backdrop = box.querySelector<HTMLElement>("[data-picture-backdrop]");
         const frame = box.getBoundingClientRect();
-        // The picture is drawn contained in its box: its drawn width is its height at its own ratio.
-        const drawnWidth = frame.height * (image.naturalWidth / image.naturalHeight);
+        const shown = image.getBoundingClientRect();
         const look = getComputedStyle(image);
 
         return {
           box: Math.round(frame.width),
-          own: Math.round(drawnWidth),
+          // The picture's own width is its drawn height at its own ratio.
+          own: Math.round(shown.height * (image.naturalWidth / image.naturalHeight)),
+          width: Math.round(shown.width),
           fit: look.objectFit,
-          at: look.objectPosition,
-          fills: Math.round(image.getBoundingClientRect().width) === Math.round(frame.width),
+          // How far the picture's middle stands from the middle of its box.
+          offCentre: Math.abs(shown.left + shown.width / 2 - (frame.left + frame.width / 2)),
           backdrop: backdrop === null ? null : {
             blur: getComputedStyle(backdrop).filter,
             fit: getComputedStyle(backdrop).backgroundSize,
@@ -534,7 +537,9 @@ describe.skipIf(!origin || !touchReady())("a picture narrower than its bubble", 
       // The bubble is wider than the picture, the picture is drawn whole in the middle of that width, and its
       // blurred copy covers the box behind it, cut at the box's edges.
       expect(placed.box).toBeGreaterThan(placed.own + 40);
-      expect(placed).toMatchObject({ fit: "contain", at: "50% 50%", fills: true, cut: "hidden" });
+      expect(Math.abs(placed.width - placed.own)).toBeLessThanOrEqual(1);
+      expect(placed.offCentre).toBeLessThanOrEqual(1);
+      expect(placed).toMatchObject({ fit: "contain", cut: "hidden" });
       expect(placed.backdrop).toMatchObject({ fit: "cover", shows: true, covers: true });
       // The copy is no image element of its own: the bubble holds the one picture.
       expect(placed.images).toBe(1);

@@ -182,7 +182,8 @@ async function answerRoom(route: Route, room: Room): Promise<void> {
 }
 
 // The room entered from inside the console, as a person goes to it, so the room list and its first
-// unread message are known by the time the room opens.
+// unread message are known by the time the room opens. The push is left to run rather than awaited inside the page,
+// whose promise the browser may collect before the room settles; each caller waits on what the room then shows.
 async function visit(page: Page): Promise<void> {
   const listed = page.waitForResponse(/\/api\/rooms$/);
 
@@ -193,10 +194,10 @@ async function visit(page: Page): Promise<void> {
     return root?.__vue_app__?.$nuxt?.isHydrating === false;
   });
   await listed;
-  await page.evaluate(async (path) => {
+  await page.evaluate((path) => {
     const root: (Element & { __vue_app__?: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }) | null = document.querySelector("#__nuxt");
 
-    await root!.__vue_app__!.config.globalProperties.$router.push(path);
+    void root!.__vue_app__!.config.globalProperties.$router.push(path);
   }, `/rooms/${CHAT}`);
 }
 

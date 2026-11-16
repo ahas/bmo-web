@@ -4,7 +4,7 @@ import { chromium } from "playwright-core";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import { wording } from "../../apps/web/shared/wording";
 
-import type { Browser } from "playwright-core";
+import type { Browser, Page } from "playwright-core";
 import type { ArchivedMessage, Judgement } from "../../apps/web/shared/types";
 
 // Copying one message from its menu (docs/web.md, 「What a copy holds」): the message and its own verdicts, the
@@ -32,6 +32,21 @@ const verdicts: Judgement[] = [
 
 let browser: Browser | null = null;
 let cookie = "";
+
+// The copy reaches the clipboard only once what its chips read only when opened has been read for it, so the
+// clipboard is read once it holds the copied message's own line, never at the moment the menu item is pressed.
+async function copiedText(page: Page, messageId: string): Promise<string> {
+  const line = `#${messageId}: `;
+  const deadline = Date.now() + 20_000;
+  let text = "";
+
+  while (!text.includes(line) && Date.now() < deadline) {
+    await page.waitForTimeout(100);
+    text = await page.evaluate(async () => await navigator.clipboard.readText());
+  }
+
+  return text;
+}
 
 beforeAll(async () => {
   if (!origin || !touchReady()) return;
@@ -66,7 +81,7 @@ describe.skipIf(!origin || !touchReady())("copying a message", () => {
       await message.getByText(asked.text).click({ button: "right" });
       await page.getByRole("menuitem", { name: wording("common.action.copy"), exact: true }).click();
 
-      const copied = await page.evaluate(async () => await navigator.clipboard.readText());
+      const copied = await copiedText(page, asked.messageId);
 
       expect(copied).toContain(`#${asked.messageId}: ${asked.text}`);
       expect(copied).toContain("SKIP: no candidates");
@@ -113,9 +128,8 @@ describe.skipIf(!origin || !touchReady())("copying a message", () => {
       await message.waitFor({ timeout: 20_000 });
       await message.getByText(drafted.text).click({ button: "right" });
       await page.getByRole("menuitem", { name: wording("common.action.copy"), exact: true }).click();
-      await page.waitForTimeout(1_000);
 
-      const copied = await page.evaluate(async () => await navigator.clipboard.readText());
+      const copied = await copiedText(page, drafted.messageId);
 
       expect(copied).toContain(`#${drafted.messageId}: ${drafted.text}`);
       expect(copied).toContain(wording("room.label.chip_drafts"));

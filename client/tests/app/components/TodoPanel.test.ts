@@ -189,7 +189,8 @@ describe("the queue's live refresh", () => {
   // and an item a link opened from further back than the page — and a word that the queue moved
   // is as often about one of those: the chat agent adding words to an item, a runner handing them to its job.
   test("re-reads the open item's added words and a linked item on the same news, quietly", () => {
-    expect(source).toMatch(/void reload\(\);\s*rereadOpened\(\);\s*\},\s*\{[^}]*on: \["todo", "work-order", "worker-run"\]/);
+    expect(source).toMatch(/if \(whole\) \{\s*void reload\(\);\s*rereadOpened\(\);/);
+    expect(source).toContain("if (opened.value !== null && named.has(opened.value)) detail.value?.reread(opened.value);");
     expect(source).toContain("detail.value?.reread(opened.value);");
     expect(detailSource).toContain("void loadNotes(id, true);");
     expect(source).toContain("void readStray(stray.value.id);");
@@ -266,7 +267,7 @@ describe("the words added to an open item", () => {
     expect(briefAt).toBeGreaterThan(detailTemplate.indexOf('>{{ $t("todo.title.notes") }}<'));
     expect(briefAt).toBeLessThan(detailTemplate.indexOf('<WorkOrderPanel part="order"'));
     // The brief and each change to it stand in the original with the translation a press away in the same place.
-    expect(detailTemplate).toContain('<TranslatedText v-else :text="openedItem.brief" />');
+    expect(detailTemplate).toContain('<TranslatedText v-else :text="openedItem.instruction" />');
     expect(detailTemplate).toContain('<TranslatedText :text="change.text" />');
     expect(detailTemplate).not.toContain("brief_original");
     expect(detailTemplate).toContain("{{ formatStamp(change.addedAt) }} · {{ changeHanded(change) }}");
@@ -374,6 +375,15 @@ describe("the auto-progression switch", () => {
   test("the press goes to the bot, and a refusal is said in the panel's own words", () => {
     expect(source).toContain('$fetch<QueuePauseChanged>("/api/queue-pause", { method: "POST", body: { paused } })');
     expect(source).toContain('failureText(error, t("todo.error.auto_change_failed"))');
+  });
+
+  // A word naming the one item it moved reads that item's line alone (docs/web.md, the TODO panel's section): the
+  // panel gathers the items a burst named, and a burst with a word naming none, or a stream come back, reads whole.
+  test("reads the lines a burst named, and the whole board only where a word named none", () => {
+    expect(source).toContain("const whole = namedAll || cause !== \"event\" || named.size === 0;");
+    expect(source).toContain("void readRows([...named]);");
+    expect(source).toContain('$fetch<TodoBoardRow[]>("/api/todos/rows", { query: { ids: ids.join(",") } })');
+    expect(source).toContain("const next = rows.length === ids.length ? patchedBoard(board.value, rows) : null;");
   });
 
   test("nothing new is subscribed to for it: the queue's own news already re-reads the board", () => {

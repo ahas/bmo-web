@@ -95,6 +95,8 @@ export function retryDelay(attempts: number): number {
 // happened while it was down at once, and a busy room says several things in a breath; the wait
 // makes one read of a burst instead of one read for each thing in it.
 const SETTLE_MS = 500;
+// How long a frame lasts where the page has no frames to wait on.
+const FRAME_MS = 16;
 
 // The ways a turn ends, which the server reading a listener's presence counts the same way.
 export { TURN_ENDED };
@@ -187,7 +189,20 @@ const SILENT_LOOKS = STREAM_SILENCE_MS / STREAM_KEEPALIVE_MS;
 let turnsNow: ReadonlyMap<number, RunState[]> = new Map();
 // The turns the stream said were over, which the bot's picture may still hold (`stepEndedTurns`).
 let endedNow: ReadonlyMap<string, number> = new Map();
+// The record as the screens were last handed it (docs/web.md, 「What the stream costs a tab」). A turn's progress
+// reaches them at most once a frame, however many pictures came in it; a turn beginning, ending or moving on
+// reaches them at once, with whatever progress came before it.
+let published: ReadonlyMap<number, RunState[]> = turnsNow;
+let publishing: (() => void) | null = null;
+// Every room's turns, for a screen that shows them all.
 let roomTurnsHeld: Ref<ReadonlyMap<number, RunState[]>> | null = null;
+// The record for a screen that reads which turns stand and not what they are doing: handed a new record only when a
+// turn begins, ends or changes anything but its progress, so a picture of progress draws none of it again.
+let turnShapeHeld: Ref<ReadonlyMap<number, RunState[]>> | null = null;
+let turnShapeForm = "";
+// One room's turns, for the screen of that room, which an event of another room leaves alone.
+const roomRunsHeld = new Map<number, Ref<RunState[]>>();
+const NO_RUNS: RunState[] = [];
 // The bot's last picture of what is running, for the same reason.
 let pictured: LiveSnapshot | null = null;
 // Whether the record has heard the bot's picture since the stream opened: until then it holds no turn because it has
@@ -209,16 +224,91 @@ function setPictured(next: LiveSnapshot | null): void {
 }
 
 function roomTurns(): Ref<ReadonlyMap<number, RunState[]>> {
-  roomTurnsHeld ??= shallowRef<ReadonlyMap<number, RunState[]>>(turnsNow);
+  roomTurnsHeld ??= shallowRef<ReadonlyMap<number, RunState[]>>(published);
 
   return roomTurnsHeld;
 }
 
-function setTurns(next: ReadonlyMap<number, RunState[]>): void {
-  turnsNow = next;
+// The record's turns with their progress left out: what a screen reading which turns stand compares.
+function shapeOf(rooms: ReadonlyMap<number, RunState[]>): string {
+  return JSON.stringify([...rooms].map(([chatId, runs]) => [chatId, runs.map(({ progress: _progress, ...standing }) => standing)]));
+}
+
+function turnShape(): Ref<ReadonlyMap<number, RunState[]>> {
+  if (turnShapeHeld === null) {
+    turnShapeHeld = shallowRef<ReadonlyMap<number, RunState[]>>(published);
+    turnShapeForm = shapeOf(published);
+  }
+
+  return turnShapeHeld;
+}
+
+function roomRuns(chatId: number): Ref<RunState[]> {
+  let held = roomRunsHeld.get(chatId);
+
+  if (held === undefined) {
+    held = shallowRef<RunState[]>(published.get(chatId) ?? NO_RUNS);
+    roomRunsHeld.set(chatId, held);
+  }
+
+  return held;
+}
+
+// The record handed to the screens as it stands now, each ref moving only where what it holds changed.
+function publish(): void {
+  publishing?.();
+  publishing = null;
+
+  if (published === turnsNow) return;
+
+  published = turnsNow;
 
   if (roomTurnsHeld !== null) {
-    roomTurnsHeld.value = next;
+    roomTurnsHeld.value = published;
+  }
+
+  if (turnShapeHeld !== null) {
+    const form = shapeOf(published);
+
+    if (form !== turnShapeForm) {
+      turnShapeForm = form;
+      turnShapeHeld.value = published;
+    }
+  }
+
+  for (const [chatId, held] of roomRunsHeld) {
+    const runs = published.get(chatId) ?? NO_RUNS;
+
+    if (held.value !== runs) {
+      held.value = runs;
+    }
+  }
+}
+
+// The record handed to the screens on the next frame, once however many pictures come before it. A tab the browser
+// is not drawing runs no frame, so it hands nothing until it is looked at again.
+function publishSoon(): void {
+  if (publishing !== null) return;
+
+  if (typeof requestAnimationFrame === "function") {
+    const frame = requestAnimationFrame(publish);
+
+    publishing = () => cancelAnimationFrame(frame);
+  } else {
+    const clock = setTimeout(publish, FRAME_MS);
+
+    publishing = () => clearTimeout(clock);
+  }
+}
+
+// A turn's progress waits for the next frame; anything else about the turns is handed at once.
+function setTurns(next: ReadonlyMap<number, RunState[]>, progressOnly = false): void {
+  turnsNow = next;
+
+  if (progressOnly) {
+    publishSoon();
+  } else {
+    publish();
   }
 }
 
@@ -234,7 +324,7 @@ function hand(event: BotEvent): void {
   endedNow = stepEndedTurns(endedNow, event);
 
   if (next !== turnsNow) {
-    setTurns(next);
+    setTurns(next, event.type === "run-progress");
   }
 
   if (event.type === "live" && event.live !== undefined) {
@@ -934,7 +1024,25 @@ function picturedTurns(rooms: ReadonlyMap<number, RunState[]>, turns: ChatTurn[]
     next.set(turn.chatId, putTurn(next.get(turn.chatId) ?? [], state));
   }
 
-  return next;
+  return sameRoomsKept(rooms, next);
+}
+
+// The record a picture stands, with every room it left as it was kept as the very turns already held, and the
+// very record where it left every room so, so a picture that moved nothing hands the screens nothing new.
+function sameRoomsKept(before: ReadonlyMap<number, RunState[]>, next: Map<number, RunState[]>): ReadonlyMap<number, RunState[]> {
+  let moved = before.size !== next.size;
+
+  for (const [chatId, runs] of next) {
+    const had = before.get(chatId);
+
+    if (had !== undefined && JSON.stringify(had) === JSON.stringify(runs)) {
+      next.set(chatId, had);
+    } else {
+      moved = true;
+    }
+  }
+
+  return moved ? next : before;
 }
 
 // The tab's record of every room's turns after one event. A turn is in flight from the moment the
@@ -976,8 +1084,12 @@ export function stepRoomTurns(rooms: ReadonlyMap<number, RunState[]>, event: Bot
     // the draft process opens a fresh picture, which has written none yet (docs/web.md, the room screen's progress
     // lines).
     const said = (event.progress.said ?? []).length > 0 ? event.progress.said : was.progress?.said;
+    const progress = said === undefined ? event.progress : { ...event.progress, said };
 
-    return withRoom(rooms, event.chatId, putTurn(held, { ...was, progress: said === undefined ? event.progress : { ...event.progress, said } }));
+    // A picture saying again what the last one said moves nothing (docs/web.md, 「What the stream costs a tab」).
+    if (was.progress !== null && JSON.stringify(was.progress) === JSON.stringify(progress)) return rooms;
+
+    return withRoom(rooms, event.chatId, putTurn(held, { ...was, progress }));
   }
 
   // A question of the draft process starting: the chat agent's turn is now on it. The process's end leaves the line as
@@ -1061,7 +1173,7 @@ export const ANSWER_WAIT_MS = 15_000;
 // already going there. A room two supervisors answer can have a turn of each going at once, and each stands as
 // its own block.
 export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
-  const record = roomTurns();
+  const going = roomRuns(chatId);
   const outcome = ref<RoomOutcome | null>(null);
 
   let fading: ReturnType<typeof setTimeout> | null = null;
@@ -1083,10 +1195,9 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
   // The turns going here, after the blocks still standing through their ending. A speaker whose
   // next turn has begun stands as that turn.
   const runs = computed<RunState[]>(() => {
-    const going = record.value.get(chatId) ?? [];
-    const speaking = new Set(going.map((run) => runKey(run.speaker)));
+    const speaking = new Set(going.value.map((run) => runKey(run.speaker)));
 
-    return [...settling.value.filter((run) => !speaking.has(runKey(run.speaker))), ...going];
+    return [...settling.value.filter((run) => !speaking.has(runKey(run.speaker))), ...going.value];
   });
 
   function unsettle(key: string): void {
@@ -1210,9 +1321,10 @@ export function useRoomRun(chatId: number, handlers: RoomRunHandlers): RoomRun {
     }
 
     const ending = (endings.get(key) ?? 0) + 1;
-    // The record has not yet heard this ending, so it still holds the turn as it stood. A turn that sent stands
-    // naming the message it sent, which is the answer its block waits on.
-    const held = record.value.get(chatId)?.find((run) => runKey(run.speaker) === key);
+    // The record has not yet heard this ending, so it still holds the turn as it stood, with the progress a frame
+    // not yet drawn may still hold. A turn that sent stands naming the message it sent, which is the answer its block
+    // waits on.
+    const held = turnsNow.get(chatId)?.find((run) => runKey(run.speaker) === key);
     const last = held !== undefined && event.type === "sent" && event.messageId !== null ? { ...held, answer: event.messageId } : held;
 
     endings.set(key, ending);
@@ -1320,11 +1432,15 @@ export function useChatTurns(): Readonly<Ref<ChatTurnProgress[]>> {
 // The supervisors whose turn runs now in any room: each turn's speaker by its name, and a turn naming none under the
 // default answerer's.
 export function useSupervisorsAnswering(): Readonly<Ref<ReadonlySet<string>>> {
-  const record = roomTurns();
+  const record = turnShape();
 
   useBotEvents(() => undefined);
 
-  return computed(() => new Set([...record.value.values()].flatMap((runs) => runs.map((run) => otherAnswererOf(run.speaker)?.name ?? defaultAnswererName()))));
+  return computed<ReadonlySet<string>>((before) => {
+    const names = new Set([...record.value.values()].flatMap((runs) => runs.map((run) => otherAnswererOf(run.speaker)?.name ?? defaultAnswererName())));
+
+    return before !== undefined && before.size === names.size && [...names].every((name) => before.has(name)) ? before : names;
+  });
 }
 
 // Every supervisor's turns that run now, by the supervisor's name: the room each runs in and when it began, in epoch
@@ -1332,7 +1448,7 @@ export function useSupervisorsAnswering(): Readonly<Ref<ReadonlySet<string>>> {
 // through its ending, is no turn running. Null until the stream has handed the bot's picture, since an empty record
 // then says nothing of what runs.
 export function useSupervisorTurns(): Readonly<Ref<ReadonlyMap<string, { chatId: number; startedAt: number }[]> | null>> {
-  const record = roomTurns();
+  const record = turnShape();
   const heard = turnsPictured();
 
   useBotEvents(() => undefined);

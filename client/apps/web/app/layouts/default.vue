@@ -183,6 +183,7 @@ import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
+import { sameKept, sameRowsKept } from "~/domain/same-kept";
 import { useAskedTodo } from "~/domain/todo-address";
 
 import type { LiveRun, RoomAdded, StatusView } from "#shared/types";
@@ -241,7 +242,7 @@ const bundles = useConsoleScreens();
 const screens = screensWithBundles(bundles.value);
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();
-const screenSections = computed<SectionMenu[]>(() => sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value));
+const screenSections = computed<SectionMenu[]>((before) => sameKept(before, sectionItems(t, route.path, undefined, sidebarFolded.value, screens, unread.value)));
 
 // The picture every session in this sidebar wears.
 const avatars = useAvatars();
@@ -270,13 +271,19 @@ async function roomAdded(added: RoomAdded): Promise<void> {
 }
 const reading = useRoomReading();
 const roomsInitial = useInitialRead(roomsStatus);
-const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.value, avatars.value, route.path, sidebarFolded.value, reading.value));
+// Each room's entry stays the one in hand while what it shows is the same, so a room switch or a room's message draws
+// again the rows that changed and no other (docs/web.md, 「What the stream costs a tab」).
+const roomEntries = computed<NavigationMenuItem[]>((before) =>
+  sameRowsKept(before, roomItems(t, rooms.value, avatars.value, route.path, sidebarFolded.value, reading.value), (entry) => String(entry.to))
+);
 
 // Which agents are at work right now. The picture is asked for once and replaced by the one the live events
 // carry, so a mark comes and goes without the sidebar asking again.
 const live = ref<LiveRun[]>([]);
 
-const groups = computed<AgentGroup[]>(() => agentGroups(t, [...agents.value.agents], rooms.value));
+// The groups stay the ones in hand while a read of the agents or the rooms leaves them as they were, so a room's
+// message draws nothing of the agents' menu again (docs/web.md, 「What the stream costs a tab」).
+const groups = computed<AgentGroup[]>((before) => sameKept(before, agentGroups(t, [...agents.value.agents], rooms.value)));
 // The supervisors whose turn runs now in a room.
 const answering = useSupervisorsAnswering();
 
@@ -287,7 +294,18 @@ const { folds, setFolds } = useAgentFolds();
 // Every agent, in its groups. A group never touched is unfolded: the point of the block is that the whole
 // catalogue is in view. Each group is named by its own key so that what the menu hands back is a list of groups
 // rather than a list of positions.
-const agentItems = computed<NavigationMenuItem[]>(() => [
+// Where in the agents the address stands, the same value while it stands anywhere else, so a room switch leaves the
+// agents' menu as it is (docs/web.md, 「What the stream costs a tab」).
+const agentPlace = computed<{ path: string; chat?: string; at?: string }>((before) =>
+  sameKept(
+    before,
+    route.path.startsWith("/agents/")
+      ? { path: decodeURIComponent(route.path), chat: route.query.chat?.toString(), at: route.query.at?.toString() }
+      : { path: "" }
+  )
+);
+
+const agentItems = computed<NavigationMenuItem[]>((before) => sameKept(before, [
   { label: t("screens.label.group_agents"), type: "label" },
   ...groups.value.map((group) => ({
     label: group.label,
@@ -296,12 +314,12 @@ const agentItems = computed<NavigationMenuItem[]>(() => [
     icon: sidebarFolded.value ? groupIcon(group.key) : undefined,
     children: group.agents.map(agentEntry)
   }))
-]);
+]));
 
 // The menu is told which groups stand open and says so back when one is folded or unfolded. Only the groups on
 // the screen are written down; what was remembered of a group not yet listed waits for it.
 const openGroups = computed<string[]>({
-  get: () => groups.value.filter((group) => isGroupOpen(folds.value, group.key)).map((group) => group.key),
+  get: (before) => sameKept(before, groups.value.filter((group) => isGroupOpen(folds.value, group.key)).map((group) => group.key)),
   set: (open) => setFolds(withGroupFolds(folds.value, groups.value.map((group) => group.key), open))
 });
 
@@ -318,7 +336,7 @@ function busy(agent: AgentMeta): boolean {
 // grows stands beside the name but that count, since a name is what the entry is read by. A name may carry a colon or
 // a minus sign, so the link encodes it.
 function agentEntry(agent: AgentMeta): NavigationMenuItem {
-  const at = decodeURIComponent(route.path) === `/agents/${agent.name}`;
+  const at = agentPlace.value.path === `/agents/${agent.name}`;
   const children = [...agent.sessions.map((session) => sessionEntry(agent, session)), ...agent.runs.map((run) => runEntry(agent, run))];
 
   return {
@@ -327,7 +345,7 @@ function agentEntry(agent: AgentMeta): NavigationMenuItem {
     // A supervisor wears its face, a role and a repository their branch's mark (docs/web.md, 「Profile photos」).
     icon: agentFace.value(agent) === undefined ? agent.icon : undefined,
     avatar: agentFace.value(agent),
-    active: at && route.query.chat === undefined && route.query.at === undefined,
+    active: at && agentPlace.value.chat === undefined && agentPlace.value.at === undefined,
     // A turning circle rather than a still dot: the list is meant to say what is alive, and a dot says only that
     // something was true when the picture arrived.
     busy: busy(agent),
@@ -342,7 +360,7 @@ function sessionEntry(agent: AgentMeta, session: AgentSession): NavigationMenuIt
     label: session.label,
     to: sessionLink(agent.name, session),
     avatar: avatarFor(avatars.value, "room", session.chatId, session.label),
-    active: decodeURIComponent(route.path) === `/agents/${agent.name}` && route.query.chat === String(session.chatId)
+    active: agentPlace.value.path === `/agents/${agent.name}` && agentPlace.value.chat === String(session.chatId)
   };
 }
 
@@ -352,7 +370,7 @@ function runEntry(agent: AgentMeta, run: AgentRun): NavigationMenuItem {
     label: run.label,
     to: runLink(agent.name, run),
     icon: "i-material-symbols-subdirectory-arrow-right",
-    active: decodeURIComponent(route.path) === `/agents/${agent.name}` && run.since !== null && route.query.at === String(run.since)
+    active: agentPlace.value.path === `/agents/${agent.name}` && run.since !== null && agentPlace.value.at === String(run.since)
   };
 }
 
@@ -393,7 +411,7 @@ onBeforeUnmount(() => {
   if (peopleTimer !== null) clearTimeout(peopleTimer);
 });
 
-const jumpSources = computed<JumpGroup[]>(() => [
+const jumpSources = computed<JumpGroup[]>((before) => sameKept(before, [
   screenGroup(t, screens),
   peopleGroup(t, people.value),
   {
@@ -419,14 +437,14 @@ const jumpSources = computed<JumpGroup[]>(() => [
       hidden: [{ label: t("screens.label.internal_name"), text: agent.name }]
     }))
   }))
-]);
+]));
 const searchGroups = computed(() => jumpGroups(t, jumpSources.value, searchTerm.value));
 
 // The jobs running beside the chat are the agency's, so the receiver's picture says nothing of one starting or
 // ending. The agency's job events name it, and the board is read again when one comes.
 async function readLiveStatus(): Promise<void> {
   try {
-    live.value = (await $fetch<StatusView>("/api/status")).live;
+    live.value = sameKept(live.value, (await $fetch<StatusView>("/api/status")).live);
   } catch {
     // The sidebar stands whether the units answer or not; without it the agents go without their marks.
   }
@@ -434,13 +452,12 @@ async function readLiveStatus(): Promise<void> {
 
 const stream = useBotEvents((event) => {
   if (event.type === "live" && event.live !== undefined) {
-    live.value = event.live.runs ?? [];
-  }
-
-  if (event.type === "worker-run") {
-    void readLiveStatus();
+    live.value = sameKept(live.value, event.live.runs ?? []);
   }
 });
+
+// A burst of the agency's job words is one read of the board, not one for each word.
+useLiveRefresh(() => void readLiveStatus(), { on: ["worker-run"] });
 
 onMounted(readLiveStatus);
 

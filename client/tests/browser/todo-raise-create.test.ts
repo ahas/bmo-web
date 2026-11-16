@@ -54,7 +54,6 @@ function item(id: number, unfinished: string | null): TodoItem {
     rejections: 0,
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
-    brief: null,
     heldAt: null,
     heldReason: null,
     heldKind: null,

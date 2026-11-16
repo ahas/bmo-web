@@ -288,7 +288,7 @@
                 :testbed-turn="testbedTurns.get(item.id) ?? null"
                 :questions="askedOf.get(item.id) ?? null"
                 :match="rowMatches.get(item.id) ?? null"
-                :rooms="rooms"
+                :rooms="roomNames"
                 :unapproving="unapproving === item.id && rowVerbs(item, board.queue).includes('unapprove')"
                 :unapprove-busy="unapproving === item.id && busy.has(busyKey(item.id, 'unapprove'))"
                 @open="toggle"
@@ -345,7 +345,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useHoldMenu } from "bmo-ui/app/domain/holdmenu";
 import { usePolling } from "~/domain/polling";
 import { useTodoModelPlan } from "~/domain/todo-models";
-import { useLiveRefresh, useReadFailure, useTestbedEvents } from "~/domain/events";
+import { useBotEvents, useLiveRefresh, useReadFailure, useTestbedEvents } from "~/domain/events";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { COUNT_BADGE } from "~/domain/numbers";
@@ -386,6 +386,7 @@ import {
   conditionQuery,
   NO_CONDITIONS,
   NO_ROOM,
+  patchedBoard,
   sameItemsKept
 } from "~/domain/todos";
 import { movedEnoughToDrag, rowAtPoint, startsRowDrag } from "~/domain/row-drag";
@@ -400,6 +401,7 @@ import type {
   StatusView,
   TodoAction,
   TodoBoard,
+  TodoBoardRow,
   TodoItem
 } from "#shared/types";
 import type { SearchMatch } from "bmo-ui/shared/search";
@@ -455,6 +457,14 @@ const { data: rooms } = useFetch<RoomSummary[]>("/api/rooms", {
   lazy: true,
   server: false,
   default: () => []
+});
+// The rooms a line names its request's room by, kept the same while no room's number or name moved: the room list is
+// read again on every room's message, and a line handed it anew would be drawn again for a count it does not show.
+const roomNames = computed<RoomSummary[]>((before) => {
+  const now = rooms.value;
+  const same = before !== undefined && before.length === now.length && before.every((room, at) => room.chatId === now[at]!.chatId && room.title === now[at]!.title);
+
+  return same ? before : now;
 });
 
 // The repositories an item may go to, out of the one catalogue read every screen shares: the list is the agency's,
@@ -781,6 +791,29 @@ async function read(limit: number, more = false): Promise<void> {
 
 async function reload(): Promise<void> {
   await read(keptDoneLimit(board.value.done.length));
+}
+
+// The lines of the items a word named, put in where they stand. A search or a condition narrows the board by what a
+// line holds, and a line that left its list or was never on the page changes which lines the board holds, so either
+// reads the whole board instead. A whole read begun meanwhile is newer than this one, which then puts nothing in.
+async function readRows(ids: number[]): Promise<void> {
+  if (searched.value !== "" || conditionsSet.value > 0) return await reload();
+
+  const generation = boardGeneration;
+
+  try {
+    const rows = await $fetch<TodoBoardRow[]>("/api/todos/rows", { query: { ids: ids.join(",") } });
+
+    if (generation !== boardGeneration) return;
+
+    const next = rows.length === ids.length ? patchedBoard(board.value, rows) : null;
+
+    if (next === null) return await reload();
+
+    board.value = next;
+  } catch {
+    await reload();
+  }
 }
 
 const boardRead = useReadFailure({ failed: () => boardFailure.value !== "", reading: () => pending.value, reread: () => void reload() });
@@ -1400,10 +1433,41 @@ function sameOrder(left: number[], right: number[]): boolean {
 // the same rows, since a running row says how far its order has come. A re-read that nobody asked
 // for waits while a row is in the air or an order is on its way; the button and the change that
 // has just been made read whenever they like.
+// A word naming the one item it moved reads that item's line alone and puts it in where it stands; a word naming none,
+// a burst one of whose words named none, and a stream that came back read the whole board (docs/web.md, the TODO panel's
+// section).
+let namedItems = new Set<number>();
+let namedAll = false;
+
+useBotEvents((event) => {
+  if (event.type !== "todo" && event.type !== "work-order" && event.type !== "worker-run") return;
+
+  if (event.todoId === undefined) {
+    namedAll = true;
+  } else {
+    namedItems.add(event.todoId);
+  }
+});
+
 useLiveRefresh(
-  () => {
-    void reload();
-    rereadOpened();
+  (cause) => {
+    const named = namedItems;
+    const whole = namedAll || cause !== "event" || named.size === 0;
+
+    namedItems = new Set();
+    namedAll = false;
+
+    if (whole) {
+      void reload();
+      rereadOpened();
+
+      return;
+    }
+
+    void readRows([...named]);
+
+    if (opened.value !== null && named.has(opened.value)) detail.value?.reread(opened.value);
+    if (stray.value !== null && named.has(stray.value.id) && boardItem(stray.value.id) === undefined) void readStray(stray.value.id);
   },
   {
     // A job the agency ends takes a reporting row to the finished ones, so its end is news for the rows too.

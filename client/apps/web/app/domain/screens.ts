@@ -226,7 +226,21 @@ export function sectionItems(t: Translate, path: string, live: ScreenLive = QUIE
 // Folded, a row's words are gone and it is its icon alone, so its name is handed to it as its
 // accessible name as well as its tooltip.
 export function namedWhenFolded(items: NavigationMenuItem[], folded: boolean): NavigationMenuItem[] {
-  return folded ? items.map((item) => (item.type === "label" ? item : { ...item, "aria-label": item.label })) : items;
+  return folded ? items.map((item) => (item.type === "label" ? item : foldedItem(item))) : items;
+}
+
+// The folded form of each item, made once for the item, so an entry handed the same item is handed the same form.
+const foldedItems = new WeakMap<NavigationMenuItem, NavigationMenuItem>();
+
+function foldedItem(item: NavigationMenuItem): NavigationMenuItem {
+  let folded = foldedItems.get(item);
+
+  if (folded === undefined) {
+    folded = { ...item, "aria-label": item.label };
+    foldedItems.set(item, folded);
+  }
+
+  return folded;
 }
 
 // A room of the sidebar: its name and picture, and how many of its messages the reader has not read, as a badge

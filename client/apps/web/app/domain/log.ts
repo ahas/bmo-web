@@ -2,6 +2,7 @@ import { AGENT_LOG_OPENING_SIZE, AGENT_LOG_PAGE_SIZE, PAGING } from "#shared/con
 import { clockFitsCall, clockKey, foldClock, newClock, settleClock } from "./tool-clock";
 import { valueText } from "./value-text";
 import { failureText } from "bmo-ui/app/domain/errors";
+import { sameRowsKept } from "./same-kept";
 
 import type { ToolClockView } from "./tool-clock";
 
@@ -585,23 +586,34 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
 
   const path = `/api/agents/${encodeURIComponent(name)}/log`;
 
-  const rows = computed<LogRow[]>(() => buildLog(lines.value));
+  // Each row stays the one in hand while it reads the same, so a line arriving draws its own row and no other.
+  const rows = computed<LogRow[]>((before) => sameRowsKept(before, buildLog(lines.value), (row) => row.key));
 
   function merge(page: AgentLogPage): number {
     if (page.unavailable === true) failure.value = t("agents.status.log_unavailable");
 
     const byId = new Map(lines.value.map((line) => [line.id, line]));
     let added = 0;
+    let changed = false;
 
     for (const line of page.lines) {
-      if (!byId.has(line.id)) {
+      const had = byId.get(line.id);
+
+      if (had === undefined) {
         added += 1;
       }
 
-      byId.set(line.id, line);
+      // A line read again as it was stays the line in hand, so a read that brought nothing new draws no row again
+      // (docs/web.md, 「What the stream costs a tab」).
+      if (had === undefined || JSON.stringify(had) !== JSON.stringify(line)) {
+        byId.set(line.id, line);
+        changed = true;
+      }
     }
 
-    lines.value = [...byId.values()].sort((left, right) => left.id - right.id);
+    if (changed) {
+      lines.value = [...byId.values()].sort((left, right) => left.id - right.id);
+    }
 
     return added;
   }

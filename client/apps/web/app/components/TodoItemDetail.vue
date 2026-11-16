@@ -543,8 +543,8 @@
                     <p class="text-sm font-medium text-muted">{{ $t("todo.title.brief") }}</p>
                   </div>
 
-                  <p v-if="openedItem.brief === null" class="text-sm text-muted">{{ $t("todo.status.no_brief") }}</p>
-                  <TranslatedText v-else :text="openedItem.brief" />
+                  <p v-if="openedItem.instruction.trim() === ''" class="text-sm text-muted">{{ $t("todo.status.no_brief") }}</p>
+                  <TranslatedText v-else :text="openedItem.instruction" />
 
                   <div v-if="briefChanges.length > 0" class="flex flex-col gap-4">
                     <p class="text-sm font-medium text-muted">{{ $t("todo.title.brief_changes") }}</p>

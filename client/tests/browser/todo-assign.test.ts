@@ -30,7 +30,7 @@ function item(id: number, over: Partial<TodoItem>): TodoItem {
     id, title: `item-${id}`, instruction: `item-${id}`, requester: "Owner", requesterId: 42, chatId: 42,
     approved: true, awaitingApproval: false, recommended: false, done: false, running: false, worker: "bmo-a",
     priority: 1, status: "waiting", model: null, role: null, agent: null, jobAgent: null, ranOn: null, note: null,
-    reports: [], unfinished: null, rejections: 0, unfinishedResolvedAt: null, unfinishedResolution: null, brief: null,
+    reports: [], unfinished: null, rejections: 0, unfinishedResolvedAt: null, unfinishedResolution: null,
     heldAt: null, heldReason: null, heldKind: null, mergedInto: null, mergedAt: null, mergedIntoTitle: null,
     mergedFrom: [], attempts: 0, progress: null, stopped: null, holding: null, waiting: null, deployWaits: false,
     closing: null, deployHeld: false, holdPending: false, orderActive: false, seconds: null, spans: [],

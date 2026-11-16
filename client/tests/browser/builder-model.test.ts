@@ -30,7 +30,7 @@ function item(): TodoItem {
     id: ITEM, title: "item-title", instruction: "item-instruction", requester: "Owner", requesterId: null, chatId: null, approved: false, awaitingApproval: true, recommended: false, done: false,
     running: false, worker: null, priority: 1, status: "waiting", model: null, agent: null, ranOn: null, note: null, reports: [], unfinished: null,
     rejections: 0,
-    unfinishedResolvedAt: null, unfinishedResolution: null, brief: "item-brief", heldAt: null, heldReason: null, heldKind: null,
+    unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, heldKind: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 0, progress: null, stopped: null, holding: null, waiting: null,
     deployWaits: false, closing: null, deployHeld: false, holdPending: false, orderActive: false, seconds: null, spans: [], createdAt: NOW - 4_000, doneAt: null
   };

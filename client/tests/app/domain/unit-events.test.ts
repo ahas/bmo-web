@@ -62,13 +62,18 @@ describe("bmo-job's events", () => {
   });
 
   test("a member the stream names by its kind is the TODO, that item's work order or that item's talk", () => {
+    // An item's change names the item, so the panel reads its line alone; an item made or let go changes which lines
+    // the board holds and names none (docs/web.md, the TODO panel's section).
     expect(jobEvent({ id: 9, at: 2, kind: "item.changed", data: { id: 41, title: "a row" } })).toEqual({
       id: 9,
       at: 2,
       type: "todo",
       chatId: 0,
-      messageId: null
+      messageId: null,
+      todoId: 41
     });
+    expect(jobEvent({ id: 9, at: 2, kind: "item.created", data: { id: 42, title: "a row" } })).toEqual({ id: 9, at: 2, type: "todo", chatId: 0, messageId: null });
+    expect(jobEvent({ id: 9, at: 2, kind: "lease.created", data: { id: 5, itemId: 41 } })?.todoId).toBe(41);
     expect(jobEvent({ id: 10, at: 2, kind: "queue.changed", data: { name: "todo" } })?.type).toBe("todo");
     expect(jobEvent({ id: 11, at: 2, kind: "work-order.changed", data: { itemId: 41, state: "active" } })).toEqual({
       id: 11,
@@ -133,6 +138,8 @@ describe("the agency's turns", () => {
       chatId: -100_387_496_9077,
       messageId: null
     });
+    // A job of an item names the item, whose line the TODO panel reads alone.
+    expect(agencyEvent({ id: 31, at: 1, kind: "job.changed", data: { id: 8, roomId: null, itemId: 41, startedAt: 1 } })?.todoId).toBe(41);
 
     expect(agencyEvent({ id: 30, at: 1, kind: "account.changed", data: { id: 4 } })).toBeNull();
   });

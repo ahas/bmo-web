@@ -78,7 +78,7 @@ function item(): TodoItem {
     id: ITEM, title: "item-title", instruction: "item-instruction", requester: "Owner", requesterId: CHAT, chatId: CHAT, approved: true, awaitingApproval: false, recommended: false, done: false,
     running: true, liveState: "running", worker: null, priority: 1, status: "running", model: null, agent: null, ranOn: null, note: null, reports: [], unfinished: null,
     rejections: 0,
-    unfinishedResolvedAt: null, unfinishedResolution: null, brief: null, heldAt: null, heldReason: null, heldKind: null,
+    unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, heldKind: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
     deployWaits: false, closing: null, deployHeld: false, holdPending: false, orderActive: true, seconds: null, spans: [], createdAt: NOW - 4_000, doneAt: null
   };

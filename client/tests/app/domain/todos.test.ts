@@ -11,6 +11,7 @@ import {
   itemModelTip,
   boardInOrder,
   sameItemsKept,
+  patchedBoard,
   busyBlocks,
   busyKey,
   canDrag,
@@ -110,7 +111,6 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     rejections: 0,
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
-    brief: null,
     heldAt: null,
     heldReason: null,
     heldKind: null,
@@ -888,6 +888,32 @@ describe("a re-read of the board", () => {
     expect(kept.done.at(-1)).toBe(board.queue[2]!);
     expect(kept.pending.every((entry, at) => entry === board.pending[at])).toBe(true);
     expect(kept.doneTotal).toBe(answer.doneTotal);
+  });
+});
+
+// A word naming the one item it moved reads that item's line alone and puts it in where it stands (docs/web.md, the
+// TODO panel's section); a line that left its list or is not in hand says the board's lines changed.
+describe("a line read again on a word naming its item", () => {
+  test("stands where it stood, moves the queue's running count, and leaves every other line the item it was", () => {
+    const waiting: TodoBoard = { ...board, queue: [item(1), item(2, { liveState: null }), item(3)], standing: { ...board.standing, running: 0 } };
+    const started = { ...waiting.queue[1]!, liveState: "running" as const };
+    const patched = patchedBoard(waiting, [{ list: "queue", item: started }]);
+
+    expect(patched?.queue.map((entry) => entry.id)).toEqual([1, 2, 3]);
+    expect(patched?.queue[1]).toBe(started);
+    expect(patched?.queue[0]).toBe(waiting.queue[0]!);
+    expect(patched?.pending).toBe(waiting.pending);
+    expect(patched?.standing.running).toBe(1);
+  });
+
+  test("a line that came back as it was hands the very board back", () => {
+    expect(patchedBoard(board, [{ list: "queue", item: structuredClone(board.queue[0]!) }])).toBe(board);
+  });
+
+  test("a line now in another list, one not in hand, or one whose priority moved asks for the whole board", () => {
+    expect(patchedBoard(board, [{ list: "done", item: board.queue[0]! }])).toBeNull();
+    expect(patchedBoard(board, [{ list: "queue", item: item(999) }])).toBeNull();
+    expect(patchedBoard(board, [{ list: "queue", item: { ...board.queue[0]!, priority: 99 } }])).toBeNull();
   });
 });
 

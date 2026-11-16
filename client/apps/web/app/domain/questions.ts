@@ -1,6 +1,7 @@
 import { POLL_INTERVAL_MS, questionAnswerText } from "#shared/config";
 import { roomRoute } from "#shared/paths";
 import { useLiveRefresh } from "./events";
+import { sameKept } from "./same-kept";
 import { elapsedText, toUnixSeconds } from "bmo-ui/app/domain/time";
 
 import type { OwnerChat, JobQuestion, QuestionTalk } from "#shared/types";
@@ -213,7 +214,8 @@ async function read(): Promise<void> {
   held.now.value = toUnixSeconds(Date.now());
 
   try {
-    held.all.value = await $fetch<JobQuestion[]>("/api/questions");
+    // A read that brought the questions back as they were hands the screens nothing new to draw.
+    held.all.value = sameKept(held.all.value, await $fetch<JobQuestion[]>("/api/questions"));
   } catch {
     // Nothing is said about a read that failed: the next word from the bot asks again, and what
     // is on the screen is still the last thing the archive said.

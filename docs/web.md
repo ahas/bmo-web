@@ -6711,7 +6711,12 @@ Four bounds keep it from growing forever.
   why not. Closing an item with another unfinished-item makes it a new one so the earlier resolution disappears with it.
 - **A new item is not made here.** An item's worth is in the instruction original, and that original comes only from the conversation the owner had with the chat agent in their private chat. Putting an input box in the panel would make a line with no such conversation. New work is spoken in the owner's private chat's input box, and the chat agent files it as the
   original.
-- The panel is updated by the events the bot flows. On one word that the queue moved, it re-reads the queue and questions together, and with them the
+- The panel is updated by the events the bot flows. On a word naming the items it moved — an item changed, a lease, a
+  question or a reply of an item, an item's work order, an agency job working on an item — it reads those items' lines
+  alone and puts each in where it stands, its queue counts moved with it, and reads the open item's 추가 지시 again where
+  it is one of them; a line that now stands in another list or was not on the page, a priority moved, a search or a
+  condition narrowing the board, and a word naming no item read the whole board instead (「What the stream costs a
+  tab」). On one word that the queue moved, it re-reads the queue and questions together, and with them the
   open item's 추가 지시 and an item opened from a link beyond the page, since either can be what moved. Not only when the bot changes the table — a side
   that wrote straight to the archive also says one word to the bot after writing, so a change outside the bot rides the same word: a room filing a new
   request, the chat agent approving, holding, releasing or adding words to an item, a job launched on an item, a runner handing the chat agent's change to the job
@@ -8061,6 +8066,44 @@ its people directory and the members of the reader's company.
   runs is going, or its job runs, that clock carries its lines and figures as well; a log whose runs have all ended,
   and a job that has ended, read on the stream alone.
 - The sidebar and the home screen get the status once on opening and thereafter swap in the status the stream carries.
+
+## What the stream costs a tab
+
+An administrator's tab hears every room. While rounds work, the receiver hands a picture of each running turn about
+once a second, often the same picture again, and bmo-job and the agency speak beside it; a tab that reopens is handed
+the minutes it missed at once. The console stays light under that whatever a unit sends.
+
+- **The budget.** On the owner's machine, while five rounds work and the stream carries their pictures:
+  - no task the stream sets off holds the page's main thread past 50 ms, so whatever the owner does next is taken up
+    within a few frames;
+  - a character typed into a room's words box stands on screen within 50 ms of its key;
+  - a press on another room in the sidebar is painted within 100 ms, and the room it opens stands, its words box
+    ready, within 400 ms.
+
+  The times are the browser's own: its Long Tasks timing, and its Event Timing of an interaction from the input to the
+  frame that shows its answer. The browser check `console-load` holds the console to it: it plays a stream of that
+  shape into a console holding about ninety rooms and a few hundred TODO lines, on a processor slowed to half its
+  speed against the development console, and fails where the stream's tasks, a typed character or a room switch go
+  past it.
+- **A picture saying again what the last one said moves nothing.** The tab's record of every room's turns (「Room
+  screen」, the line belonging to the room) compares a turn's new progress with what it holds and takes nothing from a
+  repeat; a live picture that leaves a room's turns as they were hands that room's screen nothing new.
+- **A turn's progress reaches the screens once a frame.** However many pictures arrive between two frames, the screens
+  are handed the record once, on the next frame, and a tab the browser is not drawing hands them nothing until it is
+  looked at again. A turn beginning, ending or moving on to its next question is handed at once, with whatever
+  progress came before it, so nothing is drawn out of order. A reopened stream's backlog is one such burst.
+- **A screen is handed only what it shows.** A room's screen reads its own room's turns, so another room's picture
+  draws nothing there. The sidebar reads which supervisors have a turn running, which a picture of progress does not
+  change. The home screen and an agent's page, which show every turn's progress, read the whole record once a frame.
+- **A word naming one row reads that row.** bmo-job names the item an item's change, a lease, a question or a reply
+  is of, and the agency names the item a job works on: the TODO panel reads those items' lines alone and puts them in
+  where they stand (the TODO panel's section). The board is read whole only on a word naming none, a burst holding
+  one, a line that left its list or is not on the page, and a stream that came back. The room list, the agents and the
+  live board are read whole on their news, a burst of news one read.
+- **A read bringing back what is in hand draws nothing.** A room's sidebar entry, a TODO line, an agent's log row, the
+  open questions, the live board's runs and the agents a picture names stay the very values already held wherever a
+  read or a picture brings them back unchanged, so only what changed is drawn again: a room switch redraws the two
+  rooms whose marks moved, and a room's message redraws that room's entry.
 
 ## Tables
 

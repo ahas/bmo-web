@@ -91,7 +91,12 @@ export function jobEvent(data: Fields): BotEvent | null {
     return item === null ? null : { id, at, type: "todo-talk", chatId: 0, messageId: null, todoId: item };
   }
 
-  if (todoKind(kind)) return { id, at, type: "todo", chatId: 0, messageId: null };
+  if (todoKind(kind)) {
+    // An item made or let go changes which rows the board holds, so it names no one item.
+    const item = kind === "item.created" || kind === "item.deleted" ? null : itemOf(kind, member);
+
+    return item === null ? { id, at, type: "todo", chatId: 0, messageId: null } : { id, at, type: "todo", chatId: 0, messageId: null, todoId: item };
+  }
 
   if (kind === "work-order.changed" || kind === "task.changed") {
     const item = itemOf(kind, member);
@@ -144,8 +149,9 @@ export function agencyEvent(data: Fields): BotEvent | null {
   if (kind === "job.created" || kind === "job.changed" || kind === "job.ended") {
     const job = member ?? data;
     const room = number(job.roomId);
+    const item = number(job.itemId);
 
-    return { id, at: number(job.startedAt) ?? at, type: "worker-run", chatId: room ?? 0, messageId: null };
+    return { id, at: number(job.startedAt) ?? at, type: "worker-run", chatId: room ?? 0, messageId: null, ...(item === null ? {} : { todoId: item }) };
   }
 
   if (kind === "supervisor.changed" || kind === "role.changed" || kind === "repository.changed" || kind === "repository.deleted" || kind === "slot-request.changed") {

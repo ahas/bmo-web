@@ -149,7 +149,7 @@ async function open(viewport: { width: number; height: number }, scheme: (typeof
     const ids = (new URL(route.request().url()).searchParams.get("ids") ?? "").split(",").map(Number);
 
     await route.fulfill({
-      json: ids.map((id) => ({ id, title: `Keep the search index fresh for item ${id}`, instruction: "", brief: null, requester: "owner", requesterId: null, chatId: null, approved: true, awaitingApproval: false, recommended: false, done: false, running: true, priority: 1, status: "leased", model: null, agent: null, worker: "agent-a" }))
+      json: ids.map((id) => ({ id, title: `Keep the search index fresh for item ${id}`, instruction: "", requester: "owner", requesterId: null, chatId: null, approved: true, awaitingApproval: false, recommended: false, done: false, running: true, priority: 1, status: "leased", model: null, agent: null, worker: "agent-a" }))
     });
   });
 

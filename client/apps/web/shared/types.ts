@@ -625,10 +625,9 @@ export interface TodoReview {
 export interface TodoItem {
   id: number;
   title: string;
+  // The item's brief: the organized instruction the chat agent keeps for the item's jobs, in the original a job reads.
+  // Empty until the chat agent writes one.
   instruction: string;
-  // The organized instruction the chat agent keeps for the item's jobs, in the original a job reads. It is null
-  // until a job of the item is launched or the chat agent rewrites it.
-  brief: string | null;
   requester: string;
   requesterId: number | null;
   chatId: number | null;
@@ -794,6 +793,13 @@ export interface TodoBoard {
   // A deployment holding the queue until no job is at work, apart from the owner's pause and let go by
   // another button: what it carries, what it takes away, whom it waits for and until when.
   deployHold: DeployHold | null;
+}
+
+// One line of the board as the board reads it, with the list it stands in: what a word naming one item reads in place of
+// the whole board.
+export interface TodoBoardRow {
+  list: "queue" | "pending" | "held" | "done";
+  item: TodoItem;
 }
 
 export interface TodoStanding {
@@ -1173,6 +1179,14 @@ export type BotEvent = BotEventFields & ({
   workOrder?: never;
   document?: never;
 } | {
+  // The TODO moved, or a job of the agency's started, changed or ended. Where the event names the one item it moved,
+  // that item; absent where it names none, or where items came or went, which the board reads whole.
+  type: "todo" | "worker-run";
+  todoId?: number;
+  workOrder?: never;
+  document?: never;
+  review?: never;
+} | {
   type: "document-talk" | "document-translation";
   // The document's name, its root and its path inside that root.
   document: string;
@@ -1224,7 +1238,7 @@ export type BotEvent = BotEventFields & ({
   document?: never;
   review?: never;
 } | {
-  type: Exclude<BotEventType, "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review" | "agency-turn" | "agency-run" | "voice-briefing" | "voice-briefings-stopped">;
+  type: Exclude<BotEventType, "todo" | "worker-run" | "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review" | "agency-turn" | "agency-run" | "voice-briefing" | "voice-briefings-stopped">;
   todoId?: never;
   workOrder?: never;
   document?: never;

@@ -10,7 +10,7 @@ import { shortModel } from "#shared/model-short";
 import { todoModelPlan } from "./todo-models";
 
 import type { SearchField } from "bmo-ui/shared/search";
-import type { ItemTestbedTurn, JobChosenBy, RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoItem, TodoReport, TodoReview, TodoSpan } from "#shared/types";
+import type { ItemTestbedTurn, JobChosenBy, RoomSummary, TodoAction, TodoApproval, TodoBoard, TodoBoardRow, TodoItem, TodoReport, TodoReview, TodoSpan } from "#shared/types";
 import type { BarColor } from "bmo-ui/app/domain/bars";
 import type { Translate } from "#shared/wording";
 
@@ -1133,6 +1133,51 @@ export function sameItemsKept(before: TodoBoard, answer: TodoBoard): TodoBoard {
     merged: kept(answer.merged),
     done: kept(answer.done)
   };
+}
+
+// Whether a queue line counts as running, and whether it waits for its commit's deployment with no run going, as the
+// board's standing counts them.
+function runsNow(item: TodoItem): boolean {
+  return item.liveState === "starting" || item.liveState === "running";
+}
+
+function waitsForDeploy(item: TodoItem): boolean {
+  return !runsNow(item) && (item.closing?.phase === "waiting-batch" || item.closing?.phase === "waiting-live");
+}
+
+// The board with the lines a word named read again put in where they stand, each that came back as it was kept as the
+// very item in hand, and the queue's counts moved by what the lines now say (docs/web.md, the TODO panel's section).
+// Null where a line is not on the board in hand or now stands in another list: the lines the board holds changed, and
+// only the whole board says how.
+export function patchedBoard(board: TodoBoard, rows: readonly TodoBoardRow[]): TodoBoard | null {
+  const lists = { queue: board.queue, pending: board.pending, held: board.held, done: board.done };
+  let { running, deploy } = board.standing;
+
+  for (const row of rows) {
+    const list = lists[row.list];
+    const at = list.findIndex((item) => item.id === row.item.id);
+
+    if (at === -1) return null;
+
+    const before = list[at]!;
+    const after = itemForm(before) === itemForm(row.item) ? before : row.item;
+
+    if (after === before) continue;
+
+    // A line's place in its list follows its priority, which the whole board says.
+    if (after.priority !== before.priority) return null;
+
+    if (row.list === "queue") {
+      running += Number(runsNow(after)) - Number(runsNow(before));
+      deploy += Number(waitsForDeploy(after)) - Number(waitsForDeploy(before));
+    }
+
+    lists[row.list] = list.map((item, index) => (index === at ? after : item));
+  }
+
+  const moved = (Object.keys(lists) as (keyof typeof lists)[]).some((name) => lists[name] !== board[name]);
+
+  return moved ? { ...board, ...lists, standing: { ...board.standing, running, deploy } } : board;
 }
 
 // What the folded panel's strip says at a glance. It counts what the queue section is showing, so

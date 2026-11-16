@@ -129,6 +129,28 @@ class FakeStream {
 
 Object.assign(globalThis, { EventSource: FakeStream });
 
+// The browser's frames, run when a test reads a screen, as a browser would have drawn them by then: the record hands a
+// turn's progress to the screens on the next frame.
+const frames = new Map<number, () => void>();
+let frameCount = 0;
+
+Object.assign(globalThis, {
+  requestAnimationFrame: (run: () => void) => {
+    frameCount += 1;
+    frames.set(frameCount, run);
+
+    return frameCount;
+  },
+  cancelAnimationFrame: (frame: number) => frames.delete(frame)
+});
+
+function drawFrames(): void {
+  const due = [...frames.values()];
+
+  frames.clear();
+  due.forEach((run) => run());
+}
+
 const nothing = {} as never;
 const { createApp } = createRenderer<object, object>({
   insert: () => undefined,
@@ -169,6 +191,8 @@ interface Screen {
   // The one block of a room only the chat agent answers in these tests.
   run: () => RunState | null;
   runs: () => RunState[];
+  // The turns as the screen holds them before the browser draws its next frame.
+  undrawn: () => RunState[];
   outcome: () => RoomOutcome | null;
   settled: () => number;
   // One frame of the stream, by the name the control API wrote it under.
@@ -217,8 +241,17 @@ function watching(chatId: number, body: (screen: Screen) => void | Promise<void>
   const view = held as RoomRun;
 
   const screen: Screen = {
-    run: () => view.runs.value.at(-1) ?? null,
-    runs: () => view.runs.value,
+    run: () => {
+      drawFrames();
+
+      return view.runs.value.at(-1) ?? null;
+    },
+    runs: () => {
+      drawFrames();
+
+      return view.runs.value;
+    },
+    undrawn: () => view.runs.value,
     outcome: () => view.outcome.value,
     settled: () => settled,
     write: (name, data) => stream.write(name, data),
@@ -577,6 +610,33 @@ describe("the block a room shows while the chat agent is answering it", () => {
         expect(screen.run()?.messageId).toBe("41");
         expect(screen.run()?.progress?.phase).toBe("writing");
       });
+    });
+  });
+
+  // An administrator's stream carries every room's pictures, several a second while rounds work (docs/web.md, 「What
+  // the stream costs a tab」): a room's screen is handed its own room's turns alone, a turn's progress once a frame, and
+  // a picture repeating the last one not at all.
+  test("progress reaches a room's screen once a frame, and nothing of another room's or a repeat moves it", () => {
+    const writing: RunProgress = { phase: "writing", tool: null, thinkingTokens: null, contextTokens: null, cacheReadTokens: null, requestId: null, spent: null, writtenTokens: 1, actions: [], droppedActions: 0, droppedContext: 0 };
+
+    watching(-1003, (screen) => {
+      screen.write("bot", botEvent({ type: "run-started", messageId: "41" }));
+      screen.write("bot", botEvent({ type: "run-started", chatId: -1009, messageId: "51" }));
+
+      const standing = screen.runs();
+
+      screen.write("bot", botEvent({ type: "run-progress", progress: writing }));
+      screen.write("bot", botEvent({ type: "run-progress", progress: { ...writing, writtenTokens: 2 } }));
+
+      expect(screen.undrawn()).toBe(standing);
+      expect(screen.run()?.progress?.writtenTokens).toBe(2);
+
+      const drawn = screen.runs();
+
+      screen.write("bot", botEvent({ type: "run-progress", chatId: -1009, progress: writing }));
+      screen.write("bot", botEvent({ type: "run-progress", progress: { ...writing, writtenTokens: 2 } }));
+
+      expect(screen.runs()).toBe(drawn);
     });
   });
 

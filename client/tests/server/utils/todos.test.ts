@@ -288,7 +288,6 @@ describe("what a row carries", () => {
     expect(row).toMatchObject({
       id: 9,
       instruction: "rename the tooltip",
-      brief: "rename the tooltip",
       worker: "worker-b",
       approved: true, awaitingApproval: false,
       note: "also this",

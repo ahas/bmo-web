@@ -1,5 +1,7 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
+import { sameKept } from "./same-kept";
+
 import type { Ref } from "vue";
 import type { TodoModelPlan } from "#shared/types";
 
@@ -20,7 +22,8 @@ export function todoModelPlan(): Ref<TodoModelPlan | null> {
 
 async function readPlan(): Promise<void> {
   try {
-    plan.value = await $fetch<TodoModelPlan>("/api/todos/model-plan");
+    // A plan read back as it was keeps the one in hand, so no row's model chip draws again for it.
+    plan.value = sameKept(plan.value ?? undefined, await $fetch<TodoModelPlan>("/api/todos/model-plan"));
   } catch {
     // A unit that did not answer leaves the plan the rows already hold standing.
   }

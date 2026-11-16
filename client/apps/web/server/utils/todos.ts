@@ -7,7 +7,7 @@ import { job, jobCall } from "./job";
 import { namedLabel } from "./todo-assignment";
 
 import type { Note, Item, Report, Queue } from "bmo-job-client";
-import type { DeployHold, TodoBoard, TodoChoices, TodoItem, TodoNote, TodoReport, TodoReview, TodoStanding } from "#shared/types";
+import type { DeployHold, TodoBoard, TodoBoardRow, TodoChoices, TodoItem, TodoNote, TodoReport, TodoReview, TodoStanding } from "#shared/types";
 import type { TodoConditions } from "../../app/domain/todos";
 
 // The TODO as bmo-job reads it in its fixed API (bmo-job's `docs/api.md`): the items it keeps, the queues they
@@ -156,7 +156,6 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     id: item.id,
     title: item.title,
     instruction: item.brief,
-    brief: item.brief,
     requester: item.requesterName ?? "",
     requesterId: null,
     chatId: null,
@@ -422,6 +421,41 @@ function standingOf(items: readonly Item[], live: ReadonlyMap<number, LiveJobOf>
   };
 }
 
+// Each item as its line on the board reads it: the reports of the ones given, which are the finished and the held,
+// and why a held one was set aside, by its last note: the owner's stop, or a plain hold.
+async function boardRows(items: readonly Item[], reported: readonly Item[], live: ReadonlyMap<number, LiveJobOf>): Promise<Map<number, TodoItem>> {
+  const reports = await boardReports(reported);
+  const stopped = new Map(
+    await Promise.all(
+      items.filter((item) => listOf(item) === "held").map(async (item) => [item.id, (await notesOf(item.id)).at(-1)?.labels.kind === "stop"] as const)
+    )
+  );
+
+  return new Map(
+    items.map((item) => [item.id, itemOf(item, reports.get(item.id) ?? [], null, live.get(item.id) ?? null, stopped.get(item.id) ?? false)])
+  );
+}
+
+/**
+ * Some of the board's lines, each as the board reads it and with the list it stands in, for a word naming the items
+ * it moved (docs/web.md, the TODO panel's section). A number with no item behind it is left out.
+ */
+export async function readBoardRows(ids: readonly number[]): Promise<TodoBoardRow[]> {
+  if (ids.length === 0) return [];
+
+  const [page, live] = await Promise.all([
+    jobCall(job().GET("/items", { params: { query: { ids: [...new Set(ids)].sort((one, other) => one - other).join(","), limit: 500 } } })),
+    liveStates()
+  ]);
+  const rows = await boardRows(page.items, page.items.filter((item) => listOf(item) === "done" || listOf(item) === "held"), live);
+
+  return page.items.flatMap((item) => {
+    const row = rows.get(item.id);
+
+    return row === undefined ? [] : [{ list: listOf(item), item: row }];
+  });
+}
+
 /**
  * The lists the panel stands on, read from bmo-job: the queue, what waits on the owner, what is set aside and what
  * is finished, narrowed by its conditions and its search. The items are read whole in one walk; a finished item
@@ -441,14 +475,7 @@ export async function readTodoBoard(
     : filterRecords(finished, (item) => [{ label: "", text: `#${item.id} ${item.title} ${item.state}`, shown: true }], query);
   const page = finishedFound.slice(0, limit);
   const held = matching.filter((item) => listOf(item) === "held");
-  const reports = await boardReports([...page, ...held]);
-  // A held row says why it was set aside by its last note: the owner's stop, or a plain hold.
-  const stopped = new Map(
-    await Promise.all(held.map(async (item) => [item.id, (await notesOf(item.id)).at(-1)?.labels.kind === "stop"] as const))
-  );
-  const rows = new Map(
-    matching.map((item) => [item.id, itemOf(item, reports.get(item.id) ?? [], null, live.get(item.id) ?? null, stopped.get(item.id) ?? false)])
-  );
+  const rows = await boardRows(matching, [...page, ...held], live);
   const found = (row: TodoItem) => query === null || filterRecords([row], (one) => todoSearchFields(wording, one, []), query).length > 0;
   const listed = (name: "queue" | "pending" | "held", from: readonly Item[]) =>
     from.filter((item) => listOf(item) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);

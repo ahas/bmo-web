@@ -476,6 +476,7 @@ import { bodyOf, copyChipsOf, messageRef, reportOf } from "~/domain/room-copy";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { deleteMessage as deleteOwnMessage, editMessage as editOwnMessage, forwardMessage as forwardCopy, mineReaction, pinMessage, reactTo, readPins as loadPins } from "~/domain/message-acts";
 import { TURN_ENDED, useBotEvents, useLiveRefresh, useReadFailure, useRoomRun } from "~/domain/events";
+import { sameKept } from "~/domain/same-kept";
 import { firstOpening, handedLines, secretRequestsOf, useConsoleBases, useSecretForm, useSecretRequest, useSecretSaved } from "~/domain/secret-form";
 import { useDragSelect } from "bmo-ui/app/domain/dragselect";
 import { useIsland } from "bmo-ui/app/domain/island";
@@ -755,7 +756,7 @@ const { runs, outcome } = useRoomRun(chatId, {
   answered: (run: RunState) => turnAnswer(run, (otherAnswererOf(run.speaker) ?? botSpeaker(roomFeed.messages.value)).id, roomFeed.messages.value) !== undefined,
   onLive: (picture: LiveSnapshot) => {
     takeLive(picture.runs);
-    queued.value = picture.queued ?? queued.value;
+    queued.value = sameKept(queued.value, picture.queued ?? queued.value);
   }
 });
 

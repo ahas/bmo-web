@@ -146,8 +146,16 @@ describe("the supervisors", () => {
     expect((await asked(supervisors, {})).answer?.[1]).toMatchObject({ name: "agent-b", road: null });
   });
 
+  // Every account's supervisors except the reader's own and the deployment's stay out of the list the route answers
+  // (docs/web.md, 「Access」); the reader here is account 1, the owner's account another.
+  test("are listed for the reader as their own and the deployment's alone", async () => {
+    expect(((await asked(supervisors, {})).answer ?? []).map((one) => one.name)).toEqual(["agent-a", "agent-b"]);
+  });
+
+  // Read as the agency lists them all, the route's own list being the reader's (above).
   test("run as the owner's own user where the agency files them under no account or the owner's, a person's BMO's name aside", async () => {
-    const got = (await asked(supervisors, {})).answer ?? [];
+    const { readSupervisors } = await import("../../../apps/web/server/utils/axes");
+    const got = await readSupervisors();
 
     expect(got.slice(2).map((one) => ({ name: one.name, ownerAccount: one.ownerAccount, runsAsOwner: one.runsAsOwner }))).toEqual([
       { name: "agent-c", ownerAccount: OWNER_ACCOUNT, runsAsOwner: true },

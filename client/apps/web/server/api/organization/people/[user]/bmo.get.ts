@@ -1,5 +1,5 @@
 import { permissionTreeOf, standingBmoOf } from "../../../../utils/account-service";
-import { supervisorOwner, supervisorViewOf } from "../../../../utils/axes";
+import { roadOf, supervisorOwner } from "../../../../utils/axes";
 import { callerOf } from "../../../../utils/organization";
 import { rosterFailure, rosterPersonAsked } from "../../../../utils/roster";
 
@@ -13,11 +13,10 @@ export default defineEventHandler(async (event): Promise<RosterBmo> => {
   const caller = callerOf(signed);
 
   try {
-    const [standing, tree, supervisors, answerer] = await Promise.all([
+    const [standing, tree, supervisors] = await Promise.all([
       standingBmoOf(person.user, caller),
       permissionTreeOf(person.unit.id, caller).catch(() => null),
-      agencyCall(agency().GET("/supervisors")).then((page) => page.items),
-      defaultAnswerer()
+      agencyCall(agency().GET("/supervisors")).then((page) => page.items)
     ]);
     const own = supervisors.find((supervisor) => supervisorOwner(supervisor) === Number(person.user)) ?? null;
     const { own: _own, ...shown } = standing;
@@ -27,7 +26,7 @@ export default defineEventHandler(async (event): Promise<RosterBmo> => {
       standing: shown,
       personalizeSetting: tree?.people.find((one) => one.user === person.user)?.setting ?? "inherit",
       picture: standing.picture.from !== "deployment",
-      road: own === null ? null : supervisorViewOf(own, answerer).road,
+      road: own === null ? null : roadOf(own),
       supervisor: own?.name ?? null
     };
   } catch (error) {

@@ -390,7 +390,7 @@ question:
     answer_as_written: 이대로 답하기
     answer_with: "{number}번으로 답하기"
     close: 알림 닫기
-    discuss: 의논
+    discuss: 이 주제로 대화하기
     pause: 타이머 정지
     resume: 타이머 재개
     unpick: 선택 취소

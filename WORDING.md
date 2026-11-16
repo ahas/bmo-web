@@ -210,8 +210,8 @@
 - a room's due memories (its promise, follow-up and check memories whose time or event has come) → 이 방에서 지금
   할 약속. Never 때가 된 기억, 만기된 기억, 예정된 메모리.
 - an item's request in its own words → 요청 원문; the talk with the chat agent about an item, and the talk with a job over
-  the question it asked → 의논, the action that opens one named 의논 alone. Never 대화 for any of them, which is a room's
-  conversation, and never 이 주제로 대화하기.
+  the question it asked → 의논. Never 대화 for the talk itself, which is a room's conversation. The one action that
+  opens the talk over a job's question is named 이 주제로 대화하기, by the owner's word, and nothing else is.
 - a part of a screen floating over it that the reader moves and sizes → 창: 창 이동, 창 크기 조절. Folding it to its pill is
   닫기 and unfolding it 열기, as a panel's; a sheet's two heights are set by 확장 and 축소. Never 윈도우, 팝업.
 - a row of cards paged sideways → 이전, 다음, and the link that opens the row whole → 모두 보기. The next video offered

@@ -96,7 +96,7 @@ describe.skipIf(!origin || !touchReady())("an answer's record", () => {
 
       expect([query.get("ids"), query.get("from"), query.get("to")]).toEqual(["502,503", String(NOW + 5), String(NOW + 21)]);
 
-      // How long the stage took stands on its card, and what the gate wrote under the verdict stands under 원문.
+      // How long the stage took stands on its card, and what the gate wrote under the verdict stands under its original fold.
       expect(await page.locator("[data-record]").innerText()).toContain(wording("common.label.seconds", { n: "1.2" }));
       await page.locator("[data-record] [data-card-original]").first().getByText(wording("common.label.original")).click();
       await page.locator("[data-record]").getByText(DETAIL).waitFor({ timeout: 10_000 });

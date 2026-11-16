@@ -2,7 +2,7 @@ import { formatStamp, formatTime } from "bmo-ui/app/domain/time";
 
 import { CHIP_LABELS } from "./chips";
 import { DRAFT_STAGE, draftKindText, draftOutcomeText, draftReadsParts, draftRound, readGroups, readHowText, readName, splitDraftJudgements } from "./draft-process";
-import { stageLabel } from "./judgements";
+import { readWholeJudgements, stageLabel, wholeOf } from "./judgements";
 import { readRunLines } from "./log";
 import { countText } from "./numbers";
 import { toolName } from "./tool-view";
@@ -10,7 +10,7 @@ import { roundChip } from "./turns";
 import { brainActions, turnActions } from "./working";
 
 import type { DraftRead, DraftRow, DraftSummary } from "#shared/drafting";
-import type { AgentLogLine, ExactMessageId, Judgement, RoundSpend, TurnActionsRef } from "#shared/types";
+import type { AgentLogLine, ExactMessageId, Judgement, JudgementMark, RoundSpend, TurnActionsRef } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
 // What the room screen copies of its messages: the record of several with every judgement left on them, the bare
@@ -24,8 +24,8 @@ export interface CopyItem {
   messageId: ExactMessageId | null;
   sentAt: number;
   text: string;
-  judgements: Judgement[];
-  // What the message's chips hold beyond its verdicts, read for the copy where a chip reads it only when opened.
+  judgements: JudgementMark[];
+  // What the message's chips hold beyond its verdicts' marks, read for the copy where a chip reads it only when opened.
   chips?: CopyChips;
 }
 
@@ -37,6 +37,8 @@ export interface CopyCall {
 }
 
 export interface CopyChips {
+  // The message's verdicts whole, which its page carries as their marks alone.
+  judgements: Judgement[];
   drafts: DraftRow[];
   calls: CopyCall[];
   // What the round's end names as read from the brain, and what the log says of the rest.
@@ -48,7 +50,7 @@ export interface CopyChips {
 // What a message carries that its chips read: the round its draft process ran in, the runs its tools were called
 // in, and what the round spent.
 export interface ChipSource {
-  judgements: readonly Judgement[];
+  judgements: readonly JudgementMark[];
   drafts: DraftSummary | null;
   actions: TurnActionsRef | null;
   spend: RoundSpend | null;
@@ -72,7 +74,8 @@ export function reportOf(t: Translate, title: string, chatId: number, items: Cop
 // draft process, its calls, what it read from the brain, what it spent, and its send last.
 function blockOf(t: Translate, item: CopyItem): string {
   const head = `[${formatStamp(item.sentAt)}] ${item.senderName}(${item.senderId ?? MISSING}) #${item.messageId ?? MISSING}: ${item.text}`;
-  const sorted = [...item.judgements].sort((left, right) => left.createdAt - right.createdAt || left.id - right.id);
+  const read = new Map((item.chips?.judgements ?? []).map((judgement) => [judgement.id, judgement]));
+  const sorted = item.judgements.map((mark) => wholeOf(mark, read.get(mark.id))).sort((left, right) => left.createdAt - right.createdAt || left.id - right.id);
   const { drafts, verdicts } = splitDraftJudgements(sorted);
   const sent = verdicts.filter((one) => one.stage === SEND_STAGE);
   const judged = verdicts.filter((one) => one.stage !== SEND_STAGE);
@@ -159,20 +162,21 @@ function readLines(t: Translate, reads: readonly DraftRead[]): string[] {
 }
 
 /**
- * What one message's chips hold, read for its copy: its round's rows and its runs' calls, each read as its chip reads
- * it when opened. A read that fails leaves that chip's content out rather than holding the copy.
+ * What one message's chips hold, read for its copy: its verdicts whole, its round's rows and its runs' calls, each read
+ * as its chip reads it when opened. A read that fails leaves that chip's content out rather than holding the copy.
  */
 export async function copyChipsOf(chatId: number, source: ChipSource): Promise<CopyChips> {
   const round = draftRound(source.drafts, source.judgements.filter((one) => one.stage === DRAFT_STAGE));
   const at = source.actions;
-  const [drafts, lines] = await Promise.all([
+  const [judgements, drafts, lines] = await Promise.all([
+    readWholeJudgements(chatId, source.judgements).catch((): Judgement[] => []),
     round === null ? Promise.resolve([]) : $fetch<{ rows: DraftRow[] }>(`/api/rooms/${chatId}/drafts`, { query: { round } }).then((answer) => answer.rows).catch((): DraftRow[] => []),
     at === null ? Promise.resolve([]) : Promise.all(at.runs.map((run) => readRunLines(at.agent, run))).then((runs) => runs.flat()).catch((): AgentLogLine[] => [])
   ]);
 
   const reads = source.drafts?.reads ?? [];
 
-  return { drafts, calls: copyCalls(lines), reads, brain: copyBrain(lines, reads), spend: source.spend };
+  return { judgements, drafts, calls: copyCalls(lines), reads, brain: copyBrain(lines, reads), spend: source.spend };
 }
 
 // The verdicts that are the answer a message drew: what they carry is the answering message's own words.

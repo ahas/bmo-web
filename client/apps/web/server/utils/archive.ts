@@ -6,13 +6,15 @@ import { wording } from "#shared/wording";
 import { draftSummaries } from "./drafting";
 import { roomBriefings } from "./voice";
 import { figuresOf } from "./runfigures";
-import { judgementsOf, judgementsWithin } from "./gate";
+import { judgementsWithin, markOf } from "./gate";
+import { withOpenings } from "./openings";
 import { ownerChat } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
 import { exactAnswer, exactMessage, exactMessages, receiver, receiverCall } from "./receiver";
 
-import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementPage, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
+import type { ArchivedMessage, ExactMessageId, ForwardedFrom, Judgement, JudgementMark, MessageAttachment, MessageBriefing, MessagePage, MessageReaction, ReplyQuote, RoomSummary, RoundFiguresOf, Situation, TelegramExpression, TelegramFormat, VoiceBriefing } from "#shared/types";
 import type { ExactMessage, ReceiverRoom } from "./receiver";
+import type { JudgementSpan } from "./gate";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
 // room」): the rooms, a room's name, and its line walked by a cursor the reader holds, read into the shapes the room
@@ -449,7 +451,7 @@ const JUDGED_AFTER_SECONDS = 3_600;
 
 /** The judgements standing under a page's messages: each under the message the gate filed it under where it could
  * have been about that message, or, filed under none, under the message its round answered with. */
-export function placedJudgements(messages: readonly ArchivedMessage[], judgements: readonly Judgement[]): Judgement[] {
+export function placedJudgements<J extends JudgementMark>(messages: readonly ArchivedMessage[], judgements: readonly J[]): J[] {
   const sent = new Map(messages.map((message) => [message.messageId, message.sentAt]));
   // A round's answer can stand as a run of messages; its verdicts stand under the last of them.
   const answered = new Map<string, ExactMessageId>();
@@ -503,7 +505,8 @@ export async function roundFigures(chatId: number, messageIds: readonly ExactMes
 }
 
 // A page with the judgements standing under its messages, read for the stretch of time the page covers: from a
-// little before its first message to now for the room's end, and to a while past its last message otherwise. The
+// little before its first message to now for the room's end, and to a while past its last message otherwise. Each
+// stands as its mark alone, since a busy stretch holds thousands and only an opened record reads them whole. The
 // room is the receiver's, so a gate that does not answer leaves the page without verdicts rather than unread.
 async function pageOf(chatId: number, page: { items: ExactMessage[]; more: boolean }, end: boolean): Promise<MessagePage> {
   const received = page.items.map(receivedOf);
@@ -519,7 +522,7 @@ async function pageOf(chatId: number, page: { items: ExactMessage[]; more: boole
         }).catch(() => [])
   ]);
 
-  return { messages, judgements: placedJudgements(messages, judgements), hasMore: page.more };
+  return { messages, judgements: placedJudgements(messages, judgements.map(markOf)), hasMore: page.more };
 }
 
 /** One page of a room, oldest first, ending just before `before` when it is given. */
@@ -552,9 +555,14 @@ export async function readDayStart(chatId: number, from: number): Promise<{ mess
   return messageId === null ? null : { messageId };
 }
 
-/** A room's judgements newest first, the page before `before` where it is given: the gate's own (docs/boundary.md, 「Gaps the console meets」). */
-export async function readJudgementPage(chatId: number, before: number | null, limit: number): Promise<JudgementPage> {
-  return await judgementsOf(chatId, before, limit);
+/**
+ * The judgements of a room that `ids` names, whole and each worn by what opened its turn, read for the stretch of time
+ * they were written in (docs/web.md, the room screen's chip line). One the gate does not hold within it is left out.
+ */
+export async function readWholeJudgements(chatId: number, ids: readonly number[], span: JudgementSpan): Promise<Judgement[]> {
+  const asked = new Set(ids);
+
+  return await withOpenings(chatId, (await judgementsWithin(chatId, span)).filter((judgement) => asked.has(judgement.id)));
 }
 
 /** Where a line's full reading stands, as the voice engine's briefings of its room say: never asked for, being made,

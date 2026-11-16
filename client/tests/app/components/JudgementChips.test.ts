@@ -142,14 +142,20 @@ describe("reading what the record needs", () => {
 describe("the judgement", () => {
   test("is the round's whole record: the gates that read the person's message and the answer's send and checks", () => {
     expect(script).toContain("const recordSplit = computed(() => splitDraftJudgements(props.roundJudgements));");
-    expect(script).toContain("const recordCards = computed<Judgement[]>(() => recordSplit.value.verdicts.filter((one) => !decidesMessage(one)));");
+    expect(script).toContain("const recordMarks = computed<JudgementMark[]>(() => recordSplit.value.verdicts.filter((one) => !decidesMessage(one)));");
     expect(script).toContain("narrowed: narrowedOffer(judgement), kept: keptOffer(judgement), words: verdictWords(t, judgement)");
+  });
+
+  test("stands each card whole once the record's opening has read its verdicts by their numbers", () => {
+    expect(script).toContain("const recordCards = computed<Judgement[]>(() => recordMarks.value.map((mark) => wholeOf(mark, wholeJudgements.value.get(mark.id))));");
+    expect(script).toContain("const read = await readWholeJudgements(props.chatId, unread);");
+    expect(script).toContain("await Promise.all([readLines(), readDrafts(), readJudgements()])");
   });
 
   test("a person's message keeps its mark alone, which presses nothing and spreads nothing", () => {
     expect(trail).toContain('<HintTip\n          v-if="marked"\n          data-verdict-mark');
     expect(trail).toContain(':name="CHIP_ICONS.verdicts"');
-    expect(script).toContain("const verdicts = computed<Judgement[]>(() => (props.answer ? [] :");
+    expect(script).toContain("const verdicts = computed<JudgementMark[]>(() => (props.answer ? [] :");
     expect(script).toContain("verdictChip(verdictState(verdicts.value, props.judging))");
     expect(template).not.toContain("data-outcome");
     expect(script).not.toContain("expanded");

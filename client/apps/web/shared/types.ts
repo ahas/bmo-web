@@ -495,20 +495,26 @@ export interface TurnRoad extends JudgementRoad {
   stage: string;
 }
 
-export interface Judgement {
+// A verdict as a room's page carries it: what places it under a message, colours its mark and names its round, and
+// nothing only its card stands (docs/web.md, 「The first frame waits on the messages alone」).
+export interface JudgementMark {
   id: number;
   chatId: number;
   messageId: ExactMessageId | null;
   stage: string;
   verdict: string;
-  detail: string | null;
   createdAt: number;
+  // The round of the chat agent's session the decision was made in, where the record names one.
+  round?: string | null;
+}
+
+// A verdict whole, as an answer's opened record reads it and the live stream announces it.
+export interface Judgement extends JudgementMark {
+  detail: string | null;
   // How long the stage took, where the record carries it. A judgement announced by the live
   // stream carries neither this nor its roads: both are read from the archive.
   ms?: number | null;
   roads?: JudgementRoad[];
-  // The round of the chat agent's session the decision was made in, where the record names one.
-  round?: string | null;
   // What opened that round and what its gates were offered, where either was read.
   opening?: RoundOpening;
   // What a picker's or the matcher's model was asked of its candidates, each line exactly as the model read it and
@@ -2691,7 +2697,7 @@ export interface RoomRemovalAnswer {
 
 export interface MessagePage {
   messages: ArchivedMessage[];
-  judgements: Judgement[];
+  judgements: JudgementMark[];
   hasMore: boolean;
 }
 

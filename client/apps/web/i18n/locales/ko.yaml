@@ -523,6 +523,8 @@ room:
     bad_avatar_kind: 프로필 사진 종류가 올바르지 않습니다.
     bad_chat_id: 방 번호가 올바르지 않습니다.
     bad_instruction_id: 지시 번호가 올바르지 않습니다.
+    bad_judgement_ids: 판정 번호가 올바르지 않습니다.
+    bad_judgement_span: 판정을 읽을 시간 범위가 올바르지 않습니다.
     bad_message_id: 메시지 번호가 올바르지 않습니다.
     bad_reply_id: 답장할 메시지 번호가 올바르지 않습니다.
     bad_send_key: 전송 키가 올바르지 않습니다.
@@ -531,6 +533,7 @@ room:
     drafts_read_failed: 드래프트 기록을 불러오지 못했습니다.
     edit_empty: 수정할 메시지를 입력해 주세요.
     edit_failed: 메시지를 수정하지 못했습니다.
+    judgements_read_failed: 판정을 불러오지 못했습니다.
     message_deleted: 삭제된 메시지입니다.
     message_forbidden: 이 메시지에는 그 일을 할 수 없습니다.
     message_unknown: 그 메시지가 기록에 없습니다.

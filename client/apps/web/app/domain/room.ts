@@ -15,6 +15,7 @@ import type {
   ForwardedFrom,
   Situation,
   Judgement,
+  JudgementMark,
   MessageAttachment,
   MessageBriefing,
   MessagePage,
@@ -293,7 +294,7 @@ export interface FeedItem {
   look: MessageLook;
   // The chat components take the AI SDK part shape; a Telegram message is one text part.
   parts: TextPart[];
-  judgements: Judgement[];
+  judgements: JudgementMark[];
   // What the round this message ended cost, on the last message a round of the chat agent's sent.
   spend: RoundSpend | null;
   // Where what that turn did is kept, on that same message; null on every other row.
@@ -395,7 +396,7 @@ export function reactionViews(
 // A turn that went silent is written down as a judgement of this stage on the message it read.
 export const SKIPPED_STAGE = "skipped";
 
-export function skippedTurns(judgements: readonly Judgement[]): number {
+export function skippedTurns(judgements: readonly JudgementMark[]): number {
   return judgements.filter((judgement) => judgement.stage === SKIPPED_STAGE).length;
 }
 
@@ -613,7 +614,7 @@ export function needsPage(read: FeedRead, hasMore: boolean): boolean {
 export interface RoomFeed {
   messages: Ref<ArchivedMessage[]>;
   // Archived and live together: what the room has been told about its messages so far.
-  judgements: ComputedRef<Judgement[]>;
+  judgements: ComputedRef<JudgementMark[]>;
   older: Ref<boolean>;
   // Whether the room goes on past the newest row held: the feed stands around a message it was
   // taken to, away from the room's end, until reading down brings it back there.
@@ -761,7 +762,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
   const describe = (error: unknown): string => failureText(error, t("room.error.read_failed"));
 
   const messages = ref<ArchivedMessage[]>([]);
-  const judgements = ref<Judgement[]>([]);
+  const judgements = ref<JudgementMark[]>([]);
   const failure = ref<string | null>(null);
   const older = ref(false);
   const newer = ref(false);
@@ -1122,7 +1123,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
     live.value = [...live.value.filter((held) => held.id !== judgement.id), judgement];
   }
 
-  const allJudgements = computed<Judgement[]>(() => [...judgements.value, ...live.value]);
+  const allJudgements = computed<JudgementMark[]>(() => [...judgements.value, ...live.value]);
 
   return {
     messages,
@@ -1147,7 +1148,7 @@ export function useRoomFeed(t: Translate, chatId: number): RoomFeed {
 
 // Two judgements stand in the same place when they are the same stage's word about the same
 // message; that is what tells a live row from the archived row it was standing in for.
-function placeOf(judgement: Judgement): string {
+function placeOf(judgement: JudgementMark): string {
   return `${judgement.messageId ?? "none"}:${judgement.stage}`;
 }
 
@@ -1479,7 +1480,7 @@ export function useHandOver(rows: Readonly<Ref<FeedItem[]>>, messages: Readonly<
 export function buildDays(
   t: Translate,
   messages: ArchivedMessage[],
-  judgements: Map<ExactMessageId, Judgement[]>,
+  judgements: Map<ExactMessageId, JudgementMark[]>,
   imageUrlFor: (chatId: number, messageId: ExactMessageId) => string,
   avatars: AvatarIndex,
   pending: readonly FeedItem[] = [],
@@ -1495,7 +1496,7 @@ export function buildDays(
 // over, so its rows count none (docs/web.md, 「A turn the chat agent chose not to answer」).
 export function archivedRows(
   messages: ArchivedMessage[],
-  judgements: Map<ExactMessageId, Judgement[]>,
+  judgements: Map<ExactMessageId, JudgementMark[]>,
   imageUrlFor: (chatId: number, messageId: ExactMessageId) => string,
   avatars: AvatarIndex,
   mine: readonly number[] = [],
@@ -1655,7 +1656,7 @@ export function atFoot(t: Translate, days: readonly DayGroup[], footed: readonly
 // One archived message as the row the feed draws.
 function feedItemOf(
   message: ArchivedMessage,
-  judgements: Map<ExactMessageId, Judgement[]>,
+  judgements: Map<ExactMessageId, JudgementMark[]>,
   imageUrlFor: (chatId: number, messageId: ExactMessageId) => string,
   avatars: AvatarIndex,
   mine: readonly number[]

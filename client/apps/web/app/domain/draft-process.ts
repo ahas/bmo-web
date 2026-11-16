@@ -3,7 +3,7 @@ import { countText } from "./numbers";
 import { draftQuestionLabel } from "./working";
 
 import type { DraftProcessValues, DraftQuestionView, DraftRead, DraftReadHow, DraftRow, DraftSummary, SupervisorDraftSave, SupervisorDraftView } from "#shared/drafting";
-import type { Judgement } from "#shared/types";
+import type { JudgementMark } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
 // What a supervisor's draft block holds while it is edited and what its save sends, how its fields are checked, and
@@ -247,17 +247,17 @@ export function draftChanges(save: SupervisorDraftSave): boolean {
 // The chip of a message's draft process.
 
 /** The gate's rows of the process among a message's verdicts, and the verdicts that are not. */
-export function splitDraftJudgements(judgements: readonly Judgement[]): { drafts: Judgement[]; verdicts: Judgement[] } {
+export function splitDraftJudgements<J extends JudgementMark>(judgements: readonly J[]): { drafts: J[]; verdicts: J[] } {
   return { drafts: judgements.filter((one) => one.stage === DRAFT_STAGE), verdicts: judgements.filter((one) => one.stage !== DRAFT_STAGE) };
 }
 
 /** The round the chip reads: the page's summary's, else the gate's rows'. */
-export function draftRound(summary: DraftSummary | null, drafts: readonly Judgement[]): string | null {
+export function draftRound(summary: DraftSummary | null, drafts: readonly JudgementMark[]): string | null {
   return summary?.round ?? drafts.find((one) => one.round != null)?.round ?? null;
 }
 
 /** The chip's figure: the rounds the process asked, from the page's summary or, without it, the gate's rows of them. */
-export function draftAsked(summary: DraftSummary | null, drafts: readonly Judgement[]): number {
+export function draftAsked(summary: DraftSummary | null, drafts: readonly JudgementMark[]): number {
   return summary?.asked ?? drafts.filter((one) => one.verdict.startsWith("ROUND ")).length;
 }
 
@@ -384,7 +384,7 @@ const GATE_ROUND = /^ROUND\s+(\d+)\s+(\S+):\s*(\S+)/;
 const GATE_END = /^END:\s*(\S+)/;
 
 /** The gate's `draft` verdicts as round lines, where the round log holds no row of the round. */
-export function gateRoundLines(t: Translate, drafts: readonly Judgement[]): RoundLine[] {
+export function gateRoundLines(t: Translate, drafts: readonly JudgementMark[]): RoundLine[] {
   return [...drafts]
     .sort((one, other) => one.createdAt - other.createdAt || one.id - other.id)
     .flatMap((judgement) => {
@@ -409,7 +409,7 @@ export function gateRoundLines(t: Translate, drafts: readonly Judgement[]): Roun
 
 /** How the round ended, as its end line says it: what went out and how long the whole took, from the round log's end
  * row, else from the gate's end verdict, else from the page's summary. */
-export function endLine(t: Translate, rows: readonly DraftRow[] | null, drafts: readonly Judgement[], summary: DraftSummary | null): { outcome: string; withheld: boolean; ms: number | null } | null {
+export function endLine(t: Translate, rows: readonly DraftRow[] | null, drafts: readonly JudgementMark[], summary: DraftSummary | null): { outcome: string; withheld: boolean; ms: number | null } | null {
   const end = rows?.findLast((row) => row.kind === "end");
 
   if (end !== undefined) return { outcome: draftOutcomeText(t, end.outcome, "end"), withheld: end.outcome === "withheld", ms: end.ms };

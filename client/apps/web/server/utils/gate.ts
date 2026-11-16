@@ -3,7 +3,7 @@ import { gateConditions } from "#shared/types";
 
 import { unitAt, unitFetch } from "./units";
 
-import type { ExactMessageId, GateCondition, GateOfferRecord, GatePartView, Judgement, JudgementLine, JudgementPage, JudgementRoad, KeptCounts, TokenSplit } from "#shared/types";
+import type { ExactMessageId, GateCondition, GateOfferRecord, GatePartView, Judgement, JudgementLine, JudgementMark, JudgementPage, JudgementRoad, KeptCounts, TokenSplit } from "#shared/types";
 
 // A room's judgements as the gate's console API holds them (the gate's `docs/api.md`, 「Judgements」): newest
 // first, a page at a time, each road a gate run walked beside it. The gate's address and token stand in the
@@ -91,6 +91,13 @@ function asJudgement(row: GateJudgement): Judgement {
     ...(offers.length === 0 ? {} : { opening: { instructions: [], offers } }),
     ...(lines.length === 0 ? {} : { lines })
   };
+}
+
+/** A judgement as a room's page carries it: what places it and colours its mark, without what only its card stands. */
+export function markOf(judgement: Judgement): JudgementMark {
+  const { id, chatId, messageId, stage, verdict, createdAt, round } = judgement;
+
+  return { id, chatId, messageId, stage, verdict, createdAt, round };
 }
 
 // A row of the offers record in the room screen's words. A count the gate does not hand is none kept.

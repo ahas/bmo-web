@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 import { secondsText } from "../../../apps/web/app/domain/numbers";
 
-import { endsJudging, homedJudgements, instructionParts, judgedNow, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone } from "../../../apps/web/app/domain/judgements";
+import { endsJudging, homedJudgements, instructionParts, judgedNow, verdictWords, judgementText, keptOffer, lineAnswer, lineKept, narrowedOffer, openedCards, openedTurns, roadName, roadOutcome, sortLabel, verdictState, verdictTone, wholeOf } from "../../../apps/web/app/domain/judgements";
 
 import type { GateOfferRecord, Judgement, LiveRun, RoundOpening } from "../../../apps/web/shared/types";
 import { WORKER } from "../../support/ids";
@@ -263,6 +263,20 @@ describe("a judgement line's answer", () => {
 
   test("an answer of another shape stands as its own words", () => {
     expect(lineAnswer(wording, "maybe later")).toBe("maybe later");
+  });
+});
+
+describe("a record's card", () => {
+  const mark = { id: 7, chatId: 5, messageId: "11", stage: "chat", verdict: "REPLY", createdAt: 1_007, round: "r1" };
+
+  test("stands where the page placed it, with what its verdict read whole carries", () => {
+    const read: Judgement = { ...mark, messageId: null, detail: "the stage's own words", ms: 120, roads: [] };
+
+    expect(wholeOf(mark, read)).toEqual({ ...read, messageId: "11" });
+  });
+
+  test("not yet read stands its mark with nothing written under it", () => {
+    expect(wholeOf(mark, undefined)).toEqual({ ...mark, detail: null });
   });
 });
 

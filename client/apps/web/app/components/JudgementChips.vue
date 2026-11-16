@@ -281,13 +281,13 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useBotEvents } from "~/domain/events";
 import { readRunLines } from "~/domain/log";
 import { countText, secondsText } from "~/domain/numbers";
-import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowedOffer, roadName, roadOutcome, stageLabel, verdictState, verdictWords } from "~/domain/judgements";
+import { decidesMessage, judgesAnswer, keptOffer, lineAnswer, lineKept, narrowedOffer, readWholeJudgements, roadName, roadOutcome, stageLabel, verdictState, verdictWords, wholeOf } from "~/domain/judgements";
 import { brainActions, progressLines, turnActions } from "~/domain/working";
 import { formatClock, formatStamp } from "bmo-ui/app/domain/time";
 import { roundChip } from "~/domain/turns";
 import { draftAsked, draftDiff, draftRound, endLine, gateRoundLines, roundLines, splitDraftJudgements } from "~/domain/draft-process";
 
-import type { AgentLogLine, BriefingReading, ExactMessageId, Judgement, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
+import type { AgentLogLine, BriefingReading, ExactMessageId, Judgement, JudgementMark, JudgementRoad, MessageBriefing, RoundSpend, TurnAction, TurnActionsRef, TurnRecord } from "#shared/types";
 import type { LogRow } from "~/domain/log";
 import type { DraftDiffLine, RoundLine } from "~/domain/draft-process";
 import type { DraftRead, DraftRow, DraftSummary, DraftVersion } from "#shared/drafting";
@@ -297,7 +297,7 @@ import type { Situation } from "#shared/types";
 import type { LiveTurn } from "~/domain/working";
 
 interface Props {
-  judgements: Judgement[];
+  judgements: JudgementMark[];
   // What the round this message ended cost, on the message that ended it.
   spend?: RoundSpend | null;
   // Where what that turn did is kept, on the same message.
@@ -306,7 +306,7 @@ interface Props {
   drafts?: DraftSummary | null;
   // The round's whole record as the page reads it, for the answer's one record press: the gates that read the
   // person's message and the send and checks of the answer alike.
-  roundJudgements?: Judgement[];
+  roundJudgements?: JudgementMark[];
   // The room's situation note as that round read it, spread in the answer's record press.
   roundSituation?: Situation | null;
   // The turn still running, where this line belongs to one: what it has done so far and what it
@@ -468,6 +468,11 @@ const actions = ref<TurnAction[]>([]);
 const loadedLines = ref<AgentLogLine[]>([]);
 // The round log's rows, read the first time the record opens.
 const draftRows = ref<DraftRow[] | null>(null);
+// The round's verdicts whole, by their numbers, read the first time the record opens: the page carries each without
+// what only its card stands (docs/web.md, the room screen's chip line).
+const wholeJudgements = ref<ReadonlyMap<number, Judgement>>(new Map());
+// The verdicts already asked for whole, a verdict the gate no longer holds among them, so none is asked twice.
+const askedJudgements = new Set<number>();
 const callRows = computed<LogRow[]>(() =>
   loadedLines.value
     .filter((line) => line.kind === "tool")
@@ -521,7 +526,8 @@ const fresh = computed<number>(() => counts.value.documents);
 // The round's judgement as the record stands it: the gates that read the person's message and the answer's send and
 // checks alike.
 const recordSplit = computed(() => splitDraftJudgements(props.roundJudgements));
-const recordCards = computed<Judgement[]>(() => recordSplit.value.verdicts.filter((one) => !decidesMessage(one)));
+const recordMarks = computed<JudgementMark[]>(() => recordSplit.value.verdicts.filter((one) => !decidesMessage(one)));
+const recordCards = computed<Judgement[]>(() => recordMarks.value.map((mark) => wholeOf(mark, wholeJudgements.value.get(mark.id))));
 
 // One line of the record, in the order the turn made it.
 type RecordEntry =
@@ -653,8 +659,9 @@ const brainCounted = computed<boolean>(() => counts.value.documents + counts.val
 const judgedRecorded = computed<boolean>(() => props.answer && (recordCards.value.length > 0 || props.roundSituation != null));
 const recorded = computed<boolean>(() => brainCounted.value || counts.value.tools > 0 || drafted.value || judgedRecorded.value);
 
-// Opening the record reads the round's log and its draft rows once; a read that failed is asked again on the next
-// opening. A turn still running holds its lines already.
+// Opening the record reads the round's log, its draft rows and its verdicts whole once; a read that failed is asked
+// again on the next opening, and a verdict that came since is read on it. A turn still running holds its lines
+// already.
 async function toggleRecord(): Promise<void> {
   recordOpen.value = !recordOpen.value;
 
@@ -664,32 +671,59 @@ async function toggleRecord(): Promise<void> {
   const round = roundOfDrafts.value;
   const needLines = at !== null && loadedLines.value.length === 0;
   const needDrafts = drafted.value && round !== null && draftRows.value === null;
+  const unread = recordMarks.value.filter((mark) => !askedJudgements.has(mark.id));
 
-  if (!needLines && !needDrafts) return;
+  if (!needLines && !needDrafts && unread.length === 0) return;
 
   loadingRecord.value = true;
   recordFailure.value = null;
 
-  try {
-    if (needLines && at !== null) {
+  // The three reads go side by side, and the panel says the first of them, in the order it stands them, that failed.
+  const readLines = async (): Promise<string | null> => {
+    if (!needLines || at === null) return null;
+
+    try {
       // Every run of the round, its own turn first and then each question its draft process asked, read as one.
-      try {
-        const lines = await Promise.all(at.runs.map((run) => readRunLines(at.agent, run)));
+      const lines = await Promise.all(at.runs.map((run) => readRunLines(at.agent, run)));
 
-        loadedLines.value = lines.flat();
-        actions.value = turnActions(loadedLines.value);
-      } catch (error) {
-        recordFailure.value = failureText(error, t("room.error.actions_read_failed"));
-      }
-    }
+      loadedLines.value = lines.flat();
+      actions.value = turnActions(loadedLines.value);
 
-    if (needDrafts && round !== null) {
-      try {
-        draftRows.value = (await $fetch<{ rows: DraftRow[] }>(`/api/rooms/${props.chatId}/drafts`, { query: { round } })).rows;
-      } catch (error) {
-        recordFailure.value ??= failureText(error, t("room.error.drafts_read_failed"));
-      }
+      return null;
+    } catch (error) {
+      return failureText(error, t("room.error.actions_read_failed"));
     }
+  };
+  const readDrafts = async (): Promise<string | null> => {
+    if (!needDrafts || round === null) return null;
+
+    try {
+      draftRows.value = (await $fetch<{ rows: DraftRow[] }>(`/api/rooms/${props.chatId}/drafts`, { query: { round } })).rows;
+
+      return null;
+    } catch (error) {
+      return failureText(error, t("room.error.drafts_read_failed"));
+    }
+  };
+  const readJudgements = async (): Promise<string | null> => {
+    if (unread.length === 0) return null;
+
+    try {
+      const read = await readWholeJudgements(props.chatId, unread);
+
+      wholeJudgements.value = new Map([...wholeJudgements.value, ...read.map((judgement) => [judgement.id, judgement] as const)]);
+      for (const mark of unread) askedJudgements.add(mark.id);
+
+      return null;
+    } catch (error) {
+      return failureText(error, t("room.error.judgements_read_failed"));
+    }
+  };
+
+  try {
+    const failures = await Promise.all([readLines(), readDrafts(), readJudgements()]);
+
+    recordFailure.value = failures.find((failure) => failure !== null) ?? null;
   } finally {
     loadingRecord.value = false;
   }
@@ -703,7 +737,7 @@ const chip = computed<SpendChip | null>(() =>
 // since what judged the round stands in its record press.
 const split = computed(() => splitDraftJudgements(props.judgements));
 // A person's message's own verdicts, which its mark is coloured by; an answer carries none (docs/web.md, the room screen's verdicts).
-const verdicts = computed<Judgement[]>(() => (props.answer ? [] : split.value.verdicts.filter((one) => !judgesAnswer(one))));
+const verdicts = computed<JudgementMark[]>(() => (props.answer ? [] : split.value.verdicts.filter((one) => !judgesAnswer(one))));
 
 // The record's draft part stands on a turn that has ended and whose round's process the page read or the gate wrote of.
 const roundOfDrafts = computed<string | null>(() => draftRound(props.drafts, split.value.drafts));

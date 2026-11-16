@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { wording } from "../../../apps/web/shared/wording";
 
 import type { DraftRead } from "../../../apps/web/shared/drafting";
-import type { Judgement } from "../../../apps/web/shared/types";
+import type { Judgement, JudgementMark } from "../../../apps/web/shared/types";
 
 Object.assign(globalThis, { useAppConfig: () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } }) });
 
@@ -16,6 +16,12 @@ const judgement = (id: number, stage: string, verdict: string, detail: string | 
   id, chatId: -7, messageId: "31", stage, verdict, detail, createdAt: 1_790_000_000 + id
 });
 
+// A verdict as the page carries it, its detail left to the copy's read of it whole.
+const markOf = ({ id, chatId, messageId, stage, verdict, createdAt }: Judgement): JudgementMark => ({ id, chatId, messageId, stage, verdict, createdAt });
+
+// What the copy's read of a message's chips brings back, beyond its verdicts whole.
+const NO_CHIPS = { drafts: [], calls: [], reads: [], brain: [], spend: null };
+
 // What a round's end names as read: one piece the index lists, one it does not, one the session already held.
 const READS: DraftRead[] = [
   { path: "core/facts.md", holds: "core facts", how: "attached" },
@@ -24,7 +30,12 @@ const READS: DraftRead[] = [
 ];
 
 describe("a copied message", () => {
-  test("holds its verdicts, and the answer it drew as its word alone", () => {
+  test("holds its verdicts with what was written under them, and the answer it drew as its word alone", () => {
+    const whole = [
+      judgement(1, "people-search", "SKIP: no candidates", null),
+      judgement(2, "system-documents", "PICK: doc-a", "doc-a\ndoc-b"),
+      judgement(3, "chat", "REPLY: the answer's first line…", "the answer's first line\nand all the rest of it")
+    ];
     const copied = reportOf(wording, "room-a", -7, [
       {
         senderName: "person-a",
@@ -32,11 +43,8 @@ describe("a copied message", () => {
         messageId: "31",
         sentAt: 1_790_000_000,
         text: "the question",
-        judgements: [
-          judgement(1, "people-search", "SKIP: no candidates", null),
-          judgement(2, "system-documents", "PICK: doc-a", "doc-a\ndoc-b"),
-          judgement(3, "chat", "REPLY: the answer's first line…", "the answer's first line\nand all the rest of it")
-        ]
+        judgements: whole.map(markOf),
+        chips: { judgements: whole, ...NO_CHIPS }
       }
     ]);
 
@@ -46,6 +54,17 @@ describe("a copied message", () => {
     expect(copied).toMatch(/: REPLY$/m);
     expect(copied).not.toContain("the answer's first line");
     expect(copied).not.toContain("and all the rest of it");
+  });
+});
+
+describe("a copied message whose verdicts could not be read whole", () => {
+  test("holds each verdict alone", () => {
+    const copied = reportOf(wording, "room-a", -7, [
+      { senderName: "person-a", senderId: 11, messageId: "31", sentAt: 1_790_000_000, text: "the question", judgements: [markOf(judgement(2, "system-documents", "PICK: doc-a", "doc-a\ndoc-b"))] }
+    ]);
+
+    expect(copied).toContain("PICK: doc-a");
+    expect(copied).not.toContain("doc-b");
   });
 });
 
@@ -87,6 +106,7 @@ describe("a copied answer", () => {
           judgement(3, "output-format", "PASS", null)
         ],
         chips: {
+          judgements: [],
           drafts: [
             { id: 1, number: 1, question: "final", kind: "question", answerChars: 70, changed: false, outcome: "answered", detail: null, ms: 10_939, at: 1, answer: null, reads: [] },
             { id: 2, number: 2, question: "", kind: "end", answerChars: 0, changed: false, outcome: "message", detail: null, ms: 0, at: 2, answer: null, reads: READS }

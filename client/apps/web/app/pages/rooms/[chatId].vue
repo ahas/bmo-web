@@ -547,6 +547,7 @@ import type {
   DelegationPage,
   ExactMessageId,
   Judgement,
+  JudgementMark,
   RoomStats,
   LiveRun,
   LiveSnapshot,
@@ -936,7 +937,7 @@ const judgementIndex = computed(() => judgementsByMessage(homedJudgements(roomFe
 // checks of the answer alike. An answer's record press spreads this, so what judged the round stands on the answer
 // rather than under the message it read (docs/web.md, the room screen's chip line).
 const roundIndex = computed(() => {
-  const index = new Map<string, Judgement[]>();
+  const index = new Map<string, JudgementMark[]>();
 
   for (const bucket of judgementIndex.value.values()) {
     for (const judgement of bucket) {
@@ -977,7 +978,7 @@ function roundOf(item: FeedItem): string | null {
   return item.judgements.find((one) => one.round != null)?.round ?? null;
 }
 
-function roundJudgementsOf(item: FeedItem): Judgement[] {
+function roundJudgementsOf(item: FeedItem): JudgementMark[] {
   const round = roundOf(item);
 
   return round === null ? [] : (roundIndex.value.get(round) ?? []);

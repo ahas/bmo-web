@@ -168,7 +168,7 @@ const agency = standIn("AGENCY", (one) => {
   return answer({ code: "no-route", error: "no route" }, 404);
 });
 
-const { listRooms, readDayStart, readMessagePage, readMessagesAfter, readJudgementPage, roundFigures, roomTitleOf } = await import("../../../apps/web/server/utils/archive");
+const { listRooms, readDayStart, readMessagePage, readMessagesAfter, readWholeJudgements, roundFigures, roomTitleOf } = await import("../../../apps/web/server/utils/archive");
 const { registerChatAgent } = await import("../../../apps/web/shared/agent-names");
 
 registerChatAgent({ name: "agent-a", label: "Agent A" });
@@ -315,7 +315,7 @@ describe("a page of a room", () => {
   test("past a message, and where a day begins", async () => {
     expect((await readMessagesAfter(-7, "4", 20)).messages.map((one) => one.messageId)).toEqual(["5", "6"]);
     expect(await readDayStart(-7, 1_790_000_000)).toEqual({ messageId: "2" });
-    expect(await readJudgementPage(-7, null, 20)).toEqual({ judgements: [], hasMore: false });
+    expect(await readWholeJudgements(-7, [1], { from: 0, to: 1 })).toEqual([]);
   });
 });
 

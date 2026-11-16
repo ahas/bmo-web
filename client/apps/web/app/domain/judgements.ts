@@ -1,4 +1,4 @@
-import type { ExactMessageId, Judgement, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
+import type { ExactMessageId, Judgement, JudgementMark, JudgementRoad, KeptCounts, LiveRun, QueuedMessage, RoundOpening, TurnSpeaker } from "#shared/types";
 import { chatAgent } from "#shared/agent-names";
 import { otherAnswererOf } from "./agents";
 import { countText } from "./numbers";
@@ -63,7 +63,7 @@ const ANSWER_STAGES = new Set(STAGES.filter((stage) => stage.answer === true).ma
 
 /** Whether a verdict judged the answer on its way out — its draft, its send, its checks and rewrites — rather than
  * the message the round read. */
-export function judgesAnswer(judgement: Judgement): boolean {
+export function judgesAnswer(judgement: JudgementMark): boolean {
   return ANSWER_STAGES.has(judgement.stage);
 }
 
@@ -309,7 +309,7 @@ export function openedCards(judgements: readonly Judgement[], expanded: boolean)
 // failed, or that none of them did either — a skip, a pick, a `none`, a message read with another.
 export type VerdictState = "judging" | VerdictTone;
 
-export function verdictState(judgements: readonly Judgement[], judging: boolean): VerdictState {
+export function verdictState(judgements: readonly JudgementMark[], judging: boolean): VerdictState {
   if (judging) {
     return "judging";
   }
@@ -332,7 +332,7 @@ export function judgedNow(
   runs: readonly LiveRun[],
   queued: readonly QueuedMessage[],
   turns: readonly { messageId: ExactMessageId | null; speaker?: TurnSpeaker; startedAt?: number }[],
-  judgements: ReadonlyMap<ExactMessageId, readonly Judgement[]> = new Map()
+  judgements: ReadonlyMap<ExactMessageId, readonly JudgementMark[]> = new Map()
 ): Set<ExactMessageId> {
   // Each message being judged, with the moment the earliest of what judges it began.
   const since = new Map<ExactMessageId, number>();
@@ -423,8 +423,8 @@ export function keptOffer(judgement: Judgement): KeptCounts | null {
   return judgement.opening?.offers.findLast((one) => one.stage === judgement.stage)?.kept ?? null;
 }
 
-export function judgementsByMessage(judgements: Judgement[]): Map<ExactMessageId, Judgement[]> {
-  const index = new Map<ExactMessageId, Judgement[]>();
+export function judgementsByMessage<J extends JudgementMark>(judgements: readonly J[]): Map<ExactMessageId, J[]> {
+  const index = new Map<ExactMessageId, J[]>();
 
   for (const judgement of judgements) {
     if (judgement.messageId === null) {
@@ -492,7 +492,7 @@ const TURN_STAGES = new Set(["chat", "supervisor", "skipped", "read-with"]);
 const READ_WITH_STAGE = "read-with";
 
 /** Whether a verdict is the round's own turn's word on the message it read. */
-export function decidesMessage(judgement: Judgement): boolean {
+export function decidesMessage(judgement: JudgementMark): boolean {
   return TURN_STAGES.has(judgement.stage);
 }
 
@@ -503,7 +503,7 @@ export interface RoundPlaces {
   read: Map<string, ExactMessageId>;
 }
 
-export function roundPlaces(messages: readonly HomedMessage[], judgements: readonly Judgement[]): RoundPlaces {
+export function roundPlaces(messages: readonly HomedMessage[], judgements: readonly JudgementMark[]): RoundPlaces {
   const agents = new Set(messages.filter((message) => message.agent === true).map((message) => message.messageId));
   const answers = new Map<string, ExactMessageId>();
 
@@ -529,7 +529,7 @@ export function roundPlaces(messages: readonly HomedMessage[], judgements: reado
  * one that judged what the round read under the person's message of the same round, wherever the gate filed it. One
  * with nowhere on the page to stand stands under nothing.
  */
-export function homedJudgements(messages: readonly HomedMessage[], judgements: readonly Judgement[]): Judgement[] {
+export function homedJudgements<J extends JudgementMark>(messages: readonly HomedMessage[], judgements: readonly J[]): J[] {
   const agents = new Set(messages.filter((message) => message.agent === true).map((message) => message.messageId));
   const { answers, read } = roundPlaces(messages, judgements);
 
@@ -552,6 +552,24 @@ export function homedJudgements(messages: readonly HomedMessage[], judgements: r
 
     return person === undefined ? [] : [{ ...judgement, messageId: person }];
   });
+}
+
+/** A verdict's card: the page's mark worn by what its whole verdict carries, where that was read. */
+export function wholeOf(mark: JudgementMark, read: Judgement | undefined): Judgement {
+  return read === undefined ? { detail: null, ...mark } : { ...read, ...mark };
+}
+
+/**
+ * Verdicts read whole by their numbers, within the seconds they were written in, since the gate finds a room's verdicts
+ * by their time (docs/web.md, the room screen's chip line). One the gate no longer holds comes back as none.
+ */
+export async function readWholeJudgements(chatId: number, marks: readonly JudgementMark[]): Promise<Judgement[]> {
+  if (marks.length === 0) return [];
+
+  const times = marks.map((mark) => mark.createdAt);
+  const query = { ids: marks.map((mark) => mark.id).join(","), from: Math.min(...times), to: Math.max(...times) };
+
+  return (await $fetch<{ judgements: Judgement[] }>(`/api/rooms/${chatId}/judgements`, { query })).judgements;
 }
 
 /** A verdict in words: what it says, the names it chose, and how it reads. */

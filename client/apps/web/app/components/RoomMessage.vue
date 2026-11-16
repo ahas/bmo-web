@@ -460,7 +460,7 @@ import { countText } from "~/domain/numbers";
 import { liveChip } from "~/domain/turns";
 
 import type { ContextMenuItem, DropdownMenuItem } from "@nuxt/ui";
-import type { ExactMessageId, Judgement, MessageAttachment, Situation } from "#shared/types";
+import type { ExactMessageId, JudgementMark, MessageAttachment, Situation } from "#shared/types";
 import type { FeedItem, RunPlace, SendMark } from "~/domain/room";
 import type { LiveTurn } from "~/domain/working";
 
@@ -490,7 +490,7 @@ interface Props {
   writable?: boolean;
   // The round's whole record as the page reads it, for the answer's one record press: the gates that read the
   // person's message and the send and checks of the answer alike (docs/web.md, the room screen's chip line).
-  roundJudgements?: Judgement[];
+  roundJudgements?: JudgementMark[];
   // The room's situation note as that round read it.
   roundSituation?: Situation | null;
 }

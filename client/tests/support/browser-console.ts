@@ -77,6 +77,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["todo-run-figures", "fixture-password-2826"],
   ["work-view", "fixture-password-2311"],
   ["tool-clock", "fixture-password-3071"],
+  ["record-verdicts", "fixture-password-3145"],
   ["delegation-marker", "fixture-password-2373"],
   ["screen-stands", "fixture-password-2411"],
   ["hidden-inputs", "fixture-password-2412"],

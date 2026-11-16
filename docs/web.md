@@ -4072,7 +4072,10 @@ Four bounds keep it from growing forever.
   already standing where it opens, and nothing is seen scrolling. A message the stretch cannot be
   read around opens the room at its end.
   - **The first frame waits on the messages alone.** A page of the room carries its messages, their verdicts,
-    the draft counts of its rounds and its voice briefings, each read side by side, and nothing else; what a
+    the draft counts of its rounds and its voice briefings, each read side by side, and nothing else. Each verdict
+    comes as what places it and colours its mark, its stage, its words, its time and its round, and nothing a card
+    alone stands: what the gate wrote under it, its roads, its round's offers and a picker's lines are read when
+    an answer's record opens (「칩 줄」), since a busy stretch holds thousands of verdicts and few are ever opened. What a
     round spent and did — 컨텍스트, the record's brain and tool counts and 사용 토큰 — is read once the page
     has landed (「칩 줄」), and the room's header, its pins, its answerers, its window and the work running
     for it fill in beside the conversation as each arrives.
@@ -4440,8 +4443,13 @@ Four bounds keep it from growing forever.
       or verdict wraps at the bubble's width, and the panel grows by what it holds.
     - **A turn still running spreads what it has done so far**, in the order it did it; its judgement arrives with
       the answer.
-    - The panel is read the first time it opens: the round's log lines and the round log's rows are asked for once,
-      and a read that failed is asked again on the next opening.
+    - The panel is read the first time it opens: the round's log lines, the round log's rows and the round's
+      verdicts whole are asked for once, and a read that failed is asked again on the next opening. A page carries
+      each verdict without what only its card stands (「The first frame waits on the messages alone」), so the
+      verdicts are asked for by their own numbers, within the seconds they were written in, and come back with
+      what the gate wrote under each, the roads its run walked, the offers record of its round, a picker's lines
+      and the quiet instructions that opened its turn. The three reads go side by side, and a verdict the round
+      gained since is read on the next opening.
   - **컨텍스트** — how full the session's context window stood once the turn that sent the answer ended, as one
     whole percentage, 「42%」: what that turn's last request carried against the window of the model it ran
     on, as the session itself reported it. It stands on the message that carries the round's spend, read
@@ -4542,7 +4550,7 @@ Four bounds keep it from growing forever.
     beside it — 예 or 아니요, a rule's 적용 and 사용 each as 예 or 아니요, and 읽지 못함 where the answer was not
     read. Those lines take the place of the list of picked names the verdict's detail holds, which says less
     than they do. A verdict that carries no lines stands as before. A verdict the live stream announces carries
-    its lines where the stream hands them, and the page read after it carries them all the same.
+    its lines where the stream hands them, and the record's read of its round's verdicts whole carries them all the same.
   - **What opened the turn stands with its verdicts.** Spread, a message's verdicts are headed, for each
     turn they belong to, by the quiet instructions that turn carried: one line each, its sort and its one-line
     summary, cut to the line. Pressing a line spreads the instruction's whole text under it, read the moment it
@@ -4872,8 +4880,8 @@ Four bounds keep it from growing forever.
   tool's name with the size of its result, or that it failed; 브레인, each piece the round's end names as read — its
   group's word, its name and its path — or, where the end names none, each document the turn was handed, and then
   each call that read the brain; 사용 토큰, each road the round's runs took with its figure; and 전송 last. What a chip reads
-  only when opened — the round rows, the calls — is read for the copy, and a read that fails leaves that chip's
-  content out rather than holding the copy. Copying one message or several has the same shape.
+  only when opened — the verdicts whole, the round rows, the calls — is read for the copy, and a read that fails leaves
+  that chip's content out rather than holding the copy, its verdicts then standing without what was written under them. Copying one message or several has the same shape.
   - **A message's verdicts in a copy are the ones the screen gives it** (「판정」): a person's message copies its
     판정 and an answer copies its 드래프트 and its send, each in the record's own words.
   - **A copy holds the chosen messages and their own verdicts, and nothing of any other message.** A verdict that

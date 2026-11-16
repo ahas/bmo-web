@@ -44,8 +44,7 @@
 
         <!-- The clock, and the one press that stops it. A minute is short for reading while he is
              here, and stopping it is how he says he is: the recommendation then waits for the end
-             of the stop, and the same press starts the countdown again from what it had left. Beside it, the talk
-             over the question opened and closed. -->
+             of the stop, and the same press starts the countdown again from what it had left. -->
         <div class="flex flex-wrap items-center gap-1">
           <p class="text-sm tabular-nums text-warning">{{ card.status }}</p>
 
@@ -59,17 +58,6 @@
             :loading="pausing === card.id"
             :disabled="answering === card.id"
             @click="togglePause(card)"
-          />
-
-          <UButton
-            size="xs"
-            color="neutral"
-            :variant="talksOpen.includes(card.id) ? 'subtle' : 'ghost'"
-            icon="i-material-symbols-forum-outline"
-            :label="$t('question.action.discuss')"
-            :aria-pressed="talksOpen.includes(card.id)"
-            :aria-expanded="talksOpen.includes(card.id)"
-            @click="toggleTalk(card)"
           />
         </div>
       </div>
@@ -111,6 +99,22 @@
                items side by side, and the mark stands at its head, where wrapping cannot split it. -->
           <span>{{ option.number }}. <span v-if="option.recommended" class="whitespace-nowrap">{{ $t("question.label.recommended") }}</span> <TranslatedInline :text="option.text" :follow="readingShown[card.id] === true" /></span>
         </UButton>
+
+        <!-- The talk over the question, opened and closed, right under the choices it is about and drawn as one
+             of them, since asking what they mean is the other thing he does with them. It is an action and no
+             answer: it carries an icon in place of a number, never takes the recommended mark, and chooses
+             nothing. -->
+        <UButton
+          size="xs"
+          color="neutral"
+          :variant="talksOpen.includes(card.id) ? 'soft' : 'subtle'"
+          :icon="talksOpen.includes(card.id) ? 'i-material-symbols-forum' : 'i-material-symbols-forum-outline'"
+          :label="$t('question.action.discuss')"
+          class="justify-start text-start"
+          :aria-pressed="talksOpen.includes(card.id)"
+          :aria-expanded="talksOpen.includes(card.id)"
+          @click="toggleTalk(card)"
+        />
       </div>
 
       <!-- The options do not always cover what he wants, and then he writes it: the job reads
@@ -127,7 +131,20 @@
           @update:model-value="write(card, String($event))"
         />
 
-        <div class="flex flex-wrap items-center gap-1">
+        <!-- The card's actions sit at its right edge, at every width. The press that sends stands last, at the
+             edge itself, so taking a choice back appears beside it without moving it. -->
+        <div class="flex flex-wrap items-center justify-end gap-1">
+          <!-- Taking a wrong press back without having to find the same button again. -->
+          <UButton
+            v-if="picked[card.id] !== undefined"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            :label="$t('question.action.unpick')"
+            :disabled="answering === card.id"
+            @click="unpick(card)"
+          />
+
           <!-- The one press that sends, and it says what it is about to send rather than what
                it does. Nothing is set, nothing goes. -->
           <UButton
@@ -139,17 +156,6 @@
             :disabled="questionReply(picked[card.id] ?? null, words[card.id] ?? '') === null"
             :loading="answering === card.id"
             @click="send(card)"
-          />
-
-          <!-- Taking a wrong press back without having to find the same button again. -->
-          <UButton
-            v-if="picked[card.id] !== undefined"
-            size="xs"
-            color="neutral"
-            variant="ghost"
-            :label="$t('question.action.unpick')"
-            :disabled="answering === card.id"
-            @click="unpick(card)"
           />
         </div>
       </div>

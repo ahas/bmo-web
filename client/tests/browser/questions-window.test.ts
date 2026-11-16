@@ -31,6 +31,7 @@ const GUTTER = 16;
 const TEST_MS = 120_000;
 const SCHEMES = ["light", "dark"] as const;
 const DISCUSS = wording("question.action.discuss");
+const ANSWER = wording("question.action.answer");
 const TALK = wording("question.label.talk");
 const WRITING = wording("question.status.talk_writing");
 const SETTLED_ELSEWHERE = wording("question.error.settled_elsewhere", { answer: "Keep the index in the service's own table" });
@@ -189,6 +190,28 @@ async function dragBar(page: Page, dx: number, dy: number): Promise<void> {
   await page.mouse.up();
 }
 
+// A card's parts in the order it stands them (docs/web.md, 「The card stands its parts in one order」): the talk button
+// right under the last choice and as wide as it, the box for his own words under it, and the send button under the box
+// at the card's right edge, the edge the full-width box shares.
+async function expectCardOrder(page: Page, todoId: number, sendLabel: string = ANSWER): Promise<void> {
+  const card = page.locator(`section[aria-label="${wording("question.label.asked", { id: todoId })}"]`);
+  const last = await card.getByRole("button", { name: /^\d\. / }).last().boundingBox();
+  const discuss = await card.getByRole("button", { name: DISCUSS }).boundingBox();
+  // The answer box is the card's last; an open talk stands its own box above the choices.
+  const box = await card.locator("textarea").last().boundingBox();
+  const send = await card.getByRole("button", { name: sendLabel }).boundingBox();
+
+  expect(last && discuss && box && send).toBeTruthy();
+  expect(discuss!.y).toBeGreaterThanOrEqual(last!.y + last!.height);
+  expect(discuss!.y - (last!.y + last!.height)).toBeLessThanOrEqual(8);
+  expect(Math.abs(discuss!.x - last!.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(discuss!.width - last!.width)).toBeLessThanOrEqual(1);
+  expect(box!.y).toBeGreaterThan(discuss!.y + discuss!.height);
+  expect(send!.y).toBeGreaterThan(box!.y + box!.height);
+  expect(Math.abs(send!.x + send!.width - (box!.x + box!.width))).toBeLessThanOrEqual(1);
+  expect(send!.width).toBeLessThan(box!.width / 2);
+}
+
 function stood(talk: Partial<QuestionTalk> = {}): Stand {
   return { questions: [], talks: new Map(), sent: [], settledElsewhere: new Set(), ...talk } as Stand;
 }
@@ -216,6 +239,7 @@ describe.skipIf(!origin || !touchReady())("the questions window on a desk", () =
         const foot = await rectOf(page, "[data-screen-foot]");
 
         expect(first.y + first.height).toBeLessThanOrEqual(foot.y);
+        await expectCardOrder(page, 41);
         await shoot(page, name("one"));
 
         // Dragged far past each corner, it stops a gutter in from the visible window's edges.
@@ -281,6 +305,9 @@ describe.skipIf(!origin || !touchReady())("the questions window on a desk", () =
         expect(stand.sent.some((sent) => sent.path === "question-talk" && sent.body.say === "Thanks, that is clear.")).toBe(true);
 
         await page.getByRole("button", { name: /^1\. / }).click();
+        // The choice made, the unpick button stands beside the send button, which keeps its place at the card's right edge.
+        await page.getByRole("button", { name: wording("question.action.answer_with", { number: 1 }) }).scrollIntoViewIfNeeded();
+        await expectCardOrder(page, 41, wording("question.action.answer_with", { number: 1 }));
         await shoot(page, name("talk-chosen"));
         await page.getByRole("button", { name: wording("question.action.answer_with", { number: 1 }) }).click();
         await page.waitForTimeout(500);
@@ -356,6 +383,7 @@ describe.skipIf(!origin || !touchReady())("the questions sheet on a phone", () =
 
         await page.getByRole("button", { name: wording("common.action.expand") }).click();
         await page.waitForTimeout(600);
+        await expectCardOrder(page, 41);
         await shoot(page, name("tall"));
 
         // The talk open, and a keyboard over the page's foot while a word is written to the job.

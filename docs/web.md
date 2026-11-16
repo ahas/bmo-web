@@ -6406,8 +6406,11 @@ Four bounds keep it from growing forever.
   - **Where it stands among what floats.** It stands over the room and the panels beside it and under everything floating that opens
     — a dialog, a sheet, a drawer, a menu, a popover, a tooltip and the message pill — so a confirmation or a notice is never hidden
     behind it.
-- **Talking a question over.** Each question carries 의논 beside its timer. Pressing it opens the talk over that question inside its card, between the
-  question's reason and its choices, and pressing it again closes it. The owner asks there in his own words what the question means,
+- **Talking a question over.** Each question carries 의논 right under its choices, drawn as one more of them — the
+  same button, size, shape and width — and told apart by its icon, which stands where a choice's number does. It is
+  an action and no answer: it carries no number, chooses nothing and never wears the recommended mark. Pressing it
+  opens the talk over that question inside its card, between the question's reason and its choices, and pressing it
+  again closes it; while the talk stands open the button loses its outline and its icon is filled. The owner asks there in his own words what the question means,
   what each choice would lead to and what the job recommends and why, and the job that asked answers — the run that stands waiting
   on the question is handed his words, answers, and waits on the same question again (bmo-job's `docs/cli.md`, 「`bmo-job job ask`」,
   its `--talk`). Each turn stands with who said it: the job by its number, and the owner by his name.
@@ -6445,6 +6448,9 @@ Four bounds keep it from growing forever.
   pressing that button sends. With nothing chosen the button stands 「답하기」 and is not pressable. It is split so because it cannot
   be undone — the bot writes the answer once on that line and refuses a second, so one wrong press is the end. On the other side one
   job stands stopped waiting that answer.
+- **The card stands its parts in one order:** the choices, 의논 under them, the box for words the choices do not hold, and
+  under the box the card's actions at its right edge at every width, a phone's included — 「선택 취소」 while a choice is
+  chosen, and last, at the edge itself, the button that sends, so the first appearing beside it never moves it.
 - Undoing has two roads too. Pressing a chosen choice again releases it, and 「선택 취소」 beside it releases it too. Writing
   anything in the write box releases a chosen one — the two are one answer and the bot refuses a body carrying both, so the screen
   keeps them from standing together. Conversely choosing a choice clears written words.

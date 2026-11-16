@@ -2129,14 +2129,11 @@ export interface TodoApproval {
 // of them went. resolve carries the line that says why a finished item's unfinished note no longer stands.
 export type TodoAction =
   | "approve"
-  | "unapprove"
   | "move"
   | "top"
   // Behind every other row of the queue, in one step; the rest keep their numbers.
   | "bottom"
   | "drop"
-  // Marked done by the owner himself, keeping whatever account the row already carries.
-  | "done"
   | "reorder"
   | "resolve"
   // A new row raised out of an unfinished note being read, on the reader's own words about it.

@@ -344,7 +344,6 @@ async function changeItem(item: ResearchItem, change: ItemChange): Promise<void>
     const changed = await $fetch<ResearchItem>(`/api/research/queue/${item.id}`, { method: "PATCH", body: move.body });
 
     items.value = (items.value ?? []).map((one) => (one.id === changed.id ? changed : one));
-    island.say({ tone: "success", title: t(move.done) });
     void readQueue();
   } catch (error) {
     island.fail(error, t(move.failed));
@@ -373,7 +372,6 @@ watch(asking, (opened) => {
 });
 
 function asked(): void {
-  island.say({ tone: "success", title: t("research.message.asked") });
   rereadAll();
 }
 

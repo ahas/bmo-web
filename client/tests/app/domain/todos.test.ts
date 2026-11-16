@@ -494,7 +494,7 @@ describe("the colour a row's word wears", () => {
     expect(stateColour(item(2, { running: true }))).toBe("primary");
     expect(stateColour(item(9, { approved: false, awaitingApproval: true }))).toBe("warning");
     expect(stateColour(item(1))).toBe("neutral");
-    expect(stateColour(item(7, { heldAt: NOW }))).toBe("neutral");
+    expect(stateColour(item(7, { status: "held", heldAt: NOW }))).toBe("neutral");
   });
 
   test("a done row whose run is still going wears what a running row wears", () => {
@@ -507,7 +507,7 @@ describe("the colour a row's word wears", () => {
 
     for (const other of [
       item(2, { running: true }),
-      item(7, { heldAt: NOW }),
+      item(7, { status: "held", heldAt: NOW }),
       item(1),
       item(9, { approved: false, awaitingApproval: true }),
       reporting
@@ -522,40 +522,46 @@ describe("the colour a row's word wears", () => {
 // An item held while its run still goes is on its way to a hold, not there yet: it keeps its place in
 // the queue under its own word until the run has ended.
 describe("an item held while it still runs", () => {
-  const stopping = item(8, { heldAt: NOW, running: true, holdPending: true });
+  const stopping = item(8, { status: "held", heldAt: NOW, running: true, holdPending: true });
 
   test("reads as waiting to stop in the warning colour, and as held once nothing of it runs", () => {
     expect(todoState(stopping)).toBe("stopping");
     expect(stateLabel(wording, stopping)).toBe(wording("todo.label.held_pending"));
     expect(stateColour(stopping)).toBe("warning");
-    expect(todoState(item(8, { heldAt: NOW }))).toBe("held");
+    expect(todoState(item(8, { status: "held", heldAt: NOW }))).toBe("held");
+    // Held is bmo-job's state, never a report: a hold made with no reason carries none, and a report outlives its hold.
+    expect(todoState(item(8, { status: "held" }))).toBe("held");
+    expect(todoState(item(8, { heldAt: NOW }))).toBe("waiting");
   });
 
   // The kinds of setting aside never share a word, and none of them is a bare pause.
   test("says who set it aside: the owner's stop reads as stopping then stopped, a failure hold as held for failures", () => {
-    const stopped = item(9, { heldAt: NOW, running: true, holdPending: true, heldKind: "stop", heldReason: "wrong direction" });
+    const stopped = item(9, { status: "held", heldAt: NOW, running: true, holdPending: true, heldKind: "stop", heldReason: "wrong direction" });
     expect(stateLabel(wording, stopped)).toBe(wording("live.status.stopping"));
     expect(stateColour(stopped)).toBe("warning");
     expect(stateIcon(stopped)).toBe("i-material-symbols-back-hand-outline");
-    const ended = item(9, { heldAt: NOW, heldKind: "stop", heldReason: "wrong direction" });
+    const ended = item(9, { status: "held", heldAt: NOW, heldKind: "stop", heldReason: "wrong direction" });
     expect(stateLabel(wording, ended)).toBe(wording("todo.label.held_stop"));
     expect(stateColour(ended)).toBe("neutral");
-    expect(stateLabel(wording, item(10, { heldAt: NOW, heldKind: "failure" }))).toBe(wording("todo.label.held_failure"));
-    expect(stateLabel(wording, item(13, { heldAt: NOW, running: true, holdPending: true, heldKind: "pause" }))).toBe(wording("todo.label.held_pausing"));
-    expect(stateLabel(wording, item(13, { heldAt: NOW, heldKind: "pause" }))).toBe(wording("todo.label.held_pause"));
-    expect(stateLabel(wording, item(11, { heldAt: NOW }))).toBe(wording("todo.label.held_plain"));
-    expect(stateIcon(item(11, { heldAt: NOW }))).toBe("i-material-symbols-pause-circle-outline");
+    expect(stateLabel(wording, item(10, { status: "held", heldAt: NOW, heldKind: "failure" }))).toBe(wording("todo.label.held_failure"));
+    expect(stateLabel(wording, item(13, { status: "held", heldAt: NOW, running: true, holdPending: true, heldKind: "pause" }))).toBe(wording("todo.label.held_pausing"));
+    expect(stateLabel(wording, item(13, { status: "held", heldAt: NOW, heldKind: "pause" }))).toBe(wording("todo.label.held_pause"));
+    expect(stateLabel(wording, item(11, { status: "held", heldAt: NOW }))).toBe(wording("todo.label.held_plain"));
+    expect(stateIcon(item(11, { status: "held", heldAt: NOW }))).toBe("i-material-symbols-pause-circle-outline");
   });
 
   test("can be stopped while something of it is in flight, unless it is already his stop", () => {
     expect(canStop(item(12, { running: true }))).toBe(true);
     expect(canStop(item(12, { orderActive: true }))).toBe(true);
-    expect(canStop(item(12, { heldAt: NOW, running: true, holdPending: true }))).toBe(true);
+    expect(canStop(item(12, { status: "held", heldAt: NOW, running: true, holdPending: true }))).toBe(true);
     expect(canStop(item(12, {}))).toBe(false);
-    expect(canStop(item(12, { running: true, heldAt: NOW, heldKind: "stop" }))).toBe(false);
+    expect(canStop(item(12, { running: true, status: "held", heldAt: NOW, heldKind: "stop" }))).toBe(false);
     expect(canStop(item(12, { running: true, done: true }))).toBe(false);
-    expect(heldLine(wording, item(12, { heldAt: NOW, heldKind: "stop", heldReason: "wrong turn" }), () => "yesterday")).toBe(wording("todo.label.held_since_reason", { since: "yesterday", kind: wording("todo.label.held_stop"), reason: "wrong turn" }));
-    expect(heldLine(wording, item(12, { heldAt: NOW }), () => "yesterday")).toBe(wording("todo.label.held_since", { since: "yesterday", kind: wording("todo.label.held_plain") }));
+    expect(heldLine(wording, item(12, { status: "held", heldAt: NOW, heldKind: "stop", heldReason: "wrong turn" }), () => "yesterday")).toBe(wording("todo.label.held_since_reason", { since: "yesterday", kind: wording("todo.label.held_stop"), reason: "wrong turn" }));
+    expect(heldLine(wording, item(12, { status: "held", heldAt: NOW }), () => "yesterday")).toBe(wording("todo.label.held_since", { since: "yesterday", kind: wording("todo.label.held_plain") }));
+    // A hold given no reason left no report: the line says its kind alone, and a row no longer held says nothing.
+    expect(heldLine(wording, item(12, { status: "held", heldKind: "pause" }), () => "yesterday")).toBe(wording("todo.label.held_pause"));
+    expect(heldLine(wording, item(12, { heldAt: NOW, heldReason: "earlier" }), () => "yesterday")).toBeNull();
     expect(heldLine(wording, item(12, {}), () => "yesterday")).toBeNull();
   });
 
@@ -682,7 +688,7 @@ describe("what a press holds back while it runs", () => {
 
   test("nothing else on the row is offered while its drop runs", () => {
     expect(busyBlocks(new Set([busyKey(7, "drop")]), 7, "approve")).toBe(true);
-    expect(busyBlocks(new Set([busyKey(7, "drop")]), 7, "unapprove")).toBe(true);
+    expect(busyBlocks(new Set([busyKey(7, "drop")]), 7, "hold")).toBe(true);
   });
 
   test("two buttons that are not drop run side by side", () => {
@@ -721,17 +727,17 @@ describe("sending an item to the front", () => {
 describe("what a row's menu offers", () => {
   const queue = [item(1), item(2), item(3)];
 
-  test("a request waiting on him is approved, set aside, closed or thrown out", () => {
-    expect(rowVerbs(item(9, { approved: false, awaitingApproval: true }), queue)).toEqual(["approve", "hold", "done", "append", "drop"]);
+  test("a request waiting on him is approved or thrown out, never set aside: bmo-job holds no draft", () => {
+    expect(rowVerbs(item(9, { approved: false, awaitingApproval: true, status: "draft" }), queue)).toEqual(["approve", "append", "drop"]);
   });
 
-  test("an approved row behind another is sent to the front or has its approval taken back, never thrown out", () => {
-    expect(rowVerbs(item(2), queue)).toEqual(["hold", "top", "done", "append", "unapprove"]);
+  test("an approved row behind another is set aside, sent to the front or thrown out", () => {
+    expect(rowVerbs(item(2), queue)).toEqual(["hold", "top", "append", "drop"]);
     expect(rowVerbs(item(1), queue)).not.toContain("top");
   });
 
-  test("a running row opens its job's log and is not closed from the menu: its job closes it", () => {
-    expect(rowVerbs(item(2, { running: true }), queue)).toEqual(["log", "hold", "top", "append", "unapprove"]);
+  test("a running row opens its job's log first and can still be set aside", () => {
+    expect(rowVerbs(item(2, { running: true }), queue)).toEqual(["log", "hold", "top", "append", "drop"]);
   });
 
   test("a row whose job ended with its commit on its way live still opens that job's log", () => {
@@ -740,19 +746,23 @@ describe("what a row's menu offers", () => {
     expect(rowVerbs(item(2), queue)).not.toContain("log");
   });
 
-  test("taking an approval back stands last, apart from the job's log that opens the menu", () => {
-    const verbs = rowVerbs(item(2, { running: true }), queue);
-
-    expect(verbs.at(0)).toBe("log");
-    expect(verbs.at(-1)).toBe("unapprove");
+  test("a row set aside offers its release in place of the hold, whether or not a report says why", () => {
+    for (const heldAt of [null, 1_756_800_100]) {
+      for (const heldKind of ["pause", "stop", "failure"] as const) {
+        expect(rowVerbs(item(2, { status: "held", heldAt, heldKind }), queue)).toEqual(["release", "append", "drop"]);
+      }
+    }
   });
 
-  test("a row set aside is taken back or thrown out, and one he stopped or wound down is not closed", () => {
-    const held = { heldAt: 1_756_800_100, heldReason: null };
+  test("a hold report left on a row no longer held offers the hold, not its release", () => {
+    expect(rowVerbs(item(2, { heldAt: 1_756_800_100, heldReason: "earlier" }), queue)).toEqual(["hold", "top", "append", "drop"]);
+  });
 
-    expect(rowVerbs(item(2, { ...held, heldKind: null }), queue)).toEqual(["release", "done", "append", "drop"]);
-    expect(rowVerbs(item(2, { ...held, heldKind: "stop" }), queue)).not.toContain("done");
-    expect(rowVerbs(item(2, { ...held, heldKind: "pause" }), queue)).not.toContain("done");
+  test("a row its own job holds until its commit goes live offers neither the hold nor its release", () => {
+    const verbs = rowVerbs(item(2, { status: "held", deployHeld: true, closing: { phase: "waiting-batch", commit: "abc" } }), queue);
+
+    expect(verbs).not.toContain("hold");
+    expect(verbs).not.toContain("release");
   });
 
   test("a finished or merged row offers nothing, so no menu opens over it", () => {
@@ -959,7 +969,7 @@ describe("the row a job is going on for standing first", () => {
   });
 
   test("so do the rows winding down on their way to being held", () => {
-    const stopping = item(4, { heldAt: NOW, running: true, holdPending: true, heldKind: "pause" });
+    const stopping = item(4, { status: "held", heldAt: NOW, running: true, holdPending: true, heldKind: "pause" });
 
     expect(todoState(stopping)).toBe("stopping");
     expect(shownOf({ ...held, queue: [item(1), item(2), running, stopping, item(5)] }).map((entry) => entry.id)).toEqual([3, 4, 1, 2, 5]);
@@ -1205,13 +1215,13 @@ describe("what a search found", () => {
 // Setting an item aside. It is out of the queue and out of the requests waiting on him, and it
 // is out of sight everywhere except its own chip — which is the whole of what he asked for.
 describe("an item set aside", () => {
-  const aside = item(7, { heldAt: 1_756_900_000, heldReason: "not now" });
+  const aside = item(7, { status: "held", heldAt: 1_756_900_000, heldReason: "not now" });
   const board: TodoBoard = { queue: [item(1)], pending: [item(9, { approved: false, awaitingApproval: true })], held: [aside], merged: [], done: [], doneTotal: 0, standingNotes: [], choices: CHOICES, standing: { queue: 1, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 0 }, paused: false, deployHold: null };
 
   test("is neither waiting nor waiting on him: it waits on nothing", () => {
     expect(todoState(aside)).toBe("held");
     // Its approval is untouched; being set aside is what it is before anything else.
-    expect(todoState(item(7, { approved: false, awaitingApproval: true, heldAt: 1_756_900_000 }))).toBe("held");
+    expect(todoState(item(7, { approved: false, status: "held" }))).toBe("held");
   });
 
   test("does not show under the all tab, which is what setting it aside is for", () => {

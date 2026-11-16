@@ -212,7 +212,9 @@ export function todoState(item: TodoItem): TodoState {
   // whether it would otherwise be waiting or waiting on him says nothing about where it stands.
   // Until a run of it has ended, though, it is only on its way there.
   // One held by its job only until its commit goes live is waiting, its way live said beside it.
-  if ((item.heldAt !== null || item.status === "held") && !item.deployHeld) {
+  // Whether it is set aside is bmo-job's state alone: a hold report says why one was, and a hold carries none where
+  // no reason was given.
+  if (item.status === "held" && !item.deployHeld) {
     return item.holdPending ? "stopping" : "held";
   }
 
@@ -452,13 +454,19 @@ export function mergedLine(t: Translate, item: TodoItem, formatStamp: (at: numbe
   return item.done ? t("todo.label.merged_done_since", { since, target }) : t("todo.label.merged_open_since", { since, target });
 }
 
-// The line a held item carries: since when, as which kind, and why.
+// The line a held item carries: since when, as which kind, and why. A hold given no reason left no report to read its
+// time off, so it says its kind alone.
 export function heldLine(t: Translate, item: TodoItem, formatStamp: (at: number) => string): string | null {
-  if (item.heldAt === null) {
+  if (!setAside(item)) {
     return null;
   }
 
   const kind = heldLabel(t, item.heldKind, false);
+
+  if (item.heldAt === null) {
+    return kind;
+  }
+
   const since = formatStamp(item.heldAt);
 
   return item.heldReason === null
@@ -913,10 +921,27 @@ export function canTop(queue: TodoItem[], id: number): boolean {
   return canMove(queue, id, "up");
 }
 
+// Whether an item stands set aside now, by a hold or a stop, the one still winding down included. An item its own job
+// holds until its commit goes live is not: that hold is the deployment's to let go (docs/web.md, the TODO panel's
+// section).
+export function setAside(item: TodoItem): boolean {
+  const state = todoState(item);
+
+  return state === "held" || state === "stopping";
+}
+
+// Whether an item can be set aside: one past approval, in the queue and not already held in any way. bmo-job moves
+// `open` and `leased` to `held` and a `draft` nowhere but `open` (its docs/api.md, 「States and moves」).
+export function canHold(item: TodoItem): boolean {
+  const state = todoState(item);
+
+  return state !== "pending" && !setAside(item) && !item.deployHeld && !item.done && item.mergedInto === null;
+}
+
 // What a row's own menu offers, in the order it stands them (docs/web.md, the TODO panel's section): the
 // running job's log, then each act the row's state allows, the same acts the opened item allows. A
 // finished or merged row is acted on by nobody, so it offers nothing and opens no menu.
-export type RowVerb = "log" | "approve" | "unapprove" | "hold" | "release" | "top" | "done" | "append" | "drop";
+export type RowVerb = "log" | "approve" | "hold" | "release" | "top" | "append" | "drop";
 
 export function rowVerbs(item: TodoItem, queue: TodoItem[]): RowVerb[] {
   const state = todoState(item);
@@ -925,24 +950,18 @@ export function rowVerbs(item: TodoItem, queue: TodoItem[]): RowVerb[] {
     return [];
   }
 
-  const held = item.heldAt !== null;
-  // A request waiting on him, or a row set aside, is still his to approve or throw out; an approved
-  // one is his to move or take the approval back from.
-  const deciding = held || state === "pending";
+  const aside = setAside(item);
   // Its job's log stands while one runs, and once the job ended with its commit still on its way live; a line no
   // job ever ran for has none to open.
   const verbs: RowVerb[] = item.running || item.closing !== null ? ["log"] : [];
 
   if (state === "pending") verbs.push("approve");
-  verbs.push(held ? "release" : "hold");
-  if (!deciding && canTop(queue, item.id)) verbs.push("top");
-  // A job still at work closes the item itself, and a row wound down or stopped is work he means
-  // to have resumed: the bot refuses closing either.
-  if (!item.running && !jobGoingOn(state) && item.heldKind !== "pause" && item.heldKind !== "stop") verbs.push("done");
+  if (aside) verbs.push("release");
+  if (canHold(item)) verbs.push("hold");
+  if (!aside && state !== "pending" && canTop(queue, item.id)) verbs.push("top");
   verbs.push("append");
-  // What takes something away comes last: the approval from an approved row, the row itself from
-  // one still his to decide or one that opened by itself with no approval to take back.
-  verbs.push(!deciding && item.approved ? "unapprove" : "drop");
+  // What takes something away comes last: the row itself, which every row the menu opens on may lose.
+  verbs.push("drop");
 
   return verbs;
 }

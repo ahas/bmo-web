@@ -372,9 +372,9 @@ describe("the auto-progression switch", () => {
     expect(template).toContain('<template v-if="board.paused"> · {{ $t("todo.status.paused_suffix") }}</template>');
   });
 
-  test("the press goes to the bot, and a refusal is said in the panel's own words", () => {
+  test("the press goes to the bot, and a refusal is said in the message pill", () => {
     expect(source).toContain('$fetch<QueuePauseChanged>("/api/queue-pause", { method: "POST", body: { paused } })');
-    expect(source).toContain('failureText(error, t("todo.error.auto_change_failed"))');
+    expect(source).toContain('island.fail(error, t("todo.error.auto_change_failed"))');
   });
 
   // A word naming the one item it moved reads that item's line alone (docs/web.md, the TODO panel's section): the
@@ -426,7 +426,8 @@ describe("the deployment's hold", () => {
     expect(mark).toContain('$fetch("/api/deploy-hold-release", { method: "POST" })');
     expect(mark).toContain('@click="releaseHold"');
     expect(template).not.toContain("releaseHold");
-    expect(source).toContain('t("todo.message.auto_resumed_hold_stands", { hold: holdSummary.value })');
+    // The band names the hold that still stands, so a resume adds no notice of its own.
+    expect(source).not.toContain("todo.message.auto_");
   });
 });
 
@@ -555,7 +556,7 @@ describe("stopping an opened item", () => {
   });
 
   test("posts the stop verb with the trimmed reason and clears the box once it lands", () => {
-    expect(detailSource).toContain('await act(id, "stop", { why: reason });');
+    expect(detailSource).toContain('if (await act(id, "stop", { why: reason })) stopWhy.value = "";');
     expect(detailSource).toContain("const reason = stopWhy.value.trim();");
     expect(detailSource).toContain('stopWhy.value = "";');
   });

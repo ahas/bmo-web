@@ -151,16 +151,6 @@
 
   <!-- Where the search found this row, when it is in nothing the row shows. -->
   <SearchHit class="mt-1" :match="match" :query="query" />
-
-  <!-- Taking the approval back, asked again on the row it is about. -->
-  <TodoUnapproveStep
-    v-if="unapproving"
-    class="col-start-2 mt-2"
-    :id="item.id"
-    :busy="unapproveBusy"
-    @confirm="emit('unapprove', item)"
-    @cancel="emit('cancel-unapprove')"
-  />
 </template>
 
 <script setup lang="ts">
@@ -205,16 +195,11 @@ defineProps<{
   match: SearchMatch | null;
   // The rooms a request may have come from, by which its line names the room; none until they are read.
   rooms: RoomSummary[] | null | undefined;
-  // Whether the row stands the question of taking its approval back, and whether that press is on its way.
-  unapproving: boolean;
-  unapproveBusy: boolean;
 }>();
 
 // Every press is the panel's to act on, which knows the board, the menu and the drag.
 const emit = defineEmits<{
   open: [id: number];
   "handle-down": [id: number, event: PointerEvent];
-  unapprove: [item: TodoItem];
-  "cancel-unapprove": [];
 }>();
 </script>

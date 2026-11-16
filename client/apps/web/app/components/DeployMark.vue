@@ -408,7 +408,6 @@ async function releaseHold(): Promise<void> {
 
   try {
     await $fetch("/api/deploy-hold-release", { method: "POST" });
-    island.say({ tone: "success", title: t("todo.message.hold_released") });
     await refresh();
   } catch (error) {
     island.fail(error, t("todo.error.hold_release_failed"));

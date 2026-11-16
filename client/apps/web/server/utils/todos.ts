@@ -197,9 +197,13 @@ function itemOf(item: Item, reports: readonly Report[] = [], note: string | null
     unfinished: null,
     unfinishedResolvedAt: null,
     unfinishedResolution: null,
-    heldAt: said.heldAt,
-    heldReason: said.heldReason,
-    heldKind: item.state === "held" && !heldForDeploy(item) ? (stopped ? "stop" : "pause") : null,
+    // A hold's time and reason are its latest held report's, read only while the item is held, so a released item says
+    // nothing of an earlier hold.
+    heldAt: item.state === "held" ? said.heldAt : null,
+    heldReason: item.state === "held" ? said.heldReason : null,
+    // Held by the owner's stop, or a plain hold: bmo-job keeps no wind-down of its own, so none reads as one (docs/web.md,
+    // the TODO panel's section).
+    heldKind: item.state === "held" && !heldForDeploy(item) && stopped ? "stop" : null,
     mergedInto: item.mergedInto,
     mergedAt: null,
     mergedIntoTitle: null,

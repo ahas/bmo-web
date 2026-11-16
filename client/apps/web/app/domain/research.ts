@@ -139,11 +139,11 @@ export function retryDue(item: { state: string; retryAt: number | null }): numbe
 /** A change the screen makes on an item: its dismissal, a stuck one asked again, or a stuck one moved to the front. */
 export type ItemChange = "dismiss" | "reask" | "front";
 
-/** Each change as the unit is asked it (bmo-research's `docs/api.md`, 「queue」), with the pack's words for it done and failed. */
-export const ITEM_CHANGES: Readonly<Record<ItemChange, { body: ResearchItemChange; done: string; failed: string }>> = {
-  dismiss: { body: { state: "dismissed" }, done: "research.message.dismissed", failed: "research.error.dismiss_failed" },
-  reask: { body: { state: "waiting" }, done: "research.message.reasked", failed: "research.error.reask_failed" },
-  front: { body: { front: true }, done: "research.message.fronted", failed: "research.error.front_failed" }
+/** Each change as the unit is asked it (bmo-research's `docs/api.md`, 「queue」), with the pack's words for its failure. */
+export const ITEM_CHANGES: Readonly<Record<ItemChange, { body: ResearchItemChange; failed: string }>> = {
+  dismiss: { body: { state: "dismissed" }, failed: "research.error.dismiss_failed" },
+  reask: { body: { state: "waiting" }, failed: "research.error.reask_failed" },
+  front: { body: { front: true }, failed: "research.error.front_failed" }
 };
 
 const SHAPE_LABELS: Record<string, string> = {

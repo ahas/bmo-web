@@ -1,5 +1,6 @@
 import {
   APPEND_LIMIT,
+  HOLD_REASON_LIMIT,
   isAgentName,
   MODEL_LABEL_LIMIT,
   NOTE_LIMIT,
@@ -42,12 +43,10 @@ interface TodoBody {
 
 const ACTIONS: readonly TodoAction[] = [
   "approve",
-  "unapprove",
   "move",
   "top",
   "bottom",
   "drop",
-  "done",
   "reorder",
   "resolve",
   "raise",
@@ -158,6 +157,12 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
     throw fail(400, wording(STOP_REASON_NEEDED));
   }
 
+  // A hold's reason is his to give or leave out; given, it is kept as the item's held report, which bmo-job takes only
+  // with words in it.
+  if (action === "hold" && why !== undefined && (typeof why !== "string" || why.length > HOLD_REASON_LIMIT)) {
+    throw fail(400, wording("todo.error.hold_reason_too_long", { n: HOLD_REASON_LIMIT }));
+  }
+
   const worker = body?.worker;
 
   // Which worker is to do it. Null takes the assignment off; a name is a name, and whether that
@@ -196,16 +201,11 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
       // Who approves is the caller the console's token names, never a field of the change.
       await patchItem(id, { approval: {} });
       break;
-    case "unapprove":
-      await patchItem(id, { approval: null });
-      break;
     case "drop":
       await patchItem(id, { state: "dropped" });
       break;
-    case "done":
-      await patchItem(id, { state: "done" });
-      break;
     case "hold":
+      if (typeof why === "string" && why.trim() !== "") await heldReport(id, why.trim(), signed.name);
       await patchItem(id, { state: "held" });
       break;
     case "release":
@@ -237,6 +237,7 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
         params: { path: { itemId: id } },
         body: { text: why as string, actorName: signed.name, labels: { kind: "stop" } }
       }));
+      await heldReport(id, (why as string).trim(), signed.name);
       await patchItem(id, { state: "held" });
 
       return { ok: true, stopped: 1 };
@@ -264,6 +265,15 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
 
   return { ok: true };
 });
+
+// Why an item is set aside, as the held report the opened item reads its hold's time and reason off (docs/web.md, the
+// TODO panel's section).
+async function heldReport(id: number, why: string, actorName: string): Promise<void> {
+  await jobCall(job().POST("/items/{itemId}/reports", {
+    params: { path: { itemId: id } },
+    body: { kind: "held", body: why, actorName }
+  }));
+}
 
 async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: Record<string, never> | null; assigneeName?: string | null; position?: number; labels?: Record<string, string> }): Promise<void> {
   try {

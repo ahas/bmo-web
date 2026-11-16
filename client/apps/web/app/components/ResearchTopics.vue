@@ -110,8 +110,7 @@ function openAdd(): void {
 
 defineExpose({ openAdd });
 
-function saved(state: ResearchStateView, added: boolean): void {
-  island.say({ tone: "success", title: t(added ? "research.message.topic_added" : "research.message.topic_saved") });
+function saved(state: ResearchStateView): void {
   emit("changed", state);
 }
 
@@ -126,7 +125,6 @@ async function remove(topic: ResearchCategoryView): Promise<void> {
   try {
     const state = await $fetch<ResearchStateView>(`/api/research/topics/${encodeURIComponent(topic.name)}`, { method: "DELETE" });
 
-    island.say({ tone: "success", title: t("research.message.topic_deleted") });
     emit("changed", state);
   } catch (failure) {
     island.fail(failure, t("research.error.topic_delete_failed"));

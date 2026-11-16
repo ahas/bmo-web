@@ -100,13 +100,12 @@ describe("the queue's words", () => {
     expect(ITEM_STATES.filter(isStuck)).toEqual(["stuck"]);
   });
 
-  test("asks the unit each change by its own body, with words for it done and failed", () => {
+  test("asks the unit each change by its own body, with words for its failure", () => {
     expect(ITEM_CHANGES.dismiss.body).toEqual({ state: "dismissed" });
     expect(ITEM_CHANGES.reask.body).toEqual({ state: "waiting" });
     expect(ITEM_CHANGES.front.body).toEqual({ front: true });
 
     for (const change of Object.values(ITEM_CHANGES)) {
-      expect(wording(change.done)).not.toBe("");
       expect(wording(change.failed)).not.toBe("");
     }
   });

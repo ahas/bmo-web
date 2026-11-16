@@ -224,26 +224,13 @@
     <TabSlide :at="filterIndex" class="min-h-0 flex-1">
       <div :key="listKey" ref="listRoot" :aria-busy="pending || loadingMore" class="h-full overflow-y-auto px-3 py-3">
         <ReadFailure :failure="boardRead" :message="boardFailure" :reading="pending" class="mb-3" @retry="reload()" />
-        <UAlert v-if="failure !== null" color="error" variant="subtle" :description="failure" class="mb-3" />
-
-        <p v-if="notice !== null" class="mb-3 whitespace-pre-line rounded-md bg-elevated/60 px-2 py-1 text-sm text-muted">
-          {{ notice }}
-          <!-- A row that was just raised is a row he wants to look at, and the number alone leaves
-               him to find it among the requests waiting on him. It is the same address a
-               notification about an item uses, so the press lands on the row itself. -->
-          <ItemTip v-if="noticeTodo !== null" :id="noticeTodo" press>
-            <NuxtLink :to="{ query: { ...route.query, todo: noticeTodo } }" class="ml-1 font-medium text-primary underline underline-offset-2">
-              {{ $t("todo.action.open_item", { id: noticeTodo }) }}
-            </NuxtLink>
-          </ItemTip>
-        </p>
 
         <!-- The board before it has arrived. A section's title and the frame of a row say nothing
              that had to be fetched, so they stand at once and only the words inside a row are kept
              waiting: the placeholder is the row the filter is about to fill, at its own height, with
              its own handle column, its own number and title line and its own run of marks under
              them. -->
-        <ContentSkeleton v-if="!loaded && failure === null && boardFailure === ''" :label="$t('todo.status.loading')">
+        <ContentSkeleton v-if="!loaded && boardFailure === ''" :label="$t('todo.status.loading')">
           <section v-for="section in waitingSections" :key="section.key" class="mb-4 last:mb-0">
             <p v-if="section.label !== null" class="px-1 pb-1 text-sm font-medium text-muted">{{ section.label }}</p>
 
@@ -289,12 +276,8 @@
                 :questions="askedOf.get(item.id) ?? null"
                 :match="rowMatches.get(item.id) ?? null"
                 :rooms="roomNames"
-                :unapproving="unapproving === item.id && rowVerbs(item, board.queue).includes('unapprove')"
-                :unapprove-busy="unapproving === item.id && busy.has(busyKey(item.id, 'unapprove'))"
                 @open="toggle"
                 @handle-down="onHandleDown"
-                @unapprove="unapprove"
-                @cancel-unapprove="unapproving = null"
               />
             </li>
           </MovingList>
@@ -525,7 +508,6 @@ let searching: ReturnType<typeof setTimeout> | null = null;
 // observer says so without a scroll handler counting pixels on every frame.
 const listFoot = ref<HTMLElement | null>(null);
 let watcher: IntersectionObserver | null = null;
-const failure = ref<string | null>(null);
 // Why the board itself could not be read, apart from what a change or one row's read refused.
 const boardFailure = ref("");
 // Which item is open, and which buttons are waiting on the bot. A press waits under its own
@@ -558,10 +540,6 @@ const narrow = useNarrow();
 const readingItem = computed<TodoItem | null>(() => (opened.value === null ? null : itemOf(opened.value) ?? null));
 
 const busy = ref(new Set<string>());
-// One short line about what just happened, for a change that moves a row somewhere else, and the
-// row it is about where there is one — which is what makes the line pressable.
-const notice = ref<string | null>(null);
-const noticeTodo = ref<number | null>(null);
 
 const { width, collapsed, setWidth, setCollapsed } = useTodoPanelLayout();
 const { view, setView } = useTodoView();
@@ -768,7 +746,6 @@ async function read(limit: number, more = false): Promise<void> {
   const conditions = view.value.conditions;
   pending.value = !more;
   loadingMore.value = more;
-  failure.value = null;
   boardFailure.value = "";
   try {
     const answer = await $fetch<TodoBoard>("/api/todos", {
@@ -880,8 +857,6 @@ function toggle(id: number): void {
     void router.replace({ query: { ...route.query, todo: undefined } });
   }
 
-  notice.value = null;
-  noticeTodo.value = null;
   detail.value?.toggled(id, open, itemOf(id)?.note ?? "");
 }
 
@@ -919,7 +894,7 @@ async function readStray(id: number): Promise<void> {
   try {
     stray.value = await $fetch<TodoItem>(`/api/todos/${id}`);
   } catch (error) {
-    failure.value = failureText(error, t("todo.error.item_read_failed", { id }));
+    island.fail(error, t("todo.error.item_read_failed", { id }));
   }
 }
 
@@ -931,7 +906,7 @@ const detail = useTemplateRef<{
   asked: (id: number, word: string) => Promise<void>;
   reread: (id: number) => void;
 }>("detail");
-const shared = { opened, busy, failure, notice, noticeTodo, board, questions, now, rooms, act, reload, fetchStray };
+const shared = { opened, busy, board, questions, now, rooms, act, reload, fetchStray };
 
 // What the open item shows that the board does not bring back: the words added to it, and the
 // item itself where a link opened one further back than the page. Either can be what the bot's
@@ -947,19 +922,24 @@ function rereadOpened(): void {
 }
 
 // What the panel does goes through the bot, and the bot's own event brings the new list back.
-// The reload here is what makes it immediate for the one who pressed the button. A press that fails
-// says so in the words of what was pressed where it names them, and in the general line otherwise.
-async function act(id: number, action: TodoAction, fields: TodoActFields = {}, failureKey = "todo.error.change_failed"): Promise<void> {
+// The reload here is what makes it immediate for the one who pressed the button, and the row's own state mark is
+// what says it went through: nothing restates it (docs/web.md, 「Messages」). A press that fails says so in the
+// message pill, in the words of what was pressed where it names them and in the general line otherwise. The answer
+// is whether it went through.
+async function act(id: number, action: TodoAction, fields: TodoActFields = {}, failureKey = "todo.error.change_failed"): Promise<boolean> {
   const key = busyKey(id, action, fields.direction);
 
   busy.value.add(key);
 
   try {
     await $fetch("/api/todos", { method: "POST", body: { action, id, ...fields } });
-    failure.value = null;
     await reload();
+
+    return true;
   } catch (error) {
-    failure.value = failureText(error, t(failureKey));
+    island.fail(error, t(failureKey));
+
+    return false;
   } finally {
     busy.value.delete(key);
   }
@@ -977,19 +957,10 @@ async function switchPause(paused: boolean): Promise<void> {
   switching.value = true;
 
   try {
-    const answer = await $fetch<QueuePauseChanged>("/api/queue-pause", { method: "POST", body: { paused } });
-
-    failure.value = null;
+    await $fetch<QueuePauseChanged>("/api/queue-pause", { method: "POST", body: { paused } });
     await reload();
-    // A resume lets go of his pause alone; a deployment's hold still standing is said with what it
-    // waits for, since nothing will move until it goes.
-    notice.value = paused
-      ? t("todo.message.auto_paused")
-      : answer.deployHold && holdSummary.value !== ""
-        ? t("todo.message.auto_resumed_hold_stands", { hold: holdSummary.value })
-        : t("todo.message.auto_resumed");
   } catch (error) {
-    failure.value = failureText(error, t("todo.error.auto_change_failed"));
+    island.fail(error, t("todo.error.auto_change_failed"));
   } finally {
     switching.value = false;
   }
@@ -1018,16 +989,13 @@ function openDeploy(): void {
 
 // ---- A row's own menu ---------------------------------------------------------------------------
 
-// What each act of the menu is called and wears, and what the line under the list says once it
-// went through. Throwing out, a job's log and adding words say their own.
-const ROW_VERBS: Record<RowVerb, { label: string; icon: string; done?: string }> = {
+// What each act of the menu is called and wears.
+const ROW_VERBS: Record<RowVerb, { label: string; icon: string }> = {
   log: { label: "todo.action.job_log", icon: "i-material-symbols-engineering-outline" },
-  approve: { label: "todo.action.approve", icon: "i-material-symbols-check", done: "todo.message.approved" },
-  unapprove: { label: "todo.action.unapprove", icon: "i-material-symbols-undo", done: "todo.message.unapproved" },
-  hold: { label: "todo.title.section_held", icon: "i-material-symbols-pause", done: "todo.message.held" },
-  release: { label: "todo.action.unhold", icon: "i-material-symbols-play-arrow", done: "todo.message.unheld" },
+  approve: { label: "todo.action.approve", icon: "i-material-symbols-check" },
+  hold: { label: "todo.action.hold", icon: "i-material-symbols-pause" },
+  release: { label: "todo.action.unhold", icon: "i-material-symbols-play-arrow" },
   top: { label: "todo.action.move_top", icon: "i-material-symbols-keyboard-double-arrow-up" },
-  done: { label: "todo.action.mark_done", icon: "i-material-symbols-task-alt", done: "todo.message.marked_done" },
   append: { label: "todo.title.notes", icon: "i-material-symbols-add-comment-outline" },
   drop: { label: "todo.action.discard", icon: "i-material-symbols-delete-outline" }
 };
@@ -1037,8 +1005,6 @@ const ROW_VERBS: Record<RowVerb, { label: string; icon: string; done?: string }>
 // again (docs/web.md, 「Floating things」).
 const menuSurface = useTemplateRef<HTMLElement>("menuSurface");
 const rowMenu = useTemplateRef<{ openAt: (acts: ContextMenuItem[][], at: { x: number; y: number }) => void }>("rowMenu");
-// The row whose approval the menu was asked to take back, waiting on the question it grew.
-const unapproving = ref<number | null>(null);
 
 // A right press over the list, or the held finger's: never the browser's own menu, and the row's menu where the
 // press landed on a row something can be done to. A press over no row opens none, nor does a finger resting on a
@@ -1070,7 +1036,7 @@ function rowActs(item: TodoItem): ContextMenuItem[][] {
     onSelect: () => void runRowVerb(item, verb)
   });
   // What takes something away stands apart at the end, never next to an act that only reads.
-  const takesAway = (verb: RowVerb): boolean => verb === "drop" || verb === "unapprove";
+  const takesAway = (verb: RowVerb): boolean => verb === "drop";
 
   return [
     verbs.filter((verb) => verb === "log"),
@@ -1168,35 +1134,9 @@ async function runRowVerb(item: TodoItem, verb: RowVerb): Promise<void> {
     });
 
     if (!sure) return;
-
-    await act(item.id, "drop");
-
-    if (failure.value === null) notice.value = t("todo.message.discarded", { id: item.id });
-
-    return;
-  }
-
-  // Taking an approval back stops the item between its steps, so it is asked once more too, as a
-  // step the row grows.
-  if (verb === "unapprove") {
-    unapproving.value = item.id;
-
-    return;
   }
 
   await act(item.id, verb);
-
-  const said = ROW_VERBS[verb].done;
-
-  if (failure.value === null && said !== undefined) notice.value = t(said, { id: item.id });
-}
-
-// The question stands until the press it started comes back, its button wearing the spinner.
-async function unapprove(item: TodoItem): Promise<void> {
-  await act(item.id, "unapprove");
-  unapproving.value = null;
-
-  if (failure.value === null) notice.value = t("todo.message.unapproved", { id: item.id });
 }
 
 async function sendAppend(): Promise<void> {
@@ -1210,8 +1150,6 @@ async function sendAppend(): Promise<void> {
   try {
     await $fetch("/api/todos", { method: "POST", body: { action: "append", id: item.id, text: said } });
     appendOpen.value = false;
-    failure.value = null;
-    notice.value = t("todo.message.note_added", { id: item.id });
     await reload();
   } catch (error) {
     // Nothing was written, so what he typed stays in the box to send again.
@@ -1408,16 +1346,13 @@ async function saveOrder(dragged: number, onto: number): Promise<void> {
 
   board.value = boardInOrder(before, order);
   saving.value = true;
-  notice.value = null;
-  noticeTodo.value = null;
 
   try {
     await $fetch("/api/todos", { method: "POST", body: { action: "reorder", id: dragged, order } });
-    failure.value = null;
     await reload();
   } catch (error) {
     board.value = before;
-    failure.value = failureText(error, t("todo.error.order_save_failed"));
+    island.fail(error, t("todo.error.order_save_failed"));
   } finally {
     saving.value = false;
   }

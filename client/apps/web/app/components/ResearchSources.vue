@@ -166,8 +166,7 @@ function openAdd(): void {
 
 defineExpose({ openAdd });
 
-function saved(added: boolean): void {
-  island.say({ tone: "success", title: t(added ? "research.message.source_added" : "research.message.source_saved") });
+function saved(): void {
   void refresh();
 }
 
@@ -185,7 +184,6 @@ async function remove(source: ResearchSource): Promise<void> {
 
   try {
     await $fetch(`/api/research/sources/${source.id}`, { method: "DELETE" });
-    island.say({ tone: "success", title: t("research.message.source_deleted") });
     await refresh();
   } catch (failure) {
     island.fail(failure, t("research.error.source_delete_failed"));

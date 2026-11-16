@@ -260,6 +260,9 @@
 - a thing a unit stopped before it was made, a voice briefing among them → 중지됨; asking for it again → 다시
   요청: 보이스브리핑 중지됨 · 다시 요청 가능. Never 재요청, 멈춤.
 - leave the queue → 대기열에서 제외. Never 대기열에서 빠지다.
+- set a TODO item aside → 보류, taking the hold back → 보류 해제: 보류, 보류 해제, 보류 사유, 보류 항목. The act and the
+  state mark are the same word, and a held item's menu shows 보류 해제 in place of 보류. Never 보류 풀기, 재개, 대기로 돌리기
+  for the release; 재개 stays a stopped work order's own word.
 - a job's command in the testbed's queue, on its TODO row → 테스트 중 while it holds a seat, 테스트 대기 <n>번째 while it
   waits, each followed by ` · ` and the command as the testbed names it. Never 검사 중, 차례 대기, 줄 서는 중. It is the
   one place a row says 테스트 중: the state chip never does, a deployment's check and suite reading 배포 중.

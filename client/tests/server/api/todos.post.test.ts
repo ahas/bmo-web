@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { APPEND_LIMIT } from "../../../apps/web/shared/config";
+import { APPEND_LIMIT, HOLD_REASON_LIMIT } from "../../../apps/web/shared/config";
 import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
@@ -106,33 +106,59 @@ describe("adding words to an item that already stands", () => {
   });
 });
 
-// Closing an item himself. bmo-job decides what may be closed; its refusal is said by its code.
-describe("closing an item from the console", () => {
-  test("goes to bmo-job as the item's state, and its refusal comes back in the pack's words", async () => {
+// Setting an item aside. Its reason is kept as the item's held report, which bmo-job takes only with words in it, so a
+// hold given none writes the state alone (docs/web.md, the TODO panel's section).
+describe("holding an item from the console", () => {
+  test("a hold with no reason moves the state alone", async () => {
     fresh();
 
-    expect(await post({ action: "done", id: 7 })).toEqual({ status: 200, message: "" });
-    expect(job.asked[0]?.body).toMatchObject({ state: "done" });
+    expect(await post({ action: "hold", id: 7 })).toEqual({ status: 200, message: "" });
+    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["PATCH /items/7"]);
+    expect(job.asked[0]?.body).toEqual({ state: "held" });
+  });
 
-    fresh({ status: 409, code: "done_while_held" });
+  test("a hold with a reason writes it as the held report before the state", async () => {
+    fresh();
 
-    expect(await post({ action: "done", id: 7 })).toEqual({ status: 409, message: wording("job.error.done_while_held") });
+    expect(await post({ action: "hold", id: 7, why: "  not this week  " })).toEqual({ status: 200, message: "" });
+    expect(job.asked.map((one) => `${one.method} ${one.path}`)).toEqual(["POST /items/7/reports", "PATCH /items/7"]);
+    expect(job.asked[0]?.body).toEqual({ kind: "held", body: "not this week", actorName: "tester" });
+  });
+
+  test("a reason past its limit is refused without calling bmo-job", async () => {
+    fresh();
+
+    expect(await post({ action: "hold", id: 7, why: "a".repeat(HOLD_REASON_LIMIT + 1) })).toMatchObject({ status: 400 });
+    expect(job.asked).toEqual([]);
+  });
+
+  test("a stop keeps its reason as the held report too", async () => {
+    fresh();
+
+    await post({ action: "stop", id: 7, why: "wrong direction" });
+    expect(job.asked.find((one) => one.path === "/items/7/reports")?.body).toEqual({ kind: "held", body: "wrong direction", actorName: "tester" });
+  });
+
+  // bmo-job closes an item only from the lease of the job doing it, and keeps an approval once given (its
+  // docs/api.md, 「States and moves」), so neither is a verb here.
+  test("closing an item and taking an approval back are not verbs the route takes", async () => {
+    fresh();
+
+    expect(await post({ action: "done", id: 7 })).toMatchObject({ status: 400 });
+    expect(await post({ action: "unapprove", id: 7 })).toMatchObject({ status: 400 });
+    expect(job.asked).toEqual([]);
   });
 });
 
-// Giving or taking back an approval. Who gives it is the caller the console's token names, never a field of the
+// Giving an approval. Who gives it is the caller the console's token names, never a field of the
 // change, so the approval goes over with no name of its own.
 describe("approving from the console", () => {
   test("sends the approval with no name, the token naming its caller", async () => {
     fresh();
 
     await post({ action: "approve", id: 7, note: "go ahead" });
-    await post({ action: "unapprove", id: 7 });
 
-    expect(job.asked.filter((one) => one.method === "PATCH").map((one) => one.body?.approval)).toEqual([
-      {},
-      null
-    ]);
+    expect(job.asked.filter((one) => one.method === "PATCH").map((one) => one.body?.approval)).toEqual([{}]);
   });
 
   test("refuses an item naming a model no agent of its role runs, the role's agents and models named", async () => {

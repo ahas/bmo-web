@@ -6078,7 +6078,7 @@ Four bounds keep it from growing forever.
   or its line's menu, is refused the same way where it names a model and a role and no agent and no agent of that
   role runs that model; an item naming a model and no role is left to the agency's own check at its launch, since
   the role its job would run as is the agency's to say. The choice reaches the item's next job. A refusal says why in
-  the line under the list; bmo-job's `item-frozen` is said with the job under way and the agent it runs on, read from
+  the message pill; bmo-job's `item-frozen` is said with the job under way and the agent it runs on, read from
   the agency.
 - **Pressing a line stands that item's detail as a modal.** It does not spread inside the list — the panel is a
   fixed-width column and a line bears the whole of the original instruction, completion report, talk and buttons pressed
@@ -6117,28 +6117,34 @@ Four bounds keep it from growing forever.
      as they come. Only that run's lines stand, never another run's of the same agent (「Where the log comes
      from」). A line no job ever ran for has nothing to show, so the entry is not
      there. A line whose job cannot be found, one that ended with no run of its own, answers with the message pill
-     saying so; the line under the list is never the only answer. In the opened item the state mark at its head,
+     saying so. In the opened item the state mark at its head,
      실행 중 and the stage it names, is the same press: it opens that job's log over the item.
      - The job is the one the agency lists as starting, running or reviewing for the item, read off each job's own state, so
        a list that answers more than it was asked for never hands the log a job that has ended; where none is
        running, it is the item's latest job, read with the item's runs, at the run that job went as.
-  2. **승인** on a request waiting on them and not set aside.
-  3. **보류** on a line not set aside, **보류 해제** on one that is. The hold takes no reason here; one with a reason is
-     set from the opened item.
-  4. **맨 위로** where the line stands in the queue behind another.
-  5. **완료 처리** on a line no job is going on for, and not wound down or stopped (bmo-job's `docs/todo.md`, 「Closing」).
-  6. **추가 지시** — a small centred dialog of one box and its send button, adding the same words the opened item's 추가 지시 adds.
-  7. **결재 취소** on an approved line, or **버리기** on a request or a set-aside line — the acts that take something
-     away, standing apart at the menu's end, and each asks once more before it goes. 결재 취소 asks as a step the
-     line grows under its badges — the question, that the item leaves the queue and its work order launches no
-     further step, then **취소** and **결재 취소**; 버리기, the one act here that cannot be taken back, asks first in
-     a dialog naming the item.
-  - An act the line's state does not allow is not in the menu at all, and a finished or merged line opens no menu.
+  2. **승인** on a request waiting on them.
+  3. **보류** on a line in the queue, running or waiting; **보류 해제** in its place on a line set aside, stopped
+     lines among them, which moves the item back to `open` through bmo-job, the same write the opened item's
+     button makes. Whether a line is set aside is the item's state in bmo-job, `held`, never whether a report
+     says why: a hold made from this console carries a report only where a reason was given. A request waiting
+     on approval is never set aside, since bmo-job moves a `draft` to `held` by no write, and a line its own job
+     holds until its commit goes live (below) offers neither, being the deployment's to let go. The hold takes no
+     reason here; one with a reason is set from the opened item.
+  4. **맨 위로** where the line stands in the queue behind another and is neither a request nor set aside.
+  5. **추가 지시** — a small centred dialog of one box and its send button, adding the same words the opened item's 추가 지시 adds.
+  6. **버리기** on every line the menu opens on — the one act here that cannot be taken back, standing apart at the
+     menu's end and asking first in a dialog naming the item.
+  - An act the line's state does not allow is not in the menu at all, never shown to be refused, and a finished or
+    merged line opens no menu. Two acts bmo-job takes in no state the menu opens on are not offered anywhere: closing
+    an item by hand, which bmo-job takes only from the job holding its lease and only over a final report, and taking
+    an approval back, which bmo-job keeps once given and answers with no move back to `draft` (bmo-job's
+    `docs/api.md`, 「States and moves」). A line to stop is set aside or stopped, and one not wanted is thrown out.
   - The menu is the list's one menu drawn apart from it (「Floating things」): the press reads which line it landed
     on and hands the menu that line's acts, so on a board of hundreds of lines the menu stands within 100 ms of
     the press, at either width, and no line is drawn again as it opens, closes or moves to another line.
-  - Every other act goes through the same road as the opened item's buttons, and what it did, or why it was
-    refused, stands in the line under the list.
+  - Every other act goes through the same road as the opened item's buttons. What it did is read on the line
+    itself, its state mark and the group it stands in, and nothing restates it; a refusal is said in the message
+    pill (「Messages」).
   - The hold is the console's one held finger (「A held finger」), so a finger scrolling the list never opens the menu,
     and the lift that follows a hold does not open the line as well.
 - **The modal is built as a screen to read one item.** The list line's shape is not carried over — a line shape fitted to
@@ -6241,8 +6247,10 @@ Four bounds keep it from growing forever.
     - **관리** is approval/order/hold/stop/discard. On an approval-awaiting line their first act is approve or discard, so those
       buttons are at the top. It carries nothing about an unfinished-item, which is written about where it is read. A
       merged line says which item carries it, and a finished line says in one line that nothing is left to do here.
-      Its **결재 취소**, like its discard, asks once more in place: the button gives way to the question, what taking the
-      approval back does, and the two answers.
+      Its acts follow the item's state as the line's menu does: **보류** with its reason box on an item in the queue,
+      **보류 해제** beside the hold's kind, time and reason on one set aside, and the move buttons and the 결재 의견 box
+      only on an item in the queue. Its discard asks once more in place: the button gives way to **정말 버리기** and
+      the way out.
       Every button of a group stands at that group's right, and a box of words has its button on
       the row under it. The lines between the parts of a group reach the group's own border.
   - Where the modal is too narrow for two columns the two sets stand as one row of tabs over one scroll, in the same
@@ -6408,9 +6416,9 @@ Four bounds keep it from growing forever.
     running.
   - **중지 중** — an item the owner stopped whose runs are still ending stands in the queue under this word, in the
     warning colour, until they have; the 진행 중 filter shows it too. Once they have, it joins the hold group.
-  - **재개 대기** — an item the owner wound down to be resumed later stands in the queue under this word, with its reason
-    naming the condition, and under **마무리 중** while the run it wound down is still ending. It is held, but it is
-    work they asked to have resumed rather than put away, so it is never hidden with the hold group.
+  - **재개 대기** — the word for an item wound down to be resumed later, and **마무리 중** while the run it wound down is
+    still ending. bmo-job keeps no wind-down apart from a hold, so no item reads either today: an item held from this
+    console, or by its own job, is a plain hold and reads **보류**, and one the owner stopped reads **중지**.
   - **보류** — items set aside now. **Viewing all, this group is not seen at all** — being unseen is the whole of a hold.
     The only visible place is one hold chip, seen together when searching. The chip says why the item was set aside, and
     the kinds never share a word: **보류** for a plain hold, **중지** for an item the owner stopped mid-run, **실패로 보류**
@@ -6742,8 +6750,9 @@ Four bounds keep it from growing forever.
   number, title and whether finished. Without it, it would say to stand a branch already a line again — the unfinished-item paragraph does not
   record what has already been stood. A link is a table fact so it is not read from prose but read and carried in.
 - **After standing, go straight to that line.** If the guidance after standing said only the number, that line would have to be found in the
-  awaiting-approval group. The guidance stands a link opening that line too, the very address a notification uses to open an item. Changing the
-  address opens that line, so it opens even pressed with the console already open.
+  awaiting-approval group. The message pill names the new line, and pressing it goes to the very address a notification uses to open an item.
+  Changing the address opens that line, so it opens even pressed with the console already open. That pill is news of a line the reader has not
+  seen yet, not a restatement of the act (「Messages」), and it closes on its own time as every pill does.
 - This place is why an unfinished-item actually closes. An unfinished-item is resolved when every branch is done or each stood as its own line,
   and if the road to stand a branch as a line were only in the shell, that rule could not be followed in the console. Where to cut a branch a
   person decides — with no divider in the paragraph, only the reader can say which branch it is, so they write the title and content. A line
@@ -6787,9 +6796,10 @@ Four bounds keep it from growing forever.
   overwrites the table. An accepted order is renumbered 1, 2, 3… from the queue front — the very value system other buttons and scripts use, and it
   touches nothing outside the queue. While a line is being dragged and while an order saves, whoever asks that reading waits, and the moment the hand
   releases one held-back read goes out.
-- **Hold is an axis apart from approval and completion.** Awaiting approval is not yet approved, and hold is decided-not-now. So an approved queue
-  item and an awaiting-approval request can both be held — both are things one can say not now to. A completed item has nothing to defer so is
-  refused. On holding, the line leaves both the queue and awaiting-approval for the hold group. Approval and priority stay. A held item can be deleted
+- **Hold is an axis apart from approval and completion.** Awaiting approval is not yet approved, and hold is decided-not-now. Only an item past
+  approval is held — one in the queue, waiting or running: bmo-job moves `open` and `leased` to `held` and a `draft` nowhere but `open`, so a
+  request waiting on approval is approved or thrown out, never set aside, and no surface offers it the hold. A completed item has nothing to defer.
+  On holding, the line leaves the queue for the hold group. Approval and priority stay. A held item can be deleted
   too from that item's modal by **버리기 → 정말 버리기**. There is no need to release the hold first regardless of approval, and cancelling at the
   confirm step leaves it.
 - **The bot never assigns a held item.** It drops from the very list the queue reads on choosing the next, not filtered after choosing. Priority is
@@ -6802,7 +6812,9 @@ Four bounds keep it from growing forever.
   same **보류 해제** as any hold, and its work order then resumes from the interrupted tasks.
 - **A reason is taken but not required.** Resolving an unfinished-item requires one line — that being the whole record of why it is no longer
   unfinished. A hold differs. It is reversible, and most setting-aside has no reason worth a sentence. Requiring one line each time only piles up
-  lines nobody means. Written, it stays, and releasing the hold clears it with the state.
+  lines nobody means. Written, it is kept as the item's 보류 사유 report (bmo-job's `docs/api.md`, 「Reports」), which bmo-job takes only
+  with words in it, so a hold with none writes no report. The hold's time and reason are read off the latest such report and only while the
+  item is held, so a released item says nothing of a hold.
 - **Nothing is placed above a running line.** Placing over a running line or where it would be above it stands the line right below the running line —
   the highest a waiting line can stand. The saved order gets the same top applied, so wherever it was aimed, the list on screen and the list to the bot
   are one.
@@ -6814,8 +6826,8 @@ Four bounds keep it from growing forever.
   what the work is, conclusion, what to do — with the front conversation as the owner's words and the chat agent's answer at intake, the other three written by the chat agent in
   its own words at intake. Each piece its own cell, and every cell stands at its whole length; the tab is the one scroll. A line the chat agent filed by its own judgement stands judgement and source unfinished-items, so not four pieces. What can be done stands in
   that modal's 관리 group. On an awaiting-approval line, **승인** or **버리기**. On a queue line, **맨 위로**, a move up or down,
-  **맨 아래로** — behind every other line of the queue, the rest keeping their numbers — taking the approval back, or
-  editing and saving the 결재 의견 attached to it. On a completed line only its unfinished-item is acted on. All go through the bot's control API so the bot
+  **맨 아래로** — behind every other line of the queue, the rest keeping their numbers — or editing and saving the
+  결재 의견 attached to it. On a completed line only its unfinished-item is acted on. All go through the bot's control API so the bot
   always writes the table, and approval happens only in the owner's place. That intake is not approval, and that a room's chat agent cannot approve, this panel does
   not weaken.
 - **An item waits on approval while its state is `draft`, and only then.** The item's state is the job service's word on
@@ -6829,15 +6841,13 @@ Four bounds keep it from growing forever.
   saying it is recommended, and the owner's 결재 still decides it.
 - **Approval makes the queue re-examined.** Putting an item in the queue is approval, so where approved the bot re-examines the queue and if no job is
   running assigns the front item there. A job's launching is grounded on that assignment alone, and a chat session cannot launch unassigned work.
-  Reversing approval removes the item from the queue so it assigns nothing.
-- **Un-approval does not delete.** Only approval is released so that line leaves the queue for awaiting-approval. The one thing that removes an item from
-  the table is **버리기**, and discard asks once more after pressing — a line whose approval was reversed stands right beside the discard button, so a step
-  is put in so reversing does not delete. Reversing asks once more too, in the opened item as in the line's menu, since an item that leaves the queue
-  stops its work order between steps.
+- **An approval is not taken back.** bmo-job keeps every approval once given and moves no item back to `draft` (bmo-job's `docs/api.md`,
+  「States and moves」), so no surface offers to take one back. An approved item that is not to go on now is set aside with **보류**; one that is not
+  wanted at all is thrown out with **버리기**, the one thing that removes an item from the table, which asks once more after pressing.
 - **Approval comment.** On approving, the owner can attach a word. A request for extra work or a question, written in the box beside the approve button, is
   stored with the item. Opening the item stands that word below the instruction original, and when the item is assigned the chat agent in the owner's private chat gets that word too. On
   launching the job that word rides the prompt as is, and the job answers it in the report — a question getting no answer is worse than no question.
-- An already-approved line has the same box, so a comment can be edited and saved without reversing approval. Saving that box empty clears what was
+- An already-approved line has the same box, so a comment can be edited and saved. Saving that box empty clears what was
   written. A comment rides a job when a job is launched for that item, so a word written on an already-running item does not reach that job and rides the
   next run — written so on the line. An item with a comment shows a mark on the list line too, so a line with a word attached is known without opening.
 - **완료 보고와 미결.** A job, finishing and closing the item, writes with it how it completed and what it left unfinished. The same text as the report to
@@ -7556,7 +7566,8 @@ by the administrator. Every login reads them, since every person's form asks in 
 
 - **The console tells everything it has to tell in one place.** The message pill, the island at the top of the
   screen, centred, is the console's own toast: it stands in place of the component library's Toast and is for
-  notifications alone — a notice of something that arrived, the word that an action went through or did not. There is
+  notifications alone — a notice of something that arrived, the word that an action was refused, and the word that
+  one went through only where nothing on the screen shows it, such as a copy to the clipboard (below). There is
   no second road: the component library's own toaster is not stood up at all, and the browser's own dialogs are not
   used, so nothing can speak into a corner nobody watches. A test sweeps the console's files for either and fails on
   one.
@@ -7589,6 +7600,16 @@ by the administrator. Every login reads them, since every person's form asks in 
   its oldest end.
 - **Back does not take a notice.** A notice goes on its own, and a press of back spent on one is a press the reader
   has to make twice, so the pill is not registered with the back gesture.
+- **What the reader just did is not news.** A change a person made with their own press — a hold, its release, an
+  approval, a discard, a choice of worker or agent, a note sent, an entry of a list added, saved or taken away — is read
+  on the thing it changed: its state mark, the group it stands in, the value in its cell, the dialog that closed. No
+  notice restates it. The pill speaks for an act only where it was refused, where it brings something the reader has
+  not seen — a line it raised, a place it went — where nothing on the screen can show it, as a copy to the clipboard,
+  or where it offers to take the act back.
+- **Every notice goes on its own time.** A pill closes when its time is up, a few seconds by its tone, and the only
+  ones with no time are a notice offering the one chance to take something back or to take up something waiting, such
+  as a newer console to load. No screen keeps a line of its own that says what an act did and
+  stands until something else clears it: that is a second road (above), and it stands after the news has gone stale.
 - **A voice briefing playing is not news and does not stand on it.** It stands as a small player of its own,
   floating over the page area the way a picture-in-picture window does, while the island goes on carrying the news
   beside it. The layout holds it, so it stays as the reader moves between screens, and it stands over everything the

@@ -203,6 +203,8 @@ describe("the lists each item stands in", () => {
     expect(ids(board.queue)).toEqual([1]);
     expect(board.queue.map((row) => row.running)).toEqual([true]);
     expect(ids(board.held)).toEqual([2]);
+    // A plain hold has no kind of its own, so it reads as a plain hold rather than a wind-down.
+    expect(board.held[0]!.heldKind).toBeNull();
   });
 
   test("a leased item's live state is its job's: none before the job is written, waiting while it waits for a seat", async () => {
@@ -300,6 +302,19 @@ describe("what a row carries", () => {
     });
 
     held.notes.delete(9);
+    held.reports.delete(9);
+  });
+
+  test("a hold's time and reason only while it is held: a report outlives the hold it was written for", async () => {
+    const report = { id: 4, itemId: 9, actorName: "owner", kind: "held", body: "not now", createdAt: 1_790_000_030_000, labels: {} };
+
+    held.reports.set(9, [report]);
+    stand([item(9, { state: "held" })]);
+    expect(await readTodoItem(9)).toMatchObject({ status: "held", heldAt: 1_790_000_030, heldReason: "not now" });
+
+    stand([item(9, { state: "open" })]);
+    expect(await readTodoItem(9)).toMatchObject({ status: "open", heldAt: null, heldReason: null, heldKind: null });
+
     held.reports.delete(9);
   });
 

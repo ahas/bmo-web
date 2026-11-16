@@ -373,7 +373,7 @@
                     <TodoTime :item="ranItem ?? openedItem" />
                   </div>
 
-                  <WorkOrderPanel part="steps" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="openedItem.heldAt !== null" :item="openedItem" :worker="openedItem.worker" :plan="itemRuns?.plan ?? []" />
+                  <WorkOrderPanel part="steps" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="setAside(openedItem)" :item="openedItem" :worker="openedItem.worker" :plan="itemRuns?.plan ?? []" />
 
                   <!-- The question a job stopped to ask, answered here where the item is read (docs/web.md, the TODO
                        modal's section): the same card the strip over the room stands, so the answering is one place. -->
@@ -558,7 +558,7 @@
                   </div>
                 </div>
 
-                <WorkOrderPanel part="order" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="openedItem.heldAt !== null" :item="openedItem" :worker="openedItem.worker" />
+                <WorkOrderPanel part="order" :todo-id="openedItem.id" :title="openedItem.title" :instruction="openedItem.instruction" :queue-paused="board.paused" :now="now" :held="setAside(openedItem)" :item="openedItem" :worker="openedItem.worker" />
               </template>
             </div>
           </div>
@@ -647,9 +647,9 @@
               </p>
 
               <div v-else-if="!openedItem.done" class="flex flex-col gap-2 rounded-lg border border-default p-3">
-                <template v-if="openedItem.heldAt !== null || todoState(openedItem) === 'pending'">
+                <template v-if="setAside(openedItem) || todoState(openedItem) === 'pending'">
                   <GrowingTextarea
-                    v-if="openedItem.heldAt === null"
+                    v-if="!setAside(openedItem)"
                     v-model="note"
                    
                     :rows="2"
@@ -661,7 +661,7 @@
 
                   <div class="flex flex-wrap justify-end gap-2">
                     <UButton
-                      v-if="openedItem.heldAt === null"
+                      v-if="!setAside(openedItem)"
                       size="sm"
                       icon="i-material-symbols-check"
                       :label="$t('todo.action.approve')"
@@ -753,26 +753,7 @@
                         @click="act(openedItem.id, 'bottom')"
                       />
                     </UTooltip>
-                    <UButton
-                      v-if="unapproving !== openedItem.id"
-                      size="sm"
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-material-symbols-undo"
-                      :label="$t('todo.action.unapprove')"
-                      @click="unapproving = openedItem.id"
-                    />
                   </div>
-
-                  <!-- Taking the approval back is asked again under the button that started it, as a
-                       step this card grows rather than a question over the whole screen. -->
-                  <TodoUnapproveStep
-                    v-if="unapproving === openedItem.id"
-                    :id="openedItem.id"
-                    :busy="busy.has(busyKey(openedItem.id, 'unapprove'))"
-                    @confirm="unapprove(openedItem.id)"
-                    @cancel="unapproving = null"
-                  />
 
                   <!-- An approved item takes his word too, without having to leave the queue. -->
                   <GrowingTextarea
@@ -827,9 +808,11 @@
                 </div>
 
                 <!-- Set aside for now, or taken back. It is neither dropping nor closing: the row
-                     keeps its place and its approval, and the queue simply stops seeing it. -->
-                <div class="-mx-3 flex flex-wrap items-center gap-2 border-t border-default px-3 pt-2">
-                  <template v-if="openedItem.heldAt === null">
+                     keeps its place and its approval, and the queue simply stops seeing it. A request
+                     waiting on approval is never set aside, and a hold its own job keeps until its
+                     commit goes live is the deployment's to let go, so neither stands on those. -->
+                <div v-if="canHold(openedItem) || setAside(openedItem)" class="-mx-3 flex flex-wrap items-center gap-2 border-t border-default px-3 pt-2">
+                  <template v-if="canHold(openedItem)">
                     <UInput
                       v-model="holdWhy"
                       class="min-w-0 flex-1"
@@ -843,7 +826,7 @@
                       color="neutral"
                       variant="subtle"
                       icon="i-material-symbols-pause"
-                      :label="$t('todo.title.section_held')"
+                      :label="$t('todo.action.hold')"
                       :loading="busy.has(busyKey(openedItem.id, 'hold'))"
                       @click="hold(openedItem.id)"
                     />
@@ -892,6 +875,7 @@ import { useAgentCatalogue } from "~/domain/catalogue";
 import { useHeldWhileClosing } from "bmo-ui/app/domain/closing";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useLiveRefresh } from "~/domain/events";
+import { useIsland } from "bmo-ui/app/domain/island";
 import { useNarrow } from "bmo-ui/app/domain/screen";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 import { countText } from "~/domain/numbers";
@@ -907,6 +891,7 @@ import {
   busyBlocks,
   busyKey,
   canBottom,
+  canHold,
   canMove,
   canResolve,
   canStop,
@@ -915,6 +900,7 @@ import {
   jobRecordLine,
   mergedLine,
   requesterLine,
+  setAside,
   stateColour,
   stateIcon,
   stateLabel,
@@ -957,14 +943,11 @@ interface Props {
   panel: {
     opened: Ref<number | null>;
     busy: Ref<Set<string>>;
-    failure: Ref<string | null>;
-    notice: Ref<string | null>;
-    noticeTodo: Ref<number | null>;
     board: Ref<TodoBoard>;
     questions: Ref<JobQuestion[]>;
     now: Ref<number>;
     rooms: Ref<RoomSummary[]>;
-    act: (id: number, action: TodoAction, fields?: TodoActFields, failureKey?: string) => Promise<void>;
+    act: (id: number, action: TodoAction, fields?: TodoActFields, failureKey?: string) => Promise<boolean>;
     reload: () => Promise<void>;
     fetchStray: (id: number) => Promise<void>;
   };
@@ -972,13 +955,14 @@ interface Props {
 
 const props = defineProps<Props>();
 const { t } = useI18n();
+const island = useIsland(t);
 const emit = defineEmits<{
   close: [];
   // The job log of the running item, which the panel opens.
   log: [item: TodoItem];
 }>();
 
-const { opened, busy, failure, notice, noticeTodo, board, questions, now, rooms, act, reload, fetchStray } = props.panel;
+const { opened, busy, board, questions, now, rooms, act, reload, fetchStray } = props.panel;
 
 // The repositories an item may go to, out of the one catalogue read every screen shares: the list is the agency's, so
 // this dialog holds none of its own and a repository the owner adds stands here without a change.
@@ -1167,9 +1151,6 @@ const shownLeft = computed(() => (twoColumns.value ? leftTab.value : singleTab.v
 const shownRight = computed(() => (twoColumns.value ? rightTab.value : singleTab.value));
 // Which item is a step away from being thrown out: nothing here is removed on one press.
 const confirming = ref<number | null>(null);
-// Which approved item is a step away from having its approval taken back: it stops between its
-// steps, so that too is asked once more where its button stands.
-const unapproving = ref<number | null>(null);
 // Which rows have the raise box open, and what is typed into it. One box is open at a time in
 // practice, but the set is what keeps it open on the row it belongs to rather than on whichever
 // row happens to be open.
@@ -1284,7 +1265,6 @@ function toggled(id: number, closed: boolean, word: string): void {
   if (closed) tabsChosenFor = null;
 
   confirming.value = null;
-  unapproving.value = null;
   note.value = closed ? "" : word;
   why.value = "";
   stopWhy.value = "";
@@ -1490,7 +1470,6 @@ async function append(id: number): Promise<void> {
   try {
     await $fetch("/api/todos", { method: "POST", body: { action: "append", id, text: said } });
     noteText.value = "";
-    failure.value = null;
     await loadNotes(id);
     // The row itself says nothing new, but a job that is running now has one more thing to do
     // before it may report, and the queue is what says whether one is.
@@ -1515,7 +1494,6 @@ async function unappend(id: number, noteId: number): Promise<void> {
   try {
     await $fetch("/api/todos", { method: "POST", body: { action: "unappend", id, noteId } });
     confirmingNote.value = null;
-    failure.value = null;
     await loadNotes(id);
   } catch (error) {
     // Nothing was written, so the words stand where they were and the confirmation stands with
@@ -1548,16 +1526,12 @@ async function openLinked(id: number): Promise<void> {
 }
 
 // Which worker is to do it. Nothing else about the row moves: an assignment says where the work
-// will be done, not what the work is, so its place in the queue and everything on it stand.
+// will be done, not what the work is, so its place in the queue and everything on it stand. The chosen
+// value in its cell is what says it went through (docs/web.md, 「Messages」).
 async function assignWorker(id: number, chosen: string): Promise<void> {
   const worker = chosen === UNASSIGNED ? null : chosen;
 
   await act(id, "worker", { worker }, "todo.error.worker_change_failed");
-
-  if (failure.value === null) {
-    notice.value =
-      worker === null ? t("todo.message.worker_unassigned", { id }) : t("todo.message.worker_assigned", { id, worker });
-  }
 }
 
 // Whom its jobs go out on, one agent or a model and a role, written to its labels. Nothing else about the row moves,
@@ -1565,23 +1539,17 @@ async function assignWorker(id: number, chosen: string): Promise<void> {
 async function setAgent(id: number, assignment: ItemAssignment): Promise<void> {
   if ("agent" in assignment) await act(id, "agent", { agent: assignment.agent }, "todo.error.agent_change_failed");
   else await act(id, "model", { model: assignment.model, role: assignment.role ?? undefined }, "todo.error.agent_change_failed");
-
-  if (failure.value === null) notice.value = t("todo.message.agent_changed", { id });
 }
 
 async function approve(id: number): Promise<void> {
   await act(id, "approve", { note: note.value.trim() });
   void loadApprovals(id, true);
-
-  if (failure.value === null) {
-    notice.value = note.value.trim() === "" ? t("todo.message.approved") : t("todo.message.approved_with_note");
-  }
 }
 
 // An outstanding note that is no longer outstanding — every part of it either done since, or standing as a
 // TODO row of its own. What the job wrote stays on the row word for word; what is added is the
 // line saying why it no longer stands. The bot refuses a note that is not there and one already
-// resolved, and the refusal comes back as the line under the list.
+// resolved, and the refusal comes back in the message pill.
 async function resolve(id: number): Promise<void> {
   const said = why.value.trim();
 
@@ -1589,12 +1557,7 @@ async function resolve(id: number): Promise<void> {
     return;
   }
 
-  await act(id, "resolve", { why: said });
-
-  if (failure.value === null) {
-    why.value = "";
-    notice.value = t("todo.message.unfinished_resolved", { id });
-  }
+  if (await act(id, "resolve", { why: said })) why.value = "";
 }
 
 // Setting one aside. The reason is his to give or leave out — most of what is put away is put
@@ -1602,12 +1565,7 @@ async function resolve(id: number): Promise<void> {
 async function hold(id: number): Promise<void> {
   const reason = holdWhy.value.trim();
 
-  await act(id, "hold", { why: reason === "" ? undefined : reason });
-
-  if (failure.value === null) {
-    holdWhy.value = "";
-    notice.value = t("todo.message.held", { id });
-  }
+  if (await act(id, "hold", { why: reason === "" ? undefined : reason })) holdWhy.value = "";
 }
 
 // Stopping it now. The bot ends what is in flight and holds the item with the reason; the runs end
@@ -1619,21 +1577,12 @@ async function stop(id: number): Promise<void> {
     return;
   }
 
-  await act(id, "stop", { why: reason });
-
-  if (failure.value === null) {
-    stopWhy.value = "";
-    notice.value = t("todo.message.stopped", { id });
-  }
+  if (await act(id, "stop", { why: reason })) stopWhy.value = "";
 }
 
 // Taking it back. It returns to exactly the place it had: its priority never moved.
 async function release(id: number): Promise<void> {
   await act(id, "release");
-
-  if (failure.value === null) {
-    notice.value = t("todo.message.unheld", { id });
-  }
 }
 
 function openRaise(id: number): void {
@@ -1693,34 +1642,23 @@ async function raise(id: number): Promise<void> {
     });
     const from = [id, ...sources].map((one) => `#${one}`).join(", ");
 
-    failure.value = null;
     closeRaise(id);
-    noticeTodo.value = answer.raised ?? null;
-    notice.value =
+    // The new line is news the reader has not seen yet, standing among the requests: the pill names it and its press
+    // opens it (docs/web.md, the TODO panel's section).
+    island.say(
       answer.raised === undefined
-        ? t("todo.message.raised", { from })
-        : t("todo.message.raised_item", { from, id: answer.raised });
+        ? { tone: "success", title: t("todo.message.raised", { from }) }
+        : {
+            tone: "success",
+            title: t("todo.message.raised_item", { from, id: answer.raised }),
+            to: router.resolve({ query: { ...route.query, todo: answer.raised } }).fullPath
+          }
+    );
     await reload();
   } catch (error) {
-    failure.value = failureText(error, t("todo.error.create_failed"));
+    island.fail(error, t("todo.error.create_failed"));
   } finally {
     busy.value.delete(key);
-  }
-}
-
-// Taking an approval back never removes the item: it steps out of the queue and stands with the
-// requests waiting on him, with everything it carried still on it. The question stands until the
-// press comes back, as the discard question does.
-async function unapprove(id: number): Promise<void> {
-  await act(id, "unapprove");
-  unapproving.value = null;
-  void loadApprovals(id, true);
-
-  if (failure.value === null) {
-    // The box keeps whatever he had written: the row is still open as awaiting approval, and what he
-    // was in the middle of saying is still there to approve it with.
-    opened.value = id;
-    notice.value = t("todo.message.unapproved", { id });
   }
 }
 
@@ -1728,13 +1666,11 @@ async function unapprove(id: number): Promise<void> {
 // wearing the spinner, and taking it off the screen mid-press would leave the wait nothing to
 // show itself on.
 async function drop(id: number): Promise<void> {
-  await act(id, "drop");
+  const dropped = await act(id, "drop");
+
   confirming.value = null;
 
-  if (failure.value === null) {
-    opened.value = null;
-    notice.value = t("todo.message.discarded", { id });
-  }
+  if (dropped) opened.value = null;
 }
 
 defineExpose({ toggled, asked, reread });

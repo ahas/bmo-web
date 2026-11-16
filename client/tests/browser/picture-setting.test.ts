@@ -7,13 +7,15 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser } from "playwright-core";
 
 // A picture set in the console (docs/web.md, 「Profile photos」): one's own in the account settings and a room's from the room's
-// menu, each a file picked, shown in its place, saved to the receiver's kept pictures through the relay, and cleared
-// back to the provider's. The receiver's answers are served through the page's own routes. It drives the console
+// menu, each a file picked, shown in its place, saved to the receiver's kept pictures through the console's own picture
+// route, and cleared back to the provider's. That route's answers are served through the page's own routes. It drives the console
 // tests/support/browser-console.ts stands up; the suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "pictures", password: "fixture-password-2262" };
 const RECORD_CHAT = -9_000_000_000_099;
+// The sender the harness links to this account: one's own picture is set for it, the account being no owner.
+const OWN_SENDER = 9;
 // One grey pixel.
 const PIXEL = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNoAAAAggCBd81ytgAAAABJRU5ErkJggg==", "base64");
 
@@ -42,10 +44,12 @@ describe.skipIf(!origin || !touchReady())("a picture set in the console", () => 
       const asked: string[] = [];
 
       await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
-      await context.route(/\/api\/receiver\/avatars\//, async (route) => {
+      await context.route(/\/api\/avatars\/(?:person|room)\//, async (route) => {
         const request = route.request();
 
-        asked.push(`${request.method()} ${new URL(request.url()).pathname.replace(/^.*\/api\/receiver/, "")}`);
+        // A picture is read at the same address it is set at, and only what sets or drops one is answered here.
+        if (request.method() === "GET") return await route.fallback();
+        asked.push(`${request.method()} ${new URL(request.url()).pathname.replace(/^.*\/api/, "")}`);
         await route.fulfill({ json: { items: [] } });
       });
 
@@ -75,7 +79,7 @@ describe.skipIf(!origin || !touchReady())("a picture set in the console", () => 
         await room.locator("[data-picture-save]").click();
         await page.getByText(wording("picture.message.saved")).waitFor({ timeout: 10_000 });
 
-        expect(asked).toEqual(["PUT /avatars/person/1", "DELETE /avatars/person/1", `PUT /avatars/room/${RECORD_CHAT}`]);
+        expect(asked).toEqual([`PUT /avatars/person/${OWN_SENDER}`, `DELETE /avatars/person/${OWN_SENDER}`, `PUT /avatars/room/${RECORD_CHAT}`]);
       } finally {
         await context.close();
       }

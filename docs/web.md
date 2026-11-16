@@ -1501,7 +1501,10 @@ Four groups.
     each stand the rooms it answers, one entry per room, as the receiver names them (its `docs/api.md`,
     「Supervisors」, `GET /supervisors/{name}/rooms`): every room whose `supervisors` names it, and for the default
     answerer every room that names none as well, each only while it stands in the room list above, so a room never
-    added stands under no supervisor either. Which rooms a supervisor answers is the receiver's word, read there
+    added stands under no supervisor either. The three branches therefore wait for the room list's first answer as
+    well as the agency's, so a supervisor first stands with its rooms already under it, unfolded; the menu reads
+    whether a row stands open only as the row first stands. Which rooms a supervisor answers is the receiver's word,
+    read there
     and never worked out here; the agency's `GET /supervisors/{name}/rooms` names only the rooms its turns went into,
     and is read for when its last run in each began. Each is named by its room's name, in the order the rooms stand,
     and opens the supervisor's log at its last line in that room — at the second its last run there began, as the

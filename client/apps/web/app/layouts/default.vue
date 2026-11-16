@@ -57,7 +57,7 @@
         </ContentSkeleton>
         <p v-if="roomsError" class="text-sm text-error">{{ $t("screens.error.rooms_failed") }}</p>
         <SidebarRooms :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" addable openable @add="roomAdding = true" @open="roomOpening = true" />
-        <ContentSkeleton v-if="agentsInitial" :rows="3" listClass="flex flex-col" :label="$t('screens.status.agents_loading')">
+        <ContentSkeleton v-if="agentsWaiting" :rows="3" listClass="flex flex-col" :label="$t('screens.status.agents_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
             <SkeletonBar class="size-5 shrink-0 rounded-sm" />
             <SkeletonBar v-if="!collapsed" class="h-4 w-24" />
@@ -281,9 +281,12 @@ const roomEntries = computed<NavigationMenuItem[]>((before) =>
 // carry, so a mark comes and goes without the sidebar asking again.
 const live = ref<LiveRun[]>([]);
 
+// The branches wait for the room list's first answer as well as the agency's: a supervisor's rooms are the ones the
+// list holds, and the menu reads whether a row stands open only as the row first stands (docs/web.md, 「Sidebar」).
+const agentsWaiting = computed<boolean>(() => agentsInitial.value || roomsInitial.value);
 // The groups stay the ones in hand while a read of the agents or the rooms leaves them as they were, so a room's
 // message draws nothing of the agents' menu again (docs/web.md, 「What the stream costs a tab」).
-const groups = computed<AgentGroup[]>((before) => sameKept(before, agentGroups(t, [...agents.value.agents], rooms.value)));
+const groups = computed<AgentGroup[]>((before) => sameKept(before, roomsInitial.value ? [] : agentGroups(t, [...agents.value.agents], rooms.value)));
 // The supervisors whose turn runs now in a room.
 const answering = useSupervisorsAnswering();
 

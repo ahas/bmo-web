@@ -5,6 +5,7 @@ import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Page } from "playwright-core";
+import type { RoomMembersView } from "../../apps/web/shared/types";
 
 // A room's members (docs/web.md, the room screen's members entry), in the room the console made on the record road
 // that the harness's receiver stands. The members are served through the page's own route, since the harness's
@@ -18,11 +19,16 @@ const ACCOUNT = { name: "room-members", password: "fixture-password-2995" };
 const RECORD_CHAT = -9_000_000_000_099;
 const LONG = "member-c-with-a-name-far-longer-than-any-row-of-the-sheet-is-wide-at-any-width";
 
-const MEMBERS = [
-  { person: 9_000_000_000_101, name: "member-a", status: "status-a", account: "7" },
-  { person: 9_000_000_000_102, name: "member-b", status: null, account: null },
-  { person: null, name: LONG, status: "status-c", account: null }
-];
+// As the console's members route answers: the members, none let in in the console, and a reader who may let nobody in,
+// so no row carries more than the line it names.
+const MEMBERS = {
+  members: [
+    { person: 9_000_000_000_101, name: "member-a", status: "status-a", account: "7", inConsole: false },
+    { person: 9_000_000_000_102, name: "member-b", status: null, account: null, inConsole: false },
+    { person: null, name: LONG, status: "status-c", account: null, inConsole: false }
+  ],
+  mayLetIn: false
+} satisfies RoomMembersView;
 
 let browser: Browser | null = null;
 let cookie = "";

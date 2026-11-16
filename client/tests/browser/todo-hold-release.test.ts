@@ -7,6 +7,13 @@ import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { TodoBoard, TodoItem } from "../../apps/web/shared/types";
 
+declare global {
+  interface Window {
+    // The box a watched element stood in at the last frame, written by the probe that waits for it to stop moving.
+    lastBox?: string;
+  }
+}
+
 // A TODO row's acts follow the item's state in bmo-job, on its menu and in the opened item alike: a row in the queue
 // offers the hold, and once held it offers the hold's release in its place, whether or not a report says why it was
 // held; the release puts it back in the queue, where it offers the hold again (docs/web.md, the TODO panel's section). Neither press is
@@ -221,9 +228,9 @@ async function steadyBox(page: Page, selector: string): Promise<{ x: number; y: 
 
     const now = shown.getBoundingClientRect();
     const box = { x: now.x, y: now.y, width: now.width, height: now.height };
-    const was = (window as unknown as { lastBox?: string }).lastBox;
+    const was = window.lastBox;
 
-    (window as unknown as { lastBox?: string }).lastBox = JSON.stringify(box);
+    window.lastBox = JSON.stringify(box);
 
     return was === JSON.stringify(box) ? box : false;
   }, selector, { polling: "raf", timeout: 10_000 });

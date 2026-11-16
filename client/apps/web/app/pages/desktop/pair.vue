@@ -9,7 +9,13 @@
       </template>
 
       <div class="flex flex-col gap-4" :aria-busy="loading">
-        <UAlert v-if="code === ''" color="warning" variant="subtle" :description="$t('pairing.message.no_code')" />
+        <!-- Opened with no code, as a person reaching it from a browser does, it leads to the app's download page. -->
+        <template v-if="code === ''">
+          <UAlert color="warning" variant="subtle" :description="$t('pairing.message.no_code')" />
+          <div class="flex justify-end">
+            <UButton to="/desktop" color="neutral" variant="subtle" icon="i-material-symbols-download" :label="$t('pairing.action.download')" data-pairing-download />
+          </div>
+        </template>
 
         <!-- The code's label is drawn at once; the code's place is kept at its size, empty on the server and a
              skeleton once the read has begun, until the code lands. -->

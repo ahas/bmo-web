@@ -1669,7 +1669,8 @@ Four groups.
 - The drawer closes on an outside press. Swiping horizontally does not drag the drawer along — a panel dragged whenever a
   hand skimming the list flows sideways cannot be read. At the bottom is the user menu, its button and its head
   naming the reader by their person's name, their login where none stands: open the settings
-  (「Settings」), change the screen mode to light, dark or system, or log out. A reader who never chose a mode reads dark, and the mode is
+  (「Settings」), open the desktop app's download page (「The desktop app's download page」), change the screen mode to
+  light, dark or system, or log out. A reader who never chose a mode reads dark, and the mode is
   kept in a cookie for a year (「Themes」), so the server paints the first frame in it and knows it for a page it sends (bmo-artifact's `docs/artifact.md`, 「How a
   document is drawn」). The menu opens above its button, aligned to
   the button's left edge and as wide as it. Above the menu, while the bot's stream is not carrying anything, a line
@@ -7210,6 +7211,29 @@ research screen (「Research screen」).
   the call names and the label are written apart, so a refusal of one leaves the other standing. The next of those
   moments applies it again.
 
+#### The desktop app's download page
+
+- **`/desktop` is where a signed-in person downloads the desktop app,** reached from 데스크톱 앱 in the user menu
+  (「Sidebar」) and from the pairing page opened with no code. It opens to every signed-in person whatever sections
+  they hold, on the shell as a screen with no place of its own in the sidebar, so its own row under the title bar
+  holds the way back.
+- **It reads the app's current release through the console's server,** which reads the release read jake publishes
+  (jake's `docs/desktop.md`, 「The read the console uses」) at the address `DESKTOP_RELEASE_URL` names
+  (`docs/boundary.md`, 「Settings」). The server hands on the version, the date and every installer entry it can read
+  whole: a platform, an arch, a format and a file name, a size in bytes, a lowercase SHA-256 and a web address. A
+  field it does not know is passed over and an entry it cannot read whole is left out.
+- **The release stands as its version and the moment it was published,** then one section a platform, Windows first,
+  Linux next and any other after them by its name, each installer with its format's name, its 다운로드, and its file
+  name, its size both rounded and in bytes, and its SHA-256 with a copy mark, so a download can be checked against
+  them. The first installer's 다운로드, Windows's where one is published, is the page's one primary button.
+- **The Windows installer says that Windows may warn,** since it carries no Authenticode signature (jake's
+  `docs/desktop.md`, 「Distribution and updates」): Windows may warn as it first runs, and the installer goes on
+  through 추가 정보 and 실행 on the warning.
+- **사용 방법 closes the page in three steps:** install, open the app, which shows its code and opens the pairing
+  page, and approve there once the code is the app's own (「The desktop pairing page」).
+- **No release published, or no address set, leaves 공개된 버전 없음** standing alone in the body, with nothing to
+  download. A read that fails says so in the body with 새로고침.
+
 #### The desktop pairing page
 
 - **`/desktop/pair?code=<code>` is where a signed-in person approves the desktop app's pairing**
@@ -7227,6 +7251,8 @@ research screen (「Research screen」).
   attached, as the organisation screen's check does (`POST /api/me/machine/proof`, the reader's own machine alone),
   which records it as proven and sets it as their node in agency. Attached, it says the app is connected and stops
   asking.
+- **Opened with no code,** as a person reaching it from a browser does, it says the app must try again and leads to
+  the download page (「The desktop app's download page」).
 - **A code expired, refused, approved before or unknown says so** and offers nothing to press. A refusal of the
   approval is said in the card.
 - **The credential is never on the page:** the app's own side reads it from the console's server.

@@ -161,6 +161,10 @@
   connected → 여러 계정이 함께 쓰는 기기. Never 공용 기기, 같이 쓰기.
 - the console's desktop app → 데스크톱 앱; its pairing with an account → 앱 연결: 앱 연결, 연결 코드, 승인, 거부,
   승인했습니다, 거부했습니다, 연결하는 중, 연결됨. Never 데스크탑, 페어링, 허용 or 거절.
+- the app's download page → 데스크톱 앱: a version published → 버전, when it was → 공개일, none yet → 공개된 버전 없음;
+  an installer → 설치 파일, or its format's own name, AppImage, deb 패키지; a file's size → 크기, written `{size}
+  ({bytes}바이트)`; its digest → SHA-256; the steps of using it → 사용 방법. A warning Windows shows is named by the
+  words Windows itself shows: Windows의 PC 보호, 추가 정보, 실행. Never 인스톨러, 셋업 파일, 릴리스, 배포일 or 해시값.
 - render → 렌더링: 렌더링하지 않는 기간. Never 그리다.
 - message, words → 메시지: 메시지를 보내다, 보낼 메시지. A conversation is 대화, an instruction added
   to an item is 지시. Never 말, 할 말, 이야기, 말을 걸다.

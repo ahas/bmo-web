@@ -61,6 +61,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
   [{ type: "label", label: user.value === null ? "" : name.value }],
   [
     { label: t("settings.title.settings"), icon: "i-material-symbols-settings-outline", onSelect: () => openSettings(settings) },
+    { label: t("desktop.title.page"), icon: "i-material-symbols-desktop-windows-outline", to: "/desktop" },
     {
       label: t("app.label.color_mode"),
       icon: "i-material-symbols-contrast",

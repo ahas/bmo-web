@@ -8,6 +8,13 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { DeployCommit, DeployRunView, DeployView, DeployWaiting, TodoBoard, TodoItem } from "../../apps/web/shared/types";
 
+declare global {
+  interface Window {
+    // The page's measuring tool, once its script is installed.
+    measure?: typeof import("./measure");
+  }
+}
+
 // The title bar and the TODO panel tell one deployment truth (docs/web.md, 「Deployment in the title bar」 and the TODO
 // panel's section): the run under way stands as running with its unit in the bar and on the row whose commit it brings,
 // a deployment waiting in the line stands as waiting its turn with its unit in both, and a deployment that has finished
@@ -250,9 +257,7 @@ describe.skipIf(!origin || !touchReady())("one deployment truth on the title bar
           // The mark's colour, its words' and its icon's alike, against the bar it is drawn on: an icon drawn as a mask
           // paints its own ground in that colour, so the mark itself is what is read.
           const read = await page.evaluate(() => {
-            const scope = window as unknown as { measure: typeof import("./measure") };
-
-            return Math.max(0, ...scope.measure.contrast("[data-title-bar-actions] [data-deploy-mark]").map((one) => one.ratio));
+            return Math.max(0, ...window.measure!.contrast("[data-title-bar-actions] [data-deploy-mark]").map((one) => one.ratio));
           });
 
           expect(read).toBeGreaterThanOrEqual(4.5);

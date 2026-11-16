@@ -323,13 +323,26 @@ export function turnActions(lines: readonly AgentLogLine[]): TurnAction[] {
   return actions;
 }
 
+// The opening of one of the draft process's answer marks, as the receiver's `docs/drafting.md` writes them: doubled
+// angle brackets and a capitalised word, then either the brackets that close the mark or what the mark carries — a
+// reason after a colon, a message's number after a space. Read by its opening, a mark whose reason a bound cut off
+// is still one, and a shell's here-document opening is none.
+const ANSWER_MARK = /<<[A-Z]+(?:>>|:|\s#)/;
+
+// Whether a text the turn wrote holds an answer mark, which makes it a draft of the turn's message: drawn nowhere
+// before the message is sent, and left out whole, since what its mark cut off would leave is the draft itself
+// (docs/web.md, 「Nothing of the answer stands before it is sent」).
+function holdsAnswerMark(text: string): boolean {
+  return ANSWER_MARK.test(text);
+}
+
 // The last thinking block a running turn's picture carries, as its block stands it under the turn's detail: the
-// block with the blank around it taken off, or null where the picture carries none (docs/web.md, the room screen's
-// running line).
+// block with the blank around it taken off, or null where the picture carries none or its block holds an answer mark
+// (docs/web.md, the room screen's running line).
 export function thinkingBlock(progress: RunProgress | null): string | null {
   const block = (progress?.thinking ?? "").trim();
 
-  return block === "" ? null : block;
+  return block === "" || holdsAnswerMark(block) ? null : block;
 }
 
 // How the thinking preview streams its block in: quickly, so many characters a second.
@@ -361,9 +374,10 @@ export function lastAction(progress: RunProgress | null): TurnAction | null {
 }
 
 // What a running turn has written as it works, as its block stands it: the newest of its progress lines, read as the
-// agent's words, and the few before it, oldest first (docs/web.md, the room screen's progress lines).
+// agent's words, and the few before it, oldest first, a line holding an answer mark left out (docs/web.md, the room
+// screen's progress lines).
 export function saidLines(progress: RunProgress | null): { earlier: string[]; newest: string | null } {
-  const said = (progress?.said ?? []).map((line) => line.text).filter((text) => text.trim() !== "");
+  const said = (progress?.said ?? []).map((line) => line.text).filter((text) => text.trim() !== "" && !holdsAnswerMark(text));
 
   return { earlier: said.slice(0, -1), newest: said.at(-1) ?? null };
 }
@@ -372,7 +386,7 @@ export function saidLines(progress: RunProgress | null): { earlier: string[]; ne
 // no co-worker branch's. A run's last text, with no call after it, is its answer or its notes, and so is what it
 // wrote before words handed over — a prompt line, words pushed in — opened its next turn: a draft, a rewrite or a
 // skip a later turn replaced (the receiver's `docs/receiver.md`, 「The event stream」). A failed request's text is
-// no line of the turn's either.
+// no line of the turn's either, and neither is a text holding an answer mark.
 export function progressLines(lines: readonly AgentLogLine[]): AgentLogLine[] {
   const said: AgentLogLine[] = [];
   const held = new Map<string, AgentLogLine[]>();
@@ -382,7 +396,7 @@ export function progressLines(lines: readonly AgentLogLine[]): AgentLogLine[] {
 
     if (line.kind === "prompt") {
       held.delete(line.run);
-    } else if (line.kind === "text" && line.state !== "failed" && line.text.trim() !== "") {
+    } else if (line.kind === "text" && line.state !== "failed" && line.text.trim() !== "" && !holdsAnswerMark(line.text)) {
       held.set(line.run, [...(held.get(line.run) ?? []), line]);
     } else if (line.kind === "tool") {
       said.push(...(held.get(line.run) ?? []));

@@ -1,4 +1,12 @@
-import { describe, expect, test } from "bun:test";
+import { GlobalRegistrator } from "@happy-dom/global-registrator";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { computed, createSSRApp, defineComponent, h } from "vue";
+import { renderToString } from "vue/server-renderer";
+
+import { appFile } from "../../support/render-page";
+
+import type { Component } from "vue";
+import type { RunState } from "../../../apps/web/app/domain/events";
 
 // What a row of the conversation holds while the turn it stands for is still running, and where
 // that row comes from. Both are what a rendered screen would not name — the one says which element
@@ -184,5 +192,89 @@ describe("the draft step on the line", () => {
     const shipped = await Bun.file(new URL("../../../apps/web/app/components/RunProgress.vue", import.meta.url)).text();
 
     expect(shipped).toContain("stateLine(t, props.run.progress, otherAnswererOf(props.run.speaker) === undefined ? props.run.draft ?? null : null)");
+  });
+});
+
+// What the turn writes as a draft of its message is drawn nowhere before the message is sent (docs/web.md, 「Nothing of
+// the answer stands before it is sent」). The block is rendered as the server renders it from a picture holding drafts,
+// with the library's and the app's other components stood in for by ones that draw what they are handed, and the pack
+// read by its keys.
+describe("a picture holding drafts of the turn's message", () => {
+  Object.assign(globalThis, { computed, useI18n: () => ({ t: (key: string) => key }) });
+
+  const drawn = (name: string, prop: string) =>
+    defineComponent({
+      props: { [prop]: { type: null, default: null } },
+      setup(props, { slots }) {
+        return () => h("div", { [`data-stood-${name}`]: "" }, [String(props[prop] ?? ""), slots.default?.()]);
+      }
+    });
+  const standIns: Record<string, Component> = {
+    RollingSentence: drawn("received", "keypath"),
+    ListeningLine: drawn("listening", "name"),
+    ItemTip: drawn("tip", "id"),
+    UChatShimmer: drawn("state", "text"),
+    LastAction: defineComponent({
+      props: { action: { type: Object, required: true }, at: { type: Number, required: true } },
+      setup(props) {
+        return () => h("div", { "data-stood-call": "" }, (props.action as { name: string }).name);
+      }
+    }),
+    ThinkingPreview: drawn("thinking", "text")
+  };
+
+  const run: RunState = {
+    messageId: "41",
+    startedAt: 1_788_490_000,
+    received: { messages: 2, instructions: 0 },
+    progress: {
+      phase: "tool",
+      tool: "assign_worker",
+      thinkingTokens: null,
+      contextTokens: null,
+      cacheReadTokens: null,
+      requestId: null,
+      spent: null,
+      writtenTokens: null,
+      actions: [{ kind: "tool", name: "assign_worker", text: "{}", state: null }],
+      droppedActions: 0,
+      droppedContext: 0,
+      said: [
+        { text: "<<SEND>> **First draft** of the reply", before: 0 },
+        { text: "Looking at the job.", before: 0 },
+        { text: "<<SKIP: the job passed its check and nothing new was sa…", before: 1 }
+      ],
+      thinking: "Weighing the reply.\n<<SEND>> Second draft of the reply"
+    }
+  };
+
+  beforeAll(() => {
+    GlobalRegistrator.register();
+  });
+
+  afterAll(async () => {
+    await GlobalRegistrator.unregister();
+  });
+
+  test("draws none of them and no mark, and still draws what the turn says of its work and what it is doing", async () => {
+    const Progress = ((await import(appFile("components", "RunProgress.vue"))) as { default: Component }).default;
+    const app = createSSRApp({ render: () => h(Progress, { run }) });
+
+    for (const [name, component] of Object.entries(standIns)) app.component(name, component);
+
+    const holder = document.createElement("div");
+
+    holder.innerHTML = await renderToString(app);
+
+    const text = holder.textContent ?? "";
+
+    expect(text).not.toContain("<<");
+    expect(text).not.toContain("draft");
+    expect(text).not.toContain("nothing new");
+    expect(holder.querySelector("[data-said-newest]")?.textContent).toBe("Looking at the job.");
+    expect(holder.querySelectorAll("[data-said-earlier]")).toHaveLength(0);
+    expect(holder.querySelector("[data-stood-thinking]")).toBeNull();
+    expect(holder.querySelector("[data-stood-state]")).not.toBeNull();
+    expect(holder.querySelector("[data-stood-call]")?.textContent).toBe("assign_worker");
   });
 });

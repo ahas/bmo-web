@@ -5243,6 +5243,15 @@ Four bounds keep it from growing forever.
   it standing, so the room is never without them between the first line and the answer. When the answer takes the
   row's place they go with the rest of the running block, and the answer's record stands them again among its calls
   (「What the turn did」).
+- **Nothing of the answer stands before it is sent.** What the turn writes is shown in the block only as what it
+  says of its work. A text holding one of the draft process's answer marks (the receiver's `docs/drafting.md`), such
+  as `<<SEND>>`, `<<SKIP: …>>`, `<<WAIT>>` or `<<REFUSE>>`, is a draft of the turn's message: it may still change,
+  and the message appears only as the message sent. A mark is known by its opening, doubled angle brackets and a
+  capitalised word followed by the brackets that close it or by what it carries, a reason after a colon or a
+  message's number, so a mark whose reason a bound cut off is still one. Such a text is drawn nowhere: not as a
+  progress line, not as the thinking preview, and not among the calls of the answer's record. It is left out whole
+  and never stood with its mark cut off, since what would remain is the draft itself. The console holds to this
+  whatever a unit's picture or log carries.
 - **Thinking, and using a tool** — that one line is the turn's own account of what it is at: the state in the
   pack's words — 생각하는 중 while it only thinks, 답을 쓰는 중, a named tool in use, or the Job it waits on — set as a
   shimmering line at the row's left edge with no name beside it, since the row's header already names the agent.
@@ -5262,7 +5271,8 @@ Four bounds keep it from growing forever.
     it goes on from where the preview stands; another block starts from nothing. A reader who asked for less
     movement sees the tail standing at once.
     - Nothing on it is pressed or scrolled by hand, so a finger moving the conversation passes over it.
-    - A picture carrying none stands nothing there, and the preview goes with the rest of the running block when
+    - A picture carrying none stands nothing there, and neither does one whose block holds an answer mark
+      (「Nothing of the answer stands before it is sent」). The preview goes with the rest of the running block when
       the answer takes the row's place. Thinking is never a message of the room and wears no chip or label of its
       own.
   - **The state names the tool as a person calls it** — 셸, 읽기, 편집, 웹 · web_search — and never by the name the
@@ -5348,7 +5358,8 @@ Four bounds keep it from growing forever.
   - The answer's record stands the turn's progress lines among its calls, each at its moment as one muted line of
     words that wraps: the text lines of a run that a call of the same run follows, read off the same log lines the
     calls are, a co-worker branch's left out. A run's last text, with no call after it, is its answer or its
-    notes and stands as none.
+    notes and stands as none, and so does a text holding an answer mark (「Nothing of the answer stands before it
+    is sent」).
 - **One run with its answer** — the running turn stands in its answer's place, in the same run, with the same name at its head and
   the same photo beside its foot, but on no bubble ground, with no tail and no time (「지금 하는 일」); its meta line
   carries the record and what it has spent on its leading end as the answer's does. What the turn received and the state line are both at

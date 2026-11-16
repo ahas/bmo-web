@@ -331,6 +331,22 @@ describe("what a finished turn did, read back out of its run", () => {
 
     expect(said.map((one) => one.id)).toEqual([3]);
   });
+
+  // docs/web.md, 「Nothing of the answer stands before it is sent」.
+  test("a text holding an answer mark is a draft of the message, never a line, though a call of its run follows it", () => {
+    const said = progressLines([
+      line({ id: 1, kind: "text", text: "<<SEND>> **A draft** of the reply" }),
+      line({ id: 2, kind: "tool", name: "assign_worker", ref: "t1", text: "{}" }),
+      line({ id: 3, kind: "text", text: "Writing it out with cat <<EOF first." }),
+      line({ id: 4, kind: "tool", name: "Bash", ref: "t2", text: "{}" }),
+      line({ id: 5, kind: "text", text: "Done.\n<<REPLY #41>> the reply" }),
+      line({ id: 6, kind: "tool", name: "Read", ref: "t3", text: "{}" }),
+      line({ id: 7, kind: "text", text: "<<SKIP: the job passed its check and nothing new was sa…" }),
+      line({ id: 8, kind: "tool", name: "Read", ref: "t4", text: "{}" })
+    ]);
+
+    expect(said.map((one) => one.id)).toEqual([3]);
+  });
 });
 
 describe("what a running turn has written as it works", () => {

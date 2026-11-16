@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
-import tailwind from "tailwindcss/colors";
 
 import { DEFAULT_PALETTE, PALETTES, paletteDeclarations } from "bmo-ui/shared/palettes";
 import { DEFAULT_THEME, THEMES, themeDeclarations } from "bmo-ui/shared/themes";
+import { CONSOLE_CSS, TONES, libraryTokens } from "./library-tokens";
 import { measureSource } from "./measure-source";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
@@ -26,31 +26,6 @@ type Measured = { measure: typeof import("./measure") };
 // imports and at-rules it has no use for; the browser draws them and the measuring module reads what
 // each ended up as.
 
-(globalThis as { defineAppConfig?: unknown }).defineAppConfig = (config: unknown) => config;
-
-const appConfig = "../../apps/web/app/app.config";
-const { ui } = (await import(appConfig)).default as { ui: { colors: Record<string, string> } };
-const css = await Bun.file(new URL("../../apps/web/app/assets/css/main.css", import.meta.url)).text();
-
-
-// The library's own colour for every token the console does not name for itself.
-const colors: Record<string, string> = { secondary: "blue", success: "green", info: "blue", warning: "yellow", error: "red", ...ui.colors };
-const tones = Object.keys(colors).filter((key) => key !== "neutral");
-const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
-
-function tokens(): string {
-  const scale = Object.entries(colors)
-    .flatMap(([key, name]) => shades.map((shade) => `--ui-color-${key}-${shade}: ${(tailwind as any)[name][shade]};`))
-    .join("\n");
-  const pick = (shade: number) => tones.map((key) => `--ui-${key}: var(--ui-color-${key}-${shade});`).join("\n");
-  const text = (dimmed: number, muted: number, words: number) =>
-    `--ui-text-dimmed: var(--ui-color-neutral-${dimmed}); --ui-text-muted: var(--ui-color-neutral-${muted}); --ui-text: var(--ui-color-neutral-${words});`;
-
-  return `:root { ${scale} }
-    :root { ${pick(500)} ${text(400, 500, 700)} --ui-bg: #fff; --ui-bg-muted: var(--ui-color-neutral-50); --ui-bg-elevated: var(--ui-color-neutral-100); }
-    .dark { ${pick(400)} ${text(500, 400, 200)} --ui-bg: var(--ui-color-neutral-900); --ui-bg-muted: var(--ui-color-neutral-800); --ui-bg-elevated: var(--ui-color-neutral-800); }`;
-}
-
 // What one bubble carries: the letters on the bubble itself, a chip opened or hovered — its muted
 // letters and the verdict mark's colours on its wash of those letters — and every theme colour as a soft badge's
 // words on its own wash.
@@ -58,12 +33,12 @@ function bubble(side: string, ground: string): string {
   const read = (name: string, colour: string) => `<span data-read="${side} ${name}" style="color: ${colour}">16:56</span>`;
   const marks = ["success", "error"].map((key) => read(`mark on chip ${key}`, `var(--chat-mark-${key})`)).join("")
     + read("mark on chip neutral", "var(--ui-text-dimmed)");
-  const badges = tones.map((key) =>
+  const badges = TONES.map((key) =>
     `<span class="wash" style="color: var(--ui-${key})"><span data-read="${side} badge ${key}${KO.line_61}`).join("");
 
   return `<div class="chat-bubble ${ground}" data-surface="${side} ground">
     ${read("words", "var(--ui-text)")}${read("muted", "var(--ui-text-muted)")}${read("dimmed", "var(--ui-text-dimmed)")}
-    ${tones.map((key) => read(key, `var(--ui-${key})`)).join("")}
+    ${TONES.map((key) => read(key, `var(--ui-${key})`)).join("")}
     <span class="wash" style="color: var(--ui-text-muted)"><span data-read="${side} chip letters">1</span>${marks}</span>
     ${badges}
     <span class="surface" data-surface="${side} raised" style="background: var(--ui-bg-elevated)">${read("panel words", "var(--ui-text)")}${read("panel muted", "var(--ui-text-muted)")}${read("panel dot icon", "var(--ui-text-dimmed)")}</span>
@@ -75,7 +50,7 @@ function bubble(side: string, ground: string): string {
 }
 
 function fixture(): string {
-  return `<style>${tokens()}</style><style>${css}</style><style>
+  return `<style>${libraryTokens()}</style><style>${CONSOLE_CSS}</style><style>
     body { margin: 0; font: 400 14px sans-serif; background: var(--ui-bg); }
     .chat-bubble { background: var(--bubble); padding: 8px 12px; }
     .wash { background: color-mix(in oklab, currentcolor 10%, transparent); }
@@ -189,7 +164,7 @@ describe.skipIf(!ready)("what reads on a bubble", () => {
       for (const look of LOOKS) {
         const ratios = await measured(theme, undefined, look);
 
-        expect(Object.keys(ratios)).toHaveLength(2 * (2 * tones.length + 13));
+        expect(Object.keys(ratios)).toHaveLength(2 * (2 * TONES.length + 13));
         expect([look.id, short(ratios)]).toEqual([look.id, []]);
       }
 

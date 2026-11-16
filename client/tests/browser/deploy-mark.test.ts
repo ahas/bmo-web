@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { wording } from "../../apps/web/shared/wording";
+import { measureSource } from "./measure-source";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import { DEPLOY_ICON } from "../../apps/web/app/domain/deploy";
@@ -204,6 +205,92 @@ describe.skipIf(!origin || !touchReady())("the deployment's mark", () => {
       await context.close();
     }
   }, 90_000);
+
+  // The mark's words in the warning's and the error's tone read at 4.5:1 or better in both themes (docs/web.md,
+  // 「Colour」): wide, beside the mark on the bar, at rest and hovered, where the ghost button lays its tint under
+  // them; at phone width, heading the popover the mark opens. A run the testbed refused stands the warning's tone and
+  // one that failed the error's.
+  test("reads its warning and error words at 4.5:1 or better on the bar and the popover's head in both themes", async () => {
+    const at = cookie.indexOf("=");
+    const ended = (end: "refused" | "failed"): DeployView => ({ release: "release-a", detailed: true, hold: null, run: { ...run("ended", "check"), end } });
+    const short: string[] = [];
+
+    for (const scheme of ["light", "dark"] as const) {
+      const context = await browser!.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: scheme, serviceWorkers: "block" });
+      let shown = ended("refused");
+
+      await context.addCookies([
+        { name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! },
+        { name: "nuxt-color-mode", value: scheme, url: origin! }
+      ]);
+      await context.route(/\/api\/deploy$/, (route) => route.fulfill({ json: shown }));
+      await context.route(/\/api\/deploy\/log$/, (route) => route.fulfill({ json: [] }));
+      await context.route(/\/api\/events(\?|$)/, (route) =>
+        route.fulfill({ contentType: "text/event-stream", body: `retry: 300\n\nevent: deploy\ndata: {}\n\n` })
+      );
+
+      try {
+        const page = await context.newPage();
+        const words = "[data-title-bar-actions] [data-deploy-mark] > span:last-child";
+        const head = "[data-deploy-status] > span:last-child";
+        // The lowest ratio the words matched are drawn at.
+        const lowest = (selector: string): Promise<number> =>
+          page.evaluate((selector) => Math.min(...(window as unknown as { measure: typeof import("./measure") }).measure.contrast(selector).map((one) => one.ratio)), selector);
+
+        await page.goto(`${origin}/`, { waitUntil: "load" });
+        await page.addScriptTag({ type: "module", content: `${measureSource()}\ninstall();` });
+        await page.waitForFunction(() => "measure" in window);
+
+        for (const [end, tone] of [["refused", "warning"], ["failed", "error"]] as const) {
+          shown = ended(end);
+          await page.setViewportSize({ width: 1280, height: 800 });
+
+          const mark = page.locator(`[data-title-bar-actions] [data-deploy-mark][aria-label^="${wording(`deploy.status.${end}`)}"]`);
+
+          await mark.waitFor({ timeout: 20_000 });
+          expect(await mark.evaluate((node) => node.className)).toContain(`text-${tone}`);
+
+          const rest = await lowest(words);
+
+          await mark.hover();
+          // The hover's tint fades in, so it is read once two reads a tenth of a second apart agree.
+          await page.waitForFunction(
+            (selector) => {
+              const scope = window as unknown as { hoverGround?: string };
+              const now = getComputedStyle(document.querySelector(selector)!).backgroundColor;
+              const settled = now === scope.hoverGround && now !== "rgba(0, 0, 0, 0)";
+
+              scope.hoverGround = now;
+
+              return settled;
+            },
+            "[data-title-bar-actions] [data-deploy-mark]",
+            { polling: 100 }
+          );
+
+          const hovered = await lowest(words);
+
+          await page.mouse.move(0, 799);
+          await page.setViewportSize({ width: 360, height: 800 });
+          await mark.click();
+          await page.locator(head).waitFor({ timeout: 10_000 });
+
+          const headed = await lowest(head);
+
+          await page.keyboard.press("Escape");
+          await page.locator(head).waitFor({ state: "detached", timeout: 10_000 });
+
+          for (const [where, ratio] of [["bar", rest], ["bar hovered", hovered], ["popover head", headed]] as const) {
+            if (!(ratio >= 4.5)) short.push(`${scheme} ${tone} ${where} ${ratio}`);
+          }
+        }
+      } finally {
+        await context.close();
+      }
+    }
+
+    expect(short).toEqual([]);
+  }, 120_000);
 
   // The popover opens on the stages, the mark's own words heading it at phone width alone, since a wide bar already
   // says them; what goes up stands folded to its first three entries and how many more, a press opening it whole in

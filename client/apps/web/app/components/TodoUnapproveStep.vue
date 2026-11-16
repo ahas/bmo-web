@@ -11,10 +11,7 @@
     <p class="text-muted">{{ $t("todo.message.unapprove_effect") }}</p>
     <div class="flex flex-wrap justify-end gap-2">
       <UButton size="sm" color="neutral" variant="ghost" :label="$t('common.action.cancel')" :disabled="props.busy" @click="emit('cancel')" />
-      <!-- The light theme's warning fill is too pale under a white word, so the button takes the
-           darker step every badge does (main.css). -->
       <UButton
-        class="badge-ink"
         size="sm"
         color="warning"
         :label="$t('todo.action.unapprove')"

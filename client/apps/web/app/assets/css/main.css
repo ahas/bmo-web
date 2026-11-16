@@ -125,6 +125,26 @@
   --chat-page: var(--ui-bg);
 }
 
+/* The warning's and the error's steps (docs/web.md, 「Colour」). The library paints both from their 500 in the
+   light theme, and as words those read at about 1.9:1 (the warning's bright yellow) and 3.8:1 (the error's red) on
+   white, less on their own tints. So the light theme paints both from their 800, at which their words read at
+   4.5:1 or better on every surface and under every tint of their own colour, hovered included, and a white word
+   reads on their fill. In the dark theme the warning's 400 reads, and the error's 400 falls short under its hover
+   tint on a muted or raised surface, so the error takes its 300. The token itself takes the step, so words, edges,
+   tints and fills follow it together, and so does a screen a unit brings. The dark rule stands after the light
+   one, so the dark root, which both match, takes it, and each mode states it on its own class so a box drawn in
+   a mode the page is not in reads it for itself. */
+:root,
+.light {
+  --ui-warning: var(--ui-color-warning-800);
+  --ui-error: var(--ui-color-error-800);
+}
+
+.dark {
+  --ui-warning: var(--ui-color-warning-400);
+  --ui-error: var(--ui-color-error-300);
+}
+
 /* The console's ANSI palette (docs/web.md, 「A tool call」): the terminal colours a tool call's prompt is drawn in,
    oh-my-zsh's pure theme read onto them, each at the step that reads on the screen's own surface in its mode. */
 :root,
@@ -609,9 +629,10 @@
 }
 
 /* A row the settings search brought into view holds a tint while it is found and lets it go on the shared unfold
-   length (docs/web.md, the settings search); a reader who asked for less movement sees it go at once. */
+   length (docs/web.md, the settings search); a reader who asked for less movement sees it go at once. The tint is a
+   tenth of the warning, a light wash in both themes, so the row's words read on it nearly as well as on the bare row. */
 .settings-hit {
-  background-color: color-mix(in oklab, var(--ui-warning) 25%, transparent);
+  background-color: color-mix(in oklab, var(--ui-warning) 10%, transparent);
 }
 
 /* A settings table is laid out as a spreadsheet (docs/web.md, 「Agent management screen」): by its columns' own widths

@@ -3,7 +3,7 @@
        gave. The same mark `bun scripts/running.ts` prints. It is a line of the row, with no hover or press of its own:
        the row opens by its title. It reads the panel's clock itself, so a tick redraws this line alone, and only once
        its words change (docs/web.md, the TODO panel's section). -->
-  <p class="flex items-start gap-1 pt-1 text-sm break-words" :class="overdue ? 'badge-ink text-warning' : 'text-muted'">
+  <p class="flex items-start gap-1 pt-1 text-sm break-words" :class="overdue ? 'text-warning' : 'text-muted'">
     <UIcon name="i-material-symbols-hourglass-top" class="mt-0.5 size-4 shrink-0" />
     <SearchText class="min-w-0" :text="line" :query="query" />
   </p>

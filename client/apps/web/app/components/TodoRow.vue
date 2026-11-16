@@ -64,7 +64,7 @@
 
     <!-- A stopped order at the head of its worker's queue says its turn alone, one short line; what stopped it and
          why it waits stand whole in the item's detail, and how many times it failed is a badge below. -->
-    <p v-if="stoppedLine($t, item) !== null" key="stopped" class="badge-ink pt-1 text-sm break-words text-warning">
+    <p v-if="stoppedLine($t, item) !== null" key="stopped" class="pt-1 text-sm break-words text-warning">
       <SearchText :text="stoppedLine($t, item) ?? ''" :query="query" />
     </p>
 

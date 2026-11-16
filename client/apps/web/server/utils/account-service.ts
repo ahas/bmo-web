@@ -237,6 +237,12 @@ export interface ServiceUser {
   senders: number[];
 }
 
+/** The name a user is shown by: their person's name, their login where none stands (docs/accounts.md, 「Users and
+ * senders」). */
+export function shownName(user: { name: string; fullName: string }): string {
+  return user.fullName === "" ? user.name : user.fullName;
+}
+
 const userPath = (user: UserId | number) => String(user);
 
 /** A user, or null where none has that id. */

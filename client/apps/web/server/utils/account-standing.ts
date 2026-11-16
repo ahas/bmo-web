@@ -1,4 +1,4 @@
-import { userNode, userOf } from "./account-service";
+import { shownName, userNode, userOf } from "./account-service";
 import { agency, agencyCall } from "./agency";
 import { standRecordIdentity } from "./console-rooms";
 import { readSupervisors } from "./axes";
@@ -97,7 +97,7 @@ export async function followPersonName(user: number, before = ""): Promise<void>
 function nameOf(user: number, person: { name: string; fullName: string } | null): string {
   if (person === null) return `u${user}`;
 
-  return person.fullName === "" ? person.name : person.fullName;
+  return shownName(person);
 }
 
 async function standAgents(user: number): Promise<void> {

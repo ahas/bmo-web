@@ -19,7 +19,7 @@ const GRANTED = 9_000_000_000_103;
 
 const receiver = standIn("RECEIVER", (one) => {
   if (one.path === `/rooms/${ROOM}/accounts`) return answer({ accounts: [{ account: "7", addedBy: null, addedAt: 1 }, { account: "12", addedBy: "7", addedAt: 2 }] });
-  if (one.path === "/rooms/-12/accounts") return answer({ accounts: [{ account: "12", addedBy: null, addedAt: 1 }] });
+  if (one.path === "/rooms/-12/accounts") return answer({ accounts: [{ account: "12", addedBy: null, addedAt: 1 }, { account: "13", addedBy: "12", addedAt: 2 }] });
   if (one.path.endsWith("/accounts")) return answer({ accounts: [] });
   // Whose private room each room is: -14 is an account's own private room, -15 a sealed one, every other room no one's.
   if (/^\/rooms\/-?\d+$/.test(one.path)) {
@@ -45,14 +45,15 @@ const receiver = standIn("RECEIVER", (one) => {
 });
 
 // The account service links the known member to a user who signs in, and the granted one to a user made by a grant,
-// who cannot; a room asked for after that refuses the lookup.
+// who cannot; user 12 has a person's name and every other user its login alone; a room asked for after that refuses
+// the lookup.
 let accountsAnswer = true;
 const server = standIn("WEB_SERVER", (one) => {
   if (!accountsAnswer) return answer({ code: "database", error: "The database did not answer." }, 500);
 
   const user = one.path.match(/^\/users\/(\d+)$/)?.[1];
 
-  if (user !== undefined) return answer({ user, name: `account-${user}`, administrator: false, senders: [] });
+  if (user !== undefined) return answer({ user, name: `account-${user}`, fullName: user === "12" ? "person-12" : "", administrator: false, senders: [] });
 
   return answer({
     links: [
@@ -74,7 +75,7 @@ describe("a room's members", () => {
         { person: UNKNOWN, name: "member-b", status: null, account: null, inConsole: false },
         { person: GRANTED, name: "member-c", status: null, account: null, inConsole: false },
         { person: null, name: "member-d", status: "status-d", account: null, inConsole: false },
-        { person: null, name: "account-12", status: null, account: "12", inConsole: true }
+        { person: null, name: "person-12", status: null, account: "12", inConsole: true }
       ],
       mayLetIn: true
     });
@@ -91,9 +92,12 @@ describe("a room's members", () => {
     expect((await asked(read, { params: { chatId: "-15" } })).answer?.mayLetIn).toBe(false);
   });
 
-  test("of a room no chat service carries are its accounts alone", async () => {
+  test("of a room no chat service carries are its accounts alone, each by its person's name, its login where none stands", async () => {
     expect((await asked(read, { params: { chatId: "-12" } })).answer).toEqual({
-      members: [{ person: null, name: "account-12", status: null, account: "12", inConsole: true }],
+      members: [
+        { person: null, name: "person-12", status: null, account: "12", inConsole: true },
+        { person: null, name: "account-13", status: null, account: "13", inConsole: true }
+      ],
       mayLetIn: true
     });
   });

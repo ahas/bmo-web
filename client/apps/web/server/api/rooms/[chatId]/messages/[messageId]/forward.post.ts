@@ -1,5 +1,6 @@
 import { wording } from "#shared/wording";
 
+import { accountShownName } from "../../../../../utils/console-rooms";
 import { ownerHeaders } from "../../../../../utils/owner-key";
 import { requireWritableRoom } from "../../../../../utils/room-reach";
 import { MESSAGE_IDS, receiverRoute } from "../../../../../utils/receiver";
@@ -35,7 +36,7 @@ export default defineEventHandler(async (event): Promise<ForwardedMessage> => {
 
   const answered = await receiverRoute<unknown>(
     `/rooms/${chatId}/messages/${messageId}/forwards`,
-    { method: "POST", body: { to, ...(signed.id === null ? {} : { account: signed.id, name: signed.name }) }, headers: ownerHeaders(signed) },
+    { method: "POST", body: { to, ...(signed.id === null ? {} : { account: signed.id, name: await accountShownName(signed.id, signed.name) }) }, headers: ownerHeaders(signed) },
     { passStatus: [403], exactIds: MESSAGE_IDS }
   );
 

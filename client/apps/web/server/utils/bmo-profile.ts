@@ -1,6 +1,6 @@
 import { wording } from "#shared/wording";
 
-import { bmoPictureOf, standingBmoOf, userOf } from "./account-service";
+import { bmoPictureOf, shownName, standingBmoOf, userOf } from "./account-service";
 import { agency, agencyCall } from "./agency";
 import { supervisorOwner } from "./axes";
 import { OWNER_ROLE_HEADER } from "./owner-key";
@@ -82,7 +82,7 @@ const AS_ADMINISTRATOR = { [OWNER_ROLE_HEADER]: "administrator" };
 function personName(user: number, person: { name: string; fullName: string } | null): string {
   if (person === null) return `u${user}`;
 
-  return person.fullName === "" ? person.name : person.fullName;
+  return shownName(person);
 }
 
 async function logged(user: number, what: string, act: () => Promise<unknown>): Promise<void> {

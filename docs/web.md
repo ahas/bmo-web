@@ -4904,8 +4904,11 @@ Four bounds keep it from growing forever.
     is chosen too.
 - **입력창** — words written here go up to that room as is, as the words of the account that wrote them. The console
   hands the receiver the words with the signed-in account and the name it is shown by (`POST /rooms/{roomId}/words`, and
-  `word-files` for files and a voice note), and the receiver files them under that account's own sender: the owner's own sender for the owner's
-  account, and for every other account its identity on the record road, made the first time it is needed
+  `word-files` for files and a voice note): the person's name, the login where none stands, read from the account
+  service at each send, so a name its holder or an administrator changed goes with the account's next words whichever
+  session carried the old one, and the login where the service does not answer. The receiver names the account's
+  sender by the name its latest words carried, and files them under that account's own sender: the owner's own
+  sender for the owner's account, and for every other account its identity on the record road, made the first time it is needed
   (`docs/accounts.md`, 「Users and senders」). A person's words therefore enter as their own, never under another's
   name or the owner's, and what is granted to the owner follows his account, never the console it was typed in
   (`STRUCTURE.md`, 「Accounts, companies and units」). No console route says words through the receiver's owner
@@ -5611,8 +5614,9 @@ Four bounds keep it from growing forever.
   people the chat service carrying the room read as its members (`GET /rooms/{roomId}/members`), each read every time
   the sheet opens (`docs/boundary.md`, 「Gaps the console meets」). The chat service's people stand first in the
   receiver's order, each marked with the account they are where the account service knows one; then every console
-  member not among them, by their account's name. A room no chat service carries has the console's members alone,
-  and the receiver's refusal to read its chat service's members says nothing there. Nothing of them is kept in the
+  member not among them, by the name their account is shown by: the person's name, the login where none stands. A
+  room no chat service carries has the console's members alone, and the receiver's refusal to read its chat
+  service's members says nothing there. Nothing of them is kept in the
   console. While the first read runs, the place of one row stands as its skeleton: every room holds at least the
   account that reads it, so the list that lands is never shorter.
 - **Each member is a row:** their face, their name, and under it the status line their chat service read where it
@@ -6825,7 +6829,9 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   differs. The account's holder or an administrator reads and writes it; the console hands the login's own user
   and role to the service, and another login's call is refused.
 - **A changed person's name is followed at once:** the person's own BMO and its private room take the titles
-  made from it (「The join page」), and the reader's own session takes it, so the user menu names them by it.
+  made from it (「The join page」), and the reader's own session takes it, so the user menu names them by it. The
+  receiver's sender of the account takes it with the account's next words or forward, since the receiver states no
+  route that names a sender apart from words (`docs/boundary.md`, 「Gaps the console meets」).
 
 #### 내 BMO
 

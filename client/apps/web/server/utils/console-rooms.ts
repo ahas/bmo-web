@@ -1,6 +1,6 @@
 import { wording } from "#shared/wording";
 
-import { linkSender, listUsers } from "./account-service";
+import { linkSender, listUsers, shownName, userOf } from "./account-service";
 import { fail } from "./fail";
 import { onOwnersRoad } from "./owner";
 import { moveAdministratorKey } from "./owner-key";
@@ -207,6 +207,23 @@ export async function openRecordRoom(title: string, supervisor: string, openedBy
   return { id: said.id, title: typeof said.title === "string" ? said.title : null };
 }
 
+/**
+ * The name the console hands the receiver for an account: the name it is shown by, read from the account service at
+ * each call, so a name its holder or an administrator changed stands on the account's next words whoever's session
+ * carried the old one. Where the service does not answer, the login stands, so words are never refused for a name.
+ */
+export async function accountShownName(account: number, login: string): Promise<string> {
+  try {
+    const user = await userOf(account);
+
+    return user === null ? login : shownName(user);
+  } catch (error) {
+    console.warn(`account ${account}: its shown name could not be read, so its login stands: ${String(error)}`);
+
+    return login;
+  }
+}
+
 /** Whose words a console send stands under: the signed-in account with the name it is shown by, or the owner's own
  * route for a console login standing before the account model, which is the owner's alone and has no account, and for
  * the owner's account while the owner's sender stands linked to none (docs/web.md, the room screen's input box). Any
@@ -215,7 +232,7 @@ export type Speaker = { account: string; name: string } | "owner";
 
 export async function speakerOf(signed: SignedIn): Promise<Speaker> {
   if (await onOwnersRoad(signed)) return "owner";
-  if (signed.id !== null) return { account: String(signed.id), name: signed.name };
+  if (signed.id !== null) return { account: String(signed.id), name: await accountShownName(signed.id, signed.name) };
 
   throw fail(403, wording("room.error.no_account"));
 }

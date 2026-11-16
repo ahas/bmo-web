@@ -43,10 +43,23 @@ const receiver = standIn("RECEIVER", (one) => {
 
 standIn("AGENCY", () => answer({ items: [] }));
 
+// The account service holds the member with a person's name, which every send names them by whatever their session
+// carries, and the administrator by his login alone.
+const PEOPLE: Readonly<Record<string, { name: string; fullName: string }>> = {
+  "1": { name: "boss", fullName: "" },
+  "7": { name: "member-a", fullName: "person-a" }
+};
+
 standIn("WEB_SERVER", (one) => {
   const user = one.path.match(/^\/users\/(\d+)$/)?.[1];
 
-  if (user !== undefined) return answer({ user, name: `account-${user}`, administrator: user === "1", senders: user === "1" ? [OWNER_SENDER] : [] });
+  // A user the service fails to answer, whose words still go out under the login the session carries.
+  if (user === "9") return answer({ code: "database", error: "The database did not answer." }, 500);
+  if (user !== undefined) {
+    const person = PEOPLE[user] ?? { name: `account-${user}`, fullName: "" };
+
+    return answer({ user, ...person, administrator: user === "1", senders: user === "1" ? [OWNER_SENDER] : [] });
+  }
 
   return answer({ code: "forbidden", error: "Not this one." }, 403);
 });
@@ -68,6 +81,7 @@ const attach = await routeOf<SentAttachments>("../../apps/web/server/api/rooms/[
 const voice = await routeOf<SentMessage>("../../apps/web/server/api/rooms/[chatId]/voice.post");
 const talk = await routeOf<{ ok: true }>("../../apps/web/server/api/documents/talk.post");
 const talkRead = await routeOf<unknown>("../../apps/web/server/api/documents/talk.get");
+const { accountShownName } = await import("../../../apps/web/server/utils/console-rooms");
 
 const file = (name: string) => ({ name: "file", filename: name, type: "text/plain", data: new TextEncoder().encode("words") });
 const field = (name: string, value: string) => ({ name, data: new TextEncoder().encode(value) });
@@ -78,7 +92,7 @@ const owners = () => receiver.asked.filter((one) => one.path.startsWith("/owner/
 const sends = () => receiver.asked.filter((one) => one.method !== "GET");
 
 describe("a member's words", () => {
-  test("are said under the member's own account and never through the owner's routes", async () => {
+  test("are said under the member's own account and the person's name, and never through the owner's routes", async () => {
     session = MEMBER;
     receiver.asked.length = 0;
 
@@ -86,7 +100,7 @@ describe("a member's words", () => {
 
     expect(said.answer).toEqual({ messageId: HIGH });
     expect(sends().map((one) => [one.method, one.path, one.body])).toEqual([
-      ["POST", `/rooms/${GROUP}/words`, { account: 7, name: "member-a", text: "hello", replyTo: 21 }]
+      ["POST", `/rooms/${GROUP}/words`, { account: 7, name: "person-a", text: "hello", replyTo: 21 }]
     ]);
   });
 
@@ -104,7 +118,7 @@ describe("a member's words", () => {
     // The room is the path's alone, and the account and its shown name stand beside the files.
     for (const one of sends()) {
       expect(one.raw).toMatch(/name="account"\r\n\r\n7\r\n/);
-      expect(one.raw).toMatch(/name="name"\r\n\r\nmember-a\r\n/);
+      expect(one.raw).toMatch(/name="name"\r\n\r\nperson-a\r\n/);
       expect(one.raw).not.toContain('name="chatId"');
     }
 
@@ -132,6 +146,12 @@ describe("a member's words", () => {
     session = MEMBER;
 
     expect(await asked(talkRead, { query: { root: "docs", path: "a.md" } })).toMatchObject({ status: 403, message: wording("documents.error.talk_owner_only") });
+  });
+});
+
+describe("the name an account's words carry", () => {
+  test("is the login where the account service does not answer, so the words are never refused for a name", async () => {
+    expect(await accountShownName(9, "member-c")).toBe("member-c");
   });
 });
 

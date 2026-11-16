@@ -553,6 +553,11 @@ for it, and no file or table of that unit is read meanwhile.
   chat-service members is read as a room no chat service carries, whose members are its accounts alone. While the
   receiver serves no route for an account's memberships or a room's accounts, its `no-route` refusal of either reads
   as none, so a room stands as its other roads give it.
+- **A person's name on the record.** The receiver names an account's sender by the `name` the account's latest
+  words, files or forward carried, and states no route that names a sender apart from them; its record identity
+  route takes no name. So a person's name saved on the profile reaches the receiver with the account's next words,
+  each send carrying the name read from the account service as it goes, and until then the receiver's readings show
+  the name it last carried.
 - **A field a route answers that the published types leave untyped.** The agency's client types every route the
   console reads; where a field is typed as an open value — a supervisor's `sampling`, a repository's `sampling` — the
   console reads it as the agency's `docs/api.md` states it, a field it does not find standing as none. The client names

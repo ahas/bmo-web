@@ -1,6 +1,6 @@
 import { wording } from "#shared/wording";
 
-import { AccountRefusal, AccountServiceDown, senderLinks, userOf } from "./account-service";
+import { AccountRefusal, AccountServiceDown, senderLinks, shownName, userOf } from "./account-service";
 import { roomAccounts } from "./console-rooms";
 import { fail } from "./fail";
 import { RECEIVER_CODES } from "./receiver";
@@ -83,10 +83,14 @@ async function consoleAccounts(people: readonly number[]): Promise<Map<number, s
   }
 }
 
-// The names of the accounts let into the room that its chat service does not list, each by its account's name.
+// The names of the accounts let into the room that its chat service does not list, each by the name it is shown by.
 async function accountNames(accounts: readonly string[]): Promise<Map<string, string>> {
   try {
-    const users = await Promise.all(accounts.map(async (account) => [account, (await userOf(account))?.name ?? null] as const));
+    const users = await Promise.all(accounts.map(async (account) => {
+      const user = await userOf(account);
+
+      return [account, user === null ? null : shownName(user)] as const;
+    }));
 
     return new Map(users.flatMap(([account, name]) => (name === null ? [] : [[account, name] as const])));
   } catch (error) {

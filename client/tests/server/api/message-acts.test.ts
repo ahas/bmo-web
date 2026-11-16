@@ -70,6 +70,13 @@ const receiver = standIn("RECEIVER", (one) => {
   return answer(MESSAGE);
 }, { headers: true });
 
+// The account service holds the signed-in account with a person's name, the name a forward carries for it.
+standIn("WEB_SERVER", (one) => {
+  if (one.path === "/users/1") return answer({ user: "1", name: "tester", fullName: "person-a", administrator: true, senders: [] });
+
+  return answer({ code: "failed", error: "Not served here." }, 500);
+});
+
 const react = await routeOf<MessageAct>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/reaction.put");
 const unreact = await routeOf<MessageAct>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/reaction.delete");
 const pin = await routeOf<MessageAct>("../../apps/web/server/api/rooms/[chatId]/messages/[messageId]/pin.put");
@@ -151,12 +158,12 @@ describe("the reader's own acts on a message", () => {
 });
 
 describe("a message the owner forwards", () => {
-  test("copies it into the room the picker chose, as the forwarding account, and answers where the copy stands", async () => {
+  test("copies it into the room the picker chose, as the forwarding account under its person's name, and answers where the copy stands", async () => {
     receiver.asked.length = 0;
 
     expect((await asked(forward, { params: params("21"), body: { to: "-8" } })).answer).toEqual({ room: -8, messageId: "77" });
     expect(acts().map((one) => [one.method, one.path, one.body, one.headers?.["owner-key"], one.headers?.["owner-role"]])).toEqual([
-      ["POST", "/rooms/-7/messages/21/forwards", { to: -8, account: 1, name: "tester" }, "1", "administrator"]
+      ["POST", "/rooms/-7/messages/21/forwards", { to: -8, account: 1, name: "person-a" }, "1", "administrator"]
     ]);
   });
 
